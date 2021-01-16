@@ -394,8 +394,7 @@ pub fn handle_ability1_input(data: &JoinData, update: &mut StateUpdate) {
                         ItemKind::Tool(tool) => Some(tool.kind),
                         _ => None,
                     };
-                    a.clone()
-                        .adjusted_by_skills(&data.stats.skill_set.skills, tool)
+                    a.clone().adjusted_by_skills(&data.stats.skill_set, tool)
                 })
             })
             .filter(|ability| ability.requirements_paid(data, update))
@@ -439,8 +438,7 @@ pub fn handle_ability2_input(data: &JoinData, update: &mut StateUpdate) {
                                 ItemKind::Tool(tool) => Some(tool.kind),
                                 _ => None,
                             };
-                            a.clone()
-                                .adjusted_by_skills(&data.stats.skill_set.skills, tool)
+                            a.clone().adjusted_by_skills(&data.stats.skill_set, tool)
                         })
                     })
                     .filter(|ability| ability.requirements_paid(data, update))
@@ -458,8 +456,7 @@ pub fn handle_ability2_input(data: &JoinData, update: &mut StateUpdate) {
                                 ItemKind::Tool(tool) => Some(tool.kind),
                                 _ => None,
                             };
-                            a.clone()
-                                .adjusted_by_skills(&data.stats.skill_set.skills, tool)
+                            a.clone().adjusted_by_skills(&data.stats.skill_set, tool)
                         })
                     })
                     .filter(|ability| ability.requirements_paid(data, update))
@@ -486,12 +483,12 @@ pub fn handle_ability3_input(data: &JoinData, update: &mut StateUpdate) {
                     .ability3
                     .as_ref()
                     .and_then(|s| match tool {
+                        // TODO: Make this so abilities aren't hardcoded to ability3
                         Some(ToolKind::Sword)
                             if !&data
                                 .stats
                                 .skill_set
-                                .skills
-                                .contains_key(&Skill::Sword(SwordSkill::UnlockSpin)) =>
+                                .has_skill(Skill::Sword(SwordSkill::UnlockSpin)) =>
                         {
                             None
                         },
@@ -499,8 +496,7 @@ pub fn handle_ability3_input(data: &JoinData, update: &mut StateUpdate) {
                             if !&data
                                 .stats
                                 .skill_set
-                                .skills
-                                .contains_key(&Skill::Axe(AxeSkill::UnlockLeap)) =>
+                                .has_skill(Skill::Axe(AxeSkill::UnlockLeap)) =>
                         {
                             None
                         },
@@ -508,8 +504,7 @@ pub fn handle_ability3_input(data: &JoinData, update: &mut StateUpdate) {
                             if !&data
                                 .stats
                                 .skill_set
-                                .skills
-                                .contains_key(&Skill::Hammer(HammerSkill::UnlockLeap)) =>
+                                .has_skill(Skill::Hammer(HammerSkill::UnlockLeap)) =>
                         {
                             None
                         },
@@ -517,8 +512,7 @@ pub fn handle_ability3_input(data: &JoinData, update: &mut StateUpdate) {
                             if !&data
                                 .stats
                                 .skill_set
-                                .skills
-                                .contains_key(&Skill::Bow(BowSkill::UnlockRepeater)) =>
+                                .has_skill(Skill::Bow(BowSkill::UnlockRepeater)) =>
                         {
                             None
                         },
@@ -526,17 +520,13 @@ pub fn handle_ability3_input(data: &JoinData, update: &mut StateUpdate) {
                             if !&data
                                 .stats
                                 .skill_set
-                                .skills
-                                .contains_key(&Skill::Staff(StaffSkill::UnlockShockwave)) =>
+                                .has_skill(Skill::Staff(StaffSkill::UnlockShockwave)) =>
                         {
                             None
                         },
                         _ => Some(s),
                     })
-                    .map(|a| {
-                        a.clone()
-                            .adjusted_by_skills(&data.stats.skill_set.skills, tool)
-                    })
+                    .map(|a| a.clone().adjusted_by_skills(&data.stats.skill_set, tool))
             })
             .filter(|ability| ability.requirements_paid(data, update))
         {
@@ -553,10 +543,10 @@ pub fn handle_dodge_input(data: &JoinData, update: &mut StateUpdate) {
             .inventory
             .equipped(EquipSlot::Mainhand)
             .and_then(|i| {
-                i.item_config_expect().dodge_ability.as_ref().map(|a| {
-                    a.clone()
-                        .adjusted_by_skills(&data.stats.skill_set.skills, None)
-                })
+                i.item_config_expect()
+                    .dodge_ability
+                    .as_ref()
+                    .map(|a| a.clone().adjusted_by_skills(&data.stats.skill_set, None))
             })
             .filter(|ability| ability.requirements_paid(data, update))
         {

@@ -28,7 +28,6 @@ use conrod_core::{
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
-use inline_tweak::*;
 use vek::*;
 
 widget_ids! {
@@ -222,7 +221,7 @@ impl<'a> Widget for Skillbar<'a> {
 
         let localized_strings = self.localized_strings;
 
-        let slot_offset = tweak!(3.0);
+        let slot_offset = 3.0;
 
         // Death message
         if self.health.is_dead {
@@ -277,11 +276,7 @@ impl<'a> Widget for Skillbar<'a> {
         let show_stamina = self.energy.current() != self.energy.maximum();
 
         if show_health && !self.health.is_dead {
-            let offset = if show_stamina {
-                tweak!(1.0)
-            } else {
-                tweak!(1.0)
-            };
+            let offset = 1.0;
             Image::new(self.imgs.health_bg)
                 .w_h(484.0, 24.0)
                 .mid_top_with_margin_on(state.ids.frame, -offset)
@@ -306,11 +301,7 @@ impl<'a> Widget for Skillbar<'a> {
                 .set(state.ids.frame_health, ui);
         }
         if show_stamina && !self.health.is_dead {
-            let offset = if show_health {
-                tweak!(34.0)
-            } else {
-                tweak!(1.0)
-            };
+            let offset = if show_health { 34.0 } else { 1.0 };
             Image::new(self.imgs.stamina_bg)
                 .w_h(323.0, 16.0)
                 .mid_top_with_margin_on(state.ids.frame, -offset)
@@ -533,7 +524,7 @@ impl<'a> Widget for Skillbar<'a> {
         let slot = slot_maker
             .fabricate(hotbar::Slot::Four, [40.0; 2])
             .filled_slot(self.imgs.skillbar_slot)
-            .right_from(state.ids.slot3, 0.0);
+            .right_from(state.ids.slot3, slot_offset);
         if let Some((title, desc)) = tooltip_text(hotbar::Slot::Four) {
             slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip, TEXT_COLOR)
                 .set(state.ids.slot4, ui);
@@ -544,7 +535,7 @@ impl<'a> Widget for Skillbar<'a> {
         let slot = slot_maker
             .fabricate(hotbar::Slot::Five, [40.0; 2])
             .filled_slot(self.imgs.skillbar_slot)
-            .right_from(state.ids.slot4, 0.0);
+            .right_from(state.ids.slot4, slot_offset);
         if let Some((title, desc)) = tooltip_text(hotbar::Slot::Five) {
             slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip, TEXT_COLOR)
                 .set(state.ids.slot5, ui);

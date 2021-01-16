@@ -1,15 +1,19 @@
 use crate::{
     comp::{
         inventory::{
-            item::{armor::Protection, tool::ToolKind, ItemKind},
+            item::{
+                armor::Protection,
+                tool::{Tool, ToolKind},
+                ItemKind,
+            },
             slot::EquipSlot,
         },
-        Body, BuffKind, Health, HealthChange, HealthSource, Inventory,
+        skills::{SkillGroupType, SkillSet},
+        BuffKind, Health, HealthChange, HealthSource, Inventory, Stats,
     },
     uid::Uid,
     util::Dir,
 };
-use inline_tweak::*;
 use serde::{Deserialize, Serialize};
 use vek::*;
 
@@ -210,52 +214,47 @@ impl Knockback {
     }
 }
 
+fn equipped_tool(inv: &Inventory, slot: EquipSlot) -> Option<&Tool> {
+    inv.equipped(slot).and_then(|i| {
+        if let ItemKind::Tool(tool) = &i.kind() {
+            Some(tool)
+        } else {
+            None
+        }
+    })
+}
+
 pub fn get_weapons(inv: &Inventory) -> (Option<ToolKind>, Option<ToolKind>) {
     (
-        inv.equipped(EquipSlot::Mainhand).and_then(|i| {
-            if let ItemKind::Tool(tool) = &i.kind() {
-                Some(tool.kind)
-            } else {
-                None
-            }
-        }),
-        inv.equipped(EquipSlot::Offhand).and_then(|i| {
-            if let ItemKind::Tool(tool) = &i.kind() {
-                Some(tool.kind)
-            } else {
-                None
-            }
-        }),
+        equipped_tool(inv, EquipSlot::Mainhand).map(|tool| tool.kind),
+        equipped_tool(inv, EquipSlot::Offhand).map(|tool| tool.kind),
     )
 }
 
-fn max_equipped_weapon_damage(inv: &Inventory) -> f32 {
-    let active_damage = inv.equipped(EquipSlot::Mainhand).map_or(0.0, |i| {
-        if let ItemKind::Tool(tool) = &i.kind() {
-            tool.base_power() * tool.base_speed()
-        } else {
-            0.0
-        }
+fn max_equipped_weapon_damage(inv: &Inventory, skillset: &SkillSet) -> f32 {
+    let active_damage = equipped_tool(inv, EquipSlot::Mainhand).map_or(0.0, |tool| {
+        tool.base_power()
+            * tool.base_speed()
+            * (1.0 + 0.05 * skillset.earned_sp(SkillGroupType::Weapon(tool.kind)) as f32)
     });
-    let second_damage = inv.equipped(EquipSlot::Offhand).map_or(0.0, |i| {
-        if let ItemKind::Tool(tool) = &i.kind() {
-            tool.base_power() * tool.base_speed()
-        } else {
-            0.0
-        }
+    let second_damage = equipped_tool(inv, EquipSlot::Offhand).map_or(0.0, |tool| {
+        tool.base_power()
+            * tool.base_speed()
+            * (1.0 + 0.05 * skillset.earned_sp(SkillGroupType::Weapon(tool.kind)) as f32)
     });
     active_damage.max(second_damage)
 }
 
-pub fn combat_rating(inventory: &Inventory, health: &Health, body: &Body) -> f32 {
-    let defensive_weighting = tweak!(1.0);
-    let offensive_weighting = tweak!(1.0);
+pub fn combat_rating(inventory: &Inventory, health: &Health, stats: &Stats) -> f32 {
+    let defensive_weighting = 1.0;
+    let offensive_weighting = 1.0;
     let defensive_rating = health.maximum() as f32
         / (1.0 - Damage::compute_damage_reduction(inventory)).max(0.00001)
         / 100.0;
-    let offensive_rating = max_equipped_weapon_damage(inventory).max(0.1);
+    let offensive_rating = max_equipped_weapon_damage(inventory, &stats.skill_set).max(0.1)
+        + 0.05 * stats.skill_set.earned_sp(SkillGroupType::General) as f32;
     let combined_rating = (offensive_rating * offensive_weighting
         + defensive_rating * defensive_weighting)
-        / (2.0 * offensive_weighting.max(defensive_weighting));
-    combined_rating * body.combat_multiplier()
+        / (offensive_weighting + defensive_weighting);
+    combined_rating * stats.body_type.combat_multiplier()
 }

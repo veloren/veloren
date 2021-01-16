@@ -18,9 +18,7 @@ use conrod_core::{
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 const MAX_BUBBLE_WIDTH: f64 = 250.0;
-
 use inline_tweak::*;
-
 widget_ids! {
     struct Ids {
         // Speech bubble
@@ -313,7 +311,7 @@ impl<'a> Widget for Overhead<'a> {
                 let crit_hp_color: Color = Color::Rgba(0.93, 0.59, 0.03, hp_ani);
 
                 // Background
-                Image::new(self.imgs.enemy_health_bg)
+                Image::new(if self.in_group {self.imgs.health_bar_group_bg} else {self.imgs.enemy_health_bg})
                 .w_h(84.0 * BARSIZE, 10.0 * BARSIZE)
                 .x_y(0.0, MANA_BAR_Y + 6.5) //-25.5)
                 .color(Some(Color::Rgba(0.1, 0.1, 0.1, 0.8)))
@@ -321,12 +319,21 @@ impl<'a> Widget for Overhead<'a> {
                 .set(state.ids.health_bar_bg, ui);
 
                 // % HP Filling
+                let size_factor = (hp_percentage / 100.0) * BARSIZE;
+                let w = if self.in_group {
+                    tweak!(82.0) * size_factor
+                } else {
+                    73.0 * size_factor
+                };
+                let h = 6.0 * BARSIZE;
+                let x = if self.in_group {
+                    (tweak!(0.0) + (hp_percentage / 100.0 * tweak!(41.0) - tweak!(41.0))) * BARSIZE
+                } else {
+                    (4.5 + (hp_percentage / 100.0 * 36.45 - 36.45)) * BARSIZE
+                };
                 Image::new(self.imgs.enemy_bar)
-                    .w_h(73.0 * (hp_percentage / 100.0) * BARSIZE, 6.0 * BARSIZE)
-                    .x_y(
-                        (4.5 + (hp_percentage / 100.0 * 36.45 - 36.45)) * BARSIZE,
-                        MANA_BAR_Y + 7.5,
-                    )
+                    .w_h(w, h)
+                    .x_y(x, MANA_BAR_Y + tweak!(8.0))
                     .color(if self.in_group {
                         // Different HP bar colors only for group members
                         Some(match hp_percentage {
@@ -354,37 +361,41 @@ impl<'a> Widget for Overhead<'a> {
                 // % Mana Filling
                 if let Some(energy) = energy {
                     let energy_factor = energy.current() as f64 / energy.maximum() as f64;
-
-                    Rectangle::fill_with(
-                        [72.0 * energy_factor * BARSIZE, MANA_BAR_HEIGHT],
-                        STAMINA_COLOR,
-                    )
-                    .x_y(
-                        ((3.5 + (energy_factor * 36.5)) - 36.45) * BARSIZE,
-                        MANA_BAR_Y, //-32.0,
-                    )
-                    .parent(id)
-                    .set(state.ids.mana_bar, ui);
+                    let size_factor = energy_factor * BARSIZE;
+                    let w = if self.in_group {
+                        tweak!(80.0) * size_factor
+                    } else {
+                        72.0 * size_factor
+                    };
+                    let x = if self.in_group {
+                        ((tweak!(0.0) + (energy_factor * tweak!(40.0))) - tweak!(40.0)) * BARSIZE
+                    } else {
+                        ((3.5 + (energy_factor * 36.5)) - 36.45) * BARSIZE
+                    };
+                    Rectangle::fill_with([w, MANA_BAR_HEIGHT], STAMINA_COLOR)
+                        .x_y(
+                            x, MANA_BAR_Y, //-32.0,
+                        )
+                        .parent(id)
+                        .set(state.ids.mana_bar, ui);
                 }
 
                 // Foreground
-                Image::new(self.imgs.enemy_health)
+                Image::new(if self.in_group {self.imgs.health_bar_group} else {self.imgs.enemy_health})
                 .w_h(84.0 * BARSIZE, 10.0 * BARSIZE)
                 .x_y(0.0, MANA_BAR_Y + 6.5) //-25.5)
                 .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.99)))
                 .parent(id)
                 .set(state.ids.health_bar_fg, ui);
 
-                // TODO: Add strength comparison here, this is just an example
-
                 // Thresholds (lower)
-                let common = tweak!(4.3);
-                let moderate = tweak!(6.0);
-                let high = tweak!(8.0);
-                let epic = tweak!(10.0);
-                let legendary = tweak!(79.0);
-                let artifact = tweak!(122.0);
-                let debug = tweak!(200.0);
+                let common = 4.3;
+                let moderate = 6.0;
+                let high = 8.0;
+                let epic = 10.0;
+                let legendary = 79.0;
+                let artifact = 122.0;
+                let debug = 200.0;
 
                 let indicator_col = match combat_rating {
                     x if (0.0..common).contains(&x) => QUALITY_LOW,
@@ -411,12 +422,16 @@ impl<'a> Widget for Overhead<'a> {
                     .parent(id)
                     .set(state.ids.level_skull, ui);
                 } else {
-                    Image::new(self.imgs.indicator_bubble)
-                        .w_h(5.0 * BARSIZE, 5.0 * BARSIZE)
-                        .x_y(tweak!(-37.0) * BARSIZE, MANA_BAR_Y + tweak!(7.5))
-                        .color(Some(indicator_col))
-                        .parent(id)
-                        .set(state.ids.level, ui);
+                    Image::new(if self.in_group {
+                        self.imgs.nothing
+                    } else {
+                        self.imgs.combat_rating_ico
+                    })
+                    .w_h(tweak!(7.0) * BARSIZE, tweak!(7.0) * BARSIZE)
+                    .x_y(tweak!(-37.0) * BARSIZE, MANA_BAR_Y + tweak!(6.0))
+                    .color(Some(indicator_col))
+                    .parent(id)
+                    .set(state.ids.level, ui);
                 }
             }
         }

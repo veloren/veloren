@@ -595,11 +595,11 @@ impl SkillSetBuilder {
     }
 
     pub fn with_skill(mut self, skill: Skill) -> Self {
-        if let Some(skill_group) = skill.get_skill_group_type() {
+        if let Some(skill_group) = skill.skill_group_type() {
             self.0
-                .add_skill_points(skill_group, self.0.skill_point_cost(skill));
+                .add_skill_points(skill_group, self.0.skill_cost(skill));
             self.0.unlock_skill(skill);
-            if !self.0.skills.contains_key(&skill) {
+            if !self.0.has_skill(skill) {
                 warn!(
                     "Failed to add skill: {:?}. Verify that it has the appropriate skill group \
                      available and meets all prerequisite skills.",

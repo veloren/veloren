@@ -89,24 +89,19 @@ impl State {
                         match tool.kind {
                             ToolKind::Sword => stat
                                 .skill_set
-                                .skills
-                                .contains_key(&Skill::Sword(skills::SwordSkill::UnlockSpin)),
+                                .has_skill(Skill::Sword(skills::SwordSkill::UnlockSpin)),
                             ToolKind::Axe => stat
                                 .skill_set
-                                .skills
-                                .contains_key(&Skill::Axe(skills::AxeSkill::UnlockLeap)),
+                                .has_skill(Skill::Axe(skills::AxeSkill::UnlockLeap)),
                             ToolKind::Hammer => stat
                                 .skill_set
-                                .skills
-                                .contains_key(&Skill::Hammer(skills::HammerSkill::UnlockLeap)),
+                                .has_skill(Skill::Hammer(skills::HammerSkill::UnlockLeap)),
                             ToolKind::Bow => stat
                                 .skill_set
-                                .skills
-                                .contains_key(&Skill::Bow(skills::BowSkill::UnlockRepeater)),
+                                .has_skill(Skill::Bow(skills::BowSkill::UnlockRepeater)),
                             ToolKind::Staff => stat
                                 .skill_set
-                                .skills
-                                .contains_key(&Skill::Staff(skills::StaffSkill::UnlockShockwave)),
+                                .has_skill(Skill::Staff(skills::StaffSkill::UnlockShockwave)),
                             ToolKind::Debug
                             | ToolKind::Unique(UniqueKind::QuadMedQuick)
                             | ToolKind::Unique(UniqueKind::QuadLowBreathe) => true,

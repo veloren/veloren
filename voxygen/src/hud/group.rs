@@ -1,7 +1,9 @@
 use super::{
     img_ids::{Imgs, ImgsRot},
     Show, BLACK, BUFF_COLOR, DEBUFF_COLOR, ERROR_COLOR, GROUP_COLOR, HP_COLOR, KILL_COLOR,
-    LOW_HP_COLOR, STAMINA_COLOR, TEXT_COLOR, TEXT_COLOR_GREY, UI_HIGHLIGHT_0, UI_MAIN,
+    LOW_HP_COLOR, QUALITY_ARTIFACT, QUALITY_COMMON, QUALITY_DEBUG, QUALITY_EPIC, QUALITY_HIGH,
+    QUALITY_LEGENDARY, QUALITY_LOW, QUALITY_MODERATE, STAMINA_COLOR, TEXT_COLOR, TEXT_COLOR_GREY,
+    UI_HIGHLIGHT_0, UI_MAIN, XP_COLOR,
 };
 
 use crate::{
@@ -14,6 +16,7 @@ use crate::{
 };
 use client::{self, Client};
 use common::{
+    combat,
     comp::{group::Role, BuffKind, Stats},
     uid::{Uid, UidAllocator},
 };
@@ -25,6 +28,8 @@ use conrod_core::{
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 use specs::{saveload::MarkerAllocator, WorldExt};
+
+use inline_tweak::*;
 
 widget_ids! {
     pub struct Ids {
@@ -54,6 +59,7 @@ widget_ids! {
         buff_timers[],
         dead_txt[],
         health_txt[],
+        combat_rating_indicators[],
         timeout_bg,
         timeout,
     }
@@ -323,12 +329,19 @@ impl<'a> Widget for Group<'a> {
                         .resize(group_size, &mut ui.widget_id_generator())
                 })
             };
-
+            if state.ids.combat_rating_indicators.len() < group_size {
+                state.update(|s| {
+                    s.ids
+                        .combat_rating_indicators
+                        .resize(group_size, &mut ui.widget_id_generator())
+                })
+            };
             let client_state = self.client.state();
             let stats = client_state.ecs().read_storage::<common::comp::Stats>();
             let healths = client_state.ecs().read_storage::<common::comp::Health>();
             let energy = client_state.ecs().read_storage::<common::comp::Energy>();
             let buffs = client_state.ecs().read_storage::<common::comp::Buffs>();
+            let inventory = client_state.ecs().read_storage::<common::comp::Inventory>();
             let uid_allocator = client_state.ecs().read_resource::<UidAllocator>();
 
             // Keep track of the total number of widget ids we are using for buffs
@@ -340,10 +353,12 @@ impl<'a> Widget for Group<'a> {
                 let health = entity.and_then(|entity| healths.get(entity));
                 let energy = entity.and_then(|entity| energy.get(entity));
                 let buffs = entity.and_then(|entity| buffs.get(entity));
-
+                let inventory = entity.and_then(|entity| inventory.get(entity));
                 let is_leader = uid == leader;
 
                 if let Some(stats) = stats {
+                    let combat_rating =
+                        combat::combat_rating(inventory.unwrap(), &health.unwrap(), stats); // We can unwrap here because we check for stats first
                     let char_name = stats.name.to_string();
                     if let Some(health) = health {
                         let health_perc = health.current() as f64 / health.maximum() as f64;
@@ -421,14 +436,43 @@ impl<'a> Widget for Group<'a> {
                         .middle_of(state.ids.member_panels_bg[i])
                         .color(Some(UI_HIGHLIGHT_0))
                         .set(state.ids.member_panels_frame[i], ui);
+                    // Thresholds (lower)
+                    let common = 4.3;
+                    let moderate = 6.0;
+                    let high = 8.0;
+                    let epic = 10.0;
+                    let legendary = 79.0;
+                    let artifact = 122.0;
+                    let debug = 200.0;
+
+                    let indicator_col = match combat_rating {
+                        x if (0.0..common).contains(&x) => QUALITY_LOW,
+                        x if (common..moderate).contains(&x) => QUALITY_COMMON,
+                        x if (moderate..high).contains(&x) => QUALITY_MODERATE,
+                        x if (high..epic).contains(&x) => QUALITY_HIGH,
+                        x if (epic..legendary).contains(&x) => QUALITY_EPIC,
+                        x if (legendary..artifact).contains(&x) => QUALITY_LEGENDARY,
+                        x if (artifact..debug).contains(&x) => QUALITY_ARTIFACT,
+                        x if x >= debug => QUALITY_DEBUG,
+                        _ => XP_COLOR,
+                    };
+                    Image::new(self.imgs.combat_rating_ico_shadow)
+                        .w_h(tweak!(18.0), tweak!(18.0))
+                        .top_left_with_margins_on(
+                            state.ids.member_panels_frame[i],
+                            tweak!(-20.0),
+                            tweak!(2.0),
+                        )
+                        .color(Some(indicator_col))
+                        .set(state.ids.combat_rating_indicators[i], ui);
                     // Panel Text
                     Text::new(&char_name)
-                            .top_left_with_margins_on(state.ids.member_panels_frame[i], -22.0, 0.0)
-                            .font_size(20)
-                            .font_id(self.fonts.cyri.conrod_id)
-                            .color(BLACK)
-                            .w(300.0) // limit name length display
-                            .set(state.ids.member_panels_txt_bg[i], ui);
+                     .top_left_with_margins_on(state.ids.member_panels_frame[i], tweak!(-22.0), tweak!(22.0))
+                     .font_size(20)
+                     .font_id(self.fonts.cyri.conrod_id)
+                     .color(BLACK)
+                     .w(300.0) // limit name length display
+                     .set(state.ids.member_panels_txt_bg[i], ui);
                     Text::new(&char_name)
                             .bottom_left_with_margins_on(state.ids.member_panels_txt_bg[i], 2.0, 2.0)
                             .font_size(20)

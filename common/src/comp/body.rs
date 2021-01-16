@@ -428,7 +428,7 @@ impl Body {
     /// Returns a multiplier representing increased difficulty not accounted for
     /// due to AI or not using an actual weapon
     // TODO: Match on species
-    pub fn combat_multiplier(&self) -> f32 { 1.0 }
+    pub fn combat_multiplier(&self) -> f32 { if let Body::Object(_) = self { 0.0 } else { 1.0 } }
 
     #[allow(unreachable_patterns)]
     pub fn base_exp(&self) -> u32 {

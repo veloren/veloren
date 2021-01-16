@@ -79,7 +79,6 @@ use conrod_core::{
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
 use hashbrown::HashMap;
-use inline_tweak::*;
 use rand::Rng;
 use specs::{Join, WorldExt};
 use std::{
@@ -1142,14 +1141,16 @@ impl Hud {
                         .iter_mut()
                         .find(|d| d.owner == *uid)
                     {
-                        let fade = if display.timer < 1.0 {
-                            display.timer as f32
+                        let fade = if display.timer < 3.0 {
+                            display.timer as f32 * 0.33
+                        } else if display.timer < 2.0 {
+                            display.timer as f32 * 0.33 * 0.1
                         } else {
                             1.0
                         };
                         // Background image
-                        let offset = if display.timer < tweak!(2.0) {
-                            300.0 - (display.timer as f64 - tweak!(2.0)) * tweak!(-300.0)
+                        let offset = if display.timer < 2.0 {
+                            300.0 - (display.timer as f64 - 2.0) * -300.0
                         } else {
                             300.0
                         };
@@ -1162,20 +1163,20 @@ impl Hud {
                         // Rank Number
                         let rank = display.total_points;
                         Text::new(&format!("{}", rank))
-                            .font_size(tweak!(20))
+                            .font_size(20)
                             .font_id(self.fonts.cyri.conrod_id)
                             .color(Color::Rgba(1.0, 1.0, 1.0, fade))
-                            .mid_top_with_margin_on(self.ids.player_rank_up, tweak!(8.0))
+                            .mid_top_with_margin_on(self.ids.player_rank_up, 8.0)
                             .set(self.ids.player_rank_up_txt_number, ui_widgets);
                         // Static "New Rank!" text
                         Text::new(&i18n.get("hud.rank_up"))
-                            .font_size(tweak!(40))
+                            .font_size(40)
                             .font_id(self.fonts.cyri.conrod_id)
                             .color(Color::Rgba(0.0, 0.0, 0.0, fade))
-                            .mid_bottom_with_margin_on(self.ids.player_rank_up, tweak!(20.0))
+                            .mid_bottom_with_margin_on(self.ids.player_rank_up, 20.0)
                             .set(self.ids.player_rank_up_txt_0_bg, ui_widgets);
                         Text::new(&i18n.get("hud.rank_up"))
-                            .font_size(tweak!(40))
+                            .font_size(40)
                             .font_id(self.fonts.cyri.conrod_id)
                             .color(Color::Rgba(1.0, 1.0, 1.0, fade))
                             .bottom_left_with_margins_on(self.ids.player_rank_up_txt_0_bg, 2.0, 2.0)
@@ -1192,13 +1193,13 @@ impl Hud {
                             _ => "Unknown",
                         };
                         Text::new(skill)
-                            .font_size(tweak!(20))
+                            .font_size(20)
                             .font_id(self.fonts.cyri.conrod_id)
                             .color(Color::Rgba(0.0, 0.0, 0.0, fade))
-                            .mid_top_with_margin_on(self.ids.player_rank_up, tweak!(45.0))
+                            .mid_top_with_margin_on(self.ids.player_rank_up, 45.0)
                             .set(self.ids.player_rank_up_txt_1_bg, ui_widgets);
                         Text::new(skill)
-                            .font_size(tweak!(20))
+                            .font_size(20)
                             .font_id(self.fonts.cyri.conrod_id)
                             .color(Color::Rgba(1.0, 1.0, 1.0, fade))
                             .bottom_left_with_margins_on(self.ids.player_rank_up_txt_1_bg, 2.0, 2.0)
@@ -1215,8 +1216,8 @@ impl Hud {
                             Weapon(ToolKind::Staff) => self.imgs.staff,
                             _ => self.imgs.swords_crossed,
                         })
-                        .w_h(tweak!(20.0), tweak!(20.0))
-                        .left_from(self.ids.player_rank_up_txt_1_bg, tweak!(5.0))
+                        .w_h(20.0, 20.0)
+                        .left_from(self.ids.player_rank_up_txt_1_bg, 5.0)
                         .color(Some(Color::Rgba(1.0, 1.0, 1.0, fade)))
                         .set(self.ids.player_rank_up_icon, ui_widgets);
 
@@ -1335,11 +1336,7 @@ impl Hud {
                             health,
                             buffs,
                             energy,
-                            combat_rating: combat::combat_rating(
-                                inventory,
-                                health,
-                                &stats.body_type,
-                            ),
+                            combat_rating: combat::combat_rating(inventory, health, stats),
                         });
                         let bubble = if dist_sqr < SPEECH_BUBBLE_RANGE.powi(2) {
                             speech_bubbles.get(uid)

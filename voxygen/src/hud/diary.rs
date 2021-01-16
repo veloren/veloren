@@ -20,7 +20,6 @@ use common::comp::{
     skills::{self, Skill},
     Stats,
 };
-use inline_tweak::*;
 
 widget_ids! {
     pub struct Ids {
@@ -351,24 +350,23 @@ impl<'a> Widget for Diary<'a> {
             });
 
             let img = if i.0 == 0 {
-                img.top_left_with_margins_on(state.content_align, tweak!(10.0), tweak!(5.0))
+                img.top_left_with_margins_on(state.content_align, 10.0, 5.0)
             } else {
-                img.down_from(state.weapon_btns[i.0 - 1], tweak!(5.0))
+                img.down_from(state.weapon_btns[i.0 - 1], 5.0)
             };
             let tooltip_txt = if !locked {
                 ""
             } else {
                 &self.localized_strings.get("hud.skill.not_unlocked")
             };
-            img.w_h(tweak!(50.0), tweak!(50.0))
-                .set(state.weapon_imgs[i.0], ui);
+            img.w_h(50.0, 50.0).set(state.weapon_imgs[i.0], ui);
             // Lock Image
             if locked {
                 Image::new(self.imgs.lock)
                     .w_h(50.0, 50.0)
                     .middle_of(state.weapon_imgs[i.0])
                     .graphics_for(state.weapon_imgs[i.0])
-                    .color(Some(Color::Rgba(1.0, 1.0, 1.0, tweak!(0.8))))
+                    .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.8)))
                     .set(state.lock_imgs[i.0], ui);
             }
             // Weapon icons
@@ -376,12 +374,12 @@ impl<'a> Widget for Diary<'a> {
                 .map(|st| {
                     (
                         st,
-                        self.stats.skill_set.get_available_sp(st),
-                        self.stats.skill_set.get_earned_sp(st),
+                        self.stats.skill_set.available_sp(st),
+                        self.stats.skill_set.earned_sp(st),
                     )
                 })
                 .map_or(false, |(st, a_pts, e_pts)| {
-                    a_pts > 0 && (e_pts - a_pts) < st.get_max_skill_points()
+                    a_pts > 0 && (e_pts - a_pts) < st.max_skill_points()
                 });
             if Button::image(
                 if skill_tree_from_str(i.1).map_or(false, |st| st == *sel_tab || available_pts) {
@@ -390,7 +388,7 @@ impl<'a> Widget for Diary<'a> {
                     self.imgs.wpn_icon_border
                 },
             )
-            .w_h(tweak!(50.0), tweak!(50.0))
+            .w_h(50.0, 50.0)
             .hover_image(match skill_tree_from_str(i.1).map(|st| st == *sel_tab) {
                 Some(true) => self.imgs.wpn_icon_border_pressed,
                 Some(false) => self.imgs.wpn_icon_border_mo,
@@ -423,17 +421,17 @@ impl<'a> Widget for Diary<'a> {
             }
         }
         // Exp Bars and Rank Display
-        let current_exp = self.stats.skill_set.get_experience(*sel_tab) as f64;
-        let max_exp = self.stats.skill_set.get_skill_point_cost(*sel_tab) as f64;
+        let current_exp = self.stats.skill_set.experience(*sel_tab) as f64;
+        let max_exp = self.stats.skill_set.skill_point_cost(*sel_tab) as f64;
         let exp_percentage = current_exp / max_exp;
-        let rank = self.stats.skill_set.get_earned_sp(*sel_tab);
+        let rank = self.stats.skill_set.earned_sp(*sel_tab);
         let rank_txt = format!("{}", rank);
         let exp_txt = format!("{}/{}", current_exp, max_exp);
-        let available_pts = self.stats.skill_set.get_available_sp(*sel_tab);
+        let available_pts = self.stats.skill_set.available_sp(*sel_tab);
         let available_pts_txt = format!("{}", available_pts);
         Image::new(self.imgs.diary_exp_bg)
             .w_h(480.0, 76.0)
-            .mid_bottom_with_margin_on(state.content_align, tweak!(10.0))
+            .mid_bottom_with_margin_on(state.content_align, 10.0)
             .set(state.exp_bar_bg, ui);
         Rectangle::fill_with([400.0, 40.0], color::TRANSPARENT)
             .top_left_with_margins_on(state.exp_bar_bg, 32.0, 40.0)
@@ -455,32 +453,34 @@ impl<'a> Widget for Diary<'a> {
             .map_or(false, |m| m.is_over());
         if self.hovering_exp_bar {
             Text::new(&exp_txt)
-                .mid_top_with_margin_on(state.exp_bar_frame, tweak!(47.0))
+                .mid_top_with_margin_on(state.exp_bar_frame, 47.0)
                 .font_id(self.fonts.cyri.conrod_id)
-                .font_size(self.fonts.cyri.scale(tweak!(14)))
+                .font_size(self.fonts.cyri.scale(14))
                 .color(TEXT_COLOR)
                 .graphics_for(state.exp_bar_frame)
                 .set(state.exp_bar_txt, ui);
         }
         Text::new(&rank_txt)
-            .mid_top_with_margin_on(state.exp_bar_frame, tweak!(5.0))
+            .mid_top_with_margin_on(state.exp_bar_frame, 5.0)
             .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(tweak!(28)))
+            .font_size(self.fonts.cyri.scale(28))
             .color(TEXT_COLOR)
             .set(state.exp_bar_rank, ui);
-        if available_pts > 0 {
-            Text::new(
-                &self
-                    .localized_strings
-                    .get("hud.skill.sp_available")
-                    .replace("{number}", &available_pts_txt),
-            )
-            .mid_top_with_margin_on(state.content_align, tweak!(700.0))
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(tweak!(28)))
-            .color(Color::Rgba(0.92, 0.76, 0.0, frame_ani))
-            .set(state.available_pts_txt, ui);
-        }
+        Text::new(
+            &self
+                .localized_strings
+                .get("hud.skill.sp_available")
+                .replace("{number}", &available_pts_txt),
+        )
+        .mid_top_with_margin_on(state.content_align, 700.0)
+        .font_id(self.fonts.cyri.conrod_id)
+        .font_size(self.fonts.cyri.scale(28))
+        .color(if available_pts > 0 {
+            Color::Rgba(0.92, 0.76, 0.0, frame_ani)
+        } else {
+            TEXT_COLOR
+        })
+        .set(state.available_pts_txt, ui);
         let tree_title = match sel_tab {
             SelectedSkillTree::General => "General Combat",
             SelectedSkillTree::Weapon(ToolKind::Sword) => "Sword",
@@ -492,15 +492,15 @@ impl<'a> Widget for Diary<'a> {
             _ => "Unknown",
         };
         Text::new(&tree_title)
-            .mid_top_with_margin_on(state.content_align, tweak!(2.0))
+            .mid_top_with_margin_on(state.content_align, 2.0)
             .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(tweak!(34)))
+            .font_size(self.fonts.cyri.scale(34))
             .color(TEXT_COLOR)
             .set(state.tree_title_txt, ui);
         // Skill Trees
         // Alignment Placing
-        let x = tweak!(200.0);
-        let y = tweak!(100.0);
+        let x = 200.0;
+        let y = 100.0;
         // Alignment rectangles for skills
         Rectangle::fill_with([124.0 * 2.0, 124.0 * 2.0], color::TRANSPARENT)
             .top_left_with_margins_on(state.content_align, y, x)
@@ -649,7 +649,7 @@ impl<'a> Widget for Diary<'a> {
         }
         // Skill-Icons and Functionality
         // Art dimensions
-        let art_size = [tweak!(320.0), tweak!(320.0)];
+        let art_size = [320.0, 320.0];
         match sel_tab {
             SelectedSkillTree::General => {
                 use skills::{GeneralSkill::*, RollSkill::*, SkillGroupType::*};
@@ -661,7 +661,7 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .wh(art_size)
                 .middle_of(state.content_align)
-                .color(Some(Color::Rgba(1.0, 1.0, 1.0, tweak!(1.0))))
+                .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
                 .set(state.general_combat_render_0, ui);
                 Image::new(
                     self.item_imgs
@@ -669,7 +669,7 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .wh(art_size)
                 .middle_of(state.general_combat_render_0)
-                .color(Some(Color::Rgba(1.0, 1.0, 1.0, tweak!(1.0))))
+                .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
                 .set(state.general_combat_render_1, ui);
                 // Top Left skills
                 //        5 1 6
@@ -999,7 +999,7 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .wh(art_size)
                 .middle_of(state.content_align)
-                .color(Some(Color::Rgba(1.0, 1.0, 1.0, tweak!(1.0))))
+                .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
                 .set(state.sword_render, ui);
                 // Top Left skills
                 //        5 1 6
@@ -1442,7 +1442,7 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .wh(art_size)
                 .middle_of(state.content_align)
-                .color(Some(Color::Rgba(1.0, 1.0, 1.0, tweak!(1.0))))
+                .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
                 .set(state.axe_render, ui);
                 // Top Left skills
                 //        5 1 6
@@ -1856,7 +1856,7 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .wh(art_size)
                 .middle_of(state.content_align)
-                .color(Some(Color::Rgba(1.0, 1.0, 1.0, tweak!(1.0))))
+                .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
                 .set(state.hammer_render, ui);
                 // Top Left skills
                 //        5 1 6
@@ -2692,7 +2692,7 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .wh(art_size)
                 .middle_of(state.content_align)
-                .color(Some(Color::Rgba(1.0, 1.0, 1.0, tweak!(1.0))))
+                .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
                 .set(state.staff_render, ui);
                 // Top Left skills
                 //        5 1 6
@@ -2878,9 +2878,11 @@ impl<'a> Widget for Diary<'a> {
                     self.tooltip_manager,
                     &self
                         .localized_strings
-                        .get("hud.skill.st_flame_velocity_title"),
+                        .get("hud.skill.st_flamethrower_range_title"),
                     &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.st_flame_velocity"),
+                        &self
+                            .localized_strings
+                            .get("hud.skill.st_flamethrower_range"),
                         skill,
                         &self.stats.skill_set,
                         &self.localized_strings,
@@ -3074,7 +3076,7 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .wh(art_size)
                 .middle_of(state.content_align)
-                .color(Some(Color::Rgba(1.0, 1.0, 1.0, tweak!(1.0))))
+                .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
                 .set(state.sceptre_render, ui);
                 // Top Left skills
                 //        5 1 6
@@ -3392,22 +3394,24 @@ fn create_skill_button<'a>(
     label: &'a str,
 ) -> Button<'a, button::Image> {
     Button::image(image)
-        .w_h(tweak!(74.0), tweak!(74.0))
+        .w_h(74.0, 74.0)
         .middle_of(state)
         .label(label)
-        .label_y(conrod_core::position::Relative::Scalar(tweak!(-28.0)))
-        .label_x(conrod_core::position::Relative::Scalar(tweak!(32.0)))
-        .label_color(if skill_set.sufficient_skill_points(skill) {
+        .label_y(conrod_core::position::Relative::Scalar(-28.0))
+        .label_x(conrod_core::position::Relative::Scalar(32.0))
+        .label_color(if skill_set.is_at_max_level(skill) {
+            TEXT_COLOR
+        } else if skill_set.sufficient_skill_points(skill) {
             HP_COLOR
         } else {
             CRITICAL_HP_COLOR
         })
-        .label_font_size(fonts.cyri.scale(tweak!(16)))
+        .label_font_size(fonts.cyri.scale(16))
         .label_font_id(fonts.cyri.conrod_id)
         .image_color(if skill_set.prerequisites_met(skill) {
             TEXT_COLOR
         } else {
-            Color::Rgba(0.41, 0.41, 0.41, tweak!(0.7))
+            Color::Rgba(0.41, 0.41, 0.41, 0.7)
         })
 }
 
@@ -3415,12 +3419,8 @@ fn get_skill_label(skill: Skill, skill_set: &skills::SkillSet) -> String {
     if skill_set.prerequisites_met(skill) {
         format!(
             "{}/{}",
-            skill_set
-                .skills
-                .get(&skill)
-                .copied()
-                .map_or(0, |l| l.unwrap_or(1)),
-            skill.get_max_level().unwrap_or(1)
+            skill_set.skill_level(skill).map_or(0, |l| l.unwrap_or(1)),
+            skill.max_level().unwrap_or(1)
         )
     } else {
         "".to_string()
@@ -3446,14 +3446,13 @@ fn add_sp_cost_tooltip<'a>(
     skill_set: &'a skills::SkillSet,
     localized_strings: &'a Localization,
 ) -> String {
-    match skill_set.skills.get(&skill).copied() {
-        Some(level) if level == skill.get_max_level() => tooltip.replace("{}", ""),
+    match skill_set.skill_level(skill) {
+        Ok(level) if level == skill.max_level() => tooltip.replace("{}", ""),
         _ => tooltip.replace(
             "{SP}",
-            &localized_strings.get("hud.skill.req_sp").replace(
-                "{number}",
-                &format!("{}", skill_set.skill_point_cost(skill)),
-            ),
+            &localized_strings
+                .get("hud.skill.req_sp")
+                .replace("{number}", &format!("{}", skill_set.skill_cost(skill))),
         ),
     }
 }
