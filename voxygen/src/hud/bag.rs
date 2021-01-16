@@ -28,7 +28,6 @@ use conrod_core::{
 };
 
 use crate::hud::slots::SlotKind;
-use inline_tweak::*;
 use vek::Vec2;
 
 widget_ids! {
@@ -430,16 +429,15 @@ impl<'a> Widget for Bag<'a> {
                     .resize(STATS.len(), &mut ui.widget_id_generator())
             });
             // Thresholds (lower)
-            let common = tweak!(4.3);
-            let moderate = tweak!(6.0);
-            let high = tweak!(8.0);
-            let epic = tweak!(10.0);
-            let legendary = tweak!(79.0);
-            let artifact = tweak!(122.0);
-            let debug = tweak!(200.0);
+            let common = 4.3;
+            let moderate = 6.0;
+            let high = 8.0;
+            let epic = 10.0;
+            let legendary = 79.0;
+            let artifact = 122.0;
+            let debug = 200.0;
             // Stats
-            let combat_rating =
-                combat_rating(inventory, self.health, &self.stats.body_type).min(999.9);
+            let combat_rating = combat_rating(inventory, self.health, self.stats).min(999.9);
             let indicator_col = match combat_rating {
                 x if (0.0..common).contains(&x) => QUALITY_LOW,
                 x if (common..moderate).contains(&x) => QUALITY_COMMON,
@@ -474,9 +472,9 @@ impl<'a> Widget for Bag<'a> {
                 let combat_rating_txt = format!("{}", (combat_rating * 10.0) as usize);
 
                 let btn = if i.0 == 0 {
-                    btn.top_left_with_margins_on(state.ids.bg_frame, tweak!(55.0), tweak!(10.0))
+                    btn.top_left_with_margins_on(state.ids.bg_frame, 55.0, 10.0)
                 } else {
-                    btn.down_from(state.ids.stat_icons[i.0 - 1], tweak!(7.0))
+                    btn.down_from(state.ids.stat_icons[i.0 - 1], 7.0)
                 };
                 // TODO: Translation
                 let tooltip_head = match i.1 {
@@ -507,9 +505,9 @@ impl<'a> Widget for Bag<'a> {
                     "Protection" => &protection_txt,
                     _ => "",
                 })
-                .right_from(state.ids.stat_icons[i.0], tweak!(10.0))
+                .right_from(state.ids.stat_icons[i.0], 10.0)
                 .font_id(self.fonts.cyri.conrod_id)
-                .font_size(self.fonts.cyri.scale(tweak!(14)))
+                .font_size(self.fonts.cyri.scale(14))
                 .color(TEXT_COLOR)
                 .graphics_for(state.ids.stat_icons[i.0])
                 .set(state.ids.stat_txts[i.0], ui);

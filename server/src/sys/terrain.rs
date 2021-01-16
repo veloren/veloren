@@ -125,8 +125,6 @@ impl<'a> System<'a> for Sys {
                 let alignment = entity.alignment;
                 let main_tool = entity.main_tool;
                 let mut stats = comp::Stats::new(name, body);
-                // let damage = stats.level.level() as i32; TODO: Make NPC base damage
-                // non-linearly depend on their level
 
                 let mut scale = entity.scale;
 

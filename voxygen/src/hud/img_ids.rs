@@ -211,7 +211,6 @@ image_ids! {
         // Other Icons/Art
         skull: "voxygen.element.icons.skull",
         skull_2: "voxygen.element.icons.skull_2",
-        indicator_bubble: "voxygen.element.icons.indicator_bubble",
         fireplace: "voxygen.element.misc_bg.fireplace",
 
         // Crosshair
@@ -338,6 +337,7 @@ image_ids! {
         health_ico: "voxygen.element.icons.health",
         protection_ico: "voxygen.element.icons.protection",
         combat_rating_ico: "voxygen.element.icons.combat_rating",
+        combat_rating_ico_shadow: "voxygen.element.icons.combat_rating_shadow",
 
         not_found: "voxygen.element.not_found",
 
@@ -366,8 +366,11 @@ image_ids! {
         // Enemy Healthbar
         enemy_health: "voxygen.element.frames.enemybar",
         enemy_health_bg: "voxygen.element.frames.enemybar_bg",
+        health_bar_group: "voxygen.element.frames.enemybar_1",
+        health_bar_group_bg: "voxygen.element.frames.enemybar_bg_1",
         // Enemy Bar Content:
         enemy_bar: "voxygen.element.skillbar.enemy_bar_content",
+
         // Bag
         bag: "voxygen.element.buttons.bag.closed",
         bag_hover: "voxygen.element.buttons.bag.closed_hover",

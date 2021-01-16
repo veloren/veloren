@@ -29,7 +29,6 @@ use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
 use common_sys::state::BlockChange;
 use comp::item::Reagent;
 use hashbrown::HashSet;
-use inline_tweak::*;
 use rand::prelude::*;
 use specs::{join::Join, saveload::MarkerAllocator, Entity as EcsEntity, WorldExt};
 use tracing::error;
@@ -195,25 +194,24 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
 
         // Maximum distance for other group members to receive exp
         const MAX_EXP_DIST: f32 = 150.0;
-        // Attacker gets same as exp of everyone else
-        const ATTACKER_EXP_WEIGHT: f32 = 1.0;
         // TODO: Scale xp from skillset rather than health, when NPCs have their own
         // skillsets
         /*let mut exp_reward = entity_stats.body_type.base_exp() as f32
          * (entity_health.maximum() as f32 / entity_stats.body_type.base_health() as
          * f32); */
         let mut exp_reward =
-            combat::combat_rating(entity_inventory, entity_health, &entity_stats.body_type)
-                * tweak!(2.5);
+            combat::combat_rating(entity_inventory, entity_health, entity_stats) * 2.5;
 
         // Distribute EXP to group
         let positions = state.ecs().read_storage::<Pos>();
         let alignments = state.ecs().read_storage::<Alignment>();
         let uids = state.ecs().read_storage::<Uid>();
+        let mut outcomes = state.ecs().write_resource::<Vec<Outcome>>();
+        let inventories = state.ecs().read_storage::<comp::Inventory>();
         if let (Some(attacker_group), Some(pos)) = (attacker_group, positions.get(entity)) {
             // TODO: rework if change to groups makes it easier to iterate entities in a
             // group
-            let mut num_not_pets_in_range = 0;
+            let mut non_pet_group_members_in_range = 1;
             let members_in_range = (
                 &state.ecs().entities(),
                 &groups,
@@ -230,100 +228,36 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                 })
                 .map(|(entity, _, _, alignment, uid)| {
                     if !matches!(alignment, Some(Alignment::Owned(owner)) if owner != uid) {
-                        num_not_pets_in_range += 1;
+                        non_pet_group_members_in_range += 1;
                     }
 
                     (entity, uid)
                 })
                 .collect::<Vec<_>>();
-            let exp = exp_reward / (num_not_pets_in_range as f32 + ATTACKER_EXP_WEIGHT);
-            exp_reward = exp * ATTACKER_EXP_WEIGHT;
+            // Devides exp reward by square root of number of people in group
+            exp_reward /= (non_pet_group_members_in_range as f32).sqrt();
             members_in_range.into_iter().for_each(|(e, uid)| {
-                let (main_tool_kind, second_tool_kind) =
-                    if let Some(inventory) = state.ecs().read_storage::<comp::Inventory>().get(e) {
-                        combat::get_weapons(inventory)
-                    } else {
-                        (None, None)
-                    };
-                if let Some(mut stats) = stats.get_mut(e) {
-                    let mut xp_pools = HashSet::<SkillGroupType>::new();
-                    xp_pools.insert(SkillGroupType::General);
-                    if let Some(w) = main_tool_kind {
-                        if stats
-                            .skill_set
-                            .contains_skill_group(SkillGroupType::Weapon(w))
-                        {
-                            xp_pools.insert(SkillGroupType::Weapon(w));
-                        }
-                    }
-                    if let Some(w) = second_tool_kind {
-                        if stats
-                            .skill_set
-                            .contains_skill_group(SkillGroupType::Weapon(w))
-                        {
-                            xp_pools.insert(SkillGroupType::Weapon(w));
-                        }
-                    }
-                    let num_pools = xp_pools.len() as f32;
-                    for pool in xp_pools.drain() {
-                        stats
-                            .skill_set
-                            .change_experience(pool, (exp / num_pools).ceil() as i32);
-                    }
-                    state
-                        .ecs()
-                        .write_resource::<Vec<Outcome>>()
-                        .push(Outcome::ExpChange {
-                            uid: *uid,
-                            exp: exp as i32,
-                        });
+                if let (Some(inventory), Some(mut stats)) = (inventories.get(e), stats.get_mut(e)) {
+                    handle_exp_gain(exp_reward, inventory, &mut stats, uid, &mut outcomes);
                 }
             });
         }
 
-        let (main_tool_kind, second_tool_kind) =
-            if let Some(inventory) = state.ecs().read_storage::<comp::Inventory>().get(attacker) {
-                combat::get_weapons(inventory)
-            } else {
-                (None, None)
-            };
-        if let (Some(mut attacker_stats), Some(attacker_uid)) =
-            (stats.get_mut(attacker), uids.get(attacker))
-        {
+        if let (Some(mut attacker_stats), Some(attacker_uid), Some(attacker_inventory)) = (
+            stats.get_mut(attacker),
+            uids.get(attacker),
+            inventories.get(attacker),
+        ) {
             // TODO: Discuss whether we should give EXP by Player
             // Killing or not.
             // attacker_stats.exp.change_by(exp_reward.ceil() as i64);
-            let mut xp_pools = HashSet::<SkillGroupType>::new();
-            xp_pools.insert(SkillGroupType::General);
-            if let Some(w) = main_tool_kind {
-                if attacker_stats
-                    .skill_set
-                    .contains_skill_group(SkillGroupType::Weapon(w))
-                {
-                    xp_pools.insert(SkillGroupType::Weapon(w));
-                }
-            }
-            if let Some(w) = second_tool_kind {
-                if attacker_stats
-                    .skill_set
-                    .contains_skill_group(SkillGroupType::Weapon(w))
-                {
-                    xp_pools.insert(SkillGroupType::Weapon(w));
-                }
-            }
-            let num_pools = xp_pools.len() as f32;
-            for pool in xp_pools.drain() {
-                attacker_stats
-                    .skill_set
-                    .change_experience(pool, (exp_reward / num_pools).ceil() as i32);
-            }
-            state
-                .ecs()
-                .write_resource::<Vec<Outcome>>()
-                .push(Outcome::ExpChange {
-                    uid: *attacker_uid,
-                    exp: exp_reward as i32,
-                });
+            handle_exp_gain(
+                exp_reward,
+                attacker_inventory,
+                &mut attacker_stats,
+                attacker_uid,
+                &mut outcomes,
+            );
         }
     })();
 
@@ -852,4 +786,42 @@ pub fn handle_energy_change(server: &Server, entity: EcsEntity, change: EnergyCh
     if let Some(mut energy) = ecs.write_storage::<Energy>().get_mut(entity) {
         energy.change_by(change);
     }
+}
+
+fn handle_exp_gain(
+    exp_reward: f32,
+    inventory: &Inventory,
+    stats: &mut Stats,
+    uid: &Uid,
+    outcomes: &mut Vec<Outcome>,
+) {
+    let (main_tool_kind, second_tool_kind) = combat::get_weapons(inventory);
+    let mut xp_pools = HashSet::<SkillGroupType>::new();
+    xp_pools.insert(SkillGroupType::General);
+    if let Some(w) = main_tool_kind {
+        if stats
+            .skill_set
+            .contains_skill_group(SkillGroupType::Weapon(w))
+        {
+            xp_pools.insert(SkillGroupType::Weapon(w));
+        }
+    }
+    if let Some(w) = second_tool_kind {
+        if stats
+            .skill_set
+            .contains_skill_group(SkillGroupType::Weapon(w))
+        {
+            xp_pools.insert(SkillGroupType::Weapon(w));
+        }
+    }
+    let num_pools = xp_pools.len() as f32;
+    for pool in xp_pools {
+        stats
+            .skill_set
+            .change_experience(pool, (exp_reward / num_pools).ceil() as i32);
+    }
+    outcomes.push(Outcome::ExpChange {
+        uid: *uid,
+        exp: exp_reward as i32,
+    });
 }

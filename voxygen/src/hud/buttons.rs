@@ -14,7 +14,6 @@ use conrod_core::{
     widget::{self, Button, Image, Text},
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
-use inline_tweak::*;
 widget_ids! {
     struct Ids {
         bag,
@@ -128,8 +127,7 @@ impl<'a> Widget for Buttons<'a> {
             None => return None,
         };
         let localized_strings = self.localized_strings;
-        let arrow_ani =
-            (self.pulse * tweak!(4.0)/* speed factor */).cos() * tweak!(0.5) + tweak!(0.8); //Animation timer
+        let arrow_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.8; //Animation timer
 
         let button_tooltip = Tooltip::new({
             // Edge images [t, b, r, l]
@@ -382,24 +380,21 @@ impl<'a> Widget for Buttons<'a> {
             Image::new(self.imgs.sp_indicator_arrow)
                 .w_h(20.0, 11.0)
                 .graphics_for(state.ids.spellbook_button)
-                .mid_top_with_margin_on(
-                    state.ids.spellbook_button,
-                    tweak!(-12.0) + arrow_ani as f64,
-                )
+                .mid_top_with_margin_on(state.ids.spellbook_button, -12.0 + arrow_ani as f64)
                 .color(Some(QUALITY_LEGENDARY))
                 .set(state.ids.sp_arrow, ui);
             Text::new(&localized_strings.get("hud.sp_arrow_txt"))
-                .mid_top_with_margin_on(state.ids.sp_arrow, tweak!(-18.0))
+                .mid_top_with_margin_on(state.ids.sp_arrow, -18.0)
                 .graphics_for(state.ids.spellbook_button)
                 .font_id(self.fonts.cyri.conrod_id)
-                .font_size(self.fonts.cyri.scale(tweak!(14)))
+                .font_size(self.fonts.cyri.scale(14))
                 .color(BLACK)
                 .set(state.ids.sp_arrow_txt_bg, ui);
             Text::new(&localized_strings.get("hud.sp_arrow_txt"))
                 .graphics_for(state.ids.spellbook_button)
                 .bottom_right_with_margins_on(state.ids.sp_arrow_txt_bg, 1.0, 1.0)
                 .font_id(self.fonts.cyri.conrod_id)
-                .font_size(self.fonts.cyri.scale(tweak!(14)))
+                .font_size(self.fonts.cyri.scale(14))
                 .color(QUALITY_LEGENDARY)
                 .set(state.ids.sp_arrow_txt, ui);
         }

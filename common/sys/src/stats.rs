@@ -1,6 +1,6 @@
 use common::{
     comp::{
-        skills::{GeneralSkill, Skill, SkillGroupType},
+        skills::{GeneralSkill, Skill},
         CharacterState, Energy, EnergyChange, EnergySource, Health, Pos, Stats,
     },
     event::{EventBus, ServerEvent},
@@ -85,28 +85,25 @@ impl<'a> System<'a> for Sys {
                 health.is_dead = true;
             }
 
-            let mut skills_to_level = HashSet::<SkillGroupType>::new();
             let stat = stats.get_unchecked();
-            {
-                for skill_group in stat.skill_set.skill_groups.iter() {
-                    if skill_group.exp
-                        >= stat
-                            .skill_set
-                            .get_skill_point_cost(skill_group.skill_group_type)
-                    {
-                        skills_to_level.insert(skill_group.skill_group_type);
-                    }
-                }
-            }
+            let skills_to_level = stat
+                .skill_set
+                .skill_groups
+                .iter()
+                .filter_map(|s_g| {
+                    (s_g.exp >= stat.skill_set.skill_point_cost(s_g.skill_group_type))
+                        .then(|| s_g.skill_group_type)
+                })
+                .collect::<HashSet<_>>();
 
             if !skills_to_level.is_empty() {
                 let mut stat = stats.get_mut_unchecked();
-                for skill_group in skills_to_level.drain() {
+                for skill_group in skills_to_level {
                     stat.skill_set.earn_skill_point(skill_group);
                     outcomes.push(Outcome::SkillPointGain {
                         uid: *uid,
                         skill_tree: skill_group,
-                        total_points: stat.skill_set.get_earned_sp(skill_group),
+                        total_points: stat.skill_set.earned_sp(skill_group),
                         pos: pos.0,
                     });
                 }
@@ -126,10 +123,8 @@ impl<'a> System<'a> for Sys {
                 let mut health = health.get_mut_unchecked();
                 let health_level = stat
                     .skill_set
-                    .skills
-                    .get(&Skill::General(GeneralSkill::HealthIncrease))
-                    .copied()
-                    .flatten()
+                    .skill_level(Skill::General(GeneralSkill::HealthIncrease))
+                    .unwrap_or(None)
                     .unwrap_or(0);
                 health.update_max_hp(Some(stat.body_type), health_level);
                 let mut stat = stats.get_mut_unchecked();
@@ -140,10 +135,8 @@ impl<'a> System<'a> for Sys {
                 let mut energy = energy.get_mut_unchecked();
                 let energy_level = stat
                     .skill_set
-                    .skills
-                    .get(&Skill::General(GeneralSkill::EnergyIncrease))
-                    .copied()
-                    .flatten()
+                    .skill_level(Skill::General(GeneralSkill::EnergyIncrease))
+                    .unwrap_or(None)
                     .unwrap_or(0);
                 energy.update_max_energy(Some(stat.body_type), energy_level);
                 let mut stat = stats.get_mut_unchecked();

@@ -379,7 +379,7 @@ fn convert_skill_groups_from_database(skill_groups: &[SkillGroup]) -> Vec<skills
     new_skill_groups
 }
 
-fn convert_skills_from_database(skills: &[Skill]) -> HashMap<skills::Skill, skills::Level> {
+fn convert_skills_from_database(skills: &[Skill]) -> HashMap<skills::Skill, Option<u16>> {
     let mut new_skills = HashMap::new();
     for skill in skills.iter() {
         let new_skill = json_models::db_string_to_skill(&skill.skill_type);
@@ -392,7 +392,7 @@ pub fn convert_skill_groups_to_database(
     entity_id: CharacterId,
     skill_groups: Vec<skills::SkillGroup>,
 ) -> Vec<SkillGroup> {
-    let db_skill_groups: Vec<_> = skill_groups
+    skill_groups
         .into_iter()
         .map(|sg| SkillGroup {
             entity_id,
@@ -401,21 +401,19 @@ pub fn convert_skill_groups_to_database(
             available_sp: sg.available_sp as i32,
             earned_sp: sg.earned_sp as i32,
         })
-        .collect();
-    db_skill_groups
+        .collect()
 }
 
 pub fn convert_skills_to_database(
     entity_id: CharacterId,
-    skills: HashMap<skills::Skill, skills::Level>,
+    skills: HashMap<skills::Skill, Option<u16>>,
 ) -> Vec<Skill> {
-    let db_skills: Vec<_> = skills
+    skills
         .iter()
         .map(|(s, l)| Skill {
             entity_id,
             skill_type: json_models::skill_to_db_string(*s),
             level: l.map(|l| l as i32),
         })
-        .collect();
-    db_skills
+        .collect()
 }

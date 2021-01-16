@@ -139,10 +139,17 @@ impl StateExt for State {
             })
             .with(comp::Controller::default())
             .with(body)
+            .with(comp::Energy::new(
+                body,
+                stats
+                    .skill_set
+                    .skill_level(Skill::General(GeneralSkill::EnergyIncrease))
+                    .unwrap_or(None)
+                    .unwrap_or(0),
+            ))
             .with(stats)
             .with(health)
             .with(comp::Alignment::Npc)
-            .with(comp::Energy::new(body, 0))
             .with(comp::Gravity(1.0))
             .with(comp::CharacterState::default())
             .with(inventory)
@@ -274,17 +281,13 @@ impl StateExt for State {
             let (health_level, energy_level) = (
                 stats
                     .skill_set
-                    .skills
-                    .get(&Skill::General(GeneralSkill::HealthIncrease))
-                    .copied()
-                    .flatten()
+                    .skill_level(Skill::General(GeneralSkill::HealthIncrease))
+                    .unwrap_or(None)
                     .unwrap_or(0),
                 stats
                     .skill_set
-                    .skills
-                    .get(&Skill::General(GeneralSkill::EnergyIncrease))
-                    .copied()
-                    .flatten()
+                    .skill_level(Skill::General(GeneralSkill::EnergyIncrease))
+                    .unwrap_or(None)
                     .unwrap_or(0),
             );
             self.write_component(entity, comp::Health::new(stats.body_type, health_level));
