@@ -116,8 +116,8 @@ impl Animation for RunAnimation {
 
         next.hand_l.position = Vec3::new(
             -s_a.hand.0 + footrotr * -1.3 * speednorm,
-            1.0 * speednorm + s_a.hand.1 + footrotr * -3.5 * speednorm,
-            1.5 * speednorm + s_a.hand.2 - footrotr * 2.5 * speednorm,
+            1.0 * speednorm + s_a.hand.1 + footrotr * -2.5 * speednorm,
+            s_a.hand.2 - footrotr * 1.5 * speednorm,
         );
         next.hand_l.orientation =
             Quaternion::rotation_x(0.4 * speednorm + (footrotr * -1.2) * speednorm)
@@ -125,8 +125,8 @@ impl Animation for RunAnimation {
 
         next.hand_r.position = Vec3::new(
             s_a.hand.0 + footrotl * 1.3 * speednorm,
-            1.0 * speednorm + s_a.hand.1 + footrotl * -3.5 * speednorm,
-            1.5 * speednorm + s_a.hand.2 - footrotl * 2.5 * speednorm,
+            1.0 * speednorm + s_a.hand.1 + footrotl * -2.5 * speednorm,
+            s_a.hand.2 - footrotl * 1.5 * speednorm,
         );
         next.hand_r.orientation =
             Quaternion::rotation_x(0.4 * speednorm + (footrotl * -1.2) * speednorm)
@@ -136,7 +136,7 @@ impl Animation for RunAnimation {
         next.foot_l.position = Vec3::new(
             -s_a.foot.0 + footstrafel * sideabs * 3.0 + tilt * -2.0,
             s_a.foot.1
-                + (1.0 - sideabs) * (-1.0 * speednorm + footrotl * -7.5 * speednorm)
+                + (1.0 - sideabs) * (-1.0 * speednorm + footrotl * -4.5 * speednorm)
                 + (direction * 5.0).max(0.0),
             s_a.foot.2
                 + (1.0 - sideabs) * (2.0 * speednorm + ((footvertl * -2.1 * speednorm).max(-1.0)))
@@ -151,7 +151,7 @@ impl Animation for RunAnimation {
         next.foot_r.position = Vec3::new(
             s_a.foot.0 + footstrafer * sideabs * 3.0 + tilt * -2.0,
             s_a.foot.1
-                + (1.0 - sideabs) * (-1.0 * speednorm + footrotr * -7.5 * speednorm)
+                + (1.0 - sideabs) * (-1.0 * speednorm + footrotr * -4.5 * speednorm)
                 + (direction * 5.0).max(0.0),
             s_a.foot.2
                 + (1.0 - sideabs) * (2.0 * speednorm + ((footvertr * -2.1 * speednorm).max(-1.0)))
