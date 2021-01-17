@@ -2,7 +2,6 @@ use super::{
     super::{vek::*, Animation},
     BipedSmallSkeleton, SkeletonAttr,
 };
-use std::{f32::consts::PI, ops::Mul};
 
 pub struct IdleAnimation;
 

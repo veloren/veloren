@@ -2624,23 +2624,37 @@ impl FigureMgr {
                             &mut state_animation_rate,
                             skeleton_attr,
                         ),
-                        _ => anim::biped_small::RunAnimation::update_skeleton(
+                        _ => anim::biped_small::IdleAnimation::update_skeleton(
                             &BipedSmallSkeleton::default(),
-                            (
-                                vel.0,
-                                ori,
-                                state.last_ori,
-                                time,
-                                state.avg_vel,
-                                state.acc_vel,
-                            ),
+                            (vel.0, ori, state.last_ori, time, state.avg_vel),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
                         ),
                     };
 
-                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_base, dt_lerp);
+                    let target_bones = match &character {
+                        CharacterState::Wielding { .. } => {
+                            anim::biped_small::WieldAnimation::update_skeleton(
+                                &target_base,
+                                (
+                                    vel.0,
+                                    ori,
+                                    state.last_ori,
+                                    time,
+                                    state.avg_vel,
+                                    state.acc_vel,
+                                ),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
+                        // TODO!
+                        _ => target_base,
+                    };
+
+                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
                         pos.0,

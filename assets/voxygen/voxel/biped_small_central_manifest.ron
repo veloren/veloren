@@ -16,10 +16,6 @@
             offset: (-0.5, -5.0, -2.5),
             central: ("armor.empty"),
         ),
-        main: (
-            offset: (-1.5, -7.5, -5.0),
-            central: ("armor.empty"),
-        ),
     ),
     (Gnome, Female): (
         head: (
@@ -36,10 +32,6 @@
         ),
         tail: (
             offset: (-0.5, -5.0, -2.5),
-            central: ("armor.empty"),
-        ),
-        main: (
-            offset: (-1.5, -7.5, -5.0),
             central: ("armor.empty"),
         ),
     ),
@@ -60,10 +52,6 @@
             offset: (-1.5, -13.0, -5.0),
             central: ("npc.sahagin.male.tail"),
         ),
-        main: (
-            offset: (-0.5, -7.5, -5.0),
-            central: ("weapon.spear.sahagin"),
-        ),
     ),
     (Sahagin, Female): (
         head: (
@@ -81,10 +69,6 @@
         tail: (
             offset: (-1.5, -13.0, -5.0),
             central: ("npc.sahagin.male.tail"),
-        ),
-        main: (
-            offset: (-0.5, -7.5, -5.0),
-            central: ("weapon.spear.sahagin"),
         ),
     ),
     (Adlet, Male): (
@@ -104,10 +88,6 @@
             offset: (-1.0, -5.0, -1.0),
             central: ("npc.adlet.male.tail"),
         ),
-        main: (
-            offset: (-0.5, -7.5, -5.0),
-            central: ("weapon.spear.adlet"),
-        ),
     ),
     (Adlet, Female): (
         head: (
@@ -125,10 +105,6 @@
         tail: (
             offset: (-1.0, -5.0, -1.0),
             central: ("npc.adlet.male.tail"),
-        ),
-        main: (
-            offset: (-0.5, -7.5, -5.0),
-            central: ("weapon.spear.adlet"),
         ),
     ),
     (Gnarling, Male): (
@@ -148,10 +124,6 @@
             offset: (-1.5, -13.0, -3.0),
             central: ("npc.gnarling.male.tail"),
         ),
-        main: (
-            offset: (-0.5, -7.5, -5.0),
-            central: ("weapon.spear.adlet"),
-        ),
     ),
     (Gnarling, Female): (
         head: (
@@ -169,10 +141,6 @@
         tail: (
             offset: (-1.5, -13.0, -3.0),
             central: ("npc.gnarling.male.tail"),
-        ),
-        main: (
-            offset: (-0.5, -7.5, -5.0),
-            central: ("weapon.spear.adlet"),
         ),
     ),
     (Mandragora, Male): (
@@ -192,10 +160,6 @@
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
         ),
-        main: (
-            offset: (-0.5, -7.5, -5.0),
-            central: ("weapon.spear.adlet"),
-        ),
     ),
     (Mandragora, Female): (
         head: (
@@ -213,10 +177,6 @@
         tail: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
-        ),
-        main: (
-            offset: (-0.5, -7.5, -5.0),
-            central: ("weapon.spear.adlet"),
         ),
     ),
     (Kappa, Male): (
@@ -236,10 +196,6 @@
             offset: (-2.5, -10.0, -5.0),
             central: ("npc.kappa.male.tail"),
         ),
-        main: (
-            offset: (-0.5, -7.5, -5.0),
-            central: ("weapon.spear.adlet"),
-        ),
     ),
     (Kappa, Female): (
         head: (
@@ -257,10 +213,6 @@
         tail: (
             offset: (-2.5, -10.0, -5.0),
             central: ("npc.kappa.male.tail"),
-        ),
-        main: (
-            offset: (-0.5, -7.5, -5.0),
-            central: ("weapon.spear.adlet"),
         ),
     ),
 })

@@ -2478,7 +2478,6 @@ struct SidedBSCentralVoxSpec {
     chest: BipedSmallCentralSubSpec,
     shorts: BipedSmallCentralSubSpec,
     tail: BipedSmallCentralSubSpec,
-    main: BipedSmallCentralSubSpec,
 }
 #[derive(Deserialize)]
 struct BipedSmallCentralSubSpec {
@@ -2500,11 +2499,24 @@ struct BipedSmallLateralSubSpec {
     lateral: VoxSimple,
 }
 
+#[derive(Deserialize)]
+struct BipedSmallWeaponSpec(HashMap<(BSSpecies, BSBodyType), SidedBSWeaponVoxSpec>);
+#[derive(Deserialize)]
+struct SidedBSWeaponVoxSpec {
+    main: BipedSmallWeaponSubSpec,
+}
+#[derive(Deserialize)]
+struct BipedSmallWeaponSubSpec {
+    offset: [f32; 3], // Should be relative to initial origin
+    weapon: VoxSimple,
+}
+
 make_vox_spec!(
     biped_small::Body,
     struct BipedSmallSpec {
         central: BipedSmallCentralSpec = "voxygen.voxel.biped_small_central_manifest",
         lateral: BipedSmallLateralSpec = "voxygen.voxel.biped_small_lateral_manifest",
+        weapon: BipedSmallWeaponSpec = "voxygen.voxel.biped_small_weapon_manifest",
     },
     |FigureKey { body, .. }, spec| {
         [
@@ -2524,7 +2536,7 @@ make_vox_spec!(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.central.read().0.mesh_main(
+            Some(spec.weapon.read().0.mesh_main(
                 body.species,
                 body.body_type,
             )),
@@ -2619,22 +2631,6 @@ impl BipedSmallCentralSpec {
 
         (central, Vec3::from(spec.tail.offset))
     }
-
-    fn mesh_main(&self, species: BSSpecies, body_type: BSBodyType) -> BoneMeshes {
-        let spec = match self.0.get(&(species, body_type)) {
-            Some(spec) => spec,
-            None => {
-                error!(
-                    "No main specification exists for the combination of {:?} and {:?}",
-                    species, body_type
-                );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            },
-        };
-        let central = graceful_load_segment(&spec.main.central.0);
-
-        (central, Vec3::from(spec.main.offset))
-    }
 }
 
 impl BipedSmallLateralSpec {
@@ -2702,6 +2698,24 @@ impl BipedSmallLateralSpec {
         (lateral, Vec3::from(spec.foot_r.offset))
     }
 }
+impl BipedSmallWeaponSpec {
+    fn mesh_main(&self, species: BSSpecies, body_type: BSBodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No main specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let weapon = graceful_load_segment(&spec.main.weapon.0);
+
+        (weapon, Vec3::from(spec.main.offset))
+    }
+}
+
 ////
 
 #[derive(Deserialize)]

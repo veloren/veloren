@@ -1,0 +1,74 @@
+({
+    (Gnome, Male): (
+        main: (
+            offset: (-1.5, -3.0, -5.0),
+            weapon: ("weapon.spear.sahagin"),
+        ),
+    ),
+    (Gnome, Female): (
+        main: (
+            offset: (-1.5, -3.0, -5.0),
+            weapon: ("weapon.spear.sahagin"),
+        ),
+    ),
+    (Sahagin, Male): (
+        main: (
+            offset: (-1.5, -3.0, -5.0),
+            weapon: ("weapon.spear.sahagin"),
+        ),
+    ),
+    (Sahagin, Female): (
+        main: (
+            offset: (-1.5, -3.0, -5.0),
+            weapon: ("weapon.spear.sahagin"),
+        ),
+    ),
+    (Adlet, Male): (
+        main: (
+            offset: (-0.5, -3.0, -5.0),
+            weapon: ("weapon.spear.adlet"),
+        ),
+    ),
+    (Adlet, Female): (
+        main: (
+            offset: (-0.5, -3.0, -5.0),
+            weapon: ("weapon.spear.adlet"),
+        ),
+    ),
+    (Gnarling, Male): (
+        main: (
+            offset: (-0.5, -3.0, -5.0),
+            weapon: ("weapon.spear.adlet"),
+        ),
+    ),
+    (Gnarling, Female): (
+        main: (
+            offset: (-0.5, -3.0, -5.0),
+            weapon: ("weapon.spear.adlet"),
+        ),
+    ),
+    (Mandragora, Male): (
+        main: (
+            offset: (-0.5, -3.0, -5.0),
+            weapon: ("weapon.spear.adlet"),
+        ),
+    ),
+    (Mandragora, Female): (
+        main: (
+            offset: (-0.5, -3.0, -5.0),
+            weapon: ("weapon.spear.adlet"),
+        ),
+    ),
+    (Kappa, Male): (
+        main: (
+            offset: (-0.5, -3.0, -5.0),
+            weapon: ("weapon.spear.adlet"),
+        ),
+    ),
+    (Kappa, Female): (
+        main: (
+            offset: (-0.5, -3.0, -5.0),
+            weapon: ("weapon.spear.adlet"),
+        ),
+    ),
+})
