@@ -2053,16 +2053,16 @@ fn handle_skill_point(
     }
 }
 
-fn parse_skill_tree(skill_tree: &str) -> Option<comp::skills::SkillGroupType> {
-    use comp::{item::tool::ToolKind, skills::SkillGroupType};
+fn parse_skill_tree(skill_tree: &str) -> Option<comp::skills::SkillGroupKind> {
+    use comp::{item::tool::ToolKind, skills::SkillGroupKind};
     match skill_tree {
-        "general" => Some(SkillGroupType::General),
-        "sword" => Some(SkillGroupType::Weapon(ToolKind::Sword)),
-        "axe" => Some(SkillGroupType::Weapon(ToolKind::Axe)),
-        "hammer" => Some(SkillGroupType::Weapon(ToolKind::Hammer)),
-        "bow" => Some(SkillGroupType::Weapon(ToolKind::Bow)),
-        "staff" => Some(SkillGroupType::Weapon(ToolKind::Staff)),
-        "sceptre" => Some(SkillGroupType::Weapon(ToolKind::Sceptre)),
+        "general" => Some(SkillGroupKind::General),
+        "sword" => Some(SkillGroupKind::Weapon(ToolKind::Sword)),
+        "axe" => Some(SkillGroupKind::Weapon(ToolKind::Axe)),
+        "hammer" => Some(SkillGroupKind::Weapon(ToolKind::Hammer)),
+        "bow" => Some(SkillGroupKind::Weapon(ToolKind::Bow)),
+        "staff" => Some(SkillGroupKind::Weapon(ToolKind::Staff)),
+        "sceptre" => Some(SkillGroupKind::Weapon(ToolKind::Sceptre)),
         _ => None,
     }
 }

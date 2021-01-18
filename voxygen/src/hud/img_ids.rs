@@ -78,6 +78,7 @@ image_ids! {
         bow: "voxygen.element.icons.bow",
         staff: "voxygen.element.icons.staff",
         lock: "voxygen.element.icons.lock",
+        wpn_icon_border_skills: "voxygen.element.buttons.border_skills",
         wpn_icon_border: "voxygen.element.buttons.border",
         wpn_icon_border_mo: "voxygen.element.buttons.border_mo",
         wpn_icon_border_press: "voxygen.element.buttons.border_press",

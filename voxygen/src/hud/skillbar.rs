@@ -575,7 +575,7 @@ impl<'a> Widget for Skillbar<'a> {
         Image::new(self.imgs.skillbar_slot)
             .w_h(40.0, 40.0)
             .right_from(state.ids.m1_slot_bg, slot_offset)
-            .set(state.ids.m2_slot, ui);
+            .set(state.ids.m2_slot_bg, ui);
 
         fn get_tool(inventory: &Inventory, equip_slot: EquipSlot) -> Option<&Tool> {
             match inventory.equipped(equip_slot).map(|i| i.kind()) {
@@ -596,10 +596,6 @@ impl<'a> Widget for Skillbar<'a> {
             (_, _) => None,
         };
 
-        Image::new(self.imgs.skillbar_slot)
-            .w_h(40.0, 40.0)
-            .middle_of(state.ids.m2_slot)
-            .set(state.ids.m2_slot_bg, ui);
         Button::image(match tool.map(|t| t.kind) {
             Some(ToolKind::Sword) => self.imgs.twohsword_m2,
             Some(ToolKind::Dagger) => self.imgs.onehdagger_m2,
@@ -626,7 +622,10 @@ impl<'a> Widget for Skillbar<'a> {
                 Color::Rgba(0.3, 0.3, 0.3, 0.8)
             }
         } else {
-            Color::Rgba(1.0, 1.0, 1.0, 1.0)
+            match tool.map(|t| t.kind) {
+                None => Color::Rgba(1.0, 1.0, 1.0, 0.0),
+                _ => Color::Rgba(1.0, 1.0, 1.0, 1.0),
+            }
         })
         .set(state.ids.m2_content, ui);
         // Slot 6-10

@@ -41,7 +41,7 @@ pub fn skill_to_db_string(skill: comp::skills::Skill) -> String {
         item::tool::ToolKind,
         skills::{
             AxeSkill, BowSkill, GeneralSkill, HammerSkill, RollSkill, SceptreSkill, Skill::*,
-            SkillGroupType, StaffSkill, SwordSkill,
+            SkillGroupKind, StaffSkill, SwordSkill,
         },
     };
     let skill_string = match skill {
@@ -133,19 +133,19 @@ pub fn skill_to_db_string(skill: comp::skills::Skill) -> String {
         Roll(RollSkill::Cost) => "Roll Cost",
         Roll(RollSkill::Strength) => "Roll Strength",
         Roll(RollSkill::Duration) => "Roll Duration",
-        UnlockGroup(SkillGroupType::Weapon(ToolKind::Sword)) => "Unlock Weapon Sword",
-        UnlockGroup(SkillGroupType::Weapon(ToolKind::Axe)) => "Unlock Weapon Axe",
-        UnlockGroup(SkillGroupType::Weapon(ToolKind::Hammer)) => "Unlock Weapon Hammer",
-        UnlockGroup(SkillGroupType::Weapon(ToolKind::Bow)) => "Unlock Weapon Bow",
-        UnlockGroup(SkillGroupType::Weapon(ToolKind::Staff)) => "Unlock Weapon Staff",
-        UnlockGroup(SkillGroupType::Weapon(ToolKind::Sceptre)) => "Unlock Weapon Sceptre",
-        UnlockGroup(SkillGroupType::Weapon(ToolKind::Dagger))
-        | UnlockGroup(SkillGroupType::Weapon(ToolKind::Shield))
-        | UnlockGroup(SkillGroupType::Weapon(ToolKind::Debug))
-        | UnlockGroup(SkillGroupType::Weapon(ToolKind::Farming))
-        | UnlockGroup(SkillGroupType::Weapon(ToolKind::Empty))
-        | UnlockGroup(SkillGroupType::Weapon(ToolKind::Unique(_)))
-        | UnlockGroup(SkillGroupType::General) => {
+        UnlockGroup(SkillGroupKind::Weapon(ToolKind::Sword)) => "Unlock Weapon Sword",
+        UnlockGroup(SkillGroupKind::Weapon(ToolKind::Axe)) => "Unlock Weapon Axe",
+        UnlockGroup(SkillGroupKind::Weapon(ToolKind::Hammer)) => "Unlock Weapon Hammer",
+        UnlockGroup(SkillGroupKind::Weapon(ToolKind::Bow)) => "Unlock Weapon Bow",
+        UnlockGroup(SkillGroupKind::Weapon(ToolKind::Staff)) => "Unlock Weapon Staff",
+        UnlockGroup(SkillGroupKind::Weapon(ToolKind::Sceptre)) => "Unlock Weapon Sceptre",
+        UnlockGroup(SkillGroupKind::Weapon(ToolKind::Dagger))
+        | UnlockGroup(SkillGroupKind::Weapon(ToolKind::Shield))
+        | UnlockGroup(SkillGroupKind::Weapon(ToolKind::Debug))
+        | UnlockGroup(SkillGroupKind::Weapon(ToolKind::Farming))
+        | UnlockGroup(SkillGroupKind::Weapon(ToolKind::Empty))
+        | UnlockGroup(SkillGroupKind::Weapon(ToolKind::Unique(_)))
+        | UnlockGroup(SkillGroupKind::General) => {
             panic!("Tried to add unsupported skill to database: {:?}", skill)
         },
     };
@@ -157,7 +157,7 @@ pub fn db_string_to_skill(skill_string: &str) -> comp::skills::Skill {
         item::tool::ToolKind,
         skills::{
             AxeSkill, BowSkill, GeneralSkill, HammerSkill, RollSkill, SceptreSkill, Skill::*,
-            SkillGroupType, StaffSkill, SwordSkill,
+            SkillGroupKind, StaffSkill, SwordSkill,
         },
     };
     match skill_string {
@@ -249,12 +249,12 @@ pub fn db_string_to_skill(skill_string: &str) -> comp::skills::Skill {
         "Roll Cost" => Roll(RollSkill::Cost),
         "Roll Strength" => Roll(RollSkill::Strength),
         "Roll Duration" => Roll(RollSkill::Duration),
-        "Unlock Weapon Sword" => UnlockGroup(SkillGroupType::Weapon(ToolKind::Sword)),
-        "Unlock Weapon Axe" => UnlockGroup(SkillGroupType::Weapon(ToolKind::Axe)),
-        "Unlock Weapon Hammer" => UnlockGroup(SkillGroupType::Weapon(ToolKind::Hammer)),
-        "Unlock Weapon Bow" => UnlockGroup(SkillGroupType::Weapon(ToolKind::Bow)),
-        "Unlock Weapon Staff" => UnlockGroup(SkillGroupType::Weapon(ToolKind::Staff)),
-        "Unlock Weapon Sceptre" => UnlockGroup(SkillGroupType::Weapon(ToolKind::Sceptre)),
+        "Unlock Weapon Sword" => UnlockGroup(SkillGroupKind::Weapon(ToolKind::Sword)),
+        "Unlock Weapon Axe" => UnlockGroup(SkillGroupKind::Weapon(ToolKind::Axe)),
+        "Unlock Weapon Hammer" => UnlockGroup(SkillGroupKind::Weapon(ToolKind::Hammer)),
+        "Unlock Weapon Bow" => UnlockGroup(SkillGroupKind::Weapon(ToolKind::Bow)),
+        "Unlock Weapon Staff" => UnlockGroup(SkillGroupKind::Weapon(ToolKind::Staff)),
+        "Unlock Weapon Sceptre" => UnlockGroup(SkillGroupKind::Weapon(ToolKind::Sceptre)),
         _ => {
             panic!(
                 "Tried to convert an unsupported string from the database: {}",
@@ -264,8 +264,8 @@ pub fn db_string_to_skill(skill_string: &str) -> comp::skills::Skill {
     }
 }
 
-pub fn skill_group_to_db_string(skill_group: comp::skills::SkillGroupType) -> String {
-    use comp::{item::tool::ToolKind, skills::SkillGroupType::*};
+pub fn skill_group_to_db_string(skill_group: comp::skills::SkillGroupKind) -> String {
+    use comp::{item::tool::ToolKind, skills::SkillGroupKind::*};
     let skill_group_string = match skill_group {
         General => "General",
         Weapon(ToolKind::Sword) => "Weapon Sword",
@@ -287,8 +287,8 @@ pub fn skill_group_to_db_string(skill_group: comp::skills::SkillGroupType) -> St
     skill_group_string.to_string()
 }
 
-pub fn db_string_to_skill_group(skill_group_string: &str) -> comp::skills::SkillGroupType {
-    use comp::{item::tool::ToolKind, skills::SkillGroupType::*};
+pub fn db_string_to_skill_group(skill_group_string: &str) -> comp::skills::SkillGroupKind {
+    use comp::{item::tool::ToolKind, skills::SkillGroupKind::*};
     match skill_group_string {
         "General" => General,
         "Weapon Sword" => Weapon(ToolKind::Sword),

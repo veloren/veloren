@@ -1,7 +1,7 @@
 use crate::comp::{
     item::{tool::ToolKind, Item, ItemKind},
     skills::{
-        AxeSkill, BowSkill, HammerSkill, Skill, SkillGroupType, SkillSet, StaffSkill, SwordSkill,
+        AxeSkill, BowSkill, HammerSkill, Skill, SkillGroupKind, SkillSet, StaffSkill, SwordSkill,
     },
 };
 use tracing::warn;
@@ -41,7 +41,7 @@ impl SkillSetBuilder {
                 if let Some(ToolKind::Sword) = active_item {
                     // Sword
                     Self::default()
-                        .with_skill_group(SkillGroupType::Weapon(ToolKind::Sword))
+                        .with_skill_group(SkillGroupKind::Weapon(ToolKind::Sword))
                         .with_skill(Skill::Sword(SwordSkill::TsCombo))
                         .with_skill(Skill::Sword(SwordSkill::TsDamage))
                         .with_skill(Skill::Sword(SwordSkill::TsRegen))
@@ -66,7 +66,7 @@ impl SkillSetBuilder {
                     Some(ToolKind::Sword) => {
                         // Sword
                         Self::default()
-                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Sword))
+                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Sword))
                             .with_skill(Skill::Sword(SwordSkill::TsCombo))
                             .with_skill(Skill::Sword(SwordSkill::DDamage))
                             .with_skill(Skill::Sword(SwordSkill::DCost))
@@ -74,7 +74,7 @@ impl SkillSetBuilder {
                     Some(ToolKind::Axe) => {
                         // Axe
                         Self::default()
-                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Axe))
+                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Axe))
                             .with_skill(Skill::Axe(AxeSkill::DsCombo))
                             .with_skill(Skill::Axe(AxeSkill::SInfinite))
                             .with_skill(Skill::Axe(AxeSkill::SSpeed))
@@ -83,7 +83,7 @@ impl SkillSetBuilder {
                     Some(ToolKind::Hammer) => {
                         // Hammer
                         Self::default()
-                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Hammer))
+                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Hammer))
                             .with_skill(Skill::Hammer(HammerSkill::SsKnockback))
                             .with_skill(Skill::Hammer(HammerSkill::SsSpeed))
                             .with_skill(Skill::Hammer(HammerSkill::CKnockback))
@@ -92,7 +92,7 @@ impl SkillSetBuilder {
                     Some(ToolKind::Bow) => {
                         // Bow
                         Self::default()
-                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Bow))
+                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Bow))
                             .with_skill(Skill::Bow(BowSkill::BDamage))
                             .with_skill(Skill::Bow(BowSkill::ProjSpeed))
                             .with_skill(Skill::Bow(BowSkill::CDamage))
@@ -102,7 +102,7 @@ impl SkillSetBuilder {
                     Some(ToolKind::Staff) => {
                         // Staff
                         Self::default()
-                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Staff))
+                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Staff))
                             .with_skill(Skill::Staff(StaffSkill::FDamage))
                             .with_skill(Skill::Staff(StaffSkill::FDrain))
                             .with_skill(Skill::Staff(StaffSkill::FVelocity))
@@ -115,7 +115,7 @@ impl SkillSetBuilder {
                     Some(ToolKind::Sword) => {
                         // Sword
                         Self::default()
-                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Sword))
+                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Sword))
                             .with_skill(Skill::Sword(SwordSkill::TsCombo))
                             .with_skill(Skill::Sword(SwordSkill::TsDamage))
                             .with_skill(Skill::Sword(SwordSkill::DDamage))
@@ -126,7 +126,7 @@ impl SkillSetBuilder {
                     Some(ToolKind::Axe) => {
                         // Axe
                         Self::default()
-                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Axe))
+                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Axe))
                             .with_skill(Skill::Axe(AxeSkill::DsCombo))
                             .with_skill(Skill::Axe(AxeSkill::DsDamage))
                             .with_skill(Skill::Axe(AxeSkill::SInfinite))
@@ -138,7 +138,7 @@ impl SkillSetBuilder {
                     Some(ToolKind::Hammer) => {
                         // Hammer
                         Self::default()
-                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Hammer))
+                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Hammer))
                             .with_skill(Skill::Hammer(HammerSkill::SsKnockback))
                             .with_skill(Skill::Hammer(HammerSkill::SsDamage))
                             .with_skill(Skill::Hammer(HammerSkill::SsSpeed))
@@ -150,7 +150,7 @@ impl SkillSetBuilder {
                     Some(ToolKind::Bow) => {
                         // Bow
                         Self::default()
-                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Bow))
+                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Bow))
                             .with_skill(Skill::Bow(BowSkill::BDamage))
                             .with_skill(Skill::Bow(BowSkill::CDamage))
                             .with_skill(Skill::Bow(BowSkill::CKnockback))
@@ -162,7 +162,7 @@ impl SkillSetBuilder {
                     Some(ToolKind::Staff) => {
                         // Staff
                         Self::default()
-                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Staff))
+                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Staff))
                             .with_skill(Skill::Staff(StaffSkill::BExplosion))
                             .with_skill(Skill::Staff(StaffSkill::BRegen))
                             .with_skill(Skill::Staff(StaffSkill::BRadius))
@@ -179,7 +179,7 @@ impl SkillSetBuilder {
                     Some(ToolKind::Sword) => {
                         // Sword
                         Self::default()
-                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Sword))
+                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Sword))
                             .with_skill(Skill::Sword(SwordSkill::TsCombo))
                             .with_skill(Skill::Sword(SwordSkill::TsDamage))
                             .with_skill(Skill::Sword(SwordSkill::DDamage))
@@ -192,7 +192,7 @@ impl SkillSetBuilder {
                     Some(ToolKind::Axe) => {
                         // Axe
                         Self::default()
-                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Axe))
+                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Axe))
                             .with_skill(Skill::Axe(AxeSkill::DsCombo))
                             .with_skill(Skill::Axe(AxeSkill::DsSpeed))
                             .with_skill(Skill::Axe(AxeSkill::DsRegen))
@@ -206,7 +206,7 @@ impl SkillSetBuilder {
                     Some(ToolKind::Hammer) => {
                         // Hammer
                         Self::default()
-                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Hammer))
+                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Hammer))
                             .with_skill(Skill::Hammer(HammerSkill::SsKnockback))
                             .with_skill(Skill::Hammer(HammerSkill::SsDamage))
                             .with_skill(Skill::Hammer(HammerSkill::SsRegen))
@@ -220,7 +220,7 @@ impl SkillSetBuilder {
                     Some(ToolKind::Bow) => {
                         // Bow
                         Self::default()
-                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Bow))
+                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Bow))
                             .with_skill(Skill::Bow(BowSkill::BDamage))
                             .with_skill(Skill::Bow(BowSkill::ProjSpeed))
                             .with_skill(Skill::Bow(BowSkill::BRegen))
@@ -234,7 +234,7 @@ impl SkillSetBuilder {
                     Some(ToolKind::Staff) => {
                         // Staff
                         Self::default()
-                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Staff))
+                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Staff))
                             .with_skill(Skill::Staff(StaffSkill::BExplosion))
                             .with_skill(Skill::Staff(StaffSkill::FDamage))
                             .with_skill(Skill::Staff(StaffSkill::FRange))
@@ -251,7 +251,7 @@ impl SkillSetBuilder {
                     Some(ToolKind::Sword) => {
                         // Sword
                         Self::default()
-                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Sword))
+                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Sword))
                             .with_skill(Skill::Sword(SwordSkill::TsCombo))
                             .with_skill(Skill::Sword(SwordSkill::TsRegen))
                             .with_skill(Skill::Sword(SwordSkill::TsSpeed))
@@ -267,7 +267,7 @@ impl SkillSetBuilder {
                     Some(ToolKind::Axe) => {
                         // Axe
                         Self::default()
-                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Axe))
+                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Axe))
                             .with_skill(Skill::Axe(AxeSkill::DsCombo))
                             .with_skill(Skill::Axe(AxeSkill::SInfinite))
                             .with_skill(Skill::Axe(AxeSkill::SHelicopter))
@@ -279,7 +279,7 @@ impl SkillSetBuilder {
                     Some(ToolKind::Hammer) => {
                         // Hammer
                         Self::default()
-                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Hammer))
+                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Hammer))
                             .with_skill(Skill::Hammer(HammerSkill::SsKnockback))
                             .with_skill(Skill::Hammer(HammerSkill::SsSpeed))
                             .with_skill(Skill::Hammer(HammerSkill::SsRegen))
@@ -294,7 +294,7 @@ impl SkillSetBuilder {
                     Some(ToolKind::Bow) => {
                         // Bow
                         Self::default()
-                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Bow))
+                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Bow))
                             .with_skill(Skill::Bow(BowSkill::BDamage))
                             .with_skill(Skill::Bow(BowSkill::ProjSpeed))
                             .with_skill(Skill::Bow(BowSkill::CDamage))
@@ -309,7 +309,7 @@ impl SkillSetBuilder {
                     Some(ToolKind::Staff) => {
                         // Staff
                         Self::default()
-                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Staff))
+                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Staff))
                             .with_skill(Skill::Staff(StaffSkill::BExplosion))
                             .with_skill(Skill::Staff(StaffSkill::BDamage))
                             .with_skill(Skill::Staff(StaffSkill::BRadius))
@@ -329,7 +329,7 @@ impl SkillSetBuilder {
                     Some(ToolKind::Sword) => {
                         // Sword
                         Self::default()
-                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Sword))
+                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Sword))
                             .with_skill(Skill::Sword(SwordSkill::TsCombo))
                             .with_skill(Skill::Sword(SwordSkill::TsDamage))
                             .with_skill(Skill::Sword(SwordSkill::TsSpeed))
@@ -343,7 +343,7 @@ impl SkillSetBuilder {
                     Some(ToolKind::Axe) => {
                         // Axe
                         Self::default()
-                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Axe))
+                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Axe))
                             .with_skill(Skill::Axe(AxeSkill::DsCombo))
                             .with_skill(Skill::Axe(AxeSkill::DsDamage))
                             .with_skill(Skill::Axe(AxeSkill::SInfinite))
@@ -358,7 +358,7 @@ impl SkillSetBuilder {
                     Some(ToolKind::Hammer) => {
                         // Hammer
                         Self::default()
-                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Hammer))
+                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Hammer))
                             .with_skill(Skill::Hammer(HammerSkill::SsKnockback))
                             .with_skill(Skill::Hammer(HammerSkill::SsDamage))
                             .with_skill(Skill::Hammer(HammerSkill::SsRegen))
@@ -372,7 +372,7 @@ impl SkillSetBuilder {
                     Some(ToolKind::Bow) => {
                         // Bow
                         Self::default()
-                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Bow))
+                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Bow))
                             .with_skill(Skill::Bow(BowSkill::BDamage))
                             .with_skill(Skill::Bow(BowSkill::CDamage))
                             .with_skill(Skill::Bow(BowSkill::CKnockback))
@@ -387,7 +387,7 @@ impl SkillSetBuilder {
                     Some(ToolKind::Staff) => {
                         // Staff
                         Self::default()
-                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Staff))
+                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Staff))
                             .with_skill(Skill::Staff(StaffSkill::BExplosion))
                             .with_skill(Skill::Staff(StaffSkill::BDamage))
                             .with_skill(Skill::Staff(StaffSkill::BRadius))
@@ -407,7 +407,7 @@ impl SkillSetBuilder {
                     Some(ToolKind::Sword) => {
                         // Sword
                         Self::default()
-                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Sword))
+                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Sword))
                             .with_skill(Skill::Sword(SwordSkill::TsCombo))
                             .with_skill(Skill::Sword(SwordSkill::TsDamage))
                             .with_skill(Skill::Sword(SwordSkill::TsRegen))
@@ -423,7 +423,7 @@ impl SkillSetBuilder {
                     Some(ToolKind::Axe) => {
                         // Axe
                         Self::default()
-                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Axe))
+                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Axe))
                             .with_skill(Skill::Axe(AxeSkill::DsCombo))
                             .with_skill(Skill::Axe(AxeSkill::DsDamage))
                             .with_skill(Skill::Axe(AxeSkill::DsSpeed))
@@ -440,7 +440,7 @@ impl SkillSetBuilder {
                     Some(ToolKind::Hammer) => {
                         // Hammer
                         Self::default()
-                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Hammer))
+                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Hammer))
                             .with_skill(Skill::Hammer(HammerSkill::SsKnockback))
                             .with_skill(Skill::Hammer(HammerSkill::SsDamage))
                             .with_skill(Skill::Hammer(HammerSkill::SsSpeed))
@@ -457,7 +457,7 @@ impl SkillSetBuilder {
                     Some(ToolKind::Bow) => {
                         // Bow
                         Self::default()
-                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Bow))
+                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Bow))
                             .with_skill(Skill::Bow(BowSkill::BDamage))
                             .with_skill(Skill::Bow(BowSkill::BRegen))
                             .with_skill(Skill::Bow(BowSkill::CDamage))
@@ -474,7 +474,7 @@ impl SkillSetBuilder {
                     Some(ToolKind::Staff) => {
                         // Staff
                         Self::default()
-                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Staff))
+                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Staff))
                             .with_skill(Skill::Staff(StaffSkill::BExplosion))
                             .with_skill(Skill::Staff(StaffSkill::BDamage))
                             .with_skill(Skill::Staff(StaffSkill::BRegen))
@@ -495,7 +495,7 @@ impl SkillSetBuilder {
                     Some(ToolKind::Sword) => {
                         // Sword
                         Self::default()
-                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Sword))
+                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Sword))
                             .with_skill(Skill::Sword(SwordSkill::TsCombo))
                             .with_skill(Skill::Sword(SwordSkill::TsDamage))
                             .with_skill(Skill::Sword(SwordSkill::TsRegen))
@@ -515,7 +515,7 @@ impl SkillSetBuilder {
                     Some(ToolKind::Axe) => {
                         // Axe
                         Self::default()
-                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Axe))
+                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Axe))
                             .with_skill(Skill::Axe(AxeSkill::DsCombo))
                             .with_skill(Skill::Axe(AxeSkill::DsDamage))
                             .with_skill(Skill::Axe(AxeSkill::DsSpeed))
@@ -534,7 +534,7 @@ impl SkillSetBuilder {
                     Some(ToolKind::Hammer) => {
                         // Hammer
                         Self::default()
-                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Hammer))
+                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Hammer))
                             .with_skill(Skill::Hammer(HammerSkill::SsKnockback))
                             .with_skill(Skill::Hammer(HammerSkill::SsDamage))
                             .with_skill(Skill::Hammer(HammerSkill::SsSpeed))
@@ -553,7 +553,7 @@ impl SkillSetBuilder {
                     Some(ToolKind::Bow) => {
                         // Bow
                         Self::default()
-                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Bow))
+                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Bow))
                             .with_skill(Skill::Bow(BowSkill::BDamage))
                             .with_skill(Skill::Bow(BowSkill::ProjSpeed))
                             .with_skill(Skill::Bow(BowSkill::BRegen))
@@ -572,7 +572,7 @@ impl SkillSetBuilder {
                     Some(ToolKind::Staff) => {
                         // Staff
                         Self::default()
-                            .with_skill_group(SkillGroupType::Weapon(ToolKind::Staff))
+                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Staff))
                             .with_skill(Skill::Staff(StaffSkill::BExplosion))
                             .with_skill(Skill::Staff(StaffSkill::BDamage))
                             .with_skill(Skill::Staff(StaffSkill::BRegen))
@@ -595,7 +595,7 @@ impl SkillSetBuilder {
     }
 
     pub fn with_skill(mut self, skill: Skill) -> Self {
-        if let Some(skill_group) = skill.skill_group_type() {
+        if let Some(skill_group) = skill.skill_group_kind() {
             self.0
                 .add_skill_points(skill_group, self.0.skill_cost(skill));
             self.0.unlock_skill(skill);
@@ -615,7 +615,7 @@ impl SkillSetBuilder {
         self
     }
 
-    pub fn with_skill_group(mut self, skill_group: SkillGroupType) -> Self {
+    pub fn with_skill_group(mut self, skill_group: SkillGroupKind) -> Self {
         self.0.unlock_skill_group(skill_group);
         self
     }

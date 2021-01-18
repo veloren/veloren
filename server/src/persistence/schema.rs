@@ -41,9 +41,9 @@ table! {
 }
 
 table! {
-    skill_group (entity_id, skill_group_type) {
+    skill_group (entity_id, skill_group_kind) {
         entity_id -> BigInt,
-        skill_group_type -> Text,
+        skill_group_kind -> Text,
         exp -> Integer,
         available_sp -> Integer,
         earned_sp -> Integer,

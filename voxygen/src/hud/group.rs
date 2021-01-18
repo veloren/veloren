@@ -1,9 +1,8 @@
 use super::{
+    cr_color,
     img_ids::{Imgs, ImgsRot},
     Show, BLACK, BUFF_COLOR, DEBUFF_COLOR, ERROR_COLOR, GROUP_COLOR, HP_COLOR, KILL_COLOR,
-    LOW_HP_COLOR, QUALITY_ARTIFACT, QUALITY_COMMON, QUALITY_DEBUG, QUALITY_EPIC, QUALITY_HIGH,
-    QUALITY_LEGENDARY, QUALITY_LOW, QUALITY_MODERATE, STAMINA_COLOR, TEXT_COLOR, TEXT_COLOR_GREY,
-    UI_HIGHLIGHT_0, UI_MAIN, XP_COLOR,
+    LOW_HP_COLOR, STAMINA_COLOR, TEXT_COLOR, TEXT_COLOR_GREY, UI_HIGHLIGHT_0, UI_MAIN,
 };
 
 use crate::{
@@ -28,8 +27,6 @@ use conrod_core::{
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 use specs::{saveload::MarkerAllocator, WorldExt};
-
-use inline_tweak::*;
 
 widget_ids! {
     pub struct Ids {
@@ -436,38 +433,16 @@ impl<'a> Widget for Group<'a> {
                         .middle_of(state.ids.member_panels_bg[i])
                         .color(Some(UI_HIGHLIGHT_0))
                         .set(state.ids.member_panels_frame[i], ui);
-                    // Thresholds (lower)
-                    let common = 4.3;
-                    let moderate = 6.0;
-                    let high = 8.0;
-                    let epic = 10.0;
-                    let legendary = 79.0;
-                    let artifact = 122.0;
-                    let debug = 200.0;
 
-                    let indicator_col = match combat_rating {
-                        x if (0.0..common).contains(&x) => QUALITY_LOW,
-                        x if (common..moderate).contains(&x) => QUALITY_COMMON,
-                        x if (moderate..high).contains(&x) => QUALITY_MODERATE,
-                        x if (high..epic).contains(&x) => QUALITY_HIGH,
-                        x if (epic..legendary).contains(&x) => QUALITY_EPIC,
-                        x if (legendary..artifact).contains(&x) => QUALITY_LEGENDARY,
-                        x if (artifact..debug).contains(&x) => QUALITY_ARTIFACT,
-                        x if x >= debug => QUALITY_DEBUG,
-                        _ => XP_COLOR,
-                    };
+                    let indicator_col = cr_color(combat_rating);
                     Image::new(self.imgs.combat_rating_ico_shadow)
-                        .w_h(tweak!(18.0), tweak!(18.0))
-                        .top_left_with_margins_on(
-                            state.ids.member_panels_frame[i],
-                            tweak!(-20.0),
-                            tweak!(2.0),
-                        )
+                        .w_h(18.0, 18.0)
+                        .top_left_with_margins_on(state.ids.member_panels_frame[i], 20.0, 2.0)
                         .color(Some(indicator_col))
                         .set(state.ids.combat_rating_indicators[i], ui);
                     // Panel Text
                     Text::new(&char_name)
-                     .top_left_with_margins_on(state.ids.member_panels_frame[i], tweak!(-22.0), tweak!(22.0))
+                     .top_left_with_margins_on(state.ids.member_panels_frame[i], -22.0, 22.0)
                      .font_size(20)
                      .font_id(self.fonts.cyri.conrod_id)
                      .color(BLACK)

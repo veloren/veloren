@@ -8,7 +8,7 @@ use crate::{
             },
             slot::EquipSlot,
         },
-        skills::{SkillGroupType, SkillSet},
+        skills::{SkillGroupKind, SkillSet},
         BuffKind, Health, HealthChange, HealthSource, Inventory, Stats,
     },
     uid::Uid,
@@ -231,16 +231,16 @@ pub fn get_weapons(inv: &Inventory) -> (Option<ToolKind>, Option<ToolKind>) {
     )
 }
 
-fn max_equipped_weapon_damage(inv: &Inventory, skillset: &SkillSet) -> f32 {
+fn offensive_rating(inv: &Inventory, skillset: &SkillSet) -> f32 {
     let active_damage = equipped_tool(inv, EquipSlot::Mainhand).map_or(0.0, |tool| {
         tool.base_power()
             * tool.base_speed()
-            * (1.0 + 0.05 * skillset.earned_sp(SkillGroupType::Weapon(tool.kind)) as f32)
+            * (1.0 + 0.05 * skillset.earned_sp(SkillGroupKind::Weapon(tool.kind)) as f32)
     });
     let second_damage = equipped_tool(inv, EquipSlot::Offhand).map_or(0.0, |tool| {
         tool.base_power()
             * tool.base_speed()
-            * (1.0 + 0.05 * skillset.earned_sp(SkillGroupType::Weapon(tool.kind)) as f32)
+            * (1.0 + 0.05 * skillset.earned_sp(SkillGroupKind::Weapon(tool.kind)) as f32)
     });
     active_damage.max(second_damage)
 }
@@ -251,8 +251,8 @@ pub fn combat_rating(inventory: &Inventory, health: &Health, stats: &Stats) -> f
     let defensive_rating = health.maximum() as f32
         / (1.0 - Damage::compute_damage_reduction(inventory)).max(0.00001)
         / 100.0;
-    let offensive_rating = max_equipped_weapon_damage(inventory, &stats.skill_set).max(0.1)
-        + 0.05 * stats.skill_set.earned_sp(SkillGroupType::General) as f32;
+    let offensive_rating = offensive_rating(inventory, &stats.skill_set).max(0.1)
+        + 0.05 * stats.skill_set.earned_sp(SkillGroupKind::General) as f32;
     let combined_rating = (offensive_rating * offensive_weighting
         + defensive_rating * defensive_weighting)
         / (offensive_weighting + defensive_weighting);

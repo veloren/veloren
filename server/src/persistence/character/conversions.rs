@@ -367,9 +367,9 @@ fn get_item_from_asset(item_definition_id: &str) -> Result<common::comp::Item, E
 fn convert_skill_groups_from_database(skill_groups: &[SkillGroup]) -> Vec<skills::SkillGroup> {
     let mut new_skill_groups = Vec::new();
     for skill_group in skill_groups.iter() {
-        let skill_group_type = json_models::db_string_to_skill_group(&skill_group.skill_group_type);
+        let skill_group_kind = json_models::db_string_to_skill_group(&skill_group.skill_group_kind);
         let new_skill_group = skills::SkillGroup {
-            skill_group_type,
+            skill_group_kind,
             exp: skill_group.exp as u16,
             available_sp: skill_group.available_sp as u16,
             earned_sp: skill_group.earned_sp as u16,
@@ -396,7 +396,7 @@ pub fn convert_skill_groups_to_database(
         .into_iter()
         .map(|sg| SkillGroup {
             entity_id,
-            skill_group_type: json_models::skill_group_to_db_string(sg.skill_group_type),
+            skill_group_kind: json_models::skill_group_to_db_string(sg.skill_group_kind),
             exp: sg.exp as i32,
             available_sp: sg.available_sp as i32,
             earned_sp: sg.earned_sp as i32,
