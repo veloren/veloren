@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     comp::{
-        biped_large, quadruped_low, quadruped_medium, quadruped_small, skills::SkillGroupType,
+        biped_large, quadruped_low, quadruped_medium, quadruped_small, skills::SkillGroupKind,
         theropod, PhysicsState,
     },
     rtsim::RtSim,
@@ -234,7 +234,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                     (entity, uid)
                 })
                 .collect::<Vec<_>>();
-            // Devides exp reward by square root of number of people in group
+            // Divides exp reward by square root of number of people in group
             exp_reward /= (non_pet_group_members_in_range as f32).sqrt();
             members_in_range.into_iter().for_each(|(e, uid)| {
                 if let (Some(inventory), Some(mut stats)) = (inventories.get(e), stats.get_mut(e)) {
@@ -796,22 +796,22 @@ fn handle_exp_gain(
     outcomes: &mut Vec<Outcome>,
 ) {
     let (main_tool_kind, second_tool_kind) = combat::get_weapons(inventory);
-    let mut xp_pools = HashSet::<SkillGroupType>::new();
-    xp_pools.insert(SkillGroupType::General);
+    let mut xp_pools = HashSet::<SkillGroupKind>::new();
+    xp_pools.insert(SkillGroupKind::General);
     if let Some(w) = main_tool_kind {
         if stats
             .skill_set
-            .contains_skill_group(SkillGroupType::Weapon(w))
+            .contains_skill_group(SkillGroupKind::Weapon(w))
         {
-            xp_pools.insert(SkillGroupType::Weapon(w));
+            xp_pools.insert(SkillGroupKind::Weapon(w));
         }
     }
     if let Some(w) = second_tool_kind {
         if stats
             .skill_set
-            .contains_skill_group(SkillGroupType::Weapon(w))
+            .contains_skill_group(SkillGroupKind::Weapon(w))
         {
-            xp_pools.insert(SkillGroupType::Weapon(w));
+            xp_pools.insert(SkillGroupKind::Weapon(w));
         }
     }
     let num_pools = xp_pools.len() as f32;

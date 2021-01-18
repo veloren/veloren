@@ -91,8 +91,8 @@ impl<'a> System<'a> for Sys {
                 .skill_groups
                 .iter()
                 .filter_map(|s_g| {
-                    (s_g.exp >= stat.skill_set.skill_point_cost(s_g.skill_group_type))
-                        .then(|| s_g.skill_group_type)
+                    (s_g.exp >= stat.skill_set.skill_point_cost(s_g.skill_group_kind))
+                        .then(|| s_g.skill_group_kind)
                 })
                 .collect::<HashSet<_>>();
 

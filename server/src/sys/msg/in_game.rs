@@ -153,10 +153,10 @@ impl Sys {
                     .get_mut(entity)
                     .map(|mut s| s.skill_set.refund_skill(skill));
             },
-            ClientGeneral::UnlockSkillGroup(skill_group_type) => {
+            ClientGeneral::UnlockSkillGroup(skill_group_kind) => {
                 stats
                     .get_mut(entity)
-                    .map(|mut s| s.skill_set.unlock_skill_group(skill_group_type));
+                    .map(|mut s| s.skill_set.unlock_skill_group(skill_group_kind));
             },
             _ => unreachable!("not a client_in_game msg"),
         }

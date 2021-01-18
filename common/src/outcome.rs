@@ -32,7 +32,7 @@ pub enum Outcome {
     },
     SkillPointGain {
         uid: Uid,
-        skill_tree: comp::skills::SkillGroupType,
+        skill_tree: comp::skills::SkillGroupKind,
         total_points: u16,
         // TODO: Access ECS to get position from Uid to conserve bandwidth
         pos: Vec3<f32>,

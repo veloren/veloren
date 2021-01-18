@@ -62,7 +62,7 @@ use common::{
     comp::{
         self,
         item::{tool::ToolKind, ItemDesc, Quality},
-        skills::{Skill, SkillGroupType},
+        skills::{Skill, SkillGroupKind},
         BuffKind,
     },
     outcome::Outcome,
@@ -304,7 +304,7 @@ pub struct ExpFloater {
 
 pub struct SkillPointGain {
     pub owner: Uid,
-    pub skill_tree: SkillGroupType,
+    pub skill_tree: SkillGroupKind,
     pub total_points: u16,
     pub timer: f32,
 }
@@ -1112,24 +1112,29 @@ impl Hud {
                         } else {
                             1.0
                         };
-                        Text::new(&format!("{} Exp", floater.exp_change))
-                            .font_size(font_size_xp)
-                            .font_id(self.fonts.cyri.conrod_id)
-                            .color(Color::Rgba(0.0, 0.0, 0.0, fade))
-                            .x_y(
-                                ui_widgets.win_w * (0.5 * floater.rand_offset.0 as f64 - 0.25),
-                                ui_widgets.win_h * (0.15 * floater.rand_offset.1 as f64) + y - 3.0,
-                            )
-                            .set(player_sct_bg_id, ui_widgets);
-                        Text::new(&format!("{} Exp", floater.exp_change))
-                            .font_size(font_size_xp)
-                            .font_id(self.fonts.cyri.conrod_id)
-                            .color(Color::Rgba(0.59, 0.41, 0.67, fade))
-                            .x_y(
-                                ui_widgets.win_w * (0.5 * floater.rand_offset.0 as f64 - 0.25),
-                                ui_widgets.win_h * (0.15 * floater.rand_offset.1 as f64) + y,
-                            )
-                            .set(player_sct_id, ui_widgets);
+
+                        if floater.exp_change > 0 {
+                            // Don't show 0 Exp
+                            Text::new(&format!("{} Exp", floater.exp_change.max(1)))
+                                .font_size(font_size_xp)
+                                .font_id(self.fonts.cyri.conrod_id)
+                                .color(Color::Rgba(0.0, 0.0, 0.0, fade))
+                                .x_y(
+                                    ui_widgets.win_w * (0.5 * floater.rand_offset.0 as f64 - 0.25),
+                                    ui_widgets.win_h * (0.15 * floater.rand_offset.1 as f64) + y
+                                        - 3.0,
+                                )
+                                .set(player_sct_bg_id, ui_widgets);
+                            Text::new(&format!("{} Exp", floater.exp_change.max(1)))
+                                .font_size(font_size_xp)
+                                .font_id(self.fonts.cyri.conrod_id)
+                                .color(Color::Rgba(0.59, 0.41, 0.67, fade))
+                                .x_y(
+                                    ui_widgets.win_w * (0.5 * floater.rand_offset.0 as f64 - 0.25),
+                                    ui_widgets.win_h * (0.15 * floater.rand_offset.1 as f64) + y,
+                                )
+                                .set(player_sct_id, ui_widgets);
+                        }
                         floater.timer -= dt.as_secs_f32();
                     }
                 }
@@ -1205,7 +1210,7 @@ impl Hud {
                             .bottom_left_with_margins_on(self.ids.player_rank_up_txt_1_bg, 2.0, 2.0)
                             .set(self.ids.player_rank_up_txt_1, ui_widgets);
                         // Variable skilltree icon
-                        use crate::hud::SkillGroupType::{General, Weapon};
+                        use crate::hud::SkillGroupKind::{General, Weapon};
                         Image::new(match display.skill_tree {
                             General => self.imgs.swords_crossed,
                             Weapon(ToolKind::Hammer) => self.imgs.hammer,
@@ -2952,4 +2957,26 @@ fn try_hotbar_slot_from_input(input: GameInput) -> Option<hotbar::Slot> {
         GameInput::Slot10 => hotbar::Slot::Ten,
         _ => return None,
     })
+}
+
+pub fn cr_color(combat_rating: f32) -> Color {
+    let common = 4.3;
+    let moderate = 6.0;
+    let high = 8.0;
+    let epic = 10.0;
+    let legendary = 79.0;
+    let artifact = 122.0;
+    let debug = 200.0;
+
+    match combat_rating {
+        x if (0.0..common).contains(&x) => QUALITY_LOW,
+        x if (common..moderate).contains(&x) => QUALITY_COMMON,
+        x if (moderate..high).contains(&x) => QUALITY_MODERATE,
+        x if (high..epic).contains(&x) => QUALITY_HIGH,
+        x if (epic..legendary).contains(&x) => QUALITY_EPIC,
+        x if (legendary..artifact).contains(&x) => QUALITY_LEGENDARY,
+        x if (artifact..debug).contains(&x) => QUALITY_ARTIFACT,
+        x if x >= debug => QUALITY_DEBUG,
+        _ => XP_COLOR,
+    }
 }

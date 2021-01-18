@@ -1,8 +1,7 @@
 use super::{
-    img_ids::Imgs, DEFAULT_NPC, ENEMY_HP_COLOR, FACTION_COLOR, GROUP_COLOR, GROUP_MEMBER, HP_COLOR,
-    LOW_HP_COLOR, QUALITY_ARTIFACT, QUALITY_COMMON, QUALITY_DEBUG, QUALITY_EPIC, QUALITY_HIGH,
-    QUALITY_LEGENDARY, QUALITY_LOW, QUALITY_MODERATE, REGION_COLOR, SAY_COLOR, STAMINA_COLOR,
-    TELL_COLOR, TEXT_BG, TEXT_COLOR, XP_COLOR,
+    cr_color, img_ids::Imgs, DEFAULT_NPC, ENEMY_HP_COLOR, FACTION_COLOR, GROUP_COLOR, GROUP_MEMBER,
+    HP_COLOR, LOW_HP_COLOR, REGION_COLOR, SAY_COLOR, STAMINA_COLOR, TELL_COLOR, TEXT_BG,
+    TEXT_COLOR,
 };
 use crate::{
     hud::get_buff_info,
@@ -18,7 +17,6 @@ use conrod_core::{
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 const MAX_BUBBLE_WIDTH: f64 = 250.0;
-use inline_tweak::*;
 widget_ids! {
     struct Ids {
         // Speech bubble
@@ -321,19 +319,19 @@ impl<'a> Widget for Overhead<'a> {
                 // % HP Filling
                 let size_factor = (hp_percentage / 100.0) * BARSIZE;
                 let w = if self.in_group {
-                    tweak!(82.0) * size_factor
+                    82.0 * size_factor
                 } else {
                     73.0 * size_factor
                 };
                 let h = 6.0 * BARSIZE;
                 let x = if self.in_group {
-                    (tweak!(0.0) + (hp_percentage / 100.0 * tweak!(41.0) - tweak!(41.0))) * BARSIZE
+                    (0.0 + (hp_percentage / 100.0 * 41.0 - 41.0)) * BARSIZE
                 } else {
                     (4.5 + (hp_percentage / 100.0 * 36.45 - 36.45)) * BARSIZE
                 };
                 Image::new(self.imgs.enemy_bar)
                     .w_h(w, h)
-                    .x_y(x, MANA_BAR_Y + tweak!(8.0))
+                    .x_y(x, MANA_BAR_Y + 8.0)
                     .color(if self.in_group {
                         // Different HP bar colors only for group members
                         Some(match hp_percentage {
@@ -363,12 +361,12 @@ impl<'a> Widget for Overhead<'a> {
                     let energy_factor = energy.current() as f64 / energy.maximum() as f64;
                     let size_factor = energy_factor * BARSIZE;
                     let w = if self.in_group {
-                        tweak!(80.0) * size_factor
+                        80.0 * size_factor
                     } else {
                         72.0 * size_factor
                     };
                     let x = if self.in_group {
-                        ((tweak!(0.0) + (energy_factor * tweak!(40.0))) - tweak!(40.0)) * BARSIZE
+                        ((0.0 + (energy_factor * 40.0)) - 40.0) * BARSIZE
                     } else {
                         ((3.5 + (energy_factor * 36.5)) - 36.45) * BARSIZE
                     };
@@ -388,28 +386,10 @@ impl<'a> Widget for Overhead<'a> {
                 .parent(id)
                 .set(state.ids.health_bar_fg, ui);
 
-                // Thresholds (lower)
-                let common = 4.3;
-                let moderate = 6.0;
-                let high = 8.0;
-                let epic = 10.0;
-                let legendary = 79.0;
-                let artifact = 122.0;
-                let debug = 200.0;
+                let indicator_col = cr_color(combat_rating);
+                let artifact_diffculty = 122.0;
 
-                let indicator_col = match combat_rating {
-                    x if (0.0..common).contains(&x) => QUALITY_LOW,
-                    x if (common..moderate).contains(&x) => QUALITY_COMMON,
-                    x if (moderate..high).contains(&x) => QUALITY_MODERATE,
-                    x if (high..epic).contains(&x) => QUALITY_HIGH,
-                    x if (epic..legendary).contains(&x) => QUALITY_EPIC,
-                    x if (legendary..artifact).contains(&x) => QUALITY_LEGENDARY,
-                    x if (artifact..debug).contains(&x) => QUALITY_ARTIFACT,
-                    x if x >= debug => QUALITY_DEBUG,
-                    _ => XP_COLOR,
-                };
-
-                if combat_rating > artifact && !self.in_group {
+                if combat_rating > artifact_diffculty && !self.in_group {
                     let skull_ani = ((self.pulse * 0.7/* speed factor */).cos() * 0.5 + 0.5) * 10.0; //Animation timer
                     Image::new(if skull_ani as i32 == 1 && rand::random::<f32>() < 0.9 {
                         self.imgs.skull_2
@@ -427,8 +407,8 @@ impl<'a> Widget for Overhead<'a> {
                     } else {
                         self.imgs.combat_rating_ico
                     })
-                    .w_h(tweak!(7.0) * BARSIZE, tweak!(7.0) * BARSIZE)
-                    .x_y(tweak!(-37.0) * BARSIZE, MANA_BAR_Y + tweak!(6.0))
+                    .w_h(7.0 * BARSIZE, 7.0 * BARSIZE)
+                    .x_y(-37.0 * BARSIZE, MANA_BAR_Y + 6.0)
                     .color(Some(indicator_col))
                     .parent(id)
                     .set(state.ids.level, ui);

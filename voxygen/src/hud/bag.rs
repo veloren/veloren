@@ -1,11 +1,10 @@
 use super::{
+    cr_color,
     img_ids::{Imgs, ImgsRot},
     item_imgs::ItemImgs,
     slots::{ArmorSlot, EquipSlot, InventorySlot, SlotManager},
     util::loadout_slot_text,
-    Show, CRITICAL_HP_COLOR, LOW_HP_COLOR, QUALITY_ARTIFACT, QUALITY_COMMON, QUALITY_DEBUG,
-    QUALITY_EPIC, QUALITY_HIGH, QUALITY_LEGENDARY, QUALITY_LOW, QUALITY_MODERATE, TEXT_COLOR,
-    UI_HIGHLIGHT_0, UI_MAIN, XP_COLOR,
+    Show, CRITICAL_HP_COLOR, LOW_HP_COLOR, QUALITY_COMMON, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
 };
 use crate::{
     hud::get_quality_col,
@@ -428,27 +427,9 @@ impl<'a> Widget for Bag<'a> {
                     .stat_txts
                     .resize(STATS.len(), &mut ui.widget_id_generator())
             });
-            // Thresholds (lower)
-            let common = 4.3;
-            let moderate = 6.0;
-            let high = 8.0;
-            let epic = 10.0;
-            let legendary = 79.0;
-            let artifact = 122.0;
-            let debug = 200.0;
             // Stats
             let combat_rating = combat_rating(inventory, self.health, self.stats).min(999.9);
-            let indicator_col = match combat_rating {
-                x if (0.0..common).contains(&x) => QUALITY_LOW,
-                x if (common..moderate).contains(&x) => QUALITY_COMMON,
-                x if (moderate..high).contains(&x) => QUALITY_MODERATE,
-                x if (high..epic).contains(&x) => QUALITY_HIGH,
-                x if (epic..legendary).contains(&x) => QUALITY_EPIC,
-                x if (legendary..artifact).contains(&x) => QUALITY_LEGENDARY,
-                x if (artifact..debug).contains(&x) => QUALITY_ARTIFACT,
-                x if x >= debug => QUALITY_DEBUG,
-                _ => XP_COLOR,
-            };
+            let indicator_col = cr_color(combat_rating);
             for i in STATS.iter().copied().enumerate() {
                 let btn = Button::image(match i.1 {
                     "Health" => self.imgs.health_ico,

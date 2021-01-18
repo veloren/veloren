@@ -9,12 +9,17 @@ use std::hash::Hash;
 use tracing::{trace, warn};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct SkillTreeMap(HashMap<SkillGroupType, HashSet<Skill>>);
+pub struct SkillTreeMap(HashMap<SkillGroupKind, HashSet<Skill>>);
 
 impl Asset for SkillTreeMap {
     type Loader = assets::RonLoader;
 
     const EXTENSION: &'static str = "ron";
+}
+
+pub struct SkillGroupDef {
+    pub skills: HashSet<Skill>,
+    pub total_skill_point_cost: u16,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -39,10 +44,35 @@ lazy_static! {
     // Determines the skills that comprise each skill group - this data is used to determine
     // which of a player's skill groups a particular skill should be added to when a skill unlock
     // is requested.
-    pub static ref SKILL_GROUP_DEFS: HashMap<SkillGroupType, HashSet<Skill>> = {
-        SkillTreeMap::load_expect_cloned(
+    pub static ref SKILL_GROUP_DEFS: HashMap<SkillGroupKind, SkillGroupDef> = {
+        let map = SkillTreeMap::load_expect_cloned(
             "common.skill_trees.skills_skill-groups_manifest",
-        ).0
+        ).0;
+        map.iter().map(|(sgk, skills)|
+            (*sgk, SkillGroupDef { skills: skills.clone(),
+                total_skill_point_cost: skills
+                    .iter()
+                    .map(|skill| {
+                        if let Some(max_level) = skill.max_level() {
+                            (1..=max_level)
+                                .into_iter()
+                                .map(|level| skill.skill_cost(Some(level)))
+                                .sum()
+                        } else {
+                            skill.skill_cost(None)
+                        }
+                    })
+                    .sum()
+            })
+        )
+        .collect()
+    };
+    // Creates a hashmap for the reverse lookup of skill groups from a skill
+    pub static ref SKILL_GROUP_LOOKUP: HashMap<Skill, SkillGroupKind> = {
+        let map = SkillTreeMap::load_expect_cloned(
+            "common.skill_trees.skills_skill-groups_manifest",
+        ).0;
+        map.iter().map(|(sgk, skills)| skills.into_iter().map(move |s| (*s, *sgk))).flatten().collect()
     };
     // Loads the maximum level that a skill can obtain
     pub static ref SKILL_MAX_LEVEL: HashMap<Skill, Option<u16>> = {
@@ -71,7 +101,7 @@ pub enum Skill {
     Bow(BowSkill),
     Staff(StaffSkill),
     Sceptre(SceptreSkill),
-    UnlockGroup(SkillGroupType),
+    UnlockGroup(SkillGroupKind),
     Roll(RollSkill),
 }
 
@@ -219,12 +249,12 @@ pub enum RollSkill {
 }
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
-pub enum SkillGroupType {
+pub enum SkillGroupKind {
     General,
     Weapon(ToolKind),
 }
 
-impl SkillGroupType {
+impl SkillGroupKind {
     /// Gets the cost in experience of earning a skill point
     #[allow(clippy::many_single_char_names)]
     pub fn skill_point_cost(self, level: u16) -> u16 {
@@ -243,21 +273,13 @@ impl SkillGroupType {
 
     /// Gets the total amount of skill points that can be spent in a particular
     /// skill group
-    pub fn max_skill_points(self) -> u16 {
-        if let Some(skill_list) = SKILL_GROUP_DEFS.get(&self) {
-            skill_list
-                .iter()
-                .map(|skill| {
-                    if let Some(max_level) = skill.max_level() {
-                        (1..=max_level)
-                            .into_iter()
-                            .map(|level| skill.skill_cost(Some(level)))
-                            .sum()
-                    } else {
-                        skill.skill_cost(None)
-                    }
-                })
-                .sum()
+    pub fn total_skill_point_cost(self) -> u16 {
+        if let Some(SkillGroupDef {
+            total_skill_point_cost,
+            ..
+        }) = SKILL_GROUP_DEFS.get(&self)
+        {
+            *total_skill_point_cost
         } else {
             0
         }
@@ -269,16 +291,16 @@ impl SkillGroupType {
 /// skill group.
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
 pub struct SkillGroup {
-    pub skill_group_type: SkillGroupType,
+    pub skill_group_kind: SkillGroupKind,
     pub exp: u16,
     pub available_sp: u16,
     pub earned_sp: u16,
 }
 
 impl SkillGroup {
-    fn new(skill_group_type: SkillGroupType) -> SkillGroup {
+    fn new(skill_group_kind: SkillGroupKind) -> SkillGroup {
         SkillGroup {
-            skill_group_type,
+            skill_group_kind,
             exp: 0,
             available_sp: 0,
             earned_sp: 0,
@@ -303,7 +325,7 @@ impl Default for SkillSet {
     /// player
     fn default() -> Self {
         Self {
-            skill_groups: vec![SkillGroup::new(SkillGroupType::General)],
+            skill_groups: vec![SkillGroup::new(SkillGroupKind::General)],
             skills: HashMap::new(),
             modify_health: false,
             modify_energy: false,
@@ -312,25 +334,23 @@ impl Default for SkillSet {
 }
 
 impl SkillSet {
-    // TODO: Game design to determine how skill groups are unlocked
     ///  Unlocks a skill group for a player. It starts with 0 exp and 0 skill
     ///  points.
     ///
     /// ```
-    /// use veloren_common::comp::skills::{SkillGroupType, SkillSet};
+    /// use veloren_common::comp::{
+    ///     item::tool::ToolKind,
+    ///     skills::{SkillGroupKind, SkillSet},
+    /// };
     ///
-    /// let mut skillset = SkillSet::new();
-    /// skillset.unlock_skill_group(SkillGroupType::Axes);
+    /// let mut skillset = SkillSet::default();
+    /// skillset.unlock_skill_group(SkillGroupKind::Weapon(ToolKind::Sword));
     ///
-    /// assert_eq!(skillset.skill_groups.len(), 1);
+    /// assert_eq!(skillset.skill_groups.len(), 2);
     /// ```
-    pub fn unlock_skill_group(&mut self, skill_group_type: SkillGroupType) {
-        if !self
-            .skill_groups
-            .iter()
-            .any(|x| x.skill_group_type == skill_group_type)
-        {
-            self.skill_groups.push(SkillGroup::new(skill_group_type));
+    pub fn unlock_skill_group(&mut self, skill_group_kind: SkillGroupKind) {
+        if !self.contains_skill_group(skill_group_kind) {
+            self.skill_groups.push(SkillGroup::new(skill_group_kind));
         } else {
             warn!("Tried to unlock already known skill group");
         }
@@ -340,26 +360,21 @@ impl SkillSet {
     /// group unlocked and available SP in that skill group.
     ///
     /// ```
-    /// use veloren_common::comp::skills::{Skill, SkillGroupType, SkillSet};
+    /// use veloren_common::comp::skills::{GeneralSkill, Skill, SkillGroupKind, SkillSet};
     ///
-    /// let mut skillset = SkillSet::new();
-    /// skillset.unlock_skill_group(SkillGroupType::Axes);
-    /// skillset.add_skill_points(SkillGroupType::Axes, 1);
+    /// let mut skillset = SkillSet::default();
+    /// skillset.add_skill_points(SkillGroupKind::General, 1);
     ///
-    /// skillset.unlock_skill(Skill::TestAxeSkill2);
+    /// skillset.unlock_skill(Skill::General(GeneralSkill::HealthIncrease));
     ///
     /// assert_eq!(skillset.skills.len(), 1);
     /// ```
     pub fn unlock_skill(&mut self, skill: Skill) {
-        if let Some(skill_group_type) = skill.skill_group_type() {
+        if let Some(skill_group_kind) = skill.skill_group_kind() {
             let next_level = self.next_skill_level(skill);
             let prerequisites_met = self.prerequisites_met(skill);
             if !matches!(self.skills.get(&skill), Some(level) if *level == skill.max_level()) {
-                if let Some(mut skill_group) = self
-                    .skill_groups
-                    .iter_mut()
-                    .find(|x| x.skill_group_type == skill_group_type)
-                {
+                if let Some(mut skill_group) = self.skill_group_mut(skill_group_kind) {
                     if prerequisites_met {
                         if skill_group.available_sp >= skill.skill_cost(next_level) {
                             skill_group.available_sp -= skill.skill_cost(next_level);
@@ -397,33 +412,25 @@ impl SkillSet {
     /// skill group.
     ///
     /// ```
-    /// use veloren_common::comp::skills::{Skill, SkillGroupType, SkillSet};
+    /// use veloren_common::comp::skills::{GeneralSkill, Skill, SkillGroupKind, SkillSet};
     ///
-    /// let mut skillset = SkillSet::new();
-    /// skillset.unlock_skill_group(SkillGroupType::Axes);
-    /// skillset.add_skill_points(SkillGroupType::Axes, 1);
-    /// skillset.unlock_skill(Skill::TestAxeSkill2);
+    /// let mut skillset = SkillSet::default();
+    /// skillset.add_skill_points(SkillGroupKind::General, 1);
+    /// skillset.unlock_skill(Skill::General(GeneralSkill::HealthIncrease));
     ///
-    /// skillset.refund_skill(Skill::TestAxeSkill2);
+    /// skillset.refund_skill(Skill::General(GeneralSkill::HealthIncrease));
     ///
     /// assert_eq!(skillset.skills.len(), 0);
     /// ```
     pub fn refund_skill(&mut self, skill: Skill) {
-        if self.has_skill(skill) {
-            if let Some(skill_group_type) = skill.skill_group_type() {
-                if let Some(mut skill_group) = self
-                    .skill_groups
-                    .iter_mut()
-                    .find(|x| x.skill_group_type == skill_group_type)
-                {
-                    let level = self.skills.get(&skill).copied();
-                    if let Some(level) = level {
-                        skill_group.available_sp += skill.skill_cost(level);
-                        if level.map_or(false, |l| l > 1) {
-                            self.skills.insert(skill, level.map(|l| l - 1));
-                        } else {
-                            self.skills.remove(&skill);
-                        }
+        if let Ok(level) = self.skill_level(skill) {
+            if let Some(skill_group_kind) = skill.skill_group_kind() {
+                if let Some(mut skill_group) = self.skill_group_mut(skill_group_kind) {
+                    skill_group.available_sp += skill.skill_cost(level);
+                    if level.map_or(false, |l| l > 1) {
+                        self.skills.insert(skill, level.map(|l| l - 1));
+                    } else {
+                        self.skills.remove(&skill);
                     }
                 } else {
                     warn!("Tried to refund skill for a skill group that player does not have");
@@ -443,24 +450,19 @@ impl SkillSet {
     /// group type.
     ///
     /// ```
-    /// use veloren_common::comp::skills::{SkillGroupType, SkillSet};
+    /// use veloren_common::comp::skills::{SkillGroupKind, SkillSet};
     ///
-    /// let mut skillset = SkillSet::new();
-    /// skillset.unlock_skill_group(SkillGroupType::Axes);
-    /// skillset.add_skill_points(SkillGroupType::Axes, 1);
+    /// let mut skillset = SkillSet::default();
+    /// skillset.add_skill_points(SkillGroupKind::General, 1);
     ///
     /// assert_eq!(skillset.skill_groups[0].available_sp, 1);
     /// ```
     pub fn add_skill_points(
         &mut self,
-        skill_group_type: SkillGroupType,
+        skill_group_kind: SkillGroupKind,
         number_of_skill_points: u16,
     ) {
-        if let Some(mut skill_group) = self
-            .skill_groups
-            .iter_mut()
-            .find(|x| x.skill_group_type == skill_group_type)
-        {
+        if let Some(mut skill_group) = self.skill_group_mut(skill_group_kind) {
             skill_group.available_sp = skill_group
                 .available_sp
                 .saturating_add(number_of_skill_points);
@@ -471,13 +473,9 @@ impl SkillSet {
     }
 
     /// Adds a skill point while subtracting the necessary amount of experience
-    pub fn earn_skill_point(&mut self, skill_group_type: SkillGroupType) {
-        let sp_cost = self.skill_point_cost(skill_group_type);
-        if let Some(mut skill_group) = self
-            .skill_groups
-            .iter_mut()
-            .find(|x| x.skill_group_type == skill_group_type)
-        {
+    pub fn earn_skill_point(&mut self, skill_group_kind: SkillGroupKind) {
+        let sp_cost = self.skill_point_cost(skill_group_kind);
+        if let Some(mut skill_group) = self.skill_group_mut(skill_group_kind) {
             skill_group.exp = skill_group.exp.saturating_sub(sp_cost);
             skill_group.available_sp = skill_group.available_sp.saturating_add(1);
             skill_group.earned_sp = skill_group.earned_sp.saturating_add(1);
@@ -486,20 +484,16 @@ impl SkillSet {
 
     /// Checks if the skill set of an entity contains a particular skill group
     /// type
-    pub fn contains_skill_group(&self, skill_group_type: SkillGroupType) -> bool {
+    pub fn contains_skill_group(&self, skill_group_kind: SkillGroupKind) -> bool {
         self.skill_groups
             .iter()
-            .any(|x| x.skill_group_type == skill_group_type)
+            .any(|x| x.skill_group_kind == skill_group_kind)
     }
 
     /// Adds/subtracts experience to the skill group within an entity's skill
     /// set
-    pub fn change_experience(&mut self, skill_group_type: SkillGroupType, amount: i32) {
-        if let Some(mut skill_group) = self
-            .skill_groups
-            .iter_mut()
-            .find(|x| x.skill_group_type == skill_group_type)
-        {
+    pub fn change_experience(&mut self, skill_group_kind: SkillGroupKind, amount: i32) {
+        if let Some(mut skill_group) = self.skill_group_mut(skill_group_kind) {
             skill_group.exp = (skill_group.exp as i32 + amount) as u16;
         } else {
             warn!("Tried to add experience to a skill group that player does not have");
@@ -509,36 +503,39 @@ impl SkillSet {
     /// Checks that the skill set contains all prerequisite skills for a
     /// particular skill
     pub fn prerequisites_met(&self, skill: Skill) -> bool {
-        let next_level = self.next_skill_level(skill);
-        skill.prerequisite_skills(next_level).iter().all(|(s, l)| {
-            self.skill_level(*s).map_or(false, |l_b| l_b >= *l)
-            /* self.has_skill(*s) && self.skills.get(s).map_or(false, |l_b|
-             * l_b >= l) */
-        })
+        skill
+            .prerequisite_skills()
+            .all(|(s, l)| self.skill_level(s).map_or(false, |l_b| l_b >= l))
+    }
+
+    /// Returns a reference to a particular skill group in a skillset
+    fn skill_group(&self, skill_group: SkillGroupKind) -> Option<&SkillGroup> {
+        self.skill_groups
+            .iter()
+            .find(|s_g| s_g.skill_group_kind == skill_group)
+    }
+
+    /// Returns a reference to a particular skill group in a skillset
+    fn skill_group_mut(&mut self, skill_group: SkillGroupKind) -> Option<&mut SkillGroup> {
+        self.skill_groups
+            .iter_mut()
+            .find(|s_g| s_g.skill_group_kind == skill_group)
     }
 
     /// Gets the available points for a particular skill group
-    pub fn available_sp(&self, skill_group: SkillGroupType) -> u16 {
-        self.skill_groups
-            .iter()
-            .find(|s_g| s_g.skill_group_type == skill_group)
+    pub fn available_sp(&self, skill_group: SkillGroupKind) -> u16 {
+        self.skill_group(skill_group)
             .map_or(0, |s_g| s_g.available_sp)
     }
 
     /// Gets the total earned points for a particular skill group
-    pub fn earned_sp(&self, skill_group: SkillGroupType) -> u16 {
-        self.skill_groups
-            .iter()
-            .find(|s_g| s_g.skill_group_type == skill_group)
-            .map_or(0, |s_g| s_g.earned_sp)
+    pub fn earned_sp(&self, skill_group: SkillGroupKind) -> u16 {
+        self.skill_group(skill_group).map_or(0, |s_g| s_g.earned_sp)
     }
 
     /// Gets the available experience for a particular skill group
-    pub fn experience(&self, skill_group: SkillGroupType) -> u16 {
-        self.skill_groups
-            .iter()
-            .find(|s_g| s_g.skill_group_type == skill_group)
-            .map_or(0, |s_g| s_g.exp)
+    pub fn experience(&self, skill_group: SkillGroupKind) -> u16 {
+        self.skill_group(skill_group).map_or(0, |s_g| s_g.exp)
     }
 
     /// Gets skill point cost to purchase skill of next level
@@ -549,11 +546,11 @@ impl SkillSet {
 
     /// Checks if player has sufficient skill points to purchase a skill
     pub fn sufficient_skill_points(&self, skill: Skill) -> bool {
-        if let Some(skill_group_type) = skill.skill_group_type() {
+        if let Some(skill_group_kind) = skill.skill_group_kind() {
             if let Some(skill_group) = self
                 .skill_groups
                 .iter()
-                .find(|x| x.skill_group_type == skill_group_type)
+                .find(|x| x.skill_group_kind == skill_group_kind)
             {
                 let needed_sp = self.skill_cost(skill);
                 skill_group.available_sp >= needed_sp
@@ -569,18 +566,13 @@ impl SkillSet {
     pub fn has_available_sp(&self) -> bool {
         self.skill_groups.iter().any(|sg| {
             sg.available_sp > 0
-                && (sg.earned_sp - sg.available_sp) < sg.skill_group_type.max_skill_points()
+                && (sg.earned_sp - sg.available_sp) < sg.skill_group_kind.total_skill_point_cost()
         })
     }
 
     /// Checks how much experience is needed for the next skill point in a tree
-    pub fn skill_point_cost(&self, skill_group: SkillGroupType) -> u16 {
-        if let Some(level) = self
-            .skill_groups
-            .iter()
-            .find(|sg| sg.skill_group_type == skill_group)
-            .map(|sg| sg.earned_sp)
-        {
+    pub fn skill_point_cost(&self, skill_group: SkillGroupKind) -> u16 {
+        if let Some(level) = self.skill_group(skill_group).map(|sg| sg.earned_sp) {
             skill_group.skill_point_cost(level)
         } else {
             skill_group.skill_point_cost(0)
@@ -621,36 +613,28 @@ impl SkillSet {
 impl Skill {
     /// Returns a vec of prerequisite skills (it should only be necessary to
     /// note direct prerequisites)
-    pub fn prerequisite_skills(self, level: Option<u16>) -> HashMap<Skill, Option<u16>> {
-        let mut prerequisites = HashMap::new();
-        if let Some(level) = level {
-            if level > 1 {
-                // For skills above level 1, sets prerequisite of skill of lower level
-                prerequisites.insert(self, Some(level - 1));
-            }
-        }
-        if let Some(skills) = SKILL_PREREQUISITES.get(&self) {
-            prerequisites.extend(skills);
-        }
-        prerequisites
+    pub fn prerequisite_skills(&self) -> impl Iterator<Item = (Skill, Option<u16>)> {
+        SKILL_PREREQUISITES
+            .get(&self)
+            .into_iter()
+            .flatten()
+            .map(|(skill, level)| (*skill, *level))
     }
 
     /// Returns the cost in skill points of unlocking a particular skill
-    pub fn skill_cost(self, level: Option<u16>) -> u16 {
+    pub fn skill_cost(&self, level: Option<u16>) -> u16 {
         // TODO: Better balance the costs later
         level.unwrap_or(1)
     }
 
     /// Returns the maximum level a skill can reach, returns None if the skill
     /// doesn't level
-    pub fn max_level(self) -> Option<u16> { SKILL_MAX_LEVEL.get(&self).copied().flatten() }
+    pub fn max_level(&self) -> Option<u16> { SKILL_MAX_LEVEL.get(&self).copied().flatten() }
 
     /// Returns the skill group type for a skill from the static skill group
     /// definitions.
-    pub fn skill_group_type(self) -> Option<SkillGroupType> {
-        SKILL_GROUP_DEFS
-            .iter()
-            .find_map(|(key, val)| val.contains(&self).then_some(*key))
+    pub fn skill_group_kind(&self) -> Option<SkillGroupKind> {
+        SKILL_GROUP_LOOKUP.get(&self).copied()
     }
 }
 
@@ -661,8 +645,8 @@ mod tests {
     #[test]
     fn test_refund_skill() {
         let mut skillset = SkillSet::default();
-        skillset.unlock_skill_group(SkillGroupType::Weapon(ToolKind::Axe));
-        skillset.add_skill_points(SkillGroupType::Weapon(ToolKind::Axe), 1);
+        skillset.unlock_skill_group(SkillGroupKind::Weapon(ToolKind::Axe));
+        skillset.add_skill_points(SkillGroupKind::Weapon(ToolKind::Axe), 1);
         skillset.unlock_skill(Skill::Axe(AxeSkill::UnlockLeap));
 
         assert_eq!(skillset.skill_groups[1].available_sp, 0);
@@ -678,12 +662,12 @@ mod tests {
     #[test]
     fn test_unlock_skillgroup() {
         let mut skillset = SkillSet::default();
-        skillset.unlock_skill_group(SkillGroupType::Weapon(ToolKind::Axe));
+        skillset.unlock_skill_group(SkillGroupKind::Weapon(ToolKind::Axe));
 
         assert_eq!(skillset.skill_groups.len(), 2);
         assert_eq!(
             skillset.skill_groups[1],
-            SkillGroup::new(SkillGroupType::Weapon(ToolKind::Axe))
+            SkillGroup::new(SkillGroupKind::Weapon(ToolKind::Axe))
         );
     }
 
@@ -691,8 +675,8 @@ mod tests {
     fn test_unlock_skill() {
         let mut skillset = SkillSet::default();
 
-        skillset.unlock_skill_group(SkillGroupType::Weapon(ToolKind::Axe));
-        skillset.add_skill_points(SkillGroupType::Weapon(ToolKind::Axe), 1);
+        skillset.unlock_skill_group(SkillGroupKind::Weapon(ToolKind::Axe));
+        skillset.add_skill_points(SkillGroupKind::Weapon(ToolKind::Axe), 1);
 
         assert_eq!(skillset.skill_groups[1].available_sp, 1);
         assert_eq!(skillset.skills.len(), 0);
@@ -714,8 +698,8 @@ mod tests {
     #[test]
     fn test_add_skill_points() {
         let mut skillset = SkillSet::default();
-        skillset.unlock_skill_group(SkillGroupType::Weapon(ToolKind::Axe));
-        skillset.add_skill_points(SkillGroupType::Weapon(ToolKind::Axe), 1);
+        skillset.unlock_skill_group(SkillGroupKind::Weapon(ToolKind::Axe));
+        skillset.add_skill_points(SkillGroupKind::Weapon(ToolKind::Axe), 1);
 
         assert_eq!(skillset.skill_groups[1].available_sp, 1);
     }

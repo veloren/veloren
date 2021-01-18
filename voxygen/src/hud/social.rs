@@ -382,9 +382,13 @@ impl<'a> Widget for Social<'a> {
                 players.filter(|(uid, _)| Some(**uid) != my_uid).enumerate()
             {
                 let hide_username = true;
-                let zone = "Wilderness"; // TODO Add real zone
+                let zone = ""; // TODO Add real zone
                 let selected = state.selected_uid.map_or(false, |u| u.0 == uid);
                 let alias = &player_info.player_alias;
+                let zone_name = match &player_info.character {
+                    None => self.localized_strings.get("hud.group.in_menu").to_string(), /* character select or spectating */
+                    _ => format!("{} ", &zone),
+                };
                 let name_text = match &player_info.character {
                     Some(character) => {
                         if Some(uid) == my_uid {
@@ -394,16 +398,12 @@ impl<'a> Widget for Social<'a> {
                                 &character.name
                             )
                         } else if hide_username {
-                            character.name.clone()
+                            format!("{} [{}]", &character.name, zone_name)
                         } else {
-                            format!("[{}] {}", alias, &character.name)
+                            format!("[{}] {} [{}]", alias, &character.name, zone_name)
                         }
                     },
                     None => alias.clone(), // character select or spectating
-                };
-                let zone_name = match &player_info.character {
-                    None => self.localized_strings.get("hud.group.in_menu").to_string(), /* character select or spectating */
-                    _ => format!("{} ", &zone),
                 };
                 // Player name widgets
                 let button = Button::image(if !selected {

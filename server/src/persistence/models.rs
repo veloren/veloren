@@ -57,11 +57,11 @@ pub struct Skill {
 }
 
 #[derive(Associations, Identifiable, Insertable, Queryable, Debug)]
-#[primary_key(entity_id, skill_group_type)]
+#[primary_key(entity_id, skill_group_kind)]
 #[table_name = "skill_group"]
 pub struct SkillGroup {
     pub entity_id: i64,
-    pub skill_group_type: String,
+    pub skill_group_kind: String,
     pub exp: i32,
     pub available_sp: i32,
     pub earned_sp: i32,

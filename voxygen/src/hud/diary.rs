@@ -219,7 +219,7 @@ impl<'a> Diary<'a> {
     Achievements,
 }*/
 
-pub type SelectedSkillTree = skills::SkillGroupType;
+pub type SelectedSkillTree = skills::SkillGroupKind;
 
 const TREES: [&str; 7] = [
     "General Combat",
@@ -379,7 +379,7 @@ impl<'a> Widget for Diary<'a> {
                     )
                 })
                 .map_or(false, |(st, a_pts, e_pts)| {
-                    a_pts > 0 && (e_pts - a_pts) < st.max_skill_points()
+                    a_pts > 0 && (e_pts - a_pts) < st.total_skill_point_cost()
                 });
             if Button::image(
                 if skill_tree_from_str(i.1).map_or(false, |st| st == *sel_tab || available_pts) {
@@ -576,18 +576,26 @@ impl<'a> Widget for Diary<'a> {
         //
         //
         // TOP-LEFT Skills
+        let offset_0 = 22.0;
+        let offset_1 = -122.0;
+        let offset_2 = offset_1 - -20.0;
         while self.created_btns_top_l < skills_top_l {
-            let mut img = Button::image(self.imgs.wpn_icon_border).w_h(80.0, 80.0);
+            let mut img = Button::image(self.imgs.wpn_icon_border_skills).w_h(80.0, 100.0);
             match self.created_btns_top_l {
                 0 => img = img.middle_of(state.skills_top_l_align), // Central Skill
-                1 => img = img.up_from(state.skills_top_l[0], 4.0), // 12:00
-                2 => img = img.down_from(state.skills_top_l[0], 4.0), // 6:00
-                3 => img = img.left_from(state.skills_top_l[0], 4.0), // 3:00
-                4 => img = img.right_from(state.skills_top_l[0], 4.0), // 9:00
-                5 => img = img.top_left_with_margins_on(state.skills_top_l[0], -84.0, -84.0), /* 10:30 */
-                6 => img = img.top_right_with_margins_on(state.skills_top_l[0], -84.0, -84.0), /* 1:30 */
-                7 => img = img.bottom_left_with_margins_on(state.skills_top_l[0], -84.0, -84.0), /* 4:30 */
-                8 => img = img.bottom_right_with_margins_on(state.skills_top_l[0], -84.0, -84.0), /* 7:30 */
+                1 => img = img.up_from(state.skills_top_l[0], offset_0), // 12:00
+                2 => img = img.down_from(state.skills_top_l[0], offset_0), // 6:00
+                3 => img = img.left_from(state.skills_top_l[0], offset_0), // 3:00
+                4 => img = img.right_from(state.skills_top_l[0], offset_0), // 9:00
+                5 => img = img.top_left_with_margins_on(state.skills_top_l[0], offset_1, offset_2), /* 10:30 */
+                6 => img = img.top_right_with_margins_on(state.skills_top_l[0], offset_1, offset_2), /* 1:30 */
+                7 => {
+                    img = img.bottom_left_with_margins_on(state.skills_top_l[0], offset_1, offset_2)
+                }, /* 4:30 */
+                8 => {
+                    img =
+                        img.bottom_right_with_margins_on(state.skills_top_l[0], offset_1, offset_2)
+                }, /* 7:30 */
                 _ => {},
             }
             img.set(state.skills_top_l[self.created_btns_top_l], ui);
@@ -595,17 +603,22 @@ impl<'a> Widget for Diary<'a> {
         }
         // TOP-RIGHT Skills
         while self.created_btns_top_r < skills_top_r {
-            let mut img = Button::image(self.imgs.wpn_icon_border).w_h(80.0, 80.0);
+            let mut img = Button::image(self.imgs.wpn_icon_border_skills).w_h(80.0, 100.0);
             match self.created_btns_top_r {
                 0 => img = img.middle_of(state.skills_top_r_align), // Central Skill
-                1 => img = img.up_from(state.skills_top_r[0], 4.0), // 12:00
-                2 => img = img.down_from(state.skills_top_r[0], 4.0), // 6:00
-                3 => img = img.left_from(state.skills_top_r[0], 4.0), // 3:00
-                4 => img = img.right_from(state.skills_top_r[0], 4.0), // 9:00
-                5 => img = img.top_left_with_margins_on(state.skills_top_r[0], -84.0, -84.0), /* 10:30 */
-                6 => img = img.top_right_with_margins_on(state.skills_top_r[0], -84.0, -84.0), /* 1:30 */
-                7 => img = img.bottom_left_with_margins_on(state.skills_top_r[0], -84.0, -84.0), /* 4:30 */
-                8 => img = img.bottom_right_with_margins_on(state.skills_top_r[0], -84.0, -84.0), /* 7:30 */
+                1 => img = img.up_from(state.skills_top_r[0], offset_0), // 12:00
+                2 => img = img.down_from(state.skills_top_r[0], offset_0), // 6:00
+                3 => img = img.left_from(state.skills_top_r[0], offset_0), // 3:00
+                4 => img = img.right_from(state.skills_top_r[0], offset_0), // 9:00
+                5 => img = img.top_left_with_margins_on(state.skills_top_r[0], offset_1, offset_2), /* 10:30 */
+                6 => img = img.top_right_with_margins_on(state.skills_top_r[0], offset_1, offset_2), /* 1:30 */
+                7 => {
+                    img = img.bottom_left_with_margins_on(state.skills_top_r[0], offset_1, offset_2)
+                }, /* 4:30 */
+                8 => {
+                    img =
+                        img.bottom_right_with_margins_on(state.skills_top_r[0], offset_1, offset_2)
+                }, /* 7:30 */
                 _ => {},
             }
             img.set(state.skills_top_r[self.created_btns_top_r], ui);
@@ -613,17 +626,22 @@ impl<'a> Widget for Diary<'a> {
         }
         // BOTTOM-LEFT Skills
         while self.created_btns_bot_l < skills_bot_l {
-            let mut img = Button::image(self.imgs.wpn_icon_border).w_h(80.0, 80.0);
+            let mut img = Button::image(self.imgs.wpn_icon_border_skills).w_h(80.0, 100.0);
             match self.created_btns_bot_l {
                 0 => img = img.middle_of(state.skills_bot_l_align), // Central Skill
-                1 => img = img.up_from(state.skills_bot_l[0], 4.0), // 12:00
-                2 => img = img.down_from(state.skills_bot_l[0], 4.0), // 6:00
-                3 => img = img.left_from(state.skills_bot_l[0], 4.0), // 3:00
-                4 => img = img.right_from(state.skills_bot_l[0], 4.0), // 9:00
-                5 => img = img.top_left_with_margins_on(state.skills_bot_l[0], -84.0, -84.0), /* 10:30 */
-                6 => img = img.top_right_with_margins_on(state.skills_bot_l[0], -84.0, -84.0), /* 1:30 */
-                7 => img = img.bottom_left_with_margins_on(state.skills_bot_l[0], -84.0, -84.0), /* 4:30 */
-                8 => img = img.bottom_right_with_margins_on(state.skills_bot_l[0], -84.0, -84.0), /* 7:30 */
+                1 => img = img.up_from(state.skills_bot_l[0], offset_0), // 12:00
+                2 => img = img.down_from(state.skills_bot_l[0], offset_0), // 6:00
+                3 => img = img.left_from(state.skills_bot_l[0], offset_0), // 3:00
+                4 => img = img.right_from(state.skills_bot_l[0], offset_0), // 9:00
+                5 => img = img.top_left_with_margins_on(state.skills_bot_l[0], offset_1, offset_2), /* 10:30 */
+                6 => img = img.top_right_with_margins_on(state.skills_bot_l[0], offset_1, offset_2), /* 1:30 */
+                7 => {
+                    img = img.bottom_left_with_margins_on(state.skills_bot_l[0], offset_1, offset_2)
+                }, /* 4:30 */
+                8 => {
+                    img =
+                        img.bottom_right_with_margins_on(state.skills_bot_l[0], offset_1, offset_2)
+                }, /* 7:30 */
                 _ => {},
             }
             img.set(state.skills_bot_l[self.created_btns_bot_l], ui);
@@ -631,20 +649,25 @@ impl<'a> Widget for Diary<'a> {
         }
         // BOTTOM-RIGHT Skills
         while self.created_btns_bot_r < skills_bot_r {
-            let mut btn = Image::new(self.imgs.wpn_icon_border).w_h(80.0, 80.0);
+            let mut img = Image::new(self.imgs.wpn_icon_border_skills).w_h(80.0, 100.0);
             match self.created_btns_bot_r {
-                0 => btn = btn.middle_of(state.skills_bot_r_align), // Central Skill
-                1 => btn = btn.up_from(state.skills_bot_r[0], 4.0), // 12:00
-                2 => btn = btn.down_from(state.skills_bot_r[0], 4.0), // 6:00
-                3 => btn = btn.left_from(state.skills_bot_r[0], 4.0), // 3:00
-                4 => btn = btn.right_from(state.skills_bot_r[0], 4.0), // 9:00
-                5 => btn = btn.top_left_with_margins_on(state.skills_bot_r[0], -84.0, -84.0), /* 10:30 */
-                6 => btn = btn.top_right_with_margins_on(state.skills_bot_r[0], -84.0, -84.0), /* 1:30 */
-                7 => btn = btn.bottom_left_with_margins_on(state.skills_bot_r[0], -84.0, -84.0), /* 4:30 */
-                8 => btn = btn.bottom_right_with_margins_on(state.skills_bot_r[0], -84.0, -84.0), /* 7:30 */
+                0 => img = img.middle_of(state.skills_bot_r_align), // Central Skill
+                1 => img = img.up_from(state.skills_bot_r[0], offset_0), // 12:00
+                2 => img = img.down_from(state.skills_bot_r[0], offset_0), // 6:00
+                3 => img = img.left_from(state.skills_bot_r[0], offset_0), // 3:00
+                4 => img = img.right_from(state.skills_bot_r[0], offset_0), // 9:00
+                5 => img = img.top_left_with_margins_on(state.skills_bot_r[0], offset_1, offset_2), /* 10:30 */
+                6 => img = img.top_right_with_margins_on(state.skills_bot_r[0], offset_1, offset_2), /* 1:30 */
+                7 => {
+                    img = img.bottom_left_with_margins_on(state.skills_bot_r[0], offset_1, offset_2)
+                }, /* 4:30 */
+                8 => {
+                    img =
+                        img.bottom_right_with_margins_on(state.skills_bot_r[0], offset_1, offset_2)
+                }, /* 7:30 */
                 _ => {},
             }
-            btn.set(state.skills_bot_r[self.created_btns_bot_r], ui);
+            img.set(state.skills_bot_r[self.created_btns_bot_r], ui);
             self.created_btns_bot_r += 1;
         }
         // Skill-Icons and Functionality
@@ -652,7 +675,7 @@ impl<'a> Widget for Diary<'a> {
         let art_size = [320.0, 320.0];
         match sel_tab {
             SelectedSkillTree::General => {
-                use skills::{GeneralSkill::*, RollSkill::*, SkillGroupType::*};
+                use skills::{GeneralSkill::*, RollSkill::*, SkillGroupKind::*};
                 use ToolKind::*;
                 // General Combat
                 Image::new(
@@ -3395,10 +3418,10 @@ fn create_skill_button<'a>(
 ) -> Button<'a, button::Image> {
     Button::image(image)
         .w_h(74.0, 74.0)
-        .middle_of(state)
+        .mid_top_with_margin_on(state, 3.0)
         .label(label)
-        .label_y(conrod_core::position::Relative::Scalar(-28.0))
-        .label_x(conrod_core::position::Relative::Scalar(32.0))
+        .label_y(conrod_core::position::Relative::Scalar(-47.0))
+        .label_x(conrod_core::position::Relative::Scalar(0.0))
         .label_color(if skill_set.is_at_max_level(skill) {
             TEXT_COLOR
         } else if skill_set.sufficient_skill_points(skill) {
@@ -3406,7 +3429,7 @@ fn create_skill_button<'a>(
         } else {
             CRITICAL_HP_COLOR
         })
-        .label_font_size(fonts.cyri.scale(16))
+        .label_font_size(fonts.cyri.scale(15))
         .label_font_id(fonts.cyri.conrod_id)
         .image_color(if skill_set.prerequisites_met(skill) {
             TEXT_COLOR
@@ -3447,7 +3470,7 @@ fn add_sp_cost_tooltip<'a>(
     localized_strings: &'a Localization,
 ) -> String {
     match skill_set.skill_level(skill) {
-        Ok(level) if level == skill.max_level() => tooltip.replace("{}", ""),
+        Ok(level) if level == skill.max_level() => tooltip.replace("{SP}", ""),
         _ => tooltip.replace(
             "{SP}",
             &localized_strings

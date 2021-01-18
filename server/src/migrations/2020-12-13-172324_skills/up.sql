@@ -34,12 +34,12 @@ DROP TABLE stats;
 -- Creates new table for skill groups
 CREATE TABLE skill_group (
 	entity_id	INTEGER NOT NULL,
-	skill_group_type	TEXT NOT NULL,
+	skill_group_kind	TEXT NOT NULL,
 	exp	INTEGER NOT NULL,
 	available_sp	INTEGER NOT NULL,
 	earned_sp	INTEGER NOT NULL,
 	FOREIGN KEY(entity_id) REFERENCES entity(entity_id),
-	PRIMARY KEY(entity_id,skill_group_type)
+	PRIMARY KEY(entity_id,skill_group_kind)
 );
 
 -- Creates new table for skills
