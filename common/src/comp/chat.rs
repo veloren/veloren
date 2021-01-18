@@ -1,4 +1,7 @@
-use crate::{comp::group::Group, uid::Uid};
+use crate::{
+    comp::{group::Group, BuffKind},
+    uid::Uid,
+};
 use serde::{Deserialize, Serialize};
 use specs::Component;
 use specs_idvs::IdvStorage;
@@ -47,6 +50,7 @@ impl Default for ChatMode {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum KillType {
+    Buff(BuffKind),
     Melee,
     Projectile,
     Explosion,
@@ -59,6 +63,7 @@ pub enum KillType {
 pub enum KillSource {
     Player(Uid, KillType),
     NonPlayer(String, KillType),
+    NonExistent(KillType),
     Environment(String),
     FallDamage,
     Suicide,

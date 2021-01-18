@@ -1797,6 +1797,12 @@ impl Client {
                 // Needed for cli clients that don't set localization info
                 if message.is_empty() {
                     match kill_source {
+                        KillSource::Player(attacker_uid, KillType::Buff(buff_kind)) => format!(
+                            "[{}] died of {} caused by [{}]",
+                            alias_of_uid(victim),
+                            format!("{:?}", buff_kind).to_lowercase().as_str(),
+                            alias_of_uid(attacker_uid)
+                        ),
                         KillSource::Player(attacker_uid, KillType::Melee) => format!(
                             "[{}] killed [{}]",
                             alias_of_uid(attacker_uid),
@@ -1821,6 +1827,17 @@ impl Client {
                             "[{}] killed [{}]",
                             alias_of_uid(attacker_uid),
                             alias_of_uid(victim)
+                        ),
+                        KillSource::NonExistent(KillType::Buff(buff_kind)) => format!(
+                            "[{}] died of {}",
+                            alias_of_uid(victim),
+                            format!("{:?}", buff_kind).to_lowercase().as_str()
+                        ),
+                        KillSource::NonPlayer(attacker_name, KillType::Buff(buff_kind)) => format!(
+                            "[{}] died of {} caused by [{}]",
+                            alias_of_uid(victim),
+                            format!("{:?}", buff_kind).to_lowercase().as_str(),
+                            attacker_name
                         ),
                         KillSource::NonPlayer(attacker_name, KillType::Melee) => {
                             format!("{} killed [{}]", attacker_name, alias_of_uid(victim))
@@ -1848,10 +1865,15 @@ impl Client {
                         KillSource::Suicide => {
                             format!("[{}] died from self-inflicted wounds", alias_of_uid(victim))
                         },
+                        KillSource::NonExistent(_) => format!("[{}] died", alias_of_uid(victim)),
                         KillSource::Other => format!("[{}] died", alias_of_uid(victim)),
                     }
                 } else {
                     match kill_source {
+                        KillSource::Player(attacker_uid, KillType::Buff(buff_kind)) => message
+                            .replace("{attacker}", &alias_of_uid(attacker_uid))
+                            .replace("{buff}", format!("{:?}", buff_kind).to_lowercase().as_str())
+                            .replace("{victim}", &alias_of_uid(victim)),
                         KillSource::Player(attacker_uid, KillType::Melee) => message
                             .replace("{attacker}", &alias_of_uid(attacker_uid))
                             .replace("{victim}", &alias_of_uid(victim)),
@@ -1866,6 +1888,13 @@ impl Client {
                             .replace("{victim}", &alias_of_uid(victim)),
                         KillSource::Player(attacker_uid, KillType::Other) => message
                             .replace("{attacker}", &alias_of_uid(attacker_uid))
+                            .replace("{victim}", &alias_of_uid(victim)),
+                        KillSource::NonExistent(KillType::Buff(buff_kind)) => message
+                            .replace("{buff}", format!("{:?}", buff_kind).to_lowercase().as_str())
+                            .replace("{victim}", &alias_of_uid(victim)),
+                        KillSource::NonPlayer(attacker_name, KillType::Buff(buff_kind)) => message
+                            .replace("{attacker}", attacker_name)
+                            .replace("{buff}", format!("{:?}", buff_kind).to_lowercase().as_str())
                             .replace("{victim}", &alias_of_uid(victim)),
                         KillSource::NonPlayer(attacker_name, KillType::Melee) => message
                             .replace("{attacker}", attacker_name)
@@ -1887,6 +1916,9 @@ impl Client {
                             .replace("{environment}", environment),
                         KillSource::FallDamage => message.replace("{name}", &alias_of_uid(victim)),
                         KillSource::Suicide => message.replace("{name}", &alias_of_uid(victim)),
+                        KillSource::NonExistent(_) => {
+                            message.replace("{name}", &alias_of_uid(victim))
+                        },
                         KillSource::Other => message.replace("{name}", &alias_of_uid(victim)),
                     }
                 }
