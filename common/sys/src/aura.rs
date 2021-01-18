@@ -1,12 +1,15 @@
 use common::{
     comp::{
-        aura::AuraKey, buff, AuraChange, AuraKind, Auras, BuffKind, Buffs, CharacterState, Health,
-        Pos,
+        aura::{AuraChange, AuraKey, AuraKind, AuraTarget},
+        buff,
+        group::Group,
+        Auras, BuffKind, Buffs, CharacterState, Health, Pos,
     },
     event::{EventBus, ServerEvent},
     resources::DeltaTime,
+    uid::UidAllocator,
 };
-use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
+use specs::{saveload::MarkerAllocator, Entities, Join, Read, ReadStorage, System, WriteStorage};
 use std::time::Duration;
 
 pub struct Sys;
@@ -21,11 +24,24 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Auras>,
         WriteStorage<'a, Buffs>,
         ReadStorage<'a, Health>,
+        ReadStorage<'a, Group>,
+        Read<'a, UidAllocator>,
     );
 
     fn run(
         &mut self,
-        (entities, dt, positions, server_bus, character_states, mut auras, mut buffs, health): Self::SystemData,
+        (
+            entities,
+            dt,
+            positions,
+            server_bus,
+            character_states,
+            mut auras,
+            mut buffs,
+            health,
+            groups,
+            uid_allocator,
+        ): Self::SystemData,
     ) {
         let mut server_emitter = server_bus.emitter();
 
@@ -64,6 +80,19 @@ impl<'a> System<'a> for Sys {
                 {
                     // Ensure entity is within the aura radius
                     if target_pos.0.distance_squared(pos.0) < aura.radius.powi(2) {
+                        if let AuraTarget::GroupOf(uid) = aura.target {
+                            let same_group = uid_allocator
+                                .retrieve_entity_internal(uid.into())
+                                .and_then(|e| groups.get(e))
+                                .map_or(false, |owner_group| {
+                                    Some(owner_group) == groups.get(target_entity)
+                                });
+
+                            if !same_group {
+                                continue;
+                            }
+                        }
+
                         // TODO: When more aura kinds (besides Buff) are
                         // implemented, match on them here
                         match aura.aura_kind {
