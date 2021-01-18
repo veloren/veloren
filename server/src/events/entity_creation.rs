@@ -3,7 +3,7 @@ use common::{
     character::CharacterId,
     comp::{
         self,
-        aura::{Aura, AuraKind},
+        aura::{Aura, AuraKind, AuraTarget},
         beam,
         buff::{BuffCategory, BuffData, BuffKind, BuffSource},
         group,
@@ -195,6 +195,7 @@ pub fn handle_create_waypoint(server: &mut Server, pos: Vec3<f32>) {
             },
             5.0,
             None,
+            AuraTarget::All,
         )))
         .build();
 }
