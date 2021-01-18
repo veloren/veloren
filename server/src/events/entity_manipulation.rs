@@ -100,10 +100,10 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
             } else if let Some(stats) = state.ecs().read_storage::<Stats>().get(char_entity) {
                 KillSource::NonPlayer(stats.name.clone(), cause_of_death)
             } else {
-                KillSource::NonPlayer("<?>".to_string(), cause_of_death)
+                KillSource::NonExistent(cause_of_death)
             }
         } else {
-            KillSource::NonPlayer("<?>".to_string(), cause_of_death)
+            KillSource::NonExistent(cause_of_death)
         }
     };
 
@@ -131,6 +131,10 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                     kind: DamageSource::Energy,
                     by: Some(by),
                 } => get_attacker_name(KillType::Energy, by),
+                HealthSource::Damage {
+                    kind: DamageSource::Buff(buff_kind),
+                    by: Some(by),
+                } => get_attacker_name(KillType::Buff(buff_kind), by),
                 HealthSource::Damage {
                     kind: DamageSource::Other,
                     by: Some(by),
