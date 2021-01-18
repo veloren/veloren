@@ -884,7 +884,7 @@ impl Settlement {
                         .with_body(match dynamic_rng.gen_range(0..5) {
                             _ if is_dummy => {
                                 is_human = false;
-                                object::Body::TrainingDummy.into()
+                                object::Body::Crossbow.into()
                             },
                             0 => {
                                 let species = match dynamic_rng.gen_range(0..3) {
@@ -916,9 +916,9 @@ impl Settlement {
                                 comp::Body::Humanoid(humanoid::Body::random())
                             },
                         })
-                        .with_agency(!is_dummy)
+                        .with_agency(true) // TEMPORARY
                         .with_alignment(if is_dummy {
-                            comp::Alignment::Passive
+                            comp::Alignment::Enemy // TEMPORARY
                         } else if is_human {
                             comp::Alignment::Npc
                         } else {

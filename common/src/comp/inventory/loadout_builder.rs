@@ -5,7 +5,7 @@ use crate::comp::{
         slot::{ArmorSlot, EquipSlot},
     },
     item::{Item, ItemKind},
-    quadruped_low, quadruped_medium, theropod, Body,
+    object, quadruped_low, quadruped_medium, theropod, Body,
 };
 use rand::Rng;
 
@@ -226,6 +226,14 @@ impl LoadoutBuilder {
                             "common.items.npc_weapons.staff.mindflayer_staff",
                         ));
                     },
+                },
+                Body::Object(object) => match object {
+                    object::Body::Crossbow => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.unique.turret",
+                        ));
+                    },
+                    _ => {},
                 },
                 _ => {},
             };

@@ -70,6 +70,8 @@ make_case_elim!(
         BoltNature = 60,
         MeatDrop = 61,
         Steak = 62,
+        Crossbow = 63,
+        ArrowTurret = 64,
     }
 );
 
@@ -80,7 +82,7 @@ impl Body {
     }
 }
 
-pub const ALL_OBJECTS: [Body; 63] = [
+pub const ALL_OBJECTS: [Body; 65] = [
     Body::Arrow,
     Body::Bomb,
     Body::Scarecrow,
@@ -144,6 +146,8 @@ pub const ALL_OBJECTS: [Body; 63] = [
     Body::BoltNature,
     Body::MeatDrop,
     Body::Steak,
+    Body::Crossbow,
+    Body::ArrowTurret,
 ];
 
 impl From<Body> for super::Body {
@@ -216,6 +220,8 @@ impl Body {
             Body::BoltNature => "bolt_nature",
             Body::MeatDrop => "meat_drop",
             Body::Steak => "steak",
+            Body::Crossbow => "crossbow",
+            Body::ArrowTurret => "arrow_turret",
         }
     }
 }

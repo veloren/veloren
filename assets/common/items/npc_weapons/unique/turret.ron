@@ -1,0 +1,15 @@
+ItemDef(
+    name: "Turret",
+    description: "Turret weapon",
+    kind: Tool(
+        (
+            kind: Unique(Turret),
+            stats: (
+                equip_time_millis: 10,
+                power: 1.00,
+                speed: 1.00,
+            ),
+        )
+    ),
+    quality: Low,
+)

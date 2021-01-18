@@ -377,4 +377,16 @@
             central: ("object.steak"),
         )
     ),
+    Crossbow: (
+        bone0: (
+            offset: (-18.0, -15.5, 0.0),
+            central: ("object.crossbow"),
+        )
+    ),
+    ArrowTurret: (
+        bone0: (
+            offset: (-1.5, -6.5, -1.5),
+            central: ("weapon.projectile.turret-arrow"),
+        )
+    ),
 })

@@ -66,7 +66,7 @@ impl Body {
             Body::BirdSmall(_) => 75.0,
             Body::FishSmall(_) => 60.0,
             Body::BipedLarge(_) => 75.0,
-            Body::Object(_) => 40.0,
+            Body::Object(_) => 0.0,
             Body::Golem(_) => 60.0,
             Body::Theropod(_) => 135.0,
             Body::QuadrupedLow(quadruped_low) => match quadruped_low.species {
@@ -116,7 +116,7 @@ impl Body {
             Body::BirdSmall(_) => 35.0,
             Body::FishSmall(_) => 10.0,
             Body::BipedLarge(_) => 12.0,
-            Body::Object(_) => 5.0,
+            Body::Object(_) => 0.0,
             Body::Golem(_) => 8.0,
             Body::Theropod(theropod) => match theropod.species {
                 theropod::Species::Archaeos => 2.5,
