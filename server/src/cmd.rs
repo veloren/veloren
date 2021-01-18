@@ -11,7 +11,7 @@ use common::{
     cmd::{ChatCommand, CHAT_COMMANDS, CHAT_SHORTCUTS},
     comp::{
         self,
-        aura::{Aura, AuraKind},
+        aura::{Aura, AuraKind, AuraTarget},
         buff::{BuffCategory, BuffData, BuffKind, BuffSource},
         ChatType, Inventory, Item, LightEmitter, WaypointArea,
     },
@@ -981,6 +981,7 @@ fn handle_spawn_campfire(
                     },
                     5.0,
                     None,
+                    AuraTarget::All,
                 )))
                 .build();
 
