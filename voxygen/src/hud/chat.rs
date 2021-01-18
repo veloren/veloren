@@ -355,6 +355,10 @@ impl<'a> Widget for Chat<'a> {
                         .get("hud.chat.offline_msg")
                         .to_string(),
                     ChatType::Kill(kill_source, _) => match kill_source {
+                        KillSource::Player(_, KillType::Buff(_)) => self
+                            .localized_strings
+                            .get("hud.chat.pvp_buff_kill_msg")
+                            .to_string(),
                         KillSource::Player(_, KillType::Melee) => self
                             .localized_strings
                             .get("hud.chat.pvp_melee_kill_msg")
@@ -374,6 +378,14 @@ impl<'a> Widget for Chat<'a> {
                         KillSource::Player(_, KillType::Other) => self
                             .localized_strings
                             .get("hud.chat.pvp_other_kill_msg")
+                            .to_string(),
+                        KillSource::NonExistent(KillType::Buff(_)) => self
+                            .localized_strings
+                            .get("hud.chat.nonexistent_buff_kill_msg")
+                            .to_string(),
+                        KillSource::NonPlayer(_, KillType::Buff(_)) => self
+                            .localized_strings
+                            .get("hud.chat.npc_buff_kill_msg")
                             .to_string(),
                         KillSource::NonPlayer(_, KillType::Melee) => self
                             .localized_strings
@@ -407,7 +419,7 @@ impl<'a> Widget for Chat<'a> {
                             .localized_strings
                             .get("hud.chat.suicide_msg")
                             .to_string(),
-                        KillSource::Other => self
+                        KillSource::NonExistent(_) | KillSource::Other => self
                             .localized_strings
                             .get("hud.chat.default_death_msg")
                             .to_string(),

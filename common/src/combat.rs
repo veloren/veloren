@@ -1,7 +1,7 @@
 use crate::{
     comp::{
         inventory::item::{armor::Protection, ItemKind},
-        HealthChange, HealthSource, Inventory,
+        BuffKind, HealthChange, HealthSource, Inventory,
     },
     uid::Uid,
     util::Dir,
@@ -17,6 +17,7 @@ pub enum GroupTarget {
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub enum DamageSource {
+    Buff(BuffKind),
     Melee,
     Healing,
     Projectile,
@@ -148,6 +149,13 @@ impl Damage {
                     amount: -damage as i32,
                     cause: HealthSource::World,
                 }
+            },
+            DamageSource::Buff(_) => HealthChange {
+                amount: -damage as i32,
+                cause: HealthSource::Damage {
+                    kind: self.source,
+                    by: uid,
+                },
             },
             DamageSource::Other => HealthChange {
                 amount: -damage as i32,

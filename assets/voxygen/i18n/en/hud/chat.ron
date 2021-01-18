@@ -12,13 +12,15 @@
         "hud.chat.fall_kill_msg": "[{name}] died from fall damage",
         "hud.chat.suicide_msg": "[{name}] died from self-inflicted wounds",
 
+        "hud.chat.pvp_buff_kill_msg": "[{victim}] died of {buff} caused by [{attacker}]",
         "hud.chat.pvp_melee_kill_msg": "[{attacker}] defeated [{victim}]",
         "hud.chat.pvp_ranged_kill_msg": "[{attacker}] shot [{victim}]",
         "hud.chat.pvp_explosion_kill_msg": "[{attacker}] blew up [{victim}]",
         "hud.chat.pvp_energy_kill_msg": "[{attacker}] killed [{victim}] with magic",
-        "hud.chat.pvp_buff_kill_msg": "[{attacker}] killed [{victim}]",
 
+        "hud.chat.nonexistent_buff_kill_msg": "[{victim}] died of {buff}",
 
+        "hud.chat.npc_buff_kill_msg": "[{victim}] died of {buff} caused by [{attacker}]",
         "hud.chat.npc_melee_kill_msg": "{attacker} killed [{victim}]",
         "hud.chat.npc_ranged_kill_msg": "{attacker} shot [{victim}]",
         "hud.chat.npc_explosion_kill_msg": "{attacker} blew up [{victim}]",
