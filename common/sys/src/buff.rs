@@ -95,7 +95,7 @@ impl<'a> System<'a> for Sys {
                                         HealthSource::Heal { by: buff_owner }
                                     } else {
                                         HealthSource::Damage {
-                                            kind: DamageSource::Other,
+                                            kind: DamageSource::Buff(buff.kind),
                                             by: buff_owner,
                                         }
                                     };
