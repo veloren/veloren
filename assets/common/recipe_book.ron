@@ -119,6 +119,21 @@
             ("common.items.crafting_tools.mortar_pestle", 0),
         ],
     ),
+    "salad_plain": (
+        ("common.items.food.plainsalad", 1),
+        [
+            ("common.items.food.lettuce", 1),
+            ("common.items.crafting_ing.bowl", 1),
+        ],
+    ),
+    "salad_tomato": (
+        ("common.items.food.tomatosalad", 1),
+        [
+            ("common.items.food.lettuce", 1),
+            ("common.items.food.tomato", 2),
+            ("common.items.crafting_ing.bowl", 1),
+        ],
+    ),
     "apples_stick": (
         ("common.items.food.apple_stick", 1),
         [("common.items.crafting_ing.twigs", 2), ("common.items.food.apple", 2)],

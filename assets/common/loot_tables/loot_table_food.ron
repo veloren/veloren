@@ -4,6 +4,9 @@
     (3, "common.items.food.apple"),
     (3, "common.items.food.mushroom"),
     (1, "common.items.food.coconut"),
+    (1, "common.items.food.lettuce"),
+    (1, "common.items.food.tomato"),
+    (2, "common.items.food.carrot"),
     // crafted
     (0.05, "common.items.food.apple_mushroom_curry"),
     (0.10, "common.items.food.apple_stick"),

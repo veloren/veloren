@@ -1,6 +1,6 @@
 (
     {
-        // 
+        //
         // Ambient
         //
         Campfire: (
@@ -153,7 +153,7 @@
             ],
             threshold: 0.5,
         ),
-        //Glide: ( 
+        //Glide: (
         //    files: [
         //        // Event Missing or not implemented?
         //    ],
@@ -560,6 +560,24 @@
             threshold: 0.3,
         ),
         Inventory(Consumed("MushroomStick")): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.food",
+            ],
+            threshold: 0.3,
+        ),
+        Inventory(Consumed("Tomato")): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.food",
+            ],
+            threshold: 0.3,
+        ),
+        Inventory(Consumed("Fish")): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.food",
+            ],
+            threshold: 0.3,
+        ),
+        Inventory(Consumed("Carrot")): (
             files: [
                 "voxygen.audio.sfx.inventory.consumable.food",
             ],
