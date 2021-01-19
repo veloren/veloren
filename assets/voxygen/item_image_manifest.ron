@@ -1459,6 +1459,30 @@
     Consumable("SunflowerTea"): Png(
         "element.icons.item_sunflower_tea",
     ),
+    Consumable("Carrot"): VoxTrans(
+        "voxel.sprite.carrot.carrot",
+        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
+    ),
+    Consumable("Tomato"): VoxTrans(
+        "voxel.sprite.tomato.tomato",
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
+    ),
+    Consumable("Lettuce"): VoxTrans(
+        "voxel.sprite.cabbage.cabbage",
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
+    ),
+    Consumable("Fish"): VoxTrans(
+        "voxel.sprite.food.meat_fish",
+        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
+    ),
+    Consumable("PlainSalad"): VoxTrans(
+        "voxel.sprite.food.salad_plain",
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
+    ),
+    Consumable("TomatoSalad"): VoxTrans(
+        "voxel.sprite.food.salad_tomato",
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
+    ),
     // Throwables
     Throwable(Bomb): VoxTrans(
         "voxel.object.bomb",
@@ -1529,6 +1553,14 @@
         "voxel.sprite.twigs.twigs-0",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
+    Ingredient("AnimalPelt"): VoxTrans(
+        "voxel.sprite.crafting_ing.pelt",
+        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
+    ),
+    Ingredient("Claw"): VoxTrans(
+        "voxel.sprite.crafting_ing.claw",
+        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
+    ),
     Ingredient("Honey"): Png(
         "element.icons.item_honey",
     ),
@@ -1552,6 +1584,18 @@
     ),
     Ingredient("EmptyVial"): VoxTrans(
         "voxel.object.potion_empty",
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
+    ),
+    Ingredient("Bowl"): VoxTrans(
+        "voxel.sprite.crafting_ing.bowl",
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
+    ),
+    Ingredient("Oil"): VoxTrans(
+        "voxel.sprite.crafting_ing.oil",
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
+    ),
+    Ingredient("ViscousOoze"): VoxTrans(
+        "voxel.sprite.crafting_ing.ooze",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
     ),
     // Gliders
