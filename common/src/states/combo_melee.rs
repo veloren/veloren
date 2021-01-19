@@ -58,6 +58,11 @@ impl Stage<u64> {
         self.base_recover_duration = (self.base_recover_duration as f32 / speed) as u64;
         self
     }
+
+    pub fn modify_strike(mut self, knockback_mult: f32) -> Self {
+        self.knockback *= knockback_mult;
+        self
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -74,9 +79,10 @@ pub struct StaticData {
     /// Energy gain increase per combo
     pub energy_increase: u32,
     /// (100% - speed_increase) is percentage speed increases from current to
-    /// max when combo increases
+    /// max per combo increase
     pub speed_increase: f32,
-    /// (100% + max_speed_increase) is the max attack speed
+    /// This value is the highest percentage speed can increase from the base
+    /// speed
     pub max_speed_increase: f32,
     /// Number of times damage scales with combo
     pub scales_from_combo: u32,

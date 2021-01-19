@@ -4,8 +4,11 @@ use crate::{
 };
 use common::{
     character::CharacterId,
-    comp,
-    comp::Inventory,
+    comp::{
+        self,
+        skills::{GeneralSkill, Skill},
+        Inventory,
+    },
     effect::Effect,
     uid::{Uid, UidAllocator},
     util::Dir,
@@ -84,12 +87,6 @@ impl StateExt for State {
                     .get_mut(entity)
                     .map(|mut health| health.change_by(change));
             },
-            Effect::Xp(xp) => {
-                self.ecs()
-                    .write_storage::<comp::Stats>()
-                    .get_mut(entity)
-                    .map(|mut stats| stats.exp.change_by(xp));
-            },
             Effect::Damage(damage) => {
                 let inventories = self.ecs().read_storage::<Inventory>();
                 let change = damage.modify_damage(inventories.get(entity), source);
@@ -142,10 +139,17 @@ impl StateExt for State {
             })
             .with(comp::Controller::default())
             .with(body)
+            .with(comp::Energy::new(
+                body,
+                stats
+                    .skill_set
+                    .skill_level(Skill::General(GeneralSkill::EnergyIncrease))
+                    .unwrap_or(None)
+                    .unwrap_or(0),
+            ))
             .with(stats)
             .with(health)
             .with(comp::Alignment::Npc)
-            .with(comp::Energy::new(body.base_energy()))
             .with(comp::Gravity(1.0))
             .with(comp::CharacterState::default())
             .with(inventory)
@@ -225,7 +229,6 @@ impl StateExt for State {
     fn initialize_character_data(&mut self, entity: EcsEntity, character_id: CharacterId) {
         let spawn_point = self.ecs().read_resource::<SpawnPoint>().0;
 
-        self.write_component(entity, comp::Energy::new(1000));
         self.write_component(entity, comp::Controller::default());
         self.write_component(entity, comp::Pos(spawn_point));
         self.write_component(entity, comp::Vel(Vec3::zero()));
@@ -266,7 +269,6 @@ impl StateExt for State {
             self.notify_players(ServerGeneral::PlayerListUpdate(
                 PlayerListUpdate::SelectedCharacter(player_uid, CharacterInfo {
                     name: String::from(&stats.name),
-                    level: stats.level.level(),
                 }),
             ));
 
@@ -276,10 +278,20 @@ impl StateExt for State {
                 z_max: body.height(),
             });
             self.write_component(entity, body);
-            self.write_component(
-                entity,
-                comp::Health::new(stats.body_type, stats.level.level()),
+            let (health_level, energy_level) = (
+                stats
+                    .skill_set
+                    .skill_level(Skill::General(GeneralSkill::HealthIncrease))
+                    .unwrap_or(None)
+                    .unwrap_or(0),
+                stats
+                    .skill_set
+                    .skill_level(Skill::General(GeneralSkill::EnergyIncrease))
+                    .unwrap_or(None)
+                    .unwrap_or(0),
             );
+            self.write_component(entity, comp::Health::new(stats.body_type, health_level));
+            self.write_component(entity, comp::Energy::new(stats.body_type, energy_level));
             self.write_component(entity, stats);
             self.write_component(entity, inventory);
             self.write_component(

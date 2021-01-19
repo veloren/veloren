@@ -303,8 +303,8 @@ impl<'a> Widget for Social<'a> {
             //
             if Button::image(self.imgs.nothing)
                 .w_h(133.0, 18.0)
-                .top_left_with_margins_on(state.ids.frame, 52.0, 7.0)
-                .label(&self.localized_strings.get("hud.social.name"))
+                .mid_top_with_margin_on(state.ids.frame, 52.0)
+                .label(&self.localized_strings.get(""))
                 .label_font_size(self.fonts.cyri.scale(14))
                 .label_y(conrod_core::position::Relative::Scalar(0.0))
                 .label_font_id(self.fonts.cyri.conrod_id)
@@ -317,7 +317,7 @@ impl<'a> Widget for Social<'a> {
             if Button::image(self.imgs.nothing)
                 .w_h(39.0, 18.0)
                 .right_from(state.ids.name_txt, 2.0)
-                .label(&self.localized_strings.get("hud.social.level"))
+                .label("")
                 .label_font_size(self.fonts.cyri.scale(14))
                 .label_y(conrod_core::position::Relative::Scalar(0.0))
                 .label_font_id(self.fonts.cyri.conrod_id)
@@ -330,7 +330,7 @@ impl<'a> Widget for Social<'a> {
             if Button::image(self.imgs.nothing)
                 .w_h(93.0, 18.0)
                 .right_from(state.ids.level_txt, 2.0)
-                .label(&self.localized_strings.get("hud.social.zone"))
+                .label("") // TODO: Enable zone here later
                 .label_font_size(self.fonts.cyri.scale(14))
                 .label_y(conrod_core::position::Relative::Scalar(0.0))
                 .label_font_id(self.fonts.cyri.conrod_id)
@@ -382,9 +382,13 @@ impl<'a> Widget for Social<'a> {
                 players.filter(|(uid, _)| Some(**uid) != my_uid).enumerate()
             {
                 let hide_username = true;
-                let zone = "Wilderness"; // TODO Add real zone
+                let zone = ""; // TODO Add real zone
                 let selected = state.selected_uid.map_or(false, |u| u.0 == uid);
                 let alias = &player_info.player_alias;
+                let zone_name = match &player_info.character {
+                    None => self.localized_strings.get("hud.group.in_menu").to_string(), /* character select or spectating */
+                    _ => format!("{} ", &zone),
+                };
                 let name_text = match &player_info.character {
                     Some(character) => {
                         if Some(uid) == my_uid {
@@ -394,26 +398,12 @@ impl<'a> Widget for Social<'a> {
                                 &character.name
                             )
                         } else if hide_username {
-                            character.name.clone()
+                            format!("{} [{}]", &character.name, zone_name)
                         } else {
-                            format!("[{}] {}", alias, &character.name)
+                            format!("[{}] {} [{}]", alias, &character.name, zone_name)
                         }
                     },
                     None => alias.clone(), // character select or spectating
-                };
-                let level = match &player_info.character {
-                    Some(character) => {
-                        if character.level > 999 {
-                            "[A]".to_string() // Hide player levels that can't be obtained by normal means. As "infinte" levels are temporary this will avoid clipping.
-                        } else {
-                            character.level.to_string()
-                        }
-                    },
-                    None => "".to_string(), // character select or spectating
-                };
-                let zone_name = match &player_info.character {
-                    None => self.localized_strings.get("hud.group.in_menu").to_string(), /* character select or spectating */
-                    _ => format!("{} ", &zone),
                 };
                 // Player name widgets
                 let button = Button::image(if !selected {
@@ -422,7 +412,7 @@ impl<'a> Widget for Social<'a> {
                     self.imgs.selection
                 });
                 let button = if i == 0 {
-                    button.mid_top_with_margin_on(state.ids.names_align, 1.0)
+                    button.mid_top_with_margin_on(state.ids.online_align, 1.0)
                 } else {
                     button.down_from(state.ids.player_names[i - 1], 1.0)
                 };
@@ -432,7 +422,7 @@ impl<'a> Widget for Social<'a> {
                     alias
                 );
                 button
-                    .w_h(133.0, 20.0)
+                    .w_h(260.0, 20.0)
                     .hover_image(if selected {
                         self.imgs.selection
                     } else {
@@ -456,21 +446,6 @@ impl<'a> Widget for Social<'a> {
                         TEXT_COLOR,
                     )
                     .set(state.ids.player_names[i], ui);
-                // Player Levels
-                Button::image(if !selected {
-                    self.imgs.nothing
-                } else {
-                    self.imgs.selection
-                })
-                .w_h(39.0, 20.0)
-                .right_from(state.ids.player_names[i], 2.0)
-                .label(&level)
-                .label_font_size(self.fonts.cyri.scale(14))
-                .label_font_id(self.fonts.cyri.conrod_id)
-                .label_color(TEXT_COLOR)
-                .label_y(conrod_core::position::Relative::Scalar(1.0))
-                .parent(state.ids.levels_align)
-                .set(state.ids.player_levels[i], ui);
                 // Player Zones
                 Button::image(if !selected {
                     self.imgs.nothing

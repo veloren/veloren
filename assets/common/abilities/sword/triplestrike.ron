@@ -41,7 +41,7 @@ ComboMelee(
     max_energy_gain: 200,
     energy_increase: 25,
     speed_increase: 0.1,
-    max_speed_increase: 1.8,
+    max_speed_increase: 0.8,
     scales_from_combo: 2,
     is_interruptible: true,
 )

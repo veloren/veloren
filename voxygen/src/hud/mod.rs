@@ -3,6 +3,7 @@ mod buffs;
 mod buttons;
 mod chat;
 mod crafting;
+mod diary;
 mod esc_menu;
 mod group;
 mod hotbar;
@@ -18,7 +19,6 @@ mod settings_window;
 mod skillbar;
 mod slots;
 mod social;
-mod spell;
 mod util;
 
 pub use hotbar::{SlotContents as HotbarSlotContents, State as HotbarState};
@@ -31,6 +31,7 @@ use buttons::Buttons;
 use chat::Chat;
 use chrono::NaiveTime;
 use crafting::Crafting;
+use diary::{Diary, SelectedSkillTree};
 use esc_menu::EscMenu;
 use group::Group;
 use img_ids::Imgs;
@@ -43,7 +44,6 @@ use serde::{Deserialize, Serialize};
 use settings_window::{SettingsTab, SettingsWindow};
 use skillbar::Skillbar;
 use social::{Social, SocialTab};
-use spell::Spell;
 
 use crate::{
     ecs::{comp as vcomp, comp::HpFloaterList},
@@ -56,12 +56,16 @@ use crate::{
     GlobalState,
 };
 use client::Client;
+
 use common::{
-    comp,
+    combat,
     comp::{
-        item::{ItemDesc, Quality},
+        self,
+        item::{tool::ToolKind, ItemDesc, Quality},
+        skills::{Skill, SkillGroupKind},
         BuffKind,
     },
+    outcome::Outcome,
     span,
     terrain::TerrainChunk,
     uid::Uid,
@@ -75,6 +79,7 @@ use conrod_core::{
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
 use hashbrown::HashMap;
+use rand::Rng;
 use specs::{Join, WorldExt};
 use std::{
     collections::VecDeque,
@@ -83,7 +88,6 @@ use std::{
 };
 use vek::*;
 
-const XP_COLOR: Color = Color::Rgba(0.59, 0.41, 0.67, 1.0);
 const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
 const TEXT_GRAY_COLOR: Color = Color::Rgba(0.5, 0.5, 0.5, 1.0);
 const TEXT_DULL_RED_COLOR: Color = Color::Rgba(0.56, 0.2, 0.2, 1.0);
@@ -99,6 +103,7 @@ const LOW_HP_COLOR: Color = Color::Rgba(0.93, 0.59, 0.03, 1.0);
 const CRITICAL_HP_COLOR: Color = Color::Rgba(0.79, 0.19, 0.17, 1.0);
 const STAMINA_COLOR: Color = Color::Rgba(0.29, 0.62, 0.75, 0.9);
 const ENEMY_HP_COLOR: Color = Color::Rgba(0.93, 0.1, 0.29, 1.0);
+const XP_COLOR: Color = Color::Rgba(0.59, 0.41, 0.67, 1.0);
 //const TRANSPARENT: Color = Color::Rgba(0.0, 0.0, 0.0, 0.0);
 //const FOCUS_COLOR: Color = Color::Rgba(1.0, 0.56, 0.04, 1.0);
 //const RAGE_COLOR: Color = Color::Rgba(0.5, 0.04, 0.13, 1.0);
@@ -174,6 +179,13 @@ widget_ids! {
         // SCT
         player_scts[],
         player_sct_bgs[],
+        player_rank_up,
+        player_rank_up_txt_number,
+        player_rank_up_txt_0,
+        player_rank_up_txt_0_bg,
+        player_rank_up_txt_1,
+        player_rank_up_txt_1_bg,
+        player_rank_up_icon,
         sct_exp_bgs[],
         sct_exps[],
         sct_lvl_bg,
@@ -246,7 +258,7 @@ widget_ids! {
         bag,
         social,
         quest,
-        spell,
+        diary,
         skillbar,
         buttons,
         buffs,
@@ -281,6 +293,20 @@ pub struct BuffInfo {
     data: comp::BuffData,
     is_buff: bool,
     dur: Option<Duration>,
+}
+
+pub struct ExpFloater {
+    pub owner: Uid,
+    pub exp_change: i32,
+    pub timer: f32,
+    pub rand_offset: (f32, f32),
+}
+
+pub struct SkillPointGain {
+    pub owner: Uid,
+    pub skill_tree: SkillGroupKind,
+    pub total_points: u16,
+    pub timer: f32,
 }
 
 pub struct DebugInfo {
@@ -384,6 +410,7 @@ pub enum Event {
     LeaveGroup,
     AssignLeader(Uid),
     RemoveBuff(BuffKind),
+    UnlockSkill(Skill),
 }
 
 // TODO: Are these the possible layouts we want?
@@ -453,7 +480,7 @@ pub struct Show {
     bag: bool,
     bag_inv: bool,
     social: bool,
-    spell: bool,
+    diary: bool,
     group: bool,
     group_menu: bool,
     esc_menu: bool,
@@ -462,6 +489,7 @@ pub struct Show {
     mini_map: bool,
     ingame: bool,
     settings_tab: SettingsTab,
+    skilltreetab: SelectedSkillTree,
     social_tab: SocialTab,
     want_grab: bool,
     stats: bool,
@@ -486,7 +514,7 @@ impl Show {
             self.bag = false;
             self.crafting = false;
             self.social = false;
-            self.spell = false;
+            self.diary = false;
             self.want_grab = !open;
         }
     }
@@ -494,7 +522,7 @@ impl Show {
     fn social(&mut self, open: bool) {
         if !self.esc_menu {
             self.social = open;
-            self.spell = false;
+            self.diary = false;
             self.want_grab = !open;
         }
     }
@@ -508,11 +536,13 @@ impl Show {
         }
     }
 
-    fn spell(&mut self, open: bool) {
+    fn diary(&mut self, open: bool) {
         if !self.esc_menu {
             self.social = false;
             self.crafting = false;
-            self.spell = open;
+            self.bag = false;
+            self.map = false;
+            self.diary = open;
             self.want_grab = !open;
         }
     }
@@ -531,7 +561,7 @@ impl Show {
             self.bag = false;
             self.social = false;
             self.crafting = false;
-            self.spell = false;
+            self.diary = false;
             self.want_grab = !open;
         }
     }
@@ -563,7 +593,7 @@ impl Show {
             || self.map
             || self.social
             || self.crafting
-            || self.spell
+            || self.diary
             || self.help
             || self.intro
             || !matches!(self.open_windows, Windows::None)
@@ -574,7 +604,7 @@ impl Show {
             self.intro = false;
             self.map = false;
             self.social = false;
-            self.spell = false;
+            self.diary = false;
             self.crafting = false;
             self.open_windows = Windows::None;
             self.want_grab = true;
@@ -602,18 +632,27 @@ impl Show {
 
     fn toggle_social(&mut self) {
         self.social(!self.social);
-        self.spell = false;
+        self.diary = false;
     }
 
     fn toggle_crafting(&mut self) { self.crafting(!self.crafting) }
 
     fn open_social_tab(&mut self, social_tab: SocialTab) {
         self.social_tab = social_tab;
-        self.spell = false;
+        self.diary = false;
     }
 
     fn toggle_spell(&mut self) {
-        self.spell = !self.spell;
+        self.diary = !self.diary;
+        self.bag = false;
+        self.crafting = false;
+        self.social = false;
+        self.map = false;
+        self.want_grab = !self.diary;
+    }
+
+    fn open_skill_tree(&mut self, tree_sel: SelectedSkillTree) {
+        self.skilltreetab = tree_sel;
         self.social = false;
     }
 }
@@ -666,6 +705,8 @@ pub struct Hud {
     hotbar: hotbar::State,
     events: Vec<Event>,
     crosshair_opacity: f32,
+    exp_floaters: Vec<ExpFloater>,
+    skill_point_displays: Vec<SkillPointGain>,
 }
 
 impl Hud {
@@ -738,11 +779,12 @@ impl Hud {
                 crafting: false,
                 ui: true,
                 social: false,
-                spell: false,
+                diary: false,
                 group: false,
                 group_menu: false,
                 mini_map: true,
                 settings_tab: SettingsTab::Interface,
+                skilltreetab: SelectedSkillTree::General,
                 social_tab: SocialTab::Online,
                 want_grab: true,
                 ingame: true,
@@ -763,6 +805,8 @@ impl Hud {
             hotbar: hotbar_state,
             events: Vec::new(),
             crosshair_opacity: 0.0,
+            exp_floaters: Vec::new(),
+            skill_point_displays: Vec::new(),
         }
     }
 
@@ -808,11 +852,9 @@ impl Hud {
             let scales = ecs.read_storage::<comp::Scale>();
             let bodies = ecs.read_storage::<comp::Body>();
             let items = ecs.read_storage::<comp::Item>();
+            let inventories = ecs.read_storage::<comp::Inventory>();
             let entities = ecs.entities();
             let me = client.entity();
-            let own_level = stats
-                .get(client.entity())
-                .map_or(0, |stats| stats.level.level());
             //self.input = client.read_storage::<comp::ControllerInputs>();
             if let Some(health) = healths.get(me) {
                 // Hurt Frame
@@ -845,8 +887,7 @@ impl Hud {
                         .graphics_for(ui_widgets.window)
                         .color(Some(Color::Rgba(0.0, 0.0, 0.0, 1.0)))
                         .set(self.ids.death_bg, ui_widgets);
-                }
-                // Crosshair
+                } // Crosshair
                 let show_crosshair = (info.is_aiming || info.is_first_person) && !health.is_dead;
                 self.crosshair_opacity = Lerp::lerp(
                     self.crosshair_opacity,
@@ -1047,16 +1088,10 @@ impl Hud {
                     }
                 }
                 // EXP Numbers
-                if let (Some(floaters), Some(stats)) = (
-                    Some(&*ecs.read_resource::<crate::ecs::MyExpFloaterList>())
-                        .map(|l| &l.floaters)
-                        .filter(|f| !f.is_empty()),
-                    stats.get(me),
-                ) {
-                    // TODO replace with setting
-                    let batched_sct = false;
-                    if batched_sct {
-                        let number_speed = 50.0; // Number Speed for Cumulated EXP
+                self.exp_floaters.retain(|f| f.timer > 0_f32);
+                if let Some(uid) = uids.get(me) {
+                    for floater in self.exp_floaters.iter_mut().filter(|f| f.owner == *uid) {
+                        let number_speed = 50.0; // Number Speed for Single EXP
                         let player_sct_bg_id = player_sct_bg_id_walker.next(
                             &mut self.ids.player_sct_bgs,
                             &mut ui_widgets.widget_id_generator(),
@@ -1065,90 +1100,133 @@ impl Hud {
                             &mut self.ids.player_scts,
                             &mut ui_widgets.widget_id_generator(),
                         );
-                        // Sum xp change
-                        let exp_change = floaters.iter().fold(0, |acc, f| f.exp_change + acc);
-                        // Can't fail since we filtered out empty lists above
-                        let (timer, rand) = floaters
-                            .last()
-                            .map(|f| (f.timer, f.rand))
-                            .expect("Impossible");
                         // Increase font size based on fraction of maximum health
                         // "flashes" by having a larger size in the first 100ms
-                        let font_size_xp = 30
-                            + ((exp_change.abs() as f32 / stats.exp.maximum() as f32).min(1.0)
-                                * 50.0) as u32
-                            + if timer < 0.1 {
-                                FLASH_MAX * (((1.0 - timer / 0.1) * 10.0) as u32)
-                            } else {
-                                0
-                            };
+                        let font_size_xp =
+                            30 + ((floater.exp_change as f32 / 300.0).min(1.0) * 50.0) as u32;
+                        let y = floater.timer as f64 * number_speed; // Timer sets the widget offset
+                        //let fade = ((4.0 - floater.timer as f32) * 0.25) + 0.2; // Timer sets
+                        // text transparency
+                        let fade = if floater.timer < 1.0 {
+                            floater.timer as f32
+                        } else {
+                            1.0
+                        };
 
-                        let y = timer as f64 * number_speed; // Timer sets the widget offset
-                        let fade = ((4.0 - timer as f32) * 0.25) + 0.2; // Timer sets text transparency
-
-                        Text::new(&format!("{} Exp", exp_change))
-                            .font_size(font_size_xp)
-                            .font_id(self.fonts.cyri.conrod_id)
-                            .color(Color::Rgba(0.0, 0.0, 0.0, fade))
-                            .x_y(
-                                ui_widgets.win_w * (0.5 * rand.0 as f64 - 0.25),
-                                ui_widgets.win_h * (0.15 * rand.1 as f64) + y - 3.0,
-                            )
-                            .set(player_sct_bg_id, ui_widgets);
-                        Text::new(&format!("{} Exp", exp_change))
-                            .font_size(font_size_xp)
-                            .font_id(self.fonts.cyri.conrod_id)
-                            .color(Color::Rgba(0.59, 0.41, 0.67, fade))
-                            .x_y(
-                                ui_widgets.win_w * (0.5 * rand.0 as f64 - 0.25),
-                                ui_widgets.win_h * (0.15 * rand.1 as f64) + y,
-                            )
-                            .set(player_sct_id, ui_widgets);
-                    } else {
-                        for floater in floaters {
-                            let number_speed = 50.0; // Number Speed for Single EXP
-                            let player_sct_bg_id = player_sct_bg_id_walker.next(
-                                &mut self.ids.player_sct_bgs,
-                                &mut ui_widgets.widget_id_generator(),
-                            );
-                            let player_sct_id = player_sct_id_walker.next(
-                                &mut self.ids.player_scts,
-                                &mut ui_widgets.widget_id_generator(),
-                            );
-                            // Increase font size based on fraction of maximum health
-                            // "flashes" by having a larger size in the first 100ms
-                            let font_size_xp = 30
-                                + ((floater.exp_change.abs() as f32 / stats.exp.maximum() as f32)
-                                    .min(1.0)
-                                    * 50.0) as u32
-                                + if floater.timer < 0.1 {
-                                    FLASH_MAX * (((1.0 - floater.timer / 0.1) * 10.0) as u32)
-                                } else {
-                                    0
-                                };
-
-                            let y = floater.timer as f64 * number_speed; // Timer sets the widget offset
-                            let fade = ((4.0 - floater.timer as f32) * 0.25) + 0.2; // Timer sets text transparency
-
-                            Text::new(&format!("{} Exp", floater.exp_change))
+                        if floater.exp_change > 0 {
+                            // Don't show 0 Exp
+                            Text::new(&format!("{} Exp", floater.exp_change.max(1)))
                                 .font_size(font_size_xp)
                                 .font_id(self.fonts.cyri.conrod_id)
                                 .color(Color::Rgba(0.0, 0.0, 0.0, fade))
                                 .x_y(
-                                    ui_widgets.win_w * (0.5 * floater.rand.0 as f64 - 0.25),
-                                    ui_widgets.win_h * (0.15 * floater.rand.1 as f64) + y - 3.0,
+                                    ui_widgets.win_w * (0.5 * floater.rand_offset.0 as f64 - 0.25),
+                                    ui_widgets.win_h * (0.15 * floater.rand_offset.1 as f64) + y
+                                        - 3.0,
                                 )
                                 .set(player_sct_bg_id, ui_widgets);
-                            Text::new(&format!("{} Exp", floater.exp_change))
+                            Text::new(&format!("{} Exp", floater.exp_change.max(1)))
                                 .font_size(font_size_xp)
                                 .font_id(self.fonts.cyri.conrod_id)
                                 .color(Color::Rgba(0.59, 0.41, 0.67, fade))
                                 .x_y(
-                                    ui_widgets.win_w * (0.5 * floater.rand.0 as f64 - 0.25),
-                                    ui_widgets.win_h * (0.15 * floater.rand.1 as f64) + y,
+                                    ui_widgets.win_w * (0.5 * floater.rand_offset.0 as f64 - 0.25),
+                                    ui_widgets.win_h * (0.15 * floater.rand_offset.1 as f64) + y,
                                 )
                                 .set(player_sct_id, ui_widgets);
                         }
+                        floater.timer -= dt.as_secs_f32();
+                    }
+                }
+                // Skill points
+                self.skill_point_displays.retain(|d| d.timer > 0_f32);
+                if let Some(uid) = uids.get(me) {
+                    if let Some(display) = self
+                        .skill_point_displays
+                        .iter_mut()
+                        .find(|d| d.owner == *uid)
+                    {
+                        let fade = if display.timer < 3.0 {
+                            display.timer as f32 * 0.33
+                        } else if display.timer < 2.0 {
+                            display.timer as f32 * 0.33 * 0.1
+                        } else {
+                            1.0
+                        };
+                        // Background image
+                        let offset = if display.timer < 2.0 {
+                            300.0 - (display.timer as f64 - 2.0) * -300.0
+                        } else {
+                            300.0
+                        };
+                        Image::new(self.imgs.level_up)
+                            .w_h(328.0, 126.0)
+                            .mid_top_with_margin_on(ui_widgets.window, offset)
+                            .graphics_for(ui_widgets.window)
+                            .color(Some(Color::Rgba(1.0, 1.0, 1.0, fade)))
+                            .set(self.ids.player_rank_up, ui_widgets);
+                        // Rank Number
+                        let rank = display.total_points;
+                        Text::new(&format!("{}", rank))
+                            .font_size(20)
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .color(Color::Rgba(1.0, 1.0, 1.0, fade))
+                            .mid_top_with_margin_on(self.ids.player_rank_up, 8.0)
+                            .set(self.ids.player_rank_up_txt_number, ui_widgets);
+                        // Static "New Rank!" text
+                        Text::new(&i18n.get("hud.rank_up"))
+                            .font_size(40)
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .color(Color::Rgba(0.0, 0.0, 0.0, fade))
+                            .mid_bottom_with_margin_on(self.ids.player_rank_up, 20.0)
+                            .set(self.ids.player_rank_up_txt_0_bg, ui_widgets);
+                        Text::new(&i18n.get("hud.rank_up"))
+                            .font_size(40)
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .color(Color::Rgba(1.0, 1.0, 1.0, fade))
+                            .bottom_left_with_margins_on(self.ids.player_rank_up_txt_0_bg, 2.0, 2.0)
+                            .set(self.ids.player_rank_up_txt_0, ui_widgets);
+                        // Variable skilltree text
+                        let skill = match display.skill_tree {
+                            General => &i18n.get("common.weapons.general"),
+                            Weapon(ToolKind::Hammer) => &i18n.get("common.weapons.hammer"),
+                            Weapon(ToolKind::Axe) => &i18n.get("common.weapons.axe"),
+                            Weapon(ToolKind::Sword) => &i18n.get("common.weapons.sword"),
+                            Weapon(ToolKind::Sceptre) => &i18n.get("common.weapons.sceptre"),
+                            Weapon(ToolKind::Bow) => &i18n.get("common.weapons.bow"),
+                            Weapon(ToolKind::Staff) => &i18n.get("common.weapons.staff"),
+                            _ => "Unknown",
+                        };
+                        Text::new(skill)
+                            .font_size(20)
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .color(Color::Rgba(0.0, 0.0, 0.0, fade))
+                            .mid_top_with_margin_on(self.ids.player_rank_up, 45.0)
+                            .set(self.ids.player_rank_up_txt_1_bg, ui_widgets);
+                        Text::new(skill)
+                            .font_size(20)
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .color(Color::Rgba(1.0, 1.0, 1.0, fade))
+                            .bottom_left_with_margins_on(self.ids.player_rank_up_txt_1_bg, 2.0, 2.0)
+                            .set(self.ids.player_rank_up_txt_1, ui_widgets);
+                        // Variable skilltree icon
+                        use crate::hud::SkillGroupKind::{General, Weapon};
+                        Image::new(match display.skill_tree {
+                            General => self.imgs.swords_crossed,
+                            Weapon(ToolKind::Hammer) => self.imgs.hammer,
+                            Weapon(ToolKind::Axe) => self.imgs.axe,
+                            Weapon(ToolKind::Sword) => self.imgs.sword,
+                            Weapon(ToolKind::Sceptre) => self.imgs.sceptre,
+                            Weapon(ToolKind::Bow) => self.imgs.bow,
+                            Weapon(ToolKind::Staff) => self.imgs.staff,
+                            _ => self.imgs.swords_crossed,
+                        })
+                        .w_h(20.0, 20.0)
+                        .left_from(self.ids.player_rank_up_txt_1_bg, 5.0)
+                        .color(Some(Color::Rgba(1.0, 1.0, 1.0, fade)))
+                        .set(self.ids.player_rank_up_icon, ui_widgets);
+
+                        display.timer -= dt.as_secs_f32();
                     }
                 }
             }
@@ -1209,6 +1287,7 @@ impl Hud {
                 &bodies,
                 &hp_floater_lists,
                 &uids,
+                &inventories,
             )
                 .join()
                 .filter(|t| {
@@ -1229,6 +1308,7 @@ impl Hud {
                         body,
                         hpfl,
                         uid,
+                        inventory,
                     )| {
                         // Use interpolated position if available
                         let pos = interpolated.map_or(pos.0, |i| i.pos);
@@ -1258,10 +1338,10 @@ impl Hud {
 
                         let info = display_overhead_info.then(|| overhead::Info {
                             name: &stats.name,
-                            stats,
                             health,
                             buffs,
                             energy,
+                            combat_rating: combat::combat_rating(inventory, health, stats),
                         });
                         let bubble = if dist_sqr < SPEECH_BUBBLE_RANGE.powi(2) {
                             speech_bubbles.get(uid)
@@ -1298,7 +1378,6 @@ impl Hud {
                 overhead::Overhead::new(
                     info,
                     bubble,
-                    own_level,
                     in_group,
                     &global_state.settings.gameplay,
                     self.pulse,
@@ -1832,6 +1911,7 @@ impl Hud {
                 tooltip_manager,
                 i18n,
                 &player_stats,
+                self.pulse,
             )
             .set(self.ids.buttons, ui_widgets)
             {
@@ -1842,26 +1922,6 @@ impl Hud {
                 Some(buttons::Event::ToggleMap) => self.show.toggle_map(),
                 Some(buttons::Event::ToggleCrafting) => self.show.toggle_crafting(),
                 None => {},
-            }
-        }
-
-        // Buffs and Debuffs
-        if let Some(player_buffs) = buffs.get(client.entity()) {
-            for event in BuffsBar::new(
-                &self.imgs,
-                &self.fonts,
-                &self.rot_imgs,
-                tooltip_manager,
-                i18n,
-                &player_buffs,
-                self.pulse,
-                &global_state,
-            )
-            .set(self.ids.buffs, ui_widgets)
-            {
-                match event {
-                    buffs::Event::RemoveBuff(buff_id) => events.push(Event::RemoveBuff(buff_id)),
-                }
             }
         }
         // Group Window
@@ -1941,9 +2001,57 @@ impl Hud {
             }
         }
 
+        // Skillbar
+        // Get player stats
+        let ecs = client.state().ecs();
+        let entity = client.entity();
+        let healths = ecs.read_storage::<comp::Health>();
+        let inventories = ecs.read_storage::<comp::Inventory>();
+        let energies = ecs.read_storage::<comp::Energy>();
+        let character_states = ecs.read_storage::<comp::CharacterState>();
+        let controllers = ecs.read_storage::<comp::Controller>();
+        let ability_map = ecs.fetch::<comp::item::tool::AbilityMap>();
+
+        if let (
+            Some(health),
+            Some(inventory),
+            Some(energy),
+            Some(_character_state),
+            Some(_controller),
+        ) = (
+            healths.get(entity),
+            inventories.get(entity),
+            energies.get(entity),
+            character_states.get(entity),
+            controllers.get(entity).map(|c| &c.inputs),
+        ) {
+            Skillbar::new(
+                global_state,
+                &self.imgs,
+                &self.item_imgs,
+                &self.fonts,
+                &self.rot_imgs,
+                &health,
+                &inventory,
+                &energy,
+                //&character_state,
+                self.pulse,
+                //&controller,
+                &self.hotbar,
+                tooltip_manager,
+                &mut self.slot_manager,
+                i18n,
+                &ability_map,
+            )
+            .set(self.ids.skillbar, ui_widgets);
+        }
         // Bag contents
         if self.show.bag {
-            if let Some(player_stats) = stats.get(client.entity()) {
+            if let (Some(player_stats), Some(health), Some(energy)) = (
+                stats.get(client.entity()),
+                healths.get(entity),
+                energies.get(entity),
+            ) {
                 match Bag::new(
                     client,
                     &self.imgs,
@@ -1955,6 +2063,8 @@ impl Hud {
                     self.pulse,
                     i18n,
                     &player_stats,
+                    &health,
+                    &energy,
                     &self.show,
                 )
                 .set(self.ids.bag, ui_widgets)
@@ -1975,56 +2085,35 @@ impl Hud {
                 }
             }
         }
-        // Skillbar
-        // Get player stats
+        // Buffs
         let ecs = client.state().ecs();
         let entity = client.entity();
-        let stats = ecs.read_storage::<comp::Stats>();
-        let healths = ecs.read_storage::<comp::Health>();
-        let inventories = ecs.read_storage::<comp::Inventory>();
-        let energies = ecs.read_storage::<comp::Energy>();
-        let character_states = ecs.read_storage::<comp::CharacterState>();
-        let controllers = ecs.read_storage::<comp::Controller>();
-        let ability_map = ecs.fetch::<comp::item::tool::AbilityMap>();
-
-        if let (
-            Some(stats),
-            Some(health),
-            Some(inventory),
-            Some(energy),
-            Some(_character_state),
-            Some(_controller),
-        ) = (
-            stats.get(entity),
-            healths.get(entity),
-            inventories.get(entity),
-            energies.get(entity),
-            character_states.get(entity),
-            controllers.get(entity).map(|c| &c.inputs),
+        let health = ecs.read_storage::<comp::Health>();
+        let energy = ecs.read_storage::<comp::Energy>();
+        if let (Some(player_buffs), Some(health), Some(energy)) = (
+            buffs.get(client.entity()),
+            health.get(entity),
+            energy.get(entity),
         ) {
-            Skillbar::new(
-                global_state,
+            for event in BuffsBar::new(
                 &self.imgs,
-                &self.item_imgs,
                 &self.fonts,
                 &self.rot_imgs,
-                &stats,
-                &health,
-                &inventory,
-                &energy,
-                //&character_state,
-                self.pulse,
-                //&controller,
-                &self.hotbar,
                 tooltip_manager,
-                &mut self.slot_manager,
                 i18n,
-                &self.show,
-                &ability_map,
+                &player_buffs,
+                self.pulse,
+                &global_state,
+                &health,
+                &energy,
             )
-            .set(self.ids.skillbar, ui_widgets);
+            .set(self.ids.buffs, ui_widgets)
+            {
+                match event {
+                    buffs::Event::RemoveBuff(buff_id) => events.push(Event::RemoveBuff(buff_id)),
+                }
+            }
         }
-
         // Crafting
         if self.show.crafting {
             if let Some(inventory) = inventories.get(entity) {
@@ -2291,17 +2380,37 @@ impl Hud {
             }
         }
 
-        // Spellbook
-        if self.show.spell {
-            match Spell::new(&self.show, client, &self.imgs, &self.fonts, i18n)
-                .set(self.ids.spell, ui_widgets)
-            {
-                Some(spell::Event::Close) => {
-                    self.show.spell(false);
-                    self.show.want_grab = true;
-                    self.force_ungrab = false;
-                },
-                None => {},
+        // Diary
+        if self.show.diary {
+            let entity = client.entity();
+            let stats = ecs.read_storage::<comp::Stats>();
+            if let Some(stats) = stats.get(entity) {
+                for event in Diary::new(
+                    &self.show,
+                    client,
+                    &stats,
+                    &self.imgs,
+                    &self.item_imgs,
+                    &self.fonts,
+                    i18n,
+                    &self.rot_imgs,
+                    tooltip_manager,
+                    self.pulse,
+                )
+                .set(self.ids.diary, ui_widgets)
+                {
+                    match event {
+                        diary::Event::Close => {
+                            self.show.diary(false);
+                            self.show.want_grab = true;
+                            self.force_ungrab = false;
+                        },
+                        diary::Event::ChangeSkillTree(tree_sel) => {
+                            self.show.open_skill_tree(tree_sel)
+                        },
+                        diary::Event::UnlockSkill(skill) => events.push(Event::UnlockSkill(skill)),
+                    }
+                }
             }
         }
         // Map
@@ -2787,6 +2896,29 @@ impl Hud {
     pub fn free_look(&mut self, free_look: bool) { self.show.free_look = free_look; }
 
     pub fn auto_walk(&mut self, auto_walk: bool) { self.show.auto_walk = auto_walk; }
+
+    pub fn handle_outcome(&mut self, outcome: &Outcome) {
+        match outcome {
+            Outcome::ExpChange { uid, exp } => self.exp_floaters.push(ExpFloater {
+                owner: *uid,
+                exp_change: *exp,
+                timer: 4.0,
+                rand_offset: rand::thread_rng().gen::<(f32, f32)>(),
+            }),
+            Outcome::SkillPointGain {
+                uid,
+                skill_tree,
+                total_points,
+                ..
+            } => self.skill_point_displays.push(SkillPointGain {
+                owner: *uid,
+                skill_tree: *skill_tree,
+                total_points: *total_points,
+                timer: 5.0,
+            }),
+            _ => {},
+        }
+    }
 }
 // Get item qualities of equipped items and assign a tooltip title/frame color
 pub fn get_quality_col<I: ItemDesc>(item: &I) -> Color {
@@ -2825,4 +2957,26 @@ fn try_hotbar_slot_from_input(input: GameInput) -> Option<hotbar::Slot> {
         GameInput::Slot10 => hotbar::Slot::Ten,
         _ => return None,
     })
+}
+
+pub fn cr_color(combat_rating: f32) -> Color {
+    let common = 4.3;
+    let moderate = 6.0;
+    let high = 8.0;
+    let epic = 10.0;
+    let legendary = 79.0;
+    let artifact = 122.0;
+    let debug = 200.0;
+
+    match combat_rating {
+        x if (0.0..common).contains(&x) => QUALITY_LOW,
+        x if (common..moderate).contains(&x) => QUALITY_COMMON,
+        x if (moderate..high).contains(&x) => QUALITY_MODERATE,
+        x if (high..epic).contains(&x) => QUALITY_HIGH,
+        x if (epic..legendary).contains(&x) => QUALITY_EPIC,
+        x if (legendary..artifact).contains(&x) => QUALITY_LEGENDARY,
+        x if (artifact..debug).contains(&x) => QUALITY_ARTIFACT,
+        x if x >= debug => QUALITY_DEBUG,
+        _ => XP_COLOR,
+    }
 }

@@ -2,7 +2,7 @@ use super::PingMsg;
 use common::{
     character::CharacterId,
     comp,
-    comp::{Skill, SkillGroupType},
+    comp::{Skill, SkillGroupKind},
     terrain::block::Block,
 };
 use serde::{Deserialize, Serialize};
@@ -75,7 +75,7 @@ pub enum ClientGeneral {
     },
     UnlockSkill(Skill),
     RefundSkill(Skill),
-    UnlockSkillGroup(SkillGroupType),
+    UnlockSkillGroup(SkillGroupKind),
     //Always possible
     ChatMsg(String),
     Terminate,

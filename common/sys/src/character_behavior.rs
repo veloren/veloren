@@ -4,7 +4,7 @@ use common::{
     comp::{
         inventory::slot::{EquipSlot, Slot},
         Attacking, Beam, Body, CharacterState, Controller, Energy, Health, Inventory, Mounting,
-        Ori, PhysicsState, Pos, StateUpdate, Vel,
+        Ori, PhysicsState, Pos, StateUpdate, Stats, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     metrics::SysMetrics,
@@ -71,6 +71,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Beam>,
         ReadStorage<'a, Uid>,
         ReadStorage<'a, Mounting>,
+        ReadStorage<'a, Stats>,
     );
 
     #[allow(clippy::while_let_on_iterator)] // TODO: Pending review in #587
@@ -98,6 +99,7 @@ impl<'a> System<'a> for Sys {
             beam_storage,
             uids,
             mountings,
+            stats,
         ): Self::SystemData,
     ) {
         let start_time = std::time::Instant::now();
@@ -120,6 +122,7 @@ impl<'a> System<'a> for Sys {
             &physics_states,
             attacking_storage.maybe(),
             beam_storage.maybe(),
+            &stats,
         )
             .join()
         {

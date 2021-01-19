@@ -1,7 +1,15 @@
 use crate::{
     comp::{
-        inventory::item::{armor::Protection, ItemKind},
-        BuffKind, HealthChange, HealthSource, Inventory,
+        inventory::{
+            item::{
+                armor::Protection,
+                tool::{Tool, ToolKind},
+                ItemKind,
+            },
+            slot::EquipSlot,
+        },
+        skills::{SkillGroupKind, SkillSet},
+        BuffKind, Health, HealthChange, HealthSource, Inventory, Stats,
     },
     uid::Uid,
     util::Dir,
@@ -194,4 +202,59 @@ impl Knockback {
             },
         }
     }
+
+    pub fn modify_strength(mut self, power: f32) -> Self {
+        use Knockback::*;
+        match self {
+            Away(ref mut f) | Towards(ref mut f) | Up(ref mut f) | TowardsUp(ref mut f) => {
+                *f *= power;
+            },
+        }
+        self
+    }
+}
+
+fn equipped_tool(inv: &Inventory, slot: EquipSlot) -> Option<&Tool> {
+    inv.equipped(slot).and_then(|i| {
+        if let ItemKind::Tool(tool) = &i.kind() {
+            Some(tool)
+        } else {
+            None
+        }
+    })
+}
+
+pub fn get_weapons(inv: &Inventory) -> (Option<ToolKind>, Option<ToolKind>) {
+    (
+        equipped_tool(inv, EquipSlot::Mainhand).map(|tool| tool.kind),
+        equipped_tool(inv, EquipSlot::Offhand).map(|tool| tool.kind),
+    )
+}
+
+fn offensive_rating(inv: &Inventory, skillset: &SkillSet) -> f32 {
+    let active_damage = equipped_tool(inv, EquipSlot::Mainhand).map_or(0.0, |tool| {
+        tool.base_power()
+            * tool.base_speed()
+            * (1.0 + 0.05 * skillset.earned_sp(SkillGroupKind::Weapon(tool.kind)) as f32)
+    });
+    let second_damage = equipped_tool(inv, EquipSlot::Offhand).map_or(0.0, |tool| {
+        tool.base_power()
+            * tool.base_speed()
+            * (1.0 + 0.05 * skillset.earned_sp(SkillGroupKind::Weapon(tool.kind)) as f32)
+    });
+    active_damage.max(second_damage)
+}
+
+pub fn combat_rating(inventory: &Inventory, health: &Health, stats: &Stats) -> f32 {
+    let defensive_weighting = 1.0;
+    let offensive_weighting = 1.0;
+    let defensive_rating = health.maximum() as f32
+        / (1.0 - Damage::compute_damage_reduction(inventory)).max(0.00001)
+        / 100.0;
+    let offensive_rating = offensive_rating(inventory, &stats.skill_set).max(0.1)
+        + 0.05 * stats.skill_set.earned_sp(SkillGroupKind::General) as f32;
+    let combined_rating = (offensive_rating * offensive_weighting
+        + defensive_rating * defensive_weighting)
+        / (offensive_weighting + defensive_weighting);
+    combined_rating * stats.body_type.combat_multiplier()
 }

@@ -1,11 +1,15 @@
 use crate::{
     client::Client,
-    comp::{biped_large, quadruped_low, quadruped_medium, quadruped_small, theropod, PhysicsState},
+    comp::{
+        biped_large, quadruped_low, quadruped_medium, quadruped_small, skills::SkillGroupKind,
+        theropod, PhysicsState,
+    },
     rtsim::RtSim,
     Server, SpawnPoint, StateExt,
 };
 use common::{
     assets::AssetExt,
+    combat,
     comp::{
         self, aura, buff,
         chat::{KillSource, KillType},
@@ -21,12 +25,10 @@ use common::{
     vol::ReadVol,
     Damage, DamageSource, Explosion, GroupTarget, RadiusEffect,
 };
-use common_net::{
-    msg::{PlayerListUpdate, ServerGeneral},
-    sync::WorldSyncExt,
-};
+use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
 use common_sys::state::BlockChange;
 use comp::item::Reagent;
+use hashbrown::HashSet;
 use rand::prelude::*;
 use specs::{join::Join, saveload::MarkerAllocator, Entity as EcsEntity, WorldExt};
 use tracing::error;
@@ -159,6 +161,8 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
     // Give EXP to the killer if entity had stats
     (|| {
         let mut stats = state.ecs().write_storage::<Stats>();
+        let healths = state.ecs().read_storage::<Health>();
+        let inventories = state.ecs().read_storage::<Inventory>();
         let by = if let HealthSource::Damage { by: Some(by), .. } = cause {
             by
         } else {
@@ -169,11 +173,16 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
         } else {
             return;
         };
-        let entity_stats = if let Some(entity_stats) = stats.get(entity) {
-            entity_stats
-        } else {
-            return;
-        };
+        let (entity_stats, entity_health, entity_inventory) =
+            if let (Some(entity_stats), Some(entity_health), Some(entity_inventory)) = (
+                stats.get(entity),
+                healths.get(entity),
+                inventories.get(entity),
+            ) {
+                (entity_stats, entity_health, entity_inventory)
+            } else {
+                return;
+            };
 
         let groups = state.ecs().read_storage::<Group>();
         let attacker_group = groups.get(attacker);
@@ -185,19 +194,24 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
 
         // Maximum distance for other group members to receive exp
         const MAX_EXP_DIST: f32 = 150.0;
-        // Attacker gets same as exp of everyone else
-        const ATTACKER_EXP_WEIGHT: f32 = 1.0;
-        let mut exp_reward = entity_stats.body_type.base_exp() as f32
-            * (1.0 + entity_stats.level.level() as f32 * 0.1);
+        // TODO: Scale xp from skillset rather than health, when NPCs have their own
+        // skillsets
+        /*let mut exp_reward = entity_stats.body_type.base_exp() as f32
+         * (entity_health.maximum() as f32 / entity_stats.body_type.base_health() as
+         * f32); */
+        let mut exp_reward =
+            combat::combat_rating(entity_inventory, entity_health, entity_stats) * 2.5;
 
         // Distribute EXP to group
         let positions = state.ecs().read_storage::<Pos>();
         let alignments = state.ecs().read_storage::<Alignment>();
         let uids = state.ecs().read_storage::<Uid>();
+        let mut outcomes = state.ecs().write_resource::<Vec<Outcome>>();
+        let inventories = state.ecs().read_storage::<comp::Inventory>();
         if let (Some(attacker_group), Some(pos)) = (attacker_group, positions.get(entity)) {
             // TODO: rework if change to groups makes it easier to iterate entities in a
             // group
-            let mut num_not_pets_in_range = 0;
+            let mut non_pet_group_members_in_range = 1;
             let members_in_range = (
                 &state.ecs().entities(),
                 &groups,
@@ -214,25 +228,36 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                 })
                 .map(|(entity, _, _, alignment, uid)| {
                     if !matches!(alignment, Some(Alignment::Owned(owner)) if owner != uid) {
-                        num_not_pets_in_range += 1;
+                        non_pet_group_members_in_range += 1;
                     }
 
-                    entity
+                    (entity, uid)
                 })
                 .collect::<Vec<_>>();
-            let exp = exp_reward / (num_not_pets_in_range as f32 + ATTACKER_EXP_WEIGHT);
-            exp_reward = exp * ATTACKER_EXP_WEIGHT;
-            members_in_range.into_iter().for_each(|e| {
-                if let Some(mut stats) = stats.get_mut(e) {
-                    stats.exp.change_by(exp.ceil() as i64);
+            // Divides exp reward by square root of number of people in group
+            exp_reward /= (non_pet_group_members_in_range as f32).sqrt();
+            members_in_range.into_iter().for_each(|(e, uid)| {
+                if let (Some(inventory), Some(mut stats)) = (inventories.get(e), stats.get_mut(e)) {
+                    handle_exp_gain(exp_reward, inventory, &mut stats, uid, &mut outcomes);
                 }
             });
         }
 
-        if let Some(mut attacker_stats) = stats.get_mut(attacker) {
+        if let (Some(mut attacker_stats), Some(attacker_uid), Some(attacker_inventory)) = (
+            stats.get_mut(attacker),
+            uids.get(attacker),
+            inventories.get(attacker),
+        ) {
             // TODO: Discuss whether we should give EXP by Player
             // Killing or not.
-            attacker_stats.exp.change_by(exp_reward.ceil() as i64);
+            // attacker_stats.exp.change_by(exp_reward.ceil() as i64);
+            handle_exp_gain(
+                exp_reward,
+                attacker_inventory,
+                &mut attacker_stats,
+                attacker_uid,
+                &mut outcomes,
+            );
         }
     })();
 
@@ -676,22 +701,6 @@ pub fn handle_explosion(
     }
 }
 
-pub fn handle_level_up(server: &mut Server, entity: EcsEntity, new_level: u32) {
-    let ecs = &server.state.ecs();
-    if let Some((uid, pos)) = ecs
-        .read_storage::<Uid>()
-        .get(entity)
-        .copied()
-        .zip(ecs.read_storage::<Pos>().get(entity).map(|p| p.0))
-    {
-        ecs.write_resource::<Vec<Outcome>>()
-            .push(Outcome::LevelUp { pos });
-        server.state.notify_players(ServerGeneral::PlayerListUpdate(
-            PlayerListUpdate::LevelChange(uid, new_level),
-        ));
-    }
-}
-
 pub fn handle_aura(server: &mut Server, entity: EcsEntity, aura_change: aura::AuraChange) {
     let ecs = &server.state.ecs();
     let mut auras_all = ecs.write_storage::<comp::Auras>();
@@ -777,4 +786,42 @@ pub fn handle_energy_change(server: &Server, entity: EcsEntity, change: EnergyCh
     if let Some(mut energy) = ecs.write_storage::<Energy>().get_mut(entity) {
         energy.change_by(change);
     }
+}
+
+fn handle_exp_gain(
+    exp_reward: f32,
+    inventory: &Inventory,
+    stats: &mut Stats,
+    uid: &Uid,
+    outcomes: &mut Vec<Outcome>,
+) {
+    let (main_tool_kind, second_tool_kind) = combat::get_weapons(inventory);
+    let mut xp_pools = HashSet::<SkillGroupKind>::new();
+    xp_pools.insert(SkillGroupKind::General);
+    if let Some(w) = main_tool_kind {
+        if stats
+            .skill_set
+            .contains_skill_group(SkillGroupKind::Weapon(w))
+        {
+            xp_pools.insert(SkillGroupKind::Weapon(w));
+        }
+    }
+    if let Some(w) = second_tool_kind {
+        if stats
+            .skill_set
+            .contains_skill_group(SkillGroupKind::Weapon(w))
+        {
+            xp_pools.insert(SkillGroupKind::Weapon(w));
+        }
+    }
+    let num_pools = xp_pools.len() as f32;
+    for pool in xp_pools {
+        stats
+            .skill_set
+            .change_experience(pool, (exp_reward / num_pools).ceil() as i32);
+    }
+    outcomes.push(Outcome::ExpChange {
+        uid: *uid,
+        exp: exp_reward as i32,
+    });
 }

@@ -170,6 +170,7 @@ fn maps_roll() {
                 movement_duration: Duration::default(),
                 recover_duration: Duration::default(),
                 roll_strength: 0.0,
+                immune_melee: false,
             },
             timer: Duration::default(),
             stage_section: states::utils::StageSection::Buildup,

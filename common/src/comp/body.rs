@@ -256,6 +256,7 @@ impl Body {
                 biped_large::Species::Dullahan => 4000,
                 _ => 3000,
             },
+            Body::Humanoid(_) => 750,
             _ => 1000,
         }
     }
@@ -263,7 +264,7 @@ impl Body {
     #[allow(unreachable_patterns)]
     pub fn base_health(&self) -> u32 {
         match self {
-            Body::Humanoid(_) => 400,
+            Body::Humanoid(_) => 500,
             Body::QuadrupedSmall(quadruped_small) => match quadruped_small.species {
                 quadruped_small::Species::Boar => 360,
                 quadruped_small::Species::Batfox => 200,
@@ -423,6 +424,11 @@ impl Body {
             },
         }
     }
+
+    /// Returns a multiplier representing increased difficulty not accounted for
+    /// due to AI or not using an actual weapon
+    // TODO: Match on species
+    pub fn combat_multiplier(&self) -> f32 { if let Body::Object(_) = self { 0.0 } else { 1.0 } }
 
     #[allow(unreachable_patterns)]
     pub fn base_exp(&self) -> u32 {

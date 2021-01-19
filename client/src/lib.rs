@@ -20,8 +20,10 @@ use common::{
     comp::{
         self,
         chat::{KillSource, KillType},
-        group, ControlAction, ControlEvent, Controller, ControllerInputs, GroupManip,
-        InventoryManip, InventoryUpdateEvent,
+        group,
+        skills::Skill,
+        ControlAction, ControlEvent, Controller, ControllerInputs, GroupManip, InventoryManip,
+        InventoryUpdateEvent,
     },
     event::{EventBus, LocalEvent},
     grid::Grid,
@@ -692,6 +694,10 @@ impl Client {
         )));
     }
 
+    pub fn unlock_skill(&mut self, skill: Skill) {
+        self.send_msg(ClientGeneral::UnlockSkill(skill));
+    }
+
     pub fn max_group_size(&self) -> u32 { self.max_group_size }
 
     pub fn group_invite(&self) -> Option<(Uid, std::time::Instant, std::time::Duration)> {
@@ -1255,7 +1261,6 @@ impl Client {
                     player_info.character = match &player_info.character {
                         Some(character) => Some(msg::CharacterInfo {
                             name: character.name.to_string(),
-                            level: next_level,
                         }),
                         None => {
                             warn!(

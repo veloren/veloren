@@ -53,6 +53,10 @@ pub enum ProjectileConstructor {
         radius: f32,
         energy_regen: u32,
     },
+    Firebolt {
+        damage: f32,
+        energy_regen: u32,
+    },
     Heal {
         heal: f32,
         damage: f32,
@@ -134,7 +138,24 @@ impl ProjectileConstructor {
                     }),
                     Effect::Vanish,
                 ],
-                time_left: Duration::from_secs(20),
+                time_left: Duration::from_secs(10),
+                owner,
+                ignore_group: true,
+            },
+            Firebolt {
+                damage,
+                energy_regen,
+            } => Projectile {
+                hit_solid: vec![Effect::Vanish],
+                hit_entity: vec![
+                    Effect::Damage(Some(GroupTarget::OutOfGroup), Damage {
+                        source: DamageSource::Energy,
+                        value: damage,
+                    }),
+                    Effect::RewardEnergy(energy_regen),
+                    Effect::Vanish,
+                ],
+                time_left: Duration::from_secs(10),
                 owner,
                 ignore_group: true,
             },
@@ -189,7 +210,7 @@ impl ProjectileConstructor {
                     }),
                     Effect::Vanish,
                 ],
-                time_left: Duration::from_secs(20),
+                time_left: Duration::from_secs(10),
                 owner,
                 ignore_group: true,
             },
@@ -203,25 +224,69 @@ impl ProjectileConstructor {
         }
     }
 
-    pub fn modified_projectile(mut self, power: f32) -> Self {
+    pub fn modified_projectile(
+        mut self,
+        power: f32,
+        regen: f32,
+        range: f32,
+        heal_power: f32,
+    ) -> Self {
         use ProjectileConstructor::*;
         match self {
-            Arrow { ref mut damage, .. } => {
+            Arrow {
+                ref mut damage,
+                ref mut energy_regen,
+                ..
+            } => {
                 *damage *= power;
+                *energy_regen = (*energy_regen as f32 * regen) as u32;
             },
-            Fireball { ref mut damage, .. } => {
+            Fireball {
+                ref mut damage,
+                ref mut energy_regen,
+                ref mut radius,
+                ..
+            } => {
                 *damage *= power;
+                *energy_regen = (*energy_regen as f32 * regen) as u32;
+                *radius *= range;
+            },
+            Firebolt {
+                ref mut damage,
+                ref mut energy_regen,
+                ..
+            } => {
+                *damage *= power;
+                *energy_regen = (*energy_regen as f32 * regen) as u32;
             },
             Heal {
                 ref mut damage,
                 ref mut heal,
+                ref mut radius,
                 ..
             } => {
                 *damage *= power;
-                *heal *= power;
+                *heal *= heal_power;
+                *radius *= range;
             },
             Possess => {},
         }
         self
+    }
+
+    pub fn fireball_to_firebolt(self) -> Self {
+        if let ProjectileConstructor::Fireball {
+            damage,
+            energy_regen,
+            ..
+        } = self
+        {
+            ProjectileConstructor::Firebolt {
+                damage,
+                energy_regen: energy_regen * 2,
+            }
+        } else {
+            self
+        }
     }
 }

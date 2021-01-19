@@ -9,7 +9,7 @@ use entity_creation::{
 };
 use entity_manipulation::{
     handle_aura, handle_buff, handle_damage, handle_delete, handle_destroy, handle_energy_change,
-    handle_explosion, handle_knockback, handle_land_on_ground, handle_level_up, handle_respawn,
+    handle_explosion, handle_knockback, handle_land_on_ground, handle_respawn,
 };
 use group_manip::handle_group;
 use interaction::{handle_lantern, handle_mount, handle_possess, handle_unmount};
@@ -105,7 +105,6 @@ impl Server {
                 ServerEvent::UpdateCharacterData { entity, components } => {
                     handle_loaded_character_data(self, entity, components);
                 },
-                ServerEvent::LevelUp(entity, new_level) => handle_level_up(self, entity, new_level),
                 ServerEvent::ExitIngame { entity } => handle_exit_ingame(self, entity),
                 ServerEvent::CreateNpc {
                     pos,

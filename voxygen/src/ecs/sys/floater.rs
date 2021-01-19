@@ -1,18 +1,17 @@
 use crate::ecs::{
     comp::{HpFloater, HpFloaterList},
-    ExpFloater, MyEntity, MyExpFloaterList,
+    MyEntity,
 };
 use common::{
-    comp::{Health, HealthSource, Pos, Stats},
+    comp::{Health, HealthSource, Pos},
     resources::DeltaTime,
     uid::Uid,
 };
-use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, Write, WriteStorage};
+use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage};
 
 // How long floaters last (in seconds)
 pub const HP_SHOWTIME: f32 = 3.0;
 pub const MY_HP_SHOWTIME: f32 = 2.5;
-pub const MY_EXP_SHOWTIME: f32 = 4.0;
 
 pub struct Sys;
 impl<'a> System<'a> for Sys {
@@ -21,10 +20,8 @@ impl<'a> System<'a> for Sys {
         Entities<'a>,
         ReadExpect<'a, MyEntity>,
         Read<'a, DeltaTime>,
-        Write<'a, MyExpFloaterList>,
         ReadStorage<'a, Uid>,
         ReadStorage<'a, Pos>,
-        ReadStorage<'a, Stats>,
         ReadStorage<'a, Health>,
         WriteStorage<'a, HpFloaterList>,
     );
@@ -32,17 +29,7 @@ impl<'a> System<'a> for Sys {
     #[allow(clippy::blocks_in_if_conditions)] // TODO: Pending review in #587
     fn run(
         &mut self,
-        (
-            entities,
-            my_entity,
-            dt,
-            mut my_exp_floater_list,
-            uids,
-            pos,
-            stats,
-            healths,
-            mut hp_floater_lists,
-        ): Self::SystemData,
+        (entities, my_entity, dt, uids, pos, healths, mut hp_floater_lists): Self::SystemData,
     ) {
         // Add hp floater lists to all entities with health and a position
         // Note: necessary in order to know last_hp
@@ -148,58 +135,6 @@ impl<'a> System<'a> for Sys {
             }) {
                 floaters.clear();
             }
-        }
-
-        // Update MyExpFloaterList
-        if let Some(stats) = stats.get(my_entity.0) {
-            let mut fl = my_exp_floater_list;
-            // Add a floater if exp changed
-            // TODO: can't handle if you level up more than once (maybe store total exp in
-            // stats)
-            let exp_change = if stats.level.level() != fl.last_level {
-                if stats.level.level() > fl.last_level {
-                    stats.exp.current() as i32 + fl.last_exp_max as i32 - fl.last_exp as i32
-                } else {
-                    // Level down
-                    stats.exp.current() as i32 - stats.exp.maximum() as i32 - fl.last_exp as i32
-                }
-            } else {
-                stats.exp.current() as i32 - fl.last_exp as i32
-            };
-
-            if exp_change != 0 {
-                fl.floaters.push(ExpFloater {
-                    timer: 0.0,
-                    exp_change,
-                    rand: (rand::random(), rand::random()),
-                });
-            }
-
-            // Increment timers
-            for mut floater in &mut fl.floaters {
-                floater.timer += dt.0;
-            }
-
-            // Clear if the newest is past show time
-            if fl
-                .floaters
-                .last()
-                .map_or(false, |f| f.timer > MY_EXP_SHOWTIME)
-            {
-                fl.floaters.clear();
-            }
-
-            // Update stored values
-            fl.last_exp = stats.exp.current();
-            fl.last_exp_max = stats.exp.maximum();
-            fl.last_level = stats.level.level();
-        } else {
-            // Clear if stats component doesn't exist
-            my_exp_floater_list.floaters.clear();
-            // Clear stored values
-            my_exp_floater_list.last_exp = 0;
-            my_exp_floater_list.last_exp_max = 0;
-            my_exp_floater_list.last_level = 0;
         }
     }
 }

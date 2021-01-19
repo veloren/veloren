@@ -1,11 +1,8 @@
 ItemDef(
     name: "Velorite",
-    description: "Increases Exp by 20\n\nJust a slight touch makes you feel the knowledge of ancient times",
-    kind: Consumable(
-        kind: "Velorite",
-        effect: [
-            Xp(20),
-        ]
+    description: "Just a slight touch makes you feel\n\the knowledge of ancient times",
+    kind: Ingredient(
+        kind: "Velorite",      
     ),
     quality: High,
 )

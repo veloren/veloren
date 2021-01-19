@@ -9,11 +9,10 @@ use common::{
     npc::NPC_NAMES,
     span,
     terrain::TerrainGrid,
-    LoadoutBuilder,
+    LoadoutBuilder, SkillSetBuilder,
 };
 use common_net::msg::ServerGeneral;
 use common_sys::state::TerrainChanges;
-use rand::Rng;
 use specs::{Join, Read, ReadStorage, System, Write, WriteExpect};
 use std::sync::Arc;
 use vek::*;
@@ -126,18 +125,8 @@ impl<'a> System<'a> for Sys {
                 let alignment = entity.alignment;
                 let main_tool = entity.main_tool;
                 let mut stats = comp::Stats::new(name, body);
-                // let damage = stats.level.level() as i32; TODO: Make NPC base damage
-                // non-linearly depend on their level
 
                 let mut scale = entity.scale;
-
-                // TODO: Remove this and implement scaling or level depending on stuff like
-                // species instead
-                stats.level.set_level(
-                    entity.level.unwrap_or_else(|| {
-                        (rand::thread_rng().gen_range(1, 9) as f32 * scale) as u32
-                    }),
-                );
 
                 // Replace stuff if it's a boss
                 if entity.is_giant {
@@ -154,15 +143,18 @@ impl<'a> System<'a> for Sys {
                             body,
                         );
                     }
-                    stats.level.set_level(rand::thread_rng().gen_range(25, 30));
                     scale = 2.0 + rand::random::<f32>();
                 }
 
-                let config = entity.config;
+                let loadout_config = entity.loadout_config;
+                let skillset_config = entity.skillset_config;
 
-                let loadout = LoadoutBuilder::build_loadout(body, main_tool, config).build();
+                stats.skill_set =
+                    SkillSetBuilder::build_skillset(&main_tool, skillset_config).build();
+                let loadout =
+                    LoadoutBuilder::build_loadout(body, main_tool, loadout_config).build();
 
-                let health = comp::Health::new(stats.body_type, stats.level.level());
+                let health = comp::Health::new(stats.body_type, entity.level.unwrap_or(0));
 
                 let can_speak = match body {
                     comp::Body::Humanoid(_) => alignment == comp::Alignment::Npc,
@@ -194,7 +186,7 @@ impl<'a> System<'a> for Sys {
                             can_speak,
                             &body,
                             matches!(
-                                config,
+                                loadout_config,
                                 Some(comp::inventory::loadout_builder::LoadoutConfig::Guard)
                             ),
                         ))

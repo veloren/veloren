@@ -1,6 +1,7 @@
 use crate::{
     comp::{self, humanoid, inventory::loadout_builder::LoadoutConfig, Alignment, Body, Item},
     npc::{self, NPC_NAMES},
+    skillset_builder::SkillSetConfig,
 };
 use vek::*;
 
@@ -20,9 +21,11 @@ pub struct EntityInfo {
     pub main_tool: Option<Item>,
     pub second_tool: Option<Item>,
     pub scale: f32,
-    pub level: Option<u32>,
+    // TODO: Properly give NPCs skills
+    pub level: Option<u16>,
     pub loot_drop: Option<Item>,
-    pub config: Option<LoadoutConfig>,
+    pub loadout_config: Option<LoadoutConfig>,
+    pub skillset_config: Option<SkillSetConfig>,
     pub pet: Option<Box<EntityInfo>>,
 }
 
@@ -41,7 +44,8 @@ impl EntityInfo {
             scale: 1.0,
             level: None,
             loot_drop: None,
-            config: None,
+            loadout_config: None,
+            skillset_config: None,
             pet: None,
         }
     }
@@ -103,13 +107,18 @@ impl EntityInfo {
         self
     }
 
-    pub fn with_level(mut self, level: u32) -> Self {
+    pub fn with_level(mut self, level: u16) -> Self {
         self.level = Some(level);
         self
     }
 
-    pub fn with_config(mut self, config: LoadoutConfig) -> Self {
-        self.config = Some(config);
+    pub fn with_loadout_config(mut self, config: LoadoutConfig) -> Self {
+        self.loadout_config = Some(config);
+        self
+    }
+
+    pub fn with_skillset_config(mut self, config: SkillSetConfig) -> Self {
+        self.skillset_config = Some(config);
         self
     }
 

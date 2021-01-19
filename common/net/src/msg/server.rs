@@ -157,7 +157,6 @@ pub struct PlayerInfo {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CharacterInfo {
     pub name: String,
-    pub level: u32,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

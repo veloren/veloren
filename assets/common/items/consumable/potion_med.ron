@@ -7,7 +7,7 @@ ItemDef(
             Buff((
                 kind: Potion,
                 data: (
-                    strength: 1000.0,
+                    strength: 750.0,
                     duration: Some((
                             secs: 1,
                             nanos: 0,

@@ -9,9 +9,10 @@ use common::{
             tool::{ToolKind, UniqueKind},
             ItemKind,
         },
+        skills::{AxeSkill, BowSkill, HammerSkill, Skill, StaffSkill, SwordSkill},
         Agent, Alignment, Body, CharacterState, ControlAction, ControlEvent, Controller, Energy,
         GroupManip, Health, Inventory, LightEmitter, MountState, Ori, PhysicsState, Pos, Scale,
-        UnresolvedChatMsg, Vel,
+        Stats, UnresolvedChatMsg, Vel,
     },
     event::{EventBus, ServerEvent},
     metrics::SysMetrics,
@@ -54,6 +55,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Scale>,
         ReadStorage<'a, Health>,
         ReadStorage<'a, Inventory>,
+        ReadStorage<'a, Stats>,
         ReadStorage<'a, PhysicsState>,
         ReadStorage<'a, Uid>,
         ReadStorage<'a, group::Group>,
@@ -84,6 +86,7 @@ impl<'a> System<'a> for Sys {
             scales,
             healths,
             inventories,
+            stats,
             physics_states,
             uids,
             groups,
@@ -110,6 +113,7 @@ impl<'a> System<'a> for Sys {
             &orientations,
             alignments.maybe(),
             &inventories,
+            &stats,
             &physics_states,
             bodies.maybe(),
             &uids,
@@ -120,7 +124,7 @@ impl<'a> System<'a> for Sys {
             light_emitter.maybe(),
         )
             .par_join()
-            .filter(|(_, _, _, _, _, _, _, _, _, _, _, _, mount_state, _, _)| {
+            .filter(|(_, _, _, _, _, _, _, _, _, _, _, _, _, mount_state, _, _)| {
                 // Skip mounted entities
                 mount_state.map(|ms| *ms == MountState::Unmounted).unwrap_or(true)
             })
@@ -132,6 +136,7 @@ impl<'a> System<'a> for Sys {
                 ori,
                 alignment,
                 inventory,
+                stats,
                 physics_state,
                 body,
                 uid,
@@ -457,9 +462,9 @@ impl<'a> System<'a> for Sys {
 
                                 // Hacky distance offset for ranged weapons
                                 let distance_offset = match tactic {
-                                    Tactic::Bow => 0.0004 * pos.0.distance_squared(tgt_pos.0),
-                                    Tactic::Staff => 0.0015 * pos.0.distance_squared(tgt_pos.0),
-                                    Tactic::QuadLowRanged => 0.03 * pos.0.distance_squared(tgt_pos.0),
+                                    Tactic::Bow => 0.0004 /* Yay magic numbers */ * pos.0.distance_squared(tgt_pos.0),
+                                    Tactic::Staff => 0.0015 /* Yay magic numbers */ * pos.0.distance_squared(tgt_pos.0),
+                                    Tactic::QuadLowRanged => 0.03 /* Yay magic numbers */ * pos.0.distance_squared(tgt_pos.0),
                                     _ => 0.0,
                                 };
 
@@ -578,9 +583,7 @@ impl<'a> System<'a> for Sys {
                                                 } else if *powerup > 4.0 && energy.current() > 10 {
                                                     inputs.secondary.set_state(true);
                                                     *powerup += dt.0;
-                                                } else if energy.current() > 800
-                                                    && thread_rng().gen_bool(0.5)
-                                                {
+                                                } else if stats.skill_set.has_skill(Skill::Axe(AxeSkill::UnlockLeap)) && energy.current() > 800 && thread_rng().gen_bool(0.5) {
                                                     inputs.ability3.set_state(true);
                                                     *powerup += dt.0;
                                                 } else {
@@ -629,7 +632,8 @@ impl<'a> System<'a> for Sys {
                                                 } else if *powerup > 2.0 {
                                                     inputs.secondary.set_state(true);
                                                     *powerup += dt.0;
-                                                } else if energy.current() > 700 {
+                                                } else if stats.skill_set.has_skill(Skill::Hammer(HammerSkill::UnlockLeap)) && energy.current() > 700
+                                                    && thread_rng().gen_bool(0.9) {
                                                     inputs.ability3.set_state(true);
                                                     *powerup += dt.0;
                                                 } else {
@@ -658,7 +662,7 @@ impl<'a> System<'a> for Sys {
                                                             .try_normalized()
                                                             .unwrap_or(Vec2::zero())
                                                             * speed;
-                                                        if *powerup > 5.0 {
+                                                        if stats.skill_set.has_skill(Skill::Hammer(HammerSkill::UnlockLeap)) && *powerup > 5.0 {
                                                             inputs.ability3.set_state(true);
                                                             *powerup = 0.0;
                                                         } else {
@@ -686,7 +690,7 @@ impl<'a> System<'a> for Sys {
                                         Tactic::Sword => {
                                             if dist_sqrd < (MIN_ATTACK_DIST * scale).powi(2) {
                                                 inputs.move_dir = Vec2::zero();
-                                                if *powerup < 2.0 && energy.current() > 600 {
+                                                if stats.skill_set.has_skill(Skill::Sword(SwordSkill::UnlockSpin)) && *powerup < 2.0 && energy.current() > 600 {
                                                     inputs.ability3.set_state(true);
                                                     *powerup += dt.0;
                                                 } else if *powerup > 2.0 {
@@ -778,7 +782,7 @@ impl<'a> System<'a> for Sys {
                                                         {
                                                             inputs.secondary.set_state(true);
                                                             *powerup += dt.0;
-                                                        } else if energy.current() > 400
+                                                        } else if stats.skill_set.has_skill(Skill::Bow(BowSkill::UnlockRepeater)) && energy.current() > 400
                                                             && thread_rng().gen_bool(0.8)
                                                         {
                                                             inputs.secondary.set_state(false);
@@ -831,7 +835,7 @@ impl<'a> System<'a> for Sys {
                                                 } else {
                                                     *powerup = 0.0;
                                                 }
-                                                if energy.current() > 800
+                                                if stats.skill_set.has_skill(Skill::Staff(StaffSkill::UnlockShockwave)) && energy.current() > 800
                                                     && thread_rng().gen::<f32>() > 0.8
                                                 {
                                                     inputs.ability3.set_state(true);
@@ -1050,8 +1054,17 @@ impl<'a> System<'a> for Sys {
                                                         inputs.secondary.set_state(true);
                                                         inputs.jump.set_state(bearing.z > 1.5);
                                                         inputs.move_z = bearing.z;
+                                                    } else {
+                                                        inputs.move_dir = bearing
+                                                            .xy()
+                                                            .try_normalized()
+                                                            .unwrap_or(Vec2::zero())
+                                                            * speed;
+                                                        inputs.jump.set_state(bearing.z > 1.5);
+                                                        inputs.move_z = bearing.z;
                                                     }
                                                 } else {
+                                                    do_idle = true;
                                                 }
                                             } else {
                                                 do_idle = true;
