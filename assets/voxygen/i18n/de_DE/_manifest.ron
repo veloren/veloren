@@ -100,6 +100,7 @@
         "common.weapons.bow": "Bogen",
         "common.weapons.hammer": "Hammer",
         "common.weapons.sceptre": "Druiden Szepter",
+        "common.weapons.general": "Kampf",
         /// End Common section
 
 
@@ -204,7 +205,8 @@ https://veloren.net/account/.
 
         // SCT outputs
         "hud.sct.experience": "{amount} Erf",
-        "hud.sct.block": "GEBLOCKT",
+        "hud.sct.block": "GEBLOCKT",        
+        "hud.rank_up": "Neuer Rang",
 
         /// Respawn message
         "hud.press_key_to_respawn": r#"Drückt {key} um am letzten Lagerfeuer wiederbelebt zu werden."#,

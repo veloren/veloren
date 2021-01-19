@@ -86,7 +86,6 @@ fn get_handler(cmd: &ChatCommand) -> CommandHandler {
         ChatCommand::Dummy => handle_spawn_training_dummy,
         ChatCommand::Explosion => handle_explosion,
         ChatCommand::Faction => handle_faction,
-        ChatCommand::GiveExp => handle_give_exp,
         ChatCommand::GiveItem => handle_give_item,
         ChatCommand::Goto => handle_goto,
         ChatCommand::Group => handle_group,
@@ -112,8 +111,8 @@ fn get_handler(cmd: &ChatCommand) -> CommandHandler {
         ChatCommand::Region => handle_region,
         ChatCommand::RemoveLights => handle_remove_lights,
         ChatCommand::Say => handle_say,
-        ChatCommand::SetLevel => handle_set_level,
         ChatCommand::SetMotd => handle_set_motd,
+        ChatCommand::SkillPoint => handle_skill_point,
         ChatCommand::Spawn => handle_spawn,
         ChatCommand::Sudo => handle_sudo,
         ChatCommand::Tell => handle_tell,
@@ -927,10 +926,7 @@ fn handle_spawn_training_dummy(
 
             let body = comp::Body::Object(comp::object::Body::TrainingDummy);
 
-            let mut stats = comp::Stats::new("Training Dummy".to_string(), body);
-
-            // Level 0 will prevent exp gain from kill
-            stats.level.set_level(0);
+            let stats = comp::Stats::new("Training Dummy".to_string(), body);
 
             let health = comp::Health::new(body, 0);
 
@@ -1018,15 +1014,7 @@ fn handle_players(
             ChatType::CommandInfo,
             entity_tuples.join().fold(
                 format!("{} online players:", entity_tuples.join().count()),
-                |s, (_, player, stat)| {
-                    format!(
-                        "{}\n[{}]{} Lvl {}",
-                        s,
-                        player.alias,
-                        stat.name,
-                        stat.level.level()
-                    )
-                },
+                |s, (_, player, stat)| format!("{}\n[{}]{}", s, player.alias, stat.name,),
             ),
         ),
     );
@@ -2022,30 +2010,37 @@ fn find_target(
     }
 }
 
-fn handle_give_exp(
+fn handle_skill_point(
     server: &mut Server,
     client: EcsEntity,
     target: EcsEntity,
     args: String,
     action: &ChatCommand,
 ) {
-    let (a_exp, a_alias) = scan_fmt_some!(&args, &action.arg_fmt(), i64, String);
+    let (a_skill_tree, a_sp, a_alias) =
+        scan_fmt_some!(&args, &action.arg_fmt(), String, u16, String);
 
-    if let Some(exp) = a_exp {
-        let ecs = server.state.ecs_mut();
-        let target = find_target(&ecs, a_alias, target);
+    if let (Some(skill_tree), Some(sp)) = (a_skill_tree, a_sp) {
+        let target = find_target(&server.state.ecs(), a_alias, target);
 
         let mut error_msg = None;
 
         match target {
             Ok(player) => {
-                if let Some(mut stats) = ecs.write_storage::<comp::Stats>().get_mut(player) {
-                    stats.exp.change_by(exp);
-                } else {
-                    error_msg = Some(ServerGeneral::server_msg(
-                        ChatType::CommandError,
-                        "Player has no stats!",
-                    ));
+                if let Some(skill_tree) = parse_skill_tree(&skill_tree) {
+                    if let Some(mut stats) = server
+                        .state
+                        .ecs_mut()
+                        .write_storage::<comp::Stats>()
+                        .get_mut(player)
+                    {
+                        stats.skill_set.add_skill_points(skill_tree, sp);
+                    } else {
+                        error_msg = Some(ServerGeneral::server_msg(
+                            ChatType::CommandError,
+                            "Player has no stats!",
+                        ));
+                    }
                 }
             },
             Err(e) => {
@@ -2059,69 +2054,17 @@ fn handle_give_exp(
     }
 }
 
-fn handle_set_level(
-    server: &mut Server,
-    client: EcsEntity,
-    target: EcsEntity,
-    args: String,
-    action: &ChatCommand,
-) {
-    let (a_lvl, a_alias) = scan_fmt_some!(&args, &action.arg_fmt(), u32, String);
-
-    if let Some(lvl) = a_lvl {
-        let target = find_target(&server.state.ecs(), a_alias, target);
-
-        let mut error_msg = None;
-
-        match target {
-            Ok(player) => {
-                let uid = *server
-                    .state
-                    .ecs()
-                    .read_storage::<Uid>()
-                    .get(player)
-                    .expect("Failed to get uid for player");
-                server.state.notify_players(ServerGeneral::PlayerListUpdate(
-                    PlayerListUpdate::LevelChange(uid, lvl),
-                ));
-
-                let body_type: Option<comp::Body>;
-
-                if let Some(mut stats) = server
-                    .state
-                    .ecs_mut()
-                    .write_storage::<comp::Stats>()
-                    .get_mut(player)
-                {
-                    stats.level.set_level(lvl);
-                    body_type = Some(stats.body_type);
-                } else {
-                    error_msg = Some(ServerGeneral::server_msg(
-                        ChatType::CommandError,
-                        "Player has no stats!",
-                    ));
-                    body_type = None;
-                }
-
-                if let Some(mut health) = server
-                    .state
-                    .ecs_mut()
-                    .write_storage::<comp::Health>()
-                    .get_mut(player)
-                {
-                    let health = &mut *health;
-                    health.update_max_hp(body_type, lvl);
-                    health.set_to(health.maximum(), comp::HealthSource::LevelUp);
-                }
-            },
-            Err(e) => {
-                error_msg = Some(e);
-            },
-        }
-
-        if let Some(msg) = error_msg {
-            server.notify_client(client, msg);
-        }
+fn parse_skill_tree(skill_tree: &str) -> Option<comp::skills::SkillGroupKind> {
+    use comp::{item::tool::ToolKind, skills::SkillGroupKind};
+    match skill_tree {
+        "general" => Some(SkillGroupKind::General),
+        "sword" => Some(SkillGroupKind::Weapon(ToolKind::Sword)),
+        "axe" => Some(SkillGroupKind::Weapon(ToolKind::Axe)),
+        "hammer" => Some(SkillGroupKind::Weapon(ToolKind::Hammer)),
+        "bow" => Some(SkillGroupKind::Weapon(ToolKind::Bow)),
+        "staff" => Some(SkillGroupKind::Weapon(ToolKind::Staff)),
+        "sceptre" => Some(SkillGroupKind::Weapon(ToolKind::Sceptre)),
+        _ => None,
     }
 }
 

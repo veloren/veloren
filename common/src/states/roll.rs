@@ -19,6 +19,8 @@ pub struct StaticData {
     pub recover_duration: Duration,
     /// Affects the speed and distance of the roll
     pub roll_strength: f32,
+    /// Affects whether you are immune to melee attacks while rolling
+    pub immune_melee: bool,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -72,7 +74,12 @@ impl CharacterBehavior for Data {
                     data,
                     &mut update,
                     ForcedMovement::Forward {
-                        strength: self.static_data.roll_strength,
+                        strength: self.static_data.roll_strength
+                            * ((1.0
+                                - self.timer.as_secs_f32()
+                                    / self.static_data.movement_duration.as_secs_f32())
+                                / 2.0
+                                + 0.5),
                     },
                     0.0,
                 );

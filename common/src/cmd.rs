@@ -46,7 +46,6 @@ pub enum ChatCommand {
     Dummy,
     Explosion,
     Faction,
-    GiveExp,
     GiveItem,
     Goto,
     Group,
@@ -72,8 +71,8 @@ pub enum ChatCommand {
     Region,
     RemoveLights,
     Say,
-    SetLevel,
     SetMotd,
+    SkillPoint,
     Spawn,
     Sudo,
     Tell,
@@ -99,7 +98,6 @@ pub static CHAT_COMMANDS: &[ChatCommand] = &[
     ChatCommand::Dummy,
     ChatCommand::Explosion,
     ChatCommand::Faction,
-    ChatCommand::GiveExp,
     ChatCommand::GiveItem,
     ChatCommand::Goto,
     ChatCommand::Group,
@@ -125,8 +123,8 @@ pub static CHAT_COMMANDS: &[ChatCommand] = &[
     ChatCommand::Region,
     ChatCommand::RemoveLights,
     ChatCommand::Say,
-    ChatCommand::SetLevel,
     ChatCommand::SetMotd,
+    ChatCommand::SkillPoint,
     ChatCommand::Spawn,
     ChatCommand::Sudo,
     ChatCommand::Tell,
@@ -150,6 +148,10 @@ lazy_static! {
     ].iter().cloned().collect();
 
     static ref ALIGNMENTS: Vec<String> = vec!["wild", "enemy", "npc", "pet"]
+        .iter()
+        .map(|s| s.to_string())
+        .collect();
+    static ref SKILL_TREES: Vec<String> = vec!["general", "sword", "axe", "hammer", "bow", "staff", "sceptre"]
         .iter()
         .map(|s| s.to_string())
         .collect();
@@ -243,11 +245,6 @@ impl ChatCommand {
                 vec![Message(Optional)],
                 "Send messages to your faction",
                 NoAdmin,
-            ),
-            ChatCommand::GiveExp => cmd(
-                vec![Integer("amount", 50, Required)],
-                "Give experience to yourself",
-                Admin,
             ),
             ChatCommand::GiveItem => cmd(
                 vec![
@@ -378,14 +375,17 @@ impl ChatCommand {
                 "Send messages to everyone within shouting distance",
                 NoAdmin,
             ),
-            ChatCommand::SetLevel => cmd(
-                vec![Integer("level", 10, Required)],
-                "Set player Level",
-                Admin,
-            ),
             ChatCommand::SetMotd => {
                 cmd(vec![Message(Optional)], "Set the server description", Admin)
             },
+            ChatCommand::SkillPoint => cmd(
+                vec![
+                    Enum("skill tree", SKILL_TREES.clone(), Required),
+                    Integer("amount", 1, Optional),
+                ],
+                "Give yourself skill points for a particular skill tree",
+                Admin,
+            ),
             ChatCommand::Spawn => cmd(
                 vec![
                     Enum("alignment", ALIGNMENTS.clone(), Required),
@@ -452,7 +452,6 @@ impl ChatCommand {
             ChatCommand::Dummy => "dummy",
             ChatCommand::Explosion => "explosion",
             ChatCommand::Faction => "faction",
-            ChatCommand::GiveExp => "give_exp",
             ChatCommand::GiveItem => "give_item",
             ChatCommand::Goto => "goto",
             ChatCommand::Group => "group",
@@ -478,8 +477,8 @@ impl ChatCommand {
             ChatCommand::Region => "region",
             ChatCommand::RemoveLights => "remove_lights",
             ChatCommand::Say => "say",
-            ChatCommand::SetLevel => "set_level",
             ChatCommand::SetMotd => "set_motd",
+            ChatCommand::SkillPoint => "skill_point",
             ChatCommand::Spawn => "spawn",
             ChatCommand::Sudo => "sudo",
             ChatCommand::Tell => "tell",

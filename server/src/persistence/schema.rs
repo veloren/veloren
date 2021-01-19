@@ -11,6 +11,7 @@ table! {
         character_id -> BigInt,
         player_uuid -> Text,
         alias -> Text,
+        waypoint -> Nullable<Text>,
     }
 }
 
@@ -31,18 +32,24 @@ table! {
 }
 
 table! {
-    stats (stats_id) {
-        stats_id -> BigInt,
-        level -> Integer,
+    skill (entity_id, skill_type) {
+        entity_id -> BigInt,
+        #[sql_name = "skill"]
+        skill_type -> Text,
+        level -> Nullable<Integer>,
+    }
+}
+
+table! {
+    skill_group (entity_id, skill_group_kind) {
+        entity_id -> BigInt,
+        skill_group_kind -> Text,
         exp -> Integer,
-        endurance -> Integer,
-        fitness -> Integer,
-        willpower -> Integer,
-        waypoint -> Nullable<Text>,
+        available_sp -> Integer,
+        earned_sp -> Integer,
     }
 }
 
 joinable!(character -> body (character_id));
-joinable!(character -> stats (character_id));
 
-allow_tables_to_appear_in_same_query!(body, character, entity, item, stats,);
+allow_tables_to_appear_in_same_query!(body, character, entity, item);

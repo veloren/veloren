@@ -1,4 +1,4 @@
-use crate::comp;
+use crate::{comp, uid::Uid};
 use comp::item::Reagent;
 use serde::{Deserialize, Serialize};
 use vek::*;
@@ -22,12 +22,20 @@ pub enum Outcome {
         body: comp::Body,
         vel: Vec3<f32>,
     },
-    LevelUp {
-        pos: Vec3<f32>,
-    },
     Beam {
         pos: Vec3<f32>,
         heal: bool,
+    },
+    ExpChange {
+        uid: Uid,
+        exp: i32,
+    },
+    SkillPointGain {
+        uid: Uid,
+        skill_tree: comp::skills::SkillGroupKind,
+        total_points: u16,
+        // TODO: Access ECS to get position from Uid to conserve bandwidth
+        pos: Vec3<f32>,
     },
 }
 
@@ -36,8 +44,9 @@ impl Outcome {
         match self {
             Outcome::Explosion { pos, .. } => Some(*pos),
             Outcome::ProjectileShot { pos, .. } => Some(*pos),
-            Outcome::LevelUp { pos } => Some(*pos),
             Outcome::Beam { pos, .. } => Some(*pos),
+            Outcome::ExpChange { .. } => None,
+            Outcome::SkillPointGain { pos, .. } => Some(*pos),
         }
     }
 }

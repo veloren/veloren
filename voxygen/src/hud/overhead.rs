@@ -1,6 +1,7 @@
 use super::{
-    img_ids::Imgs, DEFAULT_NPC, ENEMY_HP_COLOR, FACTION_COLOR, GROUP_COLOR, GROUP_MEMBER, HP_COLOR,
-    LOW_HP_COLOR, REGION_COLOR, SAY_COLOR, STAMINA_COLOR, TELL_COLOR, TEXT_BG, TEXT_COLOR,
+    cr_color, img_ids::Imgs, DEFAULT_NPC, ENEMY_HP_COLOR, FACTION_COLOR, GROUP_COLOR, GROUP_MEMBER,
+    HP_COLOR, LOW_HP_COLOR, REGION_COLOR, SAY_COLOR, STAMINA_COLOR, TELL_COLOR, TEXT_BG,
+    TEXT_COLOR,
 };
 use crate::{
     hud::get_buff_info,
@@ -8,7 +9,7 @@ use crate::{
     settings::GameplaySettings,
     ui::{fonts::Fonts, Ingameable},
 };
-use common::comp::{BuffKind, Buffs, Energy, Health, SpeechBubble, SpeechBubbleType, Stats};
+use common::comp::{BuffKind, Buffs, Energy, Health, SpeechBubble, SpeechBubbleType};
 use conrod_core::{
     color,
     position::Align,
@@ -16,7 +17,6 @@ use conrod_core::{
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 const MAX_BUBBLE_WIDTH: f64 = 250.0;
-
 widget_ids! {
     struct Ids {
         // Speech bubble
@@ -57,10 +57,10 @@ widget_ids! {
 #[derive(Clone, Copy)]
 pub struct Info<'a> {
     pub name: &'a str,
-    pub stats: &'a Stats,
     pub health: &'a Health,
     pub buffs: &'a Buffs,
     pub energy: Option<&'a Energy>,
+    pub combat_rating: f32,
 }
 
 /// Determines whether to show the healthbar
@@ -72,7 +72,6 @@ pub fn should_show_healthbar(health: &Health) -> bool { health.current() != heal
 pub struct Overhead<'a> {
     info: Option<Info<'a>>,
     bubble: Option<&'a SpeechBubble>,
-    own_level: u32,
     in_group: bool,
     settings: &'a GameplaySettings,
     pulse: f32,
@@ -89,7 +88,6 @@ impl<'a> Overhead<'a> {
     pub fn new(
         info: Option<Info<'a>>,
         bubble: Option<&'a SpeechBubble>,
-        own_level: u32,
         in_group: bool,
         settings: &'a GameplaySettings,
         pulse: f32,
@@ -100,7 +98,6 @@ impl<'a> Overhead<'a> {
         Self {
             info,
             bubble,
-            own_level,
             in_group,
             settings,
             pulse,
@@ -123,7 +120,8 @@ impl<'a> Ingameable for Overhead<'a> {
         // - 2 Text::new for name
         //
         // If HP Info is shown:
-        // - 1 for level: either Text or Image
+        // - 1 for level: either Text or Image <-- Not used currently, will be replaced
+        //   by something else
         // - 3 for HP + fg + bg
         // - 1 for HP text
         // - If there's mana
@@ -171,22 +169,19 @@ impl<'a> Widget for Overhead<'a> {
         const MANA_BAR_Y: f64 = MANA_BAR_HEIGHT / 2.0;
         if let Some(Info {
             name,
-            stats,
             health,
             buffs,
             energy,
+            combat_rating,
         }) = self.info
         {
             // Used to set healthbar colours based on hp_percentage
             let hp_percentage = health.current() as f64 / health.maximum() as f64 * 100.0;
             // Compare levels to decide if a skull is shown
-            let level_comp = stats.level.level() as i64 - self.own_level as i64;
             let health_current = (health.current() / 10) as f64;
             let health_max = (health.maximum() / 10) as f64;
             let name_y = if (health_current - health_max).abs() < 1e-6 {
                 MANA_BAR_Y + 20.0
-            } else if level_comp > 9 && !self.in_group {
-                MANA_BAR_Y + 38.0
             } else {
                 MANA_BAR_Y + 32.0
             };
@@ -286,6 +281,7 @@ impl<'a> Widget for Overhead<'a> {
             }
             // Name
             Text::new(name)
+                //Text::new(&format!("{} [{:?}]", name, combat_rating)) // <- Uncomment to debug combat ratings
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(font_size)
                 .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
@@ -293,6 +289,7 @@ impl<'a> Widget for Overhead<'a> {
                 .parent(id)
                 .set(state.ids.name_bg, ui);
             Text::new(name)
+                //Text::new(&format!("{} [{:?}]", name, combat_rating)) // <- Uncomment to debug combat ratings
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(font_size)
                 .color(if self.in_group {
@@ -312,7 +309,7 @@ impl<'a> Widget for Overhead<'a> {
                 let crit_hp_color: Color = Color::Rgba(0.93, 0.59, 0.03, hp_ani);
 
                 // Background
-                Image::new(self.imgs.enemy_health_bg)
+                Image::new(if self.in_group {self.imgs.health_bar_group_bg} else {self.imgs.enemy_health_bg})
                 .w_h(84.0 * BARSIZE, 10.0 * BARSIZE)
                 .x_y(0.0, MANA_BAR_Y + 6.5) //-25.5)
                 .color(Some(Color::Rgba(0.1, 0.1, 0.1, 0.8)))
@@ -320,12 +317,21 @@ impl<'a> Widget for Overhead<'a> {
                 .set(state.ids.health_bar_bg, ui);
 
                 // % HP Filling
+                let size_factor = (hp_percentage / 100.0) * BARSIZE;
+                let w = if self.in_group {
+                    82.0 * size_factor
+                } else {
+                    73.0 * size_factor
+                };
+                let h = 6.0 * BARSIZE;
+                let x = if self.in_group {
+                    (0.0 + (hp_percentage / 100.0 * 41.0 - 41.0)) * BARSIZE
+                } else {
+                    (4.5 + (hp_percentage / 100.0 * 36.45 - 36.45)) * BARSIZE
+                };
                 Image::new(self.imgs.enemy_bar)
-                    .w_h(73.0 * (hp_percentage / 100.0) * BARSIZE, 6.0 * BARSIZE)
-                    .x_y(
-                        (4.5 + (hp_percentage / 100.0 * 36.45 - 36.45)) * BARSIZE,
-                        MANA_BAR_Y + 7.5,
-                    )
+                    .w_h(w, h)
+                    .x_y(x, MANA_BAR_Y + 8.0)
                     .color(if self.in_group {
                         // Different HP bar colors only for group members
                         Some(match hp_percentage {
@@ -353,39 +359,37 @@ impl<'a> Widget for Overhead<'a> {
                 // % Mana Filling
                 if let Some(energy) = energy {
                     let energy_factor = energy.current() as f64 / energy.maximum() as f64;
-
-                    Rectangle::fill_with(
-                        [72.0 * energy_factor * BARSIZE, MANA_BAR_HEIGHT],
-                        STAMINA_COLOR,
-                    )
-                    .x_y(
-                        ((3.5 + (energy_factor * 36.5)) - 36.45) * BARSIZE,
-                        MANA_BAR_Y, //-32.0,
-                    )
-                    .parent(id)
-                    .set(state.ids.mana_bar, ui);
+                    let size_factor = energy_factor * BARSIZE;
+                    let w = if self.in_group {
+                        80.0 * size_factor
+                    } else {
+                        72.0 * size_factor
+                    };
+                    let x = if self.in_group {
+                        ((0.0 + (energy_factor * 40.0)) - 40.0) * BARSIZE
+                    } else {
+                        ((3.5 + (energy_factor * 36.5)) - 36.45) * BARSIZE
+                    };
+                    Rectangle::fill_with([w, MANA_BAR_HEIGHT], STAMINA_COLOR)
+                        .x_y(
+                            x, MANA_BAR_Y, //-32.0,
+                        )
+                        .parent(id)
+                        .set(state.ids.mana_bar, ui);
                 }
 
                 // Foreground
-                Image::new(self.imgs.enemy_health)
+                Image::new(if self.in_group {self.imgs.health_bar_group} else {self.imgs.enemy_health})
                 .w_h(84.0 * BARSIZE, 10.0 * BARSIZE)
                 .x_y(0.0, MANA_BAR_Y + 6.5) //-25.5)
                 .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.99)))
                 .parent(id)
                 .set(state.ids.health_bar_fg, ui);
 
-                // Level
-                const LOW: Color = Color::Rgba(0.54, 0.81, 0.94, 0.4);
-                const HIGH: Color = Color::Rgba(1.0, 0.0, 0.0, 1.0);
-                const EQUAL: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
-                // Change visuals of the level display depending on the player level/opponent
-                // level
-                let level_comp = stats.level.level() as i64 - self.own_level as i64;
-                // + 10 level above player -> skull
-                // + 5-10 levels above player -> high
-                // -5 - +5 levels around player level -> equal
-                // - 5 levels below player -> low
-                if level_comp > 9 && !self.in_group {
+                let indicator_col = cr_color(combat_rating);
+                let artifact_diffculty = 122.0;
+
+                if combat_rating > artifact_diffculty && !self.in_group {
                     let skull_ani = ((self.pulse * 0.7/* speed factor */).cos() * 0.5 + 0.5) * 10.0; //Animation timer
                     Image::new(if skull_ani as i32 == 1 && rand::random::<f32>() < 0.9 {
                         self.imgs.skull_2
@@ -398,29 +402,19 @@ impl<'a> Widget for Overhead<'a> {
                     .parent(id)
                     .set(state.ids.level_skull, ui);
                 } else {
-                    let fnt_size = match stats.level.level() {
-                        0..=9 => 15,
-                        10..=99 => 12,
-                        100..=999 => 9,
-                        _ => 2,
-                    };
-                    Text::new(&format!("{}", stats.level.level()))
-                        .font_id(self.fonts.cyri.conrod_id)
-                        .font_size(fnt_size)
-                        .color(if level_comp > 4 {
-                            HIGH
-                        } else if level_comp < -5 {
-                            LOW
-                        } else {
-                            EQUAL
-                        })
-                        .x_y(-37.0 * BARSIZE, MANA_BAR_Y + 9.0)
-                        .parent(id)
-                        .set(state.ids.level, ui);
+                    Image::new(if self.in_group {
+                        self.imgs.nothing
+                    } else {
+                        self.imgs.combat_rating_ico
+                    })
+                    .w_h(7.0 * BARSIZE, 7.0 * BARSIZE)
+                    .x_y(-37.0 * BARSIZE, MANA_BAR_Y + 6.0)
+                    .color(Some(indicator_col))
+                    .parent(id)
+                    .set(state.ids.level, ui);
                 }
             }
         }
-
         // Speech bubble
         if let Some(bubble) = self.bubble {
             let dark_mode = self.settings.speech_bubble_dark_mode;

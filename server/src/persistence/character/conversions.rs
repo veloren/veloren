@@ -1,11 +1,11 @@
 use crate::persistence::{
     character::EntityId,
-    models::{Body, Character, Item, Stats},
+    models::{Body, Character, Item, Skill, SkillGroup},
 };
 
 use crate::persistence::{
     error::Error,
-    json_models::{CharacterPosition, HumanoidBody},
+    json_models::{self, CharacterPosition, HumanoidBody},
 };
 use common::{
     character::CharacterId,
@@ -15,11 +15,12 @@ use common::{
             loadout_builder::LoadoutBuilder,
             slot::InvSlotId,
         },
-        Body as CompBody, Waypoint, *,
+        skills, Body as CompBody, Waypoint, *,
     },
     resources::Time,
 };
 use core::{convert::TryFrom, num::NonZeroU64};
+use hashbrown::HashMap;
 use itertools::{Either, Itertools};
 use std::sync::Arc;
 
@@ -162,12 +163,22 @@ pub fn convert_body_to_database_json(body: &CompBody) -> Result<String, Error> {
     serde_json::to_string(&json_model).map_err(Error::SerializationError)
 }
 
-fn convert_waypoint_to_database_json(waypoint: &Waypoint) -> Result<String, Error> {
-    let charpos = CharacterPosition {
-        waypoint: waypoint.get_pos(),
-    };
-    serde_json::to_string(&charpos)
-        .map_err(|err| Error::ConversionError(format!("Error encoding waypoint: {:?}", err)))
+pub fn convert_waypoint_to_database_json(waypoint: Option<Waypoint>) -> Option<String> {
+    match waypoint {
+        Some(w) => {
+            let charpos = CharacterPosition {
+                waypoint: w.get_pos(),
+            };
+            Some(
+                serde_json::to_string(&charpos)
+                    .map_err(|err| {
+                        Error::ConversionError(format!("Error encoding waypoint: {:?}", err))
+                    })
+                    .ok()?,
+            )
+        },
+        None => None,
+    }
 }
 
 pub fn convert_waypoint_from_database_json(position: &str) -> Result<Waypoint, Error> {
@@ -179,27 +190,6 @@ pub fn convert_waypoint_from_database_json(position: &str) -> Result<Waypoint, E
             ))
         })?;
     Ok(Waypoint::new(character_position.waypoint, Time(0.0)))
-}
-
-pub fn convert_stats_to_database(
-    character_id: CharacterId,
-    stats: &common::comp::Stats,
-    waypoint: &Option<common::comp::Waypoint>,
-) -> Result<Stats, Error> {
-    let waypoint = match waypoint {
-        Some(w) => Some(convert_waypoint_to_database_json(&w)?),
-        None => None,
-    };
-
-    Ok(Stats {
-        stats_id: character_id,
-        level: stats.level.level() as i32,
-        exp: stats.exp.current() as i32,
-        endurance: stats.endurance as i32,
-        fitness: stats.fitness as i32,
-        willpower: stats.willpower as i32,
-        waypoint,
-    })
 }
 
 pub fn convert_inventory_from_database_items(
@@ -342,20 +332,24 @@ pub fn convert_character_from_database(character: &Character) -> common::charact
     }
 }
 
-pub fn convert_stats_from_database(stats: &Stats, alias: String) -> common::comp::Stats {
+pub fn convert_stats_from_database(
+    alias: String,
+    skills: &[Skill],
+    skill_groups: &[SkillGroup],
+) -> common::comp::Stats {
     let mut new_stats = common::comp::Stats::empty();
     new_stats.name = alias;
-    new_stats.level.set_level(stats.level as u32);
-    new_stats.exp.update_maximum(stats.level as u32);
-    new_stats.exp.set_current(stats.exp as u32);
     /*new_stats.update_max_hp(new_stats.body_type);
     new_stats.health.set_to(
         new_stats.health.maximum(),
         common::comp::HealthSource::Revive,
     );*/
-    new_stats.endurance = stats.endurance as u32;
-    new_stats.fitness = stats.fitness as u32;
-    new_stats.willpower = stats.willpower as u32;
+    new_stats.skill_set = skills::SkillSet {
+        skill_groups: convert_skill_groups_from_database(skill_groups),
+        skills: convert_skills_from_database(skills),
+        modify_health: true,
+        modify_energy: true,
+    };
 
     new_stats
 }
@@ -368,4 +362,58 @@ fn get_item_from_asset(item_definition_id: &str) -> Result<common::comp::Item, E
             err.to_string()
         ))
     })
+}
+
+fn convert_skill_groups_from_database(skill_groups: &[SkillGroup]) -> Vec<skills::SkillGroup> {
+    let mut new_skill_groups = Vec::new();
+    for skill_group in skill_groups.iter() {
+        let skill_group_kind = json_models::db_string_to_skill_group(&skill_group.skill_group_kind);
+        let new_skill_group = skills::SkillGroup {
+            skill_group_kind,
+            exp: skill_group.exp as u16,
+            available_sp: skill_group.available_sp as u16,
+            earned_sp: skill_group.earned_sp as u16,
+        };
+        new_skill_groups.push(new_skill_group);
+    }
+    new_skill_groups
+}
+
+fn convert_skills_from_database(skills: &[Skill]) -> HashMap<skills::Skill, Option<u16>> {
+    let mut new_skills = HashMap::new();
+    for skill in skills.iter() {
+        let new_skill = json_models::db_string_to_skill(&skill.skill_type);
+        new_skills.insert(new_skill, skill.level.map(|l| l as u16));
+    }
+    new_skills
+}
+
+pub fn convert_skill_groups_to_database(
+    entity_id: CharacterId,
+    skill_groups: Vec<skills::SkillGroup>,
+) -> Vec<SkillGroup> {
+    skill_groups
+        .into_iter()
+        .map(|sg| SkillGroup {
+            entity_id,
+            skill_group_kind: json_models::skill_group_to_db_string(sg.skill_group_kind),
+            exp: sg.exp as i32,
+            available_sp: sg.available_sp as i32,
+            earned_sp: sg.earned_sp as i32,
+        })
+        .collect()
+}
+
+pub fn convert_skills_to_database(
+    entity_id: CharacterId,
+    skills: HashMap<skills::Skill, Option<u16>>,
+) -> Vec<Skill> {
+    skills
+        .iter()
+        .map(|(s, l)| Skill {
+            entity_id,
+            skill_type: json_models::skill_to_db_string(*s),
+            level: l.map(|l| l as i32),
+        })
+        .collect()
 }

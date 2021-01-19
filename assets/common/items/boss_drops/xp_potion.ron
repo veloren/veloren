@@ -1,11 +1,8 @@
 ItemDef(
     name: "Potion of Skill",
-    description: "Provides 250 XP to the drinker",
-    kind: Consumable(
-        kind: "Potion",
-        effect: [
-            Xp(250),
-        ]
+    description: "It doesn't seem to be doing anything...",
+    kind: Ingredient(
+        kind: "Potion",        
     ),
     quality: High,
 )

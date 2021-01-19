@@ -62,6 +62,28 @@ image_ids! {
         key_button: "voxygen.element.buttons.key_button",
         key_button_press: "voxygen.element.buttons.key_button_press",
 
+        // Diary Window
+        diary_bg: "voxygen.element.misc_bg.diary_bg",
+        diary_frame: "voxygen.element.misc_bg.diary_frame",
+        diary_exp_bg: "voxygen.element.misc_bg.diary_exp_bg",
+        diary_exp_frame: "voxygen.element.misc_bg.diary_exp_frame",
+
+        // Skill Trees
+        slot_skills: "voxygen.element.buttons.slot_skilltree",
+        swords_crossed: "voxygen.element.icons.swords_crossed",
+        sceptre: "voxygen.element.icons.sceptre",
+        sword: "voxygen.element.icons.sword",
+        axe: "voxygen.element.icons.axe",
+        hammer: "voxygen.element.icons.hammer",
+        bow: "voxygen.element.icons.bow",
+        staff: "voxygen.element.icons.staff",
+        lock: "voxygen.element.icons.lock",
+        wpn_icon_border_skills: "voxygen.element.buttons.border_skills",
+        wpn_icon_border: "voxygen.element.buttons.border",
+        wpn_icon_border_mo: "voxygen.element.buttons.border_mo",
+        wpn_icon_border_press: "voxygen.element.buttons.border_press",
+        wpn_icon_border_pressed: "voxygen.element.buttons.border_pressed",
+
         // Social Window
         social_frame_on: "voxygen.element.misc_bg.social_frame",
         social_bg_on: "voxygen.element.misc_bg.social_bg",
@@ -126,6 +148,8 @@ image_ids! {
         group_icon_hover: "voxygen.element.buttons.group_hover",
         group_icon_press: "voxygen.element.buttons.group_press",
 
+        sp_indicator_arrow: "voxygen.element.buttons.arrow_down_gold",
+
         // Skill Icons
         twohsword_m1: "voxygen.element.icons.2hsword_m1",
         twohsword_m2: "voxygen.element.icons.2hsword_m2",
@@ -134,9 +158,7 @@ image_ids! {
         onehshield_m1: "voxygen.element.icons.swordshield",
         onehshield_m2: "voxygen.element.icons.character",
         twohhammer_m1: "voxygen.element.icons.2hhammer_m1",
-        twohhammer_m2: "voxygen.element.icons.2hhammer_m2",
         twohaxe_m1: "voxygen.element.icons.2haxe_m1",
-        twohaxe_m2: "voxygen.element.icons.2haxe_m2",
         bow_m1: "voxygen.element.icons.bow_m1",
         bow_m2: "voxygen.element.icons.bow_m2",
         staff_melee: "voxygen.element.icons.staff_m1",
@@ -149,16 +171,43 @@ image_ids! {
         fire_aoe: "voxygen.element.icons.skill_fire_aoe",
         flamethrower: "voxygen.element.icons.skill_flamethrower",
 
+        // Skilltree Icons
+        health_plus_skill: "voxygen.element.icons.skilltree.health_plus",
+        stamina_plus_skill: "voxygen.element.icons.skilltree.stamina_plus",
+        unlock_axe_skill: "voxygen.element.icons.skilltree.unlock_axe",
+        unlock_bow_skill: "voxygen.element.icons.skilltree.unlock_bow",
+        unlock_hammer_skill: "voxygen.element.icons.skilltree.unlock_hammer",
+        unlock_sceptre_skill: "voxygen.element.icons.skilltree.unlock_sceptre",
+        unlock_staff_skill0: "voxygen.element.icons.skilltree.unlock_staff-0",
+        unlock_sword_skill: "voxygen.element.icons.skilltree.unlock_sword",
+
+        spin_infinite_skill: "voxygen.element.icons.skilltree.spin_infinite",
+        spin_damage_skill: "voxygen.element.icons.skilltree.spin_damage",
+        spin_helicopter_skill: "voxygen.element.icons.skilltree.spin_helicopter",
+        spin_speed_skill: "voxygen.element.icons.skilltree.spin_speed",
+        spin_cost_skill: "voxygen.element.icons.skilltree.spin_cost",
+        leap_damage_skill: "voxygen.element.icons.skilltree.leap_damage",
+        leap_knockback_skill: "voxygen.element.icons.skilltree.leap_knockback",
+        leap_cost_skill: "voxygen.element.icons.skilltree.leap_cost",
+        leap_distance_skill: "voxygen.element.icons.skilltree.leap_distance",
+        hammer_leap_radius_skill: "voxygen.element.icons.skilltree.leap_radius",
+
+        axe_spin_amount_skill: "voxygen.element.icons.skilltree.spin_amount",
+
         // Skillbar
         level_up: "voxygen.element.misc_bg.level_up",
-        level_down:"voxygen.element.misc_bg.level_down",
         bar_content: "voxygen.element.skillbar.bar_content",
         skillbar_bg: "voxygen.element.skillbar.bg",
         skillbar_frame: "voxygen.element.skillbar.frame",
+        health_bg: "voxygen.element.skillbar.health_bg",
+        health_frame: "voxygen.element.skillbar.health_frame",
+        stamina_bg: "voxygen.element.skillbar.stamina_bg",
+        stamina_frame: "voxygen.element.skillbar.stamina_frame",
         m1_ico: "voxygen.element.icons.m1",
         m2_ico: "voxygen.element.icons.m2",
         m_scroll_ico: "voxygen.element.icons.m_scroll",
         m_move_ico: "voxygen.element.icons.m_move",
+        skillbar_slot: "voxygen.element.skillbar.slot",
 
         // Other Icons/Art
         skull: "voxygen.element.icons.skull",
@@ -285,10 +334,11 @@ image_ids! {
         mainhand_bg: "voxygen.element.icons.mainhand",
         bag_bg: "voxygen.element.icons.bag",
         offhand_bg: "voxygen.element.icons.offhand",
-        willpower_ico: "voxygen.element.icons.willpower",
-        endurance_ico: "voxygen.element.icons.endurance",
-        fitness_ico: "voxygen.element.icons.fitness",
+        stamina_ico: "voxygen.element.icons.stamina",
+        health_ico: "voxygen.element.icons.health",
         protection_ico: "voxygen.element.icons.protection",
+        combat_rating_ico: "voxygen.element.icons.combat_rating",
+        combat_rating_ico_shadow: "voxygen.element.icons.combat_rating_shadow",
 
         not_found: "voxygen.element.not_found",
 
@@ -317,8 +367,11 @@ image_ids! {
         // Enemy Healthbar
         enemy_health: "voxygen.element.frames.enemybar",
         enemy_health_bg: "voxygen.element.frames.enemybar_bg",
+        health_bar_group: "voxygen.element.frames.enemybar_1",
+        health_bar_group_bg: "voxygen.element.frames.enemybar_bg_1",
         // Enemy Bar Content:
         enemy_bar: "voxygen.element.skillbar.enemy_bar_content",
+
         // Bag
         bag: "voxygen.element.buttons.bag.closed",
         bag_hover: "voxygen.element.buttons.bag.closed_hover",

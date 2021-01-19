@@ -1,11 +1,8 @@
 ItemDef(
     name: "Flask of Velorite Dust",
-    description: "Increases Exp by 250\n\nTake with plenty of water",
-    kind: Consumable(
-        kind: "PotionExp",
-        effect: [
-            Xp(250),
-        ]
+    description: "Take with plenty of water",
+    kind: Ingredient(
+        kind: "PotionExp",        
     ),
     quality: High,
 )

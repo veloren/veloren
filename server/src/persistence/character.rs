@@ -15,8 +15,9 @@ use crate::{
             convert_body_from_database, convert_body_to_database_json,
             convert_character_from_database, convert_inventory_from_database_items,
             convert_items_to_database_items, convert_loadout_from_database_items,
-            convert_stats_from_database, convert_stats_to_database,
-            convert_waypoint_from_database_json,
+            convert_skill_groups_to_database, convert_skills_to_database,
+            convert_stats_from_database, convert_waypoint_from_database_json,
+            convert_waypoint_to_database_json,
         },
         character_loader::{CharacterCreationResult, CharacterDataResult, CharacterListResult},
         error::Error::DatabaseError,
@@ -58,7 +59,7 @@ pub fn load_character_data(
     char_id: CharacterId,
     connection: VelorenTransaction,
 ) -> CharacterDataResult {
-    use schema::{body::dsl::*, character::dsl::*, item::dsl::*};
+    use schema::{body::dsl::*, character::dsl::*, item::dsl::*, skill_group::dsl::*};
 
     let character_containers = get_pseudo_containers(connection, char_id)?;
 
@@ -72,37 +73,42 @@ pub fn load_character_data(
         .filter(parent_container_item_id.eq(character_containers.loadout_container_id))
         .load::<Item>(&*connection)?;
 
-    let (character_data, stats_data) = character
+    let character_data = character
         .filter(
             schema::character::dsl::character_id
                 .eq(char_id)
                 .and(player_uuid.eq(requesting_player_uuid)),
         )
-        .inner_join(schema::stats::dsl::stats)
-        .first::<(Character, Stats)>(&*connection)?;
+        .first::<Character>(&*connection)?;
 
     let char_body = body
         .filter(schema::body::dsl::body_id.eq(char_id))
         .first::<Body>(&*connection)?;
 
-    let char_waypoint =
-        stats_data
-            .waypoint
-            .as_ref()
-            .and_then(|x| match convert_waypoint_from_database_json(&x) {
-                Ok(w) => Some(w),
-                Err(e) => {
-                    warn!(
-                        "Error reading waypoint from database for character ID {}, error: {}",
-                        char_id, e
-                    );
-                    None
-                },
-            });
+    let char_waypoint = character_data.waypoint.as_ref().and_then(|x| {
+        match convert_waypoint_from_database_json(&x) {
+            Ok(w) => Some(w),
+            Err(e) => {
+                warn!(
+                    "Error reading waypoint from database for character ID {}, error: {}",
+                    char_id, e
+                );
+                None
+            },
+        }
+    });
+
+    let skill_data = schema::skill::dsl::skill
+        .filter(schema::skill::dsl::entity_id.eq(char_id))
+        .load::<Skill>(&*connection)?;
+
+    let skill_group_data = skill_group
+        .filter(schema::skill_group::dsl::entity_id.eq(char_id))
+        .load::<SkillGroup>(&*connection)?;
 
     Ok((
         convert_body_from_database(&char_body)?,
-        convert_stats_from_database(&stats_data, character_data.alias),
+        convert_stats_from_database(character_data.alias, &skill_data, &skill_group_data),
         convert_inventory_from_database_items(&inventory_items, &loadout_items)?,
         char_waypoint,
     ))
@@ -119,17 +125,16 @@ pub fn load_character_list(
     player_uuid_: &str,
     connection: VelorenTransaction,
 ) -> CharacterListResult {
-    use schema::{body::dsl::*, character::dsl::*, item::dsl::*, stats::dsl::*};
+    use schema::{body::dsl::*, character::dsl::*, item::dsl::*};
 
     let result = character
         .filter(player_uuid.eq(player_uuid_))
-        .inner_join(stats)
         .order(schema::character::dsl::character_id.desc())
-        .load::<(Character, Stats)>(&*connection)?;
+        .load::<Character>(&*connection)?;
 
     result
         .iter()
-        .map(|(character_data, char_stats)| {
+        .map(|character_data| {
             let char = convert_character_from_database(character_data);
 
             let db_body = body
@@ -155,7 +160,6 @@ pub fn load_character_list(
             Ok(CharacterItem {
                 character: char,
                 body: char_body,
-                level: char_stats.level as usize,
                 inventory: Inventory::new_with_loadout(loadout),
             })
         })
@@ -172,7 +176,7 @@ pub fn create_character(
 
     check_character_limit(uuid, connection)?;
 
-    use schema::{body, character};
+    use schema::{body, character, skill_group};
 
     let (body, stats, inventory, waypoint) = persisted_components;
 
@@ -218,18 +222,7 @@ pub fn create_character(
         )));
     }
 
-    // Insert stats record
-    let db_stats = convert_stats_to_database(character_id, &stats, &waypoint)?;
-    let stats_count = diesel::insert_into(schema::stats::table)
-        .values(&db_stats)
-        .execute(&*connection)?;
-
-    if stats_count != 1 {
-        return Err(Error::OtherError(format!(
-            "Error inserting into stats table for char_id {}",
-            character_id
-        )));
-    }
+    let skill_set = stats.skill_set;
 
     // Insert body record
     let new_body = Body {
@@ -254,6 +247,7 @@ pub fn create_character(
         character_id,
         player_uuid: uuid,
         alias: &character_alias,
+        waypoint: convert_waypoint_to_database_json(waypoint),
     };
     let character_count = diesel::insert_into(character::table)
         .values(&new_character)
@@ -262,6 +256,18 @@ pub fn create_character(
     if character_count != 1 {
         return Err(Error::OtherError(format!(
             "Error inserting into character table for char_id {}",
+            character_id
+        )));
+    }
+
+    let db_skill_groups = convert_skill_groups_to_database(character_id, skill_set.skill_groups);
+    let skill_groups_count = diesel::insert_into(skill_group::table)
+        .values(&db_skill_groups)
+        .execute(&*connection)?;
+
+    if skill_groups_count != 1 {
+        return Err(Error::OtherError(format!(
+            "Error inserting into skill_group table for char_id {}",
             character_id
         )));
     }
@@ -305,7 +311,7 @@ pub fn delete_character(
     char_id: CharacterId,
     connection: VelorenTransaction,
 ) -> CharacterListResult {
-    use schema::{body::dsl::*, character::dsl::*, stats::dsl::*};
+    use schema::{body::dsl::*, character::dsl::*, skill::dsl::*, skill_group::dsl::*};
 
     // Load the character to delete - ensures that the requesting player
     // owns the character
@@ -316,6 +322,13 @@ pub fn delete_character(
                 .and(player_uuid.eq(requesting_player_uuid)),
         )
         .first::<Character>(&*connection)?;
+
+    // Delete skills
+    diesel::delete(skill_group.filter(schema::skill_group::dsl::entity_id.eq(char_id)))
+        .execute(&*connection)?;
+
+    diesel::delete(skill.filter(schema::skill::dsl::entity_id.eq(char_id)))
+        .execute(&*connection)?;
 
     // Delete character
     let character_count = diesel::delete(
@@ -332,16 +345,6 @@ pub fn delete_character(
         )));
     }
 
-    // Delete stats
-    let stats_count = diesel::delete(stats.filter(schema::stats::dsl::stats_id.eq(char_id)))
-        .execute(&*connection)?;
-
-    if stats_count != 1 {
-        return Err(Error::OtherError(format!(
-            "Error deleting from stats table for char_id {}",
-            char_id
-        )));
-    }
     // Delete body
     let body_count = diesel::delete(body.filter(schema::body::dsl::body_id.eq(char_id)))
         .execute(&*connection)?;
@@ -529,7 +532,7 @@ pub fn update(
     char_waypoint: Option<comp::Waypoint>,
     connection: VelorenTransaction,
 ) -> Result<Vec<Arc<common::comp::item::ItemId>>, Error> {
-    use super::schema::item::dsl::*;
+    use super::schema::{character::dsl::*, item::dsl::*, skill_group::dsl::*};
 
     let pseudo_containers = get_pseudo_containers(connection, char_id)?;
 
@@ -591,15 +594,44 @@ pub fn update(
         }
     }
 
-    let db_stats = convert_stats_to_database(char_id, &char_stats, &char_waypoint)?;
-    let stats_count =
-        diesel::update(schema::stats::dsl::stats.filter(schema::stats::dsl::stats_id.eq(char_id)))
-            .set(db_stats)
+    let char_skill_set = char_stats.skill_set;
+
+    let db_skill_groups = convert_skill_groups_to_database(char_id, char_skill_set.skill_groups);
+
+    diesel::replace_into(skill_group)
+        .values(&db_skill_groups)
+        .execute(&*connection)?;
+
+    let db_skills = convert_skills_to_database(char_id, char_skill_set.skills);
+
+    let delete_count = diesel::delete(
+        schema::skill::dsl::skill.filter(
+            schema::skill::dsl::entity_id.eq(char_id).and(
+                schema::skill::dsl::skill_type.ne_all(
+                    db_skills
+                        .iter()
+                        .map(|x| x.skill_type.clone())
+                        .collect::<Vec<_>>(),
+                ),
+            ),
+        ),
+    )
+    .execute(&*connection)?;
+    trace!("Deleted {} skills", delete_count);
+
+    diesel::replace_into(schema::skill::dsl::skill)
+        .values(&db_skills)
+        .execute(&*connection)?;
+
+    let db_waypoint = convert_waypoint_to_database_json(char_waypoint);
+    let waypoint_count =
+        diesel::update(character.filter(schema::character::dsl::character_id.eq(char_id)))
+            .set(waypoint.eq(db_waypoint))
             .execute(&*connection)?;
 
-    if stats_count != 1 {
+    if waypoint_count != 1 {
         return Err(Error::OtherError(format!(
-            "Error updating stats table for char_id {}",
+            "Error updating character table for char_id {}",
             char_id
         )));
     }

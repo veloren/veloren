@@ -5,8 +5,8 @@
     string_map: {
         // SCT outputs
         "hud.sct.experience": "{amount} Exp",
-        "hud.sct.block": "BLOCKED",
-    },
+        "hud.sct.block": "BLOCKED",       
+        },
 
 
     vector_map: {

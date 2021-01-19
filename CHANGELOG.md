@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added an additional Ring loadout slot
 - The inventory can now be expanded to fill the whole window
 - Added /dropall admin command (drops all inventory items on the ground)
+- Skill trees
 
 ### Changed
 
@@ -38,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - SSAAx4 option
 - The Stats button and associated screen were removed
+- Levels
 
 ### Fixed
 

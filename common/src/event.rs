@@ -76,7 +76,6 @@ pub enum ServerEvent {
     Mount(EcsEntity, EcsEntity),
     Unmount(EcsEntity),
     Possess(Uid, Uid),
-    LevelUp(EcsEntity, u32),
     /// Inserts default components for a character when loading into the game
     InitCharacterData {
         entity: EcsEntity,

@@ -1,4 +1,3 @@
-use hashbrown::HashSet;
 use lazy_static::lazy_static;
 use libloading::Library;
 use notify::{immediate_watcher, EventKind, RecursiveMode, Watcher};
@@ -10,6 +9,7 @@ use std::{
 };
 
 use find_folder::Search;
+use hashbrown::HashSet;
 use std::{env, path::PathBuf};
 use tracing::{debug, error, info};
 

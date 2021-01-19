@@ -122,7 +122,6 @@ impl<'a> System<'a> for Sys {
                     player_alias: player.alias.clone(),
                     character: stats.map(|stats| CharacterInfo {
                         name: stats.name.clone(),
-                        level: stats.level.level(),
                     }),
                 })
             })

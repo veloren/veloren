@@ -20,6 +20,5 @@ pub struct Character {
 pub struct CharacterItem {
     pub character: Character,
     pub body: comp::Body,
-    pub level: usize,
     pub inventory: Inventory,
 }
