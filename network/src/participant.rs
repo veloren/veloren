@@ -204,6 +204,7 @@ impl BParticipant {
         // wait for more messages
         self.running_mgr.fetch_add(1, Ordering::Relaxed);
         let mut b2b_prios_flushed_s = None; //closing up
+        let mut interval = tokio::time::interval(Self::TICK_TIME);
         trace!("Start send_mgr");
         #[cfg(feature = "metrics")]
         let mut send_cache = MultiCidFrameCache::new(self.metrics.frames_out_total.clone());
@@ -225,7 +226,7 @@ impl BParticipant {
             b2s_prio_statistic_s
                 .send((self.remote_pid, len as u64, /*  */ 0))
                 .unwrap();
-            tokio::time::sleep(Self::TICK_TIME).await;
+            interval.tick().await;
             i += 1;
             if i.rem_euclid(1000) == 0 {
                 trace!("Did 1000 ticks");

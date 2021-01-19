@@ -66,9 +66,8 @@ fn close_stream() {
     );
 }
 
-///THIS is actually a bug which currently luckily doesn't trigger, but with new
-/// async-std WE must make sure, if a stream is `drop`ed inside a `block_on`,
-/// that no panic is thrown.
+///WE must NOT create runtimes inside a Runtime, this check needs to verify
+/// that we dont panic there
 #[test]
 fn close_streams_in_block_on() {
     let (_, _) = helper::setup(false, 0);
@@ -81,6 +80,7 @@ fn close_streams_in_block_on() {
         assert_eq!(s1_b.recv().await, Ok("ping".to_string()));
         drop(s1_a);
     });
+    drop((_n_a, _p_a, _n_b, _p_b)); //clean teardown
 }
 
 #[test]
@@ -157,6 +157,7 @@ fn stream_send_100000_then_close_stream_remote() {
     drop(s1_a);
     drop(_s1_b);
     //no receiving
+    drop((_n_a, _p_a, _n_b, _p_b)); //clean teardown
 }
 
 #[test]
@@ -170,6 +171,7 @@ fn stream_send_100000_then_close_stream_remote2() {
     std::thread::sleep(std::time::Duration::from_millis(1000));
     drop(s1_a);
     //no receiving
+    drop((_n_a, _p_a, _n_b, _p_b)); //clean teardown
 }
 
 #[test]
@@ -183,6 +185,7 @@ fn stream_send_100000_then_close_stream_remote3() {
     std::thread::sleep(std::time::Duration::from_millis(1000));
     drop(s1_a);
     //no receiving
+    drop((_n_a, _p_a, _n_b, _p_b)); //clean teardown
 }
 
 #[test]
@@ -233,6 +236,7 @@ fn opened_stream_before_remote_part_is_closed() {
     drop(p_a);
     std::thread::sleep(std::time::Duration::from_millis(1000));
     assert_eq!(r.block_on(s2_b.recv()), Ok("HelloWorld".to_string()));
+    drop((_n_a, _n_b, p_b)); //clean teardown
 }
 
 #[test]
@@ -249,6 +253,7 @@ fn opened_stream_after_remote_part_is_closed() {
         r.block_on(p_b.opened()).unwrap_err(),
         ParticipantError::ParticipantDisconnected
     );
+    drop((_n_a, _n_b, p_b)); //clean teardown
 }
 
 #[test]
@@ -265,6 +270,7 @@ fn open_stream_after_remote_part_is_closed() {
         r.block_on(p_b.open(20, Promises::empty())).unwrap_err(),
         ParticipantError::ParticipantDisconnected
     );
+    drop((_n_a, _n_b, p_b)); //clean teardown
 }
 
 #[test]
@@ -272,11 +278,11 @@ fn failed_stream_open_after_remote_part_is_closed() {
     let (_, _) = helper::setup(false, 0);
     let (r, _n_a, p_a, _, _n_b, p_b, _) = network_participant_stream(tcp());
     drop(p_a);
-    std::thread::sleep(std::time::Duration::from_millis(1000));
     assert_eq!(
         r.block_on(p_b.opened()).unwrap_err(),
         ParticipantError::ParticipantDisconnected
     );
+    drop((_n_a, _n_b, p_b)); //clean teardown
 }
 
 #[test]
@@ -337,6 +343,9 @@ fn close_network_scheduler_completely() {
     drop(n_a);
     drop(n_b);
     std::thread::sleep(std::time::Duration::from_millis(1000));
+
+    drop(p_b);
+    drop(p_a);
     let runtime = Arc::try_unwrap(r).expect("runtime is not alone, there still exist a reference");
     runtime.shutdown_timeout(std::time::Duration::from_secs(300));
 }

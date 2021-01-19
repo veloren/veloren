@@ -21,6 +21,7 @@ fn stream_simple() {
 
     s1_a.send("Hello World").unwrap();
     assert_eq!(r.block_on(s1_b.recv()), Ok("Hello World".to_string()));
+    drop((_n_a, _n_b, _p_a, _p_b)); //clean teardown
 }
 
 #[test]
@@ -31,6 +32,7 @@ fn stream_try_recv() {
     s1_a.send(4242u32).unwrap();
     std::thread::sleep(std::time::Duration::from_secs(1));
     assert_eq!(s1_b.try_recv(), Ok(Some(4242u32)));
+    drop((_n_a, _n_b, _p_a, _p_b)); //clean teardown
 }
 
 #[test]
@@ -44,6 +46,7 @@ fn stream_simple_3msg() {
     assert_eq!(r.block_on(s1_b.recv()), Ok(1337));
     s1_a.send("3rdMessage").unwrap();
     assert_eq!(r.block_on(s1_b.recv()), Ok("3rdMessage".to_string()));
+    drop((_n_a, _n_b, _p_a, _p_b)); //clean teardown
 }
 
 #[test]
@@ -53,6 +56,7 @@ fn stream_simple_udp() {
 
     s1_a.send("Hello World").unwrap();
     assert_eq!(r.block_on(s1_b.recv()), Ok("Hello World".to_string()));
+    drop((_n_a, _n_b, _p_a, _p_b)); //clean teardown
 }
 
 #[test]
@@ -66,6 +70,7 @@ fn stream_simple_udp_3msg() {
     assert_eq!(r.block_on(s1_b.recv()), Ok(1337));
     s1_a.send("3rdMessage").unwrap();
     assert_eq!(r.block_on(s1_b.recv()), Ok("3rdMessage".to_string()));
+    drop((_n_a, _n_b, _p_a, _p_b)); //clean teardown
 }
 
 #[test]
@@ -76,6 +81,8 @@ fn tcp_and_udp_2_connections() -> std::result::Result<(), Box<dyn std::error::Er
     let network = Network::new(Pid::new(), Arc::clone(&r));
     let remote = Network::new(Pid::new(), Arc::clone(&r));
     r.block_on(async {
+        let network = network;
+        let remote = remote;
         remote
             .listen(ProtocolAddr::Tcp("127.0.0.1:2000".parse().unwrap()))
             .await?;
@@ -115,6 +122,7 @@ fn failed_listen_on_used_ports() -> std::result::Result<(), Box<dyn std::error::
         Err(NetworkError::ListenFailed(e)) if e.kind() == ErrorKind::AddrInUse => (),
         _ => panic!(),
     };
+    drop((network, network2)); //clean teardown
     Ok(())
 }
 
@@ -132,6 +140,8 @@ fn api_stream_send_main() -> std::result::Result<(), Box<dyn std::error::Error>>
     let network = Network::new(Pid::new(), Arc::clone(&r));
     let remote = Network::new(Pid::new(), Arc::clone(&r));
     r.block_on(async {
+        let network = network;
+        let remote = remote;
         network
             .listen(ProtocolAddr::Tcp("127.0.0.1:1200".parse().unwrap()))
             .await?;
@@ -159,6 +169,8 @@ fn api_stream_recv_main() -> std::result::Result<(), Box<dyn std::error::Error>>
     let network = Network::new(Pid::new(), Arc::clone(&r));
     let remote = Network::new(Pid::new(), Arc::clone(&r));
     r.block_on(async {
+        let network = network;
+        let remote = remote;
         network
             .listen(ProtocolAddr::Tcp("127.0.0.1:1220".parse().unwrap()))
             .await?;
@@ -187,6 +199,7 @@ fn wrong_parse() {
         Err(StreamError::Deserialize(_)) => (),
         _ => panic!("this should fail, but it doesnt!"),
     }
+    drop((_n_a, _n_b, _p_a, _p_b)); //clean teardown
 }
 
 #[test]
@@ -204,4 +217,5 @@ fn multiple_try_recv() {
     drop(s1_a);
     std::thread::sleep(std::time::Duration::from_secs(1));
     assert_eq!(s1_b.try_recv::<String>(), Err(StreamError::StreamClosed));
+    drop((_n_a, _n_b, _p_a, _p_b)); //clean teardown
 }

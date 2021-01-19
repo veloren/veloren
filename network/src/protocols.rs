@@ -172,20 +172,20 @@ impl TcpProtocol {
             match Self::read_frame(&mut *read_stream, &mut end_r).await {
                 Ok(frame) => {
                     #[cfg(feature = "metrics")]
-                    {
-                        metrics_cache.with_label_values(&frame).inc();
-                        if let Frame::Data {
-                            mid: _,
-                            start: _,
-                            ref data,
-                        } = frame
                         {
-                            throughput_cache.inc_by(data.len() as u64);
+                            metrics_cache.with_label_values(&frame).inc();
+                            if let Frame::Data {
+                                mid: _,
+                                start: _,
+                                ref data,
+                            } = frame
+                            {
+                                throughput_cache.inc_by(data.len() as u64);
+                            }
                         }
+                    if let Err(e) = w2c_cid_frame_s.send((cid, Ok(frame))) {
+                        warn!(?e, "Channel or Participant seems no longer to exist");
                     }
-                    w2c_cid_frame_s
-                        .send((cid, Ok(frame)))
-                        .expect("Channel or Participant seems no longer to exist");
                 },
                 Err(e_option) => {
                     if let Some(e) = e_option {
@@ -193,9 +193,9 @@ impl TcpProtocol {
                         //w2c_cid_frame_s is shared, dropping it wouldn't notify the receiver as
                         // every channel is holding a sender! thats why Ne
                         // need a explicit STOP here
-                        w2c_cid_frame_s
-                            .send((cid, Err(())))
-                            .expect("Channel or Participant seems no longer to exist");
+                        if let Err(e) = w2c_cid_frame_s.send((cid, Err(()))) {
+                            warn!(?e, "Channel or Participant seems no longer to exist");
+                        }
                     }
                     //None is clean shutdown
                     break;

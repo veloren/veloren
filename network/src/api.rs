@@ -167,7 +167,10 @@ impl Network {
     /// * `participant_id` - provide it by calling [`Pid::new()`], usually you
     ///   don't want to reuse a Pid for 2 `Networks`
     /// * `runtime` - provide a tokio::Runtime, it's used to internally spawn
-    ///   tasks. It is necessary to clean up in the non-async `Drop`.
+    ///   tasks. It is necessary to clean up in the non-async `Drop`. **All**
+    ///   network related components **must** be dropped before the runtime is
+    ///   stopped. dropping the runtime while a shutdown is still in progress
+    ///   leaves the network in a bad state which might cause a panic!
     ///
     /// # Result
     /// * `Self` - returns a `Network` which can be `Send` to multiple areas of
@@ -245,11 +248,10 @@ impl Network {
             );
         runtime.spawn(async move {
             trace!(?p, "Starting scheduler in own thread");
-            let _handle = tokio::spawn(
-                scheduler
-                    .run()
-                    .instrument(tracing::info_span!("scheduler", ?p)),
-            );
+            scheduler
+                .run()
+                .instrument(tracing::info_span!("scheduler", ?p))
+                .await;
             trace!(?p, "Stopping scheduler and his own thread");
         });
         Self {
@@ -985,11 +987,7 @@ impl Drop for Network {
         });
         trace!(?pid, "Participants have shut down!");
         trace!(?pid, "Shutting down Scheduler");
-        self.shutdown_sender
-            .take()
-            .unwrap()
-            .send(())
-            .expect("Scheduler is closed, but nobody other should be able to close it");
+        self.shutdown_sender.take().unwrap().send(()).expect("Scheduler is closed, but nobody other should be able to close it");
         debug!(?pid, "Network has shut down");
     }
 }
@@ -1001,7 +999,12 @@ impl Drop for Participant {
         let pid = self.remote_pid;
         debug!(?pid, "Shutting down Participant");
 
-        match self.runtime.block_on(self.a2s_disconnect_s.lock()).take() {
+        match self
+            .a2s_disconnect_s
+            .try_lock()
+            .expect("Participant in use while beeing dropped")
+            .take()
+        {
             None => trace!(
                 ?pid,
                 "Participant has been shutdown cleanly, no further waiting is required!"
