@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Protection rating was moved to the top left of the loadout view 
 - Changed camera smoothing to be off by default.
 - Fixed AI behavior so only humanoids will attempt to roll
+- Footstep SFX is now dependant on distance moved, not time since last play
 
 ### Removed
 

@@ -26,14 +26,17 @@ fn config_but_played_since_threshold_no_emit() {
 
     // Triggered a 'Run' 0 seconds ago
     let previous_state = PreviousEntityState {
-        event: SfxEvent::Run,
+        event: SfxEvent::Run(BlockKind::Grass),
         time: Instant::now(),
         on_ground: true,
         in_water: false,
+        distance_travelled: 0.0,
     };
 
-    let result =
-        MovementEventMapper::should_emit(&previous_state, Some((&SfxEvent::Run, &trigger_item)));
+    let result = MovementEventMapper::should_emit(
+        &previous_state,
+        Some((&SfxEvent::Run(BlockKind::Grass), &trigger_item)),
+    );
 
     assert_eq!(result, false);
 }
@@ -50,10 +53,13 @@ fn config_and_not_played_since_threshold_emits() {
         time: Instant::now().checked_add(Duration::from_secs(1)).unwrap(),
         on_ground: true,
         in_water: false,
+        distance_travelled: 0.0,
     };
 
-    let result =
-        MovementEventMapper::should_emit(&previous_state, Some((&SfxEvent::Run, &trigger_item)));
+    let result = MovementEventMapper::should_emit(
+        &previous_state,
+        Some((&SfxEvent::Run(BlockKind::Grass), &trigger_item)),
+    );
 
     assert_eq!(result, true);
 }
@@ -66,16 +72,19 @@ fn same_previous_event_elapsed_emits() {
     };
 
     let previous_state = PreviousEntityState {
-        event: SfxEvent::Run,
+        event: SfxEvent::Run(BlockKind::Grass),
         time: Instant::now()
-            .checked_sub(Duration::from_millis(500))
+            .checked_sub(Duration::from_millis(1800))
             .unwrap(),
         on_ground: true,
         in_water: false,
+        distance_travelled: 2.0,
     };
 
-    let result =
-        MovementEventMapper::should_emit(&previous_state, Some((&SfxEvent::Run, &trigger_item)));
+    let result = MovementEventMapper::should_emit(
+        &previous_state,
+        Some((&SfxEvent::Run(BlockKind::Grass), &trigger_item)),
+    );
 
     assert_eq!(result, true);
 }
@@ -93,6 +102,7 @@ fn maps_idle() {
             time: Instant::now(),
             on_ground: true,
             in_water: false,
+            distance_travelled: 0.0,
         },
         Vec3::zero(),
         BlockKind::Grass,
@@ -114,12 +124,13 @@ fn maps_run_with_sufficient_velocity() {
             time: Instant::now(),
             on_ground: true,
             in_water: false,
+            distance_travelled: 0.0,
         },
         Vec3::new(0.5, 0.8, 0.0),
         BlockKind::Grass,
     );
 
-    assert_eq!(result, SfxEvent::Run);
+    assert_eq!(result, SfxEvent::Run(BlockKind::Grass));
 }
 
 #[test]
@@ -135,6 +146,7 @@ fn does_not_map_run_with_insufficient_velocity() {
             time: Instant::now(),
             on_ground: true,
             in_water: false,
+            distance_travelled: 0.0,
         },
         Vec3::new(0.02, 0.0001, 0.0),
         BlockKind::Grass,
@@ -153,6 +165,7 @@ fn does_not_map_run_with_sufficient_velocity_but_not_on_ground() {
             time: Instant::now(),
             on_ground: false,
             in_water: false,
+            distance_travelled: 0.0,
         },
         Vec3::new(0.5, 0.8, 0.0),
         BlockKind::Grass,
@@ -183,10 +196,11 @@ fn maps_roll() {
             ..Default::default()
         },
         &PreviousEntityState {
-            event: SfxEvent::Run,
+            event: SfxEvent::Run(BlockKind::Grass),
             time: Instant::now(),
             on_ground: true,
             in_water: false,
+            distance_travelled: 0.0,
         },
         Vec3::new(0.5, 0.5, 0.0),
         BlockKind::Grass,
@@ -208,12 +222,13 @@ fn maps_land_on_ground_to_run() {
             time: Instant::now(),
             on_ground: false,
             in_water: false,
+            distance_travelled: 0.0,
         },
         Vec3::zero(),
         BlockKind::Grass,
     );
 
-    assert_eq!(result, SfxEvent::Run);
+    assert_eq!(result, SfxEvent::Run(BlockKind::Grass));
 }
 
 #[test]
@@ -226,6 +241,7 @@ fn maps_glider_open() {
             time: Instant::now(),
             on_ground: false,
             in_water: false,
+            distance_travelled: 0.0,
         },
         Vec3::zero(),
         BlockKind::Grass,
@@ -244,6 +260,7 @@ fn maps_glide() {
             time: Instant::now(),
             on_ground: false,
             in_water: false,
+            distance_travelled: 0.0,
         },
         Vec3::zero(),
         BlockKind::Grass,
@@ -262,6 +279,7 @@ fn maps_glider_close_when_closing_mid_flight() {
             time: Instant::now(),
             on_ground: false,
             in_water: false,
+            distance_travelled: 0.0,
         },
         Vec3::zero(),
         BlockKind::Grass,
@@ -284,6 +302,7 @@ fn maps_glider_close_when_landing() {
             time: Instant::now(),
             on_ground: false,
             in_water: false,
+            distance_travelled: 0.0,
         },
         Vec3::zero(),
         BlockKind::Grass,
@@ -303,7 +322,7 @@ fn maps_quadrupeds_running() {
         BlockKind::Grass,
     );
 
-    assert_eq!(result, SfxEvent::Run);
+    assert_eq!(result, SfxEvent::Run(BlockKind::Grass));
 }
 
 #[test]

@@ -10,6 +10,7 @@ use crate::{
 use client::Client;
 use common::{
     comp::{Body, CharacterState, PhysicsState, Pos, Vel},
+    resources::DeltaTime,
     terrain::{BlockKind, TerrainChunk},
     vol::ReadVol,
 };
@@ -25,6 +26,7 @@ struct PreviousEntityState {
     time: Instant,
     on_ground: bool,
     in_water: bool,
+    distance_travelled: f32,
 }
 
 impl Default for PreviousEntityState {
@@ -34,6 +36,7 @@ impl Default for PreviousEntityState {
             time: Instant::now(),
             on_ground: true,
             in_water: false,
+            distance_travelled: 0.0,
         }
     }
 }
@@ -112,6 +115,7 @@ impl EventMapper for MovementEventMapper {
                         underwater,
                     );
                     internal_state.time = Instant::now();
+                    internal_state.distance_travelled = 0.0;
                 }
 
                 // update state to determine the next event. We only record the time (above) if
@@ -123,6 +127,8 @@ impl EventMapper for MovementEventMapper {
                 } else {
                     internal_state.in_water = false;
                 }
+                let dt = ecs.fetch::<DeltaTime>().0;
+                internal_state.distance_travelled += vel.0.magnitude() * dt;
             }
         }
 
@@ -156,14 +162,19 @@ impl MovementEventMapper {
     /// any) needs to satisfy two conditions to be allowed to play:
     /// 1. An sfx.ron entry exists for the movement (we need to know which sound
     /// file(s) to play) 2. The sfx has not been played since it's timeout
-    /// threshold has elapsed, which prevents firing every tick
+    /// threshold has elapsed, which prevents firing every tick. For movement,
+    /// threshold is not a time, but a distance.
     fn should_emit(
         previous_state: &PreviousEntityState,
         sfx_trigger_item: Option<(&SfxEvent, &SfxTriggerItem)>,
     ) -> bool {
         if let Some((event, item)) = sfx_trigger_item {
             if &previous_state.event == event {
-                previous_state.time.elapsed().as_secs_f32() >= item.threshold
+                match event {
+                    SfxEvent::Run(_) => previous_state.distance_travelled >= item.threshold,
+                    SfxEvent::QuadRun(_) => previous_state.distance_travelled >= item.threshold,
+                    _ => previous_state.time.elapsed().as_secs_f32() >= item.threshold,
+                }
             } else {
                 true
             }
@@ -199,8 +210,11 @@ impl MovementEventMapper {
                 SfxEvent::Sneak
             } else {
                 match underfoot_block_kind {
-                    BlockKind::Snow => SfxEvent::SnowRun,
-                    _ => SfxEvent::Run,
+                    BlockKind::Snow => SfxEvent::Run(BlockKind::Snow),
+                    BlockKind::Rock | BlockKind::WeakRock => SfxEvent::Run(BlockKind::Rock),
+                    BlockKind::Sand => SfxEvent::Run(BlockKind::Sand),
+                    BlockKind::Air => SfxEvent::Idle,
+                    _ => SfxEvent::Run(BlockKind::Grass),
                 }
             };
         }
@@ -230,8 +244,11 @@ impl MovementEventMapper {
             SfxEvent::Swim
         } else if physics_state.on_ground && vel.magnitude() > 0.1 {
             match underfoot_block_kind {
-                BlockKind::Snow => SfxEvent::SnowRun,
-                _ => SfxEvent::Run,
+                BlockKind::Snow => SfxEvent::Run(BlockKind::Snow),
+                BlockKind::Rock | BlockKind::WeakRock => SfxEvent::Run(BlockKind::Rock),
+                BlockKind::Sand => SfxEvent::Run(BlockKind::Sand),
+                BlockKind::Air => SfxEvent::Idle,
+                _ => SfxEvent::Run(BlockKind::Grass),
             }
         } else {
             SfxEvent::Idle
@@ -248,8 +265,11 @@ impl MovementEventMapper {
             SfxEvent::Swim
         } else if physics_state.on_ground && vel.magnitude() > 0.1 {
             match underfoot_block_kind {
-                BlockKind::Snow => SfxEvent::QuadSnowRun,
-                _ => SfxEvent::QuadRun,
+                BlockKind::Snow => SfxEvent::QuadRun(BlockKind::Snow),
+                BlockKind::Rock | BlockKind::WeakRock => SfxEvent::QuadRun(BlockKind::Rock),
+                BlockKind::Sand => SfxEvent::QuadRun(BlockKind::Sand),
+                BlockKind::Air => SfxEvent::Idle,
+                _ => SfxEvent::QuadRun(BlockKind::Grass),
             }
         } else {
             SfxEvent::Idle
