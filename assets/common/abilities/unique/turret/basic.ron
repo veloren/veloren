@@ -1,15 +1,15 @@
-BasicRanged(
+BasicBeam(
+    buildup_duration: 250,
+    recover_duration: 250,
+    beam_duration: 500,
+    base_hps: 0,
+    base_dps: 150,
+    tick_rate: 3.0,
+    range: 30.0,
+    max_angle: 5.0,
+    lifesteal_eff: 0.0,
+    energy_regen: 0,
     energy_cost: 0,
-    buildup_duration: 500,
-    recover_duration: 300,
-    projectile: Arrow(
-        damage: 200.0,
-        knockback: 5.0,
-        energy_regen: 100,
-    ),
-    projectile_body: Object(ArrowTurret),
-    projectile_light: None,
-    projectile_gravity: Some(Gravity(0.1)),
-    projectile_speed: 100.0,
-    can_continue: true,
+    energy_drain: 0,
+    orientation_behavior: Turret(5.0),
 )

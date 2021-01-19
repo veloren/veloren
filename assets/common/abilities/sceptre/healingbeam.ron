@@ -11,4 +11,5 @@ BasicBeam(
     energy_regen: 25,
     energy_cost: 50,
     energy_drain: 0,
+    orientation_behavior: Normal,
 )

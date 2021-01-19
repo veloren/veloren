@@ -191,7 +191,7 @@ impl<'a> System<'a> for Sys {
                 let mut inputs = &mut controller.inputs;
 
                 // Default to looking in orientation direction (can be overridden below)
-                //inputs.look_dir = ori.0;
+                inputs.look_dir = ori.0;
 
                 const AVG_FOLLOW_DIST: f32 = 6.0;
                 const MAX_FOLLOW_DIST: f32 = 12.0;
@@ -1378,7 +1378,14 @@ impl<'a> System<'a> for Sys {
                                             }
                                         },
                                         Tactic::Turret => {
-                                            inputs.look_dir = ori.0;
+                                            //inputs.look_dir = ori.0;
+                                            inputs.look_dir = Dir::new(
+                                                Quaternion::from_xyzw(ori.0.x, ori.0.y, 0.0, 0.0)
+                                                .rotated_z(4.0 * dt.0 as f32)
+                                                .into_vec3()
+                                                .try_normalized()
+                                                .unwrap_or_default(),
+                                            );
                                             if can_see_tgt(&*terrain, pos, tgt_pos, dist_sqrd)
                                             {
                                                 inputs.primary.set_state(true);

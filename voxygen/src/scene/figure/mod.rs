@@ -3472,7 +3472,7 @@ impl FigureMgr {
                     );
                 },
                 Body::Object(body) => {
-                    let (model, _) = self.object_model_cache.get_or_create_model(
+                    let (model, skeleton_attr) = self.object_model_cache.get_or_create_model(
                         renderer,
                         &mut self.col_lights,
                         *body,
@@ -3488,6 +3488,72 @@ impl FigureMgr {
                             FigureState::new(renderer, ObjectSkeleton::default())
                         });
 
+                    let (character, last_character) = match (character, last_character) {
+                        (Some(c), Some(l)) => (c, l),
+                        _ => continue,
+                    };
+
+                    if !character.same_variant(&last_character.0) {
+                        state.state_time = 0.0;
+                    }
+
+                    let target_base = match (
+                        physics.on_ground,
+                        vel.0.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
+                        physics.in_liquid.is_some(),                      // In water
+                    ) {
+                        // Standing
+                        (true, false, false) => anim::object::IdleAnimation::update_skeleton(
+                            &ObjectSkeleton::default(),
+                            (active_tool_kind, second_tool_kind, time),
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        ),
+                        _ => anim::object::IdleAnimation::update_skeleton(
+                            &ObjectSkeleton::default(),
+                            (active_tool_kind, second_tool_kind, time),
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        ),
+                    };
+
+                    let target_bones = match &character {
+                        CharacterState::BasicRanged(s) => {
+                            let stage_time = s.timer.as_secs_f64();
+
+                            let stage_progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    stage_time / s.static_data.buildup_duration.as_secs_f64()
+                                },
+                                StageSection::Recover => {
+                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                },
+
+                                _ => 0.0,
+                            };
+                            anim::object::ShootAnimation::update_skeleton(
+                                &target_base,
+                                (
+                                    active_tool_kind,
+                                    second_tool_kind,
+                                    vel.0.magnitude(),
+                                    ori,
+                                    state.last_ori,
+                                    time,
+                                    Some(s.stage_section),
+                                ),
+                                stage_progress,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
+                        // TODO!
+                        _ => target_base,
+                    };
+
+                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
                         pos.0,

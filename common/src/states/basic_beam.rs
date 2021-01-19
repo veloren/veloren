@@ -10,10 +10,12 @@ use crate::{
         utils::*,
     },
     uid::Uid,
+    util::Dir,
+    Damage, DamageSource, GroupTarget,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
-use vek::Vec3;
+use vek::*;
 
 /// Separated out to condense update portions of character state
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -42,7 +44,9 @@ pub struct StaticData {
     /// Energy consumed per second for heal ticks
     pub energy_cost: f32,
     /// Energy drained per
-    pub energy_drain: f32,
+    pub energy_drain: u32,
+    /// Used to dictate how orientation functions in this state
+    pub orientation_behavior: OrientationBehavior,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
 }
@@ -65,6 +69,20 @@ pub struct Data {
 impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
+
+        match self.static_data.orientation_behavior {
+            OrientationBehavior::Normal => {},
+            OrientationBehavior::Turret(speed) => {
+                update.ori.0 = data.inputs.look_dir;
+                /*update.ori.0 = Dir::new(
+                    Quaternion::from_xyzw(update.ori.0.x, update.ori.0.y, update.ori.0.z, 0.0)
+                        .rotated_z(data.dt.0 as f32 * speed)
+                        .into_vec3()
+                        .try_normalized()
+                        .unwrap_or_default(),
+                );*/
+            },
+        }
 
         handle_move(data, &mut update, 0.4);
         handle_jump(data, &mut update);
@@ -231,4 +249,10 @@ impl CharacterBehavior for Data {
 
         update
     }
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum OrientationBehavior {
+    Normal,
+    Turret(f32),
 }
