@@ -343,6 +343,8 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                     0 => "common.loot_tables.loot_table_food",
                     _ => "common.loot_tables.loot_table",
                 },
+                Some(common::comp::Body::FishMedium(_)) => "common.loot_tables.loot_table_fish",
+                Some(common::comp::Body::FishSmall(_)) => "common.loot_tables.loot_table_fish",
                 Some(common::comp::Body::BipedLarge(biped_large)) => match biped_large.species {
                     biped_large::Species::Wendigo => match rng.gen_range(0, 7) {
                         0 => "common.loot_tables.loot_table_food",
