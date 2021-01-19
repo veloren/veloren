@@ -163,6 +163,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
         let mut stats = state.ecs().write_storage::<Stats>();
         let healths = state.ecs().read_storage::<Health>();
         let inventories = state.ecs().read_storage::<Inventory>();
+        let players = state.ecs().read_storage::<Player>();
         let by = if let HealthSource::Damage { by: Some(by), .. } = cause {
             by
         } else {
@@ -187,18 +188,18 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
         let groups = state.ecs().read_storage::<Group>();
         let attacker_group = groups.get(attacker);
         let destroyed_group = groups.get(entity);
-        // Don't give exp if attacker destroyed themselves or one of their group members
-        if (attacker_group.is_some() && attacker_group == destroyed_group) || attacker == entity {
+        // Don't give exp if attacker destroyed themselves or one of their group
+        // members, or a pvp kill
+        if (attacker_group.is_some() && attacker_group == destroyed_group)
+            || attacker == entity
+            || (players.get(entity).is_some() && players.get(attacker).is_some())
+        {
             return;
         }
-
         // Maximum distance for other group members to receive exp
         const MAX_EXP_DIST: f32 = 150.0;
         // TODO: Scale xp from skillset rather than health, when NPCs have their own
         // skillsets
-        /*let mut exp_reward = entity_stats.body_type.base_exp() as f32
-         * (entity_health.maximum() as f32 / entity_stats.body_type.base_health() as
-         * f32); */
         let mut exp_reward =
             combat::combat_rating(entity_inventory, entity_health, entity_stats) * 2.5;
 
