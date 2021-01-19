@@ -1,5 +1,6 @@
 [    
     // Crafting Ingredients
+    (2, "common.items.crafting_ing.bowl"),
     (1, "common.items.crafting_ing.empty_vial"),
     (0.10, "common.items.crafting_ing.shiny_gem"),
     (1, "common.items.crafting_ing.cloth_scraps"),   
@@ -21,6 +22,9 @@
     (0.05, "common.items.utility.collar"),
     // Food
     (0.5, "common.items.food.coconut"),
+    (0.5, "common.items.food.lettuce"),
+    (0.75, "common.items.food.carrot"),
+    (0.75, "common.items.food.tomato"),
     (0.05, "common.items.food.apple_mushroom_curry"),
     (0.10, "common.items.food.apple_stick"),
     (0.10, "common.items.food.mushroom_stick"),

@@ -110,6 +110,7 @@ make_case_elim!(
         Mud = 0x53,
         FireBowlGround = 0x54,
         CaveMushroom = 0x55,
+        Bowl = 0x56,
     }
 );
 
@@ -198,6 +199,7 @@ impl SpriteKind {
             SpriteKind::Beehive => true,
             SpriteKind::VialEmpty => true,
             SpriteKind::PotionMinor => true,
+            SpriteKind::Bowl => true,
             SpriteKind::ChestBurried => true,
             SpriteKind::Mud => true,
             _ => false,
@@ -238,6 +240,7 @@ impl SpriteKind {
                 | SpriteKind::Door
                 | SpriteKind::Beehive
                 | SpriteKind::PotionMinor
+                | SpriteKind::Bowl
                 | SpriteKind::VialEmpty
                 | SpriteKind::FireBowlGround
         )

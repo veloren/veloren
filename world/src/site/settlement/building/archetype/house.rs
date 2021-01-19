@@ -561,7 +561,13 @@ impl Archetype for House {
                                     SpriteKind::VialEmpty
                                 }
                             },
-                            _ => SpriteKind::Pot,
+                            _ => {
+                                if dynamic_rng.gen_range(0, 2) == 0 {
+                                    SpriteKind::Bowl
+                                } else {
+                                    SpriteKind::Pot
+                                }
+                            },
                         };
 
                         return BlockMask::new(

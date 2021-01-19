@@ -1,0 +1,8 @@
+ItemDef(
+    name: "Bowl",
+    description: "a simple bowl for preparing meals.",
+    kind: Ingredient(
+        kind: "Bowl",
+    ),
+    quality: Common,
+)

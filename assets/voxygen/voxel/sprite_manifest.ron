@@ -2001,6 +2001,17 @@ VialEmpty: Some((
     ],
     wind_sway: 0.0,
 )),
+// Bowls
+Bowl: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.crafting_ing.bowl",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
 // Minor Potion
 PotionMinor: Some((
     variations: [
