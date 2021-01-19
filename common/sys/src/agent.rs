@@ -565,7 +565,7 @@ impl<'a> System<'a> for Sys {
                                                     inputs.move_z = bearing.z;
                                                 }
 
-                                                if dist_sqrd < 16.0f32.powi(2)
+                                                if body.map(|b| b.is_humanoid()).unwrap_or(false) && dist_sqrd < 16.0f32.powi(2)
                                                     && thread_rng().gen::<f32>() < 0.02
                                                 {
                                                     inputs.roll.set_state(true);
@@ -614,7 +614,7 @@ impl<'a> System<'a> for Sys {
                                                     inputs.jump.set_state(bearing.z > 1.5);
                                                     inputs.move_z = bearing.z;
                                                 }
-                                                if dist_sqrd < 16.0f32.powi(2)
+                                                if body.map(|b| b.is_humanoid()).unwrap_or(false) && dist_sqrd < 16.0f32.powi(2)
                                                     && thread_rng().gen::<f32>() < 0.02
                                                 {
                                                     inputs.roll.set_state(true);
@@ -678,7 +678,7 @@ impl<'a> System<'a> for Sys {
                                                         inputs.move_z = bearing.z;
                                                     }
                                                 }
-                                                if dist_sqrd < 16.0f32.powi(2)
+                                                if body.map(|b| b.is_humanoid()).unwrap_or(false) && dist_sqrd < 16.0f32.powi(2)
                                                     && thread_rng().gen::<f32>() < 0.02
                                                 {
                                                     inputs.roll.set_state(true);
@@ -737,7 +737,7 @@ impl<'a> System<'a> for Sys {
                                                         inputs.move_z = bearing.z;
                                                     }
                                                 }
-                                                if dist_sqrd < 16.0f32.powi(2)
+                                                if body.map(|b| b.is_humanoid()).unwrap_or(false) && dist_sqrd < 16.0f32.powi(2)
                                                     && thread_rng().gen::<f32>() < 0.02
                                                 {
                                                     inputs.roll.set_state(true);
@@ -747,7 +747,7 @@ impl<'a> System<'a> for Sys {
                                             }
                                         },
                                         Tactic::Bow => {
-                                            if dist_sqrd < (2.0 * MIN_ATTACK_DIST * scale).powi(2) {
+                                            if body.map(|b| b.is_humanoid()).unwrap_or(false) && dist_sqrd < (2.0 * MIN_ATTACK_DIST * scale).powi(2) {
                                                 inputs.roll.set_state(true);
                                             } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
                                                 || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
@@ -803,7 +803,7 @@ impl<'a> System<'a> for Sys {
                                                         inputs.move_z = bearing.z;
                                                     }
                                                 }
-                                                if dist_sqrd < 16.0f32.powi(2)
+                                                if body.map(|b| b.is_humanoid()).unwrap_or(false) && dist_sqrd < 16.0f32.powi(2)
                                                     && thread_rng().gen::<f32>() < 0.02
                                                 {
                                                     inputs.roll.set_state(true);
@@ -813,7 +813,7 @@ impl<'a> System<'a> for Sys {
                                             }
                                         },
                                         Tactic::Staff => {
-                                            if dist_sqrd < (MIN_ATTACK_DIST * scale).powi(2) {
+                                            if body.map(|b| b.is_humanoid()).unwrap_or(false) && dist_sqrd < (MIN_ATTACK_DIST * scale).powi(2) {
                                                 inputs.roll.set_state(true);
                                             } else if dist_sqrd
                                                 < (5.0 * MIN_ATTACK_DIST * scale).powi(2)
@@ -880,7 +880,7 @@ impl<'a> System<'a> for Sys {
                                                         inputs.move_z = bearing.z;
                                                     }
                                                 }
-                                                if dist_sqrd < 16.0f32.powi(2)
+                                                if body.map(|b| b.is_humanoid()).unwrap_or(false) && dist_sqrd < 16.0f32.powi(2)
                                                     && thread_rng().gen::<f32>() < 0.02
                                                 {
                                                     inputs.roll.set_state(true);
