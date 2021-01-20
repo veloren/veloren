@@ -427,9 +427,9 @@ checksum = "cf1de2fe8c75bc145a2f577add951f8134889b4795d47466a54a5c846d691693"
 
 [[package]]
 name = "bitvec"
-version = "0.19.4"
+version = "0.20.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a7ba35e9565969edb811639dbebfe34edc0368e472c5018474c8eb2543397f81"
+checksum = "f5011ffc90248764d7005b0e10c7294f5aa1bd87d9dd7248f4ad475b347c294d"
 dependencies = [
  "funty",
  "radium",
@@ -1109,7 +1109,7 @@ dependencies = [
  "clap",
  "criterion-plot",
  "csv",
- "itertools",
+ "itertools 0.9.0",
  "lazy_static",
  "num-traits 0.2.14",
  "oorandom",
@@ -1131,7 +1131,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e022feadec601fba1649cfa83586381a4ad31c6bf3a9ab7d408118b05dd9889d"
 dependencies = [
  "cast",
- "itertools",
+ "itertools 0.9.0",
 ]
 
 [[package]]
@@ -2749,6 +2749,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "itertools"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "37d572918e350e82412fe766d24b15e6682fb2ed2bbe018280caa810397cb319"
+dependencies = [
+ "either",
+]
+
+[[package]]
 name = "itoa"
 version = "0.4.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4180,9 +4189,9 @@ dependencies = [
 
 [[package]]
 name = "radium"
-version = "0.5.3"
+version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "941ba9d78d8e2f7ce474c015eea4d9c6d25b6a3327f9832ee29a4de27f91bbb8"
+checksum = "e9e006811e1fdd12672b0820a7f44c18dde429f367d50cec003d22aa9b3c8ddc"
 
 [[package]]
 name = "rand"
@@ -6099,7 +6108,7 @@ dependencies = [
  "futures-timer 3.0.2",
  "futures-util",
  "hashbrown 0.9.1",
- "itertools",
+ "itertools 0.9.0",
  "lazy_static",
  "libsqlite3-sys",
  "portpicker",
@@ -6179,7 +6188,7 @@ dependencies = [
  "iced_winit",
  "image",
  "inline_tweak",
- "itertools",
+ "itertools 0.10.0",
  "lazy_static",
  "native-dialog",
  "num 0.3.1",
@@ -6237,7 +6246,7 @@ dependencies = [
  "fxhash",
  "hashbrown 0.9.1",
  "image",
- "itertools",
+ "itertools 0.10.0",
  "lazy_static",
  "minifb",
  "noise",
