@@ -437,7 +437,7 @@ impl<'a> Widget for Group<'a> {
                     let indicator_col = cr_color(combat_rating);
                     Image::new(self.imgs.combat_rating_ico_shadow)
                         .w_h(18.0, 18.0)
-                        .top_left_with_margins_on(state.ids.member_panels_frame[i], 20.0, 2.0)
+                        .top_left_with_margins_on(state.ids.member_panels_frame[i], -20.0, 2.0)
                         .color(Some(indicator_col))
                         .set(state.ids.combat_rating_indicators[i], ui);
                     // Panel Text

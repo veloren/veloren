@@ -391,19 +391,14 @@ impl<'a> Widget for Social<'a> {
                 };
                 let name_text = match &player_info.character {
                     Some(character) => {
-                        if Some(uid) == my_uid {
-                            format!(
-                                "{} ({})",
-                                &self.localized_strings.get("hud.common.you"),
-                                &character.name
-                            )
-                        } else if hide_username {
-                            format!("{} [{}]", &character.name, zone_name)
+                        if hide_username {
+                            character.name.to_string()
                         } else {
-                            format!("[{}] {} [{}]", alias, &character.name, zone_name)
+                            format!("[{}] {}", alias, &character.name)
                         }
                     },
-                    None => alias.clone(), // character select or spectating
+                    None => format!("{} [{}]", alias.clone(), zone_name), /* character select or
+                                                                           * spectating */
                 };
                 // Player name widgets
                 let button = Button::image(if !selected {
