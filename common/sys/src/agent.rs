@@ -912,9 +912,7 @@ impl<'a> System<'a> for Sys {
                                                         ..traversal_config
                                                     },
                                                 ) {
-                                                    if matches!(char_states.get(entity), Some(CharacterState::SpinMelee(_))) {
-                                                        inputs.move_dir = (tgt_pos.0 - pos.0).xy().try_normalized().unwrap_or(Vec2::zero());
-                                                    } else if can_see_tgt(&*terrain, pos, tgt_pos, dist_sqrd) {
+                                                    if can_see_tgt(&*terrain, pos, tgt_pos, dist_sqrd) {
                                                         inputs.move_dir = bearing
                                                             .xy()
                                                             .try_normalized()
