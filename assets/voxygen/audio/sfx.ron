@@ -64,7 +64,27 @@
             ],
             threshold: 0.25,
         ),
-        Run: (
+        Run(Earth): (
+            files: [
+                "voxygen.audio.sfx.footsteps.stepdirt_1",
+                "voxygen.audio.sfx.footsteps.stepdirt_2",
+                "voxygen.audio.sfx.footsteps.stepdirt_3",
+                "voxygen.audio.sfx.footsteps.stepdirt_4",
+                "voxygen.audio.sfx.footsteps.stepdirt_5",
+            ],
+            threshold: 1.6,
+        ),
+        QuadRun(Earth): (
+            files: [
+                "voxygen.audio.sfx.footsteps.stepdirt_1",
+                "voxygen.audio.sfx.footsteps.stepdirt_2",
+                "voxygen.audio.sfx.footsteps.stepdirt_3",
+                "voxygen.audio.sfx.footsteps.stepdirt_4",
+                "voxygen.audio.sfx.footsteps.stepdirt_5",
+            ],
+            threshold: 0.8,
+        ),
+        Run(Grass): (
             files: [
                 "voxygen.audio.sfx.footsteps.stepgrass_1",
                 "voxygen.audio.sfx.footsteps.stepgrass_2",
@@ -73,9 +93,9 @@
                 "voxygen.audio.sfx.footsteps.stepgrass_5",
                 "voxygen.audio.sfx.footsteps.stepgrass_6",
             ],
-            threshold: 0.25,
+            threshold: 1.6,
         ),
-        QuadRun: (
+        QuadRun(Grass): (
             files: [
                 "voxygen.audio.sfx.footsteps.stepgrass_1",
                 "voxygen.audio.sfx.footsteps.stepgrass_2",
@@ -84,23 +104,41 @@
                 "voxygen.audio.sfx.footsteps.stepgrass_5",
                 "voxygen.audio.sfx.footsteps.stepgrass_6",
             ],
-            threshold: 0.12,
+            threshold: 0.8,
         ),
-        SnowRun: (
+        Run(Snow): (
             files: [
                 "voxygen.audio.sfx.footsteps.snow_step_1",
                 "voxygen.audio.sfx.footsteps.snow_step_2",
                 "voxygen.audio.sfx.footsteps.snow_step_3",
             ],
-            threshold: 0.25,
+            threshold: 1.6,
         ),
-        QuadSnowRun: (
+        QuadRun(Snow): (
             files: [
                 "voxygen.audio.sfx.footsteps.snow_step_1",
                 "voxygen.audio.sfx.footsteps.snow_step_2",
                 "voxygen.audio.sfx.footsteps.snow_step_3",
             ],
-            threshold: 0.12,
+            threshold: 0.8,
+        ),
+        Run(Rock): (
+            files: [
+                "voxygen.audio.sfx.footsteps.stone_step_1",
+                "voxygen.audio.sfx.footsteps.stone_step_2",
+                "voxygen.audio.sfx.footsteps.stone_step_3",
+                "voxygen.audio.sfx.footsteps.stone_step_4",
+            ],
+            threshold: 1.6,
+        ),
+        QuadRun(Rock): (
+            files: [
+                "voxygen.audio.sfx.footsteps.stone_step_1",
+                "voxygen.audio.sfx.footsteps.stone_step_2",
+                "voxygen.audio.sfx.footsteps.stone_step_3",
+                "voxygen.audio.sfx.footsteps.stone_step_4",
+            ],
+            threshold: 0.8,
         ),
         //ExperienceGained: (
         //    files: [

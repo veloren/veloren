@@ -22,7 +22,7 @@
 //! The following snippet details some entries in the configuration and how they
 //! map to the sound files:
 //! ```ignore
-//! Run: (
+//! Run(Grass): ( // depends on underfoot block
 //!    files: [
 //!        "voxygen.audio.sfx.footsteps.stepgrass_1",
 //!        "voxygen.audio.sfx.footsteps.stepgrass_2",
@@ -31,13 +31,13 @@
 //!        "voxygen.audio.sfx.footsteps.stepgrass_5",
 //!        "voxygen.audio.sfx.footsteps.stepgrass_6",
 //!    ],
-//!    threshold: 0.25, // wait 0.25s between plays
+//!    threshold: 1.6, // travelled distance before next play
 //! ),
 //! Wield(Sword): ( // depends on the player's weapon
 //!    files: [
 //!        "voxygen.audio.sfx.weapon.sword_out",
 //!    ],
-//!    threshold: 0.5,
+//!    threshold: 0.5, // wait 0.5s between plays
 //! ),
 //! ...
 //! ```
@@ -95,7 +95,7 @@ use common::{
         object, Body, CharacterAbilityType, InventoryUpdateEvent,
     },
     outcome::Outcome,
-    terrain::TerrainChunk,
+    terrain::{BlockKind, TerrainChunk},
 };
 use common_sys::state::State;
 use event_mapper::SfxEventMapper;
@@ -147,10 +147,8 @@ pub enum SfxEvent {
     RunningWater,
     Idle,
     Swim,
-    Run,
-    QuadRun,
-    SnowRun,
-    QuadSnowRun,
+    Run(BlockKind),
+    QuadRun(BlockKind),
     Roll,
     Sneak,
     Climb,
