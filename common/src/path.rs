@@ -545,7 +545,7 @@ where
             .chain(
                 Some(JUMPS.iter())
                     .filter(|_| {
-                        vol.get(pos).map(|b| !b.is_liquid()).unwrap_or(true)
+                        vol.get(pos - Vec3::unit_z()).map(|b| !b.is_liquid()).unwrap_or(true)
                             || traversal_cfg.can_climb
                             || traversal_cfg.can_fly
                     })
