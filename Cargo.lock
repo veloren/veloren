@@ -6188,7 +6188,7 @@ dependencies = [
  "iced_winit",
  "image",
  "inline_tweak",
- "itertools 0.9.0",
+ "itertools 0.10.0",
  "lazy_static",
  "native-dialog",
  "num 0.3.1",
