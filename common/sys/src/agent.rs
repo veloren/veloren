@@ -896,6 +896,9 @@ impl<'a> System<'a> for Sys {
                                             } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
                                                 || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
                                             {
+                                                if vel.0.is_approx_zero() {
+                                                    inputs.ability3.set_state(true);
+                                                }
                                                 if dist_sqrd < MAX_CHASE_DIST.powi(2) {
                                                     *been_close = true;
                                                 }
@@ -909,7 +912,9 @@ impl<'a> System<'a> for Sys {
                                                         ..traversal_config
                                                     },
                                                 ) {
-                                                    if can_see_tgt(&*terrain, pos, tgt_pos, dist_sqrd) {
+                                                    if matches!(char_states.get(entity), Some(CharacterState::SpinMelee(_))) {
+                                                        inputs.move_dir = (tgt_pos.0 - pos.0).xy().try_normalized().unwrap_or(Vec2::zero());
+                                                    } else if can_see_tgt(&*terrain, pos, tgt_pos, dist_sqrd) {
                                                         inputs.move_dir = bearing
                                                             .xy()
                                                             .try_normalized()

@@ -54,7 +54,9 @@
     Unique(StoneGolemFist): (
         primary: "common.abilities.unique.stonegolemfist.basic",
         secondary: "common.abilities.unique.stonegolemfist.shockwave",
-        skills: [],
+        skills: [
+            "common.abilities.unique.stonegolemfist.spin",
+        ],
     ),
     Unique(BeastClaws): (
         primary: "common.abilities.unique.beastclaws.basic",

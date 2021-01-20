@@ -152,7 +152,7 @@ pub enum CharacterAbility {
         range: f32,
         energy_cost: u32,
         is_infinite: bool,
-        is_helicopter: bool,
+        is_helicopter: spin_melee::Helicopter,
         is_interruptible: bool,
         forward_speed: f32,
         num_spins: u32,
@@ -657,7 +657,11 @@ impl CharacterAbility {
                         ..
                     } => {
                         *is_infinite = skillset.has_skill(Axe(SInfinite));
-                        *is_helicopter = skillset.has_skill(Axe(SHelicopter));
+                        *is_helicopter = if skillset.has_skill(Axe(SHelicopter)) {
+                            spin_melee::Helicopter::Yes
+                        } else {
+                            spin_melee::Helicopter::No
+                        };
                         if let Ok(Some(level)) = skillset.skill_level(Axe(SDamage)) {
                             *base_damage =
                                 (*base_damage as f32 * 1.3_f32.powi(level.into())) as u32;
