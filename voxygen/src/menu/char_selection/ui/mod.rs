@@ -1279,7 +1279,10 @@ impl Controls {
                     body.skin = rng.gen_range(0, species.num_skin_colors());
                     body.eye_color = rng.gen_range(0, species.num_eye_colors());
                     body.eyes = rng.gen_range(0, species.num_eyes(body_type));
-                    *name = npc::get_npc_name(npc::NpcKind::Humanoid);
+                    *name = npc::get_npc_name(
+                        npc::NpcKind::Humanoid,
+                        npc::BodyType::from_body(comp::Body::Humanoid(*body)),
+                    );
                 }
             },
             Message::ConfirmDeletion => {

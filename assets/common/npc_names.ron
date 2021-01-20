@@ -2,7 +2,7 @@
     humanoid: (
         body: (
             keyword: "humanoid",
-            names: [
+            names_0: [
                 "Adon",
                 "Agro",
                 "Arlo",
@@ -104,7 +104,98 @@
                 "Zaden",
                 "Zagaroth",
                 "Zenner"
-            ]
+            ],
+            names_1: Some([
+                "Acele",
+                "Autumn",
+                "Acholate",
+                "Ada",
+                "Adorra",
+                "Ahanna",
+                "Brana",
+                "Bathelie",
+                "Calene",
+                "Calina",
+                "Celestine",
+                "Caela",
+                "Cassia",
+                "Celoa",
+                "Dalavesta",
+                "Dylena",
+                "Desini",
+                "Diva",
+                "Ebatryne",
+                "Efari",
+                "Enona",
+                "Enaldie",
+                "Ember",
+                "Esdel",
+                "Eune",
+                "Fayne",
+                "Frida",
+                "Ferra",
+                "Flora",
+                "Fintis",
+                "Gatlen",
+                "Gatline",
+                "Gronalyn",
+                "Helenia",
+                "Halete",
+                "Hyza",
+                "Helena",
+                "Halin",
+                "Hera",
+                "Hilda",
+                "Hydra",
+                "Ismeria",
+                "Iris",
+                "Joss",
+                "Kadra",
+                "Kagra",
+                "Kyra",
+                "Konta",
+                "Krinn",
+                "Lydia",
+                "Laelia",
+                "Leda",
+                "Leta",
+                "Lisbeth",
+                "Lyra",
+                "Luna",
+                "Medora",
+                "Mazarine",
+                "Merlyn",
+                "Marina",
+                "Nephele",
+                "Odessa",
+                "Orla",
+                "Perl",
+                "Rhodeia",
+                "Rosella",
+                "Raven",
+                "Rachel",
+                "Ryven",
+                "Solenne",
+                "Seren",
+                "Summer",
+                "Solstice",
+                "Stella",
+                "Sarah",
+                "Syrin",
+                "Tessa",
+                "Thea",
+                "Tez",
+                "Vivien",
+                "Varda",
+                "Veridia",
+                "Victoria",
+                "Vale",
+                "Vega",
+                "Yorja",
+                "Xaviera",
+                "Zorina",
+                "Zephyra"
+            ])
         ),
         /*keyword: "humanoid_f",
             names: [
@@ -229,7 +320,7 @@
     quadruped_medium: (
         body: (
             keyword: "quadruped_medium",
-            names: [
+            names_0: [
                 "Achak",
                 "Adalwolf",
                 "Akela",
@@ -421,7 +512,7 @@
     quadruped_small: (
         body: (
             keyword: "quadruped_small",
-            names: [
+            names_0: [
                 "Acorn",
                 "Adeline",
                 "Ajna",
@@ -632,7 +723,7 @@
     bird_medium: (
         body: (
             keyword: "bird_medium",
-            names: [
+            names_0: [
                 "Donald"
             ]
         ),
@@ -674,7 +765,7 @@
     biped_large: (
         body: (
             keyword: "biped_large",
-            names: [
+            names_0: [
                 "Tobermory"
             ]
         ),
@@ -724,7 +815,7 @@
     golem: (
         body: (
             keyword: "golem",
-            names: [
+            names_0: [
                 "phil"
             ]
         ),
@@ -742,7 +833,7 @@
     theropod: (
         body: (
             keyword: "theropod",
-            names: [
+            names_0: [
                 "Remy"
             ]
         ),
@@ -772,7 +863,7 @@
     dragon: (
         body: (
             keyword: "dragon",
-            names: [
+            names_0: [
                 "Smaug"
             ]
         ),
@@ -786,14 +877,14 @@
     object: (
         body: (
             keyword: "object",
-            names: []
+            names_0: []
         ),
         species: ()
     ),
     fish_small: (
         body: (
             keyword: "fish_small",
-            names: [
+            names_0: [
                 "Dagon"
             ]
         ),
@@ -807,7 +898,7 @@
     fish_medium: (
         body: (
             keyword: "fish_medium",
-            names: [
+            names_0: [
                 "Njord"
             ]
         ),
@@ -821,14 +912,14 @@
     bird_small: (
         body: (
             keyword: "bird_small",
-            names: []
+            names_0: []
         ),
         species: ()
     ),
     quadruped_low: (
         body: (
             keyword: "quadruped_low",
-            names: [
+            names_0: [
                 "Sobek"
             ]
         ),
