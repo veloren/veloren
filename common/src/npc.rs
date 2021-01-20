@@ -1,6 +1,6 @@
 use crate::{
     assets::{AssetExt, AssetHandle},
-    comp::{self, AllBodies, Body},
+    comp::{self, body, AllBodies, Body},
 };
 use lazy_static::lazy_static;
 use rand::seq::SliceRandom;
@@ -47,7 +47,8 @@ pub struct BodyNames {
     /// A list of canonical names for NPCs with this body types (currently used
     /// when spawning this kind of NPC from the console).  Going forward,
     /// these names will likely be split up by species.
-    pub names: Vec<String>,
+    pub names_0: Vec<String>,
+    pub names_1: Option<Vec<String>>,
 }
 
 /// Species-specific NPC name metadata.
@@ -83,15 +84,33 @@ impl FromStr for NpcKind {
     }
 }
 
-pub fn get_npc_name(npc_type: NpcKind) -> String {
+pub fn get_npc_name(npc_type: NpcKind, body_type: Option<BodyType>) -> String {
     let npc_names = NPC_NAMES.read();
-    let BodyNames { keyword, names } = &npc_names[npc_type];
+    let BodyNames {
+        keyword,
+        names_0,
+        names_1,
+    } = &npc_names[npc_type];
 
     // If no pretty name is found, fall back to the keyword.
-    names
-        .choose(&mut rand::thread_rng())
-        .unwrap_or(keyword)
-        .clone()
+    match body_type {
+        Some(BodyType::Male) => names_0
+            .choose(&mut rand::thread_rng())
+            .unwrap_or(keyword)
+            .clone(),
+        Some(BodyType::Female) if names_1.is_some() => {
+            names_1
+                .as_ref()
+                .unwrap() // Unwrap safe since is_some is true
+                .choose(&mut rand::thread_rng())
+                .unwrap_or(keyword)
+                .clone()
+        },
+        _ => names_0
+            .choose(&mut rand::thread_rng())
+            .unwrap_or(keyword)
+            .clone(),
+    }
 }
 
 /// Randomly generates a body associated with this NPC kind.
@@ -263,5 +282,22 @@ impl NpcBody {
                 )
             })
             .ok_or(())
+    }
+}
+
+pub enum BodyType {
+    Male,
+    Female,
+}
+
+impl BodyType {
+    pub fn from_body(body: Body) -> Option<BodyType> {
+        match body {
+            Body::Humanoid(humanoid) => match humanoid.body_type {
+                body::humanoid::BodyType::Male => Some(BodyType::Male),
+                body::humanoid::BodyType::Female => Some(BodyType::Female),
+            },
+            _ => None,
+        }
     }
 }

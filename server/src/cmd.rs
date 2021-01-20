@@ -820,7 +820,10 @@ fn handle_spawn(
                                 .state
                                 .create_npc(
                                     pos,
-                                    comp::Stats::new(get_npc_name(id), body),
+                                    comp::Stats::new(
+                                        get_npc_name(id, npc::BodyType::from_body(body)),
+                                        body,
+                                    ),
                                     comp::Health::new(body, 1),
                                     inventory,
                                     body,
