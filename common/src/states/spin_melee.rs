@@ -7,6 +7,7 @@ use crate::{
     },
     Damage, DamageSource, GroupTarget, Knockback,
 };
+use inline_tweak::*;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 use vek::Vec3;
@@ -68,7 +69,8 @@ impl CharacterBehavior for Data {
                 update.vel.0 = Vec3::new(0.0, 0.0, new_vel_z) + data.inputs.move_dir * 5.0;
             },
             Helicopter::Golem => {
-                update.vel.0 = Vec3::new(0.0, 0.0, 10.0) + data.inputs.move_dir * 20.0;
+                update.vel.0 =
+                    Vec3::new(0.0, 0.0, tweak!(20.0)) + *data.inputs.look_dir * tweak!(25.0);
             },
         }
 
