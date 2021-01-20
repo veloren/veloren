@@ -1,3 +1,31 @@
+// Example for calculating a drop rate:
+//
+// On every roll an f32 between 0 and 1 is created.
+// For every loot table a total range is created by the sum of the individual
+// ranges per item.
+//
+// This range is the sum of all single ranges defined per item in a table.
+//                                                   // Individual Range
+// (3, "common.items.food.cheese"),                  // 0.0..3.0
+// (3, "common.items.food.apple"),                   // 3.0..6.0
+// (3, "common.items.food.mushroom"),                // 6.0..9.0
+// (1, "common.items.food.coconut"),                 // 9.0..10.0
+// (0.05, "common.items.food.apple_mushroom_curry"), // 10.0..10.05
+// (0.10, "common.items.food.apple_stick"),          // 10.05..10.15
+// (0.10, "common.items.food.mushroom_stick"),       // 10.15..10.25
+//
+// The f32 is multiplied by the max. value needed to drop an item in this
+// particular table. X = max. value needed = 10.15
+//
+// Example roll
+// [Random Value 0..1] * X = Number inside the table's total range
+// 0.45777 * X = 4.65
+// 4.65 is in the range of 3.0..6.0 => Apple drops
+//
+// Example drop chance calculation
+// Cheese drop rate = 3/X = 29.6%
+// Coconut drop rate = 1/X = 9.85%
+
 use crate::assets;
 use rand::prelude::*;
 use serde::{de::DeserializeOwned, Deserialize};
