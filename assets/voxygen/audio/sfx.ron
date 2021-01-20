@@ -583,6 +583,24 @@
             ],
             threshold: 0.3,
         ),
+        Inventory(Consumed("Lettuce")): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.food",
+            ],
+            threshold: 0.3,
+        ),
+        Inventory(Consumed("PlainSalad")): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.food",
+            ],
+            threshold: 0.3,
+        ),
+        Inventory(Consumed("TomatoSalad")): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.food",
+            ],
+            threshold: 0.3,
+        ),
         Inventory(Consumed("Velorite")): (
             files: [
                 "voxygen.audio.sfx.inventory.consumable.food",
