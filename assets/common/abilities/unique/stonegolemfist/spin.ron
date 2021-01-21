@@ -7,7 +7,7 @@ SpinMelee(
     range: 7.5,
     energy_cost: 0,
     is_infinite: false,
-    is_helicopter: Golem,
+    movement_behavior: GolemHover,
     is_interruptible: false,
     forward_speed: 0.0,
     num_spins: 1,

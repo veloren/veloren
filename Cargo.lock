@@ -5995,7 +5995,6 @@ dependencies = [
  "hashbrown 0.9.1",
  "image",
  "indexmap",
- "inline_tweak",
  "lazy_static",
  "num-derive",
  "num-traits 0.2.14",

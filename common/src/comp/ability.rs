@@ -152,7 +152,7 @@ pub enum CharacterAbility {
         range: f32,
         energy_cost: u32,
         is_infinite: bool,
-        is_helicopter: spin_melee::Helicopter,
+        movement_behavior: spin_melee::MovementBehavior,
         is_interruptible: bool,
         forward_speed: f32,
         num_spins: u32,
@@ -653,14 +653,14 @@ impl CharacterAbility {
                         ref mut swing_duration,
                         ref mut energy_cost,
                         ref mut is_infinite,
-                        ref mut is_helicopter,
+                        ref mut movement_behavior,
                         ..
                     } => {
                         *is_infinite = skillset.has_skill(Axe(SInfinite));
-                        *is_helicopter = if skillset.has_skill(Axe(SHelicopter)) {
-                            spin_melee::Helicopter::Yes
+                        *movement_behavior = if skillset.has_skill(Axe(SHelicopter)) {
+                            spin_melee::MovementBehavior::AxeHover
                         } else {
-                            spin_melee::Helicopter::No
+                            spin_melee::MovementBehavior::ForwardGround
                         };
                         if let Ok(Some(level)) = skillset.skill_level(Axe(SDamage)) {
                             *base_damage =
@@ -1255,7 +1255,7 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                 range,
                 energy_cost,
                 is_infinite,
-                is_helicopter,
+                movement_behavior,
                 is_interruptible,
                 forward_speed,
                 num_spins,
@@ -1269,7 +1269,7 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                     range: *range,
                     energy_cost: *energy_cost,
                     is_infinite: *is_infinite,
-                    is_helicopter: *is_helicopter,
+                    movement_behavior: *movement_behavior,
                     is_interruptible: *is_interruptible,
                     forward_speed: *forward_speed,
                     num_spins: *num_spins,

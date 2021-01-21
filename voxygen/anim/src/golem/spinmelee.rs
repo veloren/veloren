@@ -2,7 +2,7 @@ use super::{
     super::{vek::*, Animation},
     GolemSkeleton, SkeletonAttr,
 };
-use common::{comp::item::ToolKind, states::utils::StageSection};
+use common::states::utils::StageSection;
 use std::f32::consts::PI;
 
 pub struct SpinMeleeAnimation;
