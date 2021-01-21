@@ -2500,16 +2500,7 @@ struct BipedSmallLateralSubSpec {
 }
 
 #[derive(Deserialize)]
-struct BipedSmallWeaponSpec(HashMap<(BSSpecies, BSBodyType), SidedBSWeaponVoxSpec>);
-#[derive(Deserialize)]
-struct SidedBSWeaponVoxSpec {
-    main: BipedSmallWeaponSubSpec,
-}
-#[derive(Deserialize)]
-struct BipedSmallWeaponSubSpec {
-    offset: [f32; 3], // Should be relative to initial origin
-    weapon: VoxSimple,
-}
+struct BipedSmallWeaponSpec(HashMap<String, ArmorVoxSpec>);
 
 make_vox_spec!(
     biped_small::Body,
@@ -2518,8 +2509,20 @@ make_vox_spec!(
         lateral: BipedSmallLateralSpec = "voxygen.voxel.biped_small_lateral_manifest",
         weapon: BipedSmallWeaponSpec = "voxygen.voxel.biped_small_weapon_manifest",
     },
-    |FigureKey { body, .. }, spec| {
-        [
+    |FigureKey { body, extra }, spec| {
+        const DEFAULT_LOADOUT: super::cache::CharacterCacheKey = super::cache::CharacterCacheKey {
+            third_person: None,
+            tool: None,
+            lantern: None,
+            glider: None,
+            hand: None,
+            foot: None,
+        };
+
+        // TODO: This is bad code, maybe this method should return Option<_>
+        let loadout = extra.as_deref().unwrap_or(&DEFAULT_LOADOUT);
+        let tool = loadout.tool.as_ref();
+[
             Some(spec.central.read().0.mesh_head(
                 body.species,
                 body.body_type,
@@ -2536,10 +2539,12 @@ make_vox_spec!(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.weapon.read().0.mesh_main(
-                body.species,
-                body.body_type,
-            )),
+            tool.and_then(|tool| tool.active.as_ref()).map(|tool| {
+                spec.weapon.read().0.mesh_main(
+                    tool,
+                    false,
+                )
+            }),
             Some(spec.lateral.read().0.mesh_hand_l(
                 body.species,
                 body.body_type,
@@ -2698,7 +2703,7 @@ impl BipedSmallLateralSpec {
         (lateral, Vec3::from(spec.foot_r.offset))
     }
 }
-impl BipedSmallWeaponSpec {
+/*impl BipedSmallWeaponSpec {
     fn mesh_main(&self, species: BSSpecies, body_type: BSBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
@@ -2714,8 +2719,38 @@ impl BipedSmallWeaponSpec {
 
         (weapon, Vec3::from(spec.main.offset))
     }
-}
+*///}
+impl BipedSmallWeaponSpec {
+    fn mesh_main(&self, item_definition_id: &str, flipped: bool) -> BoneMeshes {
+        let spec = match self.0.get(item_definition_id) {
+            Some(spec) => spec,
+            None => {
+                error!(?item_definition_id, "No tool/weapon specification exists");
+                return load_mesh("not_found", Vec3::new(-1.5, -1.5, -7.0));
+            },
+        };
 
+        let tool_kind_segment = if flipped {
+            graceful_load_segment_flipped(&spec.vox_spec.0)
+        } else {
+            graceful_load_segment(&spec.vox_spec.0)
+        };
+
+        let offset = Vec3::new(
+            if flipped {
+                //log::warn!("tool kind segment {:?}", );
+                //tool_kind_segment.;
+                0.0 - spec.vox_spec.1[0] - (tool_kind_segment.sz.x as f32)
+            } else {
+                spec.vox_spec.1[0]
+            },
+            spec.vox_spec.1[1],
+            spec.vox_spec.1[2],
+        );
+
+        (tool_kind_segment, offset)
+    }
+}
 ////
 
 #[derive(Deserialize)]

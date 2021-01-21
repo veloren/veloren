@@ -153,6 +153,7 @@ fn tool_desc(tool: &Tool, components: &[Item], msm: &MaterialStatManifest, desc:
         ToolKind::Staff => "Staff",
         ToolKind::Sceptre => "Sceptre",
         ToolKind::Shield => "Shield",
+        ToolKind::Spear => "Spear",
         ToolKind::Unique(_) => "Unique",
         ToolKind::Debug => "Debug",
         ToolKind::Farming => "Farming Tool",

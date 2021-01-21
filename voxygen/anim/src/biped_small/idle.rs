@@ -34,7 +34,8 @@ impl Animation for IdleAnimation {
 
         next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1 + slow * 0.3) / 13.0;
         next.shorts.position = Vec3::new(0.0, s_a.shorts.0, s_a.shorts.1);
-        next.main.position = Vec3::new(0.0, 0.0, 0.0);
+        next.main.position = Vec3::new(2.0, -3.0, -3.0);
+        next.main.orientation = Quaternion::rotation_y(-0.5) * Quaternion::rotation_z(1.57);
 
         next.tail.position = Vec3::new(0.0, s_a.tail.0, s_a.tail.1);
         next.hand_l.position = Vec3::new(-s_a.hand.0, s_a.hand.1, s_a.hand.2 + slow * -0.1);

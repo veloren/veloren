@@ -1,5 +1,5 @@
 use crate::comp::{
-    biped_large, golem,
+    biped_large, biped_small, golem,
     inventory::{
         loadout::Loadout,
         slot::{ArmorSlot, EquipSlot},
@@ -241,6 +241,19 @@ impl LoadoutBuilder {
                     main_tool = Some(Item::new_from_asset_expect(
                         "common.items.npc_weapons.unique.turret",
                     ));
+                },
+                Body::BipedSmall(biped_small) => match (biped_small.species, biped_small.body_type)
+                {
+                    (biped_small::Species::Gnome, _) => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.spear.wooden_spear",
+                        ));
+                    },
+                    _ => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.spear.wooden_spear",
+                        ));
+                    },
                 },
                 _ => {},
             };

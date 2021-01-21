@@ -41,7 +41,7 @@ impl Animation for WieldAnimation {
         next.chest.scale = Vec3::one() / 13.0;
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1 + fast * -0.1 * speednormcancel);
         next.head.orientation = Quaternion::rotation_x(0.45 * speednorm)
-            * Quaternion::rotation_y(fast * 0.15 * speednormcancel);
+            * Quaternion::rotation_y(fast * 0.07 * speednormcancel);
         next.chest.position = Vec3::new(
             0.0,
             s_a.chest.0,
@@ -52,6 +52,7 @@ impl Animation for WieldAnimation {
         //next.main.position = Vec3::new(0.0, s_a.hand.2*-1.0, 0.0);
 
         next.main.position = Vec3::new(0.0, 0.0, 0.0);
+        next.main.orientation = Quaternion::rotation_x(0.0);
 
         next.hand_l.position = Vec3::new(s_a.grip.0 * 4.0, 0.0, s_a.grip.2);
         next.hand_r.position = Vec3::new(-s_a.grip.0 * 4.0, 0.0, s_a.grip.2);
@@ -65,7 +66,11 @@ impl Animation for WieldAnimation {
         next.control.position = Vec3::new(
             -3.0,
             s_a.grip.2,
-            -s_a.grip.2 / 2.5 + s_a.grip.0 * -2.0 + fastacc * 1.5 + fastalt * 0.5 * speednormcancel,
+            -s_a.grip.2 / 2.5
+                + s_a.grip.0 * -2.0
+                + fastacc * 1.5
+                + fastalt * 0.5 * speednormcancel
+                + speednorm * 2.0,
         );
 
         next.control_l.orientation =

@@ -29,6 +29,12 @@
             (Some(Bow(UnlockRepeater)), "common.abilities.bow.repeater"),
         ],
     ),
+    Spear: (
+        primary: "common.abilities.spear.doublestrike",
+        secondary: "common.abilities.spear.doublestrike",
+        skills: [],
+
+    ),
     Staff: (
         primary: "common.abilities.staff.firebomb",
         secondary: "common.abilities.staff.flamethrower",

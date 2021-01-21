@@ -1,0 +1,15 @@
+ItemDef(
+    name: "Wooden Spear",
+    description: "Testing",
+    kind: Tool(
+       (
+            kind: Spear,    
+            stats: (
+                equip_time_millis: 250,
+                power: 1.0,
+                speed: 1.0
+            ),            
+        )
+    ),
+    quality: Low,
+)

@@ -23,6 +23,7 @@ pub enum ToolKind {
     Staff,
     Sceptre,
     Shield,
+    Spear,
     Unique(UniqueKind),
     Debug,
     Farming,
@@ -383,4 +384,5 @@ pub enum UniqueKind {
     TheropodBasic,
     TheropodBird,
     ObjectTurret,
+    WoodenSpear,
 }
