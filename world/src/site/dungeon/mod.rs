@@ -888,7 +888,8 @@ impl Floor {
                                             ),
                                         ))
                                         .with_name("Mindflayer".to_string())
-                                        .with_loot_drop(comp::Item::new_from_asset_expect(chosen)),
+                                        .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
+                                        .with_skillset_config(common::skillset_builder::SkillSetConfig::Mindflayer),
                                 ],
                                 _ => {
                                     vec![EntityInfo::at(tile_wcenter.map(|e| e as f32)).with_body(
