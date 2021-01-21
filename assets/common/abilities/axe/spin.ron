@@ -7,7 +7,7 @@ SpinMelee(
     range: 3.5,
     energy_cost: 100,
     is_infinite: true,
-    is_helicopter: Yes,
+    movement_behavior: AxeHover,
     is_interruptible: false,
     forward_speed: 0.0,
     num_spins: 1,

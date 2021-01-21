@@ -28,7 +28,6 @@ spin_sleep = "1.0"
 tracing = { version = "0.1", default-features = false }
 vek = { version = "0.12.0", features = ["serde"] }
 uuid = { version = "0.8.1", default-features = false, features = ["serde", "v4"] }
-inline_tweak = "1.0.2"
 
 # Assets
 assets_manager = {version = "0.4.2", features = ["bincode", "ron", "json", "hot-reloading"]}
