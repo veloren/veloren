@@ -141,6 +141,7 @@ pub fn skill_to_db_string(skill: comp::skills::Skill) -> String {
         UnlockGroup(SkillGroupKind::Weapon(ToolKind::Sceptre)) => "Unlock Weapon Sceptre",
         UnlockGroup(SkillGroupKind::Weapon(ToolKind::Dagger))
         | UnlockGroup(SkillGroupKind::Weapon(ToolKind::Shield))
+        | UnlockGroup(SkillGroupKind::Weapon(ToolKind::Spear))
         | UnlockGroup(SkillGroupKind::Weapon(ToolKind::Debug))
         | UnlockGroup(SkillGroupKind::Weapon(ToolKind::Farming))
         | UnlockGroup(SkillGroupKind::Weapon(ToolKind::Empty))
@@ -276,6 +277,7 @@ pub fn skill_group_to_db_string(skill_group: comp::skills::SkillGroupKind) -> St
         Weapon(ToolKind::Sceptre) => "Weapon Sceptre",
         Weapon(ToolKind::Dagger)
         | Weapon(ToolKind::Shield)
+        | Weapon(ToolKind::Spear)
         | Weapon(ToolKind::Debug)
         | Weapon(ToolKind::Farming)
         | Weapon(ToolKind::Empty)

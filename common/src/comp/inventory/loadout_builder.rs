@@ -32,6 +32,8 @@ pub struct LoadoutBuilder(Loadout);
 
 #[derive(Copy, Clone)]
 pub enum LoadoutConfig {
+    AdletArcher,
+    AdletWarrior,
     Guard,
     Villager,
     Outcast,
@@ -249,9 +251,14 @@ impl LoadoutBuilder {
                             "common.items.npc_weapons.spear.wooden_spear",
                         ));
                     },
+                    (biped_small::Species::Adlet, _) => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.bow.adlet",
+                        ));
+                    },
                     _ => {
                         main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.spear.wooden_spear",
+                            "common.items.npc_weapons.bow.adlet",
                         ));
                     },
                 },
@@ -270,6 +277,16 @@ impl LoadoutBuilder {
         let loadout = if let Some(config) = config {
             use LoadoutConfig::*;
             match config {
+                AdletArcher => LoadoutBuilder::new()
+                    .active_item(Some(Item::new_from_asset_expect(
+                        "common.items.npc_weapons.bow.adlet",
+                    )))
+                    .build(),
+                AdletWarrior => LoadoutBuilder::new()
+                    .active_item(Some(Item::new_from_asset_expect(
+                        "common.items.npc_weapons.spear.wooden_spear",
+                    )))
+                    .build(),
                 Guard => LoadoutBuilder::new()
                     .active_item(active_item)
                     .shoulder(Some(Item::new_from_asset_expect(

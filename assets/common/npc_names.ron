@@ -924,7 +924,7 @@
     biped_small: (
         body: (
             keyword: "biped_small",
-            names: [
+            names_0: [
                 "Harvey"
             ]
         ),

@@ -1,0 +1,15 @@
+ItemDef(
+    name: "Adlet Bow",
+    description: "Strips of leather are wrapped around the handle.",  
+    kind: Tool(
+        (
+            kind: Bow,    
+            stats: (
+                equip_time_millis: 200,
+                power: 0.8,
+                speed: 1.0
+            ),            
+        )
+    ),
+    quality: Moderate,
+)
