@@ -1162,7 +1162,7 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                 },
                 auto_charge: false,
                 timer: Duration::default(),
-                refresh_timer: Duration::default(),
+                refresh_distance: 0.0,
                 stage_section: StageSection::Buildup,
                 exhausted: false,
             }),

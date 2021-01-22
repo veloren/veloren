@@ -890,7 +890,7 @@ impl<'a> System<'a> for Sys {
                                             }
                                         },
                                         Tactic::StoneGolemBoss => {
-                                            if dist_sqrd < (MIN_ATTACK_DIST * scale).powi(2) {
+                                            if dist_sqrd < (MIN_ATTACK_DIST * scale * 2.0).powi(2) { // 2.0 is temporary correction factor to allow them to melee with their large hitbox
                                                 inputs.move_dir = Vec2::zero();
                                                 inputs.primary.set_state(true);
                                             } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
