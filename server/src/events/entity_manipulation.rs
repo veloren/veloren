@@ -164,6 +164,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
         let healths = state.ecs().read_storage::<Health>();
         let inventories = state.ecs().read_storage::<Inventory>();
         let players = state.ecs().read_storage::<Player>();
+        let bodies = state.ecs().read_storage::<Body>();
         let by = if let HealthSource::Damage { by: Some(by), .. } = cause {
             by
         } else {
@@ -174,16 +175,21 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
         } else {
             return;
         };
-        let (entity_stats, entity_health, entity_inventory) =
-            if let (Some(entity_stats), Some(entity_health), Some(entity_inventory)) = (
-                stats.get(entity),
-                healths.get(entity),
-                inventories.get(entity),
-            ) {
-                (entity_stats, entity_health, entity_inventory)
-            } else {
-                return;
-            };
+        let (entity_stats, entity_health, entity_inventory, entity_body) = if let (
+            Some(entity_stats),
+            Some(entity_health),
+            Some(entity_inventory),
+            Some(entity_body),
+        ) = (
+            stats.get(entity),
+            healths.get(entity),
+            inventories.get(entity),
+            bodies.get(entity),
+        ) {
+            (entity_stats, entity_health, entity_inventory, entity_body)
+        } else {
+            return;
+        };
 
         let groups = state.ecs().read_storage::<Group>();
         let attacker_group = groups.get(attacker);
@@ -201,7 +207,8 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
         // TODO: Scale xp from skillset rather than health, when NPCs have their own
         // skillsets
         let mut exp_reward =
-            combat::combat_rating(entity_inventory, entity_health, entity_stats) * 2.5;
+            combat::combat_rating(entity_inventory, entity_health, entity_stats, *entity_body)
+                * 2.5;
 
         // Distribute EXP to group
         let positions = state.ecs().read_storage::<Pos>();

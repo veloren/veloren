@@ -820,10 +820,10 @@ fn handle_spawn(
                                 .state
                                 .create_npc(
                                     pos,
-                                    comp::Stats::new(
-                                        get_npc_name(id, npc::BodyType::from_body(body)),
-                                        body,
-                                    ),
+                                    comp::Stats::new(get_npc_name(
+                                        id,
+                                        npc::BodyType::from_body(body),
+                                    )),
                                     comp::Health::new(body, 1),
                                     inventory,
                                     body,
@@ -929,7 +929,7 @@ fn handle_spawn_training_dummy(
 
             let body = comp::Body::Object(comp::object::Body::TrainingDummy);
 
-            let stats = comp::Stats::new("Training Dummy".to_string(), body);
+            let stats = comp::Stats::new("Training Dummy".to_string());
 
             let health = comp::Health::new(body, 0);
 

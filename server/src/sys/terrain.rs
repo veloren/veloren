@@ -124,7 +124,7 @@ impl<'a> System<'a> for Sys {
                 let name = entity.name.unwrap_or_else(|| "Unnamed".to_string());
                 let alignment = entity.alignment;
                 let main_tool = entity.main_tool;
-                let mut stats = comp::Stats::new(name, body);
+                let mut stats = comp::Stats::new(name);
 
                 let mut scale = entity.scale;
 
@@ -135,13 +135,10 @@ impl<'a> System<'a> for Sys {
                         let npc_names = NPC_NAMES.read();
 
                         body = comp::Body::Humanoid(body_new);
-                        stats = comp::Stats::new(
-                            format!(
-                                "Gentle Giant {}",
-                                get_npc_name(&npc_names.humanoid, body_new.species)
-                            ),
-                            body,
-                        );
+                        stats = comp::Stats::new(format!(
+                            "Gentle Giant {}",
+                            get_npc_name(&npc_names.humanoid, body_new.species)
+                        ));
                     }
                     scale = 2.0 + rand::random::<f32>();
                 }
@@ -154,7 +151,7 @@ impl<'a> System<'a> for Sys {
                 let loadout =
                     LoadoutBuilder::build_loadout(body, main_tool, loadout_config).build();
 
-                let health = comp::Health::new(stats.body_type, entity.level.unwrap_or(0));
+                let health = comp::Health::new(body, entity.level.unwrap_or(0));
 
                 let can_speak = match body {
                     comp::Body::Humanoid(_) => alignment == comp::Alignment::Npc,
