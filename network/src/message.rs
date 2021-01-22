@@ -1,11 +1,9 @@
 use serde::{de::DeserializeOwned, Serialize};
 //use std::collections::VecDeque;
+use crate::api::{Stream, StreamError};
+use network_protocol::MessageBuffer;
 #[cfg(feature = "compression")]
-use crate::types::Promises;
-use crate::{
-    api::{Stream, StreamError},
-    types::{Frame, Mid, Sid},
-};
+use network_protocol::Promises;
 use std::{io, sync::Arc};
 #[cfg(all(feature = "compression", debug_assertions))]
 use tracing::warn;
@@ -21,29 +19,6 @@ pub struct Message {
     pub(crate) buffer: Arc<MessageBuffer>,
     #[cfg(feature = "compression")]
     pub(crate) compressed: bool,
-}
-
-//Todo: Evaluate switching to VecDeque for quickly adding and removing data
-// from front, back.
-// - It would prob require custom bincode code but thats possible.
-pub(crate) struct MessageBuffer {
-    pub data: Vec<u8>,
-}
-
-#[derive(Debug)]
-pub(crate) struct OutgoingMessage {
-    pub buffer: Arc<MessageBuffer>,
-    pub cursor: u64,
-    pub mid: Mid,
-    pub sid: Sid,
-}
-
-#[derive(Debug)]
-pub(crate) struct IncomingMessage {
-    pub buffer: MessageBuffer,
-    pub length: u64,
-    pub mid: Mid,
-    pub sid: Sid,
 }
 
 impl Message {
@@ -170,38 +145,6 @@ impl Message {
     }
 }
 
-impl OutgoingMessage {
-    pub(crate) const FRAME_DATA_SIZE: u64 = 1400;
-
-    /// returns if msg is empty
-    pub(crate) fn fill_next<E: Extend<(Sid, Frame)>>(
-        &mut self,
-        msg_sid: Sid,
-        frames: &mut E,
-    ) -> bool {
-        let to_send = std::cmp::min(
-            self.buffer.data[self.cursor as usize..].len() as u64,
-            Self::FRAME_DATA_SIZE,
-        );
-        if to_send > 0 {
-            if self.cursor == 0 {
-                frames.extend(std::iter::once((msg_sid, Frame::DataHeader {
-                    mid: self.mid,
-                    sid: self.sid,
-                    length: self.buffer.data.len() as u64,
-                })));
-            }
-            frames.extend(std::iter::once((msg_sid, Frame::Data {
-                mid: self.mid,
-                start: self.cursor,
-                data: self.buffer.data[self.cursor as usize..][..to_send as usize].to_vec(),
-            })));
-        };
-        self.cursor += to_send;
-        self.cursor >= self.buffer.data.len() as u64
-    }
-}
-
 ///wouldn't trust this aaaassss much, fine for tests
 pub(crate) fn partial_eq_io_error(first: &io::Error, second: &io::Error) -> bool {
     if let Some(f) = first.raw_os_error() {
@@ -231,28 +174,6 @@ pub(crate) fn partial_eq_bincode(first: &bincode::ErrorKind, second: &bincode::E
     }
 }
 
-impl std::fmt::Debug for MessageBuffer {
-    #[inline]
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        //TODO: small messages!
-        let len = self.data.len();
-        if len > 20 {
-            write!(
-                f,
-                "MessageBuffer(len: {}, {}, {}, {}, {:X?}..{:X?})",
-                len,
-                u32::from_le_bytes([self.data[0], self.data[1], self.data[2], self.data[3]]),
-                u32::from_le_bytes([self.data[4], self.data[5], self.data[6], self.data[7]]),
-                u32::from_le_bytes([self.data[8], self.data[9], self.data[10], self.data[11]]),
-                &self.data[13..16],
-                &self.data[len - 8..len]
-            )
-        } else {
-            write!(f, "MessageBuffer(len: {}, {:?})", len, &self.data[..])
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use crate::{api::Stream, message::*};
@@ -260,7 +181,8 @@ mod tests {
     use tokio::sync::mpsc;
 
     fn stub_stream(compressed: bool) -> Stream {
-        use crate::{api::*, types::*};
+        use crate::api::*;
+        use network_protocol::*;
 
         #[cfg(feature = "compression")]
         let promises = if compressed {
@@ -281,6 +203,7 @@ mod tests {
             Sid::new(0),
             0u8,
             promises,
+            1_000_000,
             Arc::new(AtomicBool::new(true)),
             a2b_msg_s,
             b2a_msg_recv_r,

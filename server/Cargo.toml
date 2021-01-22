@@ -16,7 +16,7 @@ common = { package = "veloren-common", path = "../common" }
 common-sys = { package = "veloren-common-sys", path = "../common/sys" }
 common-net = { package = "veloren-common-net", path = "../common/net" }
 world = { package = "veloren-world", path = "../world" }
-network = { package = "veloren_network", path = "../network", features = ["metrics", "compression"], default-features = false }
+network = { package = "veloren-network", path = "../network", features = ["metrics", "compression"], default-features = false }
 
 specs = { git = "https://github.com/amethyst/specs.git", features = ["shred-derive"], rev = "d4435bdf496cf322c74886ca09dd8795984919b4" }
 specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git", rev = "9fab7b396acd6454585486e50ae4bfe2069858a9" }

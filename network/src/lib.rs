@@ -104,14 +104,10 @@ mod channel;
 mod message;
 #[cfg(feature = "metrics")] mod metrics;
 mod participant;
-mod prios;
-mod protocols;
 mod scheduler;
-#[macro_use]
-mod types;
 
 pub use api::{
     Network, NetworkError, Participant, ParticipantError, ProtocolAddr, Stream, StreamError,
 };
 pub use message::Message;
-pub use types::{Pid, Promises};
+pub use network_protocol::{Pid, Promises};

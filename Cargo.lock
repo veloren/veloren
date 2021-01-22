@@ -260,6 +260,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "async-trait"
+version = "0.1.42"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8d3a45e77e34375a7923b1e8febb049bb011f064714a8e17a1a616fef01da13d"
+dependencies = [
+ "proc-macro2 1.0.24",
+ "quote 1.0.9",
+ "syn 1.0.60",
+]
+
+[[package]]
 name = "atom"
 version = "0.3.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1057,6 +1068,7 @@ dependencies = [
  "clap",
  "criterion-plot",
  "csv",
+ "futures",
  "itertools 0.10.0",
  "lazy_static",
  "num-traits",
@@ -1069,6 +1081,7 @@ dependencies = [
  "serde_derive",
  "serde_json",
  "tinytemplate",
+ "tokio 1.2.0",
  "walkdir 2.3.1",
 ]
 
@@ -5580,7 +5593,7 @@ dependencies = [
  "veloren-common",
  "veloren-common-net",
  "veloren-common-sys",
- "veloren_network",
+ "veloren-network",
 ]
 
 [[package]]
@@ -5662,6 +5675,47 @@ dependencies = [
 ]
 
 [[package]]
+name = "veloren-network"
+version = "0.3.0"
+dependencies = [
+ "async-channel",
+ "async-trait",
+ "bincode",
+ "bitflags",
+ "clap",
+ "crossbeam-channel 0.5.0",
+ "futures-core",
+ "futures-util",
+ "lazy_static",
+ "lz-fear",
+ "prometheus",
+ "rand 0.8.3",
+ "serde",
+ "shellexpand",
+ "tiny_http",
+ "tokio 1.2.0",
+ "tokio-stream",
+ "tracing",
+ "tracing-futures",
+ "tracing-subscriber",
+ "veloren-network-protocol",
+]
+
+[[package]]
+name = "veloren-network-protocol"
+version = "0.5.0"
+dependencies = [
+ "async-channel",
+ "async-trait",
+ "bitflags",
+ "criterion",
+ "prometheus",
+ "rand 0.8.3",
+ "tokio 1.2.0",
+ "tracing",
+]
+
+[[package]]
 name = "veloren-plugin-api"
 version = "0.1.0"
 dependencies = [
@@ -5725,9 +5779,9 @@ dependencies = [
  "veloren-common",
  "veloren-common-net",
  "veloren-common-sys",
+ "veloren-network",
  "veloren-plugin-api",
  "veloren-world",
- "veloren_network",
 ]
 
 [[package]]
@@ -5862,31 +5916,6 @@ dependencies = [
  "vek 0.12.0",
  "veloren-common",
  "veloren-common-net",
-]
-
-[[package]]
-name = "veloren_network"
-version = "0.3.0"
-dependencies = [
- "async-channel",
- "bincode",
- "bitflags",
- "clap",
- "crossbeam-channel 0.5.0",
- "futures-core",
- "futures-util",
- "lazy_static",
- "lz-fear",
- "prometheus",
- "rand 0.8.3",
- "serde",
- "shellexpand",
- "tiny_http",
- "tokio 1.2.0",
- "tokio-stream",
- "tracing",
- "tracing-futures",
- "tracing-subscriber",
 ]
 
 [[package]]

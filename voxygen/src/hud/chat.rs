@@ -373,7 +373,7 @@ impl<'a> Widget for Chat<'a> {
                 let ChatMsg { chat_type, .. } = &message;
                 // For each ChatType needing localization get/set matching pre-formatted
                 // localized string. This string will be formatted with the data
-                // provided in ChatType in the client/src/lib.rs
+                // provided in ChatType in the client/src/mod.rs
                 // fn format_message called below
                 message.message = match chat_type {
                     ChatType::Online(_) => self
