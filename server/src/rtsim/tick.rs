@@ -97,7 +97,7 @@ impl<'a> System<'a> for Sys {
             let body = entity.get_body();
             server_emitter.emit(ServerEvent::CreateNpc {
                 pos: comp::Pos(spawn_pos),
-                stats: comp::Stats::new(entity.get_name(), body),
+                stats: comp::Stats::new(entity.get_name()),
                 health: comp::Health::new(body, 10),
                 loadout: match body {
                     comp::Body::Humanoid(_) => entity.get_loadout(),

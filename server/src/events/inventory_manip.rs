@@ -562,10 +562,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                     });
             },
             item::Throwable::TrainingDummy => {
-                new_entity = new_entity.with(comp::Stats::new(
-                    "Training Dummy".to_string(),
-                    comp::object::Body::TrainingDummy.into(),
-                ));
+                new_entity = new_entity.with(comp::Stats::new("Training Dummy".to_string()));
             },
         };
 

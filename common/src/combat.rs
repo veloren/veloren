@@ -9,7 +9,7 @@ use crate::{
             slot::EquipSlot,
         },
         skills::{SkillGroupKind, SkillSet},
-        BuffKind, Health, HealthChange, HealthSource, Inventory, Stats,
+        Body, BuffKind, Health, HealthChange, HealthSource, Inventory, Stats,
     },
     uid::Uid,
     util::Dir,
@@ -245,7 +245,7 @@ fn offensive_rating(inv: &Inventory, skillset: &SkillSet) -> f32 {
     active_damage.max(second_damage)
 }
 
-pub fn combat_rating(inventory: &Inventory, health: &Health, stats: &Stats) -> f32 {
+pub fn combat_rating(inventory: &Inventory, health: &Health, stats: &Stats, body: Body) -> f32 {
     let defensive_weighting = 1.0;
     let offensive_weighting = 1.0;
     let defensive_rating = health.maximum() as f32
@@ -256,5 +256,5 @@ pub fn combat_rating(inventory: &Inventory, health: &Health, stats: &Stats) -> f
     let combined_rating = (offensive_rating * offensive_weighting
         + defensive_rating * defensive_weighting)
         / (offensive_weighting + defensive_weighting);
-    combined_rating * stats.body_type.combat_multiplier()
+    combined_rating * body.combat_multiplier()
 }

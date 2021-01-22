@@ -1341,7 +1341,7 @@ impl Hud {
                             health,
                             buffs,
                             energy,
-                            combat_rating: combat::combat_rating(inventory, health, stats),
+                            combat_rating: combat::combat_rating(inventory, health, stats, *body),
                         });
                         let bubble = if dist_sqr < SPEECH_BUBBLE_RANGE.powi(2) {
                             speech_bubbles.get(uid)
@@ -2011,6 +2011,7 @@ impl Hud {
         let character_states = ecs.read_storage::<comp::CharacterState>();
         let controllers = ecs.read_storage::<comp::Controller>();
         let ability_map = ecs.fetch::<comp::item::tool::AbilityMap>();
+        let bodies = ecs.read_storage::<comp::Body>();
 
         if let (
             Some(health),
@@ -2047,10 +2048,11 @@ impl Hud {
         }
         // Bag contents
         if self.show.bag {
-            if let (Some(player_stats), Some(health), Some(energy)) = (
+            if let (Some(player_stats), Some(health), Some(energy), Some(body)) = (
                 stats.get(client.entity()),
                 healths.get(entity),
                 energies.get(entity),
+                bodies.get(entity),
             ) {
                 match Bag::new(
                     client,
@@ -2066,6 +2068,7 @@ impl Hud {
                     &health,
                     &energy,
                     &self.show,
+                    &body,
                 )
                 .set(self.ids.bag, ui_widgets)
                 {
