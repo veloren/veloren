@@ -1,7 +1,7 @@
 use common::{
     comp::{
         skills::{GeneralSkill, Skill},
-        CharacterState, Energy, EnergyChange, EnergySource, Health, Pos, Stats,
+        Body, CharacterState, Energy, EnergyChange, EnergySource, Health, Pos, Stats,
     },
     event::{EventBus, ServerEvent},
     metrics::SysMetrics,
@@ -31,6 +31,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Uid>,
         ReadStorage<'a, Pos>,
         Write<'a, Vec<Outcome>>,
+        ReadStorage<'a, Body>,
     );
 
     fn run(
@@ -47,6 +48,7 @@ impl<'a> System<'a> for Sys {
             uids,
             positions,
             mut outcomes,
+            bodies,
         ): Self::SystemData,
     ) {
         let start_time = std::time::Instant::now();
@@ -111,10 +113,11 @@ impl<'a> System<'a> for Sys {
         }
 
         // Apply effects from leveling skills
-        for (mut stats, mut health, mut energy) in (
+        for (mut stats, mut health, mut energy, body) in (
             &mut stats.restrict_mut(),
             &mut healths.restrict_mut(),
             &mut energies.restrict_mut(),
+            &bodies,
         )
             .join()
         {
@@ -126,7 +129,7 @@ impl<'a> System<'a> for Sys {
                     .skill_level(Skill::General(GeneralSkill::HealthIncrease))
                     .unwrap_or(None)
                     .unwrap_or(0);
-                health.update_max_hp(Some(stat.body_type), health_level);
+                health.update_max_hp(Some(*body), health_level);
                 let mut stat = stats.get_mut_unchecked();
                 stat.skill_set.modify_health = false;
             }
@@ -138,7 +141,7 @@ impl<'a> System<'a> for Sys {
                     .skill_level(Skill::General(GeneralSkill::EnergyIncrease))
                     .unwrap_or(None)
                     .unwrap_or(0);
-                energy.update_max_energy(Some(stat.body_type), energy_level);
+                energy.update_max_energy(Some(*body), energy_level);
                 let mut stat = stats.get_mut_unchecked();
                 stat.skill_set.modify_energy = false;
             }

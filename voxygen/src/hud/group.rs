@@ -340,6 +340,7 @@ impl<'a> Widget for Group<'a> {
             let buffs = client_state.ecs().read_storage::<common::comp::Buffs>();
             let inventory = client_state.ecs().read_storage::<common::comp::Inventory>();
             let uid_allocator = client_state.ecs().read_resource::<UidAllocator>();
+            let bodies = client_state.ecs().read_storage::<common::comp::Body>();
 
             // Keep track of the total number of widget ids we are using for buffs
             let mut total_buff_count = 0;
@@ -352,80 +353,80 @@ impl<'a> Widget for Group<'a> {
                 let buffs = entity.and_then(|entity| buffs.get(entity));
                 let inventory = entity.and_then(|entity| inventory.get(entity));
                 let is_leader = uid == leader;
+                let body = entity.and_then(|entity| bodies.get(entity));
 
-                if let Some(stats) = stats {
-                    let combat_rating =
-                        combat::combat_rating(inventory.unwrap(), &health.unwrap(), stats); // We can unwrap here because we check for stats first
+                if let (Some(stats), Some(inventory), Some(health), Some(body)) =
+                    (stats, inventory, health, body)
+                {
+                    let combat_rating = combat::combat_rating(inventory, health, stats, *body);
                     let char_name = stats.name.to_string();
-                    if let Some(health) = health {
-                        let health_perc = health.current() as f64 / health.maximum() as f64;
-                        // change panel positions when debug info is shown
-                        let x = if debug_on { i / 8 } else { i / 12 };
-                        let y = if debug_on { i % 8 } else { i % 12 };
-                        let back = Image::new(self.imgs.member_bg).top_left_with_margins_on(
-                            ui.window,
-                            50.0 + offset + y as f64 * 77.0,
-                            10.0 + x as f64 * 180.0,
-                        );
-                        let hp_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.8; //Animation timer
-                        let crit_hp_color: Color = Color::Rgba(0.79, 0.19, 0.17, hp_ani);
-                        let health_col = match (health_perc * 100.0) as u8 {
-                            0..=20 => crit_hp_color,
-                            21..=40 => LOW_HP_COLOR,
-                            _ => HP_COLOR,
-                        };
-                        // Don't show panel for the player!
-                        // Panel BG
-                        back.w_h(152.0, 36.0)
-                            .color(if is_leader {
-                                Some(ERROR_COLOR)
-                            } else {
-                                Some(TEXT_COLOR)
-                            })
-                            .set(state.ids.member_panels_bg[i], ui);
-                        // Health
-                        Image::new(self.imgs.bar_content)
-                            .w_h(148.0 * health_perc, 22.0)
-                            .color(Some(health_col))
-                            .top_left_with_margins_on(state.ids.member_panels_bg[i], 2.0, 2.0)
-                            .set(state.ids.member_health[i], ui);
-                        if health.is_dead {
-                            // Death Text
-                            Text::new(&self.localized_strings.get("hud.group.dead"))
-                                .mid_top_with_margin_on(state.ids.member_panels_bg[i], 1.0)
-                                .font_size(20)
-                                .font_id(self.fonts.cyri.conrod_id)
-                                .color(KILL_COLOR)
-                                .set(state.ids.dead_txt[i], ui);
+                    let health_perc = health.current() as f64 / health.maximum() as f64;
+                    // change panel positions when debug info is shown
+                    let x = if debug_on { i / 8 } else { i / 12 };
+                    let y = if debug_on { i % 8 } else { i % 12 };
+                    let back = Image::new(self.imgs.member_bg).top_left_with_margins_on(
+                        ui.window,
+                        50.0 + offset + y as f64 * 77.0,
+                        10.0 + x as f64 * 180.0,
+                    );
+                    let hp_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.8; //Animation timer
+                    let crit_hp_color: Color = Color::Rgba(0.79, 0.19, 0.17, hp_ani);
+                    let health_col = match (health_perc * 100.0) as u8 {
+                        0..=20 => crit_hp_color,
+                        21..=40 => LOW_HP_COLOR,
+                        _ => HP_COLOR,
+                    };
+                    // Don't show panel for the player!
+                    // Panel BG
+                    back.w_h(152.0, 36.0)
+                        .color(if is_leader {
+                            Some(ERROR_COLOR)
                         } else {
-                            // Health Text
-                            let txt = format!(
-                                "{}/{}",
-                                health.current() / 10_u32,
-                                health.maximum() / 10_u32,
-                            );
-                            // Change font size depending on health amount
-                            let font_size = match health.maximum() {
-                                0..=999 => 14,
-                                1000..=9999 => 13,
-                                10000..=99999 => 12,
-                                _ => 11,
-                            };
-                            // Change text offset depending on health amount
-                            let txt_offset = match health.maximum() {
-                                0..=999 => 4.0,
-                                1000..=9999 => 4.5,
-                                10000..=99999 => 5.0,
-                                _ => 5.5,
-                            };
-                            Text::new(&txt)
-                                .mid_top_with_margin_on(state.ids.member_panels_bg[i], txt_offset)
-                                .font_size(font_size)
-                                .font_id(self.fonts.cyri.conrod_id)
-                                .color(Color::Rgba(1.0, 1.0, 1.0, 0.5))
-                                .set(state.ids.health_txt[i], ui);
+                            Some(TEXT_COLOR)
+                        })
+                        .set(state.ids.member_panels_bg[i], ui);
+                    // Health
+                    Image::new(self.imgs.bar_content)
+                        .w_h(148.0 * health_perc, 22.0)
+                        .color(Some(health_col))
+                        .top_left_with_margins_on(state.ids.member_panels_bg[i], 2.0, 2.0)
+                        .set(state.ids.member_health[i], ui);
+                    if health.is_dead {
+                        // Death Text
+                        Text::new(&self.localized_strings.get("hud.group.dead"))
+                            .mid_top_with_margin_on(state.ids.member_panels_bg[i], 1.0)
+                            .font_size(20)
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .color(KILL_COLOR)
+                            .set(state.ids.dead_txt[i], ui);
+                    } else {
+                        // Health Text
+                        let txt = format!(
+                            "{}/{}",
+                            health.current() / 10_u32,
+                            health.maximum() / 10_u32,
+                        );
+                        // Change font size depending on health amount
+                        let font_size = match health.maximum() {
+                            0..=999 => 14,
+                            1000..=9999 => 13,
+                            10000..=99999 => 12,
+                            _ => 11,
                         };
-                    }
+                        // Change text offset depending on health amount
+                        let txt_offset = match health.maximum() {
+                            0..=999 => 4.0,
+                            1000..=9999 => 4.5,
+                            10000..=99999 => 5.0,
+                            _ => 5.5,
+                        };
+                        Text::new(&txt)
+                            .mid_top_with_margin_on(state.ids.member_panels_bg[i], txt_offset)
+                            .font_size(font_size)
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .color(Color::Rgba(1.0, 1.0, 1.0, 0.5))
+                            .set(state.ids.health_txt[i], ui);
+                    };
 
                     // Panel Frame
                     Image::new(self.imgs.member_frame)

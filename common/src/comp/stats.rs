@@ -1,7 +1,4 @@
-use crate::{
-    comp,
-    comp::{skills::SkillSet, Body},
-};
+use crate::comp::skills::SkillSet;
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
@@ -27,15 +24,13 @@ impl Error for StatChangeError {}
 pub struct Stats {
     pub name: String,
     pub skill_set: SkillSet,
-    pub body_type: Body,
 }
 
 impl Stats {
-    pub fn new(name: String, body: Body) -> Self {
+    pub fn new(name: String) -> Self {
         Self {
             name,
             skill_set: SkillSet::default(),
-            body_type: body,
         }
     }
 
@@ -45,7 +40,6 @@ impl Stats {
         Self {
             name: "".to_owned(),
             skill_set: SkillSet::default(),
-            body_type: comp::Body::Humanoid(comp::body::humanoid::Body::random()),
         }
     }
 }

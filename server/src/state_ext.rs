@@ -290,8 +290,8 @@ impl StateExt for State {
                     .unwrap_or(None)
                     .unwrap_or(0),
             );
-            self.write_component(entity, comp::Health::new(stats.body_type, health_level));
-            self.write_component(entity, comp::Energy::new(stats.body_type, energy_level));
+            self.write_component(entity, comp::Health::new(body, health_level));
+            self.write_component(entity, comp::Energy::new(body, energy_level));
             self.write_component(entity, stats);
             self.write_component(entity, inventory);
             self.write_component(
