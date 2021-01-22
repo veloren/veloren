@@ -20,17 +20,19 @@ impl Animation for SpinMeleeAnimation {
         skeleton: &Self::Skeleton,
         stage_section: Self::Dependency,
         anim_time: f64,
-        rate: &mut f32,
+        _rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
-        *rate = 1.0;
+        let mut next = (*skeleton).clone();
+
         let (movement1, movement2, movement3) = match stage_section {
             Some(StageSection::Buildup) => ((anim_time as f32).powf(0.25), 0.0, 0.0),
             Some(StageSection::Swing) => (1.0, anim_time as f32, 0.0),
             Some(StageSection::Recover) => (1.0, 1.0, (anim_time as f32).powf(4.0)),
             _ => (0.0, 0.0, 0.0),
         };
-        let mut next = (*skeleton).clone();
+
+        let pullback = 1.0 - movement3;
 
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1) * 1.02;
         next.head.orientation =
@@ -44,18 +46,18 @@ impl Animation for SpinMeleeAnimation {
         next.lower_torso.orientation = Quaternion::rotation_z(movement2 * -2.0 * PI);
 
         next.shoulder_l.position = Vec3::new(-s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
-        next.shoulder_l.orientation = Quaternion::rotation_y(movement1 * 0.0)
-            * Quaternion::rotation_x(movement1 * 1.2 * (1.0 - movement3));
+        next.shoulder_l.orientation =
+            Quaternion::rotation_x(0.0) * Quaternion::rotation_x(movement1 * 1.2 * pullback);
 
         next.shoulder_r.position = Vec3::new(s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
-        next.shoulder_r.orientation = Quaternion::rotation_y(movement1 * 0.0)
-            * Quaternion::rotation_x(movement1 * -1.2 * (1.0 - movement3));
+        next.shoulder_r.orientation =
+            Quaternion::rotation_x(0.0) * Quaternion::rotation_x(movement1 * -1.2 * pullback);
 
         next.hand_l.position = Vec3::new(-s_a.hand.0, s_a.hand.1, s_a.hand.2);
-        next.hand_l.orientation = Quaternion::rotation_x(movement1 * -0.2 * (1.0 - movement3));
+        next.hand_l.orientation = Quaternion::rotation_x(movement1 * -0.2 * pullback);
 
-        next.hand_r.position = Vec3::new(s_a.hand.0, s_a.hand.1, s_a.hand.2 + movement1 * 5.0);
-        next.hand_r.orientation = Quaternion::rotation_x(movement1 * 0.2 * (1.0 - movement3));
+        next.hand_r.position = Vec3::new(s_a.hand.0, s_a.hand.1, s_a.hand.2);
+        next.hand_r.orientation = Quaternion::rotation_x(movement1 * 0.2 * pullback);
 
         next.leg_l.position = Vec3::new(
             -s_a.leg.0 + movement1 * 3.0,
