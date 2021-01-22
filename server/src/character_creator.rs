@@ -10,7 +10,7 @@ pub fn create_character(
     body: Body,
     character_loader: &ReadExpect<'_, CharacterLoader>,
 ) {
-    let stats = Stats::new(character_alias.to_string(), body);
+    let stats = Stats::new(character_alias.to_string());
 
     let loadout = LoadoutBuilder::new()
         .defaults()
