@@ -183,8 +183,8 @@ impl Body {
             Body::Dragon(_) => 8.0,
             Body::BirdSmall(_) => 0.3,
             Body::FishSmall(_) => 0.3,
-            Body::BipedLarge(_) => 0.75,
-            Body::Golem(_) => 0.4,
+            Body::BipedLarge(_) => 1.5,
+            Body::Golem(_) => 2.5,
             Body::Object(_) => 0.4,
         }
     }
@@ -243,9 +243,10 @@ impl Body {
                 biped_large::Species::Slysaurok => 2.3,
                 biped_large::Species::Occultsaurok => 2.8,
                 biped_large::Species::Mightysaurok => 2.3,
+                biped_large::Species::Mindflayer => 4.8,
                 _ => 4.6,
             },
-            Body::Golem(_) => 5.8,
+            Body::Golem(_) => 5.0,
             Body::Object(_) => 1.0,
         }
     }
