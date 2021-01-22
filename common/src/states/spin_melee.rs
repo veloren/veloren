@@ -30,8 +30,8 @@ pub struct StaticData {
     pub energy_cost: u32,
     /// Whether spin state is infinite
     pub is_infinite: bool,
-    /// Used to maintain classic axe spin physics
-    pub is_helicopter: bool,
+    /// Used to dictate how movement functions in this state
+    pub movement_behavior: MovementBehavior,
     /// Whether the state can be interrupted by other abilities
     pub is_interruptible: bool,
     /// Used for forced forward movement
@@ -61,9 +61,15 @@ impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
-        if self.static_data.is_helicopter {
-            let new_vel_z = update.vel.0.z + GRAVITY * data.dt.0 * 0.5;
-            update.vel.0 = Vec3::new(0.0, 0.0, new_vel_z) + data.inputs.move_dir * 5.0;
+        match self.static_data.movement_behavior {
+            MovementBehavior::ForwardGround => {},
+            MovementBehavior::AxeHover => {
+                let new_vel_z = update.vel.0.z + GRAVITY * data.dt.0 * 0.5;
+                update.vel.0 = Vec3::new(0.0, 0.0, new_vel_z) + data.inputs.move_dir * 5.0;
+            },
+            MovementBehavior::GolemHover => {
+                update.vel.0 = Vec3::new(0.0, 0.0, 20.0) + *data.inputs.look_dir * 25.0;
+            },
         }
 
         if !ability_key_is_pressed(data, self.static_data.ability_key) {
@@ -116,7 +122,10 @@ impl CharacterBehavior for Data {
                         knockback: Knockback::Away(self.static_data.knockback),
                     });
                 } else if self.timer < self.static_data.swing_duration {
-                    if !self.static_data.is_helicopter {
+                    if matches!(
+                        self.static_data.movement_behavior,
+                        MovementBehavior::ForwardGround
+                    ) {
                         handle_forced_movement(
                             data,
                             &mut update,
@@ -193,4 +202,11 @@ impl CharacterBehavior for Data {
 
         update
     }
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum MovementBehavior {
+    ForwardGround,
+    AxeHover,
+    GolemHover,
 }
