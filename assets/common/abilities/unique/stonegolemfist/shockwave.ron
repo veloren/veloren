@@ -6,9 +6,9 @@ Shockwave(
     damage: 500,
     knockback: TowardsUp(40.0),
     shockwave_angle: 90.0,
-    shockwave_vertical_angle: 15.0,
-    shockwave_speed: 20.0,
-    shockwave_duration: 2000,
+    shockwave_vertical_angle: 90.0,
+    shockwave_speed: 50.0,
+    shockwave_duration: 1000,
     requires_ground: true,
     move_efficiency: 0.05,
 )

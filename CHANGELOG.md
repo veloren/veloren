@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The inventory can now be expanded to fill the whole window
 - Added /dropall admin command (drops all inventory items on the ground)
 - Skill trees
+- Lactose tolerant golems
 
 ### Changed
 

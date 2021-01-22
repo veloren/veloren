@@ -1,0 +1,14 @@
+SpinMelee(
+    buildup_duration: 100,
+    swing_duration: 300,
+    recover_duration: 100,
+    base_damage: 500,
+    knockback: 0.0,
+    range: 7.5,
+    energy_cost: 0,
+    is_infinite: false,
+    movement_behavior: GolemHover,
+    is_interruptible: false,
+    forward_speed: 0.0,
+    num_spins: 1,
+)

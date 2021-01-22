@@ -896,6 +896,9 @@ impl<'a> System<'a> for Sys {
                                             } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
                                                 || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
                                             {
+                                                if vel.0.is_approx_zero() {
+                                                    inputs.ability3.set_state(true);
+                                                }
                                                 if dist_sqrd < MAX_CHASE_DIST.powi(2) {
                                                     *been_close = true;
                                                 }
