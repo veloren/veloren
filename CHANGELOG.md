@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed camera smoothing to be off by default.
 - Fixed AI behavior so only humanoids will attempt to roll
 - Footstep SFX is now dependant on distance moved, not time since last play
+- Increased the hitbox of the Stonework Defender and Mindflayer to better fit their models.
 
 ### Removed
 
