@@ -56,14 +56,13 @@ impl CharacterBehavior for Data {
         let horiz_speed_sq = horiz_vel.magnitude_squared();
         if horiz_speed_sq < GLIDE_SPEED.powi(2) && update.vel.0.z < 0.0 {
             let lift = (GLIDE_ANTIGRAV + update.vel.0.z.powi(2) * 0.15)
-                * (horiz_speed_sq * f32::powf(0.075, 2.0)).clamp(0.2, 1.0)
-                * data.dt.0;
+                * (horiz_speed_sq * f32::powf(0.075, 2.0)).clamp(0.2, 1.0);
 
-            update.vel.0.z += lift;
+            update.vel.0.z += lift * data.dt.0;
 
             // Expend energy during strenuous maneuvers.
             // Cost increases with lift exceeding that of calmly gliding.
-            let energy_cost = (10.0 * (lift - GLIDE_ANTIGRAV * data.dt.0)).max(0.0) as i32;
+            let energy_cost = (0.25 * (lift - GLIDE_ANTIGRAV)).max(0.0) as i32;
             if update
                 .energy
                 .try_change_by(-energy_cost, EnergySource::Glide)
