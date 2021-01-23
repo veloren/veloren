@@ -54,7 +54,6 @@ use common::{
     comp,
     comp::CharacterAbility,
     event::{EventBus, ServerEvent},
-    outcome::Outcome,
     recipe::default_recipe_book,
     resources::TimeOfDay,
     rtsim::RtSimEntity,
@@ -179,7 +178,6 @@ impl Server {
         state
             .ecs_mut()
             .insert(CharacterLoader::new(&persistence_db_dir)?);
-        state.ecs_mut().insert(Vec::<Outcome>::new());
 
         // System timers for performance monitoring
         state.ecs_mut().insert(sys::EntitySyncTimer::default());
