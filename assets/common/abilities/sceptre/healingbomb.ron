@@ -1,10 +1,10 @@
 BasicRanged(
-    energy_cost: 400,
+    energy_cost: 450,
     buildup_duration: 800,
     recover_duration: 50,
     projectile: Heal(
-        heal: 100.0,
-        damage: 50.0,
+        heal: 80.0,
+        damage: 60.0,
         radius: 6.0,
     ),
     projectile_body: Object(BoltNature),
