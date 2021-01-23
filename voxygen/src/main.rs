@@ -9,7 +9,7 @@ use veloren_voxygen::{
     logging,
     profile::Profile,
     run,
-    settings::{AudioOutput, Settings},
+    settings::{get_fps, AudioOutput, Settings},
     window::Window,
     GlobalState,
 };
@@ -180,7 +180,7 @@ fn main() {
         profile,
         window,
         clock: Clock::new(std::time::Duration::from_secs_f64(
-            1.0 / settings.graphics.max_fps as f64,
+            1.0 / get_fps(settings.graphics.max_fps) as f64,
         )),
         settings,
         info_message: None,
