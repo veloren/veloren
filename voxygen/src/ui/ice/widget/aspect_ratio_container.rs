@@ -122,7 +122,7 @@ where
         messages: &mut Vec<M>,
         renderer: &R,
         clipboard: Option<&dyn Clipboard>,
-    ) {
+    ) -> iced::event::Status {
         self.content.on_event(
             event,
             layout.children().next().unwrap(),
@@ -130,7 +130,7 @@ where
             messages,
             renderer,
             clipboard,
-        );
+        )
     }
 
     fn draw(

@@ -134,11 +134,12 @@ where
         messages: &mut Vec<M>,
         renderer: &R,
         clipboard: Option<&dyn Clipboard>,
-    ) {
+    ) -> iced::event::Status {
         let mut children = layout.children();
         let over_layout = children.next().unwrap();
 
-        self.over.on_event(
+        // TODO: consider passing to under if ignored?
+        let status = self.over.on_event(
             event.clone(),
             over_layout,
             cursor_position,
@@ -152,14 +153,18 @@ where
         if !matches!(&event, Event::Mouse(mouse::Event::ButtonPressed(_)))
             || !over_layout.bounds().contains(cursor_position)
         {
-            self.under.on_event(
-                event,
-                children.next().unwrap(),
-                cursor_position,
-                messages,
-                renderer,
-                clipboard,
-            );
+            self.under
+                .on_event(
+                    event,
+                    children.next().unwrap(),
+                    cursor_position,
+                    messages,
+                    renderer,
+                    clipboard,
+                )
+                .merge(status)
+        } else {
+            status
         }
     }
 
