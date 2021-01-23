@@ -19,7 +19,7 @@ pub type Body = comp::biped_small::Body;
 skeleton_impls!(struct BipedSmallSkeleton {
     + head,
     + chest,
-    + shorts,
+    + pants,
     + tail,
     + main,
     + hand_l,
@@ -47,15 +47,15 @@ impl Skeleton for BipedSmallSkeleton {
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
     ) -> Vec3<f32> {
         let chest_mat = base_mat * Mat4::<f32>::from(self.chest);
-        let shorts_mat = chest_mat * Mat4::<f32>::from(self.shorts);
+        let pants_mat = chest_mat * Mat4::<f32>::from(self.pants);
         let control_mat = chest_mat * Mat4::<f32>::from(self.control);
         let control_l_mat = Mat4::<f32>::from(self.control_l);
         let control_r_mat = Mat4::<f32>::from(self.control_r);
         *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
             make_bone(chest_mat * Mat4::<f32>::from(self.head)),
             make_bone(chest_mat),
-            make_bone(shorts_mat),
-            make_bone(shorts_mat * Mat4::<f32>::from(self.tail)),
+            make_bone(pants_mat),
+            make_bone(pants_mat * Mat4::<f32>::from(self.tail)),
             make_bone(control_mat * Mat4::<f32>::from(self.main)),
             make_bone(control_mat * control_l_mat * Mat4::<f32>::from(self.hand_l)),
             make_bone(control_mat * control_r_mat * Mat4::<f32>::from(self.hand_r)),
@@ -69,7 +69,7 @@ impl Skeleton for BipedSmallSkeleton {
 pub struct SkeletonAttr {
     head: (f32, f32),
     chest: (f32, f32),
-    shorts: (f32, f32),
+    pants: (f32, f32),
     tail: (f32, f32),
     hand: (f32, f32, f32),
     foot: (f32, f32, f32),
@@ -92,7 +92,7 @@ impl Default for SkeletonAttr {
         Self {
             head: (0.0, 0.0),
             chest: (0.0, 0.0),
-            shorts: (0.0, 0.0),
+            pants: (0.0, 0.0),
             tail: (0.0, 0.0),
             hand: (0.0, 0.0, 0.0),
             foot: (0.0, 0.0, 0.0),
@@ -112,6 +112,10 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Gnarling, _) => (0.0, 6.0),
                 (Mandragora, _) => (-1.0, 9.0),
                 (Kappa, _) => (8.0, 3.5),
+                (Cactid, _) => (0.0, 7.0),
+                (Gnoll, _) => (5.5, -1.0),
+                (Haniwa, _) => (0.0, 7.0),
+                (Myrmidon, _) => (0.0, 8.0),
             },
             chest: match (body.species, body.body_type) {
                 (Gnome, _) => (0.0, 9.0),
@@ -120,14 +124,22 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Gnarling, _) => (0.0, 7.5),
                 (Mandragora, _) => (0.0, 10.5),
                 (Kappa, _) => (0.0, 14.5),
+                (Cactid, _) => (0.0, 7.0),
+                (Gnoll, _) => (0.0, 15.5),
+                (Haniwa, _) => (0.0, 11.0),
+                (Myrmidon, _) => (0.0, 11.0),
             },
-            shorts: match (body.species, body.body_type) {
+            pants: match (body.species, body.body_type) {
                 (Gnome, _) => (0.0, -3.0),
                 (Sahagin, _) => (0.5, -7.0),
                 (Adlet, _) => (0.0, -3.0),
                 (Gnarling, _) => (0.0, -3.0),
                 (Mandragora, _) => (0.0, -6.5),
                 (Kappa, _) => (0.0, -3.0),
+                (Cactid, _) => (0.0, -3.0),
+                (Gnoll, _) => (0.5, -7.5),
+                (Haniwa, _) => (0.0, -3.5),
+                (Myrmidon, _) => (0.0, -3.0),
             },
             tail: match (body.species, body.body_type) {
                 (Gnome, _) => (0.0, 0.0),
@@ -136,6 +148,10 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Gnarling, _) => (-2.0, 1.5),
                 (Mandragora, _) => (0.0, -1.0),
                 (Kappa, _) => (0.0, -4.0),
+                (Cactid, _) => (0.0, 0.0),
+                (Gnoll, _) => (-2.5, -2.0),
+                (Haniwa, _) => (-4.5, -2.0),
+                (Myrmidon, _) => (-2.5, -1.0),
             },
             hand: match (body.species, body.body_type) {
                 (Gnome, _) => (4.0, 0.5, -1.0),
@@ -144,6 +160,10 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Gnarling, _) => (4.0, 0.0, 1.5),
                 (Mandragora, _) => (4.0, -0.5, -2.5),
                 (Kappa, _) => (4.0, 3.5, -0.5),
+                (Cactid, _) => (4.0, 0.5, -1.0),
+                (Gnoll, _) => (3.5, 0.5, -1.0),
+                (Haniwa, _) => (4.25, -1.0, 1.5),
+                (Myrmidon, _) => (3.5, 1.5, 2.0),
             },
             foot: match (body.species, body.body_type) {
                 (Gnome, _) => (3.0, 0.0, 4.0),
@@ -152,6 +172,10 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Gnarling, _) => (2.5, 1.0, 5.0),
                 (Mandragora, _) => (3.0, 0.0, 4.0),
                 (Kappa, _) => (3.0, 3.0, 9.0),
+                (Cactid, _) => (3.0, 0.0, 5.0),
+                (Gnoll, _) => (3.0, 1.0, 7.0),
+                (Haniwa, _) => (3.0, 0.5, 8.0),
+                (Myrmidon, _) => (3.0, 0.5, 7.0),
             },
             grip: match (body.species, body.body_type) {
                 (Gnome, _) => (0.0, 0.0, 5.0),
@@ -160,6 +184,10 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Gnarling, _) => (0.0, 0.0, 7.0),
                 (Mandragora, _) => (0.0, 0.0, 7.0),
                 (Kappa, _) => (0.75, 1.0, 12.0),
+                (Cactid, _) => (0.0, 0.0, 8.0),
+                (Gnoll, _) => (1.0, 0.0, 9.0),
+                (Haniwa, _) => (0.0, 0.5, 8.0),
+                (Myrmidon, _) => (0.0, 0.0, 8.0),
             },
         }
     }

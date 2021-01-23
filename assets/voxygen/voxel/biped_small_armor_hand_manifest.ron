@@ -1,0 +1,92 @@
+((
+    default: (
+        left: (
+            vox_spec: ("armor.hand.hand_reft_none", (-3.0, -2.0, -5.0)),
+        ),
+        right: (
+            vox_spec: ("armor.hand.hand_right_none", (-3.0, -2.0, -5.0)),
+        )
+    ),
+    map: {
+        "Gnome": (
+            left: (
+                vox_spec: ("npc.gnome.male.hand_r", (-4.0, -2.0, -5.0)),
+            ),
+            right: (
+                vox_spec: ("npc.gnome.male.hand_r", (0.0, -2.0, -5.0)),
+            )
+        ),
+        "Sahagin": (
+            left: (
+                vox_spec: ("npc.sahagin.male.hand_r", (-7.0, -4.0, -13.0)),
+            ),
+            right: (
+                vox_spec: ("npc.sahagin.male.hand_r", (0.0, -4.0, -13.0)),
+            )
+        ),
+        "Adlet": (
+            left: (
+                vox_spec: ("npc.adlet.male.hand_r", (-4.0, -2.0, -7.0)),
+            ),
+            right: (
+                vox_spec: ("npc.adlet.male.hand_r", (0.0, -2.0, -7.0)),
+            )
+        ),
+        "Gnarling": (
+            left: (
+                vox_spec: ("npc.gnarling.male.hand_r", (-3.0, -1.5, -7.0)),
+            ),
+            right: (
+                vox_spec: ("npc.gnarling.male.hand_r", (0.0, -1.5, -7.0)),
+            )
+        ),
+        "Mandragora": (
+            left: (
+                vox_spec: ("npc.mandragora.male.hand_r", (-4.0, -1.5, -7.0)),
+            ),
+            right: (
+                vox_spec: ("npc.mandragora.male.hand_r", (0.0, -1.5, -7.0)),
+            )
+        ),
+        "Kappa": (
+            left: (
+                vox_spec: ("npc.kappa.male.hand_r", (-6.0, -4.0, -12.0)),
+            ),
+            right: (
+                vox_spec: ("npc.kappa.male.hand_r", (0.0, -4.0, -12.0)),
+            )
+        ),
+        "Cactid": (
+            left: (
+                vox_spec: ("npc.cactid.male.hand_r", (-5.0, -1.5, -8.0)),
+            ),
+            right: (
+                vox_spec: ("npc.cactid.male.hand_r", (0.0, -1.5, -2.5)),
+            )
+        ),
+        "Gnoll": (
+            left: (
+                vox_spec: ("npc.gnoll.male.hand_r", (-6.0, -2.0, -9.0)),
+            ),
+            right: (
+                 vox_spec: ("npc.gnoll.male.hand_r", (0.0, -2.0, -9.0)),
+            )
+        ),
+        "Haniwa": (
+            left: (
+                vox_spec: ("npc.haniwa.male.hand_r", (-4.0, -2.0, -8.0)),
+            ),
+            right: (
+                 vox_spec: ("npc.haniwa.male.hand_r", (0.0, -2.0, -8.0)),
+            )
+        ),
+        "Myrmidon": (
+            left: (
+                vox_spec: ("npc.myrmidon.male.hand_r", (-5.0, -2.0, -9.0)),
+            ),
+            right: (
+                 vox_spec: ("npc.myrmidon.male.hand_r", (0.0, -2.0, -9.0)),
+            )
+        ),
+    },
+))

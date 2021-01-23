@@ -952,6 +952,22 @@
             kappa: (
                 keyword: "kappa",
                 generic: "Kappa"
+            ),
+            cactid: (
+                keyword: "cactid",
+                generic: "Cactid"
+            ),
+            gnoll: (
+                keyword: "gnoll",
+                generic: "Gnoll"
+            ),
+            haniwa: (
+                keyword: "haniwa",
+                generic: "Haniwa"
+            ),
+            myrmidon: (
+                keyword: "myrmidon",
+                generic: "Myrmidon"
             )
         )
     ),

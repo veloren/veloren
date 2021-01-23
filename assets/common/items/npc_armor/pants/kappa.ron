@@ -1,0 +1,12 @@
+ItemDef(
+    name: "Kappa",
+    description: "Ceremonial attire used by members.",
+    kind: Armor(
+        (
+            kind: Pants("Kappa"),
+            stats: (
+                protection: Normal(2.0)),            
+        )
+    ),
+    quality: Low,
+)

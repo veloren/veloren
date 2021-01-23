@@ -1,0 +1,12 @@
+ItemDef(
+    name: "Gnarling",
+    description: "Ceremonial attire used by members.",
+    kind: Armor(
+        (
+            kind: Hand("Gnarling"),
+            stats: (
+                protection: Normal(2.0)),            
+        )
+    ),
+    quality: Low,
+)

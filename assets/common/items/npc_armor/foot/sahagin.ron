@@ -1,0 +1,12 @@
+ItemDef(
+    name: "Sahagin",
+    description: "Ceremonial attire used by members.",
+    kind: Armor(
+        (
+            kind: Foot("Sahagin"),
+            stats: (
+                protection: Normal(2.0)),            
+        )
+    ),
+    quality: Low,
+)

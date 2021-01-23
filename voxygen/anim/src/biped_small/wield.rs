@@ -57,7 +57,7 @@ impl Animation for WieldAnimation {
             s_a.chest.1 + fastalt * 0.4 * speednormcancel + speednormcancel * -0.5,
         ) / 13.0;
 
-        next.shorts.position = Vec3::new(0.0, s_a.shorts.0, s_a.shorts.1);
+        next.pants.position = Vec3::new(0.0, s_a.pants.0, s_a.pants.1);
 
         next.tail.position = Vec3::new(0.0, s_a.tail.0, s_a.tail.1);
         next.tail.orientation = Quaternion::rotation_x(0.05 * fastalt * speednormcancel)
@@ -117,6 +117,33 @@ impl Animation for WieldAnimation {
 
                 next.control.orientation = Quaternion::rotation_x(-0.3 + 0.5 * speednorm)
                     * Quaternion::rotation_y(0.5 * speednorm);
+            },
+            Some(ToolKind::Staff) => {
+                next.control_l.position = Vec3::new(2.0 - s_a.grip.0 * 2.0, 1.0, 3.0);
+                next.control_r.position =
+                    Vec3::new(7.0 + s_a.grip.0 * 2.0, -4.0, 3.0 + speednorm * -3.0);
+
+                next.control.position = Vec3::new(
+                    -5.0,
+                    -1.0 + s_a.grip.2,
+                    -2.0 + -s_a.grip.2 / 2.5
+                        + s_a.grip.0 * -2.0
+                        + fastacc * 1.5
+                        + fastalt * 0.5 * speednormcancel
+                        + speednorm * 2.0,
+                );
+
+                next.control_l.orientation = Quaternion::rotation_x(PI / 2.0 + slow * 0.1)
+                    * Quaternion::rotation_y(-0.3)
+                    * Quaternion::rotation_z(-0.3);
+                next.control_r.orientation =
+                    Quaternion::rotation_x(PI / 2.0 + slow * 0.1 + s_a.grip.0 * 0.2)
+                        * Quaternion::rotation_y(-0.4 + slow * 0.0 + s_a.grip.0 * 0.2)
+                        * Quaternion::rotation_z(-0.0);
+
+                next.control.orientation = Quaternion::rotation_x(-0.3 + 0.2 * speednorm)
+                    * Quaternion::rotation_y(-0.2 * speednorm)
+                    * Quaternion::rotation_z(0.5);
             },
             _ => {},
         }

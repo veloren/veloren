@@ -1,0 +1,92 @@
+((
+    default: (
+        left: (
+            vox_spec: ("armor.foot.foot_right_none", (-1.5, -2.0, -4.0)),
+        ),
+        right: (
+            vox_spec: ("armor.foot.foot_right_none", (-1.5, -2.0, -4.0)),
+        )
+    ),
+    map: {
+        "Gnome": (
+            left: (
+                vox_spec: ("npc.gnome.male.foot_r", (-1.5, -2.0, -4.0)),
+            ),
+            right: (
+                vox_spec: ("npc.gnome.male.foot_r", (-1.5, -2.0, -4.0)),
+            )
+        ),
+        "Sahagin": (
+            left: (
+                vox_spec: ("npc.sahagin.male.foot_r", (-2.5, -2.0, -8.0)),
+            ),
+            right: (
+                vox_spec: ("npc.sahagin.male.foot_r", (-2.5, -2.0, -8.0)),
+            )
+        ),
+        "Adlet": (
+            left: (
+                vox_spec: ("npc.adlet.male.foot_r", (-1.5, -3.0, -7.0)),
+            ),
+            right: (
+                vox_spec: ("npc.adlet.male.foot_r", (-1.5, -3.0, -7.0)),
+            )
+        ),
+        "Gnarling": (
+            left: (
+                vox_spec: ("npc.gnarling.male.foot_r", (-1.0, -2.0, -5.0)),
+            ),
+            right: (
+                vox_spec: ("npc.gnarling.male.foot_r", (-1.0, -2.0, -5.0)),
+            )
+        ),
+        "Mandragora": (
+            left: (
+                vox_spec: ("npc.mandragora.male.foot_r", (-1.0, -1.5, -4.0)),
+            ),
+            right: (
+                vox_spec: ("npc.mandragora.male.foot_r", (-1.0, -1.5, -4.0)),
+            )
+        ),
+        "Kappa": (
+            left: (
+                vox_spec: ("npc.kappa.male.foot_r", (-2.5, -3.0, -9.0)),
+            ),
+            right: (
+                vox_spec: ("npc.kappa.male.foot_r", (-2.5, -3.0, -9.0)),
+            )
+        ),
+        "Cactid": (
+            left: (
+                vox_spec: ("npc.cactid.male.foot_r", (-1.5, -2.0, -5.0)),
+            ),
+            right: (
+                vox_spec: ("npc.cactid.male.foot_r", (-1.5, -2.0, -5.0)),
+            )
+        ),
+        "Gnoll": (
+            left: (
+                vox_spec: ("npc.gnoll.male.foot_r", (-1.5, -3.0, -7.0)),
+            ),
+            right: (
+                 vox_spec: ("npc.gnoll.male.foot_r", (-1.5, -3.0, -7.0)),
+            )
+        ),
+        "Haniwa": (
+            left: (
+                vox_spec: ("npc.haniwa.male.foot_r", (-2.0, -2.5, -8.0)),
+            ),
+            right: (
+                 vox_spec: ("npc.haniwa.male.foot_r", (-2.0, -2.5, -8.0)),
+            )
+        ),
+        "Myrmidon": (
+            left: (
+                vox_spec: ("npc.myrmidon.male.foot_r", (-1.5, -2.5, -7.0)),
+            ),
+            right: (
+                 vox_spec: ("npc.myrmidon.male.foot_r", (-1.5, -2.5, -7.0)),
+            )
+        ),
+    },
+))

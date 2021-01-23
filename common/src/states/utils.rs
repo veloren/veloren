@@ -67,7 +67,7 @@ impl Body {
                 quadruped_medium::Species::Panda => 180.0,
                 quadruped_medium::Species::Bear => 180.0,
             },
-            Body::BipedSmall(_) => 100.0,
+            Body::BipedSmall(_) => 80.0,
             Body::BirdMedium(_) => 80.0,
             Body::FishMedium(_) => 80.0,
             Body::Dragon(_) => 250.0,

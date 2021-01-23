@@ -48,10 +48,8 @@ impl Animation for ShootAnimation {
         let mut next = (*skeleton).clone();
         let speed = Vec2::<f32>::from(velocity).magnitude();
 
-        let fastacc = (acc_vel * 2.0).sin();
         let fast = (anim_time as f32 * 10.0).sin();
         let fastalt = (anim_time as f32 * 10.0 + PI / 2.0).sin();
-        let slow = (anim_time as f32 * 2.0).sin();
 
         let speednorm = speed / 9.4;
         let speednormcancel = 1.0 - speednorm;
@@ -69,7 +67,7 @@ impl Animation for ShootAnimation {
             s_a.chest.1 + fastalt * 0.4 * speednormcancel + speednormcancel * -0.5,
         ) / 13.0;
 
-        next.shorts.position = Vec3::new(0.0, s_a.shorts.0, s_a.shorts.1);
+        next.pants.position = Vec3::new(0.0, s_a.pants.0, s_a.pants.1);
 
         next.tail.position = Vec3::new(0.0, s_a.tail.0, s_a.tail.1);
         next.tail.orientation = Quaternion::rotation_x(0.05 * fastalt * speednormcancel)
@@ -96,8 +94,6 @@ impl Animation for ShootAnimation {
                 let subtract = global_time - timer;
                 let check = subtract - subtract.trunc();
                 let mirror = (check - 0.5).signum() as f32;
-                let movement1 = mirror * movement1base * pullback;
-                let movement2 = mirror * movement2base * pullback;
                 let movement1abs = movement1base * pullback;
                 let movement2abs = movement2base * pullback;
                 next.control_l.position = Vec3::new(

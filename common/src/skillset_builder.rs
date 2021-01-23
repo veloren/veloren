@@ -8,6 +8,11 @@ use tracing::warn;
 
 #[derive(Copy, Clone)]
 pub enum SkillSetConfig {
+    Adlet,
+    Gnarling,
+    Sahagin,
+    Haniwa,
+    Myrmidon,
     Guard,
     Villager,
     Outcast,
@@ -38,6 +43,81 @@ impl SkillSetBuilder {
 
         use SkillSetConfig::*;
         match config {
+            Some(Adlet) => {
+                match active_item {
+                    Some(ToolKind::Bow) => {
+                        // Bow
+                        Self::default()
+                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Bow))
+                            .with_skill(Skill::Bow(BowSkill::BDamage))
+                            .with_skill(Skill::Bow(BowSkill::CDamage))
+                            .with_skill(Skill::Bow(BowSkill::CKnockback))
+                            .with_skill(Skill::Bow(BowSkill::CSpeed))
+                            .with_skill(Skill::Bow(BowSkill::CMove))
+                    },
+                    _ => Self::default(),
+                }
+            },
+            Some(Gnarling) => {
+                match active_item {
+                    Some(ToolKind::Bow) => {
+                        // Bow
+                        Self::default()
+                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Bow))
+                            .with_skill(Skill::Bow(BowSkill::BDamage))
+                            .with_skill(Skill::Bow(BowSkill::CDamage))
+                            .with_skill(Skill::Bow(BowSkill::CKnockback))
+                            .with_skill(Skill::Bow(BowSkill::CSpeed))
+                            .with_skill(Skill::Bow(BowSkill::CMove))
+                    },
+                    _ => Self::default(),
+                }
+            },
+            Some(Sahagin) => {
+                match active_item {
+                    Some(ToolKind::Bow) => {
+                        // Bow
+                        Self::default()
+                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Bow))
+                            .with_skill(Skill::Bow(BowSkill::BDamage))
+                            .with_skill(Skill::Bow(BowSkill::CDamage))
+                            .with_skill(Skill::Bow(BowSkill::CKnockback))
+                            .with_skill(Skill::Bow(BowSkill::CSpeed))
+                            .with_skill(Skill::Bow(BowSkill::CMove))
+                    },
+                    _ => Self::default(),
+                }
+            },
+            Some(Haniwa) => {
+                match active_item {
+                    Some(ToolKind::Bow) => {
+                        // Bow
+                        Self::default()
+                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Bow))
+                            .with_skill(Skill::Bow(BowSkill::BDamage))
+                            .with_skill(Skill::Bow(BowSkill::CDamage))
+                            .with_skill(Skill::Bow(BowSkill::CKnockback))
+                            .with_skill(Skill::Bow(BowSkill::CSpeed))
+                            .with_skill(Skill::Bow(BowSkill::CMove))
+                    },
+                    _ => Self::default(),
+                }
+            },
+            Some(Myrmidon) => {
+                match active_item {
+                    Some(ToolKind::Bow) => {
+                        // Bow
+                        Self::default()
+                            .with_skill_group(SkillGroupKind::Weapon(ToolKind::Bow))
+                            .with_skill(Skill::Bow(BowSkill::BDamage))
+                            .with_skill(Skill::Bow(BowSkill::CDamage))
+                            .with_skill(Skill::Bow(BowSkill::CKnockback))
+                            .with_skill(Skill::Bow(BowSkill::CSpeed))
+                            .with_skill(Skill::Bow(BowSkill::CMove))
+                    },
+                    _ => Self::default(),
+                }
+            },
             Some(Guard) => {
                 if let Some(ToolKind::Sword) = active_item {
                     // Sword

@@ -1,0 +1,12 @@
+ItemDef(
+    name: "Myrmidon",
+    description: "Ceremonial attire used by members.",
+    kind: Armor(
+        (
+            kind: Pants("Myrmidon"),
+            stats: (
+                protection: Normal(2.0)),            
+        )
+    ),
+    quality: Low,
+)
