@@ -185,7 +185,7 @@ void main() {
             sin(tick.x * 1.5 + f_pos.y * 0.1) * sin(tick.x * 0.35),
             sin(tick.x * 1.5 + f_pos.x * 0.1) * sin(tick.x * 0.25),
             0.0
-            ) * pow(abs(v_pos_.z/* + sprites[0].offs.z*/)/* * SCALE*/, 1.3) * /*0.2;*/SCALE_FACTOR;
+            ) * 4 * v_pos_.z * /*0.2;*/SCALE_FACTOR;
     }
 
     // First 3 normals are negative, next 3 are positive
