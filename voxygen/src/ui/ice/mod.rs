@@ -105,19 +105,17 @@ impl IcedUi {
             // Scale cursor movement events
             // Note: in some cases the scaling could be off if a resized event occured in the same
             // frame, in practice this shouldn't be an issue
-            Event::Mouse(mouse::Event::CursorMoved { x, y }) => {
+            Event::Mouse(mouse::Event::CursorMoved { position }) => {
                 // TODO: return f32 here
                 let scale = self.scale.scale_factor_logical() as f32;
+                let x = position.x / scale;
+                let y = position.y / scale;
                 // TODO: determine why iced moved cursor position out of the `Cache` and if we
                 // may need to handle this in a different way to address
                 // whatever issue iced was trying to address
-                self.cursor_position = Vec2 {
-                    x: x / scale,
-                    y: y / scale,
-                };
+                self.cursor_position = Vec2::new(x, y);
                 self.events.push(Event::Mouse(mouse::Event::CursorMoved {
-                    x: x / scale,
-                    y: y / scale,
+                    position: iced::Point::new(x, y),
                 }));
             },
             // Scale pixel scrolling events
@@ -183,17 +181,21 @@ impl IcedUi {
         );
         drop(guard);
 
-        span!(guard, "update user_interface");
-        let messages = user_interface.update(
-            &self.events,
-            cursor_position,
-            match clipboard {
-                Some(c) => Some(c),
-                None => None,
-            },
-            &self.renderer,
-        );
-        drop(guard);
+        let messages = {
+            span!(_guard, "update user_interface");
+            let mut messages = Vec::new();
+            let _event_status_list = user_interface.update(
+                &self.events,
+                cursor_position,
+                match clipboard {
+                    Some(c) => Some(c),
+                    None => None,
+                },
+                &self.renderer,
+                &mut messages,
+            );
+            messages
+        };
         // Clear events
         self.events.clear();
 
