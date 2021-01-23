@@ -3142,9 +3142,9 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    &self.localized_strings.get("hud.skill.sc_damage_title"),
+                    &self.localized_strings.get("hud.skill.sc_beam_damage_title"),
                     &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.sc_damage"),
+                        &self.localized_strings.get("hud.skill.sc_beam_damage"),
                         skill,
                         &self.stats.skill_set,
                         &self.localized_strings,
