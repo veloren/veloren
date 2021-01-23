@@ -1,0 +1,15 @@
+ItemDef(
+    name: "Twitching Root",
+    description: "Sparkles from living energy.",      
+    kind: Tool(
+        (
+            kind: Sceptre,    
+            stats: (
+                equip_time_millis: 400,
+                power: 3.5,
+                speed: 0.4
+            ),            
+        )
+    ),
+    quality: Moderate,
+)

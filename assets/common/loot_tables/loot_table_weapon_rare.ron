@@ -16,8 +16,9 @@
     (0.20, "common.items.weapons.axe.bloodsteel_axe-2"),
     (0.30, "common.items.weapons.axe.cobalt_axe-0"),
     (0.10, "common.items.weapons.axe.malachite_axe-0"),
-    // healing staff
-    (0.25, "common.items.weapons.sceptre.staff_nature"),
+    // healing staff    
+    (0.15, "common.items.weapons.sceptre.loops0"),
+    (0.10, "common.items.weapons.sceptre.fork0"),
     // staves
     (1.00, "common.items.weapons.staff.amethyst_staff"),
     // hammers

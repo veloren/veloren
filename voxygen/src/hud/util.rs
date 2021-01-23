@@ -109,16 +109,18 @@ fn tool_desc(tool: &Tool, desc: &str) -> String {
 
     if !desc.is_empty() {
         format!(
-            "{}\n\nPower: {:0.1}\n\nSpeed: {:0.1}\n\n{}\n\n<Right-Click to use>",
+            "{}\n\nDPS: {:0.1}\n\nPower: {:0.1}\n\nSpeed: {:0.1}\n\n{}\n\n<Right-Click to use>",
             kind,
+            speed * power * 10.0, // Damage per second
             power * 10.0,
             speed,
             desc
         )
     } else {
         format!(
-            "{}\n\nPower: {:0.1}\n\nSpeed: {:0.1}\n\n<Right-Click to use>",
+            "{}\n\nDPS: {:0.1}\n\nPower: {:0.1}\n\nSpeed: {:0.1}\n\n<Right-Click to use>",
             kind,
+            speed * power * 10.0, // Damage per second
             power * 10.0,
             speed
         )

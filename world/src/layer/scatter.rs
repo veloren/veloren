@@ -161,7 +161,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
         (LongGrass, false, |c, _| {
             (
                 close(c.temp, 0.3, 0.35).min(close(c.humidity, CONFIG.jungle_hum, 0.3)) * 0.15,
-                Some((48.0, 0.2)),
+                Some((45.0, 0.5)),
             )
         }),
         // Jungle Sprites
