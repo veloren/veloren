@@ -975,19 +975,19 @@ impl CharacterAbility {
                         ..
                     } => {
                         if let Ok(Some(level)) = skillset.skill_level(Sceptre(BHeal)) {
-                            *base_hps = (*base_hps as f32 * 1.2_f32.powi(level.into())) as u32;
+                            *base_hps = (*base_hps as f32 * 1.15_f32.powi(level.into())) as u32;
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Sceptre(BDamage)) {
-                            *base_dps = (*base_dps as f32 * 1.3_f32.powi(level.into())) as u32;
+                            *base_dps = (*base_dps as f32 * 1.25_f32.powi(level.into())) as u32;
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Sceptre(BRange)) {
-                            let range_mod = 1.25_f32.powi(level.into());
+                            let range_mod = 1.20_f32.powi(level.into());
                             *range *= range_mod;
                             // Duration modified to keep velocity constant
                             *beam_duration = (*beam_duration as f32 * range_mod) as u64;
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Sceptre(BLifesteal)) {
-                            *lifesteal_eff *= 1.5_f32.powi(level.into());
+                            *lifesteal_eff *= 1.25_f32.powi(level.into());
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Sceptre(BRegen)) {
                             *energy_regen =
@@ -1017,14 +1017,14 @@ impl CharacterAbility {
                                 .skill_level(Sceptre(PRadius))
                                 .unwrap_or(None)
                                 .unwrap_or(0);
-                            let heal = 1.2_f32.powi(heal_level.into());
+                            let heal = 1.15_f32.powi(heal_level.into());
                             let power = 1.2_f32.powi(damage_level.into());
-                            let range = 1.4_f32.powi(range_level.into());
+                            let range = 1.3_f32.powi(range_level.into());
                             *projectile = projectile.modified_projectile(power, 1_f32, range, heal);
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Sceptre(PCost)) {
                             *energy_cost =
-                                (*energy_cost as f32 * 0.8_f32.powi(level.into())) as u32;
+                                (*energy_cost as f32 * 0.85_f32.powi(level.into())) as u32;
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Sceptre(PProjSpeed)) {
                             *projectile_speed *= 1.25_f32.powi(level.into());
