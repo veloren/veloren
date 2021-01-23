@@ -54,8 +54,8 @@ pub struct Data {
     pub auto_charge: bool,
     /// Timer for each stage
     pub timer: Duration,
-    /// Timer used to limit how often another attack will be applied
-    pub refresh_timer: Duration,
+    /// Distance used to limit how often another attack will be applied
+    pub refresh_distance: f32,
     /// What section the character stage is in
     pub stage_section: StageSection,
     /// Whether the state should attempt attacking again
@@ -149,16 +149,14 @@ impl CharacterBehavior for Data {
                             exhausted: true,
                             ..*self
                         })
-                    } else if self.refresh_timer < Duration::from_millis(50) {
+                    } else if self.refresh_distance < self.static_data.range * 0.5 {
                         update.character = CharacterState::DashMelee(Data {
                             timer: self
                                 .timer
                                 .checked_add(Duration::from_secs_f32(data.dt.0))
                                 .unwrap_or_default(),
-                            refresh_timer: self
-                                .refresh_timer
-                                .checked_add(Duration::from_secs_f32(data.dt.0))
-                                .unwrap_or_default(),
+                            refresh_distance: self.refresh_distance
+                                + data.dt.0 * data.vel.0.magnitude(),
                             ..*self
                         })
                     } else {
@@ -167,7 +165,7 @@ impl CharacterBehavior for Data {
                                 .timer
                                 .checked_add(Duration::from_secs_f32(data.dt.0))
                                 .unwrap_or_default(),
-                            refresh_timer: Duration::default(),
+                            refresh_distance: 0.0,
                             exhausted: false,
                             ..*self
                         })
