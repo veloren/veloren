@@ -6,8 +6,8 @@ ItemDef(
             kind: Sceptre,    
             stats: (
                 equip_time_millis: 400,
-                power: 1.0,
-                speed: 1.0
+                power: 0.91,
+                speed: 1.1
                 ),            
         )
     ),

@@ -651,10 +651,34 @@
         vox_spec: ("weapon.sceptre.wood-simple", (-1.5, -2.5, -6.0)),
         color: None
     ),
+    "common.items.weapons.sceptre.moon0": (
+        vox_spec: ("weapon.sceptre.moon", (-1.5, -2.5, -6.0)),
+        color: None
+    ),
     "common.items.weapons.sceptre.staff_nature": (
         vox_spec: ("weapon.sceptre.wood-nature", (-1.0, -6.0, -5.0)),
         color: None
     ),
+    "common.items.weapons.sceptre.totem_green": (
+        vox_spec: ("weapon.sceptre.totem_green", (-1.5, -2.5, -6.0)),
+        color: None
+    ),
+    "common.items.weapons.sceptre.root_green0": (
+        vox_spec: ("weapon.sceptre.root_green", (-1.5, -2.5, -6.0)),
+        color: None
+    ),
+    "common.items.weapons.sceptre.fork0": (
+        vox_spec: ("weapon.sceptre.fork", (-1.5, -2.5, -6.0)),
+        color: None
+    ),
+    "common.items.weapons.sceptre.loops0": (
+        vox_spec: ("weapon.sceptre.loops", (-1.5, -2.5, -6.0)),
+        color: None
+    ),
+    "common.items.weapons.sceptre.root_evil": (
+        vox_spec: ("weapon.sceptre.root_evil", (-1.5, -2.5, -6.0)),
+        color: None
+    ),    
     "common.items.weapons.sceptre.sceptre_velorite_0": (
         vox_spec: ("weapon.sceptre.ore-nature", (-2.0, -6.0, -5.0)),
         color: None

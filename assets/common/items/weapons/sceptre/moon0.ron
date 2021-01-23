@@ -1,0 +1,15 @@
+ItemDef(
+    name: "Crescent Saviour",
+    description: "Trusty companion by day and night.",      
+    kind: Tool(
+        (
+            kind: Sceptre,    
+            stats: (
+                equip_time_millis: 400,
+                power: 1.6,
+                speed: 0.5
+            ),            
+        )
+    ),
+    quality: Common,
+)

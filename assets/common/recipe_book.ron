@@ -202,11 +202,11 @@
             ("common.items.crafting_tools.sewing_set", 0),
         ],
     ),
-    "velorite_sceptre": (
-        ("common.items.weapons.sceptre.sceptre_velorite_0", 1),
+    "Soothing Loop": (
+        ("common.items.weapons.sceptre.loops0", 1),
         [
             ("common.items.crafting_ing.twigs", 20),
-            ("common.items.ore.veloritefrag", 10),
+            ("common.items.ore.veloritefrag", 8),
             ("common.items.crafting_ing.shiny_gem", 4),
             ("common.items.crafting_tools.craftsman_hammer", 0),
         ],

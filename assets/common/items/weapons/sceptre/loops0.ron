@@ -1,15 +1,15 @@
 ItemDef(
-    name: "Velorite Sceptre",
-    description: "Heals your allies with the mystical Velorite aura.",      
+    name: "Soothing Loop",
+    description: "Do you really want to live forever?",      
     kind: Tool(
         (
             kind: Sceptre,    
             stats: (
                 equip_time_millis: 400,
                 power: 1.2,
-                speed: 1.6
+                speed: 1.5
             ),            
         )
     ),
-    quality: Epic,
+    quality: High,
 )

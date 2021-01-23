@@ -40,6 +40,8 @@
     (0.04, "common.items.weapons.axe.steel_axe-6"),
     // healing staff
     (0.5, "common.items.weapons.sceptre.staff_nature"),
+    (0.15, "common.items.weapons.sceptre.root_green0"),
+    (0.25, "common.items.weapons.sceptre.totem_green"),
     // staves
     (1.00, "common.items.weapons.staff.bone_staff"),
     // hammers

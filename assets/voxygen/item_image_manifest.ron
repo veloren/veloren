@@ -614,15 +614,39 @@
         "voxel.weapon.staff.firestaff_cultist",
         (1.0, 0.0, 0.0), (-130., 90.0, 0.0), 1.2,
     ),
-    // Healing staff
-    Tool("common.items.weapons.sceptre.staff_nature"): VoxTrans(
-        "voxel.weapon.sceptre.wood-nature",
-        (1.0, -1.0, 0.0), (-130., 90.0, 0.0), 1.2,
-    ),
+    // Healing Sceptres
     Tool("common.items.weapons.sceptre.starter_sceptre"): VoxTrans(
         "voxel.weapon.sceptre.wood-simple",
         (0.0, -0.0, 0.0), (-130., 90.0, 0.0), 1.25,
     ),
+    Tool("common.items.weapons.sceptre.moon0"): VoxTrans(
+        "voxel.weapon.sceptre.moon",
+        (1.0, -1.0, 0.0), (-130., 90.0, 0.0), 1.2,
+    ),
+    Tool("common.items.weapons.sceptre.staff_nature"): VoxTrans(
+        "voxel.weapon.sceptre.wood-nature",
+        (1.0, -1.0, 0.0), (-130., 90.0, 0.0), 1.2,
+    ),
+    Tool("common.items.weapons.sceptre.totem_green"): VoxTrans(
+        "voxel.weapon.sceptre.totem_green",
+        (1.0, -1.0, 0.0), (-130., 90.0, 0.0), 1.2,
+    ), 
+    Tool("common.items.weapons.sceptre.root_green0"): VoxTrans(
+        "voxel.weapon.sceptre.root_green",
+        (1.0, -1.0, 0.0), (-130., 90.0, 0.0), 1.2,
+    ), 
+    Tool("common.items.weapons.sceptre.fork0"): VoxTrans(
+        "voxel.weapon.sceptre.fork",
+        (1.0, -1.0, 0.0), (-130., 90.0, 0.0), 1.2,
+    ), 
+    Tool("common.items.weapons.sceptre.loops0"): VoxTrans(
+        "voxel.weapon.sceptre.loops",
+        (1.0, -1.0, 0.0), (-130., 90.0, 0.0), 1.2,
+    ), 
+    Tool("common.items.weapons.sceptre.root_evil"): VoxTrans(
+        "voxel.weapon.sceptre.root_evil",
+        (1.0, -1.0, 0.0), (-130., 90.0, 0.0), 1.2,
+    ), 
      Tool("common.items.weapons.sceptre.sceptre_velorite_0"): VoxTrans(
         "voxel.weapon.sceptre.ore-nature",
         (1.0, -1.0, 0.0), (-130., 90.0, 0.0), 1.15,
