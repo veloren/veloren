@@ -31,16 +31,16 @@ anim = {package = "veloren-voxygen-anim", path = "anim", default-features = fals
 gfx = "0.18.2"
 gfx_device_gl = {version = "0.16.2", optional = true}
 gfx_gl = {version = "0.6.1", optional = true}
-glutin = "0.25.1"
-old_school_gfx_glutin_ext = "0.25"
-winit = {version = "0.23.0", features = ["serde"]}
+glutin = "0.26.0"
+old_school_gfx_glutin_ext = "0.26"
+winit = {version = "0.24.0", features = ["serde"]}
 
 # Ui
 conrod_core = {git = "https://gitlab.com/veloren/conrod.git", branch="copypasta_0.7"}
 conrod_winit = {git = "https://gitlab.com/veloren/conrod.git", branch="copypasta_0.7"}
 euc = {git = "https://github.com/zesterer/euc.git"}
-iced = {package = "iced_native", git = "https://github.com/hecrj/iced", rev = "f464316"}
-iced_winit = {git = "https://github.com/hecrj/iced", rev = "f464316"}
+iced = {package = "iced_native", git = "https://github.com/hecrj/iced", rev = "8d882d787e6b7fd7c2435f42f82933e2ed904edf"}
+iced_winit = {git = "https://github.com/hecrj/iced", rev = "8d882d787e6b7fd7c2435f42f82933e2ed904edf"}
 window_clipboard = "0.1.1"
 glyph_brush = "0.7.0"
 
