@@ -51,8 +51,11 @@ where
         _messages: &mut Vec<M>,
         _renderer: &R,
         _clipboard: Option<&dyn Clipboard>,
-    ) {
-        if let Event::Mouse(mouse::Event::CursorMoved { x, y }) = event {
+    ) -> iced::event::Status {
+        if let Event::Mouse(mouse::Event::CursorMoved {
+            position: Point { x, y },
+        }) = event
+        {
             let bounds = layout.bounds();
             let mouse_over = x > bounds.x
                 && x < bounds.x + bounds.width
@@ -62,6 +65,8 @@ where
                 self.state.mouse_over = mouse_over;
             }
         }
+
+        iced::event::Status::Ignored
     }
 
     fn draw(

@@ -64,7 +64,7 @@ coverage:
 .tmacos:
   script:
     - ln -s /dockercache/cache-release-macos target
-    - VELOREN_USERDATA_STRATEGY=executable PATH="/dockercache/osxcross/target/bin:$PATH" COREAUDIO_SDK_PATH=/dockercache/osxcross/target/SDK/MacOSX10.13.sdk CC=o64-clang CXX=o64-clang++ cargo build --target x86_64-apple-darwin --release
+    - VELOREN_USERDATA_STRATEGY=executable WINIT_LINK_COLORSYNC=true PATH="/dockercache/osxcross/target/bin:$PATH" COREAUDIO_SDK_PATH=/dockercache/osxcross/target/SDK/MacOSX10.13.sdk CC=o64-clang CXX=o64-clang++ cargo build --target x86_64-apple-darwin --release
     - cp -r target/x86_64-apple-darwin/release/veloren-server-cli $CI_PROJECT_DIR
     - cp -r target/x86_64-apple-darwin/release/veloren-voxygen $CI_PROJECT_DIR
   artifacts:
