@@ -876,6 +876,148 @@ Fern: Some((
     wind_sway: 0.4,
 )),
 
+// Savanna Flora
+SavannaGrass: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.grass.grass_savanna-0",
+            offset: (-6.0, -6.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.grass.grass_savanna-1",
+            offset: (-6.0, -6.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.grass.grass_savanna-2",
+            offset: (-6.0, -6.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.grass.grass_savanna-3",
+            offset: (-6.0, -6.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+		(
+            model: "voxygen.voxel.sprite.grass.grass_savanna-4",
+            offset: (-6.0, -6.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+		(
+            model: "voxygen.voxel.sprite.grass.grass_savanna-5",
+            offset: (-6.0, -6.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+		(
+            model: "voxygen.voxel.sprite.grass.grass_savanna-6",
+            offset: (-6.0, -6.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+	wind_sway: 0.5,
+)),
+TallSavannaGrass: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.grass.grass_savanna_tall-0",
+            offset: (-6.0, -6.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.grass.grass_savanna_tall-1",
+            offset: (-6.0, -6.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.grass.grass_savanna_tall-2",
+            offset: (-6.0, -6.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.grass.grass_savanna_tall-3",
+            offset: (-6.0, -6.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+		(
+            model: "voxygen.voxel.sprite.grass.grass_savanna_tall-4",
+            offset: (-6.0, -6.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+		(
+            model: "voxygen.voxel.sprite.grass.grass_savanna_tall-5",
+            offset: (-6.0, -6.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+		(
+            model: "voxygen.voxel.sprite.grass.grass_savanna_tall-6",
+            offset: (-6.0, -6.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+	wind_sway: 0.8,
+)),
+RedSavannaGrass: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.grass.grass_savanna_red-0",
+            offset: (-6.0, -6.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.grass.grass_savanna_red-1",
+            offset: (-6.0, -6.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.grass.grass_savanna_red-2",
+            offset: (-6.0, -6.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.grass.grass_savanna_red-3",
+            offset: (-6.0, -6.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+	wind_sway: 0.8,
+)),
+SavannaBush: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.savanna_bush.1",
+            offset: (-6.0, -6.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.savanna_bush.2",
+            offset: (-6.0, -6.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.savanna_bush.3",
+            offset: (-6.0, -6.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.savanna_bush.4",
+            offset: (-6.0, -6.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+		(
+            model: "voxygen.voxel.sprite.savanna_bush.5",
+            offset: (-6.0, -6.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+		(
+            model: "voxygen.voxel.sprite.savanna_bush.6",
+            offset: (-6.0, -6.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.1,
+)),
+
 // Dead Bush
 DeadBush: Some((
     variations: [

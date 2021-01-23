@@ -111,6 +111,10 @@ make_case_elim!(
         FireBowlGround = 0x54,
         CaveMushroom = 0x55,
         Bowl = 0x56,
+        SavannaGrass = 0x57,
+        TallSavannaGrass = 0x58,
+        RedSavannaGrass = 0x59,
+        SavannaBush = 0x5A,
     }
 );
 

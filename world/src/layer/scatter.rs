@@ -193,6 +193,31 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 Some((48.0, 0.2)),
             )
         }),
+        // Savanna Plants
+        (SavannaGrass, false, |c, _| {
+            (
+                close(c.temp, 1.0, 0.90).min(close(c.humidity, 0.2, 0.25)) * 0.015,
+                Some((45.0, 0.5)),
+            )
+        }),
+        (TallSavannaGrass, false, |c, _| {
+            (
+                close(c.temp, 1.0, 0.90).min(close(c.humidity, 0.2, 0.25)) * 0.15,
+                Some((45.0, 0.5)),
+            )
+        }),
+        (RedSavannaGrass, false, |c, _| {
+            (
+                close(c.temp, 1.0, 0.90).min(close(c.humidity, 0.2, 0.25)) * MUSH_FACT * 7.5,
+                None,
+            )
+        }),
+        (SavannaBush, false, |c, _| {
+            (
+                close(c.temp, 1.0, 0.90).min(close(c.humidity, 0.2, 0.25)) * MUSH_FACT * 7.5,
+                None,
+            )
+        }),
         // Desert Plants
         (DeadBush, false, |c, _| {
             (
