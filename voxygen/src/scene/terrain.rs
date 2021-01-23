@@ -356,11 +356,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                                         let mut opaque_mesh = Mesh::new();
                                         Meshable::<SpritePipeline, &mut GreedyMesh>::generate_mesh(
                                             Segment::from(&model.read().0).scaled_by(lod_scale),
-                                            (
-                                                greedy,
-                                                &mut opaque_mesh,
-                                                wind_sway >= 0.4 && lod_scale_orig == 1.0,
-                                            ),
+                                            (greedy, &mut opaque_mesh, false),
                                         );
                                         let model = renderer.create_model(&opaque_mesh).expect(
                                             "Failed to upload sprite model data to the GPU!",
