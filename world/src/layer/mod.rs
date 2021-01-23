@@ -107,7 +107,7 @@ pub fn apply_paths_to(canvas: &mut Canvas) {
     });
 }
 
-pub fn apply_caves_to(canvas: &mut Canvas) {
+pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
     let info = canvas.info();
     canvas.foreach_col(|canvas, wpos2d, col| {
         let surface_z = col.riverless_alt.floor() as i32;
@@ -178,13 +178,11 @@ pub fn apply_caves_to(canvas: &mut Canvas) {
             let difficulty = cave_depth / 100.0;
 
             // Scatter things in caves
-            if RandomField::new(info.index().seed)
-                .chance(wpos2d.into(), 0.001 * difficulty.powf(1.5))
-                && cave_base < surface_z as i32 - 25
+            if rng.gen::<f32>() < 0.001 * difficulty.powf(1.5) && cave_base < surface_z as i32 - 25
             {
-                let lottery = Lottery::<SpriteKind>::load_expect("common.cave_scatter").read();
-                let kind = *lottery
-                    .choose_seeded(RandomField::new(info.index().seed + 1).get(wpos2d.into()));
+                let kind = *Lottery::<SpriteKind>::load_expect("common.cave_scatter")
+                    .read()
+                    .choose();
                 canvas.map(Vec3::new(wpos2d.x, wpos2d.y, cave_base), |block| {
                     block.with_sprite(kind)
                 });
