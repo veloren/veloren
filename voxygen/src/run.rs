@@ -1,5 +1,6 @@
 use crate::{
     menu::main::MainMenuState,
+    settings::get_fps,
     ui,
     window::{Event, EventLoop},
     Direction, GlobalState, PlayState, PlayStateResult,
@@ -177,7 +178,7 @@ fn handle_main_events_cleared(
         // Wait for the next tick.
         span!(guard, "Main thread sleep");
         global_state.clock.set_target_dt(Duration::from_secs_f64(
-            1.0 / global_state.settings.graphics.max_fps as f64,
+            1.0 / get_fps(global_state.settings.graphics.max_fps) as f64,
         ));
         global_state.clock.tick();
         drop(guard);

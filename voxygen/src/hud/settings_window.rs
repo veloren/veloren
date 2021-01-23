@@ -10,6 +10,7 @@ use crate::{
         AaMode, CloudMode, FluidMode, LightingMode, RenderMode, ShadowMapMode, ShadowMode,
         UpscaleMode,
     },
+    settings::Fps,
     ui::{fonts::Fonts, ImageSlider, ScaleMode, ToggleButton},
     window::{FullScreenSettings, FullscreenMode, GameInput},
     GlobalState,
@@ -27,7 +28,20 @@ use itertools::Itertools;
 use std::iter::once;
 use winit::monitor::VideoMode;
 
-const FPS_CHOICES: [u32; 11] = [15, 30, 40, 50, 60, 90, 120, 144, 240, 300, 500];
+const FPS_CHOICES: [Fps; 12] = [
+    Fps::Max(15),
+    Fps::Max(30),
+    Fps::Max(40),
+    Fps::Max(50),
+    Fps::Max(60),
+    Fps::Max(90),
+    Fps::Max(120),
+    Fps::Max(144),
+    Fps::Max(240),
+    Fps::Max(300),
+    Fps::Max(500),
+    Fps::Unlimited,
+];
 
 widget_ids! {
     struct Ids {
@@ -298,7 +312,7 @@ pub enum Event {
     AdjustMusicVolume(f32),
     AdjustSfxVolume(f32),
     //ChangeAudioDevice(String),
-    MaximumFPS(u32),
+    MaximumFPS(Fps),
     CrosshairTransp(f32),
     CrosshairType(CrosshairType),
     UiScale(ScaleChange),
@@ -1794,7 +1808,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                     .position(|&x| x == self.global_state.settings.graphics.max_fps)
                     .unwrap_or(5),
                 0,
-                10,
+                FPS_CHOICES.len() - 1,
                 self.imgs.slider_indicator,
                 self.imgs.slider,
             )
@@ -1808,7 +1822,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 events.push(Event::MaximumFPS(FPS_CHOICES[which]));
             }
 
-            Text::new(&format!("{}", self.global_state.settings.graphics.max_fps))
+            Text::new(&self.global_state.settings.graphics.max_fps.to_string())
                 .right_from(state.ids.max_fps_slider, 8.0)
                 .font_size(self.fonts.cyri.scale(14))
                 .font_id(self.fonts.cyri.conrod_id)
