@@ -1969,3 +1969,70 @@ impl Drop for Client {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    /// THIS TEST VERIFIES THE CONSTANT API.
+    /// CHANGING IT WILL BREAK 3rd PARTY APPLICATIONS (please extend) which
+    /// needs to be informed (or fixed)
+    ///  - torvus: https://gitlab.com/veloren/torvus
+    /// CONTACT @Core Developer BEFORE MERGING CHANGES TO THIS TEST
+    fn constant_api_test() {
+        use common::clock::Clock;
+        use std::net::{IpAddr, Ipv4Addr};
+
+        const SPT: f64 = 1.0 / 60.0;
+
+        let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 9000);
+        let view_distance: Option<u32> = None;
+        let veloren_client: Result<Client, Error> = Client::new(socket, view_distance);
+
+        let _ = veloren_client.map(|mut client| {
+            //register
+            let username: String = "Foo".to_string();
+            let password: String = "Bar".to_string();
+            let auth_server: String = "auth.veloren.net".to_string();
+            let _result: Result<(), Error> =
+                client.register(username, password, |suggestion: &str| {
+                    suggestion == auth_server
+                });
+
+            //clock
+            let mut clock = Clock::new(Duration::from_secs_f64(SPT));
+
+            //tick
+            let events_result: Result<Vec<Event>, Error> =
+                client.tick(comp::ControllerInputs::default(), clock.dt(), |_| {});
+
+            //chat functionality
+            client.send_chat("foobar".to_string());
+
+            let _ = events_result.map(|mut events| {
+                // event handling
+                if let Some(event) = events.pop() {
+                    match event {
+                        Event::Chat(msg) => {
+                            let msg: comp::ChatMsg = msg;
+                            let _s: String = client.format_message(&msg, true);
+                        },
+                        Event::Disconnect => {},
+                        Event::DisconnectionNotification(_) => {
+                            tracing::debug!("Will be disconnected soon! :/")
+                        },
+                        Event::Notification(notification) => {
+                            let notification: Notification = notification;
+                            tracing::debug!("Notification: {:?}", notification);
+                        },
+                        _ => {},
+                    }
+                };
+            });
+
+            client.cleanup();
+            clock.tick();
+        });
+    }
+}
