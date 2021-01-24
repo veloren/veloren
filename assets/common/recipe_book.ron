@@ -48,7 +48,7 @@
         ("common.items.utility.collar", 1),
         [
             ("common.items.crafting_ing.leather_scraps", 5),
-            ("common.items.crafting_ing.shiny_gem", 1),
+            ("common.items.crafting_ing.diamond", 1),
         ],
     ),
     "bomb_coconut": (
@@ -160,7 +160,7 @@
             ("common.items.crafting_ing.twigs", 5),
             ("common.items.crafting_ing.leather_scraps", 5),
             ("common.items.crafting_ing.cloth_scraps", 5),
-            ("common.items.crafting_ing.shiny_gem", 1),
+            ("common.items.crafting_ing.diamond", 1),
             ("common.items.crafting_tools.craftsman_hammer", 0),
             ("common.items.crafting_tools.sewing_set", 0),
         ],
@@ -172,7 +172,7 @@
             ("common.items.crafting_ing.twigs", 5),
             ("common.items.crafting_ing.leather_scraps", 5),
             ("common.items.crafting_ing.cloth_scraps", 5),
-            ("common.items.crafting_ing.shiny_gem", 1),
+            ("common.items.crafting_ing.diamond", 1),
             ("common.items.crafting_tools.craftsman_hammer", 0),
             ("common.items.crafting_tools.sewing_set", 0),
         ],
@@ -185,7 +185,7 @@
             ("common.items.crafting_ing.leather_scraps", 5),
             ("common.items.crafting_ing.cloth_scraps", 5),
             ("common.items.crafting_ing.icy_fang", 1),
-            ("common.items.crafting_ing.shiny_gem", 1),
+            ("common.items.crafting_ing.diamond", 1),
             ("common.items.crafting_tools.craftsman_hammer", 0),
             ("common.items.crafting_tools.sewing_set", 0),
         ],
@@ -197,7 +197,7 @@
             ("common.items.crafting_ing.twigs", 15),
             ("common.items.crafting_ing.leather_scraps", 5),
             ("common.items.crafting_ing.cloth_scraps", 5),
-            ("common.items.crafting_ing.shiny_gem", 1),
+            ("common.items.crafting_ing.diamond", 1),
             ("common.items.crafting_tools.craftsman_hammer", 0),
             ("common.items.crafting_tools.sewing_set", 0),
         ],
@@ -207,7 +207,7 @@
         [
             ("common.items.crafting_ing.twigs", 20),
             ("common.items.ore.veloritefrag", 8),
-            ("common.items.crafting_ing.shiny_gem", 4),
+            ("common.items.crafting_ing.diamond", 4),
             ("common.items.crafting_tools.craftsman_hammer", 0),
         ],
     ),
@@ -297,7 +297,7 @@
     "traveler backpack": (
         ("common.items.armor.back.backpack_0", 1),
         [
-            ("common.items.crafting_ing.shiny_gem", 2),
+            ("common.items.crafting_ing.diamond", 2),
             ("common.items.crafting_ing.twigs", 2),
             ("common.items.crafting_ing.cloth_scraps", 3),
             ("common.items.crafting_ing.leather_scraps", 3),
@@ -308,7 +308,7 @@
     "sturdy red backpack": (
         ("common.items.armor.bag.sturdy_red_backpack", 1),
         [
-            ("common.items.crafting_ing.shiny_gem", 2),
+            ("common.items.crafting_ing.diamond", 2),
             ("common.items.crafting_ing.cloth_scraps_red", 3),
             ("common.items.armor.bag.woven_red_bag", 1),
             ("common.items.crafting_tools.sewing_set", 0),
@@ -319,7 +319,7 @@
         [
             ("common.items.crafting_ing.leather_troll", 10),
             ("common.items.crafting_ing.leather_scraps", 10),
-            ("common.items.crafting_ing.shiny_gem", 1),
+            ("common.items.crafting_ing.diamond", 1),
             ("common.items.crafting_tools.sewing_set", 0),
         ],
     ),
@@ -328,7 +328,7 @@
         [
             ("common.items.crafting_ing.mindflayer_bag_damaged", 1),
             ("common.items.crafting_ing.leather_scraps", 10),
-            ("common.items.crafting_ing.shiny_gem", 4),
+            ("common.items.crafting_ing.diamond", 4),
             ("common.items.ore.veloritefrag", 10),
             ("common.items.crafting_tools.sewing_set", 0),
         ],

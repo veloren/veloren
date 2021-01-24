@@ -1988,28 +1988,6 @@ Twigs: Some((
     wind_sway: 0.0,
 )),
 
-// Shiny Gems
-ShinyGem: Some((
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.gem.gem_blue",
-            offset: (-2.0, -3.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.gem.gem_green",
-            offset: (-2.0, -3.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.gem.gem_red",
-            offset: (-3.0, -2.0, -2.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)),
-
 // Drop Gate Parts
 DropGate: Some((
     variations: [
