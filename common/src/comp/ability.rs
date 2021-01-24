@@ -806,7 +806,7 @@ impl CharacterAbility {
                         ..
                     } => {
                         if let Ok(Some(level)) = skillset.skill_level(Bow(ProjSpeed)) {
-                            *projectile_speed *= 1.5_f32.powi(level.into());
+                            *projectile_speed *= 1.3_f32.powi(level.into());
                         }
                         let damage_level = skillset
                             .skill_level(Bow(BDamage))
@@ -816,8 +816,8 @@ impl CharacterAbility {
                             .skill_level(Bow(BRegen))
                             .unwrap_or(None)
                             .unwrap_or(0);
-                        let power = 1.3_f32.powi(damage_level.into());
-                        let regen = 1.5_f32.powi(regen_level.into());
+                        let power = 1.20_f32.powi(damage_level.into());
+                        let regen = 1.4_f32.powi(regen_level.into());
                         *projectile = projectile.modified_projectile(power, regen, 1_f32, 1_f32);
                     },
                     ChargedRanged {
@@ -831,24 +831,24 @@ impl CharacterAbility {
                         ..
                     } => {
                         if let Ok(Some(level)) = skillset.skill_level(Bow(ProjSpeed)) {
-                            *initial_projectile_speed *= 1.5_f32.powi(level.into());
+                            *initial_projectile_speed *= 1.3_f32.powi(level.into());
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Bow(CDamage)) {
                             *scaled_damage =
-                                (*scaled_damage as f32 * 1.25_f32.powi(level.into())) as u32;
+                                (*scaled_damage as f32 * 1.2_f32.powi(level.into())) as u32;
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Bow(CKnockback)) {
-                            *scaled_knockback *= 1.5_f32.powi(level.into());
+                            *scaled_knockback *= 1.25_f32.powi(level.into());
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Bow(CProjSpeed)) {
                             *scaled_projectile_speed *= 1.2_f32.powi(level.into());
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Bow(CDrain)) {
                             *energy_drain =
-                                (*energy_drain as f32 * 0.75_f32.powi(level.into())) as u32;
+                                (*energy_drain as f32 * 0.85_f32.powi(level.into())) as u32;
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Bow(CSpeed)) {
-                            *speed *= 1.25_f32.powi(level.into());
+                            *speed *= 1.10_f32.powi(level.into());
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Bow(CMove)) {
                             *move_speed *= 1.25_f32.powi(level.into());
@@ -863,10 +863,10 @@ impl CharacterAbility {
                         ..
                     } => {
                         if let Ok(Some(level)) = skillset.skill_level(Bow(ProjSpeed)) {
-                            *projectile_speed *= 1.5_f32.powi(level.into());
+                            *projectile_speed *= 1.3_f32.powi(level.into());
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Bow(RDamage)) {
-                            let power = 1.3_f32.powi(level.into());
+                            let power = 1.4_f32.powi(level.into());
                             *projectile =
                                 projectile.modified_projectile(power, 1_f32, 1_f32, 1_f32);
                         }
@@ -878,7 +878,7 @@ impl CharacterAbility {
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Bow(RCost)) {
                             *energy_cost =
-                                (*energy_cost as f32 * 0.75_f32.powi(level.into())) as u32;
+                                (*energy_cost as f32 * 0.70_f32.powi(level.into())) as u32;
                         }
                     },
                     _ => {},
