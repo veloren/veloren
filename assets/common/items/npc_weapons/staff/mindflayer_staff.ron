@@ -6,8 +6,8 @@ ItemDef(
             kind: Staff,
             stats: (
                 equip_time_millis: 300,
-                power: 15.0,
-                speed: 0.2,
+                power: 3.0,
+                speed: 1.5,
             ),
         )
     ),
