@@ -1,0 +1,15 @@
+ItemDef(
+    name: "The Root of Evil",
+    description: "'Everything comes at a price...'",      
+    kind: Tool(
+        (
+            kind: Sceptre,    
+            stats: (
+                equip_time_millis: 400,
+                power: 4.0,
+                speed: 0.5
+            ),            
+        )
+    ),
+    quality: Legendary,
+)

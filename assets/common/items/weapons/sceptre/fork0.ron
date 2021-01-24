@@ -1,0 +1,15 @@
+ItemDef(
+    name: "Infused Fork",
+    description: "Shamanistic energies brought this piece of wood to life again.",      
+    kind: Tool(
+        (
+            kind: Sceptre,    
+            stats: (
+                equip_time_millis: 400,
+                power: 2.0,
+                speed: 0.8
+            ),            
+        )
+    ),
+    quality: High,
+)
