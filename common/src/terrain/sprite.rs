@@ -115,6 +115,18 @@ make_case_elim!(
         TallSavannaGrass = 0x58,
         RedSavannaGrass = 0x59,
         SavannaBush = 0x5A,
+        Amethyst = 0x5B,
+        Ruby = 0x5C,
+        Sapphire = 0x5D,
+        Emerald = 0x5E,
+        Topaz = 0x5F,
+        Diamond = 0x60,
+        AmethystSmall = 0x61,
+        TopazSmall = 0x62,
+        DiamondSmall = 0x63,
+        RubySmall = 0x64,
+        EmeraldSmall = 0x65,
+        SapphireSmall = 0x66,
     }
 );
 
@@ -206,6 +218,18 @@ impl SpriteKind {
             SpriteKind::Bowl => true,
             SpriteKind::ChestBurried => true,
             SpriteKind::Mud => true,
+            SpriteKind::Amethyst => true,
+            SpriteKind::Ruby => true,
+            SpriteKind::Diamond => true,
+            SpriteKind::Sapphire => true,
+            SpriteKind::Emerald => true,
+            SpriteKind::Topaz => true,
+            SpriteKind::AmethystSmall => true,
+            SpriteKind::TopazSmall => true,
+            SpriteKind::DiamondSmall => true,
+            SpriteKind::RubySmall => true,
+            SpriteKind::EmeraldSmall => true,
+            SpriteKind::SapphireSmall => true,
             _ => false,
         }
     }

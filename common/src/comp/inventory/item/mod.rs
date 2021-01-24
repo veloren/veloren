@@ -539,6 +539,18 @@ impl Item {
             SpriteKind::VialEmpty => "common.items.crafting_ing.empty_vial",
             SpriteKind::Bowl => "common.items.crafting_ing.bowl",
             SpriteKind::PotionMinor => "common.items.consumable.potion_minor",
+            SpriteKind::Amethyst => "common.items.crafting_ing.amethyst",
+            SpriteKind::Ruby => "common.items.crafting_ing.ruby",
+            SpriteKind::Diamond => "common.items.crafting_ing.diamond",
+            SpriteKind::Sapphire => "common.items.crafting_ing.sapphire",
+            SpriteKind::Topaz => "common.items.crafting_ing.topaz",
+            SpriteKind::Emerald => "common.items.crafting_ing.emerald",
+            SpriteKind::AmethystSmall => "common.items.crafting_ing.amethyst",
+            SpriteKind::TopazSmall => "common.items.crafting_ing.topaz",
+            SpriteKind::DiamondSmall => "common.items.crafting_ing.diamond",
+            SpriteKind::RubySmall => "common.items.crafting_ing.ruby",
+            SpriteKind::EmeraldSmall => "common.items.crafting_ing.emerald",
+            SpriteKind::SapphireSmall => "common.items.crafting_ing.sapphire",
             _ => return None,
         }))
     }

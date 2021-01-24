@@ -1668,4 +1668,29 @@
         "voxel.weapon.tool.broom_belzeshrub_purple",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
     ),
+    // Gems
+        Ingredient("Amethyst"): VoxTrans(
+        "voxel.sprite.gem.amethyst-0",
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
+    ),
+    Ingredient("Topaz"): VoxTrans(
+        "voxel.sprite.gem.topaz-0",
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.7,
+    ),
+    Ingredient("Sapphire"): VoxTrans(
+        "voxel.sprite.gem.sapphire-0",
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
+    ),
+    Ingredient("Emerald"): VoxTrans(
+        "voxel.sprite.gem.emerald-0",
+        (0.0, 0.0, 0.0), (-120.0, -160.0, 20.0), 0.8,
+    ),
+    Ingredient("Ruby"): VoxTrans(
+        "voxel.sprite.gem.ruby-0",
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
+    ),
+    Ingredient("Diamond"): VoxTrans(
+        "voxel.sprite.gem.diamond-0",
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
+    ),
 })
