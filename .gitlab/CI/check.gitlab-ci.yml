@@ -1,14 +1,11 @@
-check:
+# cargo clippy is a superset of cargo check, so we don't check manually
+code-quality:
   extends: .recompile-branch
   stage: check
   script:
     - ln -s /dockercache/cache-all target
+    - cargo clippy --all-targets --locked -- -D warnings
     - cargo fmt --all -- --check
-    # TODO: currently there are some examples that fail clippy
-    # - cargo clippy --all-targets --locked -- -D warnings
-    - cargo clippy --bins --tests --locked -- -D warnings
-    - cargo test
-    - cargo test --package veloren-voxygen --lib test_all_localizations -- --nocapture --ignored
 
 security:
   extends: .recompile-branch
