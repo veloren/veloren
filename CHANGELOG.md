@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added /dropall admin command (drops all inventory items on the ground)
 - Skill trees
 - Lactose tolerant golems
+- 6 different gems. (Topaz, Amethyst, Sapphire, Enerald, Ruby and Diamond)
 
 ### Changed
 
@@ -38,12 +39,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed AI behavior so only humanoids will attempt to roll
 - Footstep SFX is now dependant on distance moved, not time since last play
 - Adjusted most NPCs hitboxes to better fit their models.
+- Changed crafting recipes involving shiny gems to use diamonds instead.
+- Cave scatter now includes all 6 gems.
 
 ### Removed
 
 - SSAAx4 option
 - The Stats button and associated screen were removed
 - Levels
+- Shiny Gems (replaced with diamonds)
 
 ### Fixed
 
