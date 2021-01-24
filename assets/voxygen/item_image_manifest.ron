@@ -1600,9 +1600,6 @@
     Ingredient("ClothScrapsRed"): Png(
         "element.icons.item_cloth_red",
     ),
-    Ingredient("ShinyGem"): Png(
-        "element.icons.gem",
-    ),
     Ingredient("MortarPestle"): Png(
         "element.icons.item_mortarpestlecoco",
     ),

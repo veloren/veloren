@@ -535,7 +535,6 @@ impl Item {
             SpriteKind::Beehive => "common.items.crafting_ing.honey",
             SpriteKind::Stones => "common.items.crafting_ing.stones",
             SpriteKind::Twigs => "common.items.crafting_ing.twigs",
-            SpriteKind::ShinyGem => "common.items.crafting_ing.shiny_gem",
             SpriteKind::VialEmpty => "common.items.crafting_ing.empty_vial",
             SpriteKind::Bowl => "common.items.crafting_ing.bowl",
             SpriteKind::PotionMinor => "common.items.consumable.potion_minor",
