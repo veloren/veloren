@@ -286,7 +286,7 @@ impl World {
 
         layer::apply_trees_to(&mut canvas);
         layer::apply_scatter_to(&mut canvas, &mut dynamic_rng);
-        layer::apply_caves_to(&mut canvas);
+        layer::apply_caves_to(&mut canvas, &mut dynamic_rng);
         layer::apply_paths_to(&mut canvas);
 
         // Apply site generation
