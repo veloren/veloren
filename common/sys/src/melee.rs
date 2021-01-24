@@ -58,13 +58,14 @@ impl<'a> System<'a> for Sys {
         let mut server_emitter = server_bus.emitter();
         let _local_emitter = local_bus.emitter();
         // Attacks
-        for (entity, uid, pos, ori, scale_maybe, attack) in (
+        for (entity, uid, pos, ori, scale_maybe, attack, body) in (
             &entities,
             &uids,
             &positions,
             &orientations,
             scales.maybe(),
             &mut attacking_storage,
+            &bodies,
         )
             .join()
         {
@@ -92,6 +93,7 @@ impl<'a> System<'a> for Sys {
                 // Scales
                 let scale = scale_maybe.map_or(1.0, |s| s.0);
                 let scale_b = scale_b_maybe.map_or(1.0, |s| s.0);
+                let rad = body.radius() * scale;
                 let rad_b = body_b.radius() * scale_b;
 
                 // Check if entity is dodging
@@ -101,7 +103,7 @@ impl<'a> System<'a> for Sys {
                 if entity != b
                     && !health_b.is_dead
                     // Spherical wedge shaped attack field
-                    && pos.0.distance_squared(pos_b.0) < (rad_b + scale * attack.range).powi(2)
+                    && pos.0.distance_squared(pos_b.0) < (rad + rad_b + scale * attack.range).powi(2)
                     && ori2.angle_between(pos_b2 - pos2) < attack.max_angle + (rad_b / pos2.distance(pos_b2)).atan()
                 {
                     // See if entities are in the same group

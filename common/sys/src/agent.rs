@@ -199,11 +199,12 @@ impl<'a> System<'a> for Sys {
                 const LISTEN_DIST: f32 = 16.0;
                 const SEARCH_DIST: f32 = 48.0;
                 const SIGHT_DIST: f32 = 80.0;
-                const MIN_ATTACK_DIST: f32 = 2.0;
                 const MAX_FLEE_DIST: f32 = 20.0;
                 const SNEAK_COEFFICIENT: f32 = 0.25;
 
                 let scale = scales.get(entity).map(|s| s.0).unwrap_or(1.0);
+
+                let min_attack_dist = body.map_or(2.0, |b| b.radius() * scale * 1.5);
 
                 // This controls how picky NPCs are about their pathfinding. Giants are larger
                 // and so can afford to be less precise when trying to move around
@@ -537,7 +538,7 @@ impl<'a> System<'a> for Sys {
                                     // depending on the distance from the agent to the target
                                     match tactic {
                                         Tactic::Melee => {
-                                            if dist_sqrd < (MIN_ATTACK_DIST * scale).powi(2) {
+                                            if dist_sqrd < (min_attack_dist * scale).powi(2) {
                                                 inputs.primary.set_state(true);
                                                 inputs.move_dir = Vec2::zero();
                                             } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
@@ -575,7 +576,7 @@ impl<'a> System<'a> for Sys {
                                             }
                                         },
                                         Tactic::Axe => {
-                                            if dist_sqrd < (MIN_ATTACK_DIST * scale).powi(2) {
+                                            if dist_sqrd < (min_attack_dist * scale).powi(2) {
                                                 inputs.move_dir = Vec2::zero();
                                                 if *powerup > 6.0 {
                                                     inputs.secondary.set_state(false);
@@ -624,7 +625,7 @@ impl<'a> System<'a> for Sys {
                                             }
                                         },
                                         Tactic::Hammer => {
-                                            if dist_sqrd < (MIN_ATTACK_DIST * scale).powi(2) {
+                                            if dist_sqrd < (min_attack_dist * scale).powi(2) {
                                                 inputs.move_dir = Vec2::zero();
                                                 if *powerup > 4.0 {
                                                     inputs.secondary.set_state(false);
@@ -688,7 +689,7 @@ impl<'a> System<'a> for Sys {
                                             }
                                         },
                                         Tactic::Sword => {
-                                            if dist_sqrd < (MIN_ATTACK_DIST * scale).powi(2) {
+                                            if dist_sqrd < (min_attack_dist * scale).powi(2) {
                                                 inputs.move_dir = Vec2::zero();
                                                 if stats.skill_set.has_skill(Skill::Sword(SwordSkill::UnlockSpin)) && *powerup < 2.0 && energy.current() > 600 {
                                                     inputs.ability3.set_state(true);
@@ -747,7 +748,7 @@ impl<'a> System<'a> for Sys {
                                             }
                                         },
                                         Tactic::Bow => {
-                                            if body.map(|b| b.is_humanoid()).unwrap_or(false) && dist_sqrd < (2.0 * MIN_ATTACK_DIST * scale).powi(2) {
+                                            if body.map(|b| b.is_humanoid()).unwrap_or(false) && dist_sqrd < (2.0 * min_attack_dist * scale).powi(2) {
                                                 inputs.roll.set_state(true);
                                             } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
                                                 || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
@@ -813,10 +814,10 @@ impl<'a> System<'a> for Sys {
                                             }
                                         },
                                         Tactic::Staff => {
-                                            if body.map(|b| b.is_humanoid()).unwrap_or(false) && dist_sqrd < (MIN_ATTACK_DIST * scale).powi(2) {
+                                            if body.map(|b| b.is_humanoid()).unwrap_or(false) && dist_sqrd < (min_attack_dist * scale).powi(2) {
                                                 inputs.roll.set_state(true);
                                             } else if dist_sqrd
-                                                < (5.0 * MIN_ATTACK_DIST * scale).powi(2)
+                                                < (5.0 * min_attack_dist * scale).powi(2)
                                             {
                                                 if *powerup < 1.5 {
                                                     inputs.move_dir = (tgt_pos.0 - pos.0)
@@ -890,7 +891,7 @@ impl<'a> System<'a> for Sys {
                                             }
                                         },
                                         Tactic::StoneGolemBoss => {
-                                            if dist_sqrd < (MIN_ATTACK_DIST * scale * 2.0).powi(2) { // 2.0 is temporary correction factor to allow them to melee with their large hitbox
+                                            if dist_sqrd < (min_attack_dist * scale).powi(2) {
                                                 inputs.move_dir = Vec2::zero();
                                                 inputs.primary.set_state(true);
                                             } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
@@ -942,23 +943,23 @@ impl<'a> System<'a> for Sys {
                                             radius,
                                             circle_time,
                                         } => {
-                                            if dist_sqrd < (MIN_ATTACK_DIST * scale).powi(2)
+                                            if dist_sqrd < (min_attack_dist * scale).powi(2)
                                                 && thread_rng().gen_bool(0.5)
                                             {
                                                 inputs.move_dir = Vec2::zero();
                                                 inputs.primary.set_state(true);
                                             } else if dist_sqrd
-                                                < (radius as f32 * MIN_ATTACK_DIST * scale).powi(2)
+                                                < (radius as f32 * min_attack_dist * scale).powi(2)
                                             {
                                                 inputs.move_dir = (pos.0 - tgt_pos.0)
                                                     .xy()
                                                     .try_normalized()
                                                     .unwrap_or(Vec2::unit_y());
                                             } else if dist_sqrd
-                                                < ((radius as f32 + 1.0) * MIN_ATTACK_DIST * scale)
+                                                < ((radius as f32 + 1.0) * min_attack_dist * scale)
                                                     .powi(2)
                                                 && dist_sqrd
-                                                    > (radius as f32 * MIN_ATTACK_DIST * scale).powi(2)
+                                                    > (radius as f32 * min_attack_dist * scale).powi(2)
                                             {
                                                 if *powerup < circle_time as f32 {
                                                     inputs.move_dir = (tgt_pos.0 - pos.0)
@@ -1012,7 +1013,7 @@ impl<'a> System<'a> for Sys {
                                             }
                                         },
                                         Tactic::QuadLowRanged => {
-                                            if dist_sqrd < (5.0 * MIN_ATTACK_DIST * scale).powi(2) {
+                                            if dist_sqrd < (5.0 * min_attack_dist * scale).powi(2) {
                                                 inputs.move_dir = (tgt_pos.0 - pos.0)
                                                     .xy()
                                                     .try_normalized()
@@ -1074,7 +1075,7 @@ impl<'a> System<'a> for Sys {
                                             }
                                         },
                                         Tactic::TailSlap => {
-                                            if dist_sqrd < (1.5 * MIN_ATTACK_DIST * scale).powi(2) {
+                                            if dist_sqrd < (1.5 * min_attack_dist * scale).powi(2) {
                                                 if *powerup > 4.0 {
                                                     inputs.primary.set_state(false);
                                                     *powerup = 0.0;
@@ -1119,12 +1120,12 @@ impl<'a> System<'a> for Sys {
                                             }
                                         },
                                         Tactic::QuadLowQuick => {
-                                            if dist_sqrd < (1.5 * MIN_ATTACK_DIST * scale).powi(2) {
+                                            if dist_sqrd < (1.5 * min_attack_dist * scale).powi(2) {
                                                 inputs.move_dir = Vec2::zero();
                                                 inputs.secondary.set_state(true);
                                             } else if dist_sqrd
-                                                < (3.0 * MIN_ATTACK_DIST * scale).powi(2)
-                                                && dist_sqrd > (2.0 * MIN_ATTACK_DIST * scale).powi(2)
+                                                < (3.0 * min_attack_dist * scale).powi(2)
+                                                && dist_sqrd > (2.0 * min_attack_dist * scale).powi(2)
                                             {
                                                 inputs.primary.set_state(true);
                                                 inputs.move_dir = (tgt_pos.0 - pos.0)
@@ -1161,7 +1162,7 @@ impl<'a> System<'a> for Sys {
                                             }
                                         },
                                         Tactic::QuadLowBasic => {
-                                            if dist_sqrd < (1.5 * MIN_ATTACK_DIST * scale).powi(2) {
+                                            if dist_sqrd < (1.5 * min_attack_dist * scale).powi(2) {
                                                 inputs.move_dir = Vec2::zero();
                                                 if *powerup > 5.0 {
                                                     *powerup = 0.0;
@@ -1201,11 +1202,11 @@ impl<'a> System<'a> for Sys {
                                             }
                                         },
                                         Tactic::QuadMedJump => {
-                                            if dist_sqrd < (1.5 * MIN_ATTACK_DIST * scale).powi(2) {
+                                            if dist_sqrd < (1.5 * min_attack_dist * scale).powi(2) {
                                                 inputs.move_dir = Vec2::zero();
                                                 inputs.secondary.set_state(true);
                                             } else if dist_sqrd
-                                                < (5.0 * MIN_ATTACK_DIST * scale).powi(2)
+                                                < (5.0 * min_attack_dist * scale).powi(2)
                                             {
                                                 inputs.ability3.set_state(true);
                                             } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
@@ -1246,7 +1247,7 @@ impl<'a> System<'a> for Sys {
                                             }
                                         },
                                         Tactic::QuadMedBasic => {
-                                            if dist_sqrd < (MIN_ATTACK_DIST * scale).powi(2) {
+                                            if dist_sqrd < (min_attack_dist * scale).powi(2) {
                                                 inputs.move_dir = Vec2::zero();
                                                 if *powerup < 2.0 {
                                                     inputs.secondary.set_state(true);
@@ -1286,11 +1287,11 @@ impl<'a> System<'a> for Sys {
                                             }
                                         },
                                         Tactic::Lavadrake => {
-                                            if dist_sqrd < (2.5 * MIN_ATTACK_DIST * scale).powi(2) {
+                                            if dist_sqrd < (2.5 * min_attack_dist * scale).powi(2) {
                                                 inputs.move_dir = Vec2::zero();
                                                 inputs.secondary.set_state(true);
                                             } else if dist_sqrd
-                                                < (7.0 * MIN_ATTACK_DIST * scale).powi(2)
+                                                < (7.0 * min_attack_dist * scale).powi(2)
                                             {
                                                 if *powerup < 2.0 {
                                                     inputs.move_dir = (tgt_pos.0 - pos.0)
@@ -1343,7 +1344,7 @@ impl<'a> System<'a> for Sys {
                                             }
                                         },
                                         Tactic::Theropod => {
-                                            if dist_sqrd < (2.0 * MIN_ATTACK_DIST * scale).powi(2) {
+                                            if dist_sqrd < (2.0 * min_attack_dist * scale).powi(2) {
                                                 inputs.move_dir = Vec2::zero();
                                                 inputs.primary.set_state(true);
                                             } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
