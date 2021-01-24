@@ -6,10 +6,10 @@ ItemDef(
             kind: Staff,
             stats: (
                 equip_time_millis: 300,
-                power: 4.0,
-                speed: 0.5,
+                power: 15.0,
+                speed: 0.2,
             ),
         )
     ),
-    quality: Epic,
+    quality: Legendary,
 )
