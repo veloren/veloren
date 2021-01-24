@@ -18,7 +18,7 @@ impl CharacterBehavior for Data {
         // If not on the ground while wielding glider enter gliding state
         if !data.physics.on_ground {
             // Expend energy to slow a fall
-            let energy_cost = (0.5 * data.vel.0.z.min(0.0).powi(2)) as i32;
+            let energy_cost = (0.5 * (data.vel.0.z + 15.0).min(0.0).powi(2)) as i32;
             if update
                 .energy
                 .try_change_by(-energy_cost, EnergySource::Glide)
