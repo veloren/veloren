@@ -1511,7 +1511,7 @@ impl QuadrupedMediumLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.leg_fl.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.leg_fl.lateral.0);
 
         (lateral, Vec3::from(spec.leg_fl.offset))
     }
@@ -1543,7 +1543,7 @@ impl QuadrupedMediumLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.leg_bl.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.leg_bl.lateral.0);
 
         (lateral, Vec3::from(spec.leg_bl.offset))
     }
@@ -1575,7 +1575,7 @@ impl QuadrupedMediumLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.foot_fl.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.foot_fl.lateral.0);
 
         (lateral, Vec3::from(spec.foot_fl.offset))
     }
@@ -1607,7 +1607,7 @@ impl QuadrupedMediumLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.foot_bl.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.foot_bl.lateral.0);
 
         (lateral, Vec3::from(spec.foot_bl.offset))
     }
@@ -2530,13 +2530,11 @@ make_vox_spec!(
             third_person.map(|loadout| {
                 spec.armor_chest.read().0.mesh_chest(
                     loadout.chest.as_deref(),
-                    false,
                 )
             }),
             third_person.map(|loadout| {
                 spec.armor_pants.read().0.mesh_pants(
                     loadout.pants.as_deref(),
-                    false,
                 )
             }),
             Some(spec.central.read().0.mesh_tail(
@@ -2607,7 +2605,7 @@ impl BipedSmallCentralSpec {
 }
 
 impl BipedSmallArmorChestSpec {
-    fn mesh_chest(&self, chest: Option<&str>, flipped: bool) -> BoneMeshes {
+    fn mesh_chest(&self, chest: Option<&str>) -> BoneMeshes {
         let spec = if let Some(chest) = chest {
             match self.0.map.get(chest) {
                 Some(spec) => spec,
@@ -2620,27 +2618,15 @@ impl BipedSmallArmorChestSpec {
             &self.0.default
         };
 
-        let chest_segment = if flipped {
-            graceful_load_segment_flipped(&spec.vox_spec.0)
-        } else {
-            graceful_load_segment(&spec.vox_spec.0)
-        };
+        let chest_segment = graceful_load_segment(&spec.vox_spec.0);
 
-        let offset = Vec3::new(
-            if flipped {
-                0.0 - spec.vox_spec.1[0] - (chest_segment.sz.x as f32)
-            } else {
-                spec.vox_spec.1[0]
-            },
-            spec.vox_spec.1[1],
-            spec.vox_spec.1[2],
-        );
+        let offset = Vec3::new(spec.vox_spec.1[0], spec.vox_spec.1[1], spec.vox_spec.1[2]);
 
         (chest_segment, offset)
     }
 }
 impl BipedSmallArmorPantsSpec {
-    fn mesh_pants(&self, pants: Option<&str>, flipped: bool) -> BoneMeshes {
+    fn mesh_pants(&self, pants: Option<&str>) -> BoneMeshes {
         let spec = if let Some(pants) = pants {
             match self.0.map.get(pants) {
                 Some(spec) => spec,
@@ -2653,21 +2639,9 @@ impl BipedSmallArmorPantsSpec {
             &self.0.default
         };
 
-        let pants_segment = if flipped {
-            graceful_load_segment_flipped(&spec.vox_spec.0)
-        } else {
-            graceful_load_segment(&spec.vox_spec.0)
-        };
+        let pants_segment = graceful_load_segment(&spec.vox_spec.0);
 
-        let offset = Vec3::new(
-            if flipped {
-                0.0 - spec.vox_spec.1[0] - (pants_segment.sz.x as f32)
-            } else {
-                spec.vox_spec.1[0]
-            },
-            spec.vox_spec.1[1],
-            spec.vox_spec.1[2],
-        );
+        let offset = Vec3::new(spec.vox_spec.1[0], spec.vox_spec.1[1], spec.vox_spec.1[2]);
 
         (pants_segment, offset)
     }

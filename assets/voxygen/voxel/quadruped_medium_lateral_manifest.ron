@@ -2,7 +2,7 @@
     (Grolgar, Male): (
         leg_fl: (
             offset: (-2.5, -4.5, -4.0),//these are done very case by case
-            lateral: ("npc.grolgar.male.leg_fl"),
+            lateral: ("npc.grolgar.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-2.5, -4.5, -4.0),
@@ -10,7 +10,7 @@
         ),
         leg_bl: (
             offset: (-2.5, -3.5, -3.5),
-            lateral: ("npc.grolgar.male.leg_bl"),
+            lateral: ("npc.grolgar.male.leg_br"),
         ),
         leg_br: (
             offset: (-2.0, -3.5, -3.5),
@@ -18,7 +18,7 @@
         ),
         foot_fl: (
             offset: (-2.5, -4.5, -8.0),//y pivot should be -1/4 of the y dimension of the model
-            lateral: ("npc.grolgar.male.foot_fl"),
+            lateral: ("npc.grolgar.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-2.5, -4.5, -8.0),//y pivot should be -1/4 of the y dimension of the model
@@ -26,7 +26,7 @@
         ),
         foot_bl: (
             offset: (-2.5, -2.0, -8.0),//y pivot should be -1/4 of the y dimension of the model
-            lateral: ("npc.grolgar.male.foot_bl"),
+            lateral: ("npc.grolgar.male.foot_br"),
         ),
         foot_br: (
             offset: (-2.5, -2.0, -8.0),//y pivot should be -1/4 of the y dimension of the model
@@ -36,7 +36,7 @@
     (Grolgar, Female): (
         leg_fl: (
             offset: (-2.5, -4.5, -4.0),//these are done very case by case
-            lateral: ("npc.grolgar.male.leg_fl"),
+            lateral: ("npc.grolgar.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-2.5, -4.5, -4.0),
@@ -44,7 +44,7 @@
         ),
         leg_bl: (
             offset: (-2.5, -3.5, -3.5),
-            lateral: ("npc.grolgar.male.leg_bl"),
+            lateral: ("npc.grolgar.male.leg_br"),
         ),
         leg_br: (
             offset: (-2.0, -3.5, -3.5),
@@ -52,7 +52,7 @@
         ),
         foot_fl: (
             offset: (-2.5, -4.5, -8.0),//y pivot should be -1/4 of the y dimension of the model
-            lateral: ("npc.grolgar.male.foot_fl"),
+            lateral: ("npc.grolgar.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-2.5, -4.5, -8.0),//y pivot should be -1/4 of the y dimension of the model
@@ -60,7 +60,7 @@
         ),
         foot_bl: (
             offset: (-2.5, -2.0, -8.0),//y pivot should be -1/4 of the y dimension of the model
-            lateral: ("npc.grolgar.male.foot_bl"),
+            lateral: ("npc.grolgar.male.foot_br"),
         ),
         foot_br: (
             offset: (-2.5, -2.0, -8.0),//y pivot should be -1/4 of the y dimension of the model
@@ -70,7 +70,7 @@
     (Saber, Male): (
         leg_fl: (
             offset: (-2.0, -6.0, -4.5),
-            lateral: ("npc.saber.male.leg_fl"),
+            lateral: ("npc.saber.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-2.0, -6.0, -4.5),
@@ -78,7 +78,7 @@
         ),
         leg_bl: (
             offset: (-2.0, -3.0, -4.0),
-            lateral: ("npc.saber.male.leg_bl"),
+            lateral: ("npc.saber.male.leg_br"),
         ),
         leg_br: (
             offset: (-2.0, -3.0, -4.0),
@@ -86,7 +86,7 @@
         ),
         foot_fl: (
             offset: (-2.5, -2.5, -8.0),
-            lateral: ("npc.saber.male.foot_fl"),
+            lateral: ("npc.saber.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-2.5, -2.5, -8.0),
@@ -94,7 +94,7 @@
         ),
         foot_bl: (
             offset: (-2.5, -2.0, -9.0),
-            lateral: ("npc.saber.male.foot_bl"),
+            lateral: ("npc.saber.male.foot_br"),
         ),
         foot_br: (
             offset: (-2.5, -2.0, -9.0),
@@ -104,7 +104,7 @@
     (Saber, Female): (
         leg_fl: (
             offset: (-2.0, -6.0, -4.5),
-            lateral: ("npc.saber.male.leg_fl"),
+            lateral: ("npc.saber.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-2.0, -6.0, -4.5),
@@ -112,7 +112,7 @@
         ),
         leg_bl: (
             offset: (-2.0, -3.0, -4.0),
-            lateral: ("npc.saber.male.leg_bl"),
+            lateral: ("npc.saber.male.leg_br"),
         ),
         leg_br: (
             offset: (-2.0, -3.0, -4.0),
@@ -120,7 +120,7 @@
         ),
         foot_fl: (
             offset: (-2.5, -2.5, -8.0),
-            lateral: ("npc.saber.male.foot_fl"),
+            lateral: ("npc.saber.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-2.5, -2.5, -8.0),
@@ -128,7 +128,7 @@
         ),
         foot_bl: (
             offset: (-2.5, -2.0, -9.0),
-            lateral: ("npc.saber.male.foot_bl"),
+            lateral: ("npc.saber.male.foot_br"),
         ),
         foot_br: (
             offset: (-2.5, -2.0, -9.0),
@@ -138,7 +138,7 @@
     (Tuskram, Male): (
         leg_fl: (
             offset: (-2.0, -2.5, -3.0),
-            lateral: ("npc.tuskram.male.leg_fl"),
+            lateral: ("npc.tuskram.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-2.0, -2.5, -3.0),
@@ -146,7 +146,7 @@
         ),
         leg_bl: (
             offset: (-2.0, -2.5, -3.0),
-            lateral: ("npc.tuskram.male.leg_bl"),
+            lateral: ("npc.tuskram.male.leg_br"),
         ),
         leg_br: (
             offset: (-2.0, -2.5, -3.0),
@@ -154,7 +154,7 @@
         ),
         foot_fl: (
             offset: (-2.5, -2.0, -8.0),
-            lateral: ("npc.tuskram.male.foot_fl"),
+            lateral: ("npc.tuskram.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-2.5, -2.0, -8.0),
@@ -162,7 +162,7 @@
         ),
         foot_bl: (
             offset: (-1.5, -1.5, -8.0),
-            lateral: ("npc.tuskram.male.foot_bl"),
+            lateral: ("npc.tuskram.male.foot_br"),
         ),
         foot_br: (
             offset: (-1.5, -1.5, -8.0),
@@ -172,7 +172,7 @@
     (Tuskram, Female): (
         leg_fl: (
             offset: (-2.0, -2.5, -3.0),
-            lateral: ("npc.tuskram.male.leg_fl"),
+            lateral: ("npc.tuskram.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-2.0, -2.5, -3.0),
@@ -180,7 +180,7 @@
         ),
         leg_bl: (
             offset: (-2.0, -2.5, -3.0),
-            lateral: ("npc.tuskram.male.leg_bl"),
+            lateral: ("npc.tuskram.male.leg_br"),
         ),
         leg_br: (
             offset: (-2.0, -2.5, -3.0),
@@ -188,7 +188,7 @@
         ),
         foot_fl: (
             offset: (-2.5, -2.0, -8.0),
-            lateral: ("npc.tuskram.male.foot_fl"),
+            lateral: ("npc.tuskram.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-2.5, -2.0, -8.0),
@@ -196,7 +196,7 @@
         ),
         foot_bl: (
             offset: (-1.5, -1.5, -8.0),
-            lateral: ("npc.tuskram.male.foot_bl"),
+            lateral: ("npc.tuskram.male.foot_br"),
         ),
         foot_br: (
             offset: (-1.5, -1.5, -8.0),
@@ -206,7 +206,7 @@
     (Lion, Male): (
         leg_fl: (
             offset: (-2.0, -2.5, -3.5),
-            lateral: ("npc.lion.male.leg_fl"),
+            lateral: ("npc.lion.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-2.0, -2.5, -3.5),
@@ -214,7 +214,7 @@
         ),
         leg_bl: (
             offset: (-2.0, -3.0, -3.5),
-            lateral: ("npc.lion.male.leg_bl"),
+            lateral: ("npc.lion.male.leg_br"),
         ),
         leg_br: (
             offset: (-2.0, -3.0, -3.5),
@@ -222,7 +222,7 @@
         ),
         foot_fl: (
             offset: (-2.5, -2.0, -8.0),
-            lateral: ("npc.lion.male.foot_fl"),
+            lateral: ("npc.lion.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-2.5, -2.0, -8.0),
@@ -230,7 +230,7 @@
         ),
         foot_bl: (
             offset: (-2.5, -2.0, -8.0),
-            lateral: ("npc.lion.male.foot_bl"),
+            lateral: ("npc.lion.male.foot_br"),
         ),
         foot_br: (
             offset: (-2.5, -2.0, -8.0),
@@ -240,7 +240,7 @@
     (Lion, Female): (
         leg_fl: (
             offset: (-2.0, -2.5, -3.5),
-            lateral: ("npc.lion.male.leg_fl"),
+            lateral: ("npc.lion.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-2.0, -2.5, -3.5),
@@ -248,7 +248,7 @@
         ),
         leg_bl: (
             offset: (-2.0, -3.0, -3.5),
-            lateral: ("npc.lion.male.leg_bl"),
+            lateral: ("npc.lion.male.leg_br"),
         ),
         leg_br: (
             offset: (-2.0, -3.0, -3.5),
@@ -256,7 +256,7 @@
         ),
         foot_fl: (
             offset: (-2.5, -2.0, -8.0),
-            lateral: ("npc.lion.male.foot_fl"),
+            lateral: ("npc.lion.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-2.5, -2.0, -8.0),
@@ -264,7 +264,7 @@
         ),
         foot_bl: (
             offset: (-2.5, -2.0, -8.0),
-            lateral: ("npc.lion.male.foot_bl"),
+            lateral: ("npc.lion.male.foot_br"),
         ),
         foot_br: (
             offset: (-2.5, -2.0, -8.0),
@@ -274,7 +274,7 @@
     (Tarasque, Male): (
         leg_fl: (
             offset: (-3.0, -5.0, -4.0),
-            lateral: ("npc.tarasque.male.leg_fl"),
+            lateral: ("npc.tarasque.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-3.0, -5.0, -4.0),
@@ -282,7 +282,7 @@
         ),
         leg_bl: (
             offset: (-2.0, -3.5, -3.5),
-            lateral: ("npc.tarasque.male.leg_bl"),
+            lateral: ("npc.tarasque.male.leg_br"),
         ),
         leg_br: (
             offset: (-2.0, -3.5, -3.5),
@@ -290,7 +290,7 @@
         ),
         foot_fl: (
             offset: (-4.0, -3.0, -9.0),
-            lateral: ("npc.tarasque.male.foot_fl"),
+            lateral: ("npc.tarasque.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-4.0, -3.0, -9.0),
@@ -298,7 +298,7 @@
         ),
         foot_bl: (
             offset: (-2.5, -2.0, -8.0),
-            lateral: ("npc.tarasque.male.foot_bl"),
+            lateral: ("npc.tarasque.male.foot_br"),
         ),
         foot_br: (
             offset: (-2.5, -2.0, -8.0),
@@ -308,7 +308,7 @@
     (Tarasque, Female): (
         leg_fl: (
             offset: (-3.0, -5.0, -4.0),
-            lateral: ("npc.tarasque.male.leg_fl"),
+            lateral: ("npc.tarasque.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-3.0, -5.0, -4.0),
@@ -316,7 +316,7 @@
         ),
         leg_bl: (
             offset: (-2.0, -3.5, -3.5),
-            lateral: ("npc.tarasque.male.leg_bl"),
+            lateral: ("npc.tarasque.male.leg_br"),
         ),
         leg_br: (
             offset: (-2.0, -3.5, -3.5),
@@ -324,7 +324,7 @@
         ),
         foot_fl: (
             offset: (-4.0, -3.0, -9.0), //(1/4) Y dimension, (1/1) Z dimension
-            lateral: ("npc.tarasque.male.foot_fl"),
+            lateral: ("npc.tarasque.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-4.0, -3.0, -9.0), //(1/4) Y dimension, (1/1) Z dimension
@@ -332,7 +332,7 @@
         ),
         foot_bl: (
             offset: (-2.5, -2.0, -8.0),
-            lateral: ("npc.tarasque.male.foot_bl"),
+            lateral: ("npc.tarasque.male.foot_br"),
         ),
         foot_br: (
             offset: (-2.5, -2.0, -8.0),
@@ -342,7 +342,7 @@
     (Tiger, Male): (
         leg_fl: (
             offset: (-2.0, -3.0, -4.0),
-            lateral: ("npc.tiger.male.leg_fl"),
+            lateral: ("npc.tiger.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-2.0, -3.0, -4.0),
@@ -350,7 +350,7 @@
         ),
         leg_bl: (
             offset: (-2.0, -3.0, -3.0),
-            lateral: ("npc.tiger.male.leg_bl"),
+            lateral: ("npc.tiger.male.leg_br"),
         ),
         leg_br: (
             offset: (-2.0, -3.0, -3.0),
@@ -358,7 +358,7 @@
         ),
         foot_fl: (
             offset: (-2.5, -2.0, -7.0),
-            lateral: ("npc.tiger.male.foot_fl"),
+            lateral: ("npc.tiger.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-2.5, -2.0, -7.0),
@@ -366,7 +366,7 @@
         ),
         foot_bl: (
             offset: (-2.5, -2.0, -8.0),
-            lateral: ("npc.tiger.male.foot_bl"),
+            lateral: ("npc.tiger.male.foot_br"),
         ),
         foot_br: (
             offset: (-2.5, -2.0, -8.0),
@@ -376,7 +376,7 @@
     (Tiger, Female): (
         leg_fl: (
             offset: (-2.0, -3.0, -4.0),
-            lateral: ("npc.tiger.male.leg_fl"),
+            lateral: ("npc.tiger.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-2.0, -3.0, -4.0),
@@ -384,7 +384,7 @@
         ),
         leg_bl: (
             offset: (-2.0, -3.0, -3.0),
-            lateral: ("npc.tiger.male.leg_bl"),
+            lateral: ("npc.tiger.male.leg_br"),
         ),
         leg_br: (
             offset: (-2.0, -3.0, -3.0),
@@ -392,7 +392,7 @@
         ),
         foot_fl: (
             offset: (-2.5, -2.0, -7.0),
-            lateral: ("npc.tiger.male.foot_fl"),
+            lateral: ("npc.tiger.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-2.5, -2.0, -7.0),
@@ -400,7 +400,7 @@
         ),
         foot_bl: (
             offset: (-2.5, -2.0, -8.0),
-            lateral: ("npc.tiger.male.foot_bl"),
+            lateral: ("npc.tiger.male.foot_br"),
         ),
         foot_br: (
             offset: (-2.5, -2.0, -8.0),
@@ -410,7 +410,7 @@
     (Wolf, Male): (
         leg_fl: (
             offset: (-2.0, -3.5, -4.0),
-            lateral: ("npc.wolf.male.leg_fl"),
+            lateral: ("npc.wolf.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-2.0, -3.5, -4.0),
@@ -418,7 +418,7 @@
         ),
         leg_bl: (
             offset: (-1.5, -3.5, -3.5),
-            lateral: ("npc.wolf.male.leg_bl"),
+            lateral: ("npc.wolf.male.leg_br"),
         ),
         leg_br: (
             offset: (-1.5, -3.5, -3.5),
@@ -426,7 +426,7 @@
         ),
         foot_fl: (
             offset: (-1.5, -2.5, -10.0),
-            lateral: ("npc.wolf.male.foot_fl"),
+            lateral: ("npc.wolf.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-1.5, -2.5, -10.0),
@@ -434,7 +434,7 @@
         ),
         foot_bl: (
             offset: (-1.5, -2.5, -10.0),
-            lateral: ("npc.wolf.male.foot_bl"),
+            lateral: ("npc.wolf.male.foot_br"),
         ),
         foot_br: (
             offset: (-1.5, -2.5, -10.0),
@@ -444,7 +444,7 @@
     (Wolf, Female): (
         leg_fl: (
             offset: (-2.0, -3.5, -4.0),
-            lateral: ("npc.wolf.male.leg_fl"),
+            lateral: ("npc.wolf.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-2.0, -3.5, -4.0),
@@ -452,7 +452,7 @@
         ),
         leg_bl: (
             offset: (-1.5, -3.5, -3.5),
-            lateral: ("npc.wolf.male.leg_bl"),
+            lateral: ("npc.wolf.male.leg_br"),
         ),
         leg_br: (
             offset: (-1.5, -3.5, -3.5),
@@ -460,7 +460,7 @@
         ),
         foot_fl: (
             offset: (-1.5, -2.5, -10.0),
-            lateral: ("npc.wolf.male.foot_fl"),
+            lateral: ("npc.wolf.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-1.5, -2.5, -10.0),
@@ -468,7 +468,7 @@
         ),
         foot_bl: (
             offset: (-1.5, -2.5, -10.0),
-            lateral: ("npc.wolf.male.foot_bl"),
+            lateral: ("npc.wolf.male.foot_br"),
         ),
         foot_br: (
             offset: (-1.5, -2.5, -10.0),
@@ -478,7 +478,7 @@
     (Frostfang, Male): (
         leg_fl: (
             offset: (-1.5, -3.5, -3.5),
-            lateral: ("npc.frostfang.male.leg_fl"),
+            lateral: ("npc.frostfang.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-1.5, -3.5, -3.5),
@@ -486,7 +486,7 @@
         ),
         leg_bl: (
             offset: (-1.5, -3.5, -3.5),
-            lateral: ("npc.frostfang.male.leg_bl"),
+            lateral: ("npc.frostfang.male.leg_br"),
         ),
         leg_br: (
             offset: (-1.5, -3.5, -3.5),
@@ -494,7 +494,7 @@
         ),
         foot_fl: (
             offset: (-2.5, -1.5, -6.0),
-            lateral: ("npc.frostfang.male.foot_fl"),
+            lateral: ("npc.frostfang.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-2.5, -1.5, -6.0),
@@ -502,7 +502,7 @@
         ),
         foot_bl: (
             offset: (-2.5, -1.5, -6.0),
-            lateral: ("npc.frostfang.male.foot_bl"),
+            lateral: ("npc.frostfang.male.foot_br"),
         ),
         foot_br: (
             offset: (-2.5, -1.5, -6.0),
@@ -512,7 +512,7 @@
     (Frostfang, Female): (
         leg_fl: (
             offset: (-1.5, -3.5, -3.5),
-            lateral: ("npc.frostfang.male.leg_fl"),
+            lateral: ("npc.frostfang.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-1.5, -3.5, -3.5),
@@ -520,7 +520,7 @@
         ),
         leg_bl: (
             offset: (-1.5, -3.5, -3.5),
-            lateral: ("npc.frostfang.male.leg_bl"),
+            lateral: ("npc.frostfang.male.leg_br"),
         ),
         leg_br: (
             offset: (-1.5, -3.5, -3.5),
@@ -528,7 +528,7 @@
         ),
         foot_fl: (
             offset: (-2.5, -1.5, -6.0),
-            lateral: ("npc.frostfang.male.foot_fl"),
+            lateral: ("npc.frostfang.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-2.5, -1.5, -6.0),
@@ -536,7 +536,7 @@
         ),
         foot_bl: (
             offset: (-2.5, -1.5, -6.0),
-            lateral: ("npc.frostfang.male.foot_bl"),
+            lateral: ("npc.frostfang.male.foot_br"),
         ),
         foot_br: (
             offset: (-2.5, -1.5, -6.0),
@@ -546,7 +546,7 @@
     (Mouflon, Male): (
         leg_fl: (
             offset: (-1.5, -2.5, -4.0),
-            lateral: ("npc.mouflon.male.leg_fl"),
+            lateral: ("npc.mouflon.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-1.5, -2.5, -4.0),
@@ -554,7 +554,7 @@
         ),
         leg_bl: (
             offset: (-2.0, -1.0, -2.5),
-            lateral: ("npc.mouflon.male.leg_bl"),
+            lateral: ("npc.mouflon.male.leg_br"),
         ),
         leg_br: (
             offset: (-2.0, -1.0, -2.5),
@@ -562,7 +562,7 @@
         ),
         foot_fl: (
             offset: (-1.0, -1.0, -7.0),
-            lateral: ("npc.mouflon.male.foot_fl"),
+            lateral: ("npc.mouflon.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-1.0, -1.0, -7.0),
@@ -570,7 +570,7 @@
         ),
         foot_bl: (
             offset: (-1.0, -2.0, -10.0),
-            lateral: ("npc.mouflon.male.foot_bl"),
+            lateral: ("npc.mouflon.male.foot_br"),
         ),
         foot_br: (
             offset: (-1.0, -2.0, -10.0),
@@ -580,7 +580,7 @@
     (Mouflon, Female): (
         leg_fl: (
             offset: (-1.5, -2.5, -4.0),
-            lateral: ("npc.mouflon.male.leg_fl"),
+            lateral: ("npc.mouflon.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-1.5, -2.5, -4.0),
@@ -588,7 +588,7 @@
         ),
         leg_bl: (
             offset: (-2.0, -2.5, -4.0),
-            lateral: ("npc.mouflon.male.leg_bl"),
+            lateral: ("npc.mouflon.male.leg_br"),
         ),
         leg_br: (
             offset: (-2.0, -2.5, -4.0),
@@ -596,7 +596,7 @@
         ),
         foot_fl: (
             offset: (-1.0, -1.0, -7.0),
-            lateral: ("npc.mouflon.male.foot_fl"),
+            lateral: ("npc.mouflon.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-1.0, -1.0, -7.0),
@@ -604,7 +604,7 @@
         ),
         foot_bl: (
             offset: (-1.0, -2.0, -10.0),
-            lateral: ("npc.mouflon.male.foot_bl"),
+            lateral: ("npc.mouflon.male.foot_br"),
         ),
         foot_br: (
             offset: (-1.0, -2.0, -10.0),
@@ -614,7 +614,7 @@
     (Catoblepas, Male): (
         leg_fl: (
             offset: (-2.5, -4.0, -5.0),
-            lateral: ("npc.catoblepas.male.leg_fl"),
+            lateral: ("npc.catoblepas.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-2.5, -4.0, -5.0),
@@ -622,7 +622,7 @@
         ),
         leg_bl: (
             offset: (-2.0, -3.0 , -4.0),
-            lateral: ("npc.catoblepas.male.leg_bl"),
+            lateral: ("npc.catoblepas.male.leg_br"),
         ),
         leg_br: (
             offset: (-2.0, -3.0, -4.0),
@@ -630,7 +630,7 @@
         ),
         foot_fl: (
             offset: (-3.0, -3.0, -9.0),
-            lateral: ("npc.catoblepas.male.foot_fl"),
+            lateral: ("npc.catoblepas.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-3.0, -3.0, -9.0),
@@ -638,7 +638,7 @@
         ),
         foot_bl: (
             offset: (-2.5, -3.5, -9.0),
-            lateral: ("npc.catoblepas.male.foot_bl"),
+            lateral: ("npc.catoblepas.male.foot_br"),
         ),
         foot_br: (
             offset: (-2.5, -3.5, -9.0),
@@ -648,7 +648,7 @@
     (Catoblepas, Female): (
         leg_fl: (
             offset: (-2.5, -4.0, -5.0),
-            lateral: ("npc.catoblepas.male.leg_fl"),
+            lateral: ("npc.catoblepas.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-2.5, -4.0, -5.0),
@@ -656,7 +656,7 @@
         ),
         leg_bl: (
             offset: (-2.0, -3.0 , -4.0),
-            lateral: ("npc.catoblepas.male.leg_bl"),
+            lateral: ("npc.catoblepas.male.leg_br"),
         ),
         leg_br: (
             offset: (-2.0, -3.0, -4.0),
@@ -664,7 +664,7 @@
         ),
         foot_fl: (
             offset: (-3.0, -3.0, -9.0),
-            lateral: ("npc.catoblepas.male.foot_fl"),
+            lateral: ("npc.catoblepas.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-3.0, -3.0, -9.0),
@@ -672,7 +672,7 @@
         ),
         foot_bl: (
             offset: (-2.5, -3.5, -9.0),
-            lateral: ("npc.catoblepas.male.foot_bl"),
+            lateral: ("npc.catoblepas.male.foot_br"),
         ),
         foot_br: (
             offset: (-2.5, -3.5, -9.0),
@@ -682,7 +682,7 @@
     (Bonerattler, Male): (
         leg_fl: (
             offset: (-1.5, -6.0, -3.0),
-            lateral: ("npc.bonerattler.male.leg_fl"),
+            lateral: ("npc.bonerattler.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-1.5, -6.0, -3.0),
@@ -690,7 +690,7 @@
         ),
         leg_bl: (
             offset: (-1.5, -1.0, -3.0),
-            lateral: ("npc.bonerattler.male.leg_bl"),
+            lateral: ("npc.bonerattler.male.leg_br"),
         ),
         leg_br: (
             offset: (-1.5, -1.0, -3.0),
@@ -698,7 +698,7 @@
         ),
         foot_fl: (
             offset: (-2.5, -3.0, -6.0),
-            lateral: ("npc.bonerattler.male.foot_fl"),
+            lateral: ("npc.bonerattler.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-2.5, -3.0, -6.0),
@@ -706,7 +706,7 @@
         ),
         foot_bl: (
             offset: (-2.5, -4.0, -6.0),
-            lateral: ("npc.bonerattler.male.foot_bl"),
+            lateral: ("npc.bonerattler.male.foot_br"),
         ),
         foot_br: (
             offset: (-2.5, -4.0, -6.0),
@@ -716,7 +716,7 @@
     (Bonerattler, Female): (
         leg_fl: (
             offset: (-1.5, -6.0, -3.0),
-            lateral: ("npc.bonerattler.male.leg_fl"),
+            lateral: ("npc.bonerattler.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-1.5, -6.0, -3.0),
@@ -724,7 +724,7 @@
         ),
         leg_bl: (
             offset: (-1.5, -1.0, -3.0),
-            lateral: ("npc.bonerattler.male.leg_bl"),
+            lateral: ("npc.bonerattler.male.leg_br"),
         ),
         leg_br: (
             offset: (-1.5, -1.0, -3.0),
@@ -732,7 +732,7 @@
         ),
         foot_fl: (
             offset: (-2.5, -3.0, -6.0),
-            lateral: ("npc.bonerattler.male.foot_fl"),
+            lateral: ("npc.bonerattler.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-2.5, -3.0, -6.0),
@@ -740,7 +740,7 @@
         ),
         foot_bl: (
             offset: (-2.5, -4.0, -6.0),
-            lateral: ("npc.bonerattler.male.foot_bl"),
+            lateral: ("npc.bonerattler.male.foot_br"),
         ),
         foot_br: (
             offset: (-2.5, -4.0, -6.0),
@@ -750,7 +750,7 @@
     (Deer, Male): (
         leg_fl: (
             offset: (-1.5, -2.5, -3.5),
-            lateral: ("npc.deer.male.leg_fl"),
+            lateral: ("npc.deer.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-1.5, -2.5, -3.5),
@@ -758,7 +758,7 @@
         ),
         leg_bl: (
             offset: (-2.0, -2.5, -4.0),
-            lateral: ("npc.deer.male.leg_bl"),
+            lateral: ("npc.deer.male.leg_br"),
         ),
         leg_br: (
             offset: (-2.0, -2.5, -4.0),
@@ -766,7 +766,7 @@
         ),
         foot_fl: (
             offset: (-1.0, -1.0, -8.0),
-            lateral: ("npc.deer.male.foot_fl"),
+            lateral: ("npc.deer.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-1.0, -1.0, -8.0),
@@ -774,7 +774,7 @@
         ),
         foot_bl: (
             offset: (-1.0, -2.0, -9.0),
-            lateral: ("npc.deer.male.foot_bl"),
+            lateral: ("npc.deer.male.foot_br"),
         ),
         foot_br: (
             offset: (-1.0, -2.0, -9.0),
@@ -784,7 +784,7 @@
     (Deer, Female): (
         leg_fl: (
             offset: (-1.5, -2.5, -3.5),
-            lateral: ("npc.deer.female.leg_fl"),
+            lateral: ("npc.deer.female.leg_fr"),
         ),
         leg_fr: (
             offset: (-1.5, -2.5, -3.5),
@@ -792,7 +792,7 @@
         ),
         leg_bl: (
             offset: (-2.0, -2.5, -4.0),
-            lateral: ("npc.deer.female.leg_bl"),
+            lateral: ("npc.deer.female.leg_br"),
         ),
         leg_br: (
             offset: (-2.0, -2.5, -4.0),
@@ -800,7 +800,7 @@
         ),
         foot_fl: (
             offset: (-1.0, -1.0, -8.0),
-            lateral: ("npc.deer.female.foot_fl"),
+            lateral: ("npc.deer.female.foot_fr"),
         ),
         foot_fr: (
             offset: (-1.0, -1.0, -8.0),
@@ -808,7 +808,7 @@
         ),
         foot_bl: (
             offset: (-1.0, -2.0, -9.0),
-            lateral: ("npc.deer.female.foot_bl"),
+            lateral: ("npc.deer.female.foot_br"),
         ),
         foot_br: (
             offset: (-1.0, -2.0, -9.0),
@@ -818,7 +818,7 @@
     (Hirdrasil, Male): (
         leg_fl: (
             offset: (-1.5, -3.0, -4.0),
-            lateral: ("npc.hirdrasil.male.leg_fl"),
+            lateral: ("npc.hirdrasil.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-1.5, -3.0, -4.0),
@@ -826,7 +826,7 @@
         ),
         leg_bl: (
             offset: (-2.0, -2.5, -5.0),
-            lateral: ("npc.hirdrasil.male.leg_bl"),
+            lateral: ("npc.hirdrasil.male.leg_br"),
         ),
         leg_br: (
             offset: (-2.0, -2.5, -5.0),
@@ -834,7 +834,7 @@
         ),
         foot_fl: (
             offset: (-2.0, -1.0, -9.0),
-            lateral: ("npc.hirdrasil.male.foot_fl"),
+            lateral: ("npc.hirdrasil.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-2.0, -1.0, -9.0),
@@ -842,7 +842,7 @@
         ),
         foot_bl: (
             offset: (-2.0, -2.5, -7.0),
-            lateral: ("npc.hirdrasil.male.foot_bl"),
+            lateral: ("npc.hirdrasil.male.foot_br"),
         ),
         foot_br: (
             offset: (-2.0, -2.5, -7.0),
@@ -852,7 +852,7 @@
     (Hirdrasil, Female): (
         leg_fl: (
             offset: (-1.5, -3.0, -4.0),
-            lateral: ("npc.hirdrasil.male.leg_fl"),
+            lateral: ("npc.hirdrasil.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-1.5, -3.0, -4.0),
@@ -860,7 +860,7 @@
         ),
         leg_bl: (
             offset: (-2.0, -2.5, -5.0),
-            lateral: ("npc.hirdrasil.male.leg_bl"),
+            lateral: ("npc.hirdrasil.male.leg_br"),
         ),
         leg_br: (
             offset: (-2.0, -2.5, -5.0),
@@ -868,7 +868,7 @@
         ),
         foot_fl: (
             offset: (-2.0, -1.0, -9.0),
-            lateral: ("npc.hirdrasil.male.foot_fl"),
+            lateral: ("npc.hirdrasil.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-2.0, -1.0, -9.0),
@@ -876,7 +876,7 @@
         ),
         foot_bl: (
             offset: (-2.0, -2.5, -7.0),
-            lateral: ("npc.hirdrasil.male.foot_bl"),
+            lateral: ("npc.hirdrasil.male.foot_br"),
         ),
         foot_br: (
             offset: (-2.0, -2.5, -7.0),
@@ -886,7 +886,7 @@
     (Roshwalr, Male): (
         leg_fl: (
             offset: (-4.0, -2.5, -4.0),
-            lateral: ("npc.roshwalr.male.leg_fl"),
+            lateral: ("npc.roshwalr.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-4.0, -2.5, -4.0),
@@ -894,7 +894,7 @@
         ),
         leg_bl: (
             offset: (-2.0, -4.0, -2.5),
-            lateral: ("npc.roshwalr.male.leg_bl"),
+            lateral: ("npc.roshwalr.male.leg_br"),
         ),
         leg_br: (
             offset: (-2.0, -4.0, -2.5),
@@ -902,7 +902,7 @@
         ),
         foot_fl: (
             offset: (-4.5, -1.0, -7.0),
-            lateral: ("npc.roshwalr.male.foot_fl"),
+            lateral: ("npc.roshwalr.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-4.5, -1.0, -7.0),
@@ -910,7 +910,7 @@
         ),
         foot_bl: (
             offset: (-2.5, -2.0, -3.0),
-            lateral: ("npc.roshwalr.male.foot_bl"),
+            lateral: ("npc.roshwalr.male.foot_br"),
         ),
         foot_br: (
             offset: (-2.5, -2.0, -3.0),
@@ -920,7 +920,7 @@
     (Roshwalr, Female): (
         leg_fl: (
             offset: (-4.0, -2.5, -4.0),
-            lateral: ("npc.roshwalr.male.leg_fl"),
+            lateral: ("npc.roshwalr.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-4.0, -2.5, -4.0),
@@ -928,7 +928,7 @@
         ),
         leg_bl: (
             offset: (-2.0, -4.0, -2.5),
-            lateral: ("npc.roshwalr.male.leg_bl"),
+            lateral: ("npc.roshwalr.male.leg_br"),
         ),
         leg_br: (
             offset: (-2.0, -4.0, -2.5),
@@ -936,7 +936,7 @@
         ),
         foot_fl: (
             offset: (-4.5, -1.0, -7.0),
-            lateral: ("npc.roshwalr.male.foot_fl"),
+            lateral: ("npc.roshwalr.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-4.5, -1.0, -7.0),
@@ -944,7 +944,7 @@
         ),
         foot_bl: (
             offset: (-2.5, -2.0, -3.0),
-            lateral: ("npc.roshwalr.male.foot_bl"),
+            lateral: ("npc.roshwalr.male.foot_br"),
         ),
         foot_br: (
             offset: (-2.5, -2.0, -3.0),
@@ -954,7 +954,7 @@
     (Donkey, Male): (
         leg_fl: (
             offset: (-2.5, -2.5, -4.5),
-            lateral: ("npc.donkey.male.leg_fl"),
+            lateral: ("npc.donkey.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-2.5, -2.5, -4.5),
@@ -962,7 +962,7 @@
         ),
         leg_bl: (
             offset: (-2.5, -3.0, -4.5),
-            lateral: ("npc.donkey.male.leg_bl"),
+            lateral: ("npc.donkey.male.leg_br"),
         ),
         leg_br: (
             offset: (-2.5, -3.0, -4.5),
@@ -970,7 +970,7 @@
         ),
         foot_fl: (
             offset: (-2.0, -2.5, -8.0),
-            lateral: ("npc.donkey.male.foot_fl"),
+            lateral: ("npc.donkey.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-2.0, -2.5, -8.0),
@@ -978,7 +978,7 @@
         ),
         foot_bl: (
             offset: (-2.0, -3.0, -8.0),
-            lateral: ("npc.donkey.male.foot_bl"),
+            lateral: ("npc.donkey.male.foot_br"),
         ),
         foot_br: (
             offset: (-2.0, -3.0, -8.0),
@@ -988,7 +988,7 @@
     (Donkey, Female): (
         leg_fl: (
             offset: (-2.5, -2.5, -4.5),
-            lateral: ("npc.donkey.male.leg_fl"),
+            lateral: ("npc.donkey.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-2.5, -2.5, -4.5),
@@ -996,7 +996,7 @@
         ),
         leg_bl: (
             offset: (-2.5, -3.0, -4.5),
-            lateral: ("npc.donkey.male.leg_bl"),
+            lateral: ("npc.donkey.male.leg_br"),
         ),
         leg_br: (
             offset: (-2.5, -3.0, -4.5),
@@ -1004,7 +1004,7 @@
         ),
         foot_fl: (
             offset: (-2.0, -2.5, -8.0),
-            lateral: ("npc.donkey.male.foot_fl"),
+            lateral: ("npc.donkey.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-2.0, -2.5, -8.0),
@@ -1012,7 +1012,7 @@
         ),
         foot_bl: (
             offset: (-2.0, -3.0, -8.0),
-            lateral: ("npc.donkey.male.foot_bl"),
+            lateral: ("npc.donkey.male.foot_br"),
         ),
         foot_br: (
             offset: (-2.0, -3.0, -8.0),
@@ -1022,7 +1022,7 @@
     (Camel, Male): (
         leg_fl: (
             offset: (-2.5, -3.5, -7.0),
-            lateral: ("npc.camel.male.leg_fl"),
+            lateral: ("npc.camel.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-2.5, -3.5, -7.0),
@@ -1030,7 +1030,7 @@
         ),
         leg_bl: (
             offset: (-2.5, -3.5, -8.0),
-            lateral: ("npc.camel.male.leg_bl"),
+            lateral: ("npc.camel.male.leg_br"),
         ),
         leg_br: (
             offset: (-2.5, -3.5, -8.0),
@@ -1038,7 +1038,7 @@
         ),
         foot_fl: (
             offset: (-2.5, -2.5, -9.0),
-            lateral: ("npc.camel.male.foot_fl"),
+            lateral: ("npc.camel.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-2.5, -2.5, -9.0),
@@ -1046,7 +1046,7 @@
         ),
         foot_bl: (
             offset: (-2.5, -3.0, -8.0),
-            lateral: ("npc.camel.male.foot_bl"),
+            lateral: ("npc.camel.male.foot_br"),
         ),
         foot_br: (
             offset: (-2.5, -3.0, -8.0),
@@ -1056,7 +1056,7 @@
     (Camel, Female): (
         leg_fl: (
             offset: (-2.5, -3.5, -7.0),
-            lateral: ("npc.camel.male.leg_fl"),
+            lateral: ("npc.camel.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-2.5, -3.5, -7.0),
@@ -1064,7 +1064,7 @@
         ),
         leg_bl: (
             offset: (-2.5, -3.5, -8.0),
-            lateral: ("npc.camel.male.leg_bl"),
+            lateral: ("npc.camel.male.leg_br"),
         ),
         leg_br: (
             offset: (-2.5, -3.5, -8.0),
@@ -1072,7 +1072,7 @@
         ),
         foot_fl: (
             offset: (-2.5, -2.5, -9.0),
-            lateral: ("npc.camel.male.foot_fl"),
+            lateral: ("npc.camel.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-2.5, -2.5, -9.0),
@@ -1080,7 +1080,7 @@
         ),
         foot_bl: (
             offset: (-2.5, -3.0, -8.0),
-            lateral: ("npc.camel.male.foot_bl"),
+            lateral: ("npc.camel.male.foot_br"),
         ),
         foot_br: (
             offset: (-2.5, -3.0, -8.0),
@@ -1090,7 +1090,7 @@
     (Zebra, Male): (
         leg_fl: (
             offset: (-2.0, -2.5, -4.0),
-            lateral: ("npc.zebra.male.leg_fl"),
+            lateral: ("npc.zebra.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-2.0, -2.5, -4.0),
@@ -1098,7 +1098,7 @@
         ),
         leg_bl: (
             offset: (-2.0, -3.0, -4.0),
-            lateral: ("npc.zebra.male.leg_bl"),
+            lateral: ("npc.zebra.male.leg_br"),
         ),
         leg_br: (
             offset: (-2.0, -3.0, -4.0),
@@ -1106,7 +1106,7 @@
         ),
         foot_fl: (
             offset: (-1.5, -2.0, -8.0),
-            lateral: ("npc.zebra.male.foot_fl"),
+            lateral: ("npc.zebra.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-1.5, -2.0, -8.0),
@@ -1114,7 +1114,7 @@
         ),
         foot_bl: (
             offset: (-1.5, -2.5, -9.0),
-            lateral: ("npc.zebra.male.foot_bl"),
+            lateral: ("npc.zebra.male.foot_br"),
         ),
         foot_br: (
             offset: (-1.5, -2.5, -9.0),
@@ -1124,7 +1124,7 @@
     (Zebra, Female): (
         leg_fl: (
             offset: (-2.0, -2.5, -4.0),
-            lateral: ("npc.zebra.male.leg_fl"),
+            lateral: ("npc.zebra.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-2.0, -2.5, -4.0),
@@ -1132,7 +1132,7 @@
         ),
         leg_bl: (
             offset: (-2.0, -3.0, -4.0),
-            lateral: ("npc.zebra.male.leg_bl"),
+            lateral: ("npc.zebra.male.leg_br"),
         ),
         leg_br: (
             offset: (-2.0, -3.0, -4.0),
@@ -1140,7 +1140,7 @@
         ),
         foot_fl: (
             offset: (-1.5, -2.0, -8.0),
-            lateral: ("npc.zebra.male.foot_fl"),
+            lateral: ("npc.zebra.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-1.5, -2.0, -8.0),
@@ -1148,7 +1148,7 @@
         ),
         foot_bl: (
             offset: (-1.5, -2.5, -9.0),
-            lateral: ("npc.zebra.male.foot_bl"),
+            lateral: ("npc.zebra.male.foot_br"),
         ),
         foot_br: (
             offset: (-1.5, -2.5, -9.0),
@@ -1158,7 +1158,7 @@
     (Antelope, Male): (
         leg_fl: (
             offset: (-1.5, -2.5, -4.0),
-            lateral: ("npc.antelope.male.leg_fl"),
+            lateral: ("npc.antelope.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-1.5, -2.5, -4.0),
@@ -1166,7 +1166,7 @@
         ),
         leg_bl: (
             offset: (-2.0, -2.5, -5.0),
-            lateral: ("npc.antelope.male.leg_bl"),
+            lateral: ("npc.antelope.male.leg_br"),
         ),
         leg_br: (
             offset: (-2.0, -2.5, -5.0),
@@ -1174,7 +1174,7 @@
         ),
         foot_fl: (
             offset: (-1.0, -1.5, -8.0),
-            lateral: ("npc.antelope.male.foot_fl"),
+            lateral: ("npc.antelope.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-1.0, -1.5, -8.0),
@@ -1182,7 +1182,7 @@
         ),
         foot_bl: (
             offset: (-1.0, -1.0, -7.0),
-            lateral: ("npc.antelope.male.foot_bl"),
+            lateral: ("npc.antelope.male.foot_br"),
         ),
         foot_br: (
             offset: (-1.0, -1.0, -7.0),
@@ -1192,7 +1192,7 @@
     (Antelope, Female): (
         leg_fl: (
             offset: (-1.5, -2.5, -4.0),
-            lateral: ("npc.antelope.male.leg_fl"),
+            lateral: ("npc.antelope.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-1.5, -2.5, -4.0),
@@ -1200,7 +1200,7 @@
         ),
         leg_bl: (
             offset: (-2.0, -2.5, -5.0),
-            lateral: ("npc.antelope.male.leg_bl"),
+            lateral: ("npc.antelope.male.leg_br"),
         ),
         leg_br: (
             offset: (-2.0, -2.5, -5.0),
@@ -1208,7 +1208,7 @@
         ),
         foot_fl: (
             offset: (-1.0, -1.5, -8.0),
-            lateral: ("npc.antelope.male.foot_fl"),
+            lateral: ("npc.antelope.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-1.0, -1.5, -8.0),
@@ -1216,7 +1216,7 @@
         ),
         foot_bl: (
             offset: (-1.0, -1.0, -7.0),
-            lateral: ("npc.antelope.male.foot_bl"),
+            lateral: ("npc.antelope.male.foot_br"),
         ),
         foot_br: (
             offset: (-1.0, -1.0, -7.0),
@@ -1226,7 +1226,7 @@
     (Kelpie, Male): (
         leg_fl: (
             offset: (-2.0, -2.5, -5.0),
-            lateral: ("npc.kelpie.male.leg_fl"),
+            lateral: ("npc.kelpie.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-2.0, -2.5, -5.0),
@@ -1234,7 +1234,7 @@
         ),
         leg_bl: (
             offset: (-2.0, -3.0, -4.5),
-            lateral: ("npc.kelpie.male.leg_bl"),
+            lateral: ("npc.kelpie.male.leg_br"),
         ),
         leg_br: (
             offset: (-2.0, -3.0, -4.5),
@@ -1242,7 +1242,7 @@
         ),
         foot_fl: (
             offset: (-1.5, -2.0, -8.0),
-            lateral: ("npc.kelpie.male.foot_fl"),
+            lateral: ("npc.kelpie.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-1.5, -2.0, -8.0),
@@ -1250,7 +1250,7 @@
         ),
         foot_bl: (
             offset: (-1.5, -2.5, -9.0),
-            lateral: ("npc.kelpie.male.foot_bl"),
+            lateral: ("npc.kelpie.male.foot_br"),
         ),
         foot_br: (
             offset: (-1.5, -2.5, -9.0),
@@ -1260,7 +1260,7 @@
     (Kelpie, Female): (
         leg_fl: (
             offset: (-2.0, -2.5, -5.0),
-            lateral: ("npc.kelpie.male.leg_fl"),
+            lateral: ("npc.kelpie.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-2.0, -2.5, -5.0),
@@ -1268,7 +1268,7 @@
         ),
         leg_bl: (
             offset: (-2.0, -3.0, -4.5),
-            lateral: ("npc.kelpie.male.leg_bl"),
+            lateral: ("npc.kelpie.male.leg_br"),
         ),
         leg_br: (
             offset: (-2.0, -3.0, -4.5),
@@ -1276,7 +1276,7 @@
         ),
         foot_fl: (
             offset: (-1.5, -2.0, -8.0),
-            lateral: ("npc.kelpie.male.foot_fl"),
+            lateral: ("npc.kelpie.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-1.5, -2.0, -8.0),
@@ -1284,7 +1284,7 @@
         ),
         foot_bl: (
             offset: (-1.5, -2.5, -9.0),
-            lateral: ("npc.kelpie.male.foot_bl"),
+            lateral: ("npc.kelpie.male.foot_br"),
         ),
         foot_br: (
             offset: (-1.5, -2.5, -9.0),
@@ -1294,7 +1294,7 @@
     (Horse, Male): (
         leg_fl: (
             offset: (-2.0, -2.5, -6.0),
-            lateral: ("npc.horse.male.leg_fl"),
+            lateral: ("npc.horse.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-2.0, -2.5, -6.0),
@@ -1302,7 +1302,7 @@
         ),
         leg_bl: (
             offset: (-2.0, -3.0, -4.5),
-            lateral: ("npc.horse.male.leg_bl"),
+            lateral: ("npc.horse.male.leg_br"),
         ),
         leg_br: (
             offset: (-2.0, -3.0, -4.5),
@@ -1310,7 +1310,7 @@
         ),
         foot_fl: (
             offset: (-1.5, -2.0, -8.0),
-            lateral: ("npc.horse.male.foot_fl"),
+            lateral: ("npc.horse.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-1.5, -2.0, -8.0),
@@ -1318,7 +1318,7 @@
         ),
         foot_bl: (
             offset: (-1.5, -1.5, -9.0),
-            lateral: ("npc.horse.male.foot_bl"),
+            lateral: ("npc.horse.male.foot_br"),
         ),
         foot_br: (
             offset: (-1.5, -1.5, -9.0),
@@ -1328,7 +1328,7 @@
     (Horse, Female): (
         leg_fl: (
             offset: (-2.0, -2.5, -6.0),
-            lateral: ("npc.horse.male.leg_fl"),
+            lateral: ("npc.horse.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-2.0, -2.5, -6.0),
@@ -1336,7 +1336,7 @@
         ),
         leg_bl: (
             offset: (-2.0, -3.0, -4.5),
-            lateral: ("npc.horse.male.leg_bl"),
+            lateral: ("npc.horse.male.leg_br"),
         ),
         leg_br: (
             offset: (-2.0, -3.0, -4.5),
@@ -1344,7 +1344,7 @@
         ),
         foot_fl: (
             offset: (-1.5, -2.0, -8.0),
-            lateral: ("npc.horse.male.foot_fl"),
+            lateral: ("npc.horse.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-1.5, -2.0, -8.0),
@@ -1352,7 +1352,7 @@
         ),
         foot_bl: (
             offset: (-1.5, -1.5, -9.0),
-            lateral: ("npc.horse.male.foot_bl"),
+            lateral: ("npc.horse.male.foot_br"),
         ),
         foot_br: (
             offset: (-1.5, -1.5, -9.0),
@@ -1362,7 +1362,7 @@
     (Barghest, Male): (
         leg_fl: (
             offset: (-3.5, -4.0, -5.0),
-            lateral: ("npc.barghest.male.leg_fl"),
+            lateral: ("npc.barghest.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-3.5, -4.0, -5.0),
@@ -1370,7 +1370,7 @@
         ),
         leg_bl: (
             offset: (-2.0, -3.5, -3.5),
-            lateral: ("npc.barghest.male.leg_bl"),
+            lateral: ("npc.barghest.male.leg_br"),
         ),
         leg_br: (
             offset: (-2.0, -3.5, -3.5),
@@ -1378,7 +1378,7 @@
         ),
         foot_fl: (
             offset: (-4.5, -5.5, -7.0),
-            lateral: ("npc.barghest.male.foot_fl"),
+            lateral: ("npc.barghest.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-4.5, -5.5, -7.0),
@@ -1386,7 +1386,7 @@
         ),
         foot_bl: (
             offset: (-2.5, -3.5, -4.0),
-            lateral: ("npc.barghest.male.foot_bl"),
+            lateral: ("npc.barghest.male.foot_br"),
         ),
         foot_br: (
             offset: (-2.5, -3.5, -4.0),
@@ -1396,7 +1396,7 @@
     (Barghest, Female): (
         leg_fl: (
             offset: (-3.5, -4.0, -5.0),
-            lateral: ("npc.barghest.male.leg_fl"),
+            lateral: ("npc.barghest.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-3.5, -4.0, -5.0),
@@ -1404,7 +1404,7 @@
         ),
         leg_bl: (
             offset: (-2.0, -3.5, -3.5),
-            lateral: ("npc.barghest.male.leg_bl"),
+            lateral: ("npc.barghest.male.leg_br"),
         ),
         leg_br: (
             offset: (-2.0, -3.5, -3.5),
@@ -1412,7 +1412,7 @@
         ),
         foot_fl: (
             offset: (-4.5, -5.5, -7.0),
-            lateral: ("npc.barghest.male.foot_fl"),
+            lateral: ("npc.barghest.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-4.5, -5.5, -7.0),
@@ -1420,7 +1420,7 @@
         ),
         foot_bl: (
             offset: (-2.5, -3.5, -4.0),
-            lateral: ("npc.barghest.male.foot_bl"),
+            lateral: ("npc.barghest.male.foot_br"),
         ),
         foot_br: (
             offset: (-2.5, -3.5, -4.0),
@@ -1430,7 +1430,7 @@
     (Cattle, Male): (
         leg_fl: (
             offset: (-2.5, -3.0, -6.5),
-            lateral: ("npc.cattle.male.leg_fl"),
+            lateral: ("npc.cattle.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-2.5, -3.0, -6.5),
@@ -1438,7 +1438,7 @@
         ),
         leg_bl: (
             offset: (-2.0, -3.0, -5.0),
-            lateral: ("npc.cattle.male.leg_bl"),
+            lateral: ("npc.cattle.male.leg_br"),
         ),
         leg_br: (
             offset: (-2.0, -3.0, -5.0),
@@ -1446,7 +1446,7 @@
         ),
         foot_fl: (
             offset: (-1.5, -2.0, -8.0),
-            lateral: ("npc.cattle.male.foot_fl"),
+            lateral: ("npc.cattle.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-1.5, -2.0, -8.0),
@@ -1454,7 +1454,7 @@
         ),
         foot_bl: (
             offset: (-1.5, -2.5, -9.0),
-            lateral: ("npc.cattle.male.foot_bl"),
+            lateral: ("npc.cattle.male.foot_br"),
         ),
         foot_br: (
             offset: (-1.5, -2.5, -9.0),
@@ -1464,7 +1464,7 @@
     (Cattle, Female): (
         leg_fl: (
             offset: (-2.0, -2.5, -5.5),
-            lateral: ("npc.cattle.female.leg_fl"),
+            lateral: ("npc.cattle.female.leg_fr"),
         ),
         leg_fr: (
             offset: (-2.0, -2.5, -5.5),
@@ -1472,7 +1472,7 @@
         ),
         leg_bl: (
             offset: (-2.0, -3.0, -4.5),
-            lateral: ("npc.cattle.female.leg_bl"),
+            lateral: ("npc.cattle.female.leg_br"),
         ),
         leg_br: (
             offset: (-2.0, -3.5, -4.5),
@@ -1480,7 +1480,7 @@
         ),
         foot_fl: (
             offset: (-1.5, -2.0, -8.0),
-            lateral: ("npc.cattle.female.foot_fl"),
+            lateral: ("npc.cattle.female.foot_fr"),
         ),
         foot_fr: (
             offset: (-1.5, -2.0, -8.0),
@@ -1488,7 +1488,7 @@
         ),
         foot_bl: (
             offset: (-1.5, -2.5, -9.0),
-            lateral: ("npc.cattle.female.foot_bl"),
+            lateral: ("npc.cattle.female.foot_br"),
         ),
         foot_br: (
             offset: (-1.5, -2.5, -9.0),
@@ -1498,7 +1498,7 @@
     (Darkhound, Male): (
         leg_fl: (
             offset: (-1.5, -3.5, -4.0),
-            lateral: ("npc.darkhound.male.leg_fl"),
+            lateral: ("npc.darkhound.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-1.5, -3.5, -4.0),
@@ -1506,7 +1506,7 @@
         ),
         leg_bl: (
             offset: (-1.5, -3.5, -3.5),
-            lateral: ("npc.darkhound.male.leg_bl"),
+            lateral: ("npc.darkhound.male.leg_br"),
         ),
         leg_br: (
             offset: (-1.5, -3.5, -3.5),
@@ -1514,7 +1514,7 @@
         ),
         foot_fl: (
             offset: (-1.5, -4.0, -8.0),
-            lateral: ("npc.darkhound.male.foot_fl"),
+            lateral: ("npc.darkhound.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-1.5, -4.0, -8.0),
@@ -1522,7 +1522,7 @@
         ),
         foot_bl: (
             offset: (-1.5, -3.5, -8.0),
-            lateral: ("npc.darkhound.male.foot_bl"),
+            lateral: ("npc.darkhound.male.foot_br"),
         ),
         foot_br: (
             offset: (-1.5, -3.5, -8.0),
@@ -1532,7 +1532,7 @@
     (Darkhound, Female): (
         leg_fl: (
             offset: (-1.5, -3.5, -4.0),
-            lateral: ("npc.darkhound.male.leg_fl"),
+            lateral: ("npc.darkhound.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-1.5, -3.5, -4.0),
@@ -1540,7 +1540,7 @@
         ),
         leg_bl: (
             offset: (-1.5, -3.5, -3.5),
-            lateral: ("npc.darkhound.male.leg_bl"),
+            lateral: ("npc.darkhound.male.leg_br"),
         ),
         leg_br: (
             offset: (-1.5, -3.5, -3.5),
@@ -1548,7 +1548,7 @@
         ),
         foot_fl: (
             offset: (-1.5, -4.0, -8.0),
-            lateral: ("npc.darkhound.male.foot_fl"),
+            lateral: ("npc.darkhound.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-1.5, -4.0, -8.0),
@@ -1556,7 +1556,7 @@
         ),
         foot_bl: (
             offset: (-1.5, -3.5, -8.0),
-            lateral: ("npc.darkhound.male.foot_bl"),
+            lateral: ("npc.darkhound.male.foot_br"),
         ),
         foot_br: (
             offset: (-1.5, -3.5, -8.0),
@@ -1566,7 +1566,7 @@
     (Highland, Male): (
         leg_fl: (
             offset: (-2.0, -2.5, -4.5),
-            lateral: ("npc.highland.male.leg_fl"),
+            lateral: ("npc.highland.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-2.0, -2.5, -4.5),
@@ -1574,7 +1574,7 @@
         ),
         leg_bl: (
             offset: (-2.0, -3.0, -4.5),
-            lateral: ("npc.highland.male.leg_bl"),
+            lateral: ("npc.highland.male.leg_br"),
         ),
         leg_br: (
             offset: (-2.0, -3.0, -4.5),
@@ -1582,7 +1582,7 @@
         ),
         foot_fl: (
             offset: (-1.5, -2.0, -8.0),
-            lateral: ("npc.highland.male.foot_fl"),
+            lateral: ("npc.highland.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-1.5, -2.0, -8.0),
@@ -1590,7 +1590,7 @@
         ),
         foot_bl: (
             offset: (-1.5, -2.5, -9.0),
-            lateral: ("npc.highland.male.foot_bl"),
+            lateral: ("npc.highland.male.foot_br"),
         ),
         foot_br: (
             offset: (-1.5, -2.5, -9.0),
@@ -1600,7 +1600,7 @@
     (Highland, Female): (
         leg_fl: (
             offset: (-2.0, -2.5, -4.5),
-            lateral: ("npc.highland.male.leg_fl"),
+            lateral: ("npc.highland.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-2.0, -2.5, -4.5),
@@ -1608,7 +1608,7 @@
         ),
         leg_bl: (
             offset: (-2.0, -3.0, -4.5),
-            lateral: ("npc.highland.male.leg_bl"),
+            lateral: ("npc.highland.male.leg_br"),
         ),
         leg_br: (
             offset: (-2.0, -3.0, -4.5),
@@ -1616,7 +1616,7 @@
         ),
         foot_fl: (
             offset: (-1.5, -2.0, -8.0),
-            lateral: ("npc.highland.male.foot_fl"),
+            lateral: ("npc.highland.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-1.5, -2.0, -8.0),
@@ -1624,7 +1624,7 @@
         ),
         foot_bl: (
             offset: (-1.5, -2.5, -9.0),
-            lateral: ("npc.highland.male.foot_bl"),
+            lateral: ("npc.highland.male.foot_br"),
         ),
         foot_br: (
             offset: (-1.5, -2.5, -9.0),
@@ -1634,7 +1634,7 @@
     (Yak, Male): (
         leg_fl: (
             offset: (-2.0, -3.0, -10.5),
-            lateral: ("npc.yak.male.leg_fl"),
+            lateral: ("npc.yak.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-2.0, -3.0, -10.5),
@@ -1642,7 +1642,7 @@
         ),
         leg_bl: (
             offset: (-2.0, -3.0, -10.5),
-            lateral: ("npc.yak.male.leg_bl"),
+            lateral: ("npc.yak.male.leg_br"),
         ),
         leg_br: (
             offset: (-2.0, -3.0, -10.5),
@@ -1650,7 +1650,7 @@
         ),
         foot_fl: (
             offset: (-1.5, -2.0, -9.0),
-            lateral: ("npc.yak.male.foot_fl"),
+            lateral: ("npc.yak.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-1.5, -2.0, -9.0),
@@ -1658,7 +1658,7 @@
         ),
         foot_bl: (
             offset: (-1.5, -2.5, -9.0),
-            lateral: ("npc.yak.male.foot_bl"),
+            lateral: ("npc.yak.male.foot_br"),
         ),
         foot_br: (
             offset: (-1.5, -2.5, -9.0),
@@ -1668,7 +1668,7 @@
     (Yak, Female): (
         leg_fl: (
             offset: (-2.0, -3.0, -10.5),
-            lateral: ("npc.yak.male.leg_fl"),
+            lateral: ("npc.yak.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-2.0, -3.0, -10.5),
@@ -1676,7 +1676,7 @@
         ),
         leg_bl: (
             offset: (-2.0, -3.0, -10.5),
-            lateral: ("npc.yak.male.leg_bl"),
+            lateral: ("npc.yak.male.leg_br"),
         ),
         leg_br: (
             offset: (-2.0, -3.0, -10.5),
@@ -1684,7 +1684,7 @@
         ),
         foot_fl: (
             offset: (-1.5, -2.0, -9.0),
-            lateral: ("npc.yak.male.foot_fl"),
+            lateral: ("npc.yak.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-1.5, -2.0, -9.0),
@@ -1692,7 +1692,7 @@
         ),
         foot_bl: (
             offset: (-1.5, -2.5, -9.0),
-            lateral: ("npc.yak.male.foot_bl"),
+            lateral: ("npc.yak.male.foot_br"),
         ),
         foot_br: (
             offset: (-1.5, -2.5, -9.0),
@@ -1702,7 +1702,7 @@
     (Bear, Male): (
         leg_fl: (
             offset: (-2.0, -3.5, -4.5),
-            lateral: ("npc.bear.male.leg_fl"),
+            lateral: ("npc.bear.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-2.0, -3.5, -4.5),
@@ -1710,7 +1710,7 @@
         ),
         leg_bl: (
             offset: (-2.0, -3.5, -5.0),
-            lateral: ("npc.bear.male.leg_bl"),
+            lateral: ("npc.bear.male.leg_br"),
         ),
         leg_br: (
             offset: (-2.0, -3.5, -5.0),
@@ -1718,7 +1718,7 @@
         ),
         foot_fl: (
             offset: (-3.0, -4.5, -7.0),
-            lateral: ("npc.bear.male.foot_fl"),
+            lateral: ("npc.bear.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-3.0, -4.5, -7.0),
@@ -1726,7 +1726,7 @@
         ),
         foot_bl: (
             offset: (-2.5, -4.0, -6.0),
-            lateral: ("npc.bear.male.foot_bl"),
+            lateral: ("npc.bear.male.foot_br"),
         ),
         foot_br: (
             offset: (-2.5, -4.0, -6.0),
@@ -1736,7 +1736,7 @@
     (Panda, Female): (
         leg_fl: (
             offset: (-2.0, -3.5, -4.5),
-            lateral: ("npc.panda.male.leg_fl"),
+            lateral: ("npc.panda.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-2.0, -3.5, -4.5),
@@ -1744,7 +1744,7 @@
         ),
         leg_bl: (
             offset: (-2.0, -3.5, -5.0),
-            lateral: ("npc.panda.male.leg_bl"),
+            lateral: ("npc.panda.male.leg_br"),
         ),
         leg_br: (
             offset: (-2.0, -3.5, -5.0),
@@ -1752,7 +1752,7 @@
         ),
         foot_fl: (
             offset: (-3.0, -4.5, -7.0),
-            lateral: ("npc.panda.male.foot_fl"),
+            lateral: ("npc.panda.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-3.0, -4.5, -7.0),
@@ -1760,7 +1760,7 @@
         ),
         foot_bl: (
             offset: (-2.5, -4.0, -6.0),
-            lateral: ("npc.panda.male.foot_bl"),
+            lateral: ("npc.panda.male.foot_br"),
         ),
         foot_br: (
             offset: (-2.5, -4.0, -6.0),
@@ -1770,7 +1770,7 @@
     (Panda, Male): (
         leg_fl: (
             offset: (-2.0, -3.5, -4.5),
-            lateral: ("npc.panda.male.leg_fl"),
+            lateral: ("npc.panda.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-2.0, -3.5, -4.5),
@@ -1778,7 +1778,7 @@
         ),
         leg_bl: (
             offset: (-2.0, -3.5, -5.0),
-            lateral: ("npc.panda.male.leg_bl"),
+            lateral: ("npc.panda.male.leg_br"),
         ),
         leg_br: (
             offset: (-2.0, -3.5, -5.0),
@@ -1786,7 +1786,7 @@
         ),
         foot_fl: (
             offset: (-3.0, -4.5, -7.0),
-            lateral: ("npc.panda.male.foot_fl"),
+            lateral: ("npc.panda.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-3.0, -4.5, -7.0),
@@ -1794,7 +1794,7 @@
         ),
         foot_bl: (
             offset: (-2.5, -4.0, -6.0),
-            lateral: ("npc.panda.male.foot_bl"),
+            lateral: ("npc.panda.male.foot_br"),
         ),
         foot_br: (
             offset: (-2.5, -4.0, -6.0),
@@ -1804,7 +1804,7 @@
     (Bear, Female): (
         leg_fl: (
             offset: (-2.0, -3.5, -4.5),
-            lateral: ("npc.bear.male.leg_fl"),
+            lateral: ("npc.bear.male.leg_fr"),
         ),
         leg_fr: (
             offset: (-2.0, -3.5, -4.5),
@@ -1812,7 +1812,7 @@
         ),
         leg_bl: (
             offset: (-2.0, -3.5, -5.0),
-            lateral: ("npc.bear.male.leg_bl"),
+            lateral: ("npc.bear.male.leg_br"),
         ),
         leg_br: (
             offset: (-2.0, -3.5, -5.0),
@@ -1820,7 +1820,7 @@
         ),
         foot_fl: (
             offset: (-3.0, -4.5, -7.0),
-            lateral: ("npc.bear.male.foot_fl"),
+            lateral: ("npc.bear.male.foot_fr"),
         ),
         foot_fr: (
             offset: (-3.0, -4.5, -7.0),
@@ -1828,7 +1828,7 @@
         ),
         foot_bl: (
             offset: (-2.5, -4.0, -6.0),
-            lateral: ("npc.bear.male.foot_bl"),
+            lateral: ("npc.bear.male.foot_br"),
         ),
         foot_br: (
             offset: (-2.5, -4.0, -6.0),

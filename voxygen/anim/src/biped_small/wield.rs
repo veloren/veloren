@@ -72,6 +72,10 @@ impl Animation for WieldAnimation {
         next.hand_l.orientation = Quaternion::rotation_x(0.0);
         next.hand_r.orientation = Quaternion::rotation_x(0.0);
 
+        //IMPORTANT: avoid touching any value attached to grip. grip uses the size of
+        // the hand bones to correct any irrgularities beween species. Changing
+        // coefficients to grip will have different effects across species
+
         match active_tool_kind {
             Some(ToolKind::Spear) => {
                 next.control_l.position = Vec3::new(1.0 - s_a.grip.0 * 2.0, 2.0, -2.0);
@@ -95,6 +99,7 @@ impl Animation for WieldAnimation {
 
                 next.control.orientation = Quaternion::rotation_x(-1.35 + 0.5 * speednorm);
             },
+
             Some(ToolKind::Bow) => {
                 next.control_l.position = Vec3::new(1.0 - s_a.grip.0 * 2.0, 0.0, 0.0);
                 next.control_r.position = Vec3::new(-1.0 + s_a.grip.0 * 2.0, 6.0, -2.0);
