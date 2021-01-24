@@ -1,6 +1,6 @@
 use super::utils::*;
 use crate::{
-    comp::{slot::EquipSlot, CharacterState, StateUpdate},
+    comp::{slot::EquipSlot, CharacterState, EnergySource, StateUpdate},
     states::behavior::{CharacterBehavior, JoinData},
 };
 
@@ -17,7 +17,18 @@ impl CharacterBehavior for Data {
 
         // If not on the ground while wielding glider enter gliding state
         if !data.physics.on_ground {
-            update.character = CharacterState::Glide;
+            // Expend energy to slow a fall
+            let energy_cost = (0.5 * data.vel.0.z.min(0.0).powi(2)) as i32;
+            if update
+                .energy
+                .try_change_by(-energy_cost, EnergySource::Glide)
+                .is_ok()
+            {
+                update.character = CharacterState::Glide;
+            } else {
+                update.energy.set_to(0, EnergySource::Glide);
+                update.character = CharacterState::Idle;
+            }
         }
         if data
             .physics

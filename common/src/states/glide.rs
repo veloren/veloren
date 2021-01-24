@@ -1,6 +1,6 @@
 use super::utils::handle_climb;
 use crate::{
-    comp::{inventory::slot::EquipSlot, CharacterState, EnergySource, StateUpdate},
+    comp::{inventory::slot::EquipSlot, CharacterState, StateUpdate},
     states::behavior::{CharacterBehavior, JoinData},
     util::Dir,
 };
@@ -59,17 +59,6 @@ impl CharacterBehavior for Data {
                 * (horiz_speed_sq * f32::powf(0.075, 2.0)).clamp(0.2, 1.0);
 
             update.vel.0.z += lift * data.dt.0;
-
-            // Expend energy during strenuous maneuvers.
-            // Cost increases with lift exceeding that of calmly gliding.
-            let energy_cost = (0.25 * (lift - GLIDE_ANTIGRAV)).max(0.0) as i32;
-            if update
-                .energy
-                .try_change_by(-energy_cost, EnergySource::Glide)
-                .is_err()
-            {
-                update.character = CharacterState::Idle {};
-            }
         }
 
         update
