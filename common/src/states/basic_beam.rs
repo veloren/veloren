@@ -60,8 +60,6 @@ pub struct Data {
     pub timer: Duration,
     /// What section the character stage is in
     pub stage_section: StageSection,
-    /// Used for particle stuffs
-    pub particle_ori: Option<Vec3<f32>>,
     /// Used to offset beam and particles
     pub offset: Vec3<f32>,
 }
@@ -105,7 +103,6 @@ impl CharacterBehavior for Data {
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        particle_ori: Some(*data.inputs.look_dir),
                         ..*self
                     });
                 } else {
@@ -125,7 +122,6 @@ impl CharacterBehavior for Data {
                     update.character = CharacterState::BasicBeam(Data {
                         timer: Duration::default(),
                         stage_section: StageSection::Cast,
-                        particle_ori: Some(*data.inputs.look_dir),
                         offset: body_offsets,
                         ..*self
                     });
@@ -203,7 +199,6 @@ impl CharacterBehavior for Data {
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        particle_ori: Some(*data.inputs.look_dir),
                         offset: body_offsets,
                         ..*self
                     });
@@ -217,7 +212,6 @@ impl CharacterBehavior for Data {
                     update.character = CharacterState::BasicBeam(Data {
                         timer: Duration::default(),
                         stage_section: StageSection::Recover,
-                        particle_ori: Some(*data.inputs.look_dir),
                         ..*self
                     });
                 }
@@ -229,7 +223,6 @@ impl CharacterBehavior for Data {
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        particle_ori: Some(*data.inputs.look_dir),
                         ..*self
                     });
                 } else {

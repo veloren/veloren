@@ -1466,7 +1466,6 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
-                particle_ori: None::<Vec3<f32>>,
                 offset: Vec3::zero(),
             }),
         }
