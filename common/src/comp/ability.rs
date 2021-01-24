@@ -471,8 +471,9 @@ impl CharacterAbility {
             } => {
                 *buildup_duration = (*buildup_duration as f32 / speed) as u64;
                 *recover_duration = (*recover_duration as f32 / speed) as u64;
-                *base_hps = (*base_hps as f32 * power) as u32;
-                *base_dps = (*base_dps as f32 * power) as u32;
+                // hps and dps adjusted by speed as they are normalized by tick rate already
+                *base_hps = (*base_hps as f32 * power * speed) as u32;
+                *base_dps = (*base_dps as f32 * power * speed) as u32;
                 *tick_rate *= speed;
             },
         }
