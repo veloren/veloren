@@ -127,10 +127,6 @@ impl CharacterBehavior for Data {
                         source: DamageSource::Healing,
                         value: self.static_data.base_hps as f32 / self.static_data.tick_rate,
                     };
-                    let energy_regen =
-                        (self.static_data.energy_regen as f32 / self.static_data.tick_rate) as u32;
-                    let energy_cost =
-                        (self.static_data.energy_cost as f32 / self.static_data.tick_rate) as u32;
                     let speed =
                         self.static_data.range / self.static_data.beam_duration.as_secs_f32();
                     let properties = beam::Properties {
@@ -141,8 +137,8 @@ impl CharacterBehavior for Data {
                             (Some(GroupTarget::InGroup), heal),
                         ],
                         lifesteal_eff: self.static_data.lifesteal_eff,
-                        energy_regen,
-                        energy_cost,
+                        energy_regen: self.static_data.energy_regen,
+                        energy_cost: self.static_data.energy_cost,
                         duration: self.static_data.beam_duration,
                         owner: Some(*data.uid),
                     };
