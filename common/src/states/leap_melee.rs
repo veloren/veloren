@@ -4,7 +4,7 @@ use crate::{
         behavior::{CharacterBehavior, JoinData},
         utils::{StageSection, *},
     },
-    Damage, DamageSource, GroupTarget, Knockback,
+    Damage, DamageSource, GroupTarget, Knockback, KnockbackDir,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -164,7 +164,10 @@ impl CharacterBehavior for Data {
                         max_angle: self.static_data.max_angle.to_radians(),
                         applied: false,
                         hit_count: 0,
-                        knockback: Knockback::Away(self.static_data.knockback),
+                        knockback: Knockback {
+                            strength: self.static_data.knockback,
+                            direction: KnockbackDir::Away,
+                        },
                     });
 
                     update.character = CharacterState::LeapMelee(Data {

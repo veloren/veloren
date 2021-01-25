@@ -10,7 +10,7 @@ use crate::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
     },
-    Damage, DamageSource, GroupTarget, Knockback,
+    Damage, DamageSource, GroupTarget, Knockback, KnockbackDir,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -114,7 +114,10 @@ impl CharacterBehavior for Data {
                         hit_solid: vec![projectile::Effect::Stick],
                         hit_entity: vec![
                             projectile::Effect::Damage(Some(GroupTarget::OutOfGroup), damage),
-                            projectile::Effect::Knockback(Knockback::Away(knockback)),
+                            projectile::Effect::Knockback(Knockback {
+                                strength: knockback,
+                                direction: KnockbackDir::Away,
+                            }),
                             projectile::Effect::Vanish,
                             projectile::Effect::Buff {
                                 buff: BuffEffect {

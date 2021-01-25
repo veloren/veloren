@@ -181,34 +181,35 @@ impl Damage {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub enum Knockback {
-    Away(f32),
-    Towards(f32),
-    Up(f32),
-    TowardsUp(f32),
+pub struct Knockback {
+    pub direction: KnockbackDir,
+    pub strength: f32,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum KnockbackDir {
+    Away,
+    Towards,
+    Up,
+    TowardsUp,
 }
 
 impl Knockback {
     pub fn calculate_impulse(self, dir: Dir) -> Vec3<f32> {
-        match self {
-            Knockback::Away(strength) => strength * *Dir::slerp(dir, Dir::new(Vec3::unit_z()), 0.5),
-            Knockback::Towards(strength) => {
-                strength * *Dir::slerp(-dir, Dir::new(Vec3::unit_z()), 0.5)
+        match self.direction {
+            KnockbackDir::Away => self.strength * *Dir::slerp(dir, Dir::new(Vec3::unit_z()), 0.5),
+            KnockbackDir::Towards => {
+                self.strength * *Dir::slerp(-dir, Dir::new(Vec3::unit_z()), 0.5)
             },
-            Knockback::Up(strength) => strength * Vec3::unit_z(),
-            Knockback::TowardsUp(strength) => {
-                strength * *Dir::slerp(-dir, Dir::new(Vec3::unit_z()), 0.85)
+            KnockbackDir::Up => self.strength * Vec3::unit_z(),
+            KnockbackDir::TowardsUp => {
+                self.strength * *Dir::slerp(-dir, Dir::new(Vec3::unit_z()), 0.85)
             },
         }
     }
 
     pub fn modify_strength(mut self, power: f32) -> Self {
-        use Knockback::*;
-        match self {
-            Away(ref mut f) | Towards(ref mut f) | Up(ref mut f) | TowardsUp(ref mut f) => {
-                *f *= power;
-            },
-        }
+        self.strength *= power;
         self
     }
 }
