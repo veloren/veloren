@@ -3,6 +3,11 @@
     (2, "common.items.crafting_ing.leather_scraps"),
     (4, "common.items.crafting_ing.cloth_scraps"),
     (1, "common.items.crafting_ing.empty_vial"),
-    (0.10, "common.items.crafting_ing.shiny_gem"),    
+    (0.5, "common.items.crafting_ing.amethyst"),
+    (0.5, "common.items.crafting_ing.topaz"),
+    (0.4, "common.items.crafting_ing.sapphire"),
+    (0.35, "common.items.crafting_ing.emerald"),    
+    (0.25, "common.items.crafting_ing.ruby"),    
+    (0.10, "common.items.crafting_ing.diamond"),
 
 ]

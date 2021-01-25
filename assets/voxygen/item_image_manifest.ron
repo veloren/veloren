@@ -1600,9 +1600,6 @@
     Ingredient("ClothScrapsRed"): Png(
         "element.icons.item_cloth_red",
     ),
-    Ingredient("ShinyGem"): Png(
-        "element.icons.gem",
-    ),
     Ingredient("MortarPestle"): Png(
         "element.icons.item_mortarpestlecoco",
     ),
@@ -1667,5 +1664,30 @@
     Tool("common.items.debug.possess"): VoxTrans(
         "voxel.weapon.tool.broom_belzeshrub_purple",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
+    ),
+    // Gems
+    Ingredient("Amethyst"): VoxTrans(
+        "voxel.sprite.gem.amethystgem",
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.7,
+    ),
+    Ingredient("Topaz"): VoxTrans(
+        "voxel.sprite.gem.topazgem",
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.7,
+    ),
+    Ingredient("Sapphire"): VoxTrans(
+        "voxel.sprite.gem.sapphiregem",
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.6,
+    ),
+    Ingredient("Emerald"): VoxTrans(
+        "voxel.sprite.gem.emeraldgem",
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.7,
+    ),
+    Ingredient("Ruby"): VoxTrans(
+        "voxel.sprite.gem.rubygem",
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.7,
+    ),
+    Ingredient("Diamond"): VoxTrans(
+        "voxel.sprite.gem.diamondgem",
+        (0.0, 0.0, 0.0), (-55.0, 30.0, 20.0), 0.6,
     ),
 })
