@@ -10,7 +10,6 @@ use crate::{
         utils::*,
     },
     uid::Uid,
-    util::Dir,
     Damage, DamageSource, GroupTarget,
 };
 use serde::{Deserialize, Serialize};
@@ -46,7 +45,7 @@ pub struct StaticData {
     /// Energy drained per
     pub energy_drain: u32,
     /// Used to dictate how orientation functions in this state
-    pub orientation_behavior: OrientationBehavior,
+    pub orientation_behavior: MovementBehavior,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
 }
@@ -69,16 +68,9 @@ impl CharacterBehavior for Data {
         let mut update = StateUpdate::from(data);
 
         match self.static_data.orientation_behavior {
-            OrientationBehavior::Normal => {},
-            OrientationBehavior::Turret(speed) => {
+            MovementBehavior::Normal => {},
+            MovementBehavior::Turret => {
                 update.ori.0 = data.inputs.look_dir;
-                /*update.ori.0 = Dir::new(
-                    Quaternion::from_xyzw(update.ori.0.x, update.ori.0.y, update.ori.0.z, 0.0)
-                        .rotated_z(data.dt.0 as f32 * speed)
-                        .into_vec3()
-                        .try_normalized()
-                        .unwrap_or_default(),
-                );*/
             },
         }
 
@@ -114,8 +106,8 @@ impl CharacterBehavior for Data {
                     });
                     // Gets offsets
                     let body_offsets = Vec3::new(
-                        (data.body.radius() + 1.0) * data.inputs.look_dir.x,
-                        (data.body.radius() + 1.0) * data.inputs.look_dir.y,
+                        (data.body.radius() + 1.0) * data.ori.0.x,
+                        (data.body.radius() + 1.0) * data.ori.0.y,
                         data.body.eye_height(),
                     ) * 0.55;
                     // Build up
@@ -245,7 +237,7 @@ impl CharacterBehavior for Data {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub enum OrientationBehavior {
+pub enum MovementBehavior {
     Normal,
-    Turret(f32),
+    Turret,
 }

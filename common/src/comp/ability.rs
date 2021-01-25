@@ -225,7 +225,7 @@ pub enum CharacterAbility {
         energy_regen: u32,
         energy_cost: u32,
         energy_drain: u32,
-        orientation_behavior: basic_beam::OrientationBehavior,
+        orientation_behavior: basic_beam::MovementBehavior,
     },
 }
 

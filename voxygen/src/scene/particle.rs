@@ -384,7 +384,7 @@ impl ParticleMgr {
                         beam.properties.duration,
                         time + i as f64 / 1000.0,
                         ParticleMode::HealingBeam,
-                        pos.0 + *ori.0 * 0.5,
+                        pos.0,
                         pos.0 + *ori.0 * range,
                     ));
                 }
@@ -400,18 +400,12 @@ impl ParticleMgr {
                 ));
                 self.particles.resize_with(
                     self.particles.len()
-                        + 2 * usize::from(
-                            self.scheduler.heartbeats(Duration::from_millis(1)),
-                        ),
+                        + 2 * usize::from(self.scheduler.heartbeats(Duration::from_millis(1))),
                     || {
-                        let phi: f32 =
-                            rng.gen_range(0.0, beam.properties.angle.to_radians());
+                        let phi: f32 = rng.gen_range(0.0, beam.properties.angle.to_radians());
                         let theta: f32 = rng.gen_range(0.0, 2.0 * PI);
-                        let offset_z = Vec3::new(
-                            phi.sin() * theta.cos(),
-                            phi.sin() * theta.sin(),
-                            phi.cos(),
-                        );
+                        let offset_z =
+                            Vec3::new(phi.sin() * theta.cos(), phi.sin() * theta.sin(), phi.cos());
                         let random_ori = offset_z * m * Vec3::new(-1.0, -1.0, 1.0);
                         Particle::new_beam(
                             beam.properties.duration,

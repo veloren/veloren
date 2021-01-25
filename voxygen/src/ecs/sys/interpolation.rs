@@ -1,6 +1,6 @@
 use crate::ecs::comp::Interpolated;
 use common::{
-    comp::{Ori, Pos, Vel},
+    comp::{object, Body, Ori, Pos, Vel},
     resources::DeltaTime,
 };
 use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
@@ -17,20 +17,28 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Ori>,
         ReadStorage<'a, Vel>,
+        ReadStorage<'a, Body>,
         WriteStorage<'a, Interpolated>,
     );
 
     fn run(
         &mut self,
-        (entities, dt, positions, orientations, velocities, mut interpolated): Self::SystemData,
+        (entities, dt, positions, orientations, velocities, mut interpolated, bodies): Self::SystemData,
     ) {
         // Update interpolated positions and orientations
-        for (pos, ori, i, vel) in (&positions, &orientations, &mut interpolated, &velocities).join()
+        for (pos, ori, i, vel, body) in (
+            &positions,
+            &orientations,
+            &mut interpolated,
+            &velocities,
+            &bodies,
+        )
+            .join()
         {
             // Update interpolation values
             if i.pos.distance_squared(pos.0) < 64.0 * 64.0 {
-                i.pos = Lerp::lerp(i.pos, pos.0 + vel.0 * 0.03, 10.0 * dt.0);
-                i.ori = Ori::slerp(i.ori, *ori, 5.0 * dt.0);
+                i.pos = Lerp::lerp(i.pos, pos.0 + vel.0 * 0.03, 5.0 * dt.0);
+                i.ori = Dir::slerp(i.ori, ori.0, base_ori_interp(body) * dt.0);
             } else {
                 i.pos = pos.0;
                 i.ori = *ori;
@@ -70,5 +78,16 @@ impl<'a> System<'a> for Sys {
         {
             interpolated.remove(entity);
         }
+    }
+}
+
+#[allow(clippy::collapsible_match)]
+fn base_ori_interp(body: &Body) -> f32 {
+    match body {
+        Body::Object(object) => match object {
+            object::Body::Crossbow => 100.0,
+            _ => 10.0,
+        },
+        _ => 10.0,
     }
 }
