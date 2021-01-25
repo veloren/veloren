@@ -55,7 +55,7 @@ pub mod util;
 pub mod vol;
 pub mod volumes;
 
-pub use combat::{Damage, DamageSource, GroupTarget, Knockback};
+pub use combat::{Damage, DamageSource, GroupTarget, Knockback, KnockbackDir};
 pub use comp::inventory::loadout_builder::LoadoutBuilder;
 pub use explosion::{Explosion, RadiusEffect};
 pub use skillset_builder::SkillSetBuilder;

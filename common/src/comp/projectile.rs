@@ -2,7 +2,7 @@ use crate::{
     comp::buff::{BuffCategory, BuffData, BuffKind},
     effect::{self, BuffEffect},
     uid::Uid,
-    Damage, DamageSource, Explosion, GroupTarget, Knockback, RadiusEffect,
+    Damage, DamageSource, Explosion, GroupTarget, Knockback, KnockbackDir, RadiusEffect,
 };
 use serde::{Deserialize, Serialize};
 use specs::Component;
@@ -89,7 +89,10 @@ impl ProjectileConstructor {
                             source: DamageSource::Projectile,
                             value: damage,
                         }),
-                        Effect::Knockback(Knockback::Away(knockback)),
+                        Effect::Knockback(Knockback {
+                            strength: knockback,
+                            direction: KnockbackDir::Away,
+                        }),
                         Effect::RewardEnergy(energy_regen),
                         Effect::Vanish,
                         Effect::Buff {

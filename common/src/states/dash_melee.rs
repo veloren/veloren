@@ -7,7 +7,7 @@ use crate::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
     },
-    Damage, DamageSource, GroupTarget, Knockback,
+    Damage, DamageSource, GroupTarget, Knockback, KnockbackDir,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -155,7 +155,10 @@ impl CharacterBehavior for Data {
                                 max_angle: self.static_data.angle.to_radians(),
                                 applied: false,
                                 hit_count: 0,
-                                knockback: Knockback::Away(knockback),
+                                knockback: Knockback {
+                                    strength: knockback,
+                                    direction: KnockbackDir::Away,
+                                },
                             });
                         }
                         update.character = CharacterState::DashMelee(Data {

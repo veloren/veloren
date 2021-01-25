@@ -7,7 +7,7 @@ use crate::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
     },
-    Damage, DamageSource, GroupTarget, Knockback,
+    Damage, DamageSource, GroupTarget, Knockback, KnockbackDir,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -197,9 +197,10 @@ impl CharacterBehavior for Data {
                         max_angle: self.static_data.stage_data[stage_index].angle.to_radians(),
                         applied: false,
                         hit_count: 0,
-                        knockback: Knockback::Away(
-                            self.static_data.stage_data[stage_index].knockback,
-                        ),
+                        knockback: Knockback {
+                            strength: self.static_data.stage_data[stage_index].knockback,
+                            direction: KnockbackDir::Away,
+                        },
                     });
                 }
             },
