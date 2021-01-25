@@ -192,7 +192,7 @@ impl From<&InventoryUpdateEvent> for SfxEvent {
                         SfxEvent::Inventory(SfxInventoryEvent::CollectedTool(tool.kind))
                     },
                     ItemKind::Ingredient { kind } => match &kind[..] {
-                        "Diamond" => {
+                        "Diamond" | "Ruby" | "Emerald" | "Sapphire" | "Topaz" | "Amethyst" => {
                             SfxEvent::Inventory(SfxInventoryEvent::CollectedItem(kind.clone()))
                         },
                         _ => SfxEvent::Inventory(SfxInventoryEvent::Collected),

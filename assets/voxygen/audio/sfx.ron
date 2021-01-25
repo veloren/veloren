@@ -497,6 +497,36 @@
             ],
             threshold: 0.3,
         ),
+        Inventory(CollectedItem("Ruby")): (
+            files: [
+                "voxygen.audio.sfx.weapon.staff_out",
+            ],
+            threshold: 0.3,
+        ),
+        Inventory(CollectedItem("Emerald")): (
+            files: [
+                "voxygen.audio.sfx.weapon.staff_out",
+            ],
+            threshold: 0.3,
+        ),
+        Inventory(CollectedItem("Sapphire")): (
+            files: [
+                "voxygen.audio.sfx.weapon.staff_out",
+            ],
+            threshold: 0.3,
+        ),
+        Inventory(CollectedItem("Topaz")): (
+            files: [
+                "voxygen.audio.sfx.weapon.staff_out",
+            ],
+            threshold: 0.3,
+        ),
+        Inventory(CollectedItem("Amethyst")): (
+            files: [
+                "voxygen.audio.sfx.weapon.staff_out",
+            ],
+            threshold: 0.3,
+        ),
         Inventory(CollectFailed): (
             files: [
                 "voxygen.audio.sfx.inventory.add_failed",
