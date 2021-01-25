@@ -29,8 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Doubled range of ScaleMode slider when set to Custom
-- Glider can now be deployed even when not on the ground
-- Gliding now has an energy cost for strenuous maneuvers based on lift
+- Glider can now be deployed mid-air at the cost of some stamina based on fall speed
 - Translations are now folders with multiple files instead of a huge single file
 - Default inventory slots reduced to 18 - existing characters given 3x 6-slot bags as compensation
 - Protection rating was moved to the top left of the loadout view 
