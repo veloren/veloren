@@ -25,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added /dropall admin command (drops all inventory items on the ground)
 - Skill trees
 - Lactose tolerant golems
-- 6 different gems. (Topaz, Amethyst, Sapphire, Enerald, Ruby and Diamond)
+- 6 different gems. (Topaz, Amethyst, Sapphire, Emerald, Ruby and Diamond)
 
 ### Changed
 
