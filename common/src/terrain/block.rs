@@ -175,6 +175,18 @@ impl Block {
             SpriteKind::FireBowlGround => Some(16),
             SpriteKind::Velorite | SpriteKind::VeloriteFrag => Some(6),
             SpriteKind::CaveMushroom => Some(12),
+            SpriteKind::Amethyst
+            | SpriteKind::Ruby
+            | SpriteKind::Sapphire
+            | SpriteKind::Diamond
+            | SpriteKind::Emerald
+            | SpriteKind::Topaz
+            | SpriteKind::AmethystSmall
+            | SpriteKind::TopazSmall
+            | SpriteKind::DiamondSmall
+            | SpriteKind::RubySmall
+            | SpriteKind::EmeraldSmall
+            | SpriteKind::SapphireSmall => Some(3),
             _ => None,
         }
     }

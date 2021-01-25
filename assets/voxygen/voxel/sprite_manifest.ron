@@ -1988,28 +1988,6 @@ Twigs: Some((
     wind_sway: 0.0,
 )),
 
-// Shiny Gems
-ShinyGem: Some((
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.gem.gem_blue",
-            offset: (-2.0, -3.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.gem.gem_green",
-            offset: (-2.0, -3.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.gem.gem_red",
-            offset: (-3.0, -2.0, -2.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)),
-
 // Drop Gate Parts
 DropGate: Some((
     variations: [
@@ -2220,6 +2198,138 @@ Mud: Some((
             model: "voxygen.voxel.sprite.underwater_mud.mud-1",
             offset: (-8.5, -7.5, 0.0),
             lod_axes: (0.0, 0.0, 0.5),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+// Amethyst Ore
+Amethyst: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.gem.amethyst-0",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+// Ruby Ore
+Ruby: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.gem.ruby-0",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+// Diamond Ore
+Diamond: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.gem.diamond-0",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+// Sapphire Ore
+Sapphire: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.gem.sapphire-0",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+// Emerald Ore
+Emerald: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.gem.emerald-0",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+// Topaz Ore
+Topaz: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.gem.topaz-0",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+// Small Amethyst Ore
+AmethystSmall: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.gem.amethyst_S-0",
+            offset: (-3.5, -3.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+// Small Topaz Ore
+TopazSmall: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.gem.topaz_S-0",
+            offset: (-3.5, -3.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+// Small Ruby Ore
+RubySmall: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.gem.ruby_S-0",
+            offset: (-3.5, -3.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+// Small Emerald Ore
+EmeraldSmall: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.gem.emerald_S-0",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+// Small Diamond Ore
+DiamondSmall: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.gem.diamond_S-0",
+            offset: (-3.5, -3.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+// Small Sapphire Ore
+SapphireSmall: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.gem.sapphire_S-0",
+            offset: (-3.5, -3.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
         ),
     ],
     wind_sway: 0.0,
