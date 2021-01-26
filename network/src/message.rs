@@ -357,6 +357,6 @@ mod tests {
             }
         }
         let msg = Message::serialize(&msg, &stub_stream(true));
-        assert_eq!(msg.buffer.data.len(), 1296);
+        assert_eq!(msg.buffer.data.len(), 1331);
     }
 }

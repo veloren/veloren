@@ -57,10 +57,10 @@ impl Archetype for Keep {
     type Attr = Attr;
 
     fn generate<R: Rng>(rng: &mut R) -> (Self, Skeleton<Self::Attr>) {
-        let len = rng.gen_range(-8, 24).max(0);
-        let storeys = rng.gen_range(1, 3);
+        let len = rng.gen_range(-8..24).max(0);
+        let storeys = rng.gen_range(1..3);
         let skel = Skeleton {
-            offset: -rng.gen_range(0, len + 7).clamped(0, len),
+            offset: -rng.gen_range(0..len + 7).clamped(0, len),
             ori: if rng.gen() { Ori::East } else { Ori::North },
             root: Branch {
                 len,
@@ -72,23 +72,23 @@ impl Archetype for Keep {
                     rounded: true,
                     has_doors: true,
                 },
-                locus: 10 + rng.gen_range(0, 5),
+                locus: 10 + rng.gen_range(0..5),
                 border: 3,
                 children: (0..1)
                     .map(|_| {
                         (
-                            rng.gen_range(-5, len + 5).clamped(0, len.max(1) - 1),
+                            rng.gen_range(-5..len + 5).clamped(0, len.max(1) - 1),
                             Branch {
                                 len: 0,
                                 attr: Attr {
-                                    storeys: storeys + rng.gen_range(1, 3),
+                                    storeys: storeys + rng.gen_range(1..3),
                                     is_tower: true,
                                     flag: true,
                                     ridged: false,
                                     rounded: true,
                                     has_doors: false,
                                 },
-                                locus: 6 + rng.gen_range(0, 3),
+                                locus: 6 + rng.gen_range(0..3),
                                 border: 3,
                                 children: Vec::new(),
                             },

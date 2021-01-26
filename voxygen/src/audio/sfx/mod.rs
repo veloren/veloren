@@ -322,7 +322,7 @@ impl SfxMgr {
                             "voxygen.audio.sfx.abilities.arrow_shot_2",
                             "voxygen.audio.sfx.abilities.arrow_shot_3",
                             "voxygen.audio.sfx.abilities.arrow_shot_4",
-                        ][rand::thread_rng().gen_range(1, 4)];
+                        ][rand::thread_rng().gen_range(1..4)];
 
                         audio.play_sfx(file_ref, *pos, None);
                     },
@@ -334,7 +334,7 @@ impl SfxMgr {
                         let file_ref = vec![
                             "voxygen.audio.sfx.abilities.fire_shot_1",
                             "voxygen.audio.sfx.abilities.fire_shot_2",
-                        ][rand::thread_rng().gen_range(1, 2)];
+                        ][rand::thread_rng().gen_range(1..2)];
 
                         audio.play_sfx(file_ref, *pos, None);
                     },

@@ -71,7 +71,7 @@ impl ParticleMgr {
                                     time,
                                     ParticleMode::EnergyNature,
                                     *pos + Vec3::<f32>::zero()
-                                        .map(|_| rng.gen_range(-1.0, 1.0))
+                                        .map(|_| rng.gen_range(-1.0..1.0))
                                         .normalized()
                                         * *radius,
                                 )
@@ -86,7 +86,7 @@ impl ParticleMgr {
                                     time,
                                     ParticleMode::CampfireFire,
                                     *pos + Vec3::<f32>::zero()
-                                        .map(|_| rng.gen_range(-1.0, 1.0))
+                                        .map(|_| rng.gen_range(-1.0..1.0))
                                         .normalized()
                                         * *radius,
                                 )
@@ -121,7 +121,7 @@ impl ParticleMgr {
                                 time,
                                 ParticleMode::CampfireSmoke,
                                 *pos + Vec3::<f32>::zero()
-                                    .map(|_| rng.gen_range(-1.0, 1.0))
+                                    .map(|_| rng.gen_range(-1.0..1.0))
                                     .normalized()
                                     * *radius,
                             )
@@ -221,7 +221,7 @@ impl ParticleMgr {
                 Duration::from_secs(10),
                 time,
                 ParticleMode::CampfireSmoke,
-                pos.0.map(|e| e + thread_rng().gen_range(-0.25, 0.25)),
+                pos.0.map(|e| e + thread_rng().gen_range(-0.25..0.25)),
             ));
         }
     }
@@ -396,7 +396,7 @@ impl ParticleMgr {
                         // Emit a light when using flames
                         lights.push(Light::new(
                             pos.0 + b.offset,
-                            Rgb::new(1.0, 0.25, 0.05).map(|e| e * rng.gen_range(0.8, 1.2)),
+                            Rgb::new(1.0, 0.25, 0.05).map(|e| e * rng.gen_range(0.8..1.2)),
                             2.0,
                         ));
                         self.particles.resize_with(
@@ -406,8 +406,8 @@ impl ParticleMgr {
                                 ),
                             || {
                                 let phi: f32 =
-                                    rng.gen_range(0.0, b.static_data.max_angle.to_radians());
-                                let theta: f32 = rng.gen_range(0.0, 2.0 * PI);
+                                    rng.gen_range(0.0..b.static_data.max_angle.to_radians());
+                                let theta: f32 = rng.gen_range(0.0..2.0 * PI);
                                 let offset_z = Vec3::new(
                                     phi.sin() * theta.cos(),
                                     phi.sin() * theta.sin(),

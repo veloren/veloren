@@ -151,23 +151,23 @@ impl Attr {
     pub fn generate<R: Rng>(rng: &mut R, _locus: i32) -> Self {
         Self {
             central_supports: rng.gen(),
-            storey_fill: match rng.gen_range(0, 2) {
+            storey_fill: match rng.gen_range(0..2) {
                 //0 => StoreyFill::None,
                 0 => StoreyFill::Upper,
                 _ => StoreyFill::All,
             },
-            roof_style: match rng.gen_range(0, 3) {
+            roof_style: match rng.gen_range(0..3) {
                 0 => RoofStyle::Hip,
                 1 => RoofStyle::Gable,
                 _ => RoofStyle::Rounded,
             },
-            mansard: rng.gen_range(-7, 4).max(0),
-            pillar: match rng.gen_range(0, 4) {
-                0 => Pillar::Chimney(rng.gen_range(2, 6)),
+            mansard: rng.gen_range(-7..4).max(0),
+            pillar: match rng.gen_range(0..4) {
+                0 => Pillar::Chimney(rng.gen_range(2..6)),
                 _ => Pillar::None,
             },
-            levels: rng.gen_range(1, 3),
-            window: match rng.gen_range(0, 4) {
+            levels: rng.gen_range(1..3),
+            window: match rng.gen_range(0..4) {
                 0 => SpriteKind::Window1,
                 1 => SpriteKind::Window2,
                 2 => SpriteKind::Window3,
@@ -181,21 +181,21 @@ impl Archetype for House {
     type Attr = Attr;
 
     fn generate<R: Rng>(rng: &mut R) -> (Self, Skeleton<Self::Attr>) {
-        let len = rng.gen_range(-8, 24).clamped(0, 20);
-        let locus = 6 + rng.gen_range(0, 5);
+        let len = rng.gen_range(-8..24).clamped(0, 20);
+        let locus = 6 + rng.gen_range(0..5);
         let branches_per_side = 1 + len as usize / 20;
-        let levels = rng.gen_range(1, 3);
+        let levels = rng.gen_range(1..3);
         let skel = Skeleton {
-            offset: -rng.gen_range(0, len + 7).clamped(0, len),
+            offset: -rng.gen_range(0..len + 7).clamped(0, len),
             ori: if rng.gen() { Ori::East } else { Ori::North },
             root: Branch {
                 len,
                 attr: Attr {
                     storey_fill: StoreyFill::All,
                     mansard: 0,
-                    pillar: match rng.gen_range(0, 3) {
-                        0 => Pillar::Chimney(rng.gen_range(2, 6)),
-                        1 => Pillar::Tower(5 + rng.gen_range(1, 5)),
+                    pillar: match rng.gen_range(0..3) {
+                        0 => Pillar::Chimney(rng.gen_range(2..6)),
+                        1 => Pillar::Tower(5 + rng.gen_range(1..5)),
                         _ => Pillar::None,
                     },
                     levels,
@@ -212,12 +212,12 @@ impl Archetype for House {
                             Some((
                                 i as i32 * len / (branches_per_side - 1).max(1) as i32,
                                 Branch {
-                                    len: rng.gen_range(8, 16) * flip,
+                                    len: rng.gen_range(8..16) * flip,
                                     attr: Attr {
-                                        levels: rng.gen_range(1, 4).min(levels),
+                                        levels: rng.gen_range(1..4).min(levels),
                                         ..Attr::generate(rng, locus)
                                     },
-                                    locus: (6 + rng.gen_range(0, 3)).min(locus),
+                                    locus: (6 + rng.gen_range(0..3)).min(locus),
                                     border: 4,
                                     children: Vec::new(),
                                 },
@@ -544,7 +544,7 @@ impl Archetype for House {
                             2 => SpriteKind::ChairDouble,
                             3 => SpriteKind::CoatRack,
                             4 => {
-                                if dynamic_rng.gen_range(0, 8) == 0 {
+                                if dynamic_rng.gen_range(0..8) == 0 {
                                     SpriteKind::Chest
                                 } else {
                                     SpriteKind::Crate
@@ -555,14 +555,14 @@ impl Archetype for House {
                             8 => SpriteKind::TableSide,
                             9 => SpriteKind::WardrobeSingle,
                             10 => {
-                                if dynamic_rng.gen_range(0, 10) == 0 {
+                                if dynamic_rng.gen_range(0..10) == 0 {
                                     SpriteKind::PotionMinor
                                 } else {
                                     SpriteKind::VialEmpty
                                 }
                             },
                             _ => {
-                                if dynamic_rng.gen_range(0, 2) == 0 {
+                                if dynamic_rng.gen_range(0..2) == 0 {
                                     SpriteKind::Bowl
                                 } else {
                                     SpriteKind::Pot

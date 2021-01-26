@@ -93,7 +93,7 @@ pub fn init(state: &mut State, #[cfg(feature = "worldgen")] world: &world::World
             .chunks
             .size()
             .map2(TerrainChunk::RECT_SIZE, |sz, chunk_sz| {
-                thread_rng().gen_range(0, sz * chunk_sz) as i32
+                thread_rng().gen_range(0..sz * chunk_sz) as i32
             });
 
         rtsim.entities.insert(Entity {

@@ -313,7 +313,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
         let mut rng = rand::thread_rng();
         let mut lottery = || {
             Lottery::<String>::load_expect(match old_body {
-                Some(common::comp::Body::Humanoid(_)) => match rng.gen_range(0, 4) {
+                Some(common::comp::Body::Humanoid(_)) => match rng.gen_range(0..4) {
                     0 => "common.loot_tables.loot_table_humanoids",
                     1 => "common.loot_tables.loot_table_armor_light",
                     2 => "common.loot_tables.loot_table_armor_cloth",
@@ -323,11 +323,11 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                 },
                 Some(common::comp::Body::QuadrupedSmall(quadruped_small)) => {
                     match quadruped_small.species {
-                        quadruped_small::Species::Dodarock => match rng.gen_range(0, 6) {
+                        quadruped_small::Species::Dodarock => match rng.gen_range(0..6) {
                             1 => "common.loot_tables.loot_table_rocks",
                             _ => "common.loot_tables.loot_table_rocks",
                         },
-                        _ => match rng.gen_range(0, 4) {
+                        _ => match rng.gen_range(0..4) {
                             0 => "common.loot_tables.loot_table_food",
                             2 => "common.loot_tables.loot_table_animal_parts",
                             _ => "common.loot_tables.loot_table_animal_parts",
@@ -340,27 +340,27 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                         | quadruped_medium::Species::Roshwalr => {
                             "common.loot_tables.loot_table_animal_ice"
                         },
-                        _ => match rng.gen_range(0, 4) {
+                        _ => match rng.gen_range(0..4) {
                             0 => "common.loot_tables.loot_table_food",
                             2 => "common.loot_tables.loot_table_animal_parts",
                             _ => "common.loot_tables.loot_table_animal_parts",
                         },
                     }
                 },
-                Some(common::comp::Body::BirdMedium(_)) => match rng.gen_range(0, 3) {
+                Some(common::comp::Body::BirdMedium(_)) => match rng.gen_range(0..3) {
                     0 => "common.loot_tables.loot_table_food",
                     _ => "common.loot_tables.loot_table",
                 },
                 Some(common::comp::Body::FishMedium(_)) => "common.loot_tables.loot_table_fish",
                 Some(common::comp::Body::FishSmall(_)) => "common.loot_tables.loot_table_fish",
                 Some(common::comp::Body::BipedLarge(biped_large)) => match biped_large.species {
-                    biped_large::Species::Wendigo => match rng.gen_range(0, 7) {
+                    biped_large::Species::Wendigo => match rng.gen_range(0..7) {
                         0 => "common.loot_tables.loot_table_food",
                         1 => "common.loot_tables.loot_table_wendigo",
                         2 => "common.loot_tables.loot_table_weapon_uncommon",
                         _ => "common.loot_tables.loot_table_cave_large",
                     },
-                    biped_large::Species::Troll => match rng.gen_range(0, 10) {
+                    biped_large::Species::Troll => match rng.gen_range(0..10) {
                         0 => "common.loot_tables.loot_table_food",
                         1 => "common.loot_tables.loot_table_cave_large",
                         2 => "common.loot_tables.loot_table_weapon_uncommon",
@@ -369,13 +369,13 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                     biped_large::Species::Occultsaurok
                     | biped_large::Species::Mightysaurok
                     | biped_large::Species::Slysaurok => "common.loot_tables.loot_table_saurok",
-                    _ => match rng.gen_range(0, 4) {
+                    _ => match rng.gen_range(0..4) {
                         0 => "common.loot_tables.loot_table_food",
                         1 => "common.loot_tables.loot_table_armor_nature",
                         _ => "common.loot_tables.loot_table_cave_large",
                     },
                 },
-                Some(common::comp::Body::Golem(_)) => match rng.gen_range(0, 9) {
+                Some(common::comp::Body::Golem(_)) => match rng.gen_range(0..9) {
                     0 => "common.loot_tables.loot_table_food",
                     2 => "common.loot_tables.loot_table_armor_light",
                     3 => "common.loot_tables.loot_table_armor_heavy",
@@ -387,7 +387,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                 Some(common::comp::Body::Theropod(theropod)) => match theropod.species {
                     theropod::Species::Sandraptor
                     | theropod::Species::Snowraptor
-                    | theropod::Species::Woodraptor => match rng.gen_range(0, 3) {
+                    | theropod::Species::Woodraptor => match rng.gen_range(0..3) {
                         0 => "common.loot_tables.loot_table_raptor",
                         _ => "common.loot_tables.loot_table_animal_parts",
                     },
@@ -399,7 +399,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                         quadruped_low::Species::Maneater => {
                             "common.loot_tables.loot_table_maneater"
                         },
-                        _ => match rng.gen_range(0, 3) {
+                        _ => match rng.gen_range(0..3) {
                             0 => "common.loot_tables.loot_table_food",
                             1 => "common.loot_tables.loot_table_animal_parts",
                             _ => "common.loot_tables.loot_table",
