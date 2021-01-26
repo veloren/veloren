@@ -125,8 +125,8 @@ impl StateExt for State {
             .with(comp::Vel(Vec3::zero()))
             .with(comp::Ori(Dir::new(
                 Vec3::new(
-                    thread_rng().gen_range(-1.0, 1.0),
-                    thread_rng().gen_range(-1.0, 1.0),
+                    thread_rng().gen_range(-1.0..1.0),
+                    thread_rng().gen_range(-1.0..1.0),
                     0.0,
                 )
                 .try_normalized()

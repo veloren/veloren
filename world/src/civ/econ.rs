@@ -24,7 +24,7 @@ pub struct Belief {
 
 impl Belief {
     pub fn choose_price(&self, ctx: &mut GenCtx<impl Rng>) -> f32 {
-        self.price + ctx.rng.gen_range(-1.0, 1.0) * self.confidence
+        self.price + ctx.rng.gen_range(-1.0..1.0) * self.confidence
     }
 
     pub fn update_buyer(&mut self, _years: f32, new_price: f32) {

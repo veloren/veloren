@@ -29,7 +29,7 @@ prometheus = { version = "0.11", default-features = false, optional = true }
 futures = { version = "0.3", features = ["thread-pool"] }
 #mpsc channel registry
 lazy_static = { version = "1.4", default-features = false }
-rand = { version = "0.7" }
+rand = { version = "0.8" }
 #stream flags
 bitflags = "1.2.1"
 lz-fear = { version = "0.1.1", optional = true }

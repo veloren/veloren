@@ -73,10 +73,10 @@ fn gen_plot(aabr: Aabr<i32>, ctx: &mut GenCtx<impl Rng>) -> Plot {
     if aabr.size().product() <= 9 {
         Plot::District
     } else if aabr.size().w < aabr.size().h {
-        let [a, b] = aabr.split_at_y(aabr.min.y + ctx.rng.gen_range(1, aabr.size().h));
+        let [a, b] = aabr.split_at_y(aabr.min.y + ctx.rng.gen_range(1..aabr.size().h));
         Plot::Parent(vec![(a, gen_plot(a, ctx)), (b, gen_plot(b, ctx))])
     } else {
-        let [a, b] = aabr.split_at_x(aabr.min.x + ctx.rng.gen_range(1, aabr.size().w));
+        let [a, b] = aabr.split_at_x(aabr.min.x + ctx.rng.gen_range(1..aabr.size().w));
         Plot::Parent(vec![(a, gen_plot(a, ctx)), (b, gen_plot(b, ctx))])
     }
 }

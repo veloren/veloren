@@ -61,16 +61,16 @@ impl Castle {
     pub fn generate(wpos: Vec2<i32>, sim: Option<&mut WorldSim>, rng: &mut impl Rng) -> Self {
         let ctx = GenCtx { sim, rng };
 
-        let boundary_towers = ctx.rng.gen_range(5, 10);
-        let keep_count = ctx.rng.gen_range(1, 4);
-        let boundary_noise = ctx.rng.gen_range(-2i32, 8).max(1) as f32;
+        let boundary_towers = ctx.rng.gen_range(5..10);
+        let keep_count = ctx.rng.gen_range(1..4);
+        let boundary_noise = ctx.rng.gen_range(-2i32..8).max(1) as f32;
 
         let radius = 150;
 
         let this = Self {
             name: {
                 let name = NameGen::location(ctx.rng).generate();
-                match ctx.rng.gen_range(0, 6) {
+                match ctx.rng.gen_range(0..6) {
                     0 => format!("Fort {}", name),
                     1 => format!("{} Citadel", name),
                     2 => format!("{} Castle", name),
@@ -108,7 +108,7 @@ impl Castle {
                             break;
                         }
                         offset = (dir * dist)
-                            .map(|e| (e + ctx.rng.gen_range(-1.0, 1.0) * i as f32) as i32);
+                            .map(|e| (e + ctx.rng.gen_range(-1.0..1.0) * i as f32) as i32);
                     }
 
                     Tower {
@@ -133,9 +133,9 @@ impl Castle {
                     let dist =
                         (radius as f32 + ((angle * boundary_noise).sin() - 1.0) * 40.0) * 0.3;
 
-                    let locus = ctx.rng.gen_range(20, 26);
+                    let locus = ctx.rng.gen_range(20..26);
                     let offset = (dir * dist).map(|e| e as i32);
-                    let storeys = ctx.rng.gen_range(1, 8).clamped(3, 5);
+                    let storeys = ctx.rng.gen_range(1..8).clamped(3, 5);
 
                     Keep {
                         offset,

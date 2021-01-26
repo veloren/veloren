@@ -515,9 +515,9 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
     for (pos, vel, ori, kind) in thrown_items {
         let vel = match kind {
             item::Throwable::Firework(_) => Vec3::new(
-                rng.gen_range(-15.0, 15.0),
-                rng.gen_range(-15.0, 15.0),
-                rng.gen_range(80.0, 110.0),
+                rng.gen_range(-15.0..15.0),
+                rng.gen_range(-15.0..15.0),
+                rng.gen_range(80.0..110.0),
             ),
             _ => {
                 vel.0

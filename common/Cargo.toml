@@ -21,7 +21,7 @@ lazy_static = "1.4.0"
 num-derive = "0.3"
 num-traits = "0.2"
 ordered-float = { version = "2.0.1", default-features = false }
-rand = "0.7"
+rand = "0.8"
 rayon = "1.5"
 roots = "0.0.6"
 spin_sleep = "1.0"

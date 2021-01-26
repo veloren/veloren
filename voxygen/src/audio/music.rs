@@ -150,7 +150,7 @@ impl MusicMgr {
         let mut rng = thread_rng();
 
         // Adds a bit of randomness between plays
-        let silence_between_tracks_seconds: f32 = rng.gen_range(45.0, 120.0);
+        let silence_between_tracks_seconds: f32 = rng.gen_range(45.0..120.0);
 
         let game_time = (state.get_time_of_day() as u64 % 86400) as u32;
         let current_period_of_day = Self::get_current_day_period(game_time);

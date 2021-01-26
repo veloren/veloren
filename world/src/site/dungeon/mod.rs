@@ -54,12 +54,12 @@ impl Dungeon {
     #[allow(clippy::let_and_return)] // TODO: Pending review in #587
     pub fn generate(wpos: Vec2<i32>, sim: Option<&WorldSim>, rng: &mut impl Rng) -> Self {
         let mut ctx = GenCtx { sim, rng };
-        let difficulty = ctx.rng.gen_range(0, 6);
+        let difficulty = ctx.rng.gen_range(0..6);
         let floors = 3 + difficulty / 2;
         let this = Self {
             name: {
                 let name = NameGen::location(ctx.rng).generate();
-                match ctx.rng.gen_range(0, 5) {
+                match ctx.rng.gen_range(0..5) {
                     0 => format!("{} Dungeon", name),
                     1 => format!("{} Lair", name),
                     2 => format!("{} Crib", name),
@@ -276,7 +276,7 @@ impl Floor {
             Vec2::zero()
         } else {
             std::iter::from_fn(|| {
-                Some(FLOOR_SIZE.map(|sz| ctx.rng.gen_range(-sz / 2 + 2, sz / 2 - 1)))
+                Some(FLOOR_SIZE.map(|sz| ctx.rng.gen_range(-sz / 2 + 2..sz / 2 - 1)))
             })
             .filter(|pos| *pos != stair_tile)
             .take(8)
@@ -375,9 +375,9 @@ impl Floor {
 
         for _ in 0..n {
             let area = match attempt(64, || {
-                let sz = Vec2::<i32>::zero().map(|_| ctx.rng.gen_range(dim_limits.0, dim_limits.1));
+                let sz = Vec2::<i32>::zero().map(|_| ctx.rng.gen_range(dim_limits.0..dim_limits.1));
                 let pos = FLOOR_SIZE.map2(sz, |floor_sz, room_sz| {
-                    ctx.rng.gen_range(0, floor_sz + 1 - room_sz)
+                    ctx.rng.gen_range(0..floor_sz + 1 - room_sz)
                 });
                 let area = Rect::from((pos, Extent2::from(sz)));
                 let area_border = Rect::from((pos - 1, Extent2::from(sz) + 2)); // The room, but with some personal space
@@ -398,7 +398,7 @@ impl Floor {
             };
             let mut dynamic_rng = rand::thread_rng();
 
-            match dynamic_rng.gen_range(0, 5) {
+            match dynamic_rng.gen_range(0..5) {
                 0 => self.create_room(Room {
                     seed: ctx.rng.gen(),
                     loot_density: 0.000025 + level as f32 * 0.00015,
@@ -406,7 +406,7 @@ impl Floor {
                     miniboss: true,
                     boss: false,
                     area,
-                    height: ctx.rng.gen_range(15, 20),
+                    height: ctx.rng.gen_range(15..20),
                     pillars: Some(4),
                     difficulty: self.difficulty,
                 }),
@@ -417,8 +417,8 @@ impl Floor {
                     miniboss: false,
                     boss: false,
                     area,
-                    height: ctx.rng.gen_range(10, 15),
-                    pillars: if ctx.rng.gen_range(0, 4) == 0 {
+                    height: ctx.rng.gen_range(10..15),
+                    pillars: if ctx.rng.gen_range(0..4) == 0 {
                         Some(4)
                     } else {
                         None
@@ -490,8 +490,8 @@ impl Floor {
 
         if area.contains_point(stair_rcenter.xy()) {
             let offs = Vec2::new(
-                dynamic_rng.gen_range(-1.0, 1.0),
-                dynamic_rng.gen_range(-1.0, 1.0),
+                dynamic_rng.gen_range(-1.0..1.0),
+                dynamic_rng.gen_range(-1.0..1.0),
             )
             .try_normalized()
             .unwrap_or_else(Vec2::unit_y)
@@ -529,35 +529,35 @@ impl Floor {
 
                     if room
                         .enemy_density
-                        .map(|density| dynamic_rng.gen_range(0, density.recip() as usize) == 0)
+                        .map(|density| dynamic_rng.gen_range(0..density.recip() as usize) == 0)
                         .unwrap_or(false)
                         && !tile_is_pillar
                     {
                         // Bad
                         let chosen = match room.difficulty {
                             0 => {
-                                Lottery::<String>::load_expect(match dynamic_rng.gen_range(0, 4) {
+                                Lottery::<String>::load_expect(match dynamic_rng.gen_range(0..4) {
                                     0 => "common.loot_tables.loot_table_humanoids",
                                     1 => "common.loot_tables.loot_table_armor_cloth",
                                     _ => "common.loot_tables.loot_table_weapon_common",
                                 })
                             },
                             1 => {
-                                Lottery::<String>::load_expect(match dynamic_rng.gen_range(0, 4) {
+                                Lottery::<String>::load_expect(match dynamic_rng.gen_range(0..4) {
                                     0 => "common.loot_tables.loot_table_humanoids",
                                     1 => "common.loot_tables.loot_table_armor_light",
                                     _ => "common.loot_tables.loot_table_weapon_uncommon",
                                 })
                             },
                             2 => {
-                                Lottery::<String>::load_expect(match dynamic_rng.gen_range(0, 4) {
+                                Lottery::<String>::load_expect(match dynamic_rng.gen_range(0..4) {
                                     0 => "common.loot_tables.loot_table_humanoids",
                                     1 => "common.loot_tables.loot_table_armor_heavy",
                                     _ => "common.loot_tables.loot_table_weapon_rare",
                                 })
                             },
                             3 => {
-                                Lottery::<String>::load_expect(match dynamic_rng.gen_range(0, 10) {
+                                Lottery::<String>::load_expect(match dynamic_rng.gen_range(0..10) {
                                     0 => "common.loot_tables.loot_table_humanoids",
                                     1 => "common.loot_tables.loot_table_armor_heavy",
                                     2 => "common.loot_tables.loot_table_weapon_rare",
@@ -565,7 +565,7 @@ impl Floor {
                                 })
                             },
                             4 => {
-                                Lottery::<String>::load_expect(match dynamic_rng.gen_range(0, 6) {
+                                Lottery::<String>::load_expect(match dynamic_rng.gen_range(0..6) {
                                     0 => "common.loot_tables.loot_table_humanoids",
                                     1 => "common.loot_tables.loot_table_armor_misc",
                                     2 => "common.loot_tables.loot_table_weapon_rare",
@@ -573,7 +573,7 @@ impl Floor {
                                 })
                             },
                             5 => {
-                                Lottery::<String>::load_expect(match dynamic_rng.gen_range(0, 5) {
+                                Lottery::<String>::load_expect(match dynamic_rng.gen_range(0..5) {
                                     0 => "common.loot_tables.loot_table_humanoids",
                                     1 => "common.loot_tables.loot_table_armor_misc",
                                     2 => "common.loot_tables.loot_table_weapon_rare",
@@ -602,10 +602,7 @@ impl Floor {
                         .with_loadout_config(loadout_builder::LoadoutConfig::CultistAcolyte)
                         .with_skillset_config(common::skillset_builder::SkillSetConfig::CultistAcolyte)
                         .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
-                        .with_level(dynamic_rng.gen_range(
-                            (room.difficulty as f32).powf(1.25) + 3.0,
-                            (room.difficulty as f32).powf(1.5) + 4.0,
-                        ).round() as u16);
+                        .with_level(dynamic_rng.gen_range((room.difficulty as f32).powf(1.25) + 3.0..(room.difficulty as f32).powf(1.5) + 4.0).round() as u16);
                         let entity = match room.difficulty {
                             0 => entity
                                 .with_name("Outcast")
@@ -615,7 +612,7 @@ impl Floor {
                                 )
                                 .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
                                 .with_main_tool(comp::Item::new_from_asset_expect(
-                                    match dynamic_rng.gen_range(0, 6) {
+                                    match dynamic_rng.gen_range(0..6) {
                                         0 => "common.items.weapons.axe.starter_axe",
                                         1 => "common.items.weapons.sword.starter_sword",
                                         2 => "common.items.weapons.sword.starter_sword",
@@ -632,7 +629,7 @@ impl Floor {
                                 )
                                 .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
                                 .with_main_tool(comp::Item::new_from_asset_expect(
-                                    match dynamic_rng.gen_range(0, 6) {
+                                    match dynamic_rng.gen_range(0..6) {
                                         0 => "common.items.weapons.axe.worn_iron_axe-0",
                                         1 => "common.items.weapons.sword.zweihander_sword_0",
                                         2 => "common.items.weapons.sword.zweihander_sword_0",
@@ -649,7 +646,7 @@ impl Floor {
                                 )
                                 .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
                                 .with_main_tool(comp::Item::new_from_asset_expect(
-                                    match dynamic_rng.gen_range(0, 6) {
+                                    match dynamic_rng.gen_range(0..6) {
                                         0 => "common.items.weapons.axe.bronze_axe-0",
                                         1 => "common.items.weapons.sword.greatsword_2h_simple-0",
                                         2 => "common.items.weapons.sword.cultist_purp_2h-0",
@@ -666,7 +663,7 @@ impl Floor {
                                 )
                                 .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
                                 .with_main_tool(comp::Item::new_from_asset_expect(
-                                    match dynamic_rng.gen_range(0, 6) {
+                                    match dynamic_rng.gen_range(0..6) {
                                         0 => "common.items.weapons.axe.steel_axe-0",
                                         1 => "common.items.weapons.sword.long_2h_orn-0",
                                         2 => "common.items.weapons.sword.long_2h_orn-0",
@@ -683,7 +680,7 @@ impl Floor {
                                 )
                                 .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
                                 .with_main_tool(comp::Item::new_from_asset_expect(
-                                    match dynamic_rng.gen_range(0, 6) {
+                                    match dynamic_rng.gen_range(0..6) {
                                         0 => "common.items.weapons.axe.malachite_axe-0",
                                         1 => "common.items.weapons.sword.cultist_purp_2h-0",
                                         2 => "common.items.weapons.sword.cultist_purp_2h-0",
@@ -692,7 +689,7 @@ impl Floor {
                                         _ => "common.items.weapons.bow.horn_longbow-0",
                                     },
                                 )),
-                            5 => match dynamic_rng.gen_range(0, 6) {
+                            5 => match dynamic_rng.gen_range(0..6) {
                                 0 => entity
                                     .with_name("Cultist Warlock")
                                     .with_loadout_config(loadout_builder::LoadoutConfig::Warlock)
@@ -711,7 +708,7 @@ impl Floor {
                                     )
                                     .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
                                     .with_main_tool(comp::Item::new_from_asset_expect(
-                                        match dynamic_rng.gen_range(0, 5) {
+                                        match dynamic_rng.gen_range(0..5) {
                                             0 => "common.items.weapons.axe.malachite_axe-0",
                                             1 => "common.items.weapons.sword.cultist_purp_2h-0",
                                             2 => "common.items.weapons.sword.cultist_purp_2h-0",
@@ -783,7 +780,7 @@ impl Floor {
                                         )
                                         .with_scale(2.0)
                                         .with_main_tool(comp::Item::new_from_asset_expect(
-                                            match dynamic_rng.gen_range(0, 6) {
+                                            match dynamic_rng.gen_range(0..6) {
                                                 0 => "common.items.weapons.axe.worn_iron_axe-0",
                                                 1 => {
                                                     "common.items.weapons.sword.zweihander_sword_0"
@@ -832,7 +829,7 @@ impl Floor {
                                         )
                                         .with_scale(2.0)
                                         .with_main_tool(comp::Item::new_from_asset_expect(
-                                            match dynamic_rng.gen_range(0, 6) {
+                                            match dynamic_rng.gen_range(0..6) {
                                                 0 => "common.items.weapons.axe.steel_axe-0",
                                                 1 => "common.items.weapons.sword.long_2h_orn-0",
                                                 2 => "common.items.weapons.sword.long_2h_orn-0",
@@ -856,7 +853,7 @@ impl Floor {
                                         )
                                         .with_scale(2.0)
                                         .with_main_tool(comp::Item::new_from_asset_expect(
-                                            match dynamic_rng.gen_range(0, 6) {
+                                            match dynamic_rng.gen_range(0..6) {
                                                 0 => "common.items.weapons.axe.malachite_axe-0",
                                                 1 => "common.items.weapons.sword.cultist_purp_2h-0",
                                                 2 => "common.items.weapons.sword.cultist_purp_2h-0",
@@ -909,8 +906,8 @@ impl Floor {
                                         .with_level(
                                             dynamic_rng
                                                 .gen_range(
-                                                    (room.difficulty as f32).powf(1.25) + 3.0,
-                                                    (room.difficulty as f32).powf(1.5) + 4.0,
+                                                    (room.difficulty as f32).powf(1.25) + 3.0
+                                                        ..(room.difficulty as f32).powf(1.5) + 4.0,
                                                 )
                                                 .round()
                                                 as u16
@@ -1011,7 +1008,7 @@ impl Floor {
                                         )
                                         .with_scale(2.0)
                                         .with_main_tool(comp::Item::new_from_asset_expect(
-                                            match dynamic_rng.gen_range(0, 6) {
+                                            match dynamic_rng.gen_range(0..6) {
                                                 0 => "common.items.weapons.axe.malachite_axe-0",
                                                 1 => "common.items.weapons.sword.cultist_purp_2h-0",
                                                 2 => "common.items.weapons.sword.cultist_purp_2h-0",
@@ -1081,8 +1078,8 @@ impl Floor {
                                         .with_level(
                                             dynamic_rng
                                                 .gen_range(
-                                                    (room.difficulty as f32).powf(1.25) + 3.0,
-                                                    (room.difficulty as f32).powf(1.5) + 4.0,
+                                                    (room.difficulty as f32).powf(1.25) + 3.0
+                                                        ..(room.difficulty as f32).powf(1.5) + 4.0,
                                                 )
                                                 .round()
                                                 as u16
