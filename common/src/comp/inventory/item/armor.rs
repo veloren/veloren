@@ -68,10 +68,17 @@ impl Armor {
     pub fn get_poise_protection(&self) -> Protection { self.stats.poise_protection }
 
     #[cfg(test)]
-    pub fn test_armor(kind: ArmorKind, protection: Protection) -> Armor {
+    pub fn test_armor(
+        kind: ArmorKind,
+        protection: Protection,
+        poise_protection: Protection,
+    ) -> Armor {
         Armor {
             kind,
-            stats: Stats { protection },
+            stats: Stats {
+                protection,
+                poise_protection,
+            },
         }
     }
 }
