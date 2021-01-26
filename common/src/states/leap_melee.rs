@@ -1,5 +1,5 @@
 use crate::{
-    comp::{Attacking, CharacterState, PoiseChange, PoiseSource, StateUpdate},
+    comp::{CharacterState, MeleeAttack, PoiseChange, PoiseSource, StateUpdate},
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::{StageSection, *},
@@ -148,7 +148,7 @@ impl CharacterBehavior for Data {
             StageSection::Recover => {
                 if !self.exhausted {
                     // Hit attempt, when animation plays
-                    data.updater.insert(data.entity, Attacking {
+                    data.updater.insert(data.entity, MeleeAttack {
                         effects: vec![(
                             Some(GroupTarget::OutOfGroup),
                             Damage {
@@ -191,14 +191,14 @@ impl CharacterBehavior for Data {
                     // Done
                     update.character = CharacterState::Wielding;
                     // Make sure attack component is removed
-                    data.updater.remove::<Attacking>(data.entity);
+                    data.updater.remove::<MeleeAttack>(data.entity);
                 }
             },
             _ => {
                 // If it somehow ends up in an incorrect stage section
                 update.character = CharacterState::Wielding;
                 // Make sure attack component is removed
-                data.updater.remove::<Attacking>(data.entity);
+                data.updater.remove::<MeleeAttack>(data.entity);
             },
         }
 

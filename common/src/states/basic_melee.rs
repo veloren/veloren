@@ -1,6 +1,6 @@
 use crate::{
     comp::{
-        Attacking, CharacterState, EnergyChange, EnergySource, PoiseChange, PoiseSource,
+        CharacterState, EnergyChange, EnergySource, MeleeAttack, PoiseChange, PoiseSource,
         StateUpdate,
     },
     states::{
@@ -93,7 +93,7 @@ impl CharacterBehavior for Data {
                     });
 
                     // Hit attempt
-                    data.updater.insert(data.entity, Attacking {
+                    data.updater.insert(data.entity, MeleeAttack {
                         effects: vec![(
                             Some(GroupTarget::OutOfGroup),
                             Damage {
@@ -146,21 +146,21 @@ impl CharacterBehavior for Data {
                     // Done
                     update.character = CharacterState::Wielding;
                     // Make sure attack component is removed
-                    data.updater.remove::<Attacking>(data.entity);
+                    data.updater.remove::<MeleeAttack>(data.entity);
                 }
             },
             _ => {
                 // If it somehow ends up in an incorrect stage section
                 update.character = CharacterState::Wielding;
                 // Make sure attack component is removed
-                data.updater.remove::<Attacking>(data.entity);
+                data.updater.remove::<MeleeAttack>(data.entity);
             },
         }
 
         // Grant energy on successful hit
-        if let Some(attack) = data.attacking {
+        if let Some(attack) = data.melee_attack {
             if attack.applied && attack.hit_count > 0 {
-                data.updater.remove::<Attacking>(data.entity);
+                data.updater.remove::<MeleeAttack>(data.entity);
                 update.energy.change_by(EnergyChange {
                     amount: 50,
                     source: EnergySource::HitEnemy,

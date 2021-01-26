@@ -163,7 +163,7 @@ impl State {
         ecs.register::<comp::Admin>();
         ecs.register::<comp::Waypoint>();
         ecs.register::<comp::Projectile>();
-        ecs.register::<comp::Attacking>();
+        ecs.register::<comp::MeleeAttack>();
         ecs.register::<comp::ItemDrop>();
         ecs.register::<comp::ChatMode>();
         ecs.register::<comp::Faction>();

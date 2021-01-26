@@ -1,5 +1,5 @@
 use common::{
-    comp::{buff, group, Attacking, Body, CharacterState, Health, Inventory, Ori, Pos, Scale},
+    comp::{buff, group, Body, CharacterState, Health, Inventory, MeleeAttack, Ori, Pos, Scale},
     event::{EventBus, LocalEvent, ServerEvent},
     metrics::SysMetrics,
     span,
@@ -30,7 +30,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Health>,
         ReadStorage<'a, Inventory>,
         ReadStorage<'a, group::Group>,
-        WriteStorage<'a, Attacking>,
+        WriteStorage<'a, MeleeAttack>,
         ReadStorage<'a, CharacterState>,
     );
 
