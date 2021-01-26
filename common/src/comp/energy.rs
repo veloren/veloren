@@ -7,6 +7,8 @@ use specs_idvs::IdvStorage;
 pub struct Energy {
     current: u32,
     maximum: u32,
+    base_max: u32,
+    last_max: u32,
     pub regen_rate: f32,
     pub last_change: Option<(i32, f64, EnergySource)>,
 }
@@ -43,6 +45,8 @@ impl Energy {
         Energy {
             current: 0,
             maximum: 0,
+            base_max: 0,
+            last_max: 0,
             regen_rate: 0.0,
             last_change: None,
         }
@@ -63,6 +67,14 @@ impl Energy {
         self.last_change = Some((change.amount, 0.0, change.source));
     }
 
+    // This function changes the modified max energy value, not the base energy
+    // value. The modified energy value takes into account buffs and other temporary
+    // changes to max energy.
+    pub fn set_maximum(&mut self, amount: u32) {
+        self.maximum = amount;
+        self.current = self.current.min(self.maximum);
+    }
+
     pub fn try_change_by(
         &mut self,
         amount: i32,
@@ -81,14 +93,21 @@ impl Energy {
         }
     }
 
-    pub fn set_maximum(&mut self, amount: u32) {
-        self.maximum = amount;
-        self.current = self.current.min(self.maximum);
-    }
+    //sets last_max to base HP, then if the current is more than your base_max
+    // it'll set it to base max
+    pub fn last_set(&mut self) { self.last_max = self.maximum }
 
     pub fn update_max_energy(&mut self, body: Option<Body>, level: u16) {
         if let Some(body) = body {
             self.set_maximum(body.base_energy() + 50 * level as u32);
+        }
+    }
+
+    pub fn reset_max(&mut self) {
+        self.maximum = self.base_max;
+        if self.current > self.last_max {
+            self.current = self.last_max;
+            self.last_max = self.base_max;
         }
     }
 }

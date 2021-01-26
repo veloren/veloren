@@ -22,6 +22,10 @@ pub enum BuffKind {
     Potion,
     /// Applied when sitting at a campfire
     CampfireHeal,
+    /// Raises maximum stamina
+    IncreaseMaxEnergy,
+    /// Raises maximum health
+    IncreaseMaxHealth,
 }
 
 impl BuffKind {
@@ -34,6 +38,8 @@ impl BuffKind {
             BuffKind::Cursed { .. } => false,
             BuffKind::Potion { .. } => true,
             BuffKind::CampfireHeal { .. } => true,
+            BuffKind::IncreaseMaxEnergy { .. } => true,
+            BuffKind::IncreaseMaxHealth { .. } => true,
         }
     }
 }
@@ -78,6 +84,8 @@ pub enum BuffEffect {
     },
     /// Changes maximum health by a certain amount
     MaxHealthModifier { value: f32, kind: ModifierKind },
+    /// Changes maximum stamina by a certain amount
+    MaxEnergyModifier { value: f32, kind: ModifierKind },
 }
 
 /// Actual de/buff.
@@ -159,6 +167,20 @@ impl Buff {
             BuffKind::Cursed => (
                 vec![BuffEffect::MaxHealthModifier {
                     value: -100. * data.strength,
+                    kind: ModifierKind::Additive,
+                }],
+                data.duration,
+            ),
+            BuffKind::IncreaseMaxEnergy => (
+                vec![BuffEffect::MaxEnergyModifier {
+                    value: data.strength,
+                    kind: ModifierKind::Additive,
+                }],
+                data.duration,
+            ),
+            BuffKind::IncreaseMaxHealth => (
+                vec![BuffEffect::MaxHealthModifier {
+                    value: data.strength,
                     kind: ModifierKind::Additive,
                 }],
                 data.duration,

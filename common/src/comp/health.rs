@@ -34,6 +34,7 @@ pub struct Health {
     base_max: u32,
     current: u32,
     maximum: u32,
+    last_max: u32,
     pub last_change: (f64, HealthChange),
     pub is_dead: bool,
 }
@@ -53,6 +54,7 @@ impl Health {
             current: 0,
             maximum: 0,
             base_max: 0,
+            last_max: 0,
             last_change: (0.0, HealthChange {
                 amount: 0,
                 cause: HealthSource::Revive,
@@ -93,8 +95,6 @@ impl Health {
         self.current = self.current.min(self.maximum);
     }
 
-    pub fn reset_max(&mut self) { self.maximum = self.base_max; }
-
     pub fn should_die(&self) -> bool { self.current == 0 }
 
     pub fn revive(&mut self) {
@@ -119,8 +119,18 @@ impl Health {
         self.current = amount;
         self
     }
-}
 
+    pub fn last_set(&mut self) { self.last_max = self.maximum }
+
+    pub fn reset_max(&mut self) {
+        self.maximum = self.base_max;
+        if self.current > self.last_max {
+            self.current = self.last_max;
+
+            self.last_max = self.base_max;
+        }
+    }
+}
 impl Component for Health {
     type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
 }
