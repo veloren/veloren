@@ -24,11 +24,12 @@ pub enum GroupTarget {
     OutOfGroup,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Attack {
     damages: Vec<DamageComponent>,
     effects: Vec<EffectComponent>,
-    crit_chance: f32,
-    crit_multiplier: f32,
+    pub crit_chance: f32,
+    pub crit_multiplier: f32,
 }
 
 impl Default for Attack {
@@ -58,8 +59,17 @@ impl Attack {
         self.crit_multiplier = cm;
         self
     }
+
+    pub fn damages(&self) -> impl Iterator<Item = &DamageComponent> {
+        self.damages.iter()
+    }
+
+    pub fn effects(&self) -> impl Iterator<Item = &EffectComponent> {
+        self.effects.iter()
+    }
 }
 
+#[derive(Debug, Serialize, Deserialize)]
 pub struct DamageComponent {
     damage: Damage,
     target: Option<GroupTarget>,
@@ -79,8 +89,21 @@ impl DamageComponent {
         self.effects.push(effect);
         self
     }
+
+    pub fn target(&self) -> Option<GroupTarget> {
+        self.target
+    }
+
+    pub fn damage(&self) -> Damage {
+        self.damage
+    }
+
+    pub fn effects(&self) -> impl Iterator<Item = &AttackEffect> {
+        self.effects.iter()
+    }
 }
 
+#[derive(Debug, Serialize, Deserialize)]
 pub struct EffectComponent {
     target: Option<GroupTarget>,
     effect: AttackEffect,
@@ -92,12 +115,13 @@ impl EffectComponent {
     }
 }
 
+#[derive(Debug, Serialize, Deserialize)]
 pub enum AttackEffect {
-    Heal(f32),
-    Buff(effect::BuffEffect),
+    //Heal(f32),
+    //Buff(effect::BuffEffect),
     Knockback(Knockback),
-    EnergyChange(f32),
-    Lifesteal(f32),
+    /*EnergyChange(f32),
+     *Lifesteal(f32), */
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]

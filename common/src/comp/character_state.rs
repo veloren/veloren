@@ -1,8 +1,8 @@
 use crate::{
+    combat::Attack,
     comp::{Energy, Ori, PoiseChange, Pos, Vel},
     event::{LocalEvent, ServerEvent},
     states::{behavior::JoinData, *},
-    Damage, GroupTarget, Knockback,
 };
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage, VecStorage};
@@ -169,14 +169,13 @@ impl Component for CharacterState {
     type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct MeleeAttack {
-    pub effects: Vec<(Option<GroupTarget>, Damage, PoiseChange)>,
+    pub attack: Attack,
     pub range: f32,
     pub max_angle: f32,
     pub applied: bool,
     pub hit_count: u32,
-    pub knockback: Knockback,
 }
 
 impl Component for MeleeAttack {

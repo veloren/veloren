@@ -1,4 +1,5 @@
 use crate::{
+    combat::{Attack, AttackEffect, DamageComponent},
     comp::{
         CharacterState, EnergyChange, EnergySource, MeleeAttack, PoiseChange, PoiseSource,
         StateUpdate,
@@ -145,20 +146,21 @@ impl CharacterBehavior for Data {
                             };
                             let knockback = self.static_data.base_knockback
                                 + charge_frac * self.static_data.scaled_knockback;
+                            let knockback = AttackEffect::Knockback(Knockback {
+                                strength: knockback,
+                                direction: KnockbackDir::Away,
+                            });
+                            let damage =
+                                DamageComponent::new(damage, Some(GroupTarget::OutOfGroup))
+                                    .with_effect(knockback);
+                            let attack = Attack::default().with_damage(damage);
+
                             data.updater.insert(data.entity, MeleeAttack {
-                                effects: vec![(
-                                    Some(GroupTarget::OutOfGroup),
-                                    damage,
-                                    poise_damage,
-                                )],
+                                attack,
                                 range: self.static_data.range,
                                 max_angle: self.static_data.angle.to_radians(),
                                 applied: false,
                                 hit_count: 0,
-                                knockback: Knockback {
-                                    strength: knockback,
-                                    direction: KnockbackDir::Away,
-                                },
                             });
                         }
                         update.character = CharacterState::DashMelee(Data {

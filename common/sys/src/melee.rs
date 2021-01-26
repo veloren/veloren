@@ -1,3 +1,4 @@
+use crate::apply_attack;
 use common::{
     comp::{buff, group, Body, CharacterState, Health, Inventory, MeleeAttack, Ori, Pos, Scale},
     event::{EventBus, LocalEvent, ServerEvent},
@@ -75,13 +76,14 @@ impl<'a> System<'a> for Sys {
             attack.applied = true;
 
             // Go through all other entities
-            for (b, pos_b, scale_b_maybe, health_b, body_b, char_state_b_maybe) in (
+            for (b, pos_b, scale_b_maybe, health_b, body_b, char_state_b_maybe, inventory_b_maybe) in (
                 &entities,
                 &positions,
                 scales.maybe(),
                 &healths,
                 &bodies,
                 char_states.maybe(),
+                inventories.maybe(),
             )
                 .join()
             {
@@ -118,7 +120,22 @@ impl<'a> System<'a> for Sys {
                         GroupTarget::OutOfGroup
                     };
 
-                    for (target, damage, poise_change) in attack.effects.iter() {
+                    let dir = Dir::new((pos_b.0 - pos.0).try_normalized().unwrap_or(*ori.0));
+
+                    let server_events = apply_attack(
+                        &attack.attack,
+                        target_group,
+                        b,
+                        inventory_b_maybe,
+                        *uid,
+                        dir,
+                    );
+
+                    for event in server_events {
+                        server_emitter.emit(event);
+                    }
+
+                    /*for (target, damage) in attack.damages.iter() {
                         if let Some(target) = target {
                             if *target != target_group
                                 || (!matches!(target, GroupTarget::InGroup) && is_dodge)
@@ -165,7 +182,7 @@ impl<'a> System<'a> for Sys {
                         }
 
                         attack.hit_count += 1;
-                    }
+                    }*/
                 }
             }
         }

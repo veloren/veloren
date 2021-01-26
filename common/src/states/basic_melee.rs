@@ -1,4 +1,5 @@
 use crate::{
+    combat::{Attack, AttackEffect, DamageComponent},
     comp::{
         CharacterState, EnergyChange, EnergySource, MeleeAttack, PoiseChange, PoiseSource,
         StateUpdate,
@@ -92,27 +93,25 @@ impl CharacterBehavior for Data {
                         ..*self
                     });
 
+                    let damage = Damage {
+                        source: DamageSource::Melee,
+                        value: self.static_data.base_damage as f32,
+                    };
+                    let knockback = AttackEffect::Knockback(Knockback {
+                        strength: self.static_data.knockback,
+                        direction: KnockbackDir::Away,
+                    });
+                    let damage = DamageComponent::new(damage, Some(GroupTarget::OutOfGroup))
+                        .with_effect(knockback);
+                    let attack = Attack::default().with_damage(damage);
+
                     // Hit attempt
                     data.updater.insert(data.entity, MeleeAttack {
-                        effects: vec![(
-                            Some(GroupTarget::OutOfGroup),
-                            Damage {
-                                source: DamageSource::Melee,
-                                value: self.static_data.base_damage as f32,
-                            },
-                            PoiseChange {
-                                amount: -(self.static_data.base_poise_damage as i32),
-                                source: PoiseSource::Attack,
-                            },
-                        )],
+                        attack,
                         range: self.static_data.range,
-                        max_angle: 180_f32.to_radians(),
+                        max_angle: self.static_data.max_angle,
                         applied: false,
                         hit_count: 0,
-                        knockback: Knockback {
-                            strength: self.static_data.knockback,
-                            direction: KnockbackDir::Away,
-                        },
                     });
                 } else if self.timer < self.static_data.swing_duration {
                     // Swings
