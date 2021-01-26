@@ -23,6 +23,85 @@ pub enum GroupTarget {
     OutOfGroup,
 }
 
+pub struct Attack {
+    damages: Vec<DamageComponent>,
+    effects: Vec<EffectComponent>,
+    crit_chance: f32,
+    crit_multiplier: f32,
+}
+
+impl Default for Attack {
+    fn default() -> Self {
+        Self {
+            damages: Vec::new(),
+            effects: Vec::new(),
+            crit_chance: 0.0,
+            crit_multiplier: 1.0,
+        }
+    }
+}
+
+impl Attack {
+    pub fn with_damage(mut self, damage: DamageComponent) -> Self {
+        self.damages.push(damage);
+        self
+    }
+
+    pub fn with_effect(mut self, effect: EffectComponent) -> Self {
+        self.effects.push(effect);
+        self
+    }
+
+    pub fn with_crit(mut self, cc: f32, cm: f32) -> Self {
+        self.crit_chance = cc;
+        self.crit_multiplier = cm;
+        self
+    }
+}
+
+pub struct DamageComponent {
+    damage: Damage,
+    target: Option<GroupTarget>,
+    effects: Vec<AttackEffect>,
+}
+
+impl DamageComponent {
+    pub fn new(damage: Damage, target: Option<GroupTarget>) -> Self {
+        Self {
+            damage,
+            target,
+            effects: Vec::new(),
+        }
+    }
+
+    pub fn with_effect(mut self, effect: AttackEffect) -> Self {
+        self.effects.push(effect);
+        self
+    }
+}
+
+pub struct EffectComponent {
+    target: Option<GroupTarget>,
+    effect: AttackEffect,
+}
+
+impl EffectComponent {
+    pub fn new(target: Option<GroupTarget>, effect: AttackEffect) -> Self {
+        Self {
+            target,
+            effect,
+        }
+    }
+}
+
+pub enum AttackEffect {
+    Heal,
+    Buff,
+    Knockback,
+    EnergyChange,
+    Lifesteal,
+}
+
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub enum DamageSource {
     Buff(BuffKind),
