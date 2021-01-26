@@ -191,8 +191,14 @@ impl CharacterBehavior for Data {
                         strength: self.static_data.stage_data[stage_index].knockback,
                         direction: KnockbackDir::Away,
                     });
+                    let energy = self.static_data.max_energy_gain.min(
+                        self.static_data.initial_energy_gain
+                            + self.combo * self.static_data.energy_increase,
+                    );
+                    let energy = AttackEffect::EnergyReward(energy);
                     let damage = DamageComponent::new(damage, Some(GroupTarget::OutOfGroup))
-                        .with_effect(knockback);
+                        .with_effect(knockback)
+                        .with_effect(energy);
                     let attack = Attack::default().with_damage(damage).with_crit(0.5, 1.3);
 
                     data.updater.insert(data.entity, MeleeAttack {
@@ -287,10 +293,6 @@ impl CharacterBehavior for Data {
         // Grant energy on successful hit
         if let Some(attack) = data.melee_attack {
             if attack.applied && attack.hit_count > 0 {
-                let energy = self.static_data.max_energy_gain.min(
-                    self.static_data.initial_energy_gain
-                        + self.combo * self.static_data.energy_increase,
-                ) as i32;
                 update.character = CharacterState::ComboMelee(Data {
                     static_data: self.static_data.clone(),
                     stage: self.stage,
@@ -300,10 +302,6 @@ impl CharacterBehavior for Data {
                     next_stage: self.next_stage,
                 });
                 data.updater.remove::<MeleeAttack>(data.entity);
-                update.energy.change_by(EnergyChange {
-                    amount: energy,
-                    source: EnergySource::HitEnemy,
-                });
             }
         }
 
