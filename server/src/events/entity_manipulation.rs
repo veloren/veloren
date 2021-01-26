@@ -509,7 +509,7 @@ pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>)
                 source: DamageSource::Falling,
                 value: falldmg,
             };
-            let change = damage.modify_damage(inventories.get(entity), None);
+            let change = damage.modify_damage(inventories.get(entity), None, false, 0.0);
             health.change_by(change);
         }
         // Handle poise change

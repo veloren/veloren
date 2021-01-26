@@ -16,15 +16,7 @@ pub mod state;
 mod stats;
 
 // External
-use common::{
-    combat::{Attack, AttackEffect, GroupTarget},
-    comp::Inventory,
-    event::ServerEvent,
-    uid::Uid,
-    util::Dir,
-};
-use rand::{thread_rng, Rng};
-use specs::{DispatcherBuilder, Entity as EcsEntity};
+use specs::DispatcherBuilder;
 
 // System names
 pub const CHARACTER_BEHAVIOR_SYS: &str = "character_behavior_sys";
@@ -55,40 +47,4 @@ pub fn add_local_systems(dispatch_builder: &mut DispatcherBuilder) {
     dispatch_builder.add(beam::Sys, BEAM_SYS, &[PHYS_SYS]);
     dispatch_builder.add(melee::Sys, MELEE_SYS, &[PROJECTILE_SYS]);
     dispatch_builder.add(aura::Sys, AURAS_SYS, &[]);
-}
-
-pub fn apply_attack(
-    attack: &Attack,
-    target_group: GroupTarget,
-    target_entity: EcsEntity,
-    inventory: Option<&Inventory>,
-    uid: Uid,
-    dir: Dir,
-) -> Vec<ServerEvent> {
-    let is_crit = thread_rng().gen::<f32>() < attack.crit_chance;
-    let mut accumulated_damage = 0.0;
-    let mut server_events = Vec::new();
-    for damage in attack
-        .damages()
-        .filter(|d| d.target().map_or(true, |t| t == target_group))
-    {
-        let change = damage.damage().modify_damage(inventory, Some(uid));
-        if change.amount != 0 {
-            server_events.push(ServerEvent::Damage { entity: target_entity, change });
-            for effect in damage.effects() {
-                match effect {
-                    AttackEffect::Knockback(kb) => {
-                        let impulse = kb.calculate_impulse(dir);
-                        if !impulse.is_approx_zero() {
-                            server_events.push(ServerEvent::Knockback {
-                                entity: target_entity,
-                                impulse,
-                            });
-                        }
-                    },
-                }
-            }
-        }
-    }
-    server_events
 }

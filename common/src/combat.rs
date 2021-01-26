@@ -12,10 +12,13 @@ use crate::{
         Body, BuffKind, Health, HealthChange, HealthSource, Inventory, Stats,
     },
     effect,
+    event::ServerEvent,
     uid::Uid,
     util::Dir,
 };
+use rand::{thread_rng, Rng};
 use serde::{Deserialize, Serialize};
+use specs::Entity as EcsEntity;
 use vek::*;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -28,8 +31,8 @@ pub enum GroupTarget {
 pub struct Attack {
     damages: Vec<DamageComponent>,
     effects: Vec<EffectComponent>,
-    pub crit_chance: f32,
-    pub crit_multiplier: f32,
+    crit_chance: f32,
+    crit_multiplier: f32,
 }
 
 impl Default for Attack {
@@ -60,12 +63,47 @@ impl Attack {
         self
     }
 
-    pub fn damages(&self) -> impl Iterator<Item = &DamageComponent> {
-        self.damages.iter()
-    }
-
-    pub fn effects(&self) -> impl Iterator<Item = &EffectComponent> {
-        self.effects.iter()
+    pub fn apply_attack(
+        &self,
+        target_group: GroupTarget,
+        target_entity: EcsEntity,
+        inventory: Option<&Inventory>,
+        uid: Uid,
+        dir: Dir,
+    ) -> Vec<ServerEvent> {
+        let is_crit = thread_rng().gen::<f32>() < self.crit_chance;
+        let mut accumulated_damage = 0.0;
+        let mut server_events = Vec::new();
+        for damage in self
+            .damages
+            .iter()
+            .filter(|d| d.target.map_or(true, |t| t == target_group))
+        {
+            let change =
+                damage
+                    .damage
+                    .modify_damage(inventory, Some(uid), is_crit, self.crit_multiplier);
+            if change.amount != 0 {
+                server_events.push(ServerEvent::Damage {
+                    entity: target_entity,
+                    change,
+                });
+                for effect in damage.effects.iter() {
+                    match effect {
+                        AttackEffect::Knockback(kb) => {
+                            let impulse = kb.calculate_impulse(dir);
+                            if !impulse.is_approx_zero() {
+                                server_events.push(ServerEvent::Knockback {
+                                    entity: target_entity,
+                                    impulse,
+                                });
+                            }
+                        },
+                    }
+                }
+            }
+        }
+        server_events
     }
 }
 
@@ -88,18 +126,6 @@ impl DamageComponent {
     pub fn with_effect(mut self, effect: AttackEffect) -> Self {
         self.effects.push(effect);
         self
-    }
-
-    pub fn target(&self) -> Option<GroupTarget> {
-        self.target
-    }
-
-    pub fn damage(&self) -> Damage {
-        self.damage
-    }
-
-    pub fn effects(&self) -> impl Iterator<Item = &AttackEffect> {
-        self.effects.iter()
     }
 }
 
@@ -166,15 +192,21 @@ impl Damage {
         }
     }
 
-    pub fn modify_damage(self, inventory: Option<&Inventory>, uid: Option<Uid>) -> HealthChange {
+    pub fn modify_damage(
+        self,
+        inventory: Option<&Inventory>,
+        uid: Option<Uid>,
+        is_crit: bool,
+        crit_mult: f32,
+    ) -> HealthChange {
         let mut damage = self.value;
         let damage_reduction = inventory.map_or(0.0, |inv| Damage::compute_damage_reduction(inv));
         match self.source {
             DamageSource::Melee => {
                 // Critical hit
                 let mut critdamage = 0.0;
-                if rand::random() {
-                    critdamage = damage * 0.3;
+                if is_crit {
+                    critdamage = damage * (crit_mult - 1.0);
                 }
                 // Armor
                 damage *= 1.0 - damage_reduction;
@@ -194,8 +226,8 @@ impl Damage {
             },
             DamageSource::Projectile => {
                 // Critical hit
-                if rand::random() {
-                    damage *= 1.2;
+                if is_crit {
+                    damage *= crit_mult;
                 }
                 // Armor
                 damage *= 1.0 - damage_reduction;

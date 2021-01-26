@@ -118,8 +118,12 @@ impl<'a> System<'a> for Sys {
                                 uid_allocator.retrieve_entity_internal(other.into())
                             {
                                 let other_entity_inventory = inventories.get(other_entity);
-                                let change =
-                                    damage.modify_damage(other_entity_inventory, projectile.owner);
+                                let change = damage.modify_damage(
+                                    other_entity_inventory,
+                                    projectile.owner,
+                                    false,
+                                    0.0,
+                                );
                                 server_emitter.emit(ServerEvent::Damage {
                                     entity: other_entity,
                                     change,

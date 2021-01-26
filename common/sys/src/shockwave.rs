@@ -199,8 +199,9 @@ impl<'a> System<'a> for Sys {
                         }
 
                         let owner_uid = shockwave.owner.unwrap_or(*uid);
-                        let change = damage.modify_damage(inventories.get(b), Some(owner_uid));
                         let poise_change = poise_damage.modify_poise_damage(inventories.get(b));
+                        let change =
+                            damage.modify_damage(inventories.get(b), Some(owner_uid), false, 0.0);
 
                         server_emitter.emit(ServerEvent::Damage { entity: b, change });
                         shockwave_hit_list.hit_entities.push(*uid_b);
