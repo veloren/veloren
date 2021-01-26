@@ -443,6 +443,8 @@ image_ids! {
         buff_saturation_0: "voxygen.element.icons.de_buffs.buff_saturation_0",
         buff_potion_0: "voxygen.element.icons.de_buffs.buff_potion_0",
         buff_campfire_heal_0: "voxygen.element.icons.de_buffs.buff_campfire_heal_0",
+        buff_energyplus_0: "voxygen.element.icons.de_buffs.buff_energyplus_0",
+        buff_healthplus_0: "voxygen.element.icons.de_buffs.buff_healthplus_0",
 
         // Debuffs
         debuff_skull_0: "voxygen.element.icons.de_buffs.debuff_skull_0",

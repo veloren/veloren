@@ -206,6 +206,8 @@ impl<'a> Widget for BuffsBar<'a> {
                         BuffKind::Saturation { .. } => self.imgs.buff_saturation_0,
                         BuffKind::Potion { .. } => self.imgs.buff_potion_0,
                         BuffKind::CampfireHeal { .. } => self.imgs.buff_campfire_heal_0,
+                        BuffKind::IncreaseMaxHealth { .. } => self.imgs.buff_healthplus_0,
+                        BuffKind::IncreaseMaxEnergy { .. } => self.imgs.buff_energyplus_0,
                         _ => self.imgs.missing_icon,
                     };
                     let buff_widget = Image::new(buff_img).w_h(40.0, 40.0);
@@ -236,6 +238,12 @@ impl<'a> Widget for BuffsBar<'a> {
                         BuffKind::CampfireHeal { .. } => {
                             localized_strings.get("buff.title.campfire_heal")
                         },
+                        BuffKind::IncreaseMaxHealth { .. } => {
+                            localized_strings.get("buff.title.IncreaseMaxHealth")
+                        },
+                        BuffKind::IncreaseMaxEnergy { .. } => {
+                            localized_strings.get("buff.title.staminaup")
+                        },
                         _ => localized_strings.get("buff.title.missing"),
                     };
                     let remaining_time = if current_duration.is_none() {
@@ -252,6 +260,12 @@ impl<'a> Widget for BuffsBar<'a> {
                         BuffKind::Potion { .. } => localized_strings.get("buff.desc.potion"),
                         BuffKind::CampfireHeal { .. } => {
                             localized_strings.get("buff.desc.campfire_heal")
+                        },
+                        BuffKind::IncreaseMaxHealth { .. } => {
+                            localized_strings.get("buff.desc.IncreaseMaxHealth")
+                        },
+                        BuffKind::IncreaseMaxEnergy { .. } => {
+                            localized_strings.get("buff.desc.IncreaseMaxEnergy")
                         },
                         _ => localized_strings.get("buff.desc.missing"),
                     };
@@ -430,6 +444,8 @@ impl<'a> Widget for BuffsBar<'a> {
                         BuffKind::Cursed { .. } => self.imgs.debuff_skull_0,
                         BuffKind::Potion { .. } => self.imgs.buff_potion_0,
                         BuffKind::CampfireHeal { .. } => self.imgs.buff_campfire_heal_0,
+                        BuffKind::IncreaseMaxEnergy { .. } => self.imgs.buff_energyplus_0,
+                        BuffKind::IncreaseMaxHealth { .. } => self.imgs.buff_healthplus_0,
                     };
                     let buff_widget = Image::new(buff_img).w_h(40.0, 40.0);
                     // Sort buffs into rows of 6 slots
