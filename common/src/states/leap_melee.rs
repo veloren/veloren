@@ -158,7 +158,7 @@ impl CharacterBehavior for Data {
                     });
                     let damage = DamageComponent::new(damage, Some(GroupTarget::OutOfGroup))
                         .with_effect(knockback);
-                    let attack = Attack::default().with_damage(damage);
+                    let attack = Attack::default().with_damage(damage).with_crit(0.5, 1.3);
 
                     // Hit attempt, when animation plays
                     data.updater.insert(data.entity, MeleeAttack {
