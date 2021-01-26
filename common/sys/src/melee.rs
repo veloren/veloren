@@ -129,10 +129,18 @@ impl<'a> System<'a> for Sys {
 
                     let dir = Dir::new((pos_b.0 - pos.0).try_normalized().unwrap_or(*ori.0));
 
-                    let server_events =
-                        attack
-                            .attack
-                            .apply_attack(target_group, b, inventory_b_maybe, *uid, dir);
+                    let server_events = attack.attack.apply_attack(
+                        target_group,
+                        entity,
+                        b,
+                        inventory_b_maybe,
+                        *uid,
+                        dir,
+                    );
+
+                    if !server_events.is_empty() {
+                        attack.hit_count += 1;
+                    }
 
                     for event in server_events {
                         server_emitter.emit(event);

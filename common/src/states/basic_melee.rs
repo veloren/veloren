@@ -1,9 +1,6 @@
 use crate::{
     combat::{Attack, AttackEffect, DamageComponent},
-    comp::{
-        CharacterState, EnergyChange, EnergySource, MeleeAttack, PoiseChange, PoiseSource,
-        StateUpdate,
-    },
+    comp::{CharacterState, MeleeAttack, PoiseChange, PoiseSource, StateUpdate},
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
@@ -101,8 +98,10 @@ impl CharacterBehavior for Data {
                         strength: self.static_data.knockback,
                         direction: KnockbackDir::Away,
                     });
+                    let energy = AttackEffect::EnergyReward(50);
                     let damage = DamageComponent::new(damage, Some(GroupTarget::OutOfGroup))
-                        .with_effect(knockback);
+                        .with_effect(knockback)
+                        .with_effect(energy);
                     let attack = Attack::default().with_damage(damage).with_crit(0.5, 1.3);
 
                     // Hit attempt
@@ -154,17 +153,6 @@ impl CharacterBehavior for Data {
                 // Make sure attack component is removed
                 data.updater.remove::<MeleeAttack>(data.entity);
             },
-        }
-
-        // Grant energy on successful hit
-        if let Some(attack) = data.melee_attack {
-            if attack.applied && attack.hit_count > 0 {
-                data.updater.remove::<MeleeAttack>(data.entity);
-                update.energy.change_by(EnergyChange {
-                    amount: 50,
-                    source: EnergySource::HitEnemy,
-                });
-            }
         }
 
         update

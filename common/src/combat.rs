@@ -9,7 +9,8 @@ use crate::{
             slot::EquipSlot,
         },
         skills::{SkillGroupKind, SkillSet},
-        Body, BuffKind, Health, HealthChange, HealthSource, Inventory, Stats,
+        Body, BuffKind, EnergyChange, EnergySource, Health, HealthChange, HealthSource, Inventory,
+        Stats,
     },
     effect,
     event::ServerEvent,
@@ -66,6 +67,7 @@ impl Attack {
     pub fn apply_attack(
         &self,
         target_group: GroupTarget,
+        attacker_entity: EcsEntity,
         target_entity: EcsEntity,
         inventory: Option<&Inventory>,
         uid: Uid,
@@ -98,6 +100,15 @@ impl Attack {
                                     impulse,
                                 });
                             }
+                        },
+                        AttackEffect::EnergyReward(ec) => {
+                            server_events.push(ServerEvent::EnergyChange {
+                                entity: attacker_entity,
+                                change: EnergyChange {
+                                    amount: *ec as i32,
+                                    source: EnergySource::HitEnemy,
+                                },
+                            });
                         },
                     }
                 }
@@ -146,8 +157,8 @@ pub enum AttackEffect {
     //Heal(f32),
     //Buff(effect::BuffEffect),
     Knockback(Knockback),
-    /*EnergyChange(f32),
-     *Lifesteal(f32), */
+    EnergyReward(u32),
+    //Lifesteal(f32),
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
