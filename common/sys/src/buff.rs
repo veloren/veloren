@@ -1,7 +1,7 @@
 use common::{
     comp::{
-        BuffCategory, BuffChange, BuffEffect, BuffId, BuffSource, Buffs, Health, HealthChange,
-        HealthSource, Inventory, ModifierKind,
+        BuffCategory, BuffChange, BuffEffect, BuffId, BuffSource, Buffs, Energy, Health,
+        HealthChange, HealthSource, Inventory, ModifierKind,
     },
     event::{EventBus, ServerEvent},
     resources::DeltaTime,
@@ -19,18 +19,22 @@ impl<'a> System<'a> for Sys {
         Read<'a, EventBus<ServerEvent>>,
         ReadStorage<'a, Inventory>,
         WriteStorage<'a, Health>,
+        WriteStorage<'a, Energy>,
         WriteStorage<'a, Buffs>,
     );
 
     fn run(
         &mut self,
-        (entities, dt, server_bus, inventories, mut healths, mut buffs): Self::SystemData,
+        (entities, dt, server_bus, inventories, mut healths, mut energies, mut buffs): Self::SystemData,
     ) {
         let mut server_emitter = server_bus.emitter();
         // Set to false to avoid spamming server
         buffs.set_event_emission(false);
         healths.set_event_emission(false);
-        for (entity, mut buff_comp, mut health) in (&entities, &mut buffs, &mut healths).join() {
+        energies.set_event_emission(false);
+        for (entity, mut buff_comp, mut health, mut energy) in
+            (&entities, &mut buffs, &mut healths, &mut energies).join()
+        {
             let mut expired_buffs = Vec::<BuffId>::new();
             for (id, buff) in buff_comp.buffs.iter_mut() {
                 // Tick the buff and subtract delta from it
@@ -62,8 +66,11 @@ impl<'a> System<'a> for Sys {
                 }
             }
 
-            // Call to reset health to base values
+            // Call to reset health and energy to base values
+            health.last_set();
+            energy.last_set();
             health.reset_max();
+            energy.reset_max();
 
             // Iterator over the lists of buffs by kind
             let buff_comp = &mut *buff_comp;
@@ -124,6 +131,16 @@ impl<'a> System<'a> for Sys {
                                     health.set_maximum((health.maximum() as f32 * *value) as u32);
                                 },
                             },
+                            BuffEffect::MaxEnergyModifier { value, kind } => match kind {
+                                ModifierKind::Additive => {
+                                    let new_max = (energy.maximum() as f32 + *value) as u32;
+                                    energy.set_maximum(new_max);
+                                },
+                                ModifierKind::Fractional => {
+                                    let new_max = (energy.maximum() as f32 + *value) as u32;
+                                    energy.set_maximum(new_max);
+                                },
+                            },
                         };
                     }
                 }
@@ -152,5 +169,6 @@ impl<'a> System<'a> for Sys {
         // Turned back to true
         buffs.set_event_emission(true);
         healths.set_event_emission(true);
+        energies.set_event_emission(true);
     }
 }

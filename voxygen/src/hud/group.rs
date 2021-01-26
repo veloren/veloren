@@ -505,6 +505,12 @@ impl<'a> Widget for Group<'a> {
                                     BuffKind::Cursed { .. } => self.imgs.debuff_skull_0,
                                     BuffKind::Potion { .. } => self.imgs.buff_potion_0,
                                     BuffKind::CampfireHeal { .. } => self.imgs.buff_campfire_heal_0,
+                                    BuffKind::IncreaseMaxEnergy { .. } => {
+                                        self.imgs.buff_energyplus_0
+                                    },
+                                    BuffKind::IncreaseMaxHealth { .. } => {
+                                        self.imgs.buff_healthplus_0
+                                    },
                                 };
                                 let buff_widget = Image::new(buff_img).w_h(15.0, 15.0);
                                 let buff_widget = if let Some(id) = prev_id {
