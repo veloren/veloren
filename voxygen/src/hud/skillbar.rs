@@ -334,7 +334,6 @@ impl<'a> Widget for Skillbar<'a> {
                 (self.energy.current() / 10) as u32,
                 (self.energy.maximum() / 10) as u32
             );
-            //let mut energy_txt = format!("{}", energy_percentage as u32);
             if self.health.is_dead {
                 hp_txt = self.localized_strings.get("hud.group.dead").to_string();
                 energy_txt = self.localized_strings.get("hud.group.dead").to_string();
