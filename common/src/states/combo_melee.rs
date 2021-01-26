@@ -1,4 +1,5 @@
 use crate::{
+    combat::{Attack, AttackEffect, DamageComponent},
     comp::{
         CharacterState, EnergyChange, EnergySource, MeleeAttack, PoiseChange, PoiseSource,
         StateUpdate,
@@ -181,26 +182,25 @@ impl CharacterBehavior for Data {
                             .scales_from_combo
                             .min(self.combo / self.static_data.num_stages)
                             * self.static_data.stage_data[stage_index].poise_damage_increase;
+
+                    let damage = Damage {
+                        source: DamageSource::Melee,
+                        value: damage as f32,
+                    };
+                    let knockback = AttackEffect::Knockback(Knockback {
+                        strength: self.static_data.stage_data[stage_index].knockback,
+                        direction: KnockbackDir::Away,
+                    });
+                    let damage = DamageComponent::new(damage, Some(GroupTarget::OutOfGroup))
+                        .with_effect(knockback);
+                    let attack = Attack::default().with_damage(damage);
+                    
                     data.updater.insert(data.entity, MeleeAttack {
-                        effects: vec![(
-                            Some(GroupTarget::OutOfGroup),
-                            Damage {
-                                source: DamageSource::Melee,
-                                value: damage as f32,
-                            },
-                            PoiseChange {
-                                amount: -(poise_damage as i32),
-                                source: PoiseSource::Attack,
-                            },
-                        )],
+                        attack,
                         range: self.static_data.stage_data[stage_index].range,
                         max_angle: self.static_data.stage_data[stage_index].angle.to_radians(),
                         applied: false,
                         hit_count: 0,
-                        knockback: Knockback {
-                            strength: self.static_data.stage_data[stage_index].knockback,
-                            direction: KnockbackDir::Away,
-                        },
                     });
                 }
             },
