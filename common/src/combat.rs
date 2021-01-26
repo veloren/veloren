@@ -11,6 +11,7 @@ use crate::{
         skills::{SkillGroupKind, SkillSet},
         Body, BuffKind, Health, HealthChange, HealthSource, Inventory, Stats,
     },
+    effect,
     uid::Uid,
     util::Dir,
 };
@@ -87,19 +88,16 @@ pub struct EffectComponent {
 
 impl EffectComponent {
     pub fn new(target: Option<GroupTarget>, effect: AttackEffect) -> Self {
-        Self {
-            target,
-            effect,
-        }
+        Self { target, effect }
     }
 }
 
 pub enum AttackEffect {
-    Heal,
-    Buff,
-    Knockback,
-    EnergyChange,
-    Lifesteal,
+    Heal(f32),
+    Buff(effect::BuffEffect),
+    Knockback(Knockback),
+    EnergyChange(f32),
+    Lifesteal(f32),
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]

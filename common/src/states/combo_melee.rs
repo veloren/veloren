@@ -1,6 +1,6 @@
 use crate::{
     comp::{
-        Attacking, CharacterState, EnergyChange, EnergySource, PoiseChange, PoiseSource,
+        CharacterState, EnergyChange, EnergySource, MeleeAttack, PoiseChange, PoiseSource,
         StateUpdate,
     },
     states::{
@@ -181,7 +181,7 @@ impl CharacterBehavior for Data {
                             .scales_from_combo
                             .min(self.combo / self.static_data.num_stages)
                             * self.static_data.stage_data[stage_index].poise_damage_increase;
-                    data.updater.insert(data.entity, Attacking {
+                    data.updater.insert(data.entity, MeleeAttack {
                         effects: vec![(
                             Some(GroupTarget::OutOfGroup),
                             Damage {
@@ -273,19 +273,19 @@ impl CharacterBehavior for Data {
                     // Done
                     update.character = CharacterState::Wielding;
                     // Make sure attack component is removed
-                    data.updater.remove::<Attacking>(data.entity);
+                    data.updater.remove::<MeleeAttack>(data.entity);
                 }
             },
             _ => {
                 // If it somehow ends up in an incorrect stage section
                 update.character = CharacterState::Wielding;
                 // Make sure attack component is removed
-                data.updater.remove::<Attacking>(data.entity);
+                data.updater.remove::<MeleeAttack>(data.entity);
             },
         }
 
         // Grant energy on successful hit
-        if let Some(attack) = data.attacking {
+        if let Some(attack) = data.melee_attack {
             if attack.applied && attack.hit_count > 0 {
                 let energy = self.static_data.max_energy_gain.min(
                     self.static_data.initial_energy_gain
@@ -299,7 +299,7 @@ impl CharacterBehavior for Data {
                     stage_section: self.stage_section,
                     next_stage: self.next_stage,
                 });
-                data.updater.remove::<Attacking>(data.entity);
+                data.updater.remove::<MeleeAttack>(data.entity);
                 update.energy.change_by(EnergyChange {
                     amount: energy,
                     source: EnergySource::HitEnemy,

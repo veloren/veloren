@@ -3,7 +3,7 @@ use specs::{Entities, Join, LazyUpdate, Read, ReadExpect, ReadStorage, System, W
 use common::{
     comp::{
         inventory::slot::{EquipSlot, Slot},
-        Attacking, Beam, Body, CharacterState, Controller, Energy, Health, Inventory, Mounting,
+        Beam, Body, CharacterState, Controller, Energy, Health, Inventory, MeleeAttack, Mounting,
         Ori, PhysicsState, Poise, PoiseState, Pos, StateUpdate, Stats, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
@@ -69,7 +69,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Poise>,
         ReadStorage<'a, Body>,
         ReadStorage<'a, PhysicsState>,
-        ReadStorage<'a, Attacking>,
+        ReadStorage<'a, MeleeAttack>,
         ReadStorage<'a, Beam>,
         ReadStorage<'a, Uid>,
         ReadStorage<'a, Mounting>,

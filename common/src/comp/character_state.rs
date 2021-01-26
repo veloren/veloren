@@ -170,7 +170,7 @@ impl Component for CharacterState {
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct Attacking {
+pub struct MeleeAttack {
     pub effects: Vec<(Option<GroupTarget>, Damage, PoiseChange)>,
     pub range: f32,
     pub max_angle: f32,
@@ -179,6 +179,6 @@ pub struct Attacking {
     pub knockback: Knockback,
 }
 
-impl Component for Attacking {
+impl Component for MeleeAttack {
     type Storage = VecStorage<Self>;
 }
