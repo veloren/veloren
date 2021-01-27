@@ -154,14 +154,14 @@ fn handle_drop_all(
 
     let pos = pos.expect("expected pos for entity using dropall command");
     for item in items {
-        let vel = Vec3::new(rng.gen_range(-0.1, 0.1), rng.gen_range(-0.1, 0.1), 0.5);
+        let vel = Vec3::new(rng.gen_range(-0.1..0.1), rng.gen_range(-0.1..0.1), 0.5);
 
         server
             .state
             .create_object(Default::default(), comp::object::Body::Pouch)
             .with(comp::Pos(Vec3::new(
-                pos.0.x + rng.gen_range(5.0, 10.0),
-                pos.0.y + rng.gen_range(5.0, 10.0),
+                pos.0.x + rng.gen_range(5.0..10.0),
+                pos.0.y + rng.gen_range(5.0..10.0),
                 pos.0.z + 5.0,
             )))
             .with(item)
@@ -805,8 +805,8 @@ fn handle_spawn(
 
                         for _ in 0..amount {
                             let vel = Vec3::new(
-                                rand::thread_rng().gen_range(-2.0, 3.0),
-                                rand::thread_rng().gen_range(-2.0, 3.0),
+                                rand::thread_rng().gen_range(-2.0..3.0),
+                                rand::thread_rng().gen_range(-2.0..3.0),
                                 10.0,
                             );
 
@@ -922,8 +922,8 @@ fn handle_spawn_training_dummy(
     match server.state.read_component_copied::<comp::Pos>(target) {
         Some(pos) => {
             let vel = Vec3::new(
-                rand::thread_rng().gen_range(-2.0, 3.0),
-                rand::thread_rng().gen_range(-2.0, 3.0),
+                rand::thread_rng().gen_range(-2.0..3.0),
+                rand::thread_rng().gen_range(-2.0..3.0),
                 10.0,
             );
 

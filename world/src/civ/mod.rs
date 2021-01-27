@@ -105,7 +105,7 @@ impl Civs {
 
         for _ in 0..initial_civ_count * 3 {
             attempt(5, || {
-                let (kind, size) = match ctx.rng.gen_range(0, 8) {
+                let (kind, size) = match ctx.rng.gen_range(0..8) {
                     0 => (SiteKind::Castle, 3),
                     _ => (SiteKind::Dungeon, 0),
                 };
@@ -188,7 +188,7 @@ impl Civs {
                             chunk.basement += diff;
                             chunk.rockiness = 0.0;
                             chunk.warp_factor = 0.0;
-                            chunk.surface_veg *= 1.0 - factor * rng.gen_range(0.25, 0.9);
+                            chunk.surface_veg *= 1.0 - factor * rng.gen_range(0.25..0.9);
                         });
                 }
             }
@@ -241,7 +241,7 @@ impl Civs {
         let mut pos = ctx
             .sim
             .get_size()
-            .map(|sz| ctx.rng.gen_range(0, sz as i32) as f32);
+            .map(|sz| ctx.rng.gen_range(0..sz as i32) as f32);
         let mut vel = pos
             .map2(ctx.sim.get_size(), |pos, sz| sz as f32 / 2.0 - pos)
             .try_normalized()
@@ -252,8 +252,8 @@ impl Civs {
                 let depth = (i.abs() as f32 / 100.0 * std::f32::consts::PI / 2.0).cos();
                 vel = (vel
                     + Vec2::new(
-                        ctx.rng.gen_range(-0.35, 0.35),
-                        ctx.rng.gen_range(-0.35, 0.35),
+                        ctx.rng.gen_range(-0.35..0.35),
+                        ctx.rng.gen_range(-0.35..0.35),
                     ))
                 .try_normalized()
                 .unwrap_or_else(Vec2::unit_y);
@@ -290,9 +290,9 @@ impl Civs {
             let mut chunk = ctx.sim.get_mut(loc.0).unwrap();
             let depth = loc.1 * 250.0 - 20.0;
             chunk.cave.1.alt =
-                chunk.alt - depth + ctx.rng.gen_range(-4.0, 4.0) * (depth > 10.0) as i32 as f32;
-            chunk.cave.1.width = ctx.rng.gen_range(6.0, 32.0);
-            chunk.cave.0.offset = Vec2::new(ctx.rng.gen_range(-16, 17), ctx.rng.gen_range(-16, 17));
+                chunk.alt - depth + ctx.rng.gen_range(-4.0..4.0) * (depth > 10.0) as i32 as f32;
+            chunk.cave.1.width = ctx.rng.gen_range(6.0..32.0);
+            chunk.cave.0.offset = Vec2::new(ctx.rng.gen_range(-16..17), ctx.rng.gen_range(-16..17));
 
             if chunk.cave.1.alt + chunk.cave.1.width + 5.0 > chunk.alt {
                 chunk.spawn_rate = 0.0;
@@ -305,7 +305,7 @@ impl Civs {
             ),
             name: {
                 let name = NameGen::location(&mut ctx.rng).generate();
-                match ctx.rng.gen_range(0, 7) {
+                match ctx.rng.gen_range(0..7) {
                     0 => format!("{} Hole", name),
                     1 => format!("{} Cavern", name),
                     2 => format!("{} Hollow", name),
@@ -544,7 +544,7 @@ impl Civs {
                             chunk.path.0.neighbors |=
                                 (1 << (to_prev_idx as u8)) | (1 << (to_next_idx as u8));
                             chunk.path.0.offset =
-                                Vec2::new(ctx.rng.gen_range(-16, 17), ctx.rng.gen_range(-16, 17));
+                                Vec2::new(ctx.rng.gen_range(-16..17), ctx.rng.gen_range(-16..17));
                         }
 
                         // Take note of the track
@@ -735,7 +735,7 @@ fn find_site_loc(
         let test_loc = loc.unwrap_or_else(|| match near {
             Some((origin, dist)) => {
                 origin
-                    + (Vec2::new(ctx.rng.gen_range(-1.0, 1.0), ctx.rng.gen_range(-1.0, 1.0))
+                    + (Vec2::new(ctx.rng.gen_range(-1.0..1.0), ctx.rng.gen_range(-1.0..1.0))
                         .try_normalized()
                         .unwrap_or(Vec2::zero())
                         * ctx.rng.gen::<f32>()
@@ -743,8 +743,8 @@ fn find_site_loc(
                         .map(|e| e as i32)
             },
             None => Vec2::new(
-                ctx.rng.gen_range(0, ctx.sim.get_size().x as i32),
-                ctx.rng.gen_range(0, ctx.sim.get_size().y as i32),
+                ctx.rng.gen_range(0..ctx.sim.get_size().x as i32),
+                ctx.rng.gen_range(0..ctx.sim.get_size().y as i32),
             ),
         });
 

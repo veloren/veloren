@@ -176,13 +176,13 @@ impl<'a> System<'a> for Sys {
                         // keep them on
                         // Only emit event for agents that sill need to
                         // turn on their lantern
-                        if let 0 = rng.gen_range(0, 1000) {
+                        if let 0 = rng.gen_range(0..1000) {
                             controller.events.push(ControlEvent::EnableLantern)
                         }
                     } else if lantern_turned_on && day_period.is_light() {
                         // agents with turned on lanterns turn them off randomly once it's daytime and
                         // keep them off
-                        if let 0 = rng.gen_range(0, 2000) {
+                        if let 0 = rng.gen_range(0..2000) {
                             controller.events.push(ControlEvent::DisableLantern)
                         }
                     }
@@ -770,7 +770,7 @@ impl<'a> System<'a> for Sys {
                                                         inputs.move_dir = bearing
                                                             .xy()
                                                             .rotated_z(
-                                                                thread_rng().gen_range(0.5, 1.57),
+                                                                thread_rng().gen_range(0.5..1.57),
                                                             )
                                                             .try_normalized()
                                                             .unwrap_or(Vec2::zero())
@@ -865,7 +865,7 @@ impl<'a> System<'a> for Sys {
                                                         inputs.move_dir = bearing
                                                             .xy()
                                                             .rotated_z(
-                                                                thread_rng().gen_range(-1.57, -0.5),
+                                                                thread_rng().gen_range(-1.57..-0.5),
                                                             )
                                                             .try_normalized()
                                                             .unwrap_or(Vec2::zero())

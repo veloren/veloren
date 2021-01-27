@@ -212,7 +212,7 @@ impl Settlement {
                         let cpos = wpos.map(|e| e.div_euclid(TerrainChunkSize::RECT_SIZE.x as i32));
                         !sim.can_host_settlement(cpos)
                     })
-                    || rng.gen_range(0, 16) == 0
+                    || rng.gen_range(0..16) == 0
                 // Randomly consider some tiles inaccessible
                 {
                     self.land.set(tile, hazard);
@@ -225,7 +225,7 @@ impl Settlement {
         let river_dir = Vec2::new(rng.gen::<f32>() - 0.5, rng.gen::<f32>() - 0.5).normalized();
         let radius = 500.0 + rng.gen::<f32>().powi(2) * 1000.0;
         let river = self.land.new_plot(Plot::Water);
-        let river_offs = Vec2::new(rng.gen_range(-3, 4), rng.gen_range(-3, 4));
+        let river_offs = Vec2::new(rng.gen_range(-3..4), rng.gen_range(-3..4));
 
         for x in (0..100).map(|e| e as f32 / 100.0) {
             let theta0 = x as f32 * f32::consts::PI * 2.0;
@@ -293,7 +293,7 @@ impl Settlement {
     pub fn place_town(&mut self, ctx: &mut GenCtx<impl Rng>) {
         const PLOT_COUNT: usize = 3;
 
-        let mut origin = Vec2::new(ctx.rng.gen_range(-2, 3), ctx.rng.gen_range(-2, 3));
+        let mut origin = Vec2::new(ctx.rng.gen_range(-2..3), ctx.rng.gen_range(-2..3));
 
         for i in 0..PLOT_COUNT {
             if let Some(base_tile) = self.land.find_tile_near(origin, |plot| {
@@ -386,12 +386,12 @@ impl Settlement {
             .take(16usize.pow(2))
         {
             // This is a stupid way to decide how to place buildings
-            for i in 0..ctx.rng.gen_range(2, 5) {
+            for i in 0..ctx.rng.gen_range(2..5) {
                 for _ in 0..25 {
                     let house_pos = tile.map(|e| e * AREA_SIZE as i32 + AREA_SIZE as i32 / 2)
                         + Vec2::<i32>::zero().map(|_| {
                             ctx.rng
-                                .gen_range(-(AREA_SIZE as i32) / 4, AREA_SIZE as i32 / 4)
+                                .gen_range(-(AREA_SIZE as i32) / 4..AREA_SIZE as i32 / 4)
                         });
 
                     let tile_pos = house_pos.map(|e| e.div_euclid(AREA_SIZE as i32));
@@ -470,10 +470,10 @@ impl Settlement {
                 //self.land.set(base_tile, farmhouse);
 
                 // Farmhouses
-                // for _ in 0..ctx.rng.gen_range(1, 3) {
+                // for _ in 0..ctx.rng.gen_range(1..3) {
                 //     let house_pos = base_tile.map(|e| e * AREA_SIZE as i32 + AREA_SIZE as i32
-                // / 2)         + Vec2::new(ctx.rng.gen_range(-16, 16),
-                // ctx.rng.gen_range(-16, 16));
+                // / 2)         + Vec2::new(ctx.rng.gen_range(-16..16),
+                // ctx.rng.gen_range(-16..16));
 
                 //     self.structures.push(Structure {
                 //         kind: StructureKind::House(HouseBuilding::generate(ctx.rng,
@@ -508,7 +508,7 @@ impl Settlement {
             let field = self.land.new_plot(Plot::Field {
                 farm,
                 seed: rng.gen(),
-                crop: match rng.gen_range(0, 8) {
+                crop: match rng.gen_range(0..8) {
                     0 => Crop::Corn,
                     1 => Crop::Wheat,
                     2 => Crop::Cabbage,
@@ -522,7 +522,7 @@ impl Settlement {
             });
             let tiles =
                 self.land
-                    .grow_from(center, rng.gen_range(5, MAX_FIELD_SIZE), rng, |plot| {
+                    .grow_from(center, rng.gen_range(5..MAX_FIELD_SIZE), rng, |plot| {
                         plot.is_none()
                     });
             for pos in tiles.into_iter() {
@@ -881,13 +881,13 @@ impl Settlement {
                     let is_dummy =
                         RandomField::new(self.seed + 1).chance(Vec3::from(wpos2d), 1.0 / 15.0);
                     let entity = EntityInfo::at(entity_wpos)
-                        .with_body(match dynamic_rng.gen_range(0, 5) {
+                        .with_body(match dynamic_rng.gen_range(0..5) {
                             _ if is_dummy => {
                                 is_human = false;
                                 object::Body::TrainingDummy.into()
                             },
                             0 => {
-                                let species = match dynamic_rng.gen_range(0, 3) {
+                                let species = match dynamic_rng.gen_range(0..3) {
                                     0 => quadruped_small::Species::Pig,
                                     1 => quadruped_small::Species::Sheep,
                                     _ => quadruped_small::Species::Cat,
@@ -899,7 +899,7 @@ impl Settlement {
                                 ))
                             },
                             1 => {
-                                let species = match dynamic_rng.gen_range(0, 4) {
+                                let species = match dynamic_rng.gen_range(0..4) {
                                     0 => bird_medium::Species::Duck,
                                     1 => bird_medium::Species::Chicken,
                                     2 => bird_medium::Species::Goose,
@@ -927,20 +927,20 @@ impl Settlement {
                         .do_if(!is_dummy, |e| e.with_automatic_name())
                         .do_if(is_dummy, |e| e.with_name("Training Dummy"))
                         .do_if(is_human && dynamic_rng.gen(), |entity| {
-                            match dynamic_rng.gen_range(0, 5) {
+                            match dynamic_rng.gen_range(0..5) {
                                 0 => entity
                                     .with_main_tool(Item::new_from_asset_expect(
                                         "common.items.weapons.sword.greatsword_2h_simple-0",
                                     ))
                                     .with_name("Guard")
-                                    .with_level(dynamic_rng.gen_range(10, 15))
+                                    .with_level(dynamic_rng.gen_range(10..15))
                                     .with_loadout_config(loadout_builder::LoadoutConfig::Guard)
                                     .with_skillset_config(
                                         common::skillset_builder::SkillSetConfig::Guard,
                                     ),
                                 _ => entity
                                     .with_main_tool(Item::new_from_asset_expect(
-                                        match dynamic_rng.gen_range(0, 7) {
+                                        match dynamic_rng.gen_range(0..7) {
                                     0 => "common.items.npc_weapons.tool.broom",
                                     1 => "common.items.npc_weapons.tool.hoe",
                                     2 => "common.items.npc_weapons.tool.pickaxe",

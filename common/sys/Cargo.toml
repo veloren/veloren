@@ -15,7 +15,7 @@ default = ["simd"]
 common = { package = "veloren-common", path = ".." }
 common-net = { package = "veloren-common-net", path = "../net" }
 
-rand = "0.7"
+rand = "0.8"
 rayon = "1.5"
 tracing = { version = "0.1", default-features = false }
 vek = { version = "0.12.0", features = ["serde"] }
