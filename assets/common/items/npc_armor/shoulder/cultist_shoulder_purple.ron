@@ -6,7 +6,7 @@ ItemDef(
             kind: Shoulder("CultistPurple"),
             stats: (
                 protection: Normal(5.0),
-                poise_protection: Normal(5.0),
+                poise_resilience: Normal(5.0),
             ),
         )
     ),

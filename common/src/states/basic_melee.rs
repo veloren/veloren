@@ -102,7 +102,7 @@ impl CharacterBehavior for Data {
                             },
                             PoiseChange {
                                 amount: -(self.static_data.base_poise_damage as i32),
-                                source: PoiseSource::Melee,
+                                source: PoiseSource::Attack,
                             },
                         )],
                         range: self.static_data.range,

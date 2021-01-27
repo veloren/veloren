@@ -5,7 +5,7 @@ ItemDef(
         kind: Shoulder("Bonerattler"),
         stats: (
             protection: Normal(15.0),
-            poise_protection: Normal(17.0),
+            poise_resilience: Normal(17.0),
         ),
     )),
     quality: High,

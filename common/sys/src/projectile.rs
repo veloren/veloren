@@ -125,30 +125,6 @@ impl<'a> System<'a> for Sys {
                                 });
                             }
                         },
-                        projectile::Effect::PoiseChange(target, poise_damage) => {
-                            if Some(other) == projectile.owner {
-                                continue;
-                            }
-
-                            if let Some(target) = target {
-                                if target != target_group {
-                                    continue;
-                                }
-                            }
-
-                            if let Some(other_entity) =
-                                uid_allocator.retrieve_entity_internal(other.into())
-                            {
-                                let other_entity_inventory = inventories.get(other_entity);
-                                let poise_change =
-                                    poise_damage.modify_poise_damage(other_entity_inventory);
-                                server_emitter.emit(ServerEvent::PoiseChange {
-                                    entity: other_entity,
-                                    change: poise_change,
-                                    kb_dir: *ori.0,
-                                });
-                            }
-                        },
                         projectile::Effect::Knockback(knockback) => {
                             if let Some(other_entity) =
                                 uid_allocator.retrieve_entity_internal(other.into())

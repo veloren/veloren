@@ -128,9 +128,9 @@ impl<'a> System<'a> for Sys {
                         }
 
                         let change = damage.modify_damage(inventories.get(b), Some(*uid));
-                        let poise_change = poise_change.modify_poise_damage(inventories.get(b));
 
                         server_emitter.emit(ServerEvent::Damage { entity: b, change });
+
                         // Apply bleeding buff on melee hits with 10% chance
                         // TODO: Don't have buff uniformly applied on all melee attacks
                         if change.amount < 0 && thread_rng().gen::<f32>() < 0.1 {
@@ -148,17 +148,21 @@ impl<'a> System<'a> for Sys {
                                 )),
                             });
                         }
+
                         let kb_dir = Dir::new((pos_b.0 - pos.0).try_normalized().unwrap_or(*ori.0));
                         let impulse = attack.knockback.calculate_impulse(kb_dir);
                         if !impulse.is_approx_zero() {
                             server_emitter.emit(ServerEvent::Knockback { entity: b, impulse });
                         }
 
-                        server_emitter.emit(ServerEvent::PoiseChange {
-                            entity: b,
-                            change: poise_change,
-                            kb_dir: *kb_dir,
-                        });
+                        let poise_change = poise_change.modify_poise_damage(inventories.get(b));
+                        if poise_change.amount.abs() > 0 {
+                            server_emitter.emit(ServerEvent::PoiseChange {
+                                entity: b,
+                                change: poise_change,
+                                kb_dir: *kb_dir,
+                            });
+                        }
 
                         attack.hit_count += 1;
                     }

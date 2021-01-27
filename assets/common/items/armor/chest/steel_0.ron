@@ -5,7 +5,7 @@ ItemDef(
         kind: Chest("Steel0"),
         stats: (
             protection: Normal(25.0),
-            poise_protection: Normal(40.0),
+            poise_resilience: Normal(40.0),
         ),
     )),
     quality: High,

@@ -9,7 +9,6 @@ use std::{
 };
 
 use find_folder::Search;
-use hashbrown::HashSet;
 use std::{env, path::PathBuf};
 use tracing::{debug, error, info};
 

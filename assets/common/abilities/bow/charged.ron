@@ -3,8 +3,6 @@ ChargedRanged(
     energy_drain: 300,
     initial_damage: 10,
     scaled_damage: 190,
-    initial_poise_damage: 0,
-    scaled_poise_damage: 0,
     initial_knockback: 10.0,
     scaled_knockback: 10.0,
     speed: 1.0,

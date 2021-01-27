@@ -93,7 +93,7 @@ impl CharacterBehavior for Data {
                             },
                             PoiseChange {
                                 amount: -(self.static_data.poise_damage as i32),
-                                source: PoiseSource::Shockwave,
+                                source: PoiseSource::Attack,
                             },
                         )],
                         knockback: self.static_data.knockback,

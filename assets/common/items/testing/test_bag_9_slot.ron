@@ -6,7 +6,7 @@ ItemDef(
             kind: Bag("TestBag9Slot"),
             stats: (
                 protection: Normal(0.0),
-                poise_protection: Normal(0.0),
+                poise_resilience: Normal(0.0),
             ),
         )
     ),

@@ -1,6 +1,6 @@
 use super::utils::*;
 use crate::{
-    comp::{CharacterState, StateUpdate},
+    comp::{CharacterState, PoiseState, StateUpdate},
     states::behavior::{CharacterBehavior, JoinData},
 };
 use serde::{Deserialize, Serialize};
@@ -15,6 +15,8 @@ pub struct StaticData {
     pub recover_duration: Duration,
     /// Fraction of normal movement speed allowed during the state
     pub movement_speed: f32,
+    /// Poise state (used for determining animation in the client)
+    pub poise_state: PoiseState,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]

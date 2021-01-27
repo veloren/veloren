@@ -1,4 +1,4 @@
-use crate::{comp::PoiseChange, uid::Uid, Damage, GroupTarget};
+use crate::{uid::Uid, Damage, GroupTarget};
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
@@ -8,7 +8,7 @@ use std::time::Duration;
 pub struct Properties {
     pub angle: f32,
     pub speed: f32,
-    pub effects: Vec<(Option<GroupTarget>, Damage, PoiseChange)>,
+    pub damages: Vec<(Option<GroupTarget>, Damage)>,
     pub lifesteal_eff: f32,
     pub energy_regen: u32,
     pub energy_cost: u32,

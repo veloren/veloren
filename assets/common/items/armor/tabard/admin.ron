@@ -5,7 +5,7 @@ ItemDef(
         kind: Tabard("Admin"),
         stats: (
             protection: Invincible,
-            poise_protection: Invincible,
+            poise_resilience: Invincible,
         ),
     )),
     quality: Debug,

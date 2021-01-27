@@ -5,7 +5,7 @@ ItemDef(
         kind: Shoulder("TwiggyShoulder"),
         stats: (
             protection: Normal(9.0),
-            poise_protection: Normal(14.0),
+            poise_resilience: Normal(14.0),
         ),
     )),
     quality: Common,

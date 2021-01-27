@@ -70,12 +70,12 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
                                 Protection::Normal(0.0)
                             };
 
-                            let poise_protection = if let Some(poise_protection_raw) = record.get(5)
+                            let poise_resilience = if let Some(poise_resilience_raw) = record.get(5)
                             {
-                                if poise_protection_raw == "Invincible" {
+                                if poise_resilience_raw == "Invincible" {
                                     Protection::Invincible
                                 } else {
-                                    let value: f32 = poise_protection_raw.parse().unwrap();
+                                    let value: f32 = poise_resilience_raw.parse().unwrap();
                                     Protection::Normal(value)
                                 }
                             } else {
@@ -88,7 +88,7 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
 
                             let kind = armor.kind.clone();
                             let armor =
-                                comp::item::armor::Armor::new(kind, protection, poise_protection);
+                                comp::item::armor::Armor::new(kind, protection, poise_resilience);
                             let quality = if let Some(quality_raw) = record.get(3) {
                                 match quality_raw {
                                     "Low" => comp::item::Quality::Low,
@@ -186,7 +186,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                                 ))
                                 .parse()
                                 .expect(&format!("Not a f32? {:?}", item.item_definition_id()));
-                            let poise_power: f32 = record
+                            let poise_strength: f32 = record
                                 .get(5)
                                 .expect(&format!(
                                     "Error unwrapping poise power for {:?}",
@@ -208,7 +208,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                                 kind,
                                 equip_time_millis,
                                 power,
-                                poise_power,
+                                poise_strength,
                                 speed,
                             );
 

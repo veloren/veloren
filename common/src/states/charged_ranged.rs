@@ -2,7 +2,7 @@ use crate::{
     comp::{
         buff::{BuffCategory, BuffData, BuffKind},
         projectile, Body, CharacterState, EnergyChange, EnergySource, Gravity, LightEmitter,
-        PoiseChange, PoiseSource, Projectile, StateUpdate,
+        Projectile, StateUpdate,
     },
     effect::BuffEffect,
     event::ServerEvent,
@@ -30,10 +30,6 @@ pub struct StaticData {
     pub initial_damage: u32,
     /// How much the damage scales as it is charged
     pub scaled_damage: u32,
-    /// How much poise damage is dealt with no charge
-    pub initial_poise_damage: u32,
-    /// How much the poise damage scales as it is charged
-    pub scaled_poise_damage: u32,
     /// How much knockback there is with no charge
     pub initial_knockback: f32,
     /// How much the knockback scales as it is charged
@@ -111,12 +107,6 @@ impl CharacterBehavior for Data {
                         value: self.static_data.initial_damage as f32
                             + charge_frac * self.static_data.scaled_damage as f32,
                     };
-                    let poise_damage = PoiseChange {
-                        amount: -(self.static_data.initial_poise_damage as f32
-                            + charge_frac * self.static_data.scaled_poise_damage as f32)
-                            as i32,
-                        source: PoiseSource::Projectile,
-                    };
                     let knockback = self.static_data.initial_knockback
                         + charge_frac * self.static_data.scaled_knockback;
                     // Fire
@@ -124,10 +114,6 @@ impl CharacterBehavior for Data {
                         hit_solid: vec![projectile::Effect::Stick],
                         hit_entity: vec![
                             projectile::Effect::Damage(Some(GroupTarget::OutOfGroup), damage),
-                            projectile::Effect::PoiseChange(
-                                Some(GroupTarget::OutOfGroup),
-                                poise_damage,
-                            ),
                             projectile::Effect::Knockback(Knockback::Away(knockback)),
                             projectile::Effect::Vanish,
                             projectile::Effect::Buff {
