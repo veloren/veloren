@@ -99,7 +99,12 @@ impl Energy {
 
     pub fn update_max_energy(&mut self, body: Option<Body>, level: u16) {
         if let Some(body) = body {
+            self.set_base_max(body.base_energy() + 50 * level as u32);
             self.set_maximum(body.base_energy() + 50 * level as u32);
+            self.change_by(EnergyChange {
+                amount: 50,
+                source: EnergySource::LevelUp,
+            });
         }
     }
 
@@ -109,6 +114,12 @@ impl Energy {
             self.current = self.last_max;
             self.last_max = self.base_max;
         }
+    }
+
+    // This is private because max energy is based on the level
+    fn set_base_max(&mut self, amount: u32) {
+        self.base_max = amount;
+        self.current = self.current.min(self.maximum);
     }
 }
 
