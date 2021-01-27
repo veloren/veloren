@@ -30,7 +30,7 @@ use common::{
         inventory::slot::EquipSlot,
         item::{ItemKind, ToolKind},
         Body, CharacterState, Health, Inventory, Item, Last, LightAnimation, LightEmitter, Ori,
-        PhysicsState, Pos, Scale, Vel,
+        PhysicsState, PoiseState, Pos, Scale, Vel,
     },
     resources::DeltaTime,
     span,
@@ -1134,49 +1134,44 @@ impl FigureMgr {
                                 },
                                 _ => 0.0,
                             };
-                            anim::character::StunnedAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    active_tool_kind,
-                                    second_tool_kind,
-                                    vel.0.magnitude(),
-                                    time,
-                                    Some(s.stage_section),
-                                    state.state_time,
-                                    wield_status,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::Staggered(s) => {
-                            let stage_time = s.timer.as_secs_f64();
-                            let wield_status = s.was_wielded;
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f64()
+                            match s.static_data.poise_state {
+                                PoiseState::Normal
+                                | PoiseState::Stunned
+                                | PoiseState::Interrupted => {
+                                    anim::character::StunnedAnimation::update_skeleton(
+                                        &target_base,
+                                        (
+                                            active_tool_kind,
+                                            second_tool_kind,
+                                            vel.0.magnitude(),
+                                            time,
+                                            Some(s.stage_section),
+                                            state.state_time,
+                                            wield_status,
+                                        ),
+                                        stage_progress,
+                                        &mut state_animation_rate,
+                                        skeleton_attr,
+                                    )
                                 },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                PoiseState::Dazed | PoiseState::KnockedDown => {
+                                    anim::character::StaggeredAnimation::update_skeleton(
+                                        &target_base,
+                                        (
+                                            active_tool_kind,
+                                            second_tool_kind,
+                                            vel.0.magnitude(),
+                                            time,
+                                            Some(s.stage_section),
+                                            state.state_time,
+                                            wield_status,
+                                        ),
+                                        stage_progress,
+                                        &mut state_animation_rate,
+                                        skeleton_attr,
+                                    )
                                 },
-                                _ => 0.0,
-                            };
-                            anim::character::StaggeredAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    active_tool_kind,
-                                    second_tool_kind,
-                                    vel.0.magnitude(),
-                                    time,
-                                    Some(s.stage_section),
-                                    state.state_time,
-                                    wield_status,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
+                            }
                         },
                         CharacterState::BasicBeam(s) => {
                             let stage_time = s.timer.as_secs_f64();
@@ -1534,42 +1529,38 @@ impl FigureMgr {
                                 },
                                 _ => 0.0,
                             };
-                            anim::quadruped_small::StunnedAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    vel.0.magnitude(),
-                                    time,
-                                    Some(s.stage_section),
-                                    state.state_time,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::Staggered(s) => {
-                            let stage_time = s.timer.as_secs_f64();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f64()
+                            match s.static_data.poise_state {
+                                PoiseState::Normal
+                                | PoiseState::Interrupted
+                                | PoiseState::Stunned => {
+                                    anim::quadruped_small::StunnedAnimation::update_skeleton(
+                                        &target_base,
+                                        (
+                                            vel.0.magnitude(),
+                                            time,
+                                            Some(s.stage_section),
+                                            state.state_time,
+                                        ),
+                                        stage_progress,
+                                        &mut state_animation_rate,
+                                        skeleton_attr,
+                                    )
                                 },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                PoiseState::Dazed | PoiseState::KnockedDown => {
+                                    anim::quadruped_small::StunnedAnimation::update_skeleton(
+                                        &target_base,
+                                        (
+                                            vel.0.magnitude(),
+                                            time,
+                                            Some(s.stage_section),
+                                            state.state_time,
+                                        ),
+                                        stage_progress,
+                                        &mut state_animation_rate,
+                                        skeleton_attr,
+                                    )
                                 },
-                                _ => 0.0,
-                            };
-                            anim::quadruped_small::StunnedAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    vel.0.magnitude(),
-                                    time,
-                                    Some(s.stage_section),
-                                    state.state_time,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
+                            }
                         },
                         CharacterState::Sit { .. } => {
                             anim::quadruped_small::FeedAnimation::update_skeleton(
@@ -1859,42 +1850,38 @@ impl FigureMgr {
                                 },
                                 _ => 0.0,
                             };
-                            anim::quadruped_medium::StunnedAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    vel.0.magnitude(),
-                                    time,
-                                    Some(s.stage_section),
-                                    state.state_time,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::Staggered(s) => {
-                            let stage_time = s.timer.as_secs_f64();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f64()
+                            match s.static_data.poise_state {
+                                PoiseState::Normal
+                                | PoiseState::Stunned
+                                | PoiseState::Interrupted => {
+                                    anim::quadruped_medium::StunnedAnimation::update_skeleton(
+                                        &target_base,
+                                        (
+                                            vel.0.magnitude(),
+                                            time,
+                                            Some(s.stage_section),
+                                            state.state_time,
+                                        ),
+                                        stage_progress,
+                                        &mut state_animation_rate,
+                                        skeleton_attr,
+                                    )
                                 },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                PoiseState::Dazed | PoiseState::KnockedDown => {
+                                    anim::quadruped_medium::StunnedAnimation::update_skeleton(
+                                        &target_base,
+                                        (
+                                            vel.0.magnitude(),
+                                            time,
+                                            Some(s.stage_section),
+                                            state.state_time,
+                                        ),
+                                        stage_progress,
+                                        &mut state_animation_rate,
+                                        skeleton_attr,
+                                    )
                                 },
-                                _ => 0.0,
-                            };
-                            anim::quadruped_medium::StunnedAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    vel.0.magnitude(),
-                                    time,
-                                    Some(s.stage_section),
-                                    state.state_time,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
+                            }
                         },
                         CharacterState::Sit { .. } => {
                             anim::quadruped_medium::FeedAnimation::update_skeleton(
@@ -2096,42 +2083,38 @@ impl FigureMgr {
                                 },
                                 _ => 0.0,
                             };
-                            anim::quadruped_low::StunnedAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    vel.0.magnitude(),
-                                    time,
-                                    Some(s.stage_section),
-                                    state.state_time,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::Staggered(s) => {
-                            let stage_time = s.timer.as_secs_f64();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f64()
+                            match s.static_data.poise_state {
+                                PoiseState::Normal
+                                | PoiseState::Stunned
+                                | PoiseState::Interrupted => {
+                                    anim::quadruped_low::StunnedAnimation::update_skeleton(
+                                        &target_base,
+                                        (
+                                            vel.0.magnitude(),
+                                            time,
+                                            Some(s.stage_section),
+                                            state.state_time,
+                                        ),
+                                        stage_progress,
+                                        &mut state_animation_rate,
+                                        skeleton_attr,
+                                    )
                                 },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                PoiseState::Dazed | PoiseState::KnockedDown => {
+                                    anim::quadruped_low::StunnedAnimation::update_skeleton(
+                                        &target_base,
+                                        (
+                                            vel.0.magnitude(),
+                                            time,
+                                            Some(s.stage_section),
+                                            state.state_time,
+                                        ),
+                                        stage_progress,
+                                        &mut state_animation_rate,
+                                        skeleton_attr,
+                                    )
                                 },
-                                _ => 0.0,
-                            };
-                            anim::quadruped_low::StunnedAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    vel.0.magnitude(),
-                                    time,
-                                    Some(s.stage_section),
-                                    state.state_time,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
+                            }
                         },
                         CharacterState::ComboMelee(s) => {
                             let stage_index = (s.stage - 1) as usize;

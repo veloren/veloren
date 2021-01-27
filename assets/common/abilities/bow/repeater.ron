@@ -7,7 +7,6 @@ RepeaterRanged(
     leap: Some(5.0),
     projectile: Arrow(
         damage: 40.0,
-        poise_damage: 0,
         knockback: 5.0,
         energy_regen: 0,
     ),

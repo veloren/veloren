@@ -149,24 +149,22 @@ impl Animation for StunnedAnimation {
                 },
                 _ => {},
             }
+        } else if mirror > 0.0 {
+            next.hand_r.position = Vec3::new(
+                s_a.hand.0 + movement1abs * -4.0,
+                s_a.hand.1 + movement1 * 7.0,
+                s_a.hand.2 + movement1 * 6.0,
+            );
+            next.hand_r.orientation =
+                Quaternion::rotation_x(movement1 * 1.2) * Quaternion::rotation_y(movement1 * 1.2);
         } else {
-            if mirror > 0.0 {
-                next.hand_r.position = Vec3::new(
-                    s_a.hand.0 + movement1abs * -4.0,
-                    s_a.hand.1 + movement1 * 7.0,
-                    s_a.hand.2 + movement1 * 6.0,
-                );
-                next.hand_r.orientation = Quaternion::rotation_x(movement1 * 1.2)
-                    * Quaternion::rotation_y(movement1 * 1.2);
-            } else {
-                next.hand_l.position = Vec3::new(
-                    -s_a.hand.0 + movement1abs * 4.0,
-                    s_a.hand.1 + movement1abs * 7.0,
-                    s_a.hand.2 + movement1abs * 6.0,
-                );
-                next.hand_l.orientation = Quaternion::rotation_x(movement1abs * 1.2)
-                    * Quaternion::rotation_y(movement1 * 1.2);
-            };
+            next.hand_l.position = Vec3::new(
+                -s_a.hand.0 + movement1abs * 4.0,
+                s_a.hand.1 + movement1abs * 7.0,
+                s_a.hand.2 + movement1abs * 6.0,
+            );
+            next.hand_l.orientation = Quaternion::rotation_x(movement1abs * 1.2)
+                * Quaternion::rotation_y(movement1 * 1.2);
         };
         next.torso.position = Vec3::new(0.0, 0.0, 0.0) * s_a.scaler;
         next.torso.orientation = Quaternion::rotation_z(0.0);

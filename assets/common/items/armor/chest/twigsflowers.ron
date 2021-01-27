@@ -5,7 +5,7 @@ ItemDef(
         kind: Chest("Twigsflowers"),
         stats: (
             protection: Normal(15.0),
-            poise_protection: Normal(8.0),
+            poise_resilience: Normal(8.0),
         ),
     )),
     quality: Moderate,

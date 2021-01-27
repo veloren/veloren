@@ -4,7 +4,6 @@ BasicRanged(
     recover_duration: 300,
     projectile: Arrow(
         damage: 70.0,
-        poise_damage: 0,
         knockback: 5.0,
         energy_regen: 40,
     ),

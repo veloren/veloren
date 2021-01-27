@@ -4,7 +4,7 @@ use common::{
     comp::{
         inventory::slot::{EquipSlot, Slot},
         Attacking, Beam, Body, CharacterState, Controller, Energy, Health, Inventory, Mounting,
-        Ori, PhysicsState, Poise, Pos, StateUpdate, Stats, Vel,
+        Ori, PhysicsState, Poise, PoiseState, Pos, StateUpdate, Stats, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     metrics::SysMetrics,
@@ -16,6 +16,7 @@ use common::{
     },
     uid::{Uid, UidAllocator},
 };
+use std::time::Duration;
 
 fn incorporate_update(tuple: &mut JoinTuple, state_update: StateUpdate) {
     // TODO: if checking equality is expensive use optional field in StateUpdate
@@ -65,7 +66,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Inventory>,
         WriteStorage<'a, Controller>,
         ReadStorage<'a, Health>,
-        ReadStorage<'a, Poise>,
+        WriteStorage<'a, Poise>,
         ReadStorage<'a, Body>,
         ReadStorage<'a, PhysicsState>,
         ReadStorage<'a, Attacking>,
@@ -94,7 +95,7 @@ impl<'a> System<'a> for Sys {
             mut inventories,
             mut controllers,
             healths,
-            poises,
+            mut poises,
             bodies,
             physics_states,
             attacking_storage,
@@ -120,7 +121,6 @@ impl<'a> System<'a> for Sys {
             &mut inventories.restrict_mut(),
             &mut controllers,
             &healths,
-            &poises,
             &bodies,
             &physics_states,
             attacking_storage.maybe(),
@@ -144,6 +144,88 @@ impl<'a> System<'a> for Sys {
                 continue;
             }
 
+            // Enter stunned state if poise damage is enough
+            if let Some(mut poise) = poises.get_mut(tuple.0) {
+                let was_wielded = tuple.2.get_unchecked().is_wield();
+                let poise_state = poise.poise_state();
+                match poise_state {
+                    PoiseState::Normal => {},
+                    PoiseState::Interrupted => {
+                        poise.reset();
+                        *tuple.2.get_mut_unchecked() =
+                            CharacterState::Stunned(common::states::stunned::Data {
+                                static_data: common::states::stunned::StaticData {
+                                    buildup_duration: Duration::from_millis(150),
+                                    recover_duration: Duration::from_millis(150),
+                                    movement_speed: 0.4,
+                                    poise_state,
+                                },
+                                timer: Duration::default(),
+                                stage_section: common::states::utils::StageSection::Buildup,
+                                was_wielded,
+                            });
+                    },
+                    PoiseState::Stunned => {
+                        poise.reset();
+                        *tuple.2.get_mut_unchecked() =
+                            CharacterState::Stunned(common::states::stunned::Data {
+                                static_data: common::states::stunned::StaticData {
+                                    buildup_duration: Duration::from_millis(500),
+                                    recover_duration: Duration::from_millis(500),
+                                    movement_speed: 0.1,
+                                    poise_state,
+                                },
+                                timer: Duration::default(),
+                                stage_section: common::states::utils::StageSection::Buildup,
+                                was_wielded,
+                            });
+                        server_emitter.emit(ServerEvent::Knockback {
+                            entity: tuple.0,
+                            impulse: 5.0 * poise.knockback(),
+                        });
+                    },
+                    PoiseState::Dazed => {
+                        poise.reset();
+                        *tuple.2.get_mut_unchecked() =
+                            CharacterState::Stunned(common::states::stunned::Data {
+                                static_data: common::states::stunned::StaticData {
+                                    buildup_duration: Duration::from_millis(1000),
+                                    recover_duration: Duration::from_millis(1000),
+                                    movement_speed: 0.0,
+                                    poise_state,
+                                },
+                                timer: Duration::default(),
+                                stage_section: common::states::utils::StageSection::Buildup,
+                                was_wielded,
+                            });
+                        server_emitter.emit(ServerEvent::Knockback {
+                            entity: tuple.0,
+                            impulse: 10.0 * poise.knockback(),
+                        });
+                    },
+                    PoiseState::KnockedDown => {
+                        poise.reset();
+                        *tuple.2.get_mut_unchecked() =
+                            CharacterState::Stunned(common::states::stunned::Data {
+                                static_data: common::states::stunned::StaticData {
+                                    buildup_duration: Duration::from_millis(3000),
+                                    recover_duration: Duration::from_millis(500),
+                                    movement_speed: 0.0,
+                                    poise_state,
+                                },
+                                timer: Duration::default(),
+                                stage_section: common::states::utils::StageSection::Buildup,
+                                was_wielded,
+                            });
+                        server_emitter.emit(ServerEvent::Knockback {
+                            entity: tuple.0,
+                            impulse: 10.0 * poise.knockback(),
+                        });
+                    },
+                }
+            }
+
+            // Controller actions
             let actions = std::mem::replace(&mut tuple.8.actions, Vec::new());
             for action in actions {
                 let j = JoinData::new(&tuple, &updater, &dt);
@@ -155,7 +237,6 @@ impl<'a> System<'a> for Sys {
                         states::glide_wield::Data.handle_event(&j, action)
                     },
                     CharacterState::Stunned(data) => data.handle_event(&j, action),
-                    CharacterState::Staggered(data) => data.handle_event(&j, action),
                     CharacterState::Sit => {
                         states::sit::Data::handle_event(&states::sit::Data, &j, action)
                     },
@@ -197,7 +278,6 @@ impl<'a> System<'a> for Sys {
                 CharacterState::Glide => states::glide::Data.behavior(&j),
                 CharacterState::GlideWield => states::glide_wield::Data.behavior(&j),
                 CharacterState::Stunned(data) => data.behavior(&j),
-                CharacterState::Staggered(data) => data.behavior(&j),
                 CharacterState::Sit => states::sit::Data::behavior(&states::sit::Data, &j),
                 CharacterState::Dance => states::dance::Data::behavior(&states::dance::Data, &j),
                 CharacterState::Sneak => states::sneak::Data::behavior(&states::sneak::Data, &j),

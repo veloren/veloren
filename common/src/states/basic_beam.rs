@@ -1,8 +1,5 @@
 use crate::{
-    comp::{
-        beam, Body, CharacterState, EnergyChange, EnergySource, Ori, PoiseChange, PoiseSource, Pos,
-        StateUpdate,
-    },
+    comp::{beam, Body, CharacterState, EnergyChange, EnergySource, Ori, Pos, StateUpdate},
     event::ServerEvent,
     states::{
         behavior::{CharacterBehavior, JoinData},
@@ -126,26 +123,18 @@ impl CharacterBehavior for Data {
                         source: DamageSource::Energy,
                         value: self.static_data.base_dps as f32 / self.static_data.tick_rate,
                     };
-                    let poise_damage = PoiseChange {
-                        amount: 0,
-                        source: PoiseSource::Beam,
-                    };
                     let heal = Damage {
                         source: DamageSource::Healing,
                         value: self.static_data.base_hps as f32 / self.static_data.tick_rate,
-                    };
-                    let reverse_poise = PoiseChange {
-                        amount: 0,
-                        source: PoiseSource::Beam,
                     };
                     let speed =
                         self.static_data.range / self.static_data.beam_duration.as_secs_f32();
                     let properties = beam::Properties {
                         angle: self.static_data.max_angle.to_radians(),
                         speed,
-                        effects: vec![
-                            (Some(GroupTarget::OutOfGroup), damage, poise_damage),
-                            (Some(GroupTarget::InGroup), heal, reverse_poise),
+                        damages: vec![
+                            (Some(GroupTarget::OutOfGroup), damage),
+                            (Some(GroupTarget::InGroup), heal),
                         ],
                         lifesteal_eff: self.static_data.lifesteal_eff,
                         energy_regen: self.static_data.energy_regen,

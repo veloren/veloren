@@ -73,16 +73,16 @@ fn armor_desc(armor: &Armor, desc: &str, slots: u16) -> String {
         Protection::Normal(a) => a.to_string(),
         Protection::Invincible => "Inf".to_string(),
     };
-    //let armor_poise_protection = match armor.get_poise_protection() {
+    //let armor_poise_resilience = match armor.get_poise_resilience() {
     //    Protection::Normal(a) => a.to_string(),
     //    Protection::Invincible => "Inf".to_string(),
     //};
 
     let mut description = format!(
         "{}\n\nArmor: {}",
-        //"{}\n\nArmor: {}\n\nPoise Protection: {}",
+        //"{}\n\nArmor: {}\n\nPoise Resilience: {}",
         kind,
-        armor_protection, /* armor_poise_protection // Add back when we are ready for poise */
+        armor_protection, /* armor_poise_resilience // Add back when we are ready for poise */
     );
 
     if !desc.is_empty() {
@@ -115,19 +115,19 @@ fn tool_desc(tool: &Tool, desc: &str) -> String {
 
     // Get tool stats
     let power = tool.base_power();
-    //let poise_power = tool.base_poise_power();
+    //let poise_strength = tool.base_poise_strength();
     let speed = tool.base_speed();
 
     if !desc.is_empty() {
         format!(
             "{}\n\nDPS: {:0.1}\n\nPower: {:0.1}\n\nSpeed: {:0.1}\n\n{}\n\n<Right-Click to use>",
             // add back when ready for poise
-            //"{}\n\nDPS: {:0.1}\n\nPower: {:0.1}\n\nPoise Power: {:0.1}\n\nSpeed: \
+            //"{}\n\nDPS: {:0.1}\n\nPower: {:0.1}\n\nPoise Strength: {:0.1}\n\nSpeed: \
             // {:0.1}\n\n{}\n\n<Right-Click to use>",
             kind,
             speed * power * 10.0, // Damage per second
             power * 10.0,
-            //poise_power * 10.0,
+            //poise_strength * 10.0,
             speed,
             desc
         )
@@ -135,12 +135,12 @@ fn tool_desc(tool: &Tool, desc: &str) -> String {
         format!(
             "{}\n\nDPS: {:0.1}\n\nPower: {:0.1}\n\nSpeed: {:0.1}\n\n<Right-Click to use>",
             // add back when ready for poise
-            //"{}\n\nDPS: {:0.1}\n\nPower: {:0.1}\n\nPoise Power: {:0.1}\n\nSpeed: \
+            //"{}\n\nDPS: {:0.1}\n\nPower: {:0.1}\n\nPoise Strength: {:0.1}\n\nSpeed: \
             // {:0.1}\n\n<Right-Click to use>",
             kind,
             speed * power * 10.0, // Damage per second
             power * 10.0,
-            //poise_power * 10.0,
+            //poise_strength * 10.0,
             speed
         )
     }

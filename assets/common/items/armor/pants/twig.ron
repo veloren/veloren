@@ -5,7 +5,7 @@ ItemDef(
         kind: Pants("Twig"),
         stats: (
             protection: Normal(12.0),
-            poise_protection: Normal(9.0),
+            poise_resilience: Normal(9.0),
         ),
     )),
     quality: Moderate,

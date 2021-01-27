@@ -151,59 +151,57 @@ impl Animation for StaggeredAnimation {
                 },
                 _ => {},
             }
-        } else {
-            if mirror > 0.0 {
-                next.hand_r.position = Vec3::new(
-                    s_a.hand.0 + movement1abs * -9.0,
-                    s_a.hand.1 + movement1 * 9.0,
-                    s_a.hand.2 + movement1 * 5.0,
-                );
-                next.hand_r.orientation = Quaternion::rotation_x(movement1 * 1.2)
-                    * Quaternion::rotation_y(movement1 * 1.5);
-                next.hand_l.position = Vec3::new(
-                    -s_a.hand.0,
-                    s_a.hand.1 + movement1abs * 3.0,
-                    s_a.hand.2 + movement1abs * -1.0,
-                );
-                next.hand_l.orientation = Quaternion::rotation_x(movement1abs * 0.5)
-                    * Quaternion::rotation_y(movement1 * 0.3);
-                next.foot_l.position =
-                    Vec3::new(-s_a.foot.0, s_a.foot.1 + movement1abs * -7.0, s_a.foot.2);
-                next.foot_l.orientation = Quaternion::rotation_x(movement1abs * -1.2)
-                    * Quaternion::rotation_z(movement1 * 0.8);
+        } else if mirror > 0.0 {
+            next.hand_r.position = Vec3::new(
+                s_a.hand.0 + movement1abs * -9.0,
+                s_a.hand.1 + movement1 * 9.0,
+                s_a.hand.2 + movement1 * 5.0,
+            );
+            next.hand_r.orientation =
+                Quaternion::rotation_x(movement1 * 1.2) * Quaternion::rotation_y(movement1 * 1.5);
+            next.hand_l.position = Vec3::new(
+                -s_a.hand.0,
+                s_a.hand.1 + movement1abs * 3.0,
+                s_a.hand.2 + movement1abs * -1.0,
+            );
+            next.hand_l.orientation = Quaternion::rotation_x(movement1abs * 0.5)
+                * Quaternion::rotation_y(movement1 * 0.3);
+            next.foot_l.position =
+                Vec3::new(-s_a.foot.0, s_a.foot.1 + movement1abs * -7.0, s_a.foot.2);
+            next.foot_l.orientation = Quaternion::rotation_x(movement1abs * -1.2)
+                * Quaternion::rotation_z(movement1 * 0.8);
 
-                next.foot_r.position = Vec3::new(
-                    s_a.foot.0 + movement1 * -5.0,
-                    s_a.foot.1 + movement1abs * 3.0,
-                    s_a.foot.2,
-                );
-                next.foot_r.orientation = Quaternion::rotation_z(movement1 * 0.6);
-            } else {
-                next.hand_l.position = Vec3::new(
-                    -s_a.hand.0 + movement1abs * 9.0,
-                    s_a.hand.1 + movement1abs * 9.0,
-                    s_a.hand.2 + movement1abs * 5.0,
-                );
-                next.hand_l.orientation = Quaternion::rotation_x(movement1abs * 1.2)
-                    * Quaternion::rotation_y(movement1 * 1.5);
-                next.hand_r.position = Vec3::new(
-                    s_a.hand.0,
-                    s_a.hand.1 + movement1abs * 3.0,
-                    s_a.hand.2 + movement1abs * -1.0,
-                );
-                next.hand_r.orientation = Quaternion::rotation_x(movement1abs * 0.5)
-                    * Quaternion::rotation_y(movement1 * 0.3);
-                next.foot_r.position =
-                    Vec3::new(s_a.foot.0, s_a.foot.1 + movement1abs * -7.0, s_a.foot.2);
-                next.foot_r.orientation = Quaternion::rotation_x(movement1abs * -1.2)
-                    * Quaternion::rotation_z(movement1 * 0.8);
-                next.foot_l.position = Vec3::new(
-                    -s_a.foot.0 + movement1 * -5.0,
-                    s_a.foot.1 + movement1abs * 3.0,
-                    s_a.foot.2,
-                );
-                next.foot_l.orientation = Quaternion::rotation_z(movement1 * 0.6);
-            };
+            next.foot_r.position = Vec3::new(
+                s_a.foot.0 + movement1 * -5.0,
+                s_a.foot.1 + movement1abs * 3.0,
+                s_a.foot.2,
+            );
+            next.foot_r.orientation = Quaternion::rotation_z(movement1 * 0.6);
+        } else {
+            next.hand_l.position = Vec3::new(
+                -s_a.hand.0 + movement1abs * 9.0,
+                s_a.hand.1 + movement1abs * 9.0,
+                s_a.hand.2 + movement1abs * 5.0,
+            );
+            next.hand_l.orientation = Quaternion::rotation_x(movement1abs * 1.2)
+                * Quaternion::rotation_y(movement1 * 1.5);
+            next.hand_r.position = Vec3::new(
+                s_a.hand.0,
+                s_a.hand.1 + movement1abs * 3.0,
+                s_a.hand.2 + movement1abs * -1.0,
+            );
+            next.hand_r.orientation = Quaternion::rotation_x(movement1abs * 0.5)
+                * Quaternion::rotation_y(movement1 * 0.3);
+            next.foot_r.position =
+                Vec3::new(s_a.foot.0, s_a.foot.1 + movement1abs * -7.0, s_a.foot.2);
+            next.foot_r.orientation = Quaternion::rotation_x(movement1abs * -1.2)
+                * Quaternion::rotation_z(movement1 * 0.8);
+            next.foot_l.position = Vec3::new(
+                -s_a.foot.0 + movement1 * -5.0,
+                s_a.foot.1 + movement1abs * 3.0,
+                s_a.foot.2,
+            );
+            next.foot_l.orientation = Quaternion::rotation_z(movement1 * 0.6);
         };
         next.torso.position = Vec3::new(0.0, 0.0, 0.0) * s_a.scaler;
         next.torso.orientation = Quaternion::rotation_z(0.0);

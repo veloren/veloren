@@ -5,7 +5,7 @@ ItemDef(
         kind: Foot("Steel0"),
         stats: (
             protection: Normal(5.0),
-            poise_protection: Normal(10.0),
+            poise_resilience: Normal(10.0),
         ),
     )),
     quality: High,

@@ -2,7 +2,7 @@ use common::{
     comp::{
         skills::{GeneralSkill, Skill},
         Body, CharacterState, Energy, EnergyChange, EnergySource, Health, Poise, PoiseChange,
-        PoiseSource, PoiseState, Pos, Stats,
+        PoiseSource, Pos, Stats,
     },
     event::{EventBus, ServerEvent},
     metrics::SysMetrics,
@@ -13,7 +13,6 @@ use common::{
 };
 use hashbrown::HashSet;
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, Write, WriteStorage};
-use std::time::Duration;
 use vek::Vec3;
 
 const ENERGY_REGEN_ACCEL: f32 = 10.0;
@@ -46,7 +45,7 @@ impl<'a> System<'a> for Sys {
             dt,
             server_event_bus,
             sys_metrics,
-            mut character_states,
+            character_states,
             mut stats,
             mut healths,
             mut poises,
@@ -67,7 +66,7 @@ impl<'a> System<'a> for Sys {
         for mut health in (&mut healths).join() {
             health.last_change.0 += f64::from(dt.0);
         }
-        for poise in (&mut poises).join() {
+        for mut poise in (&mut poises).join() {
             poise.last_change.0 += f64::from(dt.0);
         }
         healths.set_event_emission(true);
@@ -202,6 +201,7 @@ impl<'a> System<'a> for Sys {
 
                     if res_poise {
                         let mut poise = poise.get_mut_unchecked();
+                        let poise = &mut *poise;
                         poise.change_by(
                             PoiseChange {
                                 amount: (poise.regen_rate * dt.0
@@ -230,9 +230,6 @@ impl<'a> System<'a> for Sys {
                     if energy.get_unchecked().regen_rate != 0.0 {
                         energy.get_mut_unchecked().regen_rate = 0.0
                     }
-                    if poise.get_unchecked().regen_rate != 0.0 {
-                        poise.get_mut_unchecked().regen_rate = 0.0
-                    }
                 },
                 // recover small amount of passive energy from blocking, and bonus energy from
                 // blocking attacks?
@@ -253,83 +250,10 @@ impl<'a> System<'a> for Sys {
                 // temporarily stall energy gain, but preserve regen_rate.
                 CharacterState::Roll { .. }
                 | CharacterState::Climb { .. }
-                | CharacterState::Stunned { .. }
-                | CharacterState::Staggered { .. } => {},
+                | CharacterState::Stunned { .. } => {},
             }
         }
 
-        // Assign poise states
-        for (entity, mut character_state, mut poise) in
-            (&entities, &mut character_states, &mut poises.restrict_mut()).join()
-        {
-            let was_wielded = character_state.is_wield();
-            let poise = poise.get_mut_unchecked();
-            match poise.poise_state() {
-                PoiseState::Normal => {},
-                PoiseState::Interrupted => {
-                    poise.reset();
-                    *character_state = CharacterState::Stunned(common::states::stunned::Data {
-                        static_data: common::states::stunned::StaticData {
-                            buildup_duration: Duration::from_millis(150),
-                            recover_duration: Duration::from_millis(150),
-                            movement_speed: 0.3,
-                        },
-                        timer: Duration::default(),
-                        stage_section: common::states::utils::StageSection::Buildup,
-                        was_wielded,
-                    });
-                },
-                PoiseState::Stunned => {
-                    poise.reset();
-                    *character_state = CharacterState::Stunned(common::states::stunned::Data {
-                        static_data: common::states::stunned::StaticData {
-                            buildup_duration: Duration::from_millis(500),
-                            recover_duration: Duration::from_millis(500),
-                            movement_speed: 0.1,
-                        },
-                        timer: Duration::default(),
-                        stage_section: common::states::utils::StageSection::Buildup,
-                        was_wielded,
-                    });
-                    server_event_emitter.emit(ServerEvent::Knockback {
-                        entity,
-                        impulse: 5.0 * poise.knockback(),
-                    });
-                },
-                PoiseState::Dazed => {
-                    poise.reset();
-                    *character_state = CharacterState::Staggered(common::states::staggered::Data {
-                        static_data: common::states::staggered::StaticData {
-                            buildup_duration: Duration::from_millis(1000),
-                            recover_duration: Duration::from_millis(1000),
-                        },
-                        timer: Duration::default(),
-                        stage_section: common::states::utils::StageSection::Buildup,
-                        was_wielded,
-                    });
-                    server_event_emitter.emit(ServerEvent::Knockback {
-                        entity,
-                        impulse: 10.0 * poise.knockback(),
-                    });
-                },
-                PoiseState::KnockedDown => {
-                    poise.reset();
-                    *character_state = CharacterState::Staggered(common::states::staggered::Data {
-                        static_data: common::states::staggered::StaticData {
-                            buildup_duration: Duration::from_millis(3000),
-                            recover_duration: Duration::from_millis(500),
-                        },
-                        timer: Duration::default(),
-                        stage_section: common::states::utils::StageSection::Buildup,
-                        was_wielded,
-                    });
-                    server_event_emitter.emit(ServerEvent::Knockback {
-                        entity,
-                        impulse: 10.0 * poise.knockback(),
-                    });
-                },
-            }
-        }
         sys_metrics.stats_ns.store(
             start_time.elapsed().as_nanos() as u64,
             std::sync::atomic::Ordering::Relaxed,

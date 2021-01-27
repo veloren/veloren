@@ -141,7 +141,7 @@ impl CharacterBehavior for Data {
                                 amount: -(self.static_data.base_poise_damage as f32
                                     + charge_frac * self.static_data.scaled_poise_damage as f32)
                                     as i32,
-                                source: PoiseSource::Melee,
+                                source: PoiseSource::Attack,
                             };
                             let knockback = self.static_data.base_knockback
                                 + charge_frac * self.static_data.scaled_knockback;

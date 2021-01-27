@@ -46,8 +46,6 @@ pub enum CharacterState {
     GlideWield,
     /// A stunned state
     Stunned(stunned::Data),
-    /// A stagger state similar to a stun but knocked to the ground
-    Staggered(staggered::Data),
     /// A basic blocking state
     BasicBlock,
     /// Player is busy equipping or unequipping weapons
@@ -140,7 +138,6 @@ impl CharacterState {
                 | CharacterState::Shockwave(_)
                 | CharacterState::BasicBeam(_)
                 | CharacterState::Stunned(_)
-                | CharacterState::Staggered(_)
                 | CharacterState::Wielding
         )
     }
@@ -153,12 +150,7 @@ impl CharacterState {
         matches!(self, CharacterState::Roll(d) if d.static_data.immune_melee)
     }
 
-    pub fn is_stunned(&self) -> bool {
-        matches!(
-            self,
-            CharacterState::Stunned(_) | CharacterState::Staggered(_)
-        )
-    }
+    pub fn is_stunned(&self) -> bool { matches!(self, CharacterState::Stunned(_)) }
 
     /// Compares for shallow equality (does not check internal struct equality)
     pub fn same_variant(&self, other: &Self) -> bool {

@@ -5,7 +5,7 @@ ItemDef(
         kind: Foot("ClothPurple0"),
         stats: (
             protection: Normal(0.0),
-            poise_protection: Normal(0.0),
+            poise_resilience: Normal(0.0),
         ),
     )),
     quality: Common,

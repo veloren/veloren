@@ -3,7 +3,7 @@ use crate::comp::{
     Body, Inventory,
 };
 use serde::{Deserialize, Serialize};
-use specs::{Component, FlaggedStorage};
+use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
 use vek::*;
 
@@ -21,55 +21,14 @@ pub struct PoiseChange {
 impl PoiseChange {
     /// Alters poise damage as a result of armor poise damage reduction
     pub fn modify_poise_damage(self, inventory: Option<&Inventory>) -> PoiseChange {
-        let mut poise_damage = self.amount as f32;
         let poise_damage_reduction =
             inventory.map_or(0.0, |inv| Poise::compute_poise_damage_reduction(inv));
-        match self.source {
-            PoiseSource::Melee => {
-                // Armor
-                poise_damage *= 1.0 - poise_damage_reduction;
-                PoiseChange {
-                    amount: poise_damage as i32,
-                    source: PoiseSource::Melee,
-                }
-            },
-            PoiseSource::Projectile => {
-                // Armor
-                poise_damage *= 1.0 - poise_damage_reduction;
-                PoiseChange {
-                    amount: poise_damage as i32,
-                    source: PoiseSource::Projectile,
-                }
-            },
-            PoiseSource::Shockwave => {
-                // Armor
-                poise_damage *= 1.0 - poise_damage_reduction;
-                PoiseChange {
-                    amount: poise_damage as i32,
-                    source: PoiseSource::Shockwave,
-                }
-            },
-            PoiseSource::Explosion => {
-                // Armor
-                poise_damage *= 1.0 - poise_damage_reduction;
-                PoiseChange {
-                    amount: poise_damage as i32,
-                    source: PoiseSource::Explosion,
-                }
-            },
-            PoiseSource::Falling => {
-                if (poise_damage_reduction - 1.0).abs() < f32::EPSILON {
-                    poise_damage = 0.0;
-                }
-                PoiseChange {
-                    amount: poise_damage as i32,
-                    source: PoiseSource::Falling,
-                }
-            },
-            _ => PoiseChange {
-                amount: self.amount,
-                source: PoiseSource::Other,
-            },
+        let poise_damage = self.amount as f32 * (1.0 - poise_damage_reduction);
+        // Add match on poise source when different calculations per source
+        // are needed/wanted
+        PoiseChange {
+            amount: poise_damage as i32,
+            source: self.source,
         }
     }
 }
@@ -78,11 +37,8 @@ impl PoiseChange {
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum PoiseSource {
     LevelUp,
-    Melee,
-    Projectile,
+    Attack,
     Explosion,
-    Beam,
-    Shockwave,
     Falling,
     Revive,
     Regen,
@@ -98,10 +54,9 @@ pub struct Poise {
     current: u32,
     /// Maximum poise of entity at a given time
     maximum: u32,
-    /// Knockback direction of last change, for use as an effect in sys/stats.rs
-    knockback: Vec3<f32>,
-    /// Last poise change, storing time since last change
-    pub last_change: (f64, PoiseChange),
+    /// Last poise change, storing time since last change, the change itself,
+    /// and the knockback direction vector
+    pub last_change: (f64, PoiseChange, Vec3<f32>),
     /// Rate of poise regeneration per tick. Starts at zero and accelerates.
     pub regen_rate: f32,
 }
@@ -112,18 +67,21 @@ impl Default for Poise {
             current: 0,
             maximum: 0,
             base_max: 0,
-            knockback: Vec3::zero(),
-            last_change: (0.0, PoiseChange {
-                amount: 0,
-                source: PoiseSource::Revive,
-            }),
+            last_change: (
+                0.0,
+                PoiseChange {
+                    amount: 0,
+                    source: PoiseSource::Revive,
+                },
+                Vec3::zero(),
+            ),
             regen_rate: 0.0,
         }
     }
 }
 
 /// States to define effects of a poise change
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize)]
 pub enum PoiseState {
     /// No effect applied
     Normal,
@@ -149,7 +107,7 @@ impl Poise {
     }
 
     /// Returns knockback as a Vec3
-    pub fn knockback(&self) -> Vec3<f32> { self.knockback }
+    pub fn knockback(&self) -> Vec3<f32> { self.last_change.2 }
 
     /// Defines the poise states based on fraction of maximum poise
     pub fn poise_state(&self) -> PoiseState {
@@ -179,21 +137,28 @@ impl Poise {
     /// at the maximum. In most cases change_by() should be used.
     pub fn set_to(&mut self, amount: u32, cause: PoiseSource) {
         let amount = amount.min(self.maximum);
-        self.last_change = (0.0, PoiseChange {
-            amount: amount as i32 - self.current as i32,
-            source: cause,
-        });
+        self.last_change = (
+            0.0,
+            PoiseChange {
+                amount: amount as i32 - self.current as i32,
+                source: cause,
+            },
+            Vec3::zero(),
+        );
         self.current = amount;
     }
 
     /// Changes the current poise due to an in-game effect.
     pub fn change_by(&mut self, change: PoiseChange, impulse: Vec3<f32>) {
         self.current = ((self.current as i32 + change.amount).max(0) as u32).min(self.maximum);
-        self.knockback = impulse;
-        self.last_change = (0.0, PoiseChange {
-            amount: change.amount,
-            source: change.source,
-        });
+        self.last_change = (
+            0.0,
+            PoiseChange {
+                amount: change.amount,
+                source: change.source,
+            },
+            impulse,
+        );
     }
 
     /// Resets current value to maximum
@@ -229,7 +194,7 @@ impl Poise {
             .equipped_items()
             .filter_map(|item| {
                 if let ItemKind::Armor(armor) = &item.kind() {
-                    Some(armor.get_poise_protection())
+                    Some(armor.get_poise_resilience())
                 } else {
                     None
                 }
@@ -247,5 +212,5 @@ impl Poise {
 }
 
 impl Component for Poise {
-    type Storage = FlaggedStorage<Self, IdvStorage<Self>>;
+    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
 }

@@ -28,14 +28,16 @@ impl Armor {
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Stats {
     protection: Protection,
-    poise_protection: Protection,
+    poise_resilience: Protection,
 }
 
 impl Stats {
-    pub fn new(protection: Protection, poise_protection: Protection) -> Self {
+    // DO NOT USE UNLESS YOU KNOW WHAT YOU ARE DOING
+    // Added for csv import of stats
+    pub fn new(protection: Protection, poise_resilience: Protection) -> Self {
         Self {
             protection,
-            poise_protection,
+            poise_resilience,
         }
     }
 }
@@ -53,31 +55,31 @@ pub struct Armor {
 }
 
 impl Armor {
-    pub fn new(kind: ArmorKind, protection: Protection, poise_protection: Protection) -> Self {
+    pub fn new(kind: ArmorKind, protection: Protection, poise_resilience: Protection) -> Self {
         Self {
             kind,
             stats: Stats {
                 protection,
-                poise_protection,
+                poise_resilience,
             },
         }
     }
 
     pub fn get_protection(&self) -> Protection { self.stats.protection }
 
-    pub fn get_poise_protection(&self) -> Protection { self.stats.poise_protection }
+    pub fn get_poise_resilience(&self) -> Protection { self.stats.poise_resilience }
 
     #[cfg(test)]
     pub fn test_armor(
         kind: ArmorKind,
         protection: Protection,
-        poise_protection: Protection,
+        poise_resilience: Protection,
     ) -> Armor {
         Armor {
             kind,
             stats: Stats {
                 protection,
-                poise_protection,
+                poise_resilience,
             },
         }
     }

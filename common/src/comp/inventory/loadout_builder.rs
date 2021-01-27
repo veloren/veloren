@@ -51,10 +51,10 @@ impl LoadoutBuilder {
     /// updates, but should be safe defaults for a new character.
     pub fn defaults(self) -> Self {
         self.chest(Some(Item::new_from_asset_expect(
-            "common.items.armor.chest.rugged_chest",
+            "common.items.armor.chest.rugged",
         )))
         .pants(Some(Item::new_from_asset_expect(
-            "common.items.armor.pants.rugged_pants",
+            "common.items.armor.pants.rugged",
         )))
         .feet(Some(Item::new_from_asset_expect(
             "common.items.armor.foot.sandals_0",

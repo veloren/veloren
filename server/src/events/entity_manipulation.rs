@@ -44,7 +44,7 @@ pub fn handle_poise(
     if let Some(character_state) = ecs.read_storage::<CharacterState>().get(entity) {
         // Entity is invincible to poise change during stunned/staggered character state
         if !character_state.is_stunned() {
-            if let Some(poise) = ecs.write_storage::<Poise>().get_mut(entity) {
+            if let Some(mut poise) = ecs.write_storage::<Poise>().get_mut(entity) {
                 poise.change_by(change, knockback_dir);
             }
         }
@@ -438,24 +438,17 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
         let pos = state.ecs().read_storage::<comp::Pos>().get(entity).cloned();
         let vel = state.ecs().read_storage::<comp::Vel>().get(entity).cloned();
         if let Some(pos) = pos {
-            if let Some(vel) = vel {
-                let _ = state
-                    .create_object(comp::Pos(pos.0 + Vec3::unit_z() * 0.25), match old_body {
-                        Some(common::comp::Body::Humanoid(_)) => object::Body::Pouch,
-                        Some(common::comp::Body::Golem(_)) => object::Body::Chest,
-                        Some(common::comp::Body::BipedLarge(_))
-                        | Some(common::comp::Body::QuadrupedLow(_)) => object::Body::MeatDrop,
-                        _ => object::Body::Steak,
-                    })
-                    .with(vel)
-                    .with(item)
-                    .build();
-            } else {
-                error!(
-                    ?entity,
-                    "Entity doesn't have a velocity, no bag is being dropped"
-                )
-            }
+            let _ = state
+                .create_object(comp::Pos(pos.0 + Vec3::unit_z() * 0.25), match old_body {
+                    Some(common::comp::Body::Humanoid(_)) => object::Body::Pouch,
+                    Some(common::comp::Body::Golem(_)) => object::Body::Chest,
+                    Some(common::comp::Body::BipedLarge(_))
+                    | Some(common::comp::Body::QuadrupedLow(_)) => object::Body::MeatDrop,
+                    _ => object::Body::Steak,
+                })
+                .maybe_with(vel)
+                .with(item)
+                .build();
         } else {
             error!(
                 ?entity,
@@ -508,23 +501,25 @@ pub fn handle_delete(server: &mut Server, entity: EcsEntity) {
 pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>) {
     let state = &server.state;
     if vel.z <= -30.0 {
+        let falldmg = (vel.z.powi(2) / 20.0 - 40.0) * 10.0;
+        let inventories = state.ecs().read_storage::<Inventory>();
+        // Handle health change
         if let Some(mut health) = state.ecs().write_storage::<comp::Health>().get_mut(entity) {
-            if let Some(poise) = state.ecs().write_storage::<comp::Poise>().get_mut(entity) {
-                let falldmg = (vel.z.powi(2) / 20.0 - 40.0) * 10.0;
-                let damage = Damage {
-                    source: DamageSource::Falling,
-                    value: falldmg,
-                };
-                let poise_damage = PoiseChange {
-                    amount: -(falldmg / 2.0) as i32,
-                    source: PoiseSource::Falling,
-                };
-                let inventories = state.ecs().read_storage::<Inventory>();
-                let change = damage.modify_damage(inventories.get(entity), None);
-                let poise_change = poise_damage.modify_poise_damage(inventories.get(entity));
-                health.change_by(change);
-                poise.change_by(poise_change, Vec3::unit_z());
-            }
+            let damage = Damage {
+                source: DamageSource::Falling,
+                value: falldmg,
+            };
+            let change = damage.modify_damage(inventories.get(entity), None);
+            health.change_by(change);
+        }
+        // Handle poise change
+        if let Some(mut poise) = state.ecs().write_storage::<comp::Poise>().get_mut(entity) {
+            let poise_damage = PoiseChange {
+                amount: -(falldmg / 2.0) as i32,
+                source: PoiseSource::Falling,
+            };
+            let poise_change = poise_damage.modify_poise_damage(inventories.get(entity));
+            poise.change_by(poise_change, Vec3::unit_z());
         }
     }
 }

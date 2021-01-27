@@ -5,7 +5,7 @@ ItemDef(
         kind: Hand("Tarasque"),
         stats: (
             protection: Normal(10.0),
-            poise_protection: Normal(12.0),
+            poise_resilience: Normal(12.0),
         ),
     )),
     quality: High,

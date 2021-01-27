@@ -6,7 +6,7 @@ ItemDef(
             kind: Belt("VeloriteMage0"),
             stats: (
                 protection: Invincible,
-                poise_protection: Invincible,
+                poise_resilience: Invincible,
             ),
         )
     ),

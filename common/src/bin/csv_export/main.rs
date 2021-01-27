@@ -24,7 +24,7 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
         "Name",
         "Quality",
         "Protection",
-        "Poise Protection",
+        "Poise Resilience",
         "Description",
     ])?;
 
@@ -34,7 +34,7 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
         match item.kind() {
             comp::item::ItemKind::Armor(armor) => {
                 let kind = get_armor_kind(&armor.kind);
-                if kind == "Bag".to_string() {
+                if kind == "Bag" {
                     continue;
                 }
 
@@ -42,7 +42,7 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
                     Protection::Invincible => "Invincible".to_string(),
                     Protection::Normal(value) => value.to_string(),
                 };
-                let poise_protection = match armor.get_poise_protection() {
+                let poise_resilience = match armor.get_poise_resilience() {
                     Protection::Invincible => "Invincible".to_string(),
                     Protection::Normal(value) => value.to_string(),
                 };
@@ -53,7 +53,7 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
                     item.name(),
                     &format!("{:?}", item.quality()),
                     &protection,
-                    &poise_protection,
+                    &poise_resilience,
                     item.description(),
                 ])?;
             },
@@ -73,7 +73,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
         "Name",
         "Quality",
         "Power",
-        "Poise Power",
+        "Poise Strength",
         "Speed",
         "Equip Time (ms)",
         "Description",
@@ -85,7 +85,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
         match item.kind() {
             comp::item::ItemKind::Tool(tool) => {
                 let power = tool.base_power().to_string();
-                let poise_power = tool.base_poise_power().to_string();
+                let poise_strength = tool.base_poise_strength().to_string();
                 let speed = tool.base_speed().to_string();
                 let equip_time = tool.equip_time().subsec_millis().to_string();
                 let kind = get_tool_kind(&tool.kind);
@@ -96,7 +96,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                     item.name(),
                     &format!("{:?}", item.quality()),
                     &power,
-                    &poise_power,
+                    &poise_strength,
                     &speed,
                     &equip_time,
                     item.description(),

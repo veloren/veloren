@@ -5,7 +5,7 @@ ItemDef(
         kind: Pants("Rugged0"),
         stats: (
             protection: Normal(1.0),
-            poise_protection: Normal(1.0),
+            poise_resilience: Normal(1.0),
         ),
     )),
     quality: Low,

@@ -5,7 +5,7 @@ ItemDef(
         kind: Chest("VeloriteMage0"),
         stats: (
             protection: Normal(30.0),
-            poise_protection: Normal(15.0),
+            poise_resilience: Normal(15.0),
         ),
     )),
     quality: Epic,

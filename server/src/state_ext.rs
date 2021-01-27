@@ -109,7 +109,7 @@ impl StateExt for State {
                         self.ecs()
                             .write_storage::<comp::Poise>()
                             .get_mut(entity)
-                            .map(|poise| poise.change_by(change, Vec3::zero()));
+                            .map(|mut poise| poise.change_by(change, Vec3::zero()));
                     }
                 }
             },
