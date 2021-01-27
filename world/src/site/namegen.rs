@@ -10,7 +10,7 @@ pub struct NameGen<'a, R: Rng> {
 impl<'a, R: Rng> NameGen<'a, R> {
     pub fn location(rng: &'a mut R) -> Self {
         Self {
-            approx_syllables: rng.gen_range(1, 4),
+            approx_syllables: rng.gen_range(1..4),
             rng,
         }
     }

@@ -262,7 +262,7 @@ impl LoadoutBuilder {
                     .feet(Some(Item::new_from_asset_expect(
                         "common.items.armor.foot.steel_0",
                     )))
-                    .lantern(match rand::thread_rng().gen_range(0, 3) {
+                    .lantern(match rand::thread_rng().gen_range(0..3) {
                         0 => Some(Item::new_from_asset_expect("common.items.lantern.black_0")),
                         _ => None,
                     })
@@ -287,7 +287,7 @@ impl LoadoutBuilder {
                     .feet(Some(Item::new_from_asset_expect(
                         "common.items.armor.foot.cloth_purple_0",
                     )))
-                    .lantern(match rand::thread_rng().gen_range(0, 3) {
+                    .lantern(match rand::thread_rng().gen_range(0..3) {
                         0 => Some(Item::new_from_asset_expect("common.items.lantern.black_0")),
                         _ => None,
                     })
@@ -312,7 +312,7 @@ impl LoadoutBuilder {
                     .feet(Some(Item::new_from_asset_expect(
                         "common.items.armor.foot.leather_0",
                     )))
-                    .lantern(match rand::thread_rng().gen_range(0, 3) {
+                    .lantern(match rand::thread_rng().gen_range(0..3) {
                         0 => Some(Item::new_from_asset_expect("common.items.lantern.black_0")),
                         _ => None,
                     })
@@ -337,7 +337,7 @@ impl LoadoutBuilder {
                     .feet(Some(Item::new_from_asset_expect(
                         "common.items.armor.foot.assassin",
                     )))
-                    .lantern(match rand::thread_rng().gen_range(0, 3) {
+                    .lantern(match rand::thread_rng().gen_range(0..3) {
                         0 => Some(Item::new_from_asset_expect("common.items.lantern.black_0")),
                         _ => None,
                     })
@@ -365,7 +365,7 @@ impl LoadoutBuilder {
                     .back(Some(Item::new_from_asset_expect(
                         "common.items.armor.back.dungeon_purple-0",
                     )))
-                    .lantern(match rand::thread_rng().gen_range(0, 3) {
+                    .lantern(match rand::thread_rng().gen_range(0..3) {
                         0 => Some(Item::new_from_asset_expect("common.items.lantern.black_0")),
                         _ => None,
                     })
@@ -393,7 +393,7 @@ impl LoadoutBuilder {
                     .back(Some(Item::new_from_asset_expect(
                         "common.items.armor.back.dungeon_purple-0",
                     )))
-                    .lantern(match rand::thread_rng().gen_range(0, 3) {
+                    .lantern(match rand::thread_rng().gen_range(0..3) {
                         0 => Some(Item::new_from_asset_expect("common.items.lantern.black_0")),
                         _ => None,
                     })
@@ -421,7 +421,7 @@ impl LoadoutBuilder {
                     .back(Some(Item::new_from_asset_expect(
                         "common.items.armor.back.warlord",
                     )))
-                    .lantern(match rand::thread_rng().gen_range(0, 3) {
+                    .lantern(match rand::thread_rng().gen_range(0..3) {
                         0 => Some(Item::new_from_asset_expect("common.items.lantern.black_0")),
                         _ => None,
                     })
@@ -449,7 +449,7 @@ impl LoadoutBuilder {
                     .back(Some(Item::new_from_asset_expect(
                         "common.items.armor.back.warlock",
                     )))
-                    .lantern(match rand::thread_rng().gen_range(0, 3) {
+                    .lantern(match rand::thread_rng().gen_range(0..3) {
                         0 => Some(Item::new_from_asset_expect("common.items.lantern.black_0")),
                         _ => None,
                     })
@@ -457,7 +457,7 @@ impl LoadoutBuilder {
                 Villager => LoadoutBuilder::new()
                     .active_item(active_item)
                     .chest(Some(Item::new_from_asset_expect(
-                        match rand::thread_rng().gen_range(0, 10) {
+                        match rand::thread_rng().gen_range(0..10) {
                             0 => "common.items.armor.chest.worker_green_0",
                             1 => "common.items.armor.chest.worker_green_1",
                             2 => "common.items.armor.chest.worker_red_0",
@@ -477,7 +477,7 @@ impl LoadoutBuilder {
                         "common.items.armor.pants.worker_blue_0",
                     )))
                     .feet(Some(Item::new_from_asset_expect(
-                        match rand::thread_rng().gen_range(0, 2) {
+                        match rand::thread_rng().gen_range(0..2) {
                             0 => "common.items.armor.foot.leather_0",
                             _ => "common.items.armor.starter.sandals_0",
                         },

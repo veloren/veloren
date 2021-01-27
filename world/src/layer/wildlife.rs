@@ -41,7 +41,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
-                    .with_body(match rng.gen_range(0, 3) {
+                    .with_body(match rng.gen_range(0..3) {
                         0 => quadruped_medium::Body::random_with(
                             rng,
                             &quadruped_medium::Species::Frostfang,
@@ -71,7 +71,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
-                    .with_body(match rng.gen_range(0, 2) {
+                    .with_body(match rng.gen_range(0..2) {
                         0 => {
                             theropod::Body::random_with(rng, &theropod::Species::Snowraptor).into()
                         },
@@ -150,7 +150,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
-                    .with_body(match rng.gen_range(0, 5) {
+                    .with_body(match rng.gen_range(0..5) {
                         0 => {
                             bird_medium::Body::random_with(rng, &bird_medium::Species::Eagle).into()
                         },
@@ -195,7 +195,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
-                    .with_body(match rng.gen_range(0, 3) {
+                    .with_body(match rng.gen_range(0..3) {
                         0 => quadruped_medium::Body::random_with(
                             rng,
                             &quadruped_medium::Species::Tarasque,
@@ -222,7 +222,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
-                    .with_body(match rng.gen_range(0, 11) {
+                    .with_body(match rng.gen_range(0..11) {
                         0 => quadruped_medium::Body::random_with(
                             rng,
                             &quadruped_medium::Species::Deer,
@@ -288,7 +288,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
-                    .with_body(match rng.gen_range(0, 13) {
+                    .with_body(match rng.gen_range(0..13) {
                         0 => quadruped_small::Body {
                             species: quadruped_small::Species::Fox,
                             body_type: quadruped_small::BodyType::Male,
@@ -365,7 +365,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
-                    .with_body(match rng.gen_range(0, 3) {
+                    .with_body(match rng.gen_range(0..3) {
                         0 => {
                             biped_large::Body::random_with(rng, &biped_large::Species::Ogre).into()
                         },
@@ -385,7 +385,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
-                    .with_body(match rng.gen_range(0, 3) {
+                    .with_body(match rng.gen_range(0..3) {
                         0 => quadruped_small::Body::random_with(
                             rng,
                             &quadruped_small::Species::Beaver,
@@ -457,7 +457,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
-                    .with_body(match rng.gen_range(0, 2) {
+                    .with_body(match rng.gen_range(0..2) {
                         0 => {
                             quadruped_low::Body::random_with(rng, &quadruped_low::Species::Maneater)
                                 .into()
@@ -483,7 +483,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
-                    .with_body(match rng.gen_range(0, 4) {
+                    .with_body(match rng.gen_range(0..4) {
                         0 => theropod::Body::random_with(rng, &theropod::Species::Odonto).into(),
                         1 => {
                             biped_large::Body::random_with(rng, &biped_large::Species::Mightysaurok)
@@ -511,7 +511,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
-                    .with_body(match rng.gen_range(0, 4) {
+                    .with_body(match rng.gen_range(0..4) {
                         0 => bird_medium::Body::random_with(rng, &bird_medium::Species::Parrot)
                             .into(),
                         1 => {
@@ -561,7 +561,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
-                    .with_body(match rng.gen_range(0, 3) {
+                    .with_body(match rng.gen_range(0..3) {
                         0 => {
                             quadruped_small::Body::random_with(rng, &quadruped_small::Species::Frog)
                                 .into()
@@ -594,7 +594,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
-                    .with_body(match rng.gen_range(0, 2) {
+                    .with_body(match rng.gen_range(0..2) {
                         0 => quadruped_medium::Body::random_with(
                             rng,
                             &quadruped_medium::Species::Lion,
@@ -621,7 +621,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
-                    .with_body(match rng.gen_range(0, 2) {
+                    .with_body(match rng.gen_range(0..2) {
                         0 => quadruped_medium::Body::random_with(
                             rng,
                             &quadruped_medium::Species::Zebra,
@@ -648,7 +648,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
-                    .with_body(match rng.gen_range(0, 2) {
+                    .with_body(match rng.gen_range(0..2) {
                         0 => quadruped_medium::Body::random_with(
                             rng,
                             &quadruped_medium::Species::Bonerattler,
@@ -678,7 +678,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
-                    .with_body(match rng.gen_range(0, 2) {
+                    .with_body(match rng.gen_range(0..2) {
                         0 => quadruped_low::Body::random_with(
                             rng,
                             &quadruped_low::Species::Lavadrake,
@@ -744,7 +744,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
-                    .with_body(match rng.gen_range(0, 6) {
+                    .with_body(match rng.gen_range(0..6) {
                         0 => quadruped_small::Body::random_with(
                             rng,
                             &quadruped_small::Species::Holladon,
@@ -787,7 +787,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
-                    .with_body(match rng.gen_range(0, 2) {
+                    .with_body(match rng.gen_range(0..2) {
                         0 => fish_medium::Body::random_with(rng, &fish_medium::Species::Marlin)
                             .into(),
                         _ => fish_small::Body::random_with(rng, &fish_small::Species::Clownfish)
@@ -859,7 +859,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                         })
                     })
                 {
-                    let group_size = dynamic_rng.gen_range(group_size.start, group_size.end);
+                    let group_size = dynamic_rng.gen_range(group_size.start..group_size.end);
                     let entity = make_entity(
                         Vec3::new(wpos2d.x, wpos2d.y, alt + solid_end).map(|e| e as f32),
                         dynamic_rng,

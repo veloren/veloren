@@ -1272,13 +1272,13 @@ impl Controls {
                     let body_type = body.body_type;
                     let species = body.species;
                     let mut rng = rand::thread_rng();
-                    body.hair_style = rng.gen_range(0, species.num_hair_styles(body_type));
-                    body.beard = rng.gen_range(0, species.num_beards(body_type));
-                    body.accessory = rng.gen_range(0, species.num_accessories(body_type));
-                    body.hair_color = rng.gen_range(0, species.num_hair_colors());
-                    body.skin = rng.gen_range(0, species.num_skin_colors());
-                    body.eye_color = rng.gen_range(0, species.num_eye_colors());
-                    body.eyes = rng.gen_range(0, species.num_eyes(body_type));
+                    body.hair_style = rng.gen_range(0..species.num_hair_styles(body_type));
+                    body.beard = rng.gen_range(0..species.num_beards(body_type));
+                    body.accessory = rng.gen_range(0..species.num_accessories(body_type));
+                    body.hair_color = rng.gen_range(0..species.num_hair_colors());
+                    body.skin = rng.gen_range(0..species.num_skin_colors());
+                    body.eye_color = rng.gen_range(0..species.num_eye_colors());
+                    body.eyes = rng.gen_range(0..species.num_eyes(body_type));
                     *name = npc::get_npc_name(
                         npc::NpcKind::Humanoid,
                         npc::BodyType::from_body(comp::Body::Humanoid(*body)),

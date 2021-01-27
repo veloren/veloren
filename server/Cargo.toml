@@ -35,7 +35,7 @@ scan_fmt = { git = "https://github.com/Imberflur/scan_fmt" }
 ron = { version = "0.6", default-features = false }
 serde = { version = "1.0.110", features = ["derive"] }
 serde_json = "1.0.50"
-rand = { version = "0.7", features = ["small_rng"] }
+rand = { version = "0.8", features = ["small_rng"] }
 chrono = "0.4.9"
 hashbrown = { version = "0.9", features = ["rayon", "serde", "nightly"] }
 crossbeam-channel = "0.5"

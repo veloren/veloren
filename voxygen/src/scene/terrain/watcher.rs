@@ -50,17 +50,17 @@ impl BlocksOfInterest {
             .for_each(|(pos, block)| {
                 match block.kind() {
                     BlockKind::Leaves => {
-                        if thread_rng().gen_range(0, 16) == 0 {
+                        if thread_rng().gen_range(0..16) == 0 {
                             leaves.push(pos)
                         }
                     },
                     BlockKind::Grass => {
-                        if thread_rng().gen_range(0, 16) == 0 {
+                        if thread_rng().gen_range(0..16) == 0 {
                             grass.push(pos)
                         }
                     },
                     BlockKind::Water => {
-                        if chunk.meta().contains_river() && thread_rng().gen_range(0, 16) == 0 {
+                        if chunk.meta().contains_river() && thread_rng().gen_range(0..16) == 0 {
                             river.push(pos)
                         }
                     },

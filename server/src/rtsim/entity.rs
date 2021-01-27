@@ -76,7 +76,7 @@ impl Entity {
                 .unwrap(),
         );
 
-        let back = match rng.gen_range(0, 5) {
+        let back = match rng.gen_range(0..5) {
             0 => Some(comp::Item::new_from_asset_expect(
                 "common.items.armor.back.leather_adventurer",
             )),
@@ -92,7 +92,7 @@ impl Entity {
             _ => None,
         };
 
-        let lantern = match rng.gen_range(0, 3) {
+        let lantern = match rng.gen_range(0..3) {
             0 => Some(comp::Item::new_from_asset_expect(
                 "common.items.lantern.black_0",
             )),
@@ -133,7 +133,7 @@ impl Entity {
                     comp::Body::Humanoid(_) => s.1.is_settlement() | s.1.is_castle(),
                     _ => s.1.is_dungeon(),
                 })
-                .filter(|_| thread_rng().gen_range(0i32, 4) == 0)
+                .filter(|_| thread_rng().gen_range(0i32..4) == 0)
                 .min_by_key(|(_, site)| {
                     let wpos = site.center * TerrainChunk::RECT_SIZE.map(|e| e as i32);
                     let dist = wpos.map(|e| e as f32).distance(self.pos.xy()) as u32;
