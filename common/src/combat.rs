@@ -1,5 +1,6 @@
 use crate::{
     comp::{
+        buff::{Buff, BuffChange, BuffData, BuffKind, BuffSource},
         inventory::{
             item::{
                 armor::Protection,
@@ -9,10 +10,8 @@ use crate::{
             slot::EquipSlot,
         },
         skills::{SkillGroupKind, SkillSet},
-        Body, BuffKind, EnergyChange, EnergySource, Health, HealthChange, HealthSource, Inventory,
-        Stats,
+        Body, EnergyChange, EnergySource, Health, HealthChange, HealthSource, Inventory, Stats,
     },
-    effect,
     event::ServerEvent,
     uid::Uid,
     util::Dir,
@@ -20,6 +19,7 @@ use crate::{
 use rand::{thread_rng, Rng};
 use serde::{Deserialize, Serialize};
 use specs::Entity as EcsEntity;
+use std::time::Duration;
 use vek::*;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -70,7 +70,7 @@ impl Attack {
         attacker_entity: EcsEntity,
         target_entity: EcsEntity,
         inventory: Option<&Inventory>,
-        uid: Uid,
+        attacker_uid: Uid,
         dir: Dir,
     ) -> Vec<ServerEvent> {
         let is_crit = thread_rng().gen::<f32>() < self.crit_chance;
@@ -81,10 +81,12 @@ impl Attack {
             .iter()
             .filter(|d| d.target.map_or(true, |t| t == target_group))
         {
-            let change =
-                damage
-                    .damage
-                    .modify_damage(inventory, Some(uid), is_crit, self.crit_multiplier);
+            let change = damage.damage.modify_damage(
+                inventory,
+                Some(attacker_uid),
+                is_crit,
+                self.crit_multiplier,
+            );
             if change.amount != 0 {
                 server_events.push(ServerEvent::Damage {
                     entity: target_entity,
@@ -109,6 +111,16 @@ impl Attack {
                                     source: EnergySource::HitEnemy,
                                 },
                             });
+                        },
+                        AttackEffect::Buff(b) => {
+                            if thread_rng().gen::<f32>() < b.chance {
+                                server_events.push(ServerEvent::Buff {
+                                    entity: target_entity,
+                                    buff_change: BuffChange::Add(
+                                        b.to_buff(attacker_uid, -change.amount as f32),
+                                    ),
+                                });
+                            }
                         },
                     }
                 }
@@ -155,7 +167,7 @@ impl EffectComponent {
 #[derive(Debug, Serialize, Deserialize)]
 pub enum AttackEffect {
     //Heal(f32),
-    //Buff(effect::BuffEffect),
+    Buff(CombatBuff),
     Knockback(Knockback),
     EnergyReward(u32),
     //Lifesteal(f32),
@@ -355,6 +367,53 @@ impl Knockback {
     pub fn modify_strength(mut self, power: f32) -> Self {
         self.strength *= power;
         self
+    }
+}
+
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+pub struct CombatBuff {
+    pub kind: BuffKind,
+    pub dur_secs: f32,
+    pub strength: CombatBuffStrength,
+    pub chance: f32,
+}
+
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+pub enum CombatBuffStrength {
+    DamageFraction(f32),
+    Value(f32),
+}
+
+impl CombatBuffStrength {
+    fn to_strength(self, damage: f32) -> f32 {
+        match self {
+            CombatBuffStrength::DamageFraction(f) => damage * f,
+            CombatBuffStrength::Value(v) => v,
+        }
+    }
+}
+
+impl CombatBuff {
+    fn to_buff(self, uid: Uid, damage: f32) -> Buff {
+        // TODO: Generate BufCategoryId vec (probably requires damage overhaul?)
+        Buff::new(
+            self.kind,
+            BuffData::new(
+                self.strength.to_strength(damage),
+                Some(Duration::from_secs_f32(self.dur_secs)),
+            ),
+            Vec::new(),
+            BuffSource::Character { by: uid },
+        )
+    }
+
+    pub fn default_melee() -> Self {
+        Self {
+            kind: BuffKind::Bleeding,
+            dur_secs: 10.0,
+            strength: CombatBuffStrength::DamageFraction(0.1),
+            chance: 0.1,
+        }
     }
 }
 
