@@ -134,6 +134,7 @@ impl<'a> System<'a> for Sys {
                         inventory_b_maybe,
                         *uid,
                         dir,
+                        is_dodge,
                     );
 
                     if !server_events.is_empty() {
