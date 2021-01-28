@@ -1,5 +1,7 @@
 use crate::{
-    combat::{Attack, AttackEffect, CombatBuff, DamageComponent},
+    combat::{
+        Attack, AttackEffect, CombatBuff, CombatRequirement, DamageComponent, EffectComponent,
+    },
     comp::{
         CharacterState, EnergyChange, EnergySource, MeleeAttack, PoiseChange, PoiseSource,
         StateUpdate,
@@ -196,12 +198,16 @@ impl CharacterBehavior for Data {
                             + self.combo * self.static_data.energy_increase,
                     );
                     let energy = AttackEffect::EnergyReward(energy);
+                    let energy = EffectComponent::new(None, energy)
+                        .with_requirement(CombatRequirement::AnyDamage);
                     let buff = AttackEffect::Buff(CombatBuff::default_melee());
                     let damage = DamageComponent::new(damage, Some(GroupTarget::OutOfGroup))
                         .with_effect(knockback)
-                        .with_effect(energy)
                         .with_effect(buff);
-                    let attack = Attack::default().with_damage(damage).with_crit(0.5, 1.3);
+                    let attack = Attack::default()
+                        .with_damage(damage)
+                        .with_crit(0.5, 1.3)
+                        .with_effect(energy);
 
                     data.updater.insert(data.entity, MeleeAttack {
                         attack,

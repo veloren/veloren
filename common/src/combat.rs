@@ -137,35 +137,40 @@ impl Attack {
             .filter(|e| e.target.map_or(true, |t| t == target_group))
             .filter(|e| !(matches!(e.target, Some(GroupTarget::OutOfGroup)) && target_dodging))
         {
-            match effect.effect {
-                AttackEffect::Knockback(kb) => {
-                    let impulse = kb.calculate_impulse(dir);
-                    if !impulse.is_approx_zero() {
-                        server_events.push(ServerEvent::Knockback {
-                            entity: target_entity,
-                            impulse,
+            if match &effect.requirement {
+                Some(CombatRequirement::AnyDamage) => accumulated_damage != 0.0,
+                None => true,
+            } {
+                match effect.effect {
+                    AttackEffect::Knockback(kb) => {
+                        let impulse = kb.calculate_impulse(dir);
+                        if !impulse.is_approx_zero() {
+                            server_events.push(ServerEvent::Knockback {
+                                entity: target_entity,
+                                impulse,
+                            });
+                        }
+                    },
+                    AttackEffect::EnergyReward(ec) => {
+                        server_events.push(ServerEvent::EnergyChange {
+                            entity: attacker_entity,
+                            change: EnergyChange {
+                                amount: ec as i32,
+                                source: EnergySource::HitEnemy,
+                            },
                         });
-                    }
-                },
-                AttackEffect::EnergyReward(ec) => {
-                    server_events.push(ServerEvent::EnergyChange {
-                        entity: attacker_entity,
-                        change: EnergyChange {
-                            amount: ec as i32,
-                            source: EnergySource::HitEnemy,
-                        },
-                    });
-                },
-                AttackEffect::Buff(b) => {
-                    if thread_rng().gen::<f32>() < b.chance {
-                        server_events.push(ServerEvent::Buff {
-                            entity: target_entity,
-                            buff_change: BuffChange::Add(
-                                b.to_buff(attacker_uid, accumulated_damage),
-                            ),
-                        });
-                    }
-                },
+                    },
+                    AttackEffect::Buff(b) => {
+                        if thread_rng().gen::<f32>() < b.chance {
+                            server_events.push(ServerEvent::Buff {
+                                entity: target_entity,
+                                buff_change: BuffChange::Add(
+                                    b.to_buff(attacker_uid, accumulated_damage),
+                                ),
+                            });
+                        }
+                    },
+                }
             }
         }
         server_events
@@ -198,11 +203,21 @@ impl DamageComponent {
 pub struct EffectComponent {
     target: Option<GroupTarget>,
     effect: AttackEffect,
+    requirement: Option<CombatRequirement>,
 }
 
 impl EffectComponent {
     pub fn new(target: Option<GroupTarget>, effect: AttackEffect) -> Self {
-        Self { target, effect }
+        Self {
+            target,
+            effect,
+            requirement: None,
+        }
+    }
+
+    pub fn with_requirement(mut self, requirement: CombatRequirement) -> Self {
+        self.requirement = Some(requirement);
+        self
     }
 }
 
@@ -213,6 +228,11 @@ pub enum AttackEffect {
     Knockback(Knockback),
     EnergyReward(u32),
     //Lifesteal(f32),
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub enum CombatRequirement {
+    AnyDamage,
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
