@@ -64,6 +64,7 @@ impl Attack {
         self
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn apply_attack(
         &self,
         target_group: GroupTarget,
@@ -72,6 +73,7 @@ impl Attack {
         inventory: Option<&Inventory>,
         attacker_uid: Uid,
         dir: Dir,
+        target_dodging: bool,
     ) -> Vec<ServerEvent> {
         let is_crit = thread_rng().gen::<f32>() < self.crit_chance;
         let mut accumulated_damage = 0.0;
@@ -80,6 +82,7 @@ impl Attack {
             .damages
             .iter()
             .filter(|d| d.target.map_or(true, |t| t == target_group))
+            .filter(|d| !(matches!(d.target, Some(GroupTarget::OutOfGroup)) && target_dodging))
         {
             let change = damage.damage.modify_damage(
                 inventory,
