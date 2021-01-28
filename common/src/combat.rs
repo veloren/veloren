@@ -90,6 +90,8 @@ impl Attack {
                 is_crit,
                 self.crit_multiplier,
             );
+            let damage_damage = -change.amount as f32;
+            accumulated_damage += damage_damage;
             if change.amount != 0 {
                 server_events.push(ServerEvent::Damage {
                     entity: target_entity,
@@ -120,13 +122,50 @@ impl Attack {
                                 server_events.push(ServerEvent::Buff {
                                     entity: target_entity,
                                     buff_change: BuffChange::Add(
-                                        b.to_buff(attacker_uid, -change.amount as f32),
+                                        b.to_buff(attacker_uid, damage_damage),
                                     ),
                                 });
                             }
                         },
                     }
                 }
+            }
+        }
+        for effect in self
+            .effects
+            .iter()
+            .filter(|e| e.target.map_or(true, |t| t == target_group))
+            .filter(|e| !(matches!(e.target, Some(GroupTarget::OutOfGroup)) && target_dodging))
+        {
+            match effect.effect {
+                AttackEffect::Knockback(kb) => {
+                    let impulse = kb.calculate_impulse(dir);
+                    if !impulse.is_approx_zero() {
+                        server_events.push(ServerEvent::Knockback {
+                            entity: target_entity,
+                            impulse,
+                        });
+                    }
+                },
+                AttackEffect::EnergyReward(ec) => {
+                    server_events.push(ServerEvent::EnergyChange {
+                        entity: attacker_entity,
+                        change: EnergyChange {
+                            amount: ec as i32,
+                            source: EnergySource::HitEnemy,
+                        },
+                    });
+                },
+                AttackEffect::Buff(b) => {
+                    if thread_rng().gen::<f32>() < b.chance {
+                        server_events.push(ServerEvent::Buff {
+                            entity: target_entity,
+                            buff_change: BuffChange::Add(
+                                b.to_buff(attacker_uid, accumulated_damage),
+                            ),
+                        });
+                    }
+                },
             }
         }
         server_events
