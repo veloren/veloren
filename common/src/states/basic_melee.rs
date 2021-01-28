@@ -1,5 +1,7 @@
 use crate::{
-    combat::{Attack, AttackEffect, CombatBuff, DamageComponent},
+    combat::{
+        Attack, AttackEffect, CombatBuff, CombatRequirement, DamageComponent, EffectComponent,
+    },
     comp::{CharacterState, MeleeAttack, PoiseChange, PoiseSource, StateUpdate},
     states::{
         behavior::{CharacterBehavior, JoinData},
@@ -99,12 +101,16 @@ impl CharacterBehavior for Data {
                         direction: KnockbackDir::Away,
                     });
                     let energy = AttackEffect::EnergyReward(50);
+                    let energy = EffectComponent::new(None, energy)
+                        .with_requirement(CombatRequirement::AnyDamage);
                     let buff = AttackEffect::Buff(CombatBuff::default_melee());
                     let damage = DamageComponent::new(damage, Some(GroupTarget::OutOfGroup))
                         .with_effect(knockback)
-                        .with_effect(energy)
                         .with_effect(buff);
-                    let attack = Attack::default().with_damage(damage).with_crit(0.5, 1.3);
+                    let attack = Attack::default()
+                        .with_damage(damage)
+                        .with_crit(0.5, 1.3)
+                        .with_effect(energy);
 
                     // Hit attempt
                     data.updater.insert(data.entity, MeleeAttack {
