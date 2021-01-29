@@ -148,8 +148,9 @@ impl EventMapper for BlockEventMapper {
             // TODO Address bird hack properly. See TODO on line 171
             if !(sounds.cond)(state)
                 || player_pos.0.z < (terrain_alt - 30.0)
-                || ((sounds.sfx == SfxEvent::Birdcall || sounds.sfx == SfxEvent::Owl)
-                    && thread_rng().gen_bool(0.995))
+                || (sounds.sfx == SfxEvent::Birdcall && thread_rng().gen_bool(0.995))
+                || (sounds.sfx == SfxEvent::Owl && thread_rng().gen_bool(0.998))
+                || (sounds.sfx == SfxEvent::Cricket && thread_rng().gen_bool(0.95))
             {
                 continue;
             }
@@ -173,6 +174,7 @@ impl EventMapper for BlockEventMapper {
                         // Hack to reduce the number of bird sounds (too many leaf blocks)
                         if (sounds.sfx == SfxEvent::Birdcall || sounds.sfx == SfxEvent::Owl)
                             && thread_rng().gen_bool(0.999)
+                            || (sounds.sfx == SfxEvent::Cricket && thread_rng().gen_bool(0.999))
                         {
                             continue;
                         }
@@ -229,6 +231,8 @@ impl BlockEventMapper {
     ) -> bool {
         if let Some((event, item)) = sfx_trigger_item {
             if &previous_state.event == event {
+                //In case certain sounds need modification to their threshold,
+                //use match event
                 previous_state.time.elapsed().as_secs_f32() >= item.threshold
             } else {
                 true

@@ -928,9 +928,9 @@ impl Client {
             terrain_alt = chunk.meta().alt();
             contains_cave = chunk.meta().contains_cave();
         }
-        if player_alt < (terrain_alt - 15.0) && contains_cave {
+        if player_alt < (terrain_alt - 25.0) && contains_cave {
             SitesKind::Cave
-        } else if player_alt < (terrain_alt - 15.0) {
+        } else if player_alt < (terrain_alt - 25.0) {
             SitesKind::Dungeon
         } else {
             SitesKind::Void
