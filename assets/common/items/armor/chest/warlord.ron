@@ -1,13 +1,12 @@
 ItemDef(
     name: "Warlord Cuirass",
     description: "Belong to a mighty warlord.",
-    kind: Armor(
-        (
-            kind: Chest("Warlord"),
-            stats: (
-                protection: Normal(40.0)
-                ),            
-        )
-    ),
+    kind: Armor((
+        kind: Chest("Warlord"),
+        stats: (
+            protection: Normal(40.0),
+            poise_resilience: Normal(29.0),
+        ),
+    )),
     quality: Moderate,
 )

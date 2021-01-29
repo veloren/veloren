@@ -3,7 +3,9 @@ ComboMelee(
         (
             stage: 1,
             base_damage: 90,
+            base_poise_damage: 0,
             damage_increase: 10,
+            poise_damage_increase: 0,
             knockback: 8.0,
             range: 3.5,
             angle: 50.0,
@@ -15,7 +17,9 @@ ComboMelee(
         (
             stage: 2,
             base_damage: 130,
+            base_poise_damage: 0,
             damage_increase: 15,
+            poise_damage_increase: 0,
             knockback: 12.0,
             range: 3.5,
             angle: 30.0,

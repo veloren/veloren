@@ -1,4 +1,4 @@
-use crate::{uid::Uid, Damage, GroupTarget, Knockback};
+use crate::{comp::PoiseChange, uid::Uid, Damage, GroupTarget, Knockback};
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
@@ -9,7 +9,7 @@ pub struct Properties {
     pub angle: f32,
     pub vertical_angle: f32,
     pub speed: f32,
-    pub damages: Vec<(Option<GroupTarget>, Damage)>,
+    pub effects: Vec<(Option<GroupTarget>, Damage, PoiseChange)>,
     pub knockback: Knockback,
     pub requires_ground: bool,
     pub duration: Duration,

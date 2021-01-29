@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Effect {
     Health(comp::HealthChange),
+    PoiseChange(comp::PoiseChange),
     Damage(combat::Damage),
     Buff(BuffEffect),
 }
@@ -21,6 +22,7 @@ impl Effect {
     pub fn info(&self) -> String {
         match self {
             Effect::Health(c) => format!("{:+} health", c.amount),
+            Effect::PoiseChange(c) => format!("{:+} poise", c.amount),
             Effect::Damage(d) => format!("{:+}", d.value),
             Effect::Buff(e) => format!("{:?} buff", e),
         }
@@ -29,6 +31,9 @@ impl Effect {
     pub fn modify_strength(&mut self, modifier: f32) {
         match self {
             Effect::Health(change) => {
+                change.amount = (change.amount as f32 * modifier) as i32;
+            },
+            Effect::PoiseChange(change) => {
                 change.amount = (change.amount as f32 * modifier) as i32;
             },
             Effect::Damage(damage) => {

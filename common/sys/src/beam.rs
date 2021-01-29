@@ -167,7 +167,6 @@ impl<'a> System<'a> for Sys {
 
                         //  Modify damage
                         let change = damage.modify_damage(inventories.get(b), beam_segment.owner);
-
                         match target {
                             Some(GroupTarget::OutOfGroup) => {
                                 server_emitter.emit(ServerEvent::Damage { entity: b, change });

@@ -5,7 +5,9 @@ ItemDef(
         (
             kind: Hand("CultistPurple"),
             stats: (
-                protection: Normal(2.0)),            
+                protection: Normal(2.0),
+                poise_resilience: Normal(2.0),
+            ),
         )
     ),
     quality: Low,

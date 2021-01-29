@@ -1,12 +1,12 @@
 ItemDef(
     name: "Warlock cape",
     description: "Belong to a mighty warlock.",
-    kind: Armor(
-        (
-            kind: Back("Warlock"),
-            stats: (
-                protection: Normal(4.0)),
-        )
-    ),
+    kind: Armor((
+        kind: Back("Warlock"),
+        stats: (
+            protection: Normal(4.0),
+            poise_resilience: Normal(3.0),
+        ),
+    )),
     quality: Moderate,
 )

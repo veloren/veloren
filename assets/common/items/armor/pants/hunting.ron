@@ -1,13 +1,12 @@
 ItemDef(
     name: "Hunting Pants",
     description: "Crafted from soft, supple leather.",
-    kind: Armor(
-        (
-            kind: Pants("Hunting"),
-            stats: (
-                protection: Normal(8.0)
-                ),            
-        )
-    ),
+    kind: Armor((
+        kind: Pants("Hunting"),
+        stats: (
+            protection: Normal(8.0),
+            poise_resilience: Normal(3.0),
+        ),
+    )),
     quality: Moderate,
 )

@@ -5,7 +5,9 @@ ItemDef(
         (
             kind: Back("LeatherBlue0"),
             stats: (
-                protection: Normal(1.0)),            
+                protection: Normal(1.0),
+                poise_resilience: Normal(0.0),
+            ),
         )
     ),
     quality: Moderate,

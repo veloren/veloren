@@ -1,12 +1,12 @@
 ItemDef(
     name: "Purple Linen Skirt",
     description: "A stylish, rough fabric skirt, dyed purple.",
-    kind: Armor(
-        (
-            kind: Pants("ClothPurple0"),
-            stats: (
-                protection: Normal(1.0)),            
-        )
-    ),
+    kind: Armor((
+        kind: Pants("ClothPurple0"),
+        stats: (
+            protection: Normal(1.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
     quality: Common,
 )

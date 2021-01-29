@@ -1,15 +1,14 @@
 ItemDef(
     name: "Damaged Greatsword",
     description: "The blade has been chipped quite a few times.",
-    kind: Tool(
-       (
-            kind: Sword,    
-            stats: (
-                equip_time_millis: 500,
-                power: 0.80,
-                speed: 1.0
-            ),            
-        )
-    ),
+    kind: Tool((
+        kind: Sword,
+        stats: (
+            equip_time_millis: 500,
+            power: 0.8,
+            poise_strength: 0.9,
+            speed: 1.0,
+        ),
+    )),
     quality: Common,
 )

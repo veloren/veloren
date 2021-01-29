@@ -1,7 +1,8 @@
 use common::{
     comp::{
         skills::{GeneralSkill, Skill},
-        Body, CharacterState, Energy, EnergyChange, EnergySource, Health, Pos, Stats,
+        Body, CharacterState, Energy, EnergyChange, EnergySource, Health, Poise, PoiseChange,
+        PoiseSource, Pos, Stats,
     },
     event::{EventBus, ServerEvent},
     metrics::SysMetrics,
@@ -12,8 +13,10 @@ use common::{
 };
 use hashbrown::HashSet;
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, Write, WriteStorage};
+use vek::Vec3;
 
 const ENERGY_REGEN_ACCEL: f32 = 10.0;
+const POISE_REGEN_ACCEL: f32 = 2.0;
 
 /// This system kills players, levels them up, and regenerates energy.
 pub struct Sys;
@@ -24,9 +27,10 @@ impl<'a> System<'a> for Sys {
         Read<'a, DeltaTime>,
         Read<'a, EventBus<ServerEvent>>,
         ReadExpect<'a, SysMetrics>,
-        ReadStorage<'a, CharacterState>,
+        WriteStorage<'a, CharacterState>,
         WriteStorage<'a, Stats>,
         WriteStorage<'a, Health>,
+        WriteStorage<'a, Poise>,
         WriteStorage<'a, Energy>,
         ReadStorage<'a, Uid>,
         ReadStorage<'a, Pos>,
@@ -44,6 +48,7 @@ impl<'a> System<'a> for Sys {
             character_states,
             mut stats,
             mut healths,
+            mut poises,
             mut energies,
             uids,
             positions,
@@ -57,10 +62,15 @@ impl<'a> System<'a> for Sys {
 
         // Increment last change timer
         healths.set_event_emission(false); // avoid unnecessary syncing
+        poises.set_event_emission(false); // avoid unnecessary syncing
         for mut health in (&mut healths).join() {
             health.last_change.0 += f64::from(dt.0);
         }
+        for mut poise in (&mut poises).join() {
+            poise.last_change.0 += f64::from(dt.0);
+        }
         healths.set_event_emission(true);
+        poises.set_event_emission(true);
 
         // Update stats
         for (entity, uid, mut stats, mut health, pos) in (
@@ -147,9 +157,13 @@ impl<'a> System<'a> for Sys {
             }
         }
 
-        // Update energies
-        for (character_state, mut energy) in
-            (&character_states, &mut energies.restrict_mut()).join()
+        // Update energies and poises
+        for (character_state, mut energy, mut poise) in (
+            &character_states,
+            &mut energies.restrict_mut(),
+            &mut poises.restrict_mut(),
+        )
+            .join()
         {
             match character_state {
                 // Accelerate recharging energy.
@@ -178,6 +192,26 @@ impl<'a> System<'a> for Sys {
                         });
                         energy.regen_rate =
                             (energy.regen_rate + ENERGY_REGEN_ACCEL * dt.0).min(100.0);
+                    }
+
+                    let res_poise = {
+                        let poise = poise.get_unchecked();
+                        poise.current() < poise.maximum()
+                    };
+
+                    if res_poise {
+                        let mut poise = poise.get_mut_unchecked();
+                        let poise = &mut *poise;
+                        poise.change_by(
+                            PoiseChange {
+                                amount: (poise.regen_rate * dt.0
+                                    + POISE_REGEN_ACCEL * dt.0.powi(2) / 2.0)
+                                    as i32,
+                                source: PoiseSource::Regen,
+                            },
+                            Vec3::zero(),
+                        );
+                        poise.regen_rate = (poise.regen_rate + POISE_REGEN_ACCEL * dt.0).min(10.0);
                     }
                 },
                 // Ability and glider use does not regen and sets the rate back to zero.
@@ -214,9 +248,12 @@ impl<'a> System<'a> for Sys {
                 },
                 // Non-combat abilities that consume energy;
                 // temporarily stall energy gain, but preserve regen_rate.
-                CharacterState::Roll { .. } | CharacterState::Climb { .. } => {},
+                CharacterState::Roll { .. }
+                | CharacterState::Climb { .. }
+                | CharacterState::Stunned { .. } => {},
             }
         }
+
         sys_metrics.stats_ns.store(
             start_time.elapsed().as_nanos() as u64,
             std::sync::atomic::Ordering::Relaxed,

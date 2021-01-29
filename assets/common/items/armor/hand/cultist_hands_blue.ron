@@ -1,12 +1,12 @@
 ItemDef(
     name: "Velorite Gloves",
     description: "Ceremonial attire used by members.",
-    kind: Armor(
-        (
-            kind: Hand("VeloriteMage0"),
-            stats: (
-                protection: Normal(12.0)),            
-        )
-    ),
+    kind: Armor((
+        kind: Hand("VeloriteMage0"),
+        stats: (
+            protection: Normal(12.0),
+            poise_resilience: Normal(10.0),
+        ),
+    )),
     quality: Epic,
 )

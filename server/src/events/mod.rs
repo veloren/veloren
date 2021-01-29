@@ -9,7 +9,7 @@ use entity_creation::{
 };
 use entity_manipulation::{
     handle_aura, handle_buff, handle_damage, handle_delete, handle_destroy, handle_energy_change,
-    handle_explosion, handle_knockback, handle_land_on_ground, handle_respawn,
+    handle_explosion, handle_knockback, handle_land_on_ground, handle_poise, handle_respawn,
 };
 use group_manip::handle_group;
 use interaction::{handle_lantern, handle_mount, handle_possess, handle_unmount};
@@ -83,6 +83,11 @@ impl Server {
                     handle_knockback(&self, entity, impulse)
                 },
                 ServerEvent::Damage { entity, change } => handle_damage(&self, entity, change),
+                ServerEvent::PoiseChange {
+                    entity,
+                    change,
+                    kb_dir,
+                } => handle_poise(&self, entity, change, kb_dir),
                 ServerEvent::Delete(entity) => handle_delete(self, entity),
                 ServerEvent::Destroy { entity, cause } => handle_destroy(self, entity, cause),
                 ServerEvent::InventoryManip(entity, manip) => handle_inventory(self, entity, manip),
@@ -110,6 +115,7 @@ impl Server {
                     pos,
                     stats,
                     health,
+                    poise,
                     loadout,
                     body,
                     agent,
@@ -123,6 +129,7 @@ impl Server {
                     pos,
                     stats,
                     health,
+                    poise,
                     loadout,
                     body,
                     agent,

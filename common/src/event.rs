@@ -36,6 +36,11 @@ pub enum ServerEvent {
         entity: EcsEntity,
         change: comp::HealthChange,
     },
+    PoiseChange {
+        entity: EcsEntity,
+        change: comp::PoiseChange,
+        kb_dir: Vec3<f32>,
+    },
     Delete(EcsEntity),
     Destroy {
         entity: EcsEntity,
@@ -98,6 +103,7 @@ pub enum ServerEvent {
         pos: comp::Pos,
         stats: comp::Stats,
         health: comp::Health,
+        poise: comp::Poise,
         loadout: comp::inventory::loadout::Loadout,
         body: comp::Body,
         agent: Option<comp::Agent>,

@@ -1,5 +1,5 @@
 use crate::{
-    comp::{Energy, Ori, Pos, Vel},
+    comp::{Energy, Ori, PoiseChange, Pos, Vel},
     event::{LocalEvent, ServerEvent},
     states::{behavior::JoinData, *},
     Damage, GroupTarget, Knockback,
@@ -44,6 +44,8 @@ pub enum CharacterState {
     Sneak,
     Glide,
     GlideWield,
+    /// A stunned state
+    Stunned(stunned::Data),
     /// A basic blocking state
     BasicBlock,
     /// Player is busy equipping or unequipping weapons
@@ -135,6 +137,7 @@ impl CharacterState {
                 | CharacterState::RepeaterRanged(_)
                 | CharacterState::Shockwave(_)
                 | CharacterState::BasicBeam(_)
+                | CharacterState::Stunned(_)
                 | CharacterState::Wielding
         )
     }
@@ -146,6 +149,8 @@ impl CharacterState {
     pub fn is_melee_dodge(&self) -> bool {
         matches!(self, CharacterState::Roll(d) if d.static_data.immune_melee)
     }
+
+    pub fn is_stunned(&self) -> bool { matches!(self, CharacterState::Stunned(_)) }
 
     /// Compares for shallow equality (does not check internal struct equality)
     pub fn same_variant(&self, other: &Self) -> bool {
@@ -164,7 +169,7 @@ impl Component for CharacterState {
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Attacking {
-    pub damages: Vec<(Option<GroupTarget>, Damage)>,
+    pub effects: Vec<(Option<GroupTarget>, Damage, PoiseChange)>,
     pub range: f32,
     pub max_angle: f32,
     pub applied: bool,

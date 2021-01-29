@@ -13,8 +13,8 @@ use common::{
     comp::{
         self, aura, buff,
         chat::{KillSource, KillType},
-        object, Alignment, Body, Energy, EnergyChange, Group, Health, HealthChange, HealthSource,
-        Inventory, Item, Player, Pos, Stats,
+        object, Alignment, Body, CharacterState, Energy, EnergyChange, Group, Health, HealthChange,
+        HealthSource, Inventory, Item, Player, Poise, PoiseChange, PoiseSource, Pos, Stats,
     },
     effect::Effect,
     lottery::Lottery,
@@ -33,6 +33,23 @@ use rand::prelude::*;
 use specs::{join::Join, saveload::MarkerAllocator, Entity as EcsEntity, WorldExt};
 use tracing::error;
 use vek::Vec3;
+
+pub fn handle_poise(
+    server: &Server,
+    entity: EcsEntity,
+    change: PoiseChange,
+    knockback_dir: Vec3<f32>,
+) {
+    let ecs = &server.state.ecs();
+    if let Some(character_state) = ecs.read_storage::<CharacterState>().get(entity) {
+        // Entity is invincible to poise change during stunned/staggered character state
+        if !character_state.is_stunned() {
+            if let Some(mut poise) = ecs.write_storage::<Poise>().get_mut(entity) {
+                poise.change_by(change, knockback_dir);
+            }
+        }
+    }
+}
 
 pub fn handle_damage(server: &Server, entity: EcsEntity, change: HealthChange) {
     let ecs = &server.state.ecs();
@@ -58,7 +75,7 @@ pub fn handle_knockback(server: &Server, entity: EcsEntity, impulse: Vec3<f32>) 
         }
         let mut velocities = ecs.write_storage::<comp::Vel>();
         if let Some(vel) = velocities.get_mut(entity) {
-            vel.0 = impulse;
+            vel.0 += impulse;
         }
         if let Some(client) = clients.get(entity) {
             client.send_fallible(ServerGeneral::Knockback(impulse));
@@ -419,6 +436,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
         };
 
         let pos = state.ecs().read_storage::<comp::Pos>().get(entity).cloned();
+        let vel = state.ecs().read_storage::<comp::Vel>().get(entity).cloned();
         if let Some(pos) = pos {
             let _ = state
                 .create_object(comp::Pos(pos.0 + Vec3::unit_z() * 0.25), match old_body {
@@ -428,6 +446,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                     | Some(common::comp::Body::QuadrupedLow(_)) => object::Body::MeatDrop,
                     _ => object::Body::Steak,
                 })
+                .maybe_with(vel)
                 .with(item)
                 .build();
         } else {
@@ -482,15 +501,25 @@ pub fn handle_delete(server: &mut Server, entity: EcsEntity) {
 pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>) {
     let state = &server.state;
     if vel.z <= -30.0 {
+        let falldmg = (vel.z.powi(2) / 20.0 - 40.0) * 10.0;
+        let inventories = state.ecs().read_storage::<Inventory>();
+        // Handle health change
         if let Some(mut health) = state.ecs().write_storage::<comp::Health>().get_mut(entity) {
-            let falldmg = (vel.z.powi(2) / 20.0 - 40.0) * 10.0;
             let damage = Damage {
                 source: DamageSource::Falling,
                 value: falldmg,
             };
-            let inventories = state.ecs().read_storage::<Inventory>();
             let change = damage.modify_damage(inventories.get(entity), None);
             health.change_by(change);
+        }
+        // Handle poise change
+        if let Some(mut poise) = state.ecs().write_storage::<comp::Poise>().get_mut(entity) {
+            let poise_damage = PoiseChange {
+                amount: -(falldmg / 2.0) as i32,
+                source: PoiseSource::Falling,
+            };
+            let poise_change = poise_damage.modify_poise_damage(inventories.get(entity));
+            poise.change_by(poise_change, Vec3::unit_z());
         }
     }
 }

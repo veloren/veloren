@@ -9,7 +9,6 @@ use std::{
 };
 
 use find_folder::Search;
-use hashbrown::HashSet;
 use std::{env, path::PathBuf};
 use tracing::{debug, error, info};
 
@@ -148,8 +147,7 @@ pub fn init() {
     // "Debounces" events since I can't find the option to do this in the latest
     // `notify`
     thread::spawn(move || {
-        let mut modified_paths = HashSet::new();
-
+        let mut modified_paths = std::collections::HashSet::new();
         while let Ok(path) = reload_recv.recv() {
             modified_paths.insert(path);
             // Wait for any additional modify events before reloading

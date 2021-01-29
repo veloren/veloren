@@ -51,19 +51,19 @@ impl LoadoutBuilder {
     /// updates, but should be safe defaults for a new character.
     pub fn defaults(self) -> Self {
         self.chest(Some(Item::new_from_asset_expect(
-            "common.items.armor.starter.rugged_chest",
+            "common.items.armor.chest.rugged",
         )))
         .pants(Some(Item::new_from_asset_expect(
-            "common.items.armor.starter.rugged_pants",
+            "common.items.armor.pants.rugged",
         )))
         .feet(Some(Item::new_from_asset_expect(
-            "common.items.armor.starter.sandals_0",
+            "common.items.armor.foot.sandals_0",
         )))
         .lantern(Some(Item::new_from_asset_expect(
-            "common.items.armor.starter.lantern",
+            "common.items.lantern.black_0",
         )))
         .glider(Some(Item::new_from_asset_expect(
-            "common.items.armor.starter.glider",
+            "common.items.glider.glider_cloverleaf",
         )))
     }
 
@@ -479,7 +479,7 @@ impl LoadoutBuilder {
                     .feet(Some(Item::new_from_asset_expect(
                         match rand::thread_rng().gen_range(0..2) {
                             0 => "common.items.armor.foot.leather_0",
-                            _ => "common.items.armor.starter.sandals_0",
+                            _ => "common.items.armor.foot.sandals_0",
                         },
                     )))
                     .build(),

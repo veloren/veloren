@@ -1,12 +1,12 @@
 ItemDef(
     name: "Green Linen Belt",
     description: "A stylish rough fabric belt, dyed green.",
-    kind: Armor(
-        (
-            kind: Belt("ClothGreen0"),
-            stats: (
-                protection: Normal(1.0)),            
-        )
-    ),
+    kind: Armor((
+        kind: Belt("ClothGreen0"),
+        stats: (
+            protection: Normal(1.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
     quality: Common,
 )

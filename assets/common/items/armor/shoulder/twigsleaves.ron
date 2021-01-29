@@ -1,12 +1,12 @@
 ItemDef(
     name: "Leafy Shoulders",
     description: "Leaves cover over the twigs to provide better protection from the elements.",
-    kind: Armor(
-        (
-            kind: Shoulder("LeafyShoulder"),
-            stats: (
-                protection: Normal(9.0)),            
-        )
-    ),
+    kind: Armor((
+        kind: Shoulder("LeafyShoulder"),
+        stats: (
+            protection: Normal(9.0),
+            poise_resilience: Normal(2.0),
+        ),
+    )),
     quality: Common,
 )

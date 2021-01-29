@@ -1,12 +1,12 @@
 ItemDef(
     name: "Green Linen Coat",
     description: "A rough fabric coat, dyed green.",
-    kind: Armor(
-        (
-            kind: Shoulder("ClothGreen0"),
-            stats: (
-                protection: Normal(1.0)),            
-        )
-    ),
+    kind: Armor((
+        kind: Shoulder("ClothGreen0"),
+        stats: (
+            protection: Normal(1.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
     quality: Common,
 )

@@ -1,15 +1,14 @@
 ItemDef(
-    name: "Executioner's Axe",
+    name: "Executioner\'s Axe",
     description: "Dark rituals call for metal alloys to be formed in the blood of an animal carcass to ensure the resultant axe thirsts for future kills.",
-    kind: Tool(
-        (
-            kind: Axe,    
-            stats: (
-                equip_time_millis: 400,
-                power: 1.60,
-                speed: 1.0
-            ),            
-        )
-    ),
+    kind: Tool((
+        kind: Axe,
+        stats: (
+            equip_time_millis: 400,
+            power: 1.6,
+            poise_strength: 1.8,
+            speed: 1.0,
+        ),
+    )),
     quality: High,
 )

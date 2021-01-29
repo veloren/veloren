@@ -1,5 +1,5 @@
 use crate::{
-    comp::{shockwave, CharacterState, StateUpdate},
+    comp::{shockwave, CharacterState, PoiseChange, PoiseSource, StateUpdate},
     event::ServerEvent,
     states::{
         behavior::{CharacterBehavior, JoinData},
@@ -21,6 +21,8 @@ pub struct StaticData {
     pub recover_duration: Duration,
     /// Base damage
     pub damage: u32,
+    /// Base poise damage
+    pub poise_damage: u32,
     /// Knockback
     pub knockback: Knockback,
     /// Angle of the shockwave
@@ -83,10 +85,17 @@ impl CharacterBehavior for Data {
                         vertical_angle: self.static_data.shockwave_vertical_angle,
                         speed: self.static_data.shockwave_speed,
                         duration: self.static_data.shockwave_duration,
-                        damages: vec![(Some(GroupTarget::OutOfGroup), Damage {
-                            source: DamageSource::Shockwave,
-                            value: self.static_data.damage as f32,
-                        })],
+                        effects: vec![(
+                            Some(GroupTarget::OutOfGroup),
+                            Damage {
+                                source: DamageSource::Shockwave,
+                                value: self.static_data.damage as f32,
+                            },
+                            PoiseChange {
+                                amount: -(self.static_data.poise_damage as i32),
+                                source: PoiseSource::Attack,
+                            },
+                        )],
                         knockback: self.static_data.knockback,
                         requires_ground: self.static_data.requires_ground,
                         owner: Some(*data.uid),

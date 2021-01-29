@@ -1,15 +1,14 @@
 ItemDef(
     name: "Beast Cleaver",
     description: "A rough cut axe created by orcs to cleave beasts in two.",
-    kind: Tool(
-        (
-            kind: Axe,    
-            stats: (
-                equip_time_millis: 400,
-                power: 0.60,
-                speed: 1.0
-            ),            
-        )
-    ),
+    kind: Tool((
+        kind: Axe,
+        stats: (
+            equip_time_millis: 400,
+            power: 0.6,
+            poise_strength: 1.5,
+            speed: 1.0,
+        ),
+    )),
     quality: Low,
 )

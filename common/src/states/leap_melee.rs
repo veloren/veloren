@@ -1,5 +1,5 @@
 use crate::{
-    comp::{Attacking, CharacterState, StateUpdate},
+    comp::{Attacking, CharacterState, PoiseChange, PoiseSource, StateUpdate},
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::{StageSection, *},
@@ -22,6 +22,8 @@ pub struct StaticData {
     pub recover_duration: Duration,
     /// Base damage
     pub base_damage: u32,
+    /// Base poise damage
+    pub base_poise_damage: u32,
     /// Knockback
     pub knockback: f32,
     /// Max range
@@ -147,10 +149,17 @@ impl CharacterBehavior for Data {
                 if !self.exhausted {
                     // Hit attempt, when animation plays
                     data.updater.insert(data.entity, Attacking {
-                        damages: vec![(Some(GroupTarget::OutOfGroup), Damage {
-                            source: DamageSource::Melee,
-                            value: self.static_data.base_damage as f32,
-                        })],
+                        effects: vec![(
+                            Some(GroupTarget::OutOfGroup),
+                            Damage {
+                                source: DamageSource::Melee,
+                                value: self.static_data.base_damage as f32,
+                            },
+                            PoiseChange {
+                                amount: -(self.static_data.base_poise_damage as i32),
+                                source: PoiseSource::Attack,
+                            },
+                        )],
                         range: self.static_data.range,
                         max_angle: self.static_data.max_angle.to_radians(),
                         applied: false,

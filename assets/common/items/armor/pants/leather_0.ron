@@ -1,12 +1,12 @@
 ItemDef(
     name: "Swift Pants",
     description: "Swift like the wind.",
-    kind: Armor(
-        (
-            kind: Pants("Leather0"),
-            stats: (
-                protection: Normal(8.0)),            
-        )
-    ),
+    kind: Armor((
+        kind: Pants("Leather0"),
+        stats: (
+            protection: Normal(8.0),
+            poise_resilience: Normal(4.0),
+        ),
+    )),
     quality: Common,
 )
