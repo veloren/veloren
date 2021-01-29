@@ -181,8 +181,8 @@ impl Body {
                 theropod::Species::Snowraptor => 1.5,
                 theropod::Species::Sandraptor => 1.5,
                 theropod::Species::Woodraptor => 1.5,
-                theropod::Species::Archaeos => 4.5,
-                theropod::Species::Odonto => 4.5,
+                theropod::Species::Archaeos => 3.5,
+                theropod::Species::Odonto => 3.5,
                 _ => 1.8,
             },
             Body::BirdMedium(_) => 1.0,
@@ -610,12 +610,7 @@ impl Body {
         }
     }
 
-    pub fn base_poise_dmg(&self) -> u32 {
-        match self {
-            Body::Humanoid(_) => 5,
-            _ => 10,
-        }
-    }
+    pub fn base_poise_dmg(&self) -> u32 { 0 }
 
     pub fn base_range(&self) -> f32 {
         match self {
