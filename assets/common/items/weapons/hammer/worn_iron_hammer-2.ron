@@ -1,15 +1,14 @@
 ItemDef(
     name: "Worn Human Mace",
     description: "An unremarkable mace, that has seen a lot of use.",
-    kind: Tool(
-        (
-            kind: Hammer,    
-            stats: (
-                equip_time_millis: 500,
-                power: 0.85,
-                speed: 1.0
-            ),            
-        )
-    ),
+    kind: Tool((
+        kind: Hammer,
+        stats: (
+            equip_time_millis: 500,
+            power: 0.85,
+            poise_strength: 0.7,
+            speed: 1.0,
+        ),
+    )),
     quality: Common,
 )

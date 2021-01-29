@@ -1,13 +1,12 @@
 ItemDef(
     name: "Leather Cuirass",
     description: "A cuirass made of simple leather.",
-    kind: Armor(
-        (
-            kind: Chest("Leather2"),
-            stats: (
-                protection: Normal(10.0)
-                ),            
-        )
-    ),
+    kind: Armor((
+        kind: Chest("Leather2"),
+        stats: (
+            protection: Normal(10.0),
+            poise_resilience: Normal(8.0),
+        ),
+    )),
     quality: Moderate,
 )

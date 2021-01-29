@@ -68,7 +68,6 @@ impl Damage {
     pub fn modify_damage(self, inventory: Option<&Inventory>, uid: Option<Uid>) -> HealthChange {
         let mut damage = self.value;
         let damage_reduction = inventory.map_or(0.0, |inv| Damage::compute_damage_reduction(inv));
-
         match self.source {
             DamageSource::Melee => {
                 // Critical hit

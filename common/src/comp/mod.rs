@@ -19,6 +19,7 @@ mod location;
 mod misc;
 mod phys;
 mod player;
+pub mod poise;
 pub mod projectile;
 pub mod shockwave;
 pub mod skills;
@@ -65,6 +66,7 @@ pub use phys::{
     Sticky, Vel,
 };
 pub use player::Player;
+pub use poise::{Poise, PoiseChange, PoiseSource, PoiseState};
 pub use projectile::{Projectile, ProjectileConstructor};
 pub use shockwave::{Shockwave, ShockwaveHitEntities};
 pub use skills::{Skill, SkillGroup, SkillGroupKind, SkillSet};

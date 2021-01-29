@@ -1,13 +1,12 @@
 ItemDef(
     name: "Iron Handguards",
     description: "Heavy chunks of metal plate, not the most comfortable but keeps the wearer safe.",
-    kind: Armor(
-        (
-            kind: Hand("Plate0"),
-            stats: (
-                protection: Normal(8.0)
-                ),            
-        )
-    ),
+    kind: Armor((
+        kind: Hand("Plate0"),
+        stats: (
+            protection: Normal(8.0),
+            poise_resilience: Normal(11.0),
+        ),
+    )),
     quality: Moderate,
 )

@@ -1,15 +1,14 @@
 ItemDef(
     name: "Tribal Axe",
-    description: "Some tribes call for metal alloys to be formed in the blood of an animal carcass to ensure the resultant axe is honed for striking their enemy's veins.",
-    kind: Tool(
-        (
-            kind: Axe,    
-            stats: (
-                equip_time_millis: 400,
-                power: 1.60,
-                speed: 1.0
-            ),            
-        )
-    ),
+    description: "Some tribes call for metal alloys to be formed in the blood of an animal carcass to ensure the resultant axe is honed for striking their enemy\'s veins.",
+    kind: Tool((
+        kind: Axe,
+        stats: (
+            equip_time_millis: 400,
+            power: 1.6,
+            poise_strength: 1.4,
+            speed: 1.0,
+        ),
+    )),
     quality: High,
 )

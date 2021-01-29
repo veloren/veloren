@@ -1,12 +1,12 @@
 ItemDef(
     name: "Velorite Mantle",
     description: "Ceremonial attire used by members.",
-    kind: Armor(
-        (
-            kind: Shoulder("VeloriteMage0"),
-            stats: (
-                protection: Normal(18.0)),            
-        )
-    ),
+    kind: Armor((
+        kind: Shoulder("VeloriteMage0"),
+        stats: (
+            protection: Normal(18.0),
+            poise_resilience: Normal(10.0),
+        ),
+    )),
     quality: Epic,
 )

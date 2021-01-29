@@ -1,5 +1,5 @@
 use common::{
-    comp::{HealthSource, Object, PhysicsState, Pos, Vel},
+    comp::{HealthSource, Object, PhysicsState, PoiseChange, PoiseSource, Pos, Vel},
     effect::Effect,
     event::{EventBus, ServerEvent},
     resources::DeltaTime,
@@ -56,6 +56,13 @@ impl<'a> System<'a> for Sys {
                                             value: 500.0,
                                         }),
                                     ),
+                                    RadiusEffect::Entity(
+                                        None,
+                                        Effect::PoiseChange(PoiseChange {
+                                            source: PoiseSource::Explosion,
+                                            amount: -100,
+                                        }),
+                                    ),
                                     RadiusEffect::TerrainDestruction(4.0),
                                 ],
                                 radius: 12.0,
@@ -81,6 +88,13 @@ impl<'a> System<'a> for Sys {
                                         Effect::Damage(Damage {
                                             source: DamageSource::Explosion,
                                             value: 50.0,
+                                        }),
+                                    ),
+                                    RadiusEffect::Entity(
+                                        None,
+                                        Effect::PoiseChange(PoiseChange {
+                                            source: PoiseSource::Explosion,
+                                            amount: -40,
                                         }),
                                     ),
                                     RadiusEffect::TerrainDestruction(4.0),

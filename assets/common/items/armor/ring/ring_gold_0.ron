@@ -1,12 +1,12 @@
 ItemDef(
     name: "Gold Ring",
     description: "Someone is surely missing it...",
-    kind: Armor(
-        (
-            kind: Ring("RingGold0"),
-            stats: (
-                protection: Normal(0.5)),            
-        )
-    ),
+    kind: Armor((
+        kind: Ring("RingGold0"),
+        stats: (
+            protection: Normal(0.5),
+            poise_resilience: Normal(0.0),
+        ),
+    )),
     quality: Moderate,
 )

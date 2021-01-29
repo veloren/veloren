@@ -103,6 +103,7 @@ impl<'a> System<'a> for Sys {
                     comp::Body::Humanoid(_) => entity.get_loadout(),
                     _ => LoadoutBuilder::new().build(),
                 },
+                poise: comp::Poise::new(body),
                 body,
                 agent: Some(comp::Agent::new(
                     None,

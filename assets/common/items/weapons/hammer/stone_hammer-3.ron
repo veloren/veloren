@@ -1,15 +1,14 @@
 ItemDef(
     name: "Stone Sledgehammer",
     description: "A heavy rock with a slot worn through to fasten it in place. Brutal in its simple design, but still functional.",
-    kind: Tool(
-        (
-            kind: Hammer,    
-            stats: (
-                equip_time_millis: 500,
-                power: 0.70,
-                speed: 1.0
-            ),            
-        )
-    ),
+    kind: Tool((
+        kind: Hammer,
+        stats: (
+            equip_time_millis: 500,
+            power: 0.7,
+            poise_strength: 1.8,
+            speed: 1.0,
+        ),
+    )),
     quality: Low,
 )

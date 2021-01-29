@@ -35,6 +35,7 @@ pub trait StateExt {
         pos: comp::Pos,
         stats: comp::Stats,
         health: comp::Health,
+        poise: comp::Poise,
         inventory: comp::Inventory,
         body: comp::Body,
     ) -> EcsEntityBuilder;
@@ -95,6 +96,23 @@ impl StateExt for State {
                     .get_mut(entity)
                     .map(|mut health| health.change_by(change));
             },
+            Effect::PoiseChange(poise_damage) => {
+                let inventories = self.ecs().read_storage::<Inventory>();
+                let change = poise_damage.modify_poise_damage(inventories.get(entity));
+                // Check to make sure the entity is not already stunned
+                if let Some(character_state) = self
+                    .ecs()
+                    .read_storage::<comp::CharacterState>()
+                    .get(entity)
+                {
+                    if !character_state.is_stunned() {
+                        self.ecs()
+                            .write_storage::<comp::Poise>()
+                            .get_mut(entity)
+                            .map(|mut poise| poise.change_by(change, Vec3::zero()));
+                    }
+                }
+            },
             Effect::Buff(buff) => {
                 self.ecs()
                     .write_storage::<comp::Buffs>()
@@ -116,6 +134,7 @@ impl StateExt for State {
         pos: comp::Pos,
         stats: comp::Stats,
         health: comp::Health,
+        poise: comp::Poise,
         inventory: comp::Inventory,
         body: comp::Body,
     ) -> EcsEntityBuilder {
@@ -149,6 +168,7 @@ impl StateExt for State {
             ))
             .with(stats)
             .with(health)
+            .with(poise)
             .with(comp::Alignment::Npc)
             .with(comp::Gravity(1.0))
             .with(comp::CharacterState::default())
@@ -292,6 +312,7 @@ impl StateExt for State {
             );
             self.write_component(entity, comp::Health::new(body, health_level));
             self.write_component(entity, comp::Energy::new(body, energy_level));
+            self.write_component(entity, comp::Poise::new(body));
             self.write_component(entity, stats);
             self.write_component(entity, inventory);
             self.write_component(

@@ -1,15 +1,14 @@
 ItemDef(
     name: "A Tattered Targe",
     description: "Should withstand a few more hits, hopefully...",
-    kind: Tool (
-        (
-            kind: Shield,
-            stats: (
-                equip_time_millis: 400,
-                power: 1.00,
-                speed: 1.0
-            ),            
-        )
-    ),
+    kind: Tool((
+        kind: Shield,
+        stats: (
+            equip_time_millis: 400,
+            power: 1.0,
+            poise_strength: 1.0,
+            speed: 1.0,
+        ),
+    )),
     quality: Common,
 )

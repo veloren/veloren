@@ -1,13 +1,12 @@
 ItemDef(
     name: "Agile Gauntlets",
-    description: "'Tightly packed pieces of leather to endure all weather.'",
-    kind: Armor(
-        (
-            kind: Hand("Leather2"),
-            stats: (
-                protection: Normal(4.0)
-                ),            
-        )
-    ),
+    description: "\'Tightly packed pieces of leather to endure all weather.\'",
+    kind: Armor((
+        kind: Hand("Leather2"),
+        stats: (
+            protection: Normal(4.0),
+            poise_resilience: Normal(4.0),
+        ),
+    )),
     quality: Moderate,
 )

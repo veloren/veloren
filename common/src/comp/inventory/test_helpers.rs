@@ -15,6 +15,7 @@ pub(super) fn get_test_bag(slots: u16) -> Item {
         ItemKind::Armor(armor::Armor::test_armor(
             ArmorKind::Bag("Test Bag".to_string()),
             Protection::Normal(0.0),
+            Protection::Normal(0.0),
         )),
         Quality::Common,
         slots,

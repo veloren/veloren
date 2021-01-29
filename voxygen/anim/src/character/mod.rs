@@ -22,7 +22,9 @@ pub mod sit;
 pub mod sneak;
 pub mod spin;
 pub mod spinmelee;
+pub mod staggered;
 pub mod stand;
+pub mod stunned;
 pub mod swim;
 pub mod swimwield;
 pub mod wield;
@@ -36,8 +38,8 @@ pub use self::{
     jump::JumpAnimation, leapmelee::LeapAnimation, repeater::RepeaterAnimation,
     roll::RollAnimation, run::RunAnimation, shockwave::ShockwaveAnimation, shoot::ShootAnimation,
     sit::SitAnimation, sneak::SneakAnimation, spin::SpinAnimation, spinmelee::SpinMeleeAnimation,
-    stand::StandAnimation, swim::SwimAnimation, swimwield::SwimWieldAnimation,
-    wield::WieldAnimation,
+    staggered::StaggeredAnimation, stand::StandAnimation, stunned::StunnedAnimation,
+    swim::SwimAnimation, swimwield::SwimWieldAnimation, wield::WieldAnimation,
 };
 use super::{make_bone, vek::*, FigureBoneData, Skeleton};
 use common::comp;

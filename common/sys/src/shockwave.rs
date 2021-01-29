@@ -191,7 +191,7 @@ impl<'a> System<'a> for Sys {
                     && (!shockwave.requires_ground || physics_state_b.on_ground);
 
                 if hit {
-                    for (target, damage) in shockwave.damages.iter() {
+                    for (target, damage, poise_damage) in shockwave.effects.iter() {
                         if let Some(target) = target {
                             if *target != target_group {
                                 continue;
@@ -200,6 +200,7 @@ impl<'a> System<'a> for Sys {
 
                         let owner_uid = shockwave.owner.unwrap_or(*uid);
                         let change = damage.modify_damage(inventories.get(b), Some(owner_uid));
+                        let poise_change = poise_damage.modify_poise_damage(inventories.get(b));
 
                         server_emitter.emit(ServerEvent::Damage { entity: b, change });
                         shockwave_hit_list.hit_entities.push(*uid_b);
@@ -209,6 +210,11 @@ impl<'a> System<'a> for Sys {
                         if !impulse.is_approx_zero() {
                             server_emitter.emit(ServerEvent::Knockback { entity: b, impulse });
                         }
+                        server_emitter.emit(ServerEvent::PoiseChange {
+                            entity: b,
+                            change: poise_change,
+                            kb_dir: *kb_dir,
+                        });
                     }
                 }
             }

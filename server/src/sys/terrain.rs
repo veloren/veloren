@@ -152,6 +152,7 @@ impl<'a> System<'a> for Sys {
                     LoadoutBuilder::build_loadout(body, main_tool, loadout_config).build();
 
                 let health = comp::Health::new(body, entity.level.unwrap_or(0));
+                let poise = comp::Poise::new(body);
 
                 let can_speak = match body {
                     comp::Body::Humanoid(_) => alignment == comp::Alignment::Npc,
@@ -176,6 +177,7 @@ impl<'a> System<'a> for Sys {
                     pos: Pos(entity.pos),
                     stats,
                     health,
+                    poise,
                     loadout,
                     agent: if entity.has_agency {
                         Some(comp::Agent::new(

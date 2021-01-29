@@ -2,8 +2,8 @@ use super::SysTimer;
 use common::{
     comp::{
         Auras, BeamSegment, Body, Buffs, CanBuild, CharacterState, Collider, Energy, Gravity,
-        Group, Health, Inventory, Item, LightEmitter, Mass, MountState, Mounting, Ori, Player, Pos,
-        Scale, Shockwave, Stats, Sticky, Vel,
+        Group, Health, Inventory, Item, LightEmitter, Mass, MountState, Mounting, Ori, Player,
+        Poise, Pos, Scale, Shockwave, Stats, Sticky, Vel,
     },
     span,
     uid::Uid,
@@ -51,6 +51,7 @@ pub struct TrackedComps<'a> {
     pub auras: ReadStorage<'a, Auras>,
     pub energy: ReadStorage<'a, Energy>,
     pub health: ReadStorage<'a, Health>,
+    pub poise: ReadStorage<'a, Poise>,
     pub can_build: ReadStorage<'a, CanBuild>,
     pub light_emitter: ReadStorage<'a, LightEmitter>,
     pub item: ReadStorage<'a, Item>,
@@ -104,6 +105,10 @@ impl<'a> TrackedComps<'a> {
             .cloned()
             .map(|c| comps.push(c.into()));
         self.health
+            .get(entity)
+            .cloned()
+            .map(|c| comps.push(c.into()));
+        self.poise
             .get(entity)
             .cloned()
             .map(|c| comps.push(c.into()));
@@ -179,6 +184,7 @@ pub struct ReadTrackers<'a> {
     pub auras: ReadExpect<'a, UpdateTracker<Auras>>,
     pub energy: ReadExpect<'a, UpdateTracker<Energy>>,
     pub health: ReadExpect<'a, UpdateTracker<Health>>,
+    pub poise: ReadExpect<'a, UpdateTracker<Poise>>,
     pub can_build: ReadExpect<'a, UpdateTracker<CanBuild>>,
     pub light_emitter: ReadExpect<'a, UpdateTracker<LightEmitter>>,
     pub inventory: ReadExpect<'a, UpdateTracker<Inventory>>,
@@ -212,6 +218,7 @@ impl<'a> ReadTrackers<'a> {
             .with_component(&comps.uid, &*self.auras, &comps.auras, filter)
             .with_component(&comps.uid, &*self.energy, &comps.energy, filter)
             .with_component(&comps.uid, &*self.health, &comps.health, filter)
+            .with_component(&comps.uid, &*self.poise, &comps.poise, filter)
             .with_component(&comps.uid, &*self.can_build, &comps.can_build, filter)
             .with_component(
                 &comps.uid,
@@ -252,6 +259,7 @@ pub struct WriteTrackers<'a> {
     auras: WriteExpect<'a, UpdateTracker<Auras>>,
     energy: WriteExpect<'a, UpdateTracker<Energy>>,
     health: WriteExpect<'a, UpdateTracker<Health>>,
+    poise: WriteExpect<'a, UpdateTracker<Poise>>,
     can_build: WriteExpect<'a, UpdateTracker<CanBuild>>,
     light_emitter: WriteExpect<'a, UpdateTracker<LightEmitter>>,
     item: WriteExpect<'a, UpdateTracker<Item>>,
@@ -279,6 +287,7 @@ fn record_changes(comps: &TrackedComps, trackers: &mut WriteTrackers) {
     trackers.auras.record_changes(&comps.auras);
     trackers.energy.record_changes(&comps.energy);
     trackers.health.record_changes(&comps.health);
+    trackers.poise.record_changes(&comps.poise);
     trackers.can_build.record_changes(&comps.can_build);
     trackers.light_emitter.record_changes(&comps.light_emitter);
     trackers.item.record_changes(&comps.item);
@@ -319,6 +328,7 @@ fn record_changes(comps: &TrackedComps, trackers: &mut WriteTrackers) {
     log_counts!(stats, "Stats");
     log_counts!(energy, "Energies");
     log_vounts!(health, "Healths");
+    log_vounts!(poise, "Poises");
     log_counts!(light_emitter, "Light emitters");
     log_counts!(item, "Items");
     log_counts!(scale, "Scales");
@@ -344,6 +354,7 @@ pub fn register_trackers(world: &mut World) {
     world.register_tracker::<Auras>();
     world.register_tracker::<Energy>();
     world.register_tracker::<Health>();
+    world.register_tracker::<Poise>();
     world.register_tracker::<CanBuild>();
     world.register_tracker::<LightEmitter>();
     world.register_tracker::<Item>();

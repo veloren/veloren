@@ -1,13 +1,12 @@
 ItemDef(
     name: "Twig Wraps",
     description: "Magically imbued twigs interlocked into simple hand wraps.",
-    kind: Armor(
-        (
-            kind: Hand("Twig"),
-            stats: (
-                protection: Normal(6.0)
-                ),            
-        )
-    ),
+    kind: Armor((
+        kind: Hand("Twig"),
+        stats: (
+            protection: Normal(6.0),
+            poise_resilience: Normal(6.0),
+        ),
+    )),
     quality: Moderate,
 )

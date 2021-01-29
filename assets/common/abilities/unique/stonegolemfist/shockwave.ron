@@ -4,6 +4,7 @@ Shockwave(
     swing_duration: 200,
     recover_duration: 800,
     damage: 500,
+    poise_damage: 0,
     knockback: TowardsUp(40.0),
     shockwave_angle: 90.0,
     shockwave_vertical_angle: 90.0,

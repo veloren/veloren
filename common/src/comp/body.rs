@@ -444,6 +444,14 @@ impl Body {
     // TODO: Match on species
     pub fn combat_multiplier(&self) -> f32 { if let Body::Object(_) = self { 0.0 } else { 1.0 } }
 
+    pub fn base_poise(&self) -> u32 {
+        match self {
+            Body::Humanoid(_) => 100,
+            Body::BipedLarge(_) => 200,
+            _ => 100,
+        }
+    }
+
     #[allow(unreachable_patterns)]
     pub fn base_exp(&self) -> u32 {
         match self {
@@ -599,6 +607,13 @@ impl Body {
                 quadruped_low::Species::Hakulaq => 40,
                 _ => 20,
             },
+        }
+    }
+
+    pub fn base_poise_dmg(&self) -> u32 {
+        match self {
+            Body::Humanoid(_) => 5,
+            _ => 10,
         }
     }
 

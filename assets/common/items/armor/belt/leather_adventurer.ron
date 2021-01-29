@@ -1,13 +1,12 @@
 ItemDef(
     name: "Agile Belt",
-    description: "'Tightly packed pieces of leather to endure all weather.'",
-    kind: Armor(
-        (
-            kind: Belt("Leather2"),
-            stats: (
-                protection: Normal(1.0)
-                ),            
-        )
-    ),
+    description: "\'Tightly packed pieces of leather to endure all weather.\'",
+    kind: Armor((
+        kind: Belt("Leather2"),
+        stats: (
+            protection: Normal(1.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
     quality: Moderate,
 )

@@ -1,13 +1,14 @@
 ItemDef(
     name: "Frost Saw",
-    description: "Forged from a single piece\nof eternal ice.",
-    kind: Tool(
-       (
-            kind: Sword,
-            stats: (
-                equip_time_millis: 500,
-                power: 1.95),            
-        )
-    ),
+    description: "Forged from a single piece of eternal ice.",
+    kind: Tool((
+        kind: Sword,
+        stats: (
+            equip_time_millis: 500,
+            power: 1.95,
+            poise_strength: 1.7,
+            speed: 1.0,
+        ),
+    )),
     quality: Epic,
 )

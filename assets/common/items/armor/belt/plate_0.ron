@@ -1,13 +1,12 @@
 ItemDef(
     name: "Iron Belt",
     description: "A tanned leather belt with a forged iron buckle.",
-    kind: Armor(
-        (
-            kind: Belt("Plate0"),
-            stats: (
-                protection: Normal(3.0)
-                ),            
-        )
-    ),
+    kind: Armor((
+        kind: Belt("Plate0"),
+        stats: (
+            protection: Normal(3.0),
+            poise_resilience: Normal(4.0),
+        ),
+    )),
     quality: Moderate,
 )

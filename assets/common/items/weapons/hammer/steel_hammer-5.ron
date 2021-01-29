@@ -1,15 +1,14 @@
 ItemDef(
     name: "Morning Star",
     description: "A spiked ball designed to resemble the stars lining the night sky.",
-    kind: Tool(
-        (
-            kind: Hammer,    
-            stats: (
-                equip_time_millis: 500,
-                power: 1.40,
-                speed: 1.0
-                ),            
-        )
-    ),
+    kind: Tool((
+        kind: Hammer,
+        stats: (
+            equip_time_millis: 500,
+            power: 1.4,
+            poise_strength: 1.3,
+            speed: 1.0,
+        ),
+    )),
     quality: Moderate,
 )

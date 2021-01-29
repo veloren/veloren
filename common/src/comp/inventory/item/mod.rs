@@ -352,6 +352,7 @@ impl Item {
                     swing_duration: 100,
                     recover_duration: 100,
                     base_damage: body.base_dmg(),
+                    base_poise_damage: body.base_poise_dmg(),
                     knockback: 0.0,
                     range: body.base_range(),
                     max_angle: 20.0,

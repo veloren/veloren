@@ -1,12 +1,12 @@
 ItemDef(
     name: "Agile Cape",
-    description: "'Tightly packed pieces of leather to endure all weather.'",
-    kind: Armor(
-        (
-            kind: Back("Short2"),
-            stats: (
-                protection: Normal(0.2)),            
-        )
-    ),
+    description: "\'Tightly packed pieces of leather to endure all weather.\'",
+    kind: Armor((
+        kind: Back("Short2"),
+        stats: (
+            protection: Normal(0.2),
+            poise_resilience: Normal(0.1),
+        ),
+    )),
     quality: Common,
 )

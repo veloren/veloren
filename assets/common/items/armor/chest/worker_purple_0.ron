@@ -1,12 +1,12 @@
 ItemDef(
     name: "Purple Worker Shirt",
     description: "Was used by a farmer, until recently.",
-    kind: Armor(
-        (
-            kind: Chest("WorkerPurple0"),
-            stats: (
-                protection: Normal(1.0)),            
-        )
-    ),
+    kind: Armor((
+        kind: Chest("WorkerPurple0"),
+        stats: (
+            protection: Normal(1.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
     quality: Low,
 )

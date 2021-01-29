@@ -1,12 +1,12 @@
 ItemDef(
     name: "Warlord Helmet",
     description: "Belong to a mighty warlord.",
-    kind: Armor(
-        (
-            kind: Head("Warlord"),
-            stats: (
-                protection: Normal(10.0)),            
-        )
-    ),
+    kind: Armor((
+        kind: Head("Warlord"),
+        stats: (
+            protection: Normal(10.0),
+            poise_resilience: Normal(10.0),
+        ),
+    )),
     quality: Common,
 )

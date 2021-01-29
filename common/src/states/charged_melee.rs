@@ -1,5 +1,8 @@
 use crate::{
-    comp::{Attacking, CharacterState, EnergyChange, EnergySource, StateUpdate},
+    comp::{
+        Attacking, CharacterState, EnergyChange, EnergySource, PoiseChange, PoiseSource,
+        StateUpdate,
+    },
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::{StageSection, *},
@@ -20,6 +23,10 @@ pub struct StaticData {
     pub initial_damage: u32,
     /// How much the damage is scaled by
     pub scaled_damage: u32,
+    /// How much poise damage is dealt with no charge
+    pub initial_poise_damage: u32,
+    /// How much poise damage is scaled by
+    pub scaled_poise_damage: u32,
     /// How much knockback there is with no charge
     pub initial_knockback: f32,
     /// How much the knockback is scaled by
@@ -153,12 +160,18 @@ impl CharacterBehavior for Data {
                         value: self.static_data.initial_damage as f32
                             + self.charge_amount * self.static_data.scaled_damage as f32,
                     };
+                    let poise_damage = PoiseChange {
+                        amount: -(self.static_data.initial_poise_damage as f32
+                            + self.charge_amount * self.static_data.scaled_poise_damage as f32)
+                            as i32,
+                        source: PoiseSource::Attack,
+                    };
                     let knockback = self.static_data.initial_knockback
                         + self.charge_amount * self.static_data.scaled_knockback;
 
                     // Hit attempt
                     data.updater.insert(data.entity, Attacking {
-                        damages: vec![(Some(GroupTarget::OutOfGroup), damage)],
+                        effects: vec![(Some(GroupTarget::OutOfGroup), damage, poise_damage)],
                         range: self.static_data.range,
                         max_angle: self.static_data.max_angle.to_radians(),
                         applied: false,

@@ -1,15 +1,14 @@
 ItemDef(
     name: "Steel Hammer",
     description: "While lighter and more durable than its iron counterparts, it is nonetheless just as deadly.",
-    kind: Tool(
-        (
-            kind: Hammer,    
-            stats: (
-                equip_time_millis: 500,
-                power: 1.40,
-                speed: 1.0
-                ),            
-        )
-    ),
+    kind: Tool((
+        kind: Hammer,
+        stats: (
+            equip_time_millis: 500,
+            power: 1.4,
+            poise_strength: 1.5,
+            speed: 1.0,
+        ),
+    )),
     quality: Moderate,
 )

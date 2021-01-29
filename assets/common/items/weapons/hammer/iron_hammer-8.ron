@@ -1,15 +1,14 @@
 ItemDef(
     name: "Pike Hammer",
     description: "This hammer has a spike on the opposite end, making it dangerous when swung either direction.",
-    kind: Tool(
-        (
-            kind: Hammer,    
-            stats: (
-                equip_time_millis: 500,
-                power: 1.20,
-                speed: 1.0
-            ),            
-        )
-    ),
+    kind: Tool((
+        kind: Hammer,
+        stats: (
+            equip_time_millis: 500,
+            power: 1.2,
+            poise_strength: 0.8,
+            speed: 1.0,
+        ),
+    )),
     quality: Common,
 )
