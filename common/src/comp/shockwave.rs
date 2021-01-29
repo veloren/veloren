@@ -4,7 +4,7 @@ use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
 use std::time::Duration;
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Properties {
     pub angle: f32,
     pub vertical_angle: f32,
@@ -16,7 +16,7 @@ pub struct Properties {
     pub owner: Option<Uid>,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Shockwave {
     pub properties: Properties,
     #[serde(skip)]

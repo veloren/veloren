@@ -21,10 +21,10 @@ pub enum Effect {
     Vanish,
     Stick,
     Possess,
-    /*Buff {
-     *    buff: BuffEffect,
-     *    chance: Option<f32>, */
-    /*  */
+    /* Buff {
+     *     buff: BuffEffect,
+     *     chance: Option<f32>,
+     * }, */
 }
 
 #[derive(Debug, Serialize, Deserialize)]
