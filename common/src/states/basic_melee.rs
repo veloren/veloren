@@ -103,7 +103,7 @@ impl CharacterBehavior for Data {
                     let energy = AttackEffect::EnergyReward(50);
                     let energy = EffectComponent::new(None, energy)
                         .with_requirement(CombatRequirement::AnyDamage);
-                    let buff = AttackEffect::Buff(CombatBuff::default_melee());
+                    let buff = AttackEffect::Buff(CombatBuff::default_physical());
                     let damage = DamageComponent::new(damage, Some(GroupTarget::OutOfGroup))
                         .with_effect(knockback)
                         .with_effect(buff);

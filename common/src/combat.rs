@@ -469,7 +469,7 @@ impl CombatBuff {
         )
     }
 
-    pub fn default_melee() -> Self {
+    pub fn default_physical() -> Self {
         Self {
             kind: BuffKind::Bleeding,
             dur_secs: 10.0,
