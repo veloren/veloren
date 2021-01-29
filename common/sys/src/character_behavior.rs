@@ -171,7 +171,7 @@ impl<'a> System<'a> for Sys {
                             CharacterState::Stunned(common::states::stunned::Data {
                                 static_data: common::states::stunned::StaticData {
                                     buildup_duration: Duration::from_millis(500),
-                                    recover_duration: Duration::from_millis(500),
+                                    recover_duration: Duration::from_millis(300),
                                     movement_speed: 0.1,
                                     poise_state,
                                 },
@@ -189,8 +189,8 @@ impl<'a> System<'a> for Sys {
                         *tuple.2.get_mut_unchecked() =
                             CharacterState::Stunned(common::states::stunned::Data {
                                 static_data: common::states::stunned::StaticData {
-                                    buildup_duration: Duration::from_millis(1000),
-                                    recover_duration: Duration::from_millis(1000),
+                                    buildup_duration: Duration::from_millis(800),
+                                    recover_duration: Duration::from_millis(250),
                                     movement_speed: 0.0,
                                     poise_state,
                                 },
@@ -208,8 +208,8 @@ impl<'a> System<'a> for Sys {
                         *tuple.2.get_mut_unchecked() =
                             CharacterState::Stunned(common::states::stunned::Data {
                                 static_data: common::states::stunned::StaticData {
-                                    buildup_duration: Duration::from_millis(3000),
-                                    recover_duration: Duration::from_millis(500),
+                                    buildup_duration: Duration::from_millis(1000),
+                                    recover_duration: Duration::from_millis(750),
                                     movement_speed: 0.0,
                                     poise_state,
                                 },
