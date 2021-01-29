@@ -32,7 +32,7 @@
             files: [
                 "voxygen.audio.sfx.ambient.crickets_1",
             ],
-            threshold: 3.0,
+            threshold: 1.0,
         ),
         Frog: (
             files: [
