@@ -156,7 +156,7 @@ impl CharacterBehavior for Data {
                         strength: self.static_data.knockback,
                         direction: KnockbackDir::Away,
                     });
-                    let buff = AttackEffect::Buff(CombatBuff::default_melee());
+                    let buff = AttackEffect::Buff(CombatBuff::default_physical());
                     let damage = DamageComponent::new(damage, Some(GroupTarget::OutOfGroup))
                         .with_effect(knockback)
                         .with_effect(buff);

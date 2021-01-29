@@ -1,30 +1,33 @@
 use crate::{
-    comp::buff::{BuffCategory, BuffData, BuffKind},
-    effect::{self, BuffEffect},
+    combat::{
+        Attack, AttackEffect, CombatBuff, CombatRequirement, Damage, DamageComponent, DamageSource,
+        EffectComponent, GroupTarget, Knockback, KnockbackDir,
+    },
+    effect,
     uid::Uid,
-    Damage, DamageSource, Explosion, GroupTarget, Knockback, KnockbackDir, RadiusEffect,
+    Explosion, RadiusEffect,
 };
 use serde::{Deserialize, Serialize};
 use specs::Component;
 use specs_idvs::IdvStorage;
 use std::time::Duration;
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum Effect {
-    Damage(Option<GroupTarget>, Damage),
-    Knockback(Knockback),
-    RewardEnergy(u32),
+    Attack(Attack),
+    //Knockback(Knockback),
+    //RewardEnergy(u32),
     Explode(Explosion),
     Vanish,
     Stick,
     Possess,
-    Buff {
-        buff: BuffEffect,
-        chance: Option<f32>,
-    },
+    /*Buff {
+     *    buff: BuffEffect,
+     *    chance: Option<f32>, */
+    /*  */
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Projectile {
     // TODO: use SmallVec for these effects
     pub hit_solid: Vec<Effect>,
@@ -74,32 +77,29 @@ impl ProjectileConstructor {
                 knockback,
                 energy_regen,
             } => {
-                let buff = BuffEffect {
-                    kind: BuffKind::Bleeding,
-                    data: BuffData {
-                        strength: damage / 2.0,
-                        duration: Some(Duration::from_secs(5)),
-                    },
-                    cat_ids: vec![BuffCategory::Physical],
+                let damage = Damage {
+                    source: DamageSource::Projectile,
+                    value: damage,
                 };
+                let knockback = AttackEffect::Knockback(Knockback {
+                    strength: knockback,
+                    direction: KnockbackDir::Away,
+                });
+                let energy = AttackEffect::EnergyReward(energy_regen);
+                let energy = EffectComponent::new(None, energy)
+                    .with_requirement(CombatRequirement::AnyDamage);
+                let buff = AttackEffect::Buff(CombatBuff::default_physical());
+                let damage = DamageComponent::new(damage, Some(GroupTarget::OutOfGroup))
+                    .with_effect(knockback)
+                    .with_effect(buff);
+                let attack = Attack::default()
+                    .with_damage(damage)
+                    .with_crit(0.5, 1.2)
+                    .with_effect(energy);
+
                 Projectile {
                     hit_solid: vec![Effect::Stick],
-                    hit_entity: vec![
-                        Effect::Damage(Some(GroupTarget::OutOfGroup), Damage {
-                            source: DamageSource::Projectile,
-                            value: damage,
-                        }),
-                        Effect::Knockback(Knockback {
-                            strength: knockback,
-                            direction: KnockbackDir::Away,
-                        }),
-                        Effect::RewardEnergy(energy_regen),
-                        Effect::Vanish,
-                        Effect::Buff {
-                            buff,
-                            chance: Some(0.10),
-                        },
-                    ],
+                    hit_entity: vec![Effect::Attack(attack), Effect::Vanish],
                     time_left: Duration::from_secs(15),
                     owner,
                     ignore_group: true,
@@ -148,19 +148,24 @@ impl ProjectileConstructor {
             Firebolt {
                 damage,
                 energy_regen,
-            } => Projectile {
-                hit_solid: vec![Effect::Vanish],
-                hit_entity: vec![
-                    Effect::Damage(Some(GroupTarget::OutOfGroup), Damage {
-                        source: DamageSource::Energy,
-                        value: damage,
-                    }),
-                    Effect::RewardEnergy(energy_regen),
-                    Effect::Vanish,
-                ],
-                time_left: Duration::from_secs(10),
-                owner,
-                ignore_group: true,
+            } => {
+                let damage = Damage {
+                    source: DamageSource::Energy,
+                    value: damage,
+                };
+                let energy = AttackEffect::EnergyReward(energy_regen);
+                let energy = EffectComponent::new(None, energy)
+                    .with_requirement(CombatRequirement::AnyDamage);
+                let damage = DamageComponent::new(damage, Some(GroupTarget::OutOfGroup));
+                let attack = Attack::default().with_damage(damage).with_effect(energy);
+
+                Projectile {
+                    hit_solid: vec![Effect::Vanish],
+                    hit_entity: vec![Effect::Attack(attack), Effect::Vanish],
+                    time_left: Duration::from_secs(10),
+                    owner,
+                    ignore_group: true,
+                }
             },
             Heal {
                 heal,
