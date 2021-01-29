@@ -127,6 +127,18 @@ impl Attack {
                                 });
                             }
                         },
+                        AttackEffect::Lifesteal(l) => {
+                            let change = HealthChange {
+                                amount: (damage_damage * l) as i32,
+                                cause: HealthSource::Heal {
+                                    by: Some(attacker_uid),
+                                },
+                            };
+                            server_events.push(ServerEvent::Damage {
+                                entity: attacker_entity,
+                                change,
+                            });
+                        },
                     }
                 }
             }
@@ -169,6 +181,18 @@ impl Attack {
                                 ),
                             });
                         }
+                    },
+                    AttackEffect::Lifesteal(l) => {
+                        let change = HealthChange {
+                            amount: (accumulated_damage * l) as i32,
+                            cause: HealthSource::Heal {
+                                by: Some(attacker_uid),
+                            },
+                        };
+                        server_events.push(ServerEvent::Damage {
+                            entity: attacker_entity,
+                            change,
+                        });
                     },
                 }
             }
@@ -227,7 +251,7 @@ pub enum AttackEffect {
     Buff(CombatBuff),
     Knockback(Knockback),
     EnergyReward(u32),
-    //Lifesteal(f32),
+    Lifesteal(f32),
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

@@ -136,7 +136,9 @@ impl CharacterBehavior for Data {
                     let energy = AttackEffect::EnergyReward(self.static_data.energy_regen);
                     let energy = EffectComponent::new(None, energy)
                         .with_requirement(CombatRequirement::AnyDamage);
-                    let damage = DamageComponent::new(damage, Some(GroupTarget::OutOfGroup));
+                    let lifesteal = AttackEffect::Lifesteal(self.static_data.lifesteal_eff);
+                    let damage = DamageComponent::new(damage, Some(GroupTarget::OutOfGroup))
+                        .with_effect(lifesteal);
                     let attack = Attack::default().with_damage(damage).with_effect(energy);
 
                     let properties = beam::Properties {
