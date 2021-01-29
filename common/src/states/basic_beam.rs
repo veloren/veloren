@@ -1,4 +1,8 @@
 use crate::{
+    combat::{
+        Attack, AttackEffect, CombatRequirement, Damage, DamageComponent, DamageSource,
+        EffectComponent, GroupTarget,
+    },
     comp::{beam, Body, CharacterState, EnergyChange, EnergySource, Ori, Pos, StateUpdate},
     event::ServerEvent,
     states::{
@@ -6,7 +10,6 @@ use crate::{
         utils::*,
     },
     uid::Uid,
-    Damage, DamageSource, GroupTarget,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -129,16 +132,17 @@ impl CharacterBehavior for Data {
                     };
                     let speed =
                         self.static_data.range / self.static_data.beam_duration.as_secs_f32();
+
+                    let energy = AttackEffect::EnergyReward(self.static_data.energy_regen);
+                    let energy = EffectComponent::new(None, energy)
+                        .with_requirement(CombatRequirement::AnyDamage);
+                    let damage = DamageComponent::new(damage, Some(GroupTarget::OutOfGroup));
+                    let attack = Attack::default().with_damage(damage).with_effect(energy);
+
                     let properties = beam::Properties {
+                        attack,
                         angle: self.static_data.max_angle.to_radians(),
                         speed,
-                        damages: vec![
-                            (Some(GroupTarget::OutOfGroup), damage),
-                            (Some(GroupTarget::InGroup), heal),
-                        ],
-                        lifesteal_eff: self.static_data.lifesteal_eff,
-                        energy_regen: self.static_data.energy_regen,
-                        energy_cost: self.static_data.energy_cost,
                         duration: self.static_data.beam_duration,
                         owner: Some(*data.uid),
                     };

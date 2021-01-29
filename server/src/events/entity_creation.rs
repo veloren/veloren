@@ -170,7 +170,7 @@ pub fn handle_beam(server: &mut Server, properties: beam::Properties, pos: Pos, 
     let ecs = state.ecs();
     ecs.write_resource::<Vec<Outcome>>().push(Outcome::Beam {
         pos: pos.0,
-        heal: properties.lifesteal_eff > 0.0,
+        heal: false, //properties.lifesteal_eff > 0.0,
     });
     state.create_beam(properties, pos, ori).build();
 }

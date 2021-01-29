@@ -28,7 +28,7 @@ pub enum GroupTarget {
     OutOfGroup,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)] // TODO: Yeet clone derive
 pub struct Attack {
     damages: Vec<DamageComponent>,
     effects: Vec<EffectComponent>,
@@ -177,7 +177,7 @@ impl Attack {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct DamageComponent {
     damage: Damage,
     target: Option<GroupTarget>,
@@ -199,7 +199,7 @@ impl DamageComponent {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct EffectComponent {
     target: Option<GroupTarget>,
     effect: AttackEffect,
@@ -221,7 +221,7 @@ impl EffectComponent {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum AttackEffect {
     //Heal(f32),
     Buff(CombatBuff),
@@ -230,12 +230,12 @@ pub enum AttackEffect {
     //Lifesteal(f32),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum CombatRequirement {
     AnyDamage,
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub enum DamageSource {
     Buff(BuffKind),
     Melee,
