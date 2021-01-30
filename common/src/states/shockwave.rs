@@ -1,11 +1,14 @@
 use crate::{
-    comp::{shockwave, CharacterState, PoiseChange, PoiseSource, StateUpdate},
+    combat::{
+        Attack, AttackEffect, CombatRequirement, Damage, DamageComponent, DamageSource,
+        EffectComponent, GroupTarget, Knockback,
+    },
+    comp::{shockwave, CharacterState, StateUpdate},
     event::ServerEvent,
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
     },
-    Damage, DamageSource, GroupTarget, Knockback,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -80,23 +83,23 @@ impl CharacterBehavior for Data {
                     });
                 } else {
                     // Attack
+                    let damage = Damage {
+                        source: DamageSource::Shockwave,
+                        value: self.static_data.damage as f32,
+                    };
+                    let poise = AttackEffect::Poise(self.static_data.poise_damage as f32);
+                    let poise = EffectComponent::new(Some(GroupTarget::OutOfGroup), poise)
+                        .with_requirement(CombatRequirement::AnyDamage);
+                    let knockback = AttackEffect::Knockback(self.static_data.knockback);
+                    let damage = DamageComponent::new(damage, Some(GroupTarget::OutOfGroup))
+                        .with_effect(knockback);
+                    let attack = Attack::default().with_damage(damage).with_effect(poise);
                     let properties = shockwave::Properties {
                         angle: self.static_data.shockwave_angle,
                         vertical_angle: self.static_data.shockwave_vertical_angle,
                         speed: self.static_data.shockwave_speed,
                         duration: self.static_data.shockwave_duration,
-                        effects: vec![(
-                            Some(GroupTarget::OutOfGroup),
-                            Damage {
-                                source: DamageSource::Shockwave,
-                                value: self.static_data.damage as f32,
-                            },
-                            PoiseChange {
-                                amount: -(self.static_data.poise_damage as i32),
-                                source: PoiseSource::Attack,
-                            },
-                        )],
-                        knockback: self.static_data.knockback,
+                        attack,
                         requires_ground: self.static_data.requires_ground,
                         owner: Some(*data.uid),
                     };
