@@ -122,8 +122,7 @@ impl<'a> System<'a> for Sys {
 
             // Group to ignore collisions with
             // Might make this more nuanced if shockwaves are used for non damage effects
-            let group = shockwave_owner
-                .and_then(|e| groups.get(e));
+            let group = shockwave_owner.and_then(|e| groups.get(e));
 
             // Go through all other effectable entities
             for (

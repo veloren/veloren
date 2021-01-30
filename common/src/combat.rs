@@ -173,7 +173,7 @@ impl Attack {
             .filter(|e| !(matches!(e.target, Some(GroupTarget::OutOfGroup)) && target_dodging))
         {
             if match &effect.requirement {
-                Some(CombatRequirement::AnyDamage) => accumulated_damage != 0.0,
+                Some(CombatRequirement::AnyDamage) => accumulated_damage > 0.0,
                 Some(CombatRequirement::SufficientEnergy(r)) => {
                     if attacker_energy.map_or(true, |e| e.current() >= *r) {
                         server_events.push(ServerEvent::EnergyChange {
@@ -322,7 +322,6 @@ pub enum CombatRequirement {
 pub enum DamageSource {
     Buff(BuffKind),
     Melee,
-    Healing,
     Projectile,
     Explosion,
     Falling,
@@ -443,10 +442,6 @@ impl Damage {
                         by: uid,
                     },
                 }
-            },
-            DamageSource::Healing => HealthChange {
-                amount: damage as i32,
-                cause: HealthSource::Heal { by: uid },
             },
             DamageSource::Falling => {
                 // Armor
