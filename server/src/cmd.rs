@@ -1360,17 +1360,13 @@ fn handle_explosion(
                     pos: pos.0,
                     explosion: Explosion {
                         effects: vec![
-                            RadiusEffect::Entity(
-                                None,
-                                Effect::Damage(Damage {
-                                    source: DamageSource::Explosion,
-                                    value: 100.0 * power,
-                                }),
-                            ),
+                            RadiusEffect::Entity(Effect::Damage(Damage {
+                                source: DamageSource::Explosion,
+                                value: 100.0 * power,
+                            })),
                             RadiusEffect::TerrainDestruction(power),
                         ],
                         radius: 3.0 * power,
-                        energy_regen: 0,
                     },
                     owner: ecs.read_storage::<Uid>().get(target).copied(),
                     reagent: None,
