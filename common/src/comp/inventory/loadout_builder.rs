@@ -227,14 +227,10 @@ impl LoadoutBuilder {
                         ));
                     },
                 },
-                #[allow(clippy::collapsible_match)] // to be removed when more entries are added
-                Body::Object(object) => match object {
-                    object::Body::Crossbow => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.unique.turret",
-                        ));
-                    },
-                    _ => {},
+                Body::Object(object::Body::Crossbow) => {
+                    main_tool = Some(Item::new_from_asset_expect(
+                        "common.items.npc_weapons.unique.turret",
+                    ));
                 },
                 _ => {},
             };

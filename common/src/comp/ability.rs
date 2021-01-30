@@ -222,9 +222,9 @@ pub enum CharacterAbility {
         range: f32,
         max_angle: f32,
         lifesteal_eff: f32,
-        energy_regen: u32,
-        energy_cost: u32,
-        energy_drain: u32,
+        energy_regen: f32,
+        energy_cost: f32,
+        energy_drain: f32,
         orientation_behavior: basic_beam::MovementBehavior,
     },
 }

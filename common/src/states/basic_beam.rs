@@ -10,7 +10,6 @@ use crate::{
         utils::*,
     },
     uid::Uid,
-    Damage, DamageSource, GroupTarget,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -43,7 +42,7 @@ pub struct StaticData {
     /// Energy consumed per second for heal ticks
     pub energy_cost: f32,
     /// Energy drained per
-    pub energy_drain: u32,
+    pub energy_drain: f32,
     /// Used to dictate how orientation functions in this state
     pub orientation_behavior: MovementBehavior,
     /// What key is used to press ability
@@ -70,7 +69,7 @@ impl CharacterBehavior for Data {
         match self.static_data.orientation_behavior {
             MovementBehavior::Normal => {},
             MovementBehavior::Turret => {
-                update.ori.0 = data.inputs.look_dir;
+                update.ori = Ori::from(data.inputs.look_dir);
             },
         }
 
@@ -106,8 +105,8 @@ impl CharacterBehavior for Data {
                     });
                     // Gets offsets
                     let body_offsets = Vec3::new(
-                        (data.body.radius() + 1.0) * data.ori.0.x,
-                        (data.body.radius() + 1.0) * data.ori.0.y,
+                        (data.body.radius() + 1.0) * data.inputs.look_dir.x,
+                        (data.body.radius() + 1.0) * data.inputs.look_dir.y,
                         data.body.eye_height(),
                     ) * 0.55;
                     // Build up

@@ -29,6 +29,9 @@ pub enum Tactic {
     QuadMedBasic,
     Lavadrake,
     Theropod,
+    Turret,
+    FixedTurret,
+    RotatingTurret,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]

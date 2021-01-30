@@ -295,5 +295,5 @@ pub enum UniqueKind {
     QuadSmallBasic,
     TheropodBasic,
     TheropodBird,
-    Turret,
+    ObjectTurret,
 }

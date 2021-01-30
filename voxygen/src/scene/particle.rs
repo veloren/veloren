@@ -8,6 +8,7 @@ use crate::{
 };
 use common::{
     assets::{AssetExt, DotVoxAsset},
+    combat::CombatEffect,
     comp::{item::Reagent, object, BeamSegment, Body, CharacterState, Ori, Pos, Shockwave},
     figure::Segment,
     outcome::Outcome,
@@ -376,7 +377,12 @@ impl ParticleMgr {
             .filter(|(_, _, b)| b.creation.map_or(true, |c| (c + dt as f64) >= time))
         {
             let range = beam.properties.speed * beam.properties.duration.as_secs_f32();
-            if beam.properties.lifesteal_eff > 0.0 {
+            if beam
+                .properties
+                .attack
+                .effects()
+                .any(|e| matches!(e.effect(), CombatEffect::Heal(h) if *h > 0.0))
+            {
                 // Emit a light when using healing
                 lights.push(Light::new(pos.0, Rgb::new(0.1, 1.0, 0.15), 1.0));
                 for i in 0..self.scheduler.heartbeats(Duration::from_millis(1)) {
@@ -385,25 +391,25 @@ impl ParticleMgr {
                         time + i as f64 / 1000.0,
                         ParticleMode::HealingBeam,
                         pos.0,
-                        pos.0 + *ori.0 * range,
+                        pos.0 + *ori.look_dir() * range,
                     ));
                 }
             } else {
                 let mut rng = thread_rng();
-                let (from, to) = (Vec3::<f32>::unit_z(), *ori.0);
+                let (from, to) = (Vec3::<f32>::unit_z(), *ori.look_dir());
                 let m = Mat3::<f32>::rotation_from_to_3d(from, to);
                 // Emit a light when using flames
                 lights.push(Light::new(
                     pos.0,
-                    Rgb::new(1.0, 0.25, 0.05).map(|e| e * rng.gen_range(0.8, 1.2)),
+                    Rgb::new(1.0, 0.25, 0.05).map(|e| e * rng.gen_range(0.8..1.2)),
                     2.0,
                 ));
                 self.particles.resize_with(
                     self.particles.len()
                         + 2 * usize::from(self.scheduler.heartbeats(Duration::from_millis(1))),
                     || {
-                        let phi: f32 = rng.gen_range(0.0, beam.properties.angle.to_radians());
-                        let theta: f32 = rng.gen_range(0.0, 2.0 * PI);
+                        let phi: f32 = rng.gen_range(0.0..beam.properties.angle.to_radians());
+                        let theta: f32 = rng.gen_range(0.0..2.0 * PI);
                         let offset_z =
                             Vec3::new(phi.sin() * theta.cos(), phi.sin() * theta.sin(), phi.cos());
                         let random_ori = offset_z * m * Vec3::new(-1.0, -1.0, 1.0);

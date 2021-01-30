@@ -3747,6 +3747,7 @@ struct ObjectCentralSpec(HashMap<object::Body, SidedObjectCentralVoxSpec>);
 #[derive(Deserialize)]
 struct SidedObjectCentralVoxSpec {
     bone0: ObjectCentralSubSpec,
+    bone1: ObjectCentralSubSpec,
 }
 #[derive(Deserialize)]
 struct ObjectCentralSubSpec {
@@ -3764,7 +3765,9 @@ make_vox_spec!(
             Some(spec.central.read().0.mesh_bone0(
                 body,
             )),
-            None,
+            Some(spec.central.read().0.mesh_bone1(
+                body,
+            )),
             None,
             None,
             None,
@@ -3795,5 +3798,18 @@ impl ObjectCentralSpec {
         let central = graceful_load_segment(&spec.bone0.central.0);
 
         (central, Vec3::from(spec.bone0.offset))
+    }
+
+    fn mesh_bone1(&self, obj: &object::Body) -> BoneMeshes {
+        let spec = match self.0.get(&obj) {
+            Some(spec) => spec,
+            None => {
+                error!("No specification exists for {:?}", obj);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let central = graceful_load_segment(&spec.bone1.central.0);
+
+        (central, Vec3::from(spec.bone1.offset))
     }
 }

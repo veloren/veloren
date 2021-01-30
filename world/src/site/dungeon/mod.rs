@@ -701,6 +701,12 @@ impl Floor {
                                     .with_main_tool(comp::Item::new_from_asset_expect(
                                         "common.items.weapons.staff.cultist_staff",
                                     )),
+                                1 => entity
+                                    .with_body(comp::Body::Object(comp::object::Body::Crossbow))
+                                    .with_name("Possessed Turret".to_string())
+                                    .with_loot_drop(comp::Item::new_from_asset_expect(
+                                        "common.items.crafting_ing.twigs",
+                                    )),
                                 _ => entity
                                     .with_name("Cultist Warlord")
                                     .with_loadout_config(loadout_builder::LoadoutConfig::Warlord)

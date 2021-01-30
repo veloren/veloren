@@ -23,22 +23,22 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         &mut self,
-        (entities, dt, positions, orientations, velocities, mut interpolated, bodies): Self::SystemData,
+        (entities, dt, positions, orientations, velocities, bodies, mut interpolated): Self::SystemData,
     ) {
         // Update interpolated positions and orientations
-        for (pos, ori, i, vel, body) in (
+        for (pos, ori, i, body, vel) in (
             &positions,
             &orientations,
             &mut interpolated,
-            &velocities,
             &bodies,
+            &velocities,
         )
             .join()
         {
             // Update interpolation values
             if i.pos.distance_squared(pos.0) < 64.0 * 64.0 {
-                i.pos = Lerp::lerp(i.pos, pos.0 + vel.0 * 0.03, 5.0 * dt.0);
-                i.ori = Dir::slerp(i.ori, ori.0, base_ori_interp(body) * dt.0);
+                i.pos = Lerp::lerp(i.pos, pos.0 + vel.0 * 0.03, 10.0 * dt.0);
+                i.ori = Ori::slerp(i.ori, *ori, base_ori_interp(body) * dt.0);
             } else {
                 i.pos = pos.0;
                 i.ori = *ori;
