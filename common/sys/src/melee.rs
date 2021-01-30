@@ -1,5 +1,5 @@
 use common::{
-    comp::{group, Body, CharacterState, Health, Inventory, MeleeAttack, Ori, Pos, Scale},
+    comp::{group, Body, CharacterState, Energy, Health, Inventory, MeleeAttack, Ori, Pos, Scale},
     event::{EventBus, LocalEvent, ServerEvent},
     metrics::SysMetrics,
     span,
@@ -26,6 +26,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Scale>,
         ReadStorage<'a, Body>,
         ReadStorage<'a, Health>,
+        ReadStorage<'a, Energy>,
         ReadStorage<'a, Inventory>,
         ReadStorage<'a, group::Group>,
         WriteStorage<'a, MeleeAttack>,
@@ -45,6 +46,7 @@ impl<'a> System<'a> for Sys {
             scales,
             bodies,
             healths,
+            energies,
             inventories,
             groups,
             mut attacking_storage,
@@ -133,6 +135,7 @@ impl<'a> System<'a> for Sys {
                         b,
                         inventory_b_maybe,
                         *uid,
+                        energies.get(entity),
                         dir,
                         is_dodge,
                     );

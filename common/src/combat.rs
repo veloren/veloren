@@ -11,7 +11,8 @@ use crate::{
         },
         poise::PoiseChange,
         skills::{SkillGroupKind, SkillSet},
-        Body, EnergyChange, EnergySource, Health, HealthChange, HealthSource, Inventory, Stats,
+        Body, Energy, EnergyChange, EnergySource, Health, HealthChange, HealthSource, Inventory,
+        Stats,
     },
     event::ServerEvent,
     uid::Uid,
@@ -71,8 +72,9 @@ impl Attack {
         target_group: GroupTarget,
         attacker_entity: EcsEntity,
         target_entity: EcsEntity,
-        inventory: Option<&Inventory>,
+        target_inventory: Option<&Inventory>,
         attacker_uid: Uid,
+        attacker_energy: Option<&Energy>,
         dir: Dir,
         target_dodging: bool,
     ) -> Vec<ServerEvent> {
@@ -86,7 +88,7 @@ impl Attack {
             .filter(|d| !(matches!(d.target, Some(GroupTarget::OutOfGroup)) && target_dodging))
         {
             let change = damage.damage.modify_damage(
-                inventory,
+                target_inventory,
                 Some(attacker_uid),
                 is_crit,
                 self.crit_multiplier,
@@ -141,7 +143,7 @@ impl Attack {
                             });
                         },
                         AttackEffect::Poise(p) => {
-                            let change = PoiseChange::from_attack(*p, inventory);
+                            let change = PoiseChange::from_attack(*p, target_inventory);
                             server_events.push(ServerEvent::PoiseChange {
                                 entity: target_entity,
                                 change,
@@ -172,6 +174,20 @@ impl Attack {
         {
             if match &effect.requirement {
                 Some(CombatRequirement::AnyDamage) => accumulated_damage != 0.0,
+                Some(CombatRequirement::SufficientEnergy(r)) => {
+                    if attacker_energy.map_or(true, |e| e.current() >= *r) {
+                        server_events.push(ServerEvent::EnergyChange {
+                            entity: attacker_entity,
+                            change: EnergyChange {
+                                amount: -(*r as i32),
+                                source: EnergySource::Ability,
+                            },
+                        });
+                        true
+                    } else {
+                        false
+                    }
+                },
                 None => true,
             } {
                 match effect.effect {
@@ -216,7 +232,7 @@ impl Attack {
                         });
                     },
                     AttackEffect::Poise(p) => {
-                        let change = PoiseChange::from_attack(p, inventory);
+                        let change = PoiseChange::from_attack(p, target_inventory);
                         server_events.push(ServerEvent::PoiseChange {
                             entity: target_entity,
                             change,
@@ -299,6 +315,7 @@ pub enum AttackEffect {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum CombatRequirement {
     AnyDamage,
+    SufficientEnergy(u32),
 }
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]

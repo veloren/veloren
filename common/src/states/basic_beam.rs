@@ -138,7 +138,9 @@ impl CharacterBehavior for Data {
                     let damage = DamageComponent::new(damage, Some(GroupTarget::OutOfGroup))
                         .with_effect(lifesteal);
                     let heal = EffectComponent::new(Some(GroupTarget::InGroup), heal)
-                        /*.with_requirement(CombatRequirement::SufficientEnergy(self.static_data.energy_cost))*/;
+                        .with_requirement(CombatRequirement::SufficientEnergy(
+                            self.static_data.energy_cost,
+                        ));
                     let attack = Attack::default()
                         .with_damage(damage)
                         .with_effect(energy)
