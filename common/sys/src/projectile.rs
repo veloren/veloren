@@ -1,5 +1,7 @@
 use common::{
-    comp::{projectile, Group, HealthSource, Inventory, Ori, PhysicsState, Pos, Projectile, Vel},
+    comp::{
+        projectile, Energy, Group, HealthSource, Inventory, Ori, PhysicsState, Pos, Projectile, Vel,
+    },
     event::{EventBus, ServerEvent},
     metrics::SysMetrics,
     resources::DeltaTime,
@@ -29,6 +31,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Projectile>,
         ReadStorage<'a, Inventory>,
         ReadStorage<'a, Group>,
+        ReadStorage<'a, Energy>,
     );
 
     fn run(
@@ -46,6 +49,7 @@ impl<'a> System<'a> for Sys {
             mut projectiles,
             inventories,
             groups,
+            energies,
         ): Self::SystemData,
     ) {
         let start_time = std::time::Instant::now();
@@ -110,6 +114,7 @@ impl<'a> System<'a> for Sys {
                                         target_entity,
                                         inventories.get(target_entity),
                                         owner,
+                                        energies.get(owner_entity),
                                         ori.0,
                                         false,
                                     );
