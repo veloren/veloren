@@ -9,6 +9,7 @@ use crate::{
             },
             slot::EquipSlot,
         },
+        poise::PoiseChange,
         skills::{SkillGroupKind, SkillSet},
         Body, EnergyChange, EnergySource, Health, HealthChange, HealthSource, Inventory, Stats,
     },
@@ -139,6 +140,14 @@ impl Attack {
                                 change,
                             });
                         },
+                        AttackEffect::Poise(p) => {
+                            let change = PoiseChange::from_attack(*p, inventory);
+                            server_events.push(ServerEvent::PoiseChange {
+                                entity: target_entity,
+                                change,
+                                kb_dir: *dir,
+                            });
+                        },
                     }
                 }
             }
@@ -192,6 +201,14 @@ impl Attack {
                         server_events.push(ServerEvent::Damage {
                             entity: attacker_entity,
                             change,
+                        });
+                    },
+                    AttackEffect::Poise(p) => {
+                        let change = PoiseChange::from_attack(p, inventory);
+                        server_events.push(ServerEvent::PoiseChange {
+                            entity: target_entity,
+                            change,
+                            kb_dir: *dir,
                         });
                     },
                 }
@@ -252,6 +269,7 @@ pub enum AttackEffect {
     Knockback(Knockback),
     EnergyReward(u32),
     Lifesteal(f32),
+    Poise(f32),
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

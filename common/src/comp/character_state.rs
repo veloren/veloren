@@ -1,6 +1,6 @@
 use crate::{
     combat::Attack,
-    comp::{Energy, Ori, PoiseChange, Pos, Vel},
+    comp::{Energy, Ori, Pos, Vel},
     event::{LocalEvent, ServerEvent},
     states::{behavior::JoinData, *},
 };

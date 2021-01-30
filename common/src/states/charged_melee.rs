@@ -1,9 +1,8 @@
 use crate::{
-    combat::{Attack, AttackEffect, CombatBuff, DamageComponent},
-    comp::{
-        CharacterState, EnergyChange, EnergySource, MeleeAttack, PoiseChange, PoiseSource,
-        StateUpdate,
+    combat::{
+        Attack, AttackEffect, CombatBuff, CombatRequirement, DamageComponent, EffectComponent,
     },
+    comp::{CharacterState, EnergyChange, EnergySource, MeleeAttack, StateUpdate},
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::{StageSection, *},
@@ -161,12 +160,11 @@ impl CharacterBehavior for Data {
                         value: self.static_data.initial_damage as f32
                             + self.charge_amount * self.static_data.scaled_damage as f32,
                     };
-                    let poise_damage = PoiseChange {
-                        amount: -(self.static_data.initial_poise_damage as f32
-                            + self.charge_amount * self.static_data.scaled_poise_damage as f32)
-                            as i32,
-                        source: PoiseSource::Attack,
-                    };
+                    let poise = self.static_data.initial_poise_damage as f32
+                        + self.charge_amount * self.static_data.scaled_poise_damage as f32;
+                    let poise = AttackEffect::Poise(poise);
+                    let poise = EffectComponent::new(Some(GroupTarget::OutOfGroup), poise)
+                        .with_requirement(CombatRequirement::AnyDamage);
                     let knockback = self.static_data.initial_knockback
                         + self.charge_amount * self.static_data.scaled_knockback;
                     let knockback = AttackEffect::Knockback(Knockback {
@@ -177,7 +175,10 @@ impl CharacterBehavior for Data {
                     let damage = DamageComponent::new(damage, Some(GroupTarget::OutOfGroup))
                         .with_effect(knockback)
                         .with_effect(buff);
-                    let attack = Attack::default().with_damage(damage).with_crit(0.5, 1.3);
+                    let attack = Attack::default()
+                        .with_damage(damage)
+                        .with_crit(0.5, 1.3)
+                        .with_effect(poise);
 
                     // Hit attempt
                     data.updater.insert(data.entity, MeleeAttack {
