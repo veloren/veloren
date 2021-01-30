@@ -148,6 +148,18 @@ impl Attack {
                                 kb_dir: *dir,
                             });
                         },
+                        AttackEffect::Heal(h) => {
+                            let change = HealthChange {
+                                amount: *h as i32,
+                                cause: HealthSource::Heal {
+                                    by: Some(attacker_uid),
+                                },
+                            };
+                            server_events.push(ServerEvent::Damage {
+                                entity: target_entity,
+                                change,
+                            });
+                        },
                     }
                 }
             }
@@ -211,6 +223,18 @@ impl Attack {
                             kb_dir: *dir,
                         });
                     },
+                    AttackEffect::Heal(h) => {
+                        let change = HealthChange {
+                            amount: h as i32,
+                            cause: HealthSource::Heal {
+                                by: Some(attacker_uid),
+                            },
+                        };
+                        server_events.push(ServerEvent::Damage {
+                            entity: target_entity,
+                            change,
+                        });
+                    },
                 }
             }
         }
@@ -264,7 +288,7 @@ impl EffectComponent {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum AttackEffect {
-    //Heal(f32),
+    Heal(f32),
     Buff(CombatBuff),
     Knockback(Knockback),
     EnergyReward(u32),

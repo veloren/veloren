@@ -126,10 +126,8 @@ impl CharacterBehavior for Data {
                         source: DamageSource::Energy,
                         value: self.static_data.base_dps as f32 / self.static_data.tick_rate,
                     };
-                    let heal = Damage {
-                        source: DamageSource::Healing,
-                        value: self.static_data.base_hps as f32 / self.static_data.tick_rate,
-                    };
+                    let heal = self.static_data.base_hps as f32 / self.static_data.tick_rate;
+                    let heal = AttackEffect::Heal(heal);
                     let speed =
                         self.static_data.range / self.static_data.beam_duration.as_secs_f32();
 
@@ -139,7 +137,12 @@ impl CharacterBehavior for Data {
                     let lifesteal = AttackEffect::Lifesteal(self.static_data.lifesteal_eff);
                     let damage = DamageComponent::new(damage, Some(GroupTarget::OutOfGroup))
                         .with_effect(lifesteal);
-                    let attack = Attack::default().with_damage(damage).with_effect(energy);
+                    let heal = EffectComponent::new(Some(GroupTarget::InGroup), heal)
+                        /*.with_requirement(CombatRequirement::SufficientEnergy(self.static_data.energy_cost))*/;
+                    let attack = Attack::default()
+                        .with_damage(damage)
+                        .with_effect(energy)
+                        .with_effect(heal);
 
                     let properties = beam::Properties {
                         attack,
