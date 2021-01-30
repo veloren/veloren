@@ -1,6 +1,6 @@
 use common::{
     comp::{
-        group, Body, Health, HealthSource, Inventory, Last, Ori, PhysicsState, Pos, Scale,
+        group, Body, Energy, Health, HealthSource, Inventory, Last, Ori, PhysicsState, Pos, Scale,
         Shockwave, ShockwaveHitEntities,
     },
     event::{EventBus, LocalEvent, ServerEvent},
@@ -36,6 +36,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, PhysicsState>,
         WriteStorage<'a, Shockwave>,
         WriteStorage<'a, ShockwaveHitEntities>,
+        ReadStorage<'a, Energy>,
     );
 
     fn run(
@@ -59,6 +60,7 @@ impl<'a> System<'a> for Sys {
             physics_states,
             mut shockwaves,
             mut shockwave_hit_lists,
+            energies,
         ): Self::SystemData,
     ) {
         let mut server_emitter = server_bus.emitter();
@@ -114,11 +116,13 @@ impl<'a> System<'a> for Sys {
                 end: frame_end_dist,
             };
 
+            let shockwave_owner = shockwave
+                .owner
+                .and_then(|uid| uid_allocator.retrieve_entity_internal(uid.into()));
+
             // Group to ignore collisions with
             // Might make this more nuanced if shockwaves are used for non damage effects
-            let group = shockwave
-                .owner
-                .and_then(|uid| uid_allocator.retrieve_entity_internal(uid.into()))
+            let group = shockwave_owner
                 .and_then(|e| groups.get(e));
 
             // Go through all other effectable entities
@@ -191,31 +195,25 @@ impl<'a> System<'a> for Sys {
                     && (!shockwave.requires_ground || physics_state_b.on_ground);
 
                 if hit {
-                    for (target, damage, poise_damage) in shockwave.effects.iter() {
-                        if let Some(target) = target {
-                            if *target != target_group {
-                                continue;
-                            }
-                        }
+                    let dir = Dir::new((pos_b.0 - pos.0).try_normalized().unwrap_or(*ori.0));
 
-                        let owner_uid = shockwave.owner.unwrap_or(*uid);
-                        let poise_change = poise_damage.modify_poise_damage(inventories.get(b));
-                        let change =
-                            damage.modify_damage(inventories.get(b), Some(owner_uid), false, 0.0);
+                    let server_events = shockwave.properties.attack.apply_attack(
+                        target_group,
+                        shockwave_owner.unwrap_or(entity),
+                        b,
+                        inventories.get(b),
+                        shockwave.owner.unwrap_or(*uid),
+                        shockwave_owner.and_then(|e| energies.get(e)),
+                        dir,
+                        false,
+                    );
 
-                        server_emitter.emit(ServerEvent::Damage { entity: b, change });
+                    if !server_events.is_empty() {
                         shockwave_hit_list.hit_entities.push(*uid_b);
+                    }
 
-                        let kb_dir = Dir::new((pos_b.0 - pos.0).try_normalized().unwrap_or(*ori.0));
-                        let impulse = shockwave.knockback.calculate_impulse(kb_dir);
-                        if !impulse.is_approx_zero() {
-                            server_emitter.emit(ServerEvent::Knockback { entity: b, impulse });
-                        }
-                        server_emitter.emit(ServerEvent::PoiseChange {
-                            entity: b,
-                            change: poise_change,
-                            kb_dir: *kb_dir,
-                        });
+                    for event in server_events {
+                        server_emitter.emit(event);
                     }
                 }
             }
