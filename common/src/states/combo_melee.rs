@@ -2,10 +2,7 @@ use crate::{
     combat::{
         Attack, AttackEffect, CombatBuff, CombatRequirement, DamageComponent, EffectComponent,
     },
-    comp::{
-        CharacterState, EnergyChange, EnergySource, MeleeAttack, PoiseChange, PoiseSource,
-        StateUpdate,
-    },
+    comp::{CharacterState, MeleeAttack, StateUpdate},
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
@@ -178,12 +175,15 @@ impl CharacterBehavior for Data {
                             .min(self.combo / self.static_data.num_stages)
                             * self.static_data.stage_data[stage_index].damage_increase;
 
-                    let poise_damage = self.static_data.stage_data[stage_index].base_poise_damage
+                    let poise = self.static_data.stage_data[stage_index].base_poise_damage
                         + self
                             .static_data
                             .scales_from_combo
                             .min(self.combo / self.static_data.num_stages)
                             * self.static_data.stage_data[stage_index].poise_damage_increase;
+                    let poise = AttackEffect::Poise(poise as f32);
+                    let poise = EffectComponent::new(Some(GroupTarget::OutOfGroup), poise)
+                        .with_requirement(CombatRequirement::AnyDamage);
 
                     let damage = Damage {
                         source: DamageSource::Melee,
@@ -207,7 +207,8 @@ impl CharacterBehavior for Data {
                     let attack = Attack::default()
                         .with_damage(damage)
                         .with_crit(0.5, 1.3)
-                        .with_effect(energy);
+                        .with_effect(energy)
+                        .with_effect(poise);
 
                     data.updater.insert(data.entity, MeleeAttack {
                         attack,

@@ -31,6 +31,17 @@ impl PoiseChange {
             source: self.source,
         }
     }
+
+    /// Creates a poise change from an attack
+    pub fn from_attack(poise_damage: f32, inventory: Option<&Inventory>) -> Self {
+        let poise_damage_reduction =
+            inventory.map_or(0.0, |inv| Poise::compute_poise_damage_reduction(inv));
+        let poise_change = -poise_damage * (1.0 - poise_damage_reduction);
+        Self {
+            amount: poise_change as i32,
+            source: PoiseSource::Attack,
+        }
+    }
 }
 
 /// Sources of poise change

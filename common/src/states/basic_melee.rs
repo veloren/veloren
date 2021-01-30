@@ -2,7 +2,7 @@ use crate::{
     combat::{
         Attack, AttackEffect, CombatBuff, CombatRequirement, DamageComponent, EffectComponent,
     },
-    comp::{CharacterState, MeleeAttack, PoiseChange, PoiseSource, StateUpdate},
+    comp::{CharacterState, MeleeAttack, StateUpdate},
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
@@ -96,6 +96,9 @@ impl CharacterBehavior for Data {
                         source: DamageSource::Melee,
                         value: self.static_data.base_damage as f32,
                     };
+                    let poise = AttackEffect::Poise(self.static_data.base_poise_damage as f32);
+                    let poise = EffectComponent::new(Some(GroupTarget::OutOfGroup), poise)
+                        .with_requirement(CombatRequirement::AnyDamage);
                     let knockback = AttackEffect::Knockback(Knockback {
                         strength: self.static_data.knockback,
                         direction: KnockbackDir::Away,
@@ -110,7 +113,8 @@ impl CharacterBehavior for Data {
                     let attack = Attack::default()
                         .with_damage(damage)
                         .with_crit(0.5, 1.3)
-                        .with_effect(energy);
+                        .with_effect(energy)
+                        .with_effect(poise);
 
                     // Hit attempt
                     data.updater.insert(data.entity, MeleeAttack {
