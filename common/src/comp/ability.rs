@@ -236,7 +236,7 @@ impl Default for CharacterAbility {
             swing_duration: 250,
             recover_duration: 500,
             base_damage: 10,
-            base_poise_damage: 10,
+            base_poise_damage: 0,
             knockback: 0.0,
             range: 3.5,
             max_angle: 15.0,
