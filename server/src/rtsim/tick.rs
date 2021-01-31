@@ -36,7 +36,7 @@ impl<'a> System<'a> for Sys {
             mut rtsim,
             terrain,
             world,
-            _index,
+            index,
             positions,
             rtsim_entities,
             mut agents,
@@ -60,10 +60,10 @@ impl<'a> System<'a> for Sys {
                 to_reify.push(id);
             } else {
                 // Simulate behaviour
-                if let Some(travel_to) = entity.controller.travel_to {
+                if let Some(travel_to) = &entity.controller.travel_to {
                     // Move towards target at approximate character speed
                     entity.pos += Vec3::from(
-                        (travel_to.xy() - entity.pos.xy())
+                        (travel_to.0.xy() - entity.pos.xy())
                             .try_normalized()
                             .unwrap_or_else(Vec2::zero)
                             * entity.get_body().max_speed_approx()
@@ -81,7 +81,7 @@ impl<'a> System<'a> for Sys {
 
             // Tick entity AI
             if entity.last_tick + ENTITY_TICK_PERIOD <= rtsim.tick {
-                entity.tick(&terrain, &world);
+                entity.tick(&terrain, &world, &index.as_index_ref());
                 entity.last_tick = rtsim.tick;
             }
         }

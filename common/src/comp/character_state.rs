@@ -41,6 +41,7 @@ pub enum CharacterState {
     Climb,
     Sit,
     Dance,
+    Talk,
     Sneak,
     Glide,
     GlideWield,
@@ -139,6 +140,7 @@ impl CharacterState {
                 | CharacterState::BasicBeam(_)
                 | CharacterState::Stunned(_)
                 | CharacterState::Wielding
+                | CharacterState::Talk
         )
     }
 

@@ -32,8 +32,9 @@ impl<T> FromIterator<T> for Path<T> {
     }
 }
 
-#[allow(clippy::len_without_is_empty)] // TODO: Pending review in #587
 impl<T> Path<T> {
+    pub fn is_empty(&self) -> bool { self.nodes.is_empty() }
+
     pub fn len(&self) -> usize { self.nodes.len() }
 
     pub fn iter(&self) -> impl Iterator<Item = &T> { self.nodes.iter() }

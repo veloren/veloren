@@ -516,6 +516,8 @@ impl PlayState for SessionState {
                                             .is_some()
                                         {
                                             client.pick_up(entity);
+                                        } else {
+                                            client.npc_interact(entity);
                                         }
                                     },
                                 }
@@ -1495,12 +1497,10 @@ fn select_interactable(
                 scales.maybe(),
                 colliders.maybe(),
                 char_states.maybe(),
-                // Must have this comp to be interactable (for now)
-                &ecs.read_storage::<comp::Item>(),
             )
                 .join()
-                .filter(|(e, _, _, _, _, _)| *e != player_entity)
-                .map(|(e, p, s, c, cs, _)| {
+                .filter(|(e, _, _, _, _)| *e != player_entity)
+                .map(|(e, p, s, c, cs)| {
                     let cylinder = Cylinder::from_components(p.0, s.copied(), c.copied(), cs);
                     (e, cylinder)
                 })

@@ -78,6 +78,7 @@ pub enum ServerEvent {
     },
     EnableLantern(EcsEntity),
     DisableLantern(EcsEntity),
+    NpcInteract(EcsEntity, EcsEntity),
     Mount(EcsEntity, EcsEntity),
     Unmount(EcsEntity),
     Possess(Uid, Uid),
