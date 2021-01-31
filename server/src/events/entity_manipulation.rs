@@ -510,7 +510,7 @@ pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>)
                 source: DamageSource::Falling,
                 value: falldmg,
             };
-            let change = damage.modify_damage(inventories.get(entity), None, false, 0.0);
+            let change = damage.modify_damage(inventories.get(entity), None, false, 0.0, 1.0);
             health.change_by(change);
         }
         // Handle poise change
@@ -679,7 +679,6 @@ pub fn handle_explosion(
                 }
             },
             RadiusEffect::Attack(attack) => {
-                // TODO: Before merging handle falloff
                 let energies = &ecs.read_storage::<comp::Energy>();
                 for (entity_b, pos_b, _health_b, inventory_b_maybe) in (
                     &ecs.entities(),
@@ -721,6 +720,7 @@ pub fn handle_explosion(
                             owner_entity.and_then(|e| energies.get(e)),
                             dir,
                             false,
+                            strength,
                         );
 
                         let server_eventbus = ecs.read_resource::<EventBus<ServerEvent>>();

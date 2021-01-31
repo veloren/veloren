@@ -77,6 +77,8 @@ impl Attack {
         attacker_energy: Option<&Energy>,
         dir: Dir,
         target_dodging: bool,
+        // Currently just modifies damage, maybe look into modifying strength of other effects?
+        strength_modifier: f32,
     ) -> Vec<ServerEvent> {
         let is_crit = thread_rng().gen::<f32>() < self.crit_chance;
         let mut accumulated_damage = 0.0;
@@ -92,6 +94,7 @@ impl Attack {
                 Some(attacker_uid),
                 is_crit,
                 self.crit_multiplier,
+                strength_modifier,
             );
             let damage_damage = -change.amount as f32;
             accumulated_damage += damage_damage;
@@ -365,8 +368,9 @@ impl Damage {
         uid: Option<Uid>,
         is_crit: bool,
         crit_mult: f32,
+        damage_modifier: f32,
     ) -> HealthChange {
-        let mut damage = self.value;
+        let mut damage = self.value * damage_modifier;
         let damage_reduction = inventory.map_or(0.0, |inv| Damage::compute_damage_reduction(inv));
         match self.source {
             DamageSource::Melee => {

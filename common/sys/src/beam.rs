@@ -178,6 +178,7 @@ impl<'a> System<'a> for Sys {
                             energies.get(beam_owner),
                             ori.0,
                             false,
+                            1.0,
                         );
 
                         if !server_events.is_empty() {

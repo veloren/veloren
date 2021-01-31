@@ -138,6 +138,7 @@ impl<'a> System<'a> for Sys {
                         energies.get(entity),
                         dir,
                         is_dodge,
+                        1.0,
                     );
 
                     if !server_events.is_empty() {
