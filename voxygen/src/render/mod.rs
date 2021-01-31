@@ -31,7 +31,11 @@ pub use self::{
         postprocess::Locals as PostProcessLocals,
         shadow::{Locals as ShadowLocals, PointLightMatrix},
         skybox::{create_mesh as create_skybox_mesh, Vertex as SkyboxVertex},
-        sprite::{Instance as SpriteInstance, Locals as SpriteLocals, Vertex as SpriteVertex},
+        sprite::{
+            create_verts_texture as create_sprite_verts_texture, Instance as SpriteInstance,
+            SpriteGlobalsBindGroup, Vertex as SpriteVertex,
+            VERT_PAGE_SIZE as SPRITE_VERT_PAGE_SIZE,
+        },
         terrain::{Locals as TerrainLocals, TerrainLayout, Vertex as TerrainVertex},
         ui::{
             create_quad as create_ui_quad,
@@ -43,9 +47,9 @@ pub use self::{
     },
     renderer::{
         drawer::{
-            ChunkSpriteDrawer, Drawer, FigureDrawer, FigureShadowDrawer, FirstPassDrawer,
-            ParticleDrawer, PreparedUiDrawer, SecondPassDrawer, ShadowPassDrawer, SpriteDrawer,
-            TerrainDrawer, TerrainShadowDrawer, ThirdPassDrawer, UiDrawer,
+            Drawer, FigureDrawer, FigureShadowDrawer, FirstPassDrawer, ParticleDrawer,
+            PreparedUiDrawer, SecondPassDrawer, ShadowPassDrawer, SpriteDrawer, TerrainDrawer,
+            TerrainShadowDrawer, ThirdPassDrawer, UiDrawer,
         },
         ColLightInfo, Renderer,
     },

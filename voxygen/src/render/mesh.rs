@@ -28,6 +28,9 @@ impl<V: Vertex> Mesh<V> {
     /// Get a mutable slice referencing the vertices of this mesh.
     pub fn vertices_mut(&mut self) -> &mut [V] { &mut self.verts }
 
+    /// Get a mutable vec referencing the vertices of this mesh.
+    pub fn vertices_mut_vec(&mut self) -> &mut Vec<V> { &mut self.verts }
+
     /// Push a new vertex onto the end of this mesh.
     pub fn push(&mut self, vert: V) { self.verts.push(vert); }
 

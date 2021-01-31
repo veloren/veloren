@@ -170,7 +170,9 @@ impl Texture {
 
     /// Update a texture with the given data (used for updating the glyph cache
     /// texture).
-    pub fn update(
+    /// TODO: using generic here seems a bit hacky, consider storing this info
+    /// in the texture type or pass in wgpu::TextureFormat
+    pub fn update<const BYTES_PER_PIXEL: u32>(
         &self,
         device: &wgpu::Device,
         queue: &wgpu::Queue,
@@ -178,9 +180,10 @@ impl Texture {
         size: [u32; 2],
         data: &[u8],
     ) {
-        // Note: we only accept 4 bytes per pixel
-        // (enforce this in API?)
-        debug_assert_eq!(data.len(), size[0] as usize * size[1] as usize * 4);
+        debug_assert_eq!(
+            data.len(),
+            size[0] as usize * size[1] as usize * BYTES_PER_PIXEL as usize
+        );
         // TODO: Only works for 2D images
         queue.write_texture(
             wgpu::TextureCopyViewBase {
@@ -195,7 +198,7 @@ impl Texture {
             data,
             wgpu::TextureDataLayout {
                 offset: 0,
-                bytes_per_row: size[0] * 4,
+                bytes_per_row: size[0] * BYTES_PER_PIXEL,
                 rows_per_image: size[1],
             },
             wgpu::Extent3d {

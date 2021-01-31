@@ -601,7 +601,7 @@ impl Window {
 
         let scale_factor = window.scale_factor();
 
-        let key_layout = match KeyLayout::new_from_window(window.window()) {
+        let key_layout = match KeyLayout::new_from_window(&window) {
             Ok(kl) => Some(kl),
             Err(err) => {
                 warn!(

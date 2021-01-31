@@ -152,7 +152,6 @@ impl Renderer {
         .ok_or(RenderError::CouldNotFindAdapter)?;
 
         let limits = wgpu::Limits {
-            max_bind_groups: 5,
             max_push_constant_size: 64,
             ..Default::default()
         };
@@ -1009,7 +1008,7 @@ impl Renderer {
     }
 
     /// Create a new immutable texture from the provided image.
-    pub fn create_texture_with_data_raw(
+    pub fn create_texture_with_data_raw<const BYTES_PER_PIXEL: u32>(
         &mut self,
         texture_info: &wgpu::TextureDescriptor,
         view_info: &wgpu::TextureViewDescriptor,
@@ -1018,7 +1017,7 @@ impl Renderer {
     ) -> Texture {
         let tex = Texture::new_raw(&self.device, &texture_info, &view_info, &sampler_info);
 
-        tex.update(
+        tex.update::<BYTES_PER_PIXEL>(
             &self.device,
             &self.queue,
             [0; 2],
@@ -1084,7 +1083,7 @@ impl Renderer {
         //        texture.update(&mut self.encoder, offset, size, data)
         data: &[[u8; 4]],
     ) {
-        texture.update(
+        texture.update::<4>(
             &self.device,
             &self.queue,
             offset,

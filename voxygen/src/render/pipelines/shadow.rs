@@ -116,7 +116,7 @@ pub fn create_col_lights(
         array_layer_count: None,
     };
 
-    renderer.create_texture_with_data_raw(
+    renderer.create_texture_with_data_raw::<4>(
         &texture_info,
         &view_info,
         &sampler_info,

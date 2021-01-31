@@ -22,9 +22,9 @@ layout(location = 2) flat in float f_select;
 layout(location = 3) in vec2 f_uv_pos;
 layout(location = 4) in vec2 f_inst_light;
 
-layout(set = 4, binding = 0)
+layout(set = 3, binding = 0)
 uniform texture2D t_col_light;
-layout(set = 4, binding = 1)
+layout(set = 3, binding = 1)
 uniform sampler s_col_light;
 
 layout(location = 0) out vec4 tgt_color;

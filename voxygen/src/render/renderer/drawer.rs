@@ -132,6 +132,7 @@ impl<'frame> Drawer<'frame> {
         FirstPassDrawer {
             render_pass,
             borrow: &self.borrow,
+            globals: self.globals,
         }
     }
 
@@ -406,6 +407,7 @@ impl<'pass_ref, 'pass: 'pass_ref> TerrainShadowDrawer<'pass_ref, 'pass> {
 pub struct FirstPassDrawer<'pass> {
     pub(super) render_pass: OwningScope<'pass, wgpu::RenderPass<'pass>>,
     borrow: &'pass RendererBorrow<'pass>,
+    globals: &'pass GlobalsBindGroup,
 }
 
 impl<'pass> FirstPassDrawer<'pass> {
@@ -459,15 +461,20 @@ impl<'pass> FirstPassDrawer<'pass> {
 
     pub fn draw_sprites<'data: 'pass>(
         &mut self,
+        globals: &'data sprite::SpriteGlobalsBindGroup,
         col_lights: &'data ColLights<sprite::Locals>,
     ) -> SpriteDrawer<'_, 'pass> {
         let mut render_pass = self.render_pass.scope(self.borrow.device, "sprites");
 
         render_pass.set_pipeline(&self.borrow.pipelines.sprite.pipeline);
         set_quad_index_buffer::<particle::Vertex>(&mut render_pass, &self.borrow);
-        render_pass.set_bind_group(4, &col_lights.bind_group, &[]);
+        render_pass.set_bind_group(0, &globals.bind_group, &[]);
+        render_pass.set_bind_group(3, &col_lights.bind_group, &[]);
 
-        SpriteDrawer { render_pass }
+        SpriteDrawer {
+            render_pass,
+            globals: self.globals,
+        }
     }
 
     pub fn draw_fluid<'data: 'pass>(
@@ -561,49 +568,37 @@ impl<'pass_ref, 'pass: 'pass_ref> ParticleDrawer<'pass_ref, 'pass> {
 
 pub struct SpriteDrawer<'pass_ref, 'pass: 'pass_ref> {
     render_pass: Scope<'pass_ref, wgpu::RenderPass<'pass>>,
+    globals: &'pass GlobalsBindGroup,
 }
 
 impl<'pass_ref, 'pass: 'pass_ref> SpriteDrawer<'pass_ref, 'pass> {
-    pub fn in_chunk<'data: 'pass>(
+    pub fn draw<'data: 'pass>(
         &mut self,
         terrain_locals: &'data terrain::BoundLocals,
-    ) -> ChunkSpriteDrawer<'_, 'pass> {
+        //model: &'data Model<sprite::Vertex>,
+        //locals: &'data sprite::BoundLocals,
+        instances: &'data Instances<sprite::Instance>,
+    ) {
         self.render_pass
             .set_bind_group(2, &terrain_locals.bind_group, &[]);
+        //self.render_pass.set_bind_group(3, &locals.bind_group, &[]);
 
-        ChunkSpriteDrawer {
-            render_pass: &mut self.render_pass,
-        }
-        /* //self.render_pass.set_vertex_buffer(0, model.buf().slice(..));
+        //self.render_pass.set_vertex_buffer(0, model.buf().slice(..));
         self.render_pass
             .set_vertex_buffer(0, instances.buf().slice(..));
         self.render_pass.draw_indexed(
             0..sprite::VERT_PAGE_SIZE / 4 * 6,
             0,
             0..instances.count() as u32,
-        ); */
+        );
     }
 }
-pub struct ChunkSpriteDrawer<'pass_ref, 'pass: 'pass_ref> {
-    render_pass: &'pass_ref mut wgpu::RenderPass<'pass>,
-}
 
-impl<'pass_ref, 'pass: 'pass_ref> ChunkSpriteDrawer<'pass_ref, 'pass> {
-    pub fn draw<'data: 'pass>(
-        &mut self,
-        model: &'data Model<sprite::Vertex>,
-        instances: &'data Instances<sprite::Instance>,
-        locals: &'data sprite::BoundLocals,
-    ) {
-        self.render_pass.set_vertex_buffer(0, model.buf().slice(..));
+impl<'pass_ref, 'pass: 'pass_ref> Drop for SpriteDrawer<'pass_ref, 'pass> {
+    fn drop(&mut self) {
+        // Reset to regular globals
         self.render_pass
-            .set_vertex_buffer(1, instances.buf().slice(..));
-        self.render_pass.set_bind_group(3, &locals.bind_group, &[]);
-        self.render_pass.draw_indexed(
-            0..model.len() as u32 / 4 * 6,
-            0,
-            0..instances.count() as u32,
-        );
+            .set_bind_group(0, &self.globals.bind_group, &[]);
     }
 }
 
