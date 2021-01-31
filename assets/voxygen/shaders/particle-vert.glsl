@@ -15,6 +15,7 @@
 #include <globals.glsl>
 #include <srgb.glsl>
 #include <random.glsl>
+#include <lod.glsl>
 
 in vec3 v_pos;
 // in uint v_col;
@@ -55,6 +56,7 @@ const int ENERGY_NATURE = 14;
 const int FLAMETHROWER = 15;
 const int FIRE_SHOCKWAVE = 16;
 const int FIRE_BOWL = 17;
+const int SNOW = 18;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -139,6 +141,8 @@ void main() {
     float rand7 = hash(vec4(inst_entropy + 7));
     float rand8 = hash(vec4(inst_entropy + 8));
     float rand9 = hash(vec4(inst_entropy + 9));
+
+    vec3 start_pos = inst_pos - focus_off.xyz;
 
     Attr attr;
     f_reflect = 1.0;
@@ -260,6 +264,17 @@ void main() {
             vec4(vec3(0.2 + rand7 * 0.2, 0.2 + (0.5 + rand6 * 0.5) * 0.6, 0), 1),
             spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 5)
         );
+    } else if (inst_mode == SNOW) {
+        float height = mix(-4, 60, pow(start_end(1, 0), 3));
+        float wind_speed = (inst_pos.z - 250) * 0.025;
+        vec3 offset = linear_motion(vec3(0), vec3(1, 1, 0) * wind_speed);
+        float end_alt = alt_at(start_pos.xy + offset.xy);
+        attr = Attr(
+            offset + vec3(0, 0, end_alt - start_pos.z + height) + vec3(sin(lifetime), sin(lifetime + 0.7), sin(lifetime * 0.5)) * 3,
+            vec3(mix(4, 0, pow(start_end(1, 0), 4))),
+            vec4(1),
+            spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 5)
+        );
     } else if (inst_mode == FIREFLY) {
         float raise = pow(sin(3.1416 * lifetime / inst_lifespan), 0.2);
         attr = Attr(
@@ -341,7 +356,7 @@ void main() {
     // Temporary: use shrinking particles as a substitute for fading ones
     attr.scale *= pow(attr.col.a, 0.25);
 
-    f_pos = (inst_pos - focus_off.xyz) + (v_pos * attr.scale * SCALE * mat3(attr.rot) + attr.offs);
+    f_pos = start_pos + (v_pos * attr.scale * SCALE * mat3(attr.rot) + attr.offs);
 
     // First 3 normals are negative, next 3 are positive
     // TODO: Make particle normals match orientation
