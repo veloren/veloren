@@ -185,14 +185,12 @@ impl CharacterBehavior for Data {
                     let poise = EffectComponent::new(Some(GroupTarget::OutOfGroup), poise)
                         .with_requirement(CombatRequirement::AnyDamage);
 
-                    let damage = Damage {
-                        source: DamageSource::Melee,
-                        value: damage as f32,
-                    };
                     let knockback = AttackEffect::Knockback(Knockback {
                         strength: self.static_data.stage_data[stage_index].knockback,
                         direction: KnockbackDir::Away,
                     });
+                    let knockback = EffectComponent::new(Some(GroupTarget::OutOfGroup), knockback)
+                        .with_requirement(CombatRequirement::AnyDamage);
                     let energy = self.static_data.max_energy_gain.min(
                         self.static_data.initial_energy_gain
                             + self.combo * self.static_data.energy_increase,
@@ -201,14 +199,18 @@ impl CharacterBehavior for Data {
                     let energy = EffectComponent::new(None, energy)
                         .with_requirement(CombatRequirement::AnyDamage);
                     let buff = AttackEffect::Buff(CombatBuff::default_physical());
+                    let damage = Damage {
+                        source: DamageSource::Melee,
+                        value: damage as f32,
+                    };
                     let damage = DamageComponent::new(damage, Some(GroupTarget::OutOfGroup))
-                        .with_effect(knockback)
                         .with_effect(buff);
                     let attack = Attack::default()
                         .with_damage(damage)
                         .with_crit(0.5, 1.3)
                         .with_effect(energy)
-                        .with_effect(poise);
+                        .with_effect(poise)
+                        .with_effect(knockback);
 
                     data.updater.insert(data.entity, MeleeAttack {
                         attack,

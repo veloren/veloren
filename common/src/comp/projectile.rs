@@ -76,25 +76,27 @@ impl ProjectileConstructor {
                 knockback,
                 energy_regen,
             } => {
-                let damage = Damage {
-                    source: DamageSource::Projectile,
-                    value: damage,
-                };
                 let knockback = AttackEffect::Knockback(Knockback {
                     strength: knockback,
                     direction: KnockbackDir::Away,
                 });
+                let knockback = EffectComponent::new(Some(GroupTarget::OutOfGroup), knockback)
+                    .with_requirement(CombatRequirement::AnyDamage);
                 let energy = AttackEffect::EnergyReward(energy_regen);
                 let energy = EffectComponent::new(None, energy)
                     .with_requirement(CombatRequirement::AnyDamage);
                 let buff = AttackEffect::Buff(CombatBuff::default_physical());
-                let damage = DamageComponent::new(damage, Some(GroupTarget::OutOfGroup))
-                    .with_effect(knockback)
-                    .with_effect(buff);
+                let damage = Damage {
+                    source: DamageSource::Projectile,
+                    value: damage,
+                };
+                let damage =
+                    DamageComponent::new(damage, Some(GroupTarget::OutOfGroup)).with_effect(buff);
                 let attack = Attack::default()
                     .with_damage(damage)
                     .with_crit(0.5, 1.2)
-                    .with_effect(energy);
+                    .with_effect(energy)
+                    .with_effect(knockback);
 
                 Projectile {
                     hit_solid: vec![Effect::Stick],
@@ -109,13 +111,13 @@ impl ProjectileConstructor {
                 radius,
                 energy_regen,
             } => {
+                let energy = AttackEffect::EnergyReward(energy_regen);
+                let energy = EffectComponent::new(None, energy)
+                    .with_requirement(CombatRequirement::AnyDamage);
                 let damage = Damage {
                     source: DamageSource::Explosion,
                     value: damage,
                 };
-                let energy = AttackEffect::EnergyReward(energy_regen);
-                let energy = EffectComponent::new(None, energy)
-                    .with_requirement(CombatRequirement::AnyDamage);
                 let damage = DamageComponent::new(damage, Some(GroupTarget::OutOfGroup));
                 let attack = Attack::default().with_damage(damage).with_effect(energy);
                 let explosion = Explosion {
@@ -137,13 +139,13 @@ impl ProjectileConstructor {
                 damage,
                 energy_regen,
             } => {
+                let energy = AttackEffect::EnergyReward(energy_regen);
+                let energy = EffectComponent::new(None, energy)
+                    .with_requirement(CombatRequirement::AnyDamage);
                 let damage = Damage {
                     source: DamageSource::Energy,
                     value: damage,
                 };
-                let energy = AttackEffect::EnergyReward(energy_regen);
-                let energy = EffectComponent::new(None, energy)
-                    .with_requirement(CombatRequirement::AnyDamage);
                 let damage = DamageComponent::new(damage, Some(GroupTarget::OutOfGroup));
                 let attack = Attack::default().with_damage(damage).with_effect(energy);
 

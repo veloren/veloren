@@ -150,10 +150,6 @@ impl CharacterBehavior for Data {
             },
             StageSection::Recover => {
                 if !self.exhausted {
-                    let damage = Damage {
-                        source: DamageSource::Melee,
-                        value: self.static_data.base_damage as f32,
-                    };
                     let poise = AttackEffect::Poise(self.static_data.base_poise_damage as f32);
                     let poise = EffectComponent::new(Some(GroupTarget::OutOfGroup), poise)
                         .with_requirement(CombatRequirement::AnyDamage);
@@ -161,14 +157,20 @@ impl CharacterBehavior for Data {
                         strength: self.static_data.knockback,
                         direction: KnockbackDir::Away,
                     });
+                    let knockback = EffectComponent::new(Some(GroupTarget::OutOfGroup), knockback)
+                        .with_requirement(CombatRequirement::AnyDamage);
                     let buff = AttackEffect::Buff(CombatBuff::default_physical());
+                    let damage = Damage {
+                        source: DamageSource::Melee,
+                        value: self.static_data.base_damage as f32,
+                    };
                     let damage = DamageComponent::new(damage, Some(GroupTarget::OutOfGroup))
-                        .with_effect(knockback)
                         .with_effect(buff);
                     let attack = Attack::default()
                         .with_damage(damage)
                         .with_crit(0.5, 1.3)
-                        .with_effect(poise);
+                        .with_effect(poise)
+                        .with_effect(knockback);
 
                     // Hit attempt, when animation plays
                     data.updater.insert(data.entity, MeleeAttack {

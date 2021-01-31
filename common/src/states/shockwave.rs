@@ -83,17 +83,21 @@ impl CharacterBehavior for Data {
                     });
                 } else {
                     // Attack
-                    let damage = Damage {
-                        source: DamageSource::Shockwave,
-                        value: self.static_data.damage as f32,
-                    };
                     let poise = AttackEffect::Poise(self.static_data.poise_damage as f32);
                     let poise = EffectComponent::new(Some(GroupTarget::OutOfGroup), poise)
                         .with_requirement(CombatRequirement::AnyDamage);
                     let knockback = AttackEffect::Knockback(self.static_data.knockback);
-                    let damage = DamageComponent::new(damage, Some(GroupTarget::OutOfGroup))
+                    let knockback = EffectComponent::new(Some(GroupTarget::OutOfGroup), knockback)
+                        .with_requirement(CombatRequirement::AnyDamage);
+                    let damage = Damage {
+                        source: DamageSource::Shockwave,
+                        value: self.static_data.damage as f32,
+                    };
+                    let damage = DamageComponent::new(damage, Some(GroupTarget::OutOfGroup));
+                    let attack = Attack::default()
+                        .with_damage(damage)
+                        .with_effect(poise)
                         .with_effect(knockback);
-                    let attack = Attack::default().with_damage(damage).with_effect(poise);
                     let properties = shockwave::Properties {
                         angle: self.static_data.shockwave_angle,
                         vertical_angle: self.static_data.shockwave_vertical_angle,

@@ -98,8 +98,8 @@ impl Attack {
                 self.crit_multiplier,
                 strength_modifier,
             );
-            let damage_damage = -change.amount as f32;
-            accumulated_damage += damage_damage;
+            let applied_damage = -change.amount as f32;
+            accumulated_damage += applied_damage;
             if change.amount != 0 {
                 server_events.push(ServerEvent::Damage {
                     entity: target_entity,
@@ -130,14 +130,14 @@ impl Attack {
                                 server_events.push(ServerEvent::Buff {
                                     entity: target_entity,
                                     buff_change: BuffChange::Add(
-                                        b.to_buff(attacker_uid, damage_damage),
+                                        b.to_buff(attacker_uid, applied_damage),
                                     ),
                                 });
                             }
                         },
                         AttackEffect::Lifesteal(l) => {
                             let change = HealthChange {
-                                amount: (damage_damage * l) as i32,
+                                amount: (applied_damage * l) as i32,
                                 cause: HealthSource::Heal {
                                     by: Some(attacker_uid),
                                 },
