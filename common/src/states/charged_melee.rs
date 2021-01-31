@@ -155,11 +155,6 @@ impl CharacterBehavior for Data {
                         exhausted: true,
                         ..*self
                     });
-                    let damage = Damage {
-                        source: DamageSource::Melee,
-                        value: self.static_data.initial_damage as f32
-                            + self.charge_amount * self.static_data.scaled_damage as f32,
-                    };
                     let poise = self.static_data.initial_poise_damage as f32
                         + self.charge_amount * self.static_data.scaled_poise_damage as f32;
                     let poise = AttackEffect::Poise(poise);
@@ -171,14 +166,21 @@ impl CharacterBehavior for Data {
                         strength: knockback,
                         direction: KnockbackDir::Away,
                     });
+                    let knockback = EffectComponent::new(Some(GroupTarget::OutOfGroup), knockback)
+                        .with_requirement(CombatRequirement::AnyDamage);
                     let buff = AttackEffect::Buff(CombatBuff::default_physical());
+                    let damage = Damage {
+                        source: DamageSource::Melee,
+                        value: self.static_data.initial_damage as f32
+                            + self.charge_amount * self.static_data.scaled_damage as f32,
+                    };
                     let damage = DamageComponent::new(damage, Some(GroupTarget::OutOfGroup))
-                        .with_effect(knockback)
                         .with_effect(buff);
                     let attack = Attack::default()
                         .with_damage(damage)
                         .with_crit(0.5, 1.3)
-                        .with_effect(poise);
+                        .with_effect(poise)
+                        .with_effect(knockback);
 
                     // Hit attempt
                     data.updater.insert(data.entity, MeleeAttack {

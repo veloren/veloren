@@ -132,11 +132,6 @@ impl CharacterBehavior for Data {
                     if !self.exhausted {
                         // Hit attempt (also checks if player is moving)
                         if update.vel.0.distance_squared(Vec3::zero()) > 1.0 {
-                            let damage = Damage {
-                                source: DamageSource::Melee,
-                                value: self.static_data.base_damage as f32
-                                    + charge_frac * self.static_data.scaled_damage as f32,
-                            };
                             let poise = self.static_data.base_poise_damage as f32
                                 + charge_frac * self.static_data.scaled_poise_damage as f32;
                             let poise = AttackEffect::Poise(poise);
@@ -148,15 +143,23 @@ impl CharacterBehavior for Data {
                                 strength: knockback,
                                 direction: KnockbackDir::Away,
                             });
+                            let knockback =
+                                EffectComponent::new(Some(GroupTarget::OutOfGroup), knockback)
+                                    .with_requirement(CombatRequirement::AnyDamage);
                             let buff = AttackEffect::Buff(CombatBuff::default_physical());
+                            let damage = Damage {
+                                source: DamageSource::Melee,
+                                value: self.static_data.base_damage as f32
+                                    + charge_frac * self.static_data.scaled_damage as f32,
+                            };
                             let damage =
                                 DamageComponent::new(damage, Some(GroupTarget::OutOfGroup))
-                                    .with_effect(knockback)
                                     .with_effect(buff);
                             let attack = Attack::default()
                                 .with_damage(damage)
                                 .with_crit(0.5, 1.3)
-                                .with_effect(poise);
+                                .with_effect(poise)
+                                .with_effect(knockback);
 
                             data.updater.insert(data.entity, MeleeAttack {
                                 attack,
