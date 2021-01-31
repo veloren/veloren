@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Lactose tolerant golems
 - 6 different gems. (Topaz, Amethyst, Sapphire, Emerald, Ruby and Diamond)
 - Poise system (not currently accessible to players for balancing reasons)
+- Snow particles
 
 ### Changed
 

@@ -522,6 +522,14 @@ impl ParticleMgr {
                 mode: ParticleMode::Bee,
                 cond: |sd| sd.state.get_day_period().is_light(),
             },
+            BlockParticles {
+                blocks: |boi| &boi.snow,
+                range: 4,
+                rate: 0.025,
+                lifetime: 15.0,
+                mode: ParticleMode::Snow,
+                cond: |_| true,
+            },
         ];
 
         let mut rng = thread_rng();
