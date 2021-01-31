@@ -150,7 +150,7 @@ impl EventMapper for BlockEventMapper {
                 || player_pos.0.z < (terrain_alt - 30.0)
                 || (sounds.sfx == SfxEvent::Birdcall && thread_rng().gen_bool(0.995))
                 || (sounds.sfx == SfxEvent::Owl && thread_rng().gen_bool(0.998))
-                || (sounds.sfx == SfxEvent::Cricket && thread_rng().gen_bool(0.95))
+                || (sounds.sfx == SfxEvent::Cricket && thread_rng().gen_bool(0.99))
             {
                 continue;
             }
