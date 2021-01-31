@@ -17,6 +17,7 @@ pub struct BlocksOfInterest {
     pub reeds: Vec<Vec3<i32>>,
     pub flowers: Vec<Vec3<i32>>,
     pub fire_bowls: Vec<Vec3<i32>>,
+    pub snow: Vec<Vec3<i32>>,
     // Note: these are only needed for chunks within the iteraction range so this is a potential
     // area for optimization
     pub interactables: Vec<Vec3<i32>>,
@@ -37,6 +38,7 @@ impl BlocksOfInterest {
         let mut interactables = Vec::new();
         let mut lights = Vec::new();
         let mut fire_bowls = Vec::new();
+        let mut snow = Vec::new();
 
         chunk
             .vol_iter(
@@ -49,21 +51,14 @@ impl BlocksOfInterest {
             )
             .for_each(|(pos, block)| {
                 match block.kind() {
-                    BlockKind::Leaves => {
-                        if thread_rng().gen_range(0..16) == 0 {
-                            leaves.push(pos)
-                        }
+                    BlockKind::Leaves if thread_rng().gen_range(0..16) == 0 => leaves.push(pos),
+                    BlockKind::Grass if thread_rng().gen_range(0..16) == 0 => grass.push(pos),
+                    BlockKind::Water
+                        if chunk.meta().contains_river() && thread_rng().gen_range(0..16) == 0 =>
+                    {
+                        river.push(pos)
                     },
-                    BlockKind::Grass => {
-                        if thread_rng().gen_range(0..16) == 0 {
-                            grass.push(pos)
-                        }
-                    },
-                    BlockKind::Water => {
-                        if chunk.meta().contains_river() && thread_rng().gen_range(0..16) == 0 {
-                            river.push(pos)
-                        }
-                    },
+                    BlockKind::Snow if thread_rng().gen_range(0..16) == 0 => snow.push(pos),
                     _ => match block.get_sprite() {
                         Some(SpriteKind::Ember) => {
                             fires.push(pos);
@@ -107,6 +102,7 @@ impl BlocksOfInterest {
             interactables,
             lights,
             fire_bowls,
+            snow,
         }
     }
 }
