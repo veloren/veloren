@@ -283,7 +283,7 @@ impl ProceduralTree {
             // Our trunk starts at the origin...
             Vec3::zero(),
             // ...and has a roughly upward direction
-            Vec3::new(rng.gen_range(-1.0, 1.0), rng.gen_range(-1.0, 1.0), 5.0).normalized(),
+            Vec3::new(rng.gen_range(-1.0..1.0), rng.gen_range(-1.0..1.0), 5.0).normalized(),
             config.trunk_len,
             config.trunk_radius,
             0,
@@ -313,7 +313,7 @@ impl ProceduralTree {
         let line = LineSegment3 { start, end };
         let wood_radius = branch_radius;
         let leaf_radius = if depth == config.max_depth {
-            rng.gen_range(config.leaf_radius.start, config.leaf_radius.end)
+            rng.gen_range(config.leaf_radius.clone())
         } else {
             0.0
         };
@@ -327,12 +327,12 @@ impl ProceduralTree {
         let mut child_idx = None;
         // Don't add child branches if we're already enough layers into the tree
         if depth < config.max_depth {
-            let x_axis = dir.cross(Vec3::<f32>::zero().map(|_| rng.gen_range(-1.0, 1.0))).normalized();
+            let x_axis = dir.cross(Vec3::<f32>::zero().map(|_| rng.gen_range(-1.0..1.0))).normalized();
             let y_axis = dir.cross(x_axis).normalized();
-            let screw_shift = rng.gen_range(0.0, f32::consts::TAU);
+            let screw_shift = rng.gen_range(0.0..f32::consts::TAU);
 
             for i in 0..config.splits {
-                let dist = Lerp::lerp(i as f32 / (config.splits - 1) as f32, rng.gen_range(0.0, 1.0), config.proportionality);
+                let dist = Lerp::lerp(i as f32 / (config.splits - 1) as f32, rng.gen_range(0.0..1.0), config.proportionality);
 
                 const PHI: f32 = 0.618;
                 const RAD_PER_BRANCH: f32 = f32::consts::TAU * PHI;
@@ -347,7 +347,7 @@ impl ProceduralTree {
                     start,
                     end,
                     split_factor,
-                ) + Lerp::lerp(Vec3::<f32>::zero().map(|_| rng.gen_range(-1.0, 1.0)), screw, config.proportionality);
+                ) + Lerp::lerp(Vec3::<f32>::zero().map(|_| rng.gen_range(-1.0..1.0)), screw, config.proportionality);
                 // Start the branch at the closest point to the target
                 let branch_start = line.projected_point(tgt);
                 // Now, interpolate between the target direction and the parent branch's direction to find a direction

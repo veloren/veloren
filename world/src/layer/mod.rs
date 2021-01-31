@@ -6,7 +6,7 @@ pub use self::{scatter::apply_scatter_to, tree::apply_trees_to};
 
 use crate::{
     column::ColumnSample,
-    util::{FastNoise, FastNoise2d, RandomField, Sampler},
+    util::{FastNoise, RandomField, Sampler},
     Canvas, IndexRef,
 };
 use common::{

@@ -46,7 +46,6 @@ pub struct Structure {
 
 struct BaseStructure {
     vol: Dyna<StructureBlock, ()>,
-    empty: StructureBlock,
     default_kind: BlockKind,
 }
 
@@ -167,13 +166,11 @@ impl assets::Compound for BaseStructure {
 
             Ok(BaseStructure {
                 vol,
-                empty: StructureBlock::None,
                 default_kind: BlockKind::Misc,
             })
         } else {
             Ok(BaseStructure {
                 vol: Dyna::filled(Vec3::zero(), StructureBlock::None, ()),
-                empty: StructureBlock::None,
                 default_kind: BlockKind::Misc,
             })
         }
