@@ -2,7 +2,7 @@ use specs::{world::WorldExt, Entity as EcsEntity};
 use tracing::error;
 
 use common::{
-    comp::{self, inventory::slot::EquipSlot, item, slot::Slot, Inventory, Pos},
+    comp::{self, agent::AgentEvent, inventory::slot::EquipSlot, item, slot::Slot, Inventory, Pos},
     consts::MAX_MOUNT_RANGE,
     uid::Uid,
 };
@@ -51,6 +51,19 @@ pub fn handle_lantern(server: &mut Server, entity: EcsEntity, enable: bool) {
                             animated: true,
                         });
             }
+        }
+    }
+}
+
+pub fn handle_npc_interaction(server: &mut Server, interactor: EcsEntity, npc_entity: EcsEntity) {
+    let state = server.state_mut();
+    if let Some(agent) = state
+        .ecs()
+        .write_storage::<comp::Agent>()
+        .get_mut(npc_entity)
+    {
+        if let Some(interactor_uid) = state.ecs().uid_from_entity(interactor) {
+            agent.inbox.push_front(AgentEvent::Talk(interactor_uid));
         }
     }
 }

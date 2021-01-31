@@ -24,6 +24,7 @@ pub trait CharacterBehavior {
     fn dance(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
     fn sneak(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
     fn stand(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
+    fn talk(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
     fn handle_event(&self, data: &JoinData, event: ControlAction) -> StateUpdate {
         match event {
             ControlAction::SwapLoadout => self.swap_loadout(data),
@@ -34,6 +35,7 @@ pub trait CharacterBehavior {
             ControlAction::Dance => self.dance(data),
             ControlAction::Sneak => self.sneak(data),
             ControlAction::Stand => self.stand(data),
+            ControlAction::Talk => self.talk(data),
         }
     }
     // fn init(data: &JoinData) -> CharacterState;

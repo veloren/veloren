@@ -322,6 +322,12 @@ pub fn attempt_dance(data: &JoinData, update: &mut StateUpdate) {
     }
 }
 
+pub fn attempt_talk(data: &JoinData, update: &mut StateUpdate) {
+    if data.physics.on_ground {
+        update.character = CharacterState::Talk;
+    }
+}
+
 pub fn attempt_sneak(data: &JoinData, update: &mut StateUpdate) {
     if data.physics.on_ground && data.body.is_humanoid() {
         update.character = CharacterState::Sneak;

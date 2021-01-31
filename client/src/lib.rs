@@ -637,6 +637,23 @@ impl Client {
         }
     }
 
+    pub fn npc_interact(&mut self, npc_entity: EcsEntity) {
+        // If we're dead, exit before sending message
+        if self
+            .state
+            .ecs()
+            .read_storage::<comp::Health>()
+            .get(self.entity)
+            .map_or(false, |h| h.is_dead)
+        {
+            return;
+        }
+
+        if let Some(uid) = self.state.read_component_copied(npc_entity) {
+            self.send_msg(ClientGeneral::ControlEvent(ControlEvent::Interact(uid)));
+        }
+    }
+
     pub fn player_list(&self) -> &HashMap<Uid, PlayerInfo> { &self.player_list }
 
     pub fn character_list(&self) -> &CharacterList { &self.character_list }

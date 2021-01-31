@@ -37,6 +37,7 @@ pub enum ControlEvent {
     //ToggleLantern,
     EnableLantern,
     DisableLantern,
+    Interact(Uid),
     Mount(Uid),
     Unmount,
     InventoryManip(InventoryManip),
@@ -55,6 +56,7 @@ pub enum ControlAction {
     Dance,
     Sneak,
     Stand,
+    Talk,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]

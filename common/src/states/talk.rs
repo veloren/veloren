@@ -1,20 +1,21 @@
 use super::utils::*;
 use crate::{
-    comp::StateUpdate,
+    comp::{CharacterState, StateUpdate},
     states::behavior::{CharacterBehavior, JoinData},
 };
+use serde::{Deserialize, Serialize};
 
+const TURN_RATE: f32 = 40.0;
+
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct Data;
 
 impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
-        handle_move(data, &mut update, 1.0);
-        handle_jump(data, &mut update);
         handle_wield(data, &mut update);
-        handle_climb(data, &mut update);
-        handle_dodge_input(data, &mut update);
+        handle_orientation(data, &mut update, TURN_RATE);
 
         update
     }
@@ -27,37 +28,22 @@ impl CharacterBehavior for Data {
 
     fn sit(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
+        update.character = CharacterState::Idle;
         attempt_sit(data, &mut update);
-        update
-    }
-
-    fn talk(&self, data: &JoinData) -> StateUpdate {
-        let mut update = StateUpdate::from(data);
-        attempt_talk(data, &mut update);
         update
     }
 
     fn dance(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
+        update.character = CharacterState::Idle;
         attempt_dance(data, &mut update);
         update
     }
 
-    fn sneak(&self, data: &JoinData) -> StateUpdate {
+    fn stand(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
-        attempt_sneak(data, &mut update);
-        update
-    }
-
-    fn glide_wield(&self, data: &JoinData) -> StateUpdate {
-        let mut update = StateUpdate::from(data);
-        attempt_glide_wield(data, &mut update);
-        update
-    }
-
-    fn swap_loadout(&self, data: &JoinData) -> StateUpdate {
-        let mut update = StateUpdate::from(data);
-        attempt_swap_loadout(data, &mut update);
+        // Try to Fall/Stand up/Move
+        update.character = CharacterState::Idle;
         update
     }
 }

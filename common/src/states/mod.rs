@@ -22,5 +22,6 @@ pub mod sit;
 pub mod sneak;
 pub mod spin_melee;
 pub mod stunned;
+pub mod talk;
 pub mod utils;
 pub mod wielding;

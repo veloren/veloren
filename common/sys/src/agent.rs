@@ -1,7 +1,7 @@
 use common::{
     comp::{
         self,
-        agent::Activity,
+        agent::{Activity, AgentEvent, Tactic, DEFAULT_INTERACTION_TIME},
         group,
         group::Invite,
         inventory::slot::EquipSlot,
@@ -34,6 +34,10 @@ use specs::{
 use std::f32::consts::PI;
 use vek::*;
 
+// This is 3.1 to last longer than the last damage timer (3.0 seconds)
+const DAMAGE_MEMORY_DURATION: f64 = 3.0;
+const FLEE_DURATION: f32 = 3.1;
+
 /// This system will allow NPCs to modify their controller
 pub struct Sys;
 impl<'a> System<'a> for Sys {
@@ -57,6 +61,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Inventory>,
         ReadStorage<'a, Stats>,
         ReadStorage<'a, PhysicsState>,
+        ReadStorage<'a, CharacterState>,
         ReadStorage<'a, Uid>,
         ReadStorage<'a, group::Group>,
         ReadExpect<'a, TerrainGrid>,
@@ -68,7 +73,6 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Invite>,
         Read<'a, TimeOfDay>,
         ReadStorage<'a, LightEmitter>,
-        ReadStorage<'a, CharacterState>,
     );
 
     #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
@@ -88,6 +92,7 @@ impl<'a> System<'a> for Sys {
             inventories,
             stats,
             physics_states,
+            char_states,
             uids,
             groups,
             terrain,
@@ -99,7 +104,6 @@ impl<'a> System<'a> for Sys {
             invites,
             time_of_day,
             light_emitter,
-            char_states,
         ): Self::SystemData,
     ) {
         let start_time = std::time::Instant::now();
@@ -204,7 +208,7 @@ impl<'a> System<'a> for Sys {
 
                 let scale = scales.get(entity).map(|s| s.0).unwrap_or(1.0);
 
-                let min_attack_dist = body.map_or(2.0, |b| b.radius() * scale * 1.5);
+                let min_attack_dist = body.map_or(3.0, |b| b.radius() * scale + 2.0);
 
                 // This controls how picky NPCs are about their pathfinding. Giants are larger
                 // and so can afford to be less precise when trying to move around
@@ -224,11 +228,67 @@ impl<'a> System<'a> for Sys {
 
                 let mut do_idle = false;
                 let mut choose_target = false;
+                let flees = alignment
+                    .map(|a| !matches!(a, Alignment::Enemy | Alignment::Owned(_)))
+                    .unwrap_or(true);
 
                 'activity: {
                     match &mut agent.activity {
+                        Activity::Interact { interaction, timer } => {
+                            if let AgentEvent::Talk(by) = interaction {
+                                if let Some(target) = uid_allocator.retrieve_entity_internal(by.id()) {
+                                    if *timer < DEFAULT_INTERACTION_TIME {
+                                        if let Some(tgt_pos) = positions.get(target) {
+                                            let eye_offset = body.map_or(0.0, |b| b.eye_height());
+                                            let tgt_eye_offset = bodies.get(target).map_or(0.0, |b| b.eye_height());
+                                            if let Some(dir) = Dir::from_unnormalized(
+                                                Vec3::new(
+                                                    tgt_pos.0.x,
+                                                    tgt_pos.0.y,
+                                                    tgt_pos.0.z + tgt_eye_offset,
+                                                ) - Vec3::new(pos.0.x, pos.0.y, pos.0.z + eye_offset),
+                                            ) {
+                                                inputs.look_dir = dir;
+                                            }
+                                            if *timer == 0.0 {
+                                                controller.actions.push(ControlAction::Stand);
+                                                controller.actions.push(ControlAction::Talk);
+                                                if let Some((_travel_to, destination_name)) = &agent.rtsim_controller.travel_to {
+
+                                                     let msg = format!("I'm heading to {}! Want to come along?", destination_name);
+                                                     event_emitter.emit(ServerEvent::Chat(
+                                                         UnresolvedChatMsg::npc(*uid, msg),
+                                                     ));
+                                                } else {
+                                                    let msg = "npc.speech.villager".to_string();
+                                                    event_emitter.emit(ServerEvent::Chat(
+                                                        UnresolvedChatMsg::npc(*uid, msg),
+                                                    ));
+                                                }
+                                            }
+                                        }
+                                        *timer += dt.0;
+                                    } else {
+                                        controller.actions.push(ControlAction::Stand);
+                                        do_idle = true;
+                                    }
+                                }
+                            }
+
+                            // Interrupt
+                            if !agent.inbox.is_empty() {
+                                if agent.can_speak { // Remove this if/when we can pet doggos
+                                    agent.activity = Activity::Interact {
+                                        timer: 0.0,
+                                        interaction: agent.inbox.pop_back().unwrap(), // Should not fail as already checked is_empty()
+                                    }
+                                } else {
+                                    agent.inbox.clear();
+                                }
+                            }
+                        },
                         Activity::Idle { bearing, chaser } => {
-                            if let Some(travel_to) = agent.rtsim_controller.travel_to {
+                            if let Some((travel_to, _destination)) = &agent.rtsim_controller.travel_to {
                                 // if it has an rtsim destination and can fly then it should
                                 // if it is flying and bumps something above it then it should move down
                                 inputs.fly.set_state(traversal_config.can_fly && !terrain
@@ -240,7 +300,7 @@ impl<'a> System<'a> for Sys {
                                     .1
                                     .map_or(true, |b| b.is_some()));
                                 if let Some((bearing, speed)) =
-                                    chaser.chase(&*terrain, pos.0, vel.0, travel_to, TraversalConfig {
+                                    chaser.chase(&*terrain, pos.0, vel.0, *travel_to, TraversalConfig {
                                         min_tgt_dist: 1.25,
                                         ..traversal_config
                                     })
@@ -327,6 +387,18 @@ impl<'a> System<'a> for Sys {
                             if thread_rng().gen::<f32>() < 0.1 {
                                 choose_target = true;
                             }
+
+                            // Interact
+                            if !agent.inbox.is_empty() {
+                                if flees && agent.can_speak { // Remove this if/when we can pet doggos
+                                    agent.activity = Activity::Interact {
+                                        timer: 0.0,
+                                        interaction: agent.inbox.pop_back().unwrap(), // Should not fail as already checked is_empty()
+                                    }
+                                } else {
+                                    agent.inbox.clear();
+                                }
+                            }
                         },
                         Activity::Follow { target, chaser } => {
                             if let (Some(tgt_pos), _tgt_health) =
@@ -358,6 +430,46 @@ impl<'a> System<'a> for Sys {
                                 do_idle = true;
                             }
                         },
+                        Activity::Flee {
+                            target,
+                            chaser,
+                            timer,
+                        } => {
+                            if let Some(body) = body {
+                                if body.can_strafe() {
+                                    controller.actions.push(ControlAction::Unwield);
+                                }
+                            }
+                            if let Some(tgt_pos) = positions.get(*target) {
+                                let dist_sqrd = pos.0.distance_squared(tgt_pos.0);
+                                if *timer < FLEE_DURATION || dist_sqrd < MAX_FLEE_DIST.powi(2) {
+                                    if let Some((bearing, speed)) = chaser.chase(
+                                        &*terrain,
+                                        pos.0,
+                                        vel.0,
+                                        // Away from the target (ironically)
+                                        pos.0
+                                            + (pos.0 - tgt_pos.0)
+                                                .try_normalized()
+                                                .unwrap_or_else(Vec3::unit_y)
+                                                * 50.0,
+                                        TraversalConfig {
+                                            min_tgt_dist: 1.25,
+                                            ..traversal_config
+                                        },
+                                    ) {
+                                        inputs.move_dir =
+                                            bearing.xy().try_normalized().unwrap_or(Vec2::zero())
+                                                * speed;
+                                        inputs.jump.set_state(bearing.z > 1.5);
+                                        inputs.move_z = bearing.z;
+                                    }
+                                    *timer += dt.0;
+                                } else {
+                                    do_idle = true;
+                                }
+                            }
+                        },
                         Activity::Attack {
                             target,
                             chaser,
@@ -365,26 +477,6 @@ impl<'a> System<'a> for Sys {
                             powerup,
                             ..
                         } => {
-                            #[derive(Eq, PartialEq)]
-                            enum Tactic {
-                                Melee,
-                                Axe,
-                                Hammer,
-                                Sword,
-                                Bow,
-                                Staff,
-                                StoneGolemBoss,
-                                CircleCharge { radius: u32, circle_time: u32 },
-                                QuadLowRanged,
-                                TailSlap,
-                                QuadLowQuick,
-                                QuadLowBasic,
-                                QuadMedJump,
-                                QuadMedBasic,
-                                Lavadrake,
-                                Theropod,
-                            }
-
                             let tactic = match inventory.equipped(EquipSlot::Mainhand).as_ref().and_then(|item| {
                                 if let ItemKind::Tool(tool) = &item.kind() {
                                     Some(&tool.kind)
@@ -493,876 +585,531 @@ impl<'a> System<'a> for Sys {
 
                                 let dist_sqrd = pos.0.distance_squared(tgt_pos.0);
 
-                                let damage = healths
-                                    .get(entity)
-                                    .map(|h| h.current() as f32 / h.maximum() as f32)
-                                    .unwrap_or(0.5);
-
-                                // Flee
-                                let flees = alignment
-                                    .map(|a| !matches!(a, Alignment::Enemy | Alignment::Owned(_)))
-                                    .unwrap_or(true);
-                                if 1.0 - agent.psyche.aggro > damage && flees {
-                                    if let Some(body) = body {
-                                        if body.can_strafe() {
-                                            controller.actions.push(ControlAction::Unwield);
-                                        }
-                                    }
-                                    if dist_sqrd < MAX_FLEE_DIST.powi(2) {
-                                        if let Some((bearing, speed)) = chaser.chase(
-                                            &*terrain,
-                                            pos.0,
-                                            vel.0,
-                                            // Away from the target (ironically)
-                                            pos.0
-                                                + (pos.0 - tgt_pos.0)
+                                // Match on tactic. Each tactic has different controls
+                                // depending on the distance from the agent to the target
+                                match tactic {
+                                    Tactic::Melee => {
+                                        if dist_sqrd < (min_attack_dist * scale).powi(2) {
+                                            inputs.primary.set_state(true);
+                                            inputs.move_dir = Vec2::zero();
+                                        } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
+                                            || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
+                                        {
+                                            if dist_sqrd < MAX_CHASE_DIST.powi(2) {
+                                                *been_close = true;
+                                            }
+                                            if let Some((bearing, speed)) = chaser.chase(
+                                                &*terrain,
+                                                pos.0,
+                                                vel.0,
+                                                tgt_pos.0,
+                                                TraversalConfig {
+                                                    min_tgt_dist: 1.25,
+                                                    ..traversal_config
+                                                },
+                                            ) {
+                                                inputs.move_dir = bearing
+                                                    .xy()
                                                     .try_normalized()
-                                                    .unwrap_or_else(Vec3::unit_y)
-                                                    * 50.0,
-                                            TraversalConfig {
-                                                min_tgt_dist: 1.25,
-                                                ..traversal_config
-                                            },
-                                        ) {
-                                            inputs.move_dir =
-                                                bearing.xy().try_normalized().unwrap_or(Vec2::zero())
+                                                    .unwrap_or(Vec2::zero())
                                                     * speed;
-                                            inputs.jump.set_state(bearing.z > 1.5);
-                                            inputs.move_z = bearing.z;
-                                        }
-                                    } else {
-                                        do_idle = true;
-                                    }
-                                } else {
-                                    // Match on tactic. Each tactic has different controls
-                                    // depending on the distance from the agent to the target
-                                    match tactic {
-                                        Tactic::Melee => {
-                                            if dist_sqrd < (min_attack_dist * scale).powi(2) {
-                                                inputs.primary.set_state(true);
-                                                inputs.move_dir = Vec2::zero();
-                                            } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
-                                                || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
-                                            {
-                                                if dist_sqrd < MAX_CHASE_DIST.powi(2) {
-                                                    *been_close = true;
-                                                }
-                                                if let Some((bearing, speed)) = chaser.chase(
-                                                    &*terrain,
-                                                    pos.0,
-                                                    vel.0,
-                                                    tgt_pos.0,
-                                                    TraversalConfig {
-                                                        min_tgt_dist: 1.25,
-                                                        ..traversal_config
-                                                    },
-                                                ) {
-                                                    inputs.move_dir = bearing
-                                                        .xy()
-                                                        .try_normalized()
-                                                        .unwrap_or(Vec2::zero())
-                                                        * speed;
-                                                    inputs.jump.set_state(bearing.z > 1.5);
-                                                    inputs.move_z = bearing.z;
-                                                }
+                                                inputs.jump.set_state(bearing.z > 1.5);
+                                                inputs.move_z = bearing.z;
+                                            }
 
-                                                if body.map(|b| b.is_humanoid()).unwrap_or(false) && dist_sqrd < 16.0f32.powi(2)
-                                                    && thread_rng().gen::<f32>() < 0.02
-                                                {
-                                                    inputs.roll.set_state(true);
-                                                }
-                                            } else {
-                                                do_idle = true;
-                                            }
-                                        },
-                                        Tactic::Axe => {
-                                            if dist_sqrd < (min_attack_dist * scale).powi(2) {
-                                                inputs.move_dir = Vec2::zero();
-                                                if *powerup > 6.0 {
-                                                    inputs.secondary.set_state(false);
-                                                    *powerup = 0.0;
-                                                } else if *powerup > 4.0 && energy.current() > 10 {
-                                                    inputs.secondary.set_state(true);
-                                                    *powerup += dt.0;
-                                                } else if stats.skill_set.has_skill(Skill::Axe(AxeSkill::UnlockLeap)) && energy.current() > 800 && thread_rng().gen_bool(0.5) {
-                                                    inputs.ability3.set_state(true);
-                                                    *powerup += dt.0;
-                                                } else {
-                                                    inputs.primary.set_state(true);
-                                                    *powerup += dt.0;
-                                                }
-                                            } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
-                                                || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
+                                            if body.map(|b| b.is_humanoid()).unwrap_or(false) && dist_sqrd < 16.0f32.powi(2)
+                                                && thread_rng().gen::<f32>() < 0.02
                                             {
-                                                if dist_sqrd < MAX_CHASE_DIST.powi(2) {
-                                                    *been_close = true;
-                                                }
-                                                if let Some((bearing, speed)) = chaser.chase(
-                                                    &*terrain,
-                                                    pos.0,
-                                                    vel.0,
-                                                    tgt_pos.0,
-                                                    TraversalConfig {
-                                                        min_tgt_dist: 1.25,
-                                                        ..traversal_config
-                                                    },
-                                                ) {
-                                                    inputs.move_dir = bearing
-                                                        .xy()
-                                                        .try_normalized()
-                                                        .unwrap_or(Vec2::zero())
-                                                        * speed;
-                                                    inputs.jump.set_state(bearing.z > 1.5);
-                                                    inputs.move_z = bearing.z;
-                                                }
-                                                if body.map(|b| b.is_humanoid()).unwrap_or(false) && dist_sqrd < 16.0f32.powi(2)
-                                                    && thread_rng().gen::<f32>() < 0.02
-                                                {
-                                                    inputs.roll.set_state(true);
-                                                }
-                                            } else {
-                                                do_idle = true;
-                                            }
-                                        },
-                                        Tactic::Hammer => {
-                                            if dist_sqrd < (min_attack_dist * scale).powi(2) {
-                                                inputs.move_dir = Vec2::zero();
-                                                if *powerup > 4.0 {
-                                                    inputs.secondary.set_state(false);
-                                                    *powerup = 0.0;
-                                                } else if *powerup > 2.0 {
-                                                    inputs.secondary.set_state(true);
-                                                    *powerup += dt.0;
-                                                } else if stats.skill_set.has_skill(Skill::Hammer(HammerSkill::UnlockLeap)) && energy.current() > 700
-                                                    && thread_rng().gen_bool(0.9) {
-                                                    inputs.ability3.set_state(true);
-                                                    *powerup += dt.0;
-                                                } else {
-                                                    inputs.primary.set_state(true);
-                                                    *powerup += dt.0;
-                                                }
-                                            } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
-                                                || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
-                                            {
-                                                if dist_sqrd < MAX_CHASE_DIST.powi(2) {
-                                                    *been_close = true;
-                                                }
-                                                if let Some((bearing, speed)) = chaser.chase(
-                                                    &*terrain,
-                                                    pos.0,
-                                                    vel.0,
-                                                    tgt_pos.0,
-                                                    TraversalConfig {
-                                                        min_tgt_dist: 1.25,
-                                                        ..traversal_config
-                                                    },
-                                                ) {
-                                                    if can_see_tgt(&*terrain, pos, tgt_pos, dist_sqrd) {
-                                                        inputs.move_dir = bearing
-                                                            .xy()
-                                                            .try_normalized()
-                                                            .unwrap_or(Vec2::zero())
-                                                            * speed;
-                                                        if stats.skill_set.has_skill(Skill::Hammer(HammerSkill::UnlockLeap)) && *powerup > 5.0 {
-                                                            inputs.ability3.set_state(true);
-                                                            *powerup = 0.0;
-                                                        } else {
-                                                            *powerup += dt.0;
-                                                        }
-                                                    } else {
-                                                        inputs.move_dir = bearing
-                                                            .xy()
-                                                            .try_normalized()
-                                                            .unwrap_or(Vec2::zero())
-                                                            * speed;
-                                                        inputs.jump.set_state(bearing.z > 1.5);
-                                                        inputs.move_z = bearing.z;
-                                                    }
-                                                }
-                                                if body.map(|b| b.is_humanoid()).unwrap_or(false) && dist_sqrd < 16.0f32.powi(2)
-                                                    && thread_rng().gen::<f32>() < 0.02
-                                                {
-                                                    inputs.roll.set_state(true);
-                                                }
-                                            } else {
-                                                do_idle = true;
-                                            }
-                                        },
-                                        Tactic::Sword => {
-                                            if dist_sqrd < (min_attack_dist * scale).powi(2) {
-                                                inputs.move_dir = Vec2::zero();
-                                                if stats.skill_set.has_skill(Skill::Sword(SwordSkill::UnlockSpin)) && *powerup < 2.0 && energy.current() > 600 {
-                                                    inputs.ability3.set_state(true);
-                                                    *powerup += dt.0;
-                                                } else if *powerup > 2.0 {
-                                                    *powerup = 0.0;
-                                                } else {
-                                                    inputs.primary.set_state(true);
-                                                    *powerup += dt.0;
-                                                }
-                                            } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
-                                                || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
-                                            {
-                                                if dist_sqrd < MAX_CHASE_DIST.powi(2) {
-                                                    *been_close = true;
-                                                }
-                                                if let Some((bearing, speed)) = chaser.chase(
-                                                    &*terrain,
-                                                    pos.0,
-                                                    vel.0,
-                                                    tgt_pos.0,
-                                                    TraversalConfig {
-                                                        min_tgt_dist: 1.25,
-                                                        ..traversal_config
-                                                    },
-                                                ) {
-                                                    if can_see_tgt(&*terrain, pos, tgt_pos, dist_sqrd) {
-                                                        inputs.move_dir = bearing
-                                                            .xy()
-                                                            .try_normalized()
-                                                            .unwrap_or(Vec2::zero())
-                                                            * speed;
-                                                        if *powerup > 4.0 {
-                                                            inputs.secondary.set_state(true);
-                                                            *powerup = 0.0;
-                                                        } else {
-                                                            *powerup += dt.0;
-                                                        }
-                                                    } else {
-                                                        inputs.move_dir = bearing
-                                                            .xy()
-                                                            .try_normalized()
-                                                            .unwrap_or(Vec2::zero())
-                                                            * speed;
-                                                        inputs.jump.set_state(bearing.z > 1.5);
-                                                        inputs.move_z = bearing.z;
-                                                    }
-                                                }
-                                                if body.map(|b| b.is_humanoid()).unwrap_or(false) && dist_sqrd < 16.0f32.powi(2)
-                                                    && thread_rng().gen::<f32>() < 0.02
-                                                {
-                                                    inputs.roll.set_state(true);
-                                                }
-                                            } else {
-                                                do_idle = true;
-                                            }
-                                        },
-                                        Tactic::Bow => {
-                                            if body.map(|b| b.is_humanoid()).unwrap_or(false) && dist_sqrd < (2.0 * min_attack_dist * scale).powi(2) {
                                                 inputs.roll.set_state(true);
-                                            } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
-                                                || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
-                                            {
-                                                if dist_sqrd < MAX_CHASE_DIST.powi(2) {
-                                                    *been_close = true;
-                                                }
-                                                if let Some((bearing, speed)) = chaser.chase(
-                                                    &*terrain,
-                                                    pos.0,
-                                                    vel.0,
-                                                    tgt_pos.0,
-                                                    TraversalConfig {
-                                                        min_tgt_dist: 1.25,
-                                                        ..traversal_config
-                                                    },
-                                                ) {
-                                                    if can_see_tgt(&*terrain, pos, tgt_pos, dist_sqrd) {
-                                                        inputs.move_dir = bearing
-                                                            .xy()
-                                                            .rotated_z(
-                                                                thread_rng().gen_range(0.5..1.57),
-                                                            )
-                                                            .try_normalized()
-                                                            .unwrap_or(Vec2::zero())
-                                                            * speed;
-                                                        if *powerup > 4.0 {
-                                                            inputs.secondary.set_state(false);
-                                                            *powerup = 0.0;
-                                                        } else if *powerup > 2.0
-                                                            && energy.current() > 300
-                                                        {
-                                                            inputs.secondary.set_state(true);
-                                                            *powerup += dt.0;
-                                                        } else if stats.skill_set.has_skill(Skill::Bow(BowSkill::UnlockRepeater)) && energy.current() > 400
-                                                            && thread_rng().gen_bool(0.8)
-                                                        {
-                                                            inputs.secondary.set_state(false);
-                                                            inputs.ability3.set_state(true);
-                                                            *powerup += dt.0;
-                                                        } else {
-                                                            inputs.secondary.set_state(false);
-                                                            inputs.primary.set_state(true);
-                                                            *powerup += dt.0;
-                                                        }
-                                                    } else {
-                                                        inputs.move_dir = bearing
-                                                            .xy()
-                                                            .try_normalized()
-                                                            .unwrap_or(Vec2::zero())
-                                                            * speed;
-                                                        inputs.jump.set_state(bearing.z > 1.5);
-                                                        inputs.move_z = bearing.z;
-                                                    }
-                                                }
-                                                if body.map(|b| b.is_humanoid()).unwrap_or(false) && dist_sqrd < 16.0f32.powi(2)
-                                                    && thread_rng().gen::<f32>() < 0.02
-                                                {
-                                                    inputs.roll.set_state(true);
-                                                }
-                                            } else {
-                                                do_idle = true;
                                             }
-                                        },
-                                        Tactic::Staff => {
-                                            if body.map(|b| b.is_humanoid()).unwrap_or(false) && dist_sqrd < (min_attack_dist * scale).powi(2) {
-                                                inputs.roll.set_state(true);
-                                            } else if dist_sqrd
-                                                < (5.0 * min_attack_dist * scale).powi(2)
-                                            {
-                                                if *powerup < 1.5 {
-                                                    inputs.move_dir = (tgt_pos.0 - pos.0)
-                                                        .xy()
-                                                        .rotated_z(0.47 * PI)
-                                                        .try_normalized()
-                                                        .unwrap_or(Vec2::unit_y());
-                                                    *powerup += dt.0;
-                                                } else if *powerup < 3.0 {
-                                                    inputs.move_dir = (tgt_pos.0 - pos.0)
-                                                        .xy()
-                                                        .rotated_z(-0.47 * PI)
-                                                        .try_normalized()
-                                                        .unwrap_or(Vec2::unit_y());
-                                                    *powerup += dt.0;
-                                                } else {
-                                                    *powerup = 0.0;
-                                                }
-                                                if stats.skill_set.has_skill(Skill::Staff(StaffSkill::UnlockShockwave)) && energy.current() > 800
-                                                    && thread_rng().gen::<f32>() > 0.8
-                                                {
-                                                    inputs.ability3.set_state(true);
-                                                } else if energy.current() > 10 {
-                                                    inputs.secondary.set_state(true);
-                                                } else {
-                                                    inputs.primary.set_state(true);
-                                                }
-                                            } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
-                                                || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
-                                            {
-                                                if dist_sqrd < MAX_CHASE_DIST.powi(2) {
-                                                    *been_close = true;
-                                                }
-                                                if let Some((bearing, speed)) = chaser.chase(
-                                                    &*terrain,
-                                                    pos.0,
-                                                    vel.0,
-                                                    tgt_pos.0,
-                                                    TraversalConfig {
-                                                        min_tgt_dist: 1.25,
-                                                        ..traversal_config
-                                                    },
-                                                ) {
-                                                    if can_see_tgt(&*terrain, pos, tgt_pos, dist_sqrd) {
-                                                        inputs.move_dir = bearing
-                                                            .xy()
-                                                            .rotated_z(
-                                                                thread_rng().gen_range(-1.57..-0.5),
-                                                            )
-                                                            .try_normalized()
-                                                            .unwrap_or(Vec2::zero())
-                                                            * speed;
-                                                        inputs.primary.set_state(true);
-                                                    } else {
-                                                        inputs.move_dir = bearing
-                                                            .xy()
-                                                            .try_normalized()
-                                                            .unwrap_or(Vec2::zero())
-                                                            * speed;
-                                                        inputs.jump.set_state(bearing.z > 1.5);
-                                                        inputs.move_z = bearing.z;
-                                                    }
-                                                }
-                                                if body.map(|b| b.is_humanoid()).unwrap_or(false) && dist_sqrd < 16.0f32.powi(2)
-                                                    && thread_rng().gen::<f32>() < 0.02
-                                                {
-                                                    inputs.roll.set_state(true);
-                                                }
-                                            } else {
-                                                do_idle = true;
-                                            }
-                                        },
-                                        Tactic::StoneGolemBoss => {
-                                            if dist_sqrd < (min_attack_dist * scale).powi(2) {
-                                                inputs.move_dir = Vec2::zero();
-                                                inputs.primary.set_state(true);
-                                            } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
-                                                || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
-                                            {
-                                                if vel.0.is_approx_zero() {
-                                                    inputs.ability3.set_state(true);
-                                                }
-                                                if dist_sqrd < MAX_CHASE_DIST.powi(2) {
-                                                    *been_close = true;
-                                                }
-                                                if let Some((bearing, speed)) = chaser.chase(
-                                                    &*terrain,
-                                                    pos.0,
-                                                    vel.0,
-                                                    tgt_pos.0,
-                                                    TraversalConfig {
-                                                        min_tgt_dist: 1.25,
-                                                        ..traversal_config
-                                                    },
-                                                ) {
-                                                    if can_see_tgt(&*terrain, pos, tgt_pos, dist_sqrd) {
-                                                        inputs.move_dir = bearing
-                                                            .xy()
-                                                            .try_normalized()
-                                                            .unwrap_or(Vec2::zero())
-                                                            * speed;
-                                                        if *powerup > 5.0 {
-                                                            inputs.secondary.set_state(true);
-                                                            *powerup = 0.0;
-                                                        } else {
-                                                            *powerup += dt.0;
-                                                        }
-                                                    } else {
-                                                        inputs.move_dir = bearing
-                                                            .xy()
-                                                            .try_normalized()
-                                                            .unwrap_or(Vec2::zero())
-                                                            * speed;
-                                                        inputs.jump.set_state(bearing.z > 1.5);
-                                                        inputs.move_z = bearing.z;
-                                                    }
-                                                }
-                                            } else {
-                                                do_idle = true;
-                                            }
-                                        },
-                                        Tactic::CircleCharge {
-                                            radius,
-                                            circle_time,
-                                        } => {
-                                            if dist_sqrd < (min_attack_dist * scale).powi(2)
-                                                && thread_rng().gen_bool(0.5)
-                                            {
-                                                inputs.move_dir = Vec2::zero();
-                                                inputs.primary.set_state(true);
-                                            } else if dist_sqrd
-                                                < (radius as f32 * min_attack_dist * scale).powi(2)
-                                            {
-                                                inputs.move_dir = (pos.0 - tgt_pos.0)
-                                                    .xy()
-                                                    .try_normalized()
-                                                    .unwrap_or(Vec2::unit_y());
-                                            } else if dist_sqrd
-                                                < ((radius as f32 + 1.0) * min_attack_dist * scale)
-                                                    .powi(2)
-                                                && dist_sqrd
-                                                    > (radius as f32 * min_attack_dist * scale).powi(2)
-                                            {
-                                                if *powerup < circle_time as f32 {
-                                                    inputs.move_dir = (tgt_pos.0 - pos.0)
-                                                        .xy()
-                                                        .rotated_z(0.47 * PI)
-                                                        .try_normalized()
-                                                        .unwrap_or(Vec2::unit_y());
-                                                    *powerup += dt.0;
-                                                } else if *powerup < circle_time as f32 + 0.5 {
-                                                    inputs.secondary.set_state(true);
-                                                    *powerup += dt.0;
-                                                } else if *powerup < 2.0 * circle_time as f32 + 0.5 {
-                                                    inputs.move_dir = (tgt_pos.0 - pos.0)
-                                                        .xy()
-                                                        .rotated_z(-0.47 * PI)
-                                                        .try_normalized()
-                                                        .unwrap_or(Vec2::unit_y());
-                                                    *powerup += dt.0;
-                                                } else if *powerup < 2.0 * circle_time as f32 + 1.0 {
-                                                    inputs.secondary.set_state(true);
-                                                    *powerup += dt.0;
-                                                } else {
-                                                    *powerup = 0.0;
-                                                }
-                                            } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
-                                                || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
-                                            {
-                                                if dist_sqrd < MAX_CHASE_DIST.powi(2) {
-                                                    *been_close = true;
-                                                }
-                                                if let Some((bearing, speed)) = chaser.chase(
-                                                    &*terrain,
-                                                    pos.0,
-                                                    vel.0,
-                                                    tgt_pos.0,
-                                                    TraversalConfig {
-                                                        min_tgt_dist: 1.25,
-                                                        ..traversal_config
-                                                    },
-                                                ) {
-                                                    inputs.move_dir = bearing
-                                                        .xy()
-                                                        .try_normalized()
-                                                        .unwrap_or(Vec2::zero())
-                                                        * speed;
-                                                    inputs.jump.set_state(bearing.z > 1.5);
-                                                    inputs.move_z = bearing.z;
-                                                }
-                                            } else {
-                                                do_idle = true;
-                                            }
-                                        },
-                                        Tactic::QuadLowRanged => {
-                                            if dist_sqrd < (5.0 * min_attack_dist * scale).powi(2) {
-                                                inputs.move_dir = (tgt_pos.0 - pos.0)
-                                                    .xy()
-                                                    .try_normalized()
-                                                    .unwrap_or(Vec2::unit_y());
-                                                inputs.primary.set_state(true);
-                                            } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
-                                                || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
-                                            {
-                                                if dist_sqrd < MAX_CHASE_DIST.powi(2) {
-                                                    *been_close = true;
-                                                }
-                                                if let Some((bearing, speed)) = chaser.chase(
-                                                    &*terrain,
-                                                    pos.0,
-                                                    vel.0,
-                                                    tgt_pos.0,
-                                                    TraversalConfig {
-                                                        min_tgt_dist: 1.25,
-                                                        ..traversal_config
-                                                    },
-                                                ) {
-                                                    if can_see_tgt(&*terrain, pos, tgt_pos, dist_sqrd) {
-                                                        if *powerup > 5.0 {
-                                                            *powerup = 0.0;
-                                                        } else if *powerup > 2.5 {
-                                                            inputs.move_dir = (tgt_pos.0 - pos.0)
-                                                                .xy()
-                                                                .rotated_z(1.75 * PI)
-                                                                .try_normalized()
-                                                                .unwrap_or(Vec2::zero())
-                                                                * speed;
-                                                            *powerup += dt.0;
-                                                        } else {
-                                                            inputs.move_dir = (tgt_pos.0 - pos.0)
-                                                                .xy()
-                                                                .rotated_z(0.25 * PI)
-                                                                .try_normalized()
-                                                                .unwrap_or(Vec2::zero())
-                                                                * speed;
-                                                            *powerup += dt.0;
-                                                        }
-                                                        inputs.secondary.set_state(true);
-                                                        inputs.jump.set_state(bearing.z > 1.5);
-                                                        inputs.move_z = bearing.z;
-                                                    } else {
-                                                        inputs.move_dir = bearing
-                                                            .xy()
-                                                            .try_normalized()
-                                                            .unwrap_or(Vec2::zero())
-                                                            * speed;
-                                                        inputs.jump.set_state(bearing.z > 1.5);
-                                                        inputs.move_z = bearing.z;
-                                                    }
-                                                } else {
-                                                    do_idle = true;
-                                                }
-                                            } else {
-                                                do_idle = true;
-                                            }
-                                        },
-                                        Tactic::TailSlap => {
-                                            if dist_sqrd < (1.5 * min_attack_dist * scale).powi(2) {
-                                                if *powerup > 4.0 {
-                                                    inputs.primary.set_state(false);
-                                                    *powerup = 0.0;
-                                                } else if *powerup > 1.0 {
-                                                    inputs.primary.set_state(true);
-                                                    *powerup += dt.0;
-                                                } else {
-                                                    inputs.secondary.set_state(true);
-                                                    *powerup += dt.0;
-                                                }
-                                                inputs.move_dir = (tgt_pos.0 - pos.0)
-                                                    .xy()
-                                                    .try_normalized()
-                                                    .unwrap_or(Vec2::unit_y())
-                                                    * 0.1;
-                                            } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
-                                                || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
-                                            {
-                                                if dist_sqrd < MAX_CHASE_DIST.powi(2) {
-                                                    *been_close = true;
-                                                }
-                                                if let Some((bearing, speed)) = chaser.chase(
-                                                    &*terrain,
-                                                    pos.0,
-                                                    vel.0,
-                                                    tgt_pos.0,
-                                                    TraversalConfig {
-                                                        min_tgt_dist: 1.25,
-                                                        ..traversal_config
-                                                    },
-                                                ) {
-                                                    inputs.move_dir = bearing
-                                                        .xy()
-                                                        .try_normalized()
-                                                        .unwrap_or(Vec2::zero())
-                                                        * speed;
-                                                    inputs.jump.set_state(bearing.z > 1.5);
-                                                    inputs.move_z = bearing.z;
-                                                }
-                                            } else {
-                                                do_idle = true;
-                                            }
-                                        },
-                                        Tactic::QuadLowQuick => {
-                                            if dist_sqrd < (1.5 * min_attack_dist * scale).powi(2) {
-                                                inputs.move_dir = Vec2::zero();
+                                        } else {
+                                            do_idle = true;
+                                        }
+                                    },
+                                    Tactic::Axe => {
+                                        if dist_sqrd < (min_attack_dist * scale).powi(2) {
+                                            inputs.move_dir = Vec2::zero();
+                                            if *powerup > 6.0 {
+                                                inputs.secondary.set_state(false);
+                                                *powerup = 0.0;
+                                            } else if *powerup > 4.0 && energy.current() > 10 {
                                                 inputs.secondary.set_state(true);
-                                            } else if dist_sqrd
-                                                < (3.0 * min_attack_dist * scale).powi(2)
-                                                && dist_sqrd > (2.0 * min_attack_dist * scale).powi(2)
-                                            {
+                                                *powerup += dt.0;
+                                            } else if stats.skill_set.has_skill(Skill::Axe(AxeSkill::UnlockLeap)) && energy.current() > 800 && thread_rng().gen_bool(0.5) {
+                                                inputs.ability3.set_state(true);
+                                                *powerup += dt.0;
+                                            } else {
                                                 inputs.primary.set_state(true);
+                                                *powerup += dt.0;
+                                            }
+                                        } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
+                                            || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
+                                        {
+                                            if dist_sqrd < MAX_CHASE_DIST.powi(2) {
+                                                *been_close = true;
+                                            }
+                                            if let Some((bearing, speed)) = chaser.chase(
+                                                &*terrain,
+                                                pos.0,
+                                                vel.0,
+                                                tgt_pos.0,
+                                                TraversalConfig {
+                                                    min_tgt_dist: 1.25,
+                                                    ..traversal_config
+                                                },
+                                            ) {
+                                                inputs.move_dir = bearing
+                                                    .xy()
+                                                    .try_normalized()
+                                                    .unwrap_or(Vec2::zero())
+                                                    * speed;
+                                                inputs.jump.set_state(bearing.z > 1.5);
+                                                inputs.move_z = bearing.z;
+                                            }
+                                            if body.map(|b| b.is_humanoid()).unwrap_or(false) && dist_sqrd < 16.0f32.powi(2)
+                                                && thread_rng().gen::<f32>() < 0.02
+                                            {
+                                                inputs.roll.set_state(true);
+                                            }
+                                        } else {
+                                            do_idle = true;
+                                        }
+                                    },
+                                    Tactic::Hammer => {
+                                        if dist_sqrd < (min_attack_dist * scale).powi(2) {
+                                            inputs.move_dir = Vec2::zero();
+                                            if *powerup > 4.0 {
+                                                inputs.secondary.set_state(false);
+                                                *powerup = 0.0;
+                                            } else if *powerup > 2.0 {
+                                                inputs.secondary.set_state(true);
+                                                *powerup += dt.0;
+                                            } else if stats.skill_set.has_skill(Skill::Hammer(HammerSkill::UnlockLeap)) && energy.current() > 700
+                                                && thread_rng().gen_bool(0.9) {
+                                                inputs.ability3.set_state(true);
+                                                *powerup += dt.0;
+                                            } else {
+                                                inputs.primary.set_state(true);
+                                                *powerup += dt.0;
+                                            }
+                                        } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
+                                            || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
+                                        {
+                                            if dist_sqrd < MAX_CHASE_DIST.powi(2) {
+                                                *been_close = true;
+                                            }
+                                            if let Some((bearing, speed)) = chaser.chase(
+                                                &*terrain,
+                                                pos.0,
+                                                vel.0,
+                                                tgt_pos.0,
+                                                TraversalConfig {
+                                                    min_tgt_dist: 1.25,
+                                                    ..traversal_config
+                                                },
+                                            ) {
+                                                if can_see_tgt(&*terrain, pos, tgt_pos, dist_sqrd) {
+                                                    inputs.move_dir = bearing
+                                                        .xy()
+                                                        .try_normalized()
+                                                        .unwrap_or(Vec2::zero())
+                                                        * speed;
+                                                    if stats.skill_set.has_skill(Skill::Hammer(HammerSkill::UnlockLeap)) && *powerup > 5.0 {
+                                                        inputs.ability3.set_state(true);
+                                                        *powerup = 0.0;
+                                                    } else {
+                                                        *powerup += dt.0;
+                                                    }
+                                                } else {
+                                                    inputs.move_dir = bearing
+                                                        .xy()
+                                                        .try_normalized()
+                                                        .unwrap_or(Vec2::zero())
+                                                        * speed;
+                                                    inputs.jump.set_state(bearing.z > 1.5);
+                                                    inputs.move_z = bearing.z;
+                                                }
+                                            }
+                                            if body.map(|b| b.is_humanoid()).unwrap_or(false) && dist_sqrd < 16.0f32.powi(2)
+                                                && thread_rng().gen::<f32>() < 0.02
+                                            {
+                                                inputs.roll.set_state(true);
+                                            }
+                                        } else {
+                                            do_idle = true;
+                                        }
+                                    },
+                                    Tactic::Sword => {
+                                        if dist_sqrd < (min_attack_dist * scale).powi(2) {
+                                            inputs.move_dir = Vec2::zero();
+                                            if stats.skill_set.has_skill(Skill::Sword(SwordSkill::UnlockSpin)) && *powerup < 2.0 && energy.current() > 600 {
+                                                inputs.ability3.set_state(true);
+                                                *powerup += dt.0;
+                                            } else if *powerup > 2.0 {
+                                                *powerup = 0.0;
+                                            } else {
+                                                inputs.primary.set_state(true);
+                                                *powerup += dt.0;
+                                            }
+                                        } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
+                                            || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
+                                        {
+                                            if dist_sqrd < MAX_CHASE_DIST.powi(2) {
+                                                *been_close = true;
+                                            }
+                                            if let Some((bearing, speed)) = chaser.chase(
+                                                &*terrain,
+                                                pos.0,
+                                                vel.0,
+                                                tgt_pos.0,
+                                                TraversalConfig {
+                                                    min_tgt_dist: 1.25,
+                                                    ..traversal_config
+                                                },
+                                            ) {
+                                                if can_see_tgt(&*terrain, pos, tgt_pos, dist_sqrd) {
+                                                    inputs.move_dir = bearing
+                                                        .xy()
+                                                        .try_normalized()
+                                                        .unwrap_or(Vec2::zero())
+                                                        * speed;
+                                                    if *powerup > 4.0 {
+                                                        inputs.secondary.set_state(true);
+                                                        *powerup = 0.0;
+                                                    } else {
+                                                        *powerup += dt.0;
+                                                    }
+                                                } else {
+                                                    inputs.move_dir = bearing
+                                                        .xy()
+                                                        .try_normalized()
+                                                        .unwrap_or(Vec2::zero())
+                                                        * speed;
+                                                    inputs.jump.set_state(bearing.z > 1.5);
+                                                    inputs.move_z = bearing.z;
+                                                }
+                                            }
+                                            if body.map(|b| b.is_humanoid()).unwrap_or(false) && dist_sqrd < 16.0f32.powi(2)
+                                                && thread_rng().gen::<f32>() < 0.02
+                                            {
+                                                inputs.roll.set_state(true);
+                                            }
+                                        } else {
+                                            do_idle = true;
+                                        }
+                                    },
+                                    Tactic::Bow => {
+                                        if body.map(|b| b.is_humanoid()).unwrap_or(false) && dist_sqrd < (2.0 * min_attack_dist * scale).powi(2) {
+                                            inputs.roll.set_state(true);
+                                        } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
+                                            || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
+                                        {
+                                            if dist_sqrd < MAX_CHASE_DIST.powi(2) {
+                                                *been_close = true;
+                                            }
+                                            if let Some((bearing, speed)) = chaser.chase(
+                                                &*terrain,
+                                                pos.0,
+                                                vel.0,
+                                                tgt_pos.0,
+                                                TraversalConfig {
+                                                    min_tgt_dist: 1.25,
+                                                    ..traversal_config
+                                                },
+                                            ) {
+                                                if can_see_tgt(&*terrain, pos, tgt_pos, dist_sqrd) {
+                                                    inputs.move_dir = bearing
+                                                        .xy()
+                                                        .rotated_z(
+                                                            thread_rng().gen_range(0.5..1.57),
+                                                        )
+                                                        .try_normalized()
+                                                        .unwrap_or(Vec2::zero())
+                                                        * speed;
+                                                    if *powerup > 4.0 {
+                                                        inputs.secondary.set_state(false);
+                                                        *powerup = 0.0;
+                                                    } else if *powerup > 2.0
+                                                        && energy.current() > 300
+                                                    {
+                                                        inputs.secondary.set_state(true);
+                                                        *powerup += dt.0;
+                                                    } else if stats.skill_set.has_skill(Skill::Bow(BowSkill::UnlockRepeater)) && energy.current() > 400
+                                                        && thread_rng().gen_bool(0.8)
+                                                    {
+                                                        inputs.secondary.set_state(false);
+                                                        inputs.ability3.set_state(true);
+                                                        *powerup += dt.0;
+                                                    } else {
+                                                        inputs.secondary.set_state(false);
+                                                        inputs.primary.set_state(true);
+                                                        *powerup += dt.0;
+                                                    }
+                                                } else {
+                                                    inputs.move_dir = bearing
+                                                        .xy()
+                                                        .try_normalized()
+                                                        .unwrap_or(Vec2::zero())
+                                                        * speed;
+                                                    inputs.jump.set_state(bearing.z > 1.5);
+                                                    inputs.move_z = bearing.z;
+                                                }
+                                            }
+                                            if body.map(|b| b.is_humanoid()).unwrap_or(false) && dist_sqrd < 16.0f32.powi(2)
+                                                && thread_rng().gen::<f32>() < 0.02
+                                            {
+                                                inputs.roll.set_state(true);
+                                            }
+                                        } else {
+                                            do_idle = true;
+                                        }
+                                    },
+                                    Tactic::Staff => {
+                                        if body.map(|b| b.is_humanoid()).unwrap_or(false) && dist_sqrd < (min_attack_dist * scale).powi(2) {
+                                            inputs.roll.set_state(true);
+                                        } else if dist_sqrd
+                                            < (5.0 * min_attack_dist * scale).powi(2)
+                                        {
+                                            if *powerup < 1.5 {
+                                                inputs.move_dir = (tgt_pos.0 - pos.0)
+                                                    .xy()
+                                                    .rotated_z(0.47 * PI)
+                                                    .try_normalized()
+                                                    .unwrap_or(Vec2::unit_y());
+                                                *powerup += dt.0;
+                                            } else if *powerup < 3.0 {
                                                 inputs.move_dir = (tgt_pos.0 - pos.0)
                                                     .xy()
                                                     .rotated_z(-0.47 * PI)
                                                     .try_normalized()
                                                     .unwrap_or(Vec2::unit_y());
-                                            } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
-                                                || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
-                                            {
-                                                if dist_sqrd < MAX_CHASE_DIST.powi(2) {
-                                                    *been_close = true;
-                                                }
-                                                if let Some((bearing, speed)) = chaser.chase(
-                                                    &*terrain,
-                                                    pos.0,
-                                                    vel.0,
-                                                    tgt_pos.0,
-                                                    TraversalConfig {
-                                                        min_tgt_dist: 1.25,
-                                                        ..traversal_config
-                                                    },
-                                                ) {
-                                                    inputs.move_dir = bearing
-                                                        .xy()
-                                                        .try_normalized()
-                                                        .unwrap_or(Vec2::zero())
-                                                        * speed;
-                                                    inputs.jump.set_state(bearing.z > 1.5);
-                                                    inputs.move_z = bearing.z;
-                                                }
+                                                *powerup += dt.0;
                                             } else {
-                                                do_idle = true;
+                                                *powerup = 0.0;
                                             }
-                                        },
-                                        Tactic::QuadLowBasic => {
-                                            if dist_sqrd < (1.5 * min_attack_dist * scale).powi(2) {
-                                                inputs.move_dir = Vec2::zero();
-                                                if *powerup > 5.0 {
-                                                    *powerup = 0.0;
-                                                } else if *powerup > 2.0 {
-                                                    inputs.secondary.set_state(true);
-                                                    *powerup += dt.0;
-                                                } else {
-                                                    inputs.primary.set_state(true);
-                                                    *powerup += dt.0;
-                                                }
-                                            } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
-                                                || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
-                                            {
-                                                if dist_sqrd < MAX_CHASE_DIST.powi(2) {
-                                                    *been_close = true;
-                                                }
-                                                if let Some((bearing, speed)) = chaser.chase(
-                                                    &*terrain,
-                                                    pos.0,
-                                                    vel.0,
-                                                    tgt_pos.0,
-                                                    TraversalConfig {
-                                                        min_tgt_dist: 1.25,
-                                                        ..traversal_config
-                                                    },
-                                                ) {
-                                                    inputs.move_dir = bearing
-                                                        .xy()
-                                                        .try_normalized()
-                                                        .unwrap_or(Vec2::zero())
-                                                        * speed;
-                                                    inputs.jump.set_state(bearing.z > 1.5);
-                                                    inputs.move_z = bearing.z;
-                                                }
-                                            } else {
-                                                do_idle = true;
-                                            }
-                                        },
-                                        Tactic::QuadMedJump => {
-                                            if dist_sqrd < (1.5 * min_attack_dist * scale).powi(2) {
-                                                inputs.move_dir = Vec2::zero();
-                                                inputs.secondary.set_state(true);
-                                            } else if dist_sqrd
-                                                < (5.0 * min_attack_dist * scale).powi(2)
+                                            if stats.skill_set.has_skill(Skill::Staff(StaffSkill::UnlockShockwave)) && energy.current() > 800
+                                                && thread_rng().gen::<f32>() > 0.8
                                             {
                                                 inputs.ability3.set_state(true);
-                                            } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
-                                                || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
-                                            {
-                                                if dist_sqrd < MAX_CHASE_DIST.powi(2) {
-                                                    *been_close = true;
-                                                }
-                                                if let Some((bearing, speed)) = chaser.chase(
-                                                    &*terrain,
-                                                    pos.0,
-                                                    vel.0,
-                                                    tgt_pos.0,
-                                                    TraversalConfig {
-                                                        min_tgt_dist: 1.25,
-                                                        ..traversal_config
-                                                    },
-                                                ) {
-                                                    if can_see_tgt(&*terrain, pos, tgt_pos, dist_sqrd) {
-                                                        inputs.primary.set_state(true);
-                                                        inputs.move_dir = bearing
-                                                            .xy()
-                                                            .try_normalized()
-                                                            .unwrap_or(Vec2::zero())
-                                                            * speed;
-                                                    } else {
-                                                        inputs.move_dir = bearing
-                                                            .xy()
-                                                            .try_normalized()
-                                                            .unwrap_or(Vec2::zero())
-                                                            * speed;
-                                                        inputs.jump.set_state(bearing.z > 1.5);
-                                                        inputs.move_z = bearing.z;
-                                                    }
-                                                }
-                                            } else {
-                                                do_idle = true;
-                                            }
-                                        },
-                                        Tactic::QuadMedBasic => {
-                                            if dist_sqrd < (min_attack_dist * scale).powi(2) {
-                                                inputs.move_dir = Vec2::zero();
-                                                if *powerup < 2.0 {
-                                                    inputs.secondary.set_state(true);
-                                                    *powerup += dt.0;
-                                                } else if *powerup < 3.0 {
-                                                    inputs.primary.set_state(true);
-                                                    *powerup += dt.0;
-                                                } else {
-                                                    *powerup = 0.0;
-                                                }
-                                            } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
-                                                || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
-                                            {
-                                                if dist_sqrd < MAX_CHASE_DIST.powi(2) {
-                                                    *been_close = true;
-                                                }
-                                                if let Some((bearing, speed)) = chaser.chase(
-                                                    &*terrain,
-                                                    pos.0,
-                                                    vel.0,
-                                                    tgt_pos.0,
-                                                    TraversalConfig {
-                                                        min_tgt_dist: 1.25,
-                                                        ..traversal_config
-                                                    },
-                                                ) {
-                                                    inputs.move_dir = bearing
-                                                        .xy()
-                                                        .try_normalized()
-                                                        .unwrap_or(Vec2::zero())
-                                                        * speed;
-                                                    inputs.jump.set_state(bearing.z > 1.5);
-                                                    inputs.move_z = bearing.z;
-                                                }
-                                            } else {
-                                                do_idle = true;
-                                            }
-                                        },
-                                        Tactic::Lavadrake => {
-                                            if dist_sqrd < (2.5 * min_attack_dist * scale).powi(2) {
-                                                inputs.move_dir = Vec2::zero();
+                                            } else if energy.current() > 10 {
                                                 inputs.secondary.set_state(true);
-                                            } else if dist_sqrd
-                                                < (7.0 * min_attack_dist * scale).powi(2)
-                                            {
-                                                if *powerup < 2.0 {
-                                                    inputs.move_dir = (tgt_pos.0 - pos.0)
-                                                        .xy()
-                                                        .rotated_z(0.47 * PI)
-                                                        .try_normalized()
-                                                        .unwrap_or(Vec2::unit_y());
-                                                    inputs.primary.set_state(true);
-                                                    *powerup += dt.0;
-                                                } else if *powerup < 4.0 {
-                                                    inputs.move_dir = (tgt_pos.0 - pos.0)
-                                                        .xy()
-                                                        .rotated_z(-0.47 * PI)
-                                                        .try_normalized()
-                                                        .unwrap_or(Vec2::unit_y());
-                                                    inputs.primary.set_state(true);
-                                                    *powerup += dt.0;
-                                                } else if *powerup < 6.0 {
-                                                    inputs.ability3.set_state(true);
-                                                    *powerup += dt.0;
-                                                } else {
-                                                    *powerup = 0.0;
-                                                }
-                                            } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
-                                                || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
-                                            {
-                                                if dist_sqrd < MAX_CHASE_DIST.powi(2) {
-                                                    *been_close = true;
-                                                }
-                                                if let Some((bearing, speed)) = chaser.chase(
-                                                    &*terrain,
-                                                    pos.0,
-                                                    vel.0,
-                                                    tgt_pos.0,
-                                                    TraversalConfig {
-                                                        min_tgt_dist: 1.25,
-                                                        ..traversal_config
-                                                    },
-                                                ) {
-                                                    inputs.move_dir = bearing
-                                                        .xy()
-                                                        .try_normalized()
-                                                        .unwrap_or(Vec2::zero())
-                                                        * speed;
-                                                    inputs.jump.set_state(bearing.z > 1.5);
-                                                    inputs.move_z = bearing.z;
-                                                }
                                             } else {
-                                                do_idle = true;
-                                            }
-                                        },
-                                        Tactic::Theropod => {
-                                            if dist_sqrd < (2.0 * min_attack_dist * scale).powi(2) {
-                                                inputs.move_dir = Vec2::zero();
                                                 inputs.primary.set_state(true);
-                                            } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
-                                                || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
-                                            {
-                                                if dist_sqrd < MAX_CHASE_DIST.powi(2) {
-                                                    *been_close = true;
+                                            }
+                                        } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
+                                            || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
+                                        {
+                                            if dist_sqrd < MAX_CHASE_DIST.powi(2) {
+                                                *been_close = true;
+                                            }
+                                            if let Some((bearing, speed)) = chaser.chase(
+                                                &*terrain,
+                                                pos.0,
+                                                vel.0,
+                                                tgt_pos.0,
+                                                TraversalConfig {
+                                                    min_tgt_dist: 1.25,
+                                                    ..traversal_config
+                                                },
+                                            ) {
+                                                if can_see_tgt(&*terrain, pos, tgt_pos, dist_sqrd) {
+                                                    inputs.move_dir = bearing
+                                                        .xy()
+                                                        .rotated_z(
+                                                            thread_rng().gen_range(-1.57..-0.5),
+                                                        )
+                                                        .try_normalized()
+                                                        .unwrap_or(Vec2::zero())
+                                                        * speed;
+                                                    inputs.primary.set_state(true);
+                                                } else {
+                                                    inputs.move_dir = bearing
+                                                        .xy()
+                                                        .try_normalized()
+                                                        .unwrap_or(Vec2::zero())
+                                                        * speed;
+                                                    inputs.jump.set_state(bearing.z > 1.5);
+                                                    inputs.move_z = bearing.z;
                                                 }
-                                                if let Some((bearing, speed)) = chaser.chase(
-                                                    &*terrain,
-                                                    pos.0,
-                                                    vel.0,
-                                                    tgt_pos.0,
-                                                    TraversalConfig {
-                                                        min_tgt_dist: 1.25,
-                                                        ..traversal_config
-                                                    },
-                                                ) {
+                                            }
+                                            if body.map(|b| b.is_humanoid()).unwrap_or(false) && dist_sqrd < 16.0f32.powi(2)
+                                                && thread_rng().gen::<f32>() < 0.02
+                                            {
+                                                inputs.roll.set_state(true);
+                                            }
+                                        } else {
+                                            do_idle = true;
+                                        }
+                                    },
+                                    Tactic::StoneGolemBoss => {
+                                        if dist_sqrd < (min_attack_dist * scale * 2.0).powi(2) { // 2.0 is temporary correction factor to allow them to melee with their large hitbox
+                                            inputs.move_dir = Vec2::zero();
+                                            inputs.primary.set_state(true);
+                                        } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
+                                            || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
+                                        {
+                                            if vel.0.is_approx_zero() {
+                                                inputs.ability3.set_state(true);
+                                            }
+                                            if dist_sqrd < MAX_CHASE_DIST.powi(2) {
+                                                *been_close = true;
+                                            }
+                                            if let Some((bearing, speed)) = chaser.chase(
+                                                &*terrain,
+                                                pos.0,
+                                                vel.0,
+                                                tgt_pos.0,
+                                                TraversalConfig {
+                                                    min_tgt_dist: 1.25,
+                                                    ..traversal_config
+                                                },
+                                            ) {
+                                                if can_see_tgt(&*terrain, pos, tgt_pos, dist_sqrd) {
+                                                    inputs.move_dir = bearing
+                                                        .xy()
+                                                        .try_normalized()
+                                                        .unwrap_or(Vec2::zero())
+                                                        * speed;
+                                                    if *powerup > 5.0 {
+                                                        inputs.secondary.set_state(true);
+                                                        *powerup = 0.0;
+                                                    } else {
+                                                        *powerup += dt.0;
+                                                    }
+                                                } else {
+                                                    inputs.move_dir = bearing
+                                                        .xy()
+                                                        .try_normalized()
+                                                        .unwrap_or(Vec2::zero())
+                                                        * speed;
+                                                    inputs.jump.set_state(bearing.z > 1.5);
+                                                    inputs.move_z = bearing.z;
+                                                }
+                                            }
+                                        } else {
+                                            do_idle = true;
+                                        }
+                                    },
+                                    Tactic::CircleCharge {
+                                        radius,
+                                        circle_time,
+                                    } => {
+                                        if dist_sqrd < (min_attack_dist * scale).powi(2)
+                                            && thread_rng().gen_bool(0.5)
+                                        {
+                                            inputs.move_dir = Vec2::zero();
+                                            inputs.primary.set_state(true);
+                                        } else if dist_sqrd
+                                            < (radius as f32 * min_attack_dist * scale).powi(2)
+                                        {
+                                            inputs.move_dir = (pos.0 - tgt_pos.0)
+                                                .xy()
+                                                .try_normalized()
+                                                .unwrap_or(Vec2::unit_y());
+                                        } else if dist_sqrd
+                                            < ((radius as f32 + 1.0) * min_attack_dist * scale)
+                                                .powi(2)
+                                            && dist_sqrd
+                                                > (radius as f32 * min_attack_dist * scale).powi(2)
+                                        {
+                                            if *powerup < circle_time as f32 {
+                                                inputs.move_dir = (tgt_pos.0 - pos.0)
+                                                    .xy()
+                                                    .rotated_z(0.47 * PI)
+                                                    .try_normalized()
+                                                    .unwrap_or(Vec2::unit_y());
+                                                *powerup += dt.0;
+                                            } else if *powerup < circle_time as f32 + 0.5 {
+                                                inputs.secondary.set_state(true);
+                                                *powerup += dt.0;
+                                            } else if *powerup < 2.0 * circle_time as f32 + 0.5 {
+                                                inputs.move_dir = (tgt_pos.0 - pos.0)
+                                                    .xy()
+                                                    .rotated_z(-0.47 * PI)
+                                                    .try_normalized()
+                                                    .unwrap_or(Vec2::unit_y());
+                                                *powerup += dt.0;
+                                            } else if *powerup < 2.0 * circle_time as f32 + 1.0 {
+                                                inputs.secondary.set_state(true);
+                                                *powerup += dt.0;
+                                            } else {
+                                                *powerup = 0.0;
+                                            }
+                                        } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
+                                            || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
+                                        {
+                                            if dist_sqrd < MAX_CHASE_DIST.powi(2) {
+                                                *been_close = true;
+                                            }
+                                            if let Some((bearing, speed)) = chaser.chase(
+                                                &*terrain,
+                                                pos.0,
+                                                vel.0,
+                                                tgt_pos.0,
+                                                TraversalConfig {
+                                                    min_tgt_dist: 1.25,
+                                                    ..traversal_config
+                                                },
+                                            ) {
+                                                inputs.move_dir = bearing
+                                                    .xy()
+                                                    .try_normalized()
+                                                    .unwrap_or(Vec2::zero())
+                                                    * speed;
+                                                inputs.jump.set_state(bearing.z > 1.5);
+                                                inputs.move_z = bearing.z;
+                                            }
+                                        } else {
+                                            do_idle = true;
+                                        }
+                                    },
+                                    Tactic::QuadLowRanged => {
+                                        if dist_sqrd < (5.0 * min_attack_dist * scale).powi(2) {
+                                            inputs.move_dir = (tgt_pos.0 - pos.0)
+                                                .xy()
+                                                .try_normalized()
+                                                .unwrap_or(Vec2::unit_y());
+                                            inputs.primary.set_state(true);
+                                        } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
+                                            || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
+                                        {
+                                            if dist_sqrd < MAX_CHASE_DIST.powi(2) {
+                                                *been_close = true;
+                                            }
+                                            if let Some((bearing, speed)) = chaser.chase(
+                                                &*terrain,
+                                                pos.0,
+                                                vel.0,
+                                                tgt_pos.0,
+                                                TraversalConfig {
+                                                    min_tgt_dist: 1.25,
+                                                    ..traversal_config
+                                                },
+                                            ) {
+                                                if can_see_tgt(&*terrain, pos, tgt_pos, dist_sqrd) {
+                                                    if *powerup > 5.0 {
+                                                        *powerup = 0.0;
+                                                    } else if *powerup > 2.5 {
+                                                        inputs.move_dir = (tgt_pos.0 - pos.0)
+                                                            .xy()
+                                                            .rotated_z(1.75 * PI)
+                                                            .try_normalized()
+                                                            .unwrap_or(Vec2::zero())
+                                                            * speed;
+                                                        *powerup += dt.0;
+                                                    } else {
+                                                        inputs.move_dir = (tgt_pos.0 - pos.0)
+                                                            .xy()
+                                                            .rotated_z(0.25 * PI)
+                                                            .try_normalized()
+                                                            .unwrap_or(Vec2::zero())
+                                                            * speed;
+                                                        *powerup += dt.0;
+                                                    }
+                                                    inputs.secondary.set_state(true);
+                                                    inputs.jump.set_state(bearing.z > 1.5);
+                                                    inputs.move_z = bearing.z;
+                                                } else {
                                                     inputs.move_dir = bearing
                                                         .xy()
                                                         .try_normalized()
@@ -1374,8 +1121,311 @@ impl<'a> System<'a> for Sys {
                                             } else {
                                                 do_idle = true;
                                             }
-                                        },
-                                    }
+                                        } else {
+                                            do_idle = true;
+                                        }
+                                    },
+                                    Tactic::TailSlap => {
+                                        if dist_sqrd < (1.5 * min_attack_dist * scale).powi(2) {
+                                            if *powerup > 4.0 {
+                                                inputs.primary.set_state(false);
+                                                *powerup = 0.0;
+                                            } else if *powerup > 1.0 {
+                                                inputs.primary.set_state(true);
+                                                *powerup += dt.0;
+                                            } else {
+                                                inputs.secondary.set_state(true);
+                                                *powerup += dt.0;
+                                            }
+                                            inputs.move_dir = (tgt_pos.0 - pos.0)
+                                                .xy()
+                                                .try_normalized()
+                                                .unwrap_or(Vec2::unit_y())
+                                                * 0.1;
+                                        } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
+                                            || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
+                                        {
+                                            if dist_sqrd < MAX_CHASE_DIST.powi(2) {
+                                                *been_close = true;
+                                            }
+                                            if let Some((bearing, speed)) = chaser.chase(
+                                                &*terrain,
+                                                pos.0,
+                                                vel.0,
+                                                tgt_pos.0,
+                                                TraversalConfig {
+                                                    min_tgt_dist: 1.25,
+                                                    ..traversal_config
+                                                },
+                                            ) {
+                                                inputs.move_dir = bearing
+                                                    .xy()
+                                                    .try_normalized()
+                                                    .unwrap_or(Vec2::zero())
+                                                    * speed;
+                                                inputs.jump.set_state(bearing.z > 1.5);
+                                                inputs.move_z = bearing.z;
+                                            }
+                                        } else {
+                                            do_idle = true;
+                                        }
+                                    },
+                                    Tactic::QuadLowQuick => {
+                                        if dist_sqrd < (1.5 * min_attack_dist * scale).powi(2) {
+                                            inputs.move_dir = Vec2::zero();
+                                            inputs.secondary.set_state(true);
+                                        } else if dist_sqrd
+                                            < (3.0 * min_attack_dist * scale).powi(2)
+                                            && dist_sqrd > (2.0 * min_attack_dist * scale).powi(2)
+                                        {
+                                            inputs.primary.set_state(true);
+                                            inputs.move_dir = (tgt_pos.0 - pos.0)
+                                                .xy()
+                                                .rotated_z(-0.47 * PI)
+                                                .try_normalized()
+                                                .unwrap_or(Vec2::unit_y());
+                                        } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
+                                            || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
+                                        {
+                                            if dist_sqrd < MAX_CHASE_DIST.powi(2) {
+                                                *been_close = true;
+                                            }
+                                            if let Some((bearing, speed)) = chaser.chase(
+                                                &*terrain,
+                                                pos.0,
+                                                vel.0,
+                                                tgt_pos.0,
+                                                TraversalConfig {
+                                                    min_tgt_dist: 1.25,
+                                                    ..traversal_config
+                                                },
+                                            ) {
+                                                inputs.move_dir = bearing
+                                                    .xy()
+                                                    .try_normalized()
+                                                    .unwrap_or(Vec2::zero())
+                                                    * speed;
+                                                inputs.jump.set_state(bearing.z > 1.5);
+                                                inputs.move_z = bearing.z;
+                                            }
+                                        } else {
+                                            do_idle = true;
+                                        }
+                                    },
+                                    Tactic::QuadLowBasic => {
+                                        if dist_sqrd < (1.5 * min_attack_dist * scale).powi(2) {
+                                            inputs.move_dir = Vec2::zero();
+                                            if *powerup > 5.0 {
+                                                *powerup = 0.0;
+                                            } else if *powerup > 2.0 {
+                                                inputs.secondary.set_state(true);
+                                                *powerup += dt.0;
+                                            } else {
+                                                inputs.primary.set_state(true);
+                                                *powerup += dt.0;
+                                            }
+                                        } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
+                                            || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
+                                        {
+                                            if dist_sqrd < MAX_CHASE_DIST.powi(2) {
+                                                *been_close = true;
+                                            }
+                                            if let Some((bearing, speed)) = chaser.chase(
+                                                &*terrain,
+                                                pos.0,
+                                                vel.0,
+                                                tgt_pos.0,
+                                                TraversalConfig {
+                                                    min_tgt_dist: 1.25,
+                                                    ..traversal_config
+                                                },
+                                            ) {
+                                                inputs.move_dir = bearing
+                                                    .xy()
+                                                    .try_normalized()
+                                                    .unwrap_or(Vec2::zero())
+                                                    * speed;
+                                                inputs.jump.set_state(bearing.z > 1.5);
+                                                inputs.move_z = bearing.z;
+                                            }
+                                        } else {
+                                            do_idle = true;
+                                        }
+                                    },
+                                    Tactic::QuadMedJump => {
+                                        if dist_sqrd < (1.5 * min_attack_dist * scale).powi(2) {
+                                            inputs.move_dir = Vec2::zero();
+                                            inputs.secondary.set_state(true);
+                                        } else if dist_sqrd
+                                            < (5.0 * min_attack_dist * scale).powi(2)
+                                        {
+                                            inputs.ability3.set_state(true);
+                                        } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
+                                            || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
+                                        {
+                                            if dist_sqrd < MAX_CHASE_DIST.powi(2) {
+                                                *been_close = true;
+                                            }
+                                            if let Some((bearing, speed)) = chaser.chase(
+                                                &*terrain,
+                                                pos.0,
+                                                vel.0,
+                                                tgt_pos.0,
+                                                TraversalConfig {
+                                                    min_tgt_dist: 1.25,
+                                                    ..traversal_config
+                                                },
+                                            ) {
+                                                if can_see_tgt(&*terrain, pos, tgt_pos, dist_sqrd) {
+                                                    inputs.primary.set_state(true);
+                                                    inputs.move_dir = bearing
+                                                        .xy()
+                                                        .try_normalized()
+                                                        .unwrap_or(Vec2::zero())
+                                                        * speed;
+                                                } else {
+                                                    inputs.move_dir = bearing
+                                                        .xy()
+                                                        .try_normalized()
+                                                        .unwrap_or(Vec2::zero())
+                                                        * speed;
+                                                    inputs.jump.set_state(bearing.z > 1.5);
+                                                    inputs.move_z = bearing.z;
+                                                }
+                                            }
+                                        } else {
+                                            do_idle = true;
+                                        }
+                                    },
+                                    Tactic::QuadMedBasic => {
+                                        if dist_sqrd < (min_attack_dist * scale).powi(2) {
+                                            inputs.move_dir = Vec2::zero();
+                                            if *powerup < 2.0 {
+                                                inputs.secondary.set_state(true);
+                                                *powerup += dt.0;
+                                            } else if *powerup < 3.0 {
+                                                inputs.primary.set_state(true);
+                                                *powerup += dt.0;
+                                            } else {
+                                                *powerup = 0.0;
+                                            }
+                                        } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
+                                            || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
+                                        {
+                                            if dist_sqrd < MAX_CHASE_DIST.powi(2) {
+                                                *been_close = true;
+                                            }
+                                            if let Some((bearing, speed)) = chaser.chase(
+                                                &*terrain,
+                                                pos.0,
+                                                vel.0,
+                                                tgt_pos.0,
+                                                TraversalConfig {
+                                                    min_tgt_dist: 1.25,
+                                                    ..traversal_config
+                                                },
+                                            ) {
+                                                inputs.move_dir = bearing
+                                                    .xy()
+                                                    .try_normalized()
+                                                    .unwrap_or(Vec2::zero())
+                                                    * speed;
+                                                inputs.jump.set_state(bearing.z > 1.5);
+                                                inputs.move_z = bearing.z;
+                                            }
+                                        } else {
+                                            do_idle = true;
+                                        }
+                                    },
+                                    Tactic::Lavadrake => {
+                                        if dist_sqrd < (2.5 * min_attack_dist * scale).powi(2) {
+                                            inputs.move_dir = Vec2::zero();
+                                            inputs.secondary.set_state(true);
+                                        } else if dist_sqrd
+                                            < (7.0 * min_attack_dist * scale).powi(2)
+                                        {
+                                            if *powerup < 2.0 {
+                                                inputs.move_dir = (tgt_pos.0 - pos.0)
+                                                    .xy()
+                                                    .rotated_z(0.47 * PI)
+                                                    .try_normalized()
+                                                    .unwrap_or(Vec2::unit_y());
+                                                inputs.primary.set_state(true);
+                                                *powerup += dt.0;
+                                            } else if *powerup < 4.0 {
+                                                inputs.move_dir = (tgt_pos.0 - pos.0)
+                                                    .xy()
+                                                    .rotated_z(-0.47 * PI)
+                                                    .try_normalized()
+                                                    .unwrap_or(Vec2::unit_y());
+                                                inputs.primary.set_state(true);
+                                                *powerup += dt.0;
+                                            } else if *powerup < 6.0 {
+                                                inputs.ability3.set_state(true);
+                                                *powerup += dt.0;
+                                            } else {
+                                                *powerup = 0.0;
+                                            }
+                                        } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
+                                            || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
+                                        {
+                                            if dist_sqrd < MAX_CHASE_DIST.powi(2) {
+                                                *been_close = true;
+                                            }
+                                            if let Some((bearing, speed)) = chaser.chase(
+                                                &*terrain,
+                                                pos.0,
+                                                vel.0,
+                                                tgt_pos.0,
+                                                TraversalConfig {
+                                                    min_tgt_dist: 1.25,
+                                                    ..traversal_config
+                                                },
+                                            ) {
+                                                inputs.move_dir = bearing
+                                                    .xy()
+                                                    .try_normalized()
+                                                    .unwrap_or(Vec2::zero())
+                                                    * speed;
+                                                inputs.jump.set_state(bearing.z > 1.5);
+                                                inputs.move_z = bearing.z;
+                                            }
+                                        } else {
+                                            do_idle = true;
+                                        }
+                                    },
+                                    Tactic::Theropod => {
+                                        if dist_sqrd < (2.0 * min_attack_dist * scale).powi(2) {
+                                            inputs.move_dir = Vec2::zero();
+                                            inputs.primary.set_state(true);
+                                        } else if dist_sqrd < MAX_CHASE_DIST.powi(2)
+                                            || (dist_sqrd < SIGHT_DIST.powi(2) && !*been_close)
+                                        {
+                                            if dist_sqrd < MAX_CHASE_DIST.powi(2) {
+                                                *been_close = true;
+                                            }
+                                            if let Some((bearing, speed)) = chaser.chase(
+                                                &*terrain,
+                                                pos.0,
+                                                vel.0,
+                                                tgt_pos.0,
+                                                TraversalConfig {
+                                                    min_tgt_dist: 1.25,
+                                                    ..traversal_config
+                                                },
+                                            ) {
+                                                inputs.move_dir = bearing
+                                                    .xy()
+                                                    .try_normalized()
+                                                    .unwrap_or(Vec2::zero())
+                                                    * speed;
+                                                inputs.jump.set_state(bearing.z > 1.5);
+                                                inputs.move_z = bearing.z;
+                                            }
+                                        } else {
+                                            do_idle = true;
+                                        }
+                                    },
                                 }
                             } else {
                                 do_idle = true;
@@ -1393,7 +1443,7 @@ impl<'a> System<'a> for Sys {
 
                 // Choose a new target to attack: only go out of our way to attack targets we
                 // are hostile toward!
-                if choose_target {
+                if !agent.activity.is_flee() && choose_target {
                     // Search for new targets (this looks expensive, but it's only run occasionally)
                     // TODO: Replace this with a better system that doesn't consider *all* entities
                     let closest_entity = (&entities, &positions, &healths, alignments.maybe(), char_states.maybe())
@@ -1440,37 +1490,41 @@ impl<'a> System<'a> for Sys {
                 // --- Activity overrides (in reverse order of priority: most important goes
                 // last!) ---
 
+                let damage = healths
+                    .get(entity)
+                    .map(|h| h.current() as f32 / h.maximum() as f32)
+                    .unwrap_or(0.5);
+
                 // Attack a target that's attacking us
                 if let Some(my_health) = healths.get(entity) {
                     // Only if the attack was recent
-                    if my_health.last_change.0 < 3.0 {
+                    if !agent.activity.is_flee() && my_health.last_change.0 < DAMAGE_MEMORY_DURATION {
                         if let comp::HealthSource::Damage { by: Some(by), .. } =
                             my_health.last_change.1.cause
                         {
-                            if !agent.activity.is_attack() {
-                                if let Some(attacker) = uid_allocator.retrieve_entity_internal(by.id())
-                                {
-                                    if healths.get(attacker).map_or(false, |a| !a.is_dead) {
-                                        match agent.activity {
-                                            Activity::Attack { target, .. } if target == attacker => {},
-                                            _ => {
-                                                if agent.can_speak {
-                                                    let msg =
-                                                        "npc.speech.villager_under_attack".to_string();
-                                                    event_emitter.emit(ServerEvent::Chat(
-                                                        UnresolvedChatMsg::npc(*uid, msg),
-                                                    ));
-                                                }
-
-                                                agent.activity = Activity::Attack {
-                                                    target: attacker,
-                                                    chaser: Chaser::default(),
-                                                    time: time.0,
-                                                    been_close: false,
-                                                    powerup: 0.0,
-                                                };
-                                            },
+                            if let Some(attacker) = uid_allocator.retrieve_entity_internal(by.id()) {
+                                if healths.get(attacker).map_or(false, |a| !a.is_dead) {
+                                    if 1.0 - agent.psyche.aggro > damage && flees {
+                                        if agent.can_speak {
+                                            let msg =
+                                                "npc.speech.villager_under_attack".to_string();
+                                            event_emitter.emit(ServerEvent::Chat(
+                                                UnresolvedChatMsg::npc(*uid, msg),
+                                            ));
                                         }
+                                        agent.activity = Activity::Flee {
+                                            target: attacker,
+                                            chaser: Chaser::default(),
+                                            timer: 0.0,
+                                        };
+                                    } else if !agent.activity.is_attack() {
+                                        agent.activity = Activity::Attack {
+                                            target: attacker,
+                                            chaser: Chaser::default(),
+                                            time: time.0,
+                                            been_close: false,
+                                            powerup: 0.0,
+                                        };
                                     }
                                 }
                             }

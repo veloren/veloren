@@ -12,7 +12,9 @@ use entity_manipulation::{
     handle_explosion, handle_knockback, handle_land_on_ground, handle_poise, handle_respawn,
 };
 use group_manip::handle_group;
-use interaction::{handle_lantern, handle_mount, handle_possess, handle_unmount};
+use interaction::{
+    handle_lantern, handle_mount, handle_npc_interaction, handle_possess, handle_unmount,
+};
 use inventory_manip::handle_inventory;
 use player::{handle_client_disconnect, handle_exit_ingame};
 use specs::{Entity as EcsEntity, WorldExt};
@@ -98,6 +100,9 @@ impl Server {
                 },
                 ServerEvent::EnableLantern(entity) => handle_lantern(self, entity, true),
                 ServerEvent::DisableLantern(entity) => handle_lantern(self, entity, false),
+                ServerEvent::NpcInteract(interactor, target) => {
+                    handle_npc_interaction(self, interactor, target)
+                },
                 ServerEvent::Mount(mounter, mountee) => handle_mount(self, mounter, mountee),
                 ServerEvent::Unmount(mounter) => handle_unmount(self, mounter),
                 ServerEvent::Possess(possessor_uid, possesse_uid) => {
