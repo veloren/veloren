@@ -66,6 +66,8 @@ impl Attack {
         self
     }
 
+    pub fn effects(&self) -> impl Iterator<Item = &EffectComponent> { self.effects.iter() }
+
     #[allow(clippy::too_many_arguments)]
     pub fn apply_attack(
         &self,
@@ -303,6 +305,8 @@ impl EffectComponent {
         self.requirement = Some(requirement);
         self
     }
+
+    pub fn effect(&self) -> &AttackEffect { &self.effect }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
