@@ -117,6 +117,7 @@ impl<'a> System<'a> for Sys {
                                         energies.get(owner_entity),
                                         ori.0,
                                         false,
+                                        1.0,
                                     );
 
                                     for event in server_events {

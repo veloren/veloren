@@ -205,6 +205,7 @@ impl<'a> System<'a> for Sys {
                         shockwave_owner.and_then(|e| energies.get(e)),
                         dir,
                         false,
+                        1.0,
                     );
 
                     if !server_events.is_empty() {
