@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 6 different gems. (Topaz, Amethyst, Sapphire, Emerald, Ruby and Diamond)
 - Poise system (not currently accessible to players for balancing reasons)
 - Snow particles
+- Basic NPC interaction
 
 ### Changed
 
@@ -37,7 +38,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Default inventory slots reduced to 18 - existing characters given 3x 6-slot bags as compensation
 - Protection rating was moved to the top left of the loadout view 
 - Changed camera smoothing to be off by default.
-- Fixed AI behavior so only humanoids will attempt to roll
 - Footstep SFX is now dependant on distance moved, not time since last play
 - Adjusted most NPCs hitboxes to better fit their models.
 - Changed crafting recipes involving shiny gems to use diamonds instead.
@@ -57,6 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed a bug where buff/debuff UI elements would flicker when you had more than
   one of them active at the same time
 - Made zooming work on wayland
+- Fixed AI behavior so only humanoids will attempt to roll
 
 ## [0.8.0] - 2020-11-28
 

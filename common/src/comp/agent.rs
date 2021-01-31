@@ -6,7 +6,31 @@ use crate::{
 };
 use specs::{Component, Entity as EcsEntity};
 use specs_idvs::IdvStorage;
+use std::collections::VecDeque;
 use vek::*;
+
+pub const DEFAULT_INTERACTION_TIME: f32 = 3.0;
+
+#[derive(Eq, PartialEq)]
+pub enum Tactic {
+    Melee,
+    Axe,
+    Hammer,
+    Sword,
+    Bow,
+    Staff,
+    StoneGolemBoss,
+    CircleCharge { radius: u32, circle_time: u32 },
+    QuadLowRanged,
+    TailSlap,
+    QuadLowQuick,
+    QuadLowBasic,
+    QuadMedJump,
+    QuadMedBasic,
+    Lavadrake,
+    Theropod,
+}
+
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Alignment {
     /// Wild animals and gentle giants
@@ -137,6 +161,15 @@ impl<'a> From<&'a Body> for Psyche {
     }
 }
 
+#[derive(Clone, Debug)]
+/// Events that affect agent behavior from other entities/players/environment
+pub enum AgentEvent {
+    /// Engage in conversation with entity with Uid
+    Talk(Uid),
+    Trade(Uid),
+    // Add others here
+}
+
 #[derive(Clone, Debug, Default)]
 pub struct Agent {
     pub rtsim_controller: RtSimController,
@@ -146,6 +179,7 @@ pub struct Agent {
     // TODO move speech patterns into a Behavior component
     pub can_speak: bool,
     pub psyche: Psyche,
+    pub inbox: VecDeque<AgentEvent>,
 }
 
 impl Agent {
@@ -179,6 +213,10 @@ impl Component for Agent {
 
 #[derive(Clone, Debug)]
 pub enum Activity {
+    Interact {
+        timer: f32,
+        interaction: AgentEvent,
+    },
     Idle {
         bearing: Vec2<f32>,
         chaser: Chaser,
@@ -194,12 +232,19 @@ pub enum Activity {
         been_close: bool,
         powerup: f32,
     },
+    Flee {
+        target: EcsEntity,
+        chaser: Chaser,
+        timer: f32,
+    },
 }
 
 impl Activity {
     pub fn is_follow(&self) -> bool { matches!(self, Activity::Follow { .. }) }
 
     pub fn is_attack(&self) -> bool { matches!(self, Activity::Attack { .. }) }
+
+    pub fn is_flee(&self) -> bool { matches!(self, Activity::Flee { .. }) }
 }
 
 impl Default for Activity {

@@ -98,6 +98,13 @@ impl<'a> System<'a> for Sys {
                     ControlEvent::DisableLantern => {
                         server_emitter.emit(ServerEvent::DisableLantern(entity))
                     },
+                    ControlEvent::Interact(npc_uid) => {
+                        if let Some(npc_entity) =
+                            uid_allocator.retrieve_entity_internal(npc_uid.id())
+                        {
+                            server_emitter.emit(ServerEvent::NpcInteract(entity, npc_entity));
+                        }
+                    },
                     ControlEvent::InventoryManip(manip) => {
                         // Unwield if a wielded equipment slot is being modified, to avoid entering
                         // a barehanded wielding state.
