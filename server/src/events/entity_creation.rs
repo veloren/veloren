@@ -1,6 +1,7 @@
 use crate::{sys, Server, StateExt};
 use common::{
     character::CharacterId,
+    combat,
     comp::{
         self,
         aura::{Aura, AuraKind, AuraTarget},
@@ -170,7 +171,10 @@ pub fn handle_beam(server: &mut Server, properties: beam::Properties, pos: Pos, 
     let ecs = state.ecs();
     ecs.write_resource::<Vec<Outcome>>().push(Outcome::Beam {
         pos: pos.0,
-        heal: false, //properties.lifesteal_eff > 0.0, // Fix before merging
+        heal: properties
+            .attack
+            .effects()
+            .any(|e| matches!(e.effect(), combat::AttackEffect::Heal(h) if *h > 0.0)),
     });
     state.create_beam(properties, pos, ori).build();
 }

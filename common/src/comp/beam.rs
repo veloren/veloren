@@ -9,9 +9,6 @@ pub struct Properties {
     pub attack: Attack,
     pub angle: f32,
     pub speed: f32,
-    //pub lifesteal_eff: f32,
-    //pub energy_regen: u32,
-    //pub energy_cost: u32,
     pub duration: Duration,
     pub owner: Option<Uid>,
 }

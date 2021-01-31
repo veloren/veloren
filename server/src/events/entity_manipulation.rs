@@ -577,24 +577,21 @@ pub fn handle_explosion(
 
     // Add an outcome
     // Uses radius as outcome power, makes negative if explosion has healing effect
-    let outcome_power = explosion.radius;
-    //
-    // * if explosion.effects.iter().any(|e| { matches!( e, RadiusEffect::Entity( _,
-    //   Effect::Damage(Damage { source: DamageSource::Healing, .. }) ) )
-    // }) {
-    //     -1.0
-    // } else {
-    //     1.0
-    // };
+    let outcome_power = explosion.radius
+        * if explosion.effects.iter().any(|e| matches!(e, RadiusEffect::Attack(a) if a.effects().any(|e| matches!(e.effect(), combat::AttackEffect::Heal(h) if *h > 0.0)))) {
+        -1.0
+    } else {
+        1.0
+    };
     ecs.write_resource::<Vec<Outcome>>()
         .push(Outcome::Explosion {
             pos,
             power: outcome_power,
             radius: explosion.radius,
-            is_attack: false, /*explosion
-                              .effects
-                              .iter()
-                              .any(|e| matches!(e, RadiusEffect::Entity(_, Effect::Damage(_))))*/
+            is_attack: explosion
+                .effects
+                .iter()
+                .any(|e| matches!(e, RadiusEffect::Attack(_))),
             reagent,
         });
     let owner_entity = owner.and_then(|uid| {
