@@ -3,7 +3,7 @@ use common::{comp::inventory::loadout_builder::LoadoutBuilder, store::Id, terrai
 use world::{
     civ::{Site, Track},
     util::RandomPerm,
-    World,
+    IndexRef, World,
 };
 
 pub struct Entity {
@@ -123,7 +123,7 @@ impl Entity {
             .build()
     }
 
-    pub fn tick(&mut self, terrain: &TerrainGrid, world: &World) {
+    pub fn tick(&mut self, terrain: &TerrainGrid, world: &World, index: &IndexRef) {
         let tgt_site = self.brain.tgt.or_else(|| {
             world
                 .civs()
@@ -145,6 +145,10 @@ impl Entity {
 
         tgt_site.map(|tgt_site| {
             let site = &world.civs().sites[tgt_site];
+
+            let destination_name = site
+                .site_tmp
+                .map_or("".to_string(), |id| index.sites[id].name().to_string());
 
             let wpos = site.center * TerrainChunk::RECT_SIZE.map(|e| e as i32);
             let dist = wpos.map(|e| e as f32).distance(self.pos.xy()) as u32;
@@ -171,7 +175,7 @@ impl Entity {
                 ))
                 .map(|e| e as f32)
                 + Vec3::new(0.5, 0.5, 0.0);
-            self.controller.travel_to = Some(travel_to);
+            self.controller.travel_to = Some((travel_to, destination_name));
             self.controller.speed_factor = 0.70;
         });
     }

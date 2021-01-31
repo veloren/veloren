@@ -231,6 +231,7 @@ impl<'a> System<'a> for Sys {
                 let j = JoinData::new(&tuple, &updater, &dt);
                 let mut state_update = match j.character {
                     CharacterState::Idle => states::idle::Data.handle_event(&j, action),
+                    CharacterState::Talk => states::talk::Data.handle_event(&j, action),
                     CharacterState::Climb => states::climb::Data.handle_event(&j, action),
                     CharacterState::Glide => states::glide::Data.handle_event(&j, action),
                     CharacterState::GlideWield => {
@@ -274,6 +275,7 @@ impl<'a> System<'a> for Sys {
 
             let mut state_update = match j.character {
                 CharacterState::Idle => states::idle::Data.behavior(&j),
+                CharacterState::Talk => states::talk::Data.behavior(&j),
                 CharacterState::Climb => states::climb::Data.behavior(&j),
                 CharacterState::Glide => states::glide::Data.behavior(&j),
                 CharacterState::GlideWield => states::glide_wield::Data.behavior(&j),

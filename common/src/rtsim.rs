@@ -30,7 +30,7 @@ pub struct RtSimController {
     /// When this field is `Some(..)`, the agent should attempt to make progress
     /// toward the given location, accounting for obstacles and other
     /// high-priority situations like being attacked.
-    pub travel_to: Option<Vec3<f32>>,
+    pub travel_to: Option<(Vec3<f32>, String)>,
     /// Proportion of full speed to move
     pub speed_factor: f32,
 }

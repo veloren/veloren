@@ -168,6 +168,7 @@ impl<'a> System<'a> for Sys {
             match character_state {
                 // Accelerate recharging energy.
                 CharacterState::Idle { .. }
+                | CharacterState::Talk { .. }
                 | CharacterState::Sit { .. }
                 | CharacterState::Dance { .. }
                 | CharacterState::Sneak { .. }
