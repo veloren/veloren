@@ -58,7 +58,7 @@ impl<'a> System<'a> for Sys {
         let mut server_emitter = server_bus.emitter();
 
         // Attacks
-        for (entity, pos, physics, ori, mut projectile) in (
+        'projectile_loop: for (entity, pos, physics, ori, mut projectile) in (
             &entities,
             &positions,
             &physics_states,
@@ -67,6 +67,7 @@ impl<'a> System<'a> for Sys {
         )
             .join()
         {
+            let mut projectile_vanished: bool = false;
             // Hit entity
             for other in physics.touch_entities.iter().copied() {
                 let same_group = projectile
@@ -160,10 +161,13 @@ impl<'a> System<'a> for Sys {
                                 reagent: None,
                             })
                         },
-                        projectile::Effect::Vanish => server_emitter.emit(ServerEvent::Destroy {
-                            entity,
-                            cause: HealthSource::World,
-                        }),
+                        projectile::Effect::Vanish => {
+                            server_emitter.emit(ServerEvent::Destroy {
+                                entity,
+                                cause: HealthSource::World,
+                            });
+                            projectile_vanished = true;
+                        },
                         projectile::Effect::Possess => {
                             if other != projectile.owner.unwrap() {
                                 if let Some(owner) = projectile.owner {
@@ -194,6 +198,10 @@ impl<'a> System<'a> for Sys {
                         _ => {},
                     }
                 }
+
+                if projectile_vanished {
+                    continue 'projectile_loop;
+                }
             }
 
             // Hit something solid
@@ -209,12 +217,19 @@ impl<'a> System<'a> for Sys {
                                 reagent: None,
                             })
                         },
-                        projectile::Effect::Vanish => server_emitter.emit(ServerEvent::Destroy {
-                            entity,
-                            cause: HealthSource::World,
-                        }),
+                        projectile::Effect::Vanish => {
+                            server_emitter.emit(ServerEvent::Destroy {
+                                entity,
+                                cause: HealthSource::World,
+                            });
+                            projectile_vanished = true;
+                        },
                         _ => {},
                     }
+                }
+
+                if projectile_vanished {
+                    continue 'projectile_loop;
                 }
             } else if let Some(dir) = velocities
                 .get(entity)
