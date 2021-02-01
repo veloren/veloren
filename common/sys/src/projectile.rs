@@ -103,26 +103,26 @@ impl<'a> System<'a> for Sys {
                 for effect in projectile.hit_entity.drain(..) {
                     match effect {
                         projectile::Effect::Attack(attack) => {
-                            if let Some(owner) = projectile.owner {
-                                if let (Some(owner_entity), Some(target_entity)) = (
-                                    uid_allocator.retrieve_entity_internal(owner.into()),
-                                    uid_allocator.retrieve_entity_internal(other.into()),
-                                ) {
-                                    let server_events = attack.apply_attack(
-                                        target_group,
-                                        owner_entity,
-                                        target_entity,
-                                        inventories.get(target_entity),
-                                        owner,
-                                        energies.get(owner_entity),
-                                        ori.0,
-                                        false,
-                                        1.0,
-                                    );
+                            if let Some(target_entity) =
+                                uid_allocator.retrieve_entity_internal(other.into())
+                            {
+                                let owner_entity = projectile
+                                    .owner
+                                    .and_then(|u| uid_allocator.retrieve_entity_internal(u.into()));
+                                let server_events = attack.apply_attack(
+                                    target_group,
+                                    owner_entity,
+                                    target_entity,
+                                    inventories.get(target_entity),
+                                    projectile.owner,
+                                    owner_entity.and_then(|e| energies.get(e)),
+                                    ori.0,
+                                    false,
+                                    1.0,
+                                );
 
-                                    for event in server_events {
-                                        server_emitter.emit(event);
-                                    }
+                                for event in server_events {
+                                    server_emitter.emit(event);
                                 }
                             }
                         },

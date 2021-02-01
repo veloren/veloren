@@ -131,10 +131,10 @@ impl<'a> System<'a> for Sys {
 
                     let server_events = attack.attack.apply_attack(
                         target_group,
-                        entity,
+                        Some(entity),
                         b,
                         inventory_b_maybe,
-                        *uid,
+                        Some(*uid),
                         energies.get(entity),
                         dir,
                         is_dodge,

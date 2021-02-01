@@ -168,26 +168,24 @@ impl<'a> System<'a> for Sys {
                         continue;
                     }
 
-                    if let (Some(beam_owner), Some(owner_uid)) = (beam_owner, beam_segment.owner) {
-                        let server_events = beam_segment.properties.attack.apply_attack(
-                            target_group,
-                            beam_owner,
-                            b,
-                            inventory_b_maybe,
-                            owner_uid,
-                            energies.get(beam_owner),
-                            ori.0,
-                            false,
-                            1.0,
-                        );
+                    let server_events = beam_segment.properties.attack.apply_attack(
+                        target_group,
+                        beam_owner,
+                        b,
+                        inventory_b_maybe,
+                        beam_segment.owner,
+                        beam_owner.and_then(|e| energies.get(e)),
+                        ori.0,
+                        false,
+                        1.0,
+                    );
 
-                        if !server_events.is_empty() {
-                            hit_entities.push(*uid_b);
-                        }
+                    if !server_events.is_empty() {
+                        hit_entities.push(*uid_b);
+                    }
 
-                        for event in server_events {
-                            server_emitter.emit(event);
-                        }
+                    for event in server_events {
+                        server_emitter.emit(event);
                     }
                 }
             }

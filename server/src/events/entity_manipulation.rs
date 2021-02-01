@@ -710,10 +710,10 @@ pub fn handle_explosion(
 
                         let server_events = attack.apply_attack(
                             target_group,
-                            owner_entity.unwrap(),
+                            owner_entity,
                             entity_b,
                             inventory_b_maybe,
-                            owner.unwrap(),
+                            owner,
                             owner_entity.and_then(|e| energies.get(e)),
                             dir,
                             false,
