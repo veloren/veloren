@@ -70,9 +70,8 @@ impl<'a> System<'a> for Sys {
         let dt = dt.0;
 
         // Shockwaves
-        for (entity, uid, pos, ori, shockwave, shockwave_hit_list) in (
+        for (entity, pos, ori, shockwave, shockwave_hit_list) in (
             &entities,
-            &uids,
             &positions,
             &orientations,
             &shockwaves,
@@ -198,10 +197,10 @@ impl<'a> System<'a> for Sys {
 
                     let server_events = shockwave.properties.attack.apply_attack(
                         target_group,
-                        shockwave_owner.unwrap_or(entity),
+                        shockwave_owner,
                         b,
                         inventories.get(b),
-                        shockwave.owner.unwrap_or(*uid),
+                        shockwave.owner,
                         shockwave_owner.and_then(|e| energies.get(e)),
                         dir,
                         false,

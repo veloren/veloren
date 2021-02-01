@@ -72,10 +72,10 @@ impl Attack {
     pub fn apply_attack(
         &self,
         target_group: GroupTarget,
-        attacker_entity: EcsEntity,
+        attacker_entity: Option<EcsEntity>,
         target_entity: EcsEntity,
         target_inventory: Option<&Inventory>,
-        attacker_uid: Uid,
+        attacker_uid: Option<Uid>,
         attacker_energy: Option<&Energy>,
         dir: Dir,
         target_dodging: bool,
@@ -93,7 +93,7 @@ impl Attack {
         {
             let change = damage.damage.modify_damage(
                 target_inventory,
-                Some(attacker_uid),
+                attacker_uid,
                 is_crit,
                 self.crit_multiplier,
                 strength_modifier,
@@ -117,13 +117,15 @@ impl Attack {
                             }
                         },
                         AttackEffect::EnergyReward(ec) => {
-                            server_events.push(ServerEvent::EnergyChange {
-                                entity: attacker_entity,
-                                change: EnergyChange {
-                                    amount: *ec as i32,
-                                    source: EnergySource::HitEnemy,
-                                },
-                            });
+                            if let Some(attacker_entity) = attacker_entity {
+                                server_events.push(ServerEvent::EnergyChange {
+                                    entity: attacker_entity,
+                                    change: EnergyChange {
+                                        amount: *ec as i32,
+                                        source: EnergySource::HitEnemy,
+                                    },
+                                });
+                            }
                         },
                         AttackEffect::Buff(b) => {
                             if thread_rng().gen::<f32>() < b.chance {
@@ -136,16 +138,16 @@ impl Attack {
                             }
                         },
                         AttackEffect::Lifesteal(l) => {
-                            let change = HealthChange {
-                                amount: (applied_damage * l) as i32,
-                                cause: HealthSource::Heal {
-                                    by: Some(attacker_uid),
-                                },
-                            };
-                            server_events.push(ServerEvent::Damage {
-                                entity: attacker_entity,
-                                change,
-                            });
+                            if let Some(attacker_entity) = attacker_entity {
+                                let change = HealthChange {
+                                    amount: (applied_damage * l) as i32,
+                                    cause: HealthSource::Heal { by: attacker_uid },
+                                };
+                                server_events.push(ServerEvent::Damage {
+                                    entity: attacker_entity,
+                                    change,
+                                });
+                            }
                         },
                         AttackEffect::Poise(p) => {
                             let change = PoiseChange::from_attack(*p, target_inventory);
@@ -158,9 +160,7 @@ impl Attack {
                         AttackEffect::Heal(h) => {
                             let change = HealthChange {
                                 amount: *h as i32,
-                                cause: HealthSource::Heal {
-                                    by: Some(attacker_uid),
-                                },
+                                cause: HealthSource::Heal { by: attacker_uid },
                             };
                             server_events.push(ServerEvent::Damage {
                                 entity: target_entity,
@@ -181,13 +181,15 @@ impl Attack {
                 Some(CombatRequirement::AnyDamage) => accumulated_damage > 0.0,
                 Some(CombatRequirement::SufficientEnergy(r)) => {
                     if attacker_energy.map_or(true, |e| e.current() >= *r) {
-                        server_events.push(ServerEvent::EnergyChange {
-                            entity: attacker_entity,
-                            change: EnergyChange {
-                                amount: -(*r as i32),
-                                source: EnergySource::Ability,
-                            },
-                        });
+                        if let Some(attacker_entity) = attacker_entity {
+                            server_events.push(ServerEvent::EnergyChange {
+                                entity: attacker_entity,
+                                change: EnergyChange {
+                                    amount: -(*r as i32),
+                                    source: EnergySource::Ability,
+                                },
+                            });
+                        }
                         true
                     } else {
                         false
@@ -206,13 +208,15 @@ impl Attack {
                         }
                     },
                     AttackEffect::EnergyReward(ec) => {
-                        server_events.push(ServerEvent::EnergyChange {
-                            entity: attacker_entity,
-                            change: EnergyChange {
-                                amount: ec as i32,
-                                source: EnergySource::HitEnemy,
-                            },
-                        });
+                        if let Some(attacker_entity) = attacker_entity {
+                            server_events.push(ServerEvent::EnergyChange {
+                                entity: attacker_entity,
+                                change: EnergyChange {
+                                    amount: ec as i32,
+                                    source: EnergySource::HitEnemy,
+                                },
+                            });
+                        }
                     },
                     AttackEffect::Buff(b) => {
                         if thread_rng().gen::<f32>() < b.chance {
@@ -225,16 +229,16 @@ impl Attack {
                         }
                     },
                     AttackEffect::Lifesteal(l) => {
-                        let change = HealthChange {
-                            amount: (accumulated_damage * l) as i32,
-                            cause: HealthSource::Heal {
-                                by: Some(attacker_uid),
-                            },
-                        };
-                        server_events.push(ServerEvent::Damage {
-                            entity: attacker_entity,
-                            change,
-                        });
+                        if let Some(attacker_entity) = attacker_entity {
+                            let change = HealthChange {
+                                amount: (accumulated_damage * l) as i32,
+                                cause: HealthSource::Heal { by: attacker_uid },
+                            };
+                            server_events.push(ServerEvent::Damage {
+                                entity: attacker_entity,
+                                change,
+                            });
+                        }
                     },
                     AttackEffect::Poise(p) => {
                         let change = PoiseChange::from_attack(p, target_inventory);
@@ -247,9 +251,7 @@ impl Attack {
                     AttackEffect::Heal(h) => {
                         let change = HealthChange {
                             amount: h as i32,
-                            cause: HealthSource::Heal {
-                                by: Some(attacker_uid),
-                            },
+                            cause: HealthSource::Heal { by: attacker_uid },
                         };
                         server_events.push(ServerEvent::Damage {
                             entity: target_entity,
@@ -542,8 +544,13 @@ impl CombatBuffStrength {
 }
 
 impl CombatBuff {
-    fn to_buff(self, uid: Uid, damage: f32) -> Buff {
+    fn to_buff(self, uid: Option<Uid>, damage: f32) -> Buff {
         // TODO: Generate BufCategoryId vec (probably requires damage overhaul?)
+        let source = if let Some(uid) = uid {
+            BuffSource::Character { by: uid }
+        } else {
+            BuffSource::Unknown
+        };
         Buff::new(
             self.kind,
             BuffData::new(
@@ -551,7 +558,7 @@ impl CombatBuff {
                 Some(Duration::from_secs_f32(self.dur_secs)),
             ),
             Vec::new(),
-            BuffSource::Character { by: uid },
+            source,
         )
     }
 
