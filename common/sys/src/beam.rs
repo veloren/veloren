@@ -1,4 +1,5 @@
 use common::{
+    combat::AttackerInfo,
     comp::{
         group, Beam, BeamSegment, Body, Energy, Health, HealthSource, Inventory, Last, Ori, Pos,
         Scale,
@@ -168,25 +169,27 @@ impl<'a> System<'a> for Sys {
                         continue;
                     }
 
-                    let server_events = beam_segment.properties.attack.apply_attack(
+                    let attacker_info =
+                        beam_owner
+                            .zip(beam_segment.owner)
+                            .map(|(entity, uid)| AttackerInfo {
+                                entity,
+                                uid,
+                                energy: energies.get(entity),
+                            });
+
+                    beam_segment.properties.attack.apply_attack(
                         target_group,
-                        beam_owner,
+                        attacker_info,
                         b,
                         inventory_b_maybe,
-                        beam_segment.owner,
-                        beam_owner.and_then(|e| energies.get(e)),
                         ori.0,
                         false,
                         1.0,
+                        |e| server_emitter.emit(e),
                     );
 
-                    if !server_events.is_empty() {
-                        hit_entities.push(*uid_b);
-                    }
-
-                    for event in server_events {
-                        server_emitter.emit(event);
-                    }
+                    hit_entities.push(*uid_b);
                 }
             }
         }

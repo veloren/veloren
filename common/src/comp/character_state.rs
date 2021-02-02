@@ -170,7 +170,7 @@ impl Component for CharacterState {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct MeleeAttack {
+pub struct Melee {
     pub attack: Attack,
     pub range: f32,
     pub max_angle: f32,
@@ -178,6 +178,6 @@ pub struct MeleeAttack {
     pub hit_count: u32,
 }
 
-impl Component for MeleeAttack {
+impl Component for Melee {
     type Storage = VecStorage<Self>;
 }

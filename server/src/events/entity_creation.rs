@@ -174,7 +174,7 @@ pub fn handle_beam(server: &mut Server, properties: beam::Properties, pos: Pos, 
         heal: properties
             .attack
             .effects()
-            .any(|e| matches!(e.effect(), combat::AttackEffect::Heal(h) if *h > 0.0)),
+            .any(|e| matches!(e.effect(), combat::CombatEffect::Heal(h) if *h > 0.0)),
     });
     state.create_beam(properties, pos, ori).build();
 }
