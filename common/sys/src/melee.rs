@@ -1,5 +1,6 @@
 use common::{
-    comp::{buff, group, Attacking, Body, CharacterState, Health, Inventory, Ori, Pos, Scale},
+    combat::AttackerInfo,
+    comp::{group, Body, CharacterState, Energy, Health, Inventory, Melee, Ori, Pos, Scale},
     event::{EventBus, LocalEvent, ServerEvent},
     metrics::SysMetrics,
     span,
@@ -7,9 +8,7 @@ use common::{
     util::Dir,
     GroupTarget,
 };
-use rand::{thread_rng, Rng};
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage};
-use std::time::Duration;
 use vek::*;
 
 /// This system is responsible for handling accepted inputs like moving or
@@ -28,9 +27,10 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Scale>,
         ReadStorage<'a, Body>,
         ReadStorage<'a, Health>,
+        ReadStorage<'a, Energy>,
         ReadStorage<'a, Inventory>,
         ReadStorage<'a, group::Group>,
-        WriteStorage<'a, Attacking>,
+        WriteStorage<'a, Melee>,
         ReadStorage<'a, CharacterState>,
     );
 
@@ -47,6 +47,7 @@ impl<'a> System<'a> for Sys {
             scales,
             bodies,
             healths,
+            energies,
             inventories,
             groups,
             mut attacking_storage,
@@ -75,13 +76,22 @@ impl<'a> System<'a> for Sys {
             attack.applied = true;
 
             // Go through all other entities
-            for (b, pos_b, scale_b_maybe, health_b, body_b, char_state_b_maybe) in (
+            for (
+                b,
+                pos_b,
+                scale_b_maybe,
+                health_b,
+                body_b,
+                char_state_b_maybe,
+                inventory_b_maybe,
+            ) in (
                 &entities,
                 &positions,
                 scales.maybe(),
                 &healths,
                 &bodies,
                 char_states.maybe(),
+                inventories.maybe(),
             )
                 .join()
             {
@@ -118,54 +128,26 @@ impl<'a> System<'a> for Sys {
                         GroupTarget::OutOfGroup
                     };
 
-                    for (target, damage, poise_change) in attack.effects.iter() {
-                        if let Some(target) = target {
-                            if *target != target_group
-                                || (!matches!(target, GroupTarget::InGroup) && is_dodge)
-                            {
-                                continue;
-                            }
-                        }
+                    let dir = Dir::new((pos_b.0 - pos.0).try_normalized().unwrap_or(*ori.0));
 
-                        let change = damage.modify_damage(inventories.get(b), Some(*uid));
+                    let attacker_info = Some(AttackerInfo {
+                        entity,
+                        uid: *uid,
+                        energy: energies.get(entity),
+                    });
 
-                        server_emitter.emit(ServerEvent::Damage { entity: b, change });
+                    attack.attack.apply_attack(
+                        target_group,
+                        attacker_info,
+                        b,
+                        inventory_b_maybe,
+                        dir,
+                        is_dodge,
+                        1.0,
+                        |e| server_emitter.emit(e),
+                    );
 
-                        // Apply bleeding buff on melee hits with 10% chance
-                        // TODO: Don't have buff uniformly applied on all melee attacks
-                        if change.amount < 0 && thread_rng().gen::<f32>() < 0.1 {
-                            use buff::*;
-                            server_emitter.emit(ServerEvent::Buff {
-                                entity: b,
-                                buff_change: BuffChange::Add(Buff::new(
-                                    BuffKind::Bleeding,
-                                    BuffData {
-                                        strength: -change.amount as f32 / 10.0,
-                                        duration: Some(Duration::from_secs(10)),
-                                    },
-                                    vec![BuffCategory::Physical],
-                                    BuffSource::Character { by: *uid },
-                                )),
-                            });
-                        }
-
-                        let kb_dir = Dir::new((pos_b.0 - pos.0).try_normalized().unwrap_or(*ori.0));
-                        let impulse = attack.knockback.calculate_impulse(kb_dir);
-                        if !impulse.is_approx_zero() {
-                            server_emitter.emit(ServerEvent::Knockback { entity: b, impulse });
-                        }
-
-                        let poise_change = poise_change.modify_poise_damage(inventories.get(b));
-                        if poise_change.amount.abs() > 0 {
-                            server_emitter.emit(ServerEvent::PoiseChange {
-                                entity: b,
-                                change: poise_change,
-                                kb_dir: *kb_dir,
-                            });
-                        }
-
-                        attack.hit_count += 1;
-                    }
+                    attack.hit_count += 1;
                 }
             }
         }

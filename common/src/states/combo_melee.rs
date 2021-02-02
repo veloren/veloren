@@ -1,13 +1,11 @@
 use crate::{
-    comp::{
-        Attacking, CharacterState, EnergyChange, EnergySource, PoiseChange, PoiseSource,
-        StateUpdate,
-    },
+    combat::{Attack, AttackDamage, AttackEffect, CombatBuff, CombatEffect, CombatRequirement},
+    comp::{CharacterState, Melee, StateUpdate},
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
     },
-    Damage, DamageSource, GroupTarget, Knockback,
+    Damage, DamageSource, GroupTarget, Knockback, KnockbackDir,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -174,32 +172,53 @@ impl CharacterBehavior for Data {
                             .scales_from_combo
                             .min(self.combo / self.static_data.num_stages)
                             * self.static_data.stage_data[stage_index].damage_increase;
-
-                    let poise_damage = self.static_data.stage_data[stage_index].base_poise_damage
+                    let poise = self.static_data.stage_data[stage_index].base_poise_damage
                         + self
                             .static_data
                             .scales_from_combo
                             .min(self.combo / self.static_data.num_stages)
                             * self.static_data.stage_data[stage_index].poise_damage_increase;
-                    data.updater.insert(data.entity, Attacking {
-                        effects: vec![(
-                            Some(GroupTarget::OutOfGroup),
-                            Damage {
-                                source: DamageSource::Melee,
-                                value: damage as f32,
-                            },
-                            PoiseChange {
-                                amount: -(poise_damage as i32),
-                                source: PoiseSource::Attack,
-                            },
-                        )],
+                    let poise = AttackEffect::new(
+                        Some(GroupTarget::OutOfGroup),
+                        CombatEffect::Poise(poise as f32),
+                    )
+                    .with_requirement(CombatRequirement::AnyDamage);
+                    let knockback = AttackEffect::new(
+                        Some(GroupTarget::OutOfGroup),
+                        CombatEffect::Knockback(Knockback {
+                            strength: self.static_data.stage_data[stage_index].knockback,
+                            direction: KnockbackDir::Away,
+                        }),
+                    )
+                    .with_requirement(CombatRequirement::AnyDamage);
+                    let energy = self.static_data.max_energy_gain.min(
+                        self.static_data.initial_energy_gain
+                            + self.combo * self.static_data.energy_increase,
+                    );
+                    let energy = AttackEffect::new(None, CombatEffect::EnergyReward(energy))
+                        .with_requirement(CombatRequirement::AnyDamage);
+                    let buff = CombatEffect::Buff(CombatBuff::default_physical());
+                    let damage = AttackDamage::new(
+                        Damage {
+                            source: DamageSource::Melee,
+                            value: damage as f32,
+                        },
+                        Some(GroupTarget::OutOfGroup),
+                    )
+                    .with_effect(buff);
+                    let attack = Attack::default()
+                        .with_damage(damage)
+                        .with_crit(0.5, 1.3)
+                        .with_effect(energy)
+                        .with_effect(poise)
+                        .with_effect(knockback);
+
+                    data.updater.insert(data.entity, Melee {
+                        attack,
                         range: self.static_data.stage_data[stage_index].range,
                         max_angle: self.static_data.stage_data[stage_index].angle.to_radians(),
                         applied: false,
                         hit_count: 0,
-                        knockback: Knockback::Away(
-                            self.static_data.stage_data[stage_index].knockback,
-                        ),
                     });
                 }
             },
@@ -272,24 +291,20 @@ impl CharacterBehavior for Data {
                     // Done
                     update.character = CharacterState::Wielding;
                     // Make sure attack component is removed
-                    data.updater.remove::<Attacking>(data.entity);
+                    data.updater.remove::<Melee>(data.entity);
                 }
             },
             _ => {
                 // If it somehow ends up in an incorrect stage section
                 update.character = CharacterState::Wielding;
                 // Make sure attack component is removed
-                data.updater.remove::<Attacking>(data.entity);
+                data.updater.remove::<Melee>(data.entity);
             },
         }
 
         // Grant energy on successful hit
-        if let Some(attack) = data.attacking {
+        if let Some(attack) = data.melee_attack {
             if attack.applied && attack.hit_count > 0 {
-                let energy = self.static_data.max_energy_gain.min(
-                    self.static_data.initial_energy_gain
-                        + self.combo * self.static_data.energy_increase,
-                ) as i32;
                 update.character = CharacterState::ComboMelee(Data {
                     static_data: self.static_data.clone(),
                     stage: self.stage,
@@ -298,11 +313,7 @@ impl CharacterBehavior for Data {
                     stage_section: self.stage_section,
                     next_stage: self.next_stage,
                 });
-                data.updater.remove::<Attacking>(data.entity);
-                update.energy.change_by(EnergyChange {
-                    amount: energy,
-                    source: EnergySource::HitEnemy,
-                });
+                data.updater.remove::<Melee>(data.entity);
             }
         }
 

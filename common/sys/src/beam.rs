@@ -1,7 +1,8 @@
 use common::{
+    combat::AttackerInfo,
     comp::{
-        group, Beam, BeamSegment, Body, Energy, EnergyChange, EnergySource, Health, HealthChange,
-        HealthSource, Inventory, Last, Ori, Pos, Scale,
+        group, Beam, BeamSegment, Body, Energy, Health, HealthSource, Inventory, Last, Ori, Pos,
+        Scale,
     },
     event::{EventBus, ServerEvent},
     resources::{DeltaTime, Time},
@@ -112,7 +113,16 @@ impl<'a> System<'a> for Sys {
             };
 
             // Go through all other effectable entities
-            for (b, uid_b, pos_b, last_pos_b_maybe, scale_b_maybe, health_b, body_b) in (
+            for (
+                b,
+                uid_b,
+                pos_b,
+                last_pos_b_maybe,
+                scale_b_maybe,
+                health_b,
+                body_b,
+                inventory_b_maybe,
+            ) in (
                 &entities,
                 &uids,
                 &positions,
@@ -121,6 +131,7 @@ impl<'a> System<'a> for Sys {
                 scales.maybe(),
                 &healths,
                 &bodies,
+                inventories.maybe(),
             )
                 .join()
             {
@@ -158,62 +169,27 @@ impl<'a> System<'a> for Sys {
                         continue;
                     }
 
-                    for (target, damage) in beam_segment.damages.iter() {
-                        if let Some(target) = target {
-                            if *target != target_group {
-                                continue;
-                            }
-                        }
+                    let attacker_info =
+                        beam_owner
+                            .zip(beam_segment.owner)
+                            .map(|(entity, uid)| AttackerInfo {
+                                entity,
+                                uid,
+                                energy: energies.get(entity),
+                            });
 
-                        //  Modify damage
-                        let change = damage.modify_damage(inventories.get(b), beam_segment.owner);
-                        match target {
-                            Some(GroupTarget::OutOfGroup) => {
-                                server_emitter.emit(ServerEvent::Damage { entity: b, change });
-                                if let Some(entity) = beam_owner {
-                                    server_emitter.emit(ServerEvent::Damage {
-                                        entity,
-                                        change: HealthChange {
-                                            amount: (-change.amount as f32
-                                                * beam_segment.lifesteal_eff)
-                                                as i32,
-                                            cause: HealthSource::Heal {
-                                                by: beam_segment.owner,
-                                            },
-                                        },
-                                    });
-                                    server_emitter.emit(ServerEvent::EnergyChange {
-                                        entity,
-                                        change: EnergyChange {
-                                            amount: beam_segment.energy_regen as i32,
-                                            source: EnergySource::HitEnemy,
-                                        },
-                                    });
-                                }
-                            },
-                            Some(GroupTarget::InGroup) => {
-                                if let Some(energy) = beam_owner.and_then(|o| energies.get(o)) {
-                                    if energy.current() > beam_segment.energy_cost {
-                                        server_emitter.emit(ServerEvent::EnergyChange {
-                                            entity: beam_owner.unwrap(), /* If it's able to get an energy
-                                                                          * component, the entity exists */
-                                            change: EnergyChange {
-                                                amount: -(beam_segment.energy_cost as i32), // Stamina use
-                                                source: EnergySource::Ability,
-                                            },
-                                        });
-                                        server_emitter
-                                            .emit(ServerEvent::Damage { entity: b, change });
-                                    }
-                                }
-                            },
-                            None => {},
-                        }
+                    beam_segment.properties.attack.apply_attack(
+                        target_group,
+                        attacker_info,
+                        b,
+                        inventory_b_maybe,
+                        ori.0,
+                        false,
+                        1.0,
+                        |e| server_emitter.emit(e),
+                    );
 
-                        // Adds entities that were hit to the hit_entities list on the beam, sees if
-                        // it needs to purge the hit_entities list
-                        hit_entities.push(*uid_b);
-                    }
+                    hit_entities.push(*uid_b);
                 }
             }
         }

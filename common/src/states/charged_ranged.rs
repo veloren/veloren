@@ -1,16 +1,17 @@
 use crate::{
+    combat::{
+        Attack, AttackDamage, AttackEffect, CombatBuff, CombatEffect, CombatRequirement, Damage,
+        DamageSource, GroupTarget, Knockback, KnockbackDir,
+    },
     comp::{
-        buff::{BuffCategory, BuffData, BuffKind},
         projectile, Body, CharacterState, EnergyChange, EnergySource, Gravity, LightEmitter,
         Projectile, StateUpdate,
     },
-    effect::BuffEffect,
     event::ServerEvent,
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
     },
-    Damage, DamageSource, GroupTarget, Knockback,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -102,31 +103,36 @@ impl CharacterBehavior for Data {
                     let charge_frac = (self.timer.as_secs_f32()
                         / self.static_data.charge_duration.as_secs_f32())
                     .min(1.0);
-                    let damage = Damage {
-                        source: DamageSource::Projectile,
-                        value: self.static_data.initial_damage as f32
-                            + charge_frac * self.static_data.scaled_damage as f32,
-                    };
-                    let knockback = self.static_data.initial_knockback
-                        + charge_frac * self.static_data.scaled_knockback;
+                    let knockback = AttackEffect::new(
+                        Some(GroupTarget::OutOfGroup),
+                        CombatEffect::Knockback(Knockback {
+                            strength: self.static_data.initial_knockback
+                                + charge_frac * self.static_data.scaled_knockback,
+                            direction: KnockbackDir::Away,
+                        }),
+                    )
+                    .with_requirement(CombatRequirement::AnyDamage);
+                    let buff = CombatEffect::Buff(CombatBuff::default_physical());
+                    let damage = AttackDamage::new(
+                        Damage {
+                            source: DamageSource::Projectile,
+                            value: self.static_data.initial_damage as f32
+                                + charge_frac * self.static_data.scaled_damage as f32,
+                        },
+                        Some(GroupTarget::OutOfGroup),
+                    )
+                    .with_effect(buff);
+                    let attack = Attack::default()
+                        .with_damage(damage)
+                        .with_crit(0.5, 1.2)
+                        .with_effect(knockback);
+
                     // Fire
                     let projectile = Projectile {
                         hit_solid: vec![projectile::Effect::Stick],
                         hit_entity: vec![
-                            projectile::Effect::Damage(Some(GroupTarget::OutOfGroup), damage),
-                            projectile::Effect::Knockback(Knockback::Away(knockback)),
+                            projectile::Effect::Attack(attack),
                             projectile::Effect::Vanish,
-                            projectile::Effect::Buff {
-                                buff: BuffEffect {
-                                    kind: BuffKind::Bleeding,
-                                    data: BuffData {
-                                        strength: damage.value / 5.0,
-                                        duration: Some(Duration::from_secs(5)),
-                                    },
-                                    cat_ids: vec![BuffCategory::Physical],
-                                },
-                                chance: Some(0.10),
-                            },
                         ],
                         time_left: Duration::from_secs(15),
                         owner: Some(*data.uid),

@@ -1,22 +1,20 @@
-use crate::{uid::Uid, Damage, GroupTarget};
+use crate::{combat::Attack, uid::Uid};
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
 use std::time::Duration;
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Properties {
+    pub attack: Attack,
     pub angle: f32,
     pub speed: f32,
-    pub damages: Vec<(Option<GroupTarget>, Damage)>,
-    pub lifesteal_eff: f32,
-    pub energy_regen: u32,
-    pub energy_cost: u32,
     pub duration: Duration,
     pub owner: Option<Uid>,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+// TODO: Separate components out for cheaper network syncing
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct BeamSegment {
     pub properties: Properties,
     #[serde(skip)]

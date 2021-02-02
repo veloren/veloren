@@ -1,13 +1,11 @@
 use crate::{
-    comp::{
-        Attacking, CharacterState, EnergyChange, EnergySource, PoiseChange, PoiseSource,
-        StateUpdate,
-    },
+    combat::{Attack, AttackDamage, AttackEffect, CombatBuff, CombatEffect, CombatRequirement},
+    comp::{CharacterState, Melee, StateUpdate},
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
     },
-    Damage, DamageSource, GroupTarget, Knockback,
+    Damage, DamageSource, GroupTarget, Knockback, KnockbackDir,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -92,24 +90,44 @@ impl CharacterBehavior for Data {
                         ..*self
                     });
 
+                    let poise = AttackEffect::new(
+                        Some(GroupTarget::OutOfGroup),
+                        CombatEffect::Poise(self.static_data.base_poise_damage as f32),
+                    )
+                    .with_requirement(CombatRequirement::AnyDamage);
+                    let knockback = AttackEffect::new(
+                        Some(GroupTarget::OutOfGroup),
+                        CombatEffect::Knockback(Knockback {
+                            strength: self.static_data.knockback,
+                            direction: KnockbackDir::Away,
+                        }),
+                    )
+                    .with_requirement(CombatRequirement::AnyDamage);
+                    let energy = AttackEffect::new(None, CombatEffect::EnergyReward(50))
+                        .with_requirement(CombatRequirement::AnyDamage);
+                    let buff = CombatEffect::Buff(CombatBuff::default_physical());
+                    let damage = AttackDamage::new(
+                        Damage {
+                            source: DamageSource::Melee,
+                            value: self.static_data.base_damage as f32,
+                        },
+                        Some(GroupTarget::OutOfGroup),
+                    )
+                    .with_effect(buff);
+                    let attack = Attack::default()
+                        .with_damage(damage)
+                        .with_crit(0.5, 1.3)
+                        .with_effect(energy)
+                        .with_effect(poise)
+                        .with_effect(knockback);
+
                     // Hit attempt
-                    data.updater.insert(data.entity, Attacking {
-                        effects: vec![(
-                            Some(GroupTarget::OutOfGroup),
-                            Damage {
-                                source: DamageSource::Melee,
-                                value: self.static_data.base_damage as f32,
-                            },
-                            PoiseChange {
-                                amount: -(self.static_data.base_poise_damage as i32),
-                                source: PoiseSource::Attack,
-                            },
-                        )],
+                    data.updater.insert(data.entity, Melee {
+                        attack,
                         range: self.static_data.range,
-                        max_angle: 180_f32.to_radians(),
+                        max_angle: self.static_data.max_angle,
                         applied: false,
                         hit_count: 0,
-                        knockback: Knockback::Away(self.static_data.knockback),
                     });
                 } else if self.timer < self.static_data.swing_duration {
                     // Swings
@@ -143,26 +161,15 @@ impl CharacterBehavior for Data {
                     // Done
                     update.character = CharacterState::Wielding;
                     // Make sure attack component is removed
-                    data.updater.remove::<Attacking>(data.entity);
+                    data.updater.remove::<Melee>(data.entity);
                 }
             },
             _ => {
                 // If it somehow ends up in an incorrect stage section
                 update.character = CharacterState::Wielding;
                 // Make sure attack component is removed
-                data.updater.remove::<Attacking>(data.entity);
+                data.updater.remove::<Melee>(data.entity);
             },
-        }
-
-        // Grant energy on successful hit
-        if let Some(attack) = data.attacking {
-            if attack.applied && attack.hit_count > 0 {
-                data.updater.remove::<Attacking>(data.entity);
-                update.energy.change_by(EnergyChange {
-                    amount: 50,
-                    source: EnergySource::HitEnemy,
-                });
-            }
         }
 
         update

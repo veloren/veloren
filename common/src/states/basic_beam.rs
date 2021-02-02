@@ -1,4 +1,8 @@
 use crate::{
+    combat::{
+        Attack, AttackDamage, AttackEffect, CombatEffect, CombatRequirement, Damage, DamageSource,
+        GroupTarget,
+    },
     comp::{beam, Body, CharacterState, EnergyChange, EnergySource, Ori, Pos, StateUpdate},
     event::ServerEvent,
     states::{
@@ -6,7 +10,6 @@ use crate::{
         utils::*,
     },
     uid::Uid,
-    Damage, DamageSource, GroupTarget,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -119,26 +122,41 @@ impl CharacterBehavior for Data {
                 if ability_key_is_pressed(data, self.static_data.ability_key)
                     && (self.static_data.energy_drain == 0 || update.energy.current() > 0)
                 {
-                    let damage = Damage {
-                        source: DamageSource::Energy,
-                        value: self.static_data.base_dps as f32 / self.static_data.tick_rate,
-                    };
-                    let heal = Damage {
-                        source: DamageSource::Healing,
-                        value: self.static_data.base_hps as f32 / self.static_data.tick_rate,
-                    };
                     let speed =
                         self.static_data.range / self.static_data.beam_duration.as_secs_f32();
+
+                    let energy = AttackEffect::new(
+                        None,
+                        CombatEffect::EnergyReward(self.static_data.energy_regen),
+                    )
+                    .with_requirement(CombatRequirement::AnyDamage);
+                    let lifesteal = CombatEffect::Lifesteal(self.static_data.lifesteal_eff);
+                    let damage = AttackDamage::new(
+                        Damage {
+                            source: DamageSource::Energy,
+                            value: self.static_data.base_dps as f32 / self.static_data.tick_rate,
+                        },
+                        Some(GroupTarget::OutOfGroup),
+                    )
+                    .with_effect(lifesteal);
+                    let heal = AttackEffect::new(
+                        Some(GroupTarget::InGroup),
+                        CombatEffect::Heal(
+                            self.static_data.base_hps as f32 / self.static_data.tick_rate,
+                        ),
+                    )
+                    .with_requirement(CombatRequirement::SufficientEnergy(
+                        self.static_data.energy_cost,
+                    ));
+                    let attack = Attack::default()
+                        .with_damage(damage)
+                        .with_effect(energy)
+                        .with_effect(heal);
+
                     let properties = beam::Properties {
+                        attack,
                         angle: self.static_data.max_angle.to_radians(),
                         speed,
-                        damages: vec![
-                            (Some(GroupTarget::OutOfGroup), damage),
-                            (Some(GroupTarget::InGroup), heal),
-                        ],
-                        lifesteal_eff: self.static_data.lifesteal_eff,
-                        energy_regen: self.static_data.energy_regen,
-                        energy_cost: self.static_data.energy_cost,
                         duration: self.static_data.beam_duration,
                         owner: Some(*data.uid),
                     };

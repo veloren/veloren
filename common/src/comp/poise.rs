@@ -21,14 +21,23 @@ pub struct PoiseChange {
 impl PoiseChange {
     /// Alters poise damage as a result of armor poise damage reduction
     pub fn modify_poise_damage(self, inventory: Option<&Inventory>) -> PoiseChange {
-        let poise_damage_reduction =
-            inventory.map_or(0.0, |inv| Poise::compute_poise_damage_reduction(inv));
+        let poise_damage_reduction = inventory.map_or(0.0, Poise::compute_poise_damage_reduction);
         let poise_damage = self.amount as f32 * (1.0 - poise_damage_reduction);
         // Add match on poise source when different calculations per source
         // are needed/wanted
         PoiseChange {
             amount: poise_damage as i32,
             source: self.source,
+        }
+    }
+
+    /// Creates a poise change from a float
+    pub fn from_value(poise_damage: f32, inventory: Option<&Inventory>) -> Self {
+        let poise_damage_reduction = inventory.map_or(0.0, Poise::compute_poise_damage_reduction);
+        let poise_change = -poise_damage * (1.0 - poise_damage_reduction);
+        Self {
+            amount: poise_change as i32,
+            source: PoiseSource::Attack,
         }
     }
 }
