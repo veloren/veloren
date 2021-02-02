@@ -408,7 +408,6 @@ impl CharacterAbility {
             },
             LeapMelee {
                 ref mut buildup_duration,
-                ref mut movement_duration,
                 ref mut swing_duration,
                 ref mut recover_duration,
                 ref mut base_damage,
@@ -416,7 +415,6 @@ impl CharacterAbility {
                 ..
             } => {
                 *buildup_duration = (*buildup_duration as f32 / speed) as u64;
-                *movement_duration = (*movement_duration as f32 / speed) as u64;
                 *swing_duration = (*swing_duration as f32 / speed) as u64;
                 *recover_duration = (*recover_duration as f32 / speed) as u64;
                 *base_damage = (*base_damage as f32 * power) as u32;
