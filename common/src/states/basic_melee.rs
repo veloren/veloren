@@ -1,8 +1,6 @@
 use crate::{
-    combat::{
-        Attack, AttackEffect, CombatBuff, CombatRequirement, DamageComponent, EffectComponent,
-    },
-    comp::{CharacterState, MeleeAttack, StateUpdate},
+    combat::{Attack, AttackDamage, AttackEffect, CombatBuff, CombatEffect, CombatRequirement},
+    comp::{CharacterState, Melee, StateUpdate},
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
@@ -92,25 +90,30 @@ impl CharacterBehavior for Data {
                         ..*self
                     });
 
-                    let poise = AttackEffect::Poise(self.static_data.base_poise_damage as f32);
-                    let poise = EffectComponent::new(Some(GroupTarget::OutOfGroup), poise)
+                    let poise = AttackEffect::new(
+                        Some(GroupTarget::OutOfGroup),
+                        CombatEffect::Poise(self.static_data.base_poise_damage as f32),
+                    )
+                    .with_requirement(CombatRequirement::AnyDamage);
+                    let knockback = AttackEffect::new(
+                        Some(GroupTarget::OutOfGroup),
+                        CombatEffect::Knockback(Knockback {
+                            strength: self.static_data.knockback,
+                            direction: KnockbackDir::Away,
+                        }),
+                    )
+                    .with_requirement(CombatRequirement::AnyDamage);
+                    let energy = AttackEffect::new(None, CombatEffect::EnergyReward(50))
                         .with_requirement(CombatRequirement::AnyDamage);
-                    let knockback = AttackEffect::Knockback(Knockback {
-                        strength: self.static_data.knockback,
-                        direction: KnockbackDir::Away,
-                    });
-                    let knockback = EffectComponent::new(Some(GroupTarget::OutOfGroup), knockback)
-                        .with_requirement(CombatRequirement::AnyDamage);
-                    let energy = AttackEffect::EnergyReward(50);
-                    let energy = EffectComponent::new(None, energy)
-                        .with_requirement(CombatRequirement::AnyDamage);
-                    let buff = AttackEffect::Buff(CombatBuff::default_physical());
-                    let damage = Damage {
-                        source: DamageSource::Melee,
-                        value: self.static_data.base_damage as f32,
-                    };
-                    let damage = DamageComponent::new(damage, Some(GroupTarget::OutOfGroup))
-                        .with_effect(buff);
+                    let buff = CombatEffect::Buff(CombatBuff::default_physical());
+                    let damage = AttackDamage::new(
+                        Damage {
+                            source: DamageSource::Melee,
+                            value: self.static_data.base_damage as f32,
+                        },
+                        Some(GroupTarget::OutOfGroup),
+                    )
+                    .with_effect(buff);
                     let attack = Attack::default()
                         .with_damage(damage)
                         .with_crit(0.5, 1.3)
@@ -119,7 +122,7 @@ impl CharacterBehavior for Data {
                         .with_effect(knockback);
 
                     // Hit attempt
-                    data.updater.insert(data.entity, MeleeAttack {
+                    data.updater.insert(data.entity, Melee {
                         attack,
                         range: self.static_data.range,
                         max_angle: self.static_data.max_angle,
@@ -158,14 +161,14 @@ impl CharacterBehavior for Data {
                     // Done
                     update.character = CharacterState::Wielding;
                     // Make sure attack component is removed
-                    data.updater.remove::<MeleeAttack>(data.entity);
+                    data.updater.remove::<Melee>(data.entity);
                 }
             },
             _ => {
                 // If it somehow ends up in an incorrect stage section
                 update.character = CharacterState::Wielding;
                 // Make sure attack component is removed
-                data.updater.remove::<MeleeAttack>(data.entity);
+                data.updater.remove::<Melee>(data.entity);
             },
         }
 

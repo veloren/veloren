@@ -1,7 +1,7 @@
 use crate::{
     combat::{
-        Attack, AttackEffect, CombatRequirement, Damage, DamageComponent, DamageSource,
-        EffectComponent, GroupTarget, Knockback,
+        Attack, AttackDamage, AttackEffect, CombatEffect, CombatRequirement, Damage, DamageSource,
+        GroupTarget, Knockback,
     },
     comp::{shockwave, CharacterState, StateUpdate},
     event::ServerEvent,
@@ -83,17 +83,23 @@ impl CharacterBehavior for Data {
                     });
                 } else {
                     // Attack
-                    let poise = AttackEffect::Poise(self.static_data.poise_damage as f32);
-                    let poise = EffectComponent::new(Some(GroupTarget::OutOfGroup), poise)
-                        .with_requirement(CombatRequirement::AnyDamage);
-                    let knockback = AttackEffect::Knockback(self.static_data.knockback);
-                    let knockback = EffectComponent::new(Some(GroupTarget::OutOfGroup), knockback)
-                        .with_requirement(CombatRequirement::AnyDamage);
-                    let damage = Damage {
-                        source: DamageSource::Shockwave,
-                        value: self.static_data.damage as f32,
-                    };
-                    let damage = DamageComponent::new(damage, Some(GroupTarget::OutOfGroup));
+                    let poise = AttackEffect::new(
+                        Some(GroupTarget::OutOfGroup),
+                        CombatEffect::Poise(self.static_data.poise_damage as f32),
+                    )
+                    .with_requirement(CombatRequirement::AnyDamage);
+                    let knockback = AttackEffect::new(
+                        Some(GroupTarget::OutOfGroup),
+                        CombatEffect::Knockback(self.static_data.knockback),
+                    )
+                    .with_requirement(CombatRequirement::AnyDamage);
+                    let damage = AttackDamage::new(
+                        Damage {
+                            source: DamageSource::Shockwave,
+                            value: self.static_data.damage as f32,
+                        },
+                        Some(GroupTarget::OutOfGroup),
+                    );
                     let attack = Attack::default()
                         .with_damage(damage)
                         .with_effect(poise)

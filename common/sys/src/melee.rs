@@ -1,5 +1,6 @@
 use common::{
-    comp::{group, Body, CharacterState, Energy, Health, Inventory, MeleeAttack, Ori, Pos, Scale},
+    combat::AttackerInfo,
+    comp::{group, Body, CharacterState, Energy, Health, Inventory, Melee, Ori, Pos, Scale},
     event::{EventBus, LocalEvent, ServerEvent},
     metrics::SysMetrics,
     span,
@@ -29,7 +30,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Energy>,
         ReadStorage<'a, Inventory>,
         ReadStorage<'a, group::Group>,
-        WriteStorage<'a, MeleeAttack>,
+        WriteStorage<'a, Melee>,
         ReadStorage<'a, CharacterState>,
     );
 
@@ -129,25 +130,24 @@ impl<'a> System<'a> for Sys {
 
                     let dir = Dir::new((pos_b.0 - pos.0).try_normalized().unwrap_or(*ori.0));
 
-                    let server_events = attack.attack.apply_attack(
+                    let attacker_info = Some(AttackerInfo {
+                        entity,
+                        uid: *uid,
+                        energy: energies.get(entity),
+                    });
+
+                    attack.attack.apply_attack(
                         target_group,
-                        Some(entity),
+                        attacker_info,
                         b,
                         inventory_b_maybe,
-                        Some(*uid),
-                        energies.get(entity),
                         dir,
                         is_dodge,
                         1.0,
+                        |e| server_emitter.emit(e),
                     );
 
-                    if !server_events.is_empty() {
-                        attack.hit_count += 1;
-                    }
-
-                    for event in server_events {
-                        server_emitter.emit(event);
-                    }
+                    attack.hit_count += 1;
                 }
             }
         }

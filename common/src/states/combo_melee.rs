@@ -1,8 +1,6 @@
 use crate::{
-    combat::{
-        Attack, AttackEffect, CombatBuff, CombatRequirement, DamageComponent, EffectComponent,
-    },
-    comp::{CharacterState, MeleeAttack, StateUpdate},
+    combat::{Attack, AttackDamage, AttackEffect, CombatBuff, CombatEffect, CombatRequirement},
+    comp::{CharacterState, Melee, StateUpdate},
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
@@ -174,37 +172,40 @@ impl CharacterBehavior for Data {
                             .scales_from_combo
                             .min(self.combo / self.static_data.num_stages)
                             * self.static_data.stage_data[stage_index].damage_increase;
-
                     let poise = self.static_data.stage_data[stage_index].base_poise_damage
                         + self
                             .static_data
                             .scales_from_combo
                             .min(self.combo / self.static_data.num_stages)
                             * self.static_data.stage_data[stage_index].poise_damage_increase;
-                    let poise = AttackEffect::Poise(poise as f32);
-                    let poise = EffectComponent::new(Some(GroupTarget::OutOfGroup), poise)
-                        .with_requirement(CombatRequirement::AnyDamage);
-
-                    let knockback = AttackEffect::Knockback(Knockback {
-                        strength: self.static_data.stage_data[stage_index].knockback,
-                        direction: KnockbackDir::Away,
-                    });
-                    let knockback = EffectComponent::new(Some(GroupTarget::OutOfGroup), knockback)
-                        .with_requirement(CombatRequirement::AnyDamage);
+                    let poise = AttackEffect::new(
+                        Some(GroupTarget::OutOfGroup),
+                        CombatEffect::Poise(poise as f32),
+                    )
+                    .with_requirement(CombatRequirement::AnyDamage);
+                    let knockback = AttackEffect::new(
+                        Some(GroupTarget::OutOfGroup),
+                        CombatEffect::Knockback(Knockback {
+                            strength: self.static_data.stage_data[stage_index].knockback,
+                            direction: KnockbackDir::Away,
+                        }),
+                    )
+                    .with_requirement(CombatRequirement::AnyDamage);
                     let energy = self.static_data.max_energy_gain.min(
                         self.static_data.initial_energy_gain
                             + self.combo * self.static_data.energy_increase,
                     );
-                    let energy = AttackEffect::EnergyReward(energy);
-                    let energy = EffectComponent::new(None, energy)
+                    let energy = AttackEffect::new(None, CombatEffect::EnergyReward(energy))
                         .with_requirement(CombatRequirement::AnyDamage);
-                    let buff = AttackEffect::Buff(CombatBuff::default_physical());
-                    let damage = Damage {
-                        source: DamageSource::Melee,
-                        value: damage as f32,
-                    };
-                    let damage = DamageComponent::new(damage, Some(GroupTarget::OutOfGroup))
-                        .with_effect(buff);
+                    let buff = CombatEffect::Buff(CombatBuff::default_physical());
+                    let damage = AttackDamage::new(
+                        Damage {
+                            source: DamageSource::Melee,
+                            value: damage as f32,
+                        },
+                        Some(GroupTarget::OutOfGroup),
+                    )
+                    .with_effect(buff);
                     let attack = Attack::default()
                         .with_damage(damage)
                         .with_crit(0.5, 1.3)
@@ -212,7 +213,7 @@ impl CharacterBehavior for Data {
                         .with_effect(poise)
                         .with_effect(knockback);
 
-                    data.updater.insert(data.entity, MeleeAttack {
+                    data.updater.insert(data.entity, Melee {
                         attack,
                         range: self.static_data.stage_data[stage_index].range,
                         max_angle: self.static_data.stage_data[stage_index].angle.to_radians(),
@@ -290,14 +291,14 @@ impl CharacterBehavior for Data {
                     // Done
                     update.character = CharacterState::Wielding;
                     // Make sure attack component is removed
-                    data.updater.remove::<MeleeAttack>(data.entity);
+                    data.updater.remove::<Melee>(data.entity);
                 }
             },
             _ => {
                 // If it somehow ends up in an incorrect stage section
                 update.character = CharacterState::Wielding;
                 // Make sure attack component is removed
-                data.updater.remove::<MeleeAttack>(data.entity);
+                data.updater.remove::<Melee>(data.entity);
             },
         }
 
@@ -312,7 +313,7 @@ impl CharacterBehavior for Data {
                     stage_section: self.stage_section,
                     next_stage: self.next_stage,
                 });
-                data.updater.remove::<MeleeAttack>(data.entity);
+                data.updater.remove::<Melee>(data.entity);
             }
         }
 

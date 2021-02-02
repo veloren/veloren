@@ -1,7 +1,7 @@
 use crate::{
     combat::{
-        Attack, AttackEffect, CombatRequirement, Damage, DamageComponent, DamageSource,
-        EffectComponent, GroupTarget,
+        Attack, AttackDamage, AttackEffect, CombatEffect, CombatRequirement, Damage, DamageSource,
+        GroupTarget,
     },
     comp::{beam, Body, CharacterState, EnergyChange, EnergySource, Ori, Pos, StateUpdate},
     event::ServerEvent,
@@ -122,25 +122,32 @@ impl CharacterBehavior for Data {
                 if ability_key_is_pressed(data, self.static_data.ability_key)
                     && (self.static_data.energy_drain == 0 || update.energy.current() > 0)
                 {
-                    let damage = Damage {
-                        source: DamageSource::Energy,
-                        value: self.static_data.base_dps as f32 / self.static_data.tick_rate,
-                    };
-                    let heal = self.static_data.base_hps as f32 / self.static_data.tick_rate;
-                    let heal = AttackEffect::Heal(heal);
                     let speed =
                         self.static_data.range / self.static_data.beam_duration.as_secs_f32();
 
-                    let energy = AttackEffect::EnergyReward(self.static_data.energy_regen);
-                    let energy = EffectComponent::new(None, energy)
-                        .with_requirement(CombatRequirement::AnyDamage);
-                    let lifesteal = AttackEffect::Lifesteal(self.static_data.lifesteal_eff);
-                    let damage = DamageComponent::new(damage, Some(GroupTarget::OutOfGroup))
-                        .with_effect(lifesteal);
-                    let heal = EffectComponent::new(Some(GroupTarget::InGroup), heal)
-                        .with_requirement(CombatRequirement::SufficientEnergy(
-                            self.static_data.energy_cost,
-                        ));
+                    let energy = AttackEffect::new(
+                        None,
+                        CombatEffect::EnergyReward(self.static_data.energy_regen),
+                    )
+                    .with_requirement(CombatRequirement::AnyDamage);
+                    let lifesteal = CombatEffect::Lifesteal(self.static_data.lifesteal_eff);
+                    let damage = AttackDamage::new(
+                        Damage {
+                            source: DamageSource::Energy,
+                            value: self.static_data.base_dps as f32 / self.static_data.tick_rate,
+                        },
+                        Some(GroupTarget::OutOfGroup),
+                    )
+                    .with_effect(lifesteal);
+                    let heal = AttackEffect::new(
+                        Some(GroupTarget::InGroup),
+                        CombatEffect::Heal(
+                            self.static_data.base_hps as f32 / self.static_data.tick_rate,
+                        ),
+                    )
+                    .with_requirement(CombatRequirement::SufficientEnergy(
+                        self.static_data.energy_cost,
+                    ));
                     let attack = Attack::default()
                         .with_damage(damage)
                         .with_effect(energy)

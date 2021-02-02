@@ -90,7 +90,13 @@ impl StateExt for State {
             },
             Effect::Damage(damage) => {
                 let inventories = self.ecs().read_storage::<Inventory>();
-                let change = damage.modify_damage(inventories.get(entity), source, false, 0.0, 1.0);
+                let change = damage.calculate_health_change(
+                    inventories.get(entity),
+                    source,
+                    false,
+                    0.0,
+                    1.0,
+                );
                 self.ecs()
                     .write_storage::<comp::Health>()
                     .get_mut(entity)

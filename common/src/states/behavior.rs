@@ -1,7 +1,7 @@
 use crate::{
     comp::{
         Beam, Body, CharacterState, ControlAction, Controller, ControllerInputs, Energy, Health,
-        Inventory, MeleeAttack, Ori, PhysicsState, Pos, StateUpdate, Stats, Vel,
+        Inventory, Melee, Ori, PhysicsState, Pos, StateUpdate, Stats, Vel,
     },
     resources::DeltaTime,
     uid::Uid,
@@ -57,7 +57,7 @@ pub struct JoinData<'a> {
     pub inventory: &'a Inventory,
     pub body: &'a Body,
     pub physics: &'a PhysicsState,
-    pub melee_attack: Option<&'a MeleeAttack>,
+    pub melee_attack: Option<&'a Melee>,
     pub updater: &'a LazyUpdate,
     pub stats: &'a Stats,
 }
@@ -84,7 +84,7 @@ pub type JoinTuple<'a> = (
     &'a Health,
     &'a Body,
     &'a PhysicsState,
-    Option<&'a MeleeAttack>,
+    Option<&'a Melee>,
     Option<&'a Beam>,
     &'a Stats,
 );

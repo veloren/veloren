@@ -1,4 +1,5 @@
 use common::{
+    combat::AttackerInfo,
     comp::{
         group, Body, Energy, Health, HealthSource, Inventory, Last, Ori, PhysicsState, Pos, Scale,
         Shockwave, ShockwaveHitEntities,
@@ -195,25 +196,27 @@ impl<'a> System<'a> for Sys {
                 if hit {
                     let dir = Dir::new((pos_b.0 - pos.0).try_normalized().unwrap_or(*ori.0));
 
-                    let server_events = shockwave.properties.attack.apply_attack(
+                    let attacker_info =
+                        shockwave_owner
+                            .zip(shockwave.owner)
+                            .map(|(entity, uid)| AttackerInfo {
+                                entity,
+                                uid,
+                                energy: energies.get(entity),
+                            });
+
+                    shockwave.properties.attack.apply_attack(
                         target_group,
-                        shockwave_owner,
+                        attacker_info,
                         b,
                         inventories.get(b),
-                        shockwave.owner,
-                        shockwave_owner.and_then(|e| energies.get(e)),
                         dir,
                         false,
                         1.0,
+                        |e| server_emitter.emit(e),
                     );
 
-                    if !server_events.is_empty() {
-                        shockwave_hit_list.hit_entities.push(*uid_b);
-                    }
-
-                    for event in server_events {
-                        server_emitter.emit(event);
-                    }
+                    shockwave_hit_list.hit_entities.push(*uid_b);
                 }
             }
         }

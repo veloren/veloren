@@ -510,7 +510,8 @@ pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>)
                 source: DamageSource::Falling,
                 value: falldmg,
             };
-            let change = damage.modify_damage(inventories.get(entity), None, false, 0.0, 1.0);
+            let change =
+                damage.calculate_health_change(inventories.get(entity), None, false, 0.0, 1.0);
             health.change_by(change);
         }
         // Handle poise change
@@ -578,7 +579,7 @@ pub fn handle_explosion(
     // Add an outcome
     // Uses radius as outcome power, makes negative if explosion has healing effect
     let outcome_power = explosion.radius
-        * if explosion.effects.iter().any(|e| matches!(e, RadiusEffect::Attack(a) if a.effects().any(|e| matches!(e.effect(), combat::AttackEffect::Heal(h) if *h > 0.0)))) {
+        * if explosion.effects.iter().any(|e| matches!(e, RadiusEffect::Attack(a) if a.effects().any(|e| matches!(e.effect(), combat::CombatEffect::Heal(h) if *h > 0.0)))) {
         -1.0
     } else {
         1.0
@@ -708,23 +709,27 @@ pub fn handle_explosion(
                                 .unwrap_or_else(Vec3::unit_z),
                         );
 
-                        let server_events = attack.apply_attack(
-                            target_group,
-                            owner_entity,
-                            entity_b,
-                            inventory_b_maybe,
-                            owner,
-                            owner_entity.and_then(|e| energies.get(e)),
-                            dir,
-                            false,
-                            strength,
-                        );
+                        let attacker_info =
+                            owner_entity
+                                .zip(owner)
+                                .map(|(entity, uid)| combat::AttackerInfo {
+                                    entity,
+                                    uid,
+                                    energy: energies.get(entity),
+                                });
 
                         let server_eventbus = ecs.read_resource::<EventBus<ServerEvent>>();
 
-                        for event in server_events {
-                            server_eventbus.emit_now(event);
-                        }
+                        attack.apply_attack(
+                            target_group,
+                            attacker_info,
+                            entity_b,
+                            inventory_b_maybe,
+                            dir,
+                            false,
+                            strength,
+                            |e| server_eventbus.emit_now(e),
+                        );
                     }
                 }
             },

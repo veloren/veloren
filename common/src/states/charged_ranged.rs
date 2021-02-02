@@ -1,7 +1,7 @@
 use crate::{
     combat::{
-        Attack, AttackEffect, CombatBuff, CombatRequirement, Damage, DamageComponent, DamageSource,
-        EffectComponent, GroupTarget, Knockback, KnockbackDir,
+        Attack, AttackDamage, AttackEffect, CombatBuff, CombatEffect, CombatRequirement, Damage,
+        DamageSource, GroupTarget, Knockback, KnockbackDir,
     },
     comp::{
         projectile, Body, CharacterState, EnergyChange, EnergySource, Gravity, LightEmitter,
@@ -103,22 +103,25 @@ impl CharacterBehavior for Data {
                     let charge_frac = (self.timer.as_secs_f32()
                         / self.static_data.charge_duration.as_secs_f32())
                     .min(1.0);
-                    let knockback = self.static_data.initial_knockback
-                        + charge_frac * self.static_data.scaled_knockback;
-                    let knockback = AttackEffect::Knockback(Knockback {
-                        strength: knockback,
-                        direction: KnockbackDir::Away,
-                    });
-                    let knockback = EffectComponent::new(Some(GroupTarget::OutOfGroup), knockback)
-                        .with_requirement(CombatRequirement::AnyDamage);
-                    let buff = AttackEffect::Buff(CombatBuff::default_physical());
-                    let damage = Damage {
-                        source: DamageSource::Projectile,
-                        value: self.static_data.initial_damage as f32
-                            + charge_frac * self.static_data.scaled_damage as f32,
-                    };
-                    let damage = DamageComponent::new(damage, Some(GroupTarget::OutOfGroup))
-                        .with_effect(buff);
+                    let knockback = AttackEffect::new(
+                        Some(GroupTarget::OutOfGroup),
+                        CombatEffect::Knockback(Knockback {
+                            strength: self.static_data.initial_knockback
+                                + charge_frac * self.static_data.scaled_knockback,
+                            direction: KnockbackDir::Away,
+                        }),
+                    )
+                    .with_requirement(CombatRequirement::AnyDamage);
+                    let buff = CombatEffect::Buff(CombatBuff::default_physical());
+                    let damage = AttackDamage::new(
+                        Damage {
+                            source: DamageSource::Projectile,
+                            value: self.static_data.initial_damage as f32
+                                + charge_frac * self.static_data.scaled_damage as f32,
+                        },
+                        Some(GroupTarget::OutOfGroup),
+                    )
+                    .with_effect(buff);
                     let attack = Attack::default()
                         .with_damage(damage)
                         .with_crit(0.5, 1.2)

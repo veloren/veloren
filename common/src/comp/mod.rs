@@ -40,7 +40,7 @@ pub use buff::{
     Buff, BuffCategory, BuffChange, BuffData, BuffEffect, BuffId, BuffKind, BuffSource, Buffs,
     ModifierKind,
 };
-pub use character_state::{CharacterState, MeleeAttack, StateUpdate};
+pub use character_state::{CharacterState, Melee, StateUpdate};
 pub use chat::{
     ChatMode, ChatMsg, ChatType, Faction, SpeechBubble, SpeechBubbleType, UnresolvedChatMsg,
 };
