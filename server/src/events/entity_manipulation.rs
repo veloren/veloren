@@ -16,12 +16,13 @@ use common::{
         object, Alignment, Body, CharacterState, Energy, EnergyChange, Group, Health, HealthChange,
         HealthSource, Inventory, Item, Player, Poise, PoiseChange, PoiseSource, Pos, Stats,
     },
-    effect::Effect,
+    event::{EventBus, ServerEvent},
     lottery::Lottery,
     outcome::Outcome,
     rtsim::RtSimEntity,
     terrain::{Block, TerrainGrid},
     uid::{Uid, UidAllocator},
+    util::Dir,
     vol::ReadVol,
     Damage, DamageSource, Explosion, GroupTarget, RadiusEffect,
 };
@@ -509,7 +510,8 @@ pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>)
                 source: DamageSource::Falling,
                 value: falldmg,
             };
-            let change = damage.modify_damage(inventories.get(entity), None);
+            let change =
+                damage.calculate_health_change(inventories.get(entity), None, false, 0.0, 1.0);
             health.change_by(change);
         }
         // Handle poise change
@@ -577,22 +579,11 @@ pub fn handle_explosion(
     // Add an outcome
     // Uses radius as outcome power, makes negative if explosion has healing effect
     let outcome_power = explosion.radius
-        * if explosion.effects.iter().any(|e| {
-            matches!(
-                e,
-                RadiusEffect::Entity(
-                    _,
-                    Effect::Damage(Damage {
-                        source: DamageSource::Healing,
-                        ..
-                    })
-                )
-            )
-        }) {
-            -1.0
-        } else {
-            1.0
-        };
+        * if explosion.effects.iter().any(|e| matches!(e, RadiusEffect::Attack(a) if a.effects().any(|e| matches!(e.effect(), combat::CombatEffect::Heal(h) if *h > 0.0)))) {
+        -1.0
+    } else {
+        1.0
+    };
     ecs.write_resource::<Vec<Outcome>>()
         .push(Outcome::Explosion {
             pos,
@@ -601,7 +592,7 @@ pub fn handle_explosion(
             is_attack: explosion
                 .effects
                 .iter()
-                .any(|e| matches!(e, RadiusEffect::Entity(_, Effect::Damage(_)))),
+                .any(|e| matches!(e, RadiusEffect::Attack(_))),
             reagent,
         });
     let owner_entity = owner.and_then(|uid| {
@@ -685,54 +676,78 @@ pub fn handle_explosion(
                         .cast();
                 }
             },
-            RadiusEffect::Entity(target, mut effect) => {
-                for (entity_b, pos_b) in (&ecs.entities(), &ecs.read_storage::<comp::Pos>()).join()
+            RadiusEffect::Attack(attack) => {
+                let energies = &ecs.read_storage::<comp::Energy>();
+                for (entity_b, pos_b, _health_b, inventory_b_maybe) in (
+                    &ecs.entities(),
+                    &ecs.read_storage::<comp::Pos>(),
+                    &ecs.read_storage::<comp::Health>(),
+                    ecs.read_storage::<comp::Inventory>().maybe(),
+                )
+                    .join()
+                    .filter(|(_, _, h, _)| !h.is_dead)
                 {
-                    // See if entities are in the same group
-                    let mut same_group = owner_entity
-                        .and_then(|e| groups.get(e))
-                        .map_or(false, |group_a| Some(group_a) == groups.get(entity_b));
-                    if let Some(entity) = owner_entity {
-                        if entity == entity_b {
-                            same_group = true;
-                        }
-                    }
-                    let target_group = if same_group {
-                        GroupTarget::InGroup
-                    } else {
-                        GroupTarget::OutOfGroup
-                    };
+                    // Check if it is a hit
+                    let distance_squared = pos.distance_squared(pos_b.0);
+                    let strength = 1.0 - distance_squared / explosion.radius.powi(2);
+                    if strength > 0.0 {
+                        // See if entities are in the same group
+                        let same_group = owner_entity
+                            .and_then(|e| groups.get(e))
+                            .map(|group_a| Some(group_a) == groups.get(entity_b))
+                            .unwrap_or(Some(entity_b) == owner_entity);
 
-                    if let Some(target) = target {
-                        if target != target_group {
-                            continue;
-                        }
-                    }
+                        let target_group = if same_group {
+                            GroupTarget::InGroup
+                        } else {
+                            GroupTarget::OutOfGroup
+                        };
 
+                        let dir = Dir::new(
+                            (pos_b.0 - pos)
+                                .try_normalized()
+                                .unwrap_or_else(Vec3::unit_z),
+                        );
+
+                        let attacker_info =
+                            owner_entity
+                                .zip(owner)
+                                .map(|(entity, uid)| combat::AttackerInfo {
+                                    entity,
+                                    uid,
+                                    energy: energies.get(entity),
+                                });
+
+                        let server_eventbus = ecs.read_resource::<EventBus<ServerEvent>>();
+
+                        attack.apply_attack(
+                            target_group,
+                            attacker_info,
+                            entity_b,
+                            inventory_b_maybe,
+                            dir,
+                            false,
+                            strength,
+                            |e| server_eventbus.emit_now(e),
+                        );
+                    }
+                }
+            },
+            RadiusEffect::Entity(mut effect) => {
+                for (entity_b, pos_b, _health_b) in (
+                    &ecs.entities(),
+                    &ecs.read_storage::<comp::Pos>(),
+                    &ecs.read_storage::<comp::Health>(),
+                )
+                    .join()
+                    .filter(|(_, _, h)| !h.is_dead)
+                {
                     let distance_squared = pos.distance_squared(pos_b.0);
                     let strength = 1.0 - distance_squared / explosion.radius.powi(2);
 
                     if strength > 0.0 {
-                        let is_alive = ecs
-                            .read_storage::<comp::Health>()
-                            .get(entity_b)
-                            .map_or(false, |h| !h.is_dead);
-
-                        if is_alive {
-                            effect.modify_strength(strength);
-                            server.state().apply_effect(entity_b, effect.clone(), owner);
-                            // Apply energy change
-                            if let Some(owner) = owner_entity {
-                                if let Some(mut energy) =
-                                    ecs.write_storage::<comp::Energy>().get_mut(owner)
-                                {
-                                    energy.change_by(EnergyChange {
-                                        amount: explosion.energy_regen as i32,
-                                        source: comp::EnergySource::HitEnemy,
-                                    });
-                                }
-                            }
-                        }
+                        effect.modify_strength(strength);
+                        server.state().apply_effect(entity_b, effect.clone(), owner);
                     }
                 }
             },

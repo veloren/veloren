@@ -1,15 +1,15 @@
-use crate::{combat::GroupTarget, effect::Effect};
+use crate::{combat::Attack, effect::Effect};
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Explosion {
     pub effects: Vec<RadiusEffect>,
     pub radius: f32,
-    pub energy_regen: u32,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum RadiusEffect {
     TerrainDestruction(f32),
-    Entity(Option<GroupTarget>, Effect),
+    Entity(Effect),
+    Attack(Attack),
 }

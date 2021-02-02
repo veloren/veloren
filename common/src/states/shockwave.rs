@@ -1,11 +1,14 @@
 use crate::{
-    comp::{shockwave, CharacterState, PoiseChange, PoiseSource, StateUpdate},
+    combat::{
+        Attack, AttackDamage, AttackEffect, CombatEffect, CombatRequirement, Damage, DamageSource,
+        GroupTarget, Knockback,
+    },
+    comp::{shockwave, CharacterState, StateUpdate},
     event::ServerEvent,
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
     },
-    Damage, DamageSource, GroupTarget, Knockback,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -80,23 +83,33 @@ impl CharacterBehavior for Data {
                     });
                 } else {
                     // Attack
+                    let poise = AttackEffect::new(
+                        Some(GroupTarget::OutOfGroup),
+                        CombatEffect::Poise(self.static_data.poise_damage as f32),
+                    )
+                    .with_requirement(CombatRequirement::AnyDamage);
+                    let knockback = AttackEffect::new(
+                        Some(GroupTarget::OutOfGroup),
+                        CombatEffect::Knockback(self.static_data.knockback),
+                    )
+                    .with_requirement(CombatRequirement::AnyDamage);
+                    let damage = AttackDamage::new(
+                        Damage {
+                            source: DamageSource::Shockwave,
+                            value: self.static_data.damage as f32,
+                        },
+                        Some(GroupTarget::OutOfGroup),
+                    );
+                    let attack = Attack::default()
+                        .with_damage(damage)
+                        .with_effect(poise)
+                        .with_effect(knockback);
                     let properties = shockwave::Properties {
                         angle: self.static_data.shockwave_angle,
                         vertical_angle: self.static_data.shockwave_vertical_angle,
                         speed: self.static_data.shockwave_speed,
                         duration: self.static_data.shockwave_duration,
-                        effects: vec![(
-                            Some(GroupTarget::OutOfGroup),
-                            Damage {
-                                source: DamageSource::Shockwave,
-                                value: self.static_data.damage as f32,
-                            },
-                            PoiseChange {
-                                amount: -(self.static_data.poise_damage as i32),
-                                source: PoiseSource::Attack,
-                            },
-                        )],
-                        knockback: self.static_data.knockback,
+                        attack,
                         requires_ground: self.static_data.requires_ground,
                         owner: Some(*data.uid),
                     };

@@ -1,8 +1,7 @@
 use common::{
+    combat::AttackerInfo,
     comp::{
-        buff::{Buff, BuffChange, BuffSource},
-        projectile, EnergyChange, EnergySource, Group, HealthSource, Inventory, Ori, PhysicsState,
-        Pos, Projectile, Vel,
+        projectile, Energy, Group, HealthSource, Inventory, Ori, PhysicsState, Pos, Projectile, Vel,
     },
     event::{EventBus, ServerEvent},
     metrics::SysMetrics,
@@ -11,7 +10,6 @@ use common::{
     uid::UidAllocator,
     GroupTarget,
 };
-use rand::{thread_rng, Rng};
 use specs::{
     saveload::MarkerAllocator, Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage,
 };
@@ -34,6 +32,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Projectile>,
         ReadStorage<'a, Inventory>,
         ReadStorage<'a, Group>,
+        ReadStorage<'a, Energy>,
     );
 
     fn run(
@@ -51,6 +50,7 @@ impl<'a> System<'a> for Sys {
             mut projectiles,
             inventories,
             groups,
+            energies,
         ): Self::SystemData,
     ) {
         let start_time = std::time::Instant::now();
@@ -103,54 +103,33 @@ impl<'a> System<'a> for Sys {
                 let projectile = &mut *projectile;
                 for effect in projectile.hit_entity.drain(..) {
                     match effect {
-                        projectile::Effect::Damage(target, damage) => {
-                            if Some(other) == projectile.owner {
-                                continue;
-                            }
-
-                            if let Some(target) = target {
-                                if target != target_group {
-                                    continue;
-                                }
-                            }
-
-                            if let Some(other_entity) =
+                        projectile::Effect::Attack(attack) => {
+                            if let Some(target_entity) =
                                 uid_allocator.retrieve_entity_internal(other.into())
                             {
-                                let other_entity_inventory = inventories.get(other_entity);
-                                let change =
-                                    damage.modify_damage(other_entity_inventory, projectile.owner);
-                                server_emitter.emit(ServerEvent::Damage {
-                                    entity: other_entity,
-                                    change,
-                                });
-                            }
-                        },
-                        projectile::Effect::Knockback(knockback) => {
-                            if let Some(other_entity) =
-                                uid_allocator.retrieve_entity_internal(other.into())
-                            {
-                                let impulse = knockback.calculate_impulse(ori.0);
-                                if !impulse.is_approx_zero() {
-                                    server_emitter.emit(ServerEvent::Knockback {
-                                        entity: other_entity,
-                                        impulse,
+                                let owner_entity = projectile
+                                    .owner
+                                    .and_then(|u| uid_allocator.retrieve_entity_internal(u.into()));
+
+                                let attacker_info =
+                                    owner_entity.zip(projectile.owner).map(|(entity, uid)| {
+                                        AttackerInfo {
+                                            entity,
+                                            uid,
+                                            energy: energies.get(entity),
+                                        }
                                     });
-                                }
-                            }
-                        },
-                        projectile::Effect::RewardEnergy(energy) => {
-                            if let Some(entity_owner) = projectile
-                                .owner
-                                .and_then(|u| uid_allocator.retrieve_entity_internal(u.into()))
-                            {
-                                server_emitter.emit(ServerEvent::EnergyChange {
-                                    entity: entity_owner,
-                                    change: EnergyChange {
-                                        amount: energy as i32,
-                                        source: EnergySource::HitEnemy,
-                                    },
-                                });
+
+                                attack.apply_attack(
+                                    target_group,
+                                    attacker_info,
+                                    target_entity,
+                                    inventories.get(target_entity),
+                                    ori.0,
+                                    false,
+                                    1.0,
+                                    |e| server_emitter.emit(e),
+                                );
                             }
                         },
                         projectile::Effect::Explode(e) => {
@@ -172,26 +151,6 @@ impl<'a> System<'a> for Sys {
                             if other != projectile.owner.unwrap() {
                                 if let Some(owner) = projectile.owner {
                                     server_emitter.emit(ServerEvent::Possess(owner, other));
-                                }
-                            }
-                        },
-                        // TODO: Change to effect after !1472 merges
-                        projectile::Effect::Buff { buff, chance } => {
-                            if let Some(entity) =
-                                uid_allocator.retrieve_entity_internal(other.into())
-                            {
-                                if chance.map_or(true, |c| thread_rng().gen::<f32>() < c) {
-                                    let source = if let Some(owner) = projectile.owner {
-                                        BuffSource::Character { by: owner }
-                                    } else {
-                                        BuffSource::Unknown
-                                    };
-                                    let buff =
-                                        Buff::new(buff.kind, buff.data, buff.cat_ids, source);
-                                    server_emitter.emit(ServerEvent::Buff {
-                                        entity,
-                                        buff_change: BuffChange::Add(buff),
-                                    });
                                 }
                             }
                         },

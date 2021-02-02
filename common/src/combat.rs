@@ -1,5 +1,6 @@
 use crate::{
     comp::{
+        buff::{Buff, BuffChange, BuffData, BuffKind, BuffSource},
         inventory::{
             item::{
                 armor::Protection,
@@ -8,13 +9,19 @@ use crate::{
             },
             slot::EquipSlot,
         },
+        poise::PoiseChange,
         skills::{SkillGroupKind, SkillSet},
-        Body, BuffKind, Health, HealthChange, HealthSource, Inventory, Stats,
+        Body, Energy, EnergyChange, EnergySource, Health, HealthChange, HealthSource, Inventory,
+        Stats,
     },
+    event::ServerEvent,
     uid::Uid,
     util::Dir,
 };
+use rand::{thread_rng, Rng};
 use serde::{Deserialize, Serialize};
+use specs::Entity as EcsEntity;
+use std::time::Duration;
 use vek::*;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -23,11 +30,338 @@ pub enum GroupTarget {
     OutOfGroup,
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Copy, Clone)]
+pub struct AttackerInfo<'a> {
+    pub entity: EcsEntity,
+    pub uid: Uid,
+    pub energy: Option<&'a Energy>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)] // TODO: Yeet clone derive
+pub struct Attack {
+    damages: Vec<AttackDamage>,
+    effects: Vec<AttackEffect>,
+    crit_chance: f32,
+    crit_multiplier: f32,
+}
+
+impl Default for Attack {
+    fn default() -> Self {
+        Self {
+            damages: Vec::new(),
+            effects: Vec::new(),
+            crit_chance: 0.0,
+            crit_multiplier: 1.0,
+        }
+    }
+}
+
+impl Attack {
+    pub fn with_damage(mut self, damage: AttackDamage) -> Self {
+        self.damages.push(damage);
+        self
+    }
+
+    pub fn with_effect(mut self, effect: AttackEffect) -> Self {
+        self.effects.push(effect);
+        self
+    }
+
+    pub fn with_crit(mut self, crit_chance: f32, crit_multiplier: f32) -> Self {
+        self.crit_chance = crit_chance;
+        self.crit_multiplier = crit_multiplier;
+        self
+    }
+
+    pub fn effects(&self) -> impl Iterator<Item = &AttackEffect> { self.effects.iter() }
+
+    #[allow(clippy::too_many_arguments)]
+    pub fn apply_attack(
+        &self,
+        target_group: GroupTarget,
+        attacker_info: Option<AttackerInfo>,
+        target_entity: EcsEntity,
+        target_inventory: Option<&Inventory>,
+        dir: Dir,
+        target_dodging: bool,
+        // Currently just modifies damage, maybe look into modifying strength of other effects?
+        strength_modifier: f32,
+        mut emit: impl FnMut(ServerEvent),
+    ) {
+        let is_crit = thread_rng().gen::<f32>() < self.crit_chance;
+        let mut accumulated_damage = 0.0;
+        for damage in self
+            .damages
+            .iter()
+            .filter(|d| d.target.map_or(true, |t| t == target_group))
+            .filter(|d| !(matches!(d.target, Some(GroupTarget::OutOfGroup)) && target_dodging))
+        {
+            let change = damage.damage.calculate_health_change(
+                target_inventory,
+                attacker_info.map(|a| a.uid),
+                is_crit,
+                self.crit_multiplier,
+                strength_modifier,
+            );
+            let applied_damage = -change.amount as f32;
+            accumulated_damage += applied_damage;
+            if change.amount != 0 {
+                emit(ServerEvent::Damage {
+                    entity: target_entity,
+                    change,
+                });
+                for effect in damage.effects.iter() {
+                    match effect {
+                        CombatEffect::Knockback(kb) => {
+                            let impulse = kb.calculate_impulse(dir);
+                            if !impulse.is_approx_zero() {
+                                emit(ServerEvent::Knockback {
+                                    entity: target_entity,
+                                    impulse,
+                                });
+                            }
+                        },
+                        CombatEffect::EnergyReward(ec) => {
+                            if let Some(attacker_entity) = attacker_info.map(|a| a.entity) {
+                                emit(ServerEvent::EnergyChange {
+                                    entity: attacker_entity,
+                                    change: EnergyChange {
+                                        amount: *ec as i32,
+                                        source: EnergySource::HitEnemy,
+                                    },
+                                });
+                            }
+                        },
+                        CombatEffect::Buff(b) => {
+                            if thread_rng().gen::<f32>() < b.chance {
+                                emit(ServerEvent::Buff {
+                                    entity: target_entity,
+                                    buff_change: BuffChange::Add(
+                                        b.to_buff(attacker_info.map(|a| a.uid), applied_damage),
+                                    ),
+                                });
+                            }
+                        },
+                        CombatEffect::Lifesteal(l) => {
+                            if let Some(attacker_entity) = attacker_info.map(|a| a.entity) {
+                                let change = HealthChange {
+                                    amount: (applied_damage * l) as i32,
+                                    cause: HealthSource::Heal {
+                                        by: attacker_info.map(|a| a.uid),
+                                    },
+                                };
+                                if change.amount != 0 {
+                                    emit(ServerEvent::Damage {
+                                        entity: attacker_entity,
+                                        change,
+                                    });
+                                }
+                            }
+                        },
+                        CombatEffect::Poise(p) => {
+                            let change = PoiseChange::from_value(*p, target_inventory);
+                            if change.amount != 0 {
+                                emit(ServerEvent::PoiseChange {
+                                    entity: target_entity,
+                                    change,
+                                    kb_dir: *dir,
+                                });
+                            }
+                        },
+                        CombatEffect::Heal(h) => {
+                            let change = HealthChange {
+                                amount: *h as i32,
+                                cause: HealthSource::Heal {
+                                    by: attacker_info.map(|a| a.uid),
+                                },
+                            };
+                            if change.amount != 0 {
+                                emit(ServerEvent::Damage {
+                                    entity: target_entity,
+                                    change,
+                                });
+                            }
+                        },
+                    }
+                }
+            }
+        }
+        for effect in self
+            .effects
+            .iter()
+            .filter(|e| e.target.map_or(true, |t| t == target_group))
+            .filter(|e| !(matches!(e.target, Some(GroupTarget::OutOfGroup)) && target_dodging))
+        {
+            if match &effect.requirement {
+                Some(CombatRequirement::AnyDamage) => accumulated_damage > 0.0,
+                Some(CombatRequirement::SufficientEnergy(r)) => {
+                    if let Some(AttackerInfo {
+                        entity,
+                        energy: Some(e),
+                        ..
+                    }) = attacker_info
+                    {
+                        let sufficient_energy = e.current() >= *r;
+                        if sufficient_energy {
+                            emit(ServerEvent::EnergyChange {
+                                entity,
+                                change: EnergyChange {
+                                    amount: -(*r as i32),
+                                    source: EnergySource::Ability,
+                                },
+                            });
+                        }
+
+                        sufficient_energy
+                    } else {
+                        false
+                    }
+                },
+                None => true,
+            } {
+                match effect.effect {
+                    CombatEffect::Knockback(kb) => {
+                        let impulse = kb.calculate_impulse(dir);
+                        if !impulse.is_approx_zero() {
+                            emit(ServerEvent::Knockback {
+                                entity: target_entity,
+                                impulse,
+                            });
+                        }
+                    },
+                    CombatEffect::EnergyReward(ec) => {
+                        if let Some(attacker_entity) = attacker_info.map(|a| a.entity) {
+                            emit(ServerEvent::EnergyChange {
+                                entity: attacker_entity,
+                                change: EnergyChange {
+                                    amount: ec as i32,
+                                    source: EnergySource::HitEnemy,
+                                },
+                            });
+                        }
+                    },
+                    CombatEffect::Buff(b) => {
+                        if thread_rng().gen::<f32>() < b.chance {
+                            emit(ServerEvent::Buff {
+                                entity: target_entity,
+                                buff_change: BuffChange::Add(
+                                    b.to_buff(attacker_info.map(|a| a.uid), accumulated_damage),
+                                ),
+                            });
+                        }
+                    },
+                    CombatEffect::Lifesteal(l) => {
+                        if let Some(attacker_entity) = attacker_info.map(|a| a.entity) {
+                            let change = HealthChange {
+                                amount: (accumulated_damage * l) as i32,
+                                cause: HealthSource::Heal {
+                                    by: attacker_info.map(|a| a.uid),
+                                },
+                            };
+                            if change.amount != 0 {
+                                emit(ServerEvent::Damage {
+                                    entity: attacker_entity,
+                                    change,
+                                });
+                            }
+                        }
+                    },
+                    CombatEffect::Poise(p) => {
+                        let change = PoiseChange::from_value(p, target_inventory);
+                        if change.amount != 0 {
+                            emit(ServerEvent::PoiseChange {
+                                entity: target_entity,
+                                change,
+                                kb_dir: *dir,
+                            });
+                        }
+                    },
+                    CombatEffect::Heal(h) => {
+                        let change = HealthChange {
+                            amount: h as i32,
+                            cause: HealthSource::Heal {
+                                by: attacker_info.map(|a| a.uid),
+                            },
+                        };
+                        if change.amount != 0 {
+                            emit(ServerEvent::Damage {
+                                entity: target_entity,
+                                change,
+                            });
+                        }
+                    },
+                }
+            }
+        }
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct AttackDamage {
+    damage: Damage,
+    target: Option<GroupTarget>,
+    effects: Vec<CombatEffect>,
+}
+
+impl AttackDamage {
+    pub fn new(damage: Damage, target: Option<GroupTarget>) -> Self {
+        Self {
+            damage,
+            target,
+            effects: Vec::new(),
+        }
+    }
+
+    pub fn with_effect(mut self, effect: CombatEffect) -> Self {
+        self.effects.push(effect);
+        self
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct AttackEffect {
+    target: Option<GroupTarget>,
+    effect: CombatEffect,
+    requirement: Option<CombatRequirement>,
+}
+
+impl AttackEffect {
+    pub fn new(target: Option<GroupTarget>, effect: CombatEffect) -> Self {
+        Self {
+            target,
+            effect,
+            requirement: None,
+        }
+    }
+
+    pub fn with_requirement(mut self, requirement: CombatRequirement) -> Self {
+        self.requirement = Some(requirement);
+        self
+    }
+
+    pub fn effect(&self) -> &CombatEffect { &self.effect }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum CombatEffect {
+    Heal(f32),
+    Buff(CombatBuff),
+    Knockback(Knockback),
+    EnergyReward(u32),
+    Lifesteal(f32),
+    Poise(f32),
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum CombatRequirement {
+    AnyDamage,
+    SufficientEnergy(u32),
+}
+
+#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub enum DamageSource {
     Buff(BuffKind),
     Melee,
-    Healing,
     Projectile,
     Explosion,
     Falling,
@@ -65,15 +399,22 @@ impl Damage {
         }
     }
 
-    pub fn modify_damage(self, inventory: Option<&Inventory>, uid: Option<Uid>) -> HealthChange {
-        let mut damage = self.value;
-        let damage_reduction = inventory.map_or(0.0, |inv| Damage::compute_damage_reduction(inv));
+    pub fn calculate_health_change(
+        self,
+        inventory: Option<&Inventory>,
+        uid: Option<Uid>,
+        is_crit: bool,
+        crit_mult: f32,
+        damage_modifier: f32,
+    ) -> HealthChange {
+        let mut damage = self.value * damage_modifier;
+        let damage_reduction = inventory.map_or(0.0, Damage::compute_damage_reduction);
         match self.source {
             DamageSource::Melee => {
                 // Critical hit
                 let mut critdamage = 0.0;
-                if rand::random() {
-                    critdamage = damage * 0.3;
+                if is_crit {
+                    critdamage = damage * (crit_mult - 1.0);
                 }
                 // Armor
                 damage *= 1.0 - damage_reduction;
@@ -93,8 +434,8 @@ impl Damage {
             },
             DamageSource::Projectile => {
                 // Critical hit
-                if rand::random() {
-                    damage *= 1.2;
+                if is_crit {
+                    damage *= crit_mult;
                 }
                 // Armor
                 damage *= 1.0 - damage_reduction;
@@ -143,10 +484,6 @@ impl Damage {
                     },
                 }
             },
-            DamageSource::Healing => HealthChange {
-                amount: damage as i32,
-                cause: HealthSource::Heal { by: uid },
-            },
             DamageSource::Falling => {
                 // Armor
                 if (damage_reduction - 1.0).abs() < f32::EPSILON {
@@ -181,35 +518,88 @@ impl Damage {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub enum Knockback {
-    Away(f32),
-    Towards(f32),
-    Up(f32),
-    TowardsUp(f32),
+pub struct Knockback {
+    pub direction: KnockbackDir,
+    pub strength: f32,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum KnockbackDir {
+    Away,
+    Towards,
+    Up,
+    TowardsUp,
 }
 
 impl Knockback {
     pub fn calculate_impulse(self, dir: Dir) -> Vec3<f32> {
-        match self {
-            Knockback::Away(strength) => strength * *Dir::slerp(dir, Dir::new(Vec3::unit_z()), 0.5),
-            Knockback::Towards(strength) => {
-                strength * *Dir::slerp(-dir, Dir::new(Vec3::unit_z()), 0.5)
+        match self.direction {
+            KnockbackDir::Away => self.strength * *Dir::slerp(dir, Dir::new(Vec3::unit_z()), 0.5),
+            KnockbackDir::Towards => {
+                self.strength * *Dir::slerp(-dir, Dir::new(Vec3::unit_z()), 0.5)
             },
-            Knockback::Up(strength) => strength * Vec3::unit_z(),
-            Knockback::TowardsUp(strength) => {
-                strength * *Dir::slerp(-dir, Dir::new(Vec3::unit_z()), 0.85)
+            KnockbackDir::Up => self.strength * Vec3::unit_z(),
+            KnockbackDir::TowardsUp => {
+                self.strength * *Dir::slerp(-dir, Dir::new(Vec3::unit_z()), 0.85)
             },
         }
     }
 
     pub fn modify_strength(mut self, power: f32) -> Self {
-        use Knockback::*;
-        match self {
-            Away(ref mut f) | Towards(ref mut f) | Up(ref mut f) | TowardsUp(ref mut f) => {
-                *f *= power;
-            },
-        }
+        self.strength *= power;
         self
+    }
+}
+
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+pub struct CombatBuff {
+    pub kind: BuffKind,
+    pub dur_secs: f32,
+    pub strength: CombatBuffStrength,
+    pub chance: f32,
+}
+
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+pub enum CombatBuffStrength {
+    DamageFraction(f32),
+    Value(f32),
+}
+
+impl CombatBuffStrength {
+    fn to_strength(self, damage: f32) -> f32 {
+        match self {
+            CombatBuffStrength::DamageFraction(f) => damage * f,
+            CombatBuffStrength::Value(v) => v,
+        }
+    }
+}
+
+impl CombatBuff {
+    fn to_buff(self, uid: Option<Uid>, damage: f32) -> Buff {
+        // TODO: Generate BufCategoryId vec (probably requires damage overhaul?)
+        let source = if let Some(uid) = uid {
+            BuffSource::Character { by: uid }
+        } else {
+            BuffSource::Unknown
+        };
+        Buff::new(
+            self.kind,
+            BuffData::new(
+                self.strength.to_strength(damage),
+                Some(Duration::from_secs_f32(self.dur_secs)),
+            ),
+            Vec::new(),
+            source,
+        )
+    }
+
+    pub fn default_physical() -> Self {
+        Self {
+            kind: BuffKind::Bleeding,
+            dur_secs: 10.0,
+            strength: CombatBuffStrength::DamageFraction(0.1),
+            chance: 0.1,
+        }
     }
 }
 

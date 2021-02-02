@@ -1,30 +1,26 @@
 use crate::{
-    comp::buff::{BuffCategory, BuffData, BuffKind},
-    effect::{self, BuffEffect},
+    combat::{
+        Attack, AttackDamage, AttackEffect, CombatBuff, CombatEffect, CombatRequirement, Damage,
+        DamageSource, GroupTarget, Knockback, KnockbackDir,
+    },
     uid::Uid,
-    Damage, DamageSource, Explosion, GroupTarget, Knockback, RadiusEffect,
+    Explosion, RadiusEffect,
 };
 use serde::{Deserialize, Serialize};
 use specs::Component;
 use specs_idvs::IdvStorage;
 use std::time::Duration;
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum Effect {
-    Damage(Option<GroupTarget>, Damage),
-    Knockback(Knockback),
-    RewardEnergy(u32),
+    Attack(Attack),
     Explode(Explosion),
     Vanish,
     Stick,
     Possess,
-    Buff {
-        buff: BuffEffect,
-        chance: Option<f32>,
-    },
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Projectile {
     // TODO: use SmallVec for these effects
     pub hit_solid: Vec<Effect>,
@@ -74,29 +70,34 @@ impl ProjectileConstructor {
                 knockback,
                 energy_regen,
             } => {
-                let buff = BuffEffect {
-                    kind: BuffKind::Bleeding,
-                    data: BuffData {
-                        strength: damage / 2.0,
-                        duration: Some(Duration::from_secs(5)),
+                let knockback = AttackEffect::new(
+                    Some(GroupTarget::OutOfGroup),
+                    CombatEffect::Knockback(Knockback {
+                        strength: knockback,
+                        direction: KnockbackDir::Away,
+                    }),
+                )
+                .with_requirement(CombatRequirement::AnyDamage);
+                let energy = AttackEffect::new(None, CombatEffect::EnergyReward(energy_regen))
+                    .with_requirement(CombatRequirement::AnyDamage);
+                let buff = CombatEffect::Buff(CombatBuff::default_physical());
+                let damage = AttackDamage::new(
+                    Damage {
+                        source: DamageSource::Projectile,
+                        value: damage,
                     },
-                    cat_ids: vec![BuffCategory::Physical],
-                };
+                    Some(GroupTarget::OutOfGroup),
+                )
+                .with_effect(buff);
+                let attack = Attack::default()
+                    .with_damage(damage)
+                    .with_crit(0.5, 1.2)
+                    .with_effect(energy)
+                    .with_effect(knockback);
+
                 Projectile {
                     hit_solid: vec![Effect::Stick],
-                    hit_entity: vec![
-                        Effect::Damage(Some(GroupTarget::OutOfGroup), Damage {
-                            source: DamageSource::Projectile,
-                            value: damage,
-                        }),
-                        Effect::Knockback(Knockback::Away(knockback)),
-                        Effect::RewardEnergy(energy_regen),
-                        Effect::Vanish,
-                        Effect::Buff {
-                            buff,
-                            chance: Some(0.10),
-                        },
-                    ],
+                    hit_entity: vec![Effect::Attack(attack), Effect::Vanish],
                     time_left: Duration::from_secs(15),
                     owner,
                     ignore_group: true,
@@ -106,113 +107,80 @@ impl ProjectileConstructor {
                 damage,
                 radius,
                 energy_regen,
-            } => Projectile {
-                hit_solid: vec![
-                    Effect::Explode(Explosion {
-                        effects: vec![
-                            RadiusEffect::Entity(
-                                Some(GroupTarget::OutOfGroup),
-                                effect::Effect::Damage(Damage {
-                                    source: DamageSource::Explosion,
-                                    value: damage,
-                                }),
-                            ),
-                            RadiusEffect::TerrainDestruction(2.0),
-                        ],
-                        radius,
-                        energy_regen,
-                    }),
-                    Effect::Vanish,
-                ],
-                hit_entity: vec![
-                    Effect::Explode(Explosion {
-                        effects: vec![RadiusEffect::Entity(
-                            Some(GroupTarget::OutOfGroup),
-                            effect::Effect::Damage(Damage {
-                                source: DamageSource::Explosion,
-                                value: damage,
-                            }),
-                        )],
-                        radius,
-                        energy_regen,
-                    }),
-                    Effect::Vanish,
-                ],
-                time_left: Duration::from_secs(10),
-                owner,
-                ignore_group: true,
+            } => {
+                let energy = AttackEffect::new(None, CombatEffect::EnergyReward(energy_regen))
+                    .with_requirement(CombatRequirement::AnyDamage);
+                let damage = AttackDamage::new(
+                    Damage {
+                        source: DamageSource::Explosion,
+                        value: damage,
+                    },
+                    Some(GroupTarget::OutOfGroup),
+                );
+                let attack = Attack::default().with_damage(damage).with_effect(energy);
+                let explosion = Explosion {
+                    effects: vec![
+                        RadiusEffect::Attack(attack),
+                        RadiusEffect::TerrainDestruction(2.0),
+                    ],
+                    radius,
+                };
+                Projectile {
+                    hit_solid: vec![Effect::Explode(explosion.clone()), Effect::Vanish],
+                    hit_entity: vec![Effect::Explode(explosion), Effect::Vanish],
+                    time_left: Duration::from_secs(10),
+                    owner,
+                    ignore_group: true,
+                }
             },
             Firebolt {
                 damage,
                 energy_regen,
-            } => Projectile {
-                hit_solid: vec![Effect::Vanish],
-                hit_entity: vec![
-                    Effect::Damage(Some(GroupTarget::OutOfGroup), Damage {
+            } => {
+                let energy = AttackEffect::new(None, CombatEffect::EnergyReward(energy_regen))
+                    .with_requirement(CombatRequirement::AnyDamage);
+                let damage = AttackDamage::new(
+                    Damage {
                         source: DamageSource::Energy,
                         value: damage,
-                    }),
-                    Effect::RewardEnergy(energy_regen),
-                    Effect::Vanish,
-                ],
-                time_left: Duration::from_secs(10),
-                owner,
-                ignore_group: true,
+                    },
+                    Some(GroupTarget::OutOfGroup),
+                );
+                let attack = Attack::default().with_damage(damage).with_effect(energy);
+
+                Projectile {
+                    hit_solid: vec![Effect::Vanish],
+                    hit_entity: vec![Effect::Attack(attack), Effect::Vanish],
+                    time_left: Duration::from_secs(10),
+                    owner,
+                    ignore_group: true,
+                }
             },
             Heal {
                 heal,
                 damage,
                 radius,
-            } => Projectile {
-                hit_solid: vec![
-                    Effect::Explode(Explosion {
-                        effects: vec![
-                            RadiusEffect::Entity(
-                                Some(GroupTarget::OutOfGroup),
-                                effect::Effect::Damage(Damage {
-                                    source: DamageSource::Explosion,
-                                    value: damage,
-                                }),
-                            ),
-                            RadiusEffect::Entity(
-                                Some(GroupTarget::InGroup),
-                                effect::Effect::Damage(Damage {
-                                    source: DamageSource::Healing,
-                                    value: heal,
-                                }),
-                            ),
-                        ],
-                        radius,
-                        energy_regen: 0,
-                    }),
-                    Effect::Vanish,
-                ],
-                hit_entity: vec![
-                    Effect::Explode(Explosion {
-                        effects: vec![
-                            RadiusEffect::Entity(
-                                Some(GroupTarget::OutOfGroup),
-                                effect::Effect::Damage(Damage {
-                                    source: DamageSource::Explosion,
-                                    value: damage,
-                                }),
-                            ),
-                            RadiusEffect::Entity(
-                                Some(GroupTarget::InGroup),
-                                effect::Effect::Damage(Damage {
-                                    source: DamageSource::Healing,
-                                    value: heal,
-                                }),
-                            ),
-                        ],
-                        radius,
-                        energy_regen: 0,
-                    }),
-                    Effect::Vanish,
-                ],
-                time_left: Duration::from_secs(10),
-                owner,
-                ignore_group: true,
+            } => {
+                let damage = AttackDamage::new(
+                    Damage {
+                        source: DamageSource::Explosion,
+                        value: damage,
+                    },
+                    Some(GroupTarget::OutOfGroup),
+                );
+                let heal = AttackEffect::new(Some(GroupTarget::InGroup), CombatEffect::Heal(heal));
+                let attack = Attack::default().with_damage(damage).with_effect(heal);
+                let explosion = Explosion {
+                    effects: vec![RadiusEffect::Attack(attack)],
+                    radius,
+                };
+                Projectile {
+                    hit_solid: vec![Effect::Explode(explosion.clone()), Effect::Vanish],
+                    hit_entity: vec![Effect::Explode(explosion), Effect::Vanish],
+                    time_left: Duration::from_secs(10),
+                    owner,
+                    ignore_group: false,
+                }
             },
             Possess => Projectile {
                 hit_solid: vec![Effect::Stick],

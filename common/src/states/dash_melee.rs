@@ -1,13 +1,11 @@
 use crate::{
-    comp::{
-        Attacking, CharacterState, EnergyChange, EnergySource, PoiseChange, PoiseSource,
-        StateUpdate,
-    },
+    combat::{Attack, AttackDamage, AttackEffect, CombatBuff, CombatEffect, CombatRequirement},
+    comp::{CharacterState, EnergyChange, EnergySource, Melee, StateUpdate},
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
     },
-    Damage, DamageSource, GroupTarget, Knockback,
+    Damage, DamageSource, GroupTarget, Knockback, KnockbackDir,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -132,30 +130,45 @@ impl CharacterBehavior for Data {
                     if !self.exhausted {
                         // Hit attempt (also checks if player is moving)
                         if update.vel.0.distance_squared(Vec3::zero()) > 1.0 {
-                            let damage = Damage {
-                                source: DamageSource::Melee,
-                                value: self.static_data.base_damage as f32
-                                    + charge_frac * self.static_data.scaled_damage as f32,
-                            };
-                            let poise_damage = PoiseChange {
-                                amount: -(self.static_data.base_poise_damage as f32
-                                    + charge_frac * self.static_data.scaled_poise_damage as f32)
-                                    as i32,
-                                source: PoiseSource::Attack,
-                            };
-                            let knockback = self.static_data.base_knockback
-                                + charge_frac * self.static_data.scaled_knockback;
-                            data.updater.insert(data.entity, Attacking {
-                                effects: vec![(
-                                    Some(GroupTarget::OutOfGroup),
-                                    damage,
-                                    poise_damage,
-                                )],
+                            let poise = AttackEffect::new(
+                                Some(GroupTarget::OutOfGroup),
+                                CombatEffect::Poise(
+                                    self.static_data.base_poise_damage as f32
+                                        + charge_frac * self.static_data.scaled_poise_damage as f32,
+                                ),
+                            )
+                            .with_requirement(CombatRequirement::AnyDamage);
+                            let knockback = AttackEffect::new(
+                                Some(GroupTarget::OutOfGroup),
+                                CombatEffect::Knockback(Knockback {
+                                    strength: self.static_data.base_knockback
+                                        + charge_frac * self.static_data.scaled_knockback,
+                                    direction: KnockbackDir::Away,
+                                }),
+                            )
+                            .with_requirement(CombatRequirement::AnyDamage);
+                            let buff = CombatEffect::Buff(CombatBuff::default_physical());
+                            let damage = AttackDamage::new(
+                                Damage {
+                                    source: DamageSource::Melee,
+                                    value: self.static_data.base_damage as f32
+                                        + charge_frac * self.static_data.scaled_damage as f32,
+                                },
+                                Some(GroupTarget::OutOfGroup),
+                            )
+                            .with_effect(buff);
+                            let attack = Attack::default()
+                                .with_damage(damage)
+                                .with_crit(0.5, 1.3)
+                                .with_effect(poise)
+                                .with_effect(knockback);
+
+                            data.updater.insert(data.entity, Melee {
+                                attack,
                                 range: self.static_data.range,
                                 max_angle: self.static_data.angle.to_radians(),
                                 applied: false,
                                 hit_count: 0,
-                                knockback: Knockback::Away(knockback),
                             });
                         }
                         update.character = CharacterState::DashMelee(Data {
@@ -235,14 +248,14 @@ impl CharacterBehavior for Data {
                     // Done
                     update.character = CharacterState::Wielding;
                     // Make sure attack component is removed
-                    data.updater.remove::<Attacking>(data.entity);
+                    data.updater.remove::<Melee>(data.entity);
                 }
             },
             _ => {
                 // If it somehow ends up in an incorrect stage section
                 update.character = CharacterState::Wielding;
                 // Make sure attack component is removed
-                data.updater.remove::<Attacking>(data.entity);
+                data.updater.remove::<Melee>(data.entity);
             },
         }
 
