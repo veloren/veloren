@@ -619,7 +619,7 @@ impl Floor {
                                 )
                                 .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
                                 .with_main_tool(comp::Item::new_from_asset_expect(
-                                    match dynamic_rng.gen_range(0, 3) {
+                                    match dynamic_rng.gen_range(0..3) {
                                         0 => "common.items.npc_weapons.spear.wooden_spear",
                                         1 => "common.items.npc_weapons.staff.gnoll",
                                         _ => "common.items.npc_weapons.bow.adlet",
@@ -639,7 +639,7 @@ impl Floor {
                                 )
                                 .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
                                 .with_main_tool(comp::Item::new_from_asset_expect(
-                                    match dynamic_rng.gen_range(0, 3) {
+                                    match dynamic_rng.gen_range(0..3) {
                                         0 => "common.items.npc_weapons.spear.wooden_spear",
                                         1 => "common.items.npc_weapons.staff.gnoll",
                                         _ => "common.items.npc_weapons.bow.adlet",
@@ -659,7 +659,7 @@ impl Floor {
                                 )
                                 .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
                                 .with_main_tool(comp::Item::new_from_asset_expect(
-                                    match dynamic_rng.gen_range(0, 3) {
+                                    match dynamic_rng.gen_range(0..3) {
                                         0 => "common.items.npc_weapons.spear.wooden_spear",
                                         1 => "common.items.npc_weapons.staff.gnoll",
                                         _ => "common.items.npc_weapons.bow.adlet",
@@ -679,7 +679,7 @@ impl Floor {
                                 )
                                 .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
                                 .with_main_tool(comp::Item::new_from_asset_expect(
-                                    match dynamic_rng.gen_range(0, 3) {
+                                    match dynamic_rng.gen_range(0..3) {
                                         0 => "common.items.npc_weapons.spear.wooden_spear",
                                         1 => "common.items.npc_weapons.staff.gnoll",
                                         _ => "common.items.npc_weapons.bow.adlet",
@@ -699,7 +699,7 @@ impl Floor {
                                 )
                                 .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
                                 .with_main_tool(comp::Item::new_from_asset_expect(
-                                    match dynamic_rng.gen_range(0, 3) {
+                                    match dynamic_rng.gen_range(0..3) {
                                         0 => "common.items.npc_weapons.spear.wooden_spear",
                                         1 => "common.items.npc_weapons.staff.gnoll",
                                         _ => "common.items.npc_weapons.bow.adlet",

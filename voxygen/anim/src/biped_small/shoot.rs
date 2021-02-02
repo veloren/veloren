@@ -35,11 +35,11 @@ impl Animation for ShootAnimation {
             velocity,
             _orientation,
             _last_ori,
-            global_time,
+            _global_time,
             _avg_vel,
-            acc_vel,
+            _acc_vel,
             stage_section,
-            timer,
+            _timer,
         ): Self::Dependency,
         anim_time: f64,
         _rate: &mut f32,
@@ -91,9 +91,6 @@ impl Animation for ShootAnimation {
                     _ => (0.0, 0.0, 0.0),
                 };
                 let pullback = 1.0 - movement3;
-                let subtract = global_time - timer;
-                let check = subtract - subtract.trunc();
-                let mirror = (check - 0.5).signum() as f32;
                 let movement1abs = movement1base * pullback;
                 let movement2abs = movement2base * pullback;
                 next.control_l.position = Vec3::new(

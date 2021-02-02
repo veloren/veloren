@@ -49,11 +49,11 @@ impl SkillSetBuilder {
                         // Bow
                         Self::default()
                             .with_skill_group(SkillGroupKind::Weapon(ToolKind::Bow))
-                            .with_skill(Skill::Bow(BowSkill::BDamage))
-                            .with_skill(Skill::Bow(BowSkill::CDamage))
-                            .with_skill(Skill::Bow(BowSkill::CKnockback))
-                            .with_skill(Skill::Bow(BowSkill::CSpeed))
-                            .with_skill(Skill::Bow(BowSkill::CMove))
+                            .with_skill(Skill::Bow(BowSkill::BDamage), Some(1))
+                            .with_skill(Skill::Bow(BowSkill::CDamage), Some(1))
+                            .with_skill(Skill::Bow(BowSkill::CKnockback), Some(1))
+                            .with_skill(Skill::Bow(BowSkill::CSpeed), Some(1))
+                            .with_skill(Skill::Bow(BowSkill::CMove), Some(1))
                     },
                     _ => Self::default(),
                 }
@@ -64,11 +64,11 @@ impl SkillSetBuilder {
                         // Bow
                         Self::default()
                             .with_skill_group(SkillGroupKind::Weapon(ToolKind::Bow))
-                            .with_skill(Skill::Bow(BowSkill::BDamage))
-                            .with_skill(Skill::Bow(BowSkill::CDamage))
-                            .with_skill(Skill::Bow(BowSkill::CKnockback))
-                            .with_skill(Skill::Bow(BowSkill::CSpeed))
-                            .with_skill(Skill::Bow(BowSkill::CMove))
+                            .with_skill(Skill::Bow(BowSkill::BDamage), Some(1))
+                            .with_skill(Skill::Bow(BowSkill::CDamage), Some(1))
+                            .with_skill(Skill::Bow(BowSkill::CKnockback), Some(1))
+                            .with_skill(Skill::Bow(BowSkill::CSpeed), Some(1))
+                            .with_skill(Skill::Bow(BowSkill::CMove), Some(1))
                     },
                     _ => Self::default(),
                 }
@@ -79,11 +79,11 @@ impl SkillSetBuilder {
                         // Bow
                         Self::default()
                             .with_skill_group(SkillGroupKind::Weapon(ToolKind::Bow))
-                            .with_skill(Skill::Bow(BowSkill::BDamage))
-                            .with_skill(Skill::Bow(BowSkill::CDamage))
-                            .with_skill(Skill::Bow(BowSkill::CKnockback))
-                            .with_skill(Skill::Bow(BowSkill::CSpeed))
-                            .with_skill(Skill::Bow(BowSkill::CMove))
+                            .with_skill(Skill::Bow(BowSkill::BDamage), Some(1))
+                            .with_skill(Skill::Bow(BowSkill::CDamage), Some(1))
+                            .with_skill(Skill::Bow(BowSkill::CKnockback), Some(1))
+                            .with_skill(Skill::Bow(BowSkill::CSpeed), Some(1))
+                            .with_skill(Skill::Bow(BowSkill::CMove), Some(1))
                     },
                     _ => Self::default(),
                 }
@@ -94,11 +94,11 @@ impl SkillSetBuilder {
                         // Bow
                         Self::default()
                             .with_skill_group(SkillGroupKind::Weapon(ToolKind::Bow))
-                            .with_skill(Skill::Bow(BowSkill::BDamage))
-                            .with_skill(Skill::Bow(BowSkill::CDamage))
-                            .with_skill(Skill::Bow(BowSkill::CKnockback))
-                            .with_skill(Skill::Bow(BowSkill::CSpeed))
-                            .with_skill(Skill::Bow(BowSkill::CMove))
+                            .with_skill(Skill::Bow(BowSkill::BDamage), Some(1))
+                            .with_skill(Skill::Bow(BowSkill::CDamage), Some(1))
+                            .with_skill(Skill::Bow(BowSkill::CKnockback), Some(1))
+                            .with_skill(Skill::Bow(BowSkill::CSpeed), Some(1))
+                            .with_skill(Skill::Bow(BowSkill::CMove), Some(1))
                     },
                     _ => Self::default(),
                 }
@@ -109,11 +109,11 @@ impl SkillSetBuilder {
                         // Bow
                         Self::default()
                             .with_skill_group(SkillGroupKind::Weapon(ToolKind::Bow))
-                            .with_skill(Skill::Bow(BowSkill::BDamage))
-                            .with_skill(Skill::Bow(BowSkill::CDamage))
-                            .with_skill(Skill::Bow(BowSkill::CKnockback))
-                            .with_skill(Skill::Bow(BowSkill::CSpeed))
-                            .with_skill(Skill::Bow(BowSkill::CMove))
+                            .with_skill(Skill::Bow(BowSkill::BDamage), Some(1))
+                            .with_skill(Skill::Bow(BowSkill::CDamage), Some(1))
+                            .with_skill(Skill::Bow(BowSkill::CKnockback), Some(1))
+                            .with_skill(Skill::Bow(BowSkill::CSpeed), Some(1))
+                            .with_skill(Skill::Bow(BowSkill::CMove), Some(1))
                     },
                     _ => Self::default(),
                 }

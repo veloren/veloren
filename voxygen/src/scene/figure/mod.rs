@@ -2430,65 +2430,6 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
-                        CharacterState::ComboMelee(s) => {
-                            let stage_index = (s.stage - 1) as usize;
-                            let stage_time = s.timer.as_secs_f64();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time
-                                        / s.static_data.stage_data[stage_index]
-                                            .base_buildup_duration
-                                            .as_secs_f64()
-                                },
-                                StageSection::Swing => {
-                                    stage_time
-                                        / s.static_data.stage_data[stage_index]
-                                            .base_swing_duration
-                                            .as_secs_f64()
-                                },
-                                StageSection::Recover => {
-                                    stage_time
-                                        / s.static_data.stage_data[stage_index]
-                                            .base_recover_duration
-                                            .as_secs_f64()
-                                },
-                                _ => 0.0,
-                            };
-                            match s.stage {
-                                1 => anim::biped_small::AlphaAnimation::update_skeleton(
-                                    &target_base,
-                                    (
-                                        vel.0,
-                                        ori,
-                                        state.last_ori,
-                                        time,
-                                        state.avg_vel,
-                                        state.acc_vel,
-                                        Some(s.stage_section),
-                                        state.state_time,
-                                    ),
-                                    state.state_time,
-                                    &mut state_animation_rate,
-                                    skeleton_attr,
-                                ),
-                                _ => anim::biped_small::AlphaAnimation::update_skeleton(
-                                    &target_base,
-                                    (
-                                        vel.0,
-                                        ori,
-                                        state.last_ori,
-                                        time,
-                                        state.avg_vel,
-                                        state.acc_vel,
-                                        Some(s.stage_section),
-                                        state.state_time,
-                                    ),
-                                    state.state_time,
-                                    &mut state_animation_rate,
-                                    skeleton_attr,
-                                ),
-                            }
-                        },
                         // TODO!
                         _ => target_base,
                     };

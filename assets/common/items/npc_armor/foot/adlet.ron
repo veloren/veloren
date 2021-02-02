@@ -1,12 +1,12 @@
 ItemDef(
     name: "Adlet",
     description: "Ceremonial attire used by members.",
-    kind: Armor(
-        (
-            kind: Foot("Adlet"),
-            stats: (
-                protection: Normal(2.0)),            
-        )
-    ),
+    kind: Armor((
+        kind: Foot("Adlet"),
+        stats: (
+            protection: Normal(2.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
     quality: Low,
 )

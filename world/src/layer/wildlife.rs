@@ -133,7 +133,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
-                    .with_body(match rng.gen_range(0, 4) {
+                    .with_body(match rng.gen_range(0..3) {
                         0 => quadruped_medium::Body::random_with(
                             rng,
                             &quadruped_medium::Species::Mouflon,
@@ -234,7 +234,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
-                    .with_body(match rng.gen_range(0, 12) {
+                    .with_body(match rng.gen_range(0..12) {
                         0 => quadruped_medium::Body::random_with(
                             rng,
                             &quadruped_medium::Species::Deer,

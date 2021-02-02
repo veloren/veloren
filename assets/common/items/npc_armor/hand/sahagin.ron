@@ -1,12 +1,12 @@
 ItemDef(
     name: "Sahagin",
-    description: "Ceremonial attire used by members.",
-    kind: Armor(
-        (
-            kind: Hand("Sahagin"),
-            stats: (
-                protection: Normal(2.0)),            
-        )
-    ),
+    description: "Ceremonial attire used by members..",
+    kind: Armor((
+        kind: Hand("Sahagin"),
+        stats: (
+            protection: Normal(2.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
     quality: Low,
 )

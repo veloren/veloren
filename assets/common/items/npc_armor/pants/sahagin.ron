@@ -5,7 +5,8 @@ ItemDef(
         (
             kind: Pants("Sahagin"),
             stats: (
-                protection: Normal(2.0)),            
+                protection: Normal(2.0)),  
+                poise_resilience: Normal(3.0),          
         )
     ),
     quality: Low,

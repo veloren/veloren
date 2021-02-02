@@ -1,12 +1,12 @@
 ItemDef(
-    name: "Adlet",
-    description: "Ceremonial attire used by members.",
-    kind: Armor(
-        (
-            kind: Pants("Adlet"),
-            stats: (
-                protection: Normal(2.0)),            
-        )
-    ),
+    name: "Haniwa",
+    description: "Ceremonial attire used by members..",
+    kind: Armor((
+        kind: Pants("Adlet"),
+        stats: (
+            protection: Normal(2.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
     quality: Low,
 )

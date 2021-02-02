@@ -1,12 +1,12 @@
 ItemDef(
     name: "Gnarling",
     description: "Ceremonial attire used by members.",
-    kind: Armor(
-        (
-            kind: Chest("Gnarling"),
-            stats: (
-                protection: Normal(2.0)),            
-        )
-    ),
+    kind: Armor((
+        kind: Chest("Gnarling"),
+        stats: (
+            protection: Normal(2.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
     quality: Low,
 )
