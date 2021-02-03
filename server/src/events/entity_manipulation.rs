@@ -734,20 +734,20 @@ pub fn handle_explosion(
                 }
             },
             RadiusEffect::Entity(mut effect) => {
-                for (entity_b, pos_b, _health_b) in (
-                    &ecs.entities(),
-                    &ecs.read_storage::<comp::Pos>(),
-                    &ecs.read_storage::<comp::Health>(),
-                )
-                    .join()
-                    .filter(|(_, _, h)| !h.is_dead)
+                for (entity_b, pos_b) in (&ecs.entities(), &ecs.read_storage::<comp::Pos>()).join()
                 {
                     let distance_squared = pos.distance_squared(pos_b.0);
                     let strength = 1.0 - distance_squared / explosion.radius.powi(2);
 
                     if strength > 0.0 {
-                        effect.modify_strength(strength);
-                        server.state().apply_effect(entity_b, effect.clone(), owner);
+                        let is_alive = ecs
+                            .read_storage::<comp::Health>()
+                            .get(entity_b)
+                            .map_or(true, |h| !h.is_dead);
+                        if is_alive {
+                            effect.modify_strength(strength);
+                            server.state().apply_effect(entity_b, effect.clone(), owner);
+                        }
                     }
                 }
             },
