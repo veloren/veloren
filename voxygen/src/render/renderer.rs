@@ -184,12 +184,14 @@ impl Locals {
         tgt_depth_view: &wgpu::TextureView,
         tgt_color_pp_view: &wgpu::TextureView,
         sampler: &wgpu::Sampler,
+        depth_sampler: &wgpu::Sampler,
     ) -> Self {
         let clouds_bind = layouts.clouds.bind(
             device,
             tgt_color_view,
             tgt_depth_view,
             sampler,
+            depth_sampler,
             &clouds_locals,
         );
         let postprocess_bind =
@@ -215,12 +217,14 @@ impl Locals {
         tgt_depth_view: &wgpu::TextureView,
         tgt_color_pp_view: &wgpu::TextureView,
         sampler: &wgpu::Sampler,
+        depth_sampler: &wgpu::Sampler,
     ) {
         self.clouds_bind = layouts.clouds.bind(
             device,
             tgt_color_view,
             tgt_depth_view,
             sampler,
+            depth_sampler,
             &self.clouds,
         );
         self.postprocess_bind =
@@ -249,6 +253,7 @@ pub struct Renderer {
     tgt_color_pp_view: wgpu::TextureView,
 
     sampler: wgpu::Sampler,
+    depth_sampler: wgpu::Sampler,
 
     shadow_map: ShadowMap,
     shadow_bind: ShadowTexturesBindGroup,
@@ -458,17 +463,22 @@ impl Renderer {
                 .bind_shadow_textures(&device, point, directed)
         };
 
-        let sampler = device.create_sampler(&wgpu::SamplerDescriptor {
-            label: None,
-            address_mode_u: wgpu::AddressMode::ClampToEdge,
-            address_mode_v: wgpu::AddressMode::ClampToEdge,
-            address_mode_w: wgpu::AddressMode::ClampToEdge,
-            mag_filter: wgpu::FilterMode::Linear,
-            min_filter: wgpu::FilterMode::Linear,
-            mipmap_filter: wgpu::FilterMode::Nearest,
-            compare: None,
-            ..Default::default()
-        });
+        let create_sampler = |filter| {
+            device.create_sampler(&wgpu::SamplerDescriptor {
+                label: None,
+                address_mode_u: wgpu::AddressMode::ClampToEdge,
+                address_mode_v: wgpu::AddressMode::ClampToEdge,
+                address_mode_w: wgpu::AddressMode::ClampToEdge,
+                mag_filter: filter,
+                min_filter: filter,
+                mipmap_filter: wgpu::FilterMode::Nearest,
+                compare: None,
+                ..Default::default()
+            })
+        };
+
+        let sampler = create_sampler(wgpu::FilterMode::Linear);
+        let depth_sampler = create_sampler(wgpu::FilterMode::Nearest);
 
         let noise_tex = Texture::new(
             &device,
@@ -492,6 +502,7 @@ impl Renderer {
             &tgt_depth_view,
             &tgt_color_pp_view,
             &sampler,
+            &depth_sampler,
         );
 
         Ok(Self {
@@ -508,6 +519,7 @@ impl Renderer {
             tgt_color_pp_view,
 
             sampler,
+            depth_sampler,
 
             shadow_map,
             shadow_bind,
@@ -589,6 +601,7 @@ impl Renderer {
                 &self.tgt_depth_view,
                 &self.tgt_color_pp_view,
                 &self.sampler,
+                &self.depth_sampler,
             );
 
             if let (ShadowMap::Enabled(shadow_map), ShadowMode::Map(mode)) =

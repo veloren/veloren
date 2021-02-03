@@ -101,6 +101,7 @@ impl CloudsLayout {
         src_color: &wgpu::TextureView,
         src_depth: &wgpu::TextureView,
         sampler: &wgpu::Sampler,
+        depth_sampler: &wgpu::Sampler,
         locals: &Consts<Locals>,
     ) -> BindGroup {
         let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
@@ -121,7 +122,7 @@ impl CloudsLayout {
                 },
                 wgpu::BindGroupEntry {
                     binding: 3,
-                    resource: wgpu::BindingResource::Sampler(sampler),
+                    resource: wgpu::BindingResource::Sampler(depth_sampler),
                 },
                 wgpu::BindGroupEntry {
                     binding: 4,

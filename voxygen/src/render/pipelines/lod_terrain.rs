@@ -66,7 +66,7 @@ impl LodData {
         tgt_detail: u32,
         //border_color: gfx::texture::PackedColor,
     ) -> Self {
-        let mut create_texture = |format, data| {
+        let mut create_texture = |format, data, filter| {
             let texture_info = wgpu::TextureDescriptor {
                 label: None,
                 size: wgpu::Extent3d {
@@ -86,8 +86,8 @@ impl LodData {
                 address_mode_u: wgpu::AddressMode::ClampToEdge,
                 address_mode_v: wgpu::AddressMode::ClampToEdge,
                 address_mode_w: wgpu::AddressMode::ClampToEdge,
-                mag_filter: wgpu::FilterMode::Linear,
-                min_filter: wgpu::FilterMode::Linear,
+                mag_filter: filter,
+                min_filter: filter,
                 mipmap_filter: wgpu::FilterMode::Nearest,
                 border_color: Some(wgpu::SamplerBorderColor::TransparentBlack),
                 ..Default::default()
@@ -111,13 +111,26 @@ impl LodData {
                 bytemuck::cast_slice(data),
             )
         };
-        let map = create_texture(wgpu::TextureFormat::Rgba8UnormSrgb, lod_base);
+        let map = create_texture(
+            wgpu::TextureFormat::Rgba8UnormSrgb,
+            lod_base,
+            wgpu::FilterMode::Linear,
+        );
         //             SamplerInfo {
         //                 border: border_color,
-        let alt = create_texture(wgpu::TextureFormat::Rg16Uint, lod_alt);
+        let alt = create_texture(
+            // TODO: figure out format that can be linearly filtered or change the shaders
+            wgpu::TextureFormat::Rg16Uint,
+            lod_alt,
+            wgpu::FilterMode::Nearest,
+        );
         //             SamplerInfo {
         //                 border: [0.0, 0.0, 0.0, 0.0].into(),
-        let horizon = create_texture(wgpu::TextureFormat::Rgba8Unorm, lod_horizon);
+        let horizon = create_texture(
+            wgpu::TextureFormat::Rgba8Unorm,
+            lod_horizon,
+            wgpu::FilterMode::Linear,
+        );
         //             SamplerInfo {
         //                 border: [1.0, 0.0, 1.0, 0.0].into(),
 
