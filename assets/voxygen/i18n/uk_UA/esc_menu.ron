@@ -1,0 +1,13 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for Ukrainian
+(
+    string_map: {
+        "esc_menu.logout": "Вийти в меню",
+        "esc_menu.quit_game": "Вийти з гри",
+    },
+
+
+    vector_map: {
+    }
+)

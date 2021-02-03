@@ -1,0 +1,33 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for Ukrainian
+(
+    string_map: {
+        // Inventory
+        "hud.bag.inventory": "Інвентар {playername}",
+        "hud.bag.stats_title": "Характеристики {playername}",
+        "hud.bag.exp": "Досвід",
+        "hud.bag.armor": "Спорядження",
+        "hud.bag.stats": "Характеристики",
+        "hud.bag.head": "Голова",
+        "hud.bag.neck": "Шия",
+        "hud.bag.tabard": "Вбрання",
+        "hud.bag.shoulders": "Плечі",
+        "hud.bag.chest": "Груди",
+        "hud.bag.hands": "Руки",
+        "hud.bag.lantern": "Ліхтар",
+        "hud.bag.glider": "Дельтаплан",
+        "hud.bag.belt": "Пояс",
+        "hud.bag.ring": "Кільце",
+        "hud.bag.back": "Спина",
+        "hud.bag.legs": "Ноги",
+        "hud.bag.feet": "Ступні",
+        "hud.bag.mainhand": "Основна рука",
+        "hud.bag.offhand": "Другорядна рука",
+        "hud.bag.bag": "Торбина",
+    },
+
+
+    vector_map: {
+    }
+)

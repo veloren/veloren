@@ -1,0 +1,73 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for Ukrainian
+(
+    string_map: {
+        // Texts used in multiple locations with the same formatting
+        "common.username": "Ім'я користувача",
+        "common.singleplayer": "Одиночна гра",
+        "common.multiplayer": "Мультиплеєр",
+        "common.servers": "Сервери",
+        "common.quit": "Вихід",
+        "common.settings": "Налаштування",
+        "common.languages": "Мова",
+        "common.interface": "Інтерфейс",
+        "common.gameplay": "Ігролад",
+        "common.controls": "Управління",
+        "common.video": "Зображення",
+        "common.sound": "Звук",
+        "common.resume": "Продовжити",
+        "common.characters": "Персонажі",
+        "common.close": "Закрити",
+        "common.yes": "Так",
+        "common.no": "Ні",
+        "common.back": "Назад",
+        "common.create": "Створити",
+        "common.okay": "Добре",
+        "common.add": "Додати",
+        "common.accept": "Прийняти",
+        "common.decline": "Відхилити",
+        "common.disclaimer": "Дисклеймер",
+        "common.cancel": "Відмінити",
+        "common.none": "Нічого",
+        "common.error": "Помилка",
+        "common.fatal_error": "Фатальна Помилка",
+        "common.you": "Ви",
+        "common.automatic": "Автоматично",
+        "common.random": "Випадково",
+
+        // Settings Window title
+        "common.interface_settings": "Налаштування Інтерфейсу",
+        "common.gameplay_settings": "Налаштування Ігроладу",
+        "common.controls_settings": "Налаштування Управління",
+        "common.video_settings": "Налаштування Зображення",
+        "common.sound_settings": "Налаштування Звуку",
+        "common.language_settings": "Налаштування Мови",
+
+        // Message when connection to the server is lost
+        "common.connection_lost": r#"З'єднання розірвано!
+Можливо сервер перезапустився?
+Чи Ваш клієнт не останньої версії?"#,
+
+
+        "common.species.orc": "Орк",
+        "common.species.human": "Людина",
+        "common.species.dwarf": "Дварф",
+        "common.species.elf": "Ельф",
+        "common.species.undead": "Нежить",
+        "common.species.danari": "Данарі",
+
+        "common.weapons.axe": "Сокира",
+        "common.weapons.sword": "Меч",
+        "common.weapons.staff": "Посох",
+        "common.weapons.bow": "Лук",
+        "common.weapons.hammer": "Молот",
+        "common.weapons.sceptre": "Цілющий Скіпетр",
+        "common.weapons.general": "Бій (загальне)",
+        "common.rand_appearance": "Випадкові ім'я та зовнішність",
+    },
+
+
+    vector_map: {
+    }
+)

@@ -1,0 +1,64 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for Ukrainian
+(
+    string_map: {
+        "main.username": "Ім'я користовуча",
+        "main.server": "Сервер",
+        "main.password": "Пароль",
+        "main.connecting": "З'єднання",
+        "main.creating_world": "Створення світу",
+        "main.tip": "Підказка:",
+
+        // Welcome notice that appears the first time Veloren is started
+        "main.notice": r#"Вітаємо в альфа-версії Veloren!
+
+Кілька моментів перед зануренням в пригоди:
+
+- Це дуже рання альфа. Будьте готові до багів, сирого ігроладу, невідполірованих механік та відсутності фіч.
+
+- Якщо у Вас є конструктивна критика, поради або Ви знайшли баги - можете зв'язатись з нами на Reddit, GitLab чи Discord-сервері нашої спільноти.
+
+- Veloren розповсюджується під ліцензією GPL 3. Це означає, що Ви вільні грати, модифікувати та розповсюджувати
+ гру як забажаєте (за умови, що Ваші допрацювання поширюватимуться також під GPL 3)
+
+- Veloren - це неприбутковий проект, і всі, хто над ним працюють - волонтери.
+Якщо він Вам подобається, ласкаво просимо долучитись до команд розробників чи художників.
+
+Дякуємо, що прочитали. Щиро сподіваємось, що вам сподобається гра!
+
+~ Команда Veloren"#,
+
+        // Login process description
+        "main.login_process": r#"Інформація про процес входу:
+
+Для гри на серверах з авторизацією
+необхідно мати обліковий запис.
+
+Створити обліковий запис можна тут:
+
+https://veloren.net/account/."#,
+        "main.login.server_not_found": "Сервер не знайдено",
+        "main.login.authentication_error": "Помилка авторизації на сервері",
+        "main.login.server_full": "Сервер переповнено",
+        "main.login.untrusted_auth_server": "Ненадійний сервер авторизації",
+        "main.login.outdated_client_or_server": "Помилка: ймовірно версії не сумісні, перевірте оновлення.",
+        "main.login.timeout": "Тайм-аут: сервер не відповів вчасно (перенавантажений, або проблеми з Вашою мережею).",
+        "main.login.server_shut_down": "Сервер вимкнено",
+        "main.login.already_logged_in": "Ви вже підключені до сервера.",
+        "main.login.network_error": "Помилка мережі",
+        "main.login.failed_sending_request": "Запит до сервера авторизації невдалий",
+        "main.login.invalid_character": "Обраний персонаж недоступний",
+        "main.login.client_crashed": "Клієнт впав",
+        "main.login.not_on_whitelist": "Для входу необхідний дозвіл від адміністратора.",
+        "main.login.banned": "Вас заблоковано з наступної причини:",
+        "main.login.kicked": "Вас викинуто з наступної причини:",
+        "main.login.select_language": "Оберіть мову",
+
+        "main.servers.select_server": "Оберіть сервер",
+    },
+
+
+    vector_map: {
+    }
+)

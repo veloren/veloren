@@ -1,0 +1,27 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for Ukrainian
+(
+    string_map: {
+        // Map and Questlog
+        "hud.map.map_title": "Мапа",
+        "hud.map.qlog_title": "Завдання",
+        "hud.map.difficulty": "Складність",
+        "hud.map.towns": "Міста",
+        "hud.map.castles": "Фортеці",
+        "hud.map.dungeons": "Підземелля",
+        "hud.map.caves": "Печери",
+        "hud.map.cave": "Печера",
+        "hud.map.town": "Місто",
+        "hud.map.castle": "Фортеця",
+        "hud.map.dungeon": "Підземелля",
+        "hud.map.difficulty_dungeon": "Складність\n\nПідземелля: {difficulty}",
+        "hud.map.drag": "Область",
+        "hud.map.zoom": "Масштаб",
+        "hud.map.recenter": "Відцентрувати",
+    },
+
+
+    vector_map: {
+    }
+)
