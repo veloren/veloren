@@ -1,21 +1,9 @@
-/// Translation document instructions
-///
-/// In order to keep localization documents readible please follow the following
-/// rules:
-/// - separate the string map sections using a commentary describing the purpose
-///   of the next section
-/// - prepend multi-line strings with a commentary
-/// - append one blank lines after a multi-line strings and two after sections
-///
-/// To add a new language in Veloren, just write an additional `.ron` file in
-/// `assets/voxygen/i18n` and that's it!
-///
 /// WARNING: Localization files shall be saved in UTF-8 format without BOM
 
 /// Localization for Ukrainian
 (
     metadata: (
-        language_name: "Ukrainian",
+        language_name: "Українська",
         language_identifier: "uk_UA",
     ),
     convert_utf8_to_ascii: false,
@@ -41,518 +29,13 @@
             scale_ratio: 1.0,
         ),
     },
-    sub_directories: [],
+    sub_directories: [
+        "hud"
+    ],
+
     string_map: {
-        /// Start Common section
-        // Texts used in multiple locations with the same formatting
-        "common.username": "Ім'я користувача",
-        "common.singleplayer": "Одиночна гра",
-        "common.multiplayer": "Мультиплеєр",
-        "common.servers": "Сервери",
-        "common.quit": "Вихід",
-        "common.settings": "Налаштування",
-        "common.languages": "Мова",
-        "common.interface": "Інтерфейс",
-        "common.gameplay": "Ігролад",
-        "common.controls": "Управління",
-        "common.video": "Зображення",
-        "common.sound": "Звук",
-        "common.resume": "Продовжити",
-        "common.characters": "Персонажі",
-        "common.close": "Закрити",
-        "common.yes": "Так",
-        "common.no": "Ні",
-        "common.back": "Назад",
-        "common.create": "Створити",
-        "common.okay": "Добре",
-        "common.add": "Додати",
-        "common.accept": "Прийняти",
-        "common.decline": "Відхилити",
-        "common.disclaimer": "Дисклеймер",
-        "common.cancel": "Відмінити",
-        "common.none": "Нічого",
-        "common.error": "Помилка",
-        "common.fatal_error": "Фатальна Помилка",
-        "common.you": "Ви",
-        "common.automatic": "Автоматично",
-        "common.random": "Випадково",
-        // Settings Window title
-        "common.interface_settings": "Налаштування Інтерфейсу",
-        "common.gameplay_settings": "Налаштування Ігроладу",
-        "common.controls_settings": "Налаштування Управління",
-        "common.video_settings": "Налаштування Зображення",
-        "common.sound_settings": "Налаштування Звуку",
-        "common.language_settings": "Налаштування Мови",
 
-        // Message when connection to the server is lost
-        "common.connection_lost": r#"З'єднання розірвано!
-Можливо сервер перезапустився?
-Чи Ваш клієнт не останньої версії?"#,
-
-
-        "common.species.orc": "Орк",
-        "common.species.human": "Людина",
-        "common.species.dwarf": "Гном",
-        "common.species.elf": "Ельф",
-        "common.species.undead": "Нежить",
-        "common.species.danari": "Данарі",
-
-        "common.weapons.axe": "Сокира",
-        "common.weapons.sword": "Меч",
-        "common.weapons.staff": "Посох",
-        "common.weapons.bow": "Лук",
-        "common.weapons.hammer": "Молот",
-        "common.weapons.sceptre": "Цілющий Скіпетр",
-        "common.rand_appearance": "Випадкові ім'я та зовнішність",
-        /// End Common section
-
-
-        /// Start Main screen section
-        "main.username": "Ім'я користовуча",
-        "main.server": "Сервер",
-        "main.password": "Пароль",
-        "main.connecting": "З'єднання",
-        "main.creating_world": "Створення світу",
-        "main.tip": "Підказка:",
-
-        // Welcome notice that appears the first time Veloren is started
-        "main.notice": r#"Вітаємо в альфа-версії Veloren!
-
-Кілька моментів перед зануренням в пригоди:
-
-- Це дуже рання альфа. Будьте готові до багів, сирого ігроладу, невідполірованих механік та відсутності фіч.
-
-- Якщо у Вас є конструктивна критика, поради або Ви знайшли баги - можете зв'язатись з нами на Reddit, GitLab чи Discord-сервері нашої спільноти.
-
-- Veloren розповсюджується під ліцензією GPL 3. Це означає, що Ви вільні грати, модифікувати та розповсюджувати
- гру як забажаєте (за умови, що Ваші допрацювання поширюватимуться також під GPL 3)
-
-- Veloren - це неприбутковий проект, і всі, хто над ним працюють - волонтери.
-Якщо він Вам подобається, ласкаво просимо долучитись до команд розробників чи художників.
-
-Дякуємо, що прочитали. Щиро сподіваємось, що вам сподобається гра!
-
-~ Команда Veloren"#,
-
-        // Login process description
-        "main.login_process": r#"Щодо входу:
-
-Для гри на серверах з авторизацією
-необхідно мати обліковий запис.
-
-Створити обліковий запис можна тут:
-
-https://veloren.net/account/."#,
-        "main.login.server_not_found": "Сервер не знайдено",
-        "main.login.authentication_error": "Помилка авторизації на сервері",
-        "main.login.server_full": "Сервер переповнено",
-        "main.login.untrusted_auth_server": "Ненадійний сервер авторизації",
-        "main.login.outdated_client_or_server": "Помилка: ймовірно версії не сумісні, перевірте оновлення.",
-        "main.login.timeout": "Тайм-аут: сервер не відповів вчасно (перенавантажений, або проблеми з Вашою мережею).",
-        "main.login.server_shut_down": "Сервер вимкнено",
-        "main.login.already_logged_in": "Ви вже підключені до сервера.",
-        "main.login.network_error": "Помилка мережі",
-        "main.login.failed_sending_request": "Запит до сервера авторизації невдалий",
-        "main.login.invalid_character": "Обраний персонаж недоступний",
-        "main.login.client_crashed": "Клієнт впав",
-        "main.login.not_on_whitelist": "Для входу необхідний дозвіл від адміністратора.",
-        "main.login.banned": "Вас заблоковано з наступної причини:",
-        "main.login.kicked": "Вас викинуто з наступної причини:",
-        "main.login.select_language": "Оберіть мову",
-
-        "main.servers.select_server": "Оберіть сервер",
-
-        /// End Main screen section
-
-
-        /// Start HUD Section
-        "hud.do_not_show_on_startup": "Не показувати після запуску",
-        "hud.show_tips": "Показувати підказки",
-        "hud.quests": "Завдання",
-        "hud.you_died": "Ви померли",
-        "hud.waypoint_saved": "Розташування збережено",
-
-        "hud.press_key_to_show_keybindings_fmt": "[{key}] Схема управління",
-        "hud.press_key_to_toggle_lantern_fmt": "[{key}] Ліхтар",
-        "hud.press_key_to_show_debug_info_fmt": "Натисніть {key} для відображення технічної інформації",
-        "hud.press_key_to_toggle_keybindings_fmt": "Натисніть {key} для відображення схеми управління",
-        "hud.press_key_to_toggle_debug_info_fmt": "Натисніть {key} для відображення технічної інформації",
-
-        // Chat outputs
-        "hud.chat.online_msg": "[{name}] в мережі",
-        "hud.chat.offline_msg": "{name} не в мережі",
-
-        "hud.chat.default_death_msg": "[{name}] помер(ла)",
-        "hud.chat.environmental_kill_msg": "[{name}] помер(ла) в {environment}",
-        "hud.chat.fall_kill_msg": "[{name}] помер(ла) від падіння",
-        "hud.chat.suicide_msg": "[{name}] помер(ла) від самозаподіяних ран",
-
-        "hud.chat.pvp_melee_kill_msg": "[{attacker}] переміг(ла) [{victim}]",
-        "hud.chat.pvp_ranged_kill_msg": "[{attacker}] застрелив(ла) [{victim}]",
-        "hud.chat.pvp_explosion_kill_msg": "[{attacker}] підірвав(ла) [{victim}]",
-        "hud.chat.pvp_energy_kill_msg": "[{attacker}] вбив(ла) [{victim}] магією",
-        "hud.chat.pvp_buff_kill_msg": "[{attacker}] вбив(ла) [{victim}]",
-
-
-        "hud.chat.npc_melee_kill_msg": "{attacker} вбив(ла) [{victim}]",
-        "hud.chat.npc_ranged_kill_msg": "{attacker} застрелив(ла) [{victim}]",
-        "hud.chat.npc_explosion_kill_msg": "{attacker} підірвав(ла) [{victim}]",
-        "hud.chat.npc_energy_kill_msg": "[{attacker}] вбив(ла) [{victim}] магією",
-        "hud.chat.npc_other_kill_msg": "[{attacker}] вбив(ла) [{victim}]",
-
-        "hud.chat.loot_msg": "Ви підібрали [{item}]",
-        "hud.chat.loot_fail": "Ваш інвентар переповнено!",
-        "hud.chat.goodbye": "До побачення!",
-        "hud.chat.connection_lost": "З'єднання втрачено. Перепідключення через {time} секунд(и/у).",
-
-        // SCT outputs
-        "hud.sct.experience": "{amount} Досвід",
-        "hud.sct.block": "ЗАБЛОКОВАНО",
-
-        // Respawn message
-        "hud.press_key_to_respawn": r#"Натисніть {key}, щоб відновитись біля останньої відвіданої ватри."#,
-
-        // Welcome message
-        "hud.welcome": r#"Вітаємо в Veloren Alpha!
-
-
-Кілька порад перед початком:
-
-
-Натисніть F1, щоб переглянути схему управління.
-
-Введіть /help в чат, щоб переглянути чат-команди.
-
-
-В ігровому світі випадковим чином з'являються скрині та інші об'єкти!
-
-Клікайте ПКМ, щоб підбирати їх.
-
-Такими знахідками можна керувати з панелі інвентаря, відкривши її клавішою 'B'.
-
-Щоб скористатись предметом з Вашого рюкзака, зробіть подвійний клік по ньому.
-
-Щоб викинути предмет, клікніть по ньому один раз, а потім клікніть поза панеллю інвентаря.
-
-
-Ночі в Veloren бувають дуже темними.
-
-Щоб запалити ліхтар, натисніть 'G'.
-
-
-Щоб відв'язати вказівник миші від вікна гри, натисніть TAB.
-
-
-Приємної гри!"#,
-
-"hud.temp_quest_headline": r#"Допоможи нам, Мандрівник!"#,
-"hud.temp_quest_text": r#"Повсюди між нашими мирними містами з'явились
-підземелля, наповнені злими культистами!
-
-Будь ласка, збери якусь компанію, запасись їжою
-і розбий їх мерзенних лідерів та послідовників.
-
-
-Можливо, ти навіть зможеш здобути один з їхніх
-магічних предметів?"#,
-
-
-
-        // Inventory
-        "hud.bag.inventory": "Інвентар {playername}",
-        "hud.bag.stats_title": "Характеристики {playername}",
-        "hud.bag.exp": "Досвід",
-        "hud.bag.armor": "Спорядження",
-        "hud.bag.stats": "Характеристики",
-        "hud.bag.head": "Голова",
-        "hud.bag.neck": "Шия",
-        "hud.bag.tabard": "Вбрання",
-        "hud.bag.shoulders": "Плечі",
-        "hud.bag.chest": "Груди",
-        "hud.bag.hands": "Руки",
-        "hud.bag.lantern": "Ліхтар",
-        "hud.bag.glider": "Дельтаплан",
-        "hud.bag.belt": "Пояс",
-        "hud.bag.ring": "Кільце",
-        "hud.bag.back": "Спина",
-        "hud.bag.legs": "Ноги",
-        "hud.bag.feet": "Ступні",
-        "hud.bag.mainhand": "Основна рука",
-        "hud.bag.offhand": "Другорядна рука",
-
-
-        // Map and Questlog
-        "hud.map.map_title": "Мапа",
-        "hud.map.qlog_title": "Завдання",
-
-        // Settings
-        "hud.settings.general": "Основні",
-        "hud.settings.none": "Нічого",
-        "hud.settings.press_behavior.toggle": "Перемикання",
-        "hud.settings.press_behavior.hold": "Утримування",
-        "hud.settings.help_window": "Вікно довідки",
-        "hud.settings.debug_info": "Технічна інформація",
-        "hud.settings.tips_on_startup": "Підказки при запуску",
-        "hud.settings.ui_scale": "Масштабування інтерфейсу",
-        "hud.settings.relative_scaling": "Відносне",
-        "hud.settings.custom_scaling": "Ручне",
-        "hud.settings.crosshair": "Приціл",
-        "hud.settings.transparency": "Прозорість",
-        "hud.settings.hotbar": "Панель швидкого доступу",
-        "hud.settings.toggle_shortcuts": "Гарячі клавіші",
-        "hud.settings.buffs_skillbar": "Бафи на панелі навичок",
-        "hud.settings.buffs_mmap": "Бафи на мінімапі",
-        "hud.settings.toggle_bar_experience": "Панель досвіду",
-        "hud.settings.scrolling_combat_text": "Текст під час бою",
-        "hud.settings.single_damage_number": "Заподіяні ушкодження (одиничні)",
-        "hud.settings.cumulated_damage": "Заподіяні ушкодження (кумулятивні)",
-        "hud.settings.incoming_damage": "Отримані ушкодження (одиничні)",
-        "hud.settings.cumulated_incoming_damage": "Отримані ушкодження (кумулятивні)",
-        "hud.settings.speech_bubble": "Діалоги",
-        "hud.settings.speech_bubble_dark_mode": "Темний режим",
-        "hud.settings.speech_bubble_icon": "Піктограма",
-        "hud.settings.energybar_numbers": "Панель здоров'я і енергії",
-        "hud.settings.values": "Значення",
-        "hud.settings.percentages": "Відсотки",
-        "hud.settings.chat": "Чат",
-        "hud.settings.background_transparency": "Прозорість фону",
-        "hud.settings.chat_character_name": "Імена персонажів в чаті",
-        "hud.settings.loading_tips": "Підказки на екрані завантаження",
-
-        "hud.settings.pan_sensitivity": "Чутливість миші",
-        "hud.settings.zoom_sensitivity": "Чутливість прокрутки",
-        "hud.settings.invert_scroll_zoom": "Інвертувати прокрутку",
-        "hud.settings.invert_mouse_y_axis": "Інвертувати вісь Y миші",
-        "hud.settings.enable_mouse_smoothing": "Згладження руху камери",
-        "hud.settings.free_look_behavior": "Вмикання вільного перегляду",
-        "hud.settings.auto_walk_behavior": "Вмикання авто-ходи",
-        "hud.settings.stop_auto_walk_on_input": "Вимикати авто-ходу при русі",
-
-        "hud.settings.view_distance": "ДВ (дальн. видим.)",
-        "hud.settings.sprites_view_distance": "ДВ спрайтів",
-        "hud.settings.figures_view_distance": "ДВ об'єктів",
-        "hud.settings.maximum_fps": "Максимальний FPS",
-        "hud.settings.fov": "Кут огляду (градуси)",
-        "hud.settings.gamma": "Гамма",
-        "hud.settings.exposure": "Експозиція",
-        "hud.settings.ambiance": "Заповнююча яскравість",
-        "hud.settings.antialiasing_mode": "Режим анти-аліасингу",
-        "hud.settings.upscale_factor": "Коефіцієнт збільшення",
-        "hud.settings.cloud_rendering_mode": "Режим відображення хмар",
-        "hud.settings.fluid_rendering_mode": "Режим відображення рідин",
-        "hud.settings.fluid_rendering_mode.cheap": "Простий",
-        "hud.settings.fluid_rendering_mode.shiny": "Блискучий",
-        "hud.settings.cloud_rendering_mode.minimal": "Мінімальний",
-        "hud.settings.cloud_rendering_mode.low": "Низький",
-        "hud.settings.cloud_rendering_mode.medium": "Середній",
-        "hud.settings.cloud_rendering_mode.high": "Високий",
-        "hud.settings.cloud_rendering_mode.ultra": "Ультра",
-        "hud.settings.fullscreen": "На весь екран",
-        "hud.settings.fullscreen_mode": "Повноекранний режим",
-        "hud.settings.fullscreen_mode.exclusive": "Ексклюзивний",
-        "hud.settings.fullscreen_mode.borderless": "Вікно без рамок",
-        "hud.settings.particles": "Частинки",
-        "hud.settings.resolution": "Дозвіл",
-        "hud.settings.bit_depth": "Глибина кольору",
-        "hud.settings.refresh_rate": "Частота оновлення",
-        "hud.settings.lighting_rendering_mode": "Режим освітлення",
-        "hud.settings.lighting_rendering_mode.ashikhmin": "Тип A - Високий",
-        "hud.settings.lighting_rendering_mode.blinnphong": "Тип B - Середній",
-        "hud.settings.lighting_rendering_mode.lambertian": "Тип L - Простий",
-        "hud.settings.shadow_rendering_mode": "Режим відображення тіней",
-        "hud.settings.shadow_rendering_mode.none": "Без тіней",
-        "hud.settings.shadow_rendering_mode.cheap": "Простий",
-        "hud.settings.shadow_rendering_mode.map": "Карта тіней",
-        "hud.settings.shadow_rendering_mode.map.resolution": "Роздільна здатність",
-        "hud.settings.lod_detail": "Рівень деталізації",
-        "hud.settings.save_window_size": "Зберегти розмір вікна",
-
-
-        "hud.settings.music_volume": "Гучність музики",
-        "hud.settings.sound_effect_volume": "Гучність звукових ефектів",
-        "hud.settings.audio_device": "Звуковий пристрій",
-
-        "hud.settings.awaitingkey": "Натисніть клавішу...",
-        "hud.settings.unbound": "Нічого",
-        "hud.settings.reset_keybinds": "Скинути до типових",
-
-        "hud.social": "Інші гравці",
-        "hud.social.online": "В мережі:",
-        "hud.social.friends": "Друзі",
-        "hud.social.not_yet_available": "Ще не доступно",
-        "hud.social.faction": "Фракція",
-        "hud.social.play_online_fmt": "{nb_player} гравців в мережі",
-        "hud.social.name": "Ім'я",
-        "hud.social.level": "Рівень",
-        "hud.social.zone": "Зона",
-        "hud.social.account": "Обліковий запис",
-
-
-        "hud.crafting": "Ремесло",
-        "hud.crafting.recipes": "Рецепти",
-        "hud.crafting.ingredients": "Інгрідієнти:",
-        "hud.crafting.craft": "Виготовити",
-        "hud.crafting.tool_cata": "Необхідно:",
-
-        "hud.group": "Група",
-        "hud.group.invite_to_join": "{name} запросив(ла) Вас до їхньої групи!",
-        "hud.group.invite": "Запросити",
-        "hud.group.kick": "Викинути",
-        "hud.group.assign_leader": "Призначити лідером",
-        "hud.group.leave": "Покинути групу",
-        "hud.group.dead" : "Мертвий",
-        "hud.group.out_of_range": "Недосяжний",
-        "hud.group.add_friend": "Додати друга",
-        "hud.group.link_group": "Зв'язати групи",
-        "hud.group.in_menu": "В меню",
-        "hud.group.members": "Члени групи",
-
-        "hud.spell": "Чари",
-
-        "hud.free_look_indicator": "Вільний огляд активовано. Натисніть {key}, щоб вимкнути.",
-        "hud.auto_walk_indicator": "Авто-хода активована",
-
-        "hud.map.difficulty": "Складність",
-        "hud.map.towns": "Міста",
-        "hud.map.castles": "Фортеці",
-        "hud.map.dungeons": "Підземелля",
-        "hud.map.caves": "Печери",
-        "hud.map.cave": "Печера",
-        "hud.map.town": "Місто",
-        "hud.map.castle": "Фортеця",
-        "hud.map.dungeon": "Підземелля",
-        "hud.map.difficulty_dungeon": "Складність\n\nПідземелля: {difficulty}",
-        "hud.map.drag": "Область",
-        "hud.map.zoom": "Масштаб",
-        "hud.map.recenter": "Відцентрувати",
-
-        /// End HUD section
-
-
-        /// Start GameInput section
-
-        "gameinput.primary": "Базова атака",
-        "gameinput.secondary": "Другорядна атака/Блок/Приціл",
-        "gameinput.slot1": "Слот швидкого доступу 1",
-        "gameinput.slot2": "Слот швидкого доступу 2",
-        "gameinput.slot3": "Слот швидкого доступу 3",
-        "gameinput.slot4": "Слот швидкого доступу 4",
-        "gameinput.slot5": "Слот швидкого доступу 5",
-        "gameinput.slot6": "Слот швидкого доступу 6",
-        "gameinput.slot7": "Слот швидкого доступу 7",
-        "gameinput.slot8": "Слот швидкого доступу 8",
-        "gameinput.slot9": "Слот швидкого доступу 9",
-        "gameinput.slot10": "Слот швидкого доступу 10",
-        "gameinput.swaploadout": "Змінити спорядження",
-        "gameinput.togglecursor": "Ввімк/вимк вказівник",
-        "gameinput.help": "Відображати панель довідки",
-        "gameinput.toggleinterface": "Відображати інтерфейс",
-        "gameinput.toggledebug": "Відображати FPS і технічну інформацію",
-        "gameinput.screenshot": "Сфотографувати екран",
-        "gameinput.toggleingameui": "Відображати імена",
-        "gameinput.fullscreen": "Повноекранний режим",
-        "gameinput.moveforward": "Рух вперед",
-        "gameinput.moveleft": "Рух ліворуч",
-        "gameinput.moveright": "Рух праворуч",
-        "gameinput.moveback": "Рух назад",
-        "gameinput.jump": "Стрибати",
-        "gameinput.glide": "Дельтаплан",
-        "gameinput.roll": "Котитись",
-        "gameinput.climb": "Лізти вгору",
-        "gameinput.climbdown": "Лізти вниз",
-        "gameinput.wallleap": "Стрибок від стіни",
-        "gameinput.togglelantern": "Ліхтар",
-        "gameinput.mount": "Осідлати",
-        "gameinput.chat": "Чат",
-        "gameinput.command": "Команда",
-        "gameinput.escape": "Вихід",
-        "gameinput.map": "Мапа",
-        "gameinput.bag": "Інвентар",
-        "gameinput.social": "Інші гравці",
-        "gameinput.sit": "Сісти",
-        "gameinput.spellbook": "Чари",
-        "gameinput.settings": "Налаштування",
-        "gameinput.respawn": "Відродитись",
-        "gameinput.charge": "Зарядити",
-        "gameinput.togglewield": "Дістати зброю",
-        "gameinput.interact": "Взаємодіяти",
-        "gameinput.freelook": "Вільний огляд",
-        "gameinput.autowalk": "Авто-хода",
-        "gameinput.dance": "Танцювати",
-        "gameinput.select": "Обрати",
-        "gameinput.acceptgroupinvite": "Прийняти запрошення в групу",
-        "gameinput.declinegroupinvite": "Відхилити запрошення в групу",
-        "gameinput.crafting": "Ремесло",
-        "gameinput.fly": "Летіти",
-        "gameinput.sneak": "Підкрадатись",
-        "gameinput.swimdown": "Плисти вниз",
-        "gameinput.swimup": "Плисти вверх",
-
-        /// End GameInput section
-
-
-        /// Start chracter selection section
-        "char_selection.loading_characters": "Завантаження персонажів...",
-        "char_selection.delete_permanently": "Видалити цього персонажа назавжди?",
-        "char_selection.deleting_character": "Видалення персонажа...",
-        "char_selection.change_server": "Змінити сервер",
-        "char_selection.enter_world": "Увійти в світ",
-        "char_selection.logout": "Вийти",
-        "char_selection.create_new_character": "Створити нового персонажа",
-        "char_selection.creating_character": "Створення персонажа...",
-        "char_selection.character_creation": "Створення персонажа",
-
-        "char_selection.human_default": "Типова людина",
-        "char_selection.level_fmt": "Рівень {level_nb}",
-        "char_selection.uncanny_valley": "Дика Природа",
-        "char_selection.plains_of_uncertainty": "Рівнини Невизначеності",
-        "char_selection.beard": "Борода",
-        "char_selection.hair_style": "Зачіска",
-        "char_selection.hair_color": "Колір волосся",
-        "char_selection.eye_color": "Колір очей",
-        "char_selection.skin": "Шкіра",
-        "char_selection.eyeshape": "Очі",
-        "char_selection.accessories": "Аксесуари",
-        "char_selection.create_info_name": "Назвіть вашого персонажа!",
-
-        /// End character selection section
-
-
-        /// Start character window section
-        "character_window.character_name": "Ім'я персонажа",
-        // Character stats
-        "character_window.character_stats": r#"Сила
-
-Рефлекси
-
-Сила Волі
-
-Захист
-"#,
-        /// End character window section
-
-
-        /// Start Escape Menu Section
-        "esc_menu.logout": "Вийти в меню",
-        "esc_menu.quit_game": "Вийти з гри",
-        /// End Escape Menu Section
-
-        /// Buffs and Debuffs
-        "buff.remove": "Клікніть, щоб видалити",
-        "buff.title.missing": "Назва відсутня",
-        "buff.desc.missing": "Опис відсутній",
-        // Buffs
-        "buff.title.heal": "Зцілення",
-        "buff.desc.heal": "Відновлює здоров'я.",
-        "buff.title.potion": "Зілля",
-        "buff.desc.potion": "Пиття...",
-        "buff.title.saturation": "Насичення",
-        "buff.desc.saturation": "Відновлює здоров'я з їжі.",
-        // Debuffs
-        "debuff.title.bleed": "Кровотеча",
-        "debuff.desc.bleed": "Наносить звичайне ушкодження.",
     },
-
 
     vector_map: {
         "loading.tips": [
@@ -560,21 +43,50 @@ https://veloren.net/account/."#,
             "Натисніть 'F1', щоб переглянути стандартну схему управління.",
             "Введіть /say чи /s, щоб написати лише гравцям поряд.",
             "Введіть /region чи /r, щоб написати лише гравцям в радіусі кількох сотень блоків навколо.",
+            "Адміністратори можуть використовувати команду /build для переходу в режим будування",
             "Введіть /group чи /g, щоб написати лише гравцям з Вашої групи.",
             "Щоб надіслати приватне повідомлення, введіть /tell, ім'я гравця та Ваше повідомлення.",
-            "NPC однакового рівня можуть бути різної складності в бою.",
-            "Пильнуйте - їжа, скрині та інші корисні предмети можуть бути де-завгодно!",
-            "Інвентар переповнений елементами їжі? Спробуйте поєднати їх в щось ще смачніше!",
-            "Шукаєте чим би це зайнятись? Провідайте одне з цих підземель на мапі!",
-            "Не забудьте підлаштувати якість зображення під вашу систему. Натисніть 'N', щоб відкрити налаштування.",
-            "Грати з іншими весело! Натисніть 'O', щоб переглянути хто в мережі.",
-            "NPC з піктограмою черепа під індикатором здоров'я значно сильніші за Вас.",
+            "Тримайте око на вістрі - їжа, скрині та інші корисні предмети можуть бути де-завгодно!",
+            "Інвентар переповнений харчами? Спробуйте поєднати їх в кращу їжу!",
+            "Шукаєте чим би це зайнятись? Провідайте одне з позначених на мапі підземель!",
+            "Не забудьте налаштувати оптимальну для Вашої системи якість зображення. Натисніть 'N', щоб відкрити налаштування.",
+            "Грати з іншими весело! Натисніть 'O', щоб переглянути список користувачів в мережі.",
             "Натисніть 'J', щоб потанцювати. Гей-Гоп!",
-            "Натисніть 'L-Shift', щоб розкласти Дельтаплан та підкорити небеса.",
-            "Veloren все ще на стадії ранньої альфи. Ми намагаємось покращувати його кожного дня!",
+            "Натисніть 'L-Shift', щоб дістати Дельтаплан, та підкорюйте небеса!",
+            "Veloren все ще на стадії ранньої альфи. Ми стараємося робити покращення кожного дня!",
             "Якшо Ви хочете долучитись до розробки або ж просто поспілкуватись із нами, приєднуйтесь до нашого Discord-серверу.",
             "Ви можете змінити відображення індикатора здоров'я в налаштуваннях.",
-            "Щоб переглянути ваші характеристики, натисніть кнопку 'Характеристики' в інвентарі.",
+            "Присядьте біля ватри (натиснувши 'K'), щоб відпочити та відновити здоров'я.",
+            "Потребуєте більше торбин чи кращу броню? Натисніть 'C' щоб відкрити ремісниче меню.",
+        ],
+        "npc.speech.villager": [
+            "Ну хіба ж не прекрасний сьогодні день?",
+            "Як ся маєш?",
+            "Гарного тобі дня!",
+            "Цікаво, про що думає Катоблепас, коли їсть траву...",
+            "Як тобі така погода?",
+            "Мурашки по спині від одної тільки думки про ті підземелля! Сподіваюсь, хтось з ними розбереться.",
+            "Коли я посильнішаю, мені б хотілось піти в спелеопохід, досліджувати печери!",
+            "Ви не бачили мого кота?",
+            "Ви коли небудь чули про лютих Земних Акул? Кажуть, вони водяться в пустелях.",
+            "Кажуть, в печерах можна знайти коштовне каміння будь-яких типів.",
+            "Я просто шаленію від сиру!",
+            "Не зайдете в гості? Ми якраз збирались поласувати сиру!",
+            "Кажуть, гриби корисні для здоров'я. Я, правда, ніколи їх не їм.",
+            "Не забудь сухарики!",
+            "Обожнюю Дварфський Сир! Хотілось би вміти його робити...",
+            "Цікаво, що там по іншу сторону гір...",
+            "Я сподіваюсь виготовити власний дельтаплан одного дня.",
+            "Ви не хотіли б подивитись на мій сад? Гаразд, можливо іншим разом.",
+            "Прекрасний день для прогулянки в лісі!",
+            "Бути чи не бути? Думаю, я буду фермером.",
+            "Як ви думаєте, наше село - найкраще?",
+            "Як ти думаєш, чому Сяючі Залишки світяться?",
+            "По-моєму, час другого сніданку!",
+            "А ви коли небудь ловили світлячка?",
+            "Я не можу зрозуміти, звідки приходять ці Сауроки.",
+            "Хотілося б, щоб хтось захищав село від вовків.",
+            "Сьогодні мені приснився прекрасний сон про сир. Що б це значило?",
         ],
         "npc.speech.villager_under_attack": [
             "Допоможіть, на мене напали!",
@@ -645,7 +157,7 @@ https://veloren.net/account/."#,
             "Я такого не заслужив!",
             "Більше так не роби, будь ласка.",
             "Охорона, викиньте цього монстра в озеро!",
-            "Я натравлю на тебе свого пса!",
+            "Я натравлю на тебе свою Тарраску!",
         ],
     }
 )

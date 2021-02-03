@@ -1,0 +1,21 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for Ukrainian
+(
+    string_map: {
+        "character_window.character_name": "Ім'я персонажа",
+        // Character stats
+        "character_window.character_stats": r#"Сила
+
+Рефлекси
+
+Сила Волі
+
+Захист
+"#,
+    },
+
+
+    vector_map: {
+    }
+)

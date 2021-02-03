@@ -1,0 +1,16 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for Ukrainian
+(
+    string_map: {
+        "hud.crafting": "Ремесло",
+        "hud.crafting.recipes": "Рецепти",
+        "hud.crafting.ingredients": "Інгрідієнти:",
+        "hud.crafting.craft": "Виготовити",
+        "hud.crafting.tool_cata": "Необхідно:",
+    },
+
+
+    vector_map: {
+    }
+)

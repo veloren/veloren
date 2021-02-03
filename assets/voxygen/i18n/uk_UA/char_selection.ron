@@ -1,0 +1,31 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for Ukrainian
+(
+    string_map: {
+        "char_selection.loading_characters": "Завантаження персонажів...",
+        "char_selection.delete_permanently": "Видалити цього персонажа назавжди?",
+        "char_selection.deleting_character": "Видалення персонажа...",
+        "char_selection.change_server": "Змінити сервер",
+        "char_selection.enter_world": "Увійти в світ",
+        "char_selection.logout": "Вийти",
+        "char_selection.create_new_character": "Створити нового персонажа",
+        "char_selection.creating_character": "Створення персонажа...",
+        "char_selection.character_creation": "Створення персонажа",
+        "char_selection.human_default": "Типова людина",
+        "char_selection.level_fmt": "Рівень {level_nb}",
+        "char_selection.uncanny_valley": "Дика Природа",
+        "char_selection.plains_of_uncertainty": "Рівнини Невизначеності",
+        "char_selection.beard": "Борода",
+        "char_selection.hair_style": "Зачіска",
+        "char_selection.hair_color": "Колір волосся",
+        "char_selection.eye_color": "Колір очей",
+        "char_selection.skin": "Шкіра",
+        "char_selection.eyeshape": "Форма очей",
+        "char_selection.accessories": "Аксесуари",
+        "char_selection.create_info_name": "Назвіть вашого персонажа!",
+    },
+
+    vector_map: {
+    }
+)
