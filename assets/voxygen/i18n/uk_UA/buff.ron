@@ -1,0 +1,22 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for Ukrainian
+(
+    string_map: {
+        "buff.remove": "Клікніть, щоб видалити",
+        "buff.title.missing": "Назва відсутня",
+        "buff.desc.missing": "Опис відсутній",
+        "buff.title.heal": "Зцілення",
+        "buff.desc.heal": "Поступово відновлює здоров'я.",
+        "buff.title.potion": "Зілля",
+        "buff.desc.potion": "Пиття...",
+        "buff.title.saturation": "Насичення",
+        "buff.desc.saturation": "Поступово відновлює здоров'я з їжі.",
+        "buff.title.campfire_heal": "Відновлення біля ватри",
+        "buff.desc.campfire_heal": "Відпочинок біля ватри лікує на 1% за секунду.",
+    },
+
+
+    vector_map: {
+    }
+)

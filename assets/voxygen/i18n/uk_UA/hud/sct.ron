@@ -1,0 +1,14 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for Ukrainian
+(
+    string_map: {
+        // SCT outputs
+        "hud.sct.experience": "{amount} Досвід",
+        "hud.sct.block": "ЗАБЛОКОВАНО",
+        },
+
+
+    vector_map: {
+    }
+)
