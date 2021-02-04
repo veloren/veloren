@@ -1,4 +1,4 @@
-use crate::{uid::Uid, util::Dir};
+use crate::uid::Uid;
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage, NullStorage};
 use specs_idvs::IdvStorage;
@@ -17,18 +17,6 @@ impl Component for Pos {
 pub struct Vel(pub Vec3<f32>);
 
 impl Component for Vel {
-    type Storage = IdvStorage<Self>;
-}
-
-// Orientation
-#[derive(Copy, Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
-pub struct Ori(pub Dir);
-
-impl Ori {
-    pub fn vec(&self) -> &Vec3<f32> { &*self.0 }
-}
-
-impl Component for Ori {
     type Storage = IdvStorage<Self>;
 }
 

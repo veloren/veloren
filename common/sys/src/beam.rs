@@ -149,8 +149,8 @@ impl<'a> System<'a> for Sys {
                 let hit = entity != b
                     && !health_b.is_dead
                     // Collision shapes
-                    && (sphere_wedge_cylinder_collision(pos.0, frame_start_dist, frame_end_dist, *ori.0, beam_segment.angle, pos_b.0, rad_b, height_b)
-                    || last_pos_b_maybe.map_or(false, |pos_maybe| {sphere_wedge_cylinder_collision(pos.0, frame_start_dist, frame_end_dist, *ori.0, beam_segment.angle, (pos_maybe.0).0, rad_b, height_b)}));
+                    && (sphere_wedge_cylinder_collision(pos.0, frame_start_dist, frame_end_dist, *ori.look_dir(), beam_segment.angle, pos_b.0, rad_b, height_b)
+                    || last_pos_b_maybe.map_or(false, |pos_maybe| {sphere_wedge_cylinder_collision(pos.0, frame_start_dist, frame_end_dist, *ori.look_dir(), beam_segment.angle, (pos_maybe.0).0, rad_b, height_b)}));
 
                 if hit {
                     // See if entities are in the same group
@@ -183,7 +183,7 @@ impl<'a> System<'a> for Sys {
                         attacker_info,
                         b,
                         inventory_b_maybe,
-                        ori.0,
+                        ori.look_dir(),
                         false,
                         1.0,
                         |e| server_emitter.emit(e),

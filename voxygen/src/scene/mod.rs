@@ -571,17 +571,12 @@ impl Scene {
                 })
                 .map(|(pos, ori, interpolated, light_anim)| {
                     // Use interpolated values if they are available
-                    let (pos, ori) =
-                        interpolated.map_or((pos.0, ori.map(|o| o.0)), |i| (i.pos, Some(i.ori)));
-                    let rot = {
-                        if let Some(o) = ori {
-                            Mat3::rotation_z(-o.x.atan2(o.y))
-                        } else {
-                            Mat3::identity()
-                        }
-                    };
+                    let (pos, rot) = interpolated
+                        .map_or((pos.0, ori.copied().unwrap_or_default()), |i| {
+                            (i.pos, i.ori)
+                        });
                     Light::new(
-                        pos + (rot * light_anim.offset),
+                        pos + (rot.to_quat() * light_anim.offset),
                         light_anim.col,
                         light_anim.strength,
                     )

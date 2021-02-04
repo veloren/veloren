@@ -182,7 +182,7 @@ impl CharacterBehavior for Data {
                     update.server_events.push_front(ServerEvent::BeamSegment {
                         properties,
                         pos,
-                        ori: Ori(data.inputs.look_dir),
+                        ori: Ori::from(data.inputs.look_dir),
                     });
                     update.character = CharacterState::BasicBeam(Data {
                         timer: self

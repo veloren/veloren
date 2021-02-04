@@ -584,7 +584,7 @@ impl FigureMgr {
                 .map(|i| {
                     (
                         (anim::vek::Vec3::from(i.pos),),
-                        anim::vek::Vec3::from(*i.ori),
+                        anim::vek::Vec3::from(i.ori.to_vec()),
                     )
                 })
                 .unwrap_or((

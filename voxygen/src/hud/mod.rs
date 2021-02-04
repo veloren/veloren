@@ -1707,10 +1707,13 @@ impl Hud {
                 .set(self.ids.velocity, ui_widgets);
             // Player's orientation vector
             let orientation_text = match debug_info.ori {
-                Some(ori) => format!(
-                    "Orientation: ({:.1}, {:.1}, {:.1})",
-                    ori.0.x, ori.0.y, ori.0.z,
-                ),
+                Some(ori) => {
+                    let look_dir = ori.look_dir();
+                    format!(
+                        "Orientation: ({:.1}, {:.1}, {:.1})",
+                        look_dir.x, look_dir.y, look_dir.z,
+                    )
+                },
                 None => "Player has no Ori component".to_owned(),
             };
             Text::new(&orientation_text)

@@ -8,6 +8,7 @@ use common::{
     resources::DeltaTime,
     span,
     uid::UidAllocator,
+    util::Dir,
     GroupTarget,
 };
 use specs::{
@@ -125,7 +126,7 @@ impl<'a> System<'a> for Sys {
                                     attacker_info,
                                     target_entity,
                                     inventories.get(target_entity),
-                                    ori.0,
+                                    ori.look_dir(),
                                     false,
                                     1.0,
                                     |e| server_emitter.emit(e),
@@ -192,9 +193,9 @@ impl<'a> System<'a> for Sys {
                 }
             } else if let Some(dir) = velocities
                 .get(entity)
-                .and_then(|vel| vel.0.try_normalized())
+                .and_then(|vel| Dir::from_unnormalized(vel.0))
             {
-                ori.0 = dir.into();
+                *ori = dir.into();
             }
 
             if projectile.time_left == Duration::default() {

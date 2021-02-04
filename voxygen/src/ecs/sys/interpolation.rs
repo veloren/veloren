@@ -2,7 +2,6 @@ use crate::ecs::comp::Interpolated;
 use common::{
     comp::{Ori, Pos, Vel},
     resources::DeltaTime,
-    util::Dir,
 };
 use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
 use tracing::warn;
@@ -31,16 +30,16 @@ impl<'a> System<'a> for Sys {
             // Update interpolation values
             if i.pos.distance_squared(pos.0) < 64.0 * 64.0 {
                 i.pos = Lerp::lerp(i.pos, pos.0 + vel.0 * 0.03, 10.0 * dt.0);
-                i.ori = Dir::slerp(i.ori, ori.0, 5.0 * dt.0);
+                i.ori = Ori::slerp(i.ori, *ori, 5.0 * dt.0);
             } else {
                 i.pos = pos.0;
-                i.ori = ori.0;
+                i.ori = *ori;
             }
         }
         // Insert interpolation components for entities which don't have them
         for (entity, pos, ori) in (&entities, &positions, &orientations, !&interpolated)
             .join()
-            .map(|(e, p, o, _)| (e, p.0, o.0))
+            .map(|(e, p, o, _)| (e, p.0, *o))
             .collect::<Vec<_>>()
         {
             interpolated
