@@ -45,7 +45,7 @@ i18n = {package = "veloren-i18n", path = "i18n"}
 
 # Graphics
 winit = {version = "0.24.0", features = ["serde"]}
-wgpu = { git = "https://github.com/gfx-rs/wgpu-rs.git", rev = "ab8b0e3766558d541206da2790dfd63f15b13bc4" }
+wgpu = { git = "https://github.com/gfx-rs/wgpu-rs.git", rev = "f891e86e87f0733f04a8078f4be8ead2f24551cf" }
 bytemuck = { version="1.4", features=["derive"] }
 shaderc = "0.6.2"
 

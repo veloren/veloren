@@ -114,7 +114,6 @@ impl PostProcessPipeline {
         sc_desc: &wgpu::SwapChainDescriptor,
         global_layout: &GlobalsLayouts,
         layout: &PostProcessLayout,
-        aa_mode: AaMode,
     ) -> Self {
         common_base::span!(_guard, "PostProcessPipeline::new");
         let render_pipeline_layout =
@@ -124,41 +123,37 @@ impl PostProcessPipeline {
                 bind_group_layouts: &[&global_layout.globals, &layout.layout],
             });
 
-        let samples = match aa_mode {
-            AaMode::None | AaMode::Fxaa => 1,
-            // TODO: Ensure sampling in the shader is exactly between the 4 texels
-            AaMode::MsaaX4 => 4,
-            AaMode::MsaaX8 => 8,
-            AaMode::MsaaX16 => 16,
-        };
-
         let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             label: Some("Post process pipeline"),
             layout: Some(&render_pipeline_layout),
-            vertex_stage: wgpu::ProgrammableStageDescriptor {
+            vertex: wgpu::VertexState {
                 module: vs_module,
                 entry_point: "main",
+                buffers: &[],
             },
-            fragment_stage: Some(wgpu::ProgrammableStageDescriptor {
+            primitive: wgpu::PrimitiveState {
+                topology: wgpu::PrimitiveTopology::TriangleList,
+                strip_index_format: None,
+                front_face: wgpu::FrontFace::Ccw,
+                cull_mode: wgpu::CullMode::None,
+                polygon_mode: wgpu::PolygonMode::Fill,
+            },
+            depth_stencil: None,
+            multisample: wgpu::MultisampleState {
+                count: 1,
+                mask: !0,
+                alpha_to_coverage_enabled: false,
+            },
+            fragment: Some(wgpu::FragmentState {
                 module: fs_module,
                 entry_point: "main",
+                targets: &[wgpu::ColorTargetState {
+                    format: sc_desc.format,
+                    color_blend: wgpu::BlendState::REPLACE,
+                    alpha_blend: wgpu::BlendState::REPLACE,
+                    write_mask: wgpu::ColorWrite::ALL,
+                }],
             }),
-            rasterization_state: None,
-            primitive_topology: wgpu::PrimitiveTopology::TriangleList,
-            color_states: &[wgpu::ColorStateDescriptor {
-                format: sc_desc.format,
-                color_blend: wgpu::BlendDescriptor::REPLACE,
-                alpha_blend: wgpu::BlendDescriptor::REPLACE,
-                write_mask: wgpu::ColorWrite::ALL,
-            }],
-            depth_stencil_state: None,
-            vertex_state: wgpu::VertexStateDescriptor {
-                index_format: None,
-                vertex_buffers: &[],
-            },
-            sample_count: samples,
-            sample_mask: !0,
-            alpha_to_coverage_enabled: false,
         });
 
         Self {

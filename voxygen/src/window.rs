@@ -1105,13 +1105,12 @@ impl Window {
     pub fn center_cursor(&self) {
         let dimensions: Vec2<f64> = self.logical_size();
 
-        if let Err(err) =
-            self.window
-                .window()
-                .set_cursor_position(winit::dpi::PhysicalPosition::new(
-                    dimensions[0] / (2_f64),
-                    dimensions[1] / (2_f64),
-                ))
+        if let Err(err) = self
+            .window
+            .set_cursor_position(winit::dpi::PhysicalPosition::new(
+                dimensions[0] / (2_f64),
+                dimensions[1] / (2_f64),
+            ))
         {
             error!("Error centering cursor position: {:?}", err);
         }

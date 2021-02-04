@@ -12,6 +12,7 @@ use super::{
     Renderer, ShadowMap, ShadowMapRenderer,
 };
 use core::{num::NonZeroU32, ops::Range};
+use std::sync::Arc;
 use vek::Aabr;
 
 pub struct Drawer<'a> {
@@ -324,17 +325,13 @@ impl<'pass> FirstPassDrawer<'pass> {
         }
     }
 
-    pub fn draw_terrain<'data: 'pass>(
-        &mut self,
-        col_lights: &'data ColLights<terrain::Locals>,
-    ) -> TerrainDrawer<'_, 'pass> {
+    pub fn draw_terrain<'data: 'pass>(&mut self) -> TerrainDrawer<'_, 'pass> {
         self.render_pass
             .set_pipeline(&self.renderer.terrain_pipeline.pipeline);
-        self.render_pass
-            .set_bind_group(3, &col_lights.bind_group, &[]);
 
         TerrainDrawer {
             render_pass: &mut self.render_pass,
+            col_lights: None,
         }
     }
 
@@ -397,15 +394,31 @@ impl<'pass_ref, 'pass: 'pass_ref> FigureDrawer<'pass_ref, 'pass> {
 
 pub struct TerrainDrawer<'pass_ref, 'pass: 'pass_ref> {
     render_pass: &'pass_ref mut wgpu::RenderPass<'pass>,
+    col_lights: Option<&'pass_ref Arc<ColLights<terrain::Locals>>>,
 }
 
 impl<'pass_ref, 'pass: 'pass_ref> TerrainDrawer<'pass_ref, 'pass> {
     pub fn draw<'data: 'pass>(
         &mut self,
         model: &'data Model<terrain::Vertex>,
+        col_lights: &'data Arc<ColLights<terrain::Locals>>,
         locals: &'data terrain::BoundLocals,
     ) {
-        self.render_pass.set_bind_group(2, &locals.bind_group, &[]);
+        let col_lights = if let Some(col_lights) = self
+            .col_lights
+            // Check if we are still using the same atlas texture as the previous drawn
+            // chunk
+            .filter(|current_col_lights| Arc::ptr_eq(current_col_lights, col_lights))
+        {
+            col_lights
+        } else {
+            self.render_pass
+                .set_bind_group(3, &col_lights.bind_group, &[]); // TODO: put this in slot 2
+            self.col_lights = Some(col_lights);
+            col_lights
+        };
+
+        self.render_pass.set_bind_group(2, &locals.bind_group, &[]); // TODO: put this in slot 3
         self.render_pass.set_vertex_buffer(0, model.buf().slice(..));
         self.render_pass.draw(0..model.len() as u32, 0..1)
     }

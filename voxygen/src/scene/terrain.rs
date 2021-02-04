@@ -72,7 +72,7 @@ pub struct TerrainChunkData {
     fluid_model: Option<Model<FluidVertex>>,
     /// If this is `None`, this texture is not allocated in the current atlas,
     /// and therefore there is no need to free its allocation.
-    col_lights: Option<guillotiere::AllocId>,
+    col_lights_alloc: Option<guillotiere::AllocId>,
     /// The actual backing texture for this chunk.  Use this for rendering
     /// purposes.  The texture is reference-counted, so it will be
     /// automatically freed when no chunks are left that need it (though
@@ -334,7 +334,7 @@ pub struct Terrain<V: RectRasterableVol = TerrainChunk> {
     /// we allocate.  Code cannot assume that this is the assigned texture
     /// for any particular chunk; look at the `texture` field in
     /// `TerrainChunkData` for that.
-    col_lights: ColLights<pipelines::terrain::Locals>,
+    col_lights: Arc<ColLights<pipelines::terrain::Locals>>,
     waves: FluidWaves,
 
     phantom: PhantomData<V>,
@@ -579,7 +579,7 @@ impl<V: RectRasterableVol> Terrain<V> {
 
                 renderer.fluid_bind_waves(waves_tex)
             },
-            col_lights,
+            col_lights: Arc::new(col_lights),
             phantom: PhantomData,
         }
     }
@@ -638,7 +638,7 @@ impl<V: RectRasterableVol> Terrain<V> {
     fn remove_chunk_meta(&mut self, _pos: Vec2<i32>, chunk: &TerrainChunkData) {
         // No need to free the allocation if the chunk is not allocated in the current
         // atlas, since we don't bother tracking it at that point.
-        if let Some(col_lights) = chunk.col_lights {
+        if let Some(col_lights) = chunk.col_lights_alloc {
             self.atlas.deallocate(col_lights);
         }
         /* let (zmin, zmax) = chunk.z_bounds;
@@ -1128,10 +1128,10 @@ impl<V: RectRasterableVol> Terrain<V> {
                                 // TODO: Consider attempting defragmentation first rather than just
                                 // always moving everything into the new chunk.
                                 chunks.iter_mut().for_each(|(_, chunk)| {
-                                    chunk.col_lights = None;
+                                    chunk.col_lights_alloc = None;
                                 });
                                 *atlas = new_atlas;
-                                *col_lights = new_col_lights;
+                                *col_lights = Arc::new(new_col_lights);
 
                                 atlas
                                     .allocate(guillotiere::Size::new(
@@ -1149,7 +1149,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                             allocation.rectangle.min.y as u32,
                         );
                         renderer.update_texture(
-                            &col_lights,
+                            &col_lights.texture,
                             atlas_offs.into_array(),
                             tex_size.into_array(),
                             &tex,
@@ -1169,8 +1169,8 @@ impl<V: RectRasterableVol> Terrain<V> {
                             } else {
                                 None
                             },
-                            col_lights: Some(allocation.id),
-                            texture: self.col_lights.clone(),
+                            col_lights_alloc: Some(allocation.id),
+                            col_lights: Arc::clone(&self.col_lights),
                             light_map: mesh.light_map,
                             glow_map: mesh.glow_map,
                             sprite_instances,
@@ -1468,7 +1468,7 @@ impl<V: RectRasterableVol> Terrain<V> {
 
     pub fn render<'a>(&'a self, drawer: &mut FirstPassDrawer<'a>, focus_pos: Vec3<f32>) {
         span!(_guard, "render", "Terrain::render");
-        let mut drawer = drawer.draw_terrain(&self.col_lights);
+        let mut drawer = drawer.draw_terrain();
 
         let focus_chunk = Vec2::from(focus_pos).map2(TerrainChunk::RECT_SIZE, |e: f32, sz| {
             (e as i32).div_euclid(sz as i32)
@@ -1481,7 +1481,7 @@ impl<V: RectRasterableVol> Terrain<V> {
             })
             .take(self.chunks.len())
             .filter(|chunk| chunk.visible.is_visible())
-            .for_each(|chunk| drawer.draw(&chunk.opaque_model, &chunk.locals));
+            .for_each(|chunk| drawer.draw(&chunk.opaque_model, &chunk.col_lights, &chunk.locals));
     }
 
     pub fn render_translucent<'a>(
