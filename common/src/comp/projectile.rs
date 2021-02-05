@@ -42,16 +42,16 @@ pub enum ProjectileConstructor {
     Arrow {
         damage: f32,
         knockback: f32,
-        energy_regen: u32,
+        energy_regen: f32,
     },
     Fireball {
         damage: f32,
         radius: f32,
-        energy_regen: u32,
+        energy_regen: f32,
     },
     Firebolt {
         damage: f32,
-        energy_regen: u32,
+        energy_regen: f32,
     },
     Heal {
         heal: f32,
@@ -207,7 +207,7 @@ impl ProjectileConstructor {
                 ..
             } => {
                 *damage *= power;
-                *energy_regen = (*energy_regen as f32 * regen) as u32;
+                *energy_regen *= regen;
             },
             Fireball {
                 ref mut damage,
@@ -216,7 +216,7 @@ impl ProjectileConstructor {
                 ..
             } => {
                 *damage *= power;
-                *energy_regen = (*energy_regen as f32 * regen) as u32;
+                *energy_regen *= regen;
                 *radius *= range;
             },
             Firebolt {
@@ -225,7 +225,7 @@ impl ProjectileConstructor {
                 ..
             } => {
                 *damage *= power;
-                *energy_regen = (*energy_regen as f32 * regen) as u32;
+                *energy_regen *= regen;
             },
             Heal {
                 ref mut damage,
@@ -251,7 +251,7 @@ impl ProjectileConstructor {
         {
             ProjectileConstructor::Firebolt {
                 damage,
-                energy_regen: energy_regen * 2,
+                energy_regen: energy_regen * 2.0,
             }
         } else {
             self

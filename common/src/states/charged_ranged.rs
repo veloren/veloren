@@ -26,11 +26,11 @@ pub struct StaticData {
     /// How long the state has until exiting
     pub recover_duration: Duration,
     /// How much energy is drained per second when charging
-    pub energy_drain: u32,
+    pub energy_drain: f32,
     /// How much damage is dealt with no charge
-    pub initial_damage: u32,
+    pub initial_damage: f32,
     /// How much the damage scales as it is charged
-    pub scaled_damage: u32,
+    pub scaled_damage: f32,
     /// How much knockback there is with no charge
     pub initial_knockback: f32,
     /// How much the knockback scales as it is charged

@@ -15,13 +15,13 @@ use vek::Vec3;
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct StaticData {
     /// How much damage the attack initially does
-    pub base_damage: u32,
+    pub base_damage: f32,
     /// How much the attack scales in damage
-    pub scaled_damage: u32,
+    pub scaled_damage: f32,
     /// Initial poise damage
-    pub base_poise_damage: u32,
+    pub base_poise_damage: f32,
     /// How much the attac scales in poise damage
-    pub scaled_poise_damage: u32,
+    pub scaled_poise_damage: f32,
     /// How much the attack knocks the target back initially
     pub base_knockback: f32,
     /// How much the attack scales in knockback
@@ -31,7 +31,7 @@ pub struct StaticData {
     /// Angle of the attack
     pub angle: f32,
     /// Rate of energy drain
-    pub energy_drain: u32,
+    pub energy_drain: f32,
     /// How quickly dasher moves forward
     pub forward_speed: f32,
     /// Whether state keeps charging after reaching max charge duration

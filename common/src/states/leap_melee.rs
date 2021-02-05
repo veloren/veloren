@@ -22,9 +22,9 @@ pub struct StaticData {
     /// How long the state has until exiting
     pub recover_duration: Duration,
     /// Base damage
-    pub base_damage: u32,
+    pub base_damage: f32,
     /// Base poise damage
-    pub base_poise_damage: u32,
+    pub base_poise_damage: f32,
     /// Knockback
     pub knockback: f32,
     /// Max range

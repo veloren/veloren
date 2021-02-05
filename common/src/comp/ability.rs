@@ -56,20 +56,20 @@ impl From<&CharacterState> for CharacterAbilityType {
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub enum CharacterAbility {
     BasicMelee {
-        energy_cost: u32,
-        buildup_duration: u64,
-        swing_duration: u64,
-        recover_duration: u64,
-        base_damage: u32,
-        base_poise_damage: u32,
+        energy_cost: f32,
+        buildup_duration: f32,
+        swing_duration: f32,
+        recover_duration: f32,
+        base_damage: f32,
+        base_poise_damage: f32,
         knockback: f32,
         range: f32,
         max_angle: f32,
     },
     BasicRanged {
-        energy_cost: u32,
-        buildup_duration: u64,
-        recover_duration: u64,
+        energy_cost: f32,
+        buildup_duration: f32,
+        recover_duration: f32,
         projectile: ProjectileConstructor,
         projectile_body: Body,
         projectile_light: Option<LightEmitter>,
@@ -78,11 +78,11 @@ pub enum CharacterAbility {
         can_continue: bool,
     },
     RepeaterRanged {
-        energy_cost: u32,
-        movement_duration: u64,
-        buildup_duration: u64,
-        shoot_duration: u64,
-        recover_duration: u64,
+        energy_cost: f32,
+        movement_duration: f32,
+        buildup_duration: f32,
+        shoot_duration: f32,
+        recover_duration: f32,
         leap: Option<f32>,
         projectile: ProjectileConstructor,
         projectile_body: Body,
@@ -92,55 +92,55 @@ pub enum CharacterAbility {
         reps_remaining: u32,
     },
     Boost {
-        movement_duration: u64,
+        movement_duration: f32,
         only_up: bool,
     },
     DashMelee {
-        energy_cost: u32,
-        base_damage: u32,
-        scaled_damage: u32,
-        base_poise_damage: u32,
-        scaled_poise_damage: u32,
+        energy_cost: f32,
+        base_damage: f32,
+        scaled_damage: f32,
+        base_poise_damage: f32,
+        scaled_poise_damage: f32,
         base_knockback: f32,
         scaled_knockback: f32,
         range: f32,
         angle: f32,
-        energy_drain: u32,
+        energy_drain: f32,
         forward_speed: f32,
-        buildup_duration: u64,
-        charge_duration: u64,
-        swing_duration: u64,
-        recover_duration: u64,
+        buildup_duration: f32,
+        charge_duration: f32,
+        swing_duration: f32,
+        recover_duration: f32,
         infinite_charge: bool,
         is_interruptible: bool,
     },
     BasicBlock,
     Roll {
-        energy_cost: u32,
-        buildup_duration: u64,
-        movement_duration: u64,
-        recover_duration: u64,
+        energy_cost: f32,
+        buildup_duration: f32,
+        movement_duration: f32,
+        recover_duration: f32,
         roll_strength: f32,
         immune_melee: bool,
     },
     ComboMelee {
-        stage_data: Vec<combo_melee::Stage<u64>>,
-        initial_energy_gain: u32,
-        max_energy_gain: u32,
-        energy_increase: u32,
+        stage_data: Vec<combo_melee::Stage<f32>>,
+        initial_energy_gain: f32,
+        max_energy_gain: f32,
+        energy_increase: f32,
         speed_increase: f32,
         max_speed_increase: f32,
         scales_from_combo: u32,
         is_interruptible: bool,
     },
     LeapMelee {
-        energy_cost: u32,
-        buildup_duration: u64,
-        movement_duration: u64,
-        swing_duration: u64,
-        recover_duration: u64,
-        base_damage: u32,
-        base_poise_damage: u32,
+        energy_cost: f32,
+        buildup_duration: f32,
+        movement_duration: f32,
+        swing_duration: f32,
+        recover_duration: f32,
+        base_damage: f32,
+        base_poise_damage: f32,
         range: f32,
         max_angle: f32,
         knockback: f32,
@@ -148,14 +148,14 @@ pub enum CharacterAbility {
         vertical_leap_strength: f32,
     },
     SpinMelee {
-        buildup_duration: u64,
-        swing_duration: u64,
-        recover_duration: u64,
-        base_damage: u32,
-        base_poise_damage: u32,
+        buildup_duration: f32,
+        swing_duration: f32,
+        recover_duration: f32,
+        base_damage: f32,
+        base_poise_damage: f32,
         knockback: f32,
         range: f32,
-        energy_cost: u32,
+        energy_cost: f32,
         is_infinite: bool,
         movement_behavior: spin_melee::MovementBehavior,
         is_interruptible: bool,
@@ -163,33 +163,33 @@ pub enum CharacterAbility {
         num_spins: u32,
     },
     ChargedMelee {
-        energy_cost: u32,
-        energy_drain: u32,
-        initial_damage: u32,
-        scaled_damage: u32,
-        initial_poise_damage: u32,
-        scaled_poise_damage: u32,
+        energy_cost: f32,
+        energy_drain: f32,
+        initial_damage: f32,
+        scaled_damage: f32,
+        initial_poise_damage: f32,
+        scaled_poise_damage: f32,
         initial_knockback: f32,
         scaled_knockback: f32,
         range: f32,
         max_angle: f32,
         speed: f32,
-        charge_duration: u64,
-        swing_duration: u64,
+        charge_duration: f32,
+        swing_duration: f32,
         hit_timing: f32,
-        recover_duration: u64,
+        recover_duration: f32,
     },
     ChargedRanged {
-        energy_cost: u32,
-        energy_drain: u32,
-        initial_damage: u32,
-        scaled_damage: u32,
+        energy_cost: f32,
+        energy_drain: f32,
+        initial_damage: f32,
+        scaled_damage: f32,
         initial_knockback: f32,
         scaled_knockback: f32,
         speed: f32,
-        buildup_duration: u64,
-        charge_duration: u64,
-        recover_duration: u64,
+        buildup_duration: f32,
+        charge_duration: f32,
+        recover_duration: f32,
         projectile_body: Body,
         projectile_light: Option<LightEmitter>,
         projectile_gravity: Option<Gravity>,
@@ -198,45 +198,45 @@ pub enum CharacterAbility {
         move_speed: f32,
     },
     Shockwave {
-        energy_cost: u32,
-        buildup_duration: u64,
-        swing_duration: u64,
-        recover_duration: u64,
-        damage: u32,
-        poise_damage: u32,
+        energy_cost: f32,
+        buildup_duration: f32,
+        swing_duration: f32,
+        recover_duration: f32,
+        damage: f32,
+        poise_damage: f32,
         knockback: Knockback,
         shockwave_angle: f32,
         shockwave_vertical_angle: f32,
         shockwave_speed: f32,
-        shockwave_duration: u64,
+        shockwave_duration: f32,
         requires_ground: bool,
         move_efficiency: f32,
     },
     BasicBeam {
-        buildup_duration: u64,
-        recover_duration: u64,
-        beam_duration: u64,
-        base_hps: u32,
-        base_dps: u32,
+        buildup_duration: f32,
+        recover_duration: f32,
+        beam_duration: f32,
+        base_hps: f32,
+        base_dps: f32,
         tick_rate: f32,
         range: f32,
         max_angle: f32,
         lifesteal_eff: f32,
-        energy_regen: u32,
-        energy_cost: u32,
-        energy_drain: u32,
+        energy_regen: f32,
+        energy_cost: f32,
+        energy_drain: f32,
     },
 }
 
 impl Default for CharacterAbility {
     fn default() -> Self {
         CharacterAbility::BasicMelee {
-            energy_cost: 0,
-            buildup_duration: 250,
-            swing_duration: 250,
-            recover_duration: 500,
-            base_damage: 10,
-            base_poise_damage: 0,
+            energy_cost: 0.0,
+            buildup_duration: 0.25,
+            swing_duration: 0.25,
+            recover_duration: 0.5,
+            base_damage: 10.0,
+            base_poise_damage: 0.0,
             knockback: 0.0,
             range: 3.5,
             max_angle: 15.0,
@@ -313,10 +313,10 @@ impl CharacterAbility {
 
     pub fn default_roll() -> CharacterAbility {
         CharacterAbility::Roll {
-            energy_cost: 150,
-            buildup_duration: 50,
-            movement_duration: 280,
-            recover_duration: 125,
+            energy_cost: 0.15,
+            buildup_duration: 0.05,
+            movement_duration: 0.28,
+            recover_duration: 0.125,
             roll_strength: 1.8,
             immune_melee: false,
         }
@@ -333,11 +333,11 @@ impl CharacterAbility {
                 ref mut base_poise_damage,
                 ..
             } => {
-                *buildup_duration = (*buildup_duration as f32 / speed) as u64;
-                *swing_duration = (*swing_duration as f32 / speed) as u64;
-                *recover_duration = (*recover_duration as f32 / speed) as u64;
-                *base_damage = (*base_damage as f32 * power) as u32;
-                *base_poise_damage = (*base_poise_damage as f32 * poise_strength) as u32;
+                *buildup_duration /= speed;
+                *swing_duration /= speed;
+                *recover_duration /= speed;
+                *base_damage *= power;
+                *base_poise_damage *= poise_strength;
             },
             BasicRanged {
                 ref mut buildup_duration,
@@ -345,8 +345,8 @@ impl CharacterAbility {
                 ref mut projectile,
                 ..
             } => {
-                *buildup_duration = (*buildup_duration as f32 / speed) as u64;
-                *recover_duration = (*recover_duration as f32 / speed) as u64;
+                *buildup_duration /= speed;
+                *recover_duration /= speed;
                 *projectile = projectile.modified_projectile(power, 1_f32, 1_f32, power);
             },
             RepeaterRanged {
@@ -357,17 +357,17 @@ impl CharacterAbility {
                 ref mut projectile,
                 ..
             } => {
-                *movement_duration = (*movement_duration as f32 / speed) as u64;
-                *buildup_duration = (*buildup_duration as f32 / speed) as u64;
-                *shoot_duration = (*shoot_duration as f32 / speed) as u64;
-                *recover_duration = (*recover_duration as f32 / speed) as u64;
+                *movement_duration /= speed;
+                *buildup_duration /= speed;
+                *shoot_duration /= speed;
+                *recover_duration /= speed;
                 *projectile = projectile.modified_projectile(power, 1_f32, 1_f32, power);
             },
             Boost {
                 ref mut movement_duration,
                 ..
             } => {
-                *movement_duration = (*movement_duration as f32 / speed) as u64;
+                *movement_duration /= speed;
             },
             DashMelee {
                 ref mut base_damage,
@@ -379,13 +379,13 @@ impl CharacterAbility {
                 ref mut recover_duration,
                 ..
             } => {
-                *base_damage = (*base_damage as f32 * power) as u32;
-                *scaled_damage = (*scaled_damage as f32 * power) as u32;
-                *base_poise_damage = (*base_damage as f32 * poise_strength) as u32;
-                *scaled_poise_damage = (*scaled_poise_damage as f32 * poise_strength) as u32;
-                *buildup_duration = (*buildup_duration as f32 / speed) as u64;
-                *swing_duration = (*swing_duration as f32 / speed) as u64;
-                *recover_duration = (*recover_duration as f32 / speed) as u64;
+                *base_damage *= power;
+                *scaled_damage *= power;
+                *base_poise_damage *= poise_strength;
+                *scaled_poise_damage *= poise_strength;
+                *buildup_duration /= speed;
+                *swing_duration /= speed;
+                *recover_duration /= speed;
             },
             BasicBlock => {},
             Roll {
@@ -394,9 +394,9 @@ impl CharacterAbility {
                 ref mut recover_duration,
                 ..
             } => {
-                *buildup_duration = (*buildup_duration as f32 / speed) as u64;
-                *movement_duration = (*movement_duration as f32 / speed) as u64;
-                *recover_duration = (*recover_duration as f32 / speed) as u64;
+                *buildup_duration /= speed;
+                *movement_duration /= speed;
+                *recover_duration /= speed;
             },
             ComboMelee {
                 ref mut stage_data, ..
@@ -414,11 +414,11 @@ impl CharacterAbility {
                 ref mut base_poise_damage,
                 ..
             } => {
-                *buildup_duration = (*buildup_duration as f32 / speed) as u64;
-                *swing_duration = (*swing_duration as f32 / speed) as u64;
-                *recover_duration = (*recover_duration as f32 / speed) as u64;
-                *base_damage = (*base_damage as f32 * power) as u32;
-                *base_poise_damage = (*base_poise_damage as f32 * poise_strength) as u32;
+                *buildup_duration /= speed;
+                *swing_duration /= speed;
+                *recover_duration /= speed;
+                *base_damage *= power;
+                *base_poise_damage *= poise_strength;
             },
             SpinMelee {
                 ref mut buildup_duration,
@@ -428,11 +428,11 @@ impl CharacterAbility {
                 ref mut base_poise_damage,
                 ..
             } => {
-                *buildup_duration = (*buildup_duration as f32 / speed) as u64;
-                *swing_duration = (*swing_duration as f32 / speed) as u64;
-                *recover_duration = (*recover_duration as f32 / speed) as u64;
-                *base_damage = (*base_damage as f32 * power) as u32;
-                *base_poise_damage = (*base_poise_damage as f32 * poise_strength) as u32;
+                *buildup_duration /= speed;
+                *swing_duration /= speed;
+                *recover_duration /= speed;
+                *base_damage *= power;
+                *base_poise_damage *= poise_strength;
             },
             ChargedMelee {
                 ref mut initial_damage,
@@ -445,14 +445,14 @@ impl CharacterAbility {
                 ref mut recover_duration,
                 ..
             } => {
-                *initial_damage = (*initial_damage as f32 * power) as u32;
-                *scaled_damage = (*scaled_damage as f32 * power) as u32;
-                *initial_poise_damage = (*initial_poise_damage as f32 * poise_strength) as u32;
-                *scaled_poise_damage = (*scaled_poise_damage as f32 * poise_strength) as u32;
+                *initial_damage *= power;
+                *scaled_damage *= power;
+                *initial_poise_damage *= poise_strength;
+                *scaled_poise_damage *= poise_strength;
                 *ability_speed *= speed;
-                *charge_duration = (*charge_duration as f32 / speed) as u64;
-                *swing_duration = (*swing_duration as f32 / speed) as u64;
-                *recover_duration = (*recover_duration as f32 / speed) as u64;
+                *charge_duration /= speed;
+                *swing_duration /= speed;
+                *recover_duration /= speed;
             },
             ChargedRanged {
                 ref mut initial_damage,
@@ -463,12 +463,12 @@ impl CharacterAbility {
                 ref mut recover_duration,
                 ..
             } => {
-                *initial_damage = (*initial_damage as f32 * power) as u32;
-                *scaled_damage = (*scaled_damage as f32 * power) as u32;
+                *initial_damage *= power;
+                *scaled_damage *= power;
                 *ability_speed *= speed;
-                *buildup_duration = (*buildup_duration as f32 / speed) as u64;
-                *charge_duration = (*charge_duration as f32 / speed) as u64;
-                *recover_duration = (*recover_duration as f32 / speed) as u64;
+                *buildup_duration /= speed;
+                *charge_duration /= speed;
+                *recover_duration /= speed;
             },
             Shockwave {
                 ref mut buildup_duration,
@@ -478,11 +478,11 @@ impl CharacterAbility {
                 ref mut poise_damage,
                 ..
             } => {
-                *buildup_duration = (*buildup_duration as f32 / speed) as u64;
-                *swing_duration = (*swing_duration as f32 / speed) as u64;
-                *recover_duration = (*recover_duration as f32 / speed) as u64;
-                *damage = (*damage as f32 * power) as u32;
-                *poise_damage = (*poise_damage as f32 * poise_strength) as u32;
+                *buildup_duration /= speed;
+                *swing_duration /= speed;
+                *recover_duration /= speed;
+                *damage *= power;
+                *poise_damage *= poise_strength;
             },
             BasicBeam {
                 ref mut buildup_duration,
@@ -492,11 +492,11 @@ impl CharacterAbility {
                 ref mut tick_rate,
                 ..
             } => {
-                *buildup_duration = (*buildup_duration as f32 / speed) as u64;
-                *recover_duration = (*recover_duration as f32 / speed) as u64;
+                *buildup_duration /= speed;
+                *recover_duration /= speed;
                 // hps and dps adjusted by speed as they are normalized by tick rate already
-                *base_hps = (*base_hps as f32 * power * speed) as u32;
-                *base_dps = (*base_dps as f32 * power * speed) as u32;
+                *base_hps *= power * speed;
+                *base_dps *= power * speed;
                 *tick_rate *= speed;
             },
         }
@@ -516,7 +516,7 @@ impl CharacterAbility {
             | ChargedMelee { energy_cost, .. }
             | ChargedRanged { energy_cost, .. }
             | Shockwave { energy_cost, .. }
-            | BasicBeam { energy_cost, .. } => *energy_cost,
+            | BasicBeam { energy_cost, .. } => *energy_cost as u32,
             BasicBlock | Boost { .. } | ComboMelee { .. } => 0,
         }
     }
@@ -561,10 +561,10 @@ impl CharacterAbility {
                             } else {
                                 0
                             };
-                        *max_energy_gain = (*max_energy_gain as f32
+                        *max_energy_gain = *max_energy_gain
                             * ((energy_level + 1) * stage_data.len() as u16 - 1) as f32
-                            / ((Sword(TsRegen).max_level().unwrap() + 1) * stage_data.len() as u16
-                                - 1) as f32) as u32;
+                            / (Sword(TsRegen).max_level().unwrap() + 1) as f32
+                            * (stage_data.len() - 1) as f32;
                         *scales_from_combo = skillset
                             .skill_level(Sword(TsDamage))
                             .unwrap_or(None)
@@ -583,20 +583,16 @@ impl CharacterAbility {
                     } => {
                         *is_interruptible = skillset.has_skill(Sword(InterruptingAttacks));
                         if let Ok(Some(level)) = skillset.skill_level(Sword(DCost)) {
-                            *energy_cost =
-                                (*energy_cost as f32 * 0.75_f32.powi(level.into())) as u32;
+                            *energy_cost *= 0.75_f32.powi(level.into());
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Sword(DDrain)) {
-                            *energy_drain =
-                                (*energy_drain as f32 * 0.75_f32.powi(level.into())) as u32;
+                            *energy_drain *= 0.75_f32.powi(level.into());
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Sword(DDamage)) {
-                            *base_damage =
-                                (*base_damage as f32 * 1.2_f32.powi(level.into())) as u32;
+                            *base_damage *= 1.2_f32.powi(level.into());
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Sword(DScaling)) {
-                            *scaled_damage =
-                                (*scaled_damage as f32 * 1.2_f32.powi(level.into())) as u32;
+                            *scaled_damage *= 1.2_f32.powi(level.into());
                         }
                         if skillset.has_skill(Sword(DSpeed)) {
                             *forward_speed *= 1.3;
@@ -613,16 +609,13 @@ impl CharacterAbility {
                     } => {
                         *is_interruptible = skillset.has_skill(Sword(InterruptingAttacks));
                         if let Ok(Some(level)) = skillset.skill_level(Sword(SDamage)) {
-                            *base_damage =
-                                (*base_damage as f32 * 1.4_f32.powi(level.into())) as u32;
+                            *base_damage *= 1.4_f32.powi(level.into());
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Sword(SSpeed)) {
-                            *swing_duration =
-                                (*swing_duration as f32 * 0.8_f32.powi(level.into())) as u64;
+                            *swing_duration *= 0.8_f32.powi(level.into());
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Sword(SCost)) {
-                            *energy_cost =
-                                (*energy_cost as f32 * 0.75_f32.powi(level.into())) as u32;
+                            *energy_cost *= 0.75_f32.powi(level.into());
                         }
                         *num_spins = skillset
                             .skill_level(Sword(SSpins))
@@ -662,10 +655,10 @@ impl CharacterAbility {
                             } else {
                                 0
                             };
-                        *max_energy_gain = (*max_energy_gain as f32
+                        *max_energy_gain = *max_energy_gain
                             * ((energy_level + 1) * stage_data.len() as u16 - 1) as f32
-                            / ((Axe(DsRegen).max_level().unwrap() + 1) * stage_data.len() as u16
-                                - 1) as f32) as u32;
+                            / (Axe(DsRegen).max_level().unwrap() + 1) as f32
+                            * (stage_data.len() - 1) as f32;
                         *scales_from_combo = skillset
                             .skill_level(Axe(DsDamage))
                             .unwrap_or(None)
@@ -687,16 +680,13 @@ impl CharacterAbility {
                             spin_melee::MovementBehavior::ForwardGround
                         };
                         if let Ok(Some(level)) = skillset.skill_level(Axe(SDamage)) {
-                            *base_damage =
-                                (*base_damage as f32 * 1.3_f32.powi(level.into())) as u32;
+                            *base_damage *= 1.3_f32.powi(level.into());
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Axe(SSpeed)) {
-                            *swing_duration =
-                                (*swing_duration as f32 * 0.8_f32.powi(level.into())) as u64;
+                            *swing_duration *= 0.8_f32.powi(level.into());
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Axe(SCost)) {
-                            *energy_cost =
-                                (*energy_cost as f32 * 0.75_f32.powi(level.into())) as u32;
+                            *energy_cost *= 0.75_f32.powi(level.into());
                         }
                     },
                     LeapMelee {
@@ -708,15 +698,13 @@ impl CharacterAbility {
                         ..
                     } => {
                         if let Ok(Some(level)) = skillset.skill_level(Axe(LDamage)) {
-                            *base_damage =
-                                (*base_damage as f32 * 1.35_f32.powi(level.into())) as u32;
+                            *base_damage *= 1.35_f32.powi(level.into());
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Axe(LKnockback)) {
                             *knockback *= 1.4_f32.powi(level.into());
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Axe(LCost)) {
-                            *energy_cost =
-                                (*energy_cost as f32 * 0.75_f32.powi(level.into())) as u32;
+                            *energy_cost *= 0.75_f32.powi(level.into());
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Axe(LDistance)) {
                             *forward_leap_strength *= 1.2_f32.powi(level.into());
@@ -741,7 +729,7 @@ impl CharacterAbility {
                             *stage_data = (*stage_data)
                                 .iter()
                                 .map(|s| s.modify_strike(1.5_f32.powi(level.into())))
-                                .collect::<Vec<combo_melee::Stage<u64>>>();
+                                .collect::<Vec<combo_melee::Stage<f32>>>();
                         }
                         let speed_segments = Hammer(SsSpeed).max_level().unwrap_or(1) as f32;
                         let speed_level = skillset
@@ -758,10 +746,10 @@ impl CharacterAbility {
                             } else {
                                 0
                             };
-                        *max_energy_gain = (*max_energy_gain as f32
+                        *max_energy_gain = *max_energy_gain
                             * ((energy_level + 1) * stage_data.len() as u16) as f32
                             / ((Hammer(SsRegen).max_level().unwrap() + 1) * stage_data.len() as u16)
-                                as f32) as u32;
+                                as f32;
                         *scales_from_combo = skillset
                             .skill_level(Hammer(SsDamage))
                             .unwrap_or(None)
@@ -776,15 +764,13 @@ impl CharacterAbility {
                         ..
                     } => {
                         if let Ok(Some(level)) = skillset.skill_level(Hammer(CDamage)) {
-                            *scaled_damage =
-                                (*scaled_damage as f32 * 1.25_f32.powi(level.into())) as u32;
+                            *scaled_damage *= 1.25_f32.powi(level.into());
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Hammer(CKnockback)) {
                             *scaled_knockback *= 1.5_f32.powi(level.into());
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Hammer(CDrain)) {
-                            *energy_drain =
-                                (*energy_drain as f32 * 0.75_f32.powi(level.into())) as u32;
+                            *energy_drain *= 0.75_f32.powi(level.into());
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Hammer(CSpeed)) {
                             *speed *= 1.25_f32.powi(level.into());
@@ -800,15 +786,13 @@ impl CharacterAbility {
                         ..
                     } => {
                         if let Ok(Some(level)) = skillset.skill_level(Hammer(LDamage)) {
-                            *base_damage =
-                                (*base_damage as f32 * 1.4_f32.powi(level.into())) as u32;
+                            *base_damage *= 1.4_f32.powi(level.into());
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Hammer(LKnockback)) {
                             *knockback *= 1.5_f32.powi(level.into());
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Hammer(LCost)) {
-                            *energy_cost =
-                                (*energy_cost as f32 * 0.75_f32.powi(level.into())) as u32;
+                            *energy_cost *= 0.75_f32.powi(level.into());
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Hammer(LDistance)) {
                             *forward_leap_strength *= 1.25_f32.powi(level.into());
@@ -858,8 +842,7 @@ impl CharacterAbility {
                             *initial_projectile_speed *= 1.3_f32.powi(level.into());
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Bow(CDamage)) {
-                            *scaled_damage =
-                                (*scaled_damage as f32 * 1.2_f32.powi(level.into())) as u32;
+                            *scaled_damage *= 1.2_f32.powi(level.into());
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Bow(CKnockback)) {
                             *scaled_knockback *= 1.25_f32.powi(level.into());
@@ -868,8 +851,7 @@ impl CharacterAbility {
                             *scaled_projectile_speed *= 1.2_f32.powi(level.into());
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Bow(CDrain)) {
-                            *energy_drain =
-                                (*energy_drain as f32 * 0.85_f32.powi(level.into())) as u32;
+                            *energy_drain *= 0.85_f32.powi(level.into());
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Bow(CSpeed)) {
                             *speed *= 1.10_f32.powi(level.into());
@@ -895,14 +877,13 @@ impl CharacterAbility {
                                 projectile.modified_projectile(power, 1_f32, 1_f32, 1_f32);
                         }
                         if !skillset.has_skill(Bow(RGlide)) {
-                            *buildup_duration = 1;
+                            *buildup_duration = 0.001;
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Bow(RArrows)) {
                             *reps_remaining += level as u32;
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Bow(RCost)) {
-                            *energy_cost =
-                                (*energy_cost as f32 * 0.70_f32.powi(level.into())) as u32;
+                            *energy_cost *= 0.70_f32.powi(level.into());
                         }
                     },
                     _ => {},
@@ -942,22 +923,21 @@ impl CharacterAbility {
                         ..
                     } => {
                         if let Ok(Some(level)) = skillset.skill_level(Staff(FDamage)) {
-                            *base_dps = (*base_dps as f32 * 1.3_f32.powi(level.into())) as u32;
+                            *base_dps *= 1.3_f32.powi(level.into());
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Staff(FRange)) {
                             let range_mod = 1.25_f32.powi(level.into());
                             *range *= range_mod;
                             // Duration modified to keep velocity constant
-                            *beam_duration = (*beam_duration as f32 * range_mod) as u64;
+                            *beam_duration *= range_mod;
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Staff(FDrain)) {
-                            *energy_drain =
-                                (*energy_drain as f32 * 0.8_f32.powi(level.into())) as u32;
+                            *energy_drain *= 0.8_f32.powi(level.into());
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Staff(FVelocity)) {
                             let velocity_increase = 1.25_f32.powi(level.into());
                             let duration_mod = 1.0 / (1.0 + velocity_increase);
-                            *beam_duration = (*beam_duration as f32 * duration_mod) as u64;
+                            *beam_duration *= duration_mod;
                         }
                     },
                     Shockwave {
@@ -968,18 +948,16 @@ impl CharacterAbility {
                         ..
                     } => {
                         if let Ok(Some(level)) = skillset.skill_level(Staff(SDamage)) {
-                            *damage = (*damage as f32 * 1.3_f32.powi(level.into())) as u32;
+                            *damage *= 1.3_f32.powi(level.into());
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Staff(SKnockback)) {
                             *knockback = knockback.modify_strength(1.3_f32.powi(level.into()));
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Staff(SRange)) {
-                            *shockwave_duration =
-                                (*shockwave_duration as f32 * 1.2_f32.powi(level.into())) as u64;
+                            *shockwave_duration *= 1.2_f32.powi(level.into());
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Staff(SCost)) {
-                            *energy_cost =
-                                (*energy_cost as f32 * 0.8_f32.powi(level.into())) as u32;
+                            *energy_cost *= 0.8_f32.powi(level.into());
                         }
                     },
                     _ => {},
@@ -999,27 +977,25 @@ impl CharacterAbility {
                         ..
                     } => {
                         if let Ok(Some(level)) = skillset.skill_level(Sceptre(BHeal)) {
-                            *base_hps = (*base_hps as f32 * 1.15_f32.powi(level.into())) as u32;
+                            *base_hps *= 1.15_f32.powi(level.into());
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Sceptre(BDamage)) {
-                            *base_dps = (*base_dps as f32 * 1.25_f32.powi(level.into())) as u32;
+                            *base_dps *= 1.25_f32.powi(level.into());
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Sceptre(BRange)) {
                             let range_mod = 1.20_f32.powi(level.into());
                             *range *= range_mod;
                             // Duration modified to keep velocity constant
-                            *beam_duration = (*beam_duration as f32 * range_mod) as u64;
+                            *beam_duration *= range_mod;
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Sceptre(BLifesteal)) {
                             *lifesteal_eff *= 1.25_f32.powi(level.into());
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Sceptre(BRegen)) {
-                            *energy_regen =
-                                (*energy_regen as f32 * 1.1_f32.powi(level.into())) as u32;
+                            *energy_regen *= 1.1_f32.powi(level.into());
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Sceptre(BCost)) {
-                            *energy_cost =
-                                (*energy_cost as f32 * 0.9_f32.powi(level.into())) as u32;
+                            *energy_cost *= 0.9_f32.powi(level.into());
                         }
                     },
                     BasicRanged {
@@ -1047,8 +1023,7 @@ impl CharacterAbility {
                             *projectile = projectile.modified_projectile(power, 1_f32, range, heal);
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Sceptre(PCost)) {
-                            *energy_cost =
-                                (*energy_cost as f32 * 0.85_f32.powi(level.into())) as u32;
+                            *energy_cost *= 0.85_f32.powi(level.into());
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Sceptre(PProjSpeed)) {
                             *projectile_speed *= 1.25_f32.powi(level.into());
@@ -1069,14 +1044,13 @@ impl CharacterAbility {
                 {
                     *immune_melee = skillset.has_skill(Skill::Roll(ImmuneMelee));
                     if let Ok(Some(level)) = skillset.skill_level(Skill::Roll(Cost)) {
-                        *energy_cost = (*energy_cost as f32 * 0.8_f32.powi(level.into())) as u32;
+                        *energy_cost *= 0.8_f32.powi(level.into());
                     }
                     if let Ok(Some(level)) = skillset.skill_level(Skill::Roll(Strength)) {
                         *roll_strength *= 1.2_f32.powi(level.into());
                     }
                     if let Ok(Some(level)) = skillset.skill_level(Skill::Roll(Duration)) {
-                        *movement_duration =
-                            (*movement_duration as f32 * 1.2_f32.powi(level.into())) as u64;
+                        *movement_duration *= 1.2_f32.powi(level.into());
                     }
                 }
             },
@@ -1101,9 +1075,9 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                 energy_cost: _,
             } => CharacterState::BasicMelee(basic_melee::Data {
                 static_data: basic_melee::StaticData {
-                    buildup_duration: Duration::from_millis(*buildup_duration),
-                    swing_duration: Duration::from_millis(*swing_duration),
-                    recover_duration: Duration::from_millis(*recover_duration),
+                    buildup_duration: Duration::from_secs_f32(*buildup_duration),
+                    swing_duration: Duration::from_secs_f32(*swing_duration),
+                    recover_duration: Duration::from_secs_f32(*recover_duration),
                     base_damage: *base_damage,
                     base_poise_damage: *base_poise_damage,
                     knockback: *knockback,
@@ -1127,8 +1101,8 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                 energy_cost: _,
             } => CharacterState::BasicRanged(basic_ranged::Data {
                 static_data: basic_ranged::StaticData {
-                    buildup_duration: Duration::from_millis(*buildup_duration),
-                    recover_duration: Duration::from_millis(*recover_duration),
+                    buildup_duration: Duration::from_secs_f32(*buildup_duration),
+                    recover_duration: Duration::from_secs_f32(*recover_duration),
                     projectile: *projectile,
                     projectile_body: *projectile_body,
                     projectile_light: *projectile_light,
@@ -1147,7 +1121,7 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                 only_up,
             } => CharacterState::Boost(boost::Data {
                 static_data: boost::StaticData {
-                    movement_duration: Duration::from_millis(*movement_duration),
+                    movement_duration: Duration::from_secs_f32(*movement_duration),
                     only_up: *only_up,
                 },
                 timer: Duration::default(),
@@ -1183,10 +1157,10 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                     energy_drain: *energy_drain,
                     forward_speed: *forward_speed,
                     infinite_charge: *infinite_charge,
-                    buildup_duration: Duration::from_millis(*buildup_duration),
-                    charge_duration: Duration::from_millis(*charge_duration),
-                    swing_duration: Duration::from_millis(*swing_duration),
-                    recover_duration: Duration::from_millis(*recover_duration),
+                    buildup_duration: Duration::from_secs_f32(*buildup_duration),
+                    charge_duration: Duration::from_secs_f32(*charge_duration),
+                    swing_duration: Duration::from_secs_f32(*swing_duration),
+                    recover_duration: Duration::from_secs_f32(*recover_duration),
                     is_interruptible: *is_interruptible,
                     ability_key: key,
                 },
@@ -1206,9 +1180,9 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                 immune_melee,
             } => CharacterState::Roll(roll::Data {
                 static_data: roll::StaticData {
-                    buildup_duration: Duration::from_millis(*buildup_duration),
-                    movement_duration: Duration::from_millis(*movement_duration),
-                    recover_duration: Duration::from_millis(*recover_duration),
+                    buildup_duration: Duration::from_secs_f32(*buildup_duration),
+                    movement_duration: Duration::from_secs_f32(*movement_duration),
+                    recover_duration: Duration::from_secs_f32(*recover_duration),
                     roll_strength: *roll_strength,
                     immune_melee: *immune_melee,
                 },
@@ -1261,10 +1235,10 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                 vertical_leap_strength,
             } => CharacterState::LeapMelee(leap_melee::Data {
                 static_data: leap_melee::StaticData {
-                    buildup_duration: Duration::from_millis(*buildup_duration),
-                    movement_duration: Duration::from_millis(*movement_duration),
-                    swing_duration: Duration::from_millis(*swing_duration),
-                    recover_duration: Duration::from_millis(*recover_duration),
+                    buildup_duration: Duration::from_secs_f32(*buildup_duration),
+                    movement_duration: Duration::from_secs_f32(*movement_duration),
+                    swing_duration: Duration::from_secs_f32(*swing_duration),
+                    recover_duration: Duration::from_secs_f32(*recover_duration),
                     base_damage: *base_damage,
                     base_poise_damage: *base_poise_damage,
                     knockback: *knockback,
@@ -1294,9 +1268,9 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                 num_spins,
             } => CharacterState::SpinMelee(spin_melee::Data {
                 static_data: spin_melee::StaticData {
-                    buildup_duration: Duration::from_millis(*buildup_duration),
-                    swing_duration: Duration::from_millis(*swing_duration),
-                    recover_duration: Duration::from_millis(*recover_duration),
+                    buildup_duration: Duration::from_secs_f32(*buildup_duration),
+                    swing_duration: Duration::from_secs_f32(*swing_duration),
+                    recover_duration: Duration::from_secs_f32(*recover_duration),
                     base_damage: *base_damage,
                     base_poise_damage: *base_poise_damage,
                     knockback: *knockback,
@@ -1343,10 +1317,10 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                     speed: *speed,
                     range: *range,
                     max_angle: *max_angle,
-                    charge_duration: Duration::from_millis(*charge_duration),
-                    swing_duration: Duration::from_millis(*swing_duration),
+                    charge_duration: Duration::from_secs_f32(*charge_duration),
+                    swing_duration: Duration::from_secs_f32(*swing_duration),
                     hit_timing: *hit_timing,
-                    recover_duration: Duration::from_millis(*recover_duration),
+                    recover_duration: Duration::from_secs_f32(*recover_duration),
                     ability_key: key,
                 },
                 stage_section: StageSection::Charge,
@@ -1373,9 +1347,9 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                 move_speed,
             } => CharacterState::ChargedRanged(charged_ranged::Data {
                 static_data: charged_ranged::StaticData {
-                    buildup_duration: Duration::from_millis(*buildup_duration),
-                    charge_duration: Duration::from_millis(*charge_duration),
-                    recover_duration: Duration::from_millis(*recover_duration),
+                    buildup_duration: Duration::from_secs_f32(*buildup_duration),
+                    charge_duration: Duration::from_secs_f32(*charge_duration),
+                    recover_duration: Duration::from_secs_f32(*recover_duration),
                     energy_drain: *energy_drain,
                     initial_damage: *initial_damage,
                     scaled_damage: *scaled_damage,
@@ -1409,10 +1383,10 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                 reps_remaining,
             } => CharacterState::RepeaterRanged(repeater_ranged::Data {
                 static_data: repeater_ranged::StaticData {
-                    movement_duration: Duration::from_millis(*movement_duration),
-                    buildup_duration: Duration::from_millis(*buildup_duration),
-                    shoot_duration: Duration::from_millis(*shoot_duration),
-                    recover_duration: Duration::from_millis(*recover_duration),
+                    movement_duration: Duration::from_secs_f32(*movement_duration),
+                    buildup_duration: Duration::from_secs_f32(*buildup_duration),
+                    shoot_duration: Duration::from_secs_f32(*shoot_duration),
+                    recover_duration: Duration::from_secs_f32(*recover_duration),
                     leap: *leap,
                     projectile: *projectile,
                     projectile_body: *projectile_body,
@@ -1441,16 +1415,16 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                 move_efficiency,
             } => CharacterState::Shockwave(shockwave::Data {
                 static_data: shockwave::StaticData {
-                    buildup_duration: Duration::from_millis(*buildup_duration),
-                    swing_duration: Duration::from_millis(*swing_duration),
-                    recover_duration: Duration::from_millis(*recover_duration),
+                    buildup_duration: Duration::from_secs_f32(*buildup_duration),
+                    swing_duration: Duration::from_secs_f32(*swing_duration),
+                    recover_duration: Duration::from_secs_f32(*recover_duration),
                     damage: *damage,
                     poise_damage: *poise_damage,
                     knockback: *knockback,
                     shockwave_angle: *shockwave_angle,
                     shockwave_vertical_angle: *shockwave_vertical_angle,
                     shockwave_speed: *shockwave_speed,
-                    shockwave_duration: Duration::from_millis(*shockwave_duration),
+                    shockwave_duration: Duration::from_secs_f32(*shockwave_duration),
                     requires_ground: *requires_ground,
                     move_efficiency: *move_efficiency,
                     ability_key: key,
@@ -1473,9 +1447,9 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                 energy_drain,
             } => CharacterState::BasicBeam(basic_beam::Data {
                 static_data: basic_beam::StaticData {
-                    buildup_duration: Duration::from_millis(*buildup_duration),
-                    recover_duration: Duration::from_millis(*recover_duration),
-                    beam_duration: Duration::from_millis(*beam_duration),
+                    buildup_duration: Duration::from_secs_f32(*buildup_duration),
+                    recover_duration: Duration::from_secs_f32(*recover_duration),
+                    beam_duration: Duration::from_secs_f32(*beam_duration),
                     base_hps: *base_hps,
                     base_dps: *base_dps,
                     tick_rate: *tick_rate,

@@ -1,9 +1,9 @@
 LeapMelee(
     energy_cost: 0,
-    buildup_duration: 500,
-    movement_duration: 400,
-    swing_duration: 75,
-    recover_duration: 200,
+    buildup_duration: 0.5,
+    movement_duration: 0.4,
+    swing_duration: 0.075,
+    recover_duration: 0.2,
     base_damage: 240,
     base_poise_damage: 0,
     knockback: 12.0,

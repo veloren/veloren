@@ -25,9 +25,9 @@ pub struct StaticData {
     /// How long each beam segment persists for
     pub beam_duration: Duration,
     /// Base healing per second
-    pub base_hps: u32,
+    pub base_hps: f32,
     /// Base damage per second
-    pub base_dps: u32,
+    pub base_dps: f32,
     /// Ticks of damage/healing per second
     pub tick_rate: f32,
     /// Max range
@@ -38,11 +38,11 @@ pub struct StaticData {
     /// 100% conversion of damage to health)
     pub lifesteal_eff: f32,
     /// Energy regened per second for damage ticks
-    pub energy_regen: u32,
+    pub energy_regen: f32,
     /// Energy consumed per second for heal ticks
-    pub energy_cost: u32,
+    pub energy_cost: f32,
     /// Energy drained per
-    pub energy_drain: u32,
+    pub energy_drain: f32,
     /// What key is used to press ability
     pub ability_key: AbilityKey,
 }
@@ -120,7 +120,8 @@ impl CharacterBehavior for Data {
             },
             StageSection::Cast => {
                 if ability_key_is_pressed(data, self.static_data.ability_key)
-                    && (self.static_data.energy_drain == 0 || update.energy.current() > 0)
+                    && (self.static_data.energy_drain <= f32::EPSILON
+                        || update.energy.current() > 0)
                 {
                     let speed =
                         self.static_data.range / self.static_data.beam_duration.as_secs_f32();

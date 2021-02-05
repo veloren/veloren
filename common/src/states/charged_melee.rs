@@ -14,17 +14,17 @@ use std::time::Duration;
 /// Separated out to condense update portions of character state
 pub struct StaticData {
     /// How much energy is drained per second when charging
-    pub energy_drain: u32,
+    pub energy_drain: f32,
     /// Energy cost per attack
-    pub energy_cost: u32,
+    pub energy_cost: f32,
     /// How much damage is dealt with no charge
-    pub initial_damage: u32,
+    pub initial_damage: f32,
     /// How much the damage is scaled by
-    pub scaled_damage: u32,
+    pub scaled_damage: f32,
     /// How much poise damage is dealt with no charge
-    pub initial_poise_damage: u32,
+    pub initial_poise_damage: f32,
     /// How much poise damage is scaled by
-    pub scaled_poise_damage: u32,
+    pub scaled_poise_damage: f32,
     /// How much knockback there is with no charge
     pub initial_knockback: f32,
     /// How much the knockback is scaled by
@@ -81,7 +81,7 @@ impl CharacterBehavior for Data {
         match self.stage_section {
             StageSection::Charge => {
                 if ability_key_is_pressed(data, self.static_data.ability_key)
-                    && update.energy.current() >= self.static_data.energy_cost
+                    && update.energy.current() as f32 >= self.static_data.energy_cost
                     && self.timer < self.static_data.charge_duration
                 {
                     let charge = (self.timer.as_secs_f32()
@@ -108,7 +108,7 @@ impl CharacterBehavior for Data {
                         source: EnergySource::Ability,
                     });
                 } else if ability_key_is_pressed(data, self.static_data.ability_key)
-                    && update.energy.current() >= self.static_data.energy_cost
+                    && update.energy.current() as f32 >= self.static_data.energy_cost
                 {
                     // Maintains charge
                     update.character = CharacterState::ChargedMelee(Data {

@@ -201,7 +201,7 @@ impl Attack {
                         ..
                     }) = attacker_info
                     {
-                        let sufficient_energy = e.current() >= *r;
+                        let sufficient_energy = e.current() as f32 >= *r;
                         if sufficient_energy {
                             emit(ServerEvent::EnergyChange {
                                 entity,
@@ -347,7 +347,7 @@ pub enum CombatEffect {
     Heal(f32),
     Buff(CombatBuff),
     Knockback(Knockback),
-    EnergyReward(u32),
+    EnergyReward(f32),
     Lifesteal(f32),
     Poise(f32),
 }
@@ -355,7 +355,7 @@ pub enum CombatEffect {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum CombatRequirement {
     AnyDamage,
-    SufficientEnergy(u32),
+    SufficientEnergy(f32),
 }
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]

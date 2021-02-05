@@ -377,7 +377,7 @@ impl ParticleMgr {
             if let CharacterState::BasicBeam(b) = character_state {
                 let particle_ori = b.particle_ori.unwrap_or(*ori.vec());
                 if b.stage_section == StageSection::Cast {
-                    if b.static_data.base_hps > 0 {
+                    if b.static_data.base_hps > 0.0 {
                         // Emit a light when using healing
                         lights.push(Light::new(pos.0 + b.offset, Rgb::new(0.1, 1.0, 0.15), 1.0));
                         for i in 0..self.scheduler.heartbeats(Duration::from_millis(1)) {

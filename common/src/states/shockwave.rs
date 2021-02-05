@@ -23,9 +23,9 @@ pub struct StaticData {
     /// How long the state has until exiting
     pub recover_duration: Duration,
     /// Base damage
-    pub damage: u32,
+    pub damage: f32,
     /// Base poise damage
-    pub poise_damage: u32,
+    pub poise_damage: f32,
     /// Knockback
     pub knockback: Knockback,
     /// Angle of the shockwave
