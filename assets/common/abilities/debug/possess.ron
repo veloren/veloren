@@ -1,7 +1,7 @@
 BasicRanged(
     energy_cost: 0,
-    buildup_duration: 1,
-    recover_duration: 10,
+    buildup_duration: 0.001,
+    recover_duration: 0.01,
     projectile: Possess,
     projectile_body: Object(ArrowSnake),
     /*projectile_light: Some(LightEmitter {

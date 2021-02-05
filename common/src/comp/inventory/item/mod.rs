@@ -347,10 +347,10 @@ impl Item {
             quality: empty_def.quality,
             item_config: Some(ItemConfig {
                 ability1: Some(CharacterAbility::BasicMelee {
-                    energy_cost: 10,
-                    buildup_duration: 500,
-                    swing_duration: 100,
-                    recover_duration: 100,
+                    energy_cost: 0.010,
+                    buildup_duration: 0.5,
+                    swing_duration: 0.1,
+                    recover_duration: 0.1,
                     base_damage: body.base_dmg(),
                     base_poise_damage: body.base_poise_dmg(),
                     knockback: 0.0,
