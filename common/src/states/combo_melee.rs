@@ -15,13 +15,13 @@ pub struct Stage<T> {
     /// Specifies which stage the combo attack is in
     pub stage: u32,
     /// Initial damage of stage
-    pub base_damage: u32,
+    pub base_damage: f32,
     /// Damage scaling per combo
-    pub damage_increase: u32,
+    pub damage_increase: f32,
     /// Initial poise damage of stage
-    pub base_poise_damage: u32,
+    pub base_poise_damage: f32,
     /// Poise damage scaling per combo
-    pub poise_damage_increase: u32,
+    pub poise_damage_increase: f32,
     /// Knockback of stage
     pub knockback: f32,
     /// Range of attack
@@ -39,7 +39,7 @@ pub struct Stage<T> {
     pub forward_movement: f32,
 }
 
-impl Stage<u64> {
+impl Stage<f32> {
     pub fn to_duration(self) -> Stage<Duration> {
         Stage::<Duration> {
             stage: self.stage,
@@ -50,21 +50,21 @@ impl Stage<u64> {
             knockback: self.knockback,
             range: self.range,
             angle: self.angle,
-            base_buildup_duration: Duration::from_millis(self.base_buildup_duration),
-            base_swing_duration: Duration::from_millis(self.base_swing_duration),
-            base_recover_duration: Duration::from_millis(self.base_recover_duration),
+            base_buildup_duration: Duration::from_secs_f32(self.base_buildup_duration),
+            base_swing_duration: Duration::from_secs_f32(self.base_swing_duration),
+            base_recover_duration: Duration::from_secs_f32(self.base_recover_duration),
             forward_movement: self.forward_movement,
         }
     }
 
     pub fn adjusted_by_stats(mut self, power: f32, poise_strength: f32, speed: f32) -> Self {
-        self.base_damage = (self.base_damage as f32 * power) as u32;
-        self.damage_increase = (self.damage_increase as f32 * power) as u32;
-        self.base_poise_damage = (self.base_poise_damage as f32 * poise_strength) as u32;
-        self.poise_damage_increase = (self.poise_damage_increase as f32 * poise_strength) as u32;
-        self.base_buildup_duration = (self.base_buildup_duration as f32 / speed) as u64;
-        self.base_swing_duration = (self.base_swing_duration as f32 / speed) as u64;
-        self.base_recover_duration = (self.base_recover_duration as f32 / speed) as u64;
+        self.base_damage *= power;
+        self.damage_increase *= power;
+        self.base_poise_damage *= poise_strength;
+        self.poise_damage_increase *= poise_strength;
+        self.base_buildup_duration /= speed;
+        self.base_swing_duration /= speed;
+        self.base_recover_duration /= speed;
         self
     }
 
@@ -82,11 +82,11 @@ pub struct StaticData {
     /// Data for each stage
     pub stage_data: Vec<Stage<Duration>>,
     /// Initial energy gain per strike
-    pub initial_energy_gain: u32,
+    pub initial_energy_gain: f32,
     /// Max energy gain per strike
-    pub max_energy_gain: u32,
+    pub max_energy_gain: f32,
     /// Energy gain increase per combo
-    pub energy_increase: u32,
+    pub energy_increase: f32,
     /// (100% - speed_increase) is percentage speed increases from current to
     /// max per combo increase
     pub speed_increase: f32,
@@ -167,20 +167,23 @@ impl CharacterBehavior for Data {
 
                     // Hit attempt
                     let damage = self.static_data.stage_data[stage_index].base_damage
-                        + self
+                        + (self
                             .static_data
                             .scales_from_combo
                             .min(self.combo / self.static_data.num_stages)
+                            as f32)
                             * self.static_data.stage_data[stage_index].damage_increase;
+
                     let poise = self.static_data.stage_data[stage_index].base_poise_damage
-                        + self
+                        + (self
                             .static_data
                             .scales_from_combo
                             .min(self.combo / self.static_data.num_stages)
+                            as f32)
                             * self.static_data.stage_data[stage_index].poise_damage_increase;
                     let poise = AttackEffect::new(
                         Some(GroupTarget::OutOfGroup),
-                        CombatEffect::Poise(poise as f32),
+                        CombatEffect::Poise(poise),
                     )
                     .with_requirement(CombatRequirement::AnyDamage);
                     let knockback = AttackEffect::new(
@@ -193,7 +196,7 @@ impl CharacterBehavior for Data {
                     .with_requirement(CombatRequirement::AnyDamage);
                     let energy = self.static_data.max_energy_gain.min(
                         self.static_data.initial_energy_gain
-                            + self.combo * self.static_data.energy_increase,
+                            + self.combo as f32 * self.static_data.energy_increase,
                     );
                     let energy = AttackEffect::new(None, CombatEffect::EnergyReward(energy))
                         .with_requirement(CombatRequirement::AnyDamage);

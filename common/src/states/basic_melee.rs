@@ -20,9 +20,9 @@ pub struct StaticData {
     /// How long the state has until exiting
     pub recover_duration: Duration,
     /// Base damage
-    pub base_damage: u32,
+    pub base_damage: f32,
     /// Base poise reduction
-    pub base_poise_damage: u32,
+    pub base_poise_damage: f32,
     /// Knockback
     pub knockback: f32,
     /// Max range
@@ -103,7 +103,7 @@ impl CharacterBehavior for Data {
                         }),
                     )
                     .with_requirement(CombatRequirement::AnyDamage);
-                    let energy = AttackEffect::new(None, CombatEffect::EnergyReward(50))
+                    let energy = AttackEffect::new(None, CombatEffect::EnergyReward(50.0))
                         .with_requirement(CombatRequirement::AnyDamage);
                     let buff = CombatEffect::Buff(CombatBuff::default_physical());
                     let damage = AttackDamage::new(

@@ -1,9 +1,9 @@
 RepeaterRanged(
     energy_cost: 450,
-    movement_duration: 300,
-    buildup_duration: 200,
-    shoot_duration: 200,
-    recover_duration: 800,
+    movement_duration: 0.3,
+    buildup_duration: 0.2,
+    shoot_duration: 0.2,
+    recover_duration: 0.8,
     leap: Some(5.0),
     projectile: Arrow(
         damage: 40.0,

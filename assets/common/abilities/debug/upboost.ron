@@ -1,4 +1,4 @@
 Boost(
-    movement_duration: 50,
+    movement_duration: 0.05,
     only_up: true,
 )
