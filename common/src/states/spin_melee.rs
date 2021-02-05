@@ -22,15 +22,15 @@ pub struct StaticData {
     /// How long until state ends
     pub recover_duration: Duration,
     /// Base damage
-    pub base_damage: u32,
+    pub base_damage: f32,
     /// Base poise damage
-    pub base_poise_damage: u32,
+    pub base_poise_damage: f32,
     /// Knockback
     pub knockback: f32,
     /// Range
     pub range: f32,
     /// Energy cost per attack
-    pub energy_cost: u32,
+    pub energy_cost: f32,
     /// Whether spin state is infinite
     pub is_infinite: bool,
     /// Used to dictate how movement functions in this state
@@ -173,7 +173,7 @@ impl CharacterBehavior for Data {
                             .unwrap_or_default(),
                         ..*self
                     });
-                } else if update.energy.current() >= self.static_data.energy_cost
+                } else if update.energy.current() as f32 >= self.static_data.energy_cost
                     && (self.spins_remaining != 0
                         || (self.static_data.is_infinite
                             && ability_key_is_pressed(data, self.static_data.ability_key)))
