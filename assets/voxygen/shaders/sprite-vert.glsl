@@ -53,7 +53,6 @@ const float SCALE_FACTOR = pow(SCALE, 1.3) * 0.2;
 const int EXTRA_NEG_Z = 32768;
 const int VERT_EXTRA_NEG_Z = 128;
 const int VERT_PAGE_SIZE = 256;
-//const int VERT_PAGE_SIZE = 256;
 
 void main() {
     // Matrix to transform this sprite instance from model space to chunk space
@@ -69,8 +68,8 @@ void main() {
     f_inst_light = vec2(inst_light, inst_glow);
 
     // Index of the vertex data in the 1D vertex texture
-    int vertex_index = int(gl_VertexIndex % VERT_PAGE_SIZE + inst_vert_page);
-    const int WIDTH = 16384; // TODO: temp
+    int vertex_index = int(gl_VertexIndex % VERT_PAGE_SIZE + inst_vert_page * VERT_PAGE_SIZE);
+    const int WIDTH = 8192; // TODO: temp
     ivec2 tex_coords = ivec2(vertex_index % WIDTH, vertex_index / WIDTH);
     uvec2 pos_atlas_pos_norm_ao = texelFetch(usampler2D(t_sprite_verts, s_sprite_verts), tex_coords, 0).xy;
     uint v_pos_norm = pos_atlas_pos_norm_ao.x;
@@ -98,7 +97,7 @@ void main() {
 
     // Determine normal
     vec3 norm = (inst_mat[(v_pos_norm >> 30u) & 3u].xyz);
-    f_norm = mix(-norm, norm, v_pos_norm >> 29u & 1u);
+    f_norm = normalize(mix(-norm, norm, v_pos_norm >> 29u & 1u));
 
     // Expand atlas tex coords to floats
     // NOTE: Could defer to fragment shader if we are vert heavy

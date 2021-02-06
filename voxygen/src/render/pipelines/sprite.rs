@@ -11,7 +11,6 @@ use std::mem;
 use vek::*;
 
 pub const VERT_PAGE_SIZE: u32 = 256;
-// pub const VERT_PAGE_SIZE: u32 = 256;
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Zeroable, Pod)]
@@ -90,7 +89,7 @@ impl VertexTrait for Vertex {
 }
 
 pub fn create_verts_texture(renderer: &mut Renderer, mut mesh: Mesh<Vertex>) -> Texture {
-    //renderer.ensure_sufficient_index_length::<Vertex>(VERT_PAGE_SIZE as usize);
+    renderer.ensure_sufficient_index_length::<Vertex>(VERT_PAGE_SIZE as usize);
     // TODO: type buffer by Usage
     /*Buffer::new(
         &renderer.device,
@@ -101,7 +100,7 @@ pub fn create_verts_texture(renderer: &mut Renderer, mut mesh: Mesh<Vertex>) -> 
     let format = wgpu::TextureFormat::Rg32Uint;
 
     // TODO: temp
-    const WIDTH: u32 = 16384;
+    const WIDTH: u32 = 8192;
     let height = verts.len() as u32 / WIDTH;
     // Fill in verts to full texture size
     verts.resize_with(height as usize * WIDTH as usize, Vertex::default);

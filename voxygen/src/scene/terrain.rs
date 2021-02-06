@@ -14,6 +14,7 @@ use crate::{
         ColLightInfo, Consts, Drawer, FirstPassDrawer, FluidVertex, FluidWaves, GlobalModel,
         Instances, LodData, Mesh, Model, RenderError, Renderer, SpriteGlobalsBindGroup,
         SpriteInstance, SpriteVertex, TerrainLocals, TerrainShadowDrawer, TerrainVertex, Texture,
+        SPRITE_VERT_PAGE_SIZE,
     },
 };
 
@@ -45,7 +46,6 @@ use vek::*;
 
 const SPRITE_SCALE: Vec3<f32> = Vec3::new(1.0 / 11.0, 1.0 / 11.0, 1.0 / 11.0);
 const SPRITE_LOD_LEVELS: usize = 5;
-const SPRITE_VERT_PAGE_SIZE: usize = 256;
 
 #[derive(Clone, Copy, Debug)]
 struct Visibility {
@@ -464,8 +464,8 @@ impl SpriteRenderContext {
                                         };
 
                                     // Get starting page count of opaque mesh
-                                    let start_page_num =
-                                        sprite_mesh.vertices().len() / SPRITE_VERT_PAGE_SIZE;
+                                    let start_page_num = sprite_mesh.vertices().len()
+                                        / SPRITE_VERT_PAGE_SIZE as usize;
                                     // Mesh generation exclusively acts using side effects; it
                                     // has no interesting return value, but updates the mesh.
                                     generate_mesh_base_vol_sprite(
@@ -473,12 +473,13 @@ impl SpriteRenderContext {
                                         (greedy, sprite_mesh, false),
                                     );
                                     // Get the number of pages after the model was meshed
-                                    let end_page_num =
-                                        (sprite_mesh.vertices().len() + SPRITE_VERT_PAGE_SIZE - 1)
-                                            / SPRITE_VERT_PAGE_SIZE;
+                                    let end_page_num = (sprite_mesh.vertices().len()
+                                        + SPRITE_VERT_PAGE_SIZE as usize
+                                        - 1)
+                                        / SPRITE_VERT_PAGE_SIZE as usize;
                                     // Fill the current last page up with degenerate verts
                                     sprite_mesh.vertices_mut_vec().resize_with(
-                                        end_page_num * SPRITE_VERT_PAGE_SIZE,
+                                        end_page_num * SPRITE_VERT_PAGE_SIZE as usize,
                                         SpriteVertex::default,
                                     );
 

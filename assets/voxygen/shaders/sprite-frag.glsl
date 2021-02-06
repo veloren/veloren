@@ -96,4 +96,5 @@ void main() {
     surf_color += f_select * (surf_color + 0.1) * vec3(0.15, 0.15, 0.15);
 
     tgt_color = vec4(surf_color, 1.0 - clamp((distance(focus_pos.xy, f_pos.xy) - (sprite_render_distance - FADE_DIST)) / FADE_DIST, 0, 1));
+    //tgt_color = vec4(-f_norm, 1.0);
 }
