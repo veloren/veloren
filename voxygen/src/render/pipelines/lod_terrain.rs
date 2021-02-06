@@ -119,10 +119,9 @@ impl LodData {
         //             SamplerInfo {
         //                 border: border_color,
         let alt = create_texture(
-            // TODO: figure out format that can be linearly filtered or change the shaders
-            wgpu::TextureFormat::Rg16Uint,
+            wgpu::TextureFormat::Rgba8Unorm,
             lod_alt,
-            wgpu::FilterMode::Nearest,
+            wgpu::FilterMode::Linear,
         );
         //             SamplerInfo {
         //                 border: [0.0, 0.0, 0.0, 0.0].into(),

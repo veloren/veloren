@@ -5,16 +5,16 @@
 #include <sky.glsl>
 #include <srgb.glsl>
 
-layout(set = 0, binding = 5) uniform utexture2D t_alt;
+layout(set = 0, binding = 5) uniform texture2D t_alt;
 layout(set = 0, binding = 6) uniform sampler s_alt;
 layout(set = 0, binding = 7) uniform texture2D t_horizon;
 layout(set = 0, binding = 8) uniform sampler s_horizon;
 
 const float MIN_SHADOW = 0.33;
 
-vec2 pos_to_uv(utexture2D tex, sampler s, vec2 pos) {
+vec2 pos_to_uv(texture2D tex, sampler s, vec2 pos) {
     // Want: (pixel + 0.5) / W
-    vec2 texSize = textureSize(usampler2D(tex, s), 0);
+    vec2 texSize = textureSize(sampler2D(tex, s), 0);
     vec2 uv_pos = (focus_off.xy + pos + 16) / (32.0 * texSize);
     return vec2(uv_pos.x, /*1.0 - */uv_pos.y);
 }
@@ -38,6 +38,7 @@ vec4 cubic(float v) {
 
 // NOTE: We assume the sampled coordinates are already in "texture pixels".
 vec4 textureBicubic(texture2D tex, sampler sampl, vec2 texCoords) {
+    // TODO: remove all textureSize calls and replace with constants
    vec2 texSize = textureSize(sampler2D(tex, sampl), 0);
    vec2 invTexSize = 1.0 / texSize;
    /* texCoords.y = texSize.y - texCoords.y; */
@@ -78,10 +79,10 @@ vec4 textureBicubic(texture2D tex, sampler sampl, vec2 texCoords) {
     , sy);
 }
 
-// UNSIGNED INTEGER VERSION
+// 16 bit version (each of the 2 8-bit components are combined after bilinear sampling)
 // NOTE: We assume the sampled coordinates are already in "texture pixels".
-vec4 utextureBicubic(utexture2D tex, sampler sampl, vec2 texCoords) {
-   vec2 texSize = textureSize(usampler2D(tex, sampl), 0);
+vec2 textureBicubic16(texture2D tex, sampler sampl, vec2 texCoords) {
+   vec2 texSize = textureSize(sampler2D(tex, sampl), 0);
    vec2 invTexSize = 1.0 / texSize;
    /* texCoords.y = texSize.y - texCoords.y; */
 
@@ -104,10 +105,14 @@ vec4 utextureBicubic(utexture2D tex, sampler sampl, vec2 texCoords) {
     /* // Correct for map rotaton.
     offset.zw  = 1.0 - offset.zw; */
 
-    vec4 sample0 = texture(usampler2D(tex, sampl), offset.xz);
-    vec4 sample1 = texture(usampler2D(tex, sampl), offset.yz);
-    vec4 sample2 = texture(usampler2D(tex, sampl), offset.xw);
-    vec4 sample3 = texture(usampler2D(tex, sampl), offset.yw);
+    vec4 sample0_v4 = texture(sampler2D(tex, sampl), offset.xz);
+    vec4 sample1_v4 = texture(sampler2D(tex, sampl), offset.yz);
+    vec4 sample2_v4 = texture(sampler2D(tex, sampl), offset.xw);
+    vec4 sample3_v4 = texture(sampler2D(tex, sampl), offset.yw);
+    vec2 sample0 = sample0_v4.rb / 256.0 + sample0_v4.ga;
+    vec2 sample1 = sample1_v4.rb / 256.0 + sample1_v4.ga;
+    vec2 sample2 = sample2_v4.rb / 256.0 + sample2_v4.ga;
+    vec2 sample3 = sample3_v4.rb / 256.0 + sample3_v4.ga;
     // vec4 sample0 = texelFetch(sampler, offset.xz, 0);
     // vec4 sample1 = texelFetch(sampler, offset.yz, 0);
     // vec4 sample2 = texelFetch(sampler, offset.xw, 0);
@@ -121,10 +126,9 @@ vec4 utextureBicubic(utexture2D tex, sampler sampl, vec2 texCoords) {
     , sy);
 }
 
-const float U16_MAX = 65535.0;
-
 float alt_at(vec2 pos) {
-    return (/*round*/(texture/*textureBicubic*/(usampler2D(t_alt, s_alt), pos_to_uv(t_alt, s_alt, pos)).r / U16_MAX * (/*1300.0*//*1278.7266845703125*/view_distance.w)) + /*140.0*/view_distance.z - focus_off.z);
+    vec4 alt_sample = texture/*textureBicubic16*/(sampler2D(t_alt, s_alt), pos_to_uv(t_alt, s_alt, pos));
+    return (/*round*/((alt_sample.r / 256.0 + alt_sample.g) * (/*1300.0*//*1278.7266845703125*/view_distance.w)) + /*140.0*/view_distance.z - focus_off.z);
     //+ (texture(t_noise, pos * 0.002).x - 0.5) * 64.0;
 
     // return 0.0
@@ -138,7 +142,7 @@ float alt_at_real(vec2 pos) {
 // #if (FLUID_MODE == FLUID_MODE_CHEAP)
 //  return alt_at(pos);
 // #elif (FLUID_MODE == FLUID_MODE_SHINY)
-    return (/*round*/(utextureBicubic(t_alt, s_alt, pos_to_tex(pos)).r / U16_MAX * (/*1300.0*//*1278.7266845703125*/view_distance.w)) + /*140.0*/view_distance.z - focus_off.z);
+    return (/*round*/(textureBicubic16(t_alt, s_alt, pos_to_tex(pos)).r * (/*1300.0*//*1278.7266845703125*/view_distance.w)) + /*140.0*/view_distance.z - focus_off.z);
 // #endif
         //+ (texture(t_noise, pos * 0.002).x - 0.5) * 64.0;
 
@@ -254,7 +258,7 @@ vec2 splay(vec2 pos) {
     const float SQRT_2 = sqrt(2.0) / 2.0;
     // /const float CBRT_2 = cbrt(2.0) / 2.0;
     // vec2 splayed = pos * (view_distance.x * SQRT_2 + pow(len * 0.5, 3.0) * (SPLAY_MULT - view_distance.x));
-    vec2 splayed = pos * (view_distance.x * SQRT_2 + len_pow * (textureSize(usampler2D(t_alt, s_alt), 0) * 32.0/* - view_distance.x*/));
+    vec2 splayed = pos * (view_distance.x * SQRT_2 + len_pow * (textureSize(sampler2D(t_alt, s_alt), 0) * 32.0/* - view_distance.x*/));
     if (abs(pos.x) > 0.99 || abs(pos.y) > 0.99) {
         splayed *= 10.0;
     }
