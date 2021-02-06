@@ -937,7 +937,7 @@ impl Ui {
                             let pos_on_screen = (view_projection_mat
                                 * Vec4::from_point(parameters.pos))
                             .homogenized();
-                            let visible = if pos_on_screen.z > -1.0 && pos_on_screen.z < 1.0 {
+                            let visible = if pos_on_screen.z > 0.0 && pos_on_screen.z < 1.0 {
                                 let x = pos_on_screen.x;
                                 let y = pos_on_screen.y;
                                 let (w, h) = parameters.dims.into_tuple();
