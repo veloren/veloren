@@ -235,6 +235,30 @@ impl Default for UpscaleMode {
     fn default() -> Self { Self { factor: 1.0 } }
 }
 
+/// Present modes
+/// See https://docs.rs/wgpu/0.7.0/wgpu/enum.PresentMode.html
+#[derive(PartialEq, Clone, Copy, Debug, Serialize, Deserialize)]
+pub enum PresentMode {
+    Fifo,
+    Mailbox,
+    #[serde(other)]
+    Immediate,
+}
+
+impl Default for PresentMode {
+    fn default() -> Self { Self::Immediate }
+}
+
+impl From<PresentMode> for wgpu::PresentMode {
+    fn from(mode: PresentMode) -> Self {
+        match mode {
+            PresentMode::Fifo => wgpu::PresentMode::Fifo,
+            PresentMode::Mailbox => wgpu::PresentMode::Mailbox,
+            PresentMode::Immediate => wgpu::PresentMode::Immediate,
+        }
+    }
+}
+
 /// Render modes
 #[derive(PartialEq, Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(default)]
@@ -245,4 +269,5 @@ pub struct RenderMode {
     pub lighting: LightingMode,
     pub shadow: ShadowMode,
     pub upscale_mode: UpscaleMode,
+    pub present_mode: PresentMode,
 }

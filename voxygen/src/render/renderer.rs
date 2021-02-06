@@ -351,7 +351,7 @@ impl Renderer {
             format: wgpu::TextureFormat::Bgra8UnormSrgb,
             width: dims.width,
             height: dims.height,
-            present_mode: wgpu::PresentMode::Immediate,
+            present_mode: mode.present_mode.into(),
         };
 
         let swap_chain = device.create_swap_chain(&surface, &sc_desc);
@@ -563,6 +563,7 @@ impl Renderer {
     /// Change the render mode.
     pub fn set_render_mode(&mut self, mode: RenderMode) -> Result<(), RenderError> {
         self.mode = mode;
+        self.sc_desc.present_mode = self.mode.present_mode.into();
 
         // Recreate render target
         self.on_resize(self.resolution)?;
@@ -1033,8 +1034,10 @@ impl Renderer {
                 warn!("{}. Recreating swap chain. A frame will be missed", err);
                 return self.on_resize(self.resolution).map(|()| None);
             },
-            Err(err @ wgpu::SwapChainError::Timeout) => {
-                warn!("{}. This will probably be resolved on the next frame", err);
+            Err(wgpu::SwapChainError::Timeout) => {
+                // This will probably be resolved on the next frame
+                // NOTE: we don't log this because it happens very frequently with
+                // PresentMode::Fifo and unlimited FPS
                 return Ok(None);
             },
             Err(err @ wgpu::SwapChainError::Outdated) => {
