@@ -1,5 +1,5 @@
-use vek::*;
 use crate::util::DHashSet;
+use vek::*;
 
 pub struct Plot {
     kind: PlotKind,
@@ -11,7 +11,9 @@ impl Plot {
     pub fn find_bounds(&self) -> Aabr<i32> {
         self.tiles
             .iter()
-            .fold(Aabr::new_empty(self.root_tile), |b, t| b.expanded_to_contain_point(*t))
+            .fold(Aabr::new_empty(self.root_tile), |b, t| {
+                b.expanded_to_contain_point(*t)
+            })
     }
 }
 

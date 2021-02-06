@@ -31,7 +31,13 @@ impl<T> PartialEq for Id<T> {
 }
 impl<T> fmt::Debug for Id<T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Id<{}>({}, {})", std::any::type_name::<T>(), self.idx, self.gen)
+        write!(
+            f,
+            "Id<{}>({}, {})",
+            std::any::type_name::<T>(),
+            self.idx,
+            self.gen
+        )
     }
 }
 impl<T> hash::Hash for Id<T> {
@@ -69,9 +75,7 @@ impl<T> Store<T> {
     }
 
     pub fn get(&self, id: Id<T>) -> &T {
-        let entry = self.entries
-            .get(id.idx as usize)
-            .unwrap();
+        let entry = self.entries.get(id.idx as usize).unwrap();
         if entry.gen == id.gen {
             entry.item.as_ref().unwrap()
         } else {
@@ -80,9 +84,7 @@ impl<T> Store<T> {
     }
 
     pub fn get_mut(&mut self, id: Id<T>) -> &mut T {
-        let entry = self.entries
-            .get_mut(id.idx as usize)
-            .unwrap();
+        let entry = self.entries.get_mut(id.idx as usize).unwrap();
         if entry.gen == id.gen {
             entry.item.as_mut().unwrap()
         } else {
@@ -90,13 +92,9 @@ impl<T> Store<T> {
         }
     }
 
-    pub fn ids(&self) -> impl Iterator<Item = Id<T>> + '_ {
-        self.iter().map(|(id, _)| id)
-    }
+    pub fn ids(&self) -> impl Iterator<Item = Id<T>> + '_ { self.iter().map(|(id, _)| id) }
 
-    pub fn values(&self) -> impl Iterator<Item = &T> + '_ {
-        self.iter().map(|(_, item)| item)
-    }
+    pub fn values(&self) -> impl Iterator<Item = &T> + '_ { self.iter().map(|(_, item)| item) }
 
     pub fn values_mut(&mut self) -> impl Iterator<Item = &mut T> + '_ {
         self.iter_mut().map(|(_, item)| item)
@@ -111,7 +109,8 @@ impl<T> Store<T> {
                     idx: idx as u32,
                     gen: entry.gen,
                     phantom: PhantomData,
-                }).zip(entry.item.as_ref())
+                })
+                .zip(entry.item.as_ref())
             })
     }
 
@@ -124,14 +123,16 @@ impl<T> Store<T> {
                     idx: idx as u32,
                     gen: entry.gen,
                     phantom: PhantomData,
-                }).zip(entry.item.as_mut())
+                })
+                .zip(entry.item.as_mut())
             })
     }
 
     pub fn insert(&mut self, item: T) -> Id<T> {
         if self.len < self.entries.len() {
             // TODO: Make this more efficient with a lookahead system
-            let (idx, entry) = self.entries
+            let (idx, entry) = self
+                .entries
                 .iter_mut()
                 .enumerate()
                 .find(|(_, e)| e.item.is_none())
@@ -161,13 +162,10 @@ impl<T> Store<T> {
     }
 
     pub fn remove(&mut self, id: Id<T>) -> Option<T> {
-        if let Some(item) = self.entries
+        if let Some(item) = self
+            .entries
             .get_mut(id.idx as usize)
-            .and_then(|e| if e.gen == id.gen {
-                e.item.take()
-            } else {
-                None
-            })
+            .and_then(|e| if e.gen == id.gen { e.item.take() } else { None })
         {
             self.len -= 1;
             Some(item)

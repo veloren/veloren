@@ -7,14 +7,17 @@ use crate::{
 };
 use common::{
     assets::AssetHandle,
-    terrain::{Block, BlockKind, structure::{Structure, StructureBlock, StructuresGroup}},
+    terrain::{
+        structure::{Structure, StructureBlock, StructuresGroup},
+        Block, BlockKind,
+    },
     vol::ReadVol,
 };
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
+use rand::prelude::*;
 use std::{f32, ops::Range};
 use vek::*;
-use rand::prelude::*;
 
 lazy_static! {
     static ref OAKS: AssetHandle<StructuresGroup> = Structure::load_group("oaks");
@@ -99,15 +102,25 @@ pub fn apply_trees_to(canvas: &mut Canvas) {
                                 ForestKind::Acacia => *ACACIAS,
                                 ForestKind::Baobab => *BAOBABS,
                                 // ForestKind::Oak => *OAKS,
-                                ForestKind::Oak => break 'model TreeModel::Procedural(
-                                    ProceduralTree::generate(TreeConfig::OAK, seed),
-                                    StructureBlock::TemperateLeaves,
-                                ),
+                                ForestKind::Oak => {
+                                    break 'model TreeModel::Procedural(
+                                        ProceduralTree::generate(
+                                            TreeConfig::oak(&mut RandomPerm::new(seed)),
+                                            &mut RandomPerm::new(seed),
+                                        ),
+                                        StructureBlock::TemperateLeaves,
+                                    );
+                                },
                                 //ForestKind::Pine => *PINES,
-                                ForestKind::Pine => break 'model TreeModel::Procedural(
-                                    ProceduralTree::generate(TreeConfig::PINE, seed),
-                                    StructureBlock::PineLeaves,
-                                ),
+                                ForestKind::Pine => {
+                                    break 'model TreeModel::Procedural(
+                                        ProceduralTree::generate(
+                                            TreeConfig::pine(&mut RandomPerm::new(seed)),
+                                            &mut RandomPerm::new(seed),
+                                        ),
+                                        StructureBlock::PineLeaves,
+                                    );
+                                },
                                 ForestKind::Birch => *BIRCHES,
                                 ForestKind::Mangrove => *MANGROVE_TREES,
                                 ForestKind::Swamp => *SWAMP_TREES,
@@ -115,8 +128,11 @@ pub fn apply_trees_to(canvas: &mut Canvas) {
                         };
 
                         let models = models.read();
-                        TreeModel::Structure(models[(MODEL_RAND.get(seed.wrapping_mul(17)) / 13) as usize % models.len()]
-                            .clone())
+                        TreeModel::Structure(
+                            models[(MODEL_RAND.get(seed.wrapping_mul(17)) / 13) as usize
+                                % models.len()]
+                            .clone(),
+                        )
                     },
                     seed,
                     units: UNIT_CHOOSER.get(seed),
@@ -133,9 +149,7 @@ pub fn apply_trees_to(canvas: &mut Canvas) {
             };
 
             let rpos2d = (wpos2d - tree.pos.xy())
-                .map2(Vec2::new(tree.units.0, tree.units.1), |p, unit| {
-                    unit * p
-                })
+                .map2(Vec2::new(tree.units.0, tree.units.1), |p, unit| unit * p)
                 .sum();
             if !Aabr::from(bounds).contains_point(rpos2d) {
                 // Skip this column
@@ -158,15 +172,17 @@ pub fn apply_trees_to(canvas: &mut Canvas) {
                     info.index(),
                     if let Some(block) = match &tree.model {
                         TreeModel::Structure(s) => s.get(model_pos).ok().copied(),
-                        TreeModel::Procedural(t, leaf_block) => Some(match t.is_branch_or_leaves_at(model_pos.map(|e| e as f32 + 0.5)) {
-                            (true, _) => StructureBlock::Normal(Rgb::new(60, 30, 0)),
-                            (_, true) => *leaf_block,
-                            (_, _) => StructureBlock::None,
-                        }),
+                        TreeModel::Procedural(t, leaf_block) => Some(
+                            match t.is_branch_or_leaves_at(model_pos.map(|e| e as f32 + 0.5)) {
+                                (true, _) => StructureBlock::Normal(Rgb::new(60, 30, 0)),
+                                (_, true) => *leaf_block,
+                                (_, _) => StructureBlock::None,
+                            },
+                        ),
                     } {
                         block
                     } else {
-                        break
+                        break;
                     },
                     wpos,
                     tree.pos.xy(),
@@ -215,50 +231,62 @@ pub struct TreeConfig {
     pub max_depth: usize,
     /// The number of branches that form from each branch.
     pub splits: usize,
-    /// The range of proportions along a branch at which a split into another branch might occur.
-    /// This value is clamped between 0 and 1, but a wider range may bias the results towards branch ends.
+    /// The range of proportions along a branch at which a split into another
+    /// branch might occur. This value is clamped between 0 and 1, but a
+    /// wider range may bias the results towards branch ends.
     pub split_range: Range<f32>,
-    /// The bias applied to the length of branches based on the proportion along their parent that they eminate from.
-    /// -1.0 = negative bias (branches at ends are longer, branches at the start are shorter)
-    /// 0.0 = no bias (branches do not change their length with regard to parent branch proportion)
-    /// 1.0 = positive bias (branches at ends are shorter, branches at the start are longer)
+    /// The bias applied to the length of branches based on the proportion along
+    /// their parent that they eminate from. -1.0 = negative bias (branches
+    /// at ends are longer, branches at the start are shorter) 0.0 = no bias
+    /// (branches do not change their length with regard to parent branch
+    /// proportion) 1.0 = positive bias (branches at ends are shorter,
+    /// branches at the start are longer)
     pub branch_len_bias: f32,
-    /// The scale of leaves in the vertical plane. Less than 1.0 implies a flattening of the leaves.
+    /// The scale of leaves in the vertical plane. Less than 1.0 implies a
+    /// flattening of the leaves.
     pub leaf_vertical_scale: f32,
     /// How evenly spaced (vs random) sub-branches are along their parent.
     pub proportionality: f32,
 }
 
 impl TreeConfig {
-    pub const OAK: Self = Self {
-        trunk_len: 12.0,
-        trunk_radius: 3.0,
-        branch_child_len: 0.8,
-        branch_child_radius: 0.6,
-        leaf_radius: 3.0..5.0,
-        straightness: 0.5,
-        max_depth: 4,
-        splits: 3,
-        split_range: 0.5..1.5,
-        branch_len_bias: 0.0,
-        leaf_vertical_scale: 1.0,
-        proportionality: 0.0,
-    };
+    pub fn oak(rng: &mut impl Rng) -> Self {
+        let scale = Lerp::lerp(0.8, 1.5, rng.gen::<f32>().powi(4));
 
-    pub const PINE: Self = Self {
-        trunk_len: 32.0,
-        trunk_radius: 1.5,
-        branch_child_len: 0.3,
-        branch_child_radius: 0.0,
-        leaf_radius: 2.0..2.5,
-        straightness: 0.0,
-        max_depth: 1,
-        splits: 56,
-        split_range: 0.2..1.2,
-        branch_len_bias: 0.75,
-        leaf_vertical_scale: 0.3,
-        proportionality: 1.0,
-    };
+        Self {
+            trunk_len: 12.0 * scale,
+            trunk_radius: 3.0 * scale,
+            branch_child_len: 0.8,
+            branch_child_radius: 0.6,
+            leaf_radius: 3.0 * scale..4.0 * scale,
+            straightness: 0.5,
+            max_depth: 4,
+            splits: 3,
+            split_range: 0.5..1.5,
+            branch_len_bias: 0.0,
+            leaf_vertical_scale: 1.0,
+            proportionality: 0.0,
+        }
+    }
+
+    pub fn pine(rng: &mut impl Rng) -> Self {
+        let scale = Lerp::lerp(1.0, 2.0, rng.gen::<f32>().powi(4));
+
+        Self {
+            trunk_len: 32.0 * scale,
+            trunk_radius: 1.5 * scale,
+            branch_child_len: 0.3,
+            branch_child_radius: 0.0,
+            leaf_radius: 2.0 * scale..2.5 * scale,
+            straightness: 0.0,
+            max_depth: 1,
+            splits: 56,
+            split_range: 0.2..1.2,
+            branch_len_bias: 0.75,
+            leaf_vertical_scale: 0.3,
+            proportionality: 1.0,
+        }
+    }
 }
 
 // TODO: Rename this to `Tree` when the name conflict is gone
@@ -269,9 +297,7 @@ pub struct ProceduralTree {
 
 impl ProceduralTree {
     /// Generate a new tree using the given configuration and seed.
-    pub fn generate(config: TreeConfig, seed: u32) -> Self {
-        let mut rng = RandomPerm::new(seed);
-
+    pub fn generate(config: TreeConfig, rng: &mut impl Rng) -> Self {
         let mut this = Self {
             branches: Vec::new(),
             trunk_idx: 0, // Gets replaced later
@@ -283,20 +309,21 @@ impl ProceduralTree {
             // Our trunk starts at the origin...
             Vec3::zero(),
             // ...and has a roughly upward direction
-            Vec3::new(rng.gen_range(-1.0..1.0), rng.gen_range(-1.0..1.0), 5.0).normalized(),
+            Vec3::new(rng.gen_range(-1.0..1.0), rng.gen_range(-1.0..1.0), 10.0).normalized(),
             config.trunk_len,
             config.trunk_radius,
             0,
             None,
-            &mut rng,
+            rng,
         );
         this.trunk_idx = trunk_idx;
 
         this
     }
 
-    // Recursively add a branch (with sub-branches) to the tree's branch graph, returning the index and AABB of the
-    // branch. This AABB gets propagated down to the parent and is used later during sampling to cull the branches to
+    // Recursively add a branch (with sub-branches) to the tree's branch graph,
+    // returning the index and AABB of the branch. This AABB gets propagated
+    // down to the parent and is used later during sampling to cull the branches to
     // be sampled.
     fn add_branch(
         &mut self,
@@ -318,7 +345,8 @@ impl ProceduralTree {
             0.0
         };
 
-        // The AABB that covers this branch, along with wood and leaves that eminate from it
+        // The AABB that covers this branch, along with wood and leaves that eminate
+        // from it
         let mut aabb = Aabb {
             min: Vec3::partial_min(start, end) - wood_radius.max(leaf_radius),
             max: Vec3::partial_max(start, end) + wood_radius.max(leaf_radius),
@@ -327,31 +355,43 @@ impl ProceduralTree {
         let mut child_idx = None;
         // Don't add child branches if we're already enough layers into the tree
         if depth < config.max_depth {
-            let x_axis = dir.cross(Vec3::<f32>::zero().map(|_| rng.gen_range(-1.0..1.0))).normalized();
+            let x_axis = dir
+                .cross(Vec3::<f32>::zero().map(|_| rng.gen_range(-1.0..1.0)))
+                .normalized();
             let y_axis = dir.cross(x_axis).normalized();
             let screw_shift = rng.gen_range(0.0..f32::consts::TAU);
 
             for i in 0..config.splits {
-                let dist = Lerp::lerp(i as f32 / (config.splits - 1) as f32, rng.gen_range(0.0..1.0), config.proportionality);
+                let dist = Lerp::lerp(
+                    i as f32 / (config.splits - 1) as f32,
+                    rng.gen_range(0.0..1.0),
+                    config.proportionality,
+                );
 
                 const PHI: f32 = 0.618;
                 const RAD_PER_BRANCH: f32 = f32::consts::TAU * PHI;
-                let screw =
-                    (screw_shift + dist * config.splits as f32 * RAD_PER_BRANCH).sin() * x_axis +
-                    (screw_shift + dist * config.splits as f32 * RAD_PER_BRANCH).cos() * y_axis;
+                let screw = (screw_shift + dist * config.splits as f32 * RAD_PER_BRANCH).sin()
+                    * x_axis
+                    + (screw_shift + dist * config.splits as f32 * RAD_PER_BRANCH).cos() * y_axis;
 
-                // Choose a point close to the branch to act as the target direction for the branch to grow in
-                // let split_factor = rng.gen_range(config.split_range.start, config.split_range.end).clamped(0.0, 1.0);
-                let split_factor = Lerp::lerp(config.split_range.start, config.split_range.end, dist);
-                let tgt = Lerp::lerp_unclamped(
-                    start,
-                    end,
-                    split_factor,
-                ) + Lerp::lerp(Vec3::<f32>::zero().map(|_| rng.gen_range(-1.0..1.0)), screw, config.proportionality);
+                // Choose a point close to the branch to act as the target direction for the
+                // branch to grow in let split_factor =
+                // rng.gen_range(config.split_range.start, config.split_range.end).clamped(0.0,
+                // 1.0);
+                let split_factor =
+                    Lerp::lerp(config.split_range.start, config.split_range.end, dist);
+                let tgt = Lerp::lerp_unclamped(start, end, split_factor)
+                    + Lerp::lerp(
+                        Vec3::<f32>::zero().map(|_| rng.gen_range(-1.0..1.0)),
+                        screw,
+                        config.proportionality,
+                    );
                 // Start the branch at the closest point to the target
                 let branch_start = line.projected_point(tgt);
-                // Now, interpolate between the target direction and the parent branch's direction to find a direction
-                let branch_dir = Lerp::lerp(tgt - branch_start, dir, config.straightness).normalized();
+                // Now, interpolate between the target direction and the parent branch's
+                // direction to find a direction
+                let branch_dir =
+                    Lerp::lerp(tgt - branch_start, dir, config.straightness).normalized();
 
                 let (branch_idx, branch_aabb) = self.add_branch(
                     config,
@@ -359,14 +399,18 @@ impl ProceduralTree {
                     branch_dir,
                     branch_len
                         * config.branch_child_len
-                        * (1.0 - (split_factor - 0.5) * 2.0 * config.branch_len_bias.clamped(-1.0, 1.0)),
+                        * (1.0
+                            - (split_factor - 0.5)
+                                * 2.0
+                                * config.branch_len_bias.clamped(-1.0, 1.0)),
                     branch_radius * config.branch_child_radius,
                     depth + 1,
                     child_idx,
                     rng,
                 );
                 child_idx = Some(branch_idx);
-                // Parent branches AABBs include the AABBs of child branches to allow for culling during sampling
+                // Parent branches AABBs include the AABBs of child branches to allow for
+                // culling during sampling
                 aabb.expand_to_contain(branch_aabb);
             }
         }
@@ -386,19 +430,20 @@ impl ProceduralTree {
     }
 
     /// Get the bounding box that covers the tree (all branches and leaves)
-    pub fn get_bounds(&self) -> Aabb<f32> {
-        self.branches[self.trunk_idx].aabb
-    }
+    pub fn get_bounds(&self) -> Aabb<f32> { self.branches[self.trunk_idx].aabb }
 
     // Recursively search for branches or leaves by walking the tree's branch graph.
     fn is_branch_or_leaves_at_inner(&self, pos: Vec3<f32>, branch_idx: usize) -> (bool, bool) {
         let branch = &self.branches[branch_idx];
-        // Always probe the sibling branch, since our AABB doesn't include its bounds (it's not one of our children)
-        let branch_or_leaves = branch.sibling_idx
+        // Always probe the sibling branch, since our AABB doesn't include its bounds
+        // (it's not one of our children)
+        let branch_or_leaves = branch
+            .sibling_idx
             .map(|idx| Vec2::from(self.is_branch_or_leaves_at_inner(pos, idx)))
             .unwrap_or_default();
 
-        // Only continue probing this sub-graph of the tree if the sample position falls within its AABB
+        // Only continue probing this sub-graph of the tree if the sample position falls
+        // within its AABB
         if branch.aabb.contains_point(pos) {
             (branch_or_leaves
                 // Probe this branch
@@ -407,23 +452,25 @@ impl ProceduralTree {
                 | branch.child_idx
                     .map(|idx| Vec2::from(self.is_branch_or_leaves_at_inner(pos, idx)))
                     .unwrap_or_default())
-                .into_tuple()
+            .into_tuple()
         } else {
             branch_or_leaves.into_tuple()
         }
     }
 
-    /// Determine whether there are either branches or leaves at the given position in the tree.
+    /// Determine whether there are either branches or leaves at the given
+    /// position in the tree.
     #[inline(always)]
     pub fn is_branch_or_leaves_at(&self, pos: Vec3<f32>) -> (bool, bool) {
         self.is_branch_or_leaves_at_inner(pos, self.trunk_idx)
     }
 }
 
-// Branches are arranged in a graph shape. Each branch points to both its first child (if any) and also to the next
-// branch in the list of child branches associated with the parent. This means that the entire tree is laid out in a
-// walkable graph where each branch refers only to two other branches. As a result, walking the tree is simply a case
-// of performing double recursion.
+// Branches are arranged in a graph shape. Each branch points to both its first
+// child (if any) and also to the next branch in the list of child branches
+// associated with the parent. This means that the entire tree is laid out in a
+// walkable graph where each branch refers only to two other branches. As a
+// result, walking the tree is simply a case of performing double recursion.
 struct Branch {
     line: LineSegment3<f32>,
     wood_radius: f32,
@@ -436,7 +483,8 @@ struct Branch {
 }
 
 impl Branch {
-    /// Determine whether there are either branches or leaves at the given position in the branch.
+    /// Determine whether there are either branches or leaves at the given
+    /// position in the branch.
     pub fn is_branch_or_leaves_at(&self, pos: Vec3<f32>) -> (bool, bool) {
         // fn finvsqrt(x: f32) -> f32 {
         //     let y = f32::from_bits(0x5f375a86 - (x.to_bits() >> 1));

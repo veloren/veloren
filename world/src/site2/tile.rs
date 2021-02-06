@@ -23,18 +23,22 @@ impl TileGrid {
         let tpos = tpos + TILE_RADIUS as i32;
         self.zones
             .get(tpos)
-            .and_then(|zone| zone.as_ref()?.get(tpos.map(|e| e.rem_euclid(ZONE_SIZE as i32))))
+            .and_then(|zone| {
+                zone.as_ref()?
+                    .get(tpos.map(|e| e.rem_euclid(ZONE_SIZE as i32)))
+            })
             .and_then(|tile| tile.as_ref())
     }
 
     pub fn get_mut(&mut self, tpos: Vec2<i32>) -> Option<&mut Tile> {
         let tpos = tpos + TILE_RADIUS as i32;
-        self.zones
-            .get_mut(tpos)
-            .and_then(|zone| zone
-                .get_or_insert_with(|| Grid::populate_from(Vec2::broadcast(ZONE_RADIUS as i32 * 2 + 1), |_| None))
-                .get_mut(tpos.map(|e| e.rem_euclid(ZONE_SIZE as i32)))
-                .map(|tile| tile.get_or_insert_with(|| Tile::empty())))
+        self.zones.get_mut(tpos).and_then(|zone| {
+            zone.get_or_insert_with(|| {
+                Grid::populate_from(Vec2::broadcast(ZONE_RADIUS as i32 * 2 + 1), |_| None)
+            })
+            .get_mut(tpos.map(|e| e.rem_euclid(ZONE_SIZE as i32)))
+            .map(|tile| tile.get_or_insert_with(|| Tile::empty()))
+        })
     }
 
     pub fn find_near(&self, tpos: Vec2<i32>, f: impl Fn(&Tile) -> bool) -> Option<Vec2<i32>> {
@@ -62,7 +66,5 @@ impl Tile {
         }
     }
 
-    pub fn is_empty(&self) -> bool {
-        self.kind == TileKind::Empty
-    }
+    pub fn is_empty(&self) -> bool { self.kind == TileKind::Empty }
 }

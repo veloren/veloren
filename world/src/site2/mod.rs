@@ -1,14 +1,14 @@
-mod tile;
 mod plot;
+mod tile;
 
-use vek::*;
-use common::store::{Store, Id};
-use crate::util::Grid;
 use self::{
-    tile::TileGrid,
     plot::{Plot, PlotKind},
+    tile::TileGrid,
 };
+use crate::util::Grid;
+use common::store::{Id, Store};
 use rand::prelude::*;
+use vek::*;
 
 #[derive(Default)]
 pub struct Site {
@@ -25,19 +25,17 @@ impl Site {
         }
     }
 
-    pub fn plots(&self) -> impl Iterator<Item=&Plot> + '_ {
-        self.plots.values()
-    }
+    pub fn plots(&self) -> impl Iterator<Item = &Plot> + '_ { self.plots.values() }
 
-    pub fn create_plot(&mut self, plot: Plot) -> Id<Plot> {
-        self.plots.insert(plot)
-    }
+    pub fn create_plot(&mut self, plot: Plot) -> Id<Plot> { self.plots.insert(plot) }
 
     pub fn generate(rng: &mut impl Rng) -> Self {
         let mut site = Site::default();
 
         for i in 0..10 {
-            let dir = Vec2::<f32>::zero().map(|_| rng.gen_range(-1.0..1.0)).normalized();
+            let dir = Vec2::<f32>::zero()
+                .map(|_| rng.gen_range(-1.0..1.0))
+                .normalized();
             let search_pos = (dir * 32.0).map(|e| e as i32);
 
             site.tiles
@@ -51,6 +49,4 @@ impl Site {
     }
 }
 
-pub fn test_site() -> Site {
-    Site::generate(&mut thread_rng())
-}
+pub fn test_site() -> Site { Site::generate(&mut thread_rng()) }
