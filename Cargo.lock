@@ -4105,9 +4105,9 @@ dependencies = [
 [[package]]
 name = "portpicker"
 version = "0.1.0"
-source = "git+https://github.com/xMAC94x/portpicker-rs#9d6df36c53c94684080a64a7212dd6bfc3617ee4"
+source = "git+https://github.com/xMAC94x/portpicker-rs?rev=df6b37872f3586ac3b21d08b56c8ec7cd92fb172#df6b37872f3586ac3b21d08b56c8ec7cd92fb172"
 dependencies = [
- "rand 0.7.3",
+ "rand 0.8.3",
 ]
 
 [[package]]
@@ -5030,11 +5030,12 @@ checksum = "c111b5bd5695e56cffe5129854aa230b39c93a305372fdbb2668ca2394eea9f8"
 
 [[package]]
 name = "slotmap"
-version = "0.4.0"
+version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c46a3482db8f247956e464d783693ece164ca056e6e67563ee5505bdb86452cd"
+checksum = "ab3003725ae562cf995f3dc82bb99e70926e09000396816765bb6d7adbe740b1"
 dependencies = [
  "serde",
+ "version_check 0.9.2",
 ]
 
 [[package]]
@@ -6177,6 +6178,7 @@ dependencies = [
  "portpicker",
  "prometheus",
  "rand 0.8.3",
+ "rayon",
  "ron",
  "scan_fmt",
  "serde",
