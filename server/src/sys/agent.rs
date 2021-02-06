@@ -1,3 +1,4 @@
+use super::SysTimer;
 use common::{
     comp::{
         self,
@@ -48,6 +49,7 @@ impl<'a> System<'a> for Sys {
             Read<'a, Time>,
             Read<'a, DeltaTime>,
             Read<'a, group::GroupManager>,
+            Write<'a, SysTimer<Self>>,
         ),
         ReadExpect<'a, SysMetrics>,
         Write<'a, EventBus<ServerEvent>>,
@@ -79,7 +81,7 @@ impl<'a> System<'a> for Sys {
     fn run(
         &mut self,
         (
-            (uid_allocator, time, dt, group_manager),
+            (uid_allocator, time, dt, group_manager, mut sys_timer),
             sys_metrics,
             event_bus,
             entities,
@@ -108,6 +110,7 @@ impl<'a> System<'a> for Sys {
     ) {
         let start_time = std::time::Instant::now();
         span!(_guard, "run", "agent::Sys::run");
+        sys_timer.start();
 
         (
             &entities,
@@ -1595,6 +1598,8 @@ impl<'a> System<'a> for Sys {
             start_time.elapsed().as_nanos() as u64,
             std::sync::atomic::Ordering::Relaxed,
         );
+
+        sys_timer.end();
     }
 }
 
