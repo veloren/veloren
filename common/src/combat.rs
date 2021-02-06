@@ -393,8 +393,11 @@ impl Damage {
                 Protection::Invincible => None,
             })
             .sum::<Option<f32>>();
+
+        const FIFTY_PERCENT_DR_THRESHOLD: f32 = 60.0;
+
         match protection {
-            Some(dr) => dr / (60.0 + dr.abs()),
+            Some(dr) => dr / (FIFTY_PERCENT_DR_THRESHOLD + dr.abs()),
             None => 1.0,
         }
     }
