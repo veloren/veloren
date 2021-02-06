@@ -11,7 +11,7 @@ DashMelee(
     energy_drain: 0,
     forward_speed: 2.0,
     buildup_duration: 0.5,
-    charge_duration: 0.3,
+    charge_duration: 0.4,
     swing_duration: 0.1,
     recover_duration: 0.5,
     infinite_charge: true,

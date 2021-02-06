@@ -1,6 +1,5 @@
 #![feature(label_break_value, bool_to_option, option_unwrap_none)]
 
-pub mod agent;
 mod aura;
 mod beam;
 mod buff;
@@ -21,7 +20,6 @@ use specs::DispatcherBuilder;
 // System names
 pub const CHARACTER_BEHAVIOR_SYS: &str = "character_behavior_sys";
 pub const MELEE_SYS: &str = "melee_sys";
-pub const AGENT_SYS: &str = "agent_sys";
 pub const BEAM_SYS: &str = "beam_sys";
 pub const CONTROLLER_SYS: &str = "controller_sys";
 pub const MOUNT_SYS: &str = "mount_sys";
@@ -33,9 +31,8 @@ pub const BUFFS_SYS: &str = "buffs_sys";
 pub const AURAS_SYS: &str = "auras_sys";
 
 pub fn add_local_systems(dispatch_builder: &mut DispatcherBuilder) {
-    dispatch_builder.add(agent::Sys, AGENT_SYS, &[]);
-    dispatch_builder.add(mount::Sys, MOUNT_SYS, &[AGENT_SYS]);
-    dispatch_builder.add(controller::Sys, CONTROLLER_SYS, &[AGENT_SYS, MOUNT_SYS]);
+    dispatch_builder.add(mount::Sys, MOUNT_SYS, &[]);
+    dispatch_builder.add(controller::Sys, CONTROLLER_SYS, &[MOUNT_SYS]);
     dispatch_builder.add(character_behavior::Sys, CHARACTER_BEHAVIOR_SYS, &[
         CONTROLLER_SYS,
     ]);

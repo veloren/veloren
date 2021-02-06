@@ -38,10 +38,11 @@ serde_json = "1.0.50"
 rand = { version = "0.8", features = ["small_rng"] }
 chrono = "0.4.9"
 hashbrown = { version = "0.9", features = ["rayon", "serde", "nightly"] }
+rayon = "1.5"
 crossbeam-channel = "0.5"
 prometheus = { version = "0.11", default-features = false}
 tiny_http = "0.7.0"
-portpicker = { git = "https://github.com/xMAC94x/portpicker-rs" }
+portpicker = { git = "https://github.com/xMAC94x/portpicker-rs", rev = "df6b37872f3586ac3b21d08b56c8ec7cd92fb172" }
 authc = { git = "https://gitlab.com/veloren/auth.git", rev = "bffb5181a35c19ddfd33ee0b4aedba741aafb68d" }
 libsqlite3-sys = { version = "0.18", features = ["bundled"] }
 diesel = { version = "1.4.3", features = ["sqlite"] }

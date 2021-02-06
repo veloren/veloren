@@ -1,7 +1,13 @@
 #![deny(unsafe_code)]
 #![allow(clippy::option_map_unit_fn)]
 #![deny(clippy::clone_on_ref_ptr)]
-#![feature(bool_to_option, drain_filter, option_unwrap_none, option_zip)]
+#![feature(
+    label_break_value,
+    bool_to_option,
+    drain_filter,
+    option_unwrap_none,
+    option_zip
+)]
 #![cfg_attr(not(feature = "worldgen"), feature(const_panic))]
 
 pub mod alias_validator;
@@ -195,6 +201,7 @@ impl Server {
         state.ecs_mut().insert(sys::WaypointTimer::default());
         state.ecs_mut().insert(sys::InviteTimeoutTimer::default());
         state.ecs_mut().insert(sys::PersistenceTimer::default());
+        state.ecs_mut().insert(sys::AgentTimer::default());
 
         // System schedulers to control execution of systems
         state
@@ -500,6 +507,7 @@ impl Server {
         sys::msg::character_screen::Sys.run_now(&self.state.ecs());
         sys::msg::in_game::Sys.run_now(&self.state.ecs());
         sys::msg::ping::Sys.run_now(&self.state.ecs());
+        sys::agent::Sys.run_now(&self.state.ecs());
 
         let before_state_tick = Instant::now();
 
@@ -689,6 +697,7 @@ impl Server {
 
         // 8) Update Metrics
         // Get system timing info
+        let agent_nanos = self.state.ecs().read_resource::<sys::AgentTimer>().nanos as i64;
         let entity_sync_nanos = self
             .state
             .ecs()
@@ -726,7 +735,7 @@ impl Server {
             .read_resource::<sys::PersistenceTimer>()
             .nanos as i64;
         let total_sys_ran_in_dispatcher_nanos =
-            terrain_nanos + waypoint_nanos + invite_timeout_nanos;
+            terrain_nanos + waypoint_nanos + invite_timeout_nanos + stats_persistence_nanos;
 
         // Report timing info
         self.tick_metrics
@@ -796,6 +805,10 @@ impl Server {
             .tick_time
             .with_label_values(&["persistence:stats"])
             .set(stats_persistence_nanos);
+        self.tick_metrics
+            .tick_time
+            .with_label_values(&["agent"])
+            .set(agent_nanos);
 
         //detailed state metrics
         {
@@ -813,8 +826,7 @@ impl Server {
             let projectile_ns = res.projectile_ns.load(Ordering::Relaxed);
             let melee_ns = res.melee_ns.load(Ordering::Relaxed);
 
-            c.with_label_values(&[common_sys::AGENT_SYS])
-                .inc_by(agent_ns);
+            c.with_label_values(&[sys::AGENT_SYS]).inc_by(agent_ns);
             c.with_label_values(&[common_sys::MOUNT_SYS])
                 .inc_by(mount_ns);
             c.with_label_values(&[common_sys::CONTROLLER_SYS])
@@ -831,7 +843,7 @@ impl Server {
 
             const NANOSEC_PER_SEC: f64 = Duration::from_secs(1).as_nanos() as f64;
             let h = &self.state_tick_metrics.state_tick_time_hist;
-            h.with_label_values(&[common_sys::AGENT_SYS])
+            h.with_label_values(&[sys::AGENT_SYS])
                 .observe(agent_ns as f64 / NANOSEC_PER_SEC);
             h.with_label_values(&[common_sys::MOUNT_SYS])
                 .observe(mount_ns as f64 / NANOSEC_PER_SEC);

@@ -1,3 +1,4 @@
+pub mod agent;
 pub mod entity_sync;
 pub mod invite_timeout;
 pub mod msg;
@@ -29,6 +30,7 @@ pub type WaypointTimer = SysTimer<waypoint::Sys>;
 pub type InviteTimeoutTimer = SysTimer<invite_timeout::Sys>;
 pub type PersistenceTimer = SysTimer<persistence::Sys>;
 pub type PersistenceScheduler = SysScheduler<persistence::Sys>;
+pub type AgentTimer = SysTimer<agent::Sys>;
 
 // System names
 // Note: commented names may be useful in the future
@@ -41,6 +43,7 @@ const WAYPOINT_SYS: &str = "server_waypoint_sys";
 const INVITE_TIMEOUT_SYS: &str = "server_invite_timeout_sys";
 const PERSISTENCE_SYS: &str = "server_persistence_sys";
 const OBJECT_SYS: &str = "server_object_sys";
+pub const AGENT_SYS: &str = "agent_sys";
 
 pub fn add_server_systems(dispatch_builder: &mut DispatcherBuilder) {
     dispatch_builder.add(terrain::Sys, TERRAIN_SYS, &[]);
