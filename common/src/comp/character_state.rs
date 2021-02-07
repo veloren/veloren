@@ -1,6 +1,6 @@
 use crate::{
     combat::Attack,
-    comp::{Energy, LoadoutManip, Ori, Pos, Vel},
+    comp::{Energy, Ori, Pos, Vel},
     event::{LocalEvent, ServerEvent},
     states::{behavior::JoinData, *},
 };
@@ -17,7 +17,6 @@ pub struct StateUpdate {
     pub ori: Ori,
     pub energy: Energy,
     pub swap_loadout: bool,
-    pub modify_loadout: Option<LoadoutManip>,
     pub local_events: VecDeque<LocalEvent>,
     pub server_events: VecDeque<ServerEvent>,
 }
@@ -30,7 +29,6 @@ impl From<&JoinData<'_>> for StateUpdate {
             ori: *data.ori,
             energy: *data.energy,
             swap_loadout: false,
-            modify_loadout: None,
             character: data.character.clone(),
             local_events: VecDeque::new(),
             server_events: VecDeque::new(),

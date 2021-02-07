@@ -49,7 +49,7 @@ impl CharacterBehavior for Data {
 
     fn modify_loadout(&self, data: &JoinData, loadout_manip: Option<LoadoutManip>) -> StateUpdate {
         let mut update = StateUpdate::from(data);
-        handle_modify_loadout(&mut update, loadout_manip);
+        handle_modify_loadout(&data, &mut update, loadout_manip);
         update
     }
 }

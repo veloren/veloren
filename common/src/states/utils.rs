@@ -7,7 +7,7 @@ use crate::{
         theropod, Body, CharacterState, LoadoutManip, StateUpdate,
     },
     consts::{FRIC_GROUND, GRAVITY},
-    event::LocalEvent,
+    event::{LocalEvent, ServerEvent},
     states::{behavior::JoinData, *},
     util::Dir,
 };
@@ -360,8 +360,17 @@ pub fn attempt_swap_loadout(data: &JoinData, update: &mut StateUpdate) {
 }
 
 /// Handles inventory manipulations that affect the loadout
-pub fn handle_modify_loadout(update: &mut StateUpdate, loadout_manip: Option<LoadoutManip>) {
-    update.modify_loadout = loadout_manip;
+pub fn handle_modify_loadout(
+    data: &JoinData,
+    update: &mut StateUpdate,
+    loadout_manip: Option<LoadoutManip>,
+) {
+    if let Some(loadout_manip) = loadout_manip {
+        update.server_events.push_front(ServerEvent::InventoryManip(
+            data.entity,
+            loadout_manip.into(),
+        ));
+    }
 }
 
 /// Checks that player can wield the glider and updates `CharacterState` if so

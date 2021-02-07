@@ -268,10 +268,6 @@ impl<'a> System<'a> for Sys {
                 };
                 local_emitter.append(&mut state_update.local_events);
                 server_emitter.append(&mut state_update.server_events);
-                if let Some(loadout_manip) = state_update.modify_loadout {
-                    server_emitter
-                        .emit(ServerEvent::InventoryManip(j.entity, loadout_manip.into()));
-                }
                 incorporate_update(&mut tuple, state_update);
             }
 
