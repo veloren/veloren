@@ -1,6 +1,6 @@
 use crate::{
     combat::Attack,
-    comp::{Energy, InventoryManip, Ori, Pos, Vel},
+    comp::{Energy, LoadoutManip, Ori, Pos, Vel},
     event::{LocalEvent, ServerEvent},
     states::{behavior::JoinData, *},
 };
@@ -17,7 +17,7 @@ pub struct StateUpdate {
     pub ori: Ori,
     pub energy: Energy,
     pub swap_loadout: bool,
-    pub modify_loadout: Option<InventoryManip>,
+    pub modify_loadout: Option<LoadoutManip>,
     pub local_events: VecDeque<LocalEvent>,
     pub server_events: VecDeque<ServerEvent>,
 }

@@ -105,7 +105,9 @@ impl<'a> System<'a> for Sys {
                             InventoryManip::Drop(Slot::Equip(_))
                             | InventoryManip::Swap(_, Slot::Equip(_))
                             | InventoryManip::Swap(Slot::Equip(_), _) => {
-                                controller.actions.push(ControlAction::ModifyLoadout(manip));
+                                controller
+                                    .actions
+                                    .push(ControlAction::ModifyLoadout(manip.into()));
                             },
                             _ => {
                                 server_emitter.emit(ServerEvent::InventoryManip(entity, manip));

@@ -896,8 +896,7 @@ impl Client {
             .write_storage::<Controller>()
             .get_mut(self.entity)
         {
-            // TODO: Undo this clone, somehow...
-            controller.actions.push(control_action.clone());
+            controller.actions.push(control_action);
         }
         self.send_msg(ClientGeneral::ControlAction(control_action));
     }

@@ -1,7 +1,7 @@
 use crate::{
     comp::{
         Beam, Body, CharacterState, ControlAction, Controller, ControllerInputs, Energy, Health,
-        Inventory, InventoryManip, Melee, Ori, PhysicsState, Pos, StateUpdate, Stats, Vel,
+        Inventory, LoadoutManip, Melee, Ori, PhysicsState, Pos, StateUpdate, Stats, Vel,
     },
     resources::DeltaTime,
     uid::Uid,
@@ -17,7 +17,7 @@ pub trait CharacterBehavior {
     fn behavior(&self, data: &JoinData) -> StateUpdate;
     // Impl these to provide behavior for these inputs
     fn swap_loadout(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
-    fn modify_loadout(&self, data: &JoinData, _inv_manip: InventoryManip) -> StateUpdate {
+    fn modify_loadout(&self, data: &JoinData, _loadout_manip: Option<LoadoutManip>) -> StateUpdate {
         StateUpdate::from(data)
     }
     fn wield(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
@@ -31,7 +31,7 @@ pub trait CharacterBehavior {
     fn handle_event(&self, data: &JoinData, event: ControlAction) -> StateUpdate {
         match event {
             ControlAction::SwapLoadout => self.swap_loadout(data),
-            ControlAction::ModifyLoadout(inv_manip) => self.modify_loadout(data, inv_manip),
+            ControlAction::ModifyLoadout(loadout_manip) => self.modify_loadout(data, loadout_manip),
             ControlAction::Wield => self.wield(data),
             ControlAction::GlideWield => self.glide_wield(data),
             ControlAction::Unwield => self.unwield(data),

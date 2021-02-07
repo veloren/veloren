@@ -4,7 +4,7 @@ use crate::{
         item::{Hands, ItemKind, Tool, ToolKind},
         quadruped_low, quadruped_medium,
         skills::{AxeSkill, BowSkill, HammerSkill, Skill, StaffSkill, SwordSkill},
-        theropod, Body, CharacterState, InventoryManip, StateUpdate,
+        theropod, Body, CharacterState, LoadoutManip, StateUpdate,
     },
     consts::{FRIC_GROUND, GRAVITY},
     event::LocalEvent,
@@ -360,8 +360,8 @@ pub fn attempt_swap_loadout(data: &JoinData, update: &mut StateUpdate) {
 }
 
 /// Handles inventory manipulations that affect the loadout
-pub fn handle_modify_loadout(update: &mut StateUpdate, inv_manip: InventoryManip) {
-    update.modify_loadout = Some(inv_manip);
+pub fn handle_modify_loadout(update: &mut StateUpdate, loadout_manip: Option<LoadoutManip>) {
+    update.modify_loadout = loadout_manip;
 }
 
 /// Checks that player can wield the glider and updates `CharacterState` if so
