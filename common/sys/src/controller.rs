@@ -1,8 +1,5 @@
 use common::{
-    comp::{
-        slot::{EquipSlot, Slot},
-        BuffChange, CharacterState, ControlEvent, Controller, InventoryManip,
-    },
+    comp::{slot::Slot, BuffChange, ControlAction, ControlEvent, Controller, InventoryManip},
     event::{EventBus, LocalEvent, ServerEvent},
     metrics::SysMetrics,
     resources::DeltaTime,
@@ -30,7 +27,6 @@ impl<'a> System<'a> for Sys {
         Read<'a, DeltaTime>,
         ReadExpect<'a, SysMetrics>,
         WriteStorage<'a, Controller>,
-        WriteStorage<'a, CharacterState>,
         ReadStorage<'a, Uid>,
     );
 
@@ -44,7 +40,6 @@ impl<'a> System<'a> for Sys {
             _dt,
             sys_metrics,
             mut controllers,
-            mut character_states,
             uids,
         ): Self::SystemData,
     ) {
@@ -52,9 +47,7 @@ impl<'a> System<'a> for Sys {
         span!(_guard, "run", "controller::Sys::run");
         let mut server_emitter = server_bus.emitter();
 
-        for (entity, _uid, controller, mut character_state) in
-            (&entities, &uids, &mut controllers, &mut character_states).join()
-        {
+        for (entity, _uid, controller) in (&entities, &uids, &mut controllers).join() {
             let mut inputs = &mut controller.inputs;
 
             // Note(imbris): I avoided incrementing the duration with inputs.tick() because
@@ -106,19 +99,18 @@ impl<'a> System<'a> for Sys {
                         }
                     },
                     ControlEvent::InventoryManip(manip) => {
-                        // Unwield if a wielded equipment slot is being modified, to avoid entering
-                        // a barehanded wielding state.
-                        if character_state.is_wield() {
-                            match manip {
-                                InventoryManip::Drop(Slot::Equip(EquipSlot::Mainhand))
-                                | InventoryManip::Swap(_, Slot::Equip(EquipSlot::Mainhand))
-                                | InventoryManip::Swap(Slot::Equip(EquipSlot::Mainhand), _) => {
-                                    *character_state = CharacterState::Idle;
-                                },
-                                _ => (),
-                            }
+                        // if an equipped slot is being changed, send a control action that the
+                        // loadout was modified
+                        match manip {
+                            InventoryManip::Drop(Slot::Equip(_))
+                            | InventoryManip::Swap(_, Slot::Equip(_))
+                            | InventoryManip::Swap(Slot::Equip(_), _) => {
+                                controller.actions.push(ControlAction::ModifyLoadout(manip));
+                            },
+                            _ => {
+                                server_emitter.emit(ServerEvent::InventoryManip(entity, manip));
+                            },
                         }
-                        server_emitter.emit(ServerEvent::InventoryManip(entity, manip))
                     },
                     ControlEvent::GroupManip(manip) => {
                         server_emitter.emit(ServerEvent::GroupManip(entity, manip))

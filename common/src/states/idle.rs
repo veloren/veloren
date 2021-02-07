@@ -1,6 +1,6 @@
 use super::utils::*;
 use crate::{
-    comp::StateUpdate,
+    comp::{InventoryManip, StateUpdate},
     states::behavior::{CharacterBehavior, JoinData},
 };
 
@@ -58,6 +58,12 @@ impl CharacterBehavior for Data {
     fn swap_loadout(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
         attempt_swap_loadout(data, &mut update);
+        update
+    }
+
+    fn modify_loadout(&self, data: &JoinData, inv_manip: InventoryManip) -> StateUpdate {
+        let mut update = StateUpdate::from(data);
+        handle_modify_loadout(&mut update, inv_manip);
         update
     }
 }

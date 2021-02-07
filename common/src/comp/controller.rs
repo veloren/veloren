@@ -46,9 +46,10 @@ pub enum ControlEvent {
     Respawn,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum ControlAction {
     SwapLoadout,
+    ModifyLoadout(InventoryManip),
     Wield,
     GlideWield,
     Unwield,

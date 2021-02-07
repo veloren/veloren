@@ -268,6 +268,10 @@ impl<'a> System<'a> for Sys {
                 };
                 local_emitter.append(&mut state_update.local_events);
                 server_emitter.append(&mut state_update.server_events);
+                if let Some(ref inv_manip) = state_update.modify_loadout {
+                    // TODO: Delete this clone, somehow...
+                    server_emitter.emit(ServerEvent::InventoryManip(j.entity, inv_manip.clone()));
+                }
                 incorporate_update(&mut tuple, state_update);
             }
 
