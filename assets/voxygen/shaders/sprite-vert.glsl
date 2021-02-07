@@ -76,7 +76,7 @@ void main() {
     uint v_atlas_pos = pos_atlas_pos_norm_ao.y;
 
     // Expand the model vertex position bits into float values
-    vec3 v_pos = vec3(ivec3((uvec3(v_pos_norm) >> uvec3(0, 8, 16)) & uvec3(0xFu, 0xFu, 0x0FFFu)) - ivec3(0, 0, VERT_EXTRA_NEG_Z));
+    vec3 v_pos = vec3(ivec3((uvec3(v_pos_norm) >> uvec3(0, 8, 16)) & uvec3(0xFFu, 0xFFu, 0x0FFFu)) - ivec3(0, 0, VERT_EXTRA_NEG_Z));
 
     // Transform into chunk space and scale
     f_pos = (inst_mat * vec4(v_pos, 1.0)).xyz;

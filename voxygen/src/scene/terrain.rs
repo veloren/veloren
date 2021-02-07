@@ -247,23 +247,21 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug + '
                             let key = (sprite, variation);
                             // NOTE: Safe because we called sprite_config_for already.
                             // NOTE: Safe because 0 ≤ ori < 8
-                            let sprite_data_lod_0 = &sprite_data[&key][0];
-                            let mat = Mat4::identity()
-                                    // NOTE: offset doesn't change with lod level
-                                    // TODO: pull out of per lod level info or remove lod levels
-                                    // for sprites entirely 
-                                    .translated_3d(sprite_data_lod_0.offset)
-                                    // Lod scaling etc is baked during meshing
-                                    .scaled_3d(SPRITE_SCALE)
-                                    .rotated_z(f32::consts::PI * 0.25 * ori as f32)
-                                    .translated_3d(
-                                        (rel_pos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0))
-                                    );
                             let light = light_map(wpos);
                             let glow = glow_map(wpos);
 
                             for lod_level in 0..SPRITE_LOD_LEVELS {
                                 let sprite_data = &sprite_data[&key][lod_level];
+                                let mat = Mat4::identity()
+                                    // Scaling for different LOD resolutions
+                                    .scaled_3d(sprite_data.scale)
+                                    // Offset
+                                    .translated_3d(sprite_data.offset)
+                                    .scaled_3d(SPRITE_SCALE)
+                                    .rotated_z(f32::consts::PI * 0.25 * ori as f32)
+                                    .translated_3d(
+                                        (rel_pos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0))
+                                    );
                                 // Add an instance for each page in the sprite model
                                 for page in sprite_data.vert_pages.clone() {
                                     // TODO: could be more efficient to create once and clone while
