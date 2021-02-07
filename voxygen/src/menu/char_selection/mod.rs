@@ -20,6 +20,7 @@ pub struct CharSelectionState {
     char_selection_ui: CharSelectionUi,
     client: Rc<RefCell<Client>>,
     scene: Scene,
+    need_shadow_clear: bool,
 }
 
 impl CharSelectionState {
@@ -36,6 +37,7 @@ impl CharSelectionState {
             char_selection_ui,
             client,
             scene,
+            need_shadow_clear: false,
         }
     }
 
@@ -71,6 +73,9 @@ impl PlayState for CharSelectionState {
         // Set scale mode in case it was change
         self.char_selection_ui
             .set_scale_mode(global_state.settings.interface.ui_scale);
+
+        // Clear shadow textures since we don't render to them here
+        self.need_shadow_clear = true;
     }
 
     fn tick(&mut self, global_state: &mut GlobalState, events: Vec<WinEvent>) -> PlayStateResult {
@@ -236,6 +241,11 @@ impl PlayState for CharSelectionState {
             // Couldn't get swap chain texture this fime
             None => return,
         };
+
+        if self.need_shadow_clear {
+            drawer.clear_shadows();
+            self.need_shadow_clear = false;
+        }
 
         let client = self.client.borrow();
         let (humanoid_body, loadout) =

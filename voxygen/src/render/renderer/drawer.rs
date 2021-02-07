@@ -170,6 +170,7 @@ impl<'a> Drawer<'a> {
             let data = bytemuck::cast_slice(matrices);
 
             for face in 0..6 {
+                // TODO: view creation cost?
                 let view =
                     shadow_renderer
                         .point_depth
@@ -185,7 +186,7 @@ impl<'a> Drawer<'a> {
                             array_layer_count: NonZeroU32::new(1),
                         });
 
-                let label = format!("point shadow face: {} pass", face);
+                let label = format!("point shadow face-{} pass", face);
                 let mut render_pass =
                     self.encoder
                         .as_mut()
@@ -221,6 +222,72 @@ impl<'a> Drawer<'a> {
                         render_pass.draw(0..model.len() as u32, 0..1);
                     });
                 });
+            }
+        }
+    }
+
+    /// Clear all the shadow textures, useful if directed shadows (shadow_pass)
+    /// and point light shadows (draw_point_shadows) are unused and thus the
+    /// textures will otherwise not be cleared after either their
+    /// initialization or their last use
+    /// NOTE: could simply use the above passes except `draw_point_shadows`
+    /// requires an array of matrices that could be a pain to construct
+    /// simply for clearing
+    pub fn clear_shadows(&mut self) {
+        if let ShadowMap::Enabled(ref shadow_renderer) = self.renderer.shadow_map {
+            self.encoder
+                .as_mut()
+                .unwrap()
+                .begin_render_pass(&wgpu::RenderPassDescriptor {
+                    label: Some("clear directed shadow pass"),
+                    color_attachments: &[],
+                    depth_stencil_attachment: Some(
+                        wgpu::RenderPassDepthStencilAttachmentDescriptor {
+                            attachment: &shadow_renderer.directed_depth.view,
+                            depth_ops: Some(wgpu::Operations {
+                                load: wgpu::LoadOp::Clear(1.0),
+                                store: true,
+                            }),
+                            stencil_ops: None,
+                        },
+                    ),
+                });
+
+            for face in 0..6 {
+                // TODO: view creation cost?
+                let view =
+                    shadow_renderer
+                        .point_depth
+                        .tex
+                        .create_view(&wgpu::TextureViewDescriptor {
+                            label: Some("Point shadow cubemap face"),
+                            format: None,
+                            dimension: Some(wgpu::TextureViewDimension::D2),
+                            aspect: wgpu::TextureAspect::DepthOnly,
+                            base_mip_level: 0,
+                            level_count: None,
+                            base_array_layer: face,
+                            array_layer_count: NonZeroU32::new(1),
+                        });
+
+                let label = format!("clear point shadow face-{} pass", face);
+                self.encoder
+                    .as_mut()
+                    .unwrap()
+                    .begin_render_pass(&wgpu::RenderPassDescriptor {
+                        label: Some(&label),
+                        color_attachments: &[],
+                        depth_stencil_attachment: Some(
+                            wgpu::RenderPassDepthStencilAttachmentDescriptor {
+                                attachment: &view,
+                                depth_ops: Some(wgpu::Operations {
+                                    load: wgpu::LoadOp::Clear(1.0),
+                                    store: true,
+                                }),
+                                stencil_ops: None,
+                            },
+                        ),
+                    });
             }
         }
     }
