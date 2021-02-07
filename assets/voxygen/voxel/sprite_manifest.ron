@@ -1773,13 +1773,20 @@ HangingSign: Some((
 WallLamp: Some((
     variations: [
         (
-            model: "voxygen.voxel.sprite.furniture.lamp_wall-0",
-            offset: (-6.5, -3.5, 0.0),
+            model: "voxygen.voxel.sprite.furniture.lamp_wall-1",
+            offset: (-10.5, -12.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
+    ],
+    wind_sway: 0.0,
+)),
+
+// WallLampSmall
+WallLampSmall: Some((
+    variations: [
         (
-            model: "voxygen.voxel.sprite.furniture.lamp_wall-1",
-            offset: (-10.5, -9.0, 0.0),
+            model: "voxygen.voxel.sprite.furniture.lamp_wall-0",
+            offset: (-5.5, 0.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
     ],

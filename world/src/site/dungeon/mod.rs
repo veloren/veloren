@@ -1117,6 +1117,19 @@ impl Floor {
             .min_by_key(|nearest| rpos.distance_squared(*nearest))
     }
 
+    // Find relative orientation of a position relative to another position
+    fn relative_ori(pos1: Vec2<i32>, pos2: Vec2<i32>) -> u8 {
+        if pos1.x == pos2.x && pos1.y < pos2.y {
+            4
+        } else if pos1.x > pos2.x && pos1.y == pos2.y {
+            6
+        } else if pos1.x == pos2.x && pos1.y > pos2.y {
+            8
+        } else {
+            2
+        }
+    }
+
     #[allow(clippy::unnested_or_patterns)] // TODO: Pending review in #587
     fn col_sampler<'a>(
         &'a self,
@@ -1194,7 +1207,19 @@ impl Floor {
         move |z| match self.tiles.get(tile_pos) {
             Some(Tile::Solid) => BlockMask::nothing(),
             Some(Tile::Tunnel) => {
-                if dist_to_wall >= wall_thickness
+                let light_offset: i32 = 7;
+                if (dist_to_wall - 4.0).abs() < f32::EPSILON
+                    && rtile_pos
+                        .map(|e| e % light_offset == 0)
+                        .reduce(|x, y| x ^ y)
+                    && z == 1
+                {
+                    let ori =
+                        Floor::relative_ori(self.nearest_wall(rpos).unwrap_or_default(), rpos);
+                    // NOTE: Used only for dynamic elements like chests and entities!
+                    let furniture = SpriteKind::WallLamp;
+                    BlockMask::new(Block::air(furniture).with_ori(ori).unwrap(), 1)
+                } else if dist_to_wall >= wall_thickness
                     && (z as f32) < tunnel_height * (1.0 - tunnel_dist.powi(4))
                 {
                     if z == 0 { floor_sprite } else { vacant }
@@ -1219,8 +1244,19 @@ impl Floor {
                 BlockMask::nothing()
             },
             Some(Tile::Room(_)) => {
+                let light_offset: i32 = 7;
                 if z == 0 {
                     floor_sprite
+                } else if (dist_to_wall - 4.0).abs() < f32::EPSILON
+                    && rtile_pos
+                        .map(|e| e % light_offset == 0)
+                        .reduce(|x, y| x ^ y)
+                    && z == 1
+                {
+                    let ori =
+                        Floor::relative_ori(self.nearest_wall(rpos).unwrap_or_default(), rpos);
+                    let furniture = SpriteKind::WallLamp;
+                    BlockMask::new(Block::air(furniture).with_ori(ori).unwrap(), 1)
                 } else {
                     vacant
                 }
@@ -1230,16 +1266,32 @@ impl Floor {
                     .resolve_with(vacant)
             },
             Some(Tile::UpStair(room)) => {
-                let mut block = make_staircase(
+                let inner_radius: f32 = 0.5;
+                let stretch: f32 = 9.0;
+                let block = make_staircase(
                     Vec3::new(rtile_pos.x, rtile_pos.y, z),
                     TILE_SIZE as f32 / 2.0,
-                    0.5,
-                    9.0,
+                    inner_radius,
+                    stretch,
                 );
+                let furniture = SpriteKind::WallLampSmall;
+                let ori =
+                    Floor::relative_ori(self.nearest_wall(rtile_pos).unwrap_or_default(), rpos);
                 if z < self.rooms[*room].height {
-                    block = block.resolve_with(vacant);
+                    block.resolve_with(vacant)
+                } else if z as f32 % stretch == 0.0
+                    && rtile_pos.x == -TILE_SIZE / 2
+                    && rtile_pos.y == 0
+                {
+                    BlockMask::new(Block::air(furniture).with_ori(ori).unwrap(), 1)
+                } else {
+                    make_staircase(
+                        Vec3::new(rtile_pos.x, rtile_pos.y, z),
+                        TILE_SIZE as f32 / 2.0,
+                        inner_radius,
+                        stretch,
+                    )
                 }
-                block
             },
             None => BlockMask::nothing(),
         }

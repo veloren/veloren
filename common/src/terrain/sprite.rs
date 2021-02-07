@@ -126,6 +126,7 @@ make_case_elim!(
         RubySmall = 0x63,
         EmeraldSmall = 0x64,
         SapphireSmall = 0x65,
+        WallLampSmall = 0x66,
     }
 );
 
@@ -252,6 +253,7 @@ impl SpriteKind {
                 | SpriteKind::HangingBasket
                 | SpriteKind::HangingSign
                 | SpriteKind::WallLamp
+                | SpriteKind::WallLampSmall
                 | SpriteKind::Planter
                 | SpriteKind::Shelf
                 | SpriteKind::TableSide
