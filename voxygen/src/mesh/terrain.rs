@@ -69,25 +69,23 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
     if is_sunlight {
         for x in 0..outer.size().w {
             for y in 0..outer.size().h {
-                let z = outer.size().d - 1;
-                let is_air = vol_cached
-                    .get(outer.min + Vec3::new(x, y, z))
-                    .ok()
-                    .map_or(false, |b| b.is_air());
-
-                light_map[lm_idx(x, y, z)] = if is_air {
-                    if vol_cached
-                        .get(outer.min + Vec3::new(x, y, z - 1))
-                        .ok()
-                        .map_or(false, |b| b.is_air())
+                let mut light = SUNLIGHT;
+                for z in (0..outer.size().d).rev() {
+                    match vol_cached
+                        .get(outer.min + Vec3::new(x, y, z))
+                        .map_or(None, |b| b.get_max_sunlight())
                     {
-                        light_map[lm_idx(x, y, z - 1)] = SUNLIGHT;
-                        prop_que.push_back((x as u8, y as u8, z as u16));
+                        None => {},
+                        Some(0) => {
+                            light_map[lm_idx(x, y, z)] = 0;
+                            break;
+                        },
+                        Some(max_sunlight) => light = light.min(max_sunlight),
                     }
-                    SUNLIGHT
-                } else {
-                    OPAQUE
-                };
+
+                    light_map[lm_idx(x, y, z)] = light;
+                    prop_que.push_back((x as u8, y as u8, z as u16));
+                }
             }
         }
     }
@@ -129,7 +127,7 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
         let light = light_map[lm_idx(pos.x, pos.y, pos.z)];
 
         // If ray propagate downwards at full strength
-        if is_sunlight && light == SUNLIGHT {
+        if is_sunlight && light == SUNLIGHT && false {
             // Down is special cased and we know up is a ray
             // Special cased ray propagation
             let pos = Vec3::new(pos.x, pos.y, pos.z - 1);
@@ -401,7 +399,9 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug + 'static>
         let greedy_size_cross = Vec3::new(greedy_size.x - 1, greedy_size.y - 1, greedy_size.z);
         let draw_delta = Vec3::new(1, 1, z_start);
 
-        let get_light = |_: &mut (), pos: Vec3<i32>| light(pos + range.min);
+        let get_light = |_: &mut (), pos: Vec3<i32>| volume
+            .get(range.min + pos)
+            .map_or(1.0, |b| if b.is_opaque() { 0.0 } else { light(pos + range.min) });
         let get_glow = |_: &mut (), pos: Vec3<i32>| glow(pos + range.min);
         let get_color =
             |_: &mut (), pos: Vec3<i32>| flat_get(pos).get_color().unwrap_or(Rgb::zero());

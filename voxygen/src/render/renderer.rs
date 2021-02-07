@@ -1015,7 +1015,7 @@ impl Renderer {
         /// NOTE: Apparently Macs aren't the only machines that lie.
         ///
         /// TODO: Find a way to let graphics cards that don't lie do better.
-        const MAX_TEXTURE_SIZE_MAX: u16 = 8192;
+        const MAX_TEXTURE_SIZE_MAX: u16 = 8192 << 1;
         // NOTE: Many APIs for textures require coordinates to fit in u16, which is why
         // we perform this conversion.
         u16::try_from(factory.get_capabilities().max_texture_size)

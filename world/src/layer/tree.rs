@@ -1,5 +1,5 @@
 use crate::{
-    all::ForestKind,
+    all::*,
     block::block_from_structure,
     column::ColumnGen,
     util::{RandomPerm, Sampler, UnitChooser},
@@ -60,9 +60,9 @@ pub fn apply_trees_to(canvas: &mut Canvas) {
     canvas.foreach_col(|canvas, wpos2d, col| {
         let trees = info.land().get_near_trees(wpos2d);
 
-        for (tree_wpos, seed) in trees {
-            let tree = if let Some(tree) = tree_cache.entry(tree_wpos).or_insert_with(|| {
-                let col = ColumnGen::new(info.land()).get((tree_wpos, info.index()))?;
+        for TreeAttr { pos, seed, scale, forest_kind } in trees {
+            let tree = if let Some(tree) = tree_cache.entry(pos).or_insert_with(|| {
+                let col = ColumnGen::new(info.land()).get((pos, info.index()))?;
 
                 let is_quirky = QUIRKY_RAND.chance(seed, 1.0 / 500.0);
 
@@ -82,7 +82,7 @@ pub fn apply_trees_to(canvas: &mut Canvas) {
                 }
 
                 Some(Tree {
-                    pos: Vec3::new(tree_wpos.x, tree_wpos.y, col.alt as i32),
+                    pos: Vec3::new(pos.x, pos.y, col.alt as i32),
                     model: 'model: {
                         let models: AssetHandle<_> = if is_quirky {
                             if col.temp > CONFIG.desert_temp {
@@ -91,7 +91,7 @@ pub fn apply_trees_to(canvas: &mut Canvas) {
                                 *QUIRKY
                             }
                         } else {
-                            match col.forest_kind {
+                            match forest_kind {
                                 ForestKind::Oak if QUIRKY_RAND.chance(seed + 1, 1.0 / 16.0) => {
                                     *OAK_STUMPS
                                 },
@@ -105,7 +105,7 @@ pub fn apply_trees_to(canvas: &mut Canvas) {
                                 ForestKind::Oak => {
                                     break 'model TreeModel::Procedural(
                                         ProceduralTree::generate(
-                                            TreeConfig::oak(&mut RandomPerm::new(seed)),
+                                            TreeConfig::oak(&mut RandomPerm::new(seed), scale),
                                             &mut RandomPerm::new(seed),
                                         ),
                                         StructureBlock::TemperateLeaves,
@@ -115,7 +115,7 @@ pub fn apply_trees_to(canvas: &mut Canvas) {
                                 ForestKind::Pine => {
                                     break 'model TreeModel::Procedural(
                                         ProceduralTree::generate(
-                                            TreeConfig::pine(&mut RandomPerm::new(seed)),
+                                            TreeConfig::pine(&mut RandomPerm::new(seed), scale),
                                             &mut RandomPerm::new(seed),
                                         ),
                                         StructureBlock::PineLeaves,
@@ -230,7 +230,7 @@ pub struct TreeConfig {
     /// Maximum number of branch layers (not including trunk).
     pub max_depth: usize,
     /// The number of branches that form from each branch.
-    pub splits: usize,
+    pub splits: Range<f32>,
     /// The range of proportions along a branch at which a split into another
     /// branch might occur. This value is clamped between 0 and 1, but a
     /// wider range may bias the results towards branch ends.
@@ -250,37 +250,39 @@ pub struct TreeConfig {
 }
 
 impl TreeConfig {
-    pub fn oak(rng: &mut impl Rng) -> Self {
-        let scale = Lerp::lerp(0.8, 1.5, rng.gen::<f32>().powi(4));
+    pub fn oak(rng: &mut impl Rng, scale: f32) -> Self {
+        let scale = scale * (1.0 + rng.gen::<f32>().powi(4));
+        let log_scale = 1.0 + scale.log2().max(0.0);
 
         Self {
-            trunk_len: 12.0 * scale,
-            trunk_radius: 3.0 * scale,
+            trunk_len: 9.0 * scale,
+            trunk_radius: 2.0 * scale,
             branch_child_len: 0.8,
-            branch_child_radius: 0.6,
-            leaf_radius: 3.0 * scale..4.0 * scale,
+            branch_child_radius: 0.75,
+            leaf_radius: 2.5 * log_scale..3.25 * log_scale,
             straightness: 0.5,
-            max_depth: 4,
-            splits: 3,
-            split_range: 0.5..1.5,
+            max_depth: (4.0 + log_scale) as usize,
+            splits: 2.0..3.0,
+            split_range: 0.75..1.5,
             branch_len_bias: 0.0,
             leaf_vertical_scale: 1.0,
             proportionality: 0.0,
         }
     }
 
-    pub fn pine(rng: &mut impl Rng) -> Self {
-        let scale = Lerp::lerp(1.0, 2.0, rng.gen::<f32>().powi(4));
+    pub fn pine(rng: &mut impl Rng, scale: f32) -> Self {
+        let scale = scale * (1.0 + rng.gen::<f32>().powi(4));
+        let log_scale = 1.0 + scale.log2().max(0.0);
 
         Self {
             trunk_len: 32.0 * scale,
-            trunk_radius: 1.5 * scale,
-            branch_child_len: 0.3,
+            trunk_radius: 1.25 * scale,
+            branch_child_len: 0.3 / scale,
             branch_child_radius: 0.0,
-            leaf_radius: 2.0 * scale..2.5 * scale,
+            leaf_radius: 1.5 * log_scale..2.0 * log_scale,
             straightness: 0.0,
             max_depth: 1,
-            splits: 56,
+            splits: 50.0..70.0,
             split_range: 0.2..1.2,
             branch_len_bias: 0.75,
             leaf_vertical_scale: 0.3,
@@ -361,18 +363,19 @@ impl ProceduralTree {
             let y_axis = dir.cross(x_axis).normalized();
             let screw_shift = rng.gen_range(0.0..f32::consts::TAU);
 
-            for i in 0..config.splits {
+            let splits = rng.gen_range(config.splits.clone()).round() as usize;
+            for i in 0..splits {
                 let dist = Lerp::lerp(
-                    i as f32 / (config.splits - 1) as f32,
+                    i as f32 / (splits - 1) as f32,
                     rng.gen_range(0.0..1.0),
                     config.proportionality,
                 );
 
                 const PHI: f32 = 0.618;
                 const RAD_PER_BRANCH: f32 = f32::consts::TAU * PHI;
-                let screw = (screw_shift + dist * config.splits as f32 * RAD_PER_BRANCH).sin()
+                let screw = (screw_shift + dist * splits as f32 * RAD_PER_BRANCH).sin()
                     * x_axis
-                    + (screw_shift + dist * config.splits as f32 * RAD_PER_BRANCH).cos() * y_axis;
+                    + (screw_shift + dist * splits as f32 * RAD_PER_BRANCH).cos() * y_axis;
 
                 // Choose a point close to the branch to act as the target direction for the
                 // branch to grow in let split_factor =

@@ -982,6 +982,13 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             .map(|wd| Lerp::lerp(sub_surface_color, ground, (wd / 3.0).clamped(0.0, 1.0)))
             .unwrap_or(ground);
 
+        // Ground under thick trees should be receive less sunlight and so often become dirt
+        let ground = Lerp::lerp(
+            ground,
+            sub_surface_color,
+            marble_mid * tree_density,
+        );
+
         let near_ocean = max_river.and_then(|(_, _, river_data, _)| {
             if (river_data.is_lake() || river_data.river_kind == Some(RiverKind::Ocean))
                 && alt <= water_level.max(CONFIG.sea_level + 5.0)

@@ -23,7 +23,7 @@ pub use self::{
 };
 
 use crate::{
-    all::ForestKind,
+    all::*,
     block::BlockGen,
     civ::Place,
     column::ColumnGen,
@@ -45,6 +45,7 @@ use common::{
     vol::RectVolSize,
 };
 use common_net::msg::WorldMapMsg;
+use enum_iterator::IntoEnumIterator;
 use noise::{
     BasicMulti, Billow, Fbm, HybridMulti, MultiFractal, NoiseFn, RangeFunction, RidgedMulti,
     Seedable, SuperSimplex, Worley,
@@ -114,6 +115,7 @@ pub(crate) struct GenCtx {
     pub cave_1_nz: SuperSimplex,
 
     pub structure_gen: StructureGen2d,
+    pub big_structure_gen: StructureGen2d,
     pub region_gen: StructureGen2d,
 
     pub fast_turb_x_nz: FastNoise,
@@ -516,7 +518,8 @@ impl WorldSim {
             cave_0_nz: SuperSimplex::new().set_seed(rng.gen()),
             cave_1_nz: SuperSimplex::new().set_seed(rng.gen()),
 
-            structure_gen: StructureGen2d::new(rng.gen(), 24, 8),
+            structure_gen: StructureGen2d::new(rng.gen(), 24, 12),
+            big_structure_gen: StructureGen2d::new(rng.gen(), 768, 512),
             region_gen: StructureGen2d::new(rng.gen(), 400, 96),
             humid_nz: Billow::new()
                 .set_octaves(9)
@@ -1995,9 +1998,25 @@ impl WorldSim {
     /// Return an iterator over candidate tree positions (note that only some of
     /// these will become trees since environmental parameters may forbid
     /// them spawning).
-    pub fn get_near_trees(&self, wpos: Vec2<i32>) -> impl Iterator<Item = (Vec2<i32>, u32)> + '_ {
+    pub fn get_near_trees(&self, wpos: Vec2<i32>) -> impl Iterator<Item = TreeAttr> + '_ {
         // Deterministic based on wpos
-        std::array::IntoIter::new(self.gen_ctx.structure_gen.get(wpos))
+        let normal_trees = std::array::IntoIter::new(self.gen_ctx.structure_gen.get(wpos))
+            .map(move |(pos, seed)| TreeAttr {
+                pos,
+                seed,
+                scale: 1.0,
+                forest_kind: self.get_wpos(pos).map_or(ForestKind::Oak, |c| c.forest_kind),
+            });
+
+        let giant_trees = std::array::IntoIter::new(self.gen_ctx.big_structure_gen.get(wpos))
+            .map(move |(pos, seed)| TreeAttr {
+                pos,
+                seed,
+                scale: 10.0,
+                forest_kind: ForestKind::Oak,
+            });
+
+        normal_trees.chain(giant_trees)
     }
 }
 
@@ -2232,80 +2251,14 @@ impl SimChunk {
             },
             tree_density,
             forest_kind: {
-                // Whittaker diagram
-                let candidates = [
-                    // A smaller prevalence means that the range of values this tree appears in
-                    // will shrink compared to neighbouring trees in the
-                    // topology of the Whittaker diagram.
-                    // Humidity, temperature, near_water, each with prevalence
-                    (
-                        ForestKind::Palm,
-                        (CONFIG.desert_hum, 1.5),
-                        ((CONFIG.tropical_temp + CONFIG.desert_temp) / 2.0, 1.25),
-                        (1.0, 2.0),
-                    ),
-                    (
-                        ForestKind::Acacia,
-                        (0.0, 1.5),
-                        (CONFIG.tropical_temp, 1.5),
-                        (0.0, 1.0),
-                    ),
-                    (
-                        ForestKind::Baobab,
-                        (0.0, 1.5),
-                        (CONFIG.tropical_temp, 1.5),
-                        (0.0, 1.0),
-                    ),
-                    (
-                        ForestKind::Oak,
-                        (CONFIG.forest_hum, 1.5),
-                        (0.0, 1.5),
-                        (0.0, 1.0),
-                    ),
-                    (
-                        ForestKind::Mangrove,
-                        (CONFIG.jungle_hum, 0.5),
-                        (CONFIG.tropical_temp, 0.5),
-                        (0.0, 1.0),
-                    ),
-                    (
-                        ForestKind::Pine,
-                        (CONFIG.forest_hum, 1.25),
-                        (CONFIG.snow_temp, 2.5),
-                        (0.0, 1.0),
-                    ),
-                    (
-                        ForestKind::Birch,
-                        (CONFIG.desert_hum, 1.5),
-                        (CONFIG.temperate_temp, 1.5),
-                        (0.0, 1.0),
-                    ),
-                    (
-                        ForestKind::Swamp,
-                        ((CONFIG.forest_hum + CONFIG.jungle_hum) / 2.0, 2.0),
-                        ((CONFIG.temperate_temp + CONFIG.snow_temp) / 2.0, 2.0),
-                        (1.0, 2.5),
-                    ),
-                ];
+                let env = Environment {
+                    humid: humidity,
+                    temp,
+                    near_water: if river.is_lake() || river.near_river() { 1.0 } else { 0.0 },
+                };
 
-                candidates
-                    .iter()
-                    .enumerate()
-                    .min_by_key(|(i, (_, (h, h_prev), (t, t_prev), (w, w_prev)))| {
-                        let rand = RandomPerm::new(*i as u32 * 1000);
-                        let noise =
-                            Vec3::iota().map(|e| (rand.get(e) & 0xFF) as f32 / 255.0 - 0.5) * 2.0;
-                        (Vec3::new(
-                            (*h - humidity) / *h_prev,
-                            (*t - temp) / *t_prev,
-                            (*w - if river.near_water() { 1.0 } else { 0.0 }) / *w_prev,
-                        )
-                        .add(noise * 0.1)
-                        .map(|e| e * e)
-                        .sum()
-                            * 10000.0) as i32
-                    })
-                    .map(|(_, c)| c.0)
+                ForestKind::into_enum_iter()
+                    .max_by_key(|fk| (fk.proclivity(&env) * 10000.0) as u32)
                     .unwrap() // Can't fail
             },
             spawn_rate: 1.0,
