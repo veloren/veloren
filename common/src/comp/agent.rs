@@ -182,11 +182,14 @@ pub struct Agent {
     pub rtsim_controller: RtSimController,
     pub patrol_origin: Option<Vec3<f32>>,
     pub activity: Activity,
+    pub target: Option<(EcsEntity, bool)>,
     /// Does the agent talk when e.g. hit by the player
     // TODO move speech patterns into a Behavior component
     pub can_speak: bool,
     pub psyche: Psyche,
     pub inbox: VecDeque<AgentEvent>,
+    pub interaction_timer: f32,
+    pub action_timer: f32,
 }
 
 impl Agent {
@@ -219,46 +222,135 @@ impl Component for Agent {
 }
 
 #[derive(Clone, Debug)]
-pub enum Activity {
-    Interact {
-        timer: f32,
-        interaction: AgentEvent,
-    },
-    Idle {
-        bearing: Vec2<f32>,
-        chaser: Chaser,
-    },
-    Follow {
-        target: EcsEntity,
-        chaser: Chaser,
-    },
-    Attack {
-        target: EcsEntity,
-        chaser: Chaser,
-        time: f64,
-        been_close: bool,
-        powerup: f32,
-    },
-    Flee {
-        target: EcsEntity,
-        chaser: Chaser,
-        timer: f32,
-    },
-}
-
-impl Activity {
-    pub fn is_follow(&self) -> bool { matches!(self, Activity::Follow { .. }) }
-
-    pub fn is_attack(&self) -> bool { matches!(self, Activity::Attack { .. }) }
-
-    pub fn is_flee(&self) -> bool { matches!(self, Activity::Flee { .. }) }
+pub struct Activity {
+    pub idle: bool,
+    pub interact: bool,
+    pub flee: bool,
+    pub follow: bool,
+    pub attack: bool,
+    pub choose_target: bool,
 }
 
 impl Default for Activity {
     fn default() -> Self {
-        Activity::Idle {
-            bearing: Vec2::zero(),
-            chaser: Chaser::default(),
+        Self {
+            idle: true,
+            interact: false,
+            flee: false,
+            follow: false,
+            attack: false,
+            choose_target: false,
         }
     }
 }
+
+impl Activity {
+    pub fn reset(&mut self) {
+        self.idle = false;
+        self.interact = false;
+        self.flee = false;
+        self.follow = false;
+        self.attack = false;
+        self.choose_target = false;
+    }
+
+    pub fn idle(&mut self) {
+        self.idle = true;
+        self.interact = false;
+        self.flee = false;
+        self.follow = false;
+        self.attack = false;
+        self.choose_target = false;
+    }
+
+    pub fn interact(&mut self) {
+        self.idle = false;
+        self.interact = true;
+        self.flee = false;
+        self.follow = false;
+        self.attack = false;
+        self.choose_target = false;
+    }
+
+    pub fn flee(&mut self) {
+        self.idle = false;
+        self.interact = false;
+        self.flee = true;
+        self.follow = false;
+        self.attack = false;
+        self.choose_target = false;
+    }
+
+    pub fn follow(&mut self) {
+        self.idle = false;
+        self.interact = false;
+        self.flee = false;
+        self.follow = true;
+        self.attack = false;
+        self.choose_target = false;
+    }
+
+    pub fn attack(&mut self) {
+        self.idle = false;
+        self.interact = false;
+        self.flee = false;
+        self.follow = false;
+        self.attack = true;
+        self.choose_target = false;
+    }
+
+    pub fn choose_target(&mut self) {
+        self.idle = false;
+        self.interact = false;
+        self.flee = false;
+        self.follow = false;
+        self.attack = false;
+        self.choose_target = true;
+    }
+}
+
+//pub enum Activity {
+//    Interact {
+//        timer: f32,
+//        interaction: AgentEvent,
+//    },
+//    Idle {
+//        bearing: Vec2<f32>,
+//        chaser: Chaser,
+//    },
+//    Follow {
+//        target: EcsEntity,
+//        chaser: Chaser,
+//    },
+//    Attack {
+//        target: EcsEntity,
+//        chaser: Chaser,
+//        time: f64,
+//        been_close: bool,
+//        powerup: f32,
+//    },
+//    Flee {
+//        target: EcsEntity,
+//        chaser: Chaser,
+//        timer: f32,
+//    },
+//}
+//
+//impl Activity {
+//    pub fn is_follow(&self) -> bool { matches!(self, Activity::Follow { .. })
+// }
+//
+//    pub fn is_attack(&self) -> bool { matches!(self, Activity::Attack { .. })
+// }
+//
+//    pub fn is_flee(&self) -> bool { matches!(self, Activity::Flee { .. }) }
+//}
+//
+//impl Default for Activity {
+//    fn default() -> Self {
+//        Activity::Idle {
+//            bearing: Vec2::zero(),
+//            chaser: Chaser::default(),
+//        }
+//    }
+//}
