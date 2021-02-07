@@ -755,10 +755,10 @@ impl Floor {
                                     "common.loot_tables.loot_table_weapon_rare",
                                 ),
                                 4 => Lottery::<String>::load_expect(
-                                    "common.loot_tables.loot_table_boss_cultist-leader",
+                                    "common.loot_tables.loot_table_miniboss",
                                 ),
                                 5 => Lottery::<String>::load_expect(
-                                    "common.loot_tables.loot_table_boss_cultist-leader",
+                                    "common.loot_tables.loot_table_mindflayer",
                                 ),
                                 _ => Lottery::<String>::load_expect(
                                     "common.loot_tables.loot_table_armor_misc",
@@ -950,7 +950,7 @@ impl Floor {
                                     "common.loot_tables.loot_table_weapon_rare",
                                 ),
                                 5 => Lottery::<String>::load_expect(
-                                    "common.loot_tables.loot_table_boss_cultist-leader",
+                                    "common.loot_tables.loot_table_miniboss",
                                 ),
                                 _ => Lottery::<String>::load_expect(
                                     "common.loot_tables.loot_table_armor_misc",
