@@ -1,3 +1,4 @@
+use super::{Plane, Projection};
 use serde::{Deserialize, Serialize};
 use tracing::warn;
 use vek::*;
@@ -95,8 +96,31 @@ impl std::ops::Deref for Dir {
     fn deref(&self) -> &Vec3<f32> { &self.0 }
 }
 
-impl From<Vec3<f32>> for Dir {
-    fn from(dir: Vec3<f32>) -> Self { Dir::new(dir) }
+impl From<Dir> for Vec3<f32> {
+    fn from(dir: Dir) -> Self { *dir }
+}
+
+impl std::ops::Mul<Dir> for Quaternion<f32> {
+    type Output = Dir;
+
+    fn mul(self, dir: Dir) -> Self::Output { Dir::new(self * *dir) }
+}
+
+impl Projection<Plane> for Dir {
+    type Output = Option<Self>;
+
+    fn projected(self, plane: &Plane) -> Self::Output {
+        Dir::from_unnormalized(plane.projection(*self))
+    }
+}
+
+impl Projection<Dir> for Vec3<f32> {
+    type Output = Vec3<f32>;
+
+    fn projected(self, dir: &Dir) -> Self::Output {
+        let dir = **dir;
+        self.dot(dir) * dir
+    }
 }
 
 impl std::ops::Neg for Dir {
