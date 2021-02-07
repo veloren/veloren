@@ -29,7 +29,7 @@ use crate::{
     column::ColumnGen,
     site::Site,
     util::{
-        seed_expan, FastNoise, RandomField, RandomPerm, Sampler, StructureGen2d, LOCALITY,
+        seed_expan, FastNoise, FastNoise2d, RandomField, RandomPerm, Sampler, StructureGen2d, LOCALITY,
         NEIGHBORS,
     },
     IndexRef, CONFIG,
@@ -43,6 +43,7 @@ use common::{
         TerrainChunkSize,
     },
     vol::RectVolSize,
+    lottery::Lottery,
 };
 use common_net::msg::WorldMapMsg;
 use enum_iterator::IntoEnumIterator;
@@ -2001,18 +2002,34 @@ impl WorldSim {
     pub fn get_near_trees(&self, wpos: Vec2<i32>) -> impl Iterator<Item = TreeAttr> + '_ {
         // Deterministic based on wpos
         let normal_trees = std::array::IntoIter::new(self.gen_ctx.structure_gen.get(wpos))
-            .map(move |(pos, seed)| TreeAttr {
-                pos,
-                seed,
-                scale: 1.0,
-                forest_kind: self.get_wpos(pos).map_or(ForestKind::Oak, |c| c.forest_kind),
+            .filter_map(move |(pos, seed)| {
+                let chunk = self.get_wpos(pos)?;
+                let env = Environment {
+                    humid: chunk.humidity,
+                    temp: chunk.temp,
+                    near_water: if chunk.river.is_lake() || chunk.river.near_river() { 1.0 } else { 0.0 },
+                };
+                Some(TreeAttr {
+                    pos,
+                    seed,
+                    scale: 1.0,
+                    forest_kind: *Lottery::from(ForestKind::into_enum_iter()
+                        .enumerate()
+                        .map(|(i, fk)| {
+                            const CLUSTER_SIZE: f64 = 48.0;
+                            let nz = (FastNoise2d::new(i as u32).get(wpos.map(|e| e as f64) / CLUSTER_SIZE) + 1.0) / 2.0;
+                            (fk.proclivity(&env) * nz, fk)
+                        })
+                        .collect::<Vec<_>>())
+                        .choose_seeded(seed),
+                })
             });
 
         let giant_trees = std::array::IntoIter::new(self.gen_ctx.big_structure_gen.get(wpos))
             .map(move |(pos, seed)| TreeAttr {
                 pos,
                 seed,
-                scale: 10.0,
+                scale: 4.0,
                 forest_kind: ForestKind::Oak,
             });
 
