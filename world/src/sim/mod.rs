@@ -2017,7 +2017,7 @@ impl WorldSim {
                         .enumerate()
                         .map(|(i, fk)| {
                             const CLUSTER_SIZE: f64 = 48.0;
-                            let nz = (FastNoise2d::new(i as u32).get(wpos.map(|e| e as f64) / CLUSTER_SIZE) + 1.0) / 2.0;
+                            let nz = (FastNoise2d::new(i as u32).get(pos.map(|e| e as f64) / CLUSTER_SIZE) + 1.0) / 2.0;
                             (fk.proclivity(&env) * nz, fk)
                         })
                         .collect::<Vec<_>>())
@@ -2029,8 +2029,8 @@ impl WorldSim {
             .map(move |(pos, seed)| TreeAttr {
                 pos,
                 seed,
-                scale: 4.0,
-                forest_kind: ForestKind::Oak,
+                scale: 5.0,
+                forest_kind: ForestKind::Giant,
             });
 
         normal_trees.chain(giant_trees)

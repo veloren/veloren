@@ -124,6 +124,15 @@ pub fn apply_trees_to(canvas: &mut Canvas) {
                                 ForestKind::Birch => *BIRCHES,
                                 ForestKind::Mangrove => *MANGROVE_TREES,
                                 ForestKind::Swamp => *SWAMP_TREES,
+                                ForestKind::Giant => {
+                                    break 'model TreeModel::Procedural(
+                                        ProceduralTree::generate(
+                                            TreeConfig::giant(&mut RandomPerm::new(seed), scale),
+                                            &mut RandomPerm::new(seed),
+                                        ),
+                                        StructureBlock::TemperateLeaves,
+                                    );
+                                },
                             }
                         };
 
@@ -283,10 +292,30 @@ impl TreeConfig {
             straightness: 0.0,
             max_depth: 1,
             splits: 50.0..70.0,
-            split_range: 0.2..1.2,
+            split_range: 0.1..1.2,
             branch_len_bias: 0.75,
             leaf_vertical_scale: 0.3,
             proportionality: 1.0,
+        }
+    }
+
+    pub fn giant(rng: &mut impl Rng, scale: f32) -> Self {
+        let scale = scale * (1.0 + rng.gen::<f32>().powi(4));
+        let log_scale = 1.0 + scale.log2().max(0.0);
+
+        Self {
+            trunk_len: 9.0 * scale,
+            trunk_radius: 4.0 * scale,
+            branch_child_len: 0.9,
+            branch_child_radius: 0.7,
+            leaf_radius: 1.5 * log_scale..2.0 * log_scale,
+            straightness: 0.4,
+            max_depth: (6.0 + log_scale) as usize,
+            splits: 1.8..3.0,
+            split_range: 0.8..1.5,
+            branch_len_bias: 0.0,
+            leaf_vertical_scale: 1.0,
+            proportionality: 0.0,
         }
     }
 }
