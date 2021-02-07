@@ -109,18 +109,17 @@ fn main() {
 
         #[cfg(feature = "native-dialog")]
         {
-            use native_dialog::{Dialog, MessageAlert, MessageType};
+            use native_dialog::{MessageDialog, MessageType};
 
             let mbox = move || {
-                MessageAlert {
-                    title: "Voxygen has panicked",
+                MessageDialog::new()
+                    .set_title("Voxygen has panicked")
                     //somehow `<` and `>` are invalid characters and cause the msg to get replaced
                     // by some generic text thus i replace them
-                    text: &msg.replace('<', "[").replace('>', "]"),
-                    typ: MessageType::Error,
-                }
-                .show()
-                .unwrap()
+                    .set_text(&msg.replace('<', "[").replace('>', "]"))
+                    .set_type(MessageType::Error)
+                    .show_alert()
+                    .unwrap()
             };
 
             // On windows we need to spawn a thread as the msg doesn't work otherwise
