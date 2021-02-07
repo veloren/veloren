@@ -1208,7 +1208,7 @@ impl Floor {
             Some(Tile::Solid) => BlockMask::nothing(),
             Some(Tile::Tunnel) => {
                 let light_offset: i32 = 7;
-                if (dist_to_wall - 4.0).abs() < f32::EPSILON
+                if (dist_to_wall - wall_thickness) as i32 == 1
                     && rtile_pos
                         .map(|e| e % light_offset == 0)
                         .reduce(|x, y| x ^ y)
@@ -1216,8 +1216,7 @@ impl Floor {
                 {
                     let ori =
                         Floor::relative_ori(self.nearest_wall(rpos).unwrap_or_default(), rpos);
-                    // NOTE: Used only for dynamic elements like chests and entities!
-                    let furniture = SpriteKind::WallLamp;
+                    let furniture = SpriteKind::WallSconce;
                     BlockMask::new(Block::air(furniture).with_ori(ori).unwrap(), 1)
                 } else if dist_to_wall >= wall_thickness
                     && (z as f32) < tunnel_height * (1.0 - tunnel_dist.powi(4))
@@ -1230,19 +1229,38 @@ impl Floor {
             Some(Tile::Room(room)) | Some(Tile::DownStair(room))
                 if dist_to_wall < wall_thickness
                     || z as f32
-                        >= self.rooms[*room].height as f32 * (1.0 - tunnel_dist.powi(4))
-                    || self.rooms[*room]
-                        .pillars
-                        .map(|pillar_space| {
-                            tile_pos
-                                .map(|e| e.rem_euclid(pillar_space) == 0)
-                                .reduce_and()
-                                && rtile_pos.map(|e| e as f32).magnitude_squared() < 3.5f32.powi(2)
-                        })
-                        .unwrap_or(false) =>
+                        >= self.rooms[*room].height as f32 * (1.0 - tunnel_dist.powi(4)) =>
             {
                 BlockMask::nothing()
             },
+
+            Some(Tile::Room(room)) | Some(Tile::DownStair(room))
+                if self.rooms[*room]
+                    .pillars
+                    .map(|pillar_space| {
+                        tile_pos
+                            .map(|e| e.rem_euclid(pillar_space) == 0)
+                            .reduce_and()
+                            && rtile_pos.map(|e| e as f32).magnitude_squared() < 3.5f32.powi(2)
+                    })
+                    .unwrap_or(false) =>
+            {
+                if z == 1 && rtile_pos.map(|e| e as f32).magnitude_squared() > 3.0f32.powi(2) {
+                    let ori = Floor::relative_ori(
+                        self.nearest_wall(rtile_pos).unwrap_or_default(),
+                        rtile_pos,
+                    );
+                    let furniture = SpriteKind::WallSconce;
+                    BlockMask::new(Block::air(furniture).with_ori(ori).unwrap(), 1)
+                } else if z < self.rooms[*room].height
+                    && rtile_pos.map(|e| e as f32).magnitude_squared() > 3.0f32.powi(2)
+                {
+                    vacant
+                } else {
+                    BlockMask::nothing()
+                }
+            }
+
             Some(Tile::Room(_)) => {
                 let light_offset: i32 = 7;
                 if z == 0 {
@@ -1253,9 +1271,11 @@ impl Floor {
                         .reduce(|x, y| x ^ y)
                     && z == 1
                 {
-                    let ori =
-                        Floor::relative_ori(self.nearest_wall(rpos).unwrap_or_default(), rpos);
-                    let furniture = SpriteKind::WallLamp;
+                    let ori = Floor::relative_ori(
+                        self.nearest_wall(rpos).unwrap_or_else(Vec2::zero),
+                        rpos,
+                    );
+                    let furniture = SpriteKind::WallSconce;
                     BlockMask::new(Block::air(furniture).with_ori(ori).unwrap(), 1)
                 } else {
                     vacant
@@ -1275,8 +1295,10 @@ impl Floor {
                     stretch,
                 );
                 let furniture = SpriteKind::WallLampSmall;
-                let ori =
-                    Floor::relative_ori(self.nearest_wall(rtile_pos).unwrap_or_default(), rpos);
+                let ori = Floor::relative_ori(
+                    self.nearest_wall(rtile_pos).unwrap_or_else(Vec2::zero),
+                    rpos,
+                );
                 if z < self.rooms[*room].height {
                     block.resolve_with(vacant)
                 } else if z as f32 % stretch == 0.0
