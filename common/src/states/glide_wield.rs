@@ -1,6 +1,6 @@
 use super::utils::*;
 use crate::{
-    comp::{slot::EquipSlot, CharacterState, EnergySource, StateUpdate},
+    comp::{slot::EquipSlot, CharacterState, EnergySource, InventoryManip, StateUpdate},
     states::behavior::{CharacterBehavior, JoinData},
 };
 
@@ -66,6 +66,12 @@ impl CharacterBehavior for Data {
     fn unwield(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
         update.character = CharacterState::Idle;
+        update
+    }
+
+    fn modify_loadout(&self, data: &JoinData, inv_manip: InventoryManip) -> StateUpdate {
+        let mut update = StateUpdate::from(data);
+        handle_modify_loadout(&mut update, inv_manip);
         update
     }
 }

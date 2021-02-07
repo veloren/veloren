@@ -1,6 +1,6 @@
 use super::utils::*;
 use crate::{
-    comp::{CharacterState, StateUpdate},
+    comp::{CharacterState, InventoryManip, StateUpdate},
     states::behavior::{CharacterBehavior, JoinData},
 };
 use serde::{Deserialize, Serialize};
@@ -44,6 +44,12 @@ impl CharacterBehavior for Data {
         let mut update = StateUpdate::from(data);
         // Try to Fall/Stand up/Move
         update.character = CharacterState::Idle;
+        update
+    }
+
+    fn modify_loadout(&self, data: &JoinData, inv_manip: InventoryManip) -> StateUpdate {
+        let mut update = StateUpdate::from(data);
+        handle_modify_loadout(&mut update, inv_manip);
         update
     }
 }
