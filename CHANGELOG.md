@@ -42,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Adjusted most NPCs hitboxes to better fit their models.
 - Changed crafting recipes involving shiny gems to use diamonds instead.
 - Cave scatter now includes all 6 gems.
+- Adjusted Stonework Defender loot table to remove mindflayer drops (bag, staff, glider).
 
 ### Removed
 

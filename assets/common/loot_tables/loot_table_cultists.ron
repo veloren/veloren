@@ -203,12 +203,4 @@
     (0.6, "common.items.weapons.bow.horn_longbow-0"),
     (0.2, "common.items.weapons.bow.iron_longbow-0"),
     (0.10, "common.items.weapons.bow.rare_longbow"),
-    // cultist set
-    (0.1, "common.items.armor.belt.cultist_belt"),
-    (0.01, "common.items.armor.chest.cultist_chest_purple"),
-    (0.01, "common.items.armor.foot.cultist_boots"),
-    (0.01, "common.items.armor.hand.cultist_hands_purple"),
-    (0.01, "common.items.armor.pants.cultist_legs_purple"),
-    (0.01, "common.items.armor.shoulder.cultist_shoulder_purple"),
-    (0.005, "common.items.armor.back.dungeon_purple-0"),
 ]
