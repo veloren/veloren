@@ -2017,11 +2017,12 @@ impl WorldSim {
                         .enumerate()
                         .map(|(i, fk)| {
                             const CLUSTER_SIZE: f64 = 48.0;
-                            let nz = (FastNoise2d::new(i as u32).get(pos.map(|e| e as f64) / CLUSTER_SIZE) + 1.0) / 2.0;
+                            let nz = (FastNoise2d::new(i as u32 * 37).get(pos.map(|e| e as f64) / CLUSTER_SIZE) + 1.0) / 2.0;
                             (fk.proclivity(&env) * nz, fk)
                         })
                         .collect::<Vec<_>>())
                         .choose_seeded(seed),
+                    lanterns: false,
                 })
             });
 
@@ -2033,6 +2034,7 @@ impl WorldSim {
                 seed,
                 scale: 4.0,
                 forest_kind: ForestKind::Giant,
+                lanterns: true,
             });
 
         normal_trees.chain(giant_trees)

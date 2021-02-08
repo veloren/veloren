@@ -60,7 +60,7 @@ pub fn apply_trees_to(canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
     canvas.foreach_col(|canvas, wpos2d, col| {
         let trees = info.land().get_near_trees(wpos2d);
 
-        for TreeAttr { pos, seed, scale, forest_kind } in trees {
+        for TreeAttr { pos, seed, scale, forest_kind, lanterns } in trees {
             let tree = if let Some(tree) = tree_cache.entry(pos).or_insert_with(|| {
                 let col = ColumnGen::new(info.land()).get((pos, info.index()))?;
 
@@ -202,8 +202,8 @@ pub fn apply_trees_to(canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
                 )
                 .map(|block| {
                     // Add mushrooms to the tree
-                    if last_block.is_air() && block.kind() == BlockKind::Wood && dynamic_rng.gen_range(0..48) == 0 {
-                        canvas.set(wpos + Vec3::unit_z(), Block::air(SpriteKind::CaveMushroom));
+                    if lanterns && last_block.is_air() && block.kind() == BlockKind::Wood && dynamic_rng.gen_range(0..48) == 0 {
+                        canvas.set(wpos + Vec3::unit_z(), Block::air(SpriteKind::Lantern));
                     // Add a snow covering to the block above under certain circumstances
                     } else if col.snow_cover
                         && ((block.kind() == BlockKind::Leaves && is_leaf_top)

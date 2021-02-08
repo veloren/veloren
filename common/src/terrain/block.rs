@@ -189,6 +189,7 @@ impl Block {
             | SpriteKind::RubySmall
             | SpriteKind::EmeraldSmall
             | SpriteKind::SapphireSmall => Some(3),
+            SpriteKind::Lantern => Some(24),
             _ => None,
         }
     }

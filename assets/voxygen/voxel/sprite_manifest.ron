@@ -2824,4 +2824,16 @@ SapphireSmall: Some((
     ],
     wind_sway: 0.0,
 )),
+
+// Lantern
+Lantern: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lantern-orange",
+            offset: (-2.5, -2.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
 )
