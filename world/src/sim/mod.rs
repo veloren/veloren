@@ -2026,10 +2026,12 @@ impl WorldSim {
             });
 
         let giant_trees = std::array::IntoIter::new(self.gen_ctx.big_structure_gen.get(wpos))
+            // Don't even consider trees if we aren't close
+            .filter(move |(pos, _)| pos.distance_squared(wpos) < 256i32.pow(2))
             .map(move |(pos, seed)| TreeAttr {
                 pos,
                 seed,
-                scale: 5.0,
+                scale: 4.0,
                 forest_kind: ForestKind::Giant,
             });
 

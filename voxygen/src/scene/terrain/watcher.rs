@@ -15,6 +15,7 @@ pub struct BlocksOfInterest {
     pub smokers: Vec<Vec3<i32>>,
     pub beehives: Vec<Vec3<i32>>,
     pub reeds: Vec<Vec3<i32>>,
+    pub fireflies: Vec<Vec3<i32>>,
     pub flowers: Vec<Vec3<i32>>,
     pub fire_bowls: Vec<Vec3<i32>>,
     pub snow: Vec<Vec3<i32>>,
@@ -39,6 +40,7 @@ impl BlocksOfInterest {
         let mut smokers = Vec::new();
         let mut beehives = Vec::new();
         let mut reeds = Vec::new();
+        let mut fireflies = Vec::new();
         let mut flowers = Vec::new();
         let mut interactables = Vec::new();
         let mut lights = Vec::new();
@@ -94,10 +96,12 @@ impl BlocksOfInterest {
                         Some(SpriteKind::Beehive) => beehives.push(pos),
                         Some(SpriteKind::Reed) => {
                             reeds.push(pos);
+                            fireflies.push(pos);
                             if thread_rng().gen_range(0..12) == 0 {
-                                frogs.push(pos)
+                                frogs.push(pos);
                             }
                         },
+                        Some(SpriteKind::CaveMushroom) => fireflies.push(pos),
                         Some(SpriteKind::PinkFlower) => flowers.push(pos),
                         Some(SpriteKind::PurpleFlower) => flowers.push(pos),
                         Some(SpriteKind::RedFlower) => flowers.push(pos),
@@ -123,6 +127,7 @@ impl BlocksOfInterest {
             smokers,
             beehives,
             reeds,
+            fireflies,
             flowers,
             interactables,
             lights,

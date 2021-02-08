@@ -249,6 +249,7 @@ pub fn block_from_structure(
                 Some(with_sprite(SpriteKind::Chest))
             }
         },
+        StructureBlock::Log => Some(Block::new(BlockKind::Wood, Rgb::new(60, 30, 0))),
         // We interpolate all these BlockKinds as needed.
         StructureBlock::TemperateLeaves
         | StructureBlock::PineLeaves

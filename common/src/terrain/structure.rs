@@ -30,6 +30,7 @@ make_case_elim!(
         Hollow = 13,
         Liana = 14,
         Normal(color: Rgb<u8>) = 15,
+        Log = 16,
     }
 );
 

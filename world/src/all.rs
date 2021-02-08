@@ -12,8 +12,8 @@ pub enum ForestKind {
     Pine,
     Birch,
     Mangrove,
-    Swamp,
     Giant,
+    Swamp,
 }
 
 pub struct Environment {

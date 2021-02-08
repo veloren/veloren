@@ -9,7 +9,7 @@ use common::{
     assets::AssetHandle,
     terrain::{
         structure::{Structure, StructureBlock, StructuresGroup},
-        Block, BlockKind,
+        Block, BlockKind, SpriteKind,
     },
     vol::ReadVol,
 };
@@ -40,7 +40,7 @@ static UNIT_CHOOSER: UnitChooser = UnitChooser::new(0x700F4EC7);
 static QUIRKY_RAND: RandomPerm = RandomPerm::new(0xA634460F);
 
 #[allow(clippy::if_same_then_else)]
-pub fn apply_trees_to(canvas: &mut Canvas) {
+pub fn apply_trees_to(canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
     // TODO: Get rid of this
     enum TreeModel {
         Structure(Structure),
@@ -167,6 +167,7 @@ pub fn apply_trees_to(canvas: &mut Canvas) {
 
             let mut is_top = true;
             let mut is_leaf_top = true;
+            let mut last_block = Block::empty();
             for z in (bounds.min.z..bounds.max.z).rev() {
                 let wpos = Vec3::new(wpos2d.x, wpos2d.y, tree.pos.z + z);
                 let model_pos = Vec3::from(
@@ -183,7 +184,7 @@ pub fn apply_trees_to(canvas: &mut Canvas) {
                         TreeModel::Structure(s) => s.get(model_pos).ok().copied(),
                         TreeModel::Procedural(t, leaf_block) => Some(
                             match t.is_branch_or_leaves_at(model_pos.map(|e| e as f32 + 0.5)) {
-                                (true, _) => StructureBlock::Normal(Rgb::new(60, 30, 0)),
+                                (true, _) => StructureBlock::Log,
                                 (_, true) => *leaf_block,
                                 (_, _) => StructureBlock::None,
                             },
@@ -200,8 +201,11 @@ pub fn apply_trees_to(canvas: &mut Canvas) {
                     Block::air,
                 )
                 .map(|block| {
+                    // Add mushrooms to the tree
+                    if last_block.is_air() && block.kind() == BlockKind::Wood && dynamic_rng.gen_range(0..48) == 0 {
+                        canvas.set(wpos + Vec3::unit_z(), Block::air(SpriteKind::CaveMushroom));
                     // Add a snow covering to the block above under certain circumstances
-                    if col.snow_cover
+                    } else if col.snow_cover
                         && ((block.kind() == BlockKind::Leaves && is_leaf_top)
                             || (is_top && block.is_filled()))
                     {
@@ -213,9 +217,15 @@ pub fn apply_trees_to(canvas: &mut Canvas) {
                     canvas.set(wpos, block);
                     is_leaf_top = false;
                     is_top = false;
+                    last_block = block;
                 })
                 .unwrap_or_else(|| {
+                    if last_block.kind() == BlockKind::Wood && dynamic_rng.gen_range(0..512) == 0 {
+                        canvas.set(wpos, Block::air(SpriteKind::Beehive));
+                    }
+
                     is_leaf_top = true;
+                    last_block = Block::empty();
                 });
             }
         }
@@ -260,18 +270,18 @@ pub struct TreeConfig {
 
 impl TreeConfig {
     pub fn oak(rng: &mut impl Rng, scale: f32) -> Self {
-        let scale = scale * (1.0 + rng.gen::<f32>().powi(4));
+        let scale = scale * (0.9 + rng.gen::<f32>().powi(4));
         let log_scale = 1.0 + scale.log2().max(0.0);
 
         Self {
             trunk_len: 9.0 * scale,
             trunk_radius: 2.0 * scale,
-            branch_child_len: 0.8,
+            branch_child_len: 0.9,
             branch_child_radius: 0.75,
             leaf_radius: 2.5 * log_scale..3.25 * log_scale,
-            straightness: 0.5,
-            max_depth: (4.0 + log_scale) as usize,
-            splits: 2.0..3.0,
+            straightness: 0.45,
+            max_depth: 4,
+            splits: 2.25..3.25,
             split_range: 0.75..1.5,
             branch_len_bias: 0.0,
             leaf_vertical_scale: 1.0,
@@ -308,11 +318,11 @@ impl TreeConfig {
             trunk_radius: 4.0 * scale,
             branch_child_len: 0.9,
             branch_child_radius: 0.7,
-            leaf_radius: 1.5 * log_scale..2.0 * log_scale,
-            straightness: 0.4,
-            max_depth: (6.0 + log_scale) as usize,
-            splits: 1.8..3.0,
-            split_range: 0.8..1.5,
+            leaf_radius: 2.25 * log_scale..3.5 * log_scale,
+            straightness: 0.5,
+            max_depth: (7.0 + log_scale) as usize,
+            splits: 1.5..2.75,
+            split_range: 1.0..1.1,
             branch_len_bias: 0.0,
             leaf_vertical_scale: 1.0,
             proportionality: 0.0,
