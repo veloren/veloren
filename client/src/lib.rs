@@ -22,8 +22,9 @@ use common::{
         chat::{KillSource, KillType},
         group,
         skills::Skill,
+        slot::Slot,
         ControlAction, ControlEvent, Controller, ControllerInputs, GroupManip, InventoryManip,
-        InventoryUpdateEvent,
+        InventoryUpdateEvent, LoadoutManip,
     },
     event::{EventBus, LocalEvent},
     grid::Grid,
@@ -598,22 +599,32 @@ impl Client {
         self.send_msg(ClientGeneral::SetViewDistance(self.view_distance.unwrap()));
     }
 
-    pub fn use_slot(&mut self, slot: comp::slot::Slot) {
+    pub fn use_slot(&mut self, slot: Slot) {
         self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InventoryManip(
             InventoryManip::Use(slot),
         )));
     }
 
-    pub fn swap_slots(&mut self, a: comp::slot::Slot, b: comp::slot::Slot) {
-        self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InventoryManip(
-            InventoryManip::Swap(a, b),
-        )));
+    pub fn swap_slots(&mut self, a: Slot, b: Slot) {
+        match (a, b) {
+            (Slot::Equip(equip), slot) | (slot, Slot::Equip(equip)) => {
+                self.control_action(ControlAction::LoadoutManip(LoadoutManip::Swap(equip, slot)))
+            },
+            _ => self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InventoryManip(
+                InventoryManip::Swap(a, b),
+            ))),
+        }
     }
 
-    pub fn drop_slot(&mut self, slot: comp::slot::Slot) {
-        self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InventoryManip(
-            InventoryManip::Drop(slot),
-        )));
+    pub fn drop_slot(&mut self, slot: Slot) {
+        match slot {
+            Slot::Equip(equip) => {
+                self.control_action(ControlAction::LoadoutManip(LoadoutManip::Drop(equip)))
+            },
+            _ => self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InventoryManip(
+                InventoryManip::Drop(slot),
+            ))),
+        }
     }
 
     pub fn pick_up(&mut self, entity: EcsEntity) {
@@ -807,7 +818,7 @@ impl Client {
 
     /// Checks whether a player can swap their weapon+ability `Loadout` settings
     /// and sends the `ControlAction` event that signals to do the swap.
-    pub fn swap_loadout(&mut self) { self.control_action(ControlAction::SwapLoadout) }
+    pub fn swap_loadout(&mut self) { self.control_action(ControlAction::SwapEquippedWeapons) }
 
     pub fn toggle_wield(&mut self) {
         let is_wielding = self

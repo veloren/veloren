@@ -16,7 +16,7 @@ pub struct StateUpdate {
     pub vel: Vel,
     pub ori: Ori,
     pub energy: Energy,
-    pub swap_loadout: bool,
+    pub swap_equipped_weapons: bool,
     pub local_events: VecDeque<LocalEvent>,
     pub server_events: VecDeque<ServerEvent>,
 }
@@ -28,7 +28,7 @@ impl From<&JoinData<'_>> for StateUpdate {
             vel: *data.vel,
             ori: *data.ori,
             energy: *data.energy,
-            swap_loadout: false,
+            swap_equipped_weapons: false,
             character: data.character.clone(),
             local_events: VecDeque::new(),
             server_events: VecDeque::new(),

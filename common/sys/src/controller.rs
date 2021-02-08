@@ -1,5 +1,5 @@
 use common::{
-    comp::{slot::Slot, BuffChange, ControlAction, ControlEvent, Controller, InventoryManip},
+    comp::{BuffChange, ControlEvent, Controller},
     event::{EventBus, LocalEvent, ServerEvent},
     metrics::SysMetrics,
     resources::DeltaTime,
@@ -99,20 +99,7 @@ impl<'a> System<'a> for Sys {
                         }
                     },
                     ControlEvent::InventoryManip(manip) => {
-                        // if an equipped slot is being changed, send a control action that the
-                        // loadout was modified
-                        match manip {
-                            InventoryManip::Drop(Slot::Equip(_))
-                            | InventoryManip::Swap(_, Slot::Equip(_))
-                            | InventoryManip::Swap(Slot::Equip(_), _) => {
-                                controller
-                                    .actions
-                                    .push(ControlAction::ModifyLoadout(manip.into()));
-                            },
-                            _ => {
-                                server_emitter.emit(ServerEvent::InventoryManip(entity, manip));
-                            },
-                        }
+                        server_emitter.emit(ServerEvent::InventoryManip(entity, manip));
                     },
                     ControlEvent::GroupManip(manip) => {
                         server_emitter.emit(ServerEvent::GroupManip(entity, manip))

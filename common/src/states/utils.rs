@@ -353,24 +353,22 @@ pub fn handle_climb(data: &JoinData, update: &mut StateUpdate) {
 }
 
 /// Checks that player can Swap Weapons and updates `Loadout` if so
-pub fn attempt_swap_loadout(data: &JoinData, update: &mut StateUpdate) {
+pub fn attempt_swap_equipped_weapons(data: &JoinData, update: &mut StateUpdate) {
     if data.inventory.equipped(EquipSlot::Offhand).is_some() {
-        update.swap_loadout = true;
+        update.swap_equipped_weapons = true;
     }
 }
 
 /// Handles inventory manipulations that affect the loadout
-pub fn handle_modify_loadout(
+pub fn handle_manipulate_loadout(
     data: &JoinData,
     update: &mut StateUpdate,
-    loadout_manip: Option<LoadoutManip>,
+    loadout_manip: LoadoutManip,
 ) {
-    if let Some(loadout_manip) = loadout_manip {
-        update.server_events.push_front(ServerEvent::InventoryManip(
-            data.entity,
-            loadout_manip.into(),
-        ));
-    }
+    update.server_events.push_front(ServerEvent::InventoryManip(
+        data.entity,
+        loadout_manip.into(),
+    ));
 }
 
 /// Checks that player can wield the glider and updates `CharacterState` if so

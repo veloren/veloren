@@ -1,5 +1,8 @@
 use crate::{
-    comp::{inventory::slot::Slot, BuffKind},
+    comp::{
+        inventory::slot::{EquipSlot, Slot},
+        BuffKind,
+    },
     uid::Uid,
     util::Dir,
 };
@@ -24,25 +27,15 @@ pub enum InventoryManip {
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub enum LoadoutManip {
-    Swap(Slot, Slot),
-    Drop(Slot),
+    Swap(EquipSlot, Slot),
+    Drop(EquipSlot),
 }
 
 impl From<LoadoutManip> for InventoryManip {
     fn from(loadout_manip: LoadoutManip) -> Self {
         match loadout_manip {
-            LoadoutManip::Swap(slot1, slot2) => Self::Swap(slot1, slot2),
-            LoadoutManip::Drop(slot) => Self::Drop(slot),
-        }
-    }
-}
-
-impl From<InventoryManip> for Option<LoadoutManip> {
-    fn from(inv_manip: InventoryManip) -> Self {
-        match inv_manip {
-            InventoryManip::Swap(slot1, slot2) => Some(LoadoutManip::Swap(slot1, slot2)),
-            InventoryManip::Drop(slot) => Some(LoadoutManip::Drop(slot)),
-            _ => None,
+            LoadoutManip::Swap(equip, slot) => Self::Swap(Slot::Equip(equip), slot),
+            LoadoutManip::Drop(equip) => Self::Drop(Slot::Equip(equip)),
         }
     }
 }
@@ -73,8 +66,8 @@ pub enum ControlEvent {
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub enum ControlAction {
-    SwapLoadout,
-    ModifyLoadout(Option<LoadoutManip>),
+    SwapEquippedWeapons,
+    LoadoutManip(LoadoutManip),
     Wield,
     GlideWield,
     Unwield,
