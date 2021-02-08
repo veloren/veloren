@@ -1,6 +1,9 @@
 use super::utils::*;
 use crate::{
-    comp::{CharacterState, LoadoutManip, StateUpdate},
+    comp::{
+        slot::{EquipSlot, Slot},
+        CharacterState, LoadoutManip, StateUpdate,
+    },
     states::behavior::{CharacterBehavior, JoinData},
 };
 
@@ -59,6 +62,14 @@ impl CharacterBehavior for Data {
 
     fn manipulate_loadout(&self, data: &JoinData, loadout_manip: LoadoutManip) -> StateUpdate {
         let mut update = StateUpdate::from(data);
+        match loadout_manip {
+            LoadoutManip::Drop(EquipSlot::Mainhand)
+            | LoadoutManip::Swap(EquipSlot::Mainhand, _)
+            | LoadoutManip::Swap(_, Slot::Equip(EquipSlot::Mainhand)) => {
+                update.character = CharacterState::Idle;
+            },
+            _ => (),
+        }
         handle_manipulate_loadout(&data, &mut update, loadout_manip);
         update
     }
