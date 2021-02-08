@@ -99,7 +99,7 @@ impl<'a> System<'a> for Sys {
                         }
                     },
                     ControlEvent::InventoryManip(manip) => {
-                        server_emitter.emit(ServerEvent::InventoryManip(entity, manip));
+                        server_emitter.emit(ServerEvent::InventoryManip(entity, manip.into()));
                     },
                     ControlEvent::GroupManip(manip) => {
                         server_emitter.emit(ServerEvent::GroupManip(entity, manip))

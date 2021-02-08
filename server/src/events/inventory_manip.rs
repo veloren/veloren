@@ -37,7 +37,7 @@ pub fn snuff_lantern(storage: &mut WriteStorage<comp::LightEmitter>, entity: Ecs
 
 #[allow(clippy::blocks_in_if_conditions)]
 #[allow(clippy::same_item_push)] // TODO: Pending review in #587
-pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::InventoryManip) {
+pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::SlotManip) {
     let state = server.state_mut();
     let mut dropped_items = Vec::new();
     let mut thrown_items = Vec::new();
@@ -60,7 +60,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
     };
 
     match manip {
-        comp::InventoryManip::Pickup(uid) => {
+        comp::SlotManip::Pickup(uid) => {
             let picked_up_item: Option<comp::Item>;
             let item_entity = if let (Some((item, item_entity)), Some(mut inv)) = (
                 state
@@ -133,7 +133,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             state.write_component(entity, event);
         },
 
-        comp::InventoryManip::Collect(pos) => {
+        comp::SlotManip::Collect(pos) => {
             let block = state.terrain().get(pos).ok().copied();
 
             if let Some(block) = block {
@@ -204,7 +204,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             }
         },
 
-        comp::InventoryManip::Use(slot) => {
+        comp::SlotManip::Use(slot) => {
             let mut inventories = state.ecs().write_storage::<comp::Inventory>();
             let mut inventory = if let Some(inventory) = inventories.get_mut(entity) {
                 inventory
@@ -405,7 +405,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             }
         },
 
-        comp::InventoryManip::Swap(a, b) => {
+        comp::SlotManip::Swap(a, b) => {
             let ecs = state.ecs();
 
             if let Some(pos) = ecs.read_storage::<comp::Pos>().get(entity) {
@@ -429,7 +429,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             );
         },
 
-        comp::InventoryManip::Drop(slot) => {
+        comp::SlotManip::Drop(slot) => {
             let item = match slot {
                 Slot::Inventory(slot) => state
                     .ecs()
@@ -462,7 +462,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             );
         },
 
-        comp::InventoryManip::CraftRecipe(recipe) => {
+        comp::SlotManip::CraftRecipe(recipe) => {
             if let Some(mut inv) = state
                 .ecs()
                 .write_storage::<comp::Inventory>()

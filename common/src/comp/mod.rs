@@ -46,7 +46,7 @@ pub use chat::{
 };
 pub use controller::{
     Climb, ControlAction, ControlEvent, Controller, ControllerInputs, GroupManip, Input,
-    InventoryManip, LoadoutManip, MountState, Mounting,
+    InventoryManip, LoadoutManip, MountState, Mounting, SlotManip,
 };
 pub use energy::{Energy, EnergyChange, EnergySource};
 pub use group::Group;

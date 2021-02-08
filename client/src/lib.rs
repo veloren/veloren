@@ -600,9 +600,14 @@ impl Client {
     }
 
     pub fn use_slot(&mut self, slot: Slot) {
-        self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InventoryManip(
-            InventoryManip::Use(slot),
-        )));
+        match slot {
+            Slot::Equip(equip) => {
+                self.control_action(ControlAction::LoadoutManip(LoadoutManip::Use(equip)))
+            },
+            Slot::Inventory(inv) => self.send_msg(ClientGeneral::ControlEvent(
+                ControlEvent::InventoryManip(InventoryManip::Use(inv)),
+            )),
+        }
     }
 
     pub fn swap_slots(&mut self, a: Slot, b: Slot) {
@@ -610,9 +615,11 @@ impl Client {
             (Slot::Equip(equip), slot) | (slot, Slot::Equip(equip)) => {
                 self.control_action(ControlAction::LoadoutManip(LoadoutManip::Swap(equip, slot)))
             },
-            _ => self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InventoryManip(
-                InventoryManip::Swap(a, b),
-            ))),
+            (Slot::Inventory(inv1), Slot::Inventory(inv2)) => {
+                self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InventoryManip(
+                    InventoryManip::Swap(inv1, inv2),
+                )))
+            },
         }
     }
 
@@ -621,9 +628,9 @@ impl Client {
             Slot::Equip(equip) => {
                 self.control_action(ControlAction::LoadoutManip(LoadoutManip::Drop(equip)))
             },
-            _ => self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InventoryManip(
-                InventoryManip::Drop(slot),
-            ))),
+            Slot::Inventory(inv) => self.send_msg(ClientGeneral::ControlEvent(
+                ControlEvent::InventoryManip(InventoryManip::Drop(inv)),
+            )),
         }
     }
 
