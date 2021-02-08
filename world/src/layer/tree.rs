@@ -60,7 +60,7 @@ pub fn apply_trees_to(canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
     canvas.foreach_col(|canvas, wpos2d, col| {
         let trees = info.land().get_near_trees(wpos2d);
 
-        for TreeAttr { pos, seed, scale, forest_kind, lanterns } in trees {
+        for TreeAttr { pos, seed, scale, forest_kind, inhabited } in trees {
             let tree = if let Some(tree) = tree_cache.entry(pos).or_insert_with(|| {
                 let col = ColumnGen::new(info.land()).get((pos, info.index()))?;
 
@@ -127,7 +127,7 @@ pub fn apply_trees_to(canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
                                 ForestKind::Giant => {
                                     break 'model TreeModel::Procedural(
                                         ProceduralTree::generate(
-                                            TreeConfig::giant(&mut RandomPerm::new(seed), scale),
+                                            TreeConfig::giant(&mut RandomPerm::new(seed), scale, inhabited),
                                             &mut RandomPerm::new(seed),
                                         ),
                                         StructureBlock::TemperateLeaves,
@@ -184,9 +184,10 @@ pub fn apply_trees_to(canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
                         TreeModel::Structure(s) => s.get(model_pos).ok().copied(),
                         TreeModel::Procedural(t, leaf_block) => Some(
                             match t.is_branch_or_leaves_at(model_pos.map(|e| e as f32 + 0.5)) {
-                                (true, _) => StructureBlock::Log,
-                                (_, true) => *leaf_block,
-                                (_, _) => StructureBlock::None,
+                                (_, _, true) => StructureBlock::Hollow,
+                                (true, _, _) => StructureBlock::Log,
+                                (_, true, _) => *leaf_block,
+                                (_, _, _) => StructureBlock::None,
                             },
                         ),
                     } {
@@ -201,8 +202,8 @@ pub fn apply_trees_to(canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
                     Block::air,
                 )
                 .map(|block| {
-                    // Add mushrooms to the tree
-                    if lanterns && last_block.is_air() && block.kind() == BlockKind::Wood && dynamic_rng.gen_range(0..48) == 0 {
+                    // Add lights to the tree
+                    if inhabited && last_block.is_air() && block.kind() == BlockKind::Wood && dynamic_rng.gen_range(0..256) == 0 {
                         canvas.set(wpos + Vec3::unit_z(), Block::air(SpriteKind::Lantern));
                     // Add a snow covering to the block above under certain circumstances
                     } else if col.snow_cover
@@ -266,6 +267,8 @@ pub struct TreeConfig {
     pub leaf_vertical_scale: f32,
     /// How evenly spaced (vs random) sub-branches are along their parent.
     pub proportionality: f32,
+    /// Whether the tree is inhabited (adds various features and effects)
+    pub inhabited: bool,
 }
 
 impl TreeConfig {
@@ -286,6 +289,7 @@ impl TreeConfig {
             branch_len_bias: 0.0,
             leaf_vertical_scale: 1.0,
             proportionality: 0.0,
+            inhabited: false,
         }
     }
 
@@ -306,10 +310,11 @@ impl TreeConfig {
             branch_len_bias: 0.75,
             leaf_vertical_scale: 0.3,
             proportionality: 1.0,
+            inhabited: false,
         }
     }
 
-    pub fn giant(rng: &mut impl Rng, scale: f32) -> Self {
+    pub fn giant(rng: &mut impl Rng, scale: f32, inhabited: bool) -> Self {
         let log_scale = 1.0 + scale.log2().max(0.0);
 
         Self {
@@ -325,6 +330,7 @@ impl TreeConfig {
             branch_len_bias: 0.0,
             leaf_vertical_scale: 0.6,
             proportionality: 0.0,
+            inhabited,
         }
     }
 }
@@ -385,7 +391,7 @@ impl ProceduralTree {
             0.0
         };
 
-        let has_stairs = branch_radius > 3.0 && start.xy().distance(end.xy()) < (start.z - end.z).abs();
+        let has_stairs = config.inhabited && branch_radius > 3.0 && start.xy().distance(end.xy()) < (start.z - end.z).abs();
         let bark_radius = if has_stairs { 8.0 } else { 0.0 };
 
         // The AABB that covers this branch, along with wood and leaves that eminate
@@ -478,13 +484,13 @@ impl ProceduralTree {
     pub fn get_bounds(&self) -> Aabb<f32> { self.branches[self.trunk_idx].aabb }
 
     // Recursively search for branches or leaves by walking the tree's branch graph.
-    fn is_branch_or_leaves_at_inner(&self, pos: Vec3<f32>, branch_idx: usize) -> (bool, bool) {
+    fn is_branch_or_leaves_at_inner(&self, pos: Vec3<f32>, branch_idx: usize) -> (bool, bool, bool) {
         let branch = &self.branches[branch_idx];
         // Always probe the sibling branch, since our AABB doesn't include its bounds
         // (it's not one of our children)
         let branch_or_leaves = branch
             .sibling_idx
-            .map(|idx| Vec2::from(self.is_branch_or_leaves_at_inner(pos, idx)))
+            .map(|idx| Vec3::from(self.is_branch_or_leaves_at_inner(pos, idx)))
             .unwrap_or_default();
 
         // Only continue probing this sub-graph of the tree if the sample position falls
@@ -492,10 +498,10 @@ impl ProceduralTree {
         if branch.aabb.contains_point(pos) {
             (branch_or_leaves
                 // Probe this branch
-                | Vec2::from(branch.is_branch_or_leaves_at(pos))
+                | Vec3::from(branch.is_branch_or_leaves_at(pos))
                 // Probe the children of this branch
                 | branch.child_idx
-                    .map(|idx| Vec2::from(self.is_branch_or_leaves_at_inner(pos, idx)))
+                    .map(|idx| Vec3::from(self.is_branch_or_leaves_at_inner(pos, idx)))
                     .unwrap_or_default())
             .into_tuple()
         } else {
@@ -506,7 +512,7 @@ impl ProceduralTree {
     /// Determine whether there are either branches or leaves at the given
     /// position in the tree.
     #[inline(always)]
-    pub fn is_branch_or_leaves_at(&self, pos: Vec3<f32>) -> (bool, bool) {
+    pub fn is_branch_or_leaves_at(&self, pos: Vec3<f32>) -> (bool, bool, bool) {
         self.is_branch_or_leaves_at_inner(pos, self.trunk_idx)
     }
 }
@@ -532,7 +538,7 @@ struct Branch {
 impl Branch {
     /// Determine whether there are either branches or leaves at the given
     /// position in the branch.
-    pub fn is_branch_or_leaves_at(&self, pos: Vec3<f32>) -> (bool, bool) {
+    pub fn is_branch_or_leaves_at(&self, pos: Vec3<f32>) -> (bool, bool, bool) {
         // fn finvsqrt(x: f32) -> f32 {
         //     let y = f32::from_bits(0x5f375a86 - (x.to_bits() >> 1));
         //     y * (1.5 - ( x * 0.5 * y * y ))
@@ -542,19 +548,24 @@ impl Branch {
         let p_d2 = p.distance_squared(pos);
 
         if p_d2 < self.wood_radius.powi(2) {
-            (true, false)
-        } else if self.has_stairs && {
-            let horizontal_projected = Lerp::lerp_unclamped(self.line.start, self.line.end, (pos.z - self.line.start.z) / (self.line.end.z - self.line.start.z));
-            let rpos = pos.xy() - horizontal_projected.xy();
-            let stretch = 32.0;
-            let stair_section = ((rpos.x as f32).atan2(rpos.y as f32) / (f32::consts::PI * 2.0) * stretch + pos.z).rem_euclid(stretch);
-            stair_section < 2.0 && p_d2 < (self.wood_radius + 8.0).powi(2)
-        } {
-            (true, false)
-        } else {
+            (true, false, false) // Wood
+        } else if {
             let diff = (p - pos) / Vec3::new(1.0, 1.0, self.leaf_vertical_scale);
-
-            (false, diff.magnitude_squared() < self.leaf_radius.powi(2))
+            diff.magnitude_squared() < self.leaf_radius.powi(2)
+        } {
+            (false, true, false) // Leaves
+        } else {
+            let stair_width = 5.0;
+            let stair_thickness = 1.5;
+            let stair_space = 6.0;
+            if self.has_stairs && p_d2 < (self.wood_radius + stair_width).powi(2) {
+                let rpos = pos.xy() - p.xy();
+                let stretch = 32.0;
+                let stair_section = ((rpos.x as f32).atan2(rpos.y as f32) / (f32::consts::PI * 2.0) * stretch + pos.z).rem_euclid(stretch);
+                (stair_section < stair_thickness, false, stair_section >= stair_thickness && stair_section < stair_thickness + stair_space) // Stairs
+            } else {
+                (false, false, false)
+            }
         }
     }
 }

@@ -87,5 +87,5 @@ pub struct TreeAttr {
     pub seed: u32,
     pub scale: f32,
     pub forest_kind: ForestKind,
-    pub lanterns: bool,
+    pub inhabited: bool,
 }

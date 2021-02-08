@@ -2022,7 +2022,7 @@ impl WorldSim {
                         })
                         .collect::<Vec<_>>())
                         .choose_seeded(seed),
-                    lanterns: false,
+                    inhabited: false,
                 })
             });
 
@@ -2034,7 +2034,7 @@ impl WorldSim {
                 seed,
                 scale: 4.0,
                 forest_kind: ForestKind::Giant,
-                lanterns: true,
+                inhabited: (seed / 13) % 2 == 0,
             });
 
         normal_trees.chain(giant_trees)
