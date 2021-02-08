@@ -270,7 +270,7 @@ pub struct TreeConfig {
 
 impl TreeConfig {
     pub fn oak(rng: &mut impl Rng, scale: f32) -> Self {
-        let scale = scale * (0.9 + rng.gen::<f32>().powi(4));
+        let scale = scale * (0.8 + rng.gen::<f32>().powi(4) * 0.9);
         let log_scale = 1.0 + scale.log2().max(0.0);
 
         Self {
@@ -310,21 +310,20 @@ impl TreeConfig {
     }
 
     pub fn giant(rng: &mut impl Rng, scale: f32) -> Self {
-        let scale = scale * (1.0 + rng.gen::<f32>().powi(4));
         let log_scale = 1.0 + scale.log2().max(0.0);
 
         Self {
-            trunk_len: 9.0 * scale,
-            trunk_radius: 4.0 * scale,
-            branch_child_len: 0.9,
-            branch_child_radius: 0.7,
-            leaf_radius: 2.25 * log_scale..3.5 * log_scale,
-            straightness: 0.5,
-            max_depth: (7.0 + log_scale) as usize,
-            splits: 1.5..2.75,
+            trunk_len: 12.0 * scale,
+            trunk_radius: 8.0 * scale,
+            branch_child_len: 0.89,
+            branch_child_radius: 0.65,
+            leaf_radius: 3.0 * log_scale..5.25 * log_scale,
+            straightness: 0.38,
+            max_depth: (6.0 + log_scale) as usize,
+            splits: 1.5..2.5,
             split_range: 1.0..1.1,
             branch_len_bias: 0.0,
-            leaf_vertical_scale: 1.0,
+            leaf_vertical_scale: 0.6,
             proportionality: 0.0,
         }
     }
@@ -386,11 +385,14 @@ impl ProceduralTree {
             0.0
         };
 
+        let has_stairs = branch_radius > 3.0 && start.xy().distance(end.xy()) < (start.z - end.z).abs();
+        let bark_radius = if has_stairs { 8.0 } else { 0.0 };
+
         // The AABB that covers this branch, along with wood and leaves that eminate
         // from it
         let mut aabb = Aabb {
-            min: Vec3::partial_min(start, end) - wood_radius.max(leaf_radius),
-            max: Vec3::partial_max(start, end) + wood_radius.max(leaf_radius),
+            min: Vec3::partial_min(start, end) - (wood_radius + bark_radius).max(leaf_radius),
+            max: Vec3::partial_max(start, end) + (wood_radius + bark_radius).max(leaf_radius),
         };
 
         let mut child_idx = None;
@@ -405,8 +407,8 @@ impl ProceduralTree {
             let splits = rng.gen_range(config.splits.clone()).round() as usize;
             for i in 0..splits {
                 let dist = Lerp::lerp(
-                    i as f32 / (splits - 1) as f32,
                     rng.gen_range(0.0..1.0),
+                    i as f32 / (splits - 1) as f32,
                     config.proportionality,
                 );
 
@@ -466,6 +468,7 @@ impl ProceduralTree {
             aabb,
             sibling_idx,
             child_idx,
+            has_stairs,
         });
 
         (idx, aabb)
@@ -522,6 +525,8 @@ struct Branch {
 
     sibling_idx: Option<usize>,
     child_idx: Option<usize>,
+
+    has_stairs: bool,
 }
 
 impl Branch {
@@ -537,6 +542,14 @@ impl Branch {
         let p_d2 = p.distance_squared(pos);
 
         if p_d2 < self.wood_radius.powi(2) {
+            (true, false)
+        } else if self.has_stairs && {
+            let horizontal_projected = Lerp::lerp_unclamped(self.line.start, self.line.end, (pos.z - self.line.start.z) / (self.line.end.z - self.line.start.z));
+            let rpos = pos.xy() - horizontal_projected.xy();
+            let stretch = 32.0;
+            let stair_section = ((rpos.x as f32).atan2(rpos.y as f32) / (f32::consts::PI * 2.0) * stretch + pos.z).rem_euclid(stretch);
+            stair_section < 2.0 && p_d2 < (self.wood_radius + 8.0).powi(2)
+        } {
             (true, false)
         } else {
             let diff = (p - pos) / Vec3::new(1.0, 1.0, self.leaf_vertical_scale);
