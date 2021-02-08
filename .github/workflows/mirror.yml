@@ -3,7 +3,7 @@ name: Mirror Gitlab repo
 # Every hour
 on:
   schedule:
-    - cron: "0 * * * *"
+    - cron: "13 * * * *"
 
 jobs:
   mirror-gitlab-repo:
