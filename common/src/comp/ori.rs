@@ -209,11 +209,6 @@ impl From<Dir> for Ori {
         let from = Dir::default();
         let q = Quaternion::<f32>::rotation_from_to_3d(*from, *dir).normalized();
 
-        #[cfg(debug_assertions)]
-        {
-            approx::assert_relative_eq!((q * from).dot(*dir), 1.0);
-        }
-
         Self(q).uprighted()
     }
 }
