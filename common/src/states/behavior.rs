@@ -1,7 +1,7 @@
 use crate::{
     comp::{
         Beam, Body, CharacterState, ControlAction, Controller, ControllerInputs, Energy, Health,
-        Inventory, Melee, Ori, PhysicsState, Pos, StateUpdate, Stats, Vel,
+        Inventory, LoadoutManip, Melee, Ori, PhysicsState, Pos, StateUpdate, Stats, Vel,
     },
     resources::DeltaTime,
     uid::Uid,
@@ -16,7 +16,10 @@ use specs_idvs::IdvStorage;
 pub trait CharacterBehavior {
     fn behavior(&self, data: &JoinData) -> StateUpdate;
     // Impl these to provide behavior for these inputs
-    fn swap_loadout(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
+    fn swap_equipped_weapons(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
+    fn manipulate_loadout(&self, data: &JoinData, _loadout_manip: LoadoutManip) -> StateUpdate {
+        StateUpdate::from(data)
+    }
     fn wield(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
     fn glide_wield(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
     fn unwield(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
@@ -27,7 +30,10 @@ pub trait CharacterBehavior {
     fn talk(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
     fn handle_event(&self, data: &JoinData, event: ControlAction) -> StateUpdate {
         match event {
-            ControlAction::SwapLoadout => self.swap_loadout(data),
+            ControlAction::SwapEquippedWeapons => self.swap_equipped_weapons(data),
+            ControlAction::LoadoutManip(loadout_manip) => {
+                self.manipulate_loadout(data, loadout_manip)
+            },
             ControlAction::Wield => self.wield(data),
             ControlAction::GlideWield => self.glide_wield(data),
             ControlAction::Unwield => self.unwield(data),

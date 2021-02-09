@@ -1,5 +1,8 @@
 use crate::{
-    comp::{inventory::slot::Slot, BuffKind},
+    comp::{
+        inventory::slot::{EquipSlot, InvSlotId, Slot},
+        BuffKind,
+    },
     uid::Uid,
     util::Dir,
 };
@@ -16,10 +19,52 @@ pub const DEFAULT_HOLD_DURATION: Duration = Duration::from_millis(200);
 pub enum InventoryManip {
     Pickup(Uid),
     Collect(Vec3<i32>),
+    Use(InvSlotId),
+    Swap(InvSlotId, InvSlotId),
+    Drop(InvSlotId),
+    CraftRecipe(String),
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub enum LoadoutManip {
+    Use(EquipSlot),
+    Swap(EquipSlot, Slot),
+    Drop(EquipSlot),
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum SlotManip {
+    Pickup(Uid),
+    Collect(Vec3<i32>),
     Use(Slot),
     Swap(Slot, Slot),
     Drop(Slot),
     CraftRecipe(String),
+}
+
+impl From<LoadoutManip> for SlotManip {
+    fn from(loadout_manip: LoadoutManip) -> Self {
+        match loadout_manip {
+            LoadoutManip::Use(equip) => Self::Use(Slot::Equip(equip)),
+            LoadoutManip::Swap(equip, slot) => Self::Swap(Slot::Equip(equip), slot),
+            LoadoutManip::Drop(equip) => Self::Drop(Slot::Equip(equip)),
+        }
+    }
+}
+
+impl From<InventoryManip> for SlotManip {
+    fn from(inv_manip: InventoryManip) -> Self {
+        match inv_manip {
+            InventoryManip::Pickup(pickup) => Self::Pickup(pickup),
+            InventoryManip::Collect(collect) => Self::Collect(collect),
+            InventoryManip::Use(inv) => Self::Use(Slot::Inventory(inv)),
+            InventoryManip::Swap(inv1, inv2) => {
+                Self::Swap(Slot::Inventory(inv1), Slot::Inventory(inv2))
+            },
+            InventoryManip::Drop(inv) => Self::Drop(Slot::Inventory(inv)),
+            InventoryManip::CraftRecipe(recipe) => Self::CraftRecipe(recipe),
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -48,7 +93,8 @@ pub enum ControlEvent {
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub enum ControlAction {
-    SwapLoadout,
+    SwapEquippedWeapons,
+    LoadoutManip(LoadoutManip),
     Wield,
     GlideWield,
     Unwield,

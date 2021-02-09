@@ -4,10 +4,10 @@ use crate::{
         item::{Hands, ItemKind, Tool, ToolKind},
         quadruped_low, quadruped_medium,
         skills::{AxeSkill, BowSkill, HammerSkill, Skill, StaffSkill, SwordSkill},
-        theropod, Body, CharacterState, StateUpdate,
+        theropod, Body, CharacterState, LoadoutManip, StateUpdate,
     },
     consts::{FRIC_GROUND, GRAVITY},
-    event::LocalEvent,
+    event::{LocalEvent, ServerEvent},
     states::{behavior::JoinData, *},
     util::Dir,
 };
@@ -353,10 +353,22 @@ pub fn handle_climb(data: &JoinData, update: &mut StateUpdate) {
 }
 
 /// Checks that player can Swap Weapons and updates `Loadout` if so
-pub fn attempt_swap_loadout(data: &JoinData, update: &mut StateUpdate) {
+pub fn attempt_swap_equipped_weapons(data: &JoinData, update: &mut StateUpdate) {
     if data.inventory.equipped(EquipSlot::Offhand).is_some() {
-        update.swap_loadout = true;
+        update.swap_equipped_weapons = true;
     }
+}
+
+/// Handles inventory manipulations that affect the loadout
+pub fn handle_manipulate_loadout(
+    data: &JoinData,
+    update: &mut StateUpdate,
+    loadout_manip: LoadoutManip,
+) {
+    update.server_events.push_front(ServerEvent::InventoryManip(
+        data.entity,
+        loadout_manip.into(),
+    ));
 }
 
 /// Checks that player can wield the glider and updates `CharacterState` if so

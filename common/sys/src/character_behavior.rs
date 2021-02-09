@@ -30,7 +30,7 @@ fn incorporate_update(tuple: &mut JoinTuple, state_update: StateUpdate) {
     if tuple.6.get_unchecked() != &state_update.energy {
         *tuple.6.get_mut_unchecked() = state_update.energy
     };
-    if state_update.swap_loadout {
+    if state_update.swap_equipped_weapons {
         let mut inventory = tuple.7.get_mut_unchecked();
         let inventory = &mut *inventory;
         inventory
