@@ -326,7 +326,7 @@ mod tests {
     fn dirs() {
         let ori = Ori::default();
         let def = Dir::default();
-        for dir in vec![ori.up(), ori.down(), ori.left(), ori.right()] {
+        for dir in &[ori.up(), ori.down(), ori.left(), ori.right()] {
             approx::assert_relative_eq!(dir.dot(*def), 0.0);
         }
     }

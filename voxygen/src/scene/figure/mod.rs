@@ -1340,9 +1340,9 @@ impl FigureMgr {
                                     active_tool_kind,
                                     second_tool_kind,
                                     vel.0,
-                                        // TODO: Update to use the quaternion.
-                                        ori * anim::vek::Vec3::<f32>::unit_y(),
-                                        state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                    // TODO: Update to use the quaternion.
+                                    ori * anim::vek::Vec3::<f32>::unit_y(),
+                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                     time,
                                 ),
                                 state.state_time,
