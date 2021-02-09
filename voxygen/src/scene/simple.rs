@@ -183,7 +183,10 @@ impl Scene {
                 state.update(
                     renderer,
                     anim::vek::Vec3::zero(),
-                    anim::vek::Vec3::new(start_angle.sin(), -start_angle.cos(), 0.0),
+                    anim::vek::Quaternion::rotation_from_to_3d(
+                        anim::vek::Vec3::unit_y(),
+                        anim::vek::Vec3::new(start_angle.sin(), -start_angle.cos(), 0.0),
+                    ),
                     1.0,
                     Rgba::broadcast(1.0),
                     15.0, // Want to get there immediately.
@@ -350,7 +353,10 @@ impl Scene {
             self.figure_state.update(
                 renderer,
                 anim::vek::Vec3::zero(),
-                anim::vek::Vec3::new(self.char_ori.sin(), -self.char_ori.cos(), 0.0),
+                anim::vek::Quaternion::rotation_from_to_3d(
+                    anim::vek::Vec3::unit_y(),
+                    anim::vek::Vec3::new(self.char_ori.sin(), -self.char_ori.cos(), 0.0),
+                ),
                 1.0,
                 Rgba::broadcast(1.0),
                 scene_data.delta_time,
