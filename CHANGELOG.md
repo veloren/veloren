@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Poise system (not currently accessible to players for balancing reasons)
 - Snow particles
 - Basic NPC interaction
+- Lights in dungeons
 
 ### Changed
 
