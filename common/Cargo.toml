@@ -13,6 +13,7 @@ bin_csv = ["csv", "structopt"]
 default = ["simd"]
 
 [dependencies]
+approx = "0.4.0"
 arraygen = "0.1.13"
 crossbeam-utils = "0.8.1"
 crossbeam-channel = "0.5"

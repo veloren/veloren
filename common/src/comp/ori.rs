@@ -18,8 +18,12 @@ impl Default for Ori {
 
 impl Ori {
     pub fn new(quat: Quaternion<f32>) -> Self {
-        debug_assert!(quat.into_vec4().map(f32::is_finite).reduce_and());
-        debug_assert!(quat.into_vec4().is_normalized());
+        #[cfg(debug_assert)]
+        {
+            let v4 = quat.into_vec4();
+            debug_assert!(v4.map(f32::is_finite).reduce_and());
+            debug_assert!(v4.is_normalized());
+        }
         Self(quat)
     }
 
@@ -31,11 +35,16 @@ impl Ori {
         Dir::from_unnormalized(vec.into()).map(Self::from)
     }
 
-    pub fn to_vec(self) -> Vec3<f32> { *self.look_dir() }
+    /// Look direction as a vector (no pedantic normalization performed)
+    pub fn look_vec(self) -> Vec3<f32> { self.to_quat() * *Dir::default() }
 
-    pub fn to_quat(self) -> Quaternion<f32> { self.0 }
+    pub fn to_quat(self) -> Quaternion<f32> {
+        debug_assert!(self.is_normalized());
+        self.0
+    }
 
-    pub fn look_dir(&self) -> Dir { Dir::new(self.0 * *Dir::default()) }
+    /// Look direction (as a Dir it is pedantically normalized)
+    pub fn look_dir(&self) -> Dir { self.to_quat() * Dir::default() }
 
     pub fn up(&self) -> Dir { self.pitched_up(PI / 2.0).look_dir() }
 
@@ -53,26 +62,86 @@ impl Ori {
 
     /// Multiply rotation quaternion by `q`
     /// (the rotations are in local vector space).
-    pub fn rotated(self, q: Quaternion<f32>) -> Self { Self((self.0 * q).normalized()) }
+    ///
+    /// ```
+    /// use vek::{Quaternion, Vec3};
+    /// use veloren_common::{comp::Ori, util::Dir};
+    ///
+    /// let ang = 90_f32.to_radians();
+    /// let roll_right = Quaternion::rotation_y(ang);
+    /// let pitch_up = Quaternion::rotation_x(ang);
+    ///
+    /// let ori1 = Ori::from(Dir::new(Vec3::unit_x()));
+    /// let ori2 = Ori::default().rotated(roll_right).rotated(pitch_up);
+    ///
+    /// assert!((ori1.look_dir().dot(*ori2.look_dir()) - 1.0).abs() <= std::f32::EPSILON);
+    /// ```
+    pub fn rotated(self, q: Quaternion<f32>) -> Self {
+        Self((self.to_quat() * q.normalized()).normalized())
+    }
 
     /// Premultiply rotation quaternion by `q`
     /// (the rotations are in global vector space).
-    pub fn prerotated(self, q: Quaternion<f32>) -> Self { Self((q * self.0).normalized()) }
+    ///
+    /// ```
+    /// use vek::{Quaternion, Vec3};
+    /// use veloren_common::{comp::Ori, util::Dir};
+    ///
+    /// let ang = 90_f32.to_radians();
+    /// let roll_right = Quaternion::rotation_y(ang);
+    /// let pitch_up = Quaternion::rotation_x(ang);
+    ///
+    /// let ori1 = Ori::from(Dir::up());
+    /// let ori2 = Ori::default().prerotated(roll_right).prerotated(pitch_up);
+    ///
+    /// assert!((ori1.look_dir().dot(*ori2.look_dir()) - 1.0).abs() <= std::f32::EPSILON);
+    /// ```
+    pub fn prerotated(self, q: Quaternion<f32>) -> Self {
+        Self((q.normalized() * self.to_quat()).normalized())
+    }
 
     /// Take `global` into this Ori's local vector space
+    ///
+    /// ```
+    /// use vek::Vec3;
+    /// use veloren_common::{comp::Ori, util::Dir};
+    ///
+    /// let ang = 90_f32.to_radians();
+    /// let (fw, left, up) = (Dir::default(), Dir::left(), Dir::up());
+    ///
+    /// let ori = Ori::default().rolled_left(ang).pitched_up(ang);
+    /// approx::assert_relative_eq!(ori.global_to_local(fw).dot(*-up), 1.0);
+    /// approx::assert_relative_eq!(ori.global_to_local(left).dot(*fw), 1.0);
+    /// let ori = Ori::default().rolled_right(ang).pitched_up(2.0 * ang);
+    /// approx::assert_relative_eq!(ori.global_to_local(up).dot(*left), 1.0);
+    /// ```
     pub fn global_to_local<T>(&self, global: T) -> <Quaternion<f32> as std::ops::Mul<T>>::Output
     where
         Quaternion<f32>: std::ops::Mul<T>,
     {
-        self.0.inverse() * global
+        self.to_quat().inverse() * global
     }
 
     /// Take `local` into the global vector space
+    ///
+    /// ```
+    /// use vek::Vec3;
+    /// use veloren_common::{comp::Ori, util::Dir};
+    ///
+    /// let ang = 90_f32.to_radians();
+    /// let (fw, left, up) = (Dir::default(), Dir::left(), Dir::up());
+    ///
+    /// let ori = Ori::default().rolled_left(ang).pitched_up(ang);
+    /// approx::assert_relative_eq!(ori.local_to_global(fw).dot(*left), 1.0);
+    /// approx::assert_relative_eq!(ori.local_to_global(left).dot(*-up), 1.0);
+    /// let ori = Ori::default().rolled_right(ang).pitched_up(2.0 * ang);
+    /// approx::assert_relative_eq!(ori.local_to_global(up).dot(*left), 1.0);
+    /// ```
     pub fn local_to_global<T>(&self, local: T) -> <Quaternion<f32> as std::ops::Mul<T>>::Output
     where
         Quaternion<f32>: std::ops::Mul<T>,
     {
-        self.0 * local
+        self.to_quat() * local
     }
 
     pub fn pitched_up(self, angle_radians: f32) -> Self {
@@ -101,7 +170,6 @@ impl Ori {
 
     /// Returns a version without sideways tilt (roll)
     ///
-    /// # Examples
     /// ```
     /// use veloren_common::comp::Ori;
     ///
@@ -109,21 +177,21 @@ impl Ori {
     /// let zenith = vek::Vec3::unit_z();
     ///
     /// let rl = Ori::default().rolled_left(ang);
-    /// assert!((rl.up().angle_between(zenith) - ang).abs() < std::f32::EPSILON);
-    /// assert!(rl.uprighted().up().angle_between(zenith) < std::f32::EPSILON);
+    /// assert!((rl.up().angle_between(zenith) - ang).abs() <= std::f32::EPSILON);
+    /// assert!(rl.uprighted().up().angle_between(zenith) <= std::f32::EPSILON);
     ///
     /// let pd_rr = Ori::default().pitched_down(ang).rolled_right(ang);
     /// let pd_upr = pd_rr.uprighted();
     ///
-    /// assert!((pd_upr.up().angle_between(zenith) - ang).abs() < std::f32::EPSILON);
+    /// assert!((pd_upr.up().angle_between(zenith) - ang).abs() <= std::f32::EPSILON);
     ///
     /// let ang1 = pd_upr.rolled_right(ang).up().angle_between(zenith);
     /// let ang2 = pd_rr.up().angle_between(zenith);
-    /// assert!((ang1 - ang2).abs() < std::f32::EPSILON);
+    /// assert!((ang1 - ang2).abs() <= std::f32::EPSILON);
     /// ```
     pub fn uprighted(self) -> Self {
         let fw = self.look_dir();
-        match Dir::new(Vec3::unit_z()).projected(&Plane::from(fw)) {
+        match Dir::up().projected(&Plane::from(fw)) {
             Some(dir_p) => {
                 let up = self.up();
                 let go_right_s = fw.cross(*up).dot(*dir_p).signum();
@@ -138,17 +206,20 @@ impl Ori {
 
 impl From<Dir> for Ori {
     fn from(dir: Dir) -> Self {
-        let from = *Dir::default();
-        Self::from(Quaternion::<f32>::rotation_from_to_3d(from, *dir)).uprighted()
+        let from = Dir::default();
+        let q = Quaternion::<f32>::rotation_from_to_3d(*from, *dir).normalized();
+
+        #[cfg(debug_assertions)]
+        {
+            approx::assert_relative_eq!((q * from).dot(*dir), 1.0);
+        }
+
+        Self(q).uprighted()
     }
 }
 
-impl From<Ori> for Quaternion<f32> {
-    fn from(Ori(q): Ori) -> Self { q }
-}
-
 impl From<Quaternion<f32>> for Ori {
-    fn from(quat: Quaternion<f32>) -> Self { Self(quat.normalized()) }
+    fn from(quat: Quaternion<f32>) -> Self { Self::new(quat) }
 }
 
 impl From<vek::quaternion::repr_simd::Quaternion<f32>> for Ori {
@@ -157,6 +228,10 @@ impl From<vek::quaternion::repr_simd::Quaternion<f32>> for Ori {
     ) -> Self {
         Self::from(Quaternion { x, y, z, w })
     }
+}
+
+impl From<Ori> for Quaternion<f32> {
+    fn from(Ori(q): Ori) -> Self { q }
 }
 
 impl From<Ori> for vek::quaternion::repr_simd::Quaternion<f32> {
@@ -170,19 +245,19 @@ impl From<Ori> for Dir {
 }
 
 impl From<Ori> for Vec3<f32> {
-    fn from(ori: Ori) -> Self { *ori.look_dir() }
+    fn from(ori: Ori) -> Self { ori.look_vec() }
 }
 
 impl From<Ori> for vek::vec::repr_simd::Vec3<f32> {
-    fn from(ori: Ori) -> Self { vek::vec::repr_simd::Vec3::from(*ori.look_dir()) }
+    fn from(ori: Ori) -> Self { vek::vec::repr_simd::Vec3::from(ori.look_vec()) }
 }
 
 impl From<Ori> for Vec2<f32> {
-    fn from(ori: Ori) -> Self { ori.look_dir().xy() }
+    fn from(ori: Ori) -> Self { ori.look_vec().xy() }
 }
 
 impl From<Ori> for vek::vec::repr_simd::Vec2<f32> {
-    fn from(ori: Ori) -> Self { vek::vec::repr_simd::Vec2::from(ori.look_dir().xy()) }
+    fn from(ori: Ori) -> Self { vek::vec::repr_simd::Vec2::from(ori.look_vec().xy()) }
 }
 
 // Validate at Deserialization
@@ -212,9 +287,47 @@ impl From<SerdeOri> for Ori {
     }
 }
 impl Into<SerdeOri> for Ori {
-    fn into(self) -> SerdeOri { SerdeOri(self.0) }
+    fn into(self) -> SerdeOri { SerdeOri(self.to_quat()) }
 }
 
 impl Component for Ori {
     type Storage = IdvStorage<Self>;
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn from_to_dir() {
+        let from_to = |dir: Dir| {
+            let ori = Ori::from(dir);
+
+            approx::assert_relative_eq!(ori.look_dir().dot(*dir), 1.0);
+            approx::assert_relative_eq!((ori.to_quat() * Dir::default()).dot(*dir), 1.0);
+        };
+
+        let angles = 32;
+        for i in 0..angles {
+            let theta = PI * 2. * (i as f32) / (angles as f32);
+            let v = Vec3::unit_y();
+            let q = Quaternion::rotation_x(theta);
+            from_to(Dir::new(q * v));
+            let v = Vec3::unit_z();
+            let q = Quaternion::rotation_y(theta);
+            from_to(Dir::new(q * v));
+            let v = Vec3::unit_x();
+            let q = Quaternion::rotation_z(theta);
+            from_to(Dir::new(q * v));
+        }
+    }
+
+    #[test]
+    fn dirs() {
+        let ori = Ori::default();
+        let def = Dir::default();
+        for dir in vec![ori.up(), ori.down(), ori.left(), ori.right()] {
+            approx::assert_relative_eq!(dir.dot(*def), 0.0);
+        }
+    }
 }

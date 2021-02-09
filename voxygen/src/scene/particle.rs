@@ -375,7 +375,7 @@ impl ParticleMgr {
             .join()
         {
             if let CharacterState::BasicBeam(b) = character_state {
-                let particle_ori = b.particle_ori.unwrap_or_else(|| ori.to_vec());
+                let particle_ori = b.particle_ori.unwrap_or_else(|| ori.look_vec());
                 if b.stage_section == StageSection::Cast {
                     if b.static_data.base_hps > 0 {
                         // Emit a light when using healing
@@ -586,7 +586,7 @@ impl ParticleMgr {
 
             let radians = shockwave.properties.angle.to_radians();
 
-            let ori_vec = ori.to_vec();
+            let ori_vec = ori.look_vec();
             let theta = ori_vec.y.atan2(ori_vec.x);
             let dtheta = radians / distance;
 
