@@ -519,7 +519,7 @@ impl WorldSim {
             cave_0_nz: SuperSimplex::new().set_seed(rng.gen()),
             cave_1_nz: SuperSimplex::new().set_seed(rng.gen()),
 
-            structure_gen: StructureGen2d::new(rng.gen(), 24, 12),
+            structure_gen: StructureGen2d::new(rng.gen(), 24, 10),
             big_structure_gen: StructureGen2d::new(rng.gen(), 768, 512),
             region_gen: StructureGen2d::new(rng.gen(), 400, 96),
             humid_nz: Billow::new()
@@ -2028,11 +2028,11 @@ impl WorldSim {
 
         let giant_trees = std::array::IntoIter::new(self.gen_ctx.big_structure_gen.get(wpos))
             // Don't even consider trees if we aren't close
-            .filter(move |(pos, _)| pos.distance_squared(wpos) < 256i32.pow(2))
+            .filter(move |(pos, _)| pos.distance_squared(wpos) < 512i32.pow(2))
             .map(move |(pos, seed)| TreeAttr {
                 pos,
                 seed,
-                scale: 4.0,
+                scale: 5.0,
                 forest_kind: ForestKind::Giant,
                 inhabited: (seed / 13) % 2 == 0,
             });

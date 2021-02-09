@@ -31,6 +31,7 @@ make_case_elim!(
         Liana = 14,
         Normal(color: Rgb<u8>) = 15,
         Log = 16,
+        Block(kind: BlockKind, color: Rgb<u8>) = 17,
     }
 );
 

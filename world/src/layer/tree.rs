@@ -184,10 +184,11 @@ pub fn apply_trees_to(canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
                         TreeModel::Structure(s) => s.get(model_pos).ok().copied(),
                         TreeModel::Procedural(t, leaf_block) => Some(
                             match t.is_branch_or_leaves_at(model_pos.map(|e| e as f32 + 0.5)) {
-                                (_, _, true) => StructureBlock::Hollow,
-                                (true, _, _) => StructureBlock::Log,
-                                (_, true, _) => *leaf_block,
-                                (_, _, _) => StructureBlock::None,
+                                (_, _, true, _) => StructureBlock::Block(BlockKind::Wood, Rgb::new(110, 68, 22)),
+                                (_, _, _, true) => StructureBlock::Hollow,
+                                (true, _, _, _) => StructureBlock::Log,
+                                (_, true, _, _) => *leaf_block,
+                                _ => StructureBlock::None,
                             },
                         ),
                     } {
@@ -273,7 +274,7 @@ pub struct TreeConfig {
 
 impl TreeConfig {
     pub fn oak(rng: &mut impl Rng, scale: f32) -> Self {
-        let scale = scale * (0.8 + rng.gen::<f32>().powi(4) * 0.9);
+        let scale = scale * (0.8 + rng.gen::<f32>().powi(4) * 0.75);
         let log_scale = 1.0 + scale.log2().max(0.0);
 
         Self {
@@ -318,13 +319,13 @@ impl TreeConfig {
         let log_scale = 1.0 + scale.log2().max(0.0);
 
         Self {
-            trunk_len: 12.0 * scale,
-            trunk_radius: 8.0 * scale,
-            branch_child_len: 0.89,
-            branch_child_radius: 0.65,
-            leaf_radius: 3.0 * log_scale..5.25 * log_scale,
-            straightness: 0.38,
-            max_depth: (6.0 + log_scale) as usize,
+            trunk_len: 11.0 * scale,
+            trunk_radius: 6.0 * scale,
+            branch_child_len: 0.9,
+            branch_child_radius: 0.75,
+            leaf_radius: 2.5 * scale..3.75 * scale,
+            straightness: 0.36,
+            max_depth: (7.0 + log_scale) as usize,
             splits: 1.5..2.5,
             split_range: 1.0..1.1,
             branch_len_bias: 0.0,
@@ -391,8 +392,8 @@ impl ProceduralTree {
             0.0
         };
 
-        let has_stairs = config.inhabited && branch_radius > 3.0 && start.xy().distance(end.xy()) < (start.z - end.z).abs();
-        let bark_radius = if has_stairs { 8.0 } else { 0.0 };
+        let has_stairs = config.inhabited && depth < config.max_depth && branch_radius > 6.5 && start.xy().distance(end.xy()) < (start.z - end.z).abs() * 1.5;
+        let bark_radius = if has_stairs { 5.0 } else { 0.0 } + wood_radius * 0.25;
 
         // The AABB that covers this branch, along with wood and leaves that eminate
         // from it
@@ -484,26 +485,30 @@ impl ProceduralTree {
     pub fn get_bounds(&self) -> Aabb<f32> { self.branches[self.trunk_idx].aabb }
 
     // Recursively search for branches or leaves by walking the tree's branch graph.
-    fn is_branch_or_leaves_at_inner(&self, pos: Vec3<f32>, branch_idx: usize) -> (bool, bool, bool) {
+    fn is_branch_or_leaves_at_inner(&self, pos: Vec3<f32>, parent_d2: f32, branch_idx: usize) -> (bool, bool, bool, bool) {
         let branch = &self.branches[branch_idx];
         // Always probe the sibling branch, since our AABB doesn't include its bounds
         // (it's not one of our children)
         let branch_or_leaves = branch
             .sibling_idx
-            .map(|idx| Vec3::from(self.is_branch_or_leaves_at_inner(pos, idx)))
+            .map(|idx| Vec4::<bool>::from(self.is_branch_or_leaves_at_inner(pos, parent_d2, idx)))
             .unwrap_or_default();
 
         // Only continue probing this sub-graph of the tree if the sample position falls
         // within its AABB
         if branch.aabb.contains_point(pos) {
-            (branch_or_leaves
-                // Probe this branch
-                | Vec3::from(branch.is_branch_or_leaves_at(pos))
-                // Probe the children of this branch
-                | branch.child_idx
-                    .map(|idx| Vec3::from(self.is_branch_or_leaves_at_inner(pos, idx)))
-                    .unwrap_or_default())
-            .into_tuple()
+            // Probe this branch
+            let (this, d2) = branch.is_branch_or_leaves_at(pos, parent_d2);
+
+            let siblings = branch_or_leaves | Vec4::from(this);
+
+            // Probe the children of this branch
+            let children = branch.child_idx
+                .map(|idx| Vec4::from(self.is_branch_or_leaves_at_inner(pos, d2, idx)))
+                .unwrap_or_default();
+
+            // Only allow empties for children if there is no solid at the current depth
+            (siblings | (children & Vec4::new(true, true, true, !(siblings.x | siblings.y)))).into_tuple()
         } else {
             branch_or_leaves.into_tuple()
         }
@@ -512,8 +517,8 @@ impl ProceduralTree {
     /// Determine whether there are either branches or leaves at the given
     /// position in the tree.
     #[inline(always)]
-    pub fn is_branch_or_leaves_at(&self, pos: Vec3<f32>) -> (bool, bool, bool) {
-        self.is_branch_or_leaves_at_inner(pos, self.trunk_idx)
+    pub fn is_branch_or_leaves_at(&self, pos: Vec3<f32>) -> (bool, bool, bool, bool) {
+        self.is_branch_or_leaves_at_inner(pos, 10000.0, self.trunk_idx)
     }
 }
 
@@ -538,34 +543,46 @@ struct Branch {
 impl Branch {
     /// Determine whether there are either branches or leaves at the given
     /// position in the branch.
-    pub fn is_branch_or_leaves_at(&self, pos: Vec3<f32>) -> (bool, bool, bool) {
+    pub fn is_branch_or_leaves_at(&self, pos: Vec3<f32>, parent_d2: f32) -> ((bool, bool, bool, bool), f32) {
         // fn finvsqrt(x: f32) -> f32 {
         //     let y = f32::from_bits(0x5f375a86 - (x.to_bits() >> 1));
         //     y * (1.5 - ( x * 0.5 * y * y ))
         // }
 
-        let p = self.line.projected_point(pos);
-        let p_d2 = p.distance_squared(pos);
+        fn smooth(a: f32, b: f32, k: f32) -> f32 {
+            // let h = (0.5 + 0.5 * (b - a) / k).clamped(0.0, 1.0);
+            // Lerp::lerp(b, a, h) - k * h * (1.0 - h)
 
-        if p_d2 < self.wood_radius.powi(2) {
-            (true, false, false) // Wood
+            let h = (k-(a-b).abs()).max(0.0);
+            a.min(b) - h * h * 0.25 / k
+        }
+
+        let p = self.line.projected_point(pos);
+        let d2 = p.distance_squared(pos);
+
+        let d2_smooth = d2;//smooth(d2.sqrt(), parent_d2.sqrt(), 30.0).powi(2);
+
+        let mask = if d2_smooth < self.wood_radius.powi(2) {
+            (true, false, false, false) // Wood
         } else if {
             let diff = (p - pos) / Vec3::new(1.0, 1.0, self.leaf_vertical_scale);
             diff.magnitude_squared() < self.leaf_radius.powi(2)
         } {
-            (false, true, false) // Leaves
+            (false, true, false, false) // Leaves
         } else {
             let stair_width = 5.0;
             let stair_thickness = 1.5;
             let stair_space = 6.0;
-            if self.has_stairs && p_d2 < (self.wood_radius + stair_width).powi(2) {
+            if self.has_stairs && d2_smooth < (self.wood_radius + stair_width).powi(2) {
                 let rpos = pos.xy() - p.xy();
                 let stretch = 32.0;
                 let stair_section = ((rpos.x as f32).atan2(rpos.y as f32) / (f32::consts::PI * 2.0) * stretch + pos.z).rem_euclid(stretch);
-                (stair_section < stair_thickness, false, stair_section >= stair_thickness && stair_section < stair_thickness + stair_space) // Stairs
+                (false, false, stair_section < stair_thickness, stair_section >= stair_thickness && stair_section < stair_thickness + stair_space) // Stairs
             } else {
-                (false, false, false)
+                (false, false, false, false)
             }
-        }
+        };
+
+        (mask, d2)
     }
 }
