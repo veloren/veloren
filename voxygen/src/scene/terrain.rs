@@ -513,7 +513,7 @@ impl<V: RectRasterableVol> Terrain<V> {
             (e as i32).div_euclid(sz as i32)
         });
 
-        const AMBIANCE: f32 = 0.2; // 0-1, the proportion of light that should illuminate the rear of an object
+        const AMBIANCE: f32 = 0.3; // 0-1, the proportion of light that should illuminate the rear of an object
 
         let (bias, total, max) = Spiral2d::new()
             .take(9)
@@ -531,13 +531,13 @@ impl<V: RectRasterableVol> Terrain<V> {
                 let rpos = lpos.map(|e| e as f32 + 0.5) - wpos;
                 let level = (*level as f32 - rpos.magnitude()).max(0.0) / SUNLIGHT as f32;
                 (
-                    bias + rpos.try_normalized().unwrap_or_else(Vec3::zero) * level * (1.0 - AMBIANCE),
+                    bias + rpos.try_normalized().unwrap_or_else(Vec3::zero) * level,
                     total + level,
                     max.max(level),
                 )
             });
 
-        (bias.try_normalized().unwrap_or_else(Vec3::zero) / total.max(0.001), self.glow_at_wpos(wpos.map(|e| e.floor() as i32)))
+        (bias.try_normalized().unwrap_or_else(Vec3::zero) * (1.0 - AMBIANCE) / total.max(0.001), self.glow_at_wpos(wpos.map(|e| e.floor() as i32)))
     }
 
     /// Maintain terrain data. To be called once per tick.
