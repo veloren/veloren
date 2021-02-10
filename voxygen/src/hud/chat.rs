@@ -1,12 +1,12 @@
 use super::{
     img_ids::Imgs, ERROR_COLOR, FACTION_COLOR, GROUP_COLOR, INFO_COLOR, KILL_COLOR, LOOT_COLOR,
-    OFFLINE_COLOR, ONLINE_COLOR, REGION_COLOR, SAY_COLOR, TELL_COLOR, TEXT_COLOR, WORLD_COLOR,
+    OFFLINE_COLOR, ONLINE_COLOR, REGION_COLOR, SAY_COLOR, TELL_COLOR, WORLD_COLOR,
 };
 use crate::{i18n::Localization, ui::fonts::Fonts, GlobalState};
 use client::{cmd, Client};
 use common::comp::{
     chat::{KillSource, KillType},
-    ChatMsg, ChatType,
+    ChatMode, ChatMsg, ChatType,
 };
 use common_net::msg::validate_chat_msg;
 use conrod_core::{
@@ -27,6 +27,7 @@ widget_ids! {
         message_box_bg,
         chat_input,
         chat_input_bg,
+        chat_input_icon,
         chat_arrow,
         chat_icons[],
     }
@@ -36,8 +37,10 @@ const X: f64 = 18.0;*/
 
 const MAX_MESSAGES: usize = 100;
 
+const CHAT_ICON_WIDTH: f64 = 16.0;
+const CHAT_ICON_HEIGHT: f64 = 16.0;
 const CHAT_BOX_WIDTH: f64 = 470.0;
-const CHAT_BOX_INPUT_WIDTH: f64 = 460.0;
+const CHAT_BOX_INPUT_WIDTH: f64 = 460.0 - CHAT_ICON_WIDTH - 1.0;
 const CHAT_BOX_HEIGHT: f64 = 174.0;
 
 #[derive(WidgetCommon)]
@@ -121,9 +124,14 @@ impl<'a> Chat<'a> {
     }
 }
 
+struct InputState {
+    message: String,
+    mode: ChatMode,
+}
+
 pub struct State {
     messages: VecDeque<ChatMsg>,
-    input: String,
+    input: InputState,
     ids: Ids,
     history: VecDeque<String>,
     // Index into the history Vec, history_pos == 0 is history not in use
@@ -149,7 +157,10 @@ impl<'a> Widget for Chat<'a> {
 
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
         State {
-            input: "".to_owned(),
+            input: InputState {
+                message: "".to_owned(),
+                mode: ChatMode::default(),
+            },
             messages: VecDeque::new(),
             history: VecDeque::new(),
             history_pos: 0,
@@ -212,8 +223,8 @@ impl<'a> Widget for Chat<'a> {
             false
         } else if let Some(cursor) = state.completion_cursor {
             // Cycle through tab completions of the current word
-            if state.input.contains('\t') {
-                state.update(|s| s.input.retain(|c| c != '\t'));
+            if state.input.message.contains('\t') {
+                state.update(|s| s.input.message.retain(|c| c != '\t'));
                 //tab_dir + 1
             }
             if !state.completions.is_empty() && (tab_dir != 0 || state.completions_index.is_none())
@@ -225,14 +236,15 @@ impl<'a> Widget for Chat<'a> {
                             % len,
                     );
                     if let Some(replacement) = &s.completions.get(s.completions_index.unwrap()) {
-                        let (completed, offset) = do_tab_completion(cursor, &s.input, replacement);
+                        let (completed, offset) =
+                            do_tab_completion(cursor, &s.input.message, replacement);
                         force_cursor = cursor_offset_to_index(offset, &completed, &ui, &self.fonts);
-                        s.input = completed;
+                        s.input.message = completed;
                     }
                 });
             }
             false
-        } else if let Some(cursor) = state.input.find('\t') {
+        } else if let Some(cursor) = state.input.message.find('\t') {
             // Begin tab completion
             state.update(|s| s.completion_cursor = Some(cursor));
             true
@@ -252,11 +264,15 @@ impl<'a> Widget for Chat<'a> {
                     s.history_pos -= 1;
                 }
                 if s.history_pos > 0 {
-                    s.input = s.history.get(s.history_pos - 1).unwrap().to_owned();
-                    force_cursor =
-                        cursor_offset_to_index(s.input.len(), &s.input, &ui, &self.fonts);
+                    s.input.message = s.history.get(s.history_pos - 1).unwrap().to_owned();
+                    force_cursor = cursor_offset_to_index(
+                        s.input.message.len(),
+                        &s.input.message,
+                        &ui,
+                        &self.fonts,
+                    );
                 } else {
-                    s.input.clear();
+                    s.input.message.clear();
                 }
             });
         }
@@ -264,7 +280,7 @@ impl<'a> Widget for Chat<'a> {
         let keyboard_capturer = ui.global_input().current.widget_capturing_keyboard;
 
         if let Some(input) = &self.force_input {
-            state.update(|s| s.input = input.to_string());
+            state.update(|s| s.input.message = input.to_string());
         }
 
         let input_focused =
@@ -273,12 +289,26 @@ impl<'a> Widget for Chat<'a> {
         // Only show if it has the keyboard captured.
         // Chat input uses a rectangle as its background.
         if input_focused {
+            // Shallow comparison of ChatMode.
+            let discrim = |x| std::mem::discriminant(x);
+            if discrim(&state.input.mode) != discrim(&self.client.chat_mode) {
+                state.update(|s| {
+                    s.input.mode = self.client.chat_mode.clone();
+                });
+            }
+
+            let (color, icon) = render_chat_mode(&state.input.mode, &self.imgs);
+            Image::new(icon)
+                .w_h(CHAT_ICON_WIDTH, CHAT_ICON_HEIGHT)
+                .top_left_with_margin_on(state.ids.chat_input_bg, 2.0)
+                .set(state.ids.chat_input_icon, ui);
+
             // Any changes to this TextEdit's width and font size must be reflected in
             // `cursor_offset_to_index` below.
-            let mut text_edit = TextEdit::new(&state.input)
+            let mut text_edit = TextEdit::new(&state.input.message)
                 .w(CHAT_BOX_INPUT_WIDTH)
                 .restrict_to_height(false)
-                .color(TEXT_COLOR)
+                .color(color)
                 .line_spacing(2.0)
                 .font_size(self.fonts.opensans.scale(15))
                 .font_id(self.fonts.opensans.conrod_id);
@@ -298,13 +328,13 @@ impl<'a> Widget for Chat<'a> {
                 .set(state.ids.chat_input_bg, ui);
 
             if let Some(str) = text_edit
-                .top_left_with_margins_on(state.ids.chat_input_bg, 1.0, 1.0)
+                .right_from(state.ids.chat_input_icon, 1.0)
                 .set(state.ids.chat_input, ui)
             {
                 let mut input = str.to_owned();
                 input.retain(|c| c != '\n');
                 if let Ok(()) = validate_chat_msg(&input) {
-                    state.update(|s| s.input = input);
+                    state.update(|s| s.input.message = input);
                 }
             }
         }
@@ -441,8 +471,8 @@ impl<'a> Widget for Chat<'a> {
                 item.set(text.h(y), ui);
                 let icon_id = state.ids.chat_icons[item.i];
                 Image::new(icon)
-                    .w_h(16.0, 16.0)
-                    .top_left_with_margins_on(item.widget_id, 2.0, -16.0)
+                    .w_h(CHAT_ICON_WIDTH, CHAT_ICON_HEIGHT)
+                    .top_left_with_margins_on(item.widget_id, 2.0, -CHAT_ICON_WIDTH)
                     .parent(state.ids.message_box_bg)
                     .set(icon_id, ui);
             } else {
@@ -475,22 +505,19 @@ impl<'a> Widget for Chat<'a> {
 
         // We've started a new tab completion. Populate tab completion suggestions.
         if request_tab_completions {
-            Some(Event::TabCompletionStart(state.input.to_string()))
+            Some(Event::TabCompletionStart(state.input.message.to_string()))
         // If the chat widget is focused, return a focus event to pass the focus
         // to the input box.
         } else if keyboard_capturer == Some(id) {
             Some(Event::Focus(state.ids.chat_input))
         }
         // If enter is pressed and the input box is not empty, send the current message.
-        else if ui
-            .widget_input(state.ids.chat_input)
-            .presses()
-            .key()
-            .any(|key_press| matches!(key_press.key, Key::Return if !state.input.is_empty()))
-        {
-            let msg = state.input.clone();
+        else if ui.widget_input(state.ids.chat_input).presses().key().any(
+            |key_press| matches!(key_press.key, Key::Return if !state.input.message.is_empty()),
+        ) {
+            let msg = state.input.message.clone();
             state.update(|s| {
-                s.input.clear();
+                s.input.message.clear();
                 // Update the history
                 // Don't add if this is identical to the last message in the history
                 s.history_pos = 0;
@@ -555,6 +582,18 @@ fn cursor_offset_to_index(offset: usize, text: &str, ui: &Ui, fonts: &Fonts) -> 
     let infos = text::line::infos(&text, &font, font_size).wrap_by_whitespace(CHAT_BOX_INPUT_WIDTH);
 
     cursor::index_before_char(infos, offset)
+}
+
+/// Get the color and icon for a client's ChatMode.
+fn render_chat_mode(chat_mode: &ChatMode, imgs: &Imgs) -> (Color, conrod_core::image::Id) {
+    match chat_mode {
+        ChatMode::World => (WORLD_COLOR, imgs.chat_world_small),
+        ChatMode::Say => (SAY_COLOR, imgs.chat_say_small),
+        ChatMode::Region => (REGION_COLOR, imgs.chat_region_small),
+        ChatMode::Faction(_) => (FACTION_COLOR, imgs.chat_faction_small),
+        ChatMode::Group(_) => (GROUP_COLOR, imgs.chat_group_small),
+        ChatMode::Tell(_) => (TELL_COLOR, imgs.chat_tell_small),
+    }
 }
 
 /// Get the color and icon for the current line in the chat box

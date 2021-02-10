@@ -1510,6 +1510,7 @@ fn handle_tell(
                 .insert(client, mode.clone());
             let msg = message_opt.unwrap_or_else(|| format!("{} wants to talk to you.", alias));
             server.state.send_chat(mode.new_message(client_uid, msg));
+            server.notify_client(client, ServerGeneral::ChatMode(mode));
         } else {
             server.notify_client(
                 client,
@@ -1551,6 +1552,7 @@ fn handle_faction(
                 server.state.send_chat(mode.new_message(*uid, msg));
             }
         }
+        server.notify_client(client, ServerGeneral::ChatMode(mode));
     } else {
         server.notify_client(
             client,
@@ -1586,6 +1588,7 @@ fn handle_group(
                 server.state.send_chat(mode.new_message(*uid, msg));
             }
         }
+        server.notify_client(client, ServerGeneral::ChatMode(mode));
     } else {
         server.notify_client(
             client,
@@ -1767,6 +1770,7 @@ fn handle_region(
             server.state.send_chat(mode.new_message(*uid, msg));
         }
     }
+    server.notify_client(client, ServerGeneral::ChatMode(mode));
 }
 
 fn handle_say(
@@ -1795,6 +1799,7 @@ fn handle_say(
             server.state.send_chat(mode.new_message(*uid, msg));
         }
     }
+    server.notify_client(client, ServerGeneral::ChatMode(mode));
 }
 
 fn handle_world(
@@ -1823,6 +1828,7 @@ fn handle_world(
             server.state.send_chat(mode.new_message(*uid, msg));
         }
     }
+    server.notify_client(client, ServerGeneral::ChatMode(mode));
 }
 
 fn handle_join_faction(
@@ -1847,9 +1853,14 @@ fn handle_join_faction(
         .get(target)
         .map(|player| player.alias.clone())
     {
-        let faction_leave = if let Ok(faction) = scan_fmt!(&args, &action.arg_fmt(), String) {
+        let (faction_leave, mode) = if let Ok(faction) = scan_fmt!(&args, &action.arg_fmt(), String)
+        {
             let mode = comp::ChatMode::Faction(faction.clone());
-            let _ = server.state.ecs().write_storage().insert(client, mode);
+            let _ = server
+                .state
+                .ecs()
+                .write_storage()
+                .insert(client, mode.clone());
             let faction_leave = server
                 .state
                 .ecs()
@@ -1862,16 +1873,21 @@ fn handle_join_faction(
                 ChatType::FactionMeta(faction.clone())
                     .chat_msg(format!("[{}] joined faction ({})", alias, faction)),
             );
-            faction_leave
+            (faction_leave, mode)
         } else {
             let mode = comp::ChatMode::default();
-            let _ = server.state.ecs().write_storage().insert(client, mode);
-            server
+            let _ = server
+                .state
+                .ecs()
+                .write_storage()
+                .insert(client, mode.clone());
+            let faction_leave = server
                 .state
                 .ecs()
                 .write_storage()
                 .remove(client)
-                .map(|comp::Faction(f)| f)
+                .map(|comp::Faction(f)| f);
+            (faction_leave, mode)
         };
         if let Some(faction) = faction_leave {
             server.state.send_chat(
@@ -1879,6 +1895,7 @@ fn handle_join_faction(
                     .chat_msg(format!("[{}] left faction ({})", alias, faction)),
             );
         }
+        server.notify_client(client, ServerGeneral::ChatMode(mode));
     } else {
         server.notify_client(
             client,

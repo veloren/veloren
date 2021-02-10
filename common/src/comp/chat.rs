@@ -9,7 +9,7 @@ use std::time::{Duration, Instant};
 
 /// A player's current chat mode. These are chat types that can only be sent by
 /// the player.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ChatMode {
     /// Private message to another player (by uuid)
     Tell(Uid),
