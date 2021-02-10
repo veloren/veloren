@@ -6,7 +6,7 @@ use crate::{
     participant::{B2sPrioStatistic, BParticipant, S2bCreateChannel, S2bShutdownBparticipant},
 };
 use futures_util::{FutureExt, StreamExt};
-use network_protocol::Pid;
+use network_protocol::{MpscMsg, Pid};
 #[cfg(feature = "metrics")]
 use prometheus::Registry;
 use rand::Rng;
@@ -26,16 +26,21 @@ use tokio::{
 };
 use tokio_stream::wrappers::UnboundedReceiverStream;
 use tracing::*;
-use tracing_futures::Instrument;
 
-/// Naming of Channels `x2x`
-///  - a: api
-///  - s: scheduler
-///  - b: bparticipant
-///  - p: prios
-///  - r: protocol
-///  - w: wire
-///  - c: channel/handshake
+// Naming of Channels `x2x`
+//  - a: api
+//  - s: scheduler
+//  - b: bparticipant
+//  - p: prios
+//  - r: protocol
+//  - w: wire
+//  - c: channel/handshake
+
+lazy_static::lazy_static! {
+    static ref MPSC_POOL: Mutex<HashMap<u64, mpsc::UnboundedSender<(mpsc::Sender<MpscMsg>, oneshot::Sender<mpsc::Sender<MpscMsg>>)>>> = {
+        Mutex::new(HashMap::new())
+    };
+}
 
 #[derive(Debug)]
 struct ParticipantInfo {
@@ -80,6 +85,8 @@ pub struct Scheduler {
 }
 
 impl Scheduler {
+    const MPSC_CHANNEL_BOUND: usize = 1000;
+
     pub fn new(
         local_pid: Pid,
         runtime: Arc<Runtime>,
@@ -215,7 +222,35 @@ impl Scheduler {
                     };
                     info!("Connecting Tcp to: {}", stream.peer_addr().unwrap());
                     (Protocols::new_tcp(stream), false)
-                }, /*  */
+                },
+                ProtocolAddr::Mpsc(addr) => {
+                    let mpsc_s = match MPSC_POOL.lock().await.get(&addr) {
+                        Some(s) => s.clone(),
+                        None => {
+                            pid_sender
+                                .send(Err(std::io::Error::new(
+                                    std::io::ErrorKind::NotConnected,
+                                    "no mpsc listen on this addr",
+                                )))
+                                .unwrap();
+                            continue;
+                        },
+                    };
+                    let (remote_to_local_s, remote_to_local_r) =
+                        mpsc::channel(Self::MPSC_CHANNEL_BOUND);
+                    let (local_to_remote_oneshot_s, local_to_remote_oneshot_r) = oneshot::channel();
+                    mpsc_s
+                        .send((remote_to_local_s, local_to_remote_oneshot_s))
+                        .unwrap();
+                    let local_to_remote_s = local_to_remote_oneshot_r.await.unwrap();
+
+                    info!(?addr, "Connecting Mpsc");
+                    (
+                        Protocols::new_mpsc(local_to_remote_s, remote_to_local_r),
+                        false,
+                    )
+                },
+                /* */
                 //ProtocolAddr::Udp(addr) => {
                 //#[cfg(feature = "metrics")]
                 //self.metrics
@@ -367,7 +402,7 @@ impl Scheduler {
                         info!(
                             ?addr,
                             ?e,
-                            "Listener couldn't be started due to error on tcp bind"
+                            "Tcp bind error durin listener startup"
                         );
                         s2a_listen_result_s.send(Err(e)).unwrap();
                         return;
@@ -390,6 +425,25 @@ impl Scheduler {
                     self.init_protocol(Protocols::new_tcp(stream), None, true)
                         .await;
                 }
+            },
+            ProtocolAddr::Mpsc(addr) => {
+                let (mpsc_s, mut mpsc_r) = mpsc::unbounded_channel();
+                MPSC_POOL.lock().await.insert(addr, mpsc_s);
+                s2a_listen_result_s.send(Ok(())).unwrap();
+                trace!(?addr, "Listener bound");
+
+                let mut end_receiver = s2s_stop_listening_r.fuse();
+                while let Some((local_to_remote_s, local_remote_to_local_s)) = select! {
+                    next = mpsc_r.recv().fuse() => next,
+                    _ = &mut end_receiver => None,
+                } {
+                    let (remote_to_local_s, remote_to_local_r) = mpsc::channel(Self::MPSC_CHANNEL_BOUND);
+                    local_remote_to_local_s.send(remote_to_local_s).unwrap();
+                    info!(?addr, "Accepting Mpsc from");
+                    self.init_protocol(Protocols::new_mpsc(local_to_remote_s, remote_to_local_r), None, true)
+                        .await;
+                }
+                warn!("MpscStream Failed, stopping");
             },/*
             ProtocolAddr::Udp(addr) => {
                 let socket = match net::UdpSocket::bind(addr).await {
@@ -522,6 +576,7 @@ impl Scheduler {
                                 s2b_create_channel_s,
                                 s2b_shutdown_bparticipant_s,
                             ) = BParticipant::new(
+                                local_pid,
                                 pid,
                                 sid,
                                 #[cfg(feature = "metrics")]
@@ -545,10 +600,11 @@ impl Scheduler {
                             });
                             drop(participants);
                             trace!("dropped participants lock");
+                            let p = pid;
                             runtime.spawn(
                                 bparticipant
                                     .run(participant_channels.b2s_prio_statistic_s)
-                                    .instrument(tracing::info_span!("participant", ?pid)),
+                                    .instrument(tracing::info_span!("remote", ?p)),
                             );
                             //create a new channel within BParticipant and wait for it to run
                             let (b2s_create_channel_done_s, b2s_create_channel_done_r) =

@@ -4,14 +4,18 @@ use crate::{
     metrics::{ProtocolMetricCache, RemoveReason},
     types::{Bandwidth, Mid, Prio, Promises, Sid},
 };
-use std::{collections::HashMap, sync::Arc, time::Duration};
+use std::{
+    collections::{HashMap, VecDeque},
+    sync::Arc,
+    time::Duration,
+};
 
 #[derive(Debug)]
 struct StreamInfo {
     pub(crate) guaranteed_bandwidth: Bandwidth,
     pub(crate) prio: Prio,
     pub(crate) promises: Promises,
-    pub(crate) messages: Vec<OutgoingMessage>,
+    pub(crate) messages: VecDeque<OutgoingMessage>,
 }
 
 /// Responsible for queueing messages.
@@ -47,7 +51,7 @@ impl PrioManager {
             guaranteed_bandwidth,
             prio,
             promises,
-            messages: vec![],
+            messages: VecDeque::new(),
         });
     }
 
@@ -68,7 +72,7 @@ impl PrioManager {
             .get_mut(&sid)
             .unwrap()
             .messages
-            .push(OutgoingMessage::new(buffer, mid, sid));
+            .push_back(OutgoingMessage::new(buffer, mid, sid));
     }
 
     /// bandwidth might be extended, as for technical reasons
@@ -79,7 +83,7 @@ impl PrioManager {
         let mut frames = vec![];
 
         let mut prios = [0u64; (Self::HIGHEST_PRIO + 1) as usize];
-        let metrics = &self.metrics;
+        let metrics = &mut self.metrics;
 
         let mut process_stream =
             |stream: &mut StreamInfo, mut bandwidth: i64, cur_bytes: &mut u64| {
@@ -103,9 +107,8 @@ impl PrioManager {
 
                 //cleanup
                 for i in finished.iter().rev() {
-                    let msg = stream.messages.remove(*i);
+                    let msg = stream.messages.remove(*i).unwrap();
                     let (sid, bytes) = msg.get_sid_len();
-                    metrics.smsg_ot(sid, RemoveReason::Finished);
                     metrics.smsg_ob(sid, RemoveReason::Finished, bytes);
                 }
             };

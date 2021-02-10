@@ -1,4 +1,5 @@
 use bitflags::bitflags;
+use bytes::{Buf, BufMut, BytesMut};
 use rand::Rng;
 
 pub type Mid = u64;
@@ -88,25 +89,19 @@ impl Pid {
         }
     }
 
-    pub(crate) fn to_le_bytes(&self) -> [u8; 16] { self.internal.to_le_bytes() }
-
-    pub(crate) fn from_le_bytes(bytes: [u8; 16]) -> Self {
+    pub(crate) fn from_bytes(bytes: &mut BytesMut) -> Self {
         Self {
-            internal: u128::from_le_bytes(bytes),
+            internal: bytes.get_u128_le(),
         }
     }
+
+    pub(crate) fn to_bytes(&self, bytes: &mut BytesMut) { bytes.put_u128_le(self.internal) }
 }
 
 impl Sid {
     pub const fn new(internal: u64) -> Self { Self { internal } }
 
     pub(crate) fn to_le_bytes(&self) -> [u8; 8] { self.internal.to_le_bytes() }
-
-    pub(crate) fn from_le_bytes(bytes: [u8; 8]) -> Self {
-        Self {
-            internal: u64::from_le_bytes(bytes),
-        }
-    }
 }
 
 impl std::fmt::Debug for Pid {

@@ -9,7 +9,7 @@ use crate::{
 };
 #[cfg(feature = "compression")]
 use lz_fear::raw::DecodeError;
-use network_protocol::{Bandwidth, MessageBuffer, Mid, Pid, Prio, Promises, Sid};
+use network_protocol::{Bandwidth, MessageBuffer, Pid, Prio, Promises, Sid};
 #[cfg(feature = "metrics")]
 use prometheus::Registry;
 use serde::{de::DeserializeOwned, Serialize};
@@ -28,7 +28,6 @@ use tokio::{
     sync::{mpsc, oneshot, Mutex},
 };
 use tracing::*;
-use tracing_futures::Instrument;
 
 type A2sDisconnect = Arc<Mutex<Option<mpsc::UnboundedSender<(Pid, S2bShutdownBparticipant)>>>>;
 
@@ -70,9 +69,9 @@ pub struct Participant {
 /// [`opened`]: Participant::opened
 #[derive(Debug)]
 pub struct Stream {
-    pid: Pid,
+    local_pid: Pid,
+    remote_pid: Pid,
     sid: Sid,
-    mid: Mid,
     prio: Prio,
     promises: Promises,
     guaranteed_bandwidth: Bandwidth,
@@ -239,7 +238,8 @@ impl Network {
         #[cfg(feature = "metrics")] registry: Option<&Registry>,
     ) -> Self {
         let p = participant_id;
-        debug!(?p, "Starting Network");
+        let span = tracing::info_span!("network", ?p);
+        span.in_scope(|| trace!("Starting Network"));
         let (scheduler, listen_sender, connect_sender, connected_receiver, shutdown_sender) =
             Scheduler::new(
                 participant_id,
@@ -247,14 +247,14 @@ impl Network {
                 #[cfg(feature = "metrics")]
                 registry,
             );
-        runtime.spawn(async move {
-            trace!(?p, "Starting scheduler in own thread");
-            scheduler
-                .run()
-                .instrument(tracing::info_span!("scheduler", ?p))
-                .await;
-            trace!(?p, "Stopping scheduler and his own thread");
-        });
+        runtime.spawn(
+            async move {
+                trace!("Starting scheduler in own thread");
+                scheduler.run().await;
+                trace!("Stopping scheduler and his own thread");
+            }
+            .instrument(tracing::info_span!("network", ?p)),
+        );
         Self {
             local_pid: participant_id,
             runtime,
@@ -295,6 +295,7 @@ impl Network {
     /// ```
     ///
     /// [`connected`]: Network::connected
+    #[instrument(name="network", skip(self, address), fields(p = %self.local_pid))]
     pub async fn listen(&self, address: ProtocolAddr) -> Result<(), NetworkError> {
         let (s2a_result_s, s2a_result_r) = oneshot::channel::<tokio::io::Result<()>>();
         debug!(?address, "listening on address");
@@ -350,6 +351,7 @@ impl Network {
     ///
     /// [`Streams`]: crate::api::Stream
     /// [`ProtocolAddres`]: crate::api::ProtocolAddr
+    #[instrument(name="network", skip(self, address), fields(p = %self.local_pid))]
     pub async fn connect(&self, address: ProtocolAddr) -> Result<Participant, NetworkError> {
         let (pid_sender, pid_receiver) = oneshot::channel::<io::Result<Participant>>();
         debug!(?address, "Connect to address");
@@ -361,15 +363,12 @@ impl Network {
             Ok(p) => p,
             Err(e) => return Err(NetworkError::ConnectFailed(e)),
         };
-        let pid = participant.remote_pid;
-        debug!(
-            ?pid,
-            "Received Participant id from remote and return to user"
-        );
+        let remote_pid = participant.remote_pid;
+        trace!(?remote_pid, "connected");
         self.participant_disconnect_sender
             .lock()
             .await
-            .insert(pid, Arc::clone(&participant.a2s_disconnect_s));
+            .insert(remote_pid, Arc::clone(&participant.a2s_disconnect_s));
         Ok(participant)
     }
 
@@ -406,6 +405,7 @@ impl Network {
     ///
     /// [`Streams`]: crate::api::Stream
     /// [`listen`]: crate::api::Network::listen
+    #[instrument(name="network", skip(self), fields(p = %self.local_pid))]
     pub async fn connected(&self) -> Result<Participant, NetworkError> {
         let participant = self.connected_receiver.lock().await.recv().await?;
         self.participant_disconnect_sender.lock().await.insert(
@@ -475,6 +475,7 @@ impl Participant {
     /// ```
     ///
     /// [`Streams`]: crate::api::Stream
+    #[instrument(name="network", skip(self, prio, promises), fields(p = %self.local_pid))]
     pub async fn open(&self, prio: u8, promises: Promises) -> Result<Stream, ParticipantError> {
         let (p2a_return_stream_s, p2a_return_stream_r) = oneshot::channel::<Stream>();
         if let Err(e) = self.a2b_open_stream_s.lock().await.send((
@@ -489,11 +490,11 @@ impl Participant {
         match p2a_return_stream_r.await {
             Ok(stream) => {
                 let sid = stream.sid;
-                debug!(?sid, ?self.remote_pid, "opened stream");
+                trace!(?sid, "opened stream");
                 Ok(stream)
             },
             Err(_) => {
-                debug!(?self.remote_pid, "p2a_return_stream_r failed, closing participant");
+                debug!("p2a_return_stream_r failed, closing participant");
                 Err(ParticipantError::ParticipantDisconnected)
             },
         }
@@ -532,15 +533,16 @@ impl Participant {
     /// [`Streams`]: crate::api::Stream
     /// [`connected`]: Network::connected
     /// [`open`]: Participant::open
+    #[instrument(name="network", skip(self), fields(p = %self.local_pid))]
     pub async fn opened(&self) -> Result<Stream, ParticipantError> {
         match self.b2a_stream_opened_r.lock().await.recv().await {
             Some(stream) => {
                 let sid = stream.sid;
-                debug!(?sid, ?self.remote_pid, "Receive opened stream");
+                debug!(?sid, "Receive opened stream");
                 Ok(stream)
             },
             None => {
-                debug!(?self.remote_pid, "stream_opened_receiver failed, closing participant");
+                debug!("stream_opened_receiver failed, closing participant");
                 Err(ParticipantError::ParticipantDisconnected)
             },
         }
@@ -589,10 +591,10 @@ impl Participant {
     /// ```
     ///
     /// [`Streams`]: crate::api::Stream
+    #[instrument(name="network", skip(self), fields(p = %self.local_pid))]
     pub async fn disconnect(self) -> Result<(), ParticipantError> {
         // Remove, Close and try_unwrap error when unwrap fails!
-        let pid = self.remote_pid;
-        debug!(?pid, "Closing participant from network");
+        debug!("Closing participant from network");
 
         //Streams will be closed by BParticipant
         match self.a2s_disconnect_s.lock().await.take() {
@@ -601,14 +603,14 @@ impl Participant {
                 // Participant is connecting to Scheduler here, not as usual
                 // Participant<->BParticipant
                 a2s_disconnect_s
-                    .send((pid, (Duration::from_secs(120), finished_sender)))
+                    .send((self.remote_pid, (Duration::from_secs(120), finished_sender)))
                     .expect("Something is wrong in internal scheduler coding");
                 match finished_receiver.await {
                     Ok(res) => {
                         match res {
-                            Ok(()) => trace!(?pid, "Participant is now closed"),
+                            Ok(()) => trace!("Participant is now closed"),
                             Err(ref e) => {
-                                trace!(?pid, ?e, "Error occurred during shutdown of participant")
+                                trace!(?e, "Error occurred during shutdown of participant")
                             },
                         };
                         res
@@ -616,7 +618,6 @@ impl Participant {
                     Err(e) => {
                         //this is a bug. but as i am Participant i can't destroy the network
                         error!(
-                            ?pid,
                             ?e,
                             "Failed to get a message back from the scheduler, seems like the \
                              network is already closed"
@@ -642,7 +643,8 @@ impl Participant {
 impl Stream {
     #[allow(clippy::too_many_arguments)]
     pub(crate) fn new(
-        pid: Pid,
+        local_pid: Pid,
+        remote_pid: Pid,
         sid: Sid,
         prio: Prio,
         promises: Promises,
@@ -653,9 +655,9 @@ impl Stream {
         a2b_close_stream_s: mpsc::UnboundedSender<Sid>,
     ) -> Self {
         Self {
-            pid,
+            local_pid,
+            remote_pid,
             sid,
-            mid: 0,
             prio,
             promises,
             guaranteed_bandwidth,
@@ -779,7 +781,6 @@ impl Stream {
         message.verify(&self);
         self.a2b_msg_s
             .send((self.sid, Arc::clone(&message.buffer)))?;
-        self.mid += 1;
         Ok(())
     }
 
@@ -942,13 +943,10 @@ impl core::cmp::PartialEq for Participant {
 }
 
 impl Drop for Network {
+    #[instrument(name="network", skip(self), fields(p = %self.local_pid))]
     fn drop(&mut self) {
-        let pid = self.local_pid;
-        debug!(?pid, "Shutting down Network");
-        trace!(
-            ?pid,
-            "Shutting down Participants of Network, while we still have metrics"
-        );
+        debug!("Shutting down Network");
+        trace!("Shutting down Participants of Network, while we still have metrics");
         let mut finished_receiver_list = vec![];
 
         if tokio::runtime::Handle::try_current().is_ok() {
@@ -991,25 +989,25 @@ impl Drop for Network {
                 }
             });
         });
-        trace!(?pid, "Participants have shut down!");
-        trace!(?pid, "Shutting down Scheduler");
+        trace!("Participants have shut down!");
+        trace!("Shutting down Scheduler");
         self.shutdown_sender
             .take()
             .unwrap()
             .send(())
             .expect("Scheduler is closed, but nobody other should be able to close it");
-        debug!(?pid, "Network has shut down");
+        debug!("Network has shut down");
     }
 }
 
 impl Drop for Participant {
+    #[instrument(name="remote", skip(self), fields(p = %self.remote_pid))]
+    #[instrument(name="network", skip(self), fields(p = %self.local_pid))]
     fn drop(&mut self) {
         use tokio::sync::oneshot::error::TryRecvError;
-
         // ignore closed, as we need to send it even though we disconnected the
         // participant from network
-        let pid = self.remote_pid;
-        debug!(?pid, "Shutting down Participant");
+        debug!("Shutting down Participant");
 
         match self
             .a2s_disconnect_s
@@ -1017,25 +1015,27 @@ impl Drop for Participant {
             .expect("Participant in use while beeing dropped")
             .take()
         {
-            None => trace!(
-                ?pid,
-                "Participant has been shutdown cleanly, no further waiting is required!"
-            ),
+            None => info!("Participant already has been shutdown gracefully"),
             Some(a2s_disconnect_s) => {
-                debug!(?pid, "Disconnect from Scheduler");
+                debug!("Disconnect from Scheduler");
                 let (finished_sender, mut finished_receiver) = oneshot::channel();
                 a2s_disconnect_s
                     .send((self.remote_pid, (Duration::from_secs(120), finished_sender)))
                     .expect("Something is wrong in internal scheduler coding");
                 loop {
                     match finished_receiver.try_recv() {
-                        Ok(Ok(())) => break,
-                        Ok(Err(e)) => error!(
-                            ?pid,
-                            ?e,
-                            "Error while dropping the participant, couldn't send all outgoing \
-                             messages, dropping remaining"
-                        ),
+                        Ok(Ok(())) => {
+                            info!("Participant dropped gracefully");
+                            break;
+                        },
+                        Ok(Err(e)) => {
+                            error!(
+                                ?e,
+                                "Error while dropping the participant, couldn't send all outgoing \
+                                 messages, dropping remaining"
+                            );
+                            break;
+                        },
                         Err(TryRecvError::Closed) => {
                             panic!("Something is wrong in internal scheduler/participant coding")
                         },
@@ -1047,17 +1047,17 @@ impl Drop for Participant {
                 }
             },
         }
-        debug!(?pid, "Participant dropped");
     }
 }
 
 impl Drop for Stream {
+    #[instrument(name="remote", skip(self), fields(p = %self.remote_pid))]
+    #[instrument(name="network", skip(self), fields(p = %self.local_pid))]
     fn drop(&mut self) {
         // send if closed is unnecessary but doesn't hurt, we must not crash
         if !self.send_closed.load(Ordering::Relaxed) {
             let sid = self.sid;
-            let pid = self.pid;
-            debug!(?pid, ?sid, "Shutting down Stream");
+            debug!(?sid, "Shutting down Stream");
             if let Err(e) = self.a2b_close_stream_s.take().unwrap().send(self.sid) {
                 debug!(
                     ?e,
@@ -1066,8 +1066,7 @@ impl Drop for Stream {
             }
         } else {
             let sid = self.sid;
-            let pid = self.pid;
-            trace!(?pid, ?sid, "Stream Drop not needed");
+            trace!(?sid, "Stream Drop not needed");
         }
     }
 }

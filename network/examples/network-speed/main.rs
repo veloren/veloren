@@ -3,11 +3,12 @@
 /// (cd network/examples/network-speed && RUST_BACKTRACE=1 cargo run --profile=debuginfo -Z unstable-options -- --trace=error --protocol=tcp --mode=server)
 /// (cd network/examples/network-speed && RUST_BACKTRACE=1 cargo run --profile=debuginfo -Z unstable-options -- --trace=error --protocol=tcp --mode=client)
 /// ```
-mod metrics;
-
 use clap::{App, Arg};
+use prometheus::Registry;
+use prometheus_hyper::Server;
 use serde::{Deserialize, Serialize};
 use std::{
+    net::SocketAddr,
     sync::Arc,
     thread,
     time::{Duration, Instant},
@@ -121,9 +122,13 @@ fn main() {
 }
 
 fn server(address: ProtocolAddr, runtime: Arc<Runtime>) {
-    let mut metrics = metrics::SimpleMetrics::new();
-    let server = Network::new_with_registry(Pid::new(), Arc::clone(&runtime), metrics.registry());
-    metrics.run("0.0.0.0:59112".parse().unwrap()).unwrap();
+    let registry = Arc::new(Registry::new());
+    let server = Network::new_with_registry(Pid::new(), Arc::clone(&runtime), &registry);
+    runtime.spawn(Server::run(
+        Arc::clone(&registry),
+        SocketAddr::from(([0; 4], 59112)),
+        futures_util::future::pending(),
+    ));
     runtime.block_on(server.listen(address)).unwrap();
 
     loop {
@@ -148,9 +153,13 @@ fn server(address: ProtocolAddr, runtime: Arc<Runtime>) {
 }
 
 fn client(address: ProtocolAddr, runtime: Arc<Runtime>) {
-    let mut metrics = metrics::SimpleMetrics::new();
-    let client = Network::new_with_registry(Pid::new(), Arc::clone(&runtime), metrics.registry());
-    metrics.run("0.0.0.0:59111".parse().unwrap()).unwrap();
+    let registry = Arc::new(Registry::new());
+    let client = Network::new_with_registry(Pid::new(), Arc::clone(&runtime), &registry);
+    runtime.spawn(Server::run(
+        Arc::clone(&registry),
+        SocketAddr::from(([0; 4], 59111)),
+        futures_util::future::pending(),
+    ));
 
     let p1 = runtime.block_on(client.connect(address)).unwrap(); //remote representation of p1
     let mut s1 = runtime

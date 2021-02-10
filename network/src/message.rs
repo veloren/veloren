@@ -200,6 +200,7 @@ mod tests {
 
         Stream::new(
             Pid::fake(0),
+            Pid::fake(1),
             Sid::new(0),
             0u8,
             promises,

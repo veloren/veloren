@@ -9,7 +9,10 @@ use crate::{
 };
 use async_trait::async_trait;
 use std::time::{Duration, Instant};
+#[cfg(feature = "trace_pedantic")]
+use tracing::trace;
 
+#[derive(Debug)]
 pub /* should be private */ enum MpscMsg {
     Event(ProtocolEvent),
     InitFrame(InitFrame),
@@ -59,7 +62,11 @@ impl<D> SendProtocol for MpscSendProtcol<D>
 where
     D: UnreliableDrain<DataFormat = MpscMsg>,
 {
+    fn notify_from_recv(&mut self, _event: ProtocolEvent) {}
+
     async fn send(&mut self, event: ProtocolEvent) -> Result<(), ProtocolError> {
+        #[cfg(feature = "trace_pedantic")]
+        trace!(?event, "send");
         match &event {
             ProtocolEvent::Message {
                 buffer,
@@ -68,10 +75,8 @@ where
             } => {
                 let sid = *sid;
                 let bytes = buffer.data.len() as u64;
-                self.metrics.smsg_it(sid);
                 self.metrics.smsg_ib(sid, bytes);
                 let r = self.drain.send(MpscMsg::Event(event)).await;
-                self.metrics.smsg_ot(sid, RemoveReason::Finished);
                 self.metrics.smsg_ob(sid, RemoveReason::Finished, bytes);
                 r
             },
@@ -88,7 +93,10 @@ where
     S: UnreliableSink<DataFormat = MpscMsg>,
 {
     async fn recv(&mut self) -> Result<ProtocolEvent, ProtocolError> {
-        match self.sink.recv().await? {
+        let event = self.sink.recv().await?;
+        #[cfg(feature = "trace_pedantic")]
+        trace!(?event, "recv");
+        match event {
             MpscMsg::Event(e) => {
                 if let ProtocolEvent::Message {
                     buffer,
@@ -98,9 +106,7 @@ where
                 {
                     let sid = *sid;
                     let bytes = buffer.data.len() as u64;
-                    self.metrics.rmsg_it(sid);
                     self.metrics.rmsg_ib(sid, bytes);
-                    self.metrics.rmsg_ot(sid, RemoveReason::Finished);
                     self.metrics.rmsg_ob(sid, RemoveReason::Finished, bytes);
                 }
                 Ok(e)

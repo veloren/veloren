@@ -40,6 +40,9 @@ pub trait InitProtocol {
 pub trait SendProtocol {
     //a stream MUST be bound to a specific Protocol, there will be a failover
     // feature comming for the case where a Protocol fails completly
+    /// use this to notify the sending side of streams that were created/remove
+    /// from remote
+    fn notify_from_recv(&mut self, event: ProtocolEvent);
     async fn send(&mut self, event: ProtocolEvent) -> Result<(), ProtocolError>;
     async fn flush(
         &mut self,

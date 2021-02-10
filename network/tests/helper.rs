@@ -2,7 +2,7 @@ use lazy_static::*;
 use std::{
     net::SocketAddr,
     sync::{
-        atomic::{AtomicU16, Ordering},
+        atomic::{AtomicU16, AtomicU64, Ordering},
         Arc,
     },
     thread,
@@ -91,4 +91,13 @@ pub fn udp() -> veloren_network::ProtocolAddr {
     }
     let port = PORTS.fetch_add(1, Ordering::Relaxed);
     veloren_network::ProtocolAddr::Udp(SocketAddr::from(([127, 0, 0, 1], port)))
+}
+
+#[allow(dead_code)]
+pub fn mpsc() -> veloren_network::ProtocolAddr {
+    lazy_static! {
+        static ref PORTS: AtomicU64 = AtomicU64::new(5000);
+    }
+    let port = PORTS.fetch_add(1, Ordering::Relaxed);
+    veloren_network::ProtocolAddr::Mpsc(port)
 }

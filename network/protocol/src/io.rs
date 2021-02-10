@@ -1,5 +1,6 @@
 use crate::ProtocolError;
 use async_trait::async_trait;
+use bytes::BytesMut;
 use std::collections::VecDeque;
 ///! I/O-Free (Sans-I/O) protocol https://sans-io.readthedocs.io/how-to-sans-io.html
 
@@ -17,11 +18,11 @@ pub trait UnreliableSink: Send {
 }
 
 pub struct BaseDrain {
-    data: VecDeque<Vec<u8>>,
+    data: VecDeque<BytesMut>,
 }
 
 pub struct BaseSink {
-    data: VecDeque<Vec<u8>>,
+    data: VecDeque<BytesMut>,
 }
 
 impl BaseDrain {
@@ -44,7 +45,7 @@ impl BaseSink {
 
 #[async_trait]
 impl UnreliableDrain for BaseDrain {
-    type DataFormat = Vec<u8>;
+    type DataFormat = BytesMut;
 
     async fn send(&mut self, data: Self::DataFormat) -> Result<(), ProtocolError> {
         self.data.push_back(data);
@@ -54,7 +55,7 @@ impl UnreliableDrain for BaseDrain {
 
 #[async_trait]
 impl UnreliableSink for BaseSink {
-    type DataFormat = Vec<u8>;
+    type DataFormat = BytesMut;
 
     async fn recv(&mut self) -> Result<Self::DataFormat, ProtocolError> {
         self.data.pop_front().ok_or(ProtocolError::Closed)

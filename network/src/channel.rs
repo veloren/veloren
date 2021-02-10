@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use bytes::BytesMut;
 use network_protocol::{
     InitProtocolError, MpscMsg, MpscRecvProtcol, MpscSendProtcol, Pid, ProtocolError,
     ProtocolEvent, ProtocolMetricCache, ProtocolMetrics, Sid, TcpRecvProtcol, TcpSendProtcol,
@@ -42,7 +43,13 @@ impl Protocols {
         let metrics = ProtocolMetricCache {};
 
         let sp = TcpSendProtcol::new(TcpDrain { half: w }, metrics.clone());
-        let rp = TcpRecvProtcol::new(TcpSink { half: r }, metrics.clone());
+        let rp = TcpRecvProtcol::new(
+            TcpSink {
+                half: r,
+                buffer: BytesMut::new(),
+            },
+            metrics.clone(),
+        );
         Protocols::Tcp((sp, rp))
     }
 
@@ -86,6 +93,13 @@ impl network_protocol::InitProtocol for Protocols {
 
 #[async_trait]
 impl network_protocol::SendProtocol for SendProtocols {
+    fn notify_from_recv(&mut self, event: ProtocolEvent) {
+        match self {
+            SendProtocols::Tcp(s) => s.notify_from_recv(event),
+            SendProtocols::Mpsc(s) => s.notify_from_recv(event),
+        }
+    }
+
     async fn send(&mut self, event: ProtocolEvent) -> Result<(), ProtocolError> {
         match self {
             SendProtocols::Tcp(s) => s.send(event).await,
@@ -121,14 +135,14 @@ pub struct TcpDrain {
 #[derive(Debug)]
 pub struct TcpSink {
     half: OwnedReadHalf,
+    buffer: BytesMut,
 }
 
 #[async_trait]
 impl UnreliableDrain for TcpDrain {
-    type DataFormat = Vec<u8>;
+    type DataFormat = BytesMut;
 
     async fn send(&mut self, data: Self::DataFormat) -> Result<(), ProtocolError> {
-        //self.half.recv
         match self.half.write_all(&data).await {
             Ok(()) => Ok(()),
             Err(_) => Err(ProtocolError::Closed),
@@ -138,15 +152,12 @@ impl UnreliableDrain for TcpDrain {
 
 #[async_trait]
 impl UnreliableSink for TcpSink {
-    type DataFormat = Vec<u8>;
+    type DataFormat = BytesMut;
 
     async fn recv(&mut self) -> Result<Self::DataFormat, ProtocolError> {
-        let mut data = vec![0u8; 1500];
-        match self.half.read(&mut data).await {
-            Ok(n) => {
-                data.truncate(n);
-                Ok(data)
-            },
+        self.buffer.resize(1500, 0u8);
+        match self.half.read(&mut self.buffer).await {
+            Ok(n) => Ok(self.buffer.split_to(n)),
             Err(_) => Err(ProtocolError::Closed),
         }
     }

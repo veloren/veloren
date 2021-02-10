@@ -1,5 +1,6 @@
 use async_channel::*;
 use async_trait::async_trait;
+use bytes::BytesMut;
 use criterion::{criterion_group, criterion_main, Criterion};
 use std::{sync::Arc, time::Duration};
 use veloren_network_protocol::{
@@ -8,7 +9,7 @@ use veloren_network_protocol::{
     Sid, TcpRecvProtcol, TcpSendProtcol, UnreliableDrain, UnreliableSink, _internal::Frame,
 };
 
-fn frame_serialize(frame: Frame, buffer: &mut [u8]) -> usize { frame.to_bytes(buffer).0 }
+fn frame_serialize(frame: Frame, buffer: &mut BytesMut) { frame.to_bytes(buffer); }
 
 async fn mpsc_msg(buffer: Arc<MessageBuffer>) {
     // Arrrg, need to include constructor here
@@ -102,7 +103,7 @@ fn criterion_benchmark(c: &mut Criterion) {
         b.to_async(rt()).iter(|| mpsc_handshake())
     });
 
-    let mut buffer = [0u8; 1500];
+    let mut buffer = BytesMut::with_capacity(1500);
 
     c.bench_function("frame_serialize_short", |b| {
         let frame = Frame::Data {
@@ -110,7 +111,7 @@ fn criterion_benchmark(c: &mut Criterion) {
             start: 89u64,
             data: b"hello_world".to_vec(),
         };
-        b.iter(move || frame_serialize(frame.clone(), &mut buffer))
+        b.iter(|| frame_serialize(frame.clone(), &mut buffer))
     });
 
     c.bench_function("tcp_short_msg", |b| {
@@ -125,6 +126,11 @@ fn criterion_benchmark(c: &mut Criterion) {
         });
         b.to_async(rt())
             .iter(|| tcp_msg(Arc::clone(&buffer), 10_000))
+    });
+    c.bench_function("tcp_1000000_tiny_msg", |b| {
+        let buffer = Arc::new(MessageBuffer { data: vec![3u8; 5] });
+        b.to_async(rt())
+            .iter(|| tcp_msg(Arc::clone(&buffer), 1_000_000))
     });
 }
 
@@ -164,11 +170,11 @@ mod utils {
     }
 
     pub struct TcpDrain {
-        sender: Sender<Vec<u8>>,
+        sender: Sender<BytesMut>,
     }
 
     pub struct TcpSink {
-        receiver: Receiver<Vec<u8>>,
+        receiver: Receiver<BytesMut>,
     }
 
     /// emulate Tcp protocol on Channels
@@ -219,7 +225,7 @@ mod utils {
 
     #[async_trait]
     impl UnreliableDrain for TcpDrain {
-        type DataFormat = Vec<u8>;
+        type DataFormat = BytesMut;
 
         async fn send(&mut self, data: Self::DataFormat) -> Result<(), ProtocolError> {
             self.sender
@@ -231,7 +237,7 @@ mod utils {
 
     #[async_trait]
     impl UnreliableSink for TcpSink {
-        type DataFormat = Vec<u8>;
+        type DataFormat = BytesMut;
 
         async fn recv(&mut self) -> Result<Self::DataFormat, ProtocolError> {
             self.receiver

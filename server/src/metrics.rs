@@ -1,19 +1,16 @@
 use prometheus::{
-    Encoder, Gauge, HistogramOpts, HistogramVec, IntCounter, IntCounterVec, IntGauge, IntGaugeVec,
-    Opts, Registry, TextEncoder,
+    Gauge, HistogramOpts, HistogramVec, IntCounter, IntCounterVec, IntGauge, IntGaugeVec, Opts,
+    Registry,
 };
 use std::{
     convert::TryInto,
     error::Error,
-    net::SocketAddr,
     sync::{
-        atomic::{AtomicBool, AtomicU64, Ordering},
+        atomic::{AtomicU64, Ordering},
         Arc,
     },
-    thread,
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
-use tracing::{debug, error};
 
 type RegistryFn = Box<dyn FnOnce(&Registry) -> Result<(), prometheus::Error>>;
 
@@ -57,13 +54,6 @@ pub struct TickMetrics {
     pub start_time: IntGauge,
     pub time_of_day: Gauge,
     pub light_count: IntGauge,
-    tick: Arc<AtomicU64>,
-}
-
-pub struct ServerMetrics {
-    running: Arc<AtomicBool>,
-    handle: Option<thread::JoinHandle<()>>,
-    registry: Option<Registry>,
     tick: Arc<AtomicU64>,
 }
 
@@ -265,7 +255,7 @@ impl ChunkGenMetrics {
 }
 
 impl TickMetrics {
-    pub fn new(tick: Arc<AtomicU64>) -> Result<(Self, RegistryFn), Box<dyn Error>> {
+    pub fn new() -> Result<(Self, RegistryFn), Box<dyn Error>> {
         let chonks_count = IntGauge::with_opts(Opts::new(
             "chonks_count",
             "number of all chonks currently active on the server",
@@ -315,6 +305,7 @@ impl TickMetrics {
         let time_of_day_clone = time_of_day.clone();
         let light_count_clone = light_count.clone();
         let tick_time_clone = tick_time.clone();
+        let tick = Arc::new(AtomicU64::new(0));
 
         let f = |registry: &Registry| {
             registry.register(Box::new(chonks_count_clone))?;
@@ -346,87 +337,7 @@ impl TickMetrics {
         ))
     }
 
+    pub fn tick(&self) { self.tick.fetch_add(1, Ordering::Relaxed); }
+
     pub fn is_100th_tick(&self) -> bool { self.tick.load(Ordering::Relaxed).rem_euclid(100) == 0 }
-}
-
-impl ServerMetrics {
-    #[allow(clippy::new_without_default)] // TODO: Pending review in #587
-    pub fn new() -> Self {
-        let running = Arc::new(AtomicBool::new(false));
-        let tick = Arc::new(AtomicU64::new(0));
-        let registry = Some(Registry::new());
-
-        Self {
-            running,
-            handle: None,
-            registry,
-            tick,
-        }
-    }
-
-    pub fn registry(&self) -> &Registry {
-        match self.registry {
-            Some(ref r) => r,
-            None => panic!("You cannot longer register new metrics after the server has started!"),
-        }
-    }
-
-    pub fn run(&mut self, addr: SocketAddr) -> Result<(), Box<dyn Error>> {
-        self.running.store(true, Ordering::Relaxed);
-        let running2 = Arc::clone(&self.running);
-
-        let registry = self
-            .registry
-            .take()
-            .expect("ServerMetrics must be already started");
-
-        //TODO: make this a job
-        self.handle = Some(thread::spawn(move || {
-            let server = tiny_http::Server::http(addr).unwrap();
-            const TIMEOUT: Duration = Duration::from_secs(1);
-            debug!("starting tiny_http server to serve metrics");
-            while running2.load(Ordering::Relaxed) {
-                let request = match server.recv_timeout(TIMEOUT) {
-                    Ok(Some(rq)) => rq,
-                    Ok(None) => continue,
-                    Err(e) => {
-                        error!(?e, "metrics http server error");
-                        break;
-                    },
-                };
-                let mf = registry.gather();
-                let encoder = TextEncoder::new();
-                let mut buffer = vec![];
-                encoder
-                    .encode(&mf, &mut buffer)
-                    .expect("Failed to encoder metrics text.");
-                let response = tiny_http::Response::from_string(
-                    String::from_utf8(buffer).expect("Failed to parse bytes as a string."),
-                );
-                if let Err(e) = request.respond(response) {
-                    error!(
-                        ?e,
-                        "The metrics HTTP server had encountered and error with answering",
-                    );
-                }
-            }
-            debug!("stopping tiny_http server to serve metrics");
-        }));
-        Ok(())
-    }
-
-    pub fn tick(&self) -> u64 { self.tick.fetch_add(1, Ordering::Relaxed) + 1 }
-
-    pub fn tick_clone(&self) -> Arc<AtomicU64> { Arc::clone(&self.tick) }
-}
-
-impl Drop for ServerMetrics {
-    fn drop(&mut self) {
-        self.running.store(false, Ordering::Relaxed);
-        let handle = self.handle.take();
-        handle
-            .expect("ServerMetrics worker handle does not exist.")
-            .join()
-            .expect("Error shutting down prometheus metric exporter");
-    }
 }

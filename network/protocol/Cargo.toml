@@ -9,6 +9,7 @@ edition = "2018"
 
 [features]
 metrics = ["prometheus"]
+trace_pedantic = [] # use for debug only
 
 default = ["metrics"]
 
@@ -22,6 +23,7 @@ bitflags = "1.2.1"
 rand = { version = "0.8" }
 # async traits
 async-trait = "0.1.42"
+bytes = "^1"
 
 [dev-dependencies]
 async-channel = "1.5.1"

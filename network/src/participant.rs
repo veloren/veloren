@@ -60,6 +60,7 @@ struct ShutdownInfo {
 
 #[derive(Debug)]
 pub struct BParticipant {
+    local_pid: Pid, //tracing
     remote_pid: Pid,
     remote_pid_string: String, //optimisation
     offset_sid: Sid,
@@ -82,6 +83,7 @@ impl BParticipant {
 
     #[allow(clippy::type_complexity)]
     pub(crate) fn new(
+        local_pid: Pid,
         remote_pid: Pid,
         offset_sid: Sid,
         #[cfg(feature = "metrics")] metrics: Arc<NetworkMetrics>,
@@ -106,6 +108,7 @@ impl BParticipant {
 
         (
             Self {
+                local_pid,
                 remote_pid,
                 remote_pid_string: remote_pid.to_string(),
                 offset_sid,
@@ -135,6 +138,8 @@ impl BParticipant {
             async_channel::unbounded::<Cid>();
         let (b2b_force_close_recv_protocol_s, b2b_force_close_recv_protocol_r) =
             async_channel::unbounded::<Cid>();
+        let (b2b_notify_send_of_recv_s, b2b_notify_send_of_recv_r) =
+            mpsc::unbounded_channel::<ProtocolEvent>();
 
         let (a2b_close_stream_s, a2b_close_stream_r) = mpsc::unbounded_channel::<Sid>();
         const STREAM_BOUND: usize = 10_000;
@@ -142,6 +147,7 @@ impl BParticipant {
             crossbeam_channel::bounded::<(Sid, Arc<MessageBuffer>)>(STREAM_BOUND);
 
         let run_channels = self.run_channels.take().unwrap();
+        trace!("start all managers");
         tokio::join!(
             self.send_mgr(
                 run_channels.a2b_open_stream_r,
@@ -149,18 +155,22 @@ impl BParticipant {
                 a2b_msg_r,
                 b2b_add_send_protocol_r,
                 b2b_close_send_protocol_r,
+                b2b_notify_send_of_recv_r,
                 b2s_prio_statistic_s,
                 a2b_msg_s.clone(),          //self
                 a2b_close_stream_s.clone(), //self
-            ),
+            )
+            .instrument(tracing::info_span!("send")),
             self.recv_mgr(
                 run_channels.b2a_stream_opened_s,
                 b2b_add_recv_protocol_r,
                 b2b_force_close_recv_protocol_r,
                 b2b_close_send_protocol_s.clone(),
+                b2b_notify_send_of_recv_s,
                 a2b_msg_s.clone(),          //self
                 a2b_close_stream_s.clone(), //self
-            ),
+            )
+            .instrument(tracing::info_span!("recv")),
             self.create_channel_mgr(
                 run_channels.s2b_create_channel_r,
                 b2b_add_send_protocol_s,
@@ -182,6 +192,7 @@ impl BParticipant {
         a2b_msg_r: crossbeam_channel::Receiver<(Sid, Arc<MessageBuffer>)>,
         mut b2b_add_protocol_r: mpsc::UnboundedReceiver<(Cid, SendProtocols)>,
         b2b_close_send_protocol_r: async_channel::Receiver<Cid>,
+        mut b2b_notify_send_of_recv_r: mpsc::UnboundedReceiver<ProtocolEvent>,
         _b2s_prio_statistic_s: mpsc::UnboundedSender<B2sPrioStatistic>,
         a2b_msg_s: crossbeam_channel::Sender<(Sid, Arc<MessageBuffer>)>,
         a2b_close_stream_s: mpsc::UnboundedSender<Sid>,
@@ -189,27 +200,29 @@ impl BParticipant {
         let mut send_protocols: HashMap<Cid, SendProtocols> = HashMap::new();
         let mut interval = tokio::time::interval(Self::TICK_TIME);
         let mut stream_ids = self.offset_sid;
-        trace!("workaround, activly wait for first protocol");
+        let mut fake_mid = 0; //TODO: move MID to protocol, should be inc per stream ? or ?
+        trace!("workaround, actively wait for first protocol");
         b2b_add_protocol_r
             .recv()
             .await
             .map(|(c, p)| send_protocols.insert(c, p));
-        trace!("Start send_mgr");
         loop {
-            let (open, close, _, addp, remp) = select!(
-                next = a2b_open_stream_r.recv().fuse() => (Some(next), None, None, None, None),
-                next = a2b_close_stream_r.recv().fuse() => (None, Some(next), None, None, None),
-                _ = interval.tick() => (None, None, Some(()), None, None),
-                next = b2b_add_protocol_r.recv().fuse() => (None, None, None, Some(next), None),
-                next = b2b_close_send_protocol_r.recv().fuse() => (None, None, None, None, Some(next)),
+            let (open, close, r_event, _, addp, remp) = select!(
+                n = a2b_open_stream_r.recv().fuse() => (Some(n), None, None, None, None, None),
+                n = a2b_close_stream_r.recv().fuse() => (None, Some(n), None, None, None, None),
+                n = b2b_notify_send_of_recv_r.recv().fuse() => (None, None, Some(n), None, None, None),
+                _ = interval.tick() => (None, None, None, Some(()), None, None),
+                n = b2b_add_protocol_r.recv().fuse() => (None, None, None, None, Some(n), None),
+                n = b2b_close_send_protocol_r.recv().fuse() => (None, None, None, None, None, Some(n)),
             );
 
-            trace!(?open, ?close, ?addp, ?remp, "foobar");
-
-            addp.flatten().map(|(c, p)| send_protocols.insert(c, p));
+            addp.flatten().map(|(cid, p)| {
+                debug!(?cid, "add protocol");
+                send_protocols.insert(cid, p)
+            });
             match remp {
                 Some(Ok(cid)) => {
-                    trace!(?cid, "remove send protocol");
+                    debug!(?cid, "remove protocol");
                     match send_protocols.remove(&cid) {
                         Some(mut prot) => {
                             trace!("blocking flush");
@@ -230,15 +243,19 @@ impl BParticipant {
             let active = match send_protocols.get_mut(&cid) {
                 Some(a) => a,
                 None => {
-                    warn!("no channel arrg");
+                    warn!("no channel");
                     continue;
                 },
             };
 
             let active_err = async {
+                if let Some(Some(event)) = r_event {
+                    active.notify_from_recv(event);
+                }
+
                 if let Some(Some((prio, promises, guaranteed_bandwidth, return_s))) = open {
-                    trace!(?stream_ids, "openuing some new stream");
                     let sid = stream_ids;
+                    trace!(?sid, "open stream");
                     stream_ids += Sid::from(1);
                     let stream = self
                         .create_stream(
@@ -264,25 +281,24 @@ impl BParticipant {
 
                 // get all messages and assign it to a channel
                 for (sid, buffer) in a2b_msg_r.try_iter() {
-                    warn!(?sid, "sending!");
+                    fake_mid += 1;
                     active
                         .send(ProtocolEvent::Message {
                             buffer,
-                            mid: 0u64,
+                            mid: fake_mid,
                             sid,
                         })
                         .await?
                 }
 
                 if let Some(Some(sid)) = close {
-                    warn!(?sid, "delete_stream!");
+                    trace!(?stream_ids, "delete stream");
                     self.delete_stream(sid).await;
                     // Fire&Forget the protocol will take care to verify that this Frame is delayed
                     // till the last msg was received!
                     active.send(ProtocolEvent::CloseStream { sid }).await?;
                 }
 
-                warn!("flush!");
                 active
                     .flush(1_000_000, Duration::from_secs(1) /* TODO */)
                     .await?; //this actually blocks, so we cant set streams whilte it.
@@ -291,7 +307,7 @@ impl BParticipant {
             }
             .await;
             if let Err(e) = active_err {
-                info!(?cid, ?e, "send protocol failed, shutting down channel");
+                info!(?cid, ?e, "protocol failed, shutting down channel");
                 // remote recv will now fail, which will trigger remote send which will trigger
                 // recv
                 send_protocols.remove(&cid).unwrap();
@@ -308,6 +324,7 @@ impl BParticipant {
         mut b2b_add_protocol_r: mpsc::UnboundedReceiver<(Cid, RecvProtocols)>,
         b2b_force_close_recv_protocol_r: async_channel::Receiver<Cid>,
         b2b_close_send_protocol_s: async_channel::Sender<Cid>,
+        b2b_notify_send_of_recv_s: mpsc::UnboundedSender<ProtocolEvent>,
         a2b_msg_s: crossbeam_channel::Sender<(Sid, Arc<MessageBuffer>)>,
         a2b_close_stream_s: mpsc::UnboundedSender<Sid>,
     ) {
@@ -327,13 +344,15 @@ impl BParticipant {
 
         let remove_c = |recv_protocols: &mut HashMap<Cid, JoinHandle<()>>, cid: &Cid| {
             match recv_protocols.remove(&cid) {
-                Some(h) => h.abort(),
+                Some(h) => {
+                    h.abort();
+                    debug!(?cid, "remove protocol");
+                },
                 None => trace!("tried to remove protocol twice"),
             };
             recv_protocols.is_empty()
         };
 
-        trace!("Start recv_mgr");
         loop {
             let (event, addp, remp) = select!(
                 next = hacky_recv_r.recv().fuse() => (Some(next), None, None),
@@ -342,6 +361,7 @@ impl BParticipant {
             );
 
             addp.map(|(cid, p)| {
+                debug!(?cid, "add protocol");
                 retrigger(cid, p, &mut recv_protocols);
             });
             if let Some(Ok(cid)) = remp {
@@ -351,7 +371,6 @@ impl BParticipant {
                 }
             };
 
-            warn!(?event, "recv event!");
             if let Some(Some((cid, r, p))) = event {
                 match r {
                     Ok(ProtocolEvent::OpenStream {
@@ -361,6 +380,7 @@ impl BParticipant {
                         guaranteed_bandwidth,
                     }) => {
                         trace!(?sid, "open stream");
+                        let _ = b2b_notify_send_of_recv_s.send(r.unwrap());
                         let stream = self
                             .create_stream(
                                 sid,
@@ -376,6 +396,7 @@ impl BParticipant {
                     },
                     Ok(ProtocolEvent::CloseStream { sid }) => {
                         trace!(?sid, "close stream");
+                        let _ = b2b_notify_send_of_recv_s.send(r.unwrap());
                         self.delete_stream(sid).await;
                         retrigger(cid, p, &mut recv_protocols);
                     },
@@ -410,7 +431,7 @@ impl BParticipant {
                         }
                     },
                     Err(e) => {
-                        info!(?cid, ?e, "recv protocol failed, shutting down channel");
+                        info!(?e, ?cid, "protocol failed, shutting down channel");
                         if let Err(e) = b2b_close_send_protocol_s.send(cid).await {
                             debug!(?e, ?cid, "send_mgr was already closed simultaneously");
                         }
@@ -433,7 +454,6 @@ impl BParticipant {
         b2b_add_send_protocol_s: mpsc::UnboundedSender<(Cid, SendProtocols)>,
         b2b_add_recv_protocol_s: mpsc::UnboundedSender<(Cid, RecvProtocols)>,
     ) {
-        trace!("Start create_channel_mgr");
         let s2b_create_channel_r = UnboundedReceiverStream::new(s2b_create_channel_r);
         s2b_create_channel_r
             .for_each_concurrent(None, |(cid, _, protocol, b2s_create_channel_done_s)| {
@@ -524,12 +544,8 @@ impl BParticipant {
                 }
             }
         };
-
-        trace!("Start participant_shutdown_mgr");
         let (timeout_time, sender) = s2b_shutdown_bparticipant_r.await.unwrap();
-        debug!("participant_shutdown_mgr triggered");
-
-        debug!("Closing all streams for send");
+        debug!("participant_shutdown_mgr triggered. Closing all streams for send");
         {
             let lock = self.streams.read().await;
             for si in lock.values() {
@@ -632,6 +648,7 @@ impl BParticipant {
             .with_label_values(&[&self.remote_pid_string])
             .inc();
         Stream::new(
+            self.local_pid,
             self.remote_pid,
             sid,
             prio,
@@ -676,11 +693,12 @@ mod tests {
             s2b_create_channel_s,
             s2b_shutdown_bparticipant_s,
         ) = runtime_clone.block_on(async move {
-            let pid = Pid::fake(1);
+            let local_pid = Pid::fake(0);
+            let remote_pid = Pid::fake(1);
             let sid = Sid::new(1000);
-            let metrics = Arc::new(NetworkMetrics::new(&pid).unwrap());
+            let metrics = Arc::new(NetworkMetrics::new(&local_pid).unwrap());
 
-            BParticipant::new(pid, sid, Arc::clone(&metrics))
+            BParticipant::new(local_pid, remote_pid, sid, Arc::clone(&metrics))
         });
 
         let handle = runtime_clone.spawn(bparticipant.run(b2s_prio_statistic_s));

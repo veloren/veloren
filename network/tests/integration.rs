@@ -2,7 +2,7 @@ use std::sync::Arc;
 use tokio::runtime::Runtime;
 use veloren_network::{NetworkError, StreamError};
 mod helper;
-use helper::{network_participant_stream, tcp, udp};
+use helper::{mpsc, network_participant_stream, tcp, udp};
 use std::io::ErrorKind;
 use veloren_network::{Network, Pid, Promises, ProtocolAddr};
 
@@ -50,6 +50,31 @@ fn stream_simple_3msg() {
 }
 
 #[test]
+fn stream_simple_mpsc() {
+    let (_, _) = helper::setup(false, 0);
+    let (r, _n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(mpsc());
+
+    s1_a.send("Hello World").unwrap();
+    assert_eq!(r.block_on(s1_b.recv()), Ok("Hello World".to_string()));
+    drop((_n_a, _n_b, _p_a, _p_b)); //clean teardown
+}
+
+#[test]
+fn stream_simple_mpsc_3msg() {
+    let (_, _) = helper::setup(false, 0);
+    let (r, _n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(mpsc());
+
+    s1_a.send("Hello World").unwrap();
+    s1_a.send(1337).unwrap();
+    assert_eq!(r.block_on(s1_b.recv()), Ok("Hello World".to_string()));
+    assert_eq!(r.block_on(s1_b.recv()), Ok(1337));
+    s1_a.send("3rdMessage").unwrap();
+    assert_eq!(r.block_on(s1_b.recv()), Ok("3rdMessage".to_string()));
+    drop((_n_a, _n_b, _p_a, _p_b)); //clean teardown
+}
+
+#[test]
+#[ignore]
 fn stream_simple_udp() {
     let (_, _) = helper::setup(false, 0);
     let (r, _n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(udp());
@@ -60,6 +85,7 @@ fn stream_simple_udp() {
 }
 
 #[test]
+#[ignore]
 fn stream_simple_udp_3msg() {
     let (_, _) = helper::setup(false, 0);
     let (r, _n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(udp());
@@ -101,6 +127,7 @@ fn tcp_and_udp_2_connections() -> std::result::Result<(), Box<dyn std::error::Er
 }
 
 #[test]
+#[ignore]
 fn failed_listen_on_used_ports() -> std::result::Result<(), Box<dyn std::error::Error>> {
     let (_, _) = helper::setup(false, 0);
     let r = Arc::new(Runtime::new().unwrap());

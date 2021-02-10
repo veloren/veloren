@@ -9,21 +9,25 @@ use crate::{
     ProtocolError, RecvProtocol, SendProtocol,
 };
 use async_trait::async_trait;
+use bytes::BytesMut;
 use std::{
-    collections::{HashMap, VecDeque},
+    collections::HashMap,
     sync::Arc,
     time::{Duration, Instant},
 };
 use tracing::info;
+#[cfg(feature = "trace_pedantic")]
+use tracing::trace;
 
 #[derive(Debug)]
 pub struct TcpSendProtcol<D>
 where
-    D: UnreliableDrain<DataFormat = Vec<u8>>,
+    D: UnreliableDrain<DataFormat = BytesMut>,
 {
-    buffer: Vec<u8>,
+    buffer: BytesMut,
     store: PrioManager,
     closing_streams: Vec<Sid>,
+    notify_closing_streams: Vec<Sid>,
     pending_shutdown: bool,
     drain: D,
     last: Instant,
@@ -33,9 +37,9 @@ where
 #[derive(Debug)]
 pub struct TcpRecvProtcol<S>
 where
-    S: UnreliableSink<DataFormat = Vec<u8>>,
+    S: UnreliableSink<DataFormat = BytesMut>,
 {
-    buffer: VecDeque<u8>,
+    buffer: BytesMut,
     incoming: HashMap<Mid, IncomingMsg>,
     sink: S,
     metrics: ProtocolMetricCache,
@@ -43,13 +47,14 @@ where
 
 impl<D> TcpSendProtcol<D>
 where
-    D: UnreliableDrain<DataFormat = Vec<u8>>,
+    D: UnreliableDrain<DataFormat = BytesMut>,
 {
     pub fn new(drain: D, metrics: ProtocolMetricCache) -> Self {
         Self {
-            buffer: vec![0u8; 1500],
+            buffer: BytesMut::new(),
             store: PrioManager::new(metrics.clone()),
             closing_streams: vec![],
+            notify_closing_streams: vec![],
             pending_shutdown: false,
             drain,
             last: Instant::now(),
@@ -60,11 +65,11 @@ where
 
 impl<S> TcpRecvProtcol<S>
 where
-    S: UnreliableSink<DataFormat = Vec<u8>>,
+    S: UnreliableSink<DataFormat = BytesMut>,
 {
     pub fn new(sink: S, metrics: ProtocolMetricCache) -> Self {
         Self {
-            buffer: VecDeque::new(),
+            buffer: BytesMut::new(),
             incoming: HashMap::new(),
             sink,
             metrics,
@@ -75,9 +80,9 @@ where
 #[async_trait]
 impl<D> SendProtocol for TcpSendProtcol<D>
 where
-    D: UnreliableDrain<DataFormat = Vec<u8>>,
+    D: UnreliableDrain<DataFormat = BytesMut>,
 {
-    async fn send(&mut self, event: ProtocolEvent) -> Result<(), ProtocolError> {
+    fn notify_from_recv(&mut self, event: ProtocolEvent) {
         match event {
             ProtocolEvent::OpenStream {
                 sid,
@@ -87,31 +92,54 @@ where
             } => {
                 self.store
                     .open_stream(sid, prio, promises, guaranteed_bandwidth);
-                let frame = event.to_frame();
-                let (s, _) = frame.to_bytes(&mut self.buffer);
-                self.drain.send(self.buffer[..s].to_vec()).await?;
+            },
+            ProtocolEvent::CloseStream { sid } => {
+                if !self.store.try_close_stream(sid) {
+                    #[cfg(feature = "trace_pedantic")]
+                    trace!(?sid, "hold back notify close stream");
+                    self.notify_closing_streams.push(sid);
+                }
+            },
+            _ => {},
+        }
+    }
+
+    async fn send(&mut self, event: ProtocolEvent) -> Result<(), ProtocolError> {
+        #[cfg(feature = "trace_pedantic")]
+        trace!(?event, "send");
+        match event {
+            ProtocolEvent::OpenStream {
+                sid,
+                prio,
+                promises,
+                guaranteed_bandwidth,
+            } => {
+                self.store
+                    .open_stream(sid, prio, promises, guaranteed_bandwidth);
+                event.to_frame().to_bytes(&mut self.buffer);
+                self.drain.send(self.buffer.split()).await?;
             },
             ProtocolEvent::CloseStream { sid } => {
                 if self.store.try_close_stream(sid) {
-                    let frame = event.to_frame();
-                    let (s, _) = frame.to_bytes(&mut self.buffer);
-                    self.drain.send(self.buffer[..s].to_vec()).await?;
+                    event.to_frame().to_bytes(&mut self.buffer);
+                    self.drain.send(self.buffer.split()).await?;
                 } else {
+                    #[cfg(feature = "trace_pedantic")]
+                    trace!(?sid, "hold back close stream");
                     self.closing_streams.push(sid);
                 }
             },
             ProtocolEvent::Shutdown => {
                 if self.store.is_empty() {
-                    tracing::error!(?event, "send frame");
-                    let frame = event.to_frame();
-                    let (s, _) = frame.to_bytes(&mut self.buffer);
-                    self.drain.send(self.buffer[..s].to_vec()).await?;
+                    event.to_frame().to_bytes(&mut self.buffer);
+                    self.drain.send(self.buffer.split()).await?;
                 } else {
+                    #[cfg(feature = "trace_pedantic")]
+                    trace!("hold back shutdown");
                     self.pending_shutdown = true;
                 }
             },
             ProtocolEvent::Message { buffer, mid, sid } => {
-                self.metrics.smsg_it(sid);
                 self.metrics.smsg_ib(sid, buffer.data.len() as u64);
                 self.store.add(buffer, mid, sid);
             },
@@ -128,30 +156,43 @@ where
                 data,
             } = &frame
             {
-                self.metrics.sdata_frames_t();
                 self.metrics.sdata_frames_b(data.len() as u64);
             }
-            let (s, _) = frame.to_bytes(&mut self.buffer);
-            self.drain.send(self.buffer[..s].to_vec()).await?;
-            tracing::warn!("send data frame, woop");
+            frame.to_bytes(&mut self.buffer);
+            self.drain.send(self.buffer.split()).await?;
         }
+
         let mut finished_streams = vec![];
-        for (i, sid) in self.closing_streams.iter().enumerate() {
-            if self.store.try_close_stream(*sid) {
-                let frame = ProtocolEvent::CloseStream { sid: *sid }.to_frame();
-                let (s, _) = frame.to_bytes(&mut self.buffer);
-                self.drain.send(self.buffer[..s].to_vec()).await?;
+        for (i, &sid) in self.closing_streams.iter().enumerate() {
+            if self.store.try_close_stream(sid) {
+                #[cfg(feature = "trace_pedantic")]
+                trace!(?sid, "close stream, as it's now empty");
+                Frame::CloseStream { sid }.to_bytes(&mut self.buffer);
+                self.drain.send(self.buffer.split()).await?;
                 finished_streams.push(i);
             }
         }
         for i in finished_streams.iter().rev() {
             self.closing_streams.remove(*i);
         }
+
+        let mut finished_streams = vec![];
+        for (i, sid) in self.notify_closing_streams.iter().enumerate() {
+            if self.store.try_close_stream(*sid) {
+                #[cfg(feature = "trace_pedantic")]
+                trace!(?sid, "close stream, as it's now empty");
+                finished_streams.push(i);
+            }
+        }
+        for i in finished_streams.iter().rev() {
+            self.notify_closing_streams.remove(*i);
+        }
+
         if self.pending_shutdown && self.store.is_empty() {
-            tracing::error!("send shutdown frame");
-            let frame = ProtocolEvent::Shutdown {}.to_frame();
-            let (s, _) = frame.to_bytes(&mut self.buffer);
-            self.drain.send(self.buffer[..s].to_vec()).await?;
+            #[cfg(feature = "trace_pedantic")]
+            trace!("shutdown, as it's now empty");
+            Frame::Shutdown {}.to_bytes(&mut self.buffer);
+            self.drain.send(self.buffer.split()).await?;
             self.pending_shutdown = false;
         }
         Ok(())
@@ -173,14 +214,13 @@ struct IncomingMsg {
 #[async_trait]
 impl<S> RecvProtocol for TcpRecvProtcol<S>
 where
-    S: UnreliableSink<DataFormat = Vec<u8>>,
+    S: UnreliableSink<DataFormat = BytesMut>,
 {
     async fn recv(&mut self) -> Result<ProtocolEvent, ProtocolError> {
-        tracing::error!(?self.buffer, "enter loop");
         'outer: loop {
-            tracing::error!(?self.buffer, "continue loop");
             while let Some(frame) = Frame::to_frame(&mut self.buffer) {
-                tracing::error!(?frame, "recv frame");
+                #[cfg(feature = "trace_pedantic")]
+                trace!(?frame, "recv");
                 match frame {
                     Frame::Shutdown => break 'outer Ok(ProtocolEvent::Shutdown),
                     Frame::OpenStream {
@@ -204,7 +244,6 @@ where
                             length,
                             data: MessageBuffer { data: vec![] },
                         };
-                        self.metrics.rmsg_it(sid);
                         self.metrics.rmsg_ib(sid, length);
                         self.incoming.insert(mid, m);
                     },
@@ -213,12 +252,14 @@ where
                         start: _,
                         mut data,
                     } => {
-                        self.metrics.rdata_frames_t();
                         self.metrics.rdata_frames_b(data.len() as u64);
                         let m = match self.incoming.get_mut(&mid) {
                             Some(m) => m,
                             None => {
-                                info!("protocol violation by remote side: send Data before Header");
+                                info!(
+                                    ?mid,
+                                    "protocol violation by remote side: send Data before Header"
+                                );
                                 break 'outer Err(ProtocolError::Closed);
                             },
                         };
@@ -227,7 +268,6 @@ where
                             // finished, yay
                             drop(m);
                             let m = self.incoming.remove(&mid).unwrap();
-                            self.metrics.rmsg_ot(m.sid, RemoveReason::Finished);
                             self.metrics.rmsg_ob(
                                 m.sid,
                                 RemoveReason::Finished,
@@ -242,13 +282,8 @@ where
                     },
                 };
             }
-            tracing::error!(?self.buffer, "receiving on tcp sink");
             let chunk = self.sink.recv().await?;
-            self.buffer.reserve(chunk.len());
-            for b in chunk {
-                self.buffer.push_back(b);
-            }
-            tracing::error!(?self.buffer,"receiving on tcp sink done");
+            self.buffer.extend_from_slice(&chunk);
         }
     }
 }
@@ -256,12 +291,11 @@ where
 #[async_trait]
 impl<D> ReliableDrain for TcpSendProtcol<D>
 where
-    D: UnreliableDrain<DataFormat = Vec<u8>>,
+    D: UnreliableDrain<DataFormat = BytesMut>,
 {
     async fn send(&mut self, frame: InitFrame) -> Result<(), ProtocolError> {
-        let mut buffer = vec![0u8; 1500];
-        let s = frame.to_bytes(&mut buffer);
-        buffer.truncate(s);
+        let mut buffer = BytesMut::with_capacity(500);
+        frame.to_bytes(&mut buffer);
         self.drain.send(buffer).await
     }
 }
@@ -269,22 +303,13 @@ where
 #[async_trait]
 impl<S> ReliableSink for TcpRecvProtcol<S>
 where
-    S: UnreliableSink<DataFormat = Vec<u8>>,
+    S: UnreliableSink<DataFormat = BytesMut>,
 {
     async fn recv(&mut self) -> Result<InitFrame, ProtocolError> {
         while self.buffer.len() < 100 {
             let chunk = self.sink.recv().await?;
-            self.buffer.reserve(chunk.len());
-            for b in chunk {
-                self.buffer.push_back(b);
-            }
-            let todo_use_bytes_instead = self.buffer.iter().map(|b| *b).collect();
-            if let Some(frame) = InitFrame::to_frame(todo_use_bytes_instead) {
-                match frame {
-                    InitFrame::Handshake { .. } => self.buffer.drain(.. InitFrame::HANDSHAKE_CNS + 1),
-                    InitFrame::Init { .. } => self.buffer.drain(.. InitFrame::INIT_CNS + 1),
-                    InitFrame::Raw { .. } => self.buffer.drain(.. InitFrame::RAW_CNS + 1),
-                };
+            self.buffer.extend_from_slice(&chunk);
+            if let Some(frame) = InitFrame::to_frame(&mut self.buffer) {
                 return Ok(frame);
             }
         }
@@ -303,11 +328,11 @@ mod test_utils {
     use async_channel::*;
 
     pub struct TcpDrain {
-        pub sender: Sender<Vec<u8>>,
+        pub sender: Sender<BytesMut>,
     }
 
     pub struct TcpSink {
-        pub receiver: Receiver<Vec<u8>>,
+        pub receiver: Receiver<BytesMut>,
     }
 
     /// emulate Tcp protocol on Channels
@@ -334,7 +359,7 @@ mod test_utils {
 
     #[async_trait]
     impl UnreliableDrain for TcpDrain {
-        type DataFormat = Vec<u8>;
+        type DataFormat = BytesMut;
 
         async fn send(&mut self, data: Self::DataFormat) -> Result<(), ProtocolError> {
             self.sender
@@ -346,7 +371,7 @@ mod test_utils {
 
     #[async_trait]
     impl UnreliableSink for TcpSink {
-        type DataFormat = Vec<u8>;
+        type DataFormat = BytesMut;
 
         async fn recv(&mut self) -> Result<Self::DataFormat, ProtocolError> {
             self.receiver
@@ -365,6 +390,7 @@ mod tests {
         types::{Pid, Promises, Sid, STREAM_ID_OFFSET1, STREAM_ID_OFFSET2},
         InitProtocol, MessageBuffer, ProtocolEvent, RecvProtocol, SendProtocol,
     };
+    use bytes::BytesMut;
     use std::{sync::Arc, time::Duration};
 
     #[tokio::test]
@@ -431,7 +457,7 @@ mod tests {
 
     #[tokio::test]
     async fn send_long_msg() {
-        let metrics =
+        let mut metrics =
             ProtocolMetricCache::new("long_tcp", Arc::new(ProtocolMetrics::new().unwrap()));
         let sid = Sid::new(1);
         let [p1, p2] = tcp_bound(10000, Some(metrics.clone()));
@@ -538,39 +564,36 @@ mod tests {
         const DATA1: &[u8; 69] =
             b"We need to make sure that its okay to send OPEN_STREAM and DATA_HEAD ";
         const DATA2: &[u8; 95] = b"in one chunk and (DATA and CLOSE_STREAM) in the second chunk. and then keep the connection open";
-        let mut buf = vec![0u8; 1500];
-        let event = ProtocolEvent::OpenStream {
+        let mut bytes = BytesMut::with_capacity(1500);
+        use crate::frame::Frame;
+        Frame::OpenStream {
             sid,
             prio: 5u8,
             promises: Promises::COMPRESSED,
-            guaranteed_bandwidth: 0,
-        };
-        let (i, _) = event.to_frame().to_bytes(&mut buf);
-        let (i2, _) = crate::frame::Frame::DataHeader {
+        }
+        .to_bytes(&mut bytes);
+        Frame::DataHeader {
             mid: 99,
             sid,
             length: (DATA1.len() + DATA2.len()) as u64,
         }
-        .to_bytes(&mut buf[i..]);
-        buf.truncate(i + i2);
-        s.send(buf).await.unwrap();
+        .to_bytes(&mut bytes);
+        s.send(bytes.split()).await.unwrap();
 
-        let mut buf = vec![0u8; 1500];
-        let (i, _) = crate::frame::Frame::Data {
+        Frame::Data {
             mid: 99,
             start: 0,
             data: DATA1.to_vec(),
         }
-        .to_bytes(&mut buf);
-        let (i2, _) = crate::frame::Frame::Data {
+        .to_bytes(&mut bytes);
+        Frame::Data {
             mid: 99,
             start: DATA1.len() as u64,
             data: DATA2.to_vec(),
         }
-        .to_bytes(&mut buf[i..]);
-        let (i3, _) = crate::frame::Frame::CloseStream { sid }.to_bytes(&mut buf[i + i2..]);
-        buf.truncate(i + i2 + i3);
-        s.send(buf).await.unwrap();
+        .to_bytes(&mut bytes);
+        Frame::CloseStream { sid }.to_bytes(&mut bytes);
+        s.send(bytes.split()).await.unwrap();
 
         let e = r.recv().await.unwrap();
         assert!(matches!(e, ProtocolEvent::OpenStream { .. }));
@@ -580,5 +603,59 @@ mod tests {
 
         let e = r.recv().await.unwrap();
         assert!(matches!(e, ProtocolEvent::CloseStream { .. }));
+    }
+
+    #[tokio::test]
+    #[should_panic]
+    async fn send_on_stream_from_remote_without_notify() {
+        //remote opens stream
+        //we send on it
+        let [mut p1, mut p2] = tcp_bound(10, None);
+        let event = ProtocolEvent::OpenStream {
+            sid: Sid::new(10),
+            prio: 3u8,
+            promises: Promises::ORDERED,
+            guaranteed_bandwidth: 1_000_000,
+        };
+        p1.0.send(event).await.unwrap();
+        let _ = p2.1.recv().await.unwrap();
+        let event = ProtocolEvent::Message {
+            sid: Sid::new(10),
+            mid: 0,
+            buffer: Arc::new(MessageBuffer {
+                data: vec![188u8; 600],
+            }),
+        };
+        p2.0.send(event.clone()).await.unwrap();
+        p2.0.flush(1_000_000, Duration::from_secs(1)).await.unwrap();
+        let e = p1.1.recv().await.unwrap();
+        assert_eq!(event, e);
+    }
+
+    #[tokio::test]
+    async fn send_on_stream_from_remote() {
+        //remote opens stream
+        //we send on it
+        let [mut p1, mut p2] = tcp_bound(10, None);
+        let event = ProtocolEvent::OpenStream {
+            sid: Sid::new(10),
+            prio: 3u8,
+            promises: Promises::ORDERED,
+            guaranteed_bandwidth: 1_000_000,
+        };
+        p1.0.send(event).await.unwrap();
+        let e = p2.1.recv().await.unwrap();
+        p2.0.notify_from_recv(e);
+        let event = ProtocolEvent::Message {
+            sid: Sid::new(10),
+            mid: 0,
+            buffer: Arc::new(MessageBuffer {
+                data: vec![188u8; 600],
+            }),
+        };
+        p2.0.send(event.clone()).await.unwrap();
+        p2.0.flush(1_000_000, Duration::from_secs(1)).await.unwrap();
+        let e = p1.1.recv().await.unwrap();
+        assert_eq!(event, e);
     }
 }
