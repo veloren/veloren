@@ -11,7 +11,12 @@ pub use self::{
     settlement::Settlement,
 };
 
-use crate::{column::ColumnSample, IndexRef};
+use crate::{
+    column::ColumnSample,
+    IndexRef,
+    site2,
+    Canvas,
+};
 use common::{
     generation::ChunkSupplement,
     terrain::Block,
@@ -45,6 +50,7 @@ pub enum SiteKind {
     Settlement(Settlement),
     Dungeon(Dungeon),
     Castle(Castle),
+    Refactor(site2::Site),
 }
 
 impl Site {
@@ -69,11 +75,19 @@ impl Site {
         }
     }
 
+    pub fn refactor(s: site2::Site) -> Self {
+        Self {
+            kind: SiteKind::Refactor(s),
+            economy: Economy::default(),
+        }
+    }
+
     pub fn radius(&self) -> f32 {
         match &self.kind {
             SiteKind::Settlement(s) => s.radius(),
             SiteKind::Dungeon(d) => d.radius(),
             SiteKind::Castle(c) => c.radius(),
+            SiteKind::Refactor(s) => s.radius(),
         }
     }
 
@@ -82,6 +96,7 @@ impl Site {
             SiteKind::Settlement(s) => s.get_origin(),
             SiteKind::Dungeon(d) => d.get_origin(),
             SiteKind::Castle(c) => c.get_origin(),
+            SiteKind::Refactor(s) => s.origin,
         }
     }
 
@@ -90,6 +105,7 @@ impl Site {
             SiteKind::Settlement(s) => s.spawn_rules(wpos),
             SiteKind::Dungeon(d) => d.spawn_rules(wpos),
             SiteKind::Castle(c) => c.spawn_rules(wpos),
+            SiteKind::Refactor(s) => s.spawn_rules(wpos),
         }
     }
 
@@ -98,20 +114,24 @@ impl Site {
             SiteKind::Settlement(s) => s.name(),
             SiteKind::Dungeon(d) => d.name(),
             SiteKind::Castle(c) => c.name(),
+            SiteKind::Refactor(s) => "Experimental",
         }
     }
 
     pub fn apply_to<'a>(
         &'a self,
-        index: IndexRef,
-        wpos2d: Vec2<i32>,
-        get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
-        vol: &mut (impl BaseVol<Vox = Block> + RectSizedVol + ReadVol + WriteVol),
+        canvas: &mut Canvas,
+        dynamic_rng: &mut impl Rng,
     ) {
+        let info = canvas.info();
+        let get_col = |wpos| info.col(wpos + info.wpos);
         match &self.kind {
-            SiteKind::Settlement(s) => s.apply_to(index, wpos2d, get_column, vol),
-            SiteKind::Dungeon(d) => d.apply_to(index, wpos2d, get_column, vol),
-            SiteKind::Castle(c) => c.apply_to(index, wpos2d, get_column, vol),
+            SiteKind::Settlement(s) => s.apply_to(canvas.index, canvas.wpos, get_col, canvas.chunk),
+            SiteKind::Dungeon(d) => d.apply_to(canvas.index, canvas.wpos, get_col, canvas.chunk),
+            SiteKind::Castle(c) => c.apply_to(canvas.index, canvas.wpos, get_col, canvas.chunk),
+            SiteKind::Refactor(s) => {
+                s.render(canvas, dynamic_rng);
+            },
         }
     }
 
@@ -129,6 +149,7 @@ impl Site {
             },
             SiteKind::Dungeon(d) => d.apply_supplement(dynamic_rng, wpos2d, get_column, supplement),
             SiteKind::Castle(c) => c.apply_supplement(dynamic_rng, wpos2d, get_column, supplement),
+            SiteKind::Refactor(_) => {},
         }
     }
 }

@@ -8,6 +8,7 @@ use crate::{
     sim::WorldSim,
     site::{namegen::NameGen, Castle, Dungeon, Settlement, Site as WorldSite},
     util::{attempt, seed_expan, MapVec, CARDINALS, NEIGHBORS},
+    site2,
     Index,
 };
 use common::{
@@ -107,6 +108,7 @@ impl Civs {
             attempt(5, || {
                 let (kind, size) = match ctx.rng.gen_range(0..8) {
                     0 => (SiteKind::Castle, 3),
+                    1 => (SiteKind::Refactor, 5),
                     _ => (SiteKind::Dungeon, 0),
                 };
                 let loc = find_site_loc(&mut ctx, None, size)?;
@@ -142,14 +144,13 @@ impl Civs {
 
         // Flatten ground around sites
         for site in this.sites.values() {
-            let radius = 48i32;
-
             let wpos = site.center * TerrainChunkSize::RECT_SIZE.map(|e: u32| e as i32);
 
-            let flatten_radius = match &site.kind {
-                SiteKind::Settlement => 10.0,
-                SiteKind::Dungeon => 2.0,
-                SiteKind::Castle => 5.0,
+            let (radius, flatten_radius) = match &site.kind {
+                SiteKind::Settlement => (32i32, 10.0),
+                SiteKind::Dungeon => (8i32, 2.0),
+                SiteKind::Castle => (16i32, 5.0),
+                SiteKind::Refactor => (0i32, 0.0),
             };
 
             let (raise, raise_dist): (f32, i32) = match &site.kind {
@@ -214,6 +215,13 @@ impl Civs {
                 },
                 SiteKind::Castle => {
                     WorldSite::castle(Castle::generate(wpos, Some(ctx.sim), &mut rng))
+                },
+                SiteKind::Refactor => {
+                    WorldSite::refactor({
+                        let mut site = site2::Site::generate(&mut rng);
+                        site.origin = wpos;
+                        site
+                    })
                 },
             });
             sim_site.site_tmp = Some(site);
@@ -893,6 +901,7 @@ pub enum SiteKind {
     Settlement,
     Dungeon,
     Castle,
+    Refactor,
 }
 
 impl Site {

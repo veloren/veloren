@@ -5,18 +5,38 @@ use self::{
     plot::{Plot, PlotKind},
     tile::TileGrid,
 };
-use crate::util::Grid;
+use crate::{
+    site::SpawnRules,
+    util::Grid,
+    Canvas,
+};
 use common::store::{Id, Store};
 use rand::prelude::*;
 use vek::*;
 
 #[derive(Default)]
 pub struct Site {
+    pub(crate) origin: Vec2<i32>,
     tiles: TileGrid,
     plots: Store<Plot>,
 }
 
 impl Site {
+    pub fn radius(&self) -> f32 {
+        (tile::MAX_BLOCK_RADIUS.pow(2) as f32 * 2.0).sqrt()
+    }
+
+    pub fn spawn_rules(&self, wpos: Vec2<i32>) -> SpawnRules {
+        if wpos.distance_squared(self.origin) < 100i32.pow(2) {
+            SpawnRules {
+                trees: false,
+                ..SpawnRules::default()
+            }
+        } else {
+            SpawnRules::default()
+        }
+    }
+
     pub fn bounds(&self) -> Aabr<i32> {
         let radius = tile::MAX_BLOCK_RADIUS;
         Aabr {
@@ -46,6 +66,10 @@ impl Site {
         }
 
         site
+    }
+
+    pub fn render(&self, canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
+        // TODO
     }
 }
 

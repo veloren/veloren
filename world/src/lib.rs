@@ -118,6 +118,7 @@ impl World {
                                 },
                             },
                             civ::SiteKind::Castle => world_msg::SiteKind::Castle,
+                            civ::SiteKind::Refactor => world_msg::SiteKind::Town,
                         },
                         wpos: site.center * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
                     }
@@ -294,7 +295,7 @@ impl World {
 
         // Apply site generation
         sim_chunk.sites.iter().for_each(|site| {
-            index.sites[*site].apply_to(index, chunk_wpos2d, sample_get, &mut chunk)
+            index.sites[*site].apply_to(&mut canvas, &mut dynamic_rng)
         });
 
         let gen_entity_pos = |dynamic_rng: &mut rand::rngs::ThreadRng| {

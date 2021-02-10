@@ -1,4 +1,5 @@
 use super::*;
+use common::spiral::Spiral2d;
 
 pub const TILE_SIZE: u32 = 7;
 pub const ZONE_SIZE: u32 = 16;
@@ -19,7 +20,9 @@ impl Default for TileGrid {
 }
 
 impl TileGrid {
-    pub fn get(&self, tpos: Vec2<i32>) -> Option<&Tile> {
+    pub fn get(&self, tpos: Vec2<i32>) -> &Tile {
+        static EMPTY: Tile = Tile::empty();
+
         let tpos = tpos + TILE_RADIUS as i32;
         self.zones
             .get(tpos)
@@ -28,6 +31,7 @@ impl TileGrid {
                     .get(tpos.map(|e| e.rem_euclid(ZONE_SIZE as i32)))
             })
             .and_then(|tile| tile.as_ref())
+            .unwrap_or(&EMPTY)
     }
 
     pub fn get_mut(&mut self, tpos: Vec2<i32>) -> Option<&mut Tile> {
@@ -41,8 +45,14 @@ impl TileGrid {
         })
     }
 
+    pub fn set(&mut self, tpos: Vec2<i32>, tile: Tile) -> Option<Tile> {
+        self.get_mut(tpos).map(|t| std::mem::replace(t, tile))
+    }
+
     pub fn find_near(&self, tpos: Vec2<i32>, f: impl Fn(&Tile) -> bool) -> Option<Vec2<i32>> {
-        None
+        const MAX_SEARCH_RADIUS_BLOCKS: u32 = 256;
+        const MAX_SEARCH_CELLS: u32 = ((MAX_SEARCH_RADIUS_BLOCKS / TILE_SIZE) * 2).pow(2);
+        Spiral2d::new().take(MAX_SEARCH_CELLS as usize).map(|r| tpos + r).find(|tpos| (&f)(self.get(*tpos)))
     }
 }
 
@@ -59,7 +69,7 @@ pub struct Tile {
 }
 
 impl Tile {
-    pub fn empty() -> Self {
+    pub const fn empty() -> Self {
         Self {
             kind: TileKind::Empty,
             plot: None,
