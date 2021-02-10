@@ -19,6 +19,7 @@ mod settings_window;
 mod skillbar;
 mod slots;
 mod social;
+mod trade;
 mod util;
 
 pub use hotbar::{SlotContents as HotbarSlotContents, State as HotbarState};
@@ -44,6 +45,7 @@ use serde::{Deserialize, Serialize};
 use settings_window::{SettingsTab, SettingsWindow};
 use skillbar::Skillbar;
 use social::{Social, SocialTab};
+use trade::Trade;
 
 use crate::{
     ecs::{comp as vcomp, comp::HpFloaterList},
@@ -257,6 +259,7 @@ widget_ids! {
         minimap,
         prompt_dialog,
         bag,
+        trade,
         social,
         quest,
         diary,
@@ -480,6 +483,7 @@ pub struct Show {
     debug: bool,
     bag: bool,
     bag_inv: bool,
+    trade: bool,
     social: bool,
     diary: bool,
     group: bool,
@@ -508,6 +512,17 @@ impl Show {
     }
 
     fn toggle_bag(&mut self) { self.bag(!self.bag); }
+
+    fn trade(&mut self, open: bool) {
+        if !self.esc_menu {
+            self.bag = open;
+            self.trade = open;
+            self.map = false;
+            self.want_grab = !open;
+        }
+    }
+
+    fn toggle_trade(&mut self) { self.trade(!self.trade); }
 
     fn map(&mut self, open: bool) {
         if !self.esc_menu {
@@ -590,6 +605,7 @@ impl Show {
 
     fn toggle_windows(&mut self, global_state: &mut GlobalState) {
         if self.bag
+            || self.trade
             || self.esc_menu
             || self.map
             || self.social
@@ -600,6 +616,7 @@ impl Show {
             || !matches!(self.open_windows, Windows::None)
         {
             self.bag = false;
+            self.trade = false;
             self.esc_menu = false;
             self.help = false;
             self.intro = false;
@@ -774,6 +791,7 @@ impl Hud {
                 debug: false,
                 bag: false,
                 bag_inv: false,
+                trade: false,
                 esc_menu: false,
                 open_windows: Windows::None,
                 map: false,
@@ -2089,6 +2107,35 @@ impl Hud {
                 }
             }
         }
+        // Trade window
+        if self.show.trade {
+            match Trade::new(
+                client,
+                &self.imgs,
+                &self.item_imgs,
+                &self.fonts,
+                &self.rot_imgs,
+                tooltip_manager,
+                &mut self.slot_manager,
+                i18n,
+                &self.show,
+            )
+            .set(self.ids.trade, ui_widgets)
+            {
+                Some(trade::Event::Close) => {
+                    self.show.stats = false;
+                    self.show.trade(false);
+                    if !self.show.social {
+                        self.show.want_grab = true;
+                        self.force_ungrab = false;
+                    } else {
+                        self.force_ungrab = true
+                    };
+                },
+                None => {},
+            }
+        }
+
         // Buffs
         let ecs = client.state().ecs();
         let entity = client.entity();
@@ -2761,6 +2808,10 @@ impl Hud {
                 },
                 GameInput::Bag if state => {
                     self.show.toggle_bag();
+                    true
+                },
+                GameInput::Trade if state => {
+                    self.show.toggle_trade();
                     true
                 },
                 GameInput::Social if state => {
