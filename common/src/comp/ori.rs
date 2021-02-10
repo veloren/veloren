@@ -38,6 +38,10 @@ impl Ori {
     /// Look direction as a vector (no pedantic normalization performed)
     pub fn look_vec(self) -> Vec3<f32> { self.to_quat() * *Dir::default() }
 
+    /// Get the internal quaternion representing the rotation from
+    /// `Dir::default()` to this orientation.
+    ///
+    /// The operation is a cheap copy.
     pub fn to_quat(self) -> Quaternion<f32> {
         debug_assert!(self.is_normalized());
         self.0
