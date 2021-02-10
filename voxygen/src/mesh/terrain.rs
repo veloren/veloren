@@ -30,8 +30,8 @@ enum FaceKind {
     Fluid,
 }
 
-const SUNLIGHT: u8 = 24;
-const MAX_LIGHT_DIST: i32 = SUNLIGHT as i32;
+pub const SUNLIGHT: u8 = 24;
+pub const MAX_LIGHT_DIST: i32 = SUNLIGHT as i32;
 
 fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
     is_sunlight: bool,

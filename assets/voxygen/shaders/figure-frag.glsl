@@ -50,6 +50,7 @@ uniform u_locals {
     mat4 model_mat;
     vec4 highlight_col;
     vec4 model_light;
+    vec4 model_glow;
     ivec4 atlas_offs;
     vec3 model_pos;
     // bit 0 - is player
@@ -181,7 +182,7 @@ void main() {
 
     float ao = f_ao * sqrt(f_ao);//0.25 + f_ao * 0.75; ///*pow(f_ao, 0.5)*/f_ao * 0.85 + 0.15;
 
-    vec3 glow = pow(model_light.y, 3) * 4 * GLOW_COLOR;
+    vec3 glow = pow(pow(model_glow.w, 2.0) * (max(dot(f_norm, normalize(model_glow.xyz)), 0.0) * 1.0 + max(1.0 - length(model_glow.xyz), 0.0)), 1) * 4 * GLOW_COLOR;
     emitted_light += glow;
 
     reflected_light *= ao;

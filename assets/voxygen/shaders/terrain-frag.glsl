@@ -266,7 +266,7 @@ void main() {
     max_light *= f_light;
 
     // TODO: Apply AO after this
-    vec3 glow = GLOW_COLOR * (pow(f_glow, 6) * 8 + pow(f_glow, 2) * 0.5);
+    vec3 glow = GLOW_COLOR * (pow(f_glow, 6) * 8 + pow(f_glow, 1.5) * 1.0);
     emitted_light += glow;
     reflected_light += glow;
 

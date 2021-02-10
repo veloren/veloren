@@ -3,7 +3,7 @@ mod watcher;
 pub use self::watcher::BlocksOfInterest;
 
 use crate::{
-    mesh::{greedy::GreedyMesh, Meshable},
+    mesh::{greedy::GreedyMesh, Meshable, terrain::SUNLIGHT},
     render::{
         ColLightFmt, ColLightInfo, Consts, FluidPipeline, GlobalModel, Instances, Mesh, Model,
         RenderError, Renderer, ShadowPipeline, SpriteInstance, SpriteLocals, SpritePipeline,
@@ -506,6 +506,38 @@ impl<V: RectRasterableVol> Terrain<V> {
             .get(&chunk_pos)
             .map(|c| (c.glow_map)(wpos))
             .unwrap_or(0.0)
+    }
+
+    pub fn glow_normal_at_wpos(&self, wpos: Vec3<f32>) -> (Vec3<f32>, f32) {
+        let wpos_chunk = wpos.xy().map2(TerrainChunk::RECT_SIZE, |e: f32, sz| {
+            (e as i32).div_euclid(sz as i32)
+        });
+
+        const AMBIANCE: f32 = 0.2; // 0-1, the proportion of light that should illuminate the rear of an object
+
+        let (bias, total, max) = Spiral2d::new()
+            .take(9)
+            .map(|rpos| {
+                let chunk_pos = wpos_chunk + rpos;
+                self.chunks
+                    .get(&chunk_pos)
+                    .map(|c| c.blocks_of_interest.lights.iter())
+                    .into_iter()
+                    .flatten()
+                    .map(move |(lpos, level)| (Vec3::<i32>::from(chunk_pos * TerrainChunk::RECT_SIZE.map(|e| e as i32)) + *lpos, level))
+            })
+            .flatten()
+            .fold((Vec3::broadcast(0.001), 0.0, 0.0f32), |(bias, total, max), (lpos, level)| {
+                let rpos = lpos.map(|e| e as f32 + 0.5) - wpos;
+                let level = (*level as f32 - rpos.magnitude()).max(0.0) / SUNLIGHT as f32;
+                (
+                    bias + rpos.try_normalized().unwrap_or_else(Vec3::zero) * level * (1.0 - AMBIANCE),
+                    total + level,
+                    max.max(level),
+                )
+            });
+
+        (bias.try_normalized().unwrap_or_else(Vec3::zero) / total.max(0.001), self.glow_at_wpos(wpos.map(|e| e.floor() as i32)))
     }
 
     /// Maintain terrain data. To be called once per tick.
