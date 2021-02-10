@@ -177,12 +177,19 @@ pub enum AgentEvent {
     // Add others here
 }
 
+#[derive(Clone, Debug)]
+pub struct Target {
+    pub target: EcsEntity,
+    pub hostile: bool,
+    pub been_close: bool,
+}
+
 #[derive(Clone, Debug, Default)]
 pub struct Agent {
     pub rtsim_controller: RtSimController,
     pub patrol_origin: Option<Vec3<f32>>,
     pub activity: Activity,
-    pub target: Option<(EcsEntity, bool)>,
+    pub target: Option<Target>,
     /// Does the agent talk when e.g. hit by the player
     // TODO move speech patterns into a Behavior component
     pub can_speak: bool,
@@ -190,6 +197,7 @@ pub struct Agent {
     pub inbox: VecDeque<AgentEvent>,
     pub interaction_timer: f32,
     pub action_timer: f32,
+    pub bearing: Vec2<f32>,
 }
 
 impl Agent {
@@ -224,9 +232,11 @@ impl Component for Agent {
 #[derive(Clone, Debug)]
 pub struct Activity {
     pub idle: bool,
+    pub idle_tree: bool,
     pub interact: bool,
     pub flee: bool,
     pub follow: bool,
+    pub hostile_tree: bool,
     pub attack: bool,
     pub choose_target: bool,
 }
@@ -234,10 +244,12 @@ pub struct Activity {
 impl Default for Activity {
     fn default() -> Self {
         Self {
-            idle: true,
+            idle: false,
+            idle_tree: true,
             interact: false,
             flee: false,
             follow: false,
+            hostile_tree: false,
             attack: false,
             choose_target: false,
         }
@@ -247,63 +259,99 @@ impl Default for Activity {
 impl Activity {
     pub fn reset(&mut self) {
         self.idle = false;
+        self.idle_tree = false;
         self.interact = false;
         self.flee = false;
         self.follow = false;
+        self.hostile_tree = false;
         self.attack = false;
         self.choose_target = false;
     }
 
     pub fn idle(&mut self) {
         self.idle = true;
+        self.idle_tree = false;
         self.interact = false;
         self.flee = false;
         self.follow = false;
+        self.hostile_tree = false;
+        self.attack = false;
+        self.choose_target = false;
+    }
+
+    pub fn idle_tree(&mut self) {
+        self.idle = false;
+        self.idle_tree = true;
+        self.interact = false;
+        self.flee = false;
+        self.follow = false;
+        self.hostile_tree = false;
         self.attack = false;
         self.choose_target = false;
     }
 
     pub fn interact(&mut self) {
         self.idle = false;
+        self.idle_tree = false;
         self.interact = true;
         self.flee = false;
         self.follow = false;
+        self.hostile_tree = false;
         self.attack = false;
         self.choose_target = false;
     }
 
     pub fn flee(&mut self) {
         self.idle = false;
+        self.idle_tree = false;
         self.interact = false;
         self.flee = true;
         self.follow = false;
+        self.hostile_tree = false;
         self.attack = false;
         self.choose_target = false;
     }
 
     pub fn follow(&mut self) {
         self.idle = false;
+        self.idle_tree = false;
         self.interact = false;
         self.flee = false;
         self.follow = true;
+        self.hostile_tree = false;
+        self.attack = false;
+        self.choose_target = false;
+    }
+
+    pub fn hostile_tree(&mut self) {
+        self.idle = false;
+        self.idle_tree = false;
+        self.interact = false;
+        self.flee = false;
+        self.follow = false;
+        self.hostile_tree = true;
         self.attack = false;
         self.choose_target = false;
     }
 
     pub fn attack(&mut self) {
         self.idle = false;
+        self.idle_tree = false;
         self.interact = false;
         self.flee = false;
         self.follow = false;
+        self.hostile_tree = false;
         self.attack = true;
         self.choose_target = false;
     }
 
     pub fn choose_target(&mut self) {
         self.idle = false;
+        self.idle_tree = false;
         self.interact = false;
         self.flee = false;
         self.follow = false;
+        self.hostile_tree = false;
         self.attack = false;
         self.choose_target = true;
     }
