@@ -925,6 +925,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .graphics_for(state.ids.show_shortcuts_button)
                 .color(TEXT_COLOR)
                 .set(state.ids.buff_pos_map_text, ui);
+
             // Content Right Side
 
             /*Scrolling Combat text
