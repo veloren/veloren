@@ -186,21 +186,35 @@ impl<'a> Widget for Crafting<'a> {
             .scroll_kids_vertically()
             .set(ids.align_ing, ui);
         let client = &self.client;
-        // First available recipes, then unavailable ones
-        // TODO Sort these alphabetically by using "sort_by_key(|x| x.to_lowercase())"
-        let recipe_iter = self
+        // First available recipes, then unavailable ones, each alphabetically
+        // In the triples, "name" is the recipe book key, and "recipe.output.0.name()"
+        // is the display name (as stored in the item descriptors)
+        #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+        enum RecipeIngredientQuantity {
+            All,
+            Some,
+            None,
+        }
+        let mut ordered_recipes: Vec<_> = self
             .client
             .recipe_book()
             .iter()
-            .filter(|(name, _)| client.available_recipes().contains(name.as_str()))
-            .map(|(name, recipe)| (name, recipe, true))
-            .chain(
-                client
-                    .recipe_book()
+            .map(|(name, recipe)| {
+                let at_least_some_ingredients = recipe
+                    .inputs
                     .iter()
-                    .filter(|(name, _)| !client.available_recipes().contains(name.as_str()))
-                    .map(|(name, recipe)| (name, recipe, false)),
-            );
+                    .any(|(input, amount)| *amount > 0 && self.inventory.item_count(input) > 0);
+                let state = if client.available_recipes().contains(name.as_str()) {
+                    RecipeIngredientQuantity::All
+                } else if at_least_some_ingredients {
+                    RecipeIngredientQuantity::Some
+                } else {
+                    RecipeIngredientQuantity::None
+                };
+                (name, recipe, state)
+            })
+            .collect();
+        ordered_recipes.sort_by_key(|(_, recipe, state)| (*state, recipe.output.0.name()));
         match &state.selected_recipe {
             None => {},
             Some(recipe) => {
@@ -297,7 +311,7 @@ impl<'a> Widget for Crafting<'a> {
         }
 
         // Recipe list
-        for (i, (name, recipe, can_perform)) in recipe_iter.enumerate() {
+        for (i, (name, recipe, quantity)) in ordered_recipes.into_iter().enumerate() {
             let button = Button::image(
                 if state
                     .selected_recipe
@@ -319,12 +333,17 @@ impl<'a> Widget for Crafting<'a> {
             } else {
                 button.mid_bottom_with_margin_on(state.ids.recipe_names[i - 1], -25.0)
             };
+            let text_color = match quantity {
+                RecipeIngredientQuantity::All => TEXT_COLOR,
+                RecipeIngredientQuantity::Some => TEXT_GRAY_COLOR,
+                RecipeIngredientQuantity::None => TEXT_DULL_RED_COLOR,
+            };
             if button
                 .label(recipe.output.0.name())
                 .w_h(130.0, 20.0)
                 .hover_image(self.imgs.selection_hover)
                 .press_image(self.imgs.selection_press)
-                .label_color(can_perform.then_some(TEXT_COLOR).unwrap_or(TEXT_GRAY_COLOR))
+                .label_color(text_color)
                 .label_font_size(self.fonts.cyri.scale(12))
                 .label_font_id(self.fonts.cyri.conrod_id)
                 .label_y(conrod_core::position::Relative::Scalar(2.0))

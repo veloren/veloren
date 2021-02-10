@@ -211,7 +211,7 @@
             ("common.items.crafting_tools.craftsman_hammer", 0),
         ],
     ),
-    "better bow": (
+    "Hunting Bow": (
         ("common.items.weapons.bow.wood_shortbow-0", 1),
         [
             ("common.items.crafting_ing.leather_scraps", 8),
@@ -219,7 +219,7 @@
             ("common.items.crafting_ing.stones", 0),
         ],
     ),
-    "better sword": (
+    "Forest Spirit": (
         ("common.items.weapons.sword.wood_sword", 1),
         [
             ("common.items.crafting_ing.leather_scraps", 4),
