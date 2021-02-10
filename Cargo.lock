@@ -6890,9 +6890,9 @@ dependencies = [
 
 [[package]]
 name = "wfd"
-version = "0.1.4"
+version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "26dc321f50616fda50ecd30cc7330c2eff16c299e9df0ae8af1760971ce8b1d3"
+checksum = "e713040b67aae5bf1a0ae3e1ebba8cc29ab2b90da9aa1bff6e09031a8a41d7a8"
 dependencies = [
  "libc",
  "winapi 0.3.9",
