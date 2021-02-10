@@ -110,6 +110,7 @@ pub enum ServerGeneral {
     /// A message to go into the client chat box. The client is responsible for
     /// formatting the message and turning it into a speech bubble.
     ChatMsg(comp::ChatMsg),
+    ChatMode(comp::ChatMode),
     SetPlayerEntity(Uid),
     TimeOfDay(TimeOfDay),
     EntitySync(sync::EntitySyncPackage),
@@ -230,6 +231,7 @@ impl ServerMsg {
                         // Always possible
                         ServerGeneral::PlayerListUpdate(_)
                         | ServerGeneral::ChatMsg(_)
+                        | ServerGeneral::ChatMode(_)
                         | ServerGeneral::SetPlayerEntity(_)
                         | ServerGeneral::TimeOfDay(_)
                         | ServerGeneral::EntitySync(_)

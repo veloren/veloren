@@ -23,8 +23,8 @@ use common::{
         group,
         skills::Skill,
         slot::Slot,
-        ControlAction, ControlEvent, Controller, ControllerInputs, GroupManip, InventoryManip,
-        InventoryUpdateEvent, LoadoutManip,
+        ChatMode, ControlAction, ControlEvent, Controller, ControllerInputs, GroupManip,
+        InventoryManip, InventoryUpdateEvent, LoadoutManip,
     },
     event::{EventBus, LocalEvent},
     grid::Grid,
@@ -124,6 +124,7 @@ pub struct Client {
     player_list: HashMap<Uid, PlayerInfo>,
     character_list: CharacterList,
     sites: Vec<SiteInfo>,
+    pub chat_mode: ChatMode,
     recipe_book: RecipeBook,
     available_recipes: HashSet<String>,
 
@@ -416,6 +417,7 @@ impl Client {
             sites,
             recipe_book,
             available_recipes: HashSet::default(),
+            chat_mode: ChatMode::default(),
 
             max_group_size,
             group_invite: None,
@@ -1346,6 +1348,9 @@ impl Client {
                 }
             },
             ServerGeneral::ChatMsg(m) => frontend_events.push(Event::Chat(m)),
+            ServerGeneral::ChatMode(m) => {
+                self.chat_mode = m;
+            },
             ServerGeneral::SetPlayerEntity(uid) => {
                 if let Some(entity) = self.state.ecs().entity_from_uid(uid.0) {
                     self.entity = entity;

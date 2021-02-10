@@ -94,6 +94,7 @@ impl Client {
                     // Always possible
                     ServerGeneral::PlayerListUpdate(_)
                     | ServerGeneral::ChatMsg(_)
+                    | ServerGeneral::ChatMode(_)
                     | ServerGeneral::SetPlayerEntity(_)
                     | ServerGeneral::TimeOfDay(_)
                     | ServerGeneral::EntitySync(_)
@@ -169,6 +170,7 @@ impl Client {
                     // Always possible
                     ServerGeneral::PlayerListUpdate(_)
                     | ServerGeneral::ChatMsg(_)
+                    | ServerGeneral::ChatMode(_)
                     | ServerGeneral::SetPlayerEntity(_)
                     | ServerGeneral::TimeOfDay(_)
                     | ServerGeneral::EntitySync(_)
