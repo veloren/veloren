@@ -1,6 +1,8 @@
 #version 330 core
 // #extension ARB_texture_storage : enable
 
+#define FIGURE_SHADER
+
 #include <constants.glsl>
 
 #define LIGHTING_TYPE LIGHTING_TYPE_REFLECTION

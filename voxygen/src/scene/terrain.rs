@@ -513,7 +513,7 @@ impl<V: RectRasterableVol> Terrain<V> {
             (e as i32).div_euclid(sz as i32)
         });
 
-        const AMBIANCE: f32 = 0.3; // 0-1, the proportion of light that should illuminate the rear of an object
+        const AMBIANCE: f32 = 0.15; // 0-1, the proportion of light that should illuminate the rear of an object
 
         let (bias, total, max) = Spiral2d::new()
             .take(9)

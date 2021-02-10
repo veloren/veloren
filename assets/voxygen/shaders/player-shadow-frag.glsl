@@ -1,5 +1,7 @@
 #version 330 core
 
+#define FIGURE_SHADER
+
 #include <constants.glsl>
 
 #define LIGHTING_TYPE LIGHTING_TYPE_REFLECTION
