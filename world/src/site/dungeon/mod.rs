@@ -1117,6 +1117,16 @@ impl Floor {
             .min_by_key(|nearest| rpos.distance_squared(*nearest))
     }
 
+    // Find orientation of a position relative to another position
+    #[allow(clippy::collapsible_if)]
+    fn relative_ori(pos1: Vec2<i32>, pos2: Vec2<i32>) -> u8 {
+        if (pos1.x - pos2.x).abs() < (pos1.y - pos2.y).abs() {
+            if pos1.y > pos2.y { 4 } else { 8 }
+        } else {
+            if pos1.x > pos2.x { 2 } else { 6 }
+        }
+    }
+
     #[allow(clippy::unnested_or_patterns)] // TODO: Pending review in #587
     fn col_sampler<'a>(
         &'a self,
@@ -1190,11 +1200,21 @@ impl Floor {
         };
 
         let tunnel_height = if self.final_level { 16.0 } else { 8.0 };
+        let pillar_thickness: i32 = 4;
 
         move |z| match self.tiles.get(tile_pos) {
             Some(Tile::Solid) => BlockMask::nothing(),
             Some(Tile::Tunnel) => {
-                if dist_to_wall >= wall_thickness
+                let light_offset: i32 = 7;
+                if (dist_to_wall - wall_thickness) as i32 == 1
+                    && rtile_pos.map(|e| e % light_offset == 0).reduce_bitxor()
+                    && z == 1
+                {
+                    let ori =
+                        Floor::relative_ori(rpos, self.nearest_wall(rpos).unwrap_or_default());
+                    let furniture = SpriteKind::WallSconce;
+                    BlockMask::new(Block::air(furniture).with_ori(ori).unwrap(), 1)
+                } else if dist_to_wall >= wall_thickness
                     && (z as f32) < tunnel_height * (1.0 - tunnel_dist.powi(4))
                 {
                     if z == 0 { floor_sprite } else { vacant }
@@ -1205,22 +1225,51 @@ impl Floor {
             Some(Tile::Room(room)) | Some(Tile::DownStair(room))
                 if dist_to_wall < wall_thickness
                     || z as f32
-                        >= self.rooms[*room].height as f32 * (1.0 - tunnel_dist.powi(4))
-                    || self.rooms[*room]
-                        .pillars
-                        .map(|pillar_space| {
-                            tile_pos
-                                .map(|e| e.rem_euclid(pillar_space) == 0)
-                                .reduce_and()
-                                && rtile_pos.map(|e| e as f32).magnitude_squared() < 3.5f32.powi(2)
-                        })
-                        .unwrap_or(false) =>
+                        >= self.rooms[*room].height as f32 * (1.0 - tunnel_dist.powi(4)) =>
             {
                 BlockMask::nothing()
             },
+
+            Some(Tile::Room(room)) | Some(Tile::DownStair(room))
+                if self.rooms[*room]
+                    .pillars
+                    .map(|pillar_space| {
+                        tile_pos
+                            .map(|e| e.rem_euclid(pillar_space) == 0)
+                            .reduce_and()
+                            && rtile_pos.map(|e| e as f32).magnitude_squared()
+                                < (pillar_thickness as f32 + 0.5).powi(2)
+                    })
+                    .unwrap_or(false) =>
+            {
+                if z == 1 && rtile_pos.product() == 0 && rtile_pos.sum().abs() == pillar_thickness {
+                    let ori = Floor::relative_ori(rtile_pos, Vec2::zero());
+                    let furniture = SpriteKind::WallSconce;
+                    BlockMask::new(Block::air(furniture).with_ori(ori).unwrap(), 1)
+                } else if z < self.rooms[*room].height
+                    && rtile_pos.map(|e| e as f32).magnitude_squared()
+                        > (pillar_thickness as f32 - 0.5).powi(2)
+                {
+                    vacant
+                } else {
+                    BlockMask::nothing()
+                }
+            }
+
             Some(Tile::Room(_)) => {
+                let light_offset = 7;
                 if z == 0 {
                     floor_sprite
+                } else if dist_to_wall as i32 == 4
+                    && rtile_pos.map(|e| e % light_offset == 0).reduce_bitxor()
+                    && z == 1
+                {
+                    let ori = Floor::relative_ori(
+                        rpos,
+                        self.nearest_wall(rpos).unwrap_or_else(Vec2::zero),
+                    );
+                    let furniture = SpriteKind::WallSconce;
+                    BlockMask::new(Block::air(furniture).with_ori(ori).unwrap(), 1)
                 } else {
                     vacant
                 }
@@ -1230,16 +1279,31 @@ impl Floor {
                     .resolve_with(vacant)
             },
             Some(Tile::UpStair(room)) => {
-                let mut block = make_staircase(
+                let inner_radius: f32 = 0.5;
+                let stretch = 9;
+                let block = make_staircase(
                     Vec3::new(rtile_pos.x, rtile_pos.y, z),
                     TILE_SIZE as f32 / 2.0,
-                    0.5,
-                    9.0,
+                    inner_radius,
+                    stretch as f32,
+                );
+                let furniture = SpriteKind::WallSconce;
+                let ori = Floor::relative_ori(
+                    rpos,
+                    self.nearest_wall(rtile_pos).unwrap_or_else(Vec2::zero),
                 );
                 if z < self.rooms[*room].height {
-                    block = block.resolve_with(vacant);
+                    block.resolve_with(vacant)
+                } else if z % stretch == 0 && rtile_pos.x == -TILE_SIZE / 2 && rtile_pos.y == 0 {
+                    BlockMask::new(Block::air(furniture).with_ori(ori).unwrap(), 1)
+                } else {
+                    make_staircase(
+                        Vec3::new(rtile_pos.x, rtile_pos.y, z),
+                        TILE_SIZE as f32 / 2.0,
+                        inner_radius,
+                        stretch as f32,
+                    )
                 }
-                block
             },
             None => BlockMask::nothing(),
         }

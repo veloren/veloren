@@ -172,6 +172,8 @@ impl Block {
             SpriteKind::StreetLamp | SpriteKind::StreetLampTall => Some(24),
             SpriteKind::Ember => Some(20),
             SpriteKind::WallLamp => Some(16),
+            SpriteKind::WallLampSmall => Some(16),
+            SpriteKind::WallSconce => Some(16),
             SpriteKind::FireBowlGround => Some(16),
             SpriteKind::Velorite | SpriteKind::VeloriteFrag => Some(6),
             SpriteKind::CaveMushroom => Some(12),
