@@ -71,20 +71,21 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
             for y in 0..outer.size().h {
                 let mut light = SUNLIGHT;
                 for z in (0..outer.size().d).rev() {
-                    match vol_cached
+                    let (min_light, attenuation) = vol_cached
                         .get(outer.min + Vec3::new(x, y, z))
-                        .map_or(None, |b| b.get_max_sunlight())
-                    {
-                        None => {},
-                        Some(0) => {
-                            light_map[lm_idx(x, y, z)] = 0;
-                            break;
-                        },
-                        Some(max_sunlight) => light = light.min(max_sunlight),
+                        .map_or((0, 0), |b| b.get_max_sunlight());
+
+                    if light > min_light {
+                        light = light.saturating_sub(attenuation).max(min_light);
                     }
 
                     light_map[lm_idx(x, y, z)] = light;
-                    prop_que.push_back((x as u8, y as u8, z as u16));
+
+                    if light == 0 {
+                        break;
+                    } else {
+                        prop_que.push_back((x as u8, y as u8, z as u16));
+                    }
                 }
             }
         }

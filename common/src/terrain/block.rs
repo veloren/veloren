@@ -194,13 +194,14 @@ impl Block {
         }
     }
 
+    // minimum block, attenuation
     #[inline]
-    pub fn get_max_sunlight(&self) -> Option<u8> {
+    pub fn get_max_sunlight(&self) -> (u8, u8) {
         match self.kind() {
-            BlockKind::Water => Some(4),
-            BlockKind::Leaves => Some(10),
-            _ if self.is_opaque() => Some(0),
-            _ => None,
+            BlockKind::Water => (1, 1),
+            BlockKind::Leaves => (10, 255),
+            _ if self.is_opaque() => (0, 255),
+            _ => (0, 0),
         }
     }
 
