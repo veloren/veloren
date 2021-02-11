@@ -20,7 +20,7 @@ use common::{
     comp::{
         self,
         chat::{KillSource, KillType},
-        group,
+        group::{self, InviteKind},
         skills::Skill,
         slot::Slot,
         ChatMode, ControlAction, ControlEvent, Controller, ControllerInputs, GroupManip,
@@ -69,6 +69,7 @@ const PING_ROLLING_AVERAGE_SECS: usize = 10;
 
 pub enum Event {
     Chat(comp::ChatMsg),
+    InviteComplete { target: Uid, answer: InviteAnswer, kind: InviteKind },
     Disconnect,
     DisconnectionNotification(u64),
     InventoryUpdated(InventoryUpdateEvent),
@@ -130,7 +131,7 @@ pub struct Client {
 
     max_group_size: u32,
     // Client has received an invite (inviter uid, time out instant)
-    group_invite: Option<(Uid, std::time::Instant, std::time::Duration)>,
+    group_invite: Option<(Uid, std::time::Instant, std::time::Duration, InviteKind)>,
     group_leader: Option<Uid>,
     // Note: potentially representable as a client only component
     group_members: HashMap<Uid, group::Role>,
@@ -636,18 +637,16 @@ impl Client {
         }
     }
 
+    pub fn is_dead(&self) -> bool {
+        self.state.ecs().read_storage::<comp::Health>().get(self.entity).map_or(false, |h| h.is_dead)
+    }
+
     pub fn pick_up(&mut self, entity: EcsEntity) {
         // Get the health component from the entity
 
         if let Some(uid) = self.state.read_component_copied(entity) {
             // If we're dead, exit before sending the message
-            if self
-                .state
-                .ecs()
-                .read_storage::<comp::Health>()
-                .get(self.entity)
-                .map_or(false, |h| h.is_dead)
-            {
+            if self.is_dead() {
                 return;
             }
 
@@ -659,18 +658,23 @@ impl Client {
 
     pub fn npc_interact(&mut self, npc_entity: EcsEntity) {
         // If we're dead, exit before sending message
-        if self
-            .state
-            .ecs()
-            .read_storage::<comp::Health>()
-            .get(self.entity)
-            .map_or(false, |h| h.is_dead)
-        {
+        if self.is_dead() {
             return;
         }
 
         if let Some(uid) = self.state.read_component_copied(npc_entity) {
             self.send_msg(ClientGeneral::ControlEvent(ControlEvent::Interact(uid)));
+        }
+    }
+
+    pub fn initiate_trade(&mut self, counterparty: EcsEntity) {
+        // If we're dead, exit before sending message
+        if self.is_dead() {
+            return;
+        }
+
+        if let Some(uid) = self.state.read_component_copied(counterparty) {
+            self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InitiateTrade(uid)));
         }
     }
 
@@ -737,7 +741,7 @@ impl Client {
 
     pub fn max_group_size(&self) -> u32 { self.max_group_size }
 
-    pub fn group_invite(&self) -> Option<(Uid, std::time::Instant, std::time::Duration)> {
+    pub fn group_invite(&self) -> Option<(Uid, std::time::Instant, std::time::Duration, InviteKind)> {
         self.group_invite
     }
 
@@ -1094,7 +1098,7 @@ impl Client {
         // Check if the group invite has timed out and remove if so
         if self
             .group_invite
-            .map_or(false, |(_, timeout, dur)| timeout.elapsed() > dur)
+            .map_or(false, |(_, timeout, dur, _)| timeout.elapsed() > dur)
         {
             self.group_invite = None;
         }
@@ -1468,30 +1472,22 @@ impl Client {
                     },
                 }
             },
-            ServerGeneral::GroupInvite { inviter, timeout } => {
-                self.group_invite = Some((inviter, std::time::Instant::now(), timeout));
+            ServerGeneral::GroupInvite { inviter, timeout, kind } => {
+                self.group_invite = Some((inviter, std::time::Instant::now(), timeout, kind));
             },
             ServerGeneral::InvitePending(uid) => {
                 if !self.pending_invites.insert(uid) {
                     warn!("Received message about pending invite that was already pending");
                 }
             },
-            ServerGeneral::InviteComplete { target, answer } => {
+            ServerGeneral::InviteComplete { target, answer, kind } => {
                 if !self.pending_invites.remove(&target) {
                     warn!(
                         "Received completed invite message for invite that was not in the list of \
                          pending invites"
                     )
                 }
-                // TODO: expose this as a new event variant instead of going
-                // through the chat
-                let msg = match answer {
-                    // TODO: say who accepted/declined/timed out the invite
-                    InviteAnswer::Accepted => "Invite accepted",
-                    InviteAnswer::Declined => "Invite declined",
-                    InviteAnswer::TimedOut => "Invite timed out",
-                };
-                frontend_events.push(Event::Chat(comp::ChatType::Meta.chat_msg(msg)));
+                frontend_events.push(Event::InviteComplete { target, answer, kind });
             },
             // Cleanup for when the client goes back to the `presence = None`
             ServerGeneral::ExitInGameSuccess => {

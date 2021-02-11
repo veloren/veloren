@@ -9,7 +9,7 @@ use client::{self, Client};
 use common::{
     assets::AssetExt,
     comp,
-    comp::{inventory::slot::Slot, ChatMsg, ChatType, InventoryUpdateEvent, Pos, Vel},
+    comp::{inventory::slot::Slot, group::InviteKind, ChatMsg, ChatType, InventoryUpdateEvent, Pos, Vel},
     consts::{MAX_MOUNT_RANGE, MAX_PICKUP_RANGE},
     outcome::Outcome,
     span,
@@ -20,7 +20,7 @@ use common::{
     },
     vol::ReadVol,
 };
-use common_net::msg::PresenceKind;
+use common_net::msg::{server::InviteAnswer, PresenceKind};
 
 use crate::{
     audio::sfx::SfxEvent,
@@ -121,6 +121,24 @@ impl SessionState {
                 client::Event::Chat(m) => {
                     self.hud.new_message(m);
                 },
+                client::Event::InviteComplete { target, answer, kind } => {
+                    // TODO: i18n
+                    let kind_str = match kind {
+                        InviteKind::Group => "Group",
+                        InviteKind::Trade => "Trade",
+                    };
+                    let target_name = match client.player_list().get(&target) {
+                        Some(info) => info.player_alias.clone(),
+                        None => "<unknown>".to_string(),
+                    };
+                    let answer_str = match answer {
+                        InviteAnswer::Accepted => "accepted",
+                        InviteAnswer::Declined => "declined",
+                        InviteAnswer::TimedOut => "timed out",
+                    };
+                    let msg = format!("{} invite to {} {}", kind_str, target_name, answer_str);
+                    self.hud.new_message(ChatType::Meta.chat_msg(msg));
+                }
                 client::Event::InventoryUpdated(inv_event) => {
                     let sfx_triggers = self.scene.sfx_mgr.triggers.read();
 
@@ -518,6 +536,33 @@ impl PlayState for SessionState {
                                             client.pick_up(entity);
                                         } else {
                                             client.npc_interact(entity);
+                                        }
+                                    },
+                                }
+                            }
+                        }
+                    }
+                    Event::InputUpdate(GameInput::Trade, state)
+                        if state != self.key_state.collect =>
+                    {
+                        self.key_state.collect = state;
+
+                        if state {
+                            if let Some(interactable) = self.interactable {
+                                let mut client = self.client.borrow_mut();
+                                match interactable {
+                                    Interactable::Block(_, _) => {},
+                                    Interactable::Entity(entity) => {
+                                        if client
+                                            .state()
+                                            .ecs()
+                                            .read_storage::<comp::Item>()
+                                            .get(entity)
+                                            .is_some()
+                                        {
+                                            client.pick_up(entity);
+                                        } else {
+                                            client.initiate_trade(entity);
                                         }
                                     },
                                 }

@@ -28,14 +28,24 @@ impl Component for Group {
     type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
 }
 
-pub struct Invite(pub specs::Entity);
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+pub enum InviteKind {
+    Group,
+    Trade,
+}
+
+pub struct Invite {
+    pub inviter: specs::Entity,
+    pub kind: InviteKind,
+}
+
 impl Component for Invite {
     type Storage = IdvStorage<Self>;
 }
 
 // Pending invites that an entity currently has sent out
 // (invited entity, instant when invite times out)
-pub struct PendingInvites(pub Vec<(specs::Entity, std::time::Instant)>);
+pub struct PendingInvites(pub Vec<(specs::Entity, InviteKind, std::time::Instant)>);
 impl Component for PendingInvites {
     type Storage = IdvStorage<Self>;
 }

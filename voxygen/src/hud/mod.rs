@@ -2810,10 +2810,6 @@ impl Hud {
                     self.show.toggle_bag();
                     true
                 },
-                GameInput::Trade if state => {
-                    self.show.toggle_trade();
-                    true
-                },
                 GameInput::Social if state => {
                     self.show.toggle_social();
                     true

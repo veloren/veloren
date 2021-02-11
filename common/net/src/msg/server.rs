@@ -3,7 +3,7 @@ use crate::sync;
 use authc::AuthClientError;
 use common::{
     character::{self, CharacterItem},
-    comp,
+    comp::{self, group::InviteKind},
     outcome::Outcome,
     recipe::RecipeBook,
     resources::TimeOfDay,
@@ -80,6 +80,7 @@ pub enum ServerGeneral {
     GroupInvite {
         inviter: sync::Uid,
         timeout: std::time::Duration,
+        kind: InviteKind,
     },
     /// Indicate to the client that their sent invite was not invalid and is
     /// currently pending
@@ -92,6 +93,7 @@ pub enum ServerGeneral {
     InviteComplete {
         target: sync::Uid,
         answer: InviteAnswer,
+        kind: InviteKind,
     },
     /// Trigger cleanup for when the client goes back to the `Registered` state
     /// from an ingame state

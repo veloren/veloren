@@ -32,13 +32,13 @@ impl<'a> System<'a> for Sys {
 
         let timed_out_invites = (&entities, &invites)
             .join()
-            .filter_map(|(invitee, Invite(inviter))| {
+            .filter_map(|(invitee, Invite { inviter, kind })| {
                 // Retrieve timeout invite from pending invites
                 let pending = &mut pending_invites.get_mut(*inviter)?.0;
                 let index = pending.iter().position(|p| p.0 == invitee)?;
 
                 // Stop if not timed out
-                if pending[index].1 > now {
+                if pending[index].2 > now {
                     return None;
                 }
 
@@ -57,6 +57,7 @@ impl<'a> System<'a> for Sys {
                     client.send_fallible(ServerGeneral::InviteComplete {
                         target,
                         answer: InviteAnswer::TimedOut,
+                        kind: *kind,
                     });
                 }
 

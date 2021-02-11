@@ -1,8 +1,8 @@
 use specs::{world::WorldExt, Entity as EcsEntity};
-use tracing::error;
+use tracing::{error, warn};
 
 use common::{
-    comp::{self, agent::AgentEvent, inventory::slot::EquipSlot, item, slot::Slot, Inventory, Pos},
+    comp::{self, agent::AgentEvent, group::InviteKind, inventory::slot::EquipSlot, item, slot::Slot, Inventory, Pos},
     consts::MAX_MOUNT_RANGE,
     uid::Uid,
 };
@@ -10,6 +10,7 @@ use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
 
 use crate::{
     client::Client,
+    events::group_manip::handle_invite,
     presence::{Presence, RegionSubscription},
     Server,
 };
@@ -65,6 +66,14 @@ pub fn handle_npc_interaction(server: &mut Server, interactor: EcsEntity, npc_en
         if let Some(interactor_uid) = state.ecs().uid_from_entity(interactor) {
             agent.inbox.push_front(AgentEvent::Talk(interactor_uid));
         }
+    }
+}
+
+pub fn handle_initiate_trade(server: &mut Server, interactor: EcsEntity, counterparty: EcsEntity) {
+    if let Some(uid) = server.state_mut().ecs().uid_from_entity(counterparty) {
+        handle_invite(server, interactor, uid, InviteKind::Trade);
+    } else {
+        warn!("Entity tried to trade with an entity that lacks an uid");
     }
 }
 

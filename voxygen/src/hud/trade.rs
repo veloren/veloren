@@ -6,9 +6,6 @@ use super::{
     util::loadout_slot_text,
     Show, CRITICAL_HP_COLOR, LOW_HP_COLOR, QUALITY_COMMON, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
 };
-use common::{
-    comp::{item::Quality,},
-};
 use crate::{
     hud::get_quality_col,
     i18n::Localization,
@@ -19,6 +16,7 @@ use crate::{
     },
 };
 use client::Client;
+use common::comp::item::Quality;
 use conrod_core::{
     color,
     widget::{self, Button, Image, Rectangle, Scrollbar, Text},
@@ -129,36 +127,28 @@ impl<'a> Widget for Trade<'a> {
 
         // BG
         Image::new(self.imgs.inv_bg_bag)
-        .w_h(424.0, 708.0)
-        .middle()
-        .color(Some(UI_MAIN))
-        .set(state.ids.bg, ui);
+            .w_h(424.0, 708.0)
+            .middle()
+            .color(Some(UI_MAIN))
+            .set(state.ids.bg, ui);
         Image::new(self.imgs.inv_frame_bag)
-        .w_h(424.0, 708.0)
-        .middle_of(state.ids.bg)
-        .color(Some(UI_HIGHLIGHT_0))
-        .set(state.ids.bg_frame, ui);
+            .w_h(424.0, 708.0)
+            .middle_of(state.ids.bg)
+            .color(Some(UI_HIGHLIGHT_0))
+            .set(state.ids.bg_frame, ui);
         // Title
-        Text::new(
-            &self
-                .localized_strings
-                .get("hud.trade.trade_window")
-        )
-        .mid_top_with_margin_on(state.ids.bg_frame, 9.0)
-        .font_id(self.fonts.cyri.conrod_id)
-        .font_size(self.fonts.cyri.scale(20))
-        .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
-        .set(state.ids.trade_title_bg, ui);
-        Text::new(
-            &self
-                .localized_strings
-                .get("hud.trade.trade_window")
-        )
-        .top_left_with_margins_on(state.ids.trade_title_bg, 2.0, 2.0)
-        .font_id(self.fonts.cyri.conrod_id)
-        .font_size(self.fonts.cyri.scale(20))
-        .color(TEXT_COLOR)
-        .set(state.ids.trade_title, ui);
+        Text::new(&self.localized_strings.get("hud.trade.trade_window"))
+            .mid_top_with_margin_on(state.ids.bg_frame, 9.0)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(20))
+            .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
+            .set(state.ids.trade_title_bg, ui);
+        Text::new(&self.localized_strings.get("hud.trade.trade_window"))
+            .top_left_with_margins_on(state.ids.trade_title_bg, 2.0, 2.0)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(20))
+            .color(TEXT_COLOR)
+            .set(state.ids.trade_title, ui);
 
         event
     }

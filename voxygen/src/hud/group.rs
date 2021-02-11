@@ -16,7 +16,7 @@ use crate::{
 use client::{self, Client};
 use common::{
     combat,
-    comp::{group::Role, BuffKind, Stats},
+    comp::{group::{InviteKind, Role}, BuffKind, Stats},
     uid::{Uid, UidAllocator},
 };
 use common_net::sync::WorldSyncExt;
@@ -219,7 +219,7 @@ impl<'a> Widget for Group<'a> {
                 .crop_kids()
                 .set(state.ids.bg, ui);
         }
-        if let Some((_, timeout_start, timeout_dur)) = open_invite {
+        if let Some((_, timeout_start, timeout_dur, kind)) = open_invite {
             // Group Menu button
             Button::image(self.imgs.group_icon)
                 .w_h(49.0, 26.0)
@@ -792,16 +792,26 @@ impl<'a> Widget for Group<'a> {
                 // into the maximum group size.
             }
         }
-        if let Some((invite_uid, _, _)) = open_invite {
+        if let Some((invite_uid, _, _, kind)) = open_invite {
             self.show.group = true; // Auto open group menu
             // TODO: add group name here too
             // Invite text
 
             let name = uid_to_name_text(invite_uid, &self.client);
-            let invite_text = self
-                .localized_strings
-                .get("hud.group.invite_to_join")
-                .replace("{name}", &name);
+            let invite_text = match kind {
+                InviteKind::Group => { 
+                    self
+                    .localized_strings
+                    .get("hud.group.invite_to_join")
+                    .replace("{name}", &name)
+                },
+                InviteKind::Trade => {
+                    self
+                    .localized_strings
+                    .get("hud.group.invite_to_trade")
+                    .replace("{name}", &name)
+                },
+            };
             Text::new(&invite_text)
                 .mid_top_with_margin_on(state.ids.bg, 5.0)
                 .font_size(12)
