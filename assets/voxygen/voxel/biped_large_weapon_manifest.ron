@@ -1,0 +1,42 @@
+({
+    "common.items.npc_weapons.hammer.ogre_hammer": (
+        vox_spec: ("weapon.hammer.2hhammer_ogre", (-5.0, -5.5, -7.0)),
+        color: None
+    ),
+    "common.items.npc_weapons.staff.ogre_staff": (
+        vox_spec: ("weapon.staff.firestaff_ogre", (-2.5, -5.5, -6.0)),
+        color: None
+    ),
+    "common.items.npc_weapons.hammer.cyclops_hammer": (
+        vox_spec: ("weapon.hammer.2hhammer_cyclops-0", (-5.0, -6.5, -7.0)),
+        color: None
+    ),
+    "common.items.npc_weapons.hammer.troll_hammer": (
+        vox_spec: ("weapon.hammer.2hhammer_troll", (-4.0, -6.0, -7.0)),
+        color: None
+    ),
+    "common.items.npc_weapons.sword.dullahan_sword": (
+        vox_spec: ("weapon.sword.greatsword_2h_dullahan", (-1.5, -9.0, -10.0)),
+        color: None
+    ),
+    "common.items.npc_weapons.staff.saurok_staff": (
+        vox_spec: ("weapon.staff.firestaff_saurok", (-3.0, -3.0, -6.0)),
+        color: None
+    ),
+    "common.items.npc_weapons.sword.saurok_sword": (
+        vox_spec: ("weapon.sword.long_2h_saurok", (-1.5, -4.0, -5.0)),
+        color: None
+    ),
+    "common.items.npc_weapons.bow.saurok_bow": (
+        vox_spec: ("weapon.bow.longbow_saurok", (-1.5, -4.0, -16.5)),
+        color: None
+    ),
+    "common.items.npc_weapons.staff.mindflayer_staff": (
+        vox_spec: ("weapon.staff.firestaff_mindflayer", (-5.5, -3.5, -8.0)),
+        color: None
+    ),
+    "common.items.npc_weapons.unique.beast_claws": (
+        vox_spec: ("armor.empty", (0.0, 0.0, 0.0)),
+        color: None
+    ),
+})

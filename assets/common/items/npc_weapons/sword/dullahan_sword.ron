@@ -3,7 +3,7 @@ ItemDef(
     description: "Placehoder",
     kind: Tool(
         (
-            kind: Sword,    
+            kind: SwordSimple,    
             hands: Two,
             stats: Direct((
                 equip_time_millis: 500,

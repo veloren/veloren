@@ -65,7 +65,7 @@ impl Animation for IdleAnimation {
         next.hand_r.scale = Vec3::one() * 1.04;
         next.lower_torso.scale = Vec3::one() * 1.02;
         next.hold.scale = Vec3::one() * 0.0;
-        next.torso.scale = Vec3::one() / 8.0;
+        next.torso.scale = Vec3::one() / 8.0 * s_a.scaler;
 
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1 + torso * 0.2);
         next.head.orientation =
@@ -103,7 +103,7 @@ impl Animation for IdleAnimation {
                 next.main.position = Vec3::new(-10.0, -8.0, 12.0);
                 next.main.orientation = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
             },
-            Some(ToolKind::Hammer) => {
+            Some(ToolKind::HammerSimple) => {
                 next.main.position = Vec3::new(-10.0, -8.0, 12.0);
                 next.main.orientation = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
             },
@@ -131,7 +131,7 @@ impl Animation for IdleAnimation {
 
         next.foot_r.position = Vec3::new(s_a.foot.0, s_a.foot.1, s_a.foot.2);
 
-        next.torso.position = Vec3::new(0.0, 0.0, 0.0) / 8.0;
+        next.torso.position = Vec3::new(0.0, 0.0, 0.0) / 8.0 * s_a.scaler;
 
         if s_a.float {
             next.upper_torso.position = Vec3::new(

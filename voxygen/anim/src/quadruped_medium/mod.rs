@@ -482,6 +482,10 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Catoblepas, _) => (1.3),
                 (Roshwalr, _) => (1.2),
                 (Barghest, _) => (1.3),
+                (Cattle, _) => (1.9),
+                (Highland, _) => (1.9),
+                (Bear, _) => (1.9),
+                (Yak, _) => (1.9),
                 _ => (1.0),
             },
             startangle: match (body.species, body.body_type) {
@@ -515,6 +519,10 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Horse, _) => (0.85),
                 (Barghest, _) => (0.95),
                 (Darkhound, _) => (1.1),
+                (Cattle, _) => (0.8),
+                (Highland, _) => (0.8),
+                (Bear, _) => (0.8),
+                (Yak, _) => (0.8),
                 _ => (1.0),
             },
             spring: match (body.species, body.body_type) {

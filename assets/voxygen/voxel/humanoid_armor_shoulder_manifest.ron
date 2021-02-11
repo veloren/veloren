@@ -131,6 +131,16 @@
                 color: None
             )
         ),
+        "PlateLeather": (
+            left: (
+                vox_spec: ("armor.shoulder.plate_leather_left-0", (-4.0, -4.5 , 0.0)),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.shoulder.plate_leather_right-0", (-0.9, -4.5, 0.0)),
+                color: None
+            )
+        ),
         "Leather2": (
             left: (
                 vox_spec: ("armor.shoulder.leather_left-2", (-5.0, -3.8, -0.9)),

@@ -1219,7 +1219,7 @@ impl QuadrupedSmallLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.left_front.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.left_front.lateral.0);
 
         (lateral, Vec3::from(spec.left_front.offset))
     }
@@ -1251,7 +1251,7 @@ impl QuadrupedSmallLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.left_back.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.left_back.lateral.0);
 
         (lateral, Vec3::from(spec.left_back.offset))
     }
@@ -1771,7 +1771,7 @@ impl BirdMediumLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.wing_l.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.wing_l.lateral.0);
 
         (lateral, Vec3::from(spec.wing_l.offset))
     }
@@ -1803,7 +1803,7 @@ impl BirdMediumLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.foot_l.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.foot_l.lateral.0);
 
         (lateral, Vec3::from(spec.foot_l.offset))
     }
@@ -2052,7 +2052,7 @@ impl TheropodLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.hand_l.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.hand_l.lateral.0);
 
         (lateral, Vec3::from(spec.hand_l.offset))
     }
@@ -2084,7 +2084,7 @@ impl TheropodLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.leg_l.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.leg_l.lateral.0);
 
         (lateral, Vec3::from(spec.leg_l.offset))
     }
@@ -2116,7 +2116,7 @@ impl TheropodLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.foot_l.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.foot_l.lateral.0);
 
         (lateral, Vec3::from(spec.foot_l.offset))
     }
@@ -2310,7 +2310,7 @@ impl FishMediumLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.fin_l.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.fin_l.lateral.0);
 
         (lateral, Vec3::from(spec.fin_l.offset))
     }
@@ -2445,7 +2445,7 @@ impl FishSmallLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.fin_l.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.fin_l.lateral.0);
 
         (lateral, Vec3::from(spec.fin_l.offset))
     }
@@ -3170,7 +3170,6 @@ struct SidedBLCentralVoxSpec {
     torso_upper: BipedLargeCentralSubSpec,
     torso_lower: BipedLargeCentralSubSpec,
     tail: BipedLargeCentralSubSpec,
-    main: BipedLargeCentralSubSpec,
     second: BipedLargeCentralSubSpec,
 }
 #[derive(Deserialize)]
@@ -3198,14 +3197,29 @@ struct BipedLargeLateralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     lateral: VoxSimple,
 }
-
+#[derive(Deserialize)]
+struct BipedLargeWeaponSpec(HashMap<String, ArmorVoxSpec>);
 make_vox_spec!(
     biped_large::Body,
     struct BipedLargeSpec {
         central: BipedLargeCentralSpec = "voxygen.voxel.biped_large_central_manifest",
         lateral: BipedLargeLateralSpec = "voxygen.voxel.biped_large_lateral_manifest",
+        weapon: BipedLargeWeaponSpec = "voxygen.voxel.biped_large_weapon_manifest",
     },
-    |FigureKey { body, .. }, spec| {
+    |FigureKey { body, extra }, spec| {
+        const DEFAULT_LOADOUT: super::cache::CharacterCacheKey = super::cache::CharacterCacheKey {
+            third_person: None,
+            tool: None,
+            lantern: None,
+            glider: None,
+            hand: None,
+            foot: None,
+        };
+
+        // TODO: This is bad code, maybe this method should return Option<_>
+        let loadout = extra.as_deref().unwrap_or(&DEFAULT_LOADOUT);
+        //let third_person = loadout.third_person.as_ref();
+        let tool = loadout.tool.as_ref();
         [
             Some(spec.central.read().0.mesh_head(
                 body.species,
@@ -3227,10 +3241,12 @@ make_vox_spec!(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.central.read().0.mesh_main(
-                body.species,
-                body.body_type,
-            )),
+            tool.and_then(|tool| tool.active.as_ref()).map(|tool| {
+                spec.weapon.read().0.mesh_main(
+                    tool,
+                    false,
+                )
+            }),
             Some(spec.central.read().0.mesh_second(
                 body.species,
                 body.body_type,
@@ -3351,22 +3367,6 @@ impl BipedLargeCentralSpec {
         let central = graceful_load_segment(&spec.tail.central.0);
 
         (central, Vec3::from(spec.tail.offset))
-    }
-
-    fn mesh_main(&self, species: BLSpecies, body_type: BLBodyType) -> BoneMeshes {
-        let spec = match self.0.get(&(species, body_type)) {
-            Some(spec) => spec,
-            None => {
-                error!(
-                    "No main weapon specification exists for the combination of {:?} and {:?}",
-                    species, body_type
-                );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            },
-        };
-        let central = graceful_load_segment(&spec.main.central.0);
-
-        (central, Vec3::from(spec.main.offset))
     }
 
     fn mesh_second(&self, species: BLSpecies, body_type: BLBodyType) -> BoneMeshes {
@@ -3512,6 +3512,35 @@ impl BipedLargeLateralSpec {
         let lateral = graceful_load_segment(&spec.foot_r.lateral.0);
 
         (lateral, Vec3::from(spec.foot_r.offset))
+    }
+}
+impl BipedLargeWeaponSpec {
+    fn mesh_main(&self, item_definition_id: &str, flipped: bool) -> BoneMeshes {
+        let spec = match self.0.get(item_definition_id) {
+            Some(spec) => spec,
+            None => {
+                error!(?item_definition_id, "No tool/weapon specification exists");
+                return load_mesh("not_found", Vec3::new(-1.5, -1.5, -7.0));
+            },
+        };
+
+        let tool_kind_segment = if flipped {
+            graceful_load_segment_flipped(&spec.vox_spec.0)
+        } else {
+            graceful_load_segment(&spec.vox_spec.0)
+        };
+
+        let offset = Vec3::new(
+            if flipped {
+                0.0 - spec.vox_spec.1[0] - (tool_kind_segment.sz.x as f32)
+            } else {
+                spec.vox_spec.1[0]
+            },
+            spec.vox_spec.1[1],
+            spec.vox_spec.1[2],
+        );
+
+        (tool_kind_segment, offset)
     }
 }
 ////
@@ -4013,7 +4042,7 @@ impl QuadrupedLowLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.front_left.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.front_left.lateral.0);
 
         (lateral, Vec3::from(spec.front_left.offset))
     }
@@ -4045,7 +4074,7 @@ impl QuadrupedLowLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.back_left.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.back_left.lateral.0);
 
         (lateral, Vec3::from(spec.back_left.offset))
     }

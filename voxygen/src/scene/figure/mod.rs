@@ -53,7 +53,7 @@ use treeculler::{BVol, BoundingSphere};
 use vek::*;
 
 const DAMAGE_FADE_COEFFICIENT: f64 = 15.0;
-const MOVING_THRESHOLD: f32 = 0.7;
+const MOVING_THRESHOLD: f32 = 0.4;
 const MOVING_THRESHOLD_SQR: f32 = MOVING_THRESHOLD * MOVING_THRESHOLD;
 
 /// camera data, figure LOD render distance.
@@ -1345,6 +1345,13 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
+                        CharacterState::Talk => anim::character::TalkAnimation::update_skeleton(
+                            &target_base,
+                            (active_tool_kind, second_tool_kind, vel.0.magnitude(), time),
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        ),
                         CharacterState::Wielding { .. } => {
                             if physics.in_liquid.is_some() {
                                 anim::character::SwimWieldAnimation::update_skeleton(
@@ -1517,6 +1524,8 @@ impl FigureMgr {
                                     state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                     time,
                                     state.avg_vel,
+                                    state.acc_vel,
+
                                 ),
                                 state.state_time,
                                 &mut state_animation_rate,
@@ -1533,6 +1542,8 @@ impl FigureMgr {
                                 state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                 time,
                                 state.avg_vel,
+                                state.acc_vel,
+
                             ),
                             state.state_time,
                             &mut state_animation_rate,
@@ -2047,6 +2058,8 @@ impl FigureMgr {
                                 state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                 time,
                                 state.avg_vel,
+                                state.acc_vel,
+
                             ),
                             state.state_time,
                             &mut state_animation_rate,
@@ -2062,6 +2075,8 @@ impl FigureMgr {
                                 state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                 time,
                                 state.avg_vel,
+                                state.acc_vel,
+
                             ),
                             state.state_time,
                             &mut state_animation_rate,
@@ -3217,12 +3232,13 @@ impl FigureMgr {
                             (
                                 active_tool_kind,
                                 second_tool_kind,
-                                vel.0.magnitude(),
+                                vel.0,
                                 // TODO: Update to use the quaternion.
                                 ori * anim::vek::Vec3::<f32>::unit_y(),
                                 state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                 time,
                                 state.avg_vel,
+                                state.acc_vel,
                             ),
                             state.state_time,
                             &mut state_animation_rate,
@@ -3257,7 +3273,13 @@ impl FigureMgr {
                         CharacterState::Wielding { .. } => {
                             anim::biped_large::WieldAnimation::update_skeleton(
                                 &target_base,
-                                (active_tool_kind, second_tool_kind, vel.0.magnitude(), time),
+                                (
+                                    active_tool_kind,
+                                    second_tool_kind,
+                                    vel.0,
+                                    time,
+                                    state.acc_vel,
+                                ),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -3269,9 +3291,10 @@ impl FigureMgr {
                                 (
                                     active_tool_kind,
                                     second_tool_kind,
-                                    vel.0.magnitude(),
+                                    vel.0,
                                     time,
                                     None,
+                                    state.acc_vel,
                                 ),
                                 state.state_time,
                                 &mut state_animation_rate,
@@ -3297,12 +3320,13 @@ impl FigureMgr {
                                 (
                                     active_tool_kind,
                                     second_tool_kind,
-                                    vel.0.magnitude(),
+                                    vel.0,
                                     // TODO: Update to use the quaternion.
                                     ori * anim::vek::Vec3::<f32>::unit_y(),
                                     state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                     time,
                                     Some(s.stage_section),
+                                    state.acc_vel,
                                 ),
                                 stage_progress,
                                 &mut state_animation_rate,
@@ -3328,12 +3352,13 @@ impl FigureMgr {
                                 (
                                     active_tool_kind,
                                     second_tool_kind,
-                                    vel.0.magnitude(),
+                                    vel.0,
                                     // TODO: Update to use the quaternion.
                                     ori * anim::vek::Vec3::<f32>::unit_y(),
                                     state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                     time,
                                     Some(s.stage_section),
+                                    state.acc_vel,
                                 ),
                                 stage_progress,
                                 &mut state_animation_rate,
@@ -3400,9 +3425,10 @@ impl FigureMgr {
                                     (
                                         active_tool_kind,
                                         second_tool_kind,
-                                        vel.0.magnitude(),
+                                        vel.0,
                                         time,
                                         Some(s.stage_section),
+                                        state.acc_vel,
                                     ),
                                     stage_progress,
                                     &mut state_animation_rate,

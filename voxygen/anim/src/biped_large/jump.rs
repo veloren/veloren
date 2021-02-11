@@ -109,9 +109,9 @@ impl Animation for JumpAnimation {
         next.foot_r.position = Vec3::new(s_a.foot.0, 5.0 + s_a.foot.1, s_a.foot.2);
         next.foot_r.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.4);
 
-        next.torso.position = Vec3::new(0.0, 0.0, 0.0) / 8.0;
+        next.torso.position = Vec3::new(0.0, 0.0, 0.0) / 8.0 * s_a.scaler;
         next.torso.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
-        next.torso.scale = Vec3::one() / 8.0;
+        next.torso.scale = Vec3::one() / 8.0 * s_a.scaler;
 
         next
     }

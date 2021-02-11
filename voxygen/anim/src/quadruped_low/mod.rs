@@ -259,6 +259,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Pangolin, _) => (1.3),
                 (Maneater, _) => (1.4),
                 (Lavadrake, _) => (1.4),
+                (Basilisk, _) => (1.6),
                 _ => (1.0),
             },
             tempo: match (body.species, body.body_type) {
@@ -271,6 +272,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Pangolin, _) => (1.15),
                 (Maneater, _) => (0.9),
                 (Lavadrake, _) => (1.1),
+                (Basilisk, _) => (0.8),
                 _ => (1.0),
             },
         }

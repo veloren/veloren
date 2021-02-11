@@ -7,7 +7,7 @@ use std::f32::consts::PI;
 pub struct RunAnimation;
 
 impl Animation for RunAnimation {
-    type Dependency = (f32, Vec3<f32>, Vec3<f32>, f64, Vec3<f32>);
+    type Dependency = (f32, Vec3<f32>, Vec3<f32>, f64, Vec3<f32>, f32);
     type Skeleton = QuadrupedSmallSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -16,24 +16,26 @@ impl Animation for RunAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "quadruped_small_run")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (_velocity, orientation, last_ori, _global_time, avg_vel): Self::Dependency,
-        anim_time: f64,
+        (velocity, orientation, last_ori, _global_time, avg_vel, acc_vel): Self::Dependency,
+        _anim_time: f64,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        let lab = 0.6; //6
+        let lab = 0.8; //6
+        let speed = (Vec2::<f32>::from(velocity).magnitude()).min(12.0);
+        let speednorm = (speed / 12.0).powf(0.4);
 
         let speedmult = s_a.tempo;
-        let short = (anim_time as f32 * 20.0 * lab as f32 * speedmult + PI * 1.0).sin();
-        let shortalt = (anim_time as f32 * 20.0 * lab as f32 * speedmult + PI * 0.5).sin();
+        let short = (acc_vel * lab as f32 * speedmult + PI * 1.0).sin() * speednorm;
+        let shortalt = (acc_vel * lab as f32 * speedmult + PI * 0.5).sin() * speednorm;
 
-        let footvert = (anim_time as f32 * 20.0 * lab as f32 * speedmult + PI * 0.0).sin();
-        let footvertt = (anim_time as f32 * 20.0 * lab as f32 * speedmult + PI * 0.4).sin();
+        let footvert = (acc_vel * lab as f32 * speedmult + PI * 0.0).sin() * speednorm;
+        let footvertt = (acc_vel * lab as f32 * speedmult + PI * 0.4).sin() * speednorm;
 
-        let footvertf = (anim_time as f32 * 20.0 * lab as f32 * speedmult + PI * 0.3).sin();
-        let footverttf = (anim_time as f32 * 20.0 * lab as f32 * speedmult + PI * 0.7).sin();
+        let footvertf = (acc_vel * lab as f32 * speedmult + PI * 0.3).sin() * speednorm;
+        let footverttf = (acc_vel * lab as f32 * speedmult + PI * 0.7).sin() * speednorm;
 
         let ori: Vec2<f32> = Vec2::from(orientation);
         let last_ori = Vec2::from(last_ori);
@@ -48,7 +50,7 @@ impl Animation for RunAnimation {
         } else {
             0.0
         } * 1.3;
-        let x_tilt = avg_vel.z.atan2(avg_vel.xy().magnitude());
+        let x_tilt = avg_vel.z.atan2(avg_vel.xy().magnitude()) * speednorm;
 
         next.leg_fl.scale = Vec3::one() * 1.02;
         next.leg_fr.scale = Vec3::one() * 1.02;
@@ -63,7 +65,7 @@ impl Animation for RunAnimation {
         next.chest.position = Vec3::new(
             0.0,
             s_a.chest.0,
-            s_a.chest.1 + 2.0 * s_a.spring + shortalt * 3.0 * s_a.spring,
+            s_a.chest.1 + 2.0 * speednorm * s_a.spring + shortalt * 3.0 * s_a.spring,
         ) / 11.0
             * s_a.scaler;
         next.chest.orientation = Quaternion::rotation_x(short * 0.2 * s_a.spring + x_tilt)
@@ -76,36 +78,40 @@ impl Animation for RunAnimation {
             s_a.feet_f.1 + footverttf * 3.0 * s_a.minimize,
             s_a.feet_f.2 + ((footvertf * -1.5).max(-1.0)),
         );
-        next.leg_fl.orientation = Quaternion::rotation_x(0.2 + s_a.maximize * footverttf * 0.65)
-            * Quaternion::rotation_z(tilt * -0.5)
-            * Quaternion::rotation_y(tilt * 1.5);
+        next.leg_fl.orientation =
+            Quaternion::rotation_x(0.2 * speednorm + s_a.maximize * footverttf * 0.65)
+                * Quaternion::rotation_z(tilt * -0.5)
+                * Quaternion::rotation_y(tilt * 1.5);
 
         next.leg_fr.position = Vec3::new(
             s_a.feet_f.0,
             s_a.feet_f.1 + footvertt * 3.0 * s_a.minimize,
             s_a.feet_f.2 + ((footvert * -1.5).max(-1.0)),
         );
-        next.leg_fr.orientation = Quaternion::rotation_x(0.2 + s_a.maximize * footvertt * 0.65)
-            * Quaternion::rotation_z(tilt * -0.5)
-            * Quaternion::rotation_y(tilt * 1.5);
+        next.leg_fr.orientation =
+            Quaternion::rotation_x(0.2 * speednorm + s_a.maximize * footvertt * 0.65)
+                * Quaternion::rotation_z(tilt * -0.5)
+                * Quaternion::rotation_y(tilt * 1.5);
 
         next.leg_bl.position = Vec3::new(
             -s_a.feet_b.0,
             s_a.feet_b.1 + footvertt * -1.4,
             s_a.feet_b.2 + ((footvert * 1.5).max(-1.0)),
         );
-        next.leg_bl.orientation = Quaternion::rotation_x(-0.25 + s_a.maximize * footvertt * -0.8)
-            * Quaternion::rotation_y(tilt * 1.5)
-            * Quaternion::rotation_z(tilt * -1.5);
+        next.leg_bl.orientation =
+            Quaternion::rotation_x(-0.25 * speednorm + s_a.maximize * footvertt * -0.8)
+                * Quaternion::rotation_y(tilt * 1.5)
+                * Quaternion::rotation_z(tilt * -1.5);
 
         next.leg_br.position = Vec3::new(
             s_a.feet_b.0,
             s_a.feet_b.1 + footverttf * -1.4,
             s_a.feet_b.2 + ((footvertf * 1.5).max(-1.0)),
         );
-        next.leg_br.orientation = Quaternion::rotation_x(-0.25 + s_a.maximize * footverttf * -0.8)
-            * Quaternion::rotation_y(tilt * 1.5)
-            * Quaternion::rotation_z(tilt * -1.5);
+        next.leg_br.orientation =
+            Quaternion::rotation_x(-0.25 * speednorm + s_a.maximize * footverttf * -0.8)
+                * Quaternion::rotation_y(tilt * 1.5)
+                * Quaternion::rotation_z(tilt * -1.5);
 
         next.tail.position = Vec3::new(0.0, s_a.tail.0, s_a.tail.1);
         next.tail.orientation = Quaternion::rotation_x(short * 0.2 + x_tilt)

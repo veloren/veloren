@@ -238,7 +238,7 @@ impl LoadoutBuilder {
                     },
                     (biped_large::Species::Minotaur, _) => {
                         main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.sword.saurok_sword",
+                            "common.items.npc_weapons.hammer.cyclops_hammer",
                         ));
                     },
                 },
@@ -370,22 +370,22 @@ impl LoadoutBuilder {
                 Guard => LoadoutBuilder::new()
                     .active_item(active_item)
                     .shoulder(Some(Item::new_from_asset_expect(
-                        "common.items.armor.shoulder.steel_0",
+                        "common.items.armor.shoulder.plate_leather_0",
                     )))
                     .chest(Some(Item::new_from_asset_expect(
-                        "common.items.armor.chest.steel_0",
+                        "common.items.armor.chest.plate_leather_0",
                     )))
                     .belt(Some(Item::new_from_asset_expect(
-                        "common.items.armor.belt.steel_0",
+                        "common.items.armor.belt.plate_leather_0",
                     )))
                     .hands(Some(Item::new_from_asset_expect(
-                        "common.items.armor.hand.steel_0",
+                        "common.items.armor.hand.plate_leather_0",
                     )))
                     .pants(Some(Item::new_from_asset_expect(
-                        "common.items.armor.pants.steel_0",
+                        "common.items.armor.pants.plate_leather_0",
                     )))
                     .feet(Some(Item::new_from_asset_expect(
-                        "common.items.armor.foot.steel_0",
+                        "common.items.armor.foot.plate_leather_0",
                     )))
                     .lantern(match rand::thread_rng().gen_range(0..3) {
                         0 => Some(Item::new_from_asset_expect("common.items.lantern.black_0")),

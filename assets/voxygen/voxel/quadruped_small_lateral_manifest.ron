@@ -2,7 +2,7 @@
     (Pig, Male): (
         left_front: (
             offset: (-1.0, -1.5, -5.0),
-            lateral: ("npc.pig.male.foot_fl"),
+            lateral: ("npc.pig.male.foot_fr"),
         ),
         right_front: (
             offset: (-1.0, -1.5, -5.0),
@@ -10,7 +10,7 @@
         ),
         left_back: (
             offset: (-1.0, -2.0, -6.0),
-            lateral: ("npc.pig.male.foot_bl"),
+            lateral: ("npc.pig.male.foot_br"),
         ),
         right_back: (
             offset: (-1.0, -2.0, -6.0),
@@ -20,7 +20,7 @@
     (Pig, Female): (
         left_front: (
             offset: (-1.0, -1.5, -5.0),
-            lateral: ("npc.pig.male.foot_fl"),
+            lateral: ("npc.pig.male.foot_fr"),
         ),
         right_front: (
             offset: (-1.0, -1.5, -5.0),
@@ -28,7 +28,7 @@
         ),
         left_back: (
             offset: (-1.0, -2.0, -6.0),
-            lateral: ("npc.pig.male.foot_bl"),
+            lateral: ("npc.pig.male.foot_br"),
         ),
         right_back: (
             offset: (-1.0, -2.0, -6.0),
@@ -39,7 +39,7 @@
     (Fox, Male): (
         left_front: (
             offset: (-1.0, -2.0, -2.5),
-            lateral: ("npc.fox.male.foot_fl"),
+            lateral: ("npc.fox.male.foot_fr"),
         ),
         right_front: (
             offset: (-1.0, -2.0, -2.5),
@@ -47,7 +47,7 @@
         ),
         left_back: (
             offset: (-1.0, -2.0, -5.0),
-            lateral: ("npc.fox.male.foot_bl"),
+            lateral: ("npc.fox.male.foot_br"),
         ),
         right_back: (
             offset: (-1.0, -2.0, -5.0),
@@ -57,7 +57,7 @@
     (Fox, Female): (
         left_front: (
             offset: (-1.0, -2.0, -2.5),
-            lateral: ("npc.fox.female.foot_fl"),
+            lateral: ("npc.fox.female.foot_fr"),
         ),
         right_front: (
             offset: (-1.0, -2.0, -2.5),
@@ -65,7 +65,7 @@
         ),
         left_back: (
             offset: (-1.0, -2.0, -5.0),
-            lateral: ("npc.fox.female.foot_bl"),
+            lateral: ("npc.fox.female.foot_br"),
         ),
         right_back: (
             offset: (-1.0, -2.0, -5.0),
@@ -76,7 +76,7 @@
     (Sheep, Male): (
         left_front: (
             offset: (-1.0, -1.5, -5.0),
-            lateral: ("npc.sheep.male.foot_fl"),
+            lateral: ("npc.sheep.male.foot_fr"),
         ),
         right_front: (
             offset: (-1.0, -1.5, -5.0),
@@ -84,7 +84,7 @@
         ),
         left_back: (
             offset: (-1.0, -1.5, -5.5),
-            lateral: ("npc.sheep.male.foot_bl"),
+            lateral: ("npc.sheep.male.foot_br"),
         ),
         right_back: (
             offset: (-1.0, -1.5, -5.5),
@@ -95,7 +95,7 @@
     (Sheep, Female): (
         left_front: (
             offset: (-1.0, -1.5, -5.0),
-            lateral: ("npc.sheep.female.foot_fl"),
+            lateral: ("npc.sheep.female.foot_fr"),
         ),
         right_front: (
             offset: (-1.0, -1.5, -5.0),
@@ -103,7 +103,7 @@
         ),
         left_back: (
             offset: (-1.0, -1.5, -5.5),
-            lateral: ("npc.sheep.female.foot_bl"),
+            lateral: ("npc.sheep.female.foot_br"),
         ),
         right_back: (
             offset: (-1.0, -1.5, -5.5),
@@ -114,7 +114,7 @@
     (Boar, Male): (
         left_front: (
             offset: (-1.5, -2.5, -4.0),
-            lateral: ("npc.boar.male.foot_fl"),
+            lateral: ("npc.boar.male.foot_fr"),
         ),
         right_front: (
             offset: (-1.5, -2.5, -4.0),
@@ -122,7 +122,7 @@
         ),
         left_back: (
             offset: (-1.5, -2.0, -7.0),
-            lateral: ("npc.boar.male.foot_bl"),
+            lateral: ("npc.boar.male.foot_br"),
         ),
         right_back: (
             offset: (-1.5, -2.0, -7.0),
@@ -133,7 +133,7 @@
     (Boar, Female): (
         left_front: (
             offset: (-1.5, -2.5, -4.0),
-            lateral: ("npc.boar.female.foot_fl"),
+            lateral: ("npc.boar.female.foot_fr"),
         ),
         right_front: (
             offset: (-1.5, -2.5, -4.0),
@@ -141,7 +141,7 @@
         ),
         left_back: (
             offset: (-1.5, -2.0, -7.0),
-            lateral: ("npc.boar.female.foot_bl"),
+            lateral: ("npc.boar.female.foot_br"),
         ),
         right_back: (
             offset: (-1.5, -2.0, -7.0),
@@ -151,7 +151,7 @@
     (Jackalope, Male): (
         left_front: (
             offset: (-1.0, -2.0, -4.0),
-            lateral: ("npc.jackalope.male.foot_fl"),
+            lateral: ("npc.jackalope.male.foot_fr"),
         ),
         right_front: (
             offset: (-1.0, -2.0, -4.0),
@@ -159,7 +159,7 @@
         ),
         left_back: (
             offset: (-1.5, -2.5, -6.0),
-            lateral: ("npc.jackalope.male.foot_bl"),
+            lateral: ("npc.jackalope.male.foot_br"),
         ),
         right_back: (
             offset: (-1.5, -2.5, -6.0),
@@ -170,7 +170,7 @@
     (Jackalope, Female): (
         left_front: (
             offset: (-1.0, -2.0, -4.0),
-            lateral: ("npc.jackalope.male.foot_fl"),
+            lateral: ("npc.jackalope.male.foot_fr"),
         ),
         right_front: (
             offset: (-1.0, -2.0, -4.0),
@@ -178,7 +178,7 @@
         ),
         left_back: (
             offset: (-1.5, -2.5, -6.0),
-            lateral: ("npc.jackalope.male.foot_bl"),
+            lateral: ("npc.jackalope.male.foot_br"),
         ),
         right_back: (
             offset: (-1.5, -2.5, -6.0),
@@ -188,7 +188,7 @@
     (Skunk, Male): (
         left_front: (
             offset: (-1.5, -2.0, -4.5),
-            lateral: ("npc.skunk.male.foot_fl"),
+            lateral: ("npc.skunk.male.foot_fr"),
         ),
         right_front: (
             offset: (-1.5, -2.0, -4.5),
@@ -196,7 +196,7 @@
         ),
         left_back: (
             offset: (-1.0, -1.0, -3.5),
-            lateral: ("npc.skunk.male.foot_bl"),
+            lateral: ("npc.skunk.male.foot_br"),
         ),
         right_back: (
             offset: (-1.0, -1.0, -3.5),
@@ -207,7 +207,7 @@
     (Skunk, Female): (
         left_front: (
             offset: (-1.5, -2.0, -4.5),
-            lateral: ("npc.skunk.male.foot_fl"),
+            lateral: ("npc.skunk.male.foot_fr"),
         ),
         right_front: (
             offset: (-1.5, -2.0, -4.5),
@@ -215,7 +215,7 @@
         ),
         left_back: (
             offset: (-1.5, -2.0, -4.5),
-            lateral: ("npc.skunk.male.foot_bl"),
+            lateral: ("npc.skunk.male.foot_br"),
         ),
         right_back: (
             offset: (-1.5, -2.0, -4.5),
@@ -226,7 +226,7 @@
     (Cat, Male): (
         left_front: (
             offset: (-1.0, -1.5, -5.0),
-            lateral: ("npc.cat.male.foot_fl"),
+            lateral: ("npc.cat.male.foot_fr"),
         ),
         right_front: (
             offset: (-1.0, -1.5, -5.0),
@@ -234,7 +234,7 @@
         ),
         left_back: (
             offset: (-1.0, -1.5, -5.0),
-            lateral: ("npc.cat.male.foot_bl"),
+            lateral: ("npc.cat.male.foot_br"),
         ),
         right_back: (
             offset: (-1.0, -1.5, -5.0),
@@ -245,7 +245,7 @@
     (Cat, Female): (
         left_front: (
             offset: (-1.0, -1.5, -5.0),
-            lateral: ("npc.cat.female.foot_fl"),
+            lateral: ("npc.cat.female.foot_fr"),
         ),
         right_front: (
             offset: (-1.0, -1.5, -5.0),
@@ -253,7 +253,7 @@
         ),
         left_back: (
             offset: (-1.0, -1.5, -5.0),
-            lateral: ("npc.cat.female.foot_bl"),
+            lateral: ("npc.cat.female.foot_br"),
         ),
         right_back: (
             offset: (-1.0, -1.5, -5.0),
@@ -264,7 +264,7 @@
     (Batfox, Male): (
         left_front: (
             offset: (-2.0, -2.5, -5.0),
-            lateral: ("npc.batfox.male.foot_fl"),
+            lateral: ("npc.batfox.male.foot_fr"),
         ),
         right_front: (
             offset: (-2.0, -2.5, -5.0),
@@ -272,7 +272,7 @@
         ),
         left_back: (
             offset: (-1.5, -2.0, -5.0),
-            lateral: ("npc.batfox.male.foot_bl"),
+            lateral: ("npc.batfox.male.foot_br"),
         ),
         right_back: (
             offset: (-1.5, -2.0, -5.0),
@@ -283,7 +283,7 @@
     (Batfox, Female): (
         left_front: (
             offset: (-2.0, -2.5, -5.0),
-            lateral: ("npc.batfox.male.foot_fl"),
+            lateral: ("npc.batfox.male.foot_fr"),
         ),
         right_front: (
             offset: (-2.0, -2.5, -5.0),
@@ -291,7 +291,7 @@
         ),
         left_back: (
             offset: (-1.5, -2.0, -5.0),
-            lateral: ("npc.batfox.male.foot_bl"),
+            lateral: ("npc.batfox.male.foot_br"),
         ),
         right_back: (
             offset: (-1.5, -2.0, -5.0),
@@ -302,7 +302,7 @@
     (Raccoon, Male): (
         left_front: (
             offset: (-1.5, -2.0, -5.5),
-            lateral: ("npc.raccoon.male.foot_fl"),
+            lateral: ("npc.raccoon.male.foot_fr"),
         ),
         right_front: (
             offset: (-1.5, -2.0, -5.5),
@@ -310,7 +310,7 @@
         ),
         left_back: (
             offset: (-2.0, -2.5, -6.0),
-            lateral: ("npc.raccoon.male.foot_bl"),
+            lateral: ("npc.raccoon.male.foot_br"),
         ),
         right_back: (
             offset: (-2.0, -2.5, -6.0),
@@ -321,7 +321,7 @@
     (Raccoon, Female): (
         left_front: (
             offset: (-1.5, -2.0, -5.5),
-            lateral: ("npc.raccoon.male.foot_fl"),
+            lateral: ("npc.raccoon.male.foot_fr"),
         ),
         right_front: (
             offset: (-1.5, -2.0, -5.5),
@@ -329,7 +329,7 @@
         ),
         left_back: (
             offset: (-2.0, -2.5, -6.0),
-            lateral: ("npc.raccoon.male.foot_bl"),
+            lateral: ("npc.raccoon.male.foot_br"),
         ),
         right_back: (
             offset: (-2.0, -2.5, -6.0),
@@ -339,7 +339,7 @@
     (Quokka, Male): (
         left_front: (
             offset: (-1.0, -1.5, -5.5),
-            lateral: ("npc.quokka.male.foot_fl"),
+            lateral: ("npc.quokka.male.foot_fr"),
         ),
         right_front: (
             offset: (-1.0, -1.5, -5.5),
@@ -347,7 +347,7 @@
         ),
         left_back: (
             offset: (-1.0, -2.5, -5.5),
-            lateral: ("npc.quokka.male.foot_bl"),
+            lateral: ("npc.quokka.male.foot_br"),
         ),
         right_back: (
             offset: (-1.0, -2.5, -5.5),
@@ -358,7 +358,7 @@
     (Quokka, Female): (
         left_front: (
             offset: (-1.0, -1.5, -5.5),
-            lateral: ("npc.quokka.male.foot_fl"),
+            lateral: ("npc.quokka.male.foot_fr"),
         ),
         right_front: (
             offset: (-1.0, -1.5, -5.5),
@@ -366,7 +366,7 @@
         ),
         left_back: (
             offset: (-1.0, -2.5, -5.5),
-            lateral: ("npc.quokka.male.foot_bl"),
+            lateral: ("npc.quokka.male.foot_br"),
         ),
         right_back: (
             offset: (-1.0, -2.5, -5.5),
@@ -376,7 +376,7 @@
     (Dodarock, Male): (
         left_front: (
             offset: (-2.0, -3.0, -6.5),
-            lateral: ("npc.dodarock.male.foot_fl"),
+            lateral: ("npc.dodarock.male.foot_fr"),
         ),
         right_front: (
             offset: (-2.0, -3.0, -6.5),
@@ -384,7 +384,7 @@
         ),
         left_back: (
             offset: (-1.5, -2.0, -5.0),
-            lateral: ("npc.dodarock.male.foot_bl"),
+            lateral: ("npc.dodarock.male.foot_br"),
         ),
         right_back: (
             offset: (-1.5, -2.0, -5.0),
@@ -395,7 +395,7 @@
     (Dodarock, Female): (
         left_front: (
             offset: (-2.0, -3.0, -6.5),
-            lateral: ("npc.dodarock.male.foot_fl"),
+            lateral: ("npc.dodarock.male.foot_fr"),
         ),
         right_front: (
             offset: (-2.0, -3.0, -6.5),
@@ -403,7 +403,7 @@
         ),
         left_back: (
             offset: (-1.5, -2.0, -5.0),
-            lateral: ("npc.dodarock.male.foot_bl"),
+            lateral: ("npc.dodarock.male.foot_br"),
         ),
         right_back: (
             offset: (-1.5, -2.0, -5.0),
@@ -413,7 +413,7 @@
     (Holladon, Male): (
         left_front: (
             offset: (-1.0, -2.5, -6.0),
-            lateral: ("npc.holladon.male.foot_fl"),
+            lateral: ("npc.holladon.male.foot_fr"),
         ),
         right_front: (
             offset: (-1.0, -2.5, -6.0),
@@ -421,7 +421,7 @@
         ),
         left_back: (
             offset: (-1.0, -2.0, -5.5),
-            lateral: ("npc.holladon.male.foot_bl"),
+            lateral: ("npc.holladon.male.foot_br"),
         ),
         right_back: (
             offset: (-1.0, -2.0, -5.5),
@@ -432,7 +432,7 @@
     (Holladon, Female): (
         left_front: (
             offset: (-1.0, -2.5, -6.0),
-            lateral: ("npc.holladon.male.foot_fl"),
+            lateral: ("npc.holladon.male.foot_fr"),
         ),
         right_front: (
             offset: (-1.0, -2.5, -6.0),
@@ -440,7 +440,7 @@
         ),
         left_back: (
             offset: (-1.0, -2.0, -5.5),
-            lateral: ("npc.holladon.male.foot_bl"),
+            lateral: ("npc.holladon.male.foot_br"),
         ),
         right_back: (
             offset: (-1.0, -2.0, -5.5),
@@ -450,7 +450,7 @@
     (Hyena, Male): (
         left_front: (
             offset: (-1.5, -2.0, -5.0),
-            lateral: ("npc.hyena.male.foot_fl"),
+            lateral: ("npc.hyena.male.foot_fr"),
         ),
         right_front: (
             offset: (-1.5, -2.0, -5.0),
@@ -458,7 +458,7 @@
         ),
         left_back: (
             offset: (-1.5, -2.0, -6.5),
-            lateral: ("npc.hyena.male.foot_bl"),
+            lateral: ("npc.hyena.male.foot_br"),
         ),
         right_back: (
             offset: (-1.5, -2.0, -6.5),
@@ -469,7 +469,7 @@
     (Hyena, Female): (
         left_front: (
             offset: (-1.5, -2.0, -5.0),
-            lateral: ("npc.hyena.male.foot_fl"),
+            lateral: ("npc.hyena.male.foot_fr"),
         ),
         right_front: (
             offset: (-1.5, -2.0, -5.0),
@@ -477,7 +477,7 @@
         ),
         left_back: (
             offset: (-1.5, -2.0, -6.5),
-            lateral: ("npc.hyena.male.foot_bl"),
+            lateral: ("npc.hyena.male.foot_br"),
         ),
         right_back: (
             offset: (-1.5, -2.0, -6.5),
@@ -487,7 +487,7 @@
     (Rabbit, Male): (
         left_front: (
             offset: (-1.5, -0.0, -2.0),
-            lateral: ("npc.rabbit.male.foot_fl"),
+            lateral: ("npc.rabbit.male.foot_fr"),
         ),
         right_front: (
             offset: (-1.5, -0.0, -2.0),
@@ -495,7 +495,7 @@
         ),
         left_back: (
             offset: (-1.5, -3.0, -4.0),
-            lateral: ("npc.rabbit.male.foot_bl"),
+            lateral: ("npc.rabbit.male.foot_br"),
         ),
         right_back: (
             offset: (-1.5, -3.0, -4.0),
@@ -505,7 +505,7 @@
     (Rabbit, Female): (
         left_front: (
             offset: (-1.5, -0.0, -2.0),
-            lateral: ("npc.rabbit.male.foot_fl"),
+            lateral: ("npc.rabbit.male.foot_fr"),
         ),
         right_front: (
             offset: (-1.5, -0.0, -2.0),
@@ -513,7 +513,7 @@
         ),
         left_back: (
             offset: (-1.5, -3.0, -4.0),
-            lateral: ("npc.rabbit.male.foot_bl"),
+            lateral: ("npc.rabbit.male.foot_br"),
         ),
         right_back: (
             offset: (-1.5, -3.0, -4.0),
@@ -523,7 +523,7 @@
     (Truffler, Male): (
         left_front: (
             offset: (-2.5, -3.0, -6.5),
-            lateral: ("npc.truffler.male.foot_fl"),
+            lateral: ("npc.truffler.male.foot_fr"),
         ),
         right_front: (
             offset: (-2.5, -3.0, -6.5),
@@ -531,7 +531,7 @@
         ),
         left_back: (
             offset: (-2.5, -3.0, -6.5),
-            lateral: ("npc.truffler.male.foot_bl"),
+            lateral: ("npc.truffler.male.foot_br"),
         ),
         right_back: (
             offset: (-2.5, -3.0, -6.5),
@@ -542,7 +542,7 @@
     (Truffler, Female): (
         left_front: (
             offset: (-2.5, -3.0, -6.5),
-            lateral: ("npc.truffler.male.foot_fl"),
+            lateral: ("npc.truffler.male.foot_fr"),
         ),
         right_front: (
             offset: (-2.5, -3.0, -6.5),
@@ -550,7 +550,7 @@
         ),
         left_back: (
             offset: (-2.5, -3.0, -6.5),
-            lateral: ("npc.truffler.male.foot_bl"),
+            lateral: ("npc.truffler.male.foot_br"),
         ),
         right_back: (
             offset: (-2.5, -3.0, -6.5),
@@ -560,7 +560,7 @@
     (Frog, Male): (
         left_front: (
             offset: (-2.5, -2.5, -4.0),
-            lateral: ("npc.frog.male.foot_fl"),
+            lateral: ("npc.frog.male.foot_fr"),
         ),
         right_front: (
             offset: (-2.5, -2.5, -4.0),
@@ -568,7 +568,7 @@
         ),
         left_back: (
             offset: (-2.5, -3.5, -4.0),
-            lateral: ("npc.frog.male.foot_bl"),
+            lateral: ("npc.frog.male.foot_br"),
         ),
         right_back: (
             offset: (-2.5, -3.5, -4.0),
@@ -578,7 +578,7 @@
     (Frog, Female): (
         left_front: (
             offset: (-2.5, -2.5, -4.0),
-            lateral: ("npc.frog.male.foot_fl"),
+            lateral: ("npc.frog.male.foot_fr"),
         ),
         right_front: (
             offset: (-2.5, -2.5, -4.0),
@@ -586,7 +586,7 @@
         ),
         left_back: (
             offset: (-2.5, -3.5, -4.0),
-            lateral: ("npc.frog.male.foot_bl"),
+            lateral: ("npc.frog.male.foot_br"),
         ),
         right_back: (
             offset: (-2.5, -3.5, -4.0),
@@ -596,7 +596,7 @@
     (Rat, Male): (
         left_front: (
             offset: (-1.5, -2.0, -4.0),
-            lateral: ("npc.rat.male.foot_fl"),
+            lateral: ("npc.rat.male.foot_fr"),
         ),
         right_front: (
             offset: (-1.5, -2.0, -4.0),
@@ -604,7 +604,7 @@
         ),
         left_back: (
             offset: (-1.5, -2.5, -6.0),
-            lateral: ("npc.rat.male.foot_bl"),
+            lateral: ("npc.rat.male.foot_br"),
         ),
         right_back: (
             offset: (-1.5, -2.5, -6.0),
@@ -614,7 +614,7 @@
     (Rat, Female): (
         left_front: (
             offset: (-1.5, -2.0, -4.0),
-            lateral: ("npc.rat.male.foot_fl"),
+            lateral: ("npc.rat.male.foot_fr"),
         ),
         right_front: (
             offset: (-1.5, -2.0, -4.0),
@@ -622,7 +622,7 @@
         ),
         left_back: (
             offset: (-1.5, -2.5, -6.0),
-            lateral: ("npc.rat.male.foot_bl"),
+            lateral: ("npc.rat.male.foot_br"),
         ),
         right_back: (
             offset: (-1.5, -2.5, -6.0),
@@ -632,7 +632,7 @@
     (Axolotl, Male): (
         left_front: (
             offset: (-5.5, -0.5, -3.0),
-            lateral: ("npc.axolotl.male.foot_fl"),
+            lateral: ("npc.axolotl.male.foot_fr"),
         ),
         right_front: (
             offset: (-0.5, -0.5, -3.0),
@@ -640,7 +640,7 @@
         ),
         left_back: (
             offset: (-5.5, -3.5, -3.0),
-            lateral: ("npc.axolotl.male.foot_bl"),
+            lateral: ("npc.axolotl.male.foot_br"),
         ),
         right_back: (
             offset: (-0.5, -3.5, -3.0),
@@ -650,7 +650,7 @@
     (Axolotl, Female): (
         left_front: (
             offset: (-5.5, -0.5, -3.0),
-            lateral: ("npc.axolotl.male.foot_fl"),
+            lateral: ("npc.axolotl.male.foot_fr"),
         ),
         right_front: (
             offset: (-0.5, -0.5, -3.0),
@@ -658,7 +658,7 @@
         ),
         left_back: (
             offset: (-5.5, -3.5, -3.0),
-            lateral: ("npc.axolotl.male.foot_bl"),
+            lateral: ("npc.axolotl.male.foot_br"),
         ),
         right_back: (
             offset: (-0.5, -3.5, -3.0),
@@ -668,7 +668,7 @@
     (Gecko, Male): (
         left_front: (
             offset: (-5.5, -1.0, -3.5),
-            lateral: ("npc.gecko.male.foot_fl"),
+            lateral: ("npc.gecko.male.foot_fr"),
         ),
         right_front: (
             offset: (-0.5, -1.0, -3.5),
@@ -676,7 +676,7 @@
         ),
         left_back: (
             offset: (-5.5, -4.0, -3.5),
-            lateral: ("npc.gecko.male.foot_bl"),
+            lateral: ("npc.gecko.male.foot_br"),
         ),
         right_back: (
             offset: (-0.5, -4.0, -3.5),
@@ -686,7 +686,7 @@
     (Gecko, Female): (
         left_front: (
             offset: (-5.5, -1.0, -3.5),
-            lateral: ("npc.gecko.male.foot_fl"),
+            lateral: ("npc.gecko.male.foot_fr"),
         ),
         right_front: (
             offset: (-0.5, -1.0, -3.5),
@@ -694,7 +694,7 @@
         ),
         left_back: (
             offset: (-5.5, -4.0, -3.5),
-            lateral: ("npc.gecko.male.foot_bl"),
+            lateral: ("npc.gecko.male.foot_br"),
         ),
         right_back: (
             offset: (-0.5, -4.0, -3.5),
@@ -704,7 +704,7 @@
     (Turtle, Male): (
         left_front: (
             offset: (-1.5, -0.5, -4.0),
-            lateral: ("npc.turtle.male.foot_fl"),
+            lateral: ("npc.turtle.male.foot_fr"),
         ),
         right_front: (
             offset: (-1.5, -0.5, -4.0),
@@ -712,7 +712,7 @@
         ),
         left_back: (
             offset: (-2.0, -2.5, -4.0),
-            lateral: ("npc.turtle.male.foot_bl"),
+            lateral: ("npc.turtle.male.foot_br"),
         ),
         right_back: (
             offset: (-2.0, -2.5, -4.0),
@@ -722,7 +722,7 @@
     (Turtle, Female): (
         left_front: (
             offset: (-1.5, -0.5, -4.0),
-            lateral: ("npc.turtle.male.foot_fl"),
+            lateral: ("npc.turtle.male.foot_fr"),
         ),
         right_front: (
             offset: (-1.5, -0.5, -4.0),
@@ -730,7 +730,7 @@
         ),
         left_back: (
             offset: (-2.0, -2.5, -4.0),
-            lateral: ("npc.turtle.male.foot_bl"),
+            lateral: ("npc.turtle.male.foot_br"),
         ),
         right_back: (
             offset: (-2.0, -2.5, -4.0),
@@ -740,7 +740,7 @@
     (Squirrel, Male): (
         left_front: (
             offset: (-1.5, -1.5, -4.0),
-            lateral: ("npc.squirrel.male.foot_fl"),
+            lateral: ("npc.squirrel.male.foot_fr"),
         ),
         right_front: (
             offset: (-1.5, -1.5, -4.0),
@@ -748,7 +748,7 @@
         ),
         left_back: (
             offset: (-1.5, -2.0, -5.0),
-            lateral: ("npc.squirrel.male.foot_bl"),
+            lateral: ("npc.squirrel.male.foot_br"),
         ),
         right_back: (
             offset: (-1.5, -2.0, -5.0),
@@ -758,7 +758,7 @@
     (Squirrel, Female): (
         left_front: (
             offset: (-1.5, -1.5, -4.0),
-            lateral: ("npc.squirrel.male.foot_fl"),
+            lateral: ("npc.squirrel.male.foot_fr"),
         ),
         right_front: (
             offset: (-1.5, -1.5, -4.0),
@@ -766,7 +766,7 @@
         ),
         left_back: (
             offset: (-1.5, -2.0, -5.0),
-            lateral: ("npc.squirrel.male.foot_bl"),
+            lateral: ("npc.squirrel.male.foot_br"),
         ),
         right_back: (
             offset: (-1.5, -2.0, -5.0),
@@ -776,7 +776,7 @@
     (Fungome, Male): (
         left_front: (
             offset: (-2.5, -0.5, -3.0),
-            lateral: ("npc.fungome.male.foot_fl"),
+            lateral: ("npc.fungome.male.foot_fr"),
         ),
         right_front: (
             offset: (-0.5, -0.5, -3.0),
@@ -784,7 +784,7 @@
         ),
         left_back: (
             offset: (-2.5, -1.0, -3.0),
-            lateral: ("npc.fungome.male.foot_bl"),
+            lateral: ("npc.fungome.male.foot_br"),
         ),
         right_back: (
             offset: (-0.5, -1.0, -3.0),
@@ -794,7 +794,7 @@
     (Fungome, Female): (
         left_front: (
             offset: (-2.5, -0.5, -3.0),
-            lateral: ("npc.fungome.male.foot_fl"),
+            lateral: ("npc.fungome.male.foot_fr"),
         ),
         right_front: (
             offset: (-0.5, -0.5, -3.0),
@@ -802,7 +802,7 @@
         ),
         left_back: (
             offset: (-2.5, -1.0, -3.0),
-            lateral: ("npc.fungome.male.foot_bl"),
+            lateral: ("npc.fungome.male.foot_br"),
         ),
         right_back: (
             offset: (-0.5, -1.0, -3.0),
@@ -812,7 +812,7 @@
     (Porcupine, Male): (
         left_front: (
             offset: (-1.5, -2.5, -2.0),
-            lateral: ("npc.porcupine.male.foot_fl"),
+            lateral: ("npc.porcupine.male.foot_fr"),
         ),
         right_front: (
             offset: (-1.5, -2.5, -2.0),
@@ -820,7 +820,7 @@
         ),
         left_back: (
             offset: (-2.0, -3.0, -3.0),
-            lateral: ("npc.porcupine.male.foot_bl"),
+            lateral: ("npc.porcupine.male.foot_br"),
         ),
         right_back: (
             offset: (-2.0, -3.0, -3.0),
@@ -830,7 +830,7 @@
     (Porcupine, Female): (
         left_front: (
             offset: (-1.5, -2.5, -2.0),
-            lateral: ("npc.porcupine.male.foot_fl"),
+            lateral: ("npc.porcupine.male.foot_fr"),
         ),
         right_front: (
             offset: (-1.5, -2.5, -2.0),
@@ -838,7 +838,7 @@
         ),
         left_back: (
             offset: (-2.0, -3.0, -3.0),
-            lateral: ("npc.porcupine.male.foot_bl"),
+            lateral: ("npc.porcupine.male.foot_br"),
         ),
         right_back: (
             offset: (-2.0, -3.0, -3.0),
@@ -848,7 +848,7 @@
     (Beaver, Male): (
         left_front: (
             offset: (-1.5, -2.0, -2.0),
-            lateral: ("npc.beaver.male.foot_fl"),
+            lateral: ("npc.beaver.male.foot_fr"),
         ),
         right_front: (
             offset: (-1.5, -2.5, -2.0),
@@ -856,7 +856,7 @@
         ),
         left_back: (
             offset: (-2.0, -2.5, -3.0),
-            lateral: ("npc.beaver.male.foot_bl"),
+            lateral: ("npc.beaver.male.foot_br"),
         ),
         right_back: (
             offset: (-2.0, -2.5, -3.0),
@@ -866,7 +866,7 @@
     (Beaver, Female): (
         left_front: (
             offset: (-1.5, -2.0, -2.0),
-            lateral: ("npc.beaver.male.foot_fl"),
+            lateral: ("npc.beaver.male.foot_fr"),
         ),
         right_front: (
             offset: (-1.5, -2.5, -2.0),
@@ -874,7 +874,7 @@
         ),
         left_back: (
             offset: (-2.0, -2.5, -3.0),
-            lateral: ("npc.beaver.male.foot_bl"),
+            lateral: ("npc.beaver.male.foot_br"),
         ),
         right_back: (
             offset: (-2.0, -2.5, -3.0),
@@ -884,7 +884,7 @@
     (Hare, Male): (
         left_front: (
             offset: (-0.5, -0.0, -2.0),
-            lateral: ("npc.hare.male.foot_fl"),
+            lateral: ("npc.hare.male.foot_fr"),
         ),
         right_front: (
             offset: (-0.5, -0.0, -2.0),
@@ -892,7 +892,7 @@
         ),
         left_back: (
             offset: (-1.0, -4.0, -5.0),
-            lateral: ("npc.hare.male.foot_bl"),
+            lateral: ("npc.hare.male.foot_br"),
         ),
         right_back: (
             offset: (-1.0, -4.0, -5.0),
@@ -902,7 +902,7 @@
     (Hare, Female): (
         left_front: (
             offset: (-1.0, -0.0, -2.0),
-            lateral: ("npc.hare.female.foot_fl"),
+            lateral: ("npc.hare.female.foot_fr"),
         ),
         right_front: (
             offset: (-1.0, -0.0, -2.0),
@@ -910,7 +910,7 @@
         ),
         left_back: (
             offset: (-1.0, -2.5, -4.0),
-            lateral: ("npc.hare.female.foot_bl"),
+            lateral: ("npc.hare.female.foot_br"),
         ),
         right_back: (
             offset: (-1.0, -2.5, -4.0),
@@ -920,7 +920,7 @@
     (Dog, Male): (
         left_front: (
             offset: (-1.0, -1.5, -6.0),
-            lateral: ("npc.dog.male.foot_fl"),
+            lateral: ("npc.dog.male.foot_fr"),
         ),
         right_front: (
             offset: (-1.0, -1.5, -6.0),
@@ -928,7 +928,7 @@
         ),
         left_back: (
             offset: (-1.5, -2.0, -6.0),
-            lateral: ("npc.dog.male.foot_bl"),
+            lateral: ("npc.dog.male.foot_br"),
         ),
         right_back: (
             offset: (-1.5, -2.0, -6.0),
@@ -938,7 +938,7 @@
     (Dog, Female): (
         left_front: (
             offset: (-1.0, -1.5, -6.0),
-            lateral: ("npc.dog.female.foot_fl"),
+            lateral: ("npc.dog.female.foot_fr"),
         ),
         right_front: (
             offset: (-1.0, -1.5, -6.0),
@@ -946,7 +946,7 @@
         ),
         left_back: (
             offset: (-1.5, -2.0, -6.0),
-            lateral: ("npc.dog.female.foot_bl"),
+            lateral: ("npc.dog.female.foot_br"),
         ),
         right_back: (
             offset: (-1.5, -2.0, -6.0),

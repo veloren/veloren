@@ -35,6 +35,29 @@
         skills: [],
 
     ),
+    HammerSimple: (
+        primary: "common.abilities.hammersimple.doublestrike",
+        secondary: "common.abilities.hammersimple.doublestrike",
+        skills: [],
+
+    ),
+    SwordSimple: (
+        primary: "common.abilities.swordsimple.doublestrike",
+        secondary: "common.abilities.swordsimple.doublestrike",
+        skills: [
+        ],
+    ),
+    StaffSimple: (
+        primary: "common.abilities.staffsimple.firebomb",
+        secondary: "common.abilities.staffsimple.firebomb",
+        skills: [],
+    ),
+    BowSimple: (
+        primary: "common.abilities.bowsimple.basic",
+        secondary: "common.abilities.bowsimple.basic",
+        skills: [
+        ],
+    ),
     Staff: (
         primary: "common.abilities.staff.firebomb",
         secondary: "common.abilities.staff.flamethrower",

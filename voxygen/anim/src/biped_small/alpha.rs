@@ -29,7 +29,16 @@ impl Animation for AlphaAnimation {
 
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (velocity, _orientation, _last_ori, _global_time, _avg_vel, _acc_vel, stage_section, _timer): Self::Dependency,
+        (
+            velocity,
+            _orientation,
+            _last_ori,
+            _global_time,
+            _avg_vel,
+            _acc_vel,
+            stage_section,
+            _timer,
+        ): Self::Dependency,
         anim_time: f64,
         _rate: &mut f32,
         s_a: &SkeletonAttr,

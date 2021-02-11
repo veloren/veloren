@@ -27,6 +27,7 @@ pub mod stand;
 pub mod stunned;
 pub mod swim;
 pub mod swimwield;
+pub mod talk;
 pub mod wield;
 
 // Reexports
@@ -39,7 +40,7 @@ pub use self::{
     roll::RollAnimation, run::RunAnimation, shockwave::ShockwaveAnimation, shoot::ShootAnimation,
     sit::SitAnimation, sneak::SneakAnimation, spin::SpinAnimation, spinmelee::SpinMeleeAnimation,
     staggered::StaggeredAnimation, stand::StandAnimation, stunned::StunnedAnimation,
-    swim::SwimAnimation, swimwield::SwimWieldAnimation, wield::WieldAnimation,
+    swim::SwimAnimation, swimwield::SwimWieldAnimation, talk::TalkAnimation, wield::WieldAnimation,
 };
 use super::{make_bone, vek::*, FigureBoneData, Skeleton};
 use common::comp;

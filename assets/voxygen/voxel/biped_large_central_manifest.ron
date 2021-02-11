@@ -23,11 +23,8 @@
         second: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
-        ),
-        main: (
-            offset: (-5.0, -5.5, -4.0),
-            central: ("weapon.hammer.2hhammer_ogre"),
         )
+
     ),
     (Ogre, Female): (
         head: (
@@ -53,10 +50,6 @@
         second: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
-        ),
-        main: (
-            offset: (-2.5, -5.5, -4.0),
-            central: ("weapon.staff.firestaff_ogre"),
         )
     ),
     (Cyclops, Male): (
@@ -83,10 +76,6 @@
         second: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
-        ),
-        main: (
-            offset: (-5.0, -6.5, -4.0),
-            central: ("weapon.hammer.2hhammer_cyclops-0"),
         )
     ),
     (Cyclops, Female): (
@@ -113,10 +102,6 @@
         second: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
-        ),
-        main: (
-            offset: (-5.0, -6.5, -4.0),
-            central: ("weapon.hammer.2hhammer_cyclops-0"),
         )
     ),
     (Wendigo, Male): (
@@ -141,10 +126,6 @@
             central: ("armor.empty"),
         ),
         second: (
-            offset: (0.0, 0.0, 0.0),
-            central: ("armor.empty"),
-        ),
-        main: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
         )
@@ -173,10 +154,6 @@
         second: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
-        ),
-        main: (
-            offset: (0.0, 0.0, 0.0),
-            central: ("armor.empty"),
         )
     ),
     (Troll, Male): (
@@ -203,10 +180,6 @@
         second: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
-        ),
-        main: (
-            offset: (-4.0, -6.0, -4.0),
-            central: ("weapon.hammer.2hhammer_troll"),
         )
     ),
     (Troll, Female): (
@@ -233,10 +206,6 @@
         second: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
-        ),
-        main: (
-            offset: (-4.0, -6.0, -4.0),
-            central: ("weapon.hammer.2hhammer_troll"),
         )
     ),
     (Dullahan, Male): (
@@ -263,10 +232,6 @@
         second: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
-        ),
-        main: (
-            offset: (-1.5, -9.0, -4.0),
-            central: ("weapon.sword.greatsword_2h_dullahan"),
         )
     ),
     (Dullahan, Female): (
@@ -293,10 +258,6 @@
         second: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
-        ),
-        main: (
-            offset: (-1.5, -9.0, -4.0),
-            central: ("weapon.sword.greatsword_2h_dullahan"),
         )
     ),
     (Werewolf, Male): (
@@ -321,10 +282,6 @@
             central: ("npc.werewolf.male.tail"),
         ),
         second: (
-            offset: (0.0, 0.0, 0.0),
-            central: ("armor.empty"),
-        ),
-        main: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
         )
@@ -353,10 +310,6 @@
         second: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
-        ),
-        main: (
-            offset: (0.0, 0.0, 0.0),
-            central: ("armor.empty"),
         )
     ),
     (Occultsaurok, Male): (
@@ -383,10 +336,6 @@
         second: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
-        ),
-        main: (
-            offset: (-3.0, -3.0, -4.0),
-            central: ("weapon.staff.firestaff_saurok"),
         )
     ),
     (Occultsaurok, Female): (
@@ -413,10 +362,6 @@
         second: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
-        ),
-        main: (
-            offset: (-3.0, -3.0, -4.0),
-            central: ("weapon.staff.firestaff_saurok"),
         )
     ),
     (Mightysaurok, Male): (
@@ -443,10 +388,6 @@
         second: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
-        ),
-        main: (
-            offset: (-1.5, -4.0, -4.0),
-            central: ("weapon.sword.long_2h_saurok"),
         )
     ),
     (Mightysaurok, Female): (
@@ -473,10 +414,6 @@
         second: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
-        ),
-        main: (
-            offset: (-1.5, -4.0, -4.0),
-            central: ("weapon.sword.long_2h_saurok"),
         )
     ),
     (Slysaurok, Male): (
@@ -503,10 +440,6 @@
         second: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
-        ),
-        main: (
-            offset: (-1.5, -4.0, -16.5),
-            central: ("weapon.bow.longbow_saurok"),
         )
     ),
     (Slysaurok, Female): (
@@ -533,10 +466,6 @@
         second: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
-        ),
-        main: (
-            offset: (-1.5, -4.0, -16.5),
-            central: ("weapon.bow.longbow_saurok"),
         )
     ),
     (Mindflayer, Male): (
@@ -563,10 +492,6 @@
         second: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
-        ),
-        main: (
-            offset: (-5.5, -3.5, -4.0),
-            central: ("weapon.staff.firestaff_mindflayer"),
         )
     ),
     (Mindflayer, Female): (
@@ -593,10 +518,6 @@
         second: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
-        ),
-        main: (
-            offset: (-5.5, -3.5, -4.0),
-            central: ("weapon.staff.firestaff_mindflayer"),
         )
     ),
     (Minotaur, Male): (
@@ -623,10 +544,6 @@
         second: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
-        ),
-        main: (
-            offset: (-5.5, -3.5, -4.0),
-            central: ("weapon.staff.firestaff_mindflayer"),
         )
     ),
     (Minotaur, Female): (
@@ -653,10 +570,6 @@
         second: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
-        ),
-        main: (
-            offset: (-5.5, -3.5, -4.0),
-            central: ("weapon.staff.firestaff_mindflayer"),
         )
     ),
 })

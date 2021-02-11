@@ -90,7 +90,7 @@ impl Animation for RunAnimation {
         } else {
             0.0
         } * 1.3;
-        let x_tilt = avg_vel.z.atan2(avg_vel.xy().magnitude());
+        let x_tilt = avg_vel.z.atan2(avg_vel.xy().magnitude()) * canceler;
 
         next.neck.scale = Vec3::one() * 1.02;
         next.jaw.scale = Vec3::one() * 1.02;

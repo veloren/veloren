@@ -150,7 +150,8 @@ impl Animation for AlphaAnimation {
                 };
                 next.main.position = Vec3::new(0.0, 0.0, 0.0);
                 next.main.orientation = Quaternion::rotation_x(0.0);
-                next.hand_l.position = Vec3::new(s_a.hhl.0, s_a.hhl.1, s_a.hhl.2);
+                next.hand_l.position =
+                    Vec3::new(s_a.hhl.0, s_a.hhl.1, s_a.hhl.2 + movement2 * -7.0);
                 next.hand_l.orientation =
                     Quaternion::rotation_x(s_a.hhl.3) * Quaternion::rotation_y(s_a.hhl.4);
                 next.hand_r.position = Vec3::new(s_a.hhr.0, s_a.hhr.1, s_a.hhr.2);
@@ -169,15 +170,18 @@ impl Animation for AlphaAnimation {
                         * (1.0 - movement3)
                         * Quaternion::rotation_z(s_a.hc.5 + (movement2 * -0.5) * (1.0 - movement3));
                 next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
-                next.head.orientation = Quaternion::rotation_x(
-                    (movement1 * 0.3 + movement2 * -0.5) * (1.0 - movement3),
-                ) * Quaternion::rotation_y(0.0)
-                    * Quaternion::rotation_z(
-                        (movement1 * 0.2 + movement2 * -0.5) * (1.0 - movement3),
-                    );
-                next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1);
+                next.head.orientation =
+                    Quaternion::rotation_x((movement1 * 0.1 + movement2 * 0.3) * (1.0 - movement3))
+                        * Quaternion::rotation_z(
+                            (movement1 * -0.2 + movement2 * 0.2) * (1.0 - movement3),
+                        );
+                next.chest.position = Vec3::new(
+                    0.0,
+                    s_a.chest.0,
+                    s_a.chest.1 + movement2 * -2.0 * (1.0 - movement3),
+                );
                 next.chest.orientation = Quaternion::rotation_x(
-                    (movement1 * 0.8 + movement2 * -1.2) * (1.0 - movement3),
+                    (movement1 * 0.4 + movement2 * -0.7) * (1.0 - movement3),
                 ) * Quaternion::rotation_y(
                     (movement1 * 0.3 + movement2 * -0.4) * (1.0 - movement3),
                 ) * Quaternion::rotation_z(

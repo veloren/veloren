@@ -508,7 +508,12 @@ impl Body {
         }
     }
 
-    pub fn can_strafe(&self) -> bool { matches!(self, Body::Humanoid(_)) }
+    pub fn can_strafe(&self) -> bool {
+        matches!(
+            self,
+            Body::Humanoid(_) | Body::BipedSmall(_) | Body::BipedLarge(_)
+        )
+    }
 }
 
 impl Component for Body {

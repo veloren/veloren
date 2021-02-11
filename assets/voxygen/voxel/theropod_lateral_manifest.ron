@@ -2,7 +2,7 @@
     (Archaeos, Male): (
         hand_l: (
             offset: (-4.0, -2.0, -9.0),
-            lateral: ("npc.archaeos.male.hand_l"),
+            lateral: ("npc.archaeos.male.hand_r"),
         ),
         hand_r: (
             offset: (0.0, -2.0, -9.0),
@@ -10,7 +10,7 @@
         ),
         leg_l: (
             offset: (-6.0, -4.5, -8.0),
-            lateral: ("npc.archaeos.male.leg_l"),
+            lateral: ("npc.archaeos.male.leg_r"),
         ),
         leg_r: (
             offset: (0.0, -4.5, -8.0),
@@ -18,7 +18,7 @@
         ),
         foot_l: (
             offset: (-11.0, -1.0, -8.0),
-            lateral: ("npc.archaeos.male.foot_l"),
+            lateral: ("npc.archaeos.male.foot_r"),
         ),
         foot_r: (
             offset: (0.0, -1.0, -8.0),
@@ -28,7 +28,7 @@
     (Archaeos, Female): (
         hand_l: (
             offset: (-4.0, -2.0, -9.0),
-            lateral: ("npc.archaeos.male.hand_l"),
+            lateral: ("npc.archaeos.male.hand_r"),
         ),
         hand_r: (
             offset: (0.0, -2.0, -9.0),
@@ -36,7 +36,7 @@
         ),
         leg_l: (
             offset: (-6.0, -4.5, -8.0),
-            lateral: ("npc.archaeos.male.leg_l"),
+            lateral: ("npc.archaeos.male.leg_r"),
         ),
         leg_r: (
             offset: (0.0, -4.5, -8.0),
@@ -44,7 +44,7 @@
         ),
         foot_l: (
             offset: (-11.0, -1.0, -8.0),
-            lateral: ("npc.archaeos.male.foot_l"),
+            lateral: ("npc.archaeos.male.foot_r"),
         ),
         foot_r: (
             offset: (0.0, -1.0, -8.0),
@@ -54,7 +54,7 @@
     (Odonto, Male): (
         hand_l: (
             offset: (-3.0, -3.0, -7.0),
-            lateral: ("npc.odonto.male.hand_l"),
+            lateral: ("npc.odonto.male.hand_r"),
         ),
         hand_r: (
             offset: (0.0, -3.0, -7.0),
@@ -62,7 +62,7 @@
         ),
         leg_l: (
             offset: (-7.0, -4.5, -4.0),
-            lateral: ("npc.odonto.male.leg_l"),
+            lateral: ("npc.odonto.male.leg_r"),
         ),
         leg_r: (
             offset: (0.0, -4.5, -4.0),
@@ -70,7 +70,7 @@
         ),
         foot_l: (
             offset: (-8.0, -1.0, -8.0),
-            lateral: ("npc.odonto.male.foot_l"),
+            lateral: ("npc.odonto.male.foot_r"),
         ),
         foot_r: (
             offset: (-6.0, -1.0, -8.0),
@@ -80,7 +80,7 @@
     (Odonto, Female): (
         hand_l: (
             offset: (-3.0, -3.0, -7.0),
-            lateral: ("npc.odonto.male.hand_l"),
+            lateral: ("npc.odonto.male.hand_r"),
         ),
         hand_r: (
             offset: (0.0, -3.0, -7.0),
@@ -88,7 +88,7 @@
         ),
         leg_l: (
             offset: (-7.0, -4.5, -4.0),
-            lateral: ("npc.odonto.male.leg_l"),
+            lateral: ("npc.odonto.male.leg_r"),
         ),
         leg_r: (
             offset: (0.0, -4.5, -4.0),
@@ -96,7 +96,7 @@
         ),
         foot_l: (
             offset: (-8.0, -1.0, -8.0),
-            lateral: ("npc.odonto.male.foot_l"),
+            lateral: ("npc.odonto.male.foot_r"),
         ),
         foot_r: (
             offset: (-6.0, -1.0, -8.0),
@@ -106,7 +106,7 @@
     (Sandraptor, Male): (
         hand_l: (
             offset: (-15.0, -9.0, -8.0),
-            lateral: ("npc.raptor_sand.male.hand_l"),
+            lateral: ("npc.raptor_sand.male.hand_r"),
         ),
         hand_r: (
             offset: (0.0, -9.0, -8.0),
@@ -114,7 +114,7 @@
         ),
         leg_l: (
             offset: (-5.0, -3.5, -3.5),
-            lateral: ("npc.raptor_sand.male.leg_l"),
+            lateral: ("npc.raptor_sand.male.leg_r"),
         ),
         leg_r: (
             offset: (0.0, -3.5, -3.5),
@@ -122,7 +122,7 @@
         ),
         foot_l: (
             offset: (-2.5, -4.5, -10.0),
-            lateral: ("npc.raptor_sand.male.foot_l"),
+            lateral: ("npc.raptor_sand.male.foot_r"),
         ),
         foot_r: (
             offset: (-2.5, -4.5, -10.0),
@@ -132,7 +132,7 @@
     (Sandraptor, Female): (
         hand_l: (
             offset: (-15.0, -9.0, -8.0),
-            lateral: ("npc.raptor_sand.male.hand_l"),
+            lateral: ("npc.raptor_sand.male.hand_r"),
         ),
         hand_r: (
             offset: (0.0, -9.0, -8.0),
@@ -140,7 +140,7 @@
         ),
         leg_l: (
             offset: (-5.0, -3.5, -3.5),
-            lateral: ("npc.raptor_sand.male.leg_l"),
+            lateral: ("npc.raptor_sand.male.leg_r"),
         ),
         leg_r: (
             offset: (0.0, -3.5, -3.5),
@@ -148,7 +148,7 @@
         ),
         foot_l: (
             offset: (-2.5, -4.5, -10.0),
-            lateral: ("npc.raptor_sand.male.foot_l"),
+            lateral: ("npc.raptor_sand.male.foot_r"),
         ),
         foot_r: (
             offset: (-2.5, -4.5, -10.0),
@@ -158,7 +158,7 @@
     (Snowraptor, Male): (
         hand_l: (
             offset: (-15.0, -9.0, -8.0),
-            lateral: ("npc.raptor_snow.male.hand_l"),
+            lateral: ("npc.raptor_snow.male.hand_r"),
         ),
         hand_r: (
             offset: (0.0, -9.0, -8.0),
@@ -166,7 +166,7 @@
         ),
         leg_l: (
             offset: (-5.0, -3.5, -3.5),
-            lateral: ("npc.raptor_snow.male.leg_l"),
+            lateral: ("npc.raptor_snow.male.leg_r"),
         ),
         leg_r: (
             offset: (0.0, -3.5, -3.5),
@@ -174,7 +174,7 @@
         ),
         foot_l: (
             offset: (-2.5, -4.5, -10.0),
-            lateral: ("npc.raptor_snow.male.foot_l"),
+            lateral: ("npc.raptor_snow.male.foot_r"),
         ),
         foot_r: (
             offset: (-2.5, -4.5, -10.0),
@@ -184,7 +184,7 @@
     (Snowraptor, Female): (
         hand_l: (
             offset: (-15.0, -9.0, -8.0),
-            lateral: ("npc.raptor_snow.male.hand_l"),
+            lateral: ("npc.raptor_snow.male.hand_r"),
         ),
         hand_r: (
             offset: (0.0, -9.0, -8.0),
@@ -192,7 +192,7 @@
         ),
         leg_l: (
             offset: (-5.0, -3.5, -3.5),
-            lateral: ("npc.raptor_snow.male.leg_l"),
+            lateral: ("npc.raptor_snow.male.leg_r"),
         ),
         leg_r: (
             offset: (0.0, -3.5, -3.5),
@@ -200,7 +200,7 @@
         ),
         foot_l: (
             offset: (-2.5, -4.5, -10.0),
-            lateral: ("npc.raptor_snow.male.foot_l"),
+            lateral: ("npc.raptor_snow.male.foot_r"),
         ),
         foot_r: (
             offset: (-2.5, -4.5, -10.0),
@@ -210,7 +210,7 @@
     (Woodraptor, Male): (
         hand_l: (
             offset: (-15.0, -9.0, -8.0),
-            lateral: ("npc.raptor_wood.male.hand_l"),
+            lateral: ("npc.raptor_wood.male.hand_r"),
         ),
         hand_r: (
             offset: (0.0, -9.0, -8.0),
@@ -218,7 +218,7 @@
         ),
         leg_l: (
             offset: (-2.5, -3.5, -3.5),
-            lateral: ("npc.raptor_wood.male.leg_l"),
+            lateral: ("npc.raptor_wood.male.leg_r"),
         ),
         leg_r: (
             offset: (0.0, -3.5, -3.5),
@@ -226,7 +226,7 @@
         ),
         foot_l: (
             offset: (-2.5, -4.5, -10.0),
-            lateral: ("npc.raptor_wood.male.foot_l"),
+            lateral: ("npc.raptor_wood.male.foot_r"),
         ),
         foot_r: (
             offset: (-2.5, -4.5, -10.0),
@@ -236,7 +236,7 @@
     (Woodraptor, Female): (
         hand_l: (
             offset: (-15.0, -9.0, -8.0),
-            lateral: ("npc.raptor_wood.male.hand_l"),
+            lateral: ("npc.raptor_wood.male.hand_r"),
         ),
         hand_r: (
             offset: (0.0, -9.0, -8.0),
@@ -244,7 +244,7 @@
         ),
         leg_l: (
             offset: (-2.5, -3.5, -3.5),
-            lateral: ("npc.raptor_wood.male.leg_l"),
+            lateral: ("npc.raptor_wood.male.leg_r"),
         ),
         leg_r: (
             offset: (0.0, -3.5, -3.5),
@@ -252,7 +252,7 @@
         ),
         foot_l: (
             offset: (-2.5, -4.5, -10.0),
-            lateral: ("npc.raptor_wood.male.foot_l"),
+            lateral: ("npc.raptor_wood.male.foot_r"),
         ),
         foot_r: (
             offset: (-2.5, -4.5, -10.0),
@@ -262,7 +262,7 @@
     (Sunlizard, Male): (
         hand_l: (
             offset: (-4.0, -1.5, -7.0),
-            lateral: ("npc.sunlizard.male.hand_l"),
+            lateral: ("npc.sunlizard.male.hand_r"),
         ),
         hand_r: (
             offset: (0.0, -1.5, -7.0),
@@ -270,7 +270,7 @@
         ),
         leg_l: (
             offset: (-1.5, -2.5, -3.5),
-            lateral: ("npc.sunlizard.male.leg_l"),
+            lateral: ("npc.sunlizard.male.leg_r"),
         ),
         leg_r: (
             offset: (0.0, -2.5, -3.5),
@@ -278,7 +278,7 @@
         ),
         foot_l: (
             offset: (-2.5, -4.0, -9.0),
-            lateral: ("npc.sunlizard.male.foot_l"),
+            lateral: ("npc.sunlizard.male.foot_r"),
         ),
         foot_r: (
             offset: (-2.5, -4.0, -9.0),
@@ -288,7 +288,7 @@
     (Sunlizard, Female): (
         hand_l: (
             offset: (-4.0, -1.5, -7.0),
-            lateral: ("npc.sunlizard.male.hand_l"),
+            lateral: ("npc.sunlizard.male.hand_r"),
         ),
         hand_r: (
             offset: (0.0, -1.5, -7.0),
@@ -296,7 +296,7 @@
         ),
         leg_l: (
             offset: (-1.5, -2.5, -3.5),
-            lateral: ("npc.sunlizard.male.leg_l"),
+            lateral: ("npc.sunlizard.male.leg_r"),
         ),
         leg_r: (
             offset: (0.0, -2.5, -3.5),
@@ -304,7 +304,7 @@
         ),
         foot_l: (
             offset: (-2.5, -4.0, -9.0),
-            lateral: ("npc.sunlizard.male.foot_l"),
+            lateral: ("npc.sunlizard.male.foot_r"),
         ),
         foot_r: (
             offset: (-2.5, -4.0, -9.0),
