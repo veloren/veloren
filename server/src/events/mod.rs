@@ -13,7 +13,8 @@ use entity_manipulation::{
 };
 use group_manip::handle_group;
 use interaction::{
-    handle_lantern, handle_initiate_trade, handle_mount, handle_npc_interaction, handle_possess, handle_unmount,
+    handle_initiate_trade, handle_lantern, handle_mount, handle_npc_interaction, handle_possess,
+    handle_unmount,
 };
 use inventory_manip::handle_inventory;
 use player::{handle_client_disconnect, handle_exit_ingame};

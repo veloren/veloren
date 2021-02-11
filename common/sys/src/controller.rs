@@ -102,7 +102,8 @@ impl<'a> System<'a> for Sys {
                         if let Some(counterparty_entity) =
                             uid_allocator.retrieve_entity_internal(counterparty_uid.id())
                         {
-                            server_emitter.emit(ServerEvent::InitiateTrade(entity, counterparty_entity));
+                            server_emitter
+                                .emit(ServerEvent::InitiateTrade(entity, counterparty_entity));
                         }
                     },
                     ControlEvent::InventoryManip(manip) => {

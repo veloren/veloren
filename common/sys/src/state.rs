@@ -10,6 +10,7 @@ use common::{
     span,
     terrain::{Block, TerrainChunk, TerrainGrid},
     time::DayPeriod,
+    trade::Trades,
     vol::{ReadVol, WriteVol},
 };
 use common_net::sync::WorldSyncExt;
@@ -190,6 +191,7 @@ impl State {
         ecs.insert(RegionMap::new());
         ecs.insert(SysMetrics::default());
         ecs.insert(PhysicsMetrics::default());
+        ecs.insert(Trades::default());
 
         // Load plugins from asset directory
         #[cfg(feature = "plugins")]

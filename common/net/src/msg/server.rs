@@ -7,6 +7,7 @@ use common::{
     outcome::Outcome,
     recipe::RecipeBook,
     resources::TimeOfDay,
+    trade::PendingTrade,
     terrain::{Block, TerrainChunk},
     uid::Uid,
 };
@@ -122,6 +123,7 @@ pub enum ServerGeneral {
     Disconnect(DisconnectReason),
     /// Send a popup notification such as "Waypoint Saved"
     Notification(Notification),
+    UpdatePendingTrade(usize, PendingTrade),
 }
 
 impl ServerGeneral {
@@ -227,7 +229,8 @@ impl ServerMsg {
                         | ServerGeneral::TerrainBlockUpdates(_)
                         | ServerGeneral::SetViewDistance(_)
                         | ServerGeneral::Outcomes(_)
-                        | ServerGeneral::Knockback(_) => {
+                        | ServerGeneral::Knockback(_)
+                        | ServerGeneral::UpdatePendingTrade(_, _) => {
                             c_type == ClientType::Game && presence.is_some()
                         },
                         // Always possible

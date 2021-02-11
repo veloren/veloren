@@ -10,7 +10,6 @@ use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
 use std::time::Duration;
-use hashbrown::HashMap;
 use vek::*;
 
 /// Default duration before an input is considered 'held'.
@@ -320,25 +319,3 @@ pub struct Mounting(pub Uid);
 impl Component for Mounting {
     type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
 }
-
-/// A PendingTrade is associated with the entity that initiated the trade.
-///
-/// Items are not removed from the inventory during a PendingTrade: all the items are moved
-/// atomically (if there's space and both parties agree) upon completion
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct PendingTrade {
-    /// `counterparty` is the other entity that's being traded with
-    counterparty: Uid,
-    /// `self_offer` represents the items and quantities of the initiator's items being offered
-    self_offer: HashMap<InvSlotId, usize>,
-    /// `other_offer` represents the items and quantities of the counterparty's items being offered
-    other_offer: HashMap<InvSlotId, usize>,
-    /// `locked` is set when going from the first (mutable) screen to the second (readonly, review)
-    /// screen
-    locked: bool,
-}
-
-impl Component for PendingTrade {
-    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
-}
-

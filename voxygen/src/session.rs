@@ -9,7 +9,9 @@ use client::{self, Client};
 use common::{
     assets::AssetExt,
     comp,
-    comp::{inventory::slot::Slot, group::InviteKind, ChatMsg, ChatType, InventoryUpdateEvent, Pos, Vel},
+    comp::{
+        group::InviteKind, inventory::slot::Slot, ChatMsg, ChatType, InventoryUpdateEvent, Pos, Vel,
+    },
     consts::{MAX_MOUNT_RANGE, MAX_PICKUP_RANGE},
     outcome::Outcome,
     span,
@@ -121,7 +123,11 @@ impl SessionState {
                 client::Event::Chat(m) => {
                     self.hud.new_message(m);
                 },
-                client::Event::InviteComplete { target, answer, kind } => {
+                client::Event::InviteComplete {
+                    target,
+                    answer,
+                    kind,
+                } => {
                     // TODO: i18n
                     let kind_str = match kind {
                         InviteKind::Group => "Group",
@@ -138,7 +144,7 @@ impl SessionState {
                     };
                     let msg = format!("{} invite to {} {}", kind_str, target_name, answer_str);
                     self.hud.new_message(ChatType::Meta.chat_msg(msg));
-                }
+                },
                 client::Event::InventoryUpdated(inv_event) => {
                     let sfx_triggers = self.scene.sfx_mgr.triggers.read();
 

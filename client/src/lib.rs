@@ -69,7 +69,11 @@ const PING_ROLLING_AVERAGE_SECS: usize = 10;
 
 pub enum Event {
     Chat(comp::ChatMsg),
-    InviteComplete { target: Uid, answer: InviteAnswer, kind: InviteKind },
+    InviteComplete {
+        target: Uid,
+        answer: InviteAnswer,
+        kind: InviteKind,
+    },
     Disconnect,
     DisconnectionNotification(u64),
     InventoryUpdated(InventoryUpdateEvent),
@@ -534,7 +538,8 @@ impl Client {
                     | ClientGeneral::TerrainChunkRequest { .. }
                     | ClientGeneral::UnlockSkill(_)
                     | ClientGeneral::RefundSkill(_)
-                    | ClientGeneral::UnlockSkillGroup(_) => &mut self.in_game_stream,
+                    | ClientGeneral::UnlockSkillGroup(_)
+                    | ClientGeneral::UpdatePendingTrade(_, _) => &mut self.in_game_stream,
                     //Always possible
                     ClientGeneral::ChatMsg(_) | ClientGeneral::Terminate => {
                         &mut self.general_stream
@@ -638,7 +643,11 @@ impl Client {
     }
 
     pub fn is_dead(&self) -> bool {
-        self.state.ecs().read_storage::<comp::Health>().get(self.entity).map_or(false, |h| h.is_dead)
+        self.state
+            .ecs()
+            .read_storage::<comp::Health>()
+            .get(self.entity)
+            .map_or(false, |h| h.is_dead)
     }
 
     pub fn pick_up(&mut self, entity: EcsEntity) {
@@ -674,7 +683,9 @@ impl Client {
         }
 
         if let Some(uid) = self.state.read_component_copied(counterparty) {
-            self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InitiateTrade(uid)));
+            self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InitiateTrade(
+                uid,
+            )));
         }
     }
 
@@ -741,7 +752,9 @@ impl Client {
 
     pub fn max_group_size(&self) -> u32 { self.max_group_size }
 
-    pub fn group_invite(&self) -> Option<(Uid, std::time::Instant, std::time::Duration, InviteKind)> {
+    pub fn group_invite(
+        &self,
+    ) -> Option<(Uid, std::time::Instant, std::time::Duration, InviteKind)> {
         self.group_invite
     }
 
@@ -1472,7 +1485,11 @@ impl Client {
                     },
                 }
             },
-            ServerGeneral::GroupInvite { inviter, timeout, kind } => {
+            ServerGeneral::GroupInvite {
+                inviter,
+                timeout,
+                kind,
+            } => {
                 self.group_invite = Some((inviter, std::time::Instant::now(), timeout, kind));
             },
             ServerGeneral::InvitePending(uid) => {
@@ -1480,14 +1497,22 @@ impl Client {
                     warn!("Received message about pending invite that was already pending");
                 }
             },
-            ServerGeneral::InviteComplete { target, answer, kind } => {
+            ServerGeneral::InviteComplete {
+                target,
+                answer,
+                kind,
+            } => {
                 if !self.pending_invites.remove(&target) {
                     warn!(
                         "Received completed invite message for invite that was not in the list of \
                          pending invites"
                     )
                 }
-                frontend_events.push(Event::InviteComplete { target, answer, kind });
+                frontend_events.push(Event::InviteComplete {
+                    target,
+                    answer,
+                    kind,
+                });
             },
             // Cleanup for when the client goes back to the `presence = None`
             ServerGeneral::ExitInGameSuccess => {

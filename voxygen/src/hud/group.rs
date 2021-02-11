@@ -16,7 +16,10 @@ use crate::{
 use client::{self, Client};
 use common::{
     combat,
-    comp::{group::{InviteKind, Role}, BuffKind, Stats},
+    comp::{
+        group::{InviteKind, Role},
+        BuffKind, Stats,
+    },
     uid::{Uid, UidAllocator},
 };
 use common_net::sync::WorldSyncExt;
@@ -799,18 +802,14 @@ impl<'a> Widget for Group<'a> {
 
             let name = uid_to_name_text(invite_uid, &self.client);
             let invite_text = match kind {
-                InviteKind::Group => { 
-                    self
+                InviteKind::Group => self
                     .localized_strings
                     .get("hud.group.invite_to_join")
-                    .replace("{name}", &name)
-                },
-                InviteKind::Trade => {
-                    self
+                    .replace("{name}", &name),
+                InviteKind::Trade => self
                     .localized_strings
                     .get("hud.group.invite_to_trade")
-                    .replace("{name}", &name)
-                },
+                    .replace("{name}", &name),
             };
             Text::new(&invite_text)
                 .mid_top_with_margin_on(state.ids.bg, 5.0)

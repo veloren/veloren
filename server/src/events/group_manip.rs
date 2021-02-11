@@ -5,6 +5,7 @@ use common::{
         group::{self, Group, GroupManager, Invite, InviteKind, PendingInvites},
         ChatType, GroupManip,
     },
+    trade::Trades,
     uid::Uid,
 };
 use common_net::{
@@ -20,7 +21,12 @@ const INVITE_TIMEOUT_DUR: Duration = Duration::from_secs(31);
 /// Reduced duration shown to the client to help alleviate latency issues
 const PRESENTED_INVITE_TIMEOUT_DUR: Duration = Duration::from_secs(30);
 
-pub fn handle_invite(server: &mut Server, inviter: specs::Entity, invitee_uid: Uid, kind: InviteKind) {
+pub fn handle_invite(
+    server: &mut Server,
+    inviter: specs::Entity,
+    invitee_uid: Uid,
+    kind: InviteKind,
+) {
     let max_group_size = server.settings().max_player_group_size;
     let state = server.state_mut();
     let clients = state.ecs().read_storage::<Client>();
@@ -129,10 +135,11 @@ pub fn handle_invite(server: &mut Server, inviter: specs::Entity, invitee_uid: U
             Ok(_) => {
                 match pending_invites.entry(inviter) {
                     Ok(entry) => {
-                        entry
-                            .or_insert_with(|| PendingInvites(Vec::new()))
-                            .0
-                            .push((invitee, kind, Instant::now() + INVITE_TIMEOUT_DUR));
+                        entry.or_insert_with(|| PendingInvites(Vec::new())).0.push((
+                            invitee,
+                            kind,
+                            Instant::now() + INVITE_TIMEOUT_DUR,
+                        ));
                         invite_sent = true;
                         true
                     },
@@ -151,8 +158,7 @@ pub fn handle_invite(server: &mut Server, inviter: specs::Entity, invitee_uid: U
     };
 
     // If client comp
-    if let (Some(client), Some(inviter)) = (clients.get(invitee), uids.get(inviter).copied())
-    {
+    if let (Some(client), Some(inviter)) = (clients.get(invitee), uids.get(inviter).copied()) {
         if send_invite() {
             client.send_fallible(ServerGeneral::GroupInvite {
                 inviter,
@@ -211,26 +217,37 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                         kind,
                     });
                 }
-                if let InviteKind::Group = kind {
-                    let mut group_manager = state.ecs().write_resource::<GroupManager>();
-                    group_manager.add_group_member(
-                        inviter,
-                        entity,
-                        &state.ecs().entities(),
-                        &mut state.ecs().write_storage(),
-                        &state.ecs().read_storage(),
-                        &uids,
-                        |entity, group_change| {
-                            clients
-                                .get(entity)
-                                .and_then(|c| {
-                                    group_change
-                                        .try_map(|e| uids.get(e).copied())
-                                        .map(|g| (g, c))
-                                })
-                                .map(|(g, c)| c.send(ServerGeneral::GroupUpdate(g)));
-                        },
-                    );
+                match kind {
+                    InviteKind::Group => {
+                        let mut group_manager = state.ecs().write_resource::<GroupManager>();
+                        group_manager.add_group_member(
+                            inviter,
+                            entity,
+                            &state.ecs().entities(),
+                            &mut state.ecs().write_storage(),
+                            &state.ecs().read_storage(),
+                            &uids,
+                            |entity, group_change| {
+                                clients
+                                    .get(entity)
+                                    .and_then(|c| {
+                                        group_change
+                                            .try_map(|e| uids.get(e).copied())
+                                            .map(|g| (g, c))
+                                    })
+                                    .map(|(g, c)| c.send(ServerGeneral::GroupUpdate(g)));
+                            },
+                        );
+                    },
+                    InviteKind::Trade => {
+                        if let (Some(inviter_uid), Some(invitee_uid)) = (uids.get(inviter).copied(), uids.get(entity).copied()) {
+                            let mut trades = state.ecs().write_resource::<Trades>();
+                            let id = trades.begin_trade(inviter_uid, invitee_uid);
+                            let trade = trades.trades[&id].clone();
+                            clients.get(inviter).map(|c| c.send(ServerGeneral::UpdatePendingTrade(id, trade.clone())));
+                            clients.get(entity).map(|c| c.send(ServerGeneral::UpdatePendingTrade(id, trade)));
+                        }
+                    },
                 }
             }
         },
