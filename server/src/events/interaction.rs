@@ -72,14 +72,6 @@ pub fn handle_npc_interaction(server: &mut Server, interactor: EcsEntity, npc_en
     }
 }
 
-pub fn handle_initiate_trade(server: &mut Server, interactor: EcsEntity, counterparty: EcsEntity) {
-    if let Some(uid) = server.state_mut().ecs().uid_from_entity(counterparty) {
-        handle_invite(server, interactor, uid, InviteKind::Trade);
-    } else {
-        warn!("Entity tried to trade with an entity that lacks an uid");
-    }
-}
-
 pub fn handle_mount(server: &mut Server, mounter: EcsEntity, mountee: EcsEntity) {
     let state = server.state_mut();
 

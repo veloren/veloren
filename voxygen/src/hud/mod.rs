@@ -395,6 +395,7 @@ pub enum Event {
         bypass_dialog: bool,
     },
     DropSlot(comp::slot::Slot),
+    DeclineTrade,
     ChangeHotbarState(Box<HotbarState>),
     Ability3(bool),
     Logout,
@@ -874,6 +875,11 @@ impl Hud {
             let inventories = ecs.read_storage::<comp::Inventory>();
             let entities = ecs.entities();
             let me = client.entity();
+
+            if (client.pending_trade().is_some() && !self.show.trade) || (client.pending_trade().is_none() && self.show.trade) {
+                self.show.toggle_trade();
+            }
+
             //self.input = client.read_storage::<comp::ControllerInputs>();
             if let Some(health) = healths.get(me) {
                 // Hurt Frame
@@ -2125,6 +2131,7 @@ impl Hud {
                 Some(trade::Event::Close) => {
                     self.show.stats = false;
                     self.show.trade(false);
+                    events.push(Event::DeclineTrade);
                     if !self.show.social {
                         self.show.want_grab = true;
                         self.force_ungrab = false;

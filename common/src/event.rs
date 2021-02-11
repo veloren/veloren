@@ -1,4 +1,7 @@
-use crate::{character::CharacterId, comp, rtsim::RtSimEntity, uid::Uid, util::Dir, Explosion};
+use crate::{
+    character::CharacterId, comp, rtsim::RtSimEntity, trade::TradeActionMsg, uid::Uid, util::Dir,
+    Explosion,
+};
 use comp::{
     item::{Item, Reagent},
     Ori, Pos,
@@ -80,6 +83,7 @@ pub enum ServerEvent {
     DisableLantern(EcsEntity),
     NpcInteract(EcsEntity, EcsEntity),
     InitiateTrade(EcsEntity, EcsEntity),
+    ProcessTradeAction(EcsEntity, usize, TradeActionMsg),
     Mount(EcsEntity, EcsEntity),
     Unmount(EcsEntity),
     Possess(Uid, Uid),

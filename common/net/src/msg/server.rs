@@ -7,8 +7,8 @@ use common::{
     outcome::Outcome,
     recipe::RecipeBook,
     resources::TimeOfDay,
-    trade::PendingTrade,
     terrain::{Block, TerrainChunk},
+    trade::PendingTrade,
     uid::Uid,
 };
 use hashbrown::HashMap;
@@ -124,6 +124,7 @@ pub enum ServerGeneral {
     /// Send a popup notification such as "Waypoint Saved"
     Notification(Notification),
     UpdatePendingTrade(usize, PendingTrade),
+    DeclinedTrade,
 }
 
 impl ServerGeneral {
@@ -230,7 +231,8 @@ impl ServerMsg {
                         | ServerGeneral::SetViewDistance(_)
                         | ServerGeneral::Outcomes(_)
                         | ServerGeneral::Knockback(_)
-                        | ServerGeneral::UpdatePendingTrade(_, _) => {
+                        | ServerGeneral::UpdatePendingTrade(_, _)
+                        | ServerGeneral::DeclinedTrade => {
                             c_type == ClientType::Game && presence.is_some()
                         },
                         // Always possible

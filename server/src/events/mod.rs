@@ -1,6 +1,7 @@
 use crate::{state_ext::StateExt, Server};
 use common::{
     event::{EventBus, ServerEvent},
+    trade::{Trades, TradeActionMsg},
     span,
 };
 use entity_creation::{
@@ -13,12 +14,13 @@ use entity_manipulation::{
 };
 use group_manip::handle_group;
 use interaction::{
-    handle_initiate_trade, handle_lantern, handle_mount, handle_npc_interaction, handle_possess,
+    handle_lantern, handle_mount, handle_npc_interaction, handle_possess,
     handle_unmount,
 };
 use inventory_manip::handle_inventory;
 use player::{handle_client_disconnect, handle_exit_ingame};
 use specs::{Entity as EcsEntity, WorldExt};
+use trade::{handle_initiate_trade, handle_process_trade_action};
 
 mod entity_creation;
 mod entity_manipulation;
@@ -26,6 +28,7 @@ mod group_manip;
 mod interaction;
 mod inventory_manip;
 mod player;
+mod trade;
 
 pub enum Event {
     ClientConnected {
@@ -106,6 +109,9 @@ impl Server {
                 },
                 ServerEvent::InitiateTrade(interactor, target) => {
                     handle_initiate_trade(self, interactor, target)
+                },
+                ServerEvent::ProcessTradeAction(entity, trade_id, msg) => {
+                    handle_process_trade_action(self, entity, trade_id, msg);
                 },
                 ServerEvent::Mount(mounter, mountee) => handle_mount(self, mounter, mountee),
                 ServerEvent::Unmount(mounter) => handle_unmount(self, mounter),

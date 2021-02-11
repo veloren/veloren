@@ -149,6 +149,17 @@ impl<'a> Widget for Trade<'a> {
             .font_size(self.fonts.cyri.scale(20))
             .color(TEXT_COLOR)
             .set(state.ids.trade_title, ui);
+        // Close button
+        if Button::image(self.imgs.close_btn)
+            .w_h(24.0, 25.0)
+            .hover_image(self.imgs.close_btn_hover)
+            .press_image(self.imgs.close_btn_press)
+            .top_right_with_margins_on(state.ids.bg, 0.0, 0.0)
+            .set(state.ids.trade_close, ui)
+            .was_clicked()
+        {
+            event = Some(Event::Close);
+        }
 
         event
     }

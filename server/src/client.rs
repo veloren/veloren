@@ -89,7 +89,8 @@ impl Client {
                     | ServerGeneral::SetViewDistance(_)
                     | ServerGeneral::Outcomes(_)
                     | ServerGeneral::Knockback(_)
-                    | ServerGeneral::UpdatePendingTrade(_, _) => {
+                    | ServerGeneral::UpdatePendingTrade(_, _)
+                    | ServerGeneral::DeclinedTrade => {
                         self.in_game_stream.try_lock().unwrap().send(g)
                     },
                     // Always possible
@@ -168,7 +169,8 @@ impl Client {
                     | ServerGeneral::SetViewDistance(_)
                     | ServerGeneral::Outcomes(_)
                     | ServerGeneral::Knockback(_)
-                    | ServerGeneral::UpdatePendingTrade(_, _) => {
+                    | ServerGeneral::UpdatePendingTrade(_, _)
+                    | ServerGeneral::DeclinedTrade => {
                         PreparedMsg::new(2, &g, &self.in_game_stream)
                     },
                     // Always possible

@@ -240,12 +240,18 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                         );
                     },
                     InviteKind::Trade => {
-                        if let (Some(inviter_uid), Some(invitee_uid)) = (uids.get(inviter).copied(), uids.get(entity).copied()) {
+                        if let (Some(inviter_uid), Some(invitee_uid)) =
+                            (uids.get(inviter).copied(), uids.get(entity).copied())
+                        {
                             let mut trades = state.ecs().write_resource::<Trades>();
                             let id = trades.begin_trade(inviter_uid, invitee_uid);
                             let trade = trades.trades[&id].clone();
-                            clients.get(inviter).map(|c| c.send(ServerGeneral::UpdatePendingTrade(id, trade.clone())));
-                            clients.get(entity).map(|c| c.send(ServerGeneral::UpdatePendingTrade(id, trade)));
+                            clients.get(inviter).map(|c| {
+                                c.send(ServerGeneral::UpdatePendingTrade(id, trade.clone()))
+                            });
+                            clients
+                                .get(entity)
+                                .map(|c| c.send(ServerGeneral::UpdatePendingTrade(id, trade)));
                         }
                     },
                 }

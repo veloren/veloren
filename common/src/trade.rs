@@ -1,4 +1,7 @@
-use crate::{comp::inventory::slot::InvSlotId, uid::Uid};
+use crate::{
+    comp::inventory::slot::InvSlotId,
+    uid::Uid,
+};
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use tracing::warn;
@@ -12,6 +15,7 @@ pub enum TradeActionMsg {
     RemoveItem { item: InvSlotId, quantity: usize },
     Phase1Accept,
     Phase2Accept,
+    Decline,
 }
 
 /// Items are not removed from the inventory during a PendingTrade: all the
@@ -45,11 +49,15 @@ impl PendingTrade {
     pub fn in_phase1(&self) -> bool { !self.phase1_accepts[0] || !self.phase1_accepts[1] }
 
     pub fn in_phase2(&self) -> bool {
-        (self.phase1_accepts[0] && self.phase1_accepts[1]) && (!self.phase2_accepts[0] || !self.phase2_accepts[1])
+        (self.phase1_accepts[0] && self.phase1_accepts[1])
+            && (!self.phase2_accepts[0] || !self.phase2_accepts[1])
     }
 
     pub fn should_commit(&self) -> bool {
-        self.phase1_accepts[0] && self.phase1_accepts[1] && self.phase2_accepts[0] && self.phase2_accepts[1]
+        self.phase1_accepts[0]
+            && self.phase1_accepts[1]
+            && self.phase2_accepts[0]
+            && self.phase2_accepts[1]
     }
 
     pub fn which_party(&self, party: Uid) -> Option<usize> {
@@ -85,6 +93,7 @@ impl PendingTrade {
                     self.phase2_accepts[who] = true;
                 }
             },
+            Decline => {},
         }
     }
 }
@@ -108,23 +117,37 @@ impl Trades {
             if let Some(party) = trade.which_party(who) {
                 trade.process_msg(party, msg);
             } else {
-                warn!("An entity who is not a party to trade {} tried to modify it", id);
+                warn!(
+                    "An entity who is not a party to trade {} tried to modify it",
+                    id
+                );
             }
         } else {
             warn!("Attempt to modify nonexistent trade id {}", id);
         }
     }
 
-    pub fn decline_trade(&mut self, id: usize, who: Uid) {
+    pub fn decline_trade(&mut self, id: usize, who: Uid) -> Option<Uid> {
+        let mut to_notify = None;
         if let Some(trade) = self.trades.remove(&id) {
-            if let None = trade.which_party(who) {
-                warn!("An entity who is not a party to trade {} tried to decline it", id);
-                // put it back
-                self.trades.insert(id, trade);
+            match trade.which_party(who) {
+                Some(i) => {
+                    // let the other person know the trade was declined
+                    to_notify = Some(trade.parties[1 - i])
+                },
+                None => {
+                    warn!(
+                        "An entity who is not a party to trade {} tried to decline it",
+                        id
+                    );
+                    // put it back
+                    self.trades.insert(id, trade);
+                },
             }
         } else {
             warn!("Attempt to decline nonexistent trade id {}", id);
         }
+        to_notify
     }
 }
 

@@ -32,6 +32,7 @@ use common::{
     recipe::RecipeBook,
     span,
     terrain::{block::Block, neighbors, BiomeKind, SitesKind, TerrainChunk, TerrainChunkSize},
+    trade::{PendingTrade, TradeActionMsg},
     uid::{Uid, UidAllocator},
     vol::RectVolSize,
 };
@@ -141,6 +142,8 @@ pub struct Client {
     group_members: HashMap<Uid, group::Role>,
     // Pending invites that this client has sent out
     pending_invites: HashSet<Uid>,
+    // The pending trade the client is involved in, and it's id
+    pending_trade: Option<(usize, PendingTrade)>,
 
     _network: Network,
     participant: Option<Participant>,
@@ -429,6 +432,7 @@ impl Client {
             group_leader: None,
             group_members: HashMap::new(),
             pending_invites: HashSet::new(),
+            pending_trade: None,
 
             _network: network,
             participant: Some(participant),
@@ -642,6 +646,15 @@ impl Client {
         }
     }
 
+    pub fn decline_trade(&mut self) {
+        if let Some((id, _)) = self.pending_trade.take() {
+            self.send_msg(ClientGeneral::UpdatePendingTrade(
+                id,
+                TradeActionMsg::Decline,
+            ));
+        }
+    }
+
     pub fn is_dead(&self) -> bool {
         self.state
             .ecs()
@@ -765,6 +778,8 @@ impl Client {
     pub fn group_members(&self) -> &HashMap<Uid, group::Role> { &self.group_members }
 
     pub fn pending_invites(&self) -> &HashSet<Uid> { &self.pending_invites }
+
+    pub fn pending_trade(&self) -> &Option<(usize, PendingTrade)> { &self.pending_trade }
 
     pub fn send_group_invite(&mut self, invitee: Uid) {
         self.send_msg(ClientGeneral::ControlEvent(ControlEvent::GroupManip(
@@ -1558,6 +1573,13 @@ impl Client {
                         entity: self.entity,
                         impulse,
                     });
+            },
+            ServerGeneral::UpdatePendingTrade(id, trade) => {
+                tracing::info!("UpdatePendingTrade {:?} {:?}", id, trade);
+                self.pending_trade = Some((id, trade));
+            },
+            ServerGeneral::DeclinedTrade => {
+                self.pending_trade = None;
             },
             _ => unreachable!("Not a in_game message"),
         }
