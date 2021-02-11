@@ -537,7 +537,9 @@ impl<V: RectRasterableVol> Terrain<V> {
                 )
             });
 
-        (bias.try_normalized().unwrap_or_else(Vec3::zero) * (1.0 - AMBIANCE) / total.max(0.001), self.glow_at_wpos(wpos.map(|e| e.floor() as i32)))
+        let bias_factor = bias.magnitude() * (1.0 - AMBIANCE) / total.max(0.001);
+
+        (bias.try_normalized().unwrap_or_else(Vec3::zero) * bias_factor.powf(0.5), self.glow_at_wpos(wpos.map(|e| e.floor() as i32)))
     }
 
     /// Maintain terrain data. To be called once per tick.
