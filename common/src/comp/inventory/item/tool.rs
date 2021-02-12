@@ -41,6 +41,22 @@ pub struct Stats {
     speed: f32,
 }
 
+impl From<&Tool> for Stats {
+    fn from(tool: &Tool) -> Self {
+        let raw_stats = tool.stats;
+        let (power, speed) = match tool.hands {
+            Hands::OneHand => (0.67, 1.33),
+            Hands::TwoHand => (1.5, 0.75),
+        };
+        Self {
+            equip_time_millis: raw_stats.equip_time_millis,
+            power: raw_stats.power * power,
+            poise_strength: raw_stats.poise_strength,
+            speed: raw_stats.speed * speed,
+        }
+    }
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Tool {
     pub kind: ToolKind,
@@ -118,13 +134,8 @@ pub struct AbilitySet<T> {
 
 impl AbilitySet<CharacterAbility> {
     pub fn modified_by_tool(self, tool: &Tool) -> Self {
-        self.map(|a| {
-            a.adjusted_by_stats(
-                tool.base_power(),
-                tool.base_poise_strength(),
-                tool.base_speed(),
-            )
-        })
+        let stats: Stats = tool.into();
+        self.map(|a| a.adjusted_by_stats(stats.power, stats.poise_strength, stats.speed))
     }
 }
 

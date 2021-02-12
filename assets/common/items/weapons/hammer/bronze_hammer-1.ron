@@ -3,7 +3,7 @@ ItemDef(
     description: "The entire head of this club is forged from bronze alloy.",
     kind: Tool((
         kind: Hammer,
-        hands: TwoHand,
+        hands: OneHand,
         stats: (
             equip_time_millis: 500,
             power: 1.0,
