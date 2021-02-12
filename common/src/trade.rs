@@ -4,7 +4,7 @@ use crate::{
 };
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
-use tracing::{warn, trace};
+use tracing::{trace, warn};
 
 /// Clients submit `TradeActionMsg` to the server, which adds the Uid of the
 /// player out-of-band (i.e. without trusting the client to say who it's
@@ -15,6 +15,7 @@ pub enum TradeActionMsg {
     RemoveItem { item: InvSlotId, quantity: u32 },
     Phase1Accept,
     Phase2Accept,
+
     Decline,
 }
 
@@ -28,6 +29,28 @@ pub enum TradeResult {
 /// Items are not removed from the inventory during a PendingTrade: all the
 /// items are moved atomically (if there's space and both parties agree) upon
 /// completion
+///
+/// Since this stores `InvSlotId`s (i.e. references into inventories) instead of
+/// items themselves, there aren't any duplication/loss risks from things like
+/// dropped connections or declines, since the server doesn't have to move items
+/// from a trade back into a player's inventory.
+///
+/// On the flip side, since they are references to *slots*, if a player could
+/// swaps items in their inventory during a trade, they could mutate the trade,
+/// enabling them to remove an item from the trade even after receiving the
+/// counterparty's phase2 accept. To prevent this, we disallow all
+/// forms of inventory manipulation in `server::events::inventory_manip` if
+/// there's a pending trade that's past phase1 (in phase1, the trade should be
+/// mutable anyway).
+///
+/// Inventory manipulation in phase1 may be beneficial to trade (e.g. splitting
+/// a stack of items, once that's implemented), but should reset both phase1
+/// accept flags to make the changes more visible.
+///
+/// Another edge case prevented by using `InvSlotId`s is that it disallows
+/// trading currently-equipped items (since `EquipSlot`s are disjoint from
+/// `InvSlotId`s), which avoids the issues associated with trading equipped bags
+/// that may still have contents.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct PendingTrade {
     /// `parties[0]` is the entity that initiated the trade, parties[1] is the
@@ -79,8 +102,7 @@ impl PendingTrade {
     /// - A party is never shown as offering more of an item than they own
     /// - Offers with a quantity of zero get removed from the trade
     /// - Modifications can only happen in phase 1
-    /// - Whenever a trade is modified, both accept flags get reset (TODO: detect or prevent
-    /// inventory swaps)
+    /// - Whenever a trade is modified, both accept flags get reset
     /// - Accept flags only get set for the current phase
     pub fn process_msg(&mut self, who: usize, msg: TradeActionMsg, inventory: &Inventory) {
         use TradeActionMsg::*;
@@ -89,13 +111,11 @@ impl PendingTrade {
                 item,
                 quantity: delta,
             } => {
-                if self.in_phase1() {
-                    if delta > 0 {
-                        let total = self.offers[who].entry(item).or_insert(0);
-                        let owned_quantity = inventory.get(item).map(|i| i.amount()).unwrap_or(0);
-                        *total = total.saturating_add(delta).min(owned_quantity);
-                        self.phase1_accepts = [false, false];
-                    }
+                if self.in_phase1() && delta > 0 {
+                    let total = self.offers[who].entry(item).or_insert(0);
+                    let owned_quantity = inventory.get(item).map(|i| i.amount()).unwrap_or(0);
+                    *total = total.saturating_add(delta).min(owned_quantity);
+                    self.phase1_accepts = [false, false];
                 }
             },
             RemoveItem {
@@ -130,6 +150,7 @@ impl PendingTrade {
 pub struct Trades {
     pub next_id: usize,
     pub trades: HashMap<usize, PendingTrade>,
+    pub entity_trades: HashMap<Uid, usize>,
 }
 
 impl Trades {
@@ -138,6 +159,8 @@ impl Trades {
         self.next_id = id.wrapping_add(1);
         self.trades
             .insert(id, PendingTrade::new(party, counterparty));
+        self.entity_trades.insert(party, id);
+        self.entity_trades.insert(counterparty, id);
         id
     }
 
@@ -168,6 +191,8 @@ impl Trades {
         if let Some(trade) = self.trades.remove(&id) {
             match trade.which_party(who) {
                 Some(i) => {
+                    self.entity_trades.remove(&trade.parties[0]);
+                    self.entity_trades.remove(&trade.parties[1]);
                     // let the other person know the trade was declined
                     to_notify = Some(trade.parties[1 - i])
                 },
@@ -185,6 +210,37 @@ impl Trades {
         }
         to_notify
     }
+
+    /// See the doc comment on `common::trade::PendingTrade` for the
+    /// significance of these checks
+    pub fn in_trade_with_property<F: FnOnce(&PendingTrade) -> bool>(
+        &self,
+        uid: &Uid,
+        f: F,
+    ) -> bool {
+        self.entity_trades
+            .get(uid)
+            .and_then(|trade_id| self.trades.get(trade_id))
+            .map(f)
+            // if any of the option lookups failed, we're not in any trade
+            .unwrap_or(false)
+    }
+
+    pub fn in_immutable_trade(&self, uid: &Uid) -> bool {
+        self.in_trade_with_property(uid, |trade| !trade.in_phase1())
+    }
+
+    pub fn in_mutable_trade(&self, uid: &Uid) -> bool {
+        self.in_trade_with_property(uid, |trade| trade.in_phase1())
+    }
+
+    pub fn implicit_mutation_occurred(&mut self, uid: &Uid) {
+        if let Some(trade_id) = self.entity_trades.get(uid) {
+            self.trades
+                .get_mut(trade_id)
+                .map(|trade| trade.phase1_accepts = [false, false]);
+        }
+    }
 }
 
 impl Default for Trades {
@@ -192,6 +248,7 @@ impl Default for Trades {
         Trades {
             next_id: 0,
             trades: HashMap::new(),
+            entity_trades: HashMap::new(),
         }
     }
 }

@@ -151,8 +151,7 @@ impl<'a> Trade<'a> {
         // Alignment for Grid
         let mut alignment = Rectangle::fill_with([200.0, 340.0], color::TRANSPARENT);
         if who % 2 == 0 {
-            alignment =
-                alignment.top_left_with_margins_on(state.ids.bg, 180.0, 46.5);
+            alignment = alignment.top_left_with_margins_on(state.ids.bg, 180.0, 46.5);
         } else {
             alignment = alignment.right_from(state.ids.inv_alignment[0], 0.0);
         }
@@ -188,14 +187,15 @@ impl<'a> Trade<'a> {
             .down_from(state.ids.inv_alignment[who], 20.0)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(20))
-            .color(Color::Rgba(1.0, 1.0, 1.0, if has_accepted { 1.0 } else { 0.0 }))
+            .color(Color::Rgba(
+                1.0,
+                1.0,
+                1.0,
+                if has_accepted { 1.0 } else { 0.0 },
+            ))
             .set(state.ids.accept_indicators[who], ui);
 
-
-        let mut invslots: Vec<_> = trade.offers[who]
-            .iter()
-            .map(|(k, v)| (k.clone(), v.clone()))
-            .collect();
+        let mut invslots: Vec<_> = trade.offers[who].iter().map(|(k, v)| (*k, *v)).collect();
         invslots.sort();
         let tradeslots: Vec<_> = invslots
             .into_iter()
@@ -222,7 +222,7 @@ impl<'a> Trade<'a> {
         ui: &mut UiCell<'_>,
         inventory: &Inventory,
         who: usize,
-        tradeslots: &Vec<TradeSlot>,
+        tradeslots: &[TradeSlot],
     ) {
         let mut slot_maker = SlotMaker {
             empty_slot: self.imgs.inv_slot,
@@ -262,7 +262,7 @@ impl<'a> Trade<'a> {
             });
             // Slot
             let slot_widget = slot_maker
-                .fabricate(slot.clone(), [40.0; 2])
+                .fabricate(slot, [40.0; 2])
                 .top_left_with_margins_on(
                     state.ids.inv_alignment[who],
                     0.0 + y as f64 * (40.0),
@@ -271,13 +271,14 @@ impl<'a> Trade<'a> {
             slot_widget.set(state.ids.inv_slots[i + who * MAX_TRADE_SLOTS], ui);
         }
     }
+
     fn phase2_itemwidget(
         &mut self,
         state: &mut ConrodState<'_, State>,
         ui: &mut UiCell<'_>,
         inventory: &Inventory,
         who: usize,
-        tradeslots: &Vec<TradeSlot>,
+        tradeslots: &[TradeSlot],
     ) {
         if state.ids.inv_textslots.len() < 2 * MAX_TRADE_SLOTS {
             state.update(|s| {
@@ -302,7 +303,12 @@ impl<'a> Trade<'a> {
                 .top_left_with_margins_on(state.ids.inv_alignment[who], 10.0 + i as f64 * 30.0, 0.0)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(20))
-                .color(Color::Rgba(1.0, 1.0, 1.0, if is_present { 1.0 } else { 0.0 }))
+                .color(Color::Rgba(
+                    1.0,
+                    1.0,
+                    1.0,
+                    if is_present { 1.0 } else { 0.0 },
+                ))
                 .set(state.ids.inv_textslots[i + who * MAX_TRADE_SLOTS], ui);
         }
     }
@@ -406,7 +412,9 @@ impl<'a> Widget for Trade<'a> {
         }
         if state.ids.accept_indicators.len() < 2 {
             state.update(|s| {
-                s.ids.accept_indicators.resize(2, &mut ui.widget_id_generator());
+                s.ids
+                    .accept_indicators
+                    .resize(2, &mut ui.widget_id_generator());
             });
         }
 

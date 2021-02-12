@@ -78,7 +78,7 @@ pub enum ServerGeneral {
     //Ingame related
     GroupUpdate(comp::group::ChangeNotification<sync::Uid>),
     /// Indicate to the client that they are invited to join a group
-    GroupInvite {
+    Invite {
         inviter: sync::Uid,
         timeout: std::time::Duration,
         kind: InviteKind,
@@ -221,7 +221,7 @@ impl ServerMsg {
                         },
                         //Ingame related
                         ServerGeneral::GroupUpdate(_)
-                        | ServerGeneral::GroupInvite { .. }
+                        | ServerGeneral::Invite { .. }
                         | ServerGeneral::InvitePending(_)
                         | ServerGeneral::InviteComplete { .. }
                         | ServerGeneral::ExitInGameSuccess

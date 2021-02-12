@@ -659,13 +659,7 @@ impl Client {
         }
     }
 
-    pub fn is_dead(&self) -> bool {
-        self.state
-            .ecs()
-            .read_storage::<comp::Health>()
-            .get(self.entity)
-            .map_or(false, |h| h.is_dead)
-    }
+    pub fn is_dead(&self) -> bool { self.current::<comp::Health>().map_or(false, |h| h.is_dead) }
 
     pub fn pick_up(&mut self, entity: EcsEntity) {
         // Get the health component from the entity
@@ -1504,7 +1498,7 @@ impl Client {
                     },
                 }
             },
-            ServerGeneral::GroupInvite {
+            ServerGeneral::Invite {
                 inviter,
                 timeout,
                 kind,

@@ -160,7 +160,7 @@ pub fn handle_invite(
     // If client comp
     if let (Some(client), Some(inviter)) = (clients.get(invitee), uids.get(inviter).copied()) {
         if send_invite() {
-            client.send_fallible(ServerGeneral::GroupInvite {
+            client.send_fallible(ServerGeneral::Invite {
                 inviter,
                 timeout: PRESENTED_INVITE_TIMEOUT_DUR,
                 kind,
