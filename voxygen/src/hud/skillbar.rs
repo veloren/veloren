@@ -590,6 +590,7 @@ impl<'a> Widget for Skillbar<'a> {
         let tool = match (active_tool.map(|x| x.hands), second_tool.map(|x| x.hands)) {
             (Some(Hands::TwoHand), _) => active_tool,
             (_, Some(Hands::OneHand)) => second_tool,
+            (Some(Hands::OneHand), _) => active_tool,
             (_, _) => None,
         };
 

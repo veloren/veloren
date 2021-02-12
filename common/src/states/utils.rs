@@ -436,37 +436,27 @@ pub fn handle_ability2_input(data: &JoinData, update: &mut StateUpdate) {
             _ => None,
         };
 
-        match (active_tool_hands, second_tool_hands) {
-            (Some(Hands::TwoHand), _) => {
-                if let Some(ability) = data
-                    .inventory
-                    .equipped(EquipSlot::Mainhand)
-                    .map(|i| &i.item_config_expect().abilities.secondary)
-                    .map(|a| {
-                        let tool = unwrap_tool_data(data).map(|t| t.kind);
-                        a.clone().adjusted_by_skills(&data.stats.skill_set, tool)
-                    })
-                    .filter(|ability| ability.requirements_paid(data, update))
-                {
-                    update.character = (&ability, AbilityKey::Mouse2).into();
-                }
-            },
-            (_, Some(Hands::OneHand)) => {
-                if let Some(ability) = data
-                    .inventory
-                    .equipped(EquipSlot::Offhand)
-                    .map(|i| &i.item_config_expect().abilities.secondary)
-                    .map(|a| {
-                        let tool = unwrap_tool_data(data).map(|t| t.kind);
-                        a.clone().adjusted_by_skills(&data.stats.skill_set, tool)
-                    })
-                    .filter(|ability| ability.requirements_paid(data, update))
-                {
-                    update.character = (&ability, AbilityKey::Mouse2).into();
-                }
-            },
-            (_, _) => {},
+        let equip_slot = match (active_tool_hands, second_tool_hands) {
+            (Some(Hands::TwoHand), _) => Some(EquipSlot::Mainhand),
+            (_, Some(Hands::OneHand)) => Some(EquipSlot::Offhand),
+            (Some(Hands::OneHand), _) => Some(EquipSlot::Mainhand),
+            (_, _) => None,
         };
+
+        if let Some(equip_slot) = equip_slot {
+            if let Some(ability) = data
+                .inventory
+                .equipped(equip_slot)
+                .map(|i| &i.item_config_expect().abilities.secondary)
+                .map(|a| {
+                    let tool = unwrap_tool_data(data).map(|t| t.kind);
+                    a.clone().adjusted_by_skills(&data.stats.skill_set, tool)
+                })
+                .filter(|ability| ability.requirements_paid(data, update))
+            {
+                update.character = (&ability, AbilityKey::Mouse2).into();
+            }
+        }
     }
 }
 
