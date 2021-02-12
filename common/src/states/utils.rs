@@ -303,7 +303,7 @@ pub fn attempt_wield(data: &JoinData, update: &mut StateUpdate) {
             timer: Duration::default(),
         });
     } else {
-        update.character = CharacterState::Idle;
+        update.character = CharacterState::Wielding;
     };
 }
 
@@ -404,14 +404,10 @@ pub fn handle_ability1_input(data: &JoinData, update: &mut StateUpdate) {
         if let Some(ability) = data
             .inventory
             .equipped(EquipSlot::Mainhand)
-            .and_then(|i| {
-                i.item_config_expect().ability1.as_ref().map(|a| {
-                    let tool = match i.kind() {
-                        ItemKind::Tool(tool) => Some(tool.kind),
-                        _ => None,
-                    };
-                    a.clone().adjusted_by_skills(&data.stats.skill_set, tool)
-                })
+            .map(|i| &i.item_config_expect().abilities.primary)
+            .map(|a| {
+                let tool = unwrap_tool_data(data).map(|t| t.kind);
+                a.clone().adjusted_by_skills(&data.stats.skill_set, tool)
             })
             .filter(|ability| ability.requirements_paid(data, update))
         {
@@ -445,14 +441,10 @@ pub fn handle_ability2_input(data: &JoinData, update: &mut StateUpdate) {
                 if let Some(ability) = data
                     .inventory
                     .equipped(EquipSlot::Mainhand)
-                    .and_then(|i| {
-                        i.item_config_expect().ability2.as_ref().map(|a| {
-                            let tool = match i.kind() {
-                                ItemKind::Tool(tool) => Some(tool.kind),
-                                _ => None,
-                            };
-                            a.clone().adjusted_by_skills(&data.stats.skill_set, tool)
-                        })
+                    .map(|i| &i.item_config_expect().abilities.secondary)
+                    .map(|a| {
+                        let tool = unwrap_tool_data(data).map(|t| t.kind);
+                        a.clone().adjusted_by_skills(&data.stats.skill_set, tool)
                     })
                     .filter(|ability| ability.requirements_paid(data, update))
                 {
@@ -463,14 +455,10 @@ pub fn handle_ability2_input(data: &JoinData, update: &mut StateUpdate) {
                 if let Some(ability) = data
                     .inventory
                     .equipped(EquipSlot::Offhand)
-                    .and_then(|i| {
-                        i.item_config_expect().ability2.as_ref().map(|a| {
-                            let tool = match i.kind() {
-                                ItemKind::Tool(tool) => Some(tool.kind),
-                                _ => None,
-                            };
-                            a.clone().adjusted_by_skills(&data.stats.skill_set, tool)
-                        })
+                    .map(|i| &i.item_config_expect().abilities.secondary)
+                    .map(|a| {
+                        let tool = unwrap_tool_data(data).map(|t| t.kind);
+                        a.clone().adjusted_by_skills(&data.stats.skill_set, tool)
                     })
                     .filter(|ability| ability.requirements_paid(data, update))
                 {
@@ -487,19 +475,14 @@ pub fn handle_ability3_input(data: &JoinData, update: &mut StateUpdate) {
         if let Some(ability) = data
             .inventory
             .equipped(EquipSlot::Mainhand)
-            .and_then(|i| {
-                let tool = match i.kind() {
-                    ItemKind::Tool(tool) => Some(tool.kind),
-                    _ => None,
-                };
-                i.item_config_expect()
-                    .ability3
-                    .as_ref()
-                    .and_then(|(s, a)| {
-                        s.map_or(true, |s| data.stats.skill_set.has_skill(s))
-                            .then_some(a)
-                    })
-                    .map(|a| a.clone().adjusted_by_skills(&data.stats.skill_set, tool))
+            .and_then(|i| i.item_config_expect().abilities.skills.get(0))
+            .and_then(|(s, a)| {
+                s.map_or(true, |s| data.stats.skill_set.has_skill(s))
+                    .then_some(a)
+            })
+            .map(|a| {
+                let tool = unwrap_tool_data(data).map(|t| t.kind);
+                a.clone().adjusted_by_skills(&data.stats.skill_set, tool)
             })
             .filter(|ability| ability.requirements_paid(data, update))
         {

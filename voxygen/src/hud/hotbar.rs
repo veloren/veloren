@@ -76,7 +76,9 @@ impl State {
         let should_be_present = if let (Some(inventory), Some(stat)) = (inventory, stat) {
             inventory.equipped(EquipSlot::Mainhand).map_or(false, |i| {
                 i.item_config_expect()
-                    .ability3
+                    .abilities
+                    .skills
+                    .get(0)
                     .as_ref()
                     .map_or(false, |(s, _)| {
                         s.map_or(true, |s| stat.skill_set.has_skill(s))
