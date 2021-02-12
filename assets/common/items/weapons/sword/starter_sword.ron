@@ -3,6 +3,7 @@ ItemDef(
     description: "Held together by Rust and hope.",
     kind: Tool((
         kind: Sword,
+        hands: TwoHand,
         stats: (
             equip_time_millis: 300,
             power: 0.5,

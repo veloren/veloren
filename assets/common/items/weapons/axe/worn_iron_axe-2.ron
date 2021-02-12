@@ -3,6 +3,7 @@ ItemDef(
     description: "There\'s nothing too remarkable about this old axe.",
     kind: Tool((
         kind: Axe,
+        hands: TwoHand,
         stats: (
             equip_time_millis: 400,
             power: 0.8,

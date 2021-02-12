@@ -3,6 +3,7 @@ ItemDef(
     description: "The resin glows.",
     kind: Tool((
         kind: Sword,
+        hands: TwoHand,
         stats: (
             equip_time_millis: 400,
             power: 0.8,

@@ -1,17 +1,16 @@
 ItemDef(
     name: "Mjolnir",
-    description: "It's crackling with lightning.",
-    kind: Tool(
-        (
-            kind: Hammer,    
-            stats: (
-                equip_time_millis: 500,
-                power: 4.00,
-                poise_strength: 2.0,
-                speed: 0.5
-            ),            
-        )
-    ),
+    description: "It\'s crackling with lightning.",
+    kind: Tool((
+        kind: Hammer,
+        hands: TwoHand,
+        stats: (
+            equip_time_millis: 500,
+            power: 4.0,
+            poise_strength: 2.0,
+            speed: 0.5,
+        ),
+    )),
     quality: Legendary,
     tags: [],
 )

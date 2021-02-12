@@ -3,6 +3,7 @@ ItemDef(
     description: "This axe is designed to mimic the playing card suit, swiftly slicing through the air.",
     kind: Tool((
         kind: Axe,
+        hands: TwoHand,
         stats: (
             equip_time_millis: 400,
             power: 1.4,

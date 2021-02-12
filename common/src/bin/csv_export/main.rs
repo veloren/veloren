@@ -193,22 +193,22 @@ fn all_items() -> Result<(), Box<dyn Error>> {
 
 fn main() {
     let args = Cli::from_args();
-    if args.function.eq_ignore_ascii_case("armor_stats") {
+    if args.function.eq_ignore_ascii_case("armor-stats") {
         if let Err(e) = armor_stats() {
             println!("Error: {}\n", e)
         }
-    } else if args.function.eq_ignore_ascii_case("weapon_stats") {
+    } else if args.function.eq_ignore_ascii_case("weapon-stats") {
         if let Err(e) = weapon_stats() {
             println!("Error: {}\n", e)
         }
-    } else if args.function.eq_ignore_ascii_case("all_items") {
+    } else if args.function.eq_ignore_ascii_case("all-items") {
         if let Err(e) = all_items() {
             println!("Error: {}\n", e)
         }
     } else {
         println!(
             "Invalid argument, available \
-             arguments:\n\"armor_stats\"\n\"weapon_stats\"\n\"all_items\""
+             arguments:\n\"armor-stats\"\n\"weapon-stats\"\n\"all-items\""
         )
     }
 }

@@ -3,19 +3,11 @@
         vox_spec: ("weapon.sword.rusty_2h", (-1.5, -6.5, -4.0)),
         color: None
     ),
-    "common.items.npc_weapons.sword.starter_sword": (
-        vox_spec: ("weapon.sword.rusty_2h", (-1.5, -6.5, -4.0)),
-        color: None
-    ),
     "common.items.weapons.sword.wood_sword": (
         vox_spec: ("weapon.sword.wood_ore_2h", (-1.5, -6.5, -4.0)),
         color: None
     ),
     "common.items.weapons.sword.zweihander_sword_0": (
-        vox_spec: ("weapon.sword.zweihander_2h-0", (-1.5, -6.5, -4.0)),
-        color: None
-    ),
-    "common.items.npc_weapons.sword.zweihander_sword_0": (
         vox_spec: ("weapon.sword.zweihander_2h-0", (-1.5, -6.5, -4.0)),
         color: None
     ),
@@ -171,18 +163,6 @@
         vox_spec: ("weapon.sword.cultist_purp_2h-0", (-2.0, -4.5, -7.5)),
         color: None
     ),
-    "common.items.npc_weapons.sword.cultist_purp_2h-0": (
-        vox_spec: ("weapon.sword.cultist_purp_2h-0", (-2.0, -4.5, -7.5)),
-        color: None
-    ),
-    "common.items.debug.cultist_purp_2h_boss-0": (
-        vox_spec: ("weapon.sword.cultist_purp_2h-0", (-2.0, -4.5, -7.5)),
-        color: None
-    ),
-    "common.items.npc_weapons.sword.cultist_purp_2h_boss-0": (
-        vox_spec: ("weapon.sword.cultist_purp_2h-0", (-2.0, -4.5, -7.5)),
-        color: None
-    ),
     "common.items.weapons.sword.frost_cleaver_2h-0": (
         vox_spec: ("weapon.sword.frost_cleaver-0", (-2.0, -4.5, -7.5)),
         color: None
@@ -192,10 +172,6 @@
         color: None
     ),
     // Axes
-    "common.items.npc_weapons.axe.starter_axe": (
-        vox_spec: ("weapon.axe.2haxe_rusty", (-1.5, -5.0, -4.0)),
-        color: None
-    ),
     "common.items.weapons.axe.starter_axe": (
         vox_spec: ("weapon.axe.2haxe_rusty", (-1.5, -5.0, -4.0)),
         color: None
@@ -316,10 +292,6 @@
         vox_spec: ("weapon.axe.2haxe_cobalt-0", (-1.5, -5.0, -5.5)),
         color: None
     ),
-    "common.items.npc_weapons.axe.malachite_axe-0": (
-        vox_spec: ("weapon.axe.2haxe_malachite-0", (-1.5, -5.0, -6.0)),
-        color: None
-    ),
     "common.items.weapons.axe.malachite_axe-0": (
         vox_spec: ("weapon.axe.2haxe_malachite-0", (-1.5, -5.0, -6.0)),
         color: None
@@ -330,10 +302,6 @@
         color: None
     ),
     "common.items.weapons.hammer.starter_hammer": (
-        vox_spec: ("weapon.hammer.2hhammer_rusty", (-2.5, -5.5, -4.5)),
-        color: None
-    ),
-    "common.items.npc_weapons.hammer.starter_hammer": (
         vox_spec: ("weapon.hammer.2hhammer_rusty", (-2.5, -5.5, -4.5)),
         color: None
     ),
@@ -469,20 +437,12 @@
         vox_spec: ("weapon.hammer.cult_purp-0", (-3.5, -4.5, -5.0)),    
         color: None
     ),
-    "common.items.npc_weapons.hammer.cultist_purp_2h-0": (
-        vox_spec: ("weapon.hammer.cult_purp-0", (-3.5, -4.5, -5.0)),    
-        color: None
-    ),
     /*"Craftsman": ( //TODO This should be a 1h hammer!
         vox_spec: ("weapon.hammer.craftsman", (-2.0, -5.0, -5.5)),
         color: None
     ),*/
     // Daggers
     "common.items.weapons.dagger.starter_dagger": (
-        vox_spec: ("weapon.dagger.dagger_rusty", (-1.5, -3.0, -3.0)),
-        color: None
-    ),
-    "common.items.npc_weapons.dagger.starter_dagger": (
         vox_spec: ("weapon.dagger.dagger_rusty", (-1.5, -3.0, -3.0)),
         color: None
     ),
@@ -496,10 +456,6 @@
     ),
     // Shields
     "common.items.weapons.shield.shield_1": (
-        vox_spec: ("weapon.shield.wood-0", (-2.5, -5.5, -5.5)),
-        color: None
-    ),
-    "common.items.npc_weapons.shield.shield_1": (
         vox_spec: ("weapon.shield.wood-0", (-2.5, -5.5, -5.5)),
         color: None
     ),
@@ -533,10 +489,6 @@
         color: None
     ),
     "common.items.weapons.bow.horn_longbow-0": (
-        vox_spec: ("weapon.bow.longbow_horn-0", (-1.5, -4.5, -17.5)),
-        color: None
-    ),
-    "common.items.npc_weapons.bow.horn_longbow-0": (
         vox_spec: ("weapon.bow.longbow_horn-0", (-1.5, -4.5, -17.5)),
         color: None
     ),
@@ -585,38 +537,6 @@
         vox_spec: ("weapon.tool.shovel_gold", (-1.0, -2.5, -4.0)),
         color: None
     ),
-    "common.items.npc_weapons.tool.broom": (
-        vox_spec: ("weapon.tool.broom-0", (-1.5, -4.0, -4.0)),
-        color: None
-    ),
-    "common.items.npc_weapons.tool.hoe": (
-        vox_spec: ("weapon.tool.hoe_green", (-2.5, -4.5, -4.0)),
-        color: None
-    ),
-    "common.items.npc_weapons.tool.pitchfork": (
-        vox_spec: ("weapon.tool.pitchfork-0", (-1.0, -3.5, -4.0)),
-        color: None
-    ),
-    "common.items.npc_weapons.tool.fishing_rod": (
-        vox_spec: ("weapon.tool.fishing_rod_blue-0", (-2.5, -4.5, -4.0)),
-        color: None
-    ),
-    "common.items.npc_weapons.tool.rake": (
-        vox_spec: ("weapon.tool.rake-0", (-1.0, -5.5, -4.0)),
-        color: None
-    ),  
-    "common.items.npc_weapons.tool.pickaxe": (
-        vox_spec: ("weapon.tool.pickaxe_green-0", (-1.5, -7.5, -4.0)),
-        color: None
-    ),
-    "common.items.npc_weapons.tool.shovel-0": (
-        vox_spec: ("weapon.tool.shovel_green", (-1.0, -2.5, -4.0)),
-        color: None
-    ),
-    "common.items.npc_weapons.tool.shovel-1": (
-        vox_spec: ("weapon.tool.shovel_gold", (-1.0, -2.5, -4.0)),
-        color: None
-    ),
     // Staves
     "common.items.weapons.staff.staff_1": (
         vox_spec: ("weapon.staff.firestaff_starter", (-1.5, -3.0, -3.0)),
@@ -630,19 +550,11 @@
         vox_spec: ("weapon.staff.firestaff_bone", (-1.5, -2.5, -3.0)),
         color: None
     ),
-    "common.items.npc_weapons.staff.bone_staff": (
-        vox_spec: ("weapon.staff.firestaff_bone", (-1.5, -2.5, -3.0)),
-        color: None
-    ),
     "common.items.weapons.staff.amethyst_staff": (
         vox_spec: ("weapon.staff.firestaff_amethyst", (-1.5, -4.0, -4.0)),
         color: None
     ),
     "common.items.weapons.staff.cultist_staff": (
-        vox_spec: ("weapon.staff.firestaff_cultist", (-2.5, -2.5, -4.0)),
-        color: None
-    ),
-    "common.items.npc_weapons.staff.cultist_staff": (
         vox_spec: ("weapon.staff.firestaff_cultist", (-2.5, -2.5, -4.0)),
         color: None
     ),
@@ -684,24 +596,16 @@
         color: None
     ),
     // Misc
-    "common.items.debug.boost": (
+    "common.items.debug.debug_stick": (
         vox_spec: ("weapon.tool.broom_belzeshrub_purple", (-3.0, -4.0, -4.0)),
         color: None
     ),
-    "common.items.debug.possess": (
-        vox_spec: ("weapon.tool.broom_belzeshrub_purple", (-3.0, -4.0, -4.0)),
-        color: None
-    ),
-    "common.items.debug.cultist_purp_2h_boss-0": (
+    "common.items.debug.admin_sword": (
         vox_spec: ("weapon.sword.frost_cleaver-1", (-2.0, -4.5, -7.5)),
         color: None
     ),
     // Misc
     "common.items.weapons.empty.empty": (
-            vox_spec: ("armor.empty", (-3.0, -3.5, 1.0)),
-            color: None
-    ),
-    "common.items.npc_weapons.empty.empty": (
             vox_spec: ("armor.empty", (-3.0, -3.5, 1.0)),
             color: None
     ),

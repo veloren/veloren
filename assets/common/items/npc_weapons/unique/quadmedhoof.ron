@@ -4,6 +4,7 @@ ItemDef(
     kind: Tool(
         (
             kind: Unique(QuadMedHoof),
+            hands: TwoHand,
             stats: (
                 equip_time_millis: 10,
                 power: 1.00,

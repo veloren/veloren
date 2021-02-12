@@ -3,6 +3,7 @@ ItemDef(
     description: "Dark rituals call for metal alloys to be formed in the blood of an animal carcass to ensure the resultant axe thirsts for future kills.",
     kind: Tool((
         kind: Axe,
+        hands: TwoHand,
         stats: (
             equip_time_millis: 400,
             power: 1.6,

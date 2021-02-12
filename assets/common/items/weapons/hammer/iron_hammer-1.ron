@@ -3,6 +3,7 @@ ItemDef(
     description: "This heavy, square iron hammer is designed for squashing heads like watermelons.",
     kind: Tool((
         kind: Hammer,
+        hands: TwoHand,
         stats: (
             equip_time_millis: 500,
             power: 1.2,

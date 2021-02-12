@@ -3,6 +3,7 @@ ItemDef(
     description: "You can sense power resting in the bow.",
     kind: Tool((
         kind: Bow,
+        hands: TwoHand,
         stats: (
             equip_time_millis: 400,
             power: 2.0,

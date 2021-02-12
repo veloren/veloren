@@ -307,7 +307,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
 
 fn main() {
     let args = Cli::from_args();
-    if args.function.eq_ignore_ascii_case("armor_stats") {
+    if args.function.eq_ignore_ascii_case("armor-stats") {
         if get_input(
             "
 -------------------------------------------------------------------------------
@@ -337,7 +337,7 @@ Would you like to continue? (y/n)
                 println!("Error: {}\n", e)
             }
         }
-    } else if args.function.eq_ignore_ascii_case("weapon_stats") {
+    } else if args.function.eq_ignore_ascii_case("weapon-stats") {
         if get_input(
             "
 -------------------------------------------------------------------------------
@@ -368,7 +368,7 @@ Would you like to continue? (y/n)
             }
         }
     } else {
-        println!("Invalid argument, available arguments:\n\"armor_stats\"\n\"weapon_stats\"\n\"")
+        println!("Invalid argument, available arguments:\n\"armor-stats\"\n\"weapon-stats\"\n\"")
     }
 }
 

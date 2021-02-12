@@ -3,6 +3,7 @@ ItemDef(
     description: "Heals your allies with the power of nature.",
     kind: Tool((
         kind: Sceptre,
+        hands: TwoHand,
         stats: (
             equip_time_millis: 400,
             power: 0.5,

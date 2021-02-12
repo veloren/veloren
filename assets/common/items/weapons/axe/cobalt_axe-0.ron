@@ -3,6 +3,7 @@ ItemDef(
     description: "The lustrous bluish gray axe provides a certain stylish class to the weapon.",
     kind: Tool((
         kind: Axe,
+        hands: TwoHand,
         stats: (
             equip_time_millis: 400,
             power: 1.8,

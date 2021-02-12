@@ -699,7 +699,7 @@ impl Floor {
                                     )
                                     .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
                                     .with_main_tool(comp::Item::new_from_asset_expect(
-                                        "common.items.npc_weapons.staff.cultist_staff",
+                                        "common.items.weapons.staff.cultist_staff",
                                     )),
                                 _ => entity
                                     .with_name("Cultist Warlord")

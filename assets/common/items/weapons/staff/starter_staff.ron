@@ -3,6 +3,7 @@ ItemDef(
     description: "Smells like resin and magic.",
     kind: Tool((
         kind: Staff,
+        hands: TwoHand,
         stats: (
             equip_time_millis: 300,
             power: 0.5,

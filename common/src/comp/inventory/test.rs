@@ -5,10 +5,9 @@ use crate::comp::{
 };
 use lazy_static::lazy_static;
 lazy_static! {
-    static ref TEST_ITEMS: Vec<Item> = vec![
-        Item::new_from_asset_expect("common.items.debug.boost"),
-        Item::new_from_asset_expect("common.items.debug.possess")
-    ];
+    static ref TEST_ITEMS: Vec<Item> = vec![Item::new_from_asset_expect(
+        "common.items.debug.debug_stick"
+    ),];
 }
 
 /// Attempting to push into a full inventory should return the same item.

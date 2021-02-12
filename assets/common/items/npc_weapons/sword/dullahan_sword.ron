@@ -4,6 +4,7 @@ ItemDef(
     kind: Tool(
         (
             kind: Sword,    
+            hands: TwoHand,
             stats: (
                 equip_time_millis: 500,
                 power: 1.00,

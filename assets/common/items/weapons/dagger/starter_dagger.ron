@@ -3,6 +3,7 @@ ItemDef(
     description: "Easily concealed.",
     kind: Tool((
         kind: Dagger,
+        hands: OneHand,
         stats: (
             equip_time_millis: 300,
             power: 1.0,

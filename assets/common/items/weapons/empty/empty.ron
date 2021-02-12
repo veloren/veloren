@@ -3,6 +3,7 @@ ItemDef(
     description: "This item may grant abilities, but is invisible",
     kind: Tool((
         kind: Empty,
+        hands: OneHand,
         stats: (
             equip_time_millis: 200,
             power: 1.0,

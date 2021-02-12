@@ -77,10 +77,6 @@
         "voxel.weapon.bow.longbow_horn-0",
         (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
     ),
-    Tool("common.items.npc_weapons.bow.horn_longbow-0"): VoxTrans(
-        "voxel.weapon.bow.longbow_horn-0",
-        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
-    ),
     Tool("common.items.weapons.bow.iron_longbow-0"): VoxTrans(
         "voxel.weapon.bow.longbow_iron-0",
         (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
@@ -95,10 +91,6 @@
     ),
     // Daggers
     Tool("common.items.weapons.dagger.starter_dagger"): VoxTrans(
-        "voxel.weapon.dagger.dagger_rusty",
-        (0.0, 0.0, -4.0), (-120.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.npc_weapons.dagger.starter_dagger"): VoxTrans(
         "voxel.weapon.dagger.dagger_rusty",
         (0.0, 0.0, -4.0), (-120.0, 90.0, 0.0), 1.1,
     ),
@@ -127,15 +119,7 @@
         "voxel.weapon.sword.rusty_2h",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.3,
     ),
-    Tool("common.items.npc_weapons.sword.starter_sword"): VoxTrans(
-        "voxel.weapon.sword.rusty_2h",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.3,
-    ),
     Tool("common.items.weapons.sword.zweihander_sword_0"): VoxTrans(
-        "voxel.weapon.sword.zweihander_2h-0",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.npc_weapons.sword.zweihander_sword_0"): VoxTrans(
         "voxel.weapon.sword.zweihander_2h-0",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
     ),
@@ -291,24 +275,12 @@
         "voxel.weapon.sword.cultist_purp_2h-0",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
     ),
-    Tool("common.items.npc_weapons.sword.cultist_purp_2h-0"): VoxTrans(
-        "voxel.weapon.sword.cultist_purp_2h-0",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
-    ),
-    Tool("common.items.debug.cultist_purp_2h_boss-0"): VoxTrans(
-        "voxel.weapon.sword.cultist_purp_2h-0",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
-    ),
-    Tool("common.items.npc_weapons.sword.cultist_purp_2h_boss-0"): VoxTrans(
-        "voxel.weapon.sword.cultist_purp_2h-0",
+    Tool("common.items.debug.admin_sword"): VoxTrans(
+        "voxel.weapon.sword.frost_cleaver-1",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
     ),
     // Axes
     Tool("common.items.weapons.axe.starter_axe"): VoxTrans(
-        "voxel.weapon.axe.2haxe_rusty",
-        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.npc_weapons.axe.starter_axe"): VoxTrans(
         "voxel.weapon.axe.2haxe_rusty",
         (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
     ),
@@ -432,20 +404,12 @@
         "voxel.weapon.axe.2haxe_malachite-0",
         (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
     ),
-    Tool("common.items.npc_weapons.axe.malachite_axe-0"): VoxTrans(
-        "voxel.weapon.axe.2haxe_malachite-0",
-        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
     // Hammers
     Tool("common.items.weapons.hammer.hammer_1"): VoxTrans(
         "voxel.weapon.hammer.2hhammer_rusty",
         (2.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
     ),
     Tool("common.items.weapons.hammer.starter_hammer"): VoxTrans(
-        "voxel.weapon.hammer.2hhammer_rusty",
-        (2.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.npc_weapons.hammer.starter_hammer"): VoxTrans(
         "voxel.weapon.hammer.2hhammer_rusty",
         (2.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
     ),
@@ -581,10 +545,6 @@
         "voxel.weapon.hammer.cult_purp-0",
         (2.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.npc_weapons.hammer.cultist_purp_2h-0"): VoxTrans(
-        "voxel.weapon.hammer.cult_purp-0",
-        (2.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
     // Staffs
     Tool("common.items.weapons.staff.staff_1"): VoxTrans(
         "voxel.weapon.staff.firestaff_starter",
@@ -598,19 +558,11 @@
         "voxel.weapon.staff.firestaff_bone",
         (1.0, 0.0, 0.0), (-130., 90.0, 0.0), 1.2,
     ),
-    Tool("common.items.npc_weapons.staff.bone_staff"): VoxTrans(
-        "voxel.weapon.staff.firestaff_bone",
-        (1.0, 0.0, 0.0), (-130., 90.0, 0.0), 1.2,
-    ),
     Tool("common.items.weapons.staff.amethyst_staff"): VoxTrans(
         "voxel.weapon.staff.firestaff_amethyst",
         (1.0, 0.0, 0.0), (-130., 90.0, 0.0), 1.2,
     ),
     Tool("common.items.weapons.staff.cultist_staff"): VoxTrans(
-        "voxel.weapon.staff.firestaff_cultist",
-        (1.0, 0.0, 0.0), (-130., 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.npc_weapons.staff.cultist_staff"): VoxTrans(
         "voxel.weapon.staff.firestaff_cultist",
         (1.0, 0.0, 0.0), (-130., 90.0, 0.0), 1.2,
     ),
@@ -653,10 +605,6 @@
     ),
     // Shields
     Tool("common.items.weapons.shield.shield_1"): VoxTrans(
-        "voxel.weapon.shield.wood-0",
-        (0.0, 0.0, 0.0), (-90.0, 90.0, 0.0), 2.4,
-    ),
-    Tool("common.items.npc_weapons.shield.shield_1"): VoxTrans(
         "voxel.weapon.shield.wood-0",
         (0.0, 0.0, 0.0), (-90.0, 90.0, 0.0), 2.4,
     ),
@@ -703,38 +651,6 @@
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
     ),
     Tool("common.items.weapons.tool.shovel-1"): VoxTrans(
-        "voxel.weapon.tool.shovel_gold",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.npc_weapons.tool.broom"): VoxTrans(
-        "voxel.weapon.tool.broom-0",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.npc_weapons.tool.hoe"): VoxTrans(
-        "voxel.weapon.tool.hoe_green",
-        (0.0, 0.0, 0.0), (130.0, 35.0, 180.0), 1.0,
-    ),
-    Tool("common.items.npc_weapons.tool.pitchfork"): VoxTrans(
-        "voxel.weapon.tool.pitchfork-0",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.npc_weapons.tool.rake"): VoxTrans(
-        "voxel.weapon.tool.rake-0",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
-    ),
-    Tool("common.items.npc_weapons.tool.fishing_rod"): VoxTrans(
-        "voxel.weapon.tool.fishing_rod_blue-0",
-        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.5,
-    ),
-    Tool("common.items.npc_weapons.tool.pickaxe"): VoxTrans(
-        "voxel.weapon.tool.pickaxe_green-0",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
-    ),
-    Tool("common.items.npc_weapons.tool.shovel-0"): VoxTrans(
-        "voxel.weapon.tool.shovel_green",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.npc_weapons.tool.shovel-1"): VoxTrans(
         "voxel.weapon.tool.shovel_gold",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
     ),
@@ -1669,11 +1585,7 @@
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
     ),
     // Debug Items
-    Tool("common.items.debug.boost"): VoxTrans(
-        "voxel.weapon.tool.broom_belzeshrub_purple",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.debug.possess"): VoxTrans(
+    Tool("common.items.debug.debug_stick"): VoxTrans(
         "voxel.weapon.tool.broom_belzeshrub_purple",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
     ),

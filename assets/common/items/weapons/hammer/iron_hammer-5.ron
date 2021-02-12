@@ -3,6 +3,7 @@ ItemDef(
     description: "A hybrid fusion of a warhammer and a polearm.",
     kind: Tool((
         kind: Hammer,
+        hands: TwoHand,
         stats: (
             equip_time_millis: 500,
             power: 1.2,

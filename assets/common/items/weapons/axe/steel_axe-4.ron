@@ -3,6 +3,7 @@ ItemDef(
     description: "The blade of this axe resembles a full moon.",
     kind: Tool((
         kind: Axe,
+        hands: TwoHand,
         stats: (
             equip_time_millis: 400,
             power: 1.4,

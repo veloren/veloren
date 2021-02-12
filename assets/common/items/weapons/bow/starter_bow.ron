@@ -3,6 +3,7 @@ ItemDef(
     description: "Someone carved their initials into it.",
     kind: Tool((
         kind: Bow,
+        hands: TwoHand,
         stats: (
             equip_time_millis: 400,
             power: 0.5,
