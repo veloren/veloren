@@ -18,6 +18,11 @@ pub struct BlocksOfInterest {
     pub flowers: Vec<Vec3<i32>>,
     pub fire_bowls: Vec<Vec3<i32>>,
     pub snow: Vec<Vec3<i32>>,
+    //This is so crickets stay in place and don't randomly change sounds
+    pub cricket1: Vec<Vec3<i32>>,
+    pub cricket2: Vec<Vec3<i32>>,
+    pub cricket3: Vec<Vec3<i32>>,
+    pub frogs: Vec<Vec3<i32>>,
     // Note: these are only needed for chunks within the iteraction range so this is a potential
     // area for optimization
     pub interactables: Vec<Vec3<i32>>,
@@ -39,6 +44,10 @@ impl BlocksOfInterest {
         let mut lights = Vec::new();
         let mut fire_bowls = Vec::new();
         let mut snow = Vec::new();
+        let mut cricket1 = Vec::new();
+        let mut cricket2 = Vec::new();
+        let mut cricket3 = Vec::new();
+        let mut frogs = Vec::new();
 
         chunk
             .vol_iter(
@@ -52,7 +61,17 @@ impl BlocksOfInterest {
             .for_each(|(pos, block)| {
                 match block.kind() {
                     BlockKind::Leaves if thread_rng().gen_range(0..16) == 0 => leaves.push(pos),
-                    BlockKind::Grass if thread_rng().gen_range(0..16) == 0 => grass.push(pos),
+                    BlockKind::Grass => {
+                        if thread_rng().gen_range(0..16) == 0 {
+                            grass.push(pos);
+                        }
+                        match thread_rng().gen_range(0..8192) {
+                            1 => cricket1.push(pos),
+                            2 => cricket2.push(pos),
+                            3 => cricket3.push(pos),
+                            _ => {},
+                        }
+                    },
                     BlockKind::Water
                         if chunk.meta().contains_river() && thread_rng().gen_range(0..16) == 0 =>
                     {
@@ -73,7 +92,12 @@ impl BlocksOfInterest {
                         },
                         Some(SpriteKind::WallSconce) => fire_bowls.push(pos + Vec3::unit_z()),
                         Some(SpriteKind::Beehive) => beehives.push(pos),
-                        Some(SpriteKind::Reed) => reeds.push(pos),
+                        Some(SpriteKind::Reed) => {
+                            reeds.push(pos);
+                            if thread_rng().gen_range(0..12) == 0 {
+                                frogs.push(pos)
+                            }
+                        },
                         Some(SpriteKind::PinkFlower) => flowers.push(pos),
                         Some(SpriteKind::PurpleFlower) => flowers.push(pos),
                         Some(SpriteKind::RedFlower) => flowers.push(pos),
@@ -104,6 +128,10 @@ impl BlocksOfInterest {
             lights,
             fire_bowls,
             snow,
+            cricket1,
+            cricket2,
+            cricket3,
+            frogs,
         }
     }
 }
