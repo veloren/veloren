@@ -28,11 +28,24 @@
             ],
             threshold: 14.0,
         ),
-        Cricket: (
+        //Crickets: -20dB
+        Cricket1: (
             files: [
                 "voxygen.audio.sfx.ambient.crickets_1",
             ],
-            threshold: 1.0,
+            threshold: 0.0,
+        ),
+        Cricket2: (
+            files: [
+                "voxygen.audio.sfx.ambient.crickets_2",
+            ],
+            threshold: 0.0,
+        ),
+        Cricket3: (
+            files: [
+                "voxygen.audio.sfx.ambient.crickets_3",
+            ],
+            threshold: 0.0,
         ),
         Frog: (
             files: [

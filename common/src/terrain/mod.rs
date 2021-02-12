@@ -59,6 +59,7 @@ pub struct TerrainChunkMeta {
     tree_density: f32,
     contains_cave: bool,
     contains_river: bool,
+    temp: f32,
 }
 
 impl TerrainChunkMeta {
@@ -69,6 +70,7 @@ impl TerrainChunkMeta {
         tree_density: f32,
         contains_cave: bool,
         contains_river: bool,
+        temp: f32,
     ) -> Self {
         Self {
             name,
@@ -77,6 +79,7 @@ impl TerrainChunkMeta {
             tree_density,
             contains_cave,
             contains_river,
+            temp,
         }
     }
 
@@ -88,6 +91,7 @@ impl TerrainChunkMeta {
             tree_density: 0.0,
             contains_cave: false,
             contains_river: false,
+            temp: 0.0,
         }
     }
 
@@ -102,6 +106,8 @@ impl TerrainChunkMeta {
     pub fn contains_cave(&self) -> bool { self.contains_cave }
 
     pub fn contains_river(&self) -> bool { self.contains_river }
+
+    pub fn temp(&self) -> f32 { self.temp }
 }
 
 // Terrain type aliases
