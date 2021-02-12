@@ -81,7 +81,7 @@
         abilities: [],
     ),
     Unique(StoneGolemFist): (
-        primary: "common.abilities.unique.stonegolemfist.basic",
+        primary: "common.abilities.unique.stonegolemfist.singlestrike",
         secondary: "common.abilities.unique.stonegolemfist.shockwave",
         abilities: [
             (None, "common.abilities.unique.stonegolemfist.spin"),

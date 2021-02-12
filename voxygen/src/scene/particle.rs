@@ -67,14 +67,14 @@ impl ParticleMgr {
                             self.particles.len() + (200.0 * power.abs()) as usize,
                             || {
                                 Particle::new_directed(
-                                    Duration::from_secs_f32(rng.gen_range(1.0, 8.0)),
+                                    Duration::from_secs_f32(rng.gen_range(1.0..8.0)),
                                     time,
                                     ParticleMode::EnergyNature,
                                     *pos,
                                     *pos + Vec3::<f32>::zero()
                                         .map(|_| rng.gen_range(-1.0..1.0))
                                         .normalized()
-                                        * rng.gen_range(1.0, radius)
+                                        * rng.gen_range(1.0..*radius),
                                 )
                             },
                         );
@@ -679,7 +679,8 @@ impl ParticleMgr {
                     for d in 0..8 * distance as i32 {
                         let arc_position = theta - radians / 2.0 + dtheta * d as f32 / 3.0;
 
-                        let diff = distance * Vec3::new(arc_position.cos(), arc_position.sin(), 0.0);
+                        let diff =
+                            distance * Vec3::new(arc_position.cos(), arc_position.sin(), 0.0);
                         let position = pos.0 + diff;
 
                         self.particles.push(Particle::new_directed(

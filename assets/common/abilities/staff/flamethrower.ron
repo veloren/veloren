@@ -1,7 +1,7 @@
 BasicBeam(
     buildup_duration: 0.25,
     recover_duration: 0.25,
-    beam_duration: 1.5,
+    beam_duration: 0.5,
     base_hps: 0,
     base_dps: 150,
     tick_rate: 3.0,

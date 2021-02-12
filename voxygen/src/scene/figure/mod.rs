@@ -3656,20 +3656,21 @@ impl FigureMgr {
                         (true, true, false) => anim::golem::RunAnimation::update_skeleton(
                             &GolemSkeleton::default(),
                             (
-                                vel.0.magnitude(),
+                                vel.0,
                                 // TODO: Update to use the quaternion.
                                 ori * anim::vek::Vec3::<f32>::unit_y(),
                                 state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                 time,
+                                state.acc_vel,
                             ),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
                         ),
                         // In air
-                        (false, _, false) => anim::golem::JumpAnimation::update_skeleton(
+                        (false, _, false) => anim::golem::RunAnimation::update_skeleton(
                             &GolemSkeleton::default(),
-                            (vel.0.magnitude(), time),
+                            (vel.0, ori, state.last_ori, time, state.acc_vel),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
@@ -3684,11 +3685,35 @@ impl FigureMgr {
                         ),
                     };
                     let target_bones = match &character {
-                        CharacterState::BasicMelee(_) => {
+                        CharacterState::ComboMelee(s) => {
+                            let stage_index = (s.stage - 1) as usize;
+                            let stage_time = s.timer.as_secs_f64();
+                            let stage_progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    stage_time
+                                        / s.static_data.stage_data[stage_index]
+                                            .base_buildup_duration
+                                            .as_secs_f64()
+                                },
+                                StageSection::Swing => {
+                                    stage_time
+                                        / s.static_data.stage_data[stage_index]
+                                            .base_swing_duration
+                                            .as_secs_f64()
+                                },
+                                StageSection::Recover => {
+                                    stage_time
+                                        / s.static_data.stage_data[stage_index]
+                                            .base_recover_duration
+                                            .as_secs_f64()
+                                },
+                                _ => 0.0,
+                            };
+
                             anim::golem::AlphaAnimation::update_skeleton(
                                 &target_base,
-                                (vel.0.magnitude(), time),
-                                state.state_time,
+                                (Some(s.stage_section), time, state.state_time),
+                                stage_progress,
                                 &mut state_animation_rate,
                                 skeleton_attr,
                             )

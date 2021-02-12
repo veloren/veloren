@@ -42,7 +42,8 @@ impl Animation for ShockwaveAnimation {
             0.0,
             s_a.upper_torso.0,
             s_a.upper_torso.1 + slower * -3.0 + breathe * 1.0,
-        ) / 8.0;
+        ) * s_a.scaler
+            / 8.0;
         next.upper_torso.orientation =
             Quaternion::rotation_z((twist * 2.0).min(PI)) * Quaternion::rotation_x(0.0);
 

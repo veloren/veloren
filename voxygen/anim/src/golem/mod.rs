@@ -1,14 +1,13 @@
 pub mod alpha;
 pub mod idle;
-pub mod jump;
 pub mod run;
 pub mod shockwave;
 pub mod spinmelee;
 
 // Reexports
 pub use self::{
-    alpha::AlphaAnimation, idle::IdleAnimation, jump::JumpAnimation, run::RunAnimation,
-    shockwave::ShockwaveAnimation, spinmelee::SpinMeleeAnimation,
+    alpha::AlphaAnimation, idle::IdleAnimation, run::RunAnimation, shockwave::ShockwaveAnimation,
+    spinmelee::SpinMeleeAnimation,
 };
 
 use super::{make_bone, vek::*, FigureBoneData, Skeleton};
@@ -82,6 +81,8 @@ pub struct SkeletonAttr {
     hand: (f32, f32, f32),
     leg: (f32, f32, f32),
     foot: (f32, f32, f32),
+    scaler: f32,
+    tempo: f32,
 }
 
 impl<'a> std::convert::TryFrom<&'a comp::Body> for SkeletonAttr {
@@ -106,6 +107,8 @@ impl Default for SkeletonAttr {
             hand: (0.0, 0.0, 0.0),
             leg: (0.0, 0.0, 0.0),
             foot: (0.0, 0.0, 0.0),
+            scaler: 0.0,
+            tempo: 0.0,
         }
     }
 }
@@ -145,6 +148,14 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             foot: match (body.species, body.body_type) {
                 (StoneGolem, _) => (3.5, 0.5, -9.5),
                 (Treant, _) => (3.5, -5.0, -8.5),
+            },
+            scaler: match (body.species, body.body_type) {
+                (StoneGolem, _) => 1.8,
+                (Treant, _) => 1.8,
+            },
+            tempo: match (body.species, body.body_type) {
+                (StoneGolem, _) => 1.0,
+                (Treant, _) => 1.0,
             },
         }
     }
