@@ -1,7 +1,4 @@
-use crate::{
-    comp::inventory::slot::InvSlotId,
-    uid::Uid,
-};
+use crate::{comp::inventory::slot::InvSlotId, uid::Uid};
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use tracing::warn;
@@ -11,8 +8,8 @@ use tracing::warn;
 /// accepting on behalf of)
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum TradeActionMsg {
-    AddItem { item: InvSlotId, quantity: usize },
-    RemoveItem { item: InvSlotId, quantity: usize },
+    AddItem { item: InvSlotId, quantity: u32 },
+    RemoveItem { item: InvSlotId, quantity: u32 },
     Phase1Accept,
     Phase2Accept,
     Decline,
@@ -28,7 +25,7 @@ pub struct PendingTrade {
     pub parties: [Uid; 2],
     /// `offers[i]` represents the items and quantities of the party i's items
     /// being offered
-    pub offers: [HashMap<InvSlotId, usize>; 2],
+    pub offers: [HashMap<InvSlotId, u32>; 2],
     /// phase1_accepts indicate that the parties wish to proceed to review
     pub phase1_accepts: [bool; 2],
     /// phase2_accepts indicate that the parties have reviewed the trade and

@@ -1144,6 +1144,10 @@ impl PlayState for SessionState {
 
                         info!("Event! -> ChangedHotbarState")
                     },
+                    HudEvent::TradeAction(msg) => {
+                        let mut client = self.client.borrow_mut();
+                        client.trade_action(msg);
+                    },
                     HudEvent::Ability3(state) => self.inputs.ability3.set_state(state),
                     HudEvent::ChangeFOV(new_fov) => {
                         global_state.settings.graphics.fov = new_fov;

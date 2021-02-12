@@ -1,19 +1,12 @@
-use crate::{
-    Server,
-    comp::inventory::slot::InvSlotId,
-    events::group_manip::handle_invite,
-};
+use crate::{comp::inventory::slot::InvSlotId, events::group_manip::handle_invite, Server};
 use common::{
-    comp::{
-        group::InviteKind,
-    },
-    trade::{Trades, TradeActionMsg, PendingTrade},
+    comp::group::InviteKind,
+    trade::{PendingTrade, TradeActionMsg, Trades},
     uid::Uid,
 };
 use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
 use specs::{world::WorldExt, Entity as EcsEntity};
 use tracing::warn;
-
 
 pub fn handle_initiate_trade(server: &mut Server, interactor: EcsEntity, counterparty: EcsEntity) {
     if let Some(uid) = server.state_mut().ecs().uid_from_entity(counterparty) {
@@ -23,7 +16,12 @@ pub fn handle_initiate_trade(server: &mut Server, interactor: EcsEntity, counter
     }
 }
 
-pub fn handle_process_trade_action(server: &mut Server, entity: EcsEntity, trade_id: usize, msg: TradeActionMsg) {
+pub fn handle_process_trade_action(
+    server: &mut Server,
+    entity: EcsEntity,
+    trade_id: usize,
+    msg: TradeActionMsg,
+) {
     if let Some(uid) = server.state.ecs().uid_from_entity(entity) {
         let mut trades = server.state.ecs().write_resource::<Trades>();
         if let TradeActionMsg::Decline = msg {
@@ -36,6 +34,16 @@ pub fn handle_process_trade_action(server: &mut Server, entity: EcsEntity, trade
             if let Some(trade) = trades.trades.get(&trade_id) {
                 if trade.should_commit() {
                     // TODO: inventory manip
+                } else {
+                    // send the updated state to both parties
+                    for party in trade.parties.iter() {
+                        server.state.ecs().entity_from_uid(party.0).map(|e| {
+                            server.notify_client(
+                                e,
+                                ServerGeneral::UpdatePendingTrade(trade_id, trade.clone()),
+                            )
+                        });
+                    }
                 }
             }
         }

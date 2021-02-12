@@ -2,10 +2,7 @@ use specs::{world::WorldExt, Entity as EcsEntity};
 use tracing::{error, warn};
 
 use common::{
-    comp::{
-        self, agent::AgentEvent, group::InviteKind, inventory::slot::EquipSlot, item, slot::Slot,
-        Inventory, Pos,
-    },
+    comp::{self, agent::AgentEvent, inventory::slot::EquipSlot, item, slot::Slot, Inventory, Pos},
     consts::MAX_MOUNT_RANGE,
     uid::Uid,
 };
@@ -13,7 +10,6 @@ use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
 
 use crate::{
     client::Client,
-    events::group_manip::handle_invite,
     presence::{Presence, RegionSubscription},
     Server,
 };

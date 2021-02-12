@@ -2,12 +2,12 @@ use super::{
     cr_color,
     img_ids::{Imgs, ImgsRot},
     item_imgs::ItemImgs,
-    slots::{InventorySlot, SlotManager},
+    slots::{InventorySlot, SlotManager, TradeSlot},
     util::loadout_slot_text,
     Show, CRITICAL_HP_COLOR, LOW_HP_COLOR, QUALITY_COMMON, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
 };
 use crate::{
-    hud::get_quality_col,
+    hud::{get_quality_col, slots::SlotKind},
     i18n::Localization,
     ui::{
         fonts::Fonts,
@@ -16,12 +16,15 @@ use crate::{
     },
 };
 use client::Client;
-use common::comp::item::Quality;
+use common::{comp::item::Quality, trade::PendingTrade};
+use common_net::sync::WorldSyncExt;
 use conrod_core::{
     color,
-    widget::{self, Button, Image, Rectangle, Scrollbar, Text},
-    widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget::{self, Button, Image, Rectangle, Scrollbar, State as ConrodState, Text},
+    widget_ids, Color, Colorable, Positionable, Sizeable, UiCell, Widget, WidgetCommon,
 };
+use inline_tweak::tweak;
+use vek::*;
 
 pub struct State {
     ids: Ids,
@@ -38,6 +41,10 @@ widget_ids! {
         bg_frame,
         trade_title_bg,
         trade_title,
+        inv_alignment[],
+        inv_slots[],
+        offer_headers[],
+        phase_indicator,
     }
 }
 
@@ -83,6 +90,160 @@ impl<'a> Trade<'a> {
     }
 }
 
+impl<'a> Trade<'a> {
+    fn background(&mut self, state: &mut ConrodState<'_, State>, ui: &mut UiCell<'_>) {
+        Image::new(self.imgs.inv_bg_bag)
+            .w_h(tweak!(424.0), 708.0)
+            .middle()
+            .color(Some(UI_MAIN))
+            .set(state.ids.bg, ui);
+        Image::new(self.imgs.inv_frame_bag)
+            .w_h(tweak!(424.0), 708.0)
+            .middle_of(state.ids.bg)
+            .color(Some(UI_HIGHLIGHT_0))
+            .set(state.ids.bg_frame, ui);
+    }
+
+    fn title(&mut self, state: &mut ConrodState<'_, State>, ui: &mut UiCell<'_>) {
+        Text::new(&self.localized_strings.get("hud.trade.trade_window"))
+            .mid_top_with_margin_on(state.ids.bg_frame, 9.0)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(20))
+            .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
+            .set(state.ids.trade_title_bg, ui);
+        Text::new(&self.localized_strings.get("hud.trade.trade_window"))
+            .top_left_with_margins_on(state.ids.trade_title_bg, 2.0, 2.0)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(20))
+            .color(TEXT_COLOR)
+            .set(state.ids.trade_title, ui);
+    }
+
+    fn phase_indicator(
+        &mut self,
+        state: &mut ConrodState<'_, State>,
+        ui: &mut UiCell<'_>,
+        trade: &'a PendingTrade,
+    ) {
+        let phase_text = if trade.in_phase1() {
+            self.localized_strings.get("hud.trade.phase1_description")
+        } else if trade.in_phase2() {
+            self.localized_strings.get("hud.trade.phase2_description")
+        } else {
+            self.localized_strings.get("hud.trade.phase3_description")
+        };
+
+        Text::new(&phase_text)
+            .mid_top_with_margin_on(state.ids.bg, 70.0)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(20))
+            .color(Color::Rgba(1.0, 1.0, 1.0, 1.0))
+            .set(state.ids.phase_indicator, ui);
+    }
+
+    fn item_pane(
+        &mut self,
+        state: &mut ConrodState<'_, State>,
+        ui: &mut UiCell<'_>,
+        trade: &'a PendingTrade,
+        who: usize,
+    ) -> <Self as Widget>::Event {
+        let inventories = self.client.inventories();
+        let uid = trade.parties[who];
+        let entity = self.client.state().ecs().entity_from_uid(uid.0)?;
+        let inventory = inventories.get(entity)?;
+
+        let mut slot_maker = SlotMaker {
+            empty_slot: self.imgs.inv_slot,
+            filled_slot: self.imgs.inv_slot,
+            selected_slot: self.imgs.inv_slot_sel,
+            background_color: Some(UI_MAIN),
+            content_size: ContentSize {
+                width_height_ratio: 1.0,
+                max_fraction: 0.75,
+            },
+            selected_content_scale: 1.067,
+            amount_font: self.fonts.cyri.conrod_id,
+            amount_margins: Vec2::new(-4.0, 0.0),
+            amount_font_size: self.fonts.cyri.scale(12),
+            amount_text_color: TEXT_COLOR,
+            content_source: inventory,
+            image_source: self.item_imgs,
+            slot_manager: Some(self.slot_manager),
+        };
+        // Alignment for Grid
+        let mut alignment = Rectangle::fill_with([200.0, 600.0], color::TRANSPARENT);
+        if who % 2 == 0 {
+            alignment =
+                alignment.top_left_with_margins_on(state.ids.bg, tweak!(160.0), tweak!(46.5));
+        } else {
+            alignment = alignment.right_from(state.ids.inv_alignment[0], 0.0);
+        }
+        alignment
+            .scroll_kids_vertically()
+            .set(state.ids.inv_alignment[who], ui);
+
+        Text::new(&format!("Player {}'s offer", who))
+            .up_from(state.ids.inv_alignment[who], 20.0)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(20))
+            .color(Color::Rgba(1.0, 1.0, 1.0, 1.0))
+            .set(state.ids.offer_headers[who], ui);
+
+        const MAX_TRADE_SLOTS: usize = 16;
+        if state.ids.inv_slots.len() < 2 * MAX_TRADE_SLOTS {
+            state.update(|s| {
+                s.ids
+                    .inv_slots
+                    .resize(2 * MAX_TRADE_SLOTS, &mut ui.widget_id_generator());
+            });
+        }
+
+        let mut invslots: Vec<_> = trade.offers[who].iter().map(|(k, v)| (k.clone(), v.clone())).collect();
+        invslots.sort();
+        let tradeslots: Vec<_> = invslots.into_iter().enumerate().map(|(index, (k, quantity))| TradeSlot { index, quantity, invslot: Some(k) }).collect();
+
+        for i in 0..MAX_TRADE_SLOTS {
+            let x = i % 4;
+            let y = i / 4;
+
+            let slot = tradeslots.get(i).cloned().unwrap_or(TradeSlot { index: i, quantity: 0, invslot: None, });
+            // Slot
+            let mut slot_widget = slot_maker
+                .fabricate(
+                    slot.clone(),
+                    [40.0; 2],
+                )
+                .top_left_with_margins_on(
+                    state.ids.inv_alignment[who],
+                    0.0 + y as f64 * (40.0),
+                    0.0 + x as f64 * (40.0),
+                );
+            slot_widget.set(state.ids.inv_slots[i + who * MAX_TRADE_SLOTS], ui);
+        }
+        None
+    }
+
+    fn close_button(
+        &mut self,
+        state: &mut ConrodState<'_, State>,
+        ui: &mut UiCell<'_>,
+    ) -> <Self as Widget>::Event {
+        if Button::image(self.imgs.close_btn)
+            .w_h(tweak!(24.0), 25.0)
+            .hover_image(self.imgs.close_btn_hover)
+            .press_image(self.imgs.close_btn_press)
+            .top_right_with_margins_on(state.ids.bg, 0.0, 0.0)
+            .set(state.ids.trade_close, ui)
+            .was_clicked()
+        {
+            Some(Event::Close)
+        } else {
+            None
+        }
+    }
+}
+
 impl<'a> Widget for Trade<'a> {
     type Event = Option<Event>;
     type State = State;
@@ -96,16 +257,25 @@ impl<'a> Widget for Trade<'a> {
 
     fn style(&self) -> Self::Style {}
 
-    fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
-        let widget::UpdateArgs { state, ui, .. } = args;
+    fn update(mut self, args: widget::UpdateArgs<Self>) -> Self::Event {
+        let widget::UpdateArgs { mut state, ui, .. } = args;
 
         let mut event = None;
-
-        let inventories = self.client.inventories();
-        let inventory = match inventories.get(self.client.entity()) {
-            Some(l) => l,
-            None => return None,
+        let trade = match self.client.pending_trade() {
+            Some((_, trade)) => trade,
+            None => return Some(Event::Close),
         };
+
+        if state.ids.inv_alignment.len() < 2 {
+            state.update(|s| {
+                s.ids.inv_alignment.resize(2, &mut ui.widget_id_generator());
+            });
+        }
+        if state.ids.offer_headers.len() < 2 {
+            state.update(|s| {
+                s.ids.offer_headers.resize(2, &mut ui.widget_id_generator());
+            });
+        }
 
         let trade_tooltip = Tooltip::new({
             // Edge images [t, b, r, l]
@@ -125,41 +295,14 @@ impl<'a> Widget for Trade<'a> {
         .font_id(self.fonts.cyri.conrod_id)
         .desc_text_color(TEXT_COLOR);
 
-        // BG
-        Image::new(self.imgs.inv_bg_bag)
-            .w_h(424.0, 708.0)
-            .middle()
-            .color(Some(UI_MAIN))
-            .set(state.ids.bg, ui);
-        Image::new(self.imgs.inv_frame_bag)
-            .w_h(424.0, 708.0)
-            .middle_of(state.ids.bg)
-            .color(Some(UI_HIGHLIGHT_0))
-            .set(state.ids.bg_frame, ui);
-        // Title
-        Text::new(&self.localized_strings.get("hud.trade.trade_window"))
-            .mid_top_with_margin_on(state.ids.bg_frame, 9.0)
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(20))
-            .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
-            .set(state.ids.trade_title_bg, ui);
-        Text::new(&self.localized_strings.get("hud.trade.trade_window"))
-            .top_left_with_margins_on(state.ids.trade_title_bg, 2.0, 2.0)
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(20))
-            .color(TEXT_COLOR)
-            .set(state.ids.trade_title, ui);
+        self.background(&mut state, ui);
+        self.title(&mut state, ui);
+        self.phase_indicator(&mut state, ui, &trade);
+
+        event = self.item_pane(&mut state, ui, &trade, 0).or(event);
+        event = self.item_pane(&mut state, ui, &trade, 1).or(event);
         // Close button
-        if Button::image(self.imgs.close_btn)
-            .w_h(24.0, 25.0)
-            .hover_image(self.imgs.close_btn_hover)
-            .press_image(self.imgs.close_btn_press)
-            .top_right_with_margins_on(state.ids.bg, 0.0, 0.0)
-            .set(state.ids.trade_close, ui)
-            .was_clicked()
-        {
-            event = Some(Event::Close);
-        }
+        event = self.close_button(&mut state, ui).or(event);
 
         event
     }

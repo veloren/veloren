@@ -4,6 +4,10 @@
 (
     string_map: {
         "hud.trade.trade_window": "Trade window",
+	"hud.trade.phase1_description": "Drag the items you want to trade into your area.",
+	"hud.trade.phase2_description": "The trade is now locked to give you time to review it.",
+	/// Phase3 should only be visible for a few milliseconds if everything is working properly, but is included for completeness
+	"hud.trade.phase3_description": "Trade is finalized.",
     },
 
 

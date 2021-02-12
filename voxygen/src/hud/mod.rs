@@ -44,6 +44,7 @@ use prompt_dialog::PromptDialog;
 use serde::{Deserialize, Serialize};
 use settings_window::{SettingsTab, SettingsWindow};
 use skillbar::Skillbar;
+use slots::{InventorySlot, TradeSlot};
 use social::{Social, SocialTab};
 use trade::Trade;
 
@@ -54,7 +55,7 @@ use crate::{
     render::{Consts, Globals, RenderMode, Renderer},
     scene::camera::{self, Camera},
     settings::Fps,
-    ui::{fonts::Fonts, img_ids::Rotations, slot, Graphic, Ingameable, ScaleMode, Ui},
+    ui::{fonts::Fonts, img_ids::Rotations, slot, slot::SlotKey, Graphic, Ingameable, ScaleMode, Ui},
     window::{Event as WinEvent, FullScreenSettings, GameInput},
     GlobalState,
 };
@@ -71,6 +72,7 @@ use common::{
     outcome::Outcome,
     span,
     terrain::TerrainChunk,
+    trade::TradeActionMsg,
     uid::Uid,
     util::srgba_to_linear,
     vol::RectRasterableVol,
@@ -397,6 +399,7 @@ pub enum Event {
     DropSlot(comp::slot::Slot),
     DeclineTrade,
     ChangeHotbarState(Box<HotbarState>),
+    TradeAction(TradeActionMsg),
     Ability3(bool),
     Logout,
     Quit,
@@ -876,7 +879,9 @@ impl Hud {
             let entities = ecs.entities();
             let me = client.entity();
 
-            if (client.pending_trade().is_some() && !self.show.trade) || (client.pending_trade().is_none() && self.show.trade) {
+            if (client.pending_trade().is_some() && !self.show.trade)
+                || (client.pending_trade().is_none() && self.show.trade)
+            {
                 self.show.toggle_trade();
             }
 
@@ -2610,6 +2615,7 @@ impl Hud {
                 Inventory(i) => Some(Slot::Inventory(i.0)),
                 Equip(e) => Some(Slot::Equip(e)),
                 Hotbar(_) => None,
+                Trade(_) => None,
             };
             match event {
                 slot::Event::Dragged(a, b) => {
@@ -2626,6 +2632,22 @@ impl Hud {
                     } else if let (Hotbar(a), Hotbar(b)) = (a, b) {
                         self.hotbar.swap(a, b);
                         events.push(Event::ChangeHotbarState(Box::new(self.hotbar.to_owned())));
+                    } else if let (Inventory(i), Trade(_)) = (a, b) {
+                        if let Some(inventory) = inventories.get(entity) {
+                            events.push(Event::TradeAction(TradeActionMsg::AddItem {
+                                item: i.0,
+                                quantity: i.amount(inventory).unwrap_or(0),
+                            }));
+                        }
+                    } else if let (Trade(t), Inventory(_)) = (a, b) {
+                        if let Some(inventory) = inventories.get(entity) {
+                            if let Some(invslot) = t.invslot {
+                                events.push(Event::TradeAction(TradeActionMsg::RemoveItem {
+                                    item: invslot,
+                                    quantity: t.amount(inventory).unwrap_or(0),
+                                }));
+                            }
+                        }
                     }
                 },
                 slot::Event::Dropped(from) => {
