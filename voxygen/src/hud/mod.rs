@@ -44,7 +44,6 @@ use prompt_dialog::PromptDialog;
 use serde::{Deserialize, Serialize};
 use settings_window::{SettingsTab, SettingsWindow};
 use skillbar::Skillbar;
-use slots::{InventorySlot, TradeSlot};
 use social::{Social, SocialTab};
 use trade::Trade;
 
@@ -55,7 +54,9 @@ use crate::{
     render::{Consts, Globals, RenderMode, Renderer},
     scene::camera::{self, Camera},
     settings::Fps,
-    ui::{fonts::Fonts, img_ids::Rotations, slot, slot::SlotKey, Graphic, Ingameable, ScaleMode, Ui},
+    ui::{
+        fonts::Fonts, img_ids::Rotations, slot, slot::SlotKey, Graphic, Ingameable, ScaleMode, Ui,
+    },
     window::{Event as WinEvent, FullScreenSettings, GameInput},
     GlobalState,
 };
@@ -397,7 +398,6 @@ pub enum Event {
         bypass_dialog: bool,
     },
     DropSlot(comp::slot::Slot),
-    DeclineTrade,
     ChangeHotbarState(Box<HotbarState>),
     TradeAction(TradeActionMsg),
     Ability3(bool),
@@ -2125,24 +2125,24 @@ impl Hud {
                 &self.imgs,
                 &self.item_imgs,
                 &self.fonts,
-                &self.rot_imgs,
                 tooltip_manager,
                 &mut self.slot_manager,
                 i18n,
-                &self.show,
             )
             .set(self.ids.trade, ui_widgets)
             {
-                Some(trade::Event::Close) => {
-                    self.show.stats = false;
-                    self.show.trade(false);
-                    events.push(Event::DeclineTrade);
-                    if !self.show.social {
-                        self.show.want_grab = true;
-                        self.force_ungrab = false;
-                    } else {
-                        self.force_ungrab = true
-                    };
+                Some(msg) => {
+                    if let TradeActionMsg::Decline = msg {
+                        self.show.stats = false;
+                        self.show.trade(false);
+                        if !self.show.social {
+                            self.show.want_grab = true;
+                            self.force_ungrab = false;
+                        } else {
+                            self.force_ungrab = true
+                        };
+                    }
+                    events.push(Event::TradeAction(msg));
                 },
                 None => {},
             }
@@ -2636,7 +2636,7 @@ impl Hud {
                         if let Some(inventory) = inventories.get(entity) {
                             events.push(Event::TradeAction(TradeActionMsg::AddItem {
                                 item: i.0,
-                                quantity: i.amount(inventory).unwrap_or(0),
+                                quantity: i.amount(inventory).unwrap_or(1),
                             }));
                         }
                     } else if let (Trade(t), Inventory(_)) = (a, b) {
@@ -2644,7 +2644,7 @@ impl Hud {
                             if let Some(invslot) = t.invslot {
                                 events.push(Event::TradeAction(TradeActionMsg::RemoveItem {
                                     item: invslot,
-                                    quantity: t.amount(inventory).unwrap_or(0),
+                                    quantity: t.amount(inventory).unwrap_or(1),
                                 }));
                             }
                         }

@@ -648,16 +648,10 @@ impl Client {
 
     pub fn trade_action(&mut self, msg: TradeActionMsg) {
         if let Some((id, _)) = self.pending_trade {
+            if let TradeActionMsg::Decline = msg {
+                self.pending_trade.take();
+            }
             self.send_msg(ClientGeneral::UpdatePendingTrade(id, msg));
-        }
-    }
-
-    pub fn decline_trade(&mut self) {
-        if let Some((id, _)) = self.pending_trade.take() {
-            self.send_msg(ClientGeneral::UpdatePendingTrade(
-                id,
-                TradeActionMsg::Decline,
-            ));
         }
     }
 

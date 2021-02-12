@@ -1117,10 +1117,6 @@ impl PlayState for SessionState {
                             client.disable_lantern();
                         }
                     },
-                    HudEvent::DeclineTrade => {
-                        let mut client = self.client.borrow_mut();
-                        client.decline_trade();
-                    },
                     HudEvent::ChangeHotbarState(state) => {
                         let client = self.client.borrow();
 

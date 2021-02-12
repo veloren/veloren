@@ -1,6 +1,9 @@
-use crate::{comp::inventory::slot::InvSlotId, events::group_manip::handle_invite, Server};
+use crate::{events::group_manip::handle_invite, Server};
 use common::{
-    comp::group::InviteKind,
+    comp::{
+        group::InviteKind,
+        inventory::{Inventory, slot::InvSlotId},
+    },
     trade::{PendingTrade, TradeActionMsg, Trades},
     uid::Uid,
 };
@@ -30,20 +33,21 @@ pub fn handle_process_trade_action(
                 .and_then(|u| server.state.ecs().entity_from_uid(u.0))
                 .map(|e| server.notify_client(e, ServerGeneral::DeclinedTrade));
         } else {
-            trades.process_trade_action(trade_id, uid, msg);
+            if let Some(inv) = server.state.ecs().read_component::<Inventory>().get(entity) {
+                trades.process_trade_action(trade_id, uid, msg, inv);
+            }
             if let Some(trade) = trades.trades.get(&trade_id) {
                 if trade.should_commit() {
                     // TODO: inventory manip
-                } else {
-                    // send the updated state to both parties
-                    for party in trade.parties.iter() {
-                        server.state.ecs().entity_from_uid(party.0).map(|e| {
-                            server.notify_client(
-                                e,
-                                ServerGeneral::UpdatePendingTrade(trade_id, trade.clone()),
-                            )
-                        });
-                    }
+                }
+                // send the updated state to both parties
+                for party in trade.parties.iter() {
+                    server.state.ecs().entity_from_uid(party.0).map(|e| {
+                        server.notify_client(
+                            e,
+                            ServerGeneral::UpdatePendingTrade(trade_id, trade.clone()),
+                        )
+                    });
                 }
             }
         }

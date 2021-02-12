@@ -222,7 +222,7 @@ impl<'a> Widget for Group<'a> {
                 .crop_kids()
                 .set(state.ids.bg, ui);
         }
-        if let Some((_, timeout_start, timeout_dur, kind)) = open_invite {
+        if let Some((_, timeout_start, timeout_dur, _)) = open_invite {
             // Group Menu button
             Button::image(self.imgs.group_icon)
                 .w_h(49.0, 26.0)

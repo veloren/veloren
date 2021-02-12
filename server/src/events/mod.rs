@@ -2,7 +2,6 @@ use crate::{state_ext::StateExt, Server};
 use common::{
     event::{EventBus, ServerEvent},
     span,
-    trade::{TradeActionMsg, Trades},
 };
 use entity_creation::{
     handle_beam, handle_create_npc, handle_create_waypoint, handle_initialize_character,

@@ -1,4 +1,7 @@
-use crate::{comp::inventory::slot::InvSlotId, uid::Uid};
+use crate::{
+    comp::inventory::{slot::InvSlotId, Inventory},
+    uid::Uid,
+};
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use tracing::warn;
@@ -65,19 +68,41 @@ impl PendingTrade {
             .map(|(i, _)| i)
     }
 
-    pub fn process_msg(&mut self, who: usize, msg: TradeActionMsg) {
+    /// Invariants:
+    /// - A party is never shown as offering more of an item than they own
+    /// - Offers with a quantity of zero get removed from the trade
+    /// - Modifications can only happen in phase 1
+    /// - Whenever a trade is modified, both accept flags get reset (TODO: detect or prevent
+    /// inventory swaps)
+    /// - Accept flags only get set for the current phase
+    pub fn process_msg(&mut self, who: usize, msg: TradeActionMsg, inventory: &Inventory) {
         use TradeActionMsg::*;
         match msg {
-            AddItem { item, quantity } => {
+            AddItem {
+                item,
+                quantity: delta,
+            } => {
                 if self.in_phase1() {
-                    let total = self.offers[who].entry(item).or_insert(0);
-                    *total = total.saturating_add(quantity);
+                    if delta > 0 {
+                        let total = self.offers[who].entry(item).or_insert(0);
+                        let owned_quantity = inventory.get(item).map(|i| i.amount()).unwrap_or(0);
+                        *total = total.saturating_add(delta).min(owned_quantity);
+                        self.phase1_accepts = [false, false];
+                    }
                 }
             },
-            RemoveItem { item, quantity } => {
+            RemoveItem {
+                item,
+                quantity: delta,
+            } => {
                 if self.in_phase1() {
-                    let total = self.offers[who].entry(item).or_insert(0);
-                    *total = total.saturating_sub(quantity);
+                    self.offers[who]
+                        .entry(item)
+                        .and_replace_entry_with(|_, mut total| {
+                            total = total.saturating_sub(delta);
+                            if total > 0 { Some(total) } else { None }
+                        });
+                    self.phase1_accepts = [false, false];
                 }
             },
             Phase1Accept => {
@@ -109,10 +134,16 @@ impl Trades {
         id
     }
 
-    pub fn process_trade_action(&mut self, id: usize, who: Uid, msg: TradeActionMsg) {
+    pub fn process_trade_action(
+        &mut self,
+        id: usize,
+        who: Uid,
+        msg: TradeActionMsg,
+        inventory: &Inventory,
+    ) {
         if let Some(trade) = self.trades.get_mut(&id) {
             if let Some(party) = trade.which_party(who) {
-                trade.process_msg(party, msg);
+                trade.process_msg(party, msg, inventory);
             } else {
                 warn!(
                     "An entity who is not a party to trade {} tried to modify it",

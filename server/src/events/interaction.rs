@@ -1,5 +1,5 @@
 use specs::{world::WorldExt, Entity as EcsEntity};
-use tracing::{error, warn};
+use tracing::error;
 
 use common::{
     comp::{self, agent::AgentEvent, inventory::slot::EquipSlot, item, slot::Slot, Inventory, Pos},
