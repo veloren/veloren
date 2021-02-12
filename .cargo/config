@@ -4,7 +4,8 @@ rustflags = [
 ]
 
 [alias]
-generate = "run --package tools --"
+csv-export = "run --manifest-path common/Cargo.toml --features=bin_csv --bin csv_export"
+csv-import = "run --manifest-path common/Cargo.toml --features=bin_csv --bin csv_import"
 test-server = "-Zpackage-features run --bin veloren-server-cli --no-default-features -- -b"
 tracy-server = "-Zunstable-options -Zpackage-features run --bin veloren-server-cli --no-default-features --features tracy,simd --profile no_overflow"
 test-voxygen = "-Zpackage-features run --bin veloren-voxygen --no-default-features --features gl,simd"

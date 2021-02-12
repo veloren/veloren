@@ -171,7 +171,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                         {
                             let kind = tool.kind;
                             let equip_time_millis: u32 = record
-                                .get(7)
+                                .get(8)
                                 .expect(&format!(
                                     "Error unwrapping equip time for {:?}",
                                     item.item_definition_id()
@@ -179,7 +179,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                                 .parse()
                                 .expect(&format!("Not a u32? {:?}", item.item_definition_id()));
                             let power: f32 = record
-                                .get(4)
+                                .get(5)
                                 .expect(&format!(
                                     "Error unwrapping power for {:?}",
                                     item.item_definition_id()
@@ -187,7 +187,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                                 .parse()
                                 .expect(&format!("Not a f32? {:?}", item.item_definition_id()));
                             let poise_strength: f32 = record
-                                .get(5)
+                                .get(6)
                                 .expect(&format!(
                                     "Error unwrapping poise power for {:?}",
                                     item.item_definition_id()
@@ -196,7 +196,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                                 .expect(&format!("Not a f32? {:?}", item.item_definition_id()));
 
                             let speed: f32 = record
-                                .get(6)
+                                .get(7)
                                 .expect(&format!(
                                     "Error unwrapping speed for {:?}",
                                     item.item_definition_id()
@@ -204,15 +204,40 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                                 .parse()
                                 .expect(&format!("Not a f32? {:?}", item.item_definition_id()));
 
+                            let hands = if let Some(hands_raw) = record.get(3) {
+                                match hands_raw {
+                                    "OneHand" | "One" | "1" | "1h" => {
+                                        comp::item::tool::Hands::OneHand
+                                    },
+                                    "TwoHand" | "Two" | "2" | "2h" => {
+                                        comp::item::tool::Hands::TwoHand
+                                    },
+                                    _ => {
+                                        eprintln!(
+                                            "Unknown hand variant for {:?}",
+                                            item.item_definition_id()
+                                        );
+                                        comp::item::tool::Hands::TwoHand
+                                    },
+                                }
+                            } else {
+                                eprintln!(
+                                    "Could not unwrap hand for {:?}",
+                                    item.item_definition_id()
+                                );
+                                comp::item::tool::Hands::TwoHand
+                            };
+
                             let tool = comp::item::tool::Tool::new(
                                 kind,
+                                hands,
                                 equip_time_millis,
                                 power,
                                 poise_strength,
                                 speed,
                             );
 
-                            let quality = if let Some(quality_raw) = record.get(3) {
+                            let quality = if let Some(quality_raw) = record.get(4) {
                                 match quality_raw {
                                     "Low" => comp::item::Quality::Low,
                                     "Common" => comp::item::Quality::Common,
@@ -238,7 +263,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                                 comp::item::Quality::Debug
                             };
 
-                            let description = record.get(8).expect(&format!(
+                            let description = record.get(9).expect(&format!(
                                 "Error unwrapping description for {:?}",
                                 item.item_definition_id()
                             ));

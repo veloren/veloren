@@ -27,31 +27,13 @@ pub enum ToolKind {
     Empty,
 }
 
-impl ToolKind {
-    pub fn hands(&self) -> Hands {
-        match self {
-            ToolKind::Sword => Hands::TwoHand,
-            ToolKind::Axe => Hands::TwoHand,
-            ToolKind::Hammer => Hands::TwoHand,
-            ToolKind::Bow => Hands::TwoHand,
-            ToolKind::Dagger => Hands::OneHand,
-            ToolKind::Staff => Hands::TwoHand,
-            ToolKind::Sceptre => Hands::TwoHand,
-            ToolKind::Shield => Hands::OneHand,
-            ToolKind::Unique(_) => Hands::TwoHand,
-            ToolKind::Debug => Hands::TwoHand,
-            ToolKind::Farming => Hands::TwoHand,
-            ToolKind::Empty => Hands::OneHand,
-        }
-    }
-}
-
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum Hands {
     OneHand,
     TwoHand,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct Stats {
     equip_time_millis: u32,
     power: f32,
@@ -59,9 +41,10 @@ pub struct Stats {
     speed: f32,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Tool {
     pub kind: ToolKind,
+    pub hands: Hands,
     pub stats: Stats,
     // TODO: item specific abilities
 }
@@ -71,6 +54,7 @@ impl Tool {
     // Added for CSV import of stats
     pub fn new(
         kind: ToolKind,
+        hands: Hands,
         equip_time_millis: u32,
         power: f32,
         poise_strength: f32,
@@ -78,6 +62,7 @@ impl Tool {
     ) -> Self {
         Self {
             kind,
+            hands,
             stats: Stats {
                 equip_time_millis,
                 power,
@@ -90,6 +75,7 @@ impl Tool {
     pub fn empty() -> Self {
         Self {
             kind: ToolKind::Empty,
+            hands: Hands::OneHand,
             stats: Stats {
                 equip_time_millis: 0,
                 power: 1.00,

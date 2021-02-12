@@ -10,6 +10,7 @@ pub struct RunAnimation;
 type RunAnimationDependency = (
     Option<ToolKind>,
     Option<ToolKind>,
+    (Option<Hands>, Option<Hands>),
     Vec3<f32>,
     Vec3<f32>,
     Vec3<f32>,
@@ -32,6 +33,7 @@ impl Animation for RunAnimation {
         (
             active_tool_kind,
             second_tool_kind,
+            hands,
             velocity,
             orientation,
             last_ori,
@@ -263,10 +265,7 @@ impl Animation for RunAnimation {
         next.torso.position = Vec3::new(0.0, 0.0, 0.0) * s_a.scaler;
         next.torso.scale = Vec3::one() / 11.0 * s_a.scaler;
 
-        next.second.scale = match (
-            active_tool_kind.map(|tk| tk.hands()),
-            second_tool_kind.map(|tk| tk.hands()),
-        ) {
+        next.second.scale = match hands {
             (Some(Hands::OneHand), Some(Hands::OneHand)) => Vec3::one(),
             (_, _) => Vec3::zero(),
         };

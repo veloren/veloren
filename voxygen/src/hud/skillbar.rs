@@ -587,10 +587,7 @@ impl<'a> Widget for Skillbar<'a> {
         let active_tool = get_tool(self.inventory, EquipSlot::Mainhand);
         let second_tool = get_tool(self.inventory, EquipSlot::Offhand);
 
-        let tool = match (
-            active_tool.map(|x| x.kind.hands()),
-            second_tool.map(|x| x.kind.hands()),
-        ) {
+        let tool = match (active_tool.map(|x| x.hands), second_tool.map(|x| x.hands)) {
             (Some(Hands::TwoHand), _) => active_tool,
             (_, Some(Hands::OneHand)) => second_tool,
             (_, _) => None,

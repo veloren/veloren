@@ -8,7 +8,13 @@ use std::{f32::consts::PI, ops::Mul};
 pub struct IdleAnimation;
 
 impl Animation for IdleAnimation {
-    type Dependency = (Option<ToolKind>, Option<ToolKind>, f64);
+    #[allow(clippy::type_complexity)]
+    type Dependency = (
+        Option<ToolKind>,
+        Option<ToolKind>,
+        (Option<Hands>, Option<Hands>),
+        f64,
+    );
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -17,7 +23,7 @@ impl Animation for IdleAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_idle")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, second_tool_kind, global_time): Self::Dependency,
+        (active_tool_kind, second_tool_kind, hands, global_time): Self::Dependency,
         anim_time: f64,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -137,10 +143,7 @@ impl Animation for IdleAnimation {
 
         next.torso.position = Vec3::new(0.0, 0.0, 0.0) * s_a.scaler;
 
-        next.second.scale = match (
-            active_tool_kind.map(|tk| tk.hands()),
-            second_tool_kind.map(|tk| tk.hands()),
-        ) {
+        next.second.scale = match hands {
             (Some(Hands::OneHand), Some(Hands::OneHand)) => Vec3::one(),
             (_, _) => Vec3::zero(),
         };

@@ -71,6 +71,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
         "Path",
         "Kind",
         "Name",
+        "Hands",
         "Quality",
         "Power",
         "Poise Strength",
@@ -89,11 +90,13 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                 let speed = tool.base_speed().to_string();
                 let equip_time = tool.equip_time().subsec_millis().to_string();
                 let kind = get_tool_kind(&tool.kind);
+                let hands = get_tool_hands(&tool);
 
                 wtr.write_record(&[
                     item.item_definition_id(),
                     &kind,
                     item.name(),
+                    &hands,
                     &format!("{:?}", item.quality()),
                     &power,
                     &poise_strength,
@@ -124,6 +127,13 @@ fn get_tool_kind(kind: &ToolKind) -> String {
         ToolKind::Farming => "Farming".to_string(),
         ToolKind::Unique(_) => "Unique".to_string(),
         ToolKind::Empty => "Empty".to_string(),
+    }
+}
+
+fn get_tool_hands(tool: &Tool) -> String {
+    match tool.hands {
+        Hands::OneHand => "OneHand".to_string(),
+        Hands::TwoHand => "TwoHand".to_string(),
     }
 }
 

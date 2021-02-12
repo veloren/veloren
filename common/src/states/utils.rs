@@ -424,28 +424,25 @@ pub fn handle_ability1_input(data: &JoinData, update: &mut StateUpdate) {
 
 pub fn handle_ability2_input(data: &JoinData, update: &mut StateUpdate) {
     if data.inputs.secondary.is_pressed() {
-        let active_tool_kind = match data
+        let active_tool_hands = match data
             .inventory
             .equipped(EquipSlot::Mainhand)
             .map(|i| i.kind())
         {
-            Some(ItemKind::Tool(Tool { kind, .. })) => Some(kind),
+            Some(ItemKind::Tool(tool)) => Some(tool.hands),
             _ => None,
         };
 
-        let second_tool_kind = match data
+        let second_tool_hands = match data
             .inventory
             .equipped(EquipSlot::Offhand)
             .map(|i| i.kind())
         {
-            Some(ItemKind::Tool(Tool { kind, .. })) => Some(kind),
+            Some(ItemKind::Tool(tool)) => Some(tool.hands),
             _ => None,
         };
 
-        match (
-            active_tool_kind.map(|tk| tk.hands()),
-            second_tool_kind.map(|tk| tk.hands()),
-        ) {
+        match (active_tool_hands, second_tool_hands) {
             (Some(Hands::TwoHand), _) => {
                 if let Some(ability) = data
                     .inventory

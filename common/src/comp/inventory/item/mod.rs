@@ -99,7 +99,7 @@ impl ItemTag {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ItemKind {
     /// Something wieldable
     Tool(tool::Tool),
