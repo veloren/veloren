@@ -3,14 +3,17 @@ mod tile;
 
 use self::{
     plot::{Plot, PlotKind},
-    tile::TileGrid,
+    tile::{TileGrid, Tile, TileKind, TILE_SIZE},
 };
 use crate::{
     site::SpawnRules,
     util::Grid,
     Canvas,
 };
-use common::store::{Id, Store};
+use common::{
+    terrain::{Block, BlockKind, SpriteKind},
+    store::{Id, Store},
+};
 use rand::prelude::*;
 use vek::*;
 
@@ -52,24 +55,62 @@ impl Site {
     pub fn generate(rng: &mut impl Rng) -> Self {
         let mut site = Site::default();
 
-        for i in 0..10 {
+        for i in 0..100 {
             let dir = Vec2::<f32>::zero()
                 .map(|_| rng.gen_range(-1.0..1.0))
                 .normalized();
-            let search_pos = (dir * 32.0).map(|e| e as i32);
+            let search_pos = (dir * rng.gen_range(0.0f32..1.0).powf(2.0) * 24.0).map(|e| e as i32);
 
             site.tiles
-                .find_near(search_pos, |tile| tile.is_empty())
-                .map(|center| {
-                    // TODO
+                .find_near(search_pos, |_, tile| tile.is_empty())
+                .and_then(|center| site.tiles.grow_aabr(center, 6..16, Extent2::new(2, 2)).ok())
+                .map(|aabr| {
+                    let tile = match i % 2 {
+                        0 => TileKind::Farmland { seed: i },
+                        _ => TileKind::Building { levels: 1 + i % 3 },
+                    };
+
+                    for x in 0..aabr.size().w {
+                        for y in 0..aabr.size().h {
+                            let pos = aabr.min + Vec2::new(x, y);
+                            site.tiles.set(pos, Tile::free(tile.clone()));
+                        }
+                    }
                 });
         }
 
         site
     }
 
+    pub fn wpos_tile(&self, wpos2d: Vec2<i32>) -> &Tile {
+        self.tiles.get((wpos2d - self.origin).map(|e| e.div_euclid(TILE_SIZE as i32)))
+    }
+
     pub fn render(&self, canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
-        // TODO
+        canvas.foreach_col(|canvas, wpos2d, col| {
+            match self.wpos_tile(wpos2d).kind {
+                TileKind::Farmland { seed } => (-4..5).for_each(|z| canvas.map(
+                    Vec3::new(wpos2d.x, wpos2d.y, col.alt as i32 + z),
+                    |b| if [
+                        BlockKind::Grass,
+                        BlockKind::Earth,
+                        BlockKind::Sand,
+                        BlockKind::Snow,
+                        BlockKind::Rock,
+                    ]
+                    .contains(&b.kind()) {
+                        Block::new(BlockKind::Earth, Rgb::new(40, 5 + (seed % 32) as u8, 0))
+                    } else {
+                        b.with_sprite(SpriteKind::Empty)
+                    },
+                )),
+                TileKind::Building { levels } => (-4..7 * levels as i32).for_each(|z| canvas.set(
+                    Vec3::new(wpos2d.x, wpos2d.y, col.alt as i32 + z),
+                    Block::new(BlockKind::Wood, Rgb::new(180, 150, 120))
+                )),
+                _ => {},
+            }
+        });
     }
 }
 

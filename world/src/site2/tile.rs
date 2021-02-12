@@ -1,5 +1,6 @@
 use super::*;
 use common::spiral::Spiral2d;
+use std::ops::Range;
 
 pub const TILE_SIZE: u32 = 7;
 pub const ZONE_SIZE: u32 = 16;
@@ -25,7 +26,7 @@ impl TileGrid {
 
         let tpos = tpos + TILE_RADIUS as i32;
         self.zones
-            .get(tpos)
+            .get(tpos.map(|e| e.div_euclid(ZONE_SIZE as i32)))
             .and_then(|zone| {
                 zone.as_ref()?
                     .get(tpos.map(|e| e.rem_euclid(ZONE_SIZE as i32)))
@@ -36,9 +37,9 @@ impl TileGrid {
 
     pub fn get_mut(&mut self, tpos: Vec2<i32>) -> Option<&mut Tile> {
         let tpos = tpos + TILE_RADIUS as i32;
-        self.zones.get_mut(tpos).and_then(|zone| {
+        self.zones.get_mut(tpos.map(|e| e.div_euclid(ZONE_SIZE as i32))).and_then(|zone| {
             zone.get_or_insert_with(|| {
-                Grid::populate_from(Vec2::broadcast(ZONE_RADIUS as i32 * 2 + 1), |_| None)
+                Grid::populate_from(Vec2::broadcast(ZONE_SIZE as i32), |_| None)
             })
             .get_mut(tpos.map(|e| e.rem_euclid(ZONE_SIZE as i32)))
             .map(|tile| tile.get_or_insert_with(|| Tile::empty()))
@@ -49,29 +50,80 @@ impl TileGrid {
         self.get_mut(tpos).map(|t| std::mem::replace(t, tile))
     }
 
-    pub fn find_near(&self, tpos: Vec2<i32>, f: impl Fn(&Tile) -> bool) -> Option<Vec2<i32>> {
+    pub fn find_near(&self, tpos: Vec2<i32>, f: impl Fn(Vec2<i32>, &Tile) -> bool) -> Option<Vec2<i32>> {
         const MAX_SEARCH_RADIUS_BLOCKS: u32 = 256;
-        const MAX_SEARCH_CELLS: u32 = ((MAX_SEARCH_RADIUS_BLOCKS / TILE_SIZE) * 2).pow(2);
-        Spiral2d::new().take(MAX_SEARCH_CELLS as usize).map(|r| tpos + r).find(|tpos| (&f)(self.get(*tpos)))
+        const MAX_SEARCH_CELLS: u32 = ((MAX_SEARCH_RADIUS_BLOCKS / TILE_SIZE) * 2 + 1).pow(2);
+        Spiral2d::new().take(MAX_SEARCH_CELLS as usize).map(|r| tpos + r).find(|tpos| (&f)(*tpos, self.get(*tpos)))
+    }
+
+    pub fn grow_aabr(&self, center: Vec2<i32>, area_range: Range<u32>, min_dims: Extent2<u32>) -> Result<Aabr<i32>, Aabr<i32>> {
+        let mut aabr = Aabr::new_empty(center);
+
+        let mut last_growth = 0;
+        for i in 0.. {
+            if i - last_growth >= 4 {
+                break;
+            } else if aabr.size().product() + if i % 2 == 0 { aabr.size().h } else { aabr.size().w } > area_range.end as i32 {
+                break;
+            } else {
+                match i % 4 {
+                    0 if (aabr.min.y..aabr.max.y).all(|y| self.get(Vec2::new(aabr.max.x + 1, y)).is_empty()) => {
+                        aabr.max.x += 1;
+                        last_growth = i;
+                    },
+                    1 if (aabr.min.x..aabr.max.x).all(|x| self.get(Vec2::new(x, aabr.max.y + 1)).is_empty()) => {
+                        aabr.max.y += 1;
+                        last_growth = i;
+                    },
+                    2 if (aabr.min.y..aabr.max.y).all(|y| self.get(Vec2::new(aabr.min.x - 1, y)).is_empty()) => {
+                        aabr.min.x -= 1;
+                        last_growth = i;
+                    },
+                    3 if (aabr.min.x..aabr.max.x).all(|x| self.get(Vec2::new(x, aabr.min.y - 1)).is_empty()) => {
+                        aabr.min.y -= 1;
+                        last_growth = i;
+                    },
+                    _ => {},
+                }
+            }
+        }
+
+        if aabr.size().product() as u32 >= area_range.start
+            && aabr.size().w as u32 >= min_dims.w
+            && aabr.size().h as u32 >= min_dims.h
+        {
+            Ok(aabr)
+        } else {
+            Err(aabr)
+        }
     }
 }
 
-#[derive(PartialEq)]
+#[derive(Clone, PartialEq)]
 pub enum TileKind {
     Empty,
-    Farmland,
+    Farmland { seed: u32 },
     Building { levels: u32 },
 }
 
+#[derive(Clone)]
 pub struct Tile {
-    kind: TileKind,
-    plot: Option<Id<Plot>>,
+    pub(crate) kind: TileKind,
+    pub(crate) plot: Option<Id<Plot>>,
 }
 
 impl Tile {
     pub const fn empty() -> Self {
         Self {
             kind: TileKind::Empty,
+            plot: None,
+        }
+    }
+
+    /// Create a tile that is not associated with any plot.
+    pub const fn free(kind: TileKind) -> Self {
+        Self {
+            kind,
             plot: None,
         }
     }
