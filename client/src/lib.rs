@@ -32,7 +32,7 @@ use common::{
     recipe::RecipeBook,
     span,
     terrain::{block::Block, neighbors, BiomeKind, SitesKind, TerrainChunk, TerrainChunkSize},
-    trade::{PendingTrade, TradeActionMsg},
+    trade::{PendingTrade, TradeActionMsg, TradeResult},
     uid::{Uid, UidAllocator},
     vol::RectVolSize,
 };
@@ -74,6 +74,10 @@ pub enum Event {
         target: Uid,
         answer: InviteAnswer,
         kind: InviteKind,
+    },
+    TradeComplete {
+        result: TradeResult,
+        trade: PendingTrade,
     },
     Disconnect,
     DisconnectionNotification(u64),
@@ -1578,8 +1582,10 @@ impl Client {
                 tracing::info!("UpdatePendingTrade {:?} {:?}", id, trade);
                 self.pending_trade = Some((id, trade));
             },
-            ServerGeneral::DeclinedTrade => {
-                self.pending_trade = None;
+            ServerGeneral::FinishedTrade(result) => {
+                if let Some((_, trade)) = self.pending_trade.take() {
+                    frontend_events.push(Event::TradeComplete { result, trade })
+                }
             },
             _ => unreachable!("Not a in_game message"),
         }

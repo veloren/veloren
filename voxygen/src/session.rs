@@ -16,6 +16,7 @@ use common::{
     outcome::Outcome,
     span,
     terrain::{Block, BlockKind},
+    trade::TradeResult,
     util::{
         find_dist::{Cube, Cylinder, FindDist},
         Dir,
@@ -143,6 +144,15 @@ impl SessionState {
                         InviteAnswer::TimedOut => "timed out",
                     };
                     let msg = format!("{} invite to {} {}", kind_str, target_name, answer_str);
+                    self.hud.new_message(ChatType::Meta.chat_msg(msg));
+                },
+                client::Event::TradeComplete { result, trade: _ } => {
+                    // TODO: i18n, entity names
+                    let msg = match result {
+                        TradeResult::Completed => "Trade completed successfully.",
+                        TradeResult::Declined => "Trade declined.",
+                        TradeResult::NotEnoughSpace => "Not enough space to complete the trade.",
+                    };
                     self.hud.new_message(ChatType::Meta.chat_msg(msg));
                 },
                 client::Event::InventoryUpdated(inv_event) => {

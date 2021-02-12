@@ -4,7 +4,7 @@ use crate::{
 };
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
-use tracing::warn;
+use tracing::{warn, trace};
 
 /// Clients submit `TradeActionMsg` to the server, which adds the Uid of the
 /// player out-of-band (i.e. without trusting the client to say who it's
@@ -16,6 +16,13 @@ pub enum TradeActionMsg {
     Phase1Accept,
     Phase2Accept,
     Decline,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum TradeResult {
+    Completed,
+    Declined,
+    NotEnoughSpace,
 }
 
 /// Items are not removed from the inventory during a PendingTrade: all the
@@ -141,6 +148,7 @@ impl Trades {
         msg: TradeActionMsg,
         inventory: &Inventory,
     ) {
+        trace!("for trade id {}, message {:?}", id, msg);
         if let Some(trade) = self.trades.get_mut(&id) {
             if let Some(party) = trade.which_party(who) {
                 trade.process_msg(party, msg, inventory);
