@@ -8,6 +8,7 @@ use crate::{
     assets::{self, AssetExt, Error},
     comp::{
         inventory::{item::tool::AbilityMap, InvSlot},
+        skills::Skill,
         Body, CharacterAbility,
     },
     effect::Effect,
@@ -187,7 +188,7 @@ impl PartialEq for ItemDef {
 pub struct ItemConfig {
     pub ability1: Option<CharacterAbility>,
     pub ability2: Option<CharacterAbility>,
-    pub ability3: Option<CharacterAbility>,
+    pub ability3: Option<(Option<Skill>, CharacterAbility)>,
     pub block_ability: Option<CharacterAbility>,
     pub dodge_ability: Option<CharacterAbility>,
 }

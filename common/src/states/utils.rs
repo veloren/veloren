@@ -1,10 +1,8 @@
 use crate::{
     comp::{
         inventory::slot::EquipSlot,
-        item::{Hands, ItemKind, Tool, ToolKind},
-        quadruped_low, quadruped_medium,
-        skills::{AxeSkill, BowSkill, HammerSkill, Skill, StaffSkill, SwordSkill},
-        theropod, Body, CharacterState, LoadoutManip, StateUpdate,
+        item::{Hands, ItemKind, Tool},
+        quadruped_low, quadruped_medium, theropod, Body, CharacterState, LoadoutManip, StateUpdate,
     },
     consts::{FRIC_GROUND, GRAVITY},
     event::{LocalEvent, ServerEvent},
@@ -497,49 +495,9 @@ pub fn handle_ability3_input(data: &JoinData, update: &mut StateUpdate) {
                 i.item_config_expect()
                     .ability3
                     .as_ref()
-                    .and_then(|s| match tool {
-                        // TODO: Make this so abilities aren't hardcoded to ability3
-                        Some(ToolKind::Sword)
-                            if !&data
-                                .stats
-                                .skill_set
-                                .has_skill(Skill::Sword(SwordSkill::UnlockSpin)) =>
-                        {
-                            None
-                        },
-                        Some(ToolKind::Axe)
-                            if !&data
-                                .stats
-                                .skill_set
-                                .has_skill(Skill::Axe(AxeSkill::UnlockLeap)) =>
-                        {
-                            None
-                        },
-                        Some(ToolKind::Hammer)
-                            if !&data
-                                .stats
-                                .skill_set
-                                .has_skill(Skill::Hammer(HammerSkill::UnlockLeap)) =>
-                        {
-                            None
-                        },
-                        Some(ToolKind::Bow)
-                            if !&data
-                                .stats
-                                .skill_set
-                                .has_skill(Skill::Bow(BowSkill::UnlockRepeater)) =>
-                        {
-                            None
-                        },
-                        Some(ToolKind::Staff)
-                            if !&data
-                                .stats
-                                .skill_set
-                                .has_skill(Skill::Staff(StaffSkill::UnlockShockwave)) =>
-                        {
-                            None
-                        },
-                        _ => Some(s),
+                    .and_then(|(s, a)| {
+                        s.map_or(true, |s| data.stats.skill_set.has_skill(s))
+                            .then_some(a)
                     })
                     .map(|a| a.clone().adjusted_by_skills(&data.stats.skill_set, tool))
             })

@@ -136,7 +136,7 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
                         (
                             i,
                             if let Some(skill) = tool.get_abilities(ability_map).skills.get(0) {
-                                if energy.current() >= skill.get_energy_cost() {
+                                if energy.current() >= skill.1.get_energy_cost() {
                                     Some(Color::Rgba(1.0, 1.0, 1.0, 1.0))
                                 } else {
                                     Some(Color::Rgba(0.3, 0.3, 0.3, 0.8))

@@ -3,7 +3,7 @@
 
 use crate::{
     assets::{self, Asset},
-    comp::CharacterAbility,
+    comp::{skills::Skill, CharacterAbility},
 };
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
@@ -113,7 +113,7 @@ impl Tool {
 pub struct AbilitySet<T> {
     pub primary: T,
     pub secondary: T,
-    pub skills: Vec<T>,
+    pub skills: Vec<(Option<Skill>, T)>,
 }
 
 impl AbilitySet<CharacterAbility> {
@@ -133,7 +133,7 @@ impl<T> AbilitySet<T> {
         AbilitySet {
             primary: f(self.primary),
             secondary: f(self.secondary),
-            skills: self.skills.into_iter().map(|x| f(x)).collect(),
+            skills: self.skills.into_iter().map(|(s, x)| (s, f(x))).collect(),
         }
     }
 
@@ -141,7 +141,7 @@ impl<T> AbilitySet<T> {
         AbilitySet {
             primary: f(&self.primary),
             secondary: f(&self.secondary),
-            skills: self.skills.iter().map(|x| f(x)).collect(),
+            skills: self.skills.iter().map(|(s, x)| (*s, f(x))).collect(),
         }
     }
 }

@@ -5,35 +5,35 @@
         primary: "common.abilities.sword.triplestrike",
         secondary: "common.abilities.sword.dash",
         skills: [
-            "common.abilities.sword.spin",
+            (Some(Sword(UnlockSpin)), "common.abilities.sword.spin"),
         ],
     ),
     Axe: (
         primary: "common.abilities.axe.doublestrike",
         secondary: "common.abilities.axe.spin",
         skills: [
-            "common.abilities.axe.leap",
+            (Some(Axe(UnlockLeap)), "common.abilities.axe.leap"),
         ],
     ),
     Hammer: (
         primary: "common.abilities.hammer.singlestrike",
         secondary: "common.abilities.hammer.charged",
         skills: [
-            "common.abilities.hammer.leap",
+            (Some(Hammer(UnlockLeap)), "common.abilities.hammer.leap"),
         ],
     ),
     Bow: (
         primary: "common.abilities.bow.basic",
         secondary: "common.abilities.bow.charged",
         skills: [
-            "common.abilities.bow.repeater",
+            (Some(Bow(UnlockRepeater)), "common.abilities.bow.repeater"),
         ],
     ),
     Staff: (
         primary: "common.abilities.staff.firebomb",
         secondary: "common.abilities.staff.flamethrower",
         skills: [
-            "common.abilities.staff.fireshockwave",
+            (Some(Staff(UnlockShockwave)), "common.abilities.staff.fireshockwave"),
         ],
     ),
     Sceptre: (
@@ -55,7 +55,7 @@
         primary: "common.abilities.unique.stonegolemfist.basic",
         secondary: "common.abilities.unique.stonegolemfist.shockwave",
         skills: [
-            "common.abilities.unique.stonegolemfist.spin",
+            (None, "common.abilities.unique.stonegolemfist.spin"),
         ],
     ),
     Unique(BeastClaws): (
@@ -72,7 +72,7 @@
         primary: "common.abilities.unique.quadmedjump.leap",
         secondary: "common.abilities.unique.quadmedjump.doublestrike",
         skills: [
-            "common.abilities.unique.quadmedjump.quickleap"
+            (None, "common.abilities.unique.quadmedjump.quickleap"),
         ],
     ),
     Unique(QuadMedCharge): (
@@ -99,7 +99,7 @@
         primary: "common.abilities.unique.quadlowbreathe.flamethrower",
         secondary: "common.abilities.unique.quadlowbreathe.triplestrike",
         skills: [
-            "common.abilities.unique.quadlowbreathe.dash",
+            (None, "common.abilities.unique.quadlowbreathe.dash"),
         ],
     ),
     Unique(QuadLowTail): (
@@ -136,7 +136,7 @@
         primary: "common.abilities.debug.forwardboost",
         secondary: "common.abilities.debug.upboost",
         skills: [
-            "common.abilities.debug.possess",
+            (None, "common.abilities.debug.possess"),
         ],
     ),
     Farming: (

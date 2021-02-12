@@ -74,44 +74,14 @@ impl State {
         let stats = client.state().ecs().read_storage::<common::comp::Stats>();
         let stat = stats.get(client.entity());
         let should_be_present = if let (Some(inventory), Some(stat)) = (inventory, stat) {
-            inventory
-                .equipped(EquipSlot::Mainhand)
-                .map(|i| i.kind())
-                .filter(|kind| {
-                    use common::comp::{
-                        item::{
-                            tool::{ToolKind, UniqueKind},
-                            ItemKind,
-                        },
-                        skills::{self, Skill},
-                    };
-                    if let ItemKind::Tool(tool) = kind {
-                        match tool.kind {
-                            ToolKind::Sword => stat
-                                .skill_set
-                                .has_skill(Skill::Sword(skills::SwordSkill::UnlockSpin)),
-                            ToolKind::Axe => stat
-                                .skill_set
-                                .has_skill(Skill::Axe(skills::AxeSkill::UnlockLeap)),
-                            ToolKind::Hammer => stat
-                                .skill_set
-                                .has_skill(Skill::Hammer(skills::HammerSkill::UnlockLeap)),
-                            ToolKind::Bow => stat
-                                .skill_set
-                                .has_skill(Skill::Bow(skills::BowSkill::UnlockRepeater)),
-                            ToolKind::Staff => stat
-                                .skill_set
-                                .has_skill(Skill::Staff(skills::StaffSkill::UnlockShockwave)),
-                            ToolKind::Debug
-                            | ToolKind::Unique(UniqueKind::QuadMedQuick)
-                            | ToolKind::Unique(UniqueKind::QuadLowBreathe) => true,
-                            _ => false,
-                        }
-                    } else {
-                        false
-                    }
-                })
-                .is_some()
+            inventory.equipped(EquipSlot::Mainhand).map_or(false, |i| {
+                i.item_config_expect()
+                    .ability3
+                    .as_ref()
+                    .map_or(false, |(s, _)| {
+                        s.map_or(true, |s| stat.skill_set.has_skill(s))
+                    })
+            })
         } else {
             false
         };
