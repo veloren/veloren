@@ -41,7 +41,12 @@ pub fn snuff_lantern(storage: &mut WriteStorage<comp::LightEmitter>, entity: Ecs
 pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::SlotManip) {
     let state = server.state_mut();
 
-    if let Some(uid) = state.ecs().uid_from_entity(entity) {
+    let uid = state
+        .ecs()
+        .uid_from_entity(entity)
+        .expect("Couldn't get uid for entity");
+
+    {
         let trades = state.ecs().read_resource::<Trades>();
         if trades.in_immutable_trade(&uid) {
             // manipulating the inventory can mutate the trade
@@ -579,12 +584,10 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Slo
         new_entity.build();
     }
 
-    if let Some(uid) = state.ecs().uid_from_entity(entity) {
-        let mut trades = state.ecs().write_resource::<Trades>();
-        if trades.in_mutable_trade(&uid) {
-            // manipulating the inventory mutated the trade, so reset the accept flags
-            trades.implicit_mutation_occurred(&uid);
-        }
+    let mut trades = state.ecs().write_resource::<Trades>();
+    if trades.in_mutable_trade(&uid) {
+        // manipulating the inventory mutated the trade, so reset the accept flags
+        trades.implicit_mutation_occurred(&uid);
     }
 }
 

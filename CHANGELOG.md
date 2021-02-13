@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Snow particles
 - Basic NPC interaction
 - Lights in dungeons
+- Trading system (bound to the `R` key by default, currently only works with players)
 
 ### Changed
 

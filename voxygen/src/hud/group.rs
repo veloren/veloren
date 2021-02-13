@@ -16,10 +16,7 @@ use crate::{
 use client::{self, Client};
 use common::{
     combat,
-    comp::{
-        group::{InviteKind, Role},
-        BuffKind, Stats,
-    },
+    comp::{group::Role, invite::InviteKind, BuffKind, Stats},
     uid::{Uid, UidAllocator},
 };
 use common_net::sync::WorldSyncExt;
@@ -208,7 +205,7 @@ impl<'a> Widget for Group<'a> {
                 .unwrap_or_else(|| format!("Npc<{}>", uid)),
         };
 
-        let open_invite = self.client.group_invite();
+        let open_invite = self.client.invite();
 
         let my_uid = self.client.uid();
 

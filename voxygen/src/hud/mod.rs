@@ -73,7 +73,7 @@ use common::{
     outcome::Outcome,
     span,
     terrain::TerrainChunk,
-    trade::TradeActionMsg,
+    trade::TradeAction,
     uid::Uid,
     util::srgba_to_linear,
     vol::RectRasterableVol,
@@ -399,7 +399,7 @@ pub enum Event {
     },
     DropSlot(comp::slot::Slot),
     ChangeHotbarState(Box<HotbarState>),
-    TradeAction(TradeActionMsg),
+    TradeAction(TradeAction),
     Ability3(bool),
     Logout,
     Quit,
@@ -2131,8 +2131,8 @@ impl Hud {
             )
             .set(self.ids.trade, ui_widgets)
             {
-                Some(msg) => {
-                    if let TradeActionMsg::Decline = msg {
+                Some(action) => {
+                    if let TradeAction::Decline = action {
                         self.show.stats = false;
                         self.show.trade(false);
                         if !self.show.social {
@@ -2142,7 +2142,7 @@ impl Hud {
                             self.force_ungrab = true
                         };
                     }
-                    events.push(Event::TradeAction(msg));
+                    events.push(Event::TradeAction(action));
                 },
                 None => {},
             }
@@ -2634,7 +2634,7 @@ impl Hud {
                         events.push(Event::ChangeHotbarState(Box::new(self.hotbar.to_owned())));
                     } else if let (Inventory(i), Trade(_)) = (a, b) {
                         if let Some(inventory) = inventories.get(entity) {
-                            events.push(Event::TradeAction(TradeActionMsg::AddItem {
+                            events.push(Event::TradeAction(TradeAction::AddItem {
                                 item: i.0,
                                 quantity: i.amount(inventory).unwrap_or(1),
                             }));
@@ -2642,7 +2642,7 @@ impl Hud {
                     } else if let (Trade(t), Inventory(_)) = (a, b) {
                         if let Some(inventory) = inventories.get(entity) {
                             if let Some(invslot) = t.invslot {
-                                events.push(Event::TradeAction(TradeActionMsg::RemoveItem {
+                                events.push(Event::TradeAction(TradeAction::RemoveItem {
                                     item: invslot,
                                     quantity: t.amount(inventory).unwrap_or(1),
                                 }));

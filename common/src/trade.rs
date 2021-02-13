@@ -6,16 +6,30 @@ use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use tracing::{trace, warn};
 
-/// Clients submit `TradeActionMsg` to the server, which adds the Uid of the
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum TradePhase {
+    Mutate,
+    Review,
+    Complete,
+}
+
+/// Clients submit `TradeAction` to the server, which adds the Uid of the
 /// player out-of-band (i.e. without trusting the client to say who it's
 /// accepting on behalf of)
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub enum TradeActionMsg {
-    AddItem { item: InvSlotId, quantity: u32 },
-    RemoveItem { item: InvSlotId, quantity: u32 },
-    Phase1Accept,
-    Phase2Accept,
-
+pub enum TradeAction {
+    AddItem {
+        item: InvSlotId,
+        quantity: u32,
+    },
+    RemoveItem {
+        item: InvSlotId,
+        quantity: u32,
+    },
+    /// Accept needs the phase indicator to avoid progressing too far in the
+    /// trade if there's latency and a player presses the accept button
+    /// multiple times
+    Accept(TradePhase),
     Decline,
 }
 
@@ -36,7 +50,7 @@ pub enum TradeResult {
 /// from a trade back into a player's inventory.
 ///
 /// On the flip side, since they are references to *slots*, if a player could
-/// swaps items in their inventory during a trade, they could mutate the trade,
+/// swap items in their inventory during a trade, they could mutate the trade,
 /// enabling them to remove an item from the trade even after receiving the
 /// counterparty's phase2 accept. To prevent this, we disallow all
 /// forms of inventory manipulation in `server::events::inventory_manip` if
@@ -59,11 +73,21 @@ pub struct PendingTrade {
     /// `offers[i]` represents the items and quantities of the party i's items
     /// being offered
     pub offers: [HashMap<InvSlotId, u32>; 2],
-    /// phase1_accepts indicate that the parties wish to proceed to review
-    pub phase1_accepts: [bool; 2],
-    /// phase2_accepts indicate that the parties have reviewed the trade and
-    /// wish to commit it
-    pub phase2_accepts: [bool; 2],
+    /// The current phase of the trade
+    pub phase: TradePhase,
+    /// `accept_flags` indicate that which parties wish to proceed to the next
+    /// phase of the trade
+    pub accept_flags: [bool; 2],
+}
+
+impl TradePhase {
+    fn next(self) -> TradePhase {
+        match self {
+            TradePhase::Mutate => TradePhase::Review,
+            TradePhase::Review => TradePhase::Complete,
+            TradePhase::Complete => TradePhase::Complete,
+        }
+    }
 }
 
 impl PendingTrade {
@@ -71,24 +95,14 @@ impl PendingTrade {
         PendingTrade {
             parties: [party, counterparty],
             offers: [HashMap::new(), HashMap::new()],
-            phase1_accepts: [false, false],
-            phase2_accepts: [false, false],
+            phase: TradePhase::Mutate,
+            accept_flags: [false, false],
         }
     }
 
-    pub fn in_phase1(&self) -> bool { !self.phase1_accepts[0] || !self.phase1_accepts[1] }
+    pub fn phase(&self) -> TradePhase { self.phase }
 
-    pub fn in_phase2(&self) -> bool {
-        (self.phase1_accepts[0] && self.phase1_accepts[1])
-            && (!self.phase2_accepts[0] || !self.phase2_accepts[1])
-    }
-
-    pub fn should_commit(&self) -> bool {
-        self.phase1_accepts[0]
-            && self.phase1_accepts[1]
-            && self.phase2_accepts[0]
-            && self.phase2_accepts[1]
-    }
+    pub fn should_commit(&self) -> bool { matches!(self.phase, TradePhase::Complete) }
 
     pub fn which_party(&self, party: Uid) -> Option<usize> {
         self.parties
@@ -104,42 +118,41 @@ impl PendingTrade {
     /// - Modifications can only happen in phase 1
     /// - Whenever a trade is modified, both accept flags get reset
     /// - Accept flags only get set for the current phase
-    pub fn process_msg(&mut self, who: usize, msg: TradeActionMsg, inventory: &Inventory) {
-        use TradeActionMsg::*;
-        match msg {
+    pub fn process_trade_action(&mut self, who: usize, action: TradeAction, inventory: &Inventory) {
+        use TradeAction::*;
+        match action {
             AddItem {
                 item,
                 quantity: delta,
             } => {
-                if self.in_phase1() && delta > 0 {
+                if self.phase() == TradePhase::Mutate && delta > 0 {
                     let total = self.offers[who].entry(item).or_insert(0);
                     let owned_quantity = inventory.get(item).map(|i| i.amount()).unwrap_or(0);
                     *total = total.saturating_add(delta).min(owned_quantity);
-                    self.phase1_accepts = [false, false];
+                    self.accept_flags = [false, false];
                 }
             },
             RemoveItem {
                 item,
                 quantity: delta,
             } => {
-                if self.in_phase1() {
+                if self.phase() == TradePhase::Mutate {
                     self.offers[who]
                         .entry(item)
                         .and_replace_entry_with(|_, mut total| {
                             total = total.saturating_sub(delta);
                             if total > 0 { Some(total) } else { None }
                         });
-                    self.phase1_accepts = [false, false];
+                    self.accept_flags = [false, false];
                 }
             },
-            Phase1Accept => {
-                if self.in_phase1() {
-                    self.phase1_accepts[who] = true;
+            Accept(phase) => {
+                if self.phase == phase {
+                    self.accept_flags[who] = true;
                 }
-            },
-            Phase2Accept => {
-                if self.in_phase2() {
-                    self.phase2_accepts[who] = true;
+                if self.accept_flags[0] && self.accept_flags[1] {
+                    self.phase = self.phase.next();
+                    self.accept_flags = [false, false];
                 }
             },
             Decline => {},
@@ -147,16 +160,19 @@ impl PendingTrade {
     }
 }
 
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq, Hash)]
+pub struct TradeId(usize);
+
 pub struct Trades {
-    pub next_id: usize,
-    pub trades: HashMap<usize, PendingTrade>,
-    pub entity_trades: HashMap<Uid, usize>,
+    pub next_id: TradeId,
+    pub trades: HashMap<TradeId, PendingTrade>,
+    pub entity_trades: HashMap<Uid, TradeId>,
 }
 
 impl Trades {
-    pub fn begin_trade(&mut self, party: Uid, counterparty: Uid) -> usize {
+    pub fn begin_trade(&mut self, party: Uid, counterparty: Uid) -> TradeId {
         let id = self.next_id;
-        self.next_id = id.wrapping_add(1);
+        self.next_id = TradeId(id.0.wrapping_add(1));
         self.trades
             .insert(id, PendingTrade::new(party, counterparty));
         self.entity_trades.insert(party, id);
@@ -166,27 +182,27 @@ impl Trades {
 
     pub fn process_trade_action(
         &mut self,
-        id: usize,
+        id: TradeId,
         who: Uid,
-        msg: TradeActionMsg,
+        action: TradeAction,
         inventory: &Inventory,
     ) {
-        trace!("for trade id {}, message {:?}", id, msg);
+        trace!("for trade id {:?}, message {:?}", id, action);
         if let Some(trade) = self.trades.get_mut(&id) {
             if let Some(party) = trade.which_party(who) {
-                trade.process_msg(party, msg, inventory);
+                trade.process_trade_action(party, action, inventory);
             } else {
                 warn!(
-                    "An entity who is not a party to trade {} tried to modify it",
+                    "An entity who is not a party to trade {:?} tried to modify it",
                     id
                 );
             }
         } else {
-            warn!("Attempt to modify nonexistent trade id {}", id);
+            warn!("Attempt to modify nonexistent trade id {:?}", id);
         }
     }
 
-    pub fn decline_trade(&mut self, id: usize, who: Uid) -> Option<Uid> {
+    pub fn decline_trade(&mut self, id: TradeId, who: Uid) -> Option<Uid> {
         let mut to_notify = None;
         if let Some(trade) = self.trades.remove(&id) {
             match trade.which_party(who) {
@@ -198,7 +214,7 @@ impl Trades {
                 },
                 None => {
                     warn!(
-                        "An entity who is not a party to trade {} tried to decline it",
+                        "An entity who is not a party to trade {:?} tried to decline it",
                         id
                     );
                     // put it back
@@ -206,7 +222,7 @@ impl Trades {
                 },
             }
         } else {
-            warn!("Attempt to decline nonexistent trade id {}", id);
+            warn!("Attempt to decline nonexistent trade id {:?}", id);
         }
         to_notify
     }
@@ -227,18 +243,18 @@ impl Trades {
     }
 
     pub fn in_immutable_trade(&self, uid: &Uid) -> bool {
-        self.in_trade_with_property(uid, |trade| !trade.in_phase1())
+        self.in_trade_with_property(uid, |trade| trade.phase() != TradePhase::Mutate)
     }
 
     pub fn in_mutable_trade(&self, uid: &Uid) -> bool {
-        self.in_trade_with_property(uid, |trade| trade.in_phase1())
+        self.in_trade_with_property(uid, |trade| trade.phase() == TradePhase::Mutate)
     }
 
     pub fn implicit_mutation_occurred(&mut self, uid: &Uid) {
         if let Some(trade_id) = self.entity_trades.get(uid) {
             self.trades
                 .get_mut(trade_id)
-                .map(|trade| trade.phase1_accepts = [false, false]);
+                .map(|trade| trade.accept_flags = [false, false]);
         }
     }
 }
@@ -246,7 +262,7 @@ impl Trades {
 impl Default for Trades {
     fn default() -> Trades {
         Trades {
-            next_id: 0,
+            next_id: TradeId(0),
             trades: HashMap::new(),
             entity_trades: HashMap::new(),
         }

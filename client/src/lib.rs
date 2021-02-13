@@ -20,7 +20,8 @@ use common::{
     comp::{
         self,
         chat::{KillSource, KillType},
-        group::{self, InviteKind},
+        group,
+        invite::{InviteKind, InviteResponse},
         skills::Skill,
         slot::Slot,
         ChatMode, ControlAction, ControlEvent, Controller, ControllerInputs, GroupManip,
@@ -32,7 +33,7 @@ use common::{
     recipe::RecipeBook,
     span,
     terrain::{block::Block, neighbors, BiomeKind, SitesKind, TerrainChunk, TerrainChunkSize},
-    trade::{PendingTrade, TradeActionMsg, TradeResult},
+    trade::{PendingTrade, TradeAction, TradeId, TradeResult},
     uid::{Uid, UidAllocator},
     vol::RectVolSize,
 };
@@ -140,14 +141,14 @@ pub struct Client {
 
     max_group_size: u32,
     // Client has received an invite (inviter uid, time out instant)
-    group_invite: Option<(Uid, std::time::Instant, std::time::Duration, InviteKind)>,
+    invite: Option<(Uid, std::time::Instant, std::time::Duration, InviteKind)>,
     group_leader: Option<Uid>,
     // Note: potentially representable as a client only component
     group_members: HashMap<Uid, group::Role>,
     // Pending invites that this client has sent out
     pending_invites: HashSet<Uid>,
     // The pending trade the client is involved in, and it's id
-    pending_trade: Option<(usize, PendingTrade)>,
+    pending_trade: Option<(TradeId, PendingTrade)>,
 
     _network: Network,
     participant: Option<Participant>,
@@ -432,7 +433,7 @@ impl Client {
             chat_mode: ChatMode::default(),
 
             max_group_size,
-            group_invite: None,
+            invite: None,
             group_leader: None,
             group_members: HashMap::new(),
             pending_invites: HashSet::new(),
@@ -546,8 +547,7 @@ impl Client {
                     | ClientGeneral::TerrainChunkRequest { .. }
                     | ClientGeneral::UnlockSkill(_)
                     | ClientGeneral::RefundSkill(_)
-                    | ClientGeneral::UnlockSkillGroup(_)
-                    | ClientGeneral::UpdatePendingTrade(_, _) => &mut self.in_game_stream,
+                    | ClientGeneral::UnlockSkillGroup(_) => &mut self.in_game_stream,
                     //Always possible
                     ClientGeneral::ChatMsg(_) | ClientGeneral::Terminate => {
                         &mut self.general_stream
@@ -650,12 +650,14 @@ impl Client {
         }
     }
 
-    pub fn trade_action(&mut self, msg: TradeActionMsg) {
+    pub fn perform_trade_action(&mut self, action: TradeAction) {
         if let Some((id, _)) = self.pending_trade {
-            if let TradeActionMsg::Decline = msg {
+            if let TradeAction::Decline = action {
                 self.pending_trade.take();
             }
-            self.send_msg(ClientGeneral::UpdatePendingTrade(id, msg));
+            self.send_msg(ClientGeneral::ControlEvent(
+                ControlEvent::PerformTradeAction(id, action),
+            ));
         }
     }
 
@@ -684,19 +686,6 @@ impl Client {
 
         if let Some(uid) = self.state.read_component_copied(npc_entity) {
             self.send_msg(ClientGeneral::ControlEvent(ControlEvent::Interact(uid)));
-        }
-    }
-
-    pub fn initiate_trade(&mut self, counterparty: EcsEntity) {
-        // If we're dead, exit before sending message
-        if self.is_dead() {
-            return;
-        }
-
-        if let Some(uid) = self.state.read_component_copied(counterparty) {
-            self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InitiateTrade(
-                uid,
-            )));
         }
     }
 
@@ -763,10 +752,8 @@ impl Client {
 
     pub fn max_group_size(&self) -> u32 { self.max_group_size }
 
-    pub fn group_invite(
-        &self,
-    ) -> Option<(Uid, std::time::Instant, std::time::Duration, InviteKind)> {
-        self.group_invite
+    pub fn invite(&self) -> Option<(Uid, std::time::Instant, std::time::Duration, InviteKind)> {
+        self.invite
     }
 
     pub fn group_info(&self) -> Option<(String, Uid)> {
@@ -777,27 +764,27 @@ impl Client {
 
     pub fn pending_invites(&self) -> &HashSet<Uid> { &self.pending_invites }
 
-    pub fn pending_trade(&self) -> &Option<(usize, PendingTrade)> { &self.pending_trade }
+    pub fn pending_trade(&self) -> &Option<(TradeId, PendingTrade)> { &self.pending_trade }
 
-    pub fn send_group_invite(&mut self, invitee: Uid) {
-        self.send_msg(ClientGeneral::ControlEvent(ControlEvent::GroupManip(
-            GroupManip::Invite(invitee),
+    pub fn send_invite(&mut self, invitee: Uid, kind: InviteKind) {
+        self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InitiateInvite(
+            invitee, kind,
         )))
     }
 
-    pub fn accept_group_invite(&mut self) {
+    pub fn accept_invite(&mut self) {
         // Clear invite
-        self.group_invite.take();
-        self.send_msg(ClientGeneral::ControlEvent(ControlEvent::GroupManip(
-            GroupManip::Accept,
+        self.invite.take();
+        self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InviteResponse(
+            InviteResponse::Accept,
         )));
     }
 
-    pub fn decline_group_invite(&mut self) {
+    pub fn decline_invite(&mut self) {
         // Clear invite
-        self.group_invite.take();
-        self.send_msg(ClientGeneral::ControlEvent(ControlEvent::GroupManip(
-            GroupManip::Decline,
+        self.invite.take();
+        self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InviteResponse(
+            InviteResponse::Decline,
         )));
     }
 
@@ -1121,12 +1108,12 @@ impl Client {
         frontend_events.append(&mut self.handle_new_messages()?);
 
         // 3) Update client local data
-        // Check if the group invite has timed out and remove if so
+        // Check if the invite has timed out and remove if so
         if self
-            .group_invite
+            .invite
             .map_or(false, |(_, timeout, dur, _)| timeout.elapsed() > dur)
         {
-            self.group_invite = None;
+            self.invite = None;
         }
 
         // 4) Tick the client's LocalState
@@ -1503,7 +1490,7 @@ impl Client {
                 timeout,
                 kind,
             } => {
-                self.group_invite = Some((inviter, std::time::Instant::now(), timeout, kind));
+                self.invite = Some((inviter, std::time::Instant::now(), timeout, kind));
             },
             ServerGeneral::InvitePending(uid) => {
                 if !self.pending_invites.insert(uid) {
@@ -1573,7 +1560,7 @@ impl Client {
                     });
             },
             ServerGeneral::UpdatePendingTrade(id, trade) => {
-                tracing::info!("UpdatePendingTrade {:?} {:?}", id, trade);
+                tracing::trace!("UpdatePendingTrade {:?} {:?}", id, trade);
                 self.pending_trade = Some((id, trade));
             },
             ServerGeneral::FinishedTrade(result) => {

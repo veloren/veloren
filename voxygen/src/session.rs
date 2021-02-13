@@ -10,7 +10,8 @@ use common::{
     assets::AssetExt,
     comp,
     comp::{
-        group::InviteKind, inventory::slot::Slot, ChatMsg, ChatType, InventoryUpdateEvent, Pos, Vel,
+        inventory::slot::Slot, invite::InviteKind, ChatMsg, ChatType, InventoryUpdateEvent, Pos,
+        Vel,
     },
     consts::{MAX_MOUNT_RANGE, MAX_PICKUP_RANGE},
     outcome::Outcome,
@@ -23,7 +24,10 @@ use common::{
     },
     vol::ReadVol,
 };
-use common_net::msg::{server::InviteAnswer, PresenceKind};
+use common_net::{
+    msg::{server::InviteAnswer, PresenceKind},
+    sync::WorldSyncExt,
+};
 
 use crate::{
     audio::sfx::SfxEvent,
@@ -528,9 +532,9 @@ impl PlayState for SessionState {
                         }
                     },
                     Event::InputUpdate(GameInput::Interact, state)
-                        if state != self.key_state.collect =>
+                        if state != self.key_state.interact =>
                     {
-                        self.key_state.collect = state;
+                        self.key_state.interact = state;
 
                         if state {
                             if let Some(interactable) = self.interactable {
@@ -559,9 +563,9 @@ impl PlayState for SessionState {
                         }
                     }
                     Event::InputUpdate(GameInput::Trade, state)
-                        if state != self.key_state.collect =>
+                        if state != self.key_state.trade =>
                     {
-                        self.key_state.collect = state;
+                        self.key_state.trade = state;
 
                         if state {
                             if let Some(interactable) = self.interactable {
@@ -569,17 +573,11 @@ impl PlayState for SessionState {
                                 match interactable {
                                     Interactable::Block(_, _) => {},
                                     Interactable::Entity(entity) => {
-                                        if client
+                                        client
                                             .state()
                                             .ecs()
-                                            .read_storage::<comp::Item>()
-                                            .get(entity)
-                                            .is_some()
-                                        {
-                                            client.pick_up(entity);
-                                        } else {
-                                            client.initiate_trade(entity);
-                                        }
+                                            .uid_from_entity(entity)
+                                            .map(|uid| client.send_invite(uid, InviteKind::Trade));
                                     },
                                 }
                             }
@@ -632,14 +630,14 @@ impl PlayState for SessionState {
                     },
                     Event::InputUpdate(GameInput::AcceptGroupInvite, true) => {
                         let mut client = self.client.borrow_mut();
-                        if client.group_invite().is_some() {
-                            client.accept_group_invite();
+                        if client.invite().is_some() {
+                            client.accept_invite();
                         }
                     },
                     Event::InputUpdate(GameInput::DeclineGroupInvite, true) => {
                         let mut client = self.client.borrow_mut();
-                        if client.group_invite().is_some() {
-                            client.decline_group_invite();
+                        if client.invite().is_some() {
+                            client.decline_invite();
                         }
                     },
                     Event::AnalogGameInput(input) => match input {
@@ -1150,9 +1148,9 @@ impl PlayState for SessionState {
 
                         info!("Event! -> ChangedHotbarState")
                     },
-                    HudEvent::TradeAction(msg) => {
+                    HudEvent::TradeAction(action) => {
                         let mut client = self.client.borrow_mut();
-                        client.trade_action(msg);
+                        client.perform_trade_action(action);
                     },
                     HudEvent::Ability3(state) => self.inputs.ability3.set_state(state),
                     HudEvent::ChangeFOV(new_fov) => {
@@ -1258,13 +1256,13 @@ impl PlayState for SessionState {
                         self.client.borrow_mut().craft_recipe(&r);
                     },
                     HudEvent::InviteMember(uid) => {
-                        self.client.borrow_mut().send_group_invite(uid);
+                        self.client.borrow_mut().send_invite(uid, InviteKind::Group);
                     },
                     HudEvent::AcceptInvite => {
-                        self.client.borrow_mut().accept_group_invite();
+                        self.client.borrow_mut().accept_invite();
                     },
                     HudEvent::DeclineInvite => {
-                        self.client.borrow_mut().decline_group_invite();
+                        self.client.borrow_mut().decline_invite();
                     },
                     HudEvent::KickMember(uid) => {
                         self.client.borrow_mut().kick_from_group(uid);

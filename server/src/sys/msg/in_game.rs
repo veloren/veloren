@@ -158,10 +158,6 @@ impl Sys {
                     .get_mut(entity)
                     .map(|mut s| s.skill_set.unlock_skill_group(skill_group_kind));
             },
-            ClientGeneral::UpdatePendingTrade(trade_id, msg) => {
-                tracing::info!("UpdatePendingTrade {:?} {:?}", trade_id, msg);
-                server_emitter.emit(ServerEvent::ProcessTradeAction(entity, trade_id, msg));
-            },
             _ => unreachable!("not a client_in_game msg"),
         }
         Ok(())

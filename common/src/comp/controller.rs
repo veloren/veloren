@@ -1,8 +1,10 @@
 use crate::{
     comp::{
         inventory::slot::{EquipSlot, InvSlotId, Slot},
+        invite::{InviteKind, InviteResponse},
         BuffKind,
     },
+    trade::{TradeAction, TradeId},
     uid::Uid,
     util::Dir,
 };
@@ -69,9 +71,6 @@ impl From<InventoryManip> for SlotManip {
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum GroupManip {
-    Invite(Uid),
-    Accept,
-    Decline,
     Leave,
     Kick(Uid),
     AssignLeader(Uid),
@@ -83,7 +82,9 @@ pub enum ControlEvent {
     EnableLantern,
     DisableLantern,
     Interact(Uid),
-    InitiateTrade(Uid),
+    InitiateInvite(Uid, InviteKind),
+    InviteResponse(InviteResponse),
+    PerformTradeAction(TradeId, TradeAction),
     Mount(Uid),
     Unmount,
     InventoryManip(InventoryManip),

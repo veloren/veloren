@@ -15,7 +15,7 @@ use crate::{
 use client::Client;
 use common::{
     comp::Inventory,
-    trade::{PendingTrade, TradeActionMsg},
+    trade::{PendingTrade, TradeAction, TradePhase},
 };
 use common_net::sync::WorldSyncExt;
 use conrod_core::{
@@ -120,12 +120,10 @@ impl<'a> Trade<'a> {
         ui: &mut UiCell<'_>,
         trade: &'a PendingTrade,
     ) {
-        let phase_text = if trade.in_phase1() {
-            self.localized_strings.get("hud.trade.phase1_description")
-        } else if trade.in_phase2() {
-            self.localized_strings.get("hud.trade.phase2_description")
-        } else {
-            self.localized_strings.get("hud.trade.phase3_description")
+        let phase_text = match trade.phase() {
+            TradePhase::Mutate => self.localized_strings.get("hud.trade.phase1_description"),
+            TradePhase::Review => self.localized_strings.get("hud.trade.phase2_description"),
+            TradePhase::Complete => self.localized_strings.get("hud.trade.phase3_description"),
         };
 
         Text::new(&phase_text)
@@ -146,6 +144,7 @@ impl<'a> Trade<'a> {
         let inventories = self.client.inventories();
         let uid = trade.parties[who];
         let entity = self.client.state().ecs().entity_from_uid(uid.0)?;
+        // TODO: update in accordence with https://gitlab.com/veloren/veloren/-/issues/960
         let inventory = inventories.get(entity)?;
 
         // Alignment for Grid
@@ -177,8 +176,7 @@ impl<'a> Trade<'a> {
             .color(Color::Rgba(1.0, 1.0, 1.0, 1.0))
             .set(state.ids.offer_headers[who], ui);
 
-        let has_accepted = (trade.in_phase1() && trade.phase1_accepts[who])
-            || (trade.in_phase2() && trade.phase2_accepts[who]);
+        let has_accepted = trade.accept_flags[who];
         let accept_indicator = self
             .localized_strings
             .get("hud.trade.has_accepted")
@@ -207,7 +205,7 @@ impl<'a> Trade<'a> {
             })
             .collect();
 
-        if trade.in_phase1() {
+        if matches!(trade.phase(), TradePhase::Mutate) {
             self.phase1_itemwidget(state, ui, inventory, who, &tradeslots);
         } else {
             self.phase2_itemwidget(state, ui, inventory, who, &tradeslots);
@@ -333,11 +331,7 @@ impl<'a> Trade<'a> {
             .set(state.ids.accept_button, ui)
             .was_clicked()
         {
-            if trade.in_phase1() {
-                event = Some(TradeActionMsg::Phase1Accept);
-            } else if trade.in_phase2() {
-                event = Some(TradeActionMsg::Phase2Accept);
-            }
+            event = Some(TradeAction::Accept(trade.phase()));
         }
 
         if Button::image(self.imgs.button)
@@ -353,7 +347,7 @@ impl<'a> Trade<'a> {
             .set(state.ids.decline_button, ui)
             .was_clicked()
         {
-            event = Some(TradeActionMsg::Decline);
+            event = Some(TradeAction::Decline);
         }
         event
     }
@@ -371,7 +365,7 @@ impl<'a> Trade<'a> {
             .set(state.ids.trade_close, ui)
             .was_clicked()
         {
-            Some(TradeActionMsg::Decline)
+            Some(TradeAction::Decline)
         } else {
             None
         }
@@ -379,7 +373,7 @@ impl<'a> Trade<'a> {
 }
 
 impl<'a> Widget for Trade<'a> {
-    type Event = Option<TradeActionMsg>;
+    type Event = Option<TradeAction>;
     type State = State;
     type Style = ();
 
@@ -397,7 +391,7 @@ impl<'a> Widget for Trade<'a> {
         let mut event = None;
         let trade = match self.client.pending_trade() {
             Some((_, trade)) => trade,
-            None => return Some(TradeActionMsg::Decline),
+            None => return Some(TradeAction::Decline),
         };
 
         if state.ids.inv_alignment.len() < 2 {

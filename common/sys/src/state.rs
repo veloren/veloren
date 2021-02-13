@@ -168,8 +168,8 @@ impl State {
         ecs.register::<comp::ItemDrop>();
         ecs.register::<comp::ChatMode>();
         ecs.register::<comp::Faction>();
-        ecs.register::<comp::group::Invite>();
-        ecs.register::<comp::group::PendingInvites>();
+        ecs.register::<comp::invite::Invite>();
+        ecs.register::<comp::invite::PendingInvites>();
         ecs.register::<comp::Beam>();
         ecs.register::<comp::PreviousVelDtCache>();
 

@@ -98,13 +98,15 @@ impl<'a> System<'a> for Sys {
                             server_emitter.emit(ServerEvent::NpcInteract(entity, npc_entity));
                         }
                     },
-                    ControlEvent::InitiateTrade(counterparty_uid) => {
-                        if let Some(counterparty_entity) =
-                            uid_allocator.retrieve_entity_internal(counterparty_uid.id())
-                        {
-                            server_emitter
-                                .emit(ServerEvent::InitiateTrade(entity, counterparty_entity));
-                        }
+                    ControlEvent::InitiateInvite(inviter_uid, kind) => {
+                        server_emitter.emit(ServerEvent::InitiateInvite(entity, inviter_uid, kind));
+                    },
+                    ControlEvent::InviteResponse(response) => {
+                        server_emitter.emit(ServerEvent::InviteResponse(entity, response));
+                    },
+                    ControlEvent::PerformTradeAction(trade_id, action) => {
+                        server_emitter
+                            .emit(ServerEvent::ProcessTradeAction(entity, trade_id, action));
                     },
                     ControlEvent::InventoryManip(manip) => {
                         server_emitter.emit(ServerEvent::InventoryManip(entity, manip.into()));

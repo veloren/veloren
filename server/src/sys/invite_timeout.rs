@@ -1,14 +1,14 @@
 use super::SysTimer;
 use crate::client::Client;
 use common::{
-    comp::group::{Invite, PendingInvites},
+    comp::invite::{Invite, PendingInvites},
     span,
     uid::Uid,
 };
 use common_net::msg::{InviteAnswer, ServerGeneral};
 use specs::{Entities, Join, ReadStorage, System, Write, WriteStorage};
 
-/// This system removes timed out group invites
+/// This system removes timed out invites
 pub struct Sys;
 impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)] // TODO: Pending review in #587

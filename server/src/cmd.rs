@@ -13,6 +13,7 @@ use common::{
         self,
         aura::{Aura, AuraKind, AuraTarget},
         buff::{BuffCategory, BuffData, BuffKind, BuffSource},
+        invite::InviteKind,
         ChatType, Inventory, Item, LightEmitter, WaypointArea,
     },
     effect::Effect,
@@ -1618,10 +1619,7 @@ fn handle_group_invite(
                 .expect("Failed to get uid for player");
 
             ecs.read_resource::<EventBus<ServerEvent>>()
-                .emit_now(ServerEvent::GroupManip(
-                    client,
-                    comp::GroupManip::Invite(uid),
-                ));
+                .emit_now(ServerEvent::InitiateInvite(client, uid, InviteKind::Group));
 
             server.notify_client(
                 client,

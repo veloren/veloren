@@ -3,12 +3,12 @@ use crate::sync;
 use authc::AuthClientError;
 use common::{
     character::{self, CharacterItem},
-    comp::{self, group::InviteKind},
+    comp::{self, invite::InviteKind},
     outcome::Outcome,
     recipe::RecipeBook,
     resources::TimeOfDay,
     terrain::{Block, TerrainChunk},
-    trade::{PendingTrade, TradeResult},
+    trade::{PendingTrade, TradeId, TradeResult},
     uid::Uid,
 };
 use hashbrown::HashMap;
@@ -123,7 +123,7 @@ pub enum ServerGeneral {
     Disconnect(DisconnectReason),
     /// Send a popup notification such as "Waypoint Saved"
     Notification(Notification),
-    UpdatePendingTrade(usize, PendingTrade),
+    UpdatePendingTrade(TradeId, PendingTrade),
     FinishedTrade(TradeResult),
 }
 

@@ -1,33 +1,24 @@
-use crate::{events::group_manip::handle_invite, Server};
+use crate::Server;
 use common::{
-    comp::{group::InviteKind, inventory::Inventory},
-    trade::{PendingTrade, TradeActionMsg, TradeResult, Trades},
+    comp::inventory::Inventory,
+    trade::{PendingTrade, TradeAction, TradeId, TradeResult, Trades},
 };
 use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
+use hashbrown::hash_map::Entry;
 use specs::{world::WorldExt, Entity as EcsEntity};
 use std::cmp::Ordering;
-use tracing::{error, trace, warn};
-
-/// Invoked when pressing the trade button near an entity, triggering the invite
-/// UI flow
-pub fn handle_initiate_trade(server: &mut Server, interactor: EcsEntity, counterparty: EcsEntity) {
-    if let Some(uid) = server.state_mut().ecs().uid_from_entity(counterparty) {
-        handle_invite(server, interactor, uid, InviteKind::Trade);
-    } else {
-        warn!("Entity tried to trade with an entity that lacks an uid");
-    }
-}
+use tracing::{error, trace};
 
 /// Invoked when the trade UI is up, handling item changes, accepts, etc
 pub fn handle_process_trade_action(
     server: &mut Server,
     entity: EcsEntity,
-    trade_id: usize,
-    msg: TradeActionMsg,
+    trade_id: TradeId,
+    action: TradeAction,
 ) {
     if let Some(uid) = server.state.ecs().uid_from_entity(entity) {
         let mut trades = server.state.ecs().write_resource::<Trades>();
-        if let TradeActionMsg::Decline = msg {
+        if let TradeAction::Decline = action {
             let to_notify = trades.decline_trade(trade_id, uid);
             to_notify
                 .and_then(|u| server.state.ecs().entity_from_uid(u.0))
@@ -36,16 +27,19 @@ pub fn handle_process_trade_action(
                 });
         } else {
             if let Some(inv) = server.state.ecs().read_component::<Inventory>().get(entity) {
-                trades.process_trade_action(trade_id, uid, msg, inv);
+                trades.process_trade_action(trade_id, uid, action, inv);
             }
-            if let Some(trade) = trades.trades.get(&trade_id) {
-                let mut msg = ServerGeneral::UpdatePendingTrade(trade_id, trade.clone());
-                if trade.should_commit() {
-                    let result = commit_trade(server.state.ecs(), trade);
-                    msg = ServerGeneral::FinishedTrade(result);
-                }
+            if let Entry::Occupied(entry) = trades.trades.entry(trade_id) {
+                let parties = entry.get().parties;
+                let msg = if entry.get().should_commit() {
+                    let result = commit_trade(server.state.ecs(), entry.get());
+                    entry.remove();
+                    ServerGeneral::FinishedTrade(result)
+                } else {
+                    ServerGeneral::UpdatePendingTrade(trade_id, entry.get().clone())
+                };
                 // send the updated state to both parties
-                for party in trade.parties.iter() {
+                for party in parties.iter() {
                     server
                         .state
                         .ecs()
@@ -60,16 +54,16 @@ pub fn handle_process_trade_action(
 /// Commit a trade that both parties have agreed to, modifying their respective
 /// inventories
 fn commit_trade(ecs: &specs::World, trade: &PendingTrade) -> TradeResult {
-    let mut entities = vec![];
-    for who in [0, 1].iter().cloned() {
-        match ecs.entity_from_uid(trade.parties[who].0) {
+    let mut entities = Vec::new();
+    for party in trade.parties.iter() {
+        match ecs.entity_from_uid(party.0) {
             Some(entity) => entities.push(entity),
             None => return TradeResult::Declined,
         }
     }
     let mut inventories = ecs.write_component::<Inventory>();
-    for who in [0, 1].iter().cloned() {
-        if inventories.get_mut(entities[who]).is_none() {
+    for entity in entities.iter() {
+        if inventories.get_mut(*entity).is_none() {
             return TradeResult::Declined;
         }
     }
@@ -106,7 +100,7 @@ fn commit_trade(ecs: &specs::World, trade: &PendingTrade) -> TradeResult {
                     delta_slots[1 - who] += 1; // overapproximation, assumes the stack won't merge
                 },
                 Ordering::Greater => {
-                    // no change to delta_slots[who], since they have leftovers
+                    // No change to delta_slots[who], since they have leftovers
                     delta_slots[1 - who] += 1; // overapproximation, assumes the stack won't merge
                 },
             }
@@ -121,10 +115,10 @@ fn commit_trade(ecs: &specs::World, trade: &PendingTrade) -> TradeResult {
             return TradeResult::NotEnoughSpace;
         }
     }
-    let mut items = [vec![], vec![]];
+    let mut items = [Vec::new(), Vec::new()];
     for who in [0, 1].iter().cloned() {
         for (slot, quantity) in trade.offers[who].iter() {
-            // take the items one by one, to benefit from Inventory's stack handling
+            // Take the items one by one, to benefit from Inventory's stack handling
             for _ in 0..*quantity {
                 inventories
                     .get_mut(entities[who])
@@ -140,10 +134,10 @@ fn commit_trade(ecs: &specs::World, trade: &PendingTrade) -> TradeResult {
             .expect(invmsg)
             .push_all(items[who].drain(..))
         {
-            // this should only happen if the arithmetic above for delta_slots says there's
+            // This should only happen if the arithmetic above for delta_slots says there's
             // enough space and there isn't (i.e. underapproximates)
-            error!(
-                "Not enough space for all the items, destroying leftovers {:?}",
+            panic!(
+                "Not enough space for all the items, leftovers are {:?}",
                 leftovers
             );
         }

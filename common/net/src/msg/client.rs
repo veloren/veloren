@@ -4,7 +4,6 @@ use common::{
     comp,
     comp::{Skill, SkillGroupKind},
     terrain::block::Block,
-    trade::TradeActionMsg,
 };
 use serde::{Deserialize, Serialize};
 use vek::*;
@@ -80,7 +79,6 @@ pub enum ClientGeneral {
     //Always possible
     ChatMsg(String),
     Terminate,
-    UpdatePendingTrade(usize, TradeActionMsg),
 }
 
 impl ClientMsg {
@@ -116,8 +114,7 @@ impl ClientMsg {
                         | ClientGeneral::TerrainChunkRequest { .. }
                         | ClientGeneral::UnlockSkill(_)
                         | ClientGeneral::RefundSkill(_)
-                        | ClientGeneral::UnlockSkillGroup(_)
-                        | ClientGeneral::UpdatePendingTrade(_, _) => {
+                        | ClientGeneral::UnlockSkillGroup(_) => {
                             c_type == ClientType::Game && presence.is_some()
                         },
                         //Always possible
