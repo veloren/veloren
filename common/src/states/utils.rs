@@ -278,12 +278,13 @@ fn fly_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
     handle_orientation(data, update, 1.0);
 }
 
-/// First checks whether `primary`, `secondary` or `ability3` input is pressed,
-/// then attempts to go into Equipping state, otherwise Idle
+/// First checks whether `primary`, `secondary`, `ability3`, or `ability4` input
+/// is pressed, then attempts to go into Equipping state, otherwise Idle
 pub fn handle_wield(data: &JoinData, update: &mut StateUpdate) {
     if data.inputs.primary.is_pressed()
         || data.inputs.secondary.is_pressed()
         || data.inputs.ability3.is_pressed()
+        || data.inputs.ability4.is_pressed()
     {
         attempt_wield(data, update);
     }
@@ -481,6 +482,54 @@ pub fn handle_ability3_input(data: &JoinData, update: &mut StateUpdate) {
     }
 }
 
+pub fn handle_ability4_input(data: &JoinData, update: &mut StateUpdate) {
+    if data.inputs.ability4.is_pressed() {
+        let active_tool_hands = match data
+            .inventory
+            .equipped(EquipSlot::Mainhand)
+            .map(|i| i.kind())
+        {
+            Some(ItemKind::Tool(tool)) => Some(tool.hands),
+            _ => None,
+        };
+
+        let second_tool_hands = match data
+            .inventory
+            .equipped(EquipSlot::Offhand)
+            .map(|i| i.kind())
+        {
+            Some(ItemKind::Tool(tool)) => Some(tool.hands),
+            _ => None,
+        };
+
+        let (equip_slot, skill_index) = match (active_tool_hands, second_tool_hands) {
+            (Some(Hands::TwoHand), _) => (Some(EquipSlot::Mainhand), 1),
+            (_, Some(Hands::OneHand)) => (Some(EquipSlot::Offhand), 0),
+            (Some(Hands::OneHand), _) => (Some(EquipSlot::Mainhand), 1),
+            (_, _) => (None, 0),
+        };
+
+        if let Some(equip_slot) = equip_slot {
+            if let Some(ability) = data
+                .inventory
+                .equipped(equip_slot)
+                .and_then(|i| i.item_config_expect().abilities.skills.get(skill_index))
+                .and_then(|(s, a)| {
+                    s.map_or(true, |s| data.stats.skill_set.has_skill(s))
+                        .then_some(a)
+                })
+                .map(|a| {
+                    let tool = unwrap_tool_data(data).map(|t| t.kind);
+                    a.clone().adjusted_by_skills(&data.stats.skill_set, tool)
+                })
+                .filter(|ability| ability.requirements_paid(data, update))
+            {
+                update.character = (&ability, AbilityKey::Skill1).into();
+            }
+        }
+    }
+}
+
 /// Checks that player can perform a dodge, then
 /// attempts to perform their dodge ability
 pub fn handle_dodge_input(data: &JoinData, update: &mut StateUpdate) {
@@ -530,6 +579,7 @@ pub fn handle_interrupt(data: &JoinData, update: &mut StateUpdate, attacks_inter
         handle_ability1_input(data, update);
         handle_ability2_input(data, update);
         handle_ability3_input(data, update);
+        handle_ability4_input(data, update);
     }
     handle_dodge_input(data, update);
 }
@@ -539,6 +589,7 @@ pub fn ability_key_is_pressed(data: &JoinData, ability_key: AbilityKey) -> bool 
         AbilityKey::Mouse1 => data.inputs.primary.is_pressed(),
         AbilityKey::Mouse2 => data.inputs.secondary.is_pressed(),
         AbilityKey::Skill1 => data.inputs.ability3.is_pressed(),
+        AbilityKey::Skill2 => data.inputs.ability4.is_pressed(),
         AbilityKey::Dodge => data.inputs.roll.is_pressed(),
     }
 }
@@ -570,6 +621,7 @@ pub enum AbilityKey {
     Mouse1,
     Mouse2,
     Skill1,
+    Skill2,
     Dodge,
 }
 

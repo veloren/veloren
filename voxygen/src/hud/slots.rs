@@ -6,7 +6,7 @@ use super::{
 use crate::ui::slot::{self, SlotKey, SumSlot};
 use common::comp::{
     item::{
-        tool::{AbilityMap, ToolKind},
+        tool::{AbilityMap, Hands, ToolKind},
         ItemKind,
     },
     slot::InvSlotId,
@@ -123,19 +123,55 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
                 };
 
                 tool.and_then(|tool| {
-                    match tool.kind {
-                        ToolKind::Staff => Some(HotbarImage::FireAoe),
-                        ToolKind::Hammer => Some(HotbarImage::HammerLeap),
-                        ToolKind::Axe => Some(HotbarImage::AxeLeapSlash),
-                        ToolKind::Bow => Some(HotbarImage::BowJumpBurst),
-                        ToolKind::Debug => Some(HotbarImage::SnakeArrow),
-                        ToolKind::Sword => Some(HotbarImage::SwordWhirlwind),
-                        _ => None,
-                    }
-                    .map(|i| {
+                    hotbar_image(tool.kind).map(|i| {
                         (
                             i,
                             if let Some(skill) = tool.get_abilities(ability_map).skills.get(0) {
+                                if energy.current() >= skill.1.get_energy_cost() {
+                                    Some(Color::Rgba(1.0, 1.0, 1.0, 1.0))
+                                } else {
+                                    Some(Color::Rgba(0.3, 0.3, 0.3, 0.8))
+                                }
+                            } else {
+                                Some(Color::Rgba(1.0, 1.0, 1.0, 1.0))
+                            },
+                        )
+                    })
+                })
+            },
+            hotbar::SlotContents::Ability4 => {
+                let active_tool_hands =
+                    match inventory.equipped(EquipSlot::Mainhand).map(|i| i.kind()) {
+                        Some(ItemKind::Tool(tool)) => Some(tool.hands),
+                        _ => None,
+                    };
+
+                let second_tool_hands =
+                    match inventory.equipped(EquipSlot::Offhand).map(|i| i.kind()) {
+                        Some(ItemKind::Tool(tool)) => Some(tool.hands),
+                        _ => None,
+                    };
+
+                let (equip_slot, skill_index) = match (active_tool_hands, second_tool_hands) {
+                    (Some(Hands::TwoHand), _) => (Some(EquipSlot::Mainhand), 1),
+                    (_, Some(Hands::OneHand)) => (Some(EquipSlot::Offhand), 0),
+                    (Some(Hands::OneHand), _) => (Some(EquipSlot::Mainhand), 1),
+                    (_, _) => (None, 0),
+                };
+
+                let tool = match equip_slot.and_then(|es| inventory.equipped(es).map(|i| i.kind()))
+                {
+                    Some(ItemKind::Tool(tool)) => Some(tool),
+                    _ => None,
+                };
+
+                tool.and_then(|tool| {
+                    hotbar_image(tool.kind).map(|i| {
+                        (
+                            i,
+                            if let Some(skill) =
+                                tool.get_abilities(ability_map).skills.get(skill_index)
+                            {
                                 if energy.current() >= skill.1.get_energy_cost() {
                                     Some(Color::Rgba(1.0, 1.0, 1.0, 1.0))
                                 } else {
@@ -157,6 +193,7 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
             .and_then(|content| match content {
                 hotbar::SlotContents::Inventory(idx) => inventory.get(idx),
                 hotbar::SlotContents::Ability3 => None,
+                hotbar::SlotContents::Ability4 => None,
             })
             .map(|item| item.amount())
             .filter(|amount| *amount > 1)
@@ -194,3 +231,15 @@ impl From<TradeSlot> for SlotKind {
 }
 
 impl SumSlot for SlotKind {}
+
+fn hotbar_image(tool: ToolKind) -> Option<HotbarImage> {
+    match tool {
+        ToolKind::Staff => Some(HotbarImage::FireAoe),
+        ToolKind::Hammer => Some(HotbarImage::HammerLeap),
+        ToolKind::Axe => Some(HotbarImage::AxeLeapSlash),
+        ToolKind::Bow => Some(HotbarImage::BowJumpBurst),
+        ToolKind::Debug => Some(HotbarImage::SnakeArrow),
+        ToolKind::Sword => Some(HotbarImage::SwordWhirlwind),
+        _ => None,
+    }
+}

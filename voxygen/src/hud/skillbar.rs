@@ -452,36 +452,48 @@ impl<'a> Widget for Skillbar<'a> {
                         .equipped(EquipSlot::Mainhand)
                         .map(|i| i.kind())
                         .and_then(|kind| match kind {
-                            ItemKind::Tool(Tool { kind, .. }) => match kind {
-                                ToolKind::Hammer => Some((
-                                    "Smash of Doom",
-                                    "\nAn AOE attack with knockback. \nLeaps to position of \
-                                     cursor.",
-                                )),
-                                ToolKind::Axe => {
-                                    Some(("Spin Leap", "\nA slashing running spin leap."))
-                                },
-                                ToolKind::Staff => Some((
-                                    "Firebomb",
-                                    "\nWhirls a big fireball into the air. \nExplodes the ground \
-                                     and does\na big amount of damage",
-                                )),
-                                ToolKind::Sword => Some((
-                                    "Whirlwind",
-                                    "\nMove forward while spinning with \n your sword.",
-                                )),
-                                ToolKind::Bow => Some((
-                                    "Burst",
-                                    "\nLaunches a burst of arrows at the top \nof a running leap.",
-                                )),
-                                ToolKind::Debug => Some((
-                                    "Possessing Arrow",
-                                    "\nShoots a poisonous arrow.\nLets you control your target.",
-                                )),
-                                _ => None,
-                            },
+                            ItemKind::Tool(Tool { kind, .. }) => ability_description(kind),
                             _ => None,
                         }),
+                    hotbar::SlotContents::Ability4 => {
+                        let active_tool_hands = match content_source
+                            .1
+                            .equipped(EquipSlot::Mainhand)
+                            .map(|i| i.kind())
+                        {
+                            Some(ItemKind::Tool(tool)) => Some(tool.hands),
+                            _ => None,
+                        };
+
+                        let second_tool_hands = match content_source
+                            .1
+                            .equipped(EquipSlot::Offhand)
+                            .map(|i| i.kind())
+                        {
+                            Some(ItemKind::Tool(tool)) => Some(tool.hands),
+                            _ => None,
+                        };
+
+                        let equip_slot = match (active_tool_hands, second_tool_hands) {
+                            (Some(Hands::TwoHand), _) => Some(EquipSlot::Mainhand),
+                            (_, Some(Hands::OneHand)) => Some(EquipSlot::Offhand),
+                            (Some(Hands::OneHand), _) => Some(EquipSlot::Mainhand),
+                            (_, _) => None,
+                        };
+
+                        if let Some(equip_slot) = equip_slot {
+                            content_source
+                                .1
+                                .equipped(equip_slot)
+                                .map(|i| i.kind())
+                                .and_then(|kind| match kind {
+                                    ItemKind::Tool(Tool { kind, .. }) => ability_description(kind),
+                                    _ => None,
+                                })
+                        } else {
+                            None
+                        }
+                    },
                 })
         };
         // Slot 1-5
@@ -888,5 +900,33 @@ impl<'a> Widget for Skillbar<'a> {
             .w_h(16.0, 18.0)
             .mid_bottom_with_margin_on(state.ids.m2_content, -11.0)
             .set(state.ids.m2_ico, ui);
+    }
+}
+
+fn ability_description(tool: &ToolKind) -> Option<(&str, &str)> {
+    match tool {
+        ToolKind::Hammer => Some((
+            "Smash of Doom",
+            "\nAn AOE attack with knockback. \nLeaps to position of cursor.",
+        )),
+        ToolKind::Axe => Some(("Spin Leap", "\nA slashing running spin leap.")),
+        ToolKind::Staff => Some((
+            "Firebomb",
+            "\nWhirls a big fireball into the air. \nExplodes the ground and does\na big amount \
+             of damage",
+        )),
+        ToolKind::Sword => Some((
+            "Whirlwind",
+            "\nMove forward while spinning with \n your sword.",
+        )),
+        ToolKind::Bow => Some((
+            "Burst",
+            "\nLaunches a burst of arrows at the top \nof a running leap.",
+        )),
+        ToolKind::Debug => Some((
+            "Possessing Arrow",
+            "\nShoots a poisonous arrow.\nLets you control your target.",
+        )),
+        _ => None,
     }
 }
