@@ -1,10 +1,10 @@
 ((
     default: (
         left: (
-            vox_spec: ("armor.hand.hand_reft_none", (-3.0, -2.0, -5.0)),
+        vox_spec: ("armor.empty", (0.0, 0.0, 0.0)),
         ),
         right: (
-            vox_spec: ("armor.hand.hand_right_none", (-3.0, -2.0, -5.0)),
+        vox_spec: ("armor.empty", (0.0, 0.0, 0.0)),
         )
     ),
     map: {

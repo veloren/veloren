@@ -53,27 +53,27 @@ impl Animation for AlphaAnimation {
         let speednorm = speed / 9.4;
         let speednormcancel = 1.0 - speednorm;
 
-        let (movement1base, movement2base, movement3) = match stage_section {
+        let (move1base, move2base, move3) = match stage_section {
             Some(StageSection::Buildup) => ((anim_time as f32).sqrt(), 0.0, 0.0),
             Some(StageSection::Swing) => (1.0, (anim_time as f32).powi(4), 0.0),
             Some(StageSection::Recover) => (1.0, 1.0, anim_time as f32),
             _ => (0.0, 0.0, 0.0),
         };
-        let pullback = 1.0 - movement3;
-        let movement1abs = movement1base * pullback;
-        let movement2abs = movement2base * pullback;
+        let pullback = 1.0 - move3;
+        let move1abs = move1base * pullback;
+        let move2abs = move2base * pullback;
 
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
-        next.head.orientation = Quaternion::rotation_x(movement1abs * 0.2 + movement2abs * 0.3)
-            * Quaternion::rotation_z(movement1abs * -0.2 + movement2abs * 0.6)
-            * Quaternion::rotation_y(movement1abs * 0.3 + movement2abs * -0.5);
+        next.head.orientation = Quaternion::rotation_x(move1abs * 0.2 + move2abs * 0.3)
+            * Quaternion::rotation_z(move1abs * -0.2 + move2abs * 0.6)
+            * Quaternion::rotation_y(move1abs * 0.3 + move2abs * -0.5);
         next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1) / 13.0;
-        next.chest.orientation = Quaternion::rotation_x(movement1abs * -0.2 + movement2abs * 0.3)
-            * Quaternion::rotation_z(movement1abs * 0.5 + movement2abs * -0.6);
+        next.chest.orientation = Quaternion::rotation_x(move1abs * -0.2 + move2abs * 0.3)
+            * Quaternion::rotation_z(move1abs * 0.5 + move2abs * -0.6);
 
         next.pants.position = Vec3::new(0.0, s_a.pants.0, s_a.pants.1);
-        next.pants.orientation = Quaternion::rotation_x(movement1abs * 0.2 + movement2abs * -0.3)
-            * Quaternion::rotation_z(movement1abs * -0.2 + movement2abs * 0.2);
+        next.pants.orientation = Quaternion::rotation_x(move1abs * 0.2 + move2abs * -0.3)
+            * Quaternion::rotation_z(move1abs * -0.2 + move2abs * 0.2);
 
         next.main.position = Vec3::new(0.0, 0.0, 0.0);
         next.main.orientation = Quaternion::rotation_x(0.0);
@@ -88,22 +88,21 @@ impl Animation for AlphaAnimation {
         next.control_r.position = Vec3::new(-1.0 + s_a.grip.0 * 2.0, 2.0, 2.0);
 
         next.control.position = Vec3::new(
-            -3.0 + movement1abs * -3.0 + movement2abs * 5.0,
-            s_a.grip.2 + movement1abs * -12.0 + movement2abs * 17.0,
-            -s_a.grip.2 / 2.5 + s_a.grip.0 * -2.0 + movement2abs * 5.0,
+            -3.0 + move1abs * -3.0 + move2abs * 5.0,
+            s_a.grip.2 + move1abs * -12.0 + move2abs * 17.0,
+            -s_a.grip.2 / 2.5 + s_a.grip.0 * -2.0 + move2abs * 5.0,
         );
 
         next.control_l.orientation =
-            Quaternion::rotation_x(PI / 1.5 + movement1abs * -1.5 + movement2abs * 2.5)
+            Quaternion::rotation_x(PI / 1.5 + move1abs * -1.5 + move2abs * 2.5)
                 * Quaternion::rotation_y(-0.3);
-        next.control_r.orientation = Quaternion::rotation_x(
-            PI / 1.5 + s_a.grip.0 * 0.2 + movement1abs * -1.5 + movement2abs * 2.5,
-        ) * Quaternion::rotation_y(0.5 + s_a.grip.0 * 0.2);
+        next.control_r.orientation =
+            Quaternion::rotation_x(PI / 1.5 + s_a.grip.0 * 0.2 + move1abs * -1.5 + move2abs * 2.5)
+                * Quaternion::rotation_y(0.5 + s_a.grip.0 * 0.2);
 
-        next.control.orientation =
-            Quaternion::rotation_x(-1.35 + movement1abs * -0.3 + movement2abs * 0.5)
-                * Quaternion::rotation_z(movement1abs * 1.0 + movement2abs * -1.0)
-                * Quaternion::rotation_y(movement2abs * 0.0);
+        next.control.orientation = Quaternion::rotation_x(-1.35 + move1abs * -0.3 + move2abs * 0.5)
+            * Quaternion::rotation_z(move1abs * 1.0 + move2abs * -1.0)
+            * Quaternion::rotation_y(move2abs * 0.0);
 
         next.tail.position = Vec3::new(0.0, s_a.tail.0, s_a.tail.1);
         next.tail.orientation = Quaternion::rotation_x(0.05 * fastalt * speednormcancel)

@@ -1,0 +1,12 @@
+ItemDef(
+    name: "Kappa",
+    description: "Ceremonial attire used by members.",
+    kind: Armor((
+        kind: Head("Kappa"),
+        stats: (
+            protection: Normal(2.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: Low,
+)

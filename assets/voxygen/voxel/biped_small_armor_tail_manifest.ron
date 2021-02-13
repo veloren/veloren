@@ -1,0 +1,25 @@
+((
+    default: (
+        vox_spec: ("armor.empty", (0.0, 0.0, 0.0)),
+    ),
+    map: {
+        "Sahagin": (
+            vox_spec: ("npc.sahagin.male.tail", (-1.5, -13.0, -5.0)),
+        ),
+        "Adlet": (
+            vox_spec: ("npc.adlet.male.tail", (-1.0, -5.0, -1.0)),
+        ),
+        "Gnarling": (
+            vox_spec: ("npc.gnarling.male.tail", (-1.5, -13.0, -3.0)),
+        ),
+        "Kappa": (
+            vox_spec: ("npc.kappa.male.tail", (-2.5, -10.0, -5.0)),
+        ),
+        "Gnoll": (
+            vox_spec: ("npc.gnoll.male.tail", (-1.0, -11.0, -1.0)),
+        ),
+        "Myrmidon": (
+            vox_spec: ("npc.myrmidon.male.tail", (-2.5, -7.0, -2.5)),
+        ),
+    },
+))

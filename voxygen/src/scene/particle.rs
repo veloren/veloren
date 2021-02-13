@@ -642,7 +642,7 @@ impl ParticleMgr {
             let theta = ori_vec.y.atan2(ori_vec.x);
             let dtheta = radians / distance;
 
-            let heartbeats = self.scheduler.heartbeats(Duration::from_millis(5));
+            let heartbeats = self.scheduler.heartbeats(Duration::from_millis(2));
 
             for heartbeat in 0..heartbeats {
                 if shockwave.properties.requires_ground {

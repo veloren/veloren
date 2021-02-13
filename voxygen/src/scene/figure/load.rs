@@ -2470,21 +2470,9 @@ impl FishSmallLateralSpec {
 ////
 
 #[derive(Deserialize)]
-struct BipedSmallCentralSpec(HashMap<(BSSpecies, BSBodyType), SidedBSCentralVoxSpec>);
-
-#[derive(Deserialize)]
-struct SidedBSCentralVoxSpec {
-    head: BipedSmallCentralSubSpec,
-    tail: BipedSmallCentralSubSpec,
-}
-#[derive(Deserialize)]
-struct BipedSmallCentralSubSpec {
-    offset: [f32; 3], // Should be relative to initial origin
-    central: VoxSimple,
-}
-
-#[derive(Deserialize)]
 struct BipedSmallWeaponSpec(HashMap<String, ArmorVoxSpec>);
+#[derive(Deserialize)]
+struct BipedSmallArmorHeadSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
 #[derive(Deserialize)]
 struct BipedSmallArmorHandSpec(ArmorVoxSpecMap<String, SidedArmorVoxSpec>);
 #[derive(Deserialize)]
@@ -2493,15 +2481,18 @@ struct BipedSmallArmorFootSpec(ArmorVoxSpecMap<String, SidedArmorVoxSpec>);
 struct BipedSmallArmorChestSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
 #[derive(Deserialize)]
 struct BipedSmallArmorPantsSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
+#[derive(Deserialize)]
+struct BipedSmallArmorTailSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
 make_vox_spec!(
     biped_small::Body,
     struct BipedSmallSpec {
-        central: BipedSmallCentralSpec = "voxygen.voxel.biped_small_central_manifest",
         armor_foot: BipedSmallArmorFootSpec = "voxygen.voxel.biped_small_armor_foot_manifest",
         weapon: BipedSmallWeaponSpec = "voxygen.voxel.biped_small_weapon_manifest",
         armor_hand: BipedSmallArmorHandSpec = "voxygen.voxel.biped_small_armor_hand_manifest",
         armor_chest: BipedSmallArmorChestSpec = "voxygen.voxel.biped_small_armor_chest_manifest",
         armor_pants: BipedSmallArmorPantsSpec = "voxygen.voxel.biped_small_armor_pants_manifest",
+        armor_head: BipedSmallArmorHeadSpec = "voxygen.voxel.biped_small_armor_head_manifest",
+        armor_tail: BipedSmallArmorTailSpec = "voxygen.voxel.biped_small_armor_tail_manifest",
 
     },
     |FigureKey { body, extra }, spec| {
@@ -2523,10 +2514,11 @@ make_vox_spec!(
 
 
 [
-            Some(spec.central.read().0.mesh_head(
-                body.species,
-                body.body_type,
-            )),
+            third_person.map(|loadout| {
+                spec.armor_head.read().0.mesh_head(
+                    loadout.head.as_deref(),
+                )
+            }),
             third_person.map(|loadout| {
                 spec.armor_chest.read().0.mesh_chest(
                     loadout.chest.as_deref(),
@@ -2537,10 +2529,11 @@ make_vox_spec!(
                     loadout.pants.as_deref(),
                 )
             }),
-            Some(spec.central.read().0.mesh_tail(
-                body.species,
-                body.body_type,
-            )),
+            third_person.map(|loadout| {
+                spec.armor_tail.read().0.mesh_tail(
+                    loadout.belt.as_deref(),
+                )
+            }),
             tool.and_then(|tool| tool.active.as_ref()).map(|tool| {
                 spec.weapon.read().0.mesh_main(
                     tool,
@@ -2570,40 +2563,27 @@ make_vox_spec!(
     },
 );
 
-impl BipedSmallCentralSpec {
-    fn mesh_head(&self, species: BSSpecies, body_type: BSBodyType) -> BoneMeshes {
-        let spec = match self.0.get(&(species, body_type)) {
-            Some(spec) => spec,
-            None => {
-                error!(
-                    "No head specification exists for the combination of {:?} and {:?}",
-                    species, body_type
-                );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            },
+impl BipedSmallArmorHeadSpec {
+    fn mesh_head(&self, head: Option<&str>) -> BoneMeshes {
+        let spec = if let Some(head) = head {
+            match self.0.map.get(head) {
+                Some(spec) => spec,
+                None => {
+                    error!(?head, "No head specification exists");
+                    return load_mesh("not_found", Vec3::new(-1.5, -1.5, -7.0));
+                },
+            }
+        } else {
+            &self.0.default
         };
-        let central = graceful_load_segment(&spec.head.central.0);
 
-        (central, Vec3::from(spec.head.offset))
-    }
+        let head_segment = graceful_load_segment(&spec.vox_spec.0);
 
-    fn mesh_tail(&self, species: BSSpecies, body_type: BSBodyType) -> BoneMeshes {
-        let spec = match self.0.get(&(species, body_type)) {
-            Some(spec) => spec,
-            None => {
-                error!(
-                    "No tail specification exists for the combination of {:?} and {:?}",
-                    species, body_type
-                );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            },
-        };
-        let central = graceful_load_segment(&spec.tail.central.0);
+        let offset = Vec3::new(spec.vox_spec.1[0], spec.vox_spec.1[1], spec.vox_spec.1[2]);
 
-        (central, Vec3::from(spec.tail.offset))
+        (head_segment, offset)
     }
 }
-
 impl BipedSmallArmorChestSpec {
     fn mesh_chest(&self, chest: Option<&str>) -> BoneMeshes {
         let spec = if let Some(chest) = chest {
@@ -2623,6 +2603,27 @@ impl BipedSmallArmorChestSpec {
         let offset = Vec3::new(spec.vox_spec.1[0], spec.vox_spec.1[1], spec.vox_spec.1[2]);
 
         (chest_segment, offset)
+    }
+}
+impl BipedSmallArmorTailSpec {
+    fn mesh_tail(&self, tail: Option<&str>) -> BoneMeshes {
+        let spec = if let Some(tail) = tail {
+            match self.0.map.get(tail) {
+                Some(spec) => spec,
+                None => {
+                    error!(?tail, "No tail specification exists");
+                    return load_mesh("not_found", Vec3::new(-1.5, -1.5, -7.0));
+                },
+            }
+        } else {
+            &self.0.default
+        };
+
+        let tail_segment = graceful_load_segment(&spec.vox_spec.0);
+
+        let offset = Vec3::new(spec.vox_spec.1[0], spec.vox_spec.1[1], spec.vox_spec.1[2]);
+
+        (tail_segment, offset)
     }
 }
 impl BipedSmallArmorPantsSpec {

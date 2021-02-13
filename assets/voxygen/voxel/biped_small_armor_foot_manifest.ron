@@ -1,10 +1,10 @@
 ((
     default: (
         left: (
-            vox_spec: ("armor.foot.foot_right_none", (-1.5, -2.0, -4.0)),
+        vox_spec: ("armor.empty", (0.0, 0.0, 0.0)),
         ),
         right: (
-            vox_spec: ("armor.foot.foot_right_none", (-1.5, -2.0, -4.0)),
+        vox_spec: ("armor.empty", (0.0, 0.0, 0.0)),
         )
     ),
     map: {

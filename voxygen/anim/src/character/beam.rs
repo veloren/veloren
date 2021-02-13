@@ -32,7 +32,7 @@ impl Animation for BeamAnimation {
         *rate = 1.0;
         let mut next = (*skeleton).clone();
 
-        let (movement1, movement2, movement3) = match stage_section {
+        let (move1, move2, move3) = match stage_section {
             Some(StageSection::Buildup) => (anim_time as f32, 0.0, 0.0),
             Some(StageSection::Cast) => (1.0, anim_time as f32, 0.0),
             Some(StageSection::Recover) => (1.0, 1.0, anim_time as f32),
@@ -56,59 +56,53 @@ impl Animation for BeamAnimation {
         match active_tool_kind {
             Some(ToolKind::Staff) | Some(ToolKind::Sceptre) => {
                 next.control.position = Vec3::new(
-                    s_a.stc.0 + (movement1 * 16.0) * (1.0 - movement3),
-                    s_a.stc.1 + (movement1 + (movement2 * 8.0).sin() * 2.0) * (1.0 - movement3),
-                    s_a.stc.2 + (movement1 * 10.0) * (1.0 - movement3),
+                    s_a.stc.0 + (move1 * 16.0) * (1.0 - move3),
+                    s_a.stc.1 + (move1 + (move2 * 8.0).sin() * 2.0) * (1.0 - move3),
+                    s_a.stc.2 + (move1 * 10.0) * (1.0 - move3),
                 );
                 next.control.orientation =
-                    Quaternion::rotation_x(s_a.stc.3 + (movement1 * -1.2) * (1.0 - movement3))
+                    Quaternion::rotation_x(s_a.stc.3 + (move1 * -1.2) * (1.0 - move3))
                         * Quaternion::rotation_y(
                             s_a.stc.4
-                                + (movement1 * -1.4 + (movement2 * 16.0).sin() * 0.07)
-                                    * (1.0 - movement3),
+                                + (move1 * -1.4 + (move2 * 16.0).sin() * 0.07) * (1.0 - move3),
                         )
                         * Quaternion::rotation_z(
-                            (movement1 * -1.7 + (movement2 * 8.0 + PI / 4.0).sin() * 0.3)
-                                * (1.0 - movement3),
+                            (move1 * -1.7 + (move2 * 8.0 + PI / 4.0).sin() * 0.3) * (1.0 - move3),
                         );
                 next.head.orientation = Quaternion::rotation_x(0.0);
 
                 next.hand_l.position = Vec3::new(
-                    0.0 + (movement1 * -1.0 + (movement2 * 8.0).sin() * 3.5) * (1.0 - movement3),
-                    0.0 + (movement1 * -5.0
-                        + (movement2 * 8.0).sin() * -2.0
-                        + (movement2 * 16.0).sin() * -1.5)
-                        * (1.0 - movement3),
-                    -4.0 + (movement1 * 19.0 + (movement2 * 8.0 + PI / 2.0).sin() * 3.5)
-                        * (1.0 - movement3),
+                    0.0 + (move1 * -1.0 + (move2 * 8.0).sin() * 3.5) * (1.0 - move3),
+                    0.0 + (move1 * -5.0 + (move2 * 8.0).sin() * -2.0 + (move2 * 16.0).sin() * -1.5)
+                        * (1.0 - move3),
+                    -4.0 + (move1 * 19.0 + (move2 * 8.0 + PI / 2.0).sin() * 3.5) * (1.0 - move3),
                 );
                 next.hand_l.orientation =
-                    Quaternion::rotation_x(s_a.sthr.3 + (movement1 * -0.3) * (1.0 - movement3))
+                    Quaternion::rotation_x(s_a.sthr.3 + (move1 * -0.3) * (1.0 - move3))
                         * Quaternion::rotation_y(
-                            (movement1 * -1.1 + (movement2 * 8.0 + PI / 2.0).sin() * -0.3)
-                                * (1.0 - movement3),
+                            (move1 * -1.1 + (move2 * 8.0 + PI / 2.0).sin() * -0.3) * (1.0 - move3),
                         )
-                        * Quaternion::rotation_z((movement1 * -2.8) * (1.0 - movement3));
+                        * Quaternion::rotation_z((move1 * -2.8) * (1.0 - move3));
 
                 if velocity < 0.5 {
                     next.head.orientation =
-                        Quaternion::rotation_z(movement1 * -0.5 + (movement2 * 16.0).sin() * 0.05);
+                        Quaternion::rotation_z(move1 * -0.5 + (move2 * 16.0).sin() * 0.05);
 
                     next.foot_l.position =
-                        Vec3::new(-s_a.foot.0, s_a.foot.1 + movement1 * -3.0, s_a.foot.2);
-                    next.foot_l.orientation = Quaternion::rotation_x(movement1 * -0.5)
-                        * Quaternion::rotation_z(movement1 * 0.5);
+                        Vec3::new(-s_a.foot.0, s_a.foot.1 + move1 * -3.0, s_a.foot.2);
+                    next.foot_l.orientation =
+                        Quaternion::rotation_x(move1 * -0.5) * Quaternion::rotation_z(move1 * 0.5);
 
                     next.foot_r.position =
-                        Vec3::new(s_a.foot.0, s_a.foot.1 + movement1 * 4.0, s_a.foot.2);
-                    next.foot_r.orientation = Quaternion::rotation_z(movement1 * 0.5);
+                        Vec3::new(s_a.foot.0, s_a.foot.1 + move1 * 4.0, s_a.foot.2);
+                    next.foot_r.orientation = Quaternion::rotation_z(move1 * 0.5);
                     next.chest.orientation =
-                        Quaternion::rotation_x(movement1 * -0.2 + (movement2 * 8.0).sin() * 0.05)
-                            * Quaternion::rotation_z(movement1 * 0.5);
-                    next.belt.orientation = Quaternion::rotation_x(movement1 * 0.1)
-                        * Quaternion::rotation_z(movement1 * -0.1);
-                    next.shorts.orientation = Quaternion::rotation_x(movement1 * 0.2)
-                        * Quaternion::rotation_z(movement1 * -0.2);
+                        Quaternion::rotation_x(move1 * -0.2 + (move2 * 8.0).sin() * 0.05)
+                            * Quaternion::rotation_z(move1 * 0.5);
+                    next.belt.orientation =
+                        Quaternion::rotation_x(move1 * 0.1) * Quaternion::rotation_z(move1 * -0.1);
+                    next.shorts.orientation =
+                        Quaternion::rotation_x(move1 * 0.2) * Quaternion::rotation_z(move1 * -0.2);
                 } else {
                 };
             },

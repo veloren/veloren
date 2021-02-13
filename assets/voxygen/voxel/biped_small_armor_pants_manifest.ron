@@ -1,6 +1,6 @@
 ((
     default: (
-        vox_spec: ("armor.pants.pants_none", (-5.0, -3.5, 1.0)),
+        vox_spec: ("armor.empty", (0.0, 0.0, 0.0)),
     ),
     map: {
         "Gnome": (

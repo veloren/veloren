@@ -289,32 +289,44 @@ impl LoadoutBuilder {
                 Adlet => match active_tool_kind {
                     Some(ToolKind::Bow) => LoadoutBuilder::new()
                         .active_item(active_item)
+                        .head(Some(Item::new_from_asset_expect(
+                            "common.items.npc_armor.biped_small.adlet.head.adlet_bow",
+                        )))
                         .hands(Some(Item::new_from_asset_expect(
-                            "common.items.npc_armor.hand.adlet.adlet_bow",
+                            "common.items.npc_armor.biped_small.adlet.hand.adlet_bow",
                         )))
                         .feet(Some(Item::new_from_asset_expect(
-                            "common.items.npc_armor.foot.adlet.adlet",
+                            "common.items.npc_armor.biped_small.adlet.foot.adlet",
                         )))
                         .chest(Some(Item::new_from_asset_expect(
-                            "common.items.npc_armor.chest.adlet.adlet_bow",
+                            "common.items.npc_armor.biped_small.adlet.chest.adlet_bow",
                         )))
                         .pants(Some(Item::new_from_asset_expect(
-                            "common.items.npc_armor.pants.adlet.adlet_bow",
+                            "common.items.npc_armor.biped_small.adlet.pants.adlet_bow",
+                        )))
+                        .belt(Some(Item::new_from_asset_expect(
+                            "common.items.npc_armor.biped_small.adlet.tail.adlet",
                         )))
                         .build(),
                     Some(ToolKind::Spear) | Some(ToolKind::Staff) => LoadoutBuilder::new()
                         .active_item(active_item)
+                        .head(Some(Item::new_from_asset_expect(
+                            "common.items.npc_armor.biped_small.adlet.head.adlet_spear",
+                        )))
                         .hands(Some(Item::new_from_asset_expect(
-                            "common.items.npc_armor.hand.adlet.adlet_spear",
+                            "common.items.npc_armor.biped_small.adlet.hand.adlet_spear",
                         )))
                         .feet(Some(Item::new_from_asset_expect(
-                            "common.items.npc_armor.foot.adlet.adlet",
+                            "common.items.npc_armor.biped_small.adlet.foot.adlet",
                         )))
                         .chest(Some(Item::new_from_asset_expect(
-                            "common.items.npc_armor.chest.adlet.adlet_spear",
+                            "common.items.npc_armor.biped_small.adlet.chest.adlet_spear",
                         )))
                         .pants(Some(Item::new_from_asset_expect(
-                            "common.items.npc_armor.pants.adlet.adlet_spear",
+                            "common.items.npc_armor.biped_small.adlet.pants.adlet_spear",
+                        )))
+                        .belt(Some(Item::new_from_asset_expect(
+                            "common.items.npc_armor.biped_small.adlet.tail.adlet",
                         )))
                         .build(),
                     _ => LoadoutBuilder::new().active_item(active_item).build(),
@@ -322,94 +334,124 @@ impl LoadoutBuilder {
                 Gnarling => match active_tool_kind {
                     Some(ToolKind::Bow) => LoadoutBuilder::new()
                         .active_item(active_item)
+                        .head(Some(Item::new_from_asset_expect(
+                            "common.items.npc_armor.biped_small.gnarling.head.gnarling",
+                        )))
                         .feet(Some(Item::new_from_asset_expect(
-                            "common.items.npc_armor.foot.gnarling.gnarling",
+                            "common.items.npc_armor.biped_small.gnarling.foot.gnarling",
                         )))
                         .hands(Some(Item::new_from_asset_expect(
-                            "common.items.npc_armor.hand.gnarling.gnarling",
+                            "common.items.npc_armor.biped_small.gnarling.hand.gnarling",
                         )))
                         .chest(Some(Item::new_from_asset_expect(
-                            "common.items.npc_armor.chest.gnarling.gnarling",
+                            "common.items.npc_armor.biped_small.gnarling.chest.gnarling",
                         )))
                         .pants(Some(Item::new_from_asset_expect(
-                            "common.items.npc_armor.pants.gnarling.gnarling",
+                            "common.items.npc_armor.biped_small.gnarling.pants.gnarling",
+                        )))
+                        .belt(Some(Item::new_from_asset_expect(
+                            "common.items.npc_armor.biped_small.gnarling.tail.gnarling",
                         )))
                         .build(),
                     Some(ToolKind::Staff) => LoadoutBuilder::new()
                         .active_item(active_item)
+                        .head(Some(Item::new_from_asset_expect(
+                            "common.items.npc_armor.biped_small.gnarling.head.gnarling",
+                        )))
                         .feet(Some(Item::new_from_asset_expect(
-                            "common.items.npc_armor.foot.gnarling.gnarling",
+                            "common.items.npc_armor.biped_small.gnarling.foot.gnarling",
                         )))
                         .hands(Some(Item::new_from_asset_expect(
-                            "common.items.npc_armor.hand.gnarling.gnarling",
+                            "common.items.npc_armor.biped_small.gnarling.hand.gnarling",
                         )))
                         .chest(Some(Item::new_from_asset_expect(
-                            "common.items.npc_armor.chest.gnarling.gnarling",
+                            "common.items.npc_armor.biped_small.gnarling.chest.gnarling",
                         )))
                         .pants(Some(Item::new_from_asset_expect(
-                            "common.items.npc_armor.pants.gnarling.gnarling",
+                            "common.items.npc_armor.biped_small.gnarling.pants.gnarling",
+                        )))
+                        .belt(Some(Item::new_from_asset_expect(
+                            "common.items.npc_armor.biped_small.gnarling.tail.gnarling",
                         )))
                         .build(),
                     Some(ToolKind::Spear) => LoadoutBuilder::new()
                         .active_item(active_item)
+                        .head(Some(Item::new_from_asset_expect(
+                            "common.items.npc_armor.biped_small.gnarling.head.gnarling",
+                        )))
                         .feet(Some(Item::new_from_asset_expect(
-                            "common.items.npc_armor.foot.gnarling.gnarling",
+                            "common.items.npc_armor.biped_small.gnarling.foot.gnarling",
                         )))
                         .hands(Some(Item::new_from_asset_expect(
-                            "common.items.npc_armor.hand.gnarling.gnarling",
+                            "common.items.npc_armor.biped_small.gnarling.hand.gnarling",
                         )))
                         .chest(Some(Item::new_from_asset_expect(
-                            "common.items.npc_armor.chest.gnarling.gnarling",
+                            "common.items.npc_armor.biped_small.gnarling.chest.gnarling",
                         )))
                         .pants(Some(Item::new_from_asset_expect(
-                            "common.items.npc_armor.pants.gnarling.gnarling",
+                            "common.items.npc_armor.biped_small.gnarling.pants.gnarling",
                         )))
                         .build(),
                     _ => LoadoutBuilder::new().active_item(active_item).build(),
                 },
                 Sahagin => LoadoutBuilder::new()
                     .active_item(active_item)
-                    .hands(Some(Item::new_from_asset_expect(
-                        "common.items.npc_armor.hand.sahagin.sahagin",
+                    .head(Some(Item::new_from_asset_expect(
+                        "common.items.npc_armor.biped_small.sahagin.head.sahagin",
                     )))
                     .feet(Some(Item::new_from_asset_expect(
-                        "common.items.npc_armor.foot.sahagin.sahagin",
+                        "common.items.npc_armor.biped_small.sahagin.foot.sahagin",
+                    )))
+                    .hands(Some(Item::new_from_asset_expect(
+                        "common.items.npc_armor.biped_small.sahagin.hand.sahagin",
                     )))
                     .chest(Some(Item::new_from_asset_expect(
-                        "common.items.npc_armor.chest.sahagin.sahagin",
+                        "common.items.npc_armor.biped_small.sahagin.chest.sahagin",
                     )))
                     .pants(Some(Item::new_from_asset_expect(
-                        "common.items.npc_armor.pants.sahagin.sahagin",
+                        "common.items.npc_armor.biped_small.sahagin.pants.sahagin",
+                    )))
+                    .belt(Some(Item::new_from_asset_expect(
+                        "common.items.npc_armor.biped_small.sahagin.belt.sahagin",
                     )))
                     .build(),
                 Haniwa => LoadoutBuilder::new()
                     .active_item(active_item)
-                    .hands(Some(Item::new_from_asset_expect(
-                        "common.items.npc_armor.hand.haniwa.haniwa",
+                    .head(Some(Item::new_from_asset_expect(
+                        "common.items.npc_armor.biped_small.haniwa.head.haniwa",
                     )))
                     .feet(Some(Item::new_from_asset_expect(
-                        "common.items.npc_armor.foot.haniwa.haniwa",
+                        "common.items.npc_armor.biped_small.haniwa.foot.haniwa",
+                    )))
+                    .hands(Some(Item::new_from_asset_expect(
+                        "common.items.npc_armor.biped_small.haniwa.hand.haniwa",
                     )))
                     .chest(Some(Item::new_from_asset_expect(
-                        "common.items.npc_armor.chest.haniwa.haniwa",
+                        "common.items.npc_armor.biped_small.haniwa.chest.haniwa",
                     )))
                     .pants(Some(Item::new_from_asset_expect(
-                        "common.items.npc_armor.pants.haniwa.haniwa",
+                        "common.items.npc_armor.biped_small.haniwa.pants.haniwa",
                     )))
                     .build(),
                 Myrmidon => LoadoutBuilder::new()
                     .active_item(active_item)
-                    .hands(Some(Item::new_from_asset_expect(
-                        "common.items.npc_armor.hand.myrmidon.myrmidon",
+                    .head(Some(Item::new_from_asset_expect(
+                        "common.items.npc_armor.biped_small.myrmidon.head.myrmidon",
                     )))
                     .feet(Some(Item::new_from_asset_expect(
-                        "common.items.npc_armor.foot.myrmidon.myrmidon",
+                        "common.items.npc_armor.biped_small.myrmidon.foot.myrmidon",
+                    )))
+                    .hands(Some(Item::new_from_asset_expect(
+                        "common.items.npc_armor.biped_small.myrmidon.hand.myrmidon",
                     )))
                     .chest(Some(Item::new_from_asset_expect(
-                        "common.items.npc_armor.chest.myrmidon.myrmidon",
+                        "common.items.npc_armor.biped_small.myrmidon.chest.myrmidon",
                     )))
                     .pants(Some(Item::new_from_asset_expect(
-                        "common.items.npc_armor.pants.myrmidon.myrmidon",
+                        "common.items.npc_armor.biped_small.myrmidon.pants.myrmidon",
+                    )))
+                    .belt(Some(Item::new_from_asset_expect(
+                        "common.items.npc_armor.biped_small.myrmidon.belt.myrmidon",
                     )))
                     .build(),
                 Guard => LoadoutBuilder::new()

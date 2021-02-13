@@ -862,17 +862,6 @@ impl Floor {
                                 ],
                                 3 => vec![
                                     EntityInfo::at(tile_wcenter.map(|e| e as f32))
-                                        .with_body(comp::Body::BipedLarge(
-                                            comp::biped_large::Body::random_with(
-                                                dynamic_rng,
-                                                &comp::biped_large::Species::Minotaur,
-                                            ),
-                                        ))
-                                        .with_name("Minotaur".to_string())
-                                        .with_loot_drop(comp::Item::new_from_asset_expect(chosen)),
-                                ],
-                                4 => vec![
-                                    EntityInfo::at(tile_wcenter.map(|e| e as f32))
                                         .with_body(comp::Body::Golem(
                                             comp::golem::Body::random_with(
                                                 dynamic_rng,
@@ -880,6 +869,17 @@ impl Floor {
                                             ),
                                         ))
                                         .with_name("Stonework Defender".to_string())
+                                        .with_loot_drop(comp::Item::new_from_asset_expect(chosen)),
+                                ],
+                                4 => vec![
+                                    EntityInfo::at(tile_wcenter.map(|e| e as f32))
+                                        .with_body(comp::Body::BipedLarge(
+                                            comp::biped_large::Body::random_with(
+                                                dynamic_rng,
+                                                &comp::biped_large::Species::Minotaur,
+                                            ),
+                                        ))
+                                        .with_name("Minotaur".to_string())
                                         .with_loot_drop(comp::Item::new_from_asset_expect(chosen)),
                                 ],
                                 5 => vec![
