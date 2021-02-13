@@ -20,7 +20,6 @@
         secondary: "common.abilities.hammer.charged",
         skills: [
             (Some(Hammer(UnlockLeap)), "common.abilities.hammer.leap"),
-            (Some(Staff(UnlockShockwave)), "common.abilities.staff.fireshockwave"), // test, remove later
         ],
     ),
     Bow: (
