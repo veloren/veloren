@@ -4184,10 +4184,7 @@ impl<S: Skeleton> FigureState<S> {
         self.state_time += (dt * state_animation_rate) as f64;
 
         let mat = {
-            // TODO: Update to use the quaternion.
-            let ori = ori * anim::vek::Vec3::unit_y();
-            anim::vek::Mat4::rotation_z(-ori.x.atan2(ori.y))
-                * anim::vek::Mat4::rotation_x(ori.z.atan2(anim::vek::Vec2::from(ori).magnitude()))
+            anim::vek::Mat4::from(ori)
                 * anim::vek::Mat4::scaling_3d(anim::vek::Vec3::from(0.8 * scale))
         };
 
