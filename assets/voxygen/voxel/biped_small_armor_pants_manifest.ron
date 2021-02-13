@@ -9,8 +9,11 @@
         "Sahagin": (
             vox_spec: ("npc.sahagin.male.pants", (-2.5, -3.5, -2.0)),
         ),
-        "Adlet": (
-            vox_spec: ("npc.adlet.male.pants", (-5.0, -4.5, -3.0)),
+        "AdletSpear": (
+            vox_spec: ("npc.adlet.male.spear.pants", (-5.0, -4.5, -3.0)),
+        ),
+        "AdletBow": (
+            vox_spec: ("npc.adlet.male.bow.pants", (-5.0, -4.5, -3.0)),
         ),
         "Gnarling": (
             vox_spec: ("npc.gnarling.male.pants", (-3.5, -3.0, -2.5)),
@@ -31,7 +34,7 @@
             vox_spec: ("npc.haniwa.male.pants", (-4.5, -4.5, -1.5)),
         ),
         "Myrmidon": (
-            vox_spec: ("npc.myrmidon.male.pants", (-4.5, -4.5, -1.5)),
+            vox_spec: ("npc.myrmidon.male.pants", (-2.5, -4.5, -1.5)),
         ),
     },
 ))

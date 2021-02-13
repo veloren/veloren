@@ -9,8 +9,11 @@
         "Sahagin": (
             vox_spec: ("npc.sahagin.male.chest", (-4.5, -8.0, -8.0)),
         ),
-        "Adlet": (
-            vox_spec: ("npc.adlet.male.chest", (-5.0, -3.5, -2.0)),
+        "AdletSpear": (
+            vox_spec: ("npc.adlet.male.spear.chest", (-5.0, -3.5, -2.0)),
+        ),
+        "AdletBow": (
+            vox_spec: ("npc.adlet.male.bow.chest", (-5.0, -3.5, -2.0)),
         ),
         "Gnarling": (
             vox_spec: ("npc.gnarling.male.chest", (-4.5, -3.5, -2.5)),

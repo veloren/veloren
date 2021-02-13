@@ -51,16 +51,16 @@ impl Animation for RunAnimation {
             0.0
         } * 1.3;
         let x_tilt = avg_vel.z.atan2(avg_vel.xy().magnitude()) * speednorm;
-
+        let vertcancel = 1.0 - s_a.lateral;
         next.leg_fl.scale = Vec3::one() * 1.02;
         next.leg_fr.scale = Vec3::one() * 1.02;
         next.leg_bl.scale = Vec3::one() * 1.02;
         next.leg_br.scale = Vec3::one() * 1.02;
 
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
-        next.head.orientation = Quaternion::rotation_x(x_tilt * -0.5 + short * -0.2)
+        next.head.orientation = Quaternion::rotation_x(x_tilt * -0.5 + vertcancel * short * -0.2)
             * Quaternion::rotation_y(tilt * 0.8)
-            * Quaternion::rotation_z(tilt * -1.2);
+            * Quaternion::rotation_z(s_a.lateral * -short * 0.2 + tilt * -1.2);
 
         next.chest.position = Vec3::new(
             0.0,
@@ -68,9 +68,10 @@ impl Animation for RunAnimation {
             s_a.chest.1 + 2.0 * speednorm * s_a.spring + shortalt * 3.0 * s_a.spring,
         ) / 11.0
             * s_a.scaler;
-        next.chest.orientation = Quaternion::rotation_x(short * 0.2 * s_a.spring + x_tilt)
-            * Quaternion::rotation_y(tilt * 0.8)
-            * Quaternion::rotation_z(tilt * -1.5);
+        next.chest.orientation =
+            Quaternion::rotation_x(vertcancel * short * 0.2 * s_a.spring + x_tilt)
+                * Quaternion::rotation_y(tilt * 0.8)
+                * Quaternion::rotation_z(s_a.lateral * short * 0.2 + tilt * -1.5);
         next.chest.scale = Vec3::one() / 11.0 * s_a.scaler;
 
         next.leg_fl.position = Vec3::new(
@@ -114,9 +115,9 @@ impl Animation for RunAnimation {
                 * Quaternion::rotation_z(tilt * -1.5);
 
         next.tail.position = Vec3::new(0.0, s_a.tail.0, s_a.tail.1);
-        next.tail.orientation = Quaternion::rotation_x(short * 0.2 + x_tilt)
+        next.tail.orientation = Quaternion::rotation_x(vertcancel * short * 0.2 + x_tilt)
             * Quaternion::rotation_y(tilt * 0.8)
-            * Quaternion::rotation_z(tilt * 1.5);
+            * Quaternion::rotation_z(s_a.lateral * -short * 0.2 + tilt * 1.5);
         next
     }
 }

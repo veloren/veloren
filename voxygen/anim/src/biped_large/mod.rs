@@ -241,7 +241,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Troll, _) => (1.0, -10.5),
                 (Dullahan, _) => (0.0, -6.5),
                 (Werewolf, _) => (1.0, -10.0),
-                (Occultsaurok, _) => (0.0, -6.0),
+                (Occultsaurok, _) => (0.0, -5.0),
                 (Mightysaurok, _) => (0.0, -5.0),
                 (Slysaurok, _) => (0.0, -6.0),
                 (Mindflayer, _) => (3.5, -19.5),

@@ -1,8 +1,8 @@
 ItemDef(
-    name: "Haniwa",
-    description: "Ceremonial attire used by members..",
+    name: "Adlet",
+    description: "Ceremonial attire used by members.",
     kind: Armor((
-        kind: Pants("Adlet"),
+        kind: Chest("AdletSpear"),
         stats: (
             protection: Normal(2.0),
             poise_resilience: Normal(1.0),

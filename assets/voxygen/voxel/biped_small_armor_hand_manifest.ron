@@ -24,12 +24,20 @@
                 vox_spec: ("npc.sahagin.male.hand_r", (0.0, -4.0, -13.0)),
             )
         ),
-        "Adlet": (
+        "AdletSpear": (
             left: (
-                vox_spec: ("npc.adlet.male.hand_r", (-4.0, -2.0, -7.0)),
+                vox_spec: ("npc.adlet.male.spear.hand_r", (-4.0, -2.0, -7.0)),
             ),
             right: (
-                vox_spec: ("npc.adlet.male.hand_r", (0.0, -2.0, -7.0)),
+                vox_spec: ("npc.adlet.male.spear.hand_r", (0.0, -2.0, -7.0)),
+            )
+        ),
+        "AdletBow": (
+            left: (
+                vox_spec: ("npc.adlet.male.bow.hand_r", (-4.0, -2.0, -7.0)),
+            ),
+            right: (
+                vox_spec: ("npc.adlet.male.bow.hand_r", (0.0, -2.0, -7.0)),
             )
         ),
         "Gnarling": (

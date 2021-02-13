@@ -68,6 +68,7 @@ pub struct SkeletonAttr {
     minimize: f32,
     spring: f32,
     feed: f32,
+    lateral: f32,
 }
 impl<'a> std::convert::TryFrom<&'a comp::Body> for SkeletonAttr {
     type Error = ();
@@ -94,6 +95,7 @@ impl Default for SkeletonAttr {
             minimize: 0.0,
             spring: 0.0,
             feed: 0.0,
+            lateral: 0.0,
         }
     }
 }
@@ -239,7 +241,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Axolotl, _) => (-4.0, -1.0),
                 (Gecko, _) => (-4.0, 0.0),
                 (Turtle, _) => (-6.0, -2.0),
-                (Squirrel, _) => (-5.0, 0.0),
+                (Squirrel, _) => (-4.0, 0.0),
                 (Fungome, _) => (-4.0, -2.0),
                 (Porcupine, _) => (-6.0, 1.0),
                 (Beaver, _) => (-6.5, -1.0),
@@ -263,7 +265,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Axolotl, _) => (0.65),
                 (Gecko, _) => (0.7),
                 (Turtle, _) => (0.9),
-                (Squirrel, _) => (0.7),
+                (Squirrel, _) => (0.6),
                 (Fungome, _) => (0.9),
                 (Porcupine, _) => (0.8),
                 (Hare, _) => (0.8),
@@ -359,6 +361,13 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Fungome, _) => (0.7),
                 (Hare, _) => (1.2),
                 _ => (1.0),
+            },
+            lateral: match (body.species, body.body_type) {
+                (Axolotl, _) => (1.0),
+                (Gecko, _) => (1.0),
+                (Turtle, _) => (1.0),
+                (Fungome, _) => (1.0),
+                _ => (0.0),
             },
         }
     }

@@ -290,16 +290,31 @@ impl LoadoutBuilder {
                     Some(ToolKind::Bow) => LoadoutBuilder::new()
                         .active_item(active_item)
                         .hands(Some(Item::new_from_asset_expect(
-                            "common.items.npc_armor.hand.adlet",
+                            "common.items.npc_armor.hand.adlet.adlet_bow",
                         )))
                         .feet(Some(Item::new_from_asset_expect(
-                            "common.items.npc_armor.foot.adlet",
+                            "common.items.npc_armor.foot.adlet.adlet",
                         )))
                         .chest(Some(Item::new_from_asset_expect(
-                            "common.items.npc_armor.chest.adlet",
+                            "common.items.npc_armor.chest.adlet.adlet_bow",
                         )))
                         .pants(Some(Item::new_from_asset_expect(
-                            "common.items.npc_armor.pants.adlet",
+                            "common.items.npc_armor.pants.adlet.adlet_bow",
+                        )))
+                        .build(),
+                    Some(ToolKind::Spear) | Some(ToolKind::Staff) => LoadoutBuilder::new()
+                        .active_item(active_item)
+                        .hands(Some(Item::new_from_asset_expect(
+                            "common.items.npc_armor.hand.adlet.adlet_spear",
+                        )))
+                        .feet(Some(Item::new_from_asset_expect(
+                            "common.items.npc_armor.foot.adlet.adlet",
+                        )))
+                        .chest(Some(Item::new_from_asset_expect(
+                            "common.items.npc_armor.chest.adlet.adlet_spear",
+                        )))
+                        .pants(Some(Item::new_from_asset_expect(
+                            "common.items.npc_armor.pants.adlet.adlet_spear",
                         )))
                         .build(),
                     _ => LoadoutBuilder::new().active_item(active_item).build(),
@@ -308,16 +323,46 @@ impl LoadoutBuilder {
                     Some(ToolKind::Bow) => LoadoutBuilder::new()
                         .active_item(active_item)
                         .feet(Some(Item::new_from_asset_expect(
-                            "common.items.npc_armor.foot.gnarling",
+                            "common.items.npc_armor.foot.gnarling.gnarling",
                         )))
                         .hands(Some(Item::new_from_asset_expect(
-                            "common.items.npc_armor.hand.gnarling",
+                            "common.items.npc_armor.hand.gnarling.gnarling",
                         )))
                         .chest(Some(Item::new_from_asset_expect(
-                            "common.items.npc_armor.chest.gnarling",
+                            "common.items.npc_armor.chest.gnarling.gnarling",
                         )))
                         .pants(Some(Item::new_from_asset_expect(
-                            "common.items.npc_armor.pants.gnarling",
+                            "common.items.npc_armor.pants.gnarling.gnarling",
+                        )))
+                        .build(),
+                    Some(ToolKind::Staff) => LoadoutBuilder::new()
+                        .active_item(active_item)
+                        .feet(Some(Item::new_from_asset_expect(
+                            "common.items.npc_armor.foot.gnarling.gnarling",
+                        )))
+                        .hands(Some(Item::new_from_asset_expect(
+                            "common.items.npc_armor.hand.gnarling.gnarling",
+                        )))
+                        .chest(Some(Item::new_from_asset_expect(
+                            "common.items.npc_armor.chest.gnarling.gnarling",
+                        )))
+                        .pants(Some(Item::new_from_asset_expect(
+                            "common.items.npc_armor.pants.gnarling.gnarling",
+                        )))
+                        .build(),
+                    Some(ToolKind::Spear) => LoadoutBuilder::new()
+                        .active_item(active_item)
+                        .feet(Some(Item::new_from_asset_expect(
+                            "common.items.npc_armor.foot.gnarling.gnarling",
+                        )))
+                        .hands(Some(Item::new_from_asset_expect(
+                            "common.items.npc_armor.hand.gnarling.gnarling",
+                        )))
+                        .chest(Some(Item::new_from_asset_expect(
+                            "common.items.npc_armor.chest.gnarling.gnarling",
+                        )))
+                        .pants(Some(Item::new_from_asset_expect(
+                            "common.items.npc_armor.pants.gnarling.gnarling",
                         )))
                         .build(),
                     _ => LoadoutBuilder::new().active_item(active_item).build(),
@@ -325,46 +370,46 @@ impl LoadoutBuilder {
                 Sahagin => LoadoutBuilder::new()
                     .active_item(active_item)
                     .hands(Some(Item::new_from_asset_expect(
-                        "common.items.npc_armor.hand.sahagin",
+                        "common.items.npc_armor.hand.sahagin.sahagin",
                     )))
                     .feet(Some(Item::new_from_asset_expect(
-                        "common.items.npc_armor.foot.sahagin",
+                        "common.items.npc_armor.foot.sahagin.sahagin",
                     )))
                     .chest(Some(Item::new_from_asset_expect(
-                        "common.items.npc_armor.chest.sahagin",
+                        "common.items.npc_armor.chest.sahagin.sahagin",
                     )))
                     .pants(Some(Item::new_from_asset_expect(
-                        "common.items.npc_armor.pants.sahagin",
+                        "common.items.npc_armor.pants.sahagin.sahagin",
                     )))
                     .build(),
                 Haniwa => LoadoutBuilder::new()
                     .active_item(active_item)
                     .hands(Some(Item::new_from_asset_expect(
-                        "common.items.npc_armor.hand.haniwa",
+                        "common.items.npc_armor.hand.haniwa.haniwa",
                     )))
                     .feet(Some(Item::new_from_asset_expect(
-                        "common.items.npc_armor.foot.haniwa",
+                        "common.items.npc_armor.foot.haniwa.haniwa",
                     )))
                     .chest(Some(Item::new_from_asset_expect(
-                        "common.items.npc_armor.chest.haniwa",
+                        "common.items.npc_armor.chest.haniwa.haniwa",
                     )))
                     .pants(Some(Item::new_from_asset_expect(
-                        "common.items.npc_armor.pants.haniwa",
+                        "common.items.npc_armor.pants.haniwa.haniwa",
                     )))
                     .build(),
                 Myrmidon => LoadoutBuilder::new()
                     .active_item(active_item)
                     .hands(Some(Item::new_from_asset_expect(
-                        "common.items.npc_armor.hand.myrmidon",
+                        "common.items.npc_armor.hand.myrmidon.myrmidon",
                     )))
                     .feet(Some(Item::new_from_asset_expect(
-                        "common.items.npc_armor.foot.myrmidon",
+                        "common.items.npc_armor.foot.myrmidon.myrmidon",
                     )))
-                    .hands(Some(Item::new_from_asset_expect(
-                        "common.items.npc_armor.chest.myrmidon",
+                    .chest(Some(Item::new_from_asset_expect(
+                        "common.items.npc_armor.chest.myrmidon.myrmidon",
                     )))
-                    .feet(Some(Item::new_from_asset_expect(
-                        "common.items.npc_armor.pants.myrmidon",
+                    .pants(Some(Item::new_from_asset_expect(
+                        "common.items.npc_armor.pants.myrmidon.myrmidon",
                     )))
                     .build(),
                 Guard => LoadoutBuilder::new()

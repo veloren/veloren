@@ -493,7 +493,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Grolgar, _) => (-0.3),
                 (Saber, _) => (-0.2),
                 (Tuskram, _) => (0.3),
-                (Lion, _) => (0.2),
+                (Lion, _) => (-0.1),
                 (Tarasque, _) => (-0.5),
                 (Catoblepas, _) => (-0.5),
                 (Bonerattler, _) => (-0.7),

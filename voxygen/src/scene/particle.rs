@@ -670,7 +670,7 @@ impl ParticleMgr {
                         self.particles.push(Particle::new_directed(
                             Duration::from_secs(2),
                             time,
-                            ParticleMode::FlameThrower,
+                            ParticleMode::GroundShockwave,
                             position_snapped,
                             Vec3::new(0.0, 0.0, 10.0) + position_snapped,
                         ));

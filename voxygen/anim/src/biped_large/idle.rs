@@ -25,10 +25,10 @@ impl Animation for IdleAnimation {
         let mut next = (*skeleton).clone();
 
         let lab = 1.0;
-        let torso = (anim_time as f32 * lab as f32 + 1.5 * PI).sin();
+        let torso = (anim_time as f32 * lab as f32 + 1.5 * PI).sin() * 1.5;
 
-        let slower = (anim_time as f32 * 1.0 + PI).sin();
-        let slow = (anim_time as f32 * 3.5 + PI).sin();
+        let slower = (anim_time as f32 * 2.0 + PI).sin() * 1.5;
+        let slow = (anim_time as f32 * 7.0 + PI).sin() * 1.5;
 
         let look = Vec2::new(
             ((global_time + anim_time) as f32 / 8.0)
@@ -119,13 +119,13 @@ impl Animation for IdleAnimation {
         next.shoulder_r.position = Vec3::new(s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
         next.shoulder_r.orientation = Quaternion::rotation_x(breathe);
 
-        next.hand_l.position = Vec3::new(-s_a.hand.0, s_a.hand.1, s_a.hand.2 + torso * 0.6);
+        next.hand_l.position = Vec3::new(-s_a.hand.0, s_a.hand.1, s_a.hand.2 + torso * -0.1);
 
-        next.hand_r.position = Vec3::new(s_a.hand.0, s_a.hand.1, s_a.hand.2 + torso * 0.6);
+        next.hand_r.position = Vec3::new(s_a.hand.0, s_a.hand.1, s_a.hand.2 + torso * -0.1);
 
-        next.leg_l.position = Vec3::new(-s_a.leg.0, s_a.leg.1, s_a.leg.2 + torso * 0.2);
+        next.leg_l.position = Vec3::new(-s_a.leg.0, s_a.leg.1, s_a.leg.2 + torso * -0.2);
 
-        next.leg_r.position = Vec3::new(s_a.leg.0, s_a.leg.1, s_a.leg.2 + torso * 0.2);
+        next.leg_r.position = Vec3::new(s_a.leg.0, s_a.leg.1, s_a.leg.2 + torso * -0.2);
 
         next.foot_l.position = Vec3::new(-s_a.foot.0, s_a.foot.1, s_a.foot.2);
 

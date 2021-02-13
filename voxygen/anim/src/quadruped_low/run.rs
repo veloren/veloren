@@ -26,7 +26,7 @@ impl Animation for RunAnimation {
 
         let speednorm = (speed / 15.0).powf(0.25);
 
-        let lab = 0.7 * s_a.tempo;
+        let lab = 0.8 * s_a.tempo;
         let x_tilt = avg_vel.z.atan2(avg_vel.xy().magnitude()).max(-0.7) * speednorm;
 
         let short = (((1.0) / (0.72 + 0.28 * ((acc_vel * lab as f32 + PI * 0.25).sin()).powi(2)))

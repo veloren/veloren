@@ -26,11 +26,13 @@ impl Animation for RunAnimation {
         *rate = 1.0;
         //let increasefreqtest = (((1.0/speed)*3.0).round()).min(5.0);
         let lab = 0.72; //0.72
-        let amplitude = (speed / 24.0).max(0.125);
-        let amplitude2 = (speed * 1.4 / 24.0).sqrt().max(0.3);
-        let amplitude3 = (speed / 24.0).sqrt().max(0.175);
+        let amplitude = (speed / 24.0).powf(0.4);
+        let amplitude2 = (speed / 24.0).powf(0.4);
+        let amplitude3 = (speed / 24.0).powf(0.4);
         let speedmult = s_a.tempo;
-        let canceler = (speed / 24.0).sqrt();
+        let canceler = (speed / 24.0).powf(0.4);
+        //println!("{} test",  canceler);
+
         let short = (((1.0)
             / (0.72
                 + 0.28
@@ -106,24 +108,24 @@ impl Animation for RunAnimation {
         next.ears.scale = Vec3::one() * 1.02;
 
         //Gallop
-        next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
+        next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1 + shortalt * -0.5);
         next.head.orientation = Quaternion::rotation_x(
-            look.y * 0.3 / ((canceler).max(0.5)) + amplitude * short * -0.03 - 0.1,
+            look.y * 0.3 / ((canceler).max(0.5)) + amplitude * short * 0.05 - 0.1,
         ) * Quaternion::rotation_z(
             look.x * 0.3 / ((canceler).max(0.5)) + tilt * -1.2,
         ) * Quaternion::rotation_y(tilt * 0.8);
 
-        next.neck.position = Vec3::new(0.0, s_a.neck.0, s_a.neck.1);
+        next.neck.position = Vec3::new(0.0, s_a.neck.0, s_a.neck.1 + shortalt * -0.8);
         next.neck.orientation = Quaternion::rotation_z(tilt * -0.8)
-            * Quaternion::rotation_x(amplitude * short * -0.05)
+            * Quaternion::rotation_x(amplitude * short * 0.05)
             * Quaternion::rotation_y(tilt * 0.3);
 
         next.jaw.position = Vec3::new(0.0, s_a.jaw.0, s_a.jaw.1);
         next.jaw.orientation = Quaternion::rotation_x(0.0);
 
         next.tail.position = Vec3::new(0.0, s_a.tail.0, s_a.tail.1);
-        next.tail.orientation =
-            Quaternion::rotation_x(amplitude * shortalt * 0.3) * Quaternion::rotation_z(tilt * 1.5);
+        next.tail.orientation = Quaternion::rotation_x(amplitude * shortalt * -0.3)
+            * Quaternion::rotation_z(tilt * 1.5);
 
         next.torso_front.position = Vec3::new(
             0.0,
@@ -145,7 +147,7 @@ impl Animation for RunAnimation {
             s_a.torso_back.0,
             s_a.torso_back.1 + amplitude * shortalt * 0.2 - 0.2,
         );
-        next.torso_back.orientation = Quaternion::rotation_x(amplitude * short * -0.1)
+        next.torso_back.orientation = Quaternion::rotation_x(amplitude * short * -0.07)
             * Quaternion::rotation_z(tilt * 1.8)
             * Quaternion::rotation_y(tilt * 0.6);
 

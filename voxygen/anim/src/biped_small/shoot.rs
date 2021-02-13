@@ -84,26 +84,26 @@ impl Animation for ShootAnimation {
 
         match active_tool_kind {
             Some(ToolKind::Bow) => {
-                let (movement1base, movement2base, movement3) = match stage_section {
+                let (move1base, move2base, move3) = match stage_section {
                     Some(StageSection::Buildup) => (anim_time as f32, 0.0, 0.0),
                     Some(StageSection::Swing) => (1.0, (anim_time as f32).powf(0.25), 0.0),
                     Some(StageSection::Recover) => (1.0, 1.0, anim_time as f32),
                     _ => (0.0, 0.0, 0.0),
                 };
-                let pullback = 1.0 - movement3;
-                let movement1abs = movement1base * pullback;
-                let movement2abs = movement2base * pullback;
+                let pullback = 1.0 - move3;
+                let move1abs = move1base * pullback;
+                let move2abs = move2base * pullback;
                 next.control_l.position = Vec3::new(
-                    1.0 - s_a.grip.0 * 2.0 + movement2abs * -4.0,
-                    movement2abs * -8.0,
+                    1.0 - s_a.grip.0 * 2.0 + move2abs * -4.0,
+                    move2abs * -8.0,
                     0.0,
                 );
                 next.control_r.position = Vec3::new(-1.0 + s_a.grip.0 * 2.0, 6.0, -2.0);
 
                 next.control.position = Vec3::new(
                     -1.0,
-                    2.0 + movement1abs * 4.0 + s_a.grip.2,
-                    3.0 + movement1abs * 8.0 - s_a.grip.2 / 2.5 + s_a.grip.0 * -2.0,
+                    2.0 + move1abs * 3.0 + s_a.grip.2,
+                    3.0 + move1abs * 7.0 - s_a.grip.2 / 2.5 + s_a.grip.0 * -2.0,
                 );
 
                 next.control_l.orientation =
@@ -111,8 +111,43 @@ impl Animation for ShootAnimation {
                 next.control_r.orientation = Quaternion::rotation_x(PI / 2.0 + s_a.grip.0 * 0.2)
                     * Quaternion::rotation_y(0.5 + s_a.grip.0 * 0.2);
 
-                next.control.orientation = Quaternion::rotation_x(-0.3 + movement1abs * 0.7)
+                next.control.orientation = Quaternion::rotation_x(-0.3 + move1abs * 0.4)
                     * Quaternion::rotation_y(0.5 * speednorm);
+            },
+            Some(ToolKind::Staff) => {
+                let (move1base, move2base, move3) = match stage_section {
+                    Some(StageSection::Buildup) => ((anim_time as f32).powf(0.25), 0.0, 0.0),
+                    Some(StageSection::Swing) => (1.0, (anim_time as f32).powf(0.25), 0.0),
+                    Some(StageSection::Recover) => (1.0, 1.0, anim_time as f32),
+                    _ => (0.0, 0.0, 0.0),
+                };
+                let pullback = 1.0 - move3;
+                let move1abs = move1base * pullback;
+                let move2abs = move2base * pullback;
+                next.control_l.position = Vec3::new(2.0 - s_a.grip.0 * 2.0, 1.0, 3.0);
+                next.control_r.position = Vec3::new(
+                    7.0 + s_a.grip.0 * 2.0 + move1abs * -8.0,
+                    -4.0 + move1abs * 4.0,
+                    3.0,
+                );
+
+                next.control.position = Vec3::new(
+                    -5.0,
+                    -1.0 + s_a.grip.2,
+                    -2.0 + -s_a.grip.2 / 2.5 + s_a.grip.0 * -2.0 + move1abs * 5.0,
+                );
+
+                next.control_l.orientation = Quaternion::rotation_x(PI / 2.0 + move1abs * 0.8)
+                    * Quaternion::rotation_y(-0.3)
+                    * Quaternion::rotation_z(-0.3);
+                next.control_r.orientation =
+                    Quaternion::rotation_x(PI / 2.0 + s_a.grip.0 * 0.2 + move1abs * 0.8)
+                        * Quaternion::rotation_y(-0.4 + s_a.grip.0 * 0.2 + move1abs * 0.8)
+                        * Quaternion::rotation_z(-0.0);
+
+                next.control.orientation = Quaternion::rotation_x(-0.3 + move1abs * -0.6)
+                    * Quaternion::rotation_y(-0.2 * speednorm)
+                    * Quaternion::rotation_z(0.5 + move1abs * 0.6);
             },
             _ => {},
         }

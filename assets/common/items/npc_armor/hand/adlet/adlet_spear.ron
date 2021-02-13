@@ -2,7 +2,7 @@ ItemDef(
     name: "Adlet",
     description: "Ceremonial attire used by members..",
     kind: Armor((
-        kind: Hand("Adlet"),
+        kind: Hand("AdletSpear"),
         stats: (
             protection: Normal(2.0),
             poise_resilience: Normal(1.0),
