@@ -57,6 +57,7 @@ const int FLAMETHROWER = 15;
 const int FIRE_SHOCKWAVE = 16;
 const int FIRE_BOWL = 17;
 const int SNOW = 18;
+const int EXPLOSION = 19;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -132,14 +133,14 @@ vec3 perp_axis2(vec3 axis1, vec3 axis2) {
     return normalize(vec3(axis1.y * axis2.z - axis1.z * axis2.y, axis1.z * axis2.x - axis1.x * axis2.z, axis1.x * axis2.y - axis1.y * axis2.x));
 }
 
-vec3 spiral_motion(vec3 line, float radius, float time_function) {
+vec3 spiral_motion(vec3 line, float radius, float time_function, float frequency, float offset) {
     vec3 axis2 = perp_axis1(line);
     vec3 axis3 = perp_axis2(line, axis2);
 
-    return vec3(
-        radius * cos(time_function) * axis2.x + radius * sin(time_function) * axis3.x,
-        radius * cos(time_function) * axis2.y + radius * sin(time_function) * axis3.y,
-        radius * cos(time_function) * axis2.z + radius * sin(time_function) * axis3.z);
+    return line * time_function + vec3(
+        radius * cos(frequency * time_function - offset) * axis2.x + radius * sin(frequency * time_function - offset) * axis3.x,
+        radius * cos(frequency * time_function - offset) * axis2.y + radius * sin(frequency * time_function - offset) * axis3.y,
+        radius * cos(frequency * time_function - offset) * axis2.z + radius * sin(frequency * time_function - offset) * axis3.z);
 }
 
 void main() {
@@ -321,16 +322,16 @@ void main() {
     } else if (inst_mode == HEALING_BEAM) {
         f_reflect = 0.0;
         attr = Attr(
-            spiral_motion(inst_dir, 0.3 * (floor(2 * rand0 + 0.5) - 0.5) * min(linear_scale(10), 1), lifetime / inst_lifespan),
+            spiral_motion(inst_dir, 0.3 * (floor(2 * rand0 + 0.5) - 0.5) * min(linear_scale(10), 1), lifetime / inst_lifespan, 10.0, inst_time),
             vec3((1.7 - 0.7 * abs(floor(2 * rand0 - 0.5) + 0.5)) * (1.5 + 0.5 * sin(tick.x * 10 - lifetime * 4))),
-            vec4(vec3(0.4, 2.7 + 0.4 * sin(tick.x * 8 - lifetime * 3 + 4), 0.5 + 0.6 * sin(tick.x * 7)), start_end(1.0, 0.0) /*0.3*/),
+            vec4(vec3(0.4, 1.6 + 0.3 * sin(tick.x * 10 - lifetime * 3 + 4), 1.0 + 0.15 * sin(tick.x * 5 - lifetime * 5)), start_end(1.0, 0.0) /*0.3*/),
             spin_in_axis(inst_dir, tick.z)
         );
     } else if (inst_mode == ENERGY_NATURE) {
         f_reflect = 0.0;
         attr = Attr(
             inst_dir * slow_end(0.03) + spiral_motion(vec3(rand1, rand2, rand3),
-                0.2 * (rand4 + 1.3) * slow_end(0.02), percent() * 3 * (rand4 + 4.0) + rand0),
+                0.2 * (rand4 + 1.3) * slow_end(0.02), percent() * 3 * (rand4 + 4.0) + rand0, 1.0, 0.0),
             vec3(1.0),
             vec4(vec3(0, 2.5, 1.5 + rand7 * 0.7), start_end(1.0, 0.0)),
             spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3)
@@ -338,8 +339,15 @@ void main() {
     } else if (inst_mode == FLAMETHROWER) {
         f_reflect = 0.0; // Fire doesn't reflect light, it emits it
         attr = Attr(
-            inst_dir * ((rand0+1.0)/2 + 0.5) * slow_end(0.2) + /*0.4 * vec3(rand0,
-                rand1, rand2) * slow_end(0.1)*/ + 0.1 * grav_vel(earth_gravity),
+            (inst_dir * slow_end(1.5)) + vec3(rand0, rand1, rand2) * (lifetime * 5 + 0.25),
+            vec3((2.5 * (1 - slow_start(0.3)))),
+            vec4(3, 1.6 + rand5 * 0.3 - 0.4 * percent(), 0.2, start_end(1.0, 0.0)),
+            spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
+        );
+    } else if (inst_mode == EXPLOSION) {
+        f_reflect = 0.0; // Fire doesn't reflect light, it emits it
+        attr = Attr(
+            inst_dir * ((rand0+1.0)/2 + 0.5) * slow_end(0.2) + 0.1 * grav_vel(earth_gravity),
             vec3((3 * (1 - slow_start(0.1)))),
             vec4(3, 1.6 + rand5 * 0.3 - 0.4 * percent(), 0.2, start_end(1.0, 0.0)),
             spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
@@ -347,9 +355,9 @@ void main() {
     } else if (inst_mode == FIRE_SHOCKWAVE) {
         f_reflect = 0.0; // Fire doesn't reflect light, it emits it
         attr = Attr(
-            vec3(rand0, rand1, lifetime * 1 + rand2),
-            vec3(1.6 + rand3 * 1.5 + 10 * (lifetime + inst_lifespan)),
-            vec4(3, 1.6 + rand7 * 0.3 - 5 * inst_lifespan + 2 * lifetime, 0.2, start_end(1.0, 0.0) /*0.8 - 3.5 * inst_lifespan*/),
+            vec3(rand0, rand1, lifetime * 10 + rand2),
+            vec3((5 * (1 - slow_start(0.5)))),
+            vec4(3, 1.6 + rand5 * 0.3 - 0.4 * percent(), 0.2, start_end(1.0, 0.0)),
             spin_in_axis(vec3(rand3, rand4, rand5), rand6)
         );
     } else {

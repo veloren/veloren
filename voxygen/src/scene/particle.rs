@@ -64,10 +64,10 @@ impl ParticleMgr {
                 if *is_attack {
                     if *power < 0.0 {
                         self.particles.resize_with(
-                            self.particles.len() + (200.0 * power.abs()) as usize,
+                            self.particles.len() + (60.0 * power.abs()) as usize,
                             || {
                                 Particle::new_directed(
-                                    Duration::from_secs_f32(rng.gen_range(1.0..8.0)),
+                                    Duration::from_secs_f32(rng.gen_range(0.2..3.0)),
                                     time,
                                     ParticleMode::EnergyNature,
                                     *pos,
@@ -80,12 +80,12 @@ impl ParticleMgr {
                         );
                     } else {
                         self.particles.resize_with(
-                            self.particles.len() + (200.0 * power.abs()) as usize,
+                            self.particles.len() + (75.0 * power.abs()) as usize,
                             || {
                                 Particle::new_directed(
-                                    Duration::from_secs(2),
+                                    Duration::from_millis(500),
                                     time,
-                                    ParticleMode::FlameThrower,
+                                    ParticleMode::Explosion,
                                     *pos,
                                     *pos + Vec3::<f32>::zero()
                                         .map(|_| rng.gen_range(-1.0..1.0))
@@ -642,7 +642,7 @@ impl ParticleMgr {
             let theta = ori_vec.y.atan2(ori_vec.x);
             let dtheta = radians / distance;
 
-            let heartbeats = self.scheduler.heartbeats(Duration::from_millis(1));
+            let heartbeats = self.scheduler.heartbeats(Duration::from_millis(5));
 
             for heartbeat in 0..heartbeats {
                 if shockwave.properties.requires_ground {
@@ -667,28 +667,25 @@ impl ParticleMgr {
 
                         let position_snapped = ((position / scale).floor() + 0.5) * scale;
 
-                        self.particles.push(Particle::new_directed(
-                            Duration::from_secs(2),
+                        self.particles.push(Particle::new(
+                            Duration::from_millis(250),
                             time,
                             ParticleMode::GroundShockwave,
                             position_snapped,
-                            Vec3::new(0.0, 0.0, 10.0) + position_snapped,
                         ));
                     }
                 } else {
-                    for d in 0..8 * distance as i32 {
+                    for d in 0..3 * distance as i32 {
                         let arc_position = theta - radians / 2.0 + dtheta * d as f32 / 3.0;
 
-                        let diff =
-                            distance * Vec3::new(arc_position.cos(), arc_position.sin(), 0.0);
-                        let position = pos.0 + diff;
+                        let position = pos.0
+                            + distance * Vec3::new(arc_position.cos(), arc_position.sin(), 0.0);
 
-                        self.particles.push(Particle::new_directed(
-                            Duration::from_millis(500),
+                        self.particles.push(Particle::new(
+                            Duration::from_secs_f32((distance + 10.0) / 50.0),
                             time,
-                            ParticleMode::FlameThrower,
-                            pos.0 + diff * 0.9,
-                            Vec3::new(0.0, 0.0, 2.0) + position,
+                            ParticleMode::FireShockwave,
+                            position,
                         ));
                     }
                 }

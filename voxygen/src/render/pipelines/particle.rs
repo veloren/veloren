@@ -115,6 +115,7 @@ pub enum ParticleMode {
     FireShockwave = 16,
     FireBowl = 17,
     Snow = 18,
+    Explosion = 19,
 }
 
 impl ParticleMode {

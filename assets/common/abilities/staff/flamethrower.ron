@@ -1,11 +1,11 @@
 BasicBeam(
     buildup_duration: 0.25,
     recover_duration: 0.25,
-    beam_duration: 0.5,
+    beam_duration: 1.0,
     base_hps: 0,
     base_dps: 150,
     tick_rate: 3.0,
-    range: 15.0,
+    range: 20.0,
     max_angle: 10.0,
     lifesteal_eff: 0.0,
     energy_regen: 0,
