@@ -31,7 +31,7 @@
     ),
     Spear: (
         primary: "common.abilities.spear.doublestrike",
-        secondary: "common.abilities.spear.doublestrike",
+        secondary: "common.abilities.spear.dash",
         skills: [],
 
     ),
@@ -43,7 +43,7 @@
     ),
     SwordSimple: (
         primary: "common.abilities.swordsimple.doublestrike",
-        secondary: "common.abilities.swordsimple.doublestrike",
+        secondary: "common.abilities.swordsimple.dash",
         skills: [
         ],
     ),
@@ -91,6 +91,11 @@
         primary: "common.abilities.unique.beastclaws.basic",
         secondary: "common.abilities.unique.beastclaws.basic",
         abilities: [],
+    ),
+    Unique(WendigoMagic): (
+        primary: "common.abilities.unique.wendigomagic.firebomb",
+        secondary: "common.abilities.unique.wendigomagic.singlestrike",
+        skills: [],
     ),
     Unique(QuadMedQuick): (
         primary: "common.abilities.unique.quadmedquick.triplestrike",

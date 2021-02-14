@@ -3,7 +3,7 @@ use common::{
     assets::{self, AssetExt, AssetHandle, DotVoxAsset, Ron},
     comp::{
         biped_large::{self, BodyType as BLBodyType, Species as BLSpecies},
-        biped_small::{self, BodyType as BSBodyType, Species as BSSpecies},
+        biped_small,
         bird_medium::{self, BodyType as BMBodyType, Species as BMSpecies},
         bird_small,
         dragon::{self, BodyType as DBodyType, Species as DSpecies},
@@ -356,7 +356,7 @@ make_vox_spec!(
         armor_back: HumArmorBackSpec = "voxygen.voxel.humanoid_armor_back_manifest",
         armor_pants: HumArmorPantsSpec = "voxygen.voxel.humanoid_armor_pants_manifest",
         armor_foot: HumArmorFootSpec = "voxygen.voxel.humanoid_armor_foot_manifest",
-        main_weapon: HumMainWeaponSpec = "voxygen.voxel.humanoid_main_weapon_manifest",
+        main_weapon: HumMainWeaponSpec = "voxygen.voxel.biped_weapon_manifest",
         modular_components: HumModularComponentSpec = "voxygen.voxel.humanoid_modular_component_manifest",
         armor_lantern: HumArmorLanternSpec = "voxygen.voxel.humanoid_lantern_manifest",
         armor_glider: HumArmorGliderSpec = "voxygen.voxel.humanoid_glider_manifest",
@@ -2487,7 +2487,7 @@ make_vox_spec!(
     biped_small::Body,
     struct BipedSmallSpec {
         armor_foot: BipedSmallArmorFootSpec = "voxygen.voxel.biped_small_armor_foot_manifest",
-        weapon: BipedSmallWeaponSpec = "voxygen.voxel.biped_small_weapon_manifest",
+        weapon: BipedSmallWeaponSpec = "voxygen.voxel.biped_weapon_manifest",
         armor_hand: BipedSmallArmorHandSpec = "voxygen.voxel.biped_small_armor_hand_manifest",
         armor_chest: BipedSmallArmorChestSpec = "voxygen.voxel.biped_small_armor_chest_manifest",
         armor_pants: BipedSmallArmorPantsSpec = "voxygen.voxel.biped_small_armor_pants_manifest",
@@ -3205,7 +3205,7 @@ make_vox_spec!(
     struct BipedLargeSpec {
         central: BipedLargeCentralSpec = "voxygen.voxel.biped_large_central_manifest",
         lateral: BipedLargeLateralSpec = "voxygen.voxel.biped_large_lateral_manifest",
-        weapon: BipedLargeWeaponSpec = "voxygen.voxel.biped_large_weapon_manifest",
+        weapon: BipedLargeWeaponSpec = "voxygen.voxel.biped_weapon_manifest",
     },
     |FigureKey { body, extra }, spec| {
         const DEFAULT_LOADOUT: super::cache::CharacterCacheKey = super::cache::CharacterCacheKey {

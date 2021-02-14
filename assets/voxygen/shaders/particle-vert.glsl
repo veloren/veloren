@@ -347,7 +347,7 @@ void main() {
     } else if (inst_mode == EXPLOSION) {
         f_reflect = 0.0; // Fire doesn't reflect light, it emits it
         attr = Attr(
-            inst_dir * ((rand0+1.0)/2 + 0.5) * slow_end(0.2) + 0.1 * grav_vel(earth_gravity),
+            inst_dir * ((rand0+1.0)/2 + 0.4) * slow_end(2.0) + 0.3 * grav_vel(earth_gravity),
             vec3((3 * (1 - slow_start(0.1)))),
             vec4(3, 1.6 + rand5 * 0.3 - 0.4 * percent(), 0.2, start_end(1.0, 0.0)),
             spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)

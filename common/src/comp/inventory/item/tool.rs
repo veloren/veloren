@@ -374,6 +374,7 @@ impl assets::Compound for AbilityMap {
 pub enum UniqueKind {
     StoneGolemFist,
     BeastClaws,
+    WendigoMagic,
     QuadMedQuick,
     QuadMedJump,
     QuadMedHoof,

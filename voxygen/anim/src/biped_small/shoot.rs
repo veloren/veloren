@@ -115,7 +115,7 @@ impl Animation for ShootAnimation {
                     * Quaternion::rotation_y(0.5 * speednorm);
             },
             Some(ToolKind::Staff) => {
-                let (move1base, move2base, move3) = match stage_section {
+                let (move1base, _move2base, move3) = match stage_section {
                     Some(StageSection::Buildup) => ((anim_time as f32).powf(0.25), 0.0, 0.0),
                     Some(StageSection::Swing) => (1.0, (anim_time as f32).powf(0.25), 0.0),
                     Some(StageSection::Recover) => (1.0, 1.0, anim_time as f32),
@@ -123,7 +123,6 @@ impl Animation for ShootAnimation {
                 };
                 let pullback = 1.0 - move3;
                 let move1abs = move1base * pullback;
-                let move2abs = move2base * pullback;
                 next.control_l.position = Vec3::new(2.0 - s_a.grip.0 * 2.0, 1.0, 3.0);
                 next.control_r.position = Vec3::new(
                     7.0 + s_a.grip.0 * 2.0 + move1abs * -8.0,

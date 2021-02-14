@@ -196,7 +196,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Ogre, Male) => (3.0, 9.0),
                 (Ogre, Female) => (1.0, 7.5),
                 (Cyclops, _) => (4.5, 7.5),
-                (Wendigo, _) => (3.0, 13.5),
+                (Wendigo, _) => (3.0, 7.5),
                 (Troll, _) => (6.0, 10.0),
                 (Dullahan, _) => (3.0, 6.0),
                 (Werewolf, _) => (11.5, 1.0),

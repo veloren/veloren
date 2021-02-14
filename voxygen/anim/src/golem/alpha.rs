@@ -3,7 +3,6 @@ use super::{
     GolemSkeleton, SkeletonAttr,
 };
 use common::states::utils::StageSection;
-use std::f32::consts::PI;
 
 pub struct AlphaAnimation;
 
@@ -21,7 +20,7 @@ impl Animation for AlphaAnimation {
         (stage_section, global_time, timer): Self::Dependency,
         anim_time: f64,
         _rate: &mut f32,
-        s_a: &SkeletonAttr,
+        _s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 

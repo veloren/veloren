@@ -2,7 +2,10 @@ use super::{
     super::{vek::*, Animation},
     BipedLargeSkeleton, SkeletonAttr,
 };
-use common::{comp::item::ToolKind, states::utils::StageSection};
+use common::{
+    comp::item::{ToolKind, UniqueKind},
+    states::utils::StageSection,
+};
 use std::f32::consts::PI;
 
 pub struct AlphaAnimation;
@@ -131,11 +134,23 @@ impl Animation for AlphaAnimation {
                         * Quaternion::rotation_y(-1.8 + move1 * -0.8 + move2 * 3.0)
                         * Quaternion::rotation_z(move1 * -0.8 + move2 * -0.8);
             },
-            Some(ToolKind::Debug) => {
-                next.hand_l.position = Vec3::new(-7.0, 4.0, 3.0);
-                next.hand_l.orientation = Quaternion::rotation_x(1.27);
-                next.main.position = Vec3::new(-5.0, 5.0, 23.0);
-                next.main.orientation = Quaternion::rotation_x(PI);
+            Some(ToolKind::Unique(UniqueKind::WendigoMagic)) => {
+                next.torso.position = Vec3::new(0.0, 0.0, move1 * -0.3);
+                next.upper_torso.orientation = Quaternion::rotation_x(move1 * -0.5 + move2 * -0.4);
+                next.lower_torso.orientation = Quaternion::rotation_x(move1 * 0.5 + move2 * 0.4);
+
+                next.control_l.position =
+                    Vec3::new(-9.0 + move2 * 6.0, 19.0 + move1 * 6.0, -13.0 + move1 * 10.5);
+                next.control_r.position =
+                    Vec3::new(9.0 + move2 * -6.0, 19.0 + move1 * 6.0, -13.0 + move1 * 14.5);
+
+                next.control_l.orientation = Quaternion::rotation_x(PI / 3.0 + move1 * 0.5)
+                    * Quaternion::rotation_y(-0.15)
+                    * Quaternion::rotation_z(move1 * 0.5 + move2 * -0.6);
+                next.control_r.orientation = Quaternion::rotation_x(PI / 3.0 + move1 * 0.5)
+                    * Quaternion::rotation_y(0.15)
+                    * Quaternion::rotation_z(move1 * -0.5 + move2 * 0.6);
+                next.head.orientation = Quaternion::rotation_x(move1 * 0.3);
             },
             _ => {},
         }

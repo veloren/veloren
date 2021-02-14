@@ -176,7 +176,7 @@ impl Animation for WieldAnimation {
                     next.control.orientation =
                         Quaternion::rotation_x(-0.2 + short * 0.2) * Quaternion::rotation_y(-0.1);
                 },
-                Some(ToolKind::BowSimple) => {
+                Some(ToolKind::BowSimple) | Some(ToolKind::Bow) => {
                     next.control_l.position = Vec3::new(-1.0, -2.0, -3.0);
                     next.control_r.position = Vec3::new(0.0, 4.0, 1.0);
 
@@ -230,6 +230,15 @@ impl Animation for WieldAnimation {
 
                     next.control.orientation =
                         Quaternion::rotation_x(-0.2 + short * 0.2) * Quaternion::rotation_y(-0.1);
+                },
+                Some(ToolKind::Unique(UniqueKind::WendigoMagic)) => {
+                    next.control_l.position = Vec3::new(-9.0, 19.0, -13.0);
+                    next.control_r.position = Vec3::new(9.0, 19.0, -13.0);
+
+                    next.control_l.orientation =
+                        Quaternion::rotation_x(PI / 3.0) * Quaternion::rotation_y(-0.15);
+                    next.control_r.orientation =
+                        Quaternion::rotation_x(PI / 3.0) * Quaternion::rotation_y(0.15);
                 },
                 Some(ToolKind::Unique(UniqueKind::BeastClaws)) => {
                     next.shoulder_l.position =

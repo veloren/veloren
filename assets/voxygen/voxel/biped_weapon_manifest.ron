@@ -1,0 +1,768 @@
+({  //Swords
+    "common.items.weapons.sword.starter_sword": (
+        vox_spec: ("weapon.sword.rusty_2h", (-1.5, -6.5, -4.0)),
+        color: None
+    ),
+    "common.items.npc_weapons.sword.starter_sword": (
+        vox_spec: ("weapon.sword.rusty_2h", (-1.5, -6.5, -4.0)),
+        color: None
+    ),
+    "common.items.weapons.sword.wood_sword": (
+        vox_spec: ("weapon.sword.wood_ore_2h", (-1.5, -6.5, -4.0)),
+        color: None
+    ),
+    "common.items.weapons.sword.zweihander_sword_0": (
+        vox_spec: ("weapon.sword.zweihander_2h-0", (-1.5, -6.5, -4.0)),
+        color: None
+    ),
+    "common.items.npc_weapons.sword.zweihander_sword_0": (
+        vox_spec: ("weapon.sword.zweihander_2h-0", (-1.5, -6.5, -4.0)),
+        color: None
+    ),
+    "common.items.weapons.sword.short_sword_0": (
+        vox_spec: ("weapon.sword.short_2h-0", (-1.5, -6.5, -1.0)),
+        color: None
+    ),
+    "common.items.weapons.sword.greatsword_2h_dam-0": (
+        vox_spec: ("weapon.sword.greatsword_2h_dam-0", (-1.0, -4.5, -6.5)),
+        color: None
+    ),
+    "common.items.weapons.sword.greatsword_2h_dam-1": (
+        vox_spec: ("weapon.sword.greatsword_2h_dam-1", (-1.0, -4.5, -6.5)),
+        color: None
+    ),
+    "common.items.weapons.sword.greatsword_2h_dam-2": (
+        vox_spec: ("weapon.sword.greatsword_2h_dam-2", (-1.0, -4.5, -6.5)),
+        color: None
+    ),
+    "common.items.weapons.sword.greatsword_2h_simple-0": (
+        vox_spec: ("weapon.sword.greatsword_2h_simple-0", (-1.0, -4.5, -6.5)),
+        color: None
+    ),
+    "common.items.weapons.sword.greatsword_2h_simple-1": (
+        vox_spec: ("weapon.sword.greatsword_2h_simple-1", (-1.0, -4.5, -6.5)),
+        color: None
+    ),
+    "common.items.weapons.sword.greatsword_2h_simple-2": (
+        vox_spec: ("weapon.sword.greatsword_2h_simple-2", (-1.0, -4.5, -6.5)),
+        color: None
+    ),
+    "common.items.weapons.sword.greatsword_2h_orn-0": (
+        vox_spec: ("weapon.sword.greatsword_2h_orn-0", (-1.0, -4.5, -7.5)),
+        color: None
+    ),
+    "common.items.weapons.sword.greatsword_2h_orn-1": (
+        vox_spec: ("weapon.sword.greatsword_2h_orn-1", (-1.0, -4.5, -7.5)),
+        color: None
+    ),
+    "common.items.weapons.sword.greatsword_2h_orn-2": (
+        vox_spec: ("weapon.sword.greatsword_2h_orn-2", (-1.0, -4.5, -7.5)),
+        color: None
+    ),
+    "common.items.weapons.sword.greatsword_2h_fine-0": (
+        vox_spec: ("weapon.sword.greatsword_2h_fine-0", (-2.0, -6.5, -8.0)),
+        color: None
+    ),
+    "common.items.weapons.sword.greatsword_2h_fine-1": (
+        vox_spec: ("weapon.sword.greatsword_2h_fine-1", (-2.0, -6.5, -8.0)),
+        color: None
+    ),
+    "common.items.weapons.sword.greatsword_2h_fine-2": (
+        vox_spec: ("weapon.sword.greatsword_2h_fine-2", (-2.0, -6.5, -8.0)),
+        color: None
+    ),
+    "common.items.weapons.sword.long_2h_dam-0": (
+        vox_spec: ("weapon.sword.long_2h_dam-0", (-1.0, -3.5, -5.0)),
+        color: None
+    ),
+    "common.items.weapons.sword.long_2h_dam-1": (
+        vox_spec: ("weapon.sword.long_2h_dam-1", (-1.0, -3.5, -5.0)),
+        color: None
+    ),
+    "common.items.weapons.sword.long_2h_dam-2": (
+        vox_spec: ("weapon.sword.long_2h_dam-2", (-1.0, -3.5, -5.0)),
+        color: None
+    ),
+    "common.items.weapons.sword.long_2h_dam-3": (
+        vox_spec: ("weapon.sword.long_2h_dam-3", (-1.0, -3.5, -5.0)),
+        color: None
+    ),
+    "common.items.weapons.sword.long_2h_dam-4": (
+        vox_spec: ("weapon.sword.long_2h_dam-4", (-1.0, -3.5, -5.0)),
+        color: None
+    ),
+    "common.items.weapons.sword.long_2h_dam-5": (
+        vox_spec: ("weapon.sword.long_2h_dam-5", (-1.0, -3.5, -5.0)),
+        color: None
+    ),
+    "common.items.weapons.sword.long_2h_simple-0": (
+        vox_spec: ("weapon.sword.long_2h_simple-0", (-1.0, -3.5, -5.0)),
+        color: None
+    ),
+    "common.items.weapons.sword.long_2h_simple-1": (
+        vox_spec: ("weapon.sword.long_2h_simple-1", (-1.0, -3.5, -5.0)),
+        color: None
+    ),
+    "common.items.weapons.sword.long_2h_simple-2": (
+        vox_spec: ("weapon.sword.long_2h_simple-2", (-1.0, -3.5, -5.0)),
+        color: None
+    ),
+    "common.items.weapons.sword.long_2h_simple-3": (
+        vox_spec: ("weapon.sword.long_2h_simple-3", (-1.0, -3.5, -5.0)),
+        color: None
+    ),
+    "common.items.weapons.sword.long_2h_simple-4": (
+        vox_spec: ("weapon.sword.long_2h_simple-4", (-1.0, -3.5, -5.0)),
+        color: None
+    ),
+    "common.items.weapons.sword.long_2h_simple-5": (
+        vox_spec: ("weapon.sword.long_2h_simple-5", (-1.0, -3.5, -5.0)),
+        color: None
+    ),
+    "common.items.weapons.sword.long_2h_orn-0": (
+        vox_spec: ("weapon.sword.long_2h_orn-0", (-1.0, -3.5, -6.0)),
+        color: None
+    ),
+    "common.items.weapons.sword.long_2h_orn-1": (
+        vox_spec: ("weapon.sword.long_2h_orn-1", (-1.0, -3.5, -6.0)),
+        color: None
+    ),
+    "common.items.weapons.sword.long_2h_orn-2": (
+        vox_spec: ("weapon.sword.long_2h_orn-2", (-1.0, -3.5, -6.0)),
+        color: None
+    ),
+    "common.items.weapons.sword.long_2h_orn-3": (
+        vox_spec: ("weapon.sword.long_2h_orn-3", (-1.0, -3.5, -6.0)),
+        color: None
+    ),
+    "common.items.weapons.sword.long_2h_orn-4": (
+        vox_spec: ("weapon.sword.long_2h_orn-4", (-1.0, -3.5, -6.0)),
+        color: None
+    ),
+    "common.items.weapons.sword.long_2h_orn-5": (
+        vox_spec: ("weapon.sword.long_2h_orn-5", (-1.0, -3.5, -6.0)),
+        color: None
+    ),
+    "common.items.weapons.sword.long_2h_fine-0": (
+        vox_spec: ("weapon.sword.long_2h_fine-0", (-2.0, -4.5, -6.0)),
+        color: None
+    ),
+    "common.items.weapons.sword.long_2h_fine-1": (
+        vox_spec: ("weapon.sword.long_2h_fine-1", (-2.0, -4.5, -6.0)),
+        color: None
+    ),
+    "common.items.weapons.sword.long_2h_fine-2": (
+        vox_spec: ("weapon.sword.long_2h_fine-2", (-2.0, -4.5, -6.0)),
+        color: None
+    ),
+    "common.items.weapons.sword.long_2h_fine-3": (
+        vox_spec: ("weapon.sword.long_2h_fine-3", (-2.0, -4.5, -6.0)),
+        color: None
+    ),
+    "common.items.weapons.sword.long_2h_fine-4": (
+        vox_spec: ("weapon.sword.long_2h_fine-4", (-2.0, -4.5, -6.0)),
+        color: None
+    ),
+    "common.items.weapons.sword.long_2h_fine-5": (
+        vox_spec: ("weapon.sword.long_2h_fine-5", (-2.0, -4.5, -6.0)),
+        color: None
+    ),
+    "common.items.weapons.sword.cultist_purp_2h-0": (
+        vox_spec: ("weapon.sword.cultist_purp_2h-0", (-2.0, -4.5, -7.5)),
+        color: None
+    ),
+    "common.items.npc_weapons.sword.cultist_purp_2h-0": (
+        vox_spec: ("weapon.sword.cultist_purp_2h-0", (-2.0, -4.5, -7.5)),
+        color: None
+    ),
+    "common.items.debug.cultist_purp_2h_boss-0": (
+        vox_spec: ("weapon.sword.cultist_purp_2h-0", (-2.0, -4.5, -7.5)),
+        color: None
+    ),
+    "common.items.npc_weapons.sword.cultist_purp_2h_boss-0": (
+        vox_spec: ("weapon.sword.cultist_purp_2h-0", (-2.0, -4.5, -7.5)),
+        color: None
+    ),
+    "common.items.weapons.sword.frost_cleaver_2h-0": (
+        vox_spec: ("weapon.sword.frost_cleaver-0", (-2.0, -4.5, -7.5)),
+        color: None
+    ),
+    "common.items.weapons.sword.frost_cleaver_2h-1": (
+        vox_spec: ("weapon.sword.frost_cleaver-1", (-2.0, -4.5, -7.5)),
+        color: None
+    ),
+    // Axes
+    "common.items.npc_weapons.axe.starter_axe": (
+        vox_spec: ("weapon.axe.2haxe_rusty", (-1.5, -5.0, -4.0)),
+        color: None
+    ),
+    "common.items.weapons.axe.starter_axe": (
+        vox_spec: ("weapon.axe.2haxe_rusty", (-1.5, -5.0, -4.0)),
+        color: None
+    ),
+    "common.items.weapons.axe.orc_axe-0": (
+        vox_spec: ("weapon.axe.2haxe_orc-0", (-1.5, -6.0, -4.5)),
+        color: None
+    ),
+    "common.items.weapons.axe.worn_iron_axe-0": (
+        vox_spec: ("weapon.axe.2haxe_worn_iron-0", (-1.5, -3.0, -4.0)),
+        color: None
+    ),
+    "common.items.weapons.axe.worn_iron_axe-1": (
+        vox_spec: ("weapon.axe.2haxe_worn_iron-1", (-1.5, -4.0, -4.0)),
+        color: None
+    ),
+    "common.items.weapons.axe.worn_iron_axe-2": (
+        vox_spec: ("weapon.axe.2haxe_worn_iron-2", (-1.5, -4.0, -4.0)),
+        color: None
+    ),
+    "common.items.weapons.axe.worn_iron_axe-3": (
+        vox_spec: ("weapon.axe.2haxe_worn_iron-3", (-1.5, -8.0, -4.0)),//offcenterY
+        color: None
+    ),
+    "common.items.weapons.axe.worn_iron_axe-4": (
+        vox_spec: ("weapon.axe.2haxe_worn_iron-4", (-1.5, -4.0, -5.5)),
+        color: None
+    ),
+    "common.items.weapons.axe.bronze_axe-0": (
+        vox_spec: ("weapon.axe.2haxe_bronze-0", (-1.5, -4.0, -4.5)),
+        color: None
+    ),
+    "common.items.weapons.axe.bronze_axe-1": (
+        vox_spec: ("weapon.axe.2haxe_bronze-1", (-1.5, -3.0, -5.5)),
+        color: None
+    ),
+    "common.items.weapons.axe.iron_axe-0": (
+        vox_spec: ("weapon.axe.2haxe_iron-0", (-1.5, -5.0, -5.5)),
+        color: None
+    ),
+    "common.items.weapons.axe.iron_axe-1": (
+        vox_spec: ("weapon.axe.2haxe_iron-1", (-1.5, -5.0, -5.5)),
+        color: None
+    ),
+    "common.items.weapons.axe.iron_axe-2": (
+        vox_spec: ("weapon.axe.2haxe_iron-2", (-1.5, -5.0, -5.5)),
+        color: None
+    ),
+    "common.items.weapons.axe.iron_axe-3": (
+        vox_spec: ("weapon.axe.2haxe_iron-3", (-1.5, -6.0, -6.5)),
+        color: None
+    ),
+    "common.items.weapons.axe.iron_axe-4": (
+        vox_spec: ("weapon.axe.2haxe_iron-4", (-1.5, -6.0, -5.5)),
+        color: None
+    ),
+    "common.items.weapons.axe.iron_axe-5": (
+        vox_spec: ("weapon.axe.2haxe_iron-5", (-1.5, -6.0, -5.0)),
+        color: None
+    ),
+    "common.items.weapons.axe.iron_axe-6": (
+        vox_spec: ("weapon.axe.2haxe_iron-6", (-1.5, -5.0, -6.0)),
+        color: None
+    ),
+    "common.items.weapons.axe.iron_axe-7": (
+        vox_spec: ("weapon.axe.2haxe_iron-7", (-1.5, -5.0, -5.0)),
+        color: None
+    ),
+    "common.items.weapons.axe.iron_axe-8": (
+        vox_spec: ("weapon.axe.2haxe_iron-8", (-1.5, -5.0, -5.0)),
+        color: None
+    ),
+    "common.items.weapons.axe.iron_axe-9": (
+        vox_spec: ("weapon.axe.2haxe_iron-9", (-1.5, -4.0, -5.0)),
+        color: None
+    ),
+    "common.items.weapons.axe.steel_axe-0": (
+        vox_spec: ("weapon.axe.2haxe_steel-0", (-1.5, -6.0, -4.5)),
+        color: None
+    ),
+    "common.items.weapons.axe.steel_axe-1": (
+        vox_spec: ("weapon.axe.2haxe_steel-1", (-1.5, -7.0, -5.5)),
+        color: None
+    ),
+    "common.items.weapons.axe.steel_axe-2": (
+        vox_spec: ("weapon.axe.2haxe_steel-2", (-1.5, -3.5, -3.5)),
+        color: None
+    ),
+    "common.items.weapons.axe.steel_axe-3": (
+        vox_spec: ("weapon.axe.2haxe_steel-3", (-1.5, -4.0, -6.0)),
+        color: None
+    ),
+    "common.items.weapons.axe.steel_axe-4": (
+        vox_spec: ("weapon.axe.2haxe_steel-4", (-1.5, -4.0, -5.5)),
+        color: None
+    ),
+    "common.items.weapons.axe.steel_axe-5": (
+        vox_spec: ("weapon.axe.2haxe_steel-5", (-1.5, -5.5, -5.5)),
+        color: None
+    ),
+    "common.items.weapons.axe.steel_axe-6": (
+        vox_spec: ("weapon.axe.2haxe_steel-6", (-1.5, -4.0, -4.0)),
+        color: None
+    ),
+    "common.items.weapons.axe.bloodsteel_axe-0": (
+        vox_spec: ("weapon.axe.2haxe_bloodsteel-0", (-1.5, -7.0, -4.0)),
+        color: None
+    ),
+    "common.items.weapons.axe.bloodsteel_axe-1": (
+        vox_spec: ("weapon.axe.2haxe_bloodsteel-1", (-1.5, -5.5, -5.0)),
+        color: None
+    ),
+    "common.items.weapons.axe.bloodsteel_axe-2": (
+        vox_spec: ("weapon.axe.2haxe_bloodsteel-2", (-1.5, -5.0, -4.0)),
+        color: None
+    ),
+    "common.items.weapons.axe.cobalt_axe-0": (
+        vox_spec: ("weapon.axe.2haxe_cobalt-0", (-1.5, -5.0, -5.5)),
+        color: None
+    ),
+    "common.items.npc_weapons.axe.malachite_axe-0": (
+        vox_spec: ("weapon.axe.2haxe_malachite-0", (-1.5, -5.0, -6.0)),
+        color: None
+    ),
+    "common.items.weapons.axe.malachite_axe-0": (
+        vox_spec: ("weapon.axe.2haxe_malachite-0", (-1.5, -5.0, -6.0)),
+        color: None
+    ),
+    // Hammers
+    "common.items.weapons.hammer.hammer_1": (
+        vox_spec: ("weapon.hammer.2hhammer_rusty", (-2.5, -5.5, -4.5)),
+        color: None
+    ),
+    "common.items.weapons.hammer.starter_hammer": (
+        vox_spec: ("weapon.hammer.2hhammer_rusty", (-2.5, -5.5, -4.5)),
+        color: None
+    ),
+    "common.items.npc_weapons.hammer.starter_hammer": (
+        vox_spec: ("weapon.hammer.2hhammer_rusty", (-2.5, -5.5, -4.5)),
+        color: None
+    ),
+    "common.items.weapons.hammer.wood_hammer-0": (
+        vox_spec: ("weapon.hammer.2hhammer_wood-0", (-3.5, -5.5, -4.5)),
+        color: None
+    ),
+    "common.items.weapons.hammer.flimsy_hammer": (
+        vox_spec: ("weapon.hammer.2hhammer_flimsy", (-2.5, -5.5, -4.0)),
+        color: None
+    ),
+    "common.items.weapons.hammer.stone_hammer-0": (
+        vox_spec: ("weapon.hammer.2hhammer_stone-0", (-3.5, -6.5, -5.0)),
+        color: None
+    ),
+    "common.items.weapons.hammer.stone_hammer-1": (
+        vox_spec: ("weapon.hammer.2hhammer_stone-1", (-3.5, -6.5, -5.0)),
+        color: None
+    ),
+    "common.items.weapons.hammer.stone_hammer-2": (
+        vox_spec: ("weapon.hammer.2hhammer_stone-2", (-3.5, -6.5, -5.0)),
+        color: None
+    ),
+    "common.items.weapons.hammer.stone_hammer-3": (
+        vox_spec: ("weapon.hammer.2hhammer_stone-3", (-2.5, -6.5, -5.0)),
+        color: None
+    ),
+    "common.items.weapons.hammer.worn_iron_hammer-0": (
+        vox_spec: ("weapon.hammer.2hhammer_worn_iron-0", (-2.5, -4.5, -4.0)),
+        color: None
+    ),
+    "common.items.weapons.hammer.worn_iron_hammer-1": (
+        vox_spec: ("weapon.hammer.2hhammer_worn_iron-1", (-2.5, -4.5, -3.0)),
+        color: None
+    ),
+    "common.items.weapons.hammer.worn_iron_hammer-2": (
+        vox_spec: ("weapon.hammer.2hhammer_worn_iron-2", (-2.5, -3.5, -3.0)),
+        color: None
+    ),
+    "common.items.weapons.hammer.worn_iron_hammer-3": (
+        vox_spec: ("weapon.hammer.2hhammer_worn_iron-3", (-2.5, -4.5, -3.0)),
+        color: None
+    ),
+    "common.items.weapons.hammer.bronze_hammer-0": (
+        vox_spec: ("weapon.hammer.2hhammer_bronze-0", (-2.5, -6.5, -5.0)),
+        color: None
+    ),
+    "common.items.weapons.hammer.bronze_hammer-1": (
+        vox_spec: ("weapon.hammer.2hhammer_bronze-1", (-3.5, -3.5, -4.0)),
+        color: None
+    ),
+    "common.items.weapons.hammer.iron_hammer-0": (
+        vox_spec: ("weapon.hammer.2hhammer_iron-0", (-2.5, -6.5, -4.0)),
+        color: None
+    ),
+    "common.items.weapons.hammer.iron_hammer-1": (
+        vox_spec: ("weapon.hammer.2hhammer_iron-1", (-3.5, -7.5, -5.0)),
+        color: None
+    ),
+    "common.items.weapons.hammer.iron_hammer-2": (
+        vox_spec: ("weapon.hammer.2hhammer_iron-2", (-3.5, -3.5, -5.0)),
+        color: None
+    ),
+    "common.items.weapons.hammer.iron_hammer-3": (
+        vox_spec: ("weapon.hammer.2hhammer_iron-3", (-3.5, -3.5, -5.0)),
+        color: None
+    ),
+    "common.items.weapons.hammer.iron_hammer-4": (
+        vox_spec: ("weapon.hammer.2hhammer_iron-4", (-3.5, -7.5, -4.0)),
+        color: None
+    ),
+    "common.items.weapons.hammer.iron_hammer-5": (
+        vox_spec: ("weapon.hammer.2hhammer_iron-5", (-1.5, -7.0, -5.0)),
+        color: None
+    ),
+    "common.items.weapons.hammer.iron_hammer-6": (
+        vox_spec: ("weapon.hammer.2hhammer_iron-6", (-2.5, -7.0, -5.0)),
+        color: None
+    ),
+    "common.items.weapons.hammer.iron_hammer-7": (
+        vox_spec: ("weapon.hammer.2hhammer_iron-7", (-3.5, -7.5, -5.0)),
+        color: None
+    ),
+    "common.items.weapons.hammer.iron_hammer-8": (
+        vox_spec: ("weapon.hammer.2hhammer_iron-8", (-1.5, -5.5, -7.0)),
+        color: None
+    ),
+    "common.items.weapons.hammer.steel_hammer-0": (
+        vox_spec: ("weapon.hammer.2hhammer_steel-0", (-2.5, -5.5, -5.0)),
+        color: None
+    ),
+    "common.items.weapons.hammer.steel_hammer-1": (
+        vox_spec: ("weapon.hammer.2hhammer_steel-1", (-3.5, -7.5, -5.0)),
+        color: None
+    ),
+    "common.items.weapons.hammer.steel_hammer-2": (
+        vox_spec: ("weapon.hammer.2hhammer_steel-2", (-3.5, -3.5, -3.0)),
+        color: None
+    ),
+    "common.items.weapons.hammer.steel_hammer-3": (
+        vox_spec: ("weapon.hammer.2hhammer_steel-3", (-5.5, -5.5, -4.5)),
+        color: None
+    ),
+    "common.items.weapons.hammer.steel_hammer-4": (
+        vox_spec: ("weapon.hammer.2hhammer_steel-4", (-3.5, -7.5, -4.0)),
+        color: None
+    ),
+    "common.items.weapons.hammer.steel_hammer-5": (
+        vox_spec: ("weapon.hammer.2hhammer_steel-5", (-5.5, -5.5, -5.0)),
+        color: None
+    ),
+    "common.items.weapons.hammer.cobalt_hammer-0": (
+        vox_spec: ("weapon.hammer.2hhammer_cobalt-0", (-2.5, -7.5, -6.0)),
+        color: None
+    ),
+    "common.items.weapons.hammer.cobalt_hammer-1": (
+        vox_spec: ("weapon.hammer.2hhammer_cobalt-1", (-4.5, -4.5, -4.0)),
+        color: None
+    ),
+    "common.items.weapons.hammer.runic_hammer": (
+        vox_spec: ("weapon.hammer.2hhammer_runic", (-2.5, -7.5, -5.0)),
+        color: None
+    ),
+    "common.items.weapons.hammer.ramshead_hammer": (
+        vox_spec: ("weapon.hammer.2hhammer_ramshead", (-4.5, -5.5, -5.0)),
+        color: None
+    ),
+    "common.items.weapons.hammer.mjolnir": (
+        vox_spec: ("weapon.hammer.2hhammer_mjolnir", (-2.5, -8.5, -4.0)),
+        color: None
+    ),
+    "common.items.weapons.hammer.cultist_purp_2h-0": (
+        vox_spec: ("weapon.hammer.cult_purp-0", (-3.5, -4.5, -5.0)),    
+        color: None
+    ),
+    "common.items.npc_weapons.hammer.cultist_purp_2h-0": (
+        vox_spec: ("weapon.hammer.cult_purp-0", (-3.5, -4.5, -5.0)),    
+        color: None
+    ),
+    /*"Craftsman": ( //TODO This should be a 1h hammer!
+        vox_spec: ("weapon.hammer.craftsman", (-2.0, -5.0, -5.5)),
+        color: None
+    ),*/
+    // Daggers
+    "common.items.weapons.dagger.starter_dagger": (
+        vox_spec: ("weapon.dagger.dagger_rusty", (-1.5, -3.0, -3.0)),
+        color: None
+    ),
+    "common.items.npc_weapons.dagger.starter_dagger": (
+        vox_spec: ("weapon.dagger.dagger_rusty", (-1.5, -3.0, -3.0)),
+        color: None
+    ),
+    "common.items.weapons.dagger.basic_0": (
+        vox_spec: ("weapon.dagger.dagger_basic-0", (-1.5, -3.0, -3.0)),
+        color: None
+    ),
+    "common.items.weapons.dagger.cultist_0": (
+        vox_spec: ("weapon.dagger.dagger_cult-0", (-1.5, -3.0, -3.0)),
+        color: None
+    ),
+    // Shields
+    "common.items.weapons.shield.shield_1": (
+        vox_spec: ("weapon.shield.wood-0", (-2.5, -5.5, -5.5)),
+        color: None
+    ),
+    "common.items.npc_weapons.shield.shield_1": (
+        vox_spec: ("weapon.shield.wood-0", (-2.5, -5.5, -5.5)),
+        color: None
+    ),
+    // Bows
+    "common.items.weapons.bow.starter_bow": (
+        vox_spec: ("weapon.bow.shortbow_starter", (-0.5, -3.0, -8.5)),
+        color: None
+    ),
+    "common.items.weapons.bow.wood_shortbow-0": (
+        vox_spec: ("weapon.bow.shortbow_wood-0", (-0.5, -3.0, -9.5)),
+        color: None
+    ),
+    "common.items.weapons.bow.wood_shortbow-1": (
+        vox_spec: ("weapon.bow.shortbow_wood-1", (-0.5, -3.5, -9.5)),
+        color: None
+    ),
+    "common.items.weapons.bow.leafy_shortbow-0": (
+        vox_spec: ("weapon.bow.shortbow_leafy-0", (-0.5, -4.5, -9.0)),
+        color: None
+    ),
+    "common.items.weapons.bow.wood_longbow-0": (
+        vox_spec: ("weapon.bow.longbow_wood-0", (-0.5, -3.5, -12.5)),
+        color: None
+    ),
+    "common.items.weapons.bow.wood_longbow-1": (
+        vox_spec: ("weapon.bow.longbow_wood-1", (-1.5, -3.5, -12.5)),
+        color: None
+    ),
+    "common.items.weapons.bow.leafy_longbow-0": (
+        vox_spec: ("weapon.bow.longbow_leafy-0", (-1.5, -4.5, -12.5)),
+        color: None
+    ),
+    "common.items.weapons.bow.horn_longbow-0": (
+        vox_spec: ("weapon.bow.longbow_horn-0", (-1.5, -4.5, -17.5)),
+        color: None
+    ),
+    "common.items.npc_weapons.bow.horn_longbow-0": (
+        vox_spec: ("weapon.bow.longbow_horn-0", (-1.5, -4.5, -17.5)),
+        color: None
+    ),
+    "common.items.weapons.bow.iron_longbow-0": (
+        vox_spec: ("weapon.bow.longbow_iron-0", (-1.5, -4.0, -16.0)),
+        color: None
+    ),
+    "common.items.weapons.bow.rare_longbow": (
+        vox_spec: ("weapon.bow.longbow_rare", (-1.5, -5.0, -13.5)),
+        color: None
+    ),
+    "common.items.weapons.bow.nature_ore_longbow-0": (
+        vox_spec: ("weapon.bow.longbow_ore_nature-0", (-1.5, -4.0, -15.0)),
+        color: None
+    ),
+    // Farming Equipment
+    "common.items.weapons.tool.broom": (
+        vox_spec: ("weapon.tool.broom-0", (-1.5, -4.0, -4.0)),
+        color: None
+    ),
+    "common.items.weapons.tool.hoe": (
+        vox_spec: ("weapon.tool.hoe_green", (-2.5, -4.5, -4.0)),
+        color: None
+    ),
+    "common.items.weapons.tool.pitchfork": (
+        vox_spec: ("weapon.tool.pitchfork-0", (-1.0, -3.5, -4.0)),
+        color: None
+    ),
+    "common.items.weapons.tool.fishing_rod": (
+        vox_spec: ("weapon.tool.fishing_rod_blue-0", (-2.5, -4.5, -4.0)),
+        color: None
+    ),
+    "common.items.weapons.tool.rake": (
+        vox_spec: ("weapon.tool.rake-0", (-1.0, -5.5, -4.0)),
+        color: None
+    ),  
+    "common.items.weapons.tool.pickaxe": (
+        vox_spec: ("weapon.tool.pickaxe_green-0", (-1.5, -7.5, -4.0)),
+        color: None
+    ),
+    "common.items.weapons.tool.shovel-0": (
+        vox_spec: ("weapon.tool.shovel_green", (-1.0, -2.5, -4.0)),
+        color: None
+    ),
+    "common.items.weapons.tool.shovel-1": (
+        vox_spec: ("weapon.tool.shovel_gold", (-1.0, -2.5, -4.0)),
+        color: None
+    ),
+    "common.items.npc_weapons.tool.broom": (
+        vox_spec: ("weapon.tool.broom-0", (-1.5, -4.0, -4.0)),
+        color: None
+    ),
+    "common.items.npc_weapons.tool.hoe": (
+        vox_spec: ("weapon.tool.hoe_green", (-2.5, -4.5, -4.0)),
+        color: None
+    ),
+    "common.items.npc_weapons.tool.pitchfork": (
+        vox_spec: ("weapon.tool.pitchfork-0", (-1.0, -3.5, -4.0)),
+        color: None
+    ),
+    "common.items.npc_weapons.tool.fishing_rod": (
+        vox_spec: ("weapon.tool.fishing_rod_blue-0", (-2.5, -4.5, -4.0)),
+        color: None
+    ),
+    "common.items.npc_weapons.tool.rake": (
+        vox_spec: ("weapon.tool.rake-0", (-1.0, -5.5, -4.0)),
+        color: None
+    ),  
+    "common.items.npc_weapons.tool.pickaxe": (
+        vox_spec: ("weapon.tool.pickaxe_green-0", (-1.5, -7.5, -4.0)),
+        color: None
+    ),
+    "common.items.npc_weapons.tool.shovel-0": (
+        vox_spec: ("weapon.tool.shovel_green", (-1.0, -2.5, -4.0)),
+        color: None
+    ),
+    "common.items.npc_weapons.tool.shovel-1": (
+        vox_spec: ("weapon.tool.shovel_gold", (-1.0, -2.5, -4.0)),
+        color: None
+    ),
+    // Staves
+    "common.items.weapons.staff.staff_1": (
+        vox_spec: ("weapon.staff.firestaff_starter", (-1.5, -3.0, -3.0)),
+        color: None
+    ),
+    "common.items.weapons.staff.starter_staff": (
+        vox_spec: ("weapon.staff.firestaff_starter", (-1.5, -3.0, -3.0)),
+        color: None
+    ),
+    "common.items.weapons.staff.bone_staff": (
+        vox_spec: ("weapon.staff.firestaff_bone", (-1.5, -2.5, -3.0)),
+        color: None
+    ),
+    "common.items.npc_weapons.staff.bone_staff": (
+        vox_spec: ("weapon.staff.firestaff_bone", (-1.5, -2.5, -3.0)),
+        color: None
+    ),
+    "common.items.weapons.staff.amethyst_staff": (
+        vox_spec: ("weapon.staff.firestaff_amethyst", (-1.5, -4.0, -4.0)),
+        color: None
+    ),
+    "common.items.weapons.staff.cultist_staff": (
+        vox_spec: ("weapon.staff.firestaff_cultist", (-2.5, -2.5, -4.0)),
+        color: None
+    ),
+    "common.items.npc_weapons.staff.cultist_staff": (
+        vox_spec: ("weapon.staff.firestaff_cultist", (-2.5, -2.5, -4.0)),
+        color: None
+    ),
+    // Healing sceptre
+    "common.items.weapons.sceptre.starter_sceptre": (
+        vox_spec: ("weapon.sceptre.wood-simple", (-1.5, -2.5, -6.0)),
+        color: None
+    ),
+    "common.items.weapons.sceptre.moon0": (
+        vox_spec: ("weapon.sceptre.moon", (-1.5, -2.5, -6.0)),
+        color: None
+    ),
+    "common.items.weapons.sceptre.staff_nature": (
+        vox_spec: ("weapon.sceptre.wood-nature", (-1.0, -6.0, -5.0)),
+        color: None
+    ),
+    "common.items.weapons.sceptre.totem_green": (
+        vox_spec: ("weapon.sceptre.totem_green", (-1.5, -2.5, -6.0)),
+        color: None
+    ),
+    "common.items.weapons.sceptre.root_green0": (
+        vox_spec: ("weapon.sceptre.root_green", (-1.5, -2.5, -6.0)),
+        color: None
+    ),
+    "common.items.weapons.sceptre.fork0": (
+        vox_spec: ("weapon.sceptre.fork", (-1.5, -2.5, -6.0)),
+        color: None
+    ),
+    "common.items.weapons.sceptre.loops0": (
+        vox_spec: ("weapon.sceptre.loops", (-1.5, -2.5, -6.0)),
+        color: None
+    ),
+    "common.items.weapons.sceptre.root_evil": (
+        vox_spec: ("weapon.sceptre.root_evil", (-1.5, -2.5, -6.0)),
+        color: None
+    ),    
+    "common.items.weapons.sceptre.sceptre_velorite_0": (
+        vox_spec: ("weapon.sceptre.ore-nature", (-2.0, -6.0, -5.0)),
+        color: None
+    ),
+    // Misc
+    "common.items.debug.boost": (
+        vox_spec: ("weapon.tool.broom_belzeshrub_purple", (-3.0, -4.0, -4.0)),
+        color: None
+    ),
+    "common.items.debug.possess": (
+        vox_spec: ("weapon.tool.broom_belzeshrub_purple", (-3.0, -4.0, -4.0)),
+        color: None
+    ),
+    "common.items.debug.cultist_purp_2h_boss-0": (
+        vox_spec: ("weapon.sword.frost_cleaver-1", (-2.0, -4.5, -7.5)),
+        color: None
+    ),
+    // Misc
+    "common.items.weapons.empty.empty": (
+            vox_spec: ("armor.empty", (-3.0, -3.5, 1.0)),
+            color: None
+    ),
+    "common.items.npc_weapons.empty.empty": (
+            vox_spec: ("armor.empty", (-3.0, -3.5, 1.0)),
+            color: None
+    ),
+    "common.items.npc_weapons.hammer.ogre_hammer": (
+        vox_spec: ("weapon.hammer.2hhammer_ogre", (-5.0, -5.5, -7.0)),
+        color: None
+    ),
+    "common.items.npc_weapons.staff.ogre_staff": (
+        vox_spec: ("weapon.staff.firestaff_ogre", (-2.5, -5.5, -6.0)),
+        color: None
+    ),
+    "common.items.npc_weapons.hammer.cyclops_hammer": (
+        vox_spec: ("weapon.hammer.2hhammer_cyclops-0", (-5.0, -6.5, -7.0)),
+        color: None
+    ),
+    "common.items.npc_weapons.hammer.troll_hammer": (
+        vox_spec: ("weapon.hammer.2hhammer_troll", (-4.0, -6.0, -7.0)),
+        color: None
+    ),
+    "common.items.npc_weapons.sword.dullahan_sword": (
+        vox_spec: ("weapon.sword.greatsword_2h_dullahan", (-1.5, -9.0, -10.0)),
+        color: None
+    ),
+    "common.items.npc_weapons.staff.saurok_staff": (
+        vox_spec: ("weapon.staff.firestaff_saurok", (-3.0, -3.0, -6.0)),
+        color: None
+    ),
+    "common.items.npc_weapons.sword.saurok_sword": (
+        vox_spec: ("weapon.sword.long_2h_saurok", (-1.5, -4.0, -5.0)),
+        color: None
+    ),
+    "common.items.npc_weapons.bow.saurok_bow": (
+        vox_spec: ("weapon.bow.longbow_saurok", (-1.5, -4.0, -16.5)),
+        color: None
+    ),
+    "common.items.npc_weapons.staff.mindflayer_staff": (
+        vox_spec: ("weapon.staff.firestaff_mindflayer", (-5.5, -3.5, -8.0)),
+        color: None
+    ),
+    "common.items.npc_weapons.unique.beast_claws": (
+        vox_spec: ("armor.empty", (0.0, 0.0, 0.0)),
+        color: None
+    ),
+    "common.items.npc_weapons.unique.wendigo_magic": (
+        vox_spec: ("armor.empty", (0.0, 0.0, 0.0)),
+        color: None
+    ),
+    "common.items.npc_weapons.spear.wooden_spear": (
+        vox_spec: ("weapon.spear.sahagin", (-1.5, -3.0, -5.0)),
+        color: None
+    ),
+    "common.items.weapon.spear.adlet": (
+        vox_spec: ("weapon.spear.adlet", (-0.5, -3.0, -5.0)),
+        color: None
+    ),
+    "common.items.npc_weapons.bow.adlet": (
+        vox_spec: ("weapon.bow.adlet", (-0.5, -5.5, -9.5)),
+        color: None
+    ),
+    "common.items.npc_weapons.staff.gnoll": (
+        vox_spec: ("weapon.staff.gnoll", (-2.5, -3.0, -4.0)),
+        color: None
+    ),
+})

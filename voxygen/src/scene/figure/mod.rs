@@ -3377,8 +3377,10 @@ impl FigureMgr {
                                 (
                                     active_tool_kind,
                                     second_tool_kind,
+                                    vel.0,
                                     time,
                                     Some(s.stage_section),
+                                    state.acc_vel,
                                 ),
                                 stage_progress,
                                 &mut state_animation_rate,

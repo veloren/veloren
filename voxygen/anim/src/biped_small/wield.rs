@@ -100,7 +100,7 @@ impl Animation for WieldAnimation {
                 next.control.orientation = Quaternion::rotation_x(-1.35 + 0.5 * speednorm);
             },
 
-            Some(ToolKind::Bow) => {
+            Some(ToolKind::Bow) | Some(ToolKind::BowSimple) => {
                 next.control_l.position = Vec3::new(1.0 - s_a.grip.0 * 2.0, 0.0, 0.0);
                 next.control_r.position = Vec3::new(-1.0 + s_a.grip.0 * 2.0, 6.0, -2.0);
 
@@ -123,7 +123,7 @@ impl Animation for WieldAnimation {
                 next.control.orientation = Quaternion::rotation_x(-0.3 + 0.5 * speednorm)
                     * Quaternion::rotation_y(0.5 * speednorm);
             },
-            Some(ToolKind::Staff) => {
+            Some(ToolKind::Staff) | Some(ToolKind::StaffSimple) => {
                 next.control_l.position = Vec3::new(2.0 - s_a.grip.0 * 2.0, 1.0, 3.0);
                 next.control_r.position =
                     Vec3::new(7.0 + s_a.grip.0 * 2.0, -4.0, 3.0 + speednorm * -3.0);

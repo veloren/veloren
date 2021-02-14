@@ -106,7 +106,7 @@
     ),
     (Wendigo, Male): (
         head: (
-            offset: (-15.0, -4.5, -9.5),
+            offset: (-15.0, -4.5, -3.5),
             central: ("npc.wendigo.male.head"),
         ),
         torso_upper: (
@@ -132,7 +132,7 @@
     ),
     (Wendigo, Female): (
         head: (
-            offset: (-15.0, -4.5, -9.5),
+            offset: (-15.0, -4.5, -3.5),
             central: ("npc.wendigo.male.head"),
         ),
         torso_upper: (
