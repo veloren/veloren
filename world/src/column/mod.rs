@@ -274,7 +274,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             .rem_euclid(128.0)
             / 64.0
             - 1.0;
-        let cliff_scale = (self.sim.gen_ctx.hill_nz.get(wposf.div(128.0).into_array())
+        let cliff_scale = ((self.sim.gen_ctx.hill_nz.get(wposf.div(128.0).into_array()) * 2.0 - 1.0)
             + self.sim.gen_ctx.hill_nz.get(wposf.div(48.0).into_array()) * 0.1
             + 0.5)
             .max(0.0) as f32;
