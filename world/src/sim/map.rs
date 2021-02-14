@@ -133,7 +133,7 @@ pub fn sample_pos(
     let humidity = humidity.min(1.0).max(0.0);
     let temperature = temperature.min(1.0).max(-1.0) * 0.5 + 0.5;
     let wpos = pos * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
-    let column_rgb = samples
+    let column_rgb_alt = samples
         .and_then(|samples| {
             chunk_idx
                 .and_then(|chunk_idx| samples.get(chunk_idx))
@@ -146,7 +146,7 @@ pub fn sample_pos(
             let basement = sample.basement;
             let grass_depth = (1.5 + 2.0 * sample.chaos).min(alt - basement);
             let wposz = if is_basement { basement } else { alt };
-            if is_basement && wposz < alt - grass_depth {
+            let rgb = if is_basement && wposz < alt - grass_depth {
                 Lerp::lerp(
                     sample.sub_surface_color,
                     sample.stone_col.map(|e| e as f32 / 255.0),
@@ -160,11 +160,13 @@ pub fn sample_pos(
                     ((wposz as f32 - (alt - grass_depth)) / grass_depth).sqrt(),
                 )
                 .map(|e| e as f64)
-            }
+            };
+
+            (rgb, alt)
         });
 
     let downhill_wpos = downhill.unwrap_or(wpos + TerrainChunkSize::RECT_SIZE.map(|e| e as i32));
-    let alt = if is_basement { basement } else { alt };
+    let alt = if is_basement { basement } else { column_rgb_alt.map_or(alt, |(_, alt)| alt) };
 
     let true_water_alt = (alt.max(water_alt) as f64 - focus.z) / gain as f64;
     let true_alt = (alt as f64 - focus.z) / gain as f64;
@@ -183,7 +185,7 @@ pub fn sample_pos(
         if is_shaded { 1.0 } else { alt },
         if is_shaded || is_humidity { 1.0 } else { 0.0 },
     );
-    let column_rgb = column_rgb.unwrap_or(default_rgb);
+    let column_rgb = column_rgb_alt.map(|(rgb, _)| rgb).unwrap_or(default_rgb);
     let mut connections = [None; 8];
     let mut has_connections = false;
     // TODO: Support non-river connections.

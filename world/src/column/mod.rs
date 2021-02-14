@@ -69,7 +69,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
 
         let sim = &self.sim;
 
-        let _turb = Vec2::new(
+        let turb = Vec2::new(
             sim.gen_ctx.turb_x_nz.get((wposf.div(48.0)).into_array()) as f32,
             sim.gen_ctx.turb_y_nz.get((wposf.div(48.0)).into_array()) as f32,
         ) * 12.0;
@@ -83,7 +83,6 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         let spawn_rate = sim.get_interpolated(wpos, |chunk| chunk.spawn_rate)?;
         let alt = sim.get_interpolated_monotone(wpos, |chunk| chunk.alt)?;
         let surface_veg = sim.get_interpolated_monotone(wpos, |chunk| chunk.surface_veg)?;
-        let chunk_warp_factor = sim.get_interpolated_monotone(wpos, |chunk| chunk.warp_factor)?;
         let sim_chunk = sim.get(chunk_pos)?;
         let neighbor_coef = TerrainChunkSize::RECT_SIZE.map(|e| e as f64);
         let my_chunk_idx = vec2_as_uniform_idx(self.sim.map_size_lg(), chunk_pos);
@@ -93,6 +92,12 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 let neighbor_chunk = sim.get(neighbor_pos)?;
                 Some((neighbor_pos, neighbor_chunk, &neighbor_chunk.river))
             });
+        let cliff_height = sim.get_interpolated(wpos, |chunk| chunk.cliff_height)?;
+        let cliff_scale = 1.0;
+        let cliff_factor = (alt + self.sim.gen_ctx.hill_nz.get(wposf.div(48.0).into_array()) as f32 * 16.0).rem_euclid(128.0) / 64.0 - 1.0;
+        let cliff_offset = cliff_factor.abs().powf(if cliff_factor < 0.0 { 1.0 } else { 64.0 }) * cliff_height;
+        let cliff_scale = (self.sim.gen_ctx.hill_nz.get(wposf.div(128.0).into_array()) + self.sim.gen_ctx.hill_nz.get(wposf.div(48.0).into_array()) * 0.125 + 0.75).max(0.0) as f32;
+        let alt = alt + cliff_offset * cliff_scale;
 
         let lake_width = (TerrainChunkSize::RECT_SIZE.x as f64 * (2.0f64.sqrt())) + 12.0;
         let neighbor_river_data = neighbor_river_data.map(|(posj, chunkj, river)| {
@@ -701,7 +706,6 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 1.0,
             )
         };
-        let warp_factor = warp_factor * chunk_warp_factor;
         // NOTE: To disable warp, uncomment this line.
         // let warp_factor = 0.0;
 
@@ -1054,6 +1058,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             path,
             cave,
             snow_cover,
+            cliff_offset,
 
             chunk: sim_chunk,
         })
@@ -1084,6 +1089,7 @@ pub struct ColumnSample<'a> {
     pub path: Option<(f32, Vec2<f32>, Path, Vec2<f32>)>,
     pub cave: Option<(f32, Vec2<f32>, Cave, Vec2<f32>)>,
     pub snow_cover: bool,
+    pub cliff_offset: f32,
 
     pub chunk: &'a SimChunk,
 }

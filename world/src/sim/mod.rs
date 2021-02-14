@@ -30,7 +30,7 @@ use crate::{
     site::Site,
     util::{
         seed_expan, FastNoise, FastNoise2d, RandomField, RandomPerm, Sampler, StructureGen2d, LOCALITY,
-        NEIGHBORS,
+        NEIGHBORS, CARDINALS, DHashSet,
     },
     IndexRef, CONFIG,
 };
@@ -44,6 +44,7 @@ use common::{
     },
     vol::RectVolSize,
     lottery::Lottery,
+    spiral::Spiral2d,
 };
 use common_net::msg::WorldMapMsg;
 use enum_iterator::IntoEnumIterator;
@@ -1401,6 +1402,8 @@ impl WorldSim {
             rng,
         };
 
+        this.generate_cliffs();
+
         if opts.seed_elements {
             this.seed_elements();
         }
@@ -1510,6 +1513,72 @@ impl WorldSim {
             alt: Grid::from_raw(self.get_size().map(|e| e as i32), alts),
             horizons,
             sites: Vec::new(), // Will be substituted later
+        }
+    }
+
+    pub fn generate_cliffs(&mut self) {
+        let mut rng = self.rng.clone();
+
+        for _ in 0..self.get_size().product() / 10 {
+            let mut pos = self.get_size().map(|e| rng.gen_range(0..e) as i32);
+
+            let mut cliffs = DHashSet::default();
+            let mut cliff_path = Vec::new();
+
+            for _ in 0..64 {
+                if self.get_gradient_approx(pos).map_or(false, |g| g > 1.5) {
+                    if !cliffs.insert(pos) {
+                        break;
+                    }
+                    cliff_path.push((pos, 0.0));
+
+                    pos += CARDINALS
+                        .iter()
+                        .copied()
+                        .max_by_key(|rpos| self.get_gradient_approx(pos + rpos).map_or(0, |g| (g * 1000.0) as i32))
+                        .unwrap(); // Can't fail
+                } else {
+                    break;
+                }
+            }
+
+            // for locs in cliff_path.windows(3) {
+            //     let to_prev_idx = NEIGHBORS
+            //         .iter()
+            //         .enumerate()
+            //         .find(|(_, dir)| **dir == locs[0].0 - locs[1].0)
+            //         .expect("Track locations must be neighbors")
+            //         .0;
+            //     let to_next_idx = NEIGHBORS
+            //         .iter()
+            //         .enumerate()
+            //         .find(|(_, dir)| **dir == locs[2].0 - locs[1].0)
+            //         .expect("Track locations must be neighbors")
+            //         .0;
+
+            //     self.get_mut(locs[0].0).unwrap().cliff.0.neighbors |=
+            //         1 << ((to_prev_idx as u8 + 4) % 8);
+            //     self.get_mut(locs[1].0).unwrap().cliff.0.neighbors |=
+            //         (1 << (to_prev_idx as u8)) | (1 << (to_next_idx as u8));
+            //     self.get_mut(locs[2].0).unwrap().cliff.0.neighbors |=
+            //         1 << ((to_next_idx as u8 + 4) % 8);
+
+            //     self.get_mut(locs[1].0).unwrap().cliff.0.offset = Vec2::new(rng.gen_range(-16..17), rng.gen_range(-16..17));
+            // }
+
+            for cliff in cliffs {
+                let alt = self.get(cliff).map_or(0.0, |c| c.alt);
+                Spiral2d::new()
+                    .take((4usize * 2 + 1).pow(2))
+                    .for_each(|rpos| {
+                        let dist = rpos.map(|e| e as f32).magnitude();
+                        if let Some(c) = self.get_mut(cliff + rpos) {
+                            let warp = 1.0 / (1.0 + dist);
+                            c.tree_density *= (1.0 - warp);
+                            c.cliff_height = Lerp::lerp(44.0, 0.0, (-1.0 + dist / 3.5));
+                        }
+                    });
+            }
         }
     }
 
@@ -2056,7 +2125,6 @@ pub struct SimChunk {
     pub forest_kind: ForestKind,
     pub spawn_rate: f32,
     pub river: RiverData,
-    pub warp_factor: f32,
     pub surface_veg: f32,
 
     pub sites: Vec<Id<Site>>,
@@ -2064,6 +2132,7 @@ pub struct SimChunk {
 
     pub path: (Way, Path),
     pub cave: (Way, Cave),
+    pub cliff_height: f32,
 
     pub contains_waypoint: bool,
 }
@@ -2284,13 +2353,14 @@ impl SimChunk {
             },
             spawn_rate: 1.0,
             river,
-            warp_factor: 1.0,
             surface_veg: 1.0,
 
             sites: Vec::new(),
             place: None,
             path: Default::default(),
             cave: Default::default(),
+            cliff_height: 0.0,
+
             contains_waypoint: false,
         }
     }

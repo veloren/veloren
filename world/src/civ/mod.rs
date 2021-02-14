@@ -188,7 +188,6 @@ impl Civs {
                             chunk.alt += diff;
                             chunk.basement += diff;
                             chunk.rockiness = 0.0;
-                            chunk.warp_factor = 0.0;
                             chunk.surface_veg *= 1.0 - factor * rng.gen_range(0.25..0.9);
                         });
                 }

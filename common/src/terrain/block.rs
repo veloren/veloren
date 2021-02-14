@@ -199,7 +199,8 @@ impl Block {
     pub fn get_max_sunlight(&self) -> (u8, u8) {
         match self.kind() {
             BlockKind::Water => (1, 1),
-            BlockKind::Leaves => (10, 255),
+            BlockKind::Leaves => (9, 255),
+            BlockKind::Wood => (6, 2),
             _ if self.is_opaque() => (0, 255),
             _ => (0, 0),
         }
