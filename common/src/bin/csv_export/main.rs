@@ -5,7 +5,7 @@ use structopt::StructOpt;
 
 use comp::item::{
     armor::{ArmorKind, Protection},
-    tool::ToolKind,
+    tool::{Hands, Tool, ToolKind},
     ItemKind,
 };
 use veloren_common::comp;

@@ -1,0 +1,15 @@
+ItemDef(
+    name: "Nsapo Axe",
+    description: "Infused with blood.",
+    kind: Tool((
+        kind: Axe,
+        hands: OneHand,
+        stats: (
+            equip_time_millis: 400,
+            power: 2.0,
+            poise_strength: 1.0,
+            speed: 0.8,
+        ),
+    )),
+    quality: High,
+)

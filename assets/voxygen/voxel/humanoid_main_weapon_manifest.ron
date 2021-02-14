@@ -296,6 +296,75 @@
         vox_spec: ("weapon.axe.2haxe_malachite-0", (-1.5, -5.0, -6.0)),
         color: None
     ),
+    // 1h Axes
+    "common.items.weapons.axe_1h.bloodsteel-0": (
+        vox_spec: ("weapon.axe_1h.bloodsteel-0", (-1.5, -5.0, -6.0)),
+        color: None
+    ),
+    "common.items.weapons.axe_1h.bloodsteel-1": (
+        vox_spec: ("weapon.axe_1h.bloodsteel-1", (-1.5, -5.0, -6.0)),
+        color: None
+    ),
+    "common.items.weapons.axe_1h.bronze-0": (
+        vox_spec: ("weapon.axe_1h.bronze-0", (-1.5, -5.0, -6.0)),
+        color: None
+    ),
+    "common.items.weapons.axe_1h.bronze-1": (
+        vox_spec: ("weapon.axe_1h.bronze-1", (-1.5, -5.0, -6.0)),
+        color: None
+    ),
+    "common.items.weapons.axe_1h.cobalt-0": (
+        vox_spec: ("weapon.axe_1h.cobalt-0", (-1.5, -5.0, -6.0)),
+        color: None
+    ),
+    "common.items.weapons.axe_1h.cobalt-1": (
+        vox_spec: ("weapon.axe_1h.cobalt-1", (-1.5, -5.0, -6.0)),
+        color: None
+    ),
+    "common.items.weapons.axe_1h.iron-0": (
+        vox_spec: ("weapon.axe_1h.iron-0", (-1.5, -5.0, -6.0)),
+        color: None
+    ),
+    "common.items.weapons.axe_1h.iron-1": (
+        vox_spec: ("weapon.axe_1h.iron-1", (-1.5, -5.0, -6.0)),
+        color: None
+    ),
+    "common.items.weapons.axe_1h.iron-2": (
+        vox_spec: ("weapon.axe_1h.iron-2", (-1.5, -5.0, -6.0)),
+        color: None
+    ),
+    "common.items.weapons.axe_1h.iron-3": (
+        vox_spec: ("weapon.axe_1h.iron-3", (-1.5, -5.0, -6.0)),
+        color: None
+    ),
+    "common.items.weapons.axe_1h.steel-0": (
+        vox_spec: ("weapon.axe_1h.steel-0", (-1.5, -5.0, -6.0)),
+        color: None
+    ),
+    "common.items.weapons.axe_1h.steel-1": (
+        vox_spec: ("weapon.axe_1h.steel-1", (-1.5, -5.0, -6.0)),
+        color: None
+    ),
+    "common.items.weapons.axe_1h.steel-2": (
+        vox_spec: ("weapon.axe_1h.steel-2", (-1.5, -5.0, -6.0)),
+        color: None
+    ),
+    "common.items.weapons.axe_1h.stone-0": (
+        vox_spec: ("weapon.axe_1h.stone-0", (-1.5, -5.0, -6.0)),
+        color: None
+    ),
+    "common.items.weapons.axe_1h.stone-1": (
+        vox_spec: ("weapon.axe_1h.stone-1", (-1.5, -5.0, -6.0)),
+        color: None
+    ),
+    "common.items.weapons.axe_1h.wood-0": (
+        vox_spec: ("weapon.axe_1h.wood-0", (-1.5, -5.0, -6.0)),
+        color: None
+    ),
+    "common.items.weapons.axe_1h.wood-1": (
+        vox_spec: ("weapon.axe_1h.wood-1", (-1.5, -5.0, -6.0)),
+        color: None
+    ),
     // Hammers
     "common.items.weapons.hammer.hammer_1": (
         vox_spec: ("weapon.hammer.2hhammer_rusty", (-2.5, -5.5, -4.5)),
