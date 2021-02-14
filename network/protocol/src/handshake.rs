@@ -9,13 +9,24 @@ use crate::{
 use async_trait::async_trait;
 use tracing::{debug, error, info, trace};
 
-// Protocols might define a Reliable Variant for auto Handshake discovery
-// this doesn't need to be effective
+/// Implement this for auto Handshake with [`ReliableSink`].
+/// You must make sure that EVERY message send this way actually is received on
+/// the receiving site:
+///  - exactly once
+///  - in the correct order
+///  - correctly
+///
+/// [`ReliableSink`]: crate::ReliableSink
+/// [`RecvProtocol`]: crate::RecvProtocol
 #[async_trait]
 pub trait ReliableDrain {
     async fn send(&mut self, frame: InitFrame) -> Result<(), ProtocolError>;
 }
 
+/// Implement this for auto Handshake with [`ReliableDrain`]. See
+/// [`ReliableDrain`].
+///
+/// [`ReliableDrain`]: crate::ReliableDrain
 #[async_trait]
 pub trait ReliableSink {
     async fn recv(&mut self) -> Result<InitFrame, ProtocolError>;
@@ -34,14 +45,13 @@ where
         local_secret: u128,
     ) -> Result<(Pid, Sid, u128), InitProtocolError> {
         #[cfg(debug_assertions)]
-        const WRONG_NUMBER: &'static [u8] = "Handshake does not contain the magic number required \
-                                             by veloren server.\nWe are not sure if you are a \
-                                             valid veloren client.\nClosing the connection"
-            .as_bytes();
+        const WRONG_NUMBER: &str = "Handshake does not contain the magic number required by \
+                                    veloren server.\nWe are not sure if you are a valid veloren \
+                                    client.\nClosing the connection";
         #[cfg(debug_assertions)]
-        const WRONG_VERSION: &'static str = "Handshake does contain a correct magic number, but \
-                                             invalid version.\nWe don't know how to communicate \
-                                             with you.\nClosing the connection";
+        const WRONG_VERSION: &str = "Handshake does contain a correct magic number, but invalid \
+                                     version.\nWe don't know how to communicate with \
+                                     you.\nClosing the connection";
         const ERR_S: &str = "Got A Raw Message, these are usually Debug Messages indicating that \
                              something went wrong on network layer and connection will be closed";
 
@@ -66,7 +76,9 @@ where
                 if magic_number != VELOREN_MAGIC_NUMBER {
                     error!(?magic_number, "Connection with invalid magic_number");
                     #[cfg(debug_assertions)]
-                    drain.send(InitFrame::Raw(WRONG_NUMBER.to_vec())).await?;
+                    drain
+                        .send(InitFrame::Raw(WRONG_NUMBER.as_bytes().to_vec()))
+                        .await?;
                     Err(InitProtocolError::WrongMagicNumber(magic_number))
                 } else if version != VELOREN_NETWORK_VERSION {
                     error!(?version, "Connection with wrong network version");

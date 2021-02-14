@@ -1,39 +1,100 @@
 use crate::{
-    frame::Frame,
+    frame::OTFrame,
     types::{Mid, Sid},
 };
-use std::{collections::VecDeque, sync::Arc};
+use bytes::{Bytes, BytesMut};
 
-//Todo: Evaluate switching to VecDeque for quickly adding and removing data
-// from front, back.
-// - It would prob require custom bincode code but thats possible.
-#[cfg_attr(test, derive(PartialEq))]
-pub struct MessageBuffer {
-    pub data: Vec<u8>,
+pub(crate) const ALLOC_BLOCK: usize = 16_777_216;
+
+/// Contains a outgoing message for TCP protocol
+/// All Chunks have the same size, except for the last chunk which can end
+/// earlier. E.g.
+/// ```ignore
+/// msg = OTMessage::new();
+/// msg.next();
+/// msg.next();
+/// ```
+#[derive(Debug)]
+pub(crate) struct OTMessage {
+    data: Bytes,
+    original_length: u64,
+    send_header: bool,
+    mid: Mid,
+    sid: Sid,
+    start: u64, /* remove */
 }
 
-impl std::fmt::Debug for MessageBuffer {
-    #[inline]
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        //TODO: small messages!
-        let len = self.data.len();
-        if len > 20 {
-            write!(
-                f,
-                "MessageBuffer(len: {}, {}, {}, {}, {:X?}..{:X?})",
-                len,
-                u32::from_le_bytes([self.data[0], self.data[1], self.data[2], self.data[3]]),
-                u32::from_le_bytes([self.data[4], self.data[5], self.data[6], self.data[7]]),
-                u32::from_le_bytes([self.data[8], self.data[9], self.data[10], self.data[11]]),
-                &self.data[13..16],
-                &self.data[len - 8..len]
-            )
+#[derive(Debug)]
+pub(crate) struct ITMessage {
+    pub data: BytesMut,
+    pub sid: Sid,
+    pub length: u64,
+}
+
+impl OTMessage {
+    pub(crate) const FRAME_DATA_SIZE: u64 = 1400;
+
+    pub(crate) fn new(data: Bytes, mid: Mid, sid: Sid) -> Self {
+        let original_length = data.len() as u64;
+        Self {
+            data,
+            original_length,
+            send_header: false,
+            mid,
+            sid,
+            start: 0,
+        }
+    }
+
+    fn get_header(&self) -> OTFrame {
+        OTFrame::DataHeader {
+            mid: self.mid,
+            sid: self.sid,
+            length: self.data.len() as u64,
+        }
+    }
+
+    fn get_next_data(&mut self) -> OTFrame {
+        let to_send = std::cmp::min(self.data.len(), Self::FRAME_DATA_SIZE as usize);
+        let data = self.data.split_to(to_send);
+        let start = self.start;
+        self.start += Self::FRAME_DATA_SIZE;
+
+        OTFrame::Data {
+            mid: self.mid,
+            start,
+            data,
+        }
+    }
+
+    /// returns if something was added
+    pub(crate) fn next(&mut self) -> Option<OTFrame> {
+        if !self.send_header {
+            self.send_header = true;
+            Some(self.get_header())
+        } else if !self.data.is_empty() {
+            Some(self.get_next_data())
         } else {
-            write!(f, "MessageBuffer(len: {}, {:?})", len, &self.data[..])
+            None
+        }
+    }
+
+    pub(crate) fn get_sid_len(&self) -> (Sid, u64) { (self.sid, self.original_length) }
+}
+
+impl ITMessage {
+    pub(crate) fn new(sid: Sid, length: u64, _allocator: &mut BytesMut) -> Self {
+        //allocator.reserve(ALLOC_BLOCK);
+        //TODO: grab mem from the allocatior, but this is only possible with unsafe
+        Self {
+            sid,
+            length,
+            data: BytesMut::with_capacity((length as usize).min(ALLOC_BLOCK /* anti-ddos */)),
         }
     }
 }
 
+/*
 /// Contains a outgoing message and store what was *send* and *confirmed*
 /// All Chunks have the same size, except for the last chunk which can end
 /// earlier. E.g.
@@ -45,7 +106,8 @@ impl std::fmt::Debug for MessageBuffer {
 /// msg.confirm(2);
 /// ```
 #[derive(Debug)]
-pub(crate) struct OutgoingMessage {
+#[allow(dead_code)]
+pub(crate) struct OUMessage {
     buffer: Arc<MessageBuffer>,
     send_index: u64, // 3 => 4200 (3*FRAME_DATA_SIZE)
     send_header: bool,
@@ -56,7 +118,8 @@ pub(crate) struct OutgoingMessage {
     missing_indices: VecDeque<u64>,
 }
 
-impl OutgoingMessage {
+#[allow(dead_code)]
+impl OUMessage {
     pub(crate) const FRAME_DATA_SIZE: u64 = 1400;
 
     pub(crate) fn new(buffer: Arc<MessageBuffer>, mid: Mid, sid: Sid) -> Self {
@@ -125,3 +188,4 @@ impl OutgoingMessage {
 
     pub(crate) fn get_sid_len(&self) -> (Sid, u64) { (self.sid, self.buffer.data.len() as u64) }
 }
+*/

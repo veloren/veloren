@@ -1,5 +1,5 @@
 use crate::types::{Mid, Pid, Prio, Promises, Sid};
-use bytes::{Buf, BufMut, BytesMut};
+use bytes::{Buf, BufMut, Bytes, BytesMut};
 
 // const FRAME_RESERVED_1: u8 = 0;
 const FRAME_HANDSHAKE: u8 = 1;
@@ -15,7 +15,7 @@ const FRAME_RAW: u8 = 8;
 
 /// Used for Communication between Channel <----(TCP/UDP)----> Channel
 #[derive(Debug, PartialEq, Clone)]
-pub /* should be crate only */ enum InitFrame {
+pub enum InitFrame {
     Handshake {
         magic_number: [u8; 7],
         version: [u32; 3],
@@ -24,14 +24,14 @@ pub /* should be crate only */ enum InitFrame {
         pid: Pid,
         secret: u128,
     },
-    /* WARNING: Sending RAW is only used for debug purposes in case someone write a new API
-     * against veloren Server! */
+    /// WARNING: sending RAW is only for debug purposes and will drop the
+    /// connection
     Raw(Vec<u8>),
 }
 
-/// Used for Communication between Channel <----(TCP/UDP)----> Channel
+/// Used for OUT TCP Communication between Channel --(TCP)--> Channel
 #[derive(Debug, PartialEq, Clone)]
-pub enum Frame {
+pub enum OTFrame {
     Shutdown, /* Shutdown this channel gracefully, if all channels are shutdown (gracefully),
                * Participant is deleted */
     OpenStream {
@@ -49,8 +49,33 @@ pub enum Frame {
     },
     Data {
         mid: Mid,
-        start: u64,
-        data: Vec<u8>,
+        start: u64, /* remove */
+        data: Bytes,
+    },
+}
+
+/// Used for IN TCP Communication between Channel <--(TCP)-- Channel
+#[derive(Debug, PartialEq, Clone)]
+pub enum ITFrame {
+    Shutdown, /* Shutdown this channel gracefully, if all channels are shutdown (gracefully),
+               * Participant is deleted */
+    OpenStream {
+        sid: Sid,
+        prio: Prio,
+        promises: Promises,
+    },
+    CloseStream {
+        sid: Sid,
+    },
+    DataHeader {
+        mid: Mid,
+        sid: Sid,
+        length: u64,
+    },
+    Data {
+        mid: Mid,
+        start: u64, /* remove */
+        data: BytesMut,
     },
 }
 
@@ -62,7 +87,7 @@ impl InitFrame {
     pub(crate) const RAW_CNS: usize = 2;
 
     //provide an appropriate buffer size. > 1500
-    pub(crate) fn to_bytes(self, bytes: &mut BytesMut) {
+    pub(crate) fn write_bytes(self, bytes: &mut BytesMut) {
         match self {
             InitFrame::Handshake {
                 magic_number,
@@ -87,7 +112,7 @@ impl InitFrame {
         }
     }
 
-    pub(crate) fn to_frame(bytes: &mut BytesMut) -> Option<Self> {
+    pub(crate) fn read_frame(bytes: &mut BytesMut) -> Option<Self> {
         let frame_no = match bytes.get(0) {
             Some(&f) => f,
             None => return None,
@@ -124,8 +149,6 @@ impl InitFrame {
                 let length = bytes.get_u16_le() as usize;
                 // lower length is allowed
                 let max_length = length.min(bytes.len());
-                println!("dasdasd {:?}", length);
-                println!("aaaaa {:?}", max_length);
                 let mut data = vec![0; max_length];
                 data.copy_from_slice(&bytes[..max_length]);
                 InitFrame::Raw(data)
@@ -136,71 +159,67 @@ impl InitFrame {
     }
 }
 
-impl Frame {
-    pub(crate) const CLOSE_STREAM_CNS: usize = 8;
-    /// const part of the DATA frame, actual size is variable
-    pub(crate) const DATA_CNS: usize = 18;
-    pub(crate) const DATA_HEADER_CNS: usize = 24;
-    pub(crate) const OPEN_STREAM_CNS: usize = 10;
-    // Size WITHOUT the 1rst indicating byte
-    pub(crate) const SHUTDOWN_CNS: usize = 0;
+pub(crate) const TCP_CLOSE_STREAM_CNS: usize = 8;
+/// const part of the DATA frame, actual size is variable
+pub(crate) const TCP_DATA_CNS: usize = 18;
+pub(crate) const TCP_DATA_HEADER_CNS: usize = 24;
+pub(crate) const TCP_OPEN_STREAM_CNS: usize = 10;
+// Size WITHOUT the 1rst indicating byte
+pub(crate) const TCP_SHUTDOWN_CNS: usize = 0;
 
-    //provide an appropriate buffer size. > 1500
-    pub fn to_bytes(self, bytes: &mut BytesMut) -> u64 {
+impl OTFrame {
+    pub fn write_bytes(self, bytes: &mut BytesMut) {
         match self {
-            Frame::Shutdown => {
+            Self::Shutdown => {
                 bytes.put_u8(FRAME_SHUTDOWN);
-                0
             },
-            Frame::OpenStream {
+            Self::OpenStream {
                 sid,
                 prio,
                 promises,
             } => {
                 bytes.put_u8(FRAME_OPEN_STREAM);
-                bytes.put_slice(&sid.to_le_bytes());
+                sid.to_bytes(bytes);
                 bytes.put_u8(prio);
                 bytes.put_u8(promises.to_le_bytes()[0]);
-                0
             },
-            Frame::CloseStream { sid } => {
+            Self::CloseStream { sid } => {
                 bytes.put_u8(FRAME_CLOSE_STREAM);
-                bytes.put_slice(&sid.to_le_bytes());
-                0
+                sid.to_bytes(bytes);
             },
-            Frame::DataHeader { mid, sid, length } => {
+            Self::DataHeader { mid, sid, length } => {
                 bytes.put_u8(FRAME_DATA_HEADER);
                 bytes.put_u64_le(mid);
-                bytes.put_slice(&sid.to_le_bytes());
+                sid.to_bytes(bytes);
                 bytes.put_u64_le(length);
-                0
             },
-            Frame::Data { mid, start, data } => {
+            Self::Data { mid, start, data } => {
                 bytes.put_u8(FRAME_DATA);
                 bytes.put_u64_le(mid);
                 bytes.put_u64_le(start);
                 bytes.put_u16_le(data.len() as u16);
                 bytes.put_slice(&data);
-                data.len() as u64
             },
         }
     }
+}
 
-    pub(crate) fn to_frame(bytes: &mut BytesMut) -> Option<Self> {
+impl ITFrame {
+    pub(crate) fn read_frame(bytes: &mut BytesMut) -> Option<Self> {
         let frame_no = match bytes.first() {
             Some(&f) => f,
             None => return None,
         };
         let size = match frame_no {
-            FRAME_SHUTDOWN => Self::SHUTDOWN_CNS,
-            FRAME_OPEN_STREAM => Self::OPEN_STREAM_CNS,
-            FRAME_CLOSE_STREAM => Self::CLOSE_STREAM_CNS,
-            FRAME_DATA_HEADER => Self::DATA_HEADER_CNS,
+            FRAME_SHUTDOWN => TCP_SHUTDOWN_CNS,
+            FRAME_OPEN_STREAM => TCP_OPEN_STREAM_CNS,
+            FRAME_CLOSE_STREAM => TCP_CLOSE_STREAM_CNS,
+            FRAME_DATA_HEADER => TCP_DATA_HEADER_CNS,
             FRAME_DATA => {
                 if bytes.len() < 17 + 1 + 1 {
                     return None;
                 }
-                u16::from_le_bytes([bytes[16 + 1], bytes[17 + 1]]) as usize + Self::DATA_CNS
+                u16::from_le_bytes([bytes[16 + 1], bytes[17 + 1]]) as usize + TCP_DATA_CNS
             },
             _ => return None,
         };
@@ -212,13 +231,13 @@ impl Frame {
         let frame = match frame_no {
             FRAME_SHUTDOWN => {
                 let _ = bytes.split_to(size + 1);
-                Frame::Shutdown
+                Self::Shutdown
             },
             FRAME_OPEN_STREAM => {
                 let mut bytes = bytes.split_to(size + 1);
                 bytes.advance(1);
-                Frame::OpenStream {
-                    sid: Sid::new(bytes.get_u64_le()),
+                Self::OpenStream {
+                    sid: Sid::from_bytes(&mut bytes),
                     prio: bytes.get_u8(),
                     promises: Promises::from_bits_truncate(bytes.get_u8()),
                 }
@@ -226,33 +245,54 @@ impl Frame {
             FRAME_CLOSE_STREAM => {
                 let mut bytes = bytes.split_to(size + 1);
                 bytes.advance(1);
-                Frame::CloseStream {
-                    sid: Sid::new(bytes.get_u64_le()),
+                Self::CloseStream {
+                    sid: Sid::from_bytes(&mut bytes),
                 }
             },
             FRAME_DATA_HEADER => {
                 let mut bytes = bytes.split_to(size + 1);
                 bytes.advance(1);
-                Frame::DataHeader {
+                Self::DataHeader {
                     mid: bytes.get_u64_le(),
-                    sid: Sid::new(bytes.get_u64_le()),
+                    sid: Sid::from_bytes(&mut bytes),
                     length: bytes.get_u64_le(),
                 }
             },
             FRAME_DATA => {
-                let mut info = bytes.split_to(Self::DATA_CNS + 1);
-                info.advance(1);
-                let mid = info.get_u64_le();
-                let start = info.get_u64_le();
-                let length = info.get_u16_le();
-                debug_assert_eq!(length as usize, size - Self::DATA_CNS);
+                bytes.advance(1);
+                let mid = bytes.get_u64_le();
+                let start = bytes.get_u64_le();
+                let length = bytes.get_u16_le();
+                debug_assert_eq!(length as usize, size - TCP_DATA_CNS);
                 let data = bytes.split_to(length as usize);
-                let data = data.to_vec();
-                Frame::Data { mid, start, data }
+                Self::Data { mid, start, data }
             },
             _ => unreachable!("Frame::to_frame should be handled before!"),
         };
         Some(frame)
+    }
+}
+
+#[allow(unused_variables)]
+impl PartialEq<ITFrame> for OTFrame {
+    fn eq(&self, other: &ITFrame) -> bool {
+        match self {
+            Self::Shutdown => matches!(other, ITFrame::Shutdown),
+            Self::OpenStream {
+                sid,
+                prio,
+                promises,
+            } => matches!(other, ITFrame::OpenStream {
+                sid,
+                prio,
+                promises
+            }),
+            Self::CloseStream { sid } => matches!(other, ITFrame::CloseStream { sid }),
+            Self::DataHeader { mid, sid, length } => {
+                matches!(other, ITFrame::DataHeader { mid, sid, length })
+            },
+            Self::Data { mid, start, data } => matches!(other, ITFrame::Data { mid, start, data }),
+        }
     }
 }
 
@@ -275,32 +315,32 @@ mod tests {
         ]
     }
 
-    fn get_frames() -> Vec<Frame> {
+    fn get_otframes() -> Vec<OTFrame> {
         vec![
-            Frame::OpenStream {
+            OTFrame::OpenStream {
                 sid: Sid::new(1337),
                 prio: 14,
                 promises: Promises::GUARANTEED_DELIVERY,
             },
-            Frame::DataHeader {
+            OTFrame::DataHeader {
                 sid: Sid::new(1337),
                 mid: 0,
                 length: 36,
             },
-            Frame::Data {
+            OTFrame::Data {
                 mid: 0,
                 start: 0,
-                data: vec![77u8; 20],
+                data: Bytes::from(&[77u8; 20][..]),
             },
-            Frame::Data {
+            OTFrame::Data {
                 mid: 0,
                 start: 20,
-                data: vec![42u8; 16],
+                data: Bytes::from(&[42u8; 16][..]),
             },
-            Frame::CloseStream {
+            OTFrame::CloseStream {
                 sid: Sid::new(1337),
             },
-            Frame::Shutdown,
+            OTFrame::Shutdown,
         ]
     }
 
@@ -308,8 +348,8 @@ mod tests {
     fn initframe_individual() {
         let dupl = |frame: InitFrame| {
             let mut buffer = BytesMut::with_capacity(1500);
-            InitFrame::to_bytes(frame.clone(), &mut buffer);
-            InitFrame::to_frame(&mut buffer)
+            InitFrame::write_bytes(frame, &mut buffer);
+            InitFrame::read_frame(&mut buffer)
         };
 
         for frame in get_initframes() {
@@ -325,13 +365,13 @@ mod tests {
         let mut frames = get_initframes();
         // to string
         for f in &frames {
-            InitFrame::to_bytes(f.clone(), &mut buffer);
+            InitFrame::write_bytes(f.clone(), &mut buffer);
         }
 
         // from string
         let mut framesd = frames
             .iter()
-            .map(|&_| InitFrame::to_frame(&mut buffer))
+            .map(|&_| InitFrame::read_frame(&mut buffer))
             .collect::<Vec<_>>();
 
         // compare
@@ -343,15 +383,15 @@ mod tests {
 
     #[test]
     fn frame_individual() {
-        let dupl = |frame: Frame| {
+        let dupl = |frame: OTFrame| {
             let mut buffer = BytesMut::with_capacity(1500);
-            Frame::to_bytes(frame.clone(), &mut buffer);
-            Frame::to_frame(&mut buffer)
+            OTFrame::write_bytes(frame, &mut buffer);
+            ITFrame::read_frame(&mut buffer)
         };
 
-        for frame in get_frames() {
+        for frame in get_otframes() {
             println!("frame: {:?}", &frame);
-            assert_eq!(Some(frame.clone()), dupl(frame));
+            assert_eq!(frame.clone(), dupl(frame).expect("NONE"));
         }
     }
 
@@ -359,36 +399,36 @@ mod tests {
     fn frame_multiple() {
         let mut buffer = BytesMut::with_capacity(3000);
 
-        let mut frames = get_frames();
+        let mut frames = get_otframes();
         // to string
         for f in &frames {
-            Frame::to_bytes(f.clone(), &mut buffer);
+            OTFrame::write_bytes(f.clone(), &mut buffer);
         }
 
         // from string
         let mut framesd = frames
             .iter()
-            .map(|&_| Frame::to_frame(&mut buffer))
+            .map(|&_| ITFrame::read_frame(&mut buffer))
             .collect::<Vec<_>>();
 
         // compare
         for (f, fd) in frames.drain(..).zip(framesd.drain(..)) {
             println!("frame: {:?}", &f);
-            assert_eq!(Some(f), fd);
+            assert_eq!(f, fd.expect("NONE"));
         }
     }
 
     #[test]
     fn frame_exact_size() {
-        const SIZE: usize = Frame::CLOSE_STREAM_CNS+1/*first byte*/;
+        const SIZE: usize = TCP_CLOSE_STREAM_CNS+1/*first byte*/;
         let mut buffer = BytesMut::with_capacity(SIZE);
 
-        let frame1 = Frame::CloseStream { sid: Sid::new(2) };
-        Frame::to_bytes(frame1.clone(), &mut buffer);
+        let frame1 = OTFrame::CloseStream { sid: Sid::new(2) };
+        OTFrame::write_bytes(frame1.clone(), &mut buffer);
         assert_eq!(buffer.len(), SIZE);
-        let mut deque = buffer.iter().map(|b| *b).collect();
-        let frame2 = Frame::to_frame(&mut deque);
-        assert_eq!(Some(frame1), frame2);
+        let mut deque = buffer.iter().copied().collect();
+        let frame2 = ITFrame::read_frame(&mut deque);
+        assert_eq!(frame1, frame2.expect("NONE"));
     }
 
     #[test]
@@ -399,7 +439,7 @@ mod tests {
             magic_number: VELOREN_MAGIC_NUMBER,
             version: VELOREN_NETWORK_VERSION,
         };
-        InitFrame::to_bytes(frame1.clone(), &mut buffer);
+        InitFrame::write_bytes(frame1, &mut buffer);
     }
 
     #[test]
@@ -410,9 +450,9 @@ mod tests {
             magic_number: VELOREN_MAGIC_NUMBER,
             version: VELOREN_NETWORK_VERSION,
         };
-        let _ = InitFrame::to_bytes(frame1.clone(), &mut buffer);
+        let _ = InitFrame::write_bytes(frame1, &mut buffer);
         buffer.truncate(6); // simulate partial retrieve
-        let frame1d = InitFrame::to_frame(&mut buffer);
+        let frame1d = InitFrame::read_frame(&mut buffer);
         assert_eq!(frame1d, None);
     }
 
@@ -420,7 +460,7 @@ mod tests {
     fn initframe_rubish() {
         let mut buffer = BytesMut::from(&b"dtrgwcser"[..]);
         assert_eq!(
-            InitFrame::to_frame(&mut buffer),
+            InitFrame::read_frame(&mut buffer),
             Some(InitFrame::Raw(b"dtrgwcser".to_vec()))
         );
     }
@@ -430,9 +470,9 @@ mod tests {
         let mut buffer = BytesMut::with_capacity(50);
 
         let frame1 = InitFrame::Raw(b"foobar".to_vec());
-        let _ = InitFrame::to_bytes(frame1.clone(), &mut buffer);
+        let _ = InitFrame::write_bytes(frame1.clone(), &mut buffer);
         buffer[1] = 255;
-        let framed = InitFrame::to_frame(&mut buffer);
+        let framed = InitFrame::read_frame(&mut buffer);
         assert_eq!(framed, Some(frame1));
     }
 
@@ -441,9 +481,9 @@ mod tests {
         let mut buffer = BytesMut::with_capacity(50);
 
         let frame1 = InitFrame::Raw(b"foobar".to_vec());
-        let _ = InitFrame::to_bytes(frame1.clone(), &mut buffer);
+        let _ = InitFrame::write_bytes(frame1, &mut buffer);
         buffer[1] = 3;
-        let framed = InitFrame::to_frame(&mut buffer);
+        let framed = InitFrame::read_frame(&mut buffer);
         // we accept a different frame here, as it's RAW and debug only!
         assert_eq!(framed, Some(InitFrame::Raw(b"foo".to_vec())));
     }
@@ -452,48 +492,48 @@ mod tests {
     fn frame_too_short_buffer() {
         let mut buffer = BytesMut::with_capacity(10);
 
-        let frame1 = Frame::OpenStream {
+        let frame1 = OTFrame::OpenStream {
             sid: Sid::new(88),
             promises: Promises::ENCRYPTED,
             prio: 88,
         };
-        Frame::to_bytes(frame1.clone(), &mut buffer);
+        OTFrame::write_bytes(frame1, &mut buffer);
     }
 
     #[test]
     fn frame_too_less_data() {
         let mut buffer = BytesMut::with_capacity(20);
 
-        let frame1 = Frame::OpenStream {
+        let frame1 = OTFrame::OpenStream {
             sid: Sid::new(88),
             promises: Promises::ENCRYPTED,
             prio: 88,
         };
-        Frame::to_bytes(frame1.clone(), &mut buffer);
+        OTFrame::write_bytes(frame1, &mut buffer);
         buffer.truncate(6); // simulate partial retrieve
-        let frame1d = Frame::to_frame(&mut buffer);
+        let frame1d = ITFrame::read_frame(&mut buffer);
         assert_eq!(frame1d, None);
     }
 
     #[test]
     fn frame_rubish() {
         let mut buffer = BytesMut::from(&b"dtrgwcser"[..]);
-        assert_eq!(Frame::to_frame(&mut buffer), None);
+        assert_eq!(ITFrame::read_frame(&mut buffer), None);
     }
 
     #[test]
     fn frame_attack_too_much_length() {
         let mut buffer = BytesMut::with_capacity(50);
 
-        let frame1 = Frame::Data {
+        let frame1 = OTFrame::Data {
             mid: 7u64,
             start: 1u64,
-            data: b"foobar".to_vec(),
+            data: Bytes::from(&b"foobar"[..]),
         };
 
-        Frame::to_bytes(frame1.clone(), &mut buffer);
+        OTFrame::write_bytes(frame1, &mut buffer);
         buffer[17] = 255;
-        let framed = Frame::to_frame(&mut buffer);
+        let framed = ITFrame::read_frame(&mut buffer);
         assert_eq!(framed, None);
     }
 
@@ -501,25 +541,25 @@ mod tests {
     fn frame_attack_too_low_length() {
         let mut buffer = BytesMut::with_capacity(50);
 
-        let frame1 = Frame::Data {
+        let frame1 = OTFrame::Data {
             mid: 7u64,
             start: 1u64,
-            data: b"foobar".to_vec(),
+            data: Bytes::from(&b"foobar"[..]),
         };
 
-        Frame::to_bytes(frame1.clone(), &mut buffer);
+        OTFrame::write_bytes(frame1, &mut buffer);
         buffer[17] = 3;
-        let framed = Frame::to_frame(&mut buffer);
+        let framed = ITFrame::read_frame(&mut buffer);
         assert_eq!(
             framed,
-            Some(Frame::Data {
+            Some(ITFrame::Data {
                 mid: 7u64,
                 start: 1u64,
-                data: b"foo".to_vec(),
+                data: BytesMut::from(&b"foo"[..]),
             })
         );
         //next = Invalid => Empty
-        let framed = Frame::to_frame(&mut buffer);
+        let framed = ITFrame::read_frame(&mut buffer);
         assert_eq!(framed, None);
     }
 }

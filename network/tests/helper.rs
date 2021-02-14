@@ -67,7 +67,7 @@ pub fn network_participant_stream(
         let p1_b = n_b.connect(addr).await.unwrap();
         let p1_a = n_a.connected().await.unwrap();
 
-        let s1_a = p1_a.open(10, Promises::empty()).await.unwrap();
+        let s1_a = p1_a.open(4, Promises::empty()).await.unwrap();
         let s1_b = p1_b.opened().await.unwrap();
 
         (n_a, p1_a, s1_a, n_b, p1_b, s1_b)
@@ -76,28 +76,28 @@ pub fn network_participant_stream(
 }
 
 #[allow(dead_code)]
-pub fn tcp() -> veloren_network::ProtocolAddr {
+pub fn tcp() -> ProtocolAddr {
     lazy_static! {
         static ref PORTS: AtomicU16 = AtomicU16::new(5000);
     }
     let port = PORTS.fetch_add(1, Ordering::Relaxed);
-    veloren_network::ProtocolAddr::Tcp(SocketAddr::from(([127, 0, 0, 1], port)))
+    ProtocolAddr::Tcp(SocketAddr::from(([127, 0, 0, 1], port)))
 }
 
 #[allow(dead_code)]
-pub fn udp() -> veloren_network::ProtocolAddr {
+pub fn udp() -> ProtocolAddr {
     lazy_static! {
         static ref PORTS: AtomicU16 = AtomicU16::new(5000);
     }
     let port = PORTS.fetch_add(1, Ordering::Relaxed);
-    veloren_network::ProtocolAddr::Udp(SocketAddr::from(([127, 0, 0, 1], port)))
+    ProtocolAddr::Udp(SocketAddr::from(([127, 0, 0, 1], port)))
 }
 
 #[allow(dead_code)]
-pub fn mpsc() -> veloren_network::ProtocolAddr {
+pub fn mpsc() -> ProtocolAddr {
     lazy_static! {
         static ref PORTS: AtomicU64 = AtomicU64::new(5000);
     }
     let port = PORTS.fetch_add(1, Ordering::Relaxed);
-    veloren_network::ProtocolAddr::Mpsc(port)
+    ProtocolAddr::Mpsc(port)
 }

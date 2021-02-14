@@ -1,25 +1,30 @@
+#[cfg(feature = "metrics")]
+use crate::metrics::RemoveReason;
 use crate::{
     event::ProtocolEvent,
     frame::InitFrame,
     handshake::{ReliableDrain, ReliableSink},
-    io::{UnreliableDrain, UnreliableSink},
-    metrics::{ProtocolMetricCache, RemoveReason},
+    metrics::ProtocolMetricCache,
     types::Bandwidth,
-    ProtocolError, RecvProtocol, SendProtocol,
+    ProtocolError, RecvProtocol, SendProtocol, UnreliableDrain, UnreliableSink,
 };
 use async_trait::async_trait;
 use std::time::{Duration, Instant};
 #[cfg(feature = "trace_pedantic")]
 use tracing::trace;
 
+/// used for implementing your own MPSC `Sink` and `Drain`
 #[derive(Debug)]
-pub /* should be private */ enum MpscMsg {
+pub enum MpscMsg {
     Event(ProtocolEvent),
     InitFrame(InitFrame),
 }
 
+/// MPSC implementation of [`SendProtocol`]
+///
+/// [`SendProtocol`]: crate::SendProtocol
 #[derive(Debug)]
-pub struct MpscSendProtcol<D>
+pub struct MpscSendProtocol<D>
 where
     D: UnreliableDrain<DataFormat = MpscMsg>,
 {
@@ -28,8 +33,11 @@ where
     metrics: ProtocolMetricCache,
 }
 
+/// MPSC implementation of [`RecvProtocol`]
+///
+/// [`RecvProtocol`]: crate::RecvProtocol
 #[derive(Debug)]
-pub struct MpscRecvProtcol<S>
+pub struct MpscRecvProtocol<S>
 where
     S: UnreliableSink<DataFormat = MpscMsg>,
 {
@@ -37,7 +45,7 @@ where
     metrics: ProtocolMetricCache,
 }
 
-impl<D> MpscSendProtcol<D>
+impl<D> MpscSendProtocol<D>
 where
     D: UnreliableDrain<DataFormat = MpscMsg>,
 {
@@ -50,7 +58,7 @@ where
     }
 }
 
-impl<S> MpscRecvProtcol<S>
+impl<S> MpscRecvProtocol<S>
 where
     S: UnreliableSink<DataFormat = MpscMsg>,
 {
@@ -58,7 +66,7 @@ where
 }
 
 #[async_trait]
-impl<D> SendProtocol for MpscSendProtcol<D>
+impl<D> SendProtocol for MpscSendProtocol<D>
 where
     D: UnreliableDrain<DataFormat = MpscMsg>,
 {
@@ -69,15 +77,25 @@ where
         trace!(?event, "send");
         match &event {
             ProtocolEvent::Message {
-                buffer,
+                data: _data,
                 mid: _,
-                sid,
+                sid: _sid,
             } => {
-                let sid = *sid;
-                let bytes = buffer.data.len() as u64;
-                self.metrics.smsg_ib(sid, bytes);
+                #[cfg(feature = "metrics")]
+                let (bytes, line) = {
+                    let sid = *_sid;
+                    let bytes = _data.len() as u64;
+                    let line = self.metrics.init_sid(sid);
+                    line.smsg_it.inc();
+                    line.smsg_ib.inc_by(bytes);
+                    (bytes, line)
+                };
                 let r = self.drain.send(MpscMsg::Event(event)).await;
-                self.metrics.smsg_ob(sid, RemoveReason::Finished, bytes);
+                #[cfg(feature = "metrics")]
+                {
+                    line.smsg_ot[RemoveReason::Finished.i()].inc();
+                    line.smsg_ob[RemoveReason::Finished.i()].inc_by(bytes);
+                }
                 r
             },
             _ => self.drain.send(MpscMsg::Event(event)).await,
@@ -88,7 +106,7 @@ where
 }
 
 #[async_trait]
-impl<S> RecvProtocol for MpscRecvProtcol<S>
+impl<S> RecvProtocol for MpscRecvProtocol<S>
 where
     S: UnreliableSink<DataFormat = MpscMsg>,
 {
@@ -98,16 +116,17 @@ where
         trace!(?event, "recv");
         match event {
             MpscMsg::Event(e) => {
-                if let ProtocolEvent::Message {
-                    buffer,
-                    mid: _,
-                    sid,
-                } = &e
+                #[cfg(feature = "metrics")]
                 {
-                    let sid = *sid;
-                    let bytes = buffer.data.len() as u64;
-                    self.metrics.rmsg_ib(sid, bytes);
-                    self.metrics.rmsg_ob(sid, RemoveReason::Finished, bytes);
+                    if let ProtocolEvent::Message { data, mid: _, sid } = &e {
+                        let sid = *sid;
+                        let bytes = data.len() as u64;
+                        let line = self.metrics.init_sid(sid);
+                        line.rmsg_it.inc();
+                        line.rmsg_ib.inc_by(bytes);
+                        line.rmsg_ot[RemoveReason::Finished.i()].inc();
+                        line.rmsg_ob[RemoveReason::Finished.i()].inc_by(bytes);
+                    }
                 }
                 Ok(e)
             },
@@ -117,7 +136,7 @@ where
 }
 
 #[async_trait]
-impl<D> ReliableDrain for MpscSendProtcol<D>
+impl<D> ReliableDrain for MpscSendProtocol<D>
 where
     D: UnreliableDrain<DataFormat = MpscMsg>,
 {
@@ -127,7 +146,7 @@ where
 }
 
 #[async_trait]
-impl<S> ReliableSink for MpscRecvProtcol<S>
+impl<S> ReliableSink for MpscRecvProtocol<S>
 where
     S: UnreliableSink<DataFormat = MpscMsg>,
 {
@@ -142,10 +161,7 @@ where
 #[cfg(test)]
 pub mod test_utils {
     use super::*;
-    use crate::{
-        io::*,
-        metrics::{ProtocolMetricCache, ProtocolMetrics},
-    };
+    use crate::metrics::{ProtocolMetricCache, ProtocolMetrics};
     use async_channel::*;
     use std::sync::Arc;
 
@@ -160,7 +176,7 @@ pub mod test_utils {
     pub fn ac_bound(
         cap: usize,
         metrics: Option<ProtocolMetricCache>,
-    ) -> [(MpscSendProtcol<ACDrain>, MpscRecvProtcol<ACSink>); 2] {
+    ) -> [(MpscSendProtocol<ACDrain>, MpscRecvProtocol<ACSink>); 2] {
         let (s1, r1) = async_channel::bounded(cap);
         let (s2, r2) = async_channel::bounded(cap);
         let m = metrics.unwrap_or_else(|| {
@@ -168,12 +184,12 @@ pub mod test_utils {
         });
         [
             (
-                MpscSendProtcol::new(ACDrain { sender: s1 }, m.clone()),
-                MpscRecvProtcol::new(ACSink { receiver: r2 }, m.clone()),
+                MpscSendProtocol::new(ACDrain { sender: s1 }, m.clone()),
+                MpscRecvProtocol::new(ACSink { receiver: r2 }, m.clone()),
             ),
             (
-                MpscSendProtcol::new(ACDrain { sender: s2 }, m.clone()),
-                MpscRecvProtcol::new(ACSink { receiver: r1 }, m.clone()),
+                MpscSendProtocol::new(ACDrain { sender: s2 }, m.clone()),
+                MpscRecvProtocol::new(ACSink { receiver: r1 }, m),
             ),
         ]
     }

@@ -132,6 +132,7 @@ fn server(address: ProtocolAddr, runtime: Arc<Runtime>) {
     runtime.block_on(server.listen(address)).unwrap();
 
     loop {
+        info!("----");
         info!("Waiting for participant to connect");
         let p1 = runtime.block_on(server.connected()).unwrap(); //remote representation of p1
         let mut s1 = runtime.block_on(p1.opened()).unwrap(); //remote representation of s1
@@ -163,7 +164,7 @@ fn client(address: ProtocolAddr, runtime: Arc<Runtime>) {
 
     let p1 = runtime.block_on(client.connect(address)).unwrap(); //remote representation of p1
     let mut s1 = runtime
-        .block_on(p1.open(16, Promises::ORDERED | Promises::CONSISTENCY))
+        .block_on(p1.open(4, Promises::ORDERED | Promises::CONSISTENCY))
         .unwrap(); //remote representation of s1
     let mut last = Instant::now();
     let mut id = 0u64;
@@ -185,16 +186,16 @@ fn client(address: ProtocolAddr, runtime: Arc<Runtime>) {
         }
         if id > 2000000 {
             println!("Stop");
-            std::thread::sleep(std::time::Duration::from_millis(5000));
+            std::thread::sleep(std::time::Duration::from_millis(2000));
             break;
         }
     }
     drop(s1);
-    std::thread::sleep(std::time::Duration::from_millis(5000));
+    std::thread::sleep(std::time::Duration::from_millis(2000));
     info!("Closing participant");
     runtime.block_on(p1.disconnect()).unwrap();
-    std::thread::sleep(std::time::Duration::from_millis(25000));
+    std::thread::sleep(std::time::Duration::from_millis(2000));
     info!("DROPPING! client");
     drop(client);
-    std::thread::sleep(std::time::Duration::from_millis(25000));
+    std::thread::sleep(std::time::Duration::from_millis(2000));
 }

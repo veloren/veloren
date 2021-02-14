@@ -1,12 +1,11 @@
 use async_trait::async_trait;
 use bytes::BytesMut;
 use network_protocol::{
-    InitProtocolError, MpscMsg, MpscRecvProtcol, MpscSendProtcol, Pid, ProtocolError,
-    ProtocolEvent, ProtocolMetricCache, ProtocolMetrics, Sid, TcpRecvProtcol, TcpSendProtcol,
+    Cid, InitProtocolError, MpscMsg, MpscRecvProtocol, MpscSendProtocol, Pid, ProtocolError,
+    ProtocolEvent, ProtocolMetricCache, ProtocolMetrics, Sid, TcpRecvProtocol, TcpSendProtocol,
     UnreliableDrain, UnreliableSink,
 };
-#[cfg(feature = "metrics")] use std::sync::Arc;
-use std::time::Duration;
+use std::{sync::Arc, time::Duration};
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
     net::tcp::{OwnedReadHalf, OwnedWriteHalf},
@@ -15,40 +14,38 @@ use tokio::{
 
 #[derive(Debug)]
 pub(crate) enum Protocols {
-    Tcp((TcpSendProtcol<TcpDrain>, TcpRecvProtcol<TcpSink>)),
-    Mpsc((MpscSendProtcol<MpscDrain>, MpscRecvProtcol<MpscSink>)),
+    Tcp((TcpSendProtocol<TcpDrain>, TcpRecvProtocol<TcpSink>)),
+    Mpsc((MpscSendProtocol<MpscDrain>, MpscRecvProtocol<MpscSink>)),
 }
 
 #[derive(Debug)]
 pub(crate) enum SendProtocols {
-    Tcp(TcpSendProtcol<TcpDrain>),
-    Mpsc(MpscSendProtcol<MpscDrain>),
+    Tcp(TcpSendProtocol<TcpDrain>),
+    Mpsc(MpscSendProtocol<MpscDrain>),
 }
 
 #[derive(Debug)]
 pub(crate) enum RecvProtocols {
-    Tcp(TcpRecvProtcol<TcpSink>),
-    Mpsc(MpscRecvProtcol<MpscSink>),
+    Tcp(TcpRecvProtocol<TcpSink>),
+    Mpsc(MpscRecvProtocol<MpscSink>),
 }
 
 impl Protocols {
-    pub(crate) fn new_tcp(stream: tokio::net::TcpStream) -> Self {
+    pub(crate) fn new_tcp(
+        stream: tokio::net::TcpStream,
+        cid: Cid,
+        metrics: Arc<ProtocolMetrics>,
+    ) -> Self {
         let (r, w) = stream.into_split();
-        #[cfg(feature = "metrics")]
-        let metrics = ProtocolMetricCache::new(
-            "foooobaaaarrrrrrrr",
-            Arc::new(ProtocolMetrics::new().unwrap()),
-        );
-        #[cfg(not(feature = "metrics"))]
-        let metrics = ProtocolMetricCache {};
+        let metrics = ProtocolMetricCache::new(&cid.to_string(), metrics);
 
-        let sp = TcpSendProtcol::new(TcpDrain { half: w }, metrics.clone());
-        let rp = TcpRecvProtcol::new(
+        let sp = TcpSendProtocol::new(TcpDrain { half: w }, metrics.clone());
+        let rp = TcpRecvProtocol::new(
             TcpSink {
                 half: r,
                 buffer: BytesMut::new(),
             },
-            metrics.clone(),
+            metrics,
         );
         Protocols::Tcp((sp, rp))
     }
@@ -56,15 +53,13 @@ impl Protocols {
     pub(crate) fn new_mpsc(
         sender: mpsc::Sender<MpscMsg>,
         receiver: mpsc::Receiver<MpscMsg>,
+        cid: Cid,
+        metrics: Arc<ProtocolMetrics>,
     ) -> Self {
-        #[cfg(feature = "metrics")]
-        let metrics =
-            ProtocolMetricCache::new("mppppsssscccc", Arc::new(ProtocolMetrics::new().unwrap()));
-        #[cfg(not(feature = "metrics"))]
-        let metrics = ProtocolMetricCache {};
+        let metrics = ProtocolMetricCache::new(&cid.to_string(), metrics);
 
-        let sp = MpscSendProtcol::new(MpscDrain { sender }, metrics.clone());
-        let rp = MpscRecvProtcol::new(MpscSink { receiver }, metrics.clone());
+        let sp = MpscSendProtocol::new(MpscDrain { sender }, metrics.clone());
+        let rp = MpscRecvProtocol::new(MpscSink { receiver }, metrics);
         Protocols::Mpsc((sp, rp))
     }
 
@@ -157,6 +152,7 @@ impl UnreliableSink for TcpSink {
     async fn recv(&mut self) -> Result<Self::DataFormat, ProtocolError> {
         self.buffer.resize(1500, 0u8);
         match self.half.read(&mut self.buffer).await {
+            Ok(0) => Err(ProtocolError::Closed),
             Ok(n) => Ok(self.buffer.split_to(n)),
             Err(_) => Err(ProtocolError::Closed),
         }
@@ -199,6 +195,7 @@ impl UnreliableSink for MpscSink {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use bytes::Bytes;
     use network_protocol::{Promises, RecvProtocol, SendProtocol};
     use tokio::net::{TcpListener, TcpStream};
 
@@ -211,8 +208,9 @@ mod tests {
         });
         let client = TcpStream::connect("127.0.0.1:5000").await.unwrap();
         let (_listener, server) = r1.await.unwrap();
-        let client = Protocols::new_tcp(client);
-        let server = Protocols::new_tcp(server);
+        let metrics = Arc::new(ProtocolMetrics::new().unwrap());
+        let client = Protocols::new_tcp(client, 0, Arc::clone(&metrics));
+        let server = Protocols::new_tcp(server, 0, Arc::clone(&metrics));
         let (mut s, _) = client.split();
         let (_, mut r) = server.split();
         let event = ProtocolEvent::OpenStream {
@@ -222,8 +220,18 @@ mod tests {
             guaranteed_bandwidth: 1_000,
         };
         s.send(event.clone()).await.unwrap();
-        let r = r.recv().await;
-        match r {
+        s.send(ProtocolEvent::Message {
+            sid: Sid::new(1),
+            mid: 0,
+            data: Bytes::from(&[8u8; 8][..]),
+        })
+        .await
+        .unwrap();
+        s.flush(1_000_000, Duration::from_secs(1)).await.unwrap();
+        drop(s); // recv must work even after shutdown of send!
+        tokio::time::sleep(Duration::from_secs(1)).await;
+        let res = r.recv().await;
+        match res {
             Ok(ProtocolEvent::OpenStream {
                 sid,
                 prio,
@@ -235,8 +243,30 @@ mod tests {
                 assert_eq!(promises, Promises::GUARANTEED_DELIVERY);
             },
             _ => {
-                panic!("wrong type {:?}", r);
+                panic!("wrong type {:?}", res);
             },
         }
+        r.recv().await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn tokio_sink_stop_after_drop() {
+        let listener = TcpListener::bind("127.0.0.1:5001").await.unwrap();
+        let r1 = tokio::spawn(async move {
+            let (server, _) = listener.accept().await.unwrap();
+            (listener, server)
+        });
+        let client = TcpStream::connect("127.0.0.1:5001").await.unwrap();
+        let (_listener, server) = r1.await.unwrap();
+        let metrics = Arc::new(ProtocolMetrics::new().unwrap());
+        let client = Protocols::new_tcp(client, 0, Arc::clone(&metrics));
+        let server = Protocols::new_tcp(server, 0, Arc::clone(&metrics));
+        let (s, _) = client.split();
+        let (_, mut r) = server.split();
+        let e = tokio::spawn(async move { r.recv().await });
+        drop(s);
+        let e = e.await.unwrap();
+        assert!(e.is_err());
+        assert_eq!(e.unwrap_err(), ProtocolError::Closed);
     }
 }

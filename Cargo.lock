@@ -5713,6 +5713,7 @@ dependencies = [
  "bitflags",
  "bytes 1.0.1",
  "clap",
+ "criterion",
  "crossbeam-channel 0.5.0",
  "futures-core",
  "futures-util",

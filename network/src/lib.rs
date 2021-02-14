@@ -39,29 +39,27 @@
 //!
 //! # Examples
 //! ```rust
-//! use futures::{executor::block_on, join};
-//! use tokio::task::sleep;
+//! use std::sync::Arc;
+//! use tokio::{join, runtime::Runtime, time::sleep};
 //! use veloren_network::{Network, Pid, Promises, ProtocolAddr};
 //!
 //! // Client
-//! async fn client() -> std::result::Result<(), Box<dyn std::error::Error>> {
+//! async fn client(runtime: Arc<Runtime>) -> std::result::Result<(), Box<dyn std::error::Error>> {
 //!     sleep(std::time::Duration::from_secs(1)).await; // `connect` MUST be after `listen`
-//!     let (client_network, f) = Network::new(Pid::new());
-//!     std::thread::spawn(f);
+//!     let client_network = Network::new(Pid::new(), runtime);
 //!     let server = client_network
 //!         .connect(ProtocolAddr::Tcp("127.0.0.1:12345".parse().unwrap()))
 //!         .await?;
 //!     let mut stream = server
-//!         .open(10, Promises::ORDERED | Promises::CONSISTENCY)
+//!         .open(4, Promises::ORDERED | Promises::CONSISTENCY)
 //!         .await?;
 //!     stream.send("Hello World")?;
 //!     Ok(())
 //! }
 //!
 //! // Server
-//! async fn server() -> std::result::Result<(), Box<dyn std::error::Error>> {
-//!     let (server_network, f) = Network::new(Pid::new());
-//!     std::thread::spawn(f);
+//! async fn server(runtime: Arc<Runtime>) -> std::result::Result<(), Box<dyn std::error::Error>> {
+//!     let server_network = Network::new(Pid::new(), runtime);
 //!     server_network
 //!         .listen(ProtocolAddr::Tcp("127.0.0.1:12345".parse().unwrap()))
 //!         .await?;
@@ -74,8 +72,10 @@
 //! }
 //!
 //! fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
-//!     block_on(async {
-//!         let (result_c, result_s) = join!(client(), server(),);
+//!     let runtime = Arc::new(Runtime::new().unwrap());
+//!     runtime.block_on(async {
+//!         let (result_c, result_s) =
+//!             join!(client(Arc::clone(&runtime)), server(Arc::clone(&runtime)),);
 //!         result_c?;
 //!         result_s?;
 //!         Ok(())
@@ -95,14 +95,14 @@
 //! [`Streams`]: crate::api::Stream
 //! [`send`]: crate::api::Stream::send
 //! [`recv`]: crate::api::Stream::recv
-//! [`Pid`]: crate::types::Pid
+//! [`Pid`]: network_protocol::Pid
 //! [`ProtocolAddr`]: crate::api::ProtocolAddr
-//! [`Promises`]: crate::types::Promises
+//! [`Promises`]: network_protocol::Promises
 
 mod api;
 mod channel;
 mod message;
-#[cfg(feature = "metrics")] mod metrics;
+mod metrics;
 mod participant;
 mod scheduler;
 

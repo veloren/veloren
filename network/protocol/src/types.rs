@@ -2,9 +2,21 @@ use bitflags::bitflags;
 use bytes::{Buf, BufMut, BytesMut};
 use rand::Rng;
 
+/// MessageID, unique ID per Message.
 pub type Mid = u64;
+/// ChannelID, unique ID per Channel (Protocol)
 pub type Cid = u64;
+/// Every Stream has a `Prio` and guaranteed [`Bandwidth`].
+/// Every send, the guarantees part is used first.
+/// If there is still bandwidth left, it will be shared by all Streams with the
+/// same priority. Prio 0 will be send first, then 1, ... till the last prio 7
+/// is send. Prio must be < 8!
+///
+/// [`Bandwidth`]: crate::Bandwidth
 pub type Prio = u8;
+/// guaranteed `Bandwidth`. See [`Prio`]
+///
+/// [`Prio`]: crate::Prio
 pub type Bandwidth = u64;
 
 bitflags! {
@@ -36,20 +48,23 @@ impl Promises {
 }
 
 pub(crate) const VELOREN_MAGIC_NUMBER: [u8; 7] = *b"VELOREN";
+/// When this semver differs, 2 Networks can't communicate.
 pub const VELOREN_NETWORK_VERSION: [u32; 3] = [0, 5, 0];
 pub(crate) const STREAM_ID_OFFSET1: Sid = Sid::new(0);
 pub(crate) const STREAM_ID_OFFSET2: Sid = Sid::new(u64::MAX / 2);
+/// Maximal possible Prio to choose (for performance reasons)
+pub const HIGHEST_PRIO: u8 = 7;
 
-/// Support struct used for uniquely identifying [`Participant`] over the
-/// [`Network`].
-///
-/// [`Participant`]: crate::api::Participant
-/// [`Network`]: crate::api::Network
+/// Support struct used for uniquely identifying `Participant` over the
+/// `Network`.
 #[derive(PartialEq, Eq, Hash, Clone, Copy)]
 pub struct Pid {
     internal: u128,
 }
 
+/// Unique ID per Stream, in one Channel.
+/// one side will always start with 0, while the other start with u64::MAX / 2.
+/// number increases for each created Stream.
 #[derive(PartialEq, Eq, Hash, Clone, Copy)]
 pub struct Sid {
     internal: u64,
@@ -89,19 +104,29 @@ impl Pid {
         }
     }
 
+    #[inline]
     pub(crate) fn from_bytes(bytes: &mut BytesMut) -> Self {
         Self {
             internal: bytes.get_u128_le(),
         }
     }
 
+    #[inline]
     pub(crate) fn to_bytes(&self, bytes: &mut BytesMut) { bytes.put_u128_le(self.internal) }
 }
 
 impl Sid {
     pub const fn new(internal: u64) -> Self { Self { internal } }
 
-    pub(crate) fn to_le_bytes(&self) -> [u8; 8] { self.internal.to_le_bytes() }
+    #[inline]
+    pub(crate) fn from_bytes(bytes: &mut BytesMut) -> Self {
+        Self {
+            internal: bytes.get_u64_le(),
+        }
+    }
+
+    #[inline]
+    pub(crate) fn to_bytes(&self, bytes: &mut BytesMut) { bytes.put_u64_le(self.internal) }
 }
 
 impl std::fmt::Debug for Pid {

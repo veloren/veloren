@@ -1,15 +1,12 @@
-//!
-//!
-//!
-//! (cd network/examples/async_recv && RUST_BACKTRACE=1 cargo run)
 use crate::{
     message::{partial_eq_bincode, Message},
     participant::{A2bStreamOpen, S2bShutdownBparticipant},
     scheduler::Scheduler,
 };
+use bytes::Bytes;
 #[cfg(feature = "compression")]
 use lz_fear::raw::DecodeError;
-use network_protocol::{Bandwidth, MessageBuffer, Pid, Prio, Promises, Sid};
+use network_protocol::{Bandwidth, Pid, Prio, Promises, Sid};
 #[cfg(feature = "metrics")]
 use prometheus::Registry;
 use serde::{de::DeserializeOwned, Serialize};
@@ -76,8 +73,8 @@ pub struct Stream {
     promises: Promises,
     guaranteed_bandwidth: Bandwidth,
     send_closed: Arc<AtomicBool>,
-    a2b_msg_s: crossbeam_channel::Sender<(Sid, Arc<MessageBuffer>)>,
-    b2a_msg_recv_r: Option<async_channel::Receiver<MessageBuffer>>,
+    a2b_msg_s: crossbeam_channel::Sender<(Sid, Bytes)>,
+    b2a_msg_recv_r: Option<async_channel::Receiver<Bytes>>,
     a2b_close_stream_s: Option<mpsc::UnboundedSender<Sid>>,
 }
 
@@ -125,17 +122,17 @@ pub enum StreamError {
 ///
 /// # Examples
 /// ```rust
+/// # use std::sync::Arc;
+/// use tokio::runtime::Runtime;
 /// use veloren_network::{Network, ProtocolAddr, Pid};
-/// use futures::executor::block_on;
 ///
 /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
 /// // Create a Network, listen on port `2999` to accept connections and connect to port `8080` to connect to a (pseudo) database Application
-/// let (network, f) = Network::new(Pid::new());
-/// std::thread::spawn(f);
-/// block_on(async{
+/// let runtime = Arc::new(Runtime::new().unwrap());
+/// let network = Network::new(Pid::new(), Arc::clone(&runtime));
+/// runtime.block_on(async{
 ///     # //setup pseudo database!
-///     # let (database, fd) = Network::new(Pid::new());
-///     # std::thread::spawn(fd);
+///     # let database = Network::new(Pid::new(), Arc::clone(&runtime));
 ///     # database.listen(ProtocolAddr::Tcp("127.0.0.1:8080".parse().unwrap())).await?;
 ///     network.listen(ProtocolAddr::Tcp("127.0.0.1:2999".parse().unwrap())).await?;
 ///     let database = network.connect(ProtocolAddr::Tcp("127.0.0.1:8080".parse().unwrap())).await?;
@@ -179,24 +176,20 @@ impl Network {
     ///
     /// # Examples
     /// ```rust
-    /// //Example with tokio
     /// use std::sync::Arc;
     /// use tokio::runtime::Runtime;
     /// use veloren_network::{Network, Pid, ProtocolAddr};
     ///
-    /// let runtime = Runtime::new();
+    /// let runtime = Runtime::new().unwrap();
     /// let network = Network::new(Pid::new(), Arc::new(runtime));
     /// ```
-    ///
     ///
     /// Usually you only create a single `Network` for an application,
     /// except when client and server are in the same application, then you
     /// will want 2. However there are no technical limitations from
     /// creating more.
     ///
-    /// [`Pid::new()`]: crate::types::Pid::new
-    /// [`ThreadPool`]: https://docs.rs/uvth/newest/uvth/struct.ThreadPool.html
-    /// [`uvth`]: https://docs.rs/uvth
+    /// [`Pid::new()`]: network_protocol::Pid::new
     pub fn new(participant_id: Pid, runtime: Arc<Runtime>) -> Self {
         Self::internal_new(
             participant_id,
@@ -215,12 +208,14 @@ impl Network {
     ///
     /// # Examples
     /// ```rust
+    /// # use std::sync::Arc;
     /// use prometheus::Registry;
+    /// use tokio::runtime::Runtime;
     /// use veloren_network::{Network, Pid, ProtocolAddr};
     ///
+    /// let runtime = Runtime::new().unwrap();
     /// let registry = Registry::new();
-    /// let (network, f) = Network::new_with_registry(Pid::new(), &registry);
-    /// std::thread::spawn(f);
+    /// let network = Network::new_with_registry(Pid::new(), Arc::new(runtime), &registry);
     /// ```
     /// [`new`]: crate::api::Network::new
     #[cfg(feature = "metrics")]
@@ -243,7 +238,6 @@ impl Network {
         let (scheduler, listen_sender, connect_sender, connected_receiver, shutdown_sender) =
             Scheduler::new(
                 participant_id,
-                Arc::clone(&runtime),
                 #[cfg(feature = "metrics")]
                 registry,
             );
@@ -274,15 +268,16 @@ impl Network {
     /// support multiple Protocols or NICs.
     ///
     /// # Examples
-    /// ```rust
-    /// use futures::executor::block_on;
+    /// ```ignore
+    /// # use std::sync::Arc;
+    /// use tokio::runtime::Runtime;
     /// use veloren_network::{Network, Pid, ProtocolAddr};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on port `2000` TCP on all NICs and `2001` UDP locally
-    /// let (network, f) = Network::new(Pid::new());
-    /// std::thread::spawn(f);
-    /// block_on(async {
+    /// let runtime = Arc::new(Runtime::new().unwrap());
+    /// let network = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// runtime.block_on(async {
     ///     network
     ///         .listen(ProtocolAddr::Tcp("127.0.0.1:2000".parse().unwrap()))
     ///         .await?;
@@ -315,17 +310,17 @@ impl Network {
     /// When the method returns the Network either returns a [`Participant`]
     /// ready to open [`Streams`] on OR has returned a [`NetworkError`] (e.g.
     /// can't connect, or invalid Handshake) # Examples
-    /// ```rust
-    /// use futures::executor::block_on;
+    /// ```ignore
+    /// # use std::sync::Arc;
+    /// use tokio::runtime::Runtime;
     /// use veloren_network::{Network, Pid, ProtocolAddr};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, connect on port `2010` TCP and `2011` UDP like listening above
-    /// let (network, f) = Network::new(Pid::new());
-    /// std::thread::spawn(f);
-    /// # let (remote, fr) = Network::new(Pid::new());
-    /// # std::thread::spawn(fr);
-    /// block_on(async {
+    /// let runtime = Arc::new(Runtime::new().unwrap());
+    /// let network = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// # let remote = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// runtime.block_on(async {
     ///     # remote.listen(ProtocolAddr::Tcp("127.0.0.1:2010".parse().unwrap())).await?;
     ///     # remote.listen(ProtocolAddr::Udp("127.0.0.1:2011".parse().unwrap())).await?;
     ///     let p1 = network
@@ -379,16 +374,16 @@ impl Network {
     ///
     /// # Examples
     /// ```rust
-    /// use futures::executor::block_on;
+    /// # use std::sync::Arc;
+    /// use tokio::runtime::Runtime;
     /// use veloren_network::{Network, Pid, ProtocolAddr};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on port `2020` TCP and opens returns their Pid
-    /// let (network, f) = Network::new(Pid::new());
-    /// std::thread::spawn(f);
-    /// # let (remote, fr) = Network::new(Pid::new());
-    /// # std::thread::spawn(fr);
-    /// block_on(async {
+    /// let runtime = Arc::new(Runtime::new().unwrap());
+    /// let network = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// # let remote = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// runtime.block_on(async {
     ///     network
     ///         .listen(ProtocolAddr::Tcp("127.0.0.1:2020".parse().unwrap()))
     ///         .await?;
@@ -437,10 +432,8 @@ impl Participant {
     /// [`Promises`]
     ///
     /// # Arguments
-    /// * `prio` - valid between 0-63. The priority rates the throughput for
-    ///   messages of the [`Stream`] e.g. prio 5 messages will get 1/2 the speed
-    ///   prio0 messages have. Prio10 messages only 1/4 and Prio 15 only 1/8,
-    ///   etc...
+    /// * `prio` - defines which stream is processed first when limited on
+    ///   bandwidth. See [`Prio`] for documentation.
     /// * `promises` - use a combination of you prefered [`Promises`], see the
     ///   link for further documentation. You can combine them, e.g.
     ///   `Promises::ORDERED | Promises::CONSISTENCY` The Stream will then
@@ -452,36 +445,39 @@ impl Participant {
     ///
     /// # Examples
     /// ```rust
-    /// use futures::executor::block_on;
+    /// # use std::sync::Arc;
+    /// use tokio::runtime::Runtime;
     /// use veloren_network::{Network, Pid, Promises, ProtocolAddr};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, connect on port 2100 and open a stream
-    /// let (network, f) = Network::new(Pid::new());
-    /// std::thread::spawn(f);
-    /// # let (remote, fr) = Network::new(Pid::new());
-    /// # std::thread::spawn(fr);
-    /// block_on(async {
+    /// let runtime = Arc::new(Runtime::new().unwrap());
+    /// let network = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// # let remote = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// runtime.block_on(async {
     ///     # remote.listen(ProtocolAddr::Tcp("127.0.0.1:2100".parse().unwrap())).await?;
     ///     let p1 = network
     ///         .connect(ProtocolAddr::Tcp("127.0.0.1:2100".parse().unwrap()))
     ///         .await?;
     ///     let _s1 = p1
-    ///         .open(16, Promises::ORDERED | Promises::CONSISTENCY)
+    ///         .open(4, Promises::ORDERED | Promises::CONSISTENCY)
     ///         .await?;
     ///     # Ok(())
     /// })
     /// # }
     /// ```
     ///
+    /// [`Prio`]: network_protocol::Prio
+    /// [`Promises`]: network_protocol::Promises
     /// [`Streams`]: crate::api::Stream
     #[instrument(name="network", skip(self, prio, promises), fields(p = %self.local_pid))]
     pub async fn open(&self, prio: u8, promises: Promises) -> Result<Stream, ParticipantError> {
+        debug_assert!(prio <= network_protocol::HIGHEST_PRIO, "invalid prio");
         let (p2a_return_stream_s, p2a_return_stream_r) = oneshot::channel::<Stream>();
         if let Err(e) = self.a2b_open_stream_s.lock().await.send((
             prio,
             promises,
-            100000u64,
+            1_000_000,
             p2a_return_stream_s,
         )) {
             debug!(?e, "bParticipant is already closed, notifying");
@@ -509,21 +505,21 @@ impl Participant {
     ///
     /// # Examples
     /// ```rust
+    /// # use std::sync::Arc;
+    /// use tokio::runtime::Runtime;
     /// use veloren_network::{Network, Pid, ProtocolAddr, Promises};
-    /// use futures::executor::block_on;
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, connect on port 2110 and wait for the other side to open a stream
     /// // Note: It's quite unusual to actively connect, but then wait on a stream to be connected, usually the Application taking initiative want's to also create the first Stream.
-    /// let (network, f) = Network::new(Pid::new());
-    /// std::thread::spawn(f);
-    /// # let (remote, fr) = Network::new(Pid::new());
-    /// # std::thread::spawn(fr);
-    /// block_on(async {
+    /// let runtime = Arc::new(Runtime::new().unwrap());
+    /// let network = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// # let remote = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// runtime.block_on(async {
     ///     # remote.listen(ProtocolAddr::Tcp("127.0.0.1:2110".parse().unwrap())).await?;
     ///     let p1 = network.connect(ProtocolAddr::Tcp("127.0.0.1:2110".parse().unwrap())).await?;
     ///     # let p2 = remote.connected().await?;
-    ///     # p2.open(16, Promises::ORDERED | Promises::CONSISTENCY).await?;
+    ///     # p2.open(4, Promises::ORDERED | Promises::CONSISTENCY).await?;
     ///     let _s1 = p1.opened().await?;
     ///     # Ok(())
     /// })
@@ -565,16 +561,16 @@ impl Participant {
     ///
     /// # Examples
     /// ```rust
-    /// use futures::executor::block_on;
+    /// # use std::sync::Arc;
+    /// use tokio::runtime::Runtime;
     /// use veloren_network::{Network, Pid, ProtocolAddr};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on port `2030` TCP and opens returns their Pid and close connection.
-    /// let (network, f) = Network::new(Pid::new());
-    /// std::thread::spawn(f);
-    /// # let (remote, fr) = Network::new(Pid::new());
-    /// # std::thread::spawn(fr);
-    /// block_on(async {
+    /// let runtime = Arc::new(Runtime::new().unwrap());
+    /// let network = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// # let remote = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// runtime.block_on(async {
     ///     network
     ///         .listen(ProtocolAddr::Tcp("127.0.0.1:2030".parse().unwrap()))
     ///         .await?;
@@ -636,7 +632,7 @@ impl Participant {
         }
     }
 
-    /// Returns the remote [`Pid`]
+    /// Returns the remote [`Pid`](network_protocol::Pid)
     pub fn remote_pid(&self) -> Pid { self.remote_pid }
 }
 
@@ -650,8 +646,8 @@ impl Stream {
         promises: Promises,
         guaranteed_bandwidth: Bandwidth,
         send_closed: Arc<AtomicBool>,
-        a2b_msg_s: crossbeam_channel::Sender<(Sid, Arc<MessageBuffer>)>,
-        b2a_msg_recv_r: async_channel::Receiver<MessageBuffer>,
+        a2b_msg_s: crossbeam_channel::Sender<(Sid, Bytes)>,
+        b2a_msg_recv_r: async_channel::Receiver<Bytes>,
         a2b_close_stream_s: mpsc::UnboundedSender<Sid>,
     ) -> Self {
         Self {
@@ -694,21 +690,21 @@ impl Stream {
     ///
     /// # Example
     /// ```
-    /// use veloren_network::{Network, ProtocolAddr, Pid};
     /// # use veloren_network::Promises;
-    /// use futures::executor::block_on;
+    /// # use std::sync::Arc;
+    /// use tokio::runtime::Runtime;
+    /// use veloren_network::{Network, ProtocolAddr, Pid};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on Port `2200` and wait for a Stream to be opened, then answer `Hello World`
-    /// let (network, f) = Network::new(Pid::new());
-    /// std::thread::spawn(f);
-    /// # let (remote, fr) = Network::new(Pid::new());
-    /// # std::thread::spawn(fr);
-    /// block_on(async {
+    /// let runtime = Arc::new(Runtime::new().unwrap());
+    /// let network = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// # let remote = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// runtime.block_on(async {
     ///     network.listen(ProtocolAddr::Tcp("127.0.0.1:2200".parse().unwrap())).await?;
     ///     # let remote_p = remote.connect(ProtocolAddr::Tcp("127.0.0.1:2200".parse().unwrap())).await?;
     ///     # // keep it alive
-    ///     # let _stream_p = remote_p.open(16, Promises::ORDERED | Promises::CONSISTENCY).await?;
+    ///     # let _stream_p = remote_p.open(4, Promises::ORDERED | Promises::CONSISTENCY).await?;
     ///     let participant_a = network.connected().await?;
     ///     let mut stream_a = participant_a.opened().await?;
     ///     //Send  Message
@@ -734,26 +730,24 @@ impl Stream {
     ///
     /// # Example
     /// ```rust
-    /// use veloren_network::{Network, ProtocolAddr, Pid, Message};
     /// # use veloren_network::Promises;
-    /// use futures::executor::block_on;
+    /// # use std::sync::Arc;
+    /// use tokio::runtime::Runtime;
     /// use bincode;
-    /// use std::sync::Arc;
+    /// use veloren_network::{Network, ProtocolAddr, Pid, Message};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
-    /// let (network, f) = Network::new(Pid::new());
-    /// std::thread::spawn(f);
-    /// # let (remote1, fr1) = Network::new(Pid::new());
-    /// # std::thread::spawn(fr1);
-    /// # let (remote2, fr2) = Network::new(Pid::new());
-    /// # std::thread::spawn(fr2);
-    /// block_on(async {
+    /// let runtime = Arc::new(Runtime::new().unwrap());
+    /// let network = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// # let remote1 = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// # let remote2 = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// runtime.block_on(async {
     ///     network.listen(ProtocolAddr::Tcp("127.0.0.1:2210".parse().unwrap())).await?;
     ///     # let remote1_p = remote1.connect(ProtocolAddr::Tcp("127.0.0.1:2210".parse().unwrap())).await?;
     ///     # let remote2_p = remote2.connect(ProtocolAddr::Tcp("127.0.0.1:2210".parse().unwrap())).await?;
     ///     # assert_eq!(remote1_p.remote_pid(), remote2_p.remote_pid());
-    ///     # remote1_p.open(16, Promises::ORDERED | Promises::CONSISTENCY).await?;
-    ///     # remote2_p.open(16, Promises::ORDERED | Promises::CONSISTENCY).await?;
+    ///     # remote1_p.open(4, Promises::ORDERED | Promises::CONSISTENCY).await?;
+    ///     # remote2_p.open(4, Promises::ORDERED | Promises::CONSISTENCY).await?;
     ///     let participant_a = network.connected().await?;
     ///     let participant_b = network.connected().await?;
     ///     let mut stream_a = participant_a.opened().await?;
@@ -779,8 +773,7 @@ impl Stream {
         }
         #[cfg(debug_assertions)]
         message.verify(&self);
-        self.a2b_msg_s
-            .send((self.sid, Arc::clone(&message.buffer)))?;
+        self.a2b_msg_s.send((self.sid, message.data.clone()))?;
         Ok(())
     }
 
@@ -795,20 +788,20 @@ impl Stream {
     ///
     /// # Example
     /// ```
-    /// use veloren_network::{Network, ProtocolAddr, Pid};
     /// # use veloren_network::Promises;
-    /// use futures::executor::block_on;
+    /// # use std::sync::Arc;
+    /// use tokio::runtime::Runtime;
+    /// use veloren_network::{Network, ProtocolAddr, Pid};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on Port `2220` and wait for a Stream to be opened, then listen on it
-    /// let (network, f) = Network::new(Pid::new());
-    /// std::thread::spawn(f);
-    /// # let (remote, fr) = Network::new(Pid::new());
-    /// # std::thread::spawn(fr);
-    /// block_on(async {
+    /// let runtime = Arc::new(Runtime::new().unwrap());
+    /// let network = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// # let remote = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// runtime.block_on(async {
     ///     network.listen(ProtocolAddr::Tcp("127.0.0.1:2220".parse().unwrap())).await?;
     ///     # let remote_p = remote.connect(ProtocolAddr::Tcp("127.0.0.1:2220".parse().unwrap())).await?;
-    ///     # let mut stream_p = remote_p.open(16, Promises::ORDERED | Promises::CONSISTENCY).await?;
+    ///     # let mut stream_p = remote_p.open(4, Promises::ORDERED | Promises::CONSISTENCY).await?;
     ///     # stream_p.send("Hello World");
     ///     let participant_a = network.connected().await?;
     ///     let mut stream_a = participant_a.opened().await?;
@@ -828,20 +821,20 @@ impl Stream {
     ///
     /// # Example
     /// ```
-    /// use veloren_network::{Network, ProtocolAddr, Pid};
     /// # use veloren_network::Promises;
-    /// use futures::executor::block_on;
+    /// # use std::sync::Arc;
+    /// use tokio::runtime::Runtime;
+    /// use veloren_network::{Network, ProtocolAddr, Pid};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on Port `2230` and wait for a Stream to be opened, then listen on it
-    /// let (network, f) = Network::new(Pid::new());
-    /// std::thread::spawn(f);
-    /// # let (remote, fr) = Network::new(Pid::new());
-    /// # std::thread::spawn(fr);
-    /// block_on(async {
+    /// let runtime = Arc::new(Runtime::new().unwrap());
+    /// let network = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// # let remote = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// runtime.block_on(async {
     ///     network.listen(ProtocolAddr::Tcp("127.0.0.1:2230".parse().unwrap())).await?;
     ///     # let remote_p = remote.connect(ProtocolAddr::Tcp("127.0.0.1:2230".parse().unwrap())).await?;
-    ///     # let mut stream_p = remote_p.open(16, Promises::ORDERED | Promises::CONSISTENCY).await?;
+    ///     # let mut stream_p = remote_p.open(4, Promises::ORDERED | Promises::CONSISTENCY).await?;
     ///     # stream_p.send("Hello World");
     ///     let participant_a = network.connected().await?;
     ///     let mut stream_a = participant_a.opened().await?;
@@ -861,8 +854,8 @@ impl Stream {
         match &mut self.b2a_msg_recv_r {
             Some(b2a_msg_recv_r) => {
                 match b2a_msg_recv_r.recv().await {
-                    Ok(msg) => Ok(Message {
-                        buffer: Arc::new(msg),
+                    Ok(data) => Ok(Message {
+                        data,
                         #[cfg(feature = "compression")]
                         compressed: self.promises.contains(Promises::COMPRESSED),
                     }),
@@ -883,20 +876,20 @@ impl Stream {
     ///
     /// # Example
     /// ```
-    /// use veloren_network::{Network, ProtocolAddr, Pid};
     /// # use veloren_network::Promises;
-    /// use futures::executor::block_on;
+    /// # use std::sync::Arc;
+    /// use tokio::runtime::Runtime;
+    /// use veloren_network::{Network, ProtocolAddr, Pid};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on Port `2240` and wait for a Stream to be opened, then listen on it
-    /// let (network, f) = Network::new(Pid::new());
-    /// std::thread::spawn(f);
-    /// # let (remote, fr) = Network::new(Pid::new());
-    /// # std::thread::spawn(fr);
-    /// block_on(async {
+    /// let runtime = Arc::new(Runtime::new().unwrap());
+    /// let network = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// # let remote = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// runtime.block_on(async {
     ///     network.listen(ProtocolAddr::Tcp("127.0.0.1:2240".parse().unwrap())).await?;
     ///     # let remote_p = remote.connect(ProtocolAddr::Tcp("127.0.0.1:2240".parse().unwrap())).await?;
-    ///     # let mut stream_p = remote_p.open(16, Promises::ORDERED | Promises::CONSISTENCY).await?;
+    ///     # let mut stream_p = remote_p.open(4, Promises::ORDERED | Promises::CONSISTENCY).await?;
     ///     # stream_p.send("Hello World");
     ///     # std::thread::sleep(std::time::Duration::from_secs(1));
     ///     let participant_a = network.connected().await?;
@@ -913,9 +906,9 @@ impl Stream {
     pub fn try_recv<M: DeserializeOwned>(&mut self) -> Result<Option<M>, StreamError> {
         match &mut self.b2a_msg_recv_r {
             Some(b2a_msg_recv_r) => match b2a_msg_recv_r.try_recv() {
-                Ok(msg) => Ok(Some(
+                Ok(data) => Ok(Some(
                     Message {
-                        buffer: Arc::new(msg),
+                        data,
                         #[cfg(feature = "compression")]
                         compressed: self.promises().contains(Promises::COMPRESSED),
                     }
@@ -954,7 +947,6 @@ impl Drop for Network {
         }
 
         tokio::task::block_in_place(|| {
-            /* This context prevents panic if Dropped in a async fn */
             self.runtime.block_on(async {
                 for (remote_pid, a2s_disconnect_s) in
                     self.participant_disconnect_sender.lock().await.drain()

@@ -2066,7 +2066,8 @@ mod tests {
 
         let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 9000);
         let view_distance: Option<u32> = None;
-        let veloren_client: Result<Client, Error> = Client::new(socket, view_distance);
+        let runtime = Arc::new(Runtime::new().unwrap());
+        let veloren_client: Result<Client, Error> = Client::new(socket, view_distance, runtime);
 
         let _ = veloren_client.map(|mut client| {
             //register

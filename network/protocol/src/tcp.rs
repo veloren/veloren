@@ -1,26 +1,28 @@
 use crate::{
     event::ProtocolEvent,
-    frame::{Frame, InitFrame},
+    frame::{ITFrame, InitFrame, OTFrame},
     handshake::{ReliableDrain, ReliableSink},
-    io::{UnreliableDrain, UnreliableSink},
+    message::{ITMessage, ALLOC_BLOCK},
     metrics::{ProtocolMetricCache, RemoveReason},
     prio::PrioManager,
-    types::Bandwidth,
-    ProtocolError, RecvProtocol, SendProtocol,
+    types::{Bandwidth, Mid, Sid},
+    ProtocolError, RecvProtocol, SendProtocol, UnreliableDrain, UnreliableSink,
 };
 use async_trait::async_trait;
 use bytes::BytesMut;
 use std::{
     collections::HashMap,
-    sync::Arc,
     time::{Duration, Instant},
 };
 use tracing::info;
 #[cfg(feature = "trace_pedantic")]
 use tracing::trace;
 
+/// TCP implementation of [`SendProtocol`]
+///
+/// [`SendProtocol`]: crate::SendProtocol
 #[derive(Debug)]
-pub struct TcpSendProtcol<D>
+pub struct TcpSendProtocol<D>
 where
     D: UnreliableDrain<DataFormat = BytesMut>,
 {
@@ -34,18 +36,22 @@ where
     metrics: ProtocolMetricCache,
 }
 
+/// TCP implementation of [`RecvProtocol`]
+///
+/// [`RecvProtocol`]: crate::RecvProtocol
 #[derive(Debug)]
-pub struct TcpRecvProtcol<S>
+pub struct TcpRecvProtocol<S>
 where
     S: UnreliableSink<DataFormat = BytesMut>,
 {
     buffer: BytesMut,
-    incoming: HashMap<Mid, IncomingMsg>,
+    itmsg_allocator: BytesMut,
+    incoming: HashMap<Mid, ITMessage>,
     sink: S,
     metrics: ProtocolMetricCache,
 }
 
-impl<D> TcpSendProtcol<D>
+impl<D> TcpSendProtocol<D>
 where
     D: UnreliableDrain<DataFormat = BytesMut>,
 {
@@ -63,13 +69,14 @@ where
     }
 }
 
-impl<S> TcpRecvProtcol<S>
+impl<S> TcpRecvProtocol<S>
 where
     S: UnreliableSink<DataFormat = BytesMut>,
 {
     pub fn new(sink: S, metrics: ProtocolMetricCache) -> Self {
         Self {
             buffer: BytesMut::new(),
+            itmsg_allocator: BytesMut::with_capacity(ALLOC_BLOCK),
             incoming: HashMap::new(),
             sink,
             metrics,
@@ -78,7 +85,7 @@ where
 }
 
 #[async_trait]
-impl<D> SendProtocol for TcpSendProtcol<D>
+impl<D> SendProtocol for TcpSendProtocol<D>
 where
     D: UnreliableDrain<DataFormat = BytesMut>,
 {
@@ -116,12 +123,12 @@ where
             } => {
                 self.store
                     .open_stream(sid, prio, promises, guaranteed_bandwidth);
-                event.to_frame().to_bytes(&mut self.buffer);
+                event.to_frame().write_bytes(&mut self.buffer);
                 self.drain.send(self.buffer.split()).await?;
             },
             ProtocolEvent::CloseStream { sid } => {
                 if self.store.try_close_stream(sid) {
-                    event.to_frame().to_bytes(&mut self.buffer);
+                    event.to_frame().write_bytes(&mut self.buffer);
                     self.drain.send(self.buffer.split()).await?;
                 } else {
                     #[cfg(feature = "trace_pedantic")]
@@ -131,7 +138,7 @@ where
             },
             ProtocolEvent::Shutdown => {
                 if self.store.is_empty() {
-                    event.to_frame().to_bytes(&mut self.buffer);
+                    event.to_frame().write_bytes(&mut self.buffer);
                     self.drain.send(self.buffer.split()).await?;
                 } else {
                     #[cfg(feature = "trace_pedantic")]
@@ -139,35 +146,41 @@ where
                     self.pending_shutdown = true;
                 }
             },
-            ProtocolEvent::Message { buffer, mid, sid } => {
-                self.metrics.smsg_ib(sid, buffer.data.len() as u64);
-                self.store.add(buffer, mid, sid);
+            ProtocolEvent::Message { data, mid, sid } => {
+                self.metrics.smsg_ib(sid, data.len() as u64);
+                self.store.add(data, mid, sid);
             },
         }
         Ok(())
     }
 
     async fn flush(&mut self, bandwidth: Bandwidth, dt: Duration) -> Result<(), ProtocolError> {
-        let frames = self.store.grab(bandwidth, dt);
+        let (frames, total_bytes) = self.store.grab(bandwidth, dt);
+        self.buffer.reserve(total_bytes as usize);
+        let mut data_frames = 0;
+        let mut data_bandwidth = 0;
         for frame in frames {
-            if let Frame::Data {
+            if let OTFrame::Data {
                 mid: _,
                 start: _,
                 data,
             } = &frame
             {
-                self.metrics.sdata_frames_b(data.len() as u64);
+                data_bandwidth += data.len();
+                data_frames += 1;
             }
-            frame.to_bytes(&mut self.buffer);
-            self.drain.send(self.buffer.split()).await?;
+            frame.write_bytes(&mut self.buffer);
         }
+        self.drain.send(self.buffer.split()).await?;
+        self.metrics
+            .sdata_frames_b(data_frames, data_bandwidth as u64);
 
         let mut finished_streams = vec![];
         for (i, &sid) in self.closing_streams.iter().enumerate() {
             if self.store.try_close_stream(sid) {
                 #[cfg(feature = "trace_pedantic")]
                 trace!(?sid, "close stream, as it's now empty");
-                Frame::CloseStream { sid }.to_bytes(&mut self.buffer);
+                OTFrame::CloseStream { sid }.write_bytes(&mut self.buffer);
                 self.drain.send(self.buffer.split()).await?;
                 finished_streams.push(i);
             }
@@ -191,7 +204,7 @@ where
         if self.pending_shutdown && self.store.is_empty() {
             #[cfg(feature = "trace_pedantic")]
             trace!("shutdown, as it's now empty");
-            Frame::Shutdown {}.to_bytes(&mut self.buffer);
+            OTFrame::Shutdown {}.write_bytes(&mut self.buffer);
             self.drain.send(self.buffer.split()).await?;
             self.pending_shutdown = false;
         }
@@ -199,58 +212,42 @@ where
     }
 }
 
-use crate::{
-    message::MessageBuffer,
-    types::{Mid, Sid},
-};
-
-#[derive(Debug)]
-struct IncomingMsg {
-    sid: Sid,
-    length: u64,
-    data: MessageBuffer,
-}
-
 #[async_trait]
-impl<S> RecvProtocol for TcpRecvProtcol<S>
+impl<S> RecvProtocol for TcpRecvProtocol<S>
 where
     S: UnreliableSink<DataFormat = BytesMut>,
 {
     async fn recv(&mut self) -> Result<ProtocolEvent, ProtocolError> {
         'outer: loop {
-            while let Some(frame) = Frame::to_frame(&mut self.buffer) {
+            while let Some(frame) = ITFrame::read_frame(&mut self.buffer) {
                 #[cfg(feature = "trace_pedantic")]
                 trace!(?frame, "recv");
                 match frame {
-                    Frame::Shutdown => break 'outer Ok(ProtocolEvent::Shutdown),
-                    Frame::OpenStream {
+                    ITFrame::Shutdown => break 'outer Ok(ProtocolEvent::Shutdown),
+                    ITFrame::OpenStream {
                         sid,
                         prio,
                         promises,
                     } => {
                         break 'outer Ok(ProtocolEvent::OpenStream {
                             sid,
-                            prio,
+                            prio: prio.min(crate::types::HIGHEST_PRIO),
                             promises,
                             guaranteed_bandwidth: 1_000_000,
                         });
                     },
-                    Frame::CloseStream { sid } => {
+                    ITFrame::CloseStream { sid } => {
                         break 'outer Ok(ProtocolEvent::CloseStream { sid });
                     },
-                    Frame::DataHeader { sid, mid, length } => {
-                        let m = IncomingMsg {
-                            sid,
-                            length,
-                            data: MessageBuffer { data: vec![] },
-                        };
+                    ITFrame::DataHeader { sid, mid, length } => {
+                        let m = ITMessage::new(sid, length, &mut self.itmsg_allocator);
                         self.metrics.rmsg_ib(sid, length);
                         self.incoming.insert(mid, m);
                     },
-                    Frame::Data {
+                    ITFrame::Data {
                         mid,
                         start: _,
-                        mut data,
+                        data,
                     } => {
                         self.metrics.rdata_frames_b(data.len() as u64);
                         let m = match self.incoming.get_mut(&mid) {
@@ -263,45 +260,48 @@ where
                                 break 'outer Err(ProtocolError::Closed);
                             },
                         };
-                        m.data.data.append(&mut data);
-                        if m.data.data.len() == m.length as usize {
+                        m.data.extend_from_slice(&data);
+                        if m.data.len() == m.length as usize {
                             // finished, yay
-                            drop(m);
                             let m = self.incoming.remove(&mid).unwrap();
                             self.metrics.rmsg_ob(
                                 m.sid,
                                 RemoveReason::Finished,
-                                m.data.data.len() as u64,
+                                m.data.len() as u64,
                             );
                             break 'outer Ok(ProtocolEvent::Message {
                                 sid: m.sid,
                                 mid,
-                                buffer: Arc::new(m.data),
+                                data: m.data.freeze(),
                             });
                         }
                     },
                 };
             }
             let chunk = self.sink.recv().await?;
-            self.buffer.extend_from_slice(&chunk);
+            if self.buffer.is_empty() {
+                self.buffer = chunk;
+            } else {
+                self.buffer.extend_from_slice(&chunk);
+            }
         }
     }
 }
 
 #[async_trait]
-impl<D> ReliableDrain for TcpSendProtcol<D>
+impl<D> ReliableDrain for TcpSendProtocol<D>
 where
     D: UnreliableDrain<DataFormat = BytesMut>,
 {
     async fn send(&mut self, frame: InitFrame) -> Result<(), ProtocolError> {
         let mut buffer = BytesMut::with_capacity(500);
-        frame.to_bytes(&mut buffer);
+        frame.write_bytes(&mut buffer);
         self.drain.send(buffer).await
     }
 }
 
 #[async_trait]
-impl<S> ReliableSink for TcpRecvProtcol<S>
+impl<S> ReliableSink for TcpRecvProtocol<S>
 where
     S: UnreliableSink<DataFormat = BytesMut>,
 {
@@ -309,7 +309,7 @@ where
         while self.buffer.len() < 100 {
             let chunk = self.sink.recv().await?;
             self.buffer.extend_from_slice(&chunk);
-            if let Some(frame) = InitFrame::to_frame(&mut self.buffer) {
+            if let Some(frame) = InitFrame::read_frame(&mut self.buffer) {
                 return Ok(frame);
             }
         }
@@ -321,11 +321,9 @@ where
 mod test_utils {
     //TCP protocol based on Channel
     use super::*;
-    use crate::{
-        io::*,
-        metrics::{ProtocolMetricCache, ProtocolMetrics},
-    };
+    use crate::metrics::{ProtocolMetricCache, ProtocolMetrics};
     use async_channel::*;
+    use std::sync::Arc;
 
     pub struct TcpDrain {
         pub sender: Sender<BytesMut>,
@@ -339,7 +337,7 @@ mod test_utils {
     pub fn tcp_bound(
         cap: usize,
         metrics: Option<ProtocolMetricCache>,
-    ) -> [(TcpSendProtcol<TcpDrain>, TcpRecvProtcol<TcpSink>); 2] {
+    ) -> [(TcpSendProtocol<TcpDrain>, TcpRecvProtocol<TcpSink>); 2] {
         let (s1, r1) = async_channel::bounded(cap);
         let (s2, r2) = async_channel::bounded(cap);
         let m = metrics.unwrap_or_else(|| {
@@ -347,12 +345,12 @@ mod test_utils {
         });
         [
             (
-                TcpSendProtcol::new(TcpDrain { sender: s1 }, m.clone()),
-                TcpRecvProtcol::new(TcpSink { receiver: r2 }, m.clone()),
+                TcpSendProtocol::new(TcpDrain { sender: s1 }, m.clone()),
+                TcpRecvProtocol::new(TcpSink { receiver: r2 }, m.clone()),
             ),
             (
-                TcpSendProtcol::new(TcpDrain { sender: s2 }, m.clone()),
-                TcpRecvProtcol::new(TcpSink { receiver: r1 }, m.clone()),
+                TcpSendProtocol::new(TcpDrain { sender: s2 }, m.clone()),
+                TcpRecvProtocol::new(TcpSink { receiver: r1 }, m),
             ),
         ]
     }
@@ -385,12 +383,13 @@ mod test_utils {
 #[cfg(test)]
 mod tests {
     use crate::{
+        frame::OTFrame,
         metrics::{ProtocolMetricCache, ProtocolMetrics, RemoveReason},
         tcp::test_utils::*,
         types::{Pid, Promises, Sid, STREAM_ID_OFFSET1, STREAM_ID_OFFSET2},
-        InitProtocol, MessageBuffer, ProtocolEvent, RecvProtocol, SendProtocol,
+        InitProtocol, ProtocolError, ProtocolEvent, RecvProtocol, SendProtocol,
     };
-    use bytes::BytesMut;
+    use bytes::{Bytes, BytesMut};
     use std::{sync::Arc, time::Duration};
 
     #[tokio::test]
@@ -409,7 +408,7 @@ mod tests {
         let (mut s, mut r) = (p1.0, p2.1);
         let event = ProtocolEvent::OpenStream {
             sid: Sid::new(10),
-            prio: 9u8,
+            prio: 0u8,
             promises: Promises::ORDERED,
             guaranteed_bandwidth: 1_000_000,
         };
@@ -433,9 +432,7 @@ mod tests {
         let event = ProtocolEvent::Message {
             sid: Sid::new(10),
             mid: 0,
-            buffer: Arc::new(MessageBuffer {
-                data: vec![188u8; 600],
-            }),
+            data: Bytes::from(&[188u8; 600][..]),
         };
         s.send(event.clone()).await.unwrap();
         s.flush(1_000_000, Duration::from_secs(1)).await.unwrap();
@@ -445,9 +442,7 @@ mod tests {
         let event = ProtocolEvent::Message {
             sid: Sid::new(10),
             mid: 1,
-            buffer: Arc::new(MessageBuffer {
-                data: vec![7u8; 30],
-            }),
+            data: Bytes::from(&[7u8; 30][..]),
         };
         s.send(event.clone()).await.unwrap();
         s.flush(1_000_000, Duration::from_secs(1)).await.unwrap();
@@ -473,9 +468,7 @@ mod tests {
         let event = ProtocolEvent::Message {
             sid,
             mid: 77,
-            buffer: Arc::new(MessageBuffer {
-                data: vec![99u8; 500_000],
-            }),
+            data: Bytes::from(&[99u8; 500_000][..]),
         };
         s.send(event.clone()).await.unwrap();
         s.flush(1_000_000, Duration::from_secs(1)).await.unwrap();
@@ -503,9 +496,7 @@ mod tests {
         let event = ProtocolEvent::Message {
             sid,
             mid: 77,
-            buffer: Arc::new(MessageBuffer {
-                data: vec![99u8; 500_000],
-            }),
+            data: Bytes::from(&[99u8; 500_000][..]),
         };
         s.send(event).await.unwrap();
         let event = ProtocolEvent::CloseStream { sid };
@@ -534,9 +525,7 @@ mod tests {
         let event = ProtocolEvent::Message {
             sid,
             mid: 77,
-            buffer: Arc::new(MessageBuffer {
-                data: vec![99u8; 500_000],
-            }),
+            data: Bytes::from(&[99u8; 500_000][..]),
         };
         s.send(event).await.unwrap();
         let event = ProtocolEvent::Shutdown {};
@@ -554,45 +543,79 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn msg_finishes_after_drop() {
+        let sid = Sid::new(1);
+        let [p1, p2] = tcp_bound(10000, None);
+        let (mut s, mut r) = (p1.0, p2.1);
+        let event = ProtocolEvent::OpenStream {
+            sid,
+            prio: 5u8,
+            promises: Promises::COMPRESSED,
+            guaranteed_bandwidth: 0,
+        };
+        s.send(event).await.unwrap();
+        let event = ProtocolEvent::Message {
+            sid,
+            mid: 77,
+            data: Bytes::from(&[99u8; 500_000][..]),
+        };
+        s.send(event).await.unwrap();
+        s.flush(1_000_000, Duration::from_secs(1)).await.unwrap();
+        let event = ProtocolEvent::Message {
+            sid,
+            mid: 78,
+            data: Bytes::from(&[100u8; 500_000][..]),
+        };
+        s.send(event).await.unwrap();
+        s.flush(1_000_000, Duration::from_secs(1)).await.unwrap();
+        drop(s);
+        let e = r.recv().await.unwrap();
+        assert!(matches!(e, ProtocolEvent::OpenStream { .. }));
+        let e = r.recv().await.unwrap();
+        assert!(matches!(e, ProtocolEvent::Message { .. }));
+        let e = r.recv().await.unwrap();
+        assert!(matches!(e, ProtocolEvent::Message { .. }));
+    }
+
+    #[tokio::test]
     async fn header_and_data_in_seperate_msg() {
         let sid = Sid::new(1);
         let (s, r) = async_channel::bounded(10);
         let m = ProtocolMetricCache::new("tcp", Arc::new(ProtocolMetrics::new().unwrap()));
         let mut r =
-            super::TcpRecvProtcol::new(super::test_utils::TcpSink { receiver: r }, m.clone());
+            super::TcpRecvProtocol::new(super::test_utils::TcpSink { receiver: r }, m.clone());
 
         const DATA1: &[u8; 69] =
             b"We need to make sure that its okay to send OPEN_STREAM and DATA_HEAD ";
         const DATA2: &[u8; 95] = b"in one chunk and (DATA and CLOSE_STREAM) in the second chunk. and then keep the connection open";
         let mut bytes = BytesMut::with_capacity(1500);
-        use crate::frame::Frame;
-        Frame::OpenStream {
+        OTFrame::OpenStream {
             sid,
             prio: 5u8,
             promises: Promises::COMPRESSED,
         }
-        .to_bytes(&mut bytes);
-        Frame::DataHeader {
+        .write_bytes(&mut bytes);
+        OTFrame::DataHeader {
             mid: 99,
             sid,
             length: (DATA1.len() + DATA2.len()) as u64,
         }
-        .to_bytes(&mut bytes);
+        .write_bytes(&mut bytes);
         s.send(bytes.split()).await.unwrap();
 
-        Frame::Data {
+        OTFrame::Data {
             mid: 99,
             start: 0,
-            data: DATA1.to_vec(),
+            data: Bytes::from(&DATA1[..]),
         }
-        .to_bytes(&mut bytes);
-        Frame::Data {
+        .write_bytes(&mut bytes);
+        OTFrame::Data {
             mid: 99,
             start: DATA1.len() as u64,
-            data: DATA2.to_vec(),
+            data: Bytes::from(&DATA2[..]),
         }
-        .to_bytes(&mut bytes);
-        Frame::CloseStream { sid }.to_bytes(&mut bytes);
+        .write_bytes(&mut bytes);
+        OTFrame::CloseStream { sid }.write_bytes(&mut bytes);
         s.send(bytes.split()).await.unwrap();
 
         let e = r.recv().await.unwrap();
@@ -603,6 +626,32 @@ mod tests {
 
         let e = r.recv().await.unwrap();
         assert!(matches!(e, ProtocolEvent::CloseStream { .. }));
+    }
+
+    #[tokio::test]
+    async fn drop_sink_while_recv() {
+        let sid = Sid::new(1);
+        let (s, r) = async_channel::bounded(10);
+        let m = ProtocolMetricCache::new("tcp", Arc::new(ProtocolMetrics::new().unwrap()));
+        let mut r =
+            super::TcpRecvProtocol::new(super::test_utils::TcpSink { receiver: r }, m.clone());
+
+        let mut bytes = BytesMut::with_capacity(1500);
+        OTFrame::OpenStream {
+            sid,
+            prio: 5u8,
+            promises: Promises::COMPRESSED,
+        }
+        .write_bytes(&mut bytes);
+        s.send(bytes.split()).await.unwrap();
+        let e = r.recv().await.unwrap();
+        assert!(matches!(e, ProtocolEvent::OpenStream { .. }));
+
+        let e = tokio::spawn(async move { r.recv().await });
+        drop(s);
+
+        let e = e.await.unwrap();
+        assert_eq!(e, Err(ProtocolError::Closed));
     }
 
     #[tokio::test]
@@ -622,9 +671,7 @@ mod tests {
         let event = ProtocolEvent::Message {
             sid: Sid::new(10),
             mid: 0,
-            buffer: Arc::new(MessageBuffer {
-                data: vec![188u8; 600],
-            }),
+            data: Bytes::from(&[188u8; 600][..]),
         };
         p2.0.send(event.clone()).await.unwrap();
         p2.0.flush(1_000_000, Duration::from_secs(1)).await.unwrap();
@@ -649,9 +696,7 @@ mod tests {
         let event = ProtocolEvent::Message {
             sid: Sid::new(10),
             mid: 0,
-            buffer: Arc::new(MessageBuffer {
-                data: vec![188u8; 600],
-            }),
+            data: Bytes::from(&[188u8; 600][..]),
         };
         p2.0.send(event.clone()).await.unwrap();
         p2.0.flush(1_000_000, Duration::from_secs(1)).await.unwrap();

@@ -1,12 +1,10 @@
-use network_protocol::Pid;
+use network_protocol::{Cid, Pid};
+#[cfg(feature = "metrics")]
 use prometheus::{IntCounter, IntCounterVec, IntGauge, IntGaugeVec, Opts, Registry};
 use std::error::Error;
 
 /// 1:1 relation between NetworkMetrics and Network
-/// use 2NF here and avoid redundant data like CHANNEL AND PARTICIPANT encoding.
-/// as this will cause a matrix that is full of 0 but needs alot of bandwith and
-/// storage
-#[allow(dead_code)]
+#[cfg(feature = "metrics")]
 pub struct NetworkMetrics {
     pub listen_requests_total: IntCounterVec,
     pub connect_requests_total: IntCounterVec,
@@ -23,8 +21,11 @@ pub struct NetworkMetrics {
     pub network_info: IntGauge,
 }
 
+#[cfg(not(feature = "metrics"))]
+pub struct NetworkMetrics {}
+
+#[cfg(feature = "metrics")]
 impl NetworkMetrics {
-    #[allow(dead_code)]
     pub fn new(local_pid: &Pid) -> Result<Self, Box<dyn Error>> {
         let listen_requests_total = IntCounterVec::new(
             Opts::new(
@@ -123,6 +124,46 @@ impl NetworkMetrics {
         registry.register(Box::new(self.network_info.clone()))?;
         Ok(())
     }
+
+    pub(crate) fn channels_connected(&self, remote_p: &str, no: usize, cid: Cid) {
+        self.channels_connected_total
+            .with_label_values(&[remote_p])
+            .inc();
+        self.participants_channel_ids
+            .with_label_values(&[remote_p, &no.to_string()])
+            .set(cid as i64);
+    }
+
+    pub(crate) fn channels_disconnected(&self, remote_p: &str) {
+        self.channels_disconnected_total
+            .with_label_values(&[remote_p])
+            .inc();
+    }
+
+    pub(crate) fn streams_opened(&self, remote_p: &str) {
+        self.streams_opened_total
+            .with_label_values(&[remote_p])
+            .inc();
+    }
+
+    pub(crate) fn streams_closed(&self, remote_p: &str) {
+        self.streams_closed_total
+            .with_label_values(&[remote_p])
+            .inc();
+    }
+}
+
+#[cfg(not(feature = "metrics"))]
+impl NetworkMetrics {
+    pub fn new(_local_pid: &Pid) -> Result<Self, Box<dyn Error>> { Ok(Self {}) }
+
+    pub(crate) fn channels_connected(&self, _remote_p: &str, _no: usize, _cid: Cid) {}
+
+    pub(crate) fn channels_disconnected(&self, _remote_p: &str) {}
+
+    pub(crate) fn streams_opened(&self, _remote_p: &str) {}
+
+    pub(crate) fn streams_closed(&self, _remote_p: &str) {}
 }
 
 impl std::fmt::Debug for NetworkMetrics {

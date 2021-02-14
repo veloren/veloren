@@ -5,7 +5,8 @@ use prometheus::{
     IntCounterVec, IntGaugeVec, Opts, Registry,
 };
 #[cfg(feature = "metrics")]
-use std::{collections::HashMap, error::Error, sync::Arc};
+use std::collections::HashMap;
+use std::{error::Error, sync::Arc};
 
 #[allow(dead_code)]
 pub enum RemoveReason {
@@ -13,6 +14,10 @@ pub enum RemoveReason {
     Dropped,
 }
 
+/// Use 1 `ProtocolMetrics` per `Network`.
+/// I will contain all protocol related [`prometheus`] information
+///
+/// [`prometheus`]: prometheus
 #[cfg(feature = "metrics")]
 pub struct ProtocolMetrics {
     // smsg=send_msg rdata=receive_data
@@ -55,6 +60,10 @@ pub struct ProtocolMetrics {
     ping: IntGaugeVec,
 }
 
+/// Cache for [`ProtocolMetrics`], more optimized and cleared up after channel
+/// disconnect.
+///
+/// [`ProtocolMetrics`]: crate::ProtocolMetrics
 #[cfg(feature = "metrics")]
 #[derive(Debug, Clone)]
 pub struct ProtocolMetricCache {
@@ -201,17 +210,20 @@ impl ProtocolMetrics {
     }
 }
 
+#[cfg(not(feature = "metrics"))]
+pub struct ProtocolMetrics {}
+
 #[cfg(feature = "metrics")]
 #[derive(Debug, Clone)]
 pub(crate) struct CacheLine {
-    smsg_it: GenericCounter<AtomicU64>,
-    smsg_ib: GenericCounter<AtomicU64>,
-    smsg_ot: [GenericCounter<AtomicU64>; 2],
-    smsg_ob: [GenericCounter<AtomicU64>; 2],
-    rmsg_it: GenericCounter<AtomicU64>,
-    rmsg_ib: GenericCounter<AtomicU64>,
-    rmsg_ot: [GenericCounter<AtomicU64>; 2],
-    rmsg_ob: [GenericCounter<AtomicU64>; 2],
+    pub smsg_it: GenericCounter<AtomicU64>,
+    pub smsg_ib: GenericCounter<AtomicU64>,
+    pub smsg_ot: [GenericCounter<AtomicU64>; 2],
+    pub smsg_ob: [GenericCounter<AtomicU64>; 2],
+    pub rmsg_it: GenericCounter<AtomicU64>,
+    pub rmsg_ib: GenericCounter<AtomicU64>,
+    pub rmsg_ot: [GenericCounter<AtomicU64>; 2],
+    pub rmsg_ob: [GenericCounter<AtomicU64>; 2],
 }
 
 #[cfg(feature = "metrics")]
@@ -279,8 +291,8 @@ impl ProtocolMetricCache {
         line.smsg_ob[reason.i()].inc_by(bytes);
     }
 
-    pub(crate) fn sdata_frames_b(&mut self, bytes: u64) {
-        self.sdata_frames_t.inc();
+    pub(crate) fn sdata_frames_b(&mut self, cnt: u64, bytes: u64) {
+        self.sdata_frames_t.inc_by(cnt);
         self.sdata_frames_b.inc_by(bytes);
     }
 
@@ -333,6 +345,31 @@ impl ProtocolMetricCache {
 }
 
 #[cfg(feature = "metrics")]
+impl Drop for ProtocolMetricCache {
+    fn drop(&mut self) {
+        let cid = &self.cid;
+        let m = &self.m;
+        let finished = RemoveReason::Finished.to_str();
+        let dropped = RemoveReason::Dropped.to_str();
+        for (sid, _) in self.cache.drain() {
+            let s = sid.to_string();
+            let _ = m.smsg_it.remove_label_values(&[&cid, &s]);
+            let _ = m.smsg_ib.remove_label_values(&[&cid, &s]);
+            let _ = m.smsg_ot.remove_label_values(&[&cid, &s, &finished]);
+            let _ = m.smsg_ot.remove_label_values(&[&cid, &s, &dropped]);
+            let _ = m.smsg_ob.remove_label_values(&[&cid, &s, &finished]);
+            let _ = m.smsg_ob.remove_label_values(&[&cid, &s, &dropped]);
+            let _ = m.rmsg_it.remove_label_values(&[&cid, &s]);
+            let _ = m.rmsg_ib.remove_label_values(&[&cid, &s]);
+            let _ = m.rmsg_ot.remove_label_values(&[&cid, &s, &finished]);
+            let _ = m.rmsg_ot.remove_label_values(&[&cid, &s, &dropped]);
+            let _ = m.rmsg_ob.remove_label_values(&[&cid, &s, &finished]);
+            let _ = m.rmsg_ob.remove_label_values(&[&cid, &s, &dropped]);
+        }
+    }
+}
+
+#[cfg(feature = "metrics")]
 impl std::fmt::Debug for ProtocolMetrics {
     #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -342,45 +379,40 @@ impl std::fmt::Debug for ProtocolMetrics {
 
 #[cfg(not(feature = "metrics"))]
 impl ProtocolMetricCache {
-    pub(crate) fn smsg_it(&mut self, _sid: Sid) {}
+    pub fn new(_channel_key: &str, _metrics: Arc<ProtocolMetrics>) -> Self { Self {} }
 
     pub(crate) fn smsg_ib(&mut self, _sid: Sid, _b: u64) {}
 
-    pub(crate) fn smsg_ot(&mut self, _sid: Sid, _reason: RemoveReason) {}
-
     pub(crate) fn smsg_ob(&mut self, _sid: Sid, _reason: RemoveReason, _b: u64) {}
 
-    pub(crate) fn sdata_frames_t(&mut self) {}
-
-    pub(crate) fn sdata_frames_b(&mut self, _b: u64) {}
-
-    pub(crate) fn rmsg_it(&mut self, _sid: Sid) {}
+    pub(crate) fn sdata_frames_b(&mut self, _cnt: u64, _b: u64) {}
 
     pub(crate) fn rmsg_ib(&mut self, _sid: Sid, _b: u64) {}
 
-    pub(crate) fn rmsg_ot(&mut self, _sid: Sid, _reason: RemoveReason) {}
-
     pub(crate) fn rmsg_ob(&mut self, _sid: Sid, _reason: RemoveReason, _b: u64) {}
 
-    pub(crate) fn rdata_frames_t(&mut self) {}
-
     pub(crate) fn rdata_frames_b(&mut self, _b: u64) {}
+}
+
+#[cfg(not(feature = "metrics"))]
+impl ProtocolMetrics {
+    pub fn new() -> Result<Self, Box<dyn Error>> { Ok(Self {}) }
 }
 
 impl RemoveReason {
     #[cfg(feature = "metrics")]
     fn to_str(&self) -> &str {
         match self {
-            RemoveReason::Dropped => "Dropped",
             RemoveReason::Finished => "Finished",
+            RemoveReason::Dropped => "Dropped",
         }
     }
 
     #[cfg(feature = "metrics")]
-    fn i(&self) -> usize {
+    pub(crate) fn i(&self) -> usize {
         match self {
-            RemoveReason::Dropped => 0,
-            RemoveReason::Finished => 1,
+            RemoveReason::Finished => 0,
+            RemoveReason::Dropped => 1,
         }
     }
 }

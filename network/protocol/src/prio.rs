@@ -1,12 +1,12 @@
 use crate::{
-    frame::Frame,
-    message::{MessageBuffer, OutgoingMessage},
+    frame::OTFrame,
+    message::OTMessage,
     metrics::{ProtocolMetricCache, RemoveReason},
-    types::{Bandwidth, Mid, Prio, Promises, Sid},
+    types::{Bandwidth, Mid, Prio, Promises, Sid, HIGHEST_PRIO},
 };
+use bytes::Bytes;
 use std::{
     collections::{HashMap, VecDeque},
-    sync::Arc,
     time::Duration,
 };
 
@@ -15,7 +15,7 @@ struct StreamInfo {
     pub(crate) guaranteed_bandwidth: Bandwidth,
     pub(crate) prio: Prio,
     pub(crate) promises: Promises,
-    pub(crate) messages: VecDeque<OutgoingMessage>,
+    pub(crate) messages: VecDeque<OTMessage>,
 }
 
 /// Responsible for queueing messages.
@@ -31,8 +31,6 @@ pub(crate) struct PrioManager {
 // Send everything ONCE, then keep it till it's confirmed
 
 impl PrioManager {
-    const HIGHEST_PRIO: u8 = 7;
-
     pub fn new(metrics: ProtocolMetricCache) -> Self {
         Self {
             streams: HashMap::new(),
@@ -67,34 +65,34 @@ impl PrioManager {
 
     pub fn is_empty(&self) -> bool { self.streams.is_empty() }
 
-    pub fn add(&mut self, buffer: Arc<MessageBuffer>, mid: Mid, sid: Sid) {
+    pub fn add(&mut self, buffer: Bytes, mid: Mid, sid: Sid) {
         self.streams
             .get_mut(&sid)
             .unwrap()
             .messages
-            .push_back(OutgoingMessage::new(buffer, mid, sid));
+            .push_back(OTMessage::new(buffer, mid, sid));
     }
 
     /// bandwidth might be extended, as for technical reasons
     /// guaranteed_bandwidth is used and frames are always 1400 bytes.
-    pub fn grab(&mut self, bandwidth: Bandwidth, dt: Duration) -> Vec<Frame> {
+    pub fn grab(&mut self, bandwidth: Bandwidth, dt: Duration) -> (Vec<OTFrame>, Bandwidth) {
         let total_bytes = (bandwidth as f64 * dt.as_secs_f64()) as u64;
         let mut cur_bytes = 0u64;
         let mut frames = vec![];
 
-        let mut prios = [0u64; (Self::HIGHEST_PRIO + 1) as usize];
+        let mut prios = [0u64; (HIGHEST_PRIO + 1) as usize];
         let metrics = &mut self.metrics;
 
         let mut process_stream =
             |stream: &mut StreamInfo, mut bandwidth: i64, cur_bytes: &mut u64| {
-                let mut finished = vec![];
+                let mut finished = None;
                 'outer: for (i, msg) in stream.messages.iter_mut().enumerate() {
                     while let Some(frame) = msg.next() {
-                        let b = if matches!(frame, Frame::DataHeader { .. }) {
-                            25
+                        let b = if let OTFrame::Data { data, .. } = &frame {
+                            crate::frame::TCP_DATA_CNS + 1 + data.len()
                         } else {
-                            19 + OutgoingMessage::FRAME_DATA_SIZE
-                        };
+                            crate::frame::TCP_DATA_HEADER_CNS + 1
+                        } as u64;
                         bandwidth -= b as i64;
                         *cur_bytes += b;
                         frames.push(frame);
@@ -102,41 +100,38 @@ impl PrioManager {
                             break 'outer;
                         }
                     }
-                    finished.push(i);
-                }
-
-                //cleanup
-                for i in finished.iter().rev() {
-                    let msg = stream.messages.remove(*i).unwrap();
                     let (sid, bytes) = msg.get_sid_len();
                     metrics.smsg_ob(sid, RemoveReason::Finished, bytes);
+                    finished = Some(i);
+                }
+                if let Some(i) = finished {
+                    //cleanup
+                    stream.messages.drain(..=i);
                 }
             };
 
         // Add guaranteed bandwidth
-        for (_, stream) in &mut self.streams {
-            prios[stream.prio.min(Self::HIGHEST_PRIO) as usize] += 1;
+        for stream in self.streams.values_mut() {
+            prios[stream.prio as usize] += 1;
             let stream_byte_cnt = (stream.guaranteed_bandwidth as f64 * dt.as_secs_f64()) as u64;
             process_stream(stream, stream_byte_cnt as i64, &mut cur_bytes);
         }
 
         if cur_bytes < total_bytes {
             // Add optional bandwidth
-            for prio in 0..=Self::HIGHEST_PRIO {
+            for prio in 0..=HIGHEST_PRIO {
                 if prios[prio as usize] == 0 {
                     continue;
                 }
-                let per_stream_bytes = (total_bytes - cur_bytes) / prios[prio as usize];
-
-                for (_, stream) in &mut self.streams {
+                let per_stream_bytes = ((total_bytes - cur_bytes) / prios[prio as usize]) as i64;
+                for stream in self.streams.values_mut() {
                     if stream.prio != prio {
                         continue;
                     }
-                    process_stream(stream, per_stream_bytes as i64, &mut cur_bytes);
+                    process_stream(stream, per_stream_bytes, &mut cur_bytes);
                 }
             }
         }
-
-        frames
+        (frames, cur_bytes)
     }
 }

@@ -121,8 +121,8 @@ impl Server {
     #[allow(clippy::eval_order_dependence)]
     async fn loop_participant(&self, p: Participant) {
         if let (Ok(cmd_out), Ok(file_out), Ok(cmd_in), Ok(file_in)) = (
-            p.open(15, Promises::ORDERED | Promises::CONSISTENCY).await,
-            p.open(40, Promises::CONSISTENCY).await,
+            p.open(3, Promises::ORDERED | Promises::CONSISTENCY).await,
+            p.open(6, Promises::CONSISTENCY).await,
             p.opened().await,
             p.opened().await,
         ) {
@@ -175,7 +175,7 @@ impl Server {
                     let mut path = std::env::current_dir().unwrap();
                     path.push(fi.path().file_name().unwrap());
                     trace!("No path provided, saving down to {:?}", path);
-                    PathBuf::from(path)
+                    path
                 },
             };
             debug!("Received file, going to save it under {:?}", path);

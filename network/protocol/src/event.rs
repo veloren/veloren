@@ -1,11 +1,13 @@
 use crate::{
-    frame::Frame,
-    message::MessageBuffer,
+    frame::OTFrame,
     types::{Bandwidth, Mid, Prio, Promises, Sid},
 };
-use std::sync::Arc;
+use bytes::Bytes;
 
-/* used for communication with Protocols */
+/// used for communication with [`SendProtocol`] and [`RecvProtocol`]
+///
+/// [`SendProtocol`]: crate::SendProtocol
+/// [`RecvProtocol`]: crate::RecvProtocol
 #[derive(Debug, Clone)]
 #[cfg_attr(test, derive(PartialEq))]
 pub enum ProtocolEvent {
@@ -20,29 +22,29 @@ pub enum ProtocolEvent {
         sid: Sid,
     },
     Message {
-        buffer: Arc<MessageBuffer>,
+        data: Bytes,
         mid: Mid,
         sid: Sid,
     },
 }
 
 impl ProtocolEvent {
-    pub(crate) fn to_frame(&self) -> Frame {
+    pub(crate) fn to_frame(&self) -> OTFrame {
         match self {
-            ProtocolEvent::Shutdown => Frame::Shutdown,
+            ProtocolEvent::Shutdown => OTFrame::Shutdown,
             ProtocolEvent::OpenStream {
                 sid,
                 prio,
                 promises,
                 guaranteed_bandwidth: _,
-            } => Frame::OpenStream {
+            } => OTFrame::OpenStream {
                 sid: *sid,
                 prio: *prio,
                 promises: *promises,
             },
-            ProtocolEvent::CloseStream { sid } => Frame::CloseStream { sid: *sid },
+            ProtocolEvent::CloseStream { sid } => OTFrame::CloseStream { sid: *sid },
             ProtocolEvent::Message { .. } => {
-                unimplemented!("Event::Message to Frame IS NOT supported")
+                unimplemented!("Event::Message to OTFrame IS NOT supported")
             },
         }
     }
@@ -54,18 +56,18 @@ mod tests {
 
     #[test]
     fn test_to_frame() {
-        assert_eq!(ProtocolEvent::Shutdown.to_frame(), Frame::Shutdown);
+        assert_eq!(ProtocolEvent::Shutdown.to_frame(), OTFrame::Shutdown);
         assert_eq!(
             ProtocolEvent::CloseStream { sid: Sid::new(42) }.to_frame(),
-            Frame::CloseStream { sid: Sid::new(42) }
+            OTFrame::CloseStream { sid: Sid::new(42) }
         );
     }
 
     #[test]
     #[should_panic]
-    fn test_sixlet_to_str() {
+    fn test_msg_buffer_panic() {
         let _ = ProtocolEvent::Message {
-            buffer: Arc::new(MessageBuffer { data: vec![] }),
+            data: Bytes::new(),
             mid: 0,
             sid: Sid::new(23),
         }

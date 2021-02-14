@@ -130,7 +130,7 @@ async fn client_connection(
             Ok(msg) => {
                 println!("[{}]: {}", username, msg);
                 for p in participants.read().await.iter() {
-                    match p.open(32, Promises::ORDERED | Promises::CONSISTENCY).await {
+                    match p.open(4, Promises::ORDERED | Promises::CONSISTENCY).await {
                         Err(_) => info!("error talking to client, //TODO drop it"),
                         Ok(mut s) => s.send((username.clone(), msg.clone())).unwrap(),
                     };
@@ -148,7 +148,7 @@ fn client(address: ProtocolAddr) {
     r.block_on(async {
         let p1 = client.connect(address.clone()).await.unwrap(); //remote representation of p1
         let mut s1 = p1
-            .open(16, Promises::ORDERED | Promises::CONSISTENCY)
+            .open(4, Promises::ORDERED | Promises::CONSISTENCY)
             .await
             .unwrap(); //remote representation of s1
         let mut input_lines = io::BufReader::new(io::stdin());

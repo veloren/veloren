@@ -104,11 +104,11 @@ impl ConnectionHandler {
         let reliable = Promises::ORDERED | Promises::CONSISTENCY;
         let reliablec = reliable | Promises::COMPRESSED;
 
-        let general_stream = participant.open(10, reliablec).await?;
-        let ping_stream = participant.open(5, reliable).await?;
-        let mut register_stream = participant.open(10, reliablec).await?;
-        let character_screen_stream = participant.open(10, reliablec).await?;
-        let in_game_stream = participant.open(10, reliablec).await?;
+        let general_stream = participant.open(3, reliablec).await?;
+        let ping_stream = participant.open(2, reliable).await?;
+        let mut register_stream = participant.open(3, reliablec).await?;
+        let character_screen_stream = participant.open(3, reliablec).await?;
+        let in_game_stream = participant.open(3, reliablec).await?;
 
         let server_data = receiver.recv()?;
 
