@@ -30,7 +30,7 @@ pub struct StaticData {
     /// Max angle (45.0 will give you a 90.0 angle window)
     pub max_angle: f32,
     /// What key is used to press ability
-    pub ability_key: AbilityKey,
+    pub ability_info: AbilityInfo,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -52,7 +52,7 @@ impl CharacterBehavior for Data {
 
         handle_move(data, &mut update, 0.7);
         handle_jump(data, &mut update);
-        if !ability_key_is_pressed(data, self.static_data.ability_key) {
+        if !ability_key_is_pressed(data, self.static_data.ability_info.key) {
             handle_interrupt(data, &mut update, false);
             match update.character {
                 CharacterState::BasicMelee(_) => {},

@@ -46,7 +46,7 @@ pub struct StaticData {
     /// Move speed efficiency
     pub move_speed: f32,
     /// What key is used to press ability
-    pub ability_key: AbilityKey,
+    pub ability_info: AbilityInfo,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -68,7 +68,7 @@ impl CharacterBehavior for Data {
 
         handle_move(data, &mut update, self.static_data.move_speed);
         handle_jump(data, &mut update);
-        if !ability_key_is_pressed(data, self.static_data.ability_key) {
+        if !ability_key_is_pressed(data, self.static_data.ability_info.key) {
             handle_interrupt(data, &mut update, false);
             match update.character {
                 CharacterState::ChargedRanged(_) => {},
@@ -99,7 +99,7 @@ impl CharacterBehavior for Data {
                 }
             },
             StageSection::Charge => {
-                if !ability_key_is_pressed(data, self.static_data.ability_key) && !self.exhausted {
+                if !ability_key_is_pressed(data, self.static_data.ability_info.key) && !self.exhausted {
                     let charge_frac = (self.timer.as_secs_f32()
                         / self.static_data.charge_duration.as_secs_f32())
                     .min(1.0);
@@ -156,7 +156,7 @@ impl CharacterBehavior for Data {
                         ..*self
                     });
                 } else if self.timer < self.static_data.charge_duration
-                    && ability_key_is_pressed(data, self.static_data.ability_key)
+                    && ability_key_is_pressed(data, self.static_data.ability_info.key)
                 {
                     // Charges
                     update.character = CharacterState::ChargedRanged(Data {
@@ -176,7 +176,7 @@ impl CharacterBehavior for Data {
                             * self.static_data.speed) as i32,
                         source: EnergySource::Ability,
                     });
-                } else if ability_key_is_pressed(data, self.static_data.ability_key) {
+                } else if ability_key_is_pressed(data, self.static_data.ability_info.key) {
                     // Holds charge
                     update.character = CharacterState::ChargedRanged(Data {
                         timer: self

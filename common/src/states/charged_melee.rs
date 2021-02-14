@@ -44,7 +44,7 @@ pub struct StaticData {
     /// How long the state has until exiting
     pub recover_duration: Duration,
     /// What key is used to press ability
-    pub ability_key: AbilityKey,
+    pub ability_info: AbilityInfo,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -68,7 +68,7 @@ impl CharacterBehavior for Data {
 
         handle_move(data, &mut update, 0.7);
         handle_jump(data, &mut update);
-        if !ability_key_is_pressed(data, self.static_data.ability_key) {
+        if !ability_key_is_pressed(data, self.static_data.ability_info.key) {
             handle_interrupt(data, &mut update, false);
             match update.character {
                 CharacterState::ChargedMelee(_) => {},
@@ -80,7 +80,7 @@ impl CharacterBehavior for Data {
 
         match self.stage_section {
             StageSection::Charge => {
-                if ability_key_is_pressed(data, self.static_data.ability_key)
+                if ability_key_is_pressed(data, self.static_data.ability_info.key)
                     && update.energy.current() as f32 >= self.static_data.energy_cost
                     && self.timer < self.static_data.charge_duration
                 {
@@ -107,7 +107,7 @@ impl CharacterBehavior for Data {
                             * self.static_data.speed) as i32,
                         source: EnergySource::Ability,
                     });
-                } else if ability_key_is_pressed(data, self.static_data.ability_key)
+                } else if ability_key_is_pressed(data, self.static_data.ability_info.key)
                     && update.energy.current() as f32 >= self.static_data.energy_cost
                 {
                     // Maintains charge

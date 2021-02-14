@@ -1,7 +1,7 @@
 use crate::{
     comp::{
         inventory::slot::EquipSlot,
-        item::{Hands, ItemKind, Tool},
+        item::{Hands, ItemKind, Tool, ToolKind},
         quadruped_low, quadruped_medium, theropod, Body, CharacterState, LoadoutManip, StateUpdate,
     },
     consts::{FRIC_GROUND, GRAVITY},
@@ -407,12 +407,12 @@ pub fn handle_ability1_input(data: &JoinData, update: &mut StateUpdate) {
             .equipped(EquipSlot::Mainhand)
             .map(|i| &i.item_config_expect().abilities.primary)
             .map(|a| {
-                let tool = unwrap_tool_data(data).map(|t| t.kind);
+                let tool = unwrap_tool_data(data, EquipSlot::Mainhand).map(|t| t.kind);
                 a.clone().adjusted_by_skills(&data.stats.skill_set, tool)
             })
             .filter(|ability| ability.requirements_paid(data, update))
         {
-            update.character = (&ability, AbilityKey::Mouse1).into();
+            update.character = (&ability, AbilityInfo::from_key(data, AbilityKey::Mouse1, false)).into();
         }
     }
 }
@@ -450,12 +450,12 @@ pub fn handle_ability2_input(data: &JoinData, update: &mut StateUpdate) {
                 .equipped(equip_slot)
                 .map(|i| &i.item_config_expect().abilities.secondary)
                 .map(|a| {
-                    let tool = unwrap_tool_data(data).map(|t| t.kind);
+                    let tool = unwrap_tool_data(data, equip_slot).map(|t| t.kind);
                     a.clone().adjusted_by_skills(&data.stats.skill_set, tool)
                 })
                 .filter(|ability| ability.requirements_paid(data, update))
             {
-                update.character = (&ability, AbilityKey::Mouse2).into();
+                update.character = (&ability, AbilityInfo::from_key(data, AbilityKey::Mouse2, matches!(equip_slot, EquipSlot::Offhand))).into();
             }
         }
     }
@@ -472,12 +472,12 @@ pub fn handle_ability3_input(data: &JoinData, update: &mut StateUpdate) {
                     .then_some(a)
             })
             .map(|a| {
-                let tool = unwrap_tool_data(data).map(|t| t.kind);
+                let tool = unwrap_tool_data(data, EquipSlot::Mainhand).map(|t| t.kind);
                 a.clone().adjusted_by_skills(&data.stats.skill_set, tool)
             })
             .filter(|ability| ability.requirements_paid(data, update))
         {
-            update.character = (&ability, AbilityKey::Skill1).into();
+            update.character = (&ability, AbilityInfo::from_key(data, AbilityKey::Skill1, false)).into();
         }
     }
 }
@@ -519,12 +519,12 @@ pub fn handle_ability4_input(data: &JoinData, update: &mut StateUpdate) {
                         .then_some(a)
                 })
                 .map(|a| {
-                    let tool = unwrap_tool_data(data).map(|t| t.kind);
+                    let tool = unwrap_tool_data(data, equip_slot).map(|t| t.kind);
                     a.clone().adjusted_by_skills(&data.stats.skill_set, tool)
                 })
                 .filter(|ability| ability.requirements_paid(data, update))
             {
-                update.character = (&ability, AbilityKey::Skill1).into();
+                update.character = (&ability, AbilityInfo::from_key(data, AbilityKey::Skill2, matches!(equip_slot, EquipSlot::Offhand))).into();
             }
         }
     }
@@ -546,26 +546,26 @@ pub fn handle_dodge_input(data: &JoinData, update: &mut StateUpdate) {
             .filter(|ability| ability.requirements_paid(data, update))
         {
             if data.character.is_wield() {
-                update.character = (&ability, AbilityKey::Dodge).into();
+                update.character = (&ability, AbilityInfo::from_key(data, AbilityKey::Dodge, false)).into();
                 if let CharacterState::Roll(roll) = &mut update.character {
                     roll.was_wielded = true;
                 }
             } else if data.character.is_stealthy() {
-                update.character = (&ability, AbilityKey::Dodge).into();
+                update.character = (&ability, AbilityInfo::from_key(data, AbilityKey::Dodge, false)).into();
                 if let CharacterState::Roll(roll) = &mut update.character {
                     roll.was_sneak = true;
                 }
             } else {
-                update.character = (&ability, AbilityKey::Dodge).into();
+                update.character = (&ability, AbilityInfo::from_key(data, AbilityKey::Dodge, false)).into();
             }
         }
     }
 }
 
-pub fn unwrap_tool_data<'a>(data: &'a JoinData) -> Option<&'a Tool> {
+pub fn unwrap_tool_data<'a>(data: &'a JoinData, equip_slot: EquipSlot) -> Option<&'a Tool> {
     if let Some(ItemKind::Tool(tool)) = data
         .inventory
-        .equipped(EquipSlot::Mainhand)
+        .equipped(equip_slot)
         .map(|i| i.kind())
     {
         Some(&tool)
@@ -656,5 +656,49 @@ impl MovementDirection {
         }
         .try_normalized()
         .unwrap_or_default()
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub struct AbilityInfo {
+    pub tool: Option<ToolKind>,
+    pub hand: Option<HandInfo>,
+    pub key: AbilityKey,
+}
+
+impl AbilityInfo {
+    pub fn from_key(data: &JoinData, key: AbilityKey, from_offhand: bool) -> Self {
+        let tool_data = if from_offhand {
+            unwrap_tool_data(data, EquipSlot::Offhand)
+        } else {
+            unwrap_tool_data(data, EquipSlot::Mainhand)
+        };
+        let (tool, hand) = if from_offhand {
+            (tool_data.map(|t| t.kind), Some(HandInfo::OffHand))
+        } else {
+            (tool_data.map(|t| t.kind), tool_data.map(|t| HandInfo::from_main_tool(t)))
+        };
+
+        Self {
+            tool,
+            hand,
+            key,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub enum HandInfo {
+    TwoHanded,
+    MainHand,
+    OffHand,
+}
+
+impl HandInfo {
+    pub fn from_main_tool(tool: &Tool) -> Self {
+        match tool.hands {
+            Hands::TwoHand => Self::TwoHanded,
+            Hands::OneHand => Self::MainHand,
+        }
     }
 }

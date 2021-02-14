@@ -23,7 +23,7 @@ pub struct StaticData {
     pub projectile_gravity: Option<Gravity>,
     pub projectile_speed: f32,
     /// What key is used to press ability
-    pub ability_key: AbilityKey,
+    pub ability_info: AbilityInfo,
     /// Whether or not the ability can auto continue
     pub can_continue: bool,
 }
@@ -50,7 +50,7 @@ impl CharacterBehavior for Data {
 
         handle_move(data, &mut update, 0.3);
         handle_jump(data, &mut update);
-        if !ability_key_is_pressed(data, self.static_data.ability_key) {
+        if !ability_key_is_pressed(data, self.static_data.ability_info.key) {
             handle_interrupt(data, &mut update, false);
             match update.character {
                 CharacterState::BasicRanged(_) => {},
@@ -103,7 +103,7 @@ impl CharacterBehavior for Data {
                         ..*self
                     });
                 } else if self.timer < self.static_data.recover_duration {
-                    if ability_key_is_pressed(data, self.static_data.ability_key) {
+                    if ability_key_is_pressed(data, self.static_data.ability_info.key) {
                         // Recovers
                         update.character = CharacterState::BasicRanged(Data {
                             timer: self
