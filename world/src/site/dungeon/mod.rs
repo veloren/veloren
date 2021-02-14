@@ -1132,7 +1132,7 @@ impl Floor {
         &'a self,
         index: IndexRef<'a>,
         pos: Vec2<i32>,
-        floor_z: i32,
+        _floor_z: i32,
         mut with_sprite: impl FnMut(SpriteKind) -> Block,
     ) -> impl FnMut(i32) -> BlockMask + 'a {
         let rpos = pos - self.tile_offset * TILE_SIZE;
@@ -1151,7 +1151,7 @@ impl Floor {
                 stone
             } else if (pos.xy().magnitude_squared() as f32) < radius.powi(2) {
                 if ((pos.x as f32).atan2(pos.y as f32) / (f32::consts::PI * 2.0) * stretch
-                    + (floor_z + pos.z) as f32)
+                    + pos.z as f32)
                     .rem_euclid(stretch)
                     < 1.5
                 {
@@ -1288,13 +1288,10 @@ impl Floor {
                     stretch as f32,
                 );
                 let furniture = SpriteKind::WallSconce;
-                let ori = Floor::relative_ori(
-                    rpos,
-                    self.nearest_wall(rtile_pos).unwrap_or_else(Vec2::zero),
-                );
+                let ori = Floor::relative_ori(Vec2::zero(), rtile_pos);
                 if z < self.rooms[*room].height {
                     block.resolve_with(vacant)
-                } else if z % stretch == 0 && rtile_pos.x == -TILE_SIZE / 2 && rtile_pos.y == 0 {
+                } else if z % stretch == 0 && rtile_pos.x == 0 && rtile_pos.y == -TILE_SIZE / 2 {
                     BlockMask::new(Block::air(furniture).with_ori(ori).unwrap(), 1)
                 } else {
                     make_staircase(
