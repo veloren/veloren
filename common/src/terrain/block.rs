@@ -201,6 +201,7 @@ impl Block {
             BlockKind::Water => (1, 1),
             BlockKind::Leaves => (9, 255),
             BlockKind::Wood => (6, 2),
+            BlockKind::Snow => (6, 2),
             _ if self.is_opaque() => (0, 255),
             _ => (0, 0),
         }
