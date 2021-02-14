@@ -70,6 +70,7 @@ impl<'a> BlockGen<'a> {
             // humidity,
             stone_col,
             snow_cover,
+            cliff_offset,
             ..
         } = sample;
 
@@ -118,7 +119,16 @@ impl<'a> BlockGen<'a> {
             .map(|e| (e * 255.0) as u8);
 
             if stone_factor >= 0.5 {
-                Some(Block::new(BlockKind::Rock, col))
+                if wposf.z as f32 > height - cliff_offset.max(0.0) {
+                    let col = Lerp::lerp(
+                        col.map(|e| e as f32),
+                        col.map(|e| e as f32) * 0.7,
+                        (wposf.z as f32 - basement).div(2.0).sin() * 0.5 + 0.5,
+                    ).map(|e| e as u8);
+                    Some(Block::new(BlockKind::Rock, col))
+                } else {
+                    Some(Block::new(BlockKind::Rock, col))
+                }
             } else {
                 Some(Block::new(BlockKind::Earth, col))
             }
@@ -183,7 +193,7 @@ pub struct ZCache<'a> {
 
 impl<'a> ZCache<'a> {
     pub fn get_z_limits(&self) -> (f32, f32) {
-        let min = self.sample.alt - (self.sample.chaos.min(1.0) * 16.0);
+        let min = self.sample.alt - (self.sample.chaos.min(1.0) * 16.0) - self.sample.cliff_offset.max(0.0);
         let min = min - 4.0;
 
         let rocks = if self.sample.rock > 0.0 { 12.0 } else { 0.0 };
