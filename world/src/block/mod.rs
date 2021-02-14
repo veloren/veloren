@@ -1,6 +1,6 @@
 use crate::{
     column::{ColumnGen, ColumnSample},
-    util::{RandomField, Sampler, SmallCache},
+    util::{RandomField, Sampler, SmallCache, FastNoise},
     IndexRef,
 };
 use common::terrain::{
@@ -71,6 +71,7 @@ impl<'a> BlockGen<'a> {
             stone_col,
             snow_cover,
             cliff_offset,
+            cliff_height,
             ..
         } = sample;
 
@@ -120,12 +121,16 @@ impl<'a> BlockGen<'a> {
 
             if stone_factor >= 0.5 {
                 if wposf.z as f32 > height - cliff_offset.max(0.0) {
-                    let col = Lerp::lerp(
-                        col.map(|e| e as f32),
-                        col.map(|e| e as f32) * 0.7,
-                        (wposf.z as f32 - basement).div(2.0).sin() * 0.5 + 0.5,
-                    ).map(|e| e as u8);
-                    Some(Block::new(BlockKind::Rock, col))
+                    if cliff_offset.max(0.0) > cliff_height - (FastNoise::new(37).get(wposf / Vec3::new(6.0, 6.0, 10.0)) * 0.5 + 0.5) * (height - wposf.z as f32).mul(0.25).clamped(0.0, 12.0) {
+                        Some(Block::empty())
+                    } else {
+                        let col = Lerp::lerp(
+                            col.map(|e| e as f32),
+                            col.map(|e| e as f32) * 0.7,
+                            (wposf.z as f32 - basement).div(2.0).sin() * 0.5 + 0.5,
+                        ).map(|e| e as u8);
+                        Some(Block::new(BlockKind::Rock, col))
+                    }
                 } else {
                     Some(Block::new(BlockKind::Rock, col))
                 }

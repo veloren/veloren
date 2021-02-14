@@ -93,13 +93,13 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 Some((neighbor_pos, neighbor_chunk, &neighbor_chunk.river))
             });
         let cliff_height = sim.get_interpolated(wpos, |chunk| chunk.cliff_height)?;
-        let cliff_scale = 1.0;
         let cliff_factor = (alt
              + self.sim.gen_ctx.hill_nz.get(wposf.div(32.0).into_array()) as f32 * 10.0
              + self.sim.gen_ctx.hill_nz.get(wposf.div(256.0).into_array()) as f32 * 64.0).rem_euclid(128.0) / 64.0 - 1.0;
         let cliff_scale = (self.sim.gen_ctx.hill_nz.get(wposf.div(128.0).into_array()) + self.sim.gen_ctx.hill_nz.get(wposf.div(48.0).into_array()) * 0.1 + 0.5).max(0.0) as f32;
-        let cliff_offset = cliff_factor.abs().powf(if cliff_factor < 0.0 { 1.0 } else { 64.0 }) * cliff_height * cliff_scale;
-        let alt = alt + cliff_offset;
+        let cliff = if cliff_factor < 0.0 { cliff_factor.abs().powf(1.5) } else { 0.0 };
+        let cliff_offset = cliff * cliff_height;
+        let alt = alt + (cliff - 0.5) * cliff_height;
 
         let lake_width = (TerrainChunkSize::RECT_SIZE.x as f64 * (2.0f64.sqrt())) + 12.0;
         let neighbor_river_data = neighbor_river_data.map(|(posj, chunkj, river)| {
@@ -1061,6 +1061,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             cave,
             snow_cover,
             cliff_offset,
+            cliff_height,
 
             chunk: sim_chunk,
         })
@@ -1092,6 +1093,7 @@ pub struct ColumnSample<'a> {
     pub cave: Option<(f32, Vec2<f32>, Cave, Vec2<f32>)>,
     pub snow_cover: bool,
     pub cliff_offset: f32,
+    pub cliff_height: f32,
 
     pub chunk: &'a SimChunk,
 }
