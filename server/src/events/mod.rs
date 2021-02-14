@@ -16,15 +16,19 @@ use interaction::{
     handle_lantern, handle_mount, handle_npc_interaction, handle_possess, handle_unmount,
 };
 use inventory_manip::handle_inventory;
+use invite::{handle_invite, handle_invite_response};
 use player::{handle_client_disconnect, handle_exit_ingame};
 use specs::{Entity as EcsEntity, WorldExt};
+use trade::handle_process_trade_action;
 
 mod entity_creation;
 mod entity_manipulation;
 mod group_manip;
 mod interaction;
 mod inventory_manip;
+mod invite;
 mod player;
+mod trade;
 
 pub enum Event {
     ClientConnected {
@@ -102,6 +106,16 @@ impl Server {
                 ServerEvent::DisableLantern(entity) => handle_lantern(self, entity, false),
                 ServerEvent::NpcInteract(interactor, target) => {
                     handle_npc_interaction(self, interactor, target)
+                },
+                ServerEvent::InitiateInvite(interactor, target, kind) => {
+                    handle_invite(self, interactor, target, kind)
+                    //handle_initiate_trade(self, interactor, target)
+                },
+                ServerEvent::InviteResponse(entity, response) => {
+                    handle_invite_response(self, entity, response)
+                },
+                ServerEvent::ProcessTradeAction(entity, trade_id, action) => {
+                    handle_process_trade_action(self, entity, trade_id, action);
                 },
                 ServerEvent::Mount(mounter, mountee) => handle_mount(self, mounter, mountee),
                 ServerEvent::Unmount(mounter) => handle_unmount(self, mounter),

@@ -49,6 +49,7 @@ pub mod states;
 pub mod store;
 pub mod terrain;
 pub mod time;
+pub mod trade;
 pub mod typed;
 pub mod uid;
 pub mod util;

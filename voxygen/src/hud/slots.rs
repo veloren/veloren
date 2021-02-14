@@ -21,6 +21,7 @@ pub enum SlotKind {
     Inventory(InventorySlot),
     Equip(EquipSlot),
     Hotbar(HotbarSlot),
+    Trade(TradeSlot),
     /* Spellbook(SpellbookSlot), TODO */
 }
 
@@ -57,6 +58,32 @@ impl SlotKey<Inventory, ItemImgs> for EquipSlot {
     }
 
     fn amount(&self, _: &Inventory) -> Option<u32> { None }
+
+    fn image_id(key: &Self::ImageKey, source: &ItemImgs) -> image::Id {
+        source.img_id_or_not_found_img(key.clone())
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct TradeSlot {
+    pub index: usize,
+    pub quantity: u32,
+    pub invslot: Option<InvSlotId>,
+}
+
+impl SlotKey<Inventory, ItemImgs> for TradeSlot {
+    type ImageKey = ItemKey;
+
+    fn image_key(&self, source: &Inventory) -> Option<(Self::ImageKey, Option<Color>)> {
+        self.invslot
+            .and_then(|inv_id| InventorySlot(inv_id).image_key(source))
+    }
+
+    fn amount(&self, source: &Inventory) -> Option<u32> {
+        self.invslot
+            .and_then(|inv_id| InventorySlot(inv_id).amount(source))
+            .map(|x| x.min(self.quantity))
+    }
 
     fn image_id(key: &Self::ImageKey, source: &ItemImgs) -> image::Id {
         source.img_id_or_not_found_img(key.clone())
@@ -158,6 +185,9 @@ impl From<EquipSlot> for SlotKind {
 
 impl From<HotbarSlot> for SlotKind {
     fn from(hotbar: HotbarSlot) -> Self { Self::Hotbar(hotbar) }
+}
+impl From<TradeSlot> for SlotKind {
+    fn from(trade: TradeSlot) -> Self { Self::Trade(trade) }
 }
 
 impl SumSlot for SlotKind {}

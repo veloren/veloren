@@ -4,16 +4,16 @@ use common::{
         self,
         agent::{Activity, AgentEvent, Tactic, DEFAULT_INTERACTION_TIME},
         group,
-        group::Invite,
         inventory::slot::EquipSlot,
+        invite::{Invite, InviteResponse},
         item::{
             tool::{ToolKind, UniqueKind},
             ItemKind,
         },
         skills::{AxeSkill, BowSkill, HammerSkill, Skill, StaffSkill, SwordSkill},
         Agent, Alignment, Body, CharacterState, ControlAction, ControlEvent, Controller, Energy,
-        GroupManip, Health, Inventory, LightEmitter, MountState, Ori, PhysicsState, Pos, Scale,
-        Stats, UnresolvedChatMsg, Vel,
+        Health, Inventory, LightEmitter, MountState, Ori, PhysicsState, Pos, Scale, Stats,
+        UnresolvedChatMsg, Vel,
     },
     event::{EventBus, ServerEvent},
     metrics::SysMetrics,
@@ -1577,7 +1577,7 @@ impl<'a> System<'a> for Sys {
                 debug_assert!(inputs.look_dir.map(|e| !e.is_nan()).reduce_and());
             });
 
-        // Process group invites
+        // Process invites
         for (_invite, /*alignment,*/ agent, controller) in
             (&invites, /*&alignments,*/ &mut agents, &mut controllers).join()
         {
@@ -1587,11 +1587,11 @@ impl<'a> System<'a> for Sys {
                 *agent = Agent::default();
                 controller
                     .events
-                    .push(ControlEvent::GroupManip(GroupManip::Accept));
+                    .push(ControlEvent::InviteResponse(InviteResponse::Accept));
             } else {
                 controller
                     .events
-                    .push(ControlEvent::GroupManip(GroupManip::Decline));
+                    .push(ControlEvent::InviteResponse(InviteResponse::Decline));
             }
         }
         sys_metrics.agent_ns.store(

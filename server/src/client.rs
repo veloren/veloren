@@ -79,7 +79,7 @@ impl Client {
                     },
                     //Ingame related
                     ServerGeneral::GroupUpdate(_)
-                    | ServerGeneral::GroupInvite { .. }
+                    | ServerGeneral::Invite { .. }
                     | ServerGeneral::InvitePending(_)
                     | ServerGeneral::InviteComplete { .. }
                     | ServerGeneral::ExitInGameSuccess
@@ -88,7 +88,9 @@ impl Client {
                     | ServerGeneral::TerrainBlockUpdates(_)
                     | ServerGeneral::SetViewDistance(_)
                     | ServerGeneral::Outcomes(_)
-                    | ServerGeneral::Knockback(_) => {
+                    | ServerGeneral::Knockback(_)
+                    | ServerGeneral::UpdatePendingTrade(_, _)
+                    | ServerGeneral::FinishedTrade(_) => {
                         self.in_game_stream.try_lock().unwrap().send(g)
                     },
                     // Always possible
@@ -157,7 +159,7 @@ impl Client {
                     },
                     //Ingame related
                     ServerGeneral::GroupUpdate(_)
-                    | ServerGeneral::GroupInvite { .. }
+                    | ServerGeneral::Invite { .. }
                     | ServerGeneral::InvitePending(_)
                     | ServerGeneral::InviteComplete { .. }
                     | ServerGeneral::ExitInGameSuccess
@@ -166,7 +168,11 @@ impl Client {
                     | ServerGeneral::TerrainBlockUpdates(_)
                     | ServerGeneral::SetViewDistance(_)
                     | ServerGeneral::Outcomes(_)
-                    | ServerGeneral::Knockback(_) => PreparedMsg::new(2, &g, &self.in_game_stream),
+                    | ServerGeneral::Knockback(_)
+                    | ServerGeneral::UpdatePendingTrade(_, _)
+                    | ServerGeneral::FinishedTrade(_) => {
+                        PreparedMsg::new(2, &g, &self.in_game_stream)
+                    },
                     // Always possible
                     ServerGeneral::PlayerListUpdate(_)
                     | ServerGeneral::ChatMsg(_)

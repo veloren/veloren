@@ -1,14 +1,14 @@
 use super::SysTimer;
 use crate::client::Client;
 use common::{
-    comp::group::{Invite, PendingInvites},
+    comp::invite::{Invite, PendingInvites},
     span,
     uid::Uid,
 };
 use common_net::msg::{InviteAnswer, ServerGeneral};
 use specs::{Entities, Join, ReadStorage, System, Write, WriteStorage};
 
-/// This system removes timed out group invites
+/// This system removes timed out invites
 pub struct Sys;
 impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)] // TODO: Pending review in #587
@@ -32,13 +32,13 @@ impl<'a> System<'a> for Sys {
 
         let timed_out_invites = (&entities, &invites)
             .join()
-            .filter_map(|(invitee, Invite(inviter))| {
+            .filter_map(|(invitee, Invite { inviter, kind })| {
                 // Retrieve timeout invite from pending invites
                 let pending = &mut pending_invites.get_mut(*inviter)?.0;
                 let index = pending.iter().position(|p| p.0 == invitee)?;
 
                 // Stop if not timed out
-                if pending[index].1 > now {
+                if pending[index].2 > now {
                     return None;
                 }
 
@@ -57,6 +57,7 @@ impl<'a> System<'a> for Sys {
                     client.send_fallible(ServerGeneral::InviteComplete {
                         target,
                         answer: InviteAnswer::TimedOut,
+                        kind: *kind,
                     });
                 }
 

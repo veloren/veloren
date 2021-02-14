@@ -3,11 +3,12 @@ use crate::sync;
 use authc::AuthClientError;
 use common::{
     character::{self, CharacterItem},
-    comp,
+    comp::{self, invite::InviteKind},
     outcome::Outcome,
     recipe::RecipeBook,
     resources::TimeOfDay,
     terrain::{Block, TerrainChunk},
+    trade::{PendingTrade, TradeId, TradeResult},
     uid::Uid,
 };
 use hashbrown::HashMap;
@@ -77,9 +78,10 @@ pub enum ServerGeneral {
     //Ingame related
     GroupUpdate(comp::group::ChangeNotification<sync::Uid>),
     /// Indicate to the client that they are invited to join a group
-    GroupInvite {
+    Invite {
         inviter: sync::Uid,
         timeout: std::time::Duration,
+        kind: InviteKind,
     },
     /// Indicate to the client that their sent invite was not invalid and is
     /// currently pending
@@ -92,6 +94,7 @@ pub enum ServerGeneral {
     InviteComplete {
         target: sync::Uid,
         answer: InviteAnswer,
+        kind: InviteKind,
     },
     /// Trigger cleanup for when the client goes back to the `Registered` state
     /// from an ingame state
@@ -120,6 +123,8 @@ pub enum ServerGeneral {
     Disconnect(DisconnectReason),
     /// Send a popup notification such as "Waypoint Saved"
     Notification(Notification),
+    UpdatePendingTrade(TradeId, PendingTrade),
+    FinishedTrade(TradeResult),
 }
 
 impl ServerGeneral {
@@ -216,7 +221,7 @@ impl ServerMsg {
                         },
                         //Ingame related
                         ServerGeneral::GroupUpdate(_)
-                        | ServerGeneral::GroupInvite { .. }
+                        | ServerGeneral::Invite { .. }
                         | ServerGeneral::InvitePending(_)
                         | ServerGeneral::InviteComplete { .. }
                         | ServerGeneral::ExitInGameSuccess
@@ -225,7 +230,9 @@ impl ServerMsg {
                         | ServerGeneral::TerrainBlockUpdates(_)
                         | ServerGeneral::SetViewDistance(_)
                         | ServerGeneral::Outcomes(_)
-                        | ServerGeneral::Knockback(_) => {
+                        | ServerGeneral::Knockback(_)
+                        | ServerGeneral::UpdatePendingTrade(_, _)
+                        | ServerGeneral::FinishedTrade(_) => {
                             c_type == ClientType::Game && presence.is_some()
                         },
                         // Always possible

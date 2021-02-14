@@ -28,18 +28,6 @@ impl Component for Group {
     type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
 }
 
-pub struct Invite(pub specs::Entity);
-impl Component for Invite {
-    type Storage = IdvStorage<Self>;
-}
-
-// Pending invites that an entity currently has sent out
-// (invited entity, instant when invite times out)
-pub struct PendingInvites(pub Vec<(specs::Entity, std::time::Instant)>);
-impl Component for PendingInvites {
-    type Storage = IdvStorage<Self>;
-}
-
 #[derive(Clone, Debug)]
 pub struct GroupInfo {
     // TODO: what about enemy groups, either the leader will constantly change because they have to

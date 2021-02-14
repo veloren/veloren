@@ -21,6 +21,7 @@ use common::{
         self,
         chat::{KillSource, KillType},
         group,
+        invite::{InviteKind, InviteResponse},
         skills::Skill,
         slot::Slot,
         ChatMode, ControlAction, ControlEvent, Controller, ControllerInputs, GroupManip,
@@ -32,6 +33,7 @@ use common::{
     recipe::RecipeBook,
     span,
     terrain::{block::Block, neighbors, BiomeKind, SitesKind, TerrainChunk, TerrainChunkSize},
+    trade::{PendingTrade, TradeAction, TradeId, TradeResult},
     uid::{Uid, UidAllocator},
     vol::RectVolSize,
 };
@@ -69,6 +71,15 @@ const PING_ROLLING_AVERAGE_SECS: usize = 10;
 
 pub enum Event {
     Chat(comp::ChatMsg),
+    InviteComplete {
+        target: Uid,
+        answer: InviteAnswer,
+        kind: InviteKind,
+    },
+    TradeComplete {
+        result: TradeResult,
+        trade: PendingTrade,
+    },
     Disconnect,
     DisconnectionNotification(u64),
     InventoryUpdated(InventoryUpdateEvent),
@@ -130,12 +141,14 @@ pub struct Client {
 
     max_group_size: u32,
     // Client has received an invite (inviter uid, time out instant)
-    group_invite: Option<(Uid, std::time::Instant, std::time::Duration)>,
+    invite: Option<(Uid, std::time::Instant, std::time::Duration, InviteKind)>,
     group_leader: Option<Uid>,
     // Note: potentially representable as a client only component
     group_members: HashMap<Uid, group::Role>,
     // Pending invites that this client has sent out
     pending_invites: HashSet<Uid>,
+    // The pending trade the client is involved in, and it's id
+    pending_trade: Option<(TradeId, PendingTrade)>,
 
     _network: Network,
     participant: Option<Participant>,
@@ -420,10 +433,11 @@ impl Client {
             chat_mode: ChatMode::default(),
 
             max_group_size,
-            group_invite: None,
+            invite: None,
             group_leader: None,
             group_members: HashMap::new(),
             pending_invites: HashSet::new(),
+            pending_trade: None,
 
             _network: network,
             participant: Some(participant),
@@ -636,18 +650,25 @@ impl Client {
         }
     }
 
+    pub fn perform_trade_action(&mut self, action: TradeAction) {
+        if let Some((id, _)) = self.pending_trade {
+            if let TradeAction::Decline = action {
+                self.pending_trade.take();
+            }
+            self.send_msg(ClientGeneral::ControlEvent(
+                ControlEvent::PerformTradeAction(id, action),
+            ));
+        }
+    }
+
+    pub fn is_dead(&self) -> bool { self.current::<comp::Health>().map_or(false, |h| h.is_dead) }
+
     pub fn pick_up(&mut self, entity: EcsEntity) {
         // Get the health component from the entity
 
         if let Some(uid) = self.state.read_component_copied(entity) {
             // If we're dead, exit before sending the message
-            if self
-                .state
-                .ecs()
-                .read_storage::<comp::Health>()
-                .get(self.entity)
-                .map_or(false, |h| h.is_dead)
-            {
+            if self.is_dead() {
                 return;
             }
 
@@ -659,13 +680,7 @@ impl Client {
 
     pub fn npc_interact(&mut self, npc_entity: EcsEntity) {
         // If we're dead, exit before sending message
-        if self
-            .state
-            .ecs()
-            .read_storage::<comp::Health>()
-            .get(self.entity)
-            .map_or(false, |h| h.is_dead)
-        {
+        if self.is_dead() {
             return;
         }
 
@@ -737,8 +752,8 @@ impl Client {
 
     pub fn max_group_size(&self) -> u32 { self.max_group_size }
 
-    pub fn group_invite(&self) -> Option<(Uid, std::time::Instant, std::time::Duration)> {
-        self.group_invite
+    pub fn invite(&self) -> Option<(Uid, std::time::Instant, std::time::Duration, InviteKind)> {
+        self.invite
     }
 
     pub fn group_info(&self) -> Option<(String, Uid)> {
@@ -749,25 +764,27 @@ impl Client {
 
     pub fn pending_invites(&self) -> &HashSet<Uid> { &self.pending_invites }
 
-    pub fn send_group_invite(&mut self, invitee: Uid) {
-        self.send_msg(ClientGeneral::ControlEvent(ControlEvent::GroupManip(
-            GroupManip::Invite(invitee),
+    pub fn pending_trade(&self) -> &Option<(TradeId, PendingTrade)> { &self.pending_trade }
+
+    pub fn send_invite(&mut self, invitee: Uid, kind: InviteKind) {
+        self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InitiateInvite(
+            invitee, kind,
         )))
     }
 
-    pub fn accept_group_invite(&mut self) {
+    pub fn accept_invite(&mut self) {
         // Clear invite
-        self.group_invite.take();
-        self.send_msg(ClientGeneral::ControlEvent(ControlEvent::GroupManip(
-            GroupManip::Accept,
+        self.invite.take();
+        self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InviteResponse(
+            InviteResponse::Accept,
         )));
     }
 
-    pub fn decline_group_invite(&mut self) {
+    pub fn decline_invite(&mut self) {
         // Clear invite
-        self.group_invite.take();
-        self.send_msg(ClientGeneral::ControlEvent(ControlEvent::GroupManip(
-            GroupManip::Decline,
+        self.invite.take();
+        self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InviteResponse(
+            InviteResponse::Decline,
         )));
     }
 
@@ -1091,12 +1108,12 @@ impl Client {
         frontend_events.append(&mut self.handle_new_messages()?);
 
         // 3) Update client local data
-        // Check if the group invite has timed out and remove if so
+        // Check if the invite has timed out and remove if so
         if self
-            .group_invite
-            .map_or(false, |(_, timeout, dur)| timeout.elapsed() > dur)
+            .invite
+            .map_or(false, |(_, timeout, dur, _)| timeout.elapsed() > dur)
         {
-            self.group_invite = None;
+            self.invite = None;
         }
 
         // 4) Tick the client's LocalState
@@ -1468,30 +1485,34 @@ impl Client {
                     },
                 }
             },
-            ServerGeneral::GroupInvite { inviter, timeout } => {
-                self.group_invite = Some((inviter, std::time::Instant::now(), timeout));
+            ServerGeneral::Invite {
+                inviter,
+                timeout,
+                kind,
+            } => {
+                self.invite = Some((inviter, std::time::Instant::now(), timeout, kind));
             },
             ServerGeneral::InvitePending(uid) => {
                 if !self.pending_invites.insert(uid) {
                     warn!("Received message about pending invite that was already pending");
                 }
             },
-            ServerGeneral::InviteComplete { target, answer } => {
+            ServerGeneral::InviteComplete {
+                target,
+                answer,
+                kind,
+            } => {
                 if !self.pending_invites.remove(&target) {
                     warn!(
                         "Received completed invite message for invite that was not in the list of \
                          pending invites"
                     )
                 }
-                // TODO: expose this as a new event variant instead of going
-                // through the chat
-                let msg = match answer {
-                    // TODO: say who accepted/declined/timed out the invite
-                    InviteAnswer::Accepted => "Invite accepted",
-                    InviteAnswer::Declined => "Invite declined",
-                    InviteAnswer::TimedOut => "Invite timed out",
-                };
-                frontend_events.push(Event::Chat(comp::ChatType::Meta.chat_msg(msg)));
+                frontend_events.push(Event::InviteComplete {
+                    target,
+                    answer,
+                    kind,
+                });
             },
             // Cleanup for when the client goes back to the `presence = None`
             ServerGeneral::ExitInGameSuccess => {
@@ -1537,6 +1558,15 @@ impl Client {
                         entity: self.entity,
                         impulse,
                     });
+            },
+            ServerGeneral::UpdatePendingTrade(id, trade) => {
+                tracing::trace!("UpdatePendingTrade {:?} {:?}", id, trade);
+                self.pending_trade = Some((id, trade));
+            },
+            ServerGeneral::FinishedTrade(result) => {
+                if let Some((_, trade)) = self.pending_trade.take() {
+                    frontend_events.push(Event::TradeComplete { result, trade })
+                }
             },
             _ => unreachable!("Not a in_game message"),
         }

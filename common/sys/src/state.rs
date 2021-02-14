@@ -10,6 +10,7 @@ use common::{
     span,
     terrain::{Block, TerrainChunk, TerrainGrid},
     time::DayPeriod,
+    trade::Trades,
     vol::{ReadVol, WriteVol},
 };
 use common_net::sync::WorldSyncExt;
@@ -167,8 +168,8 @@ impl State {
         ecs.register::<comp::ItemDrop>();
         ecs.register::<comp::ChatMode>();
         ecs.register::<comp::Faction>();
-        ecs.register::<comp::group::Invite>();
-        ecs.register::<comp::group::PendingInvites>();
+        ecs.register::<comp::invite::Invite>();
+        ecs.register::<comp::invite::PendingInvites>();
         ecs.register::<comp::Beam>();
         ecs.register::<comp::PreviousVelDtCache>();
 
@@ -190,6 +191,7 @@ impl State {
         ecs.insert(RegionMap::new());
         ecs.insert(SysMetrics::default());
         ecs.insert(PhysicsMetrics::default());
+        ecs.insert(Trades::default());
 
         // Load plugins from asset directory
         #[cfg(feature = "plugins")]

@@ -10,6 +10,7 @@ use common::{
     },
     consts::MAX_PICKUP_RANGE,
     recipe::default_recipe_book,
+    trade::Trades,
     uid::Uid,
     util::find_dist::{self, FindDist},
     vol::ReadVol,
@@ -39,6 +40,20 @@ pub fn snuff_lantern(storage: &mut WriteStorage<comp::LightEmitter>, entity: Ecs
 #[allow(clippy::same_item_push)] // TODO: Pending review in #587
 pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::SlotManip) {
     let state = server.state_mut();
+
+    let uid = state
+        .ecs()
+        .uid_from_entity(entity)
+        .expect("Couldn't get uid for entity");
+
+    {
+        let trades = state.ecs().read_resource::<Trades>();
+        if trades.in_immutable_trade(&uid) {
+            // manipulating the inventory can mutate the trade
+            return;
+        }
+    }
+
     let mut dropped_items = Vec::new();
     let mut thrown_items = Vec::new();
 
@@ -567,6 +582,12 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Slo
         };
 
         new_entity.build();
+    }
+
+    let mut trades = state.ecs().write_resource::<Trades>();
+    if trades.in_mutable_trade(&uid) {
+        // manipulating the inventory mutated the trade, so reset the accept flags
+        trades.implicit_mutation_occurred(&uid);
     }
 }
 

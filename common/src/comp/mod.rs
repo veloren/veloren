@@ -14,6 +14,7 @@ mod health;
 pub mod home_chunk;
 mod inputs;
 pub mod inventory;
+pub mod invite;
 mod last;
 mod location;
 mod misc;
