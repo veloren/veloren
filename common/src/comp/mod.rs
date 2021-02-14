@@ -65,7 +65,7 @@ pub use location::{Waypoint, WaypointArea};
 pub use misc::Object;
 pub use ori::Ori;
 pub use phys::{
-    Collider, ForceUpdate, Gravity, Mass, PhysicsState, Pos, PreviousVelDtCache, Scale, Sticky, Vel,
+    Collider, ForceUpdate, Gravity, Mass, PhysicsState, Pos, PreviousPhysCache, Scale, Sticky, Vel,
 };
 pub use player::Player;
 pub use poise::{Poise, PoiseChange, PoiseSource, PoiseState};
