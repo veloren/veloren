@@ -110,7 +110,7 @@ pub fn apply_paths_to(canvas: &mut Canvas) {
 pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
     let info = canvas.info();
     canvas.foreach_col(|canvas, wpos2d, col| {
-        let surface_z = col.riverless_alt.floor() as i32;
+        let surface_z = col.alt.floor() as i32;
 
         if let Some((cave_dist, _, cave, _)) =
             col.cave.filter(|(dist, _, cave, _)| *dist < cave.width)
@@ -164,14 +164,21 @@ pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 )
                 .mul(45.0) as i32;
 
-            for z in cave_roof - stalagtites..cave_roof {
-                canvas.set(
-                    Vec3::new(wpos2d.x, wpos2d.y, z),
-                    Block::new(
-                        BlockKind::WeakRock,
-                        info.index().colors.layer.stalagtite.into(),
-                    ),
-                );
+            // Generate stalagtites if there's something for them to hold on to
+            if canvas
+                .get(Vec3::new(wpos2d.x, wpos2d.y, cave_roof))
+                .map(|b| b.is_filled())
+                .unwrap_or(false)
+            {
+                for z in cave_roof - stalagtites..cave_roof {
+                    canvas.set(
+                        Vec3::new(wpos2d.x, wpos2d.y, z),
+                        Block::new(
+                            BlockKind::WeakRock,
+                            info.index().colors.layer.stalagtite.into(),
+                        ),
+                    );
+                }
             }
 
             let cave_depth = (col.alt - cave.alt).max(0.0);

@@ -267,9 +267,9 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
 
         // Cliffs
         let cliff_height =
-            sim.get_interpolated(wpos, |chunk| chunk.cliff_height)? * (1.0 - near_water).powf(2.0);
+            sim.get_interpolated(wpos, |chunk| chunk.cliff_height)?;
         let cliff_factor = (alt
-            + self.sim.gen_ctx.hill_nz.get(wposf.div(32.0).into_array()) as f32 * 10.0
+            + self.sim.gen_ctx.hill_nz.get(wposf.div(32.0).into_array()) as f32 * 8.0
             + self.sim.gen_ctx.hill_nz.get(wposf.div(256.0).into_array()) as f32 * 64.0)
             .rem_euclid(128.0)
             / 64.0
@@ -282,7 +282,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             cliff_factor.abs().powf(1.5)
         } else {
             0.0
-        };
+        } * (1.0 - near_water * 3.0).max(0.0).powi(2);
         let cliff_offset = cliff * cliff_height;
         let alt = alt + (cliff - 0.5) * cliff_height;
 
