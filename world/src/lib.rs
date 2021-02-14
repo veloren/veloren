@@ -294,9 +294,10 @@ impl World {
         layer::apply_coral_to(&mut canvas);
 
         // Apply site generation
-        sim_chunk.sites.iter().for_each(|site| {
-            index.sites[*site].apply_to(&mut canvas, &mut dynamic_rng)
-        });
+        sim_chunk
+            .sites
+            .iter()
+            .for_each(|site| index.sites[*site].apply_to(&mut canvas, &mut dynamic_rng));
 
         let gen_entity_pos = |dynamic_rng: &mut rand::rngs::ThreadRng| {
             let lpos2d = TerrainChunkSize::RECT_SIZE

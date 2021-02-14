@@ -81,6 +81,11 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         let rockiness = sim.get_interpolated(wpos, |chunk| chunk.rockiness)?;
         let tree_density = sim.get_interpolated(wpos, |chunk| chunk.tree_density)?;
         let spawn_rate = sim.get_interpolated(wpos, |chunk| chunk.spawn_rate)?;
+        let near_water =
+            sim.get_interpolated(
+                wpos,
+                |chunk| if chunk.river.near_water() { 1.0 } else { 0.0 },
+            )?;
         let alt = sim.get_interpolated_monotone(wpos, |chunk| chunk.alt)?;
         let surface_veg = sim.get_interpolated_monotone(wpos, |chunk| chunk.surface_veg)?;
         let sim_chunk = sim.get(chunk_pos)?;
@@ -92,14 +97,6 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 let neighbor_chunk = sim.get(neighbor_pos)?;
                 Some((neighbor_pos, neighbor_chunk, &neighbor_chunk.river))
             });
-        let cliff_height = sim.get_interpolated(wpos, |chunk| chunk.cliff_height)?;
-        let cliff_factor = (alt
-             + self.sim.gen_ctx.hill_nz.get(wposf.div(32.0).into_array()) as f32 * 10.0
-             + self.sim.gen_ctx.hill_nz.get(wposf.div(256.0).into_array()) as f32 * 64.0).rem_euclid(128.0) / 64.0 - 1.0;
-        let cliff_scale = (self.sim.gen_ctx.hill_nz.get(wposf.div(128.0).into_array()) + self.sim.gen_ctx.hill_nz.get(wposf.div(48.0).into_array()) * 0.1 + 0.5).max(0.0) as f32;
-        let cliff = if cliff_factor < 0.0 { cliff_factor.abs().powf(1.5) } else { 0.0 };
-        let cliff_offset = cliff * cliff_height;
-        let alt = alt + (cliff - 0.5) * cliff_height;
 
         let lake_width = (TerrainChunkSize::RECT_SIZE.x as f64 * (2.0f64.sqrt())) + 12.0;
         let neighbor_river_data = neighbor_river_data.map(|(posj, chunkj, river)| {
@@ -267,6 +264,27 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 )),
             )
         });
+
+        // Cliffs
+        let cliff_height =
+            sim.get_interpolated(wpos, |chunk| chunk.cliff_height)? * (1.0 - near_water).powf(2.0);
+        let cliff_factor = (alt
+            + self.sim.gen_ctx.hill_nz.get(wposf.div(32.0).into_array()) as f32 * 10.0
+            + self.sim.gen_ctx.hill_nz.get(wposf.div(256.0).into_array()) as f32 * 64.0)
+            .rem_euclid(128.0)
+            / 64.0
+            - 1.0;
+        let cliff_scale = (self.sim.gen_ctx.hill_nz.get(wposf.div(128.0).into_array())
+            + self.sim.gen_ctx.hill_nz.get(wposf.div(48.0).into_array()) * 0.1
+            + 0.5)
+            .max(0.0) as f32;
+        let cliff = if cliff_factor < 0.0 {
+            cliff_factor.abs().powf(1.5)
+        } else {
+            0.0
+        };
+        let cliff_offset = cliff * cliff_height;
+        let alt = alt + (cliff - 0.5) * cliff_height;
 
         // Find the average distance to each neighboring body of water.
         let mut river_count = 0.0f64;
@@ -988,12 +1006,9 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             .map(|wd| Lerp::lerp(sub_surface_color, ground, (wd / 3.0).clamped(0.0, 1.0)))
             .unwrap_or(ground);
 
-        // Ground under thick trees should be receive less sunlight and so often become dirt
-        let ground = Lerp::lerp(
-            ground,
-            sub_surface_color,
-            marble_mid * tree_density,
-        );
+        // Ground under thick trees should be receive less sunlight and so often become
+        // dirt
+        let ground = Lerp::lerp(ground, sub_surface_color, marble_mid * tree_density);
 
         let near_ocean = max_river.and_then(|(_, _, river_data, _)| {
             if (river_data.is_lake() || river_data.river_kind == Some(RiverKind::Ocean))
