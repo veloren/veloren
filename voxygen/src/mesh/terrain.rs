@@ -127,46 +127,26 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
         let pos = Vec3::new(pos.0 as i32, pos.1 as i32, pos.2 as i32);
         let light = light_map[lm_idx(pos.x, pos.y, pos.z)];
 
-        // If ray propagate downwards at full strength
-        if is_sunlight && light == SUNLIGHT && false {
-            // Down is special cased and we know up is a ray
-            // Special cased ray propagation
-            let pos = Vec3::new(pos.x, pos.y, pos.z - 1);
-            let (is_air, is_liquid) = vol_cached
-                .get(outer.min + pos)
-                .ok()
-                .map_or((false, false), |b| (b.is_air(), b.is_liquid()));
-            light_map[lm_idx(pos.x, pos.y, pos.z)] = if is_air {
-                prop_que.push_back((pos.x as u8, pos.y as u8, pos.z as u16));
-                SUNLIGHT
-            } else if is_liquid {
-                prop_que.push_back((pos.x as u8, pos.y as u8, pos.z as u16));
-                SUNLIGHT - 1
-            } else {
-                OPAQUE
-            }
-        } else {
-            // Up
-            // Bounds checking
-            if pos.z + 1 < outer.size().d {
-                propagate(
-                    light,
-                    light_map.get_mut(lm_idx(pos.x, pos.y, pos.z + 1)).unwrap(),
-                    Vec3::new(pos.x, pos.y, pos.z + 1),
-                    &mut prop_que,
-                    &mut vol_cached,
-                )
-            }
-            // Down
-            if pos.z > 0 {
-                propagate(
-                    light,
-                    light_map.get_mut(lm_idx(pos.x, pos.y, pos.z - 1)).unwrap(),
-                    Vec3::new(pos.x, pos.y, pos.z - 1),
-                    &mut prop_que,
-                    &mut vol_cached,
-                )
-            }
+        // Up
+        // Bounds checking
+        if pos.z + 1 < outer.size().d {
+            propagate(
+                light,
+                light_map.get_mut(lm_idx(pos.x, pos.y, pos.z + 1)).unwrap(),
+                Vec3::new(pos.x, pos.y, pos.z + 1),
+                &mut prop_que,
+                &mut vol_cached,
+            )
+        }
+        // Down
+        if pos.z > 0 {
+            propagate(
+                light,
+                light_map.get_mut(lm_idx(pos.x, pos.y, pos.z - 1)).unwrap(),
+                Vec3::new(pos.x, pos.y, pos.z - 1),
+                &mut prop_que,
+                &mut vol_cached,
+            )
         }
         // The XY directions
         if pos.y + 1 < outer.size().h {
