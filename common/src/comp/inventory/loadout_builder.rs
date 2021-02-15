@@ -412,7 +412,7 @@ impl LoadoutBuilder {
                         "common.items.npc_armor.biped_small.sahagin.pants.sahagin",
                     )))
                     .belt(Some(Item::new_from_asset_expect(
-                        "common.items.npc_armor.biped_small.sahagin.belt.sahagin",
+                        "common.items.npc_armor.biped_small.sahagin.tail.sahagin",
                     )))
                     .build(),
                 Haniwa => LoadoutBuilder::new()
@@ -451,7 +451,7 @@ impl LoadoutBuilder {
                         "common.items.npc_armor.biped_small.myrmidon.pants.myrmidon",
                     )))
                     .belt(Some(Item::new_from_asset_expect(
-                        "common.items.npc_armor.biped_small.myrmidon.belt.myrmidon",
+                        "common.items.npc_armor.biped_small.myrmidon.tail.myrmidon",
                     )))
                     .build(),
                 Guard => LoadoutBuilder::new()

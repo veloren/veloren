@@ -53,7 +53,7 @@ use treeculler::{BVol, BoundingSphere};
 use vek::*;
 
 const DAMAGE_FADE_COEFFICIENT: f64 = 15.0;
-const MOVING_THRESHOLD: f32 = 0.4;
+const MOVING_THRESHOLD: f32 = 0.2;
 const MOVING_THRESHOLD_SQR: f32 = MOVING_THRESHOLD * MOVING_THRESHOLD;
 
 /// camera data, figure LOD render distance.
@@ -2656,6 +2656,40 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
+                        CharacterState::DashMelee(s) => {
+                            let stage_time = s.timer.as_secs_f64();
+                            let stage_progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    stage_time / s.static_data.buildup_duration.as_secs_f64()
+                                },
+                                StageSection::Charge => {
+                                    stage_time / s.static_data.charge_duration.as_secs_f64()
+                                },
+                                StageSection::Swing => {
+                                    stage_time / s.static_data.swing_duration.as_secs_f64()
+                                },
+                                StageSection::Recover => {
+                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                },
+                                _ => 0.0,
+                            };
+                            anim::biped_small::DashAnimation::update_skeleton(
+                                &target_base,
+                                (
+                                    vel.0,
+                                    ori,
+                                    state.last_ori,
+                                    time,
+                                    state.avg_vel,
+                                    state.acc_vel,
+                                    Some(s.stage_section),
+                                    state.state_time,
+                                ),
+                                stage_progress,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
                         CharacterState::BasicRanged(s) => {
                             let stage_time = s.timer.as_secs_f64();
 
@@ -2902,12 +2936,13 @@ impl FigureMgr {
                         (true, true, false) => anim::theropod::RunAnimation::update_skeleton(
                             &TheropodSkeleton::default(),
                             (
-                                vel.0.magnitude(),
+                                vel.0,
                                 // TODO: Update to use the quaternion.
                                 ori * anim::vek::Vec3::<f32>::unit_y(),
                                 state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                 time,
                                 state.avg_vel,
+                                state.acc_vel,
                             ),
                             state.state_time,
                             &mut state_animation_rate,
@@ -3426,13 +3461,15 @@ impl FigureMgr {
                                     &mut state_animation_rate,
                                     skeleton_attr,
                                 ),
-                                2 => anim::biped_large::SpinAnimation::update_skeleton(
+                                2 => anim::biped_large::BetaAnimation::update_skeleton(
                                     &target_base,
                                     (
                                         active_tool_kind,
                                         second_tool_kind,
+                                        vel.0,
                                         time,
                                         Some(s.stage_section),
+                                        state.acc_vel,
                                     ),
                                     stage_progress,
                                     &mut state_animation_rate,
@@ -3443,9 +3480,10 @@ impl FigureMgr {
                                     (
                                         active_tool_kind,
                                         second_tool_kind,
-                                        vel.0.magnitude(),
+                                        vel.0,
                                         time,
                                         Some(s.stage_section),
+                                        state.acc_vel,
                                     ),
                                     stage_progress,
                                     &mut state_animation_rate,

@@ -49,6 +49,7 @@ impl Animation for RunAnimation {
 
         let lab = 0.65 * s_a.tempo; //.65
         let speednorm = (speed / 12.0).powf(0.6); //.powf(0.4)
+        let speednormlow = (speed / 12.0).powf(4.0); //.powf(0.4)
 
         let footvertl = (acc_vel * lab as f32 + PI * -0.2).sin() * speednorm;
         let footvertr = (acc_vel * lab as f32 + PI * -1.2).sin() * speednorm;
@@ -421,9 +422,9 @@ impl Animation for RunAnimation {
             next.lower_torso.orientation = Quaternion::rotation_z(short * 0.05 * speednorm)
                 * Quaternion::rotation_x(0.14 * speednorm);
             next.shoulder_l.position = Vec3::new(-s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
-            next.shoulder_l.orientation = Quaternion::rotation_x(-0.4 * speednorm + slow * 0.1);
+            next.shoulder_l.orientation = Quaternion::rotation_x(-0.4 * speednormlow + slow * 0.1);
             next.shoulder_r.position = Vec3::new(s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
-            next.shoulder_r.orientation = Quaternion::rotation_x(-0.4 * speednorm + slow * 0.1);
+            next.shoulder_r.orientation = Quaternion::rotation_x(-0.4 * speednormlow + slow * 0.1);
             next.hand_l.position = Vec3::new(-s_a.hand.0, s_a.hand.1, s_a.hand.2);
             next.hand_l.orientation = Quaternion::rotation_x(-0.4 * speednorm + slow * 0.1);
             next.hand_r.position = Vec3::new(s_a.hand.0, s_a.hand.1, s_a.hand.2);

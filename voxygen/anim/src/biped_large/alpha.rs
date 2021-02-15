@@ -123,6 +123,8 @@ impl Animation for AlphaAnimation {
                 next.head.orientation = Quaternion::rotation_x(move1 * -0.25)
                     * Quaternion::rotation_z(move1 * -0.2 + move2 * 0.6);
                 next.upper_torso.orientation = Quaternion::rotation_z(move1 * 0.2 + move2 * -0.4);
+                next.lower_torso.orientation = Quaternion::rotation_z(move1 * -0.2 + move2 * 0.2);
+
                 next.control_l.orientation =
                     Quaternion::rotation_x(PI / 2.0 + move2 * 0.8) * Quaternion::rotation_y(-0.0);
                 next.control_r.orientation = Quaternion::rotation_x(PI / 2.0 + 0.2 + move2 * 0.8)

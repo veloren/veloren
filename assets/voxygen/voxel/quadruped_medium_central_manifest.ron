@@ -1145,7 +1145,7 @@
             central: ("npc.horse.male.head"),
         ),
         neck: (
-            offset: (-3.0, -6.5, -6.5),
+            offset: (-3.0, -1.5, -5.5),
             central: ("npc.horse.male.neck"),
         ),
         jaw: (
@@ -1175,7 +1175,7 @@
             central: ("npc.horse.male.head"),
         ),
         neck: (
-            offset: (-3.0, -6.5, -6.5),
+            offset: (-3.0, -1.5, -5.5),
             central: ("npc.horse.male.neck"),
         ),
         jaw: (

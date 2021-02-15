@@ -54,10 +54,10 @@ impl Animation for ShootAnimation {
         let speednorm = speed / 9.4;
         let speednormcancel = 1.0 - speednorm;
 
-        next.foot_l.scale = Vec3::one() / 13.0;
-        next.foot_r.scale = Vec3::one() / 13.0;
+        next.foot_l.scale = Vec3::one() / 11.0;
+        next.foot_r.scale = Vec3::one() / 11.0;
 
-        next.chest.scale = Vec3::one() / 13.0;
+        next.chest.scale = Vec3::one() / 11.0;
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1 + fast * -0.1 * speednormcancel);
         next.head.orientation = Quaternion::rotation_x(0.45 * speednorm)
             * Quaternion::rotation_y(fast * 0.07 * speednormcancel);
@@ -65,7 +65,7 @@ impl Animation for ShootAnimation {
             0.0,
             s_a.chest.0,
             s_a.chest.1 + fastalt * 0.4 * speednormcancel + speednormcancel * -0.5,
-        ) / 13.0;
+        ) / 11.0;
 
         next.pants.position = Vec3::new(0.0, s_a.pants.0, s_a.pants.1);
 

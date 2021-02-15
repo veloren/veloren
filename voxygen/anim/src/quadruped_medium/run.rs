@@ -26,11 +26,11 @@ impl Animation for RunAnimation {
         *rate = 1.0;
         //let increasefreqtest = (((1.0/speed)*3.0).round()).min(5.0);
         let lab = 0.72; //0.72
-        let amplitude = (speed / 24.0).powf(0.4);
-        let amplitude2 = (speed / 24.0).powf(0.4);
-        let amplitude3 = (speed / 24.0).powf(0.4);
+        let amplitude = (speed / 24.0).powf(0.6);
+        let amplitude2 = (speed / 24.0).powf(0.6);
+        let amplitude3 = (speed / 24.0).powf(0.6);
         let speedmult = s_a.tempo;
-        let canceler = (speed / 24.0).powf(0.4);
+        let canceler = (speed / 24.0).powf(0.6);
         //println!("{} test",  canceler);
 
         let short = (((1.0)

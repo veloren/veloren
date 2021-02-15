@@ -217,7 +217,7 @@
             lateral: ("npc.raptor_wood.male.hand_r"),
         ),
         leg_l: (
-            offset: (-2.5, -3.5, -3.5),
+            offset: (-5.0, -3.5, -3.5),
             lateral: ("npc.raptor_wood.male.leg_r"),
         ),
         leg_r: (
@@ -243,7 +243,7 @@
             lateral: ("npc.raptor_wood.male.hand_r"),
         ),
         leg_l: (
-            offset: (-2.5, -3.5, -3.5),
+            offset: (-5.0, -3.5, -3.5),
             lateral: ("npc.raptor_wood.male.leg_r"),
         ),
         leg_r: (
@@ -269,7 +269,7 @@
             lateral: ("npc.sunlizard.male.hand_r"),
         ),
         leg_l: (
-            offset: (-1.5, -2.5, -3.5),
+            offset: (-3.0, -2.5, -3.5),
             lateral: ("npc.sunlizard.male.leg_r"),
         ),
         leg_r: (
@@ -295,7 +295,7 @@
             lateral: ("npc.sunlizard.male.hand_r"),
         ),
         leg_l: (
-            offset: (-1.5, -2.5, -3.5),
+            offset: (-3.0, -2.5, -3.5),
             lateral: ("npc.sunlizard.male.leg_r"),
         ),
         leg_r: (

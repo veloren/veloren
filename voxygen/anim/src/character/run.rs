@@ -145,7 +145,7 @@ impl Animation for RunAnimation {
         next.back.orientation =
             Quaternion::rotation_x(-0.05 + short * 0.02 + noisea * 0.02 + noiseb * 0.02);
 
-        next.shorts.position = Vec3::new(0.0, 0.65 + s_a.shorts.0, 0.65 + s_a.shorts.1);
+        next.shorts.position = Vec3::new(0.0, 0.65 + s_a.shorts.0, 0.65 * speednorm + s_a.shorts.1);
         next.shorts.orientation = Quaternion::rotation_x(0.2 * speednorm)
             * Quaternion::rotation_z(short * 0.25 + tilt * -1.5)
             * Quaternion::rotation_y(tilt * 0.7);
