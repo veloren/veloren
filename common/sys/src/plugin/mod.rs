@@ -3,6 +3,7 @@ pub mod module;
 
 use common::assets::ASSETS_PATH;
 use serde::{Deserialize, Serialize};
+use specs::World;
 use std::{
     collections::{HashMap, HashSet},
     fs,
@@ -80,6 +81,7 @@ impl Plugin {
 
     pub fn execute_prepared<T>(
         &self,
+        ecs: &World,
         event_name: &str,
         event: &PreparedEventQuery<T>,
     ) -> Result<Vec<T::Response>, PluginError>
@@ -89,7 +91,7 @@ impl Plugin {
         self.modules
             .iter()
             .flat_map(|module| {
-                module.try_execute(event_name, event).map(|x| {
+                module.try_execute(ecs, event_name, event).map(|x| {
                     x.map_err(|e| {
                         PluginError::PluginModuleError(
                             self.data.name.to_owned(),
@@ -118,6 +120,7 @@ impl PluginMgr {
 
     pub fn execute_prepared<T>(
         &self,
+        ecs: &World,
         event_name: &str,
         event: &PreparedEventQuery<T>,
     ) -> Result<Vec<T::Response>, PluginError>
@@ -127,7 +130,7 @@ impl PluginMgr {
         Ok(self
             .plugins
             .par_iter()
-            .map(|plugin| plugin.execute_prepared(event_name, event))
+            .map(|plugin| plugin.execute_prepared(ecs, event_name, event))
             .collect::<Result<Vec<_>, _>>()?
             .into_iter()
             .flatten()
@@ -136,13 +139,14 @@ impl PluginMgr {
 
     pub fn execute_event<T>(
         &self,
+        ecs: &World,
         event_name: &str,
         event: &T,
     ) -> Result<Vec<T::Response>, PluginError>
     where
         T: Event,
     {
-        self.execute_prepared(event_name, &PreparedEventQuery::new(event)?)
+        self.execute_prepared(ecs, event_name, &PreparedEventQuery::new(event)?)
     }
 
     pub fn from_dir<P: AsRef<Path>>(path: P) -> Result<Self, PluginError> {

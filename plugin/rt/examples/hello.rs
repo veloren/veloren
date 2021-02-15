@@ -20,6 +20,8 @@ pub fn on_command_testplugin(command: ChatCommandEvent) -> Result<Vec<String>, S
     )])
 }
 
+
+
 #[event_handler]
 pub fn on_player_join(input: PlayerJoinEvent) -> PlayerJoinResult {
     emit_action(Action::PlayerSendMessage(

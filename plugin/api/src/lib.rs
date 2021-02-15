@@ -9,6 +9,11 @@ pub enum Action {
     KillEntity(Uid),
 }
 
+#[derive(Deserialize, Serialize, Debug)]
+pub enum Retreive {
+    GetEntityName(Uid),
+}
+
 pub trait Event: Serialize + DeserializeOwned + Send + Sync {
     type Response: Serialize + DeserializeOwned + Send + Sync;
 }

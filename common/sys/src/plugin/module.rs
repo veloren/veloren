@@ -1,10 +1,6 @@
-use std::{
-    cell::Cell,
-    collections::HashSet,
-    marker::PhantomData,
-    sync::{Arc, Mutex},
-};
+use std::{cell::{Cell, RefCell}, cmp::Ordering, collections::HashSet, marker::PhantomData, rc::Rc, sync::{self, Arc, Mutex, atomic::AtomicI32}};
 
+use specs::World;
 use wasmer::{
     imports, Cranelift, Function, HostEnvInitError, Instance, LazyInit, Memory, MemoryView, Module,
     Store, Value, WasmerEnv, JIT,
@@ -17,6 +13,7 @@ use plugin_api::{Action, Event};
 #[derive(Clone)]
 // This structure represent the WASM State of the plugin.
 pub struct PluginModule {
+    ecs: Arc<AtomicI32>,
     wasm_state: Arc<Mutex<WasmState>>,
     events: HashSet<String>,
     name: String,
@@ -55,11 +52,42 @@ impl PluginModule {
                 },
             });
         }
+        
+        fn raw_retreive_action(env: &EmitActionEnv, ptr: u32, len: u32) {
+            let memory: &Memory = if let Some(e) = env.memory.get_ref() {
+                e
+            } else {
+                // This should not be possible but I prefer be safer!
+                tracing::error!("Can't get memory from: `{}` plugin", env.name);
+                return;
+            };
+            let memory: MemoryView<u8> = memory.view();
+
+            let str_slice = &memory[ptr as usize..(ptr + len) as usize];
+
+            let bytes: Vec<u8> = str_slice.iter().map(|x| x.get()).collect();
+
+            let r = env.ecs.load(std::sync::atomic::Ordering::SeqCst);
+            if r == i32::MAX {
+                println!("No ECS availible 1");
+                return;
+            }
+            unsafe {
+                if let Some(t) = (r as *const World).as_ref() {
+                    println!("We have a pointer there");
+                } else {
+                    println!("No ECS availible 2");
+                }
+            }
+        }
+
+        let ecs = Arc::new(AtomicI32::new(i32::MAX));
 
         // Create an import object.
         let import_object = imports! {
             "env" => {
-                "raw_emit_actions" => Function::new_native_with_env(&store, EmitActionEnv::new(name.clone()), raw_emit_actions),
+                "raw_emit_actions" => Function::new_native_with_env(&store, EmitActionEnv::new(name.clone(), ecs.clone()), raw_emit_actions),
+                "raw_retreive_action" => Function::new_native_with_env(&store, EmitActionEnv::new(name.clone(), ecs.clone()), raw_retreive_action),
             }
         };
 
@@ -67,6 +95,7 @@ impl PluginModule {
         let instance = Instance::new(&module, &import_object)
             .map_err(PluginModuleError::InstantiationError)?;
         Ok(Self {
+            ecs,
             events: instance
                 .exports
                 .iter()
@@ -81,6 +110,7 @@ impl PluginModule {
     // None if the event doesn't exists
     pub fn try_execute<T>(
         &self,
+        ecs: &World,
         event_name: &str,
         request: &PreparedEventQuery<T>,
     ) -> Option<Result<T::Response, PluginModuleError>>
@@ -90,6 +120,7 @@ impl PluginModule {
         if !self.events.contains(event_name) {
             return None;
         }
+        self.ecs.store((&ecs) as *const _ as i32, std::sync::atomic::Ordering::SeqCst);
         let bytes = {
             let mut state = self.wasm_state.lock().unwrap();
             match execute_raw(&mut state, event_name, &request.bytes) {
@@ -97,6 +128,7 @@ impl PluginModule {
                 Err(e) => return Some(Err(e)),
             }
         };
+        self.ecs.store(i32::MAX, std::sync::atomic::Ordering::SeqCst);
         Some(bincode::deserialize(&bytes).map_err(PluginModuleError::Encoding))
     }
 }
@@ -105,13 +137,15 @@ impl PluginModule {
 /// emit_action function is called
 #[derive(Clone)]
 struct EmitActionEnv {
+    ecs: Arc<AtomicI32>,
     memory: LazyInit<Memory>,
     name: String,
 }
 
 impl EmitActionEnv {
-    fn new(name: String) -> Self {
+    fn new(name: String,ecs: Arc<AtomicI32>) -> Self {
         Self {
+            ecs,
             memory: LazyInit::new(),
             name,
         }
