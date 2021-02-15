@@ -266,18 +266,17 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         });
 
         // Cliffs
-        let cliff_height =
-            sim.get_interpolated(wpos, |chunk| chunk.cliff_height)?;
         let cliff_factor = (alt
-            + self.sim.gen_ctx.hill_nz.get(wposf.div(32.0).into_array()) as f32 * 8.0
+            + self.sim.gen_ctx.hill_nz.get(wposf.div(64.0).into_array()) as f32 * 8.0
             + self.sim.gen_ctx.hill_nz.get(wposf.div(256.0).into_array()) as f32 * 64.0)
             .rem_euclid(128.0)
             / 64.0
             - 1.0;
-        let cliff_scale = ((self.sim.gen_ctx.hill_nz.get(wposf.div(128.0).into_array()) * 2.0 - 1.0)
-            + self.sim.gen_ctx.hill_nz.get(wposf.div(48.0).into_array()) * 0.1
-            + 0.5)
-            .max(0.0) as f32;
+        let cliff_scale = ((self.sim.gen_ctx.hill_nz.get(wposf.div(128.0).into_array()) * 2.0 + 1.0)
+            + self.sim.gen_ctx.hill_nz.get(wposf.div(48.0).into_array()) * 0.1)
+            .clamped(0.0, 1.0) as f32;
+        let cliff_height =
+            sim.get_interpolated(wpos, |chunk| chunk.cliff_height)? * cliff_scale;
         let cliff = if cliff_factor < 0.0 {
             cliff_factor.abs().powf(1.5)
         } else {

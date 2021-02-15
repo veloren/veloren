@@ -121,7 +121,7 @@ impl<'a> BlockGen<'a> {
 
             if stone_factor >= 0.5 {
                 if wposf.z as f32 > height - cliff_offset.max(0.0) {
-                    if cliff_offset.max(0.0) > cliff_height - (FastNoise::new(37).get(wposf / Vec3::new(6.0, 6.0, 10.0)) * 0.5 + 0.5) * (height - wposf.z as f32).mul(0.25).clamped(0.0, 6.0) {
+                    if cliff_offset.max(0.0) > cliff_height - (FastNoise::new(37).get(wposf / Vec3::new(6.0, 6.0, 10.0)) * 0.5 + 0.5) * (height - grass_depth - wposf.z as f32).mul(0.25).clamped(0.0, 8.0) {
                         Some(Block::empty())
                     } else {
                         let col = Lerp::lerp(
