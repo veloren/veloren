@@ -45,6 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed crafting recipes involving shiny gems to use diamonds instead.
 - Cave scatter now includes all 6 gems.
 - Adjusted Stonework Defender loot table to remove mindflayer drops (bag, staff, glider).
+- Changed default controller key bindings
 
 ### Removed
 
@@ -61,6 +62,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   one of them active at the same time
 - Made zooming work on wayland
 - Fixed AI behavior so only humanoids will attempt to roll
+- Fixed missing GameInputs (sneak, swimup, swimdown) in controller mapping
 
 ## [0.8.0] - 2020-11-28
 

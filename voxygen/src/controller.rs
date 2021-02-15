@@ -104,6 +104,15 @@ impl From<&crate::settings::GamepadSettings> for ControllerSettings {
                 map.entry(settings.game_buttons.climb_down)
                     .or_default()
                     .push(GameInput::ClimbDown);
+                map.entry(settings.game_buttons.swimup)
+                    .or_default()
+                    .push(GameInput::SwimUp);
+                map.entry(settings.game_buttons.swimdown)
+                    .or_default()
+                    .push(GameInput::SwimDown);
+                map.entry(settings.game_buttons.sneak)
+                    .or_default()
+                    .push(GameInput::Sneak);
                 /*map.entry(settings.game_buttons.wall_leap)
                 .or_default()
                 .push(GameInput::WallLeap);*/
