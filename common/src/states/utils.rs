@@ -412,7 +412,11 @@ pub fn handle_ability1_input(data: &JoinData, update: &mut StateUpdate) {
             })
             .filter(|ability| ability.requirements_paid(data, update))
         {
-            update.character = (&ability, AbilityInfo::from_key(data, AbilityKey::Mouse1, false)).into();
+            update.character = (
+                &ability,
+                AbilityInfo::from_key(data, AbilityKey::Mouse1, false),
+            )
+                .into();
         }
     }
 }
@@ -455,7 +459,15 @@ pub fn handle_ability2_input(data: &JoinData, update: &mut StateUpdate) {
                 })
                 .filter(|ability| ability.requirements_paid(data, update))
             {
-                update.character = (&ability, AbilityInfo::from_key(data, AbilityKey::Mouse2, matches!(equip_slot, EquipSlot::Offhand))).into();
+                update.character = (
+                    &ability,
+                    AbilityInfo::from_key(
+                        data,
+                        AbilityKey::Mouse2,
+                        matches!(equip_slot, EquipSlot::Offhand),
+                    ),
+                )
+                    .into();
             }
         }
     }
@@ -477,7 +489,11 @@ pub fn handle_ability3_input(data: &JoinData, update: &mut StateUpdate) {
             })
             .filter(|ability| ability.requirements_paid(data, update))
         {
-            update.character = (&ability, AbilityInfo::from_key(data, AbilityKey::Skill1, false)).into();
+            update.character = (
+                &ability,
+                AbilityInfo::from_key(data, AbilityKey::Skill1, false),
+            )
+                .into();
         }
     }
 }
@@ -524,7 +540,15 @@ pub fn handle_ability4_input(data: &JoinData, update: &mut StateUpdate) {
                 })
                 .filter(|ability| ability.requirements_paid(data, update))
             {
-                update.character = (&ability, AbilityInfo::from_key(data, AbilityKey::Skill2, matches!(equip_slot, EquipSlot::Offhand))).into();
+                update.character = (
+                    &ability,
+                    AbilityInfo::from_key(
+                        data,
+                        AbilityKey::Skill2,
+                        matches!(equip_slot, EquipSlot::Offhand),
+                    ),
+                )
+                    .into();
             }
         }
     }
@@ -546,28 +570,36 @@ pub fn handle_dodge_input(data: &JoinData, update: &mut StateUpdate) {
             .filter(|ability| ability.requirements_paid(data, update))
         {
             if data.character.is_wield() {
-                update.character = (&ability, AbilityInfo::from_key(data, AbilityKey::Dodge, false)).into();
+                update.character = (
+                    &ability,
+                    AbilityInfo::from_key(data, AbilityKey::Dodge, false),
+                )
+                    .into();
                 if let CharacterState::Roll(roll) = &mut update.character {
                     roll.was_wielded = true;
                 }
             } else if data.character.is_stealthy() {
-                update.character = (&ability, AbilityInfo::from_key(data, AbilityKey::Dodge, false)).into();
+                update.character = (
+                    &ability,
+                    AbilityInfo::from_key(data, AbilityKey::Dodge, false),
+                )
+                    .into();
                 if let CharacterState::Roll(roll) = &mut update.character {
                     roll.was_sneak = true;
                 }
             } else {
-                update.character = (&ability, AbilityInfo::from_key(data, AbilityKey::Dodge, false)).into();
+                update.character = (
+                    &ability,
+                    AbilityInfo::from_key(data, AbilityKey::Dodge, false),
+                )
+                    .into();
             }
         }
     }
 }
 
 pub fn unwrap_tool_data<'a>(data: &'a JoinData, equip_slot: EquipSlot) -> Option<&'a Tool> {
-    if let Some(ItemKind::Tool(tool)) = data
-        .inventory
-        .equipped(equip_slot)
-        .map(|i| i.kind())
-    {
+    if let Some(ItemKind::Tool(tool)) = data.inventory.equipped(equip_slot).map(|i| i.kind()) {
         Some(&tool)
     } else {
         None
@@ -676,13 +708,21 @@ impl AbilityInfo {
         let (tool, hand) = if from_offhand {
             (tool_data.map(|t| t.kind), Some(HandInfo::OffHand))
         } else {
-            (tool_data.map(|t| t.kind), tool_data.map(|t| HandInfo::from_main_tool(t)))
+            (
+                tool_data.map(|t| t.kind),
+                tool_data.map(|t| HandInfo::from_main_tool(t)),
+            )
         };
 
+        Self { tool, hand, key }
+    }
+
+    /// For audio sfx test
+    pub fn empty_info() -> Self {
         Self {
-            tool,
-            hand,
-            key,
+            tool: None,
+            hand: None,
+            key: AbilityKey::Mouse1,
         }
     }
 }

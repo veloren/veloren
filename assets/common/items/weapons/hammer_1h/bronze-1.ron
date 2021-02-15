@@ -1,9 +1,9 @@
 ItemDef(
-    name: "Bronze Club",
-    description: "The entire head of this club is forged from bronze alloy.",
+    name: "Bronze Cudgel",
+    description: "Forged from bronze.",
     kind: Tool((
         kind: Hammer,
-        hands: TwoHand,
+        hands: OneHand,
         stats: (
             equip_time_millis: 500,
             power: 1.0,
@@ -11,6 +11,5 @@ ItemDef(
             speed: 1.0,
         ),
     )),
-    quality: Common,
-    tags: [],
+    quality: Moderate,
 )

@@ -97,7 +97,10 @@ impl CharacterBehavior for Data {
                 } else {
                     // Transitions to charge section of stage
                     update.character = CharacterState::DashMelee(Data {
-                        auto_charge: !ability_key_is_pressed(data, self.static_data.ability_info.key),
+                        auto_charge: !ability_key_is_pressed(
+                            data,
+                            self.static_data.ability_info.key,
+                        ),
                         timer: Duration::default(),
                         stage_section: StageSection::Charge,
                         ..*self

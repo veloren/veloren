@@ -99,7 +99,9 @@ impl CharacterBehavior for Data {
                 }
             },
             StageSection::Charge => {
-                if !ability_key_is_pressed(data, self.static_data.ability_info.key) && !self.exhausted {
+                if !ability_key_is_pressed(data, self.static_data.ability_info.key)
+                    && !self.exhausted
+                {
                     let charge_frac = (self.timer.as_secs_f32()
                         / self.static_data.charge_duration.as_secs_f32())
                     .min(1.0);

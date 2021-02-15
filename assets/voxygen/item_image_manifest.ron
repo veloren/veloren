@@ -614,6 +614,71 @@
         "voxel.weapon.hammer.cult_purp-0",
         (2.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
     ),
+    // 1h Hammers
+    Tool("common.items.weapons.hammer_1h.bloodsteel-0"): VoxTrans(
+        "voxel.weapon.hammer_1h.bloodsteel-0",
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+    ),
+    Tool("common.items.weapons.hammer_1h.bloodsteel-1"): VoxTrans(
+        "voxel.weapon.hammer_1h.bloodsteel-1",
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+    ),
+    Tool("common.items.weapons.hammer_1h.bronze-0"): VoxTrans(
+        "voxel.weapon.hammer_1h.bronze-0",
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+    ),
+    Tool("common.items.weapons.hammer_1h.bronze-1"): VoxTrans(
+        "voxel.weapon.hammer_1h.bronze-1",
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+    ),
+    Tool("common.items.weapons.hammer_1h.cobalt-0"): VoxTrans(
+        "voxel.weapon.hammer_1h.cobalt-0",
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+    ),
+    Tool("common.items.weapons.hammer_1h.cobalt-1"): VoxTrans(
+        "voxel.weapon.hammer_1h.cobalt-1",
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+    ),
+    Tool("common.items.weapons.hammer_1h.iron-0"): VoxTrans(
+        "voxel.weapon.hammer_1h.iron-0",
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+    ),
+    Tool("common.items.weapons.hammer_1h.iron-1"): VoxTrans(
+        "voxel.weapon.hammer_1h.iron-1",
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+    ),
+    Tool("common.items.weapons.hammer_1h.iron-2"): VoxTrans(
+        "voxel.weapon.hammer_1h.iron-2",
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+    ),
+    Tool("common.items.weapons.hammer_1h.steel-0"): VoxTrans(
+        "voxel.weapon.hammer_1h.steel-0",
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+    ),
+    Tool("common.items.weapons.hammer_1h.steel-1"): VoxTrans(
+        "voxel.weapon.hammer_1h.steel-1",
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+    ),
+    Tool("common.items.weapons.hammer_1h.steel-2"): VoxTrans(
+        "voxel.weapon.hammer_1h.steel-2",
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+    ),
+    Tool("common.items.weapons.hammer_1h.stone-0"): VoxTrans(
+        "voxel.weapon.hammer_1h.stone-0",
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+    ),
+    Tool("common.items.weapons.hammer_1h.stone-1"): VoxTrans(
+        "voxel.weapon.hammer_1h.stone-1",
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+    ),
+    Tool("common.items.weapons.hammer_1h.wood-0"): VoxTrans(
+        "voxel.weapon.hammer_1h.wood-0",
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+    ),
+    Tool("common.items.weapons.hammer_1h.wood-1"): VoxTrans(
+        "voxel.weapon.hammer_1h.wood-1",
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+    ),
     // Staffs
     Tool("common.items.weapons.staff.staff_1"): VoxTrans(
         "voxel.weapon.staff.firestaff_starter",

@@ -1,0 +1,15 @@
+ItemDef(
+    name: "Wooden Cudgel",
+    description: "Carved from wood.",
+    kind: Tool((
+        kind: Hammer,
+        hands: OneHand,
+        stats: (
+            equip_time_millis: 500,
+            power: 0.5,
+            poise_strength: 1.0,
+            speed: 1.1,
+        ),
+    )),
+    quality: Low,
+)
