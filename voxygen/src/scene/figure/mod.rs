@@ -4178,8 +4178,7 @@ impl<S: Skeleton> FigureState<S> {
         /* let radius = vek::Extent3::<f32>::from(model.bounds.half_size()).reduce_partial_max();
         let _bounds = BoundingSphere::new(pos.into_array(), scale * 0.8 * radius); */
 
-        // self.last_ori = vek::Lerp::lerp(self.last_ori, ori, 15.0 * dt);
-        self.last_ori = anim::vek::Quaternion::slerp(self.last_ori, ori, 15.0 * dt);
+        self.last_ori = vek::Lerp::lerp(self.last_ori, ori, 15.0 * dt).normalized();
 
         self.state_time += (dt * state_animation_rate) as f64;
 
