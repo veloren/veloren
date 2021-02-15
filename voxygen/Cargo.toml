@@ -12,7 +12,6 @@ version = "0.8.0"
 gl = ["gfx_device_gl", "gfx_gl"]
 hot-anim = ["anim/use-dyn-lib"]
 singleplayer = ["server"]
-tweak = ["const-tweaker"]
 simd = ["vek/platform_intrinsics"]
 tracy = ["tracing-tracy", "common/tracy"]
 plugins = ["client/plugins"]
@@ -38,7 +37,7 @@ winit = {version = "0.24.0", features = ["serde"]}
 # Ui
 conrod_core = {git = "https://gitlab.com/veloren/conrod.git", branch="copypasta_0.7"}
 conrod_winit = {git = "https://gitlab.com/veloren/conrod.git", branch="copypasta_0.7"}
-euc = {git = "https://github.com/zesterer/euc.git"}
+euc = "=0.5.0"
 iced = {package = "iced_native", git = "https://github.com/hecrj/iced", rev = "8d882d787e6b7fd7c2435f42f82933e2ed904edf"}
 iced_winit = {git = "https://github.com/hecrj/iced", rev = "8d882d787e6b7fd7c2435f42f82933e2ed904edf"}
 window_clipboard = "0.1.1"
@@ -49,10 +48,10 @@ specs = {git = "https://github.com/amethyst/specs.git", rev = "d4435bdf496cf322c
 specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git", rev = "9fab7b396acd6454585486e50ae4bfe2069858a9" }
 
 # Mathematics
-vek = {version = "0.12.0", features = ["serde"]}
+vek = {version = "=0.12.0", features = ["serde"]}
 
 # Controller
-gilrs = {version = "0.7", features = ["serde"]}
+gilrs = {version = "0.8.0", features = ["serde-serialize"]}
 
 # Singleplayer
 server = {package = "veloren-server", path = "../server", optional = true}
@@ -84,7 +83,6 @@ serde = {version = "1.0", features = [ "rc", "derive" ]}
 treeculler = "0.1.0"
 uvth = "3.1.1"
 # vec_map = { version = "0.8.2" }
-const-tweaker = {version = "0.3.1", optional = true}
 inline_tweak = "1.0.2"
 itertools = "0.10.0"
 
