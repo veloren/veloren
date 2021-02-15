@@ -701,7 +701,7 @@ fn walk_in_dir(sim: &WorldSim, a: Vec2<i32>, dir: Vec2<i32>) -> Option<f32> {
 /// Return true if a position is suitable for walking on
 fn loc_suitable_for_walking(sim: &WorldSim, loc: Vec2<i32>) -> bool {
     if let Some(chunk) = sim.get(loc) {
-        !chunk.river.is_ocean() && !chunk.river.is_lake()
+        !chunk.river.is_ocean() && !chunk.river.is_lake() && !chunk.near_cliffs()
     } else {
         false
     }

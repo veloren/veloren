@@ -2392,4 +2392,8 @@ impl SimChunk {
             BiomeKind::Grassland
         }
     }
+
+    pub fn near_cliffs(&self) -> bool {
+        self.cliff_height > 0.0
+    }
 }

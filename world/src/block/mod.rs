@@ -127,7 +127,7 @@ impl<'a> BlockGen<'a> {
                         let col = Lerp::lerp(
                             col.map(|e| e as f32),
                             col.map(|e| e as f32) * 0.7,
-                            (wposf.z as f32 - basement).div(2.0).sin() * 0.5 + 0.5,
+                            (wposf.z as f32 - basement * 0.3).div(2.0).sin() * 0.5 + 0.5,
                         ).map(|e| e as u8);
                         Some(Block::new(BlockKind::Rock, col))
                     }
