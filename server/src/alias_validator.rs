@@ -1,3 +1,4 @@
+use common::character::MAX_NAME_LENGTH;
 use std::fmt::{self, Display};
 
 #[derive(Debug, Default)]
@@ -16,6 +17,10 @@ impl AliasValidator {
     }
 
     pub fn validate(&self, alias: &str) -> Result<(), ValidatorError> {
+        if alias.len() > MAX_NAME_LENGTH {
+            return Err(ValidatorError::TooLong(alias.to_owned(), alias.len()));
+        }
+
         let lowercase_alias = alias.to_lowercase();
 
         for banned_word in self.banned_substrings.iter() {
@@ -33,6 +38,7 @@ impl AliasValidator {
 #[derive(Debug, PartialEq)]
 pub enum ValidatorError {
     Forbidden(String, String),
+    TooLong(String, usize),
 }
 
 impl Display for ValidatorError {
@@ -43,6 +49,7 @@ impl Display for ValidatorError {
                 "Character name \"{}\" contains a banned word",
                 name
             ),
+            Self::TooLong(name, _) => write!(formatter, "Character name \"{}\" too long", name),
         }
     }
 }
@@ -56,7 +63,7 @@ mod tests {
         let banned_substrings = vec!["bad".to_owned(), "worse".to_owned()];
         let validator = AliasValidator::new(banned_substrings);
 
-        let bad_alias = "Badplayery Mc WorsePlayeryFace";
+        let bad_alias = "BadplayerMcWorseFace";
         let result = validator.validate(bad_alias);
 
         assert_eq!(
@@ -111,5 +118,22 @@ mod tests {
         let result = validator.validate(good_alias);
 
         assert_eq!(result, Ok(()));
+    }
+
+    #[test]
+    fn too_long() {
+        let banned_substrings = vec!["orange".to_owned()];
+        let validator = AliasValidator::new(banned_substrings);
+
+        let bad_alias = "Thisnameistoolong Muchtoolong MuchTooLongByFar";
+        let result = validator.validate(bad_alias);
+
+        assert_eq!(
+            result,
+            Err(ValidatorError::TooLong(
+                bad_alias.to_owned(),
+                bad_alias.chars().count()
+            ))
+        );
     }
 }
