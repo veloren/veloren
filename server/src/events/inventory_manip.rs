@@ -518,7 +518,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Slo
     for (pos, ori, item) in dropped_items {
         state
             .create_object(Default::default(), comp::object::Body::Pouch)
-            .with(comp::Pos(pos.0 + *ori.0 + Vec3::unit_z()))
+            .with(comp::Pos(pos.0 + *ori.look_dir() + Vec3::unit_z()))
             .with(item)
             .with(comp::Vel(Vec3::zero()))
             .build();
@@ -536,7 +536,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Slo
             ),
             _ => {
                 vel.0
-                    + *ori.0 * 20.0
+                    + *ori.look_dir() * 20.0
                     + Vec3::unit_z() * 15.0
                     + Vec3::<f32>::zero().map(|_| rand::thread_rng().gen::<f32>() - 0.5) * 4.0
             },

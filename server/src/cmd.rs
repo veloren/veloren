@@ -22,7 +22,6 @@ use common::{
     resources::TimeOfDay,
     terrain::{Block, BlockKind, SpriteKind, TerrainChunkSize},
     uid::Uid,
-    util::Dir,
     vol::RectVolSize,
     Damage, DamageSource, Explosion, LoadoutBuilder, RadiusEffect,
 };
@@ -1164,18 +1163,23 @@ fn handle_object(
             server
                 .state
                 .create_object(pos, *obj_type)
-                .with(comp::Ori(
-                    // converts player orientation into a 90° rotation for the object by using the
-                    // axis with the highest value
-                    Dir::from_unnormalized(ori.0.map(|e| {
-                        if e.abs() == ori.0.map(|e| e.abs()).reduce_partial_max() {
-                            e
-                        } else {
-                            0.0
-                        }
-                    }))
+                .with(
+                    comp::Ori::from_unnormalized_vec(
+                        // converts player orientation into a 90° rotation for the object by using
+                        // the axis with the highest value
+                        {
+                            let look_dir = ori.look_dir();
+                            look_dir.map(|e| {
+                                if e.abs() == look_dir.map(|e| e.abs()).reduce_partial_max() {
+                                    e
+                                } else {
+                                    0.0
+                                }
+                            })
+                        },
+                    )
                     .unwrap_or_default(),
-                ))
+                )
                 .build();
             server.notify_client(
                 client,

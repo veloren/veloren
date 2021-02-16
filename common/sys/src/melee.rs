@@ -95,10 +95,12 @@ impl<'a> System<'a> for Sys {
             )
                 .join()
             {
+                let look_dir = *ori.look_dir();
+
                 // 2D versions
                 let pos2 = Vec2::from(pos.0);
                 let pos_b2 = Vec2::<f32>::from(pos_b.0);
-                let ori2 = Vec2::from(*ori.0);
+                let ori2 = Vec2::from(look_dir);
 
                 // Scales
                 let scale = scale_maybe.map_or(1.0, |s| s.0);
@@ -128,7 +130,7 @@ impl<'a> System<'a> for Sys {
                         GroupTarget::OutOfGroup
                     };
 
-                    let dir = Dir::new((pos_b.0 - pos.0).try_normalized().unwrap_or(*ori.0));
+                    let dir = Dir::new((pos_b.0 - pos.0).try_normalized().unwrap_or(look_dir));
 
                     let attacker_info = Some(AttackerInfo {
                         entity,

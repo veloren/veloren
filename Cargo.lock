@@ -6058,6 +6058,7 @@ dependencies = [
 name = "veloren-common"
 version = "0.8.0"
 dependencies = [
+ "approx 0.4.0",
  "arraygen",
  "assets_manager",
  "criterion",

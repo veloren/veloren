@@ -18,6 +18,7 @@ pub mod invite;
 mod last;
 mod location;
 mod misc;
+pub mod ori;
 mod phys;
 mod player;
 pub mod poise;
@@ -62,9 +63,9 @@ pub use inventory::{
 pub use last::Last;
 pub use location::{Waypoint, WaypointArea};
 pub use misc::Object;
+pub use ori::Ori;
 pub use phys::{
-    Collider, ForceUpdate, Gravity, Mass, Ori, PhysicsState, Pos, PreviousVelDtCache, Scale,
-    Sticky, Vel,
+    Collider, ForceUpdate, Gravity, Mass, PhysicsState, Pos, PreviousVelDtCache, Scale, Sticky, Vel,
 };
 pub use player::Player;
 pub use poise::{Poise, PoiseChange, PoiseSource, PoiseState};

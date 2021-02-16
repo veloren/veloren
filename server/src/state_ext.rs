@@ -11,7 +11,6 @@ use common::{
     },
     effect::Effect,
     uid::{Uid, UidAllocator},
-    util::Dir,
 };
 use common_net::{
     msg::{CharacterInfo, PlayerListUpdate, PresenceKind, ServerGeneral},
@@ -148,15 +147,14 @@ impl StateExt for State {
             .create_entity_synced()
             .with(pos)
             .with(comp::Vel(Vec3::zero()))
-            .with(comp::Ori(Dir::new(
-                Vec3::new(
+            .with(
+                comp::Ori::from_unnormalized_vec(Vec3::new(
                     thread_rng().gen_range(-1.0..1.0),
                     thread_rng().gen_range(-1.0..1.0),
                     0.0,
-                )
-                .try_normalized()
+                ))
                 .unwrap_or_default(),
-            )))
+            )
             .with(comp::Collider::Box {
                 radius: body.radius(),
                 z_min: 0.0,
@@ -209,7 +207,7 @@ impl StateExt for State {
             .create_entity_synced()
             .with(pos)
             .with(vel)
-            .with(comp::Ori(Dir::from_unnormalized(vel.0).unwrap_or_default()))
+            .with(comp::Ori::from_unnormalized_vec(vel.0).unwrap_or_default())
             .with(comp::Mass(0.0))
             .with(comp::Collider::Point)
             .with(body)

@@ -1,3 +1,4 @@
+use super::{Plane, Projection};
 use serde::{Deserialize, Serialize};
 use tracing::warn;
 use vek::*;
@@ -10,7 +11,7 @@ use vek::*;
 #[serde(from = "SerdeDir")]
 pub struct Dir(Vec3<f32>);
 impl Default for Dir {
-    fn default() -> Self { Self(Vec3::unit_y()) }
+    fn default() -> Self { Self::forward() }
 }
 
 // Validate at Deserialization
@@ -81,12 +82,38 @@ impl Dir {
         Self(slerp_normalized(from.0, to.0, factor))
     }
 
+    pub fn slerped_to(self, to: Self, factor: f32) -> Self {
+        Self(slerp_normalized(self.0, to.0, factor))
+    }
+
     /// Note: this uses `from` if `to` is unnormalizable
     pub fn slerp_to_vec3(from: Self, to: Vec3<f32>, factor: f32) -> Self {
         Self(slerp_to_unnormalized(from.0, to, factor).unwrap_or_else(|e| e))
     }
 
+    pub fn rotation_between(&self, to: Self) -> Quaternion<f32> {
+        Quaternion::<f32>::rotation_from_to_3d(self.0, to.0)
+    }
+
+    pub fn rotation(&self) -> Quaternion<f32> { Self::default().rotation_between(*self) }
+
     pub fn is_valid(&self) -> bool { !self.0.map(f32::is_nan).reduce_or() && self.is_normalized() }
+
+    pub fn up() -> Self { Dir::new(Vec3::<f32>::unit_z()) }
+
+    pub fn down() -> Self { -Dir::new(Vec3::<f32>::unit_z()) }
+
+    pub fn left() -> Self { -Dir::new(Vec3::<f32>::unit_x()) }
+
+    pub fn right() -> Self { Dir::new(Vec3::<f32>::unit_x()) }
+
+    pub fn forward() -> Self { Dir::new(Vec3::<f32>::unit_y()) }
+
+    pub fn back() -> Self { -Dir::new(Vec3::<f32>::unit_y()) }
+
+    pub fn vec(&self) -> &Vec3<f32> { &self.0 }
+
+    pub fn to_vec(self) -> Vec3<f32> { self.0 }
 }
 
 impl std::ops::Deref for Dir {
@@ -95,8 +122,31 @@ impl std::ops::Deref for Dir {
     fn deref(&self) -> &Vec3<f32> { &self.0 }
 }
 
-impl From<Vec3<f32>> for Dir {
-    fn from(dir: Vec3<f32>) -> Self { Dir::new(dir) }
+impl From<Dir> for Vec3<f32> {
+    fn from(dir: Dir) -> Self { *dir }
+}
+
+impl Projection<Plane> for Dir {
+    type Output = Option<Self>;
+
+    fn projected(self, plane: &Plane) -> Self::Output {
+        Dir::from_unnormalized(plane.projection(*self))
+    }
+}
+
+impl Projection<Dir> for Vec3<f32> {
+    type Output = Vec3<f32>;
+
+    fn projected(self, dir: &Dir) -> Self::Output {
+        let dir = **dir;
+        self.dot(dir) * dir
+    }
+}
+
+impl std::ops::Mul<Dir> for Quaternion<f32> {
+    type Output = Dir;
+
+    fn mul(self, dir: Dir) -> Self::Output { Dir((self * *dir).normalized()) }
 }
 
 impl std::ops::Neg for Dir {

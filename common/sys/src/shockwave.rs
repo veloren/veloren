@@ -104,13 +104,14 @@ impl<'a> System<'a> for Sys {
             let frame_start_dist = (shockwave.speed * (time_since_creation - dt)).max(0.0);
             let frame_end_dist = (shockwave.speed * time_since_creation).max(frame_start_dist);
             let pos2 = Vec2::from(pos.0);
+            let look_dir = ori.look_dir();
 
             // From one frame to the next a shockwave travels over a strip of an arc
             // This is used for collision detection
             let arc_strip = ArcStrip {
                 origin: pos2,
                 // TODO: make sure this is not Vec2::new(0.0, 0.0)
-                dir: ori.0.xy(),
+                dir: look_dir.xy(),
                 angle: shockwave.angle,
                 start: frame_start_dist,
                 end: frame_end_dist,
@@ -194,7 +195,7 @@ impl<'a> System<'a> for Sys {
                     && (!shockwave.requires_ground || physics_state_b.on_ground);
 
                 if hit {
-                    let dir = Dir::new((pos_b.0 - pos.0).try_normalized().unwrap_or(*ori.0));
+                    let dir = Dir::from_unnormalized(pos_b.0 - pos.0).unwrap_or(look_dir);
 
                     let attacker_info =
                         shockwave_owner

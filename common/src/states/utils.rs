@@ -188,7 +188,7 @@ pub fn handle_forced_movement(
 
             update.vel.0 += Vec2::broadcast(data.dt.0)
                 * accel
-                * (data.inputs.move_dir * efficiency + (*update.ori.0).xy() * strength);
+                * (data.inputs.move_dir * efficiency + Vec2::from(update.ori) * strength);
         },
         ForcedMovement::Leap {
             vertical,
@@ -231,11 +231,11 @@ pub fn handle_orientation(data: &JoinData, update: &mut StateUpdate, rate: f32) 
     } else if !data.inputs.move_dir.is_approx_zero() {
         data.inputs.move_dir
     } else {
-        update.ori.0.xy()
+        update.ori.into()
     };
 
     // Smooth orientation
-    update.ori.0 = Dir::slerp_to_vec3(update.ori.0, ori_dir.into(), rate * data.dt.0);
+    update.ori = Dir::slerp_to_vec3(update.ori.look_dir(), ori_dir.into(), rate * data.dt.0).into();
 }
 
 /// Updates components to move player as if theyre swimming

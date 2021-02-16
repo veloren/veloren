@@ -1,5 +1,5 @@
 use crate::{
-    comp::{CharacterState, Climb, EnergySource, StateUpdate},
+    comp::{CharacterState, Climb, EnergySource, Ori, StateUpdate},
     consts::GRAVITY,
     event::LocalEvent,
     states::behavior::{CharacterBehavior, JoinData},
@@ -64,14 +64,13 @@ impl CharacterBehavior for Data {
         }
 
         // Set orientation direction based on wall direction
-        let ori_dir = Vec2::from(wall_dir);
-
-        // Smooth orientation
-        update.ori.0 = Dir::slerp_to_vec3(
-            update.ori.0,
-            ori_dir.into(),
-            if data.physics.on_ground { 9.0 } else { 2.0 } * data.dt.0,
-        );
+        if let Some(ori_dir) = Dir::from_unnormalized(Vec2::from(wall_dir).into()) {
+            // Smooth orientation
+            update.ori = update.ori.slerped_towards(
+                Ori::from(ori_dir),
+                if data.physics.on_ground { 9.0 } else { 2.0 } * data.dt.0,
+            );
+        };
 
         // Apply Vertical Climbing Movement
         if update.vel.0.z <= CLIMB_SPEED {

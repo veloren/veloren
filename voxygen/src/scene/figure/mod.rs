@@ -584,12 +584,12 @@ impl FigureMgr {
                 .map(|i| {
                     (
                         (anim::vek::Vec3::from(i.pos),),
-                        anim::vek::Vec3::from(*i.ori),
+                        anim::vek::Quaternion::<f32>::from(i.ori),
                     )
                 })
                 .unwrap_or((
                     (anim::vek::Vec3::<f32>::from(pos.0),),
-                    anim::vek::Vec3::<f32>::unit_y(),
+                    anim::vek::Quaternion::<f32>::default(),
                 ));
 
             // Maintaining figure data and sending new figure data to the GPU turns out to
@@ -754,8 +754,9 @@ impl FigureMgr {
                                 active_tool_kind,
                                 second_tool_kind,
                                 vel.0,
-                                ori,
-                                state.last_ori,
+                                // TODO: Update to use the quaternion.
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                 time,
                                 state.avg_vel,
                                 state.acc_vel,
@@ -770,8 +771,9 @@ impl FigureMgr {
                             (
                                 active_tool_kind,
                                 second_tool_kind,
-                                ori,
-                                state.last_ori,
+                                // TODO: Update to use the quaternion.
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                 time,
                             ),
                             state.state_time,
@@ -785,8 +787,9 @@ impl FigureMgr {
                                 active_tool_kind,
                                 second_tool_kind,
                                 vel.0,
-                                ori,
-                                state.last_ori,
+                                // TODO: Update to use the quaternion.
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                 time,
                                 state.avg_vel,
                             ),
@@ -816,8 +819,9 @@ impl FigureMgr {
                                 (
                                     active_tool_kind,
                                     second_tool_kind,
-                                    ori,
-                                    state.last_ori,
+                                    // TODO: Update to use the quaternion.
+                                    ori * anim::vek::Vec3::<f32>::unit_y(),
+                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                     time,
                                     Some(s.stage_section),
                                 ),
@@ -861,8 +865,9 @@ impl FigureMgr {
                                     active_tool_kind,
                                     second_tool_kind,
                                     vel.0.magnitude(),
-                                    ori,
-                                    state.last_ori,
+                                    // TODO: Update to use the quaternion.
+                                    ori * anim::vek::Vec3::<f32>::unit_y(),
+                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                     time,
                                     Some(s.stage_section),
                                 ),
@@ -891,8 +896,9 @@ impl FigureMgr {
                                     active_tool_kind,
                                     second_tool_kind,
                                     vel.0.magnitude(),
-                                    ori,
-                                    state.last_ori,
+                                    // TODO: Update to use the quaternion.
+                                    ori * anim::vek::Vec3::<f32>::unit_y(),
+                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                     time,
                                     Some(s.stage_section),
                                 ),
@@ -967,7 +973,14 @@ impl FigureMgr {
                         CharacterState::Sneak { .. } => {
                             anim::character::SneakAnimation::update_skeleton(
                                 &target_base,
-                                (active_tool_kind, vel.0, ori, state.last_ori, time),
+                                (
+                                    active_tool_kind,
+                                    vel.0,
+                                    // TODO: Update to use the quaternion.
+                                    ori * anim::vek::Vec3::<f32>::unit_y(),
+                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                    time,
+                                ),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -1308,8 +1321,9 @@ impl FigureMgr {
                                     (
                                         active_tool_kind,
                                         second_tool_kind,
-                                        ori,
-                                        state.last_ori,
+                                        // TODO: Update to use the quaternion.
+                                        ori * anim::vek::Vec3::<f32>::unit_y(),
+                                        state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                         vel.0,
                                         time,
                                     ),
@@ -1326,8 +1340,9 @@ impl FigureMgr {
                                     active_tool_kind,
                                     second_tool_kind,
                                     vel.0,
-                                    ori,
-                                    state.last_ori,
+                                    // TODO: Update to use the quaternion.
+                                    ori * anim::vek::Vec3::<f32>::unit_y(),
+                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                     time,
                                 ),
                                 state.state_time,
@@ -1338,7 +1353,14 @@ impl FigureMgr {
                         CharacterState::Climb { .. } => {
                             anim::character::ClimbAnimation::update_skeleton(
                                 &target_base,
-                                (active_tool_kind, second_tool_kind, vel.0, ori, time),
+                                (
+                                    active_tool_kind,
+                                    second_tool_kind,
+                                    vel.0,
+                                    // TODO: Update to use the quaternion.
+                                    ori * anim::vek::Vec3::<f32>::unit_y(),
+                                    time,
+                                ),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -1360,8 +1382,9 @@ impl FigureMgr {
                                     active_tool_kind,
                                     second_tool_kind,
                                     vel.0,
-                                    ori,
-                                    state.last_ori,
+                                    // TODO: Update to use the quaternion.
+                                    ori * anim::vek::Vec3::<f32>::unit_y(),
+                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                     time,
                                 ),
                                 state.state_time,
@@ -1448,7 +1471,14 @@ impl FigureMgr {
                         (true, true, false) => {
                             anim::quadruped_small::RunAnimation::update_skeleton(
                                 &QuadrupedSmallSkeleton::default(),
-                                (vel.0.magnitude(), ori, state.last_ori, time, state.avg_vel),
+                                (
+                                    vel.0.magnitude(),
+                                    // TODO: Update to use the quaternion.
+                                    ori * anim::vek::Vec3::<f32>::unit_y(),
+                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                    time,
+                                    state.avg_vel,
+                                ),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -1457,7 +1487,14 @@ impl FigureMgr {
                         // Running
                         (false, _, true) => anim::quadruped_small::RunAnimation::update_skeleton(
                             &QuadrupedSmallSkeleton::default(),
-                            (vel.0.magnitude(), ori, state.last_ori, time, state.avg_vel),
+                            (
+                                vel.0.magnitude(),
+                                // TODO: Update to use the quaternion.
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                time,
+                                state.avg_vel,
+                            ),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
@@ -1644,8 +1681,9 @@ impl FigureMgr {
                                 &QuadrupedMediumSkeleton::default(),
                                 (
                                     vel.0.magnitude(),
-                                    ori,
-                                    state.last_ori,
+                                    // TODO: Update to use the quaternion.
+                                    ori * anim::vek::Vec3::<f32>::unit_y(),
+                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                     time,
                                     state.avg_vel,
                                     state.acc_vel,
@@ -1660,8 +1698,9 @@ impl FigureMgr {
                             &QuadrupedMediumSkeleton::default(),
                             (
                                 vel.0.magnitude(),
-                                ori,
-                                state.last_ori,
+                                // TODO: Update to use the quaternion.
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                 time,
                                 state.avg_vel,
                                 state.acc_vel,
@@ -1962,7 +2001,14 @@ impl FigureMgr {
                         // Running
                         (true, true, false) => anim::quadruped_low::RunAnimation::update_skeleton(
                             &QuadrupedLowSkeleton::default(),
-                            (vel.0.magnitude(), ori, state.last_ori, time, state.avg_vel),
+                            (
+                                vel.0.magnitude(),
+                                // TODO: Update to use the quaternion.
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                time,
+                                state.avg_vel,
+                            ),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
@@ -1970,7 +2016,14 @@ impl FigureMgr {
                         // Swimming
                         (false, _, true) => anim::quadruped_low::RunAnimation::update_skeleton(
                             &QuadrupedLowSkeleton::default(),
-                            (vel.0.magnitude(), ori, state.last_ori, time, state.avg_vel),
+                            (
+                                vel.0.magnitude(),
+                                // TODO: Update to use the quaternion.
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                time,
+                                state.avg_vel,
+                            ),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
@@ -2397,7 +2450,14 @@ impl FigureMgr {
                         // Idle
                         (_, false, _) => anim::fish_medium::IdleAnimation::update_skeleton(
                             &FishMediumSkeleton::default(),
-                            (vel.0, ori, state.last_ori, time, state.avg_vel),
+                            (
+                                vel.0,
+                                // TODO: Update to use the quaternion.
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                time,
+                                state.avg_vel,
+                            ),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
@@ -2407,8 +2467,9 @@ impl FigureMgr {
                             &FishMediumSkeleton::default(),
                             (
                                 vel.0,
-                                ori,
-                                state.last_ori,
+                                // TODO: Update to use the quaternion.
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                 time,
                                 state.avg_vel,
                                 state.acc_vel,
@@ -2479,7 +2540,14 @@ impl FigureMgr {
                         // Running
                         (true, true, false) => anim::dragon::RunAnimation::update_skeleton(
                             &DragonSkeleton::default(),
-                            (vel.0.magnitude(), ori, state.last_ori, time, state.avg_vel),
+                            (
+                                vel.0.magnitude(),
+                                // TODO: Update to use the quaternion.
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                time,
+                                state.avg_vel,
+                            ),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
@@ -2563,7 +2631,14 @@ impl FigureMgr {
                         // Running
                         (true, true, false) => anim::theropod::RunAnimation::update_skeleton(
                             &TheropodSkeleton::default(),
-                            (vel.0.magnitude(), ori, state.last_ori, time, state.avg_vel),
+                            (
+                                vel.0.magnitude(),
+                                // TODO: Update to use the quaternion.
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                time,
+                                state.avg_vel,
+                            ),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
@@ -2571,7 +2646,14 @@ impl FigureMgr {
                         // In air
                         (false, _, false) => anim::theropod::JumpAnimation::update_skeleton(
                             &TheropodSkeleton::default(),
-                            (vel.0.magnitude(), ori, state.last_ori, time, state.avg_vel),
+                            (
+                                vel.0.magnitude(),
+                                // TODO: Update to use the quaternion.
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                time,
+                                state.avg_vel,
+                            ),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
@@ -2782,7 +2864,14 @@ impl FigureMgr {
                         // Idle
                         (_, false, _) => anim::fish_small::IdleAnimation::update_skeleton(
                             &FishSmallSkeleton::default(),
-                            (vel.0, ori, state.last_ori, time, state.avg_vel),
+                            (
+                                vel.0,
+                                // TODO: Update to use the quaternion.
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                time,
+                                state.avg_vel,
+                            ),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
@@ -2792,8 +2881,9 @@ impl FigureMgr {
                             &FishSmallSkeleton::default(),
                             (
                                 vel.0,
-                                ori,
-                                state.last_ori,
+                                // TODO: Update to use the quaternion.
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                 time,
                                 state.avg_vel,
                                 state.acc_vel,
@@ -2863,8 +2953,9 @@ impl FigureMgr {
                                 active_tool_kind,
                                 second_tool_kind,
                                 vel.0.magnitude(),
-                                ori,
-                                state.last_ori,
+                                // TODO: Update to use the quaternion.
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                 time,
                                 state.avg_vel,
                             ),
@@ -2942,8 +3033,9 @@ impl FigureMgr {
                                     active_tool_kind,
                                     second_tool_kind,
                                     vel.0.magnitude(),
-                                    ori,
-                                    state.last_ori,
+                                    // TODO: Update to use the quaternion.
+                                    ori * anim::vek::Vec3::<f32>::unit_y(),
+                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                     time,
                                     Some(s.stage_section),
                                 ),
@@ -2972,8 +3064,9 @@ impl FigureMgr {
                                     active_tool_kind,
                                     second_tool_kind,
                                     vel.0.magnitude(),
-                                    ori,
-                                    state.last_ori,
+                                    // TODO: Update to use the quaternion.
+                                    ori * anim::vek::Vec3::<f32>::unit_y(),
+                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                     time,
                                     Some(s.stage_section),
                                 ),
@@ -3271,7 +3364,13 @@ impl FigureMgr {
                         // Running
                         (true, true, false) => anim::golem::RunAnimation::update_skeleton(
                             &GolemSkeleton::default(),
-                            (vel.0.magnitude(), ori, state.last_ori, time),
+                            (
+                                vel.0.magnitude(),
+                                // TODO: Update to use the quaternion.
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                time,
+                            ),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
@@ -3974,7 +4073,7 @@ pub struct FigureStateMeta {
     locals: Consts<FigureLocals>,
     lantern_offset: anim::vek::Vec3<f32>,
     state_time: f64,
-    last_ori: anim::vek::Vec3<f32>,
+    last_ori: anim::vek::Quaternion<f32>,
     lpindex: u8,
     can_shadow_sun: bool,
     visible: bool,
@@ -4021,7 +4120,7 @@ impl<S: Skeleton> FigureState<S> {
                 locals: renderer.create_consts(&[FigureLocals::default()]).unwrap(),
                 lantern_offset,
                 state_time: 0.0,
-                last_ori: anim::vek::Vec3::zero(),
+                last_ori: Ori::default().into(),
                 lpindex: 0,
                 visible: false,
                 can_shadow_sun: false,
@@ -4040,7 +4139,7 @@ impl<S: Skeleton> FigureState<S> {
         &mut self,
         renderer: &mut Renderer,
         pos: anim::vek::Vec3<f32>,
-        ori: anim::vek::Vec3<f32>,
+        ori: anim::vek::Quaternion<f32>,
         scale: f32,
         col: vek::Rgba<f32>,
         dt: f32,
@@ -4079,13 +4178,14 @@ impl<S: Skeleton> FigureState<S> {
         /* let radius = vek::Extent3::<f32>::from(model.bounds.half_size()).reduce_partial_max();
         let _bounds = BoundingSphere::new(pos.into_array(), scale * 0.8 * radius); */
 
-        self.last_ori = vek::Lerp::lerp(self.last_ori, ori, 15.0 * dt);
+        self.last_ori = vek::Lerp::lerp(self.last_ori, ori, 15.0 * dt).normalized();
 
         self.state_time += (dt * state_animation_rate) as f64;
 
-        let mat = anim::vek::Mat4::rotation_z(-ori.x.atan2(ori.y))
-            * anim::vek::Mat4::rotation_x(ori.z.atan2(anim::vek::Vec2::from(ori).magnitude()))
-            * anim::vek::Mat4::scaling_3d(anim::vek::Vec3::from(0.8 * scale));
+        let mat = {
+            anim::vek::Mat4::from(ori)
+                * anim::vek::Mat4::scaling_3d(anim::vek::Vec3::from(0.8 * scale))
+        };
 
         let atlas_offs = model.allocation.rectangle.min;
 

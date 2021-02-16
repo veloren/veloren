@@ -1,6 +1,6 @@
 use super::utils::handle_climb;
 use crate::{
-    comp::{inventory::slot::EquipSlot, CharacterState, StateUpdate},
+    comp::{inventory::slot::EquipSlot, CharacterState, Ori, StateUpdate},
     states::behavior::{CharacterBehavior, JoinData},
     util::Dir,
 };
@@ -49,8 +49,10 @@ impl CharacterBehavior for Data {
             };
 
         // Determine orientation vector from movement direction vector
-        let horiz_vel = Vec2::from(update.vel.0);
-        update.ori.0 = Dir::slerp_to_vec3(update.ori.0, horiz_vel.into(), 2.0 * data.dt.0);
+        let horiz_vel = Vec2::<f32>::from(update.vel.0);
+        if let Some(dir) = Dir::from_unnormalized(update.vel.0) {
+            update.ori = update.ori.slerped_towards(Ori::from(dir), 2.0 * data.dt.0);
+        };
 
         // Apply Glide antigrav lift
         let horiz_speed_sq = horiz_vel.magnitude_squared();

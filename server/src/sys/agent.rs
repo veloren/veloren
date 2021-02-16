@@ -198,7 +198,7 @@ impl<'a> System<'a> for Sys {
                 let mut inputs = &mut controller.inputs;
 
                 // Default to looking in orientation direction (can be overridden below)
-                inputs.look_dir = ori.0;
+                inputs.look_dir = ori.look_dir();
 
                 const AVG_FOLLOW_DIST: f32 = 6.0;
                 const MAX_FOLLOW_DIST: f32 = 12.0;

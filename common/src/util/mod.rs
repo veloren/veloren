@@ -2,6 +2,8 @@ mod color;
 pub mod dir;
 pub mod find_dist;
 mod option;
+pub mod plane;
+pub mod projection;
 pub mod userdata_dir;
 
 pub const GIT_VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/githash"));
@@ -28,6 +30,8 @@ lazy_static::lazy_static! {
 pub use color::*;
 pub use dir::*;
 pub use option::*;
+pub use plane::*;
+pub use projection::*;
 
 #[cfg(feature = "tracy")] pub use tracy_client;
 
