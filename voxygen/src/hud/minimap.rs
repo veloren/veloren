@@ -25,6 +25,7 @@ widget_ids! {
         mmap_button,
         mmap_plus,
         mmap_minus,
+        mmap_north_button,
         grid,
         indicator,
         mmap_north,
@@ -79,6 +80,8 @@ pub struct State {
     ids: Ids,
 
     zoom: f64,
+
+    is_facing_north: bool,
 }
 
 pub enum Event {
@@ -102,6 +105,8 @@ impl<'a> Widget for MiniMap<'a> {
                         * (16.0 / 1024.0),
                 )
             },
+
+            is_facing_north: false,
         }
     }
 
@@ -112,6 +117,12 @@ impl<'a> Widget for MiniMap<'a> {
         let widget::UpdateArgs { state, ui, .. } = args;
         let zoom = state.zoom;
         const SCALE: f64 = 1.5; // TODO Make this a setting
+        let orientation = if state.is_facing_north {
+            Vec3::new(0.0, 1.0, 0.0)
+        } else {
+            self.ori
+        };
+
         if self.show.mini_map {
             Image::new(self.imgs.mmap_frame)
                 .w_h(174.0 * SCALE, 190.0 * SCALE)
@@ -182,6 +193,31 @@ impl<'a> Widget for MiniMap<'a> {
                 // set_image_dims(zoom);
             }
 
+            // Always northfacing button
+            if Button::image(if state.is_facing_north {
+                self.imgs.mmap_north_press
+            } else {
+                self.imgs.mmap_north
+            })
+            .w_h(18.0 * SCALE, 18.0 * SCALE)
+            .hover_image(if state.is_facing_north {
+                self.imgs.mmap_north_press_hover
+            } else {
+                self.imgs.mmap_north_hover
+            })
+            .press_image(if state.is_facing_north {
+                self.imgs.mmap_north_press_hover
+            } else {
+                self.imgs.mmap_north_press
+            })
+            .left_from(state.ids.mmap_button, 0.0)
+            .image_color(UI_HIGHLIGHT_0)
+            .set(state.ids.mmap_north_button, ui)
+            .was_clicked()
+            {
+                state.update(|s| s.is_facing_north = !s.is_facing_north);
+            }
+
             // Reload zoom in case it changed.
             let zoom = state.zoom;
 
@@ -211,7 +247,12 @@ impl<'a> Widget for MiniMap<'a> {
             let map_size = Vec2::new(170.0 * SCALE, 170.0 * SCALE);
 
             // Map Image
-            Image::new(world_map.source_north)
+            let world_map_rotation = if state.is_facing_north {
+                world_map.none
+            } else {
+                world_map.source_north
+            };
+            Image::new(world_map_rotation)
                 .middle_of(state.ids.mmap_frame_bg)
                 .w_h(map_size.x, map_size.y)
                 .parent(state.ids.mmap_frame_bg)
@@ -246,8 +287,8 @@ impl<'a> Widget for MiniMap<'a> {
                 // (the center)
                 // Accounting for zooming
                 let rpixpos = rfpos.map2(map_size, |e, sz| e * sz as f32 * zoom as f32);
-                let rpos = Vec2::unit_x().rotated_z(self.ori.x) * rpixpos.x
-                    + Vec2::unit_y().rotated_z(self.ori.x) * rpixpos.y;
+                let rpos = Vec2::unit_x().rotated_z(orientation.x) * rpixpos.x
+                    + Vec2::unit_y().rotated_z(orientation.x) * rpixpos.y;
 
                 if rpos
                     .map2(map_size, |e, sz| e.abs() > sz as f32 / 2.0)
@@ -335,8 +376,8 @@ impl<'a> Widget for MiniMap<'a> {
                     // (the center)
                     // Accounting for zooming
                     let rpixpos = rfpos.map2(map_size, |e, sz| e * sz as f32 * zoom as f32);
-                    let rpos = Vec2::unit_x().rotated_z(self.ori.x) * rpixpos.x
-                        + Vec2::unit_y().rotated_z(self.ori.x) * rpixpos.y;
+                    let rpos = Vec2::unit_x().rotated_z(orientation.x) * rpixpos.x
+                        + Vec2::unit_y().rotated_z(orientation.x) * rpixpos.y;
 
                     if rpos
                         .map2(map_size, |e, sz| e.abs() > sz as f32 / 2.0)
@@ -364,7 +405,12 @@ impl<'a> Widget for MiniMap<'a> {
 
             // Indicator
             let ind_scale = 0.4;
-            Image::new(self.rot_imgs.indicator_mmap_small.none)
+            let ind_rotation = if state.is_facing_north {
+                self.rot_imgs.indicator_mmap_small.target_north
+            } else {
+                self.rot_imgs.indicator_mmap_small.none
+            };
+            Image::new(ind_rotation)
                 .middle_of(state.ids.grid)
                 .w_h(32.0 * ind_scale, 37.0 * ind_scale)
                 .color(Some(UI_HIGHLIGHT_0))
@@ -379,8 +425,8 @@ impl<'a> Widget for MiniMap<'a> {
                 (Vec2::new(-1.0, 0.0), state.ids.mmap_west, "W", false),
             ];
             for (dir, id, name, bold) in dirs.iter() {
-                let cardinal_dir = Vec2::unit_x().rotated_z(self.ori.x as f64) * dir.x
-                    + Vec2::unit_y().rotated_z(self.ori.x as f64) * dir.y;
+                let cardinal_dir = Vec2::unit_x().rotated_z(orientation.x as f64) * dir.x
+                    + Vec2::unit_y().rotated_z(orientation.x as f64) * dir.y;
                 let clamped = cardinal_dir / cardinal_dir.map(|e| e.abs()).reduce_partial_max();
                 let pos = clamped * (map_size / 2.0 - 10.0);
                 Text::new(name)
