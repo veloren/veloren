@@ -1,12 +1,12 @@
-use std::{cell::{Cell, RefCell}, cmp::Ordering, collections::HashSet, marker::PhantomData, rc::Rc, sync::{self, Arc, Mutex, atomic::AtomicI32}};
+use std::{collections::HashSet, marker::PhantomData, sync::{Arc, Mutex, atomic::AtomicI32}};
 
 use specs::World;
 use wasmer::{
-    imports, Cranelift, Function, HostEnvInitError, Instance, LazyInit, Memory, MemoryView, Module,
-    Store, Value, WasmerEnv, JIT,
+    imports, Cranelift, Function, Instance, Memory, Module,
+    Store, Value, JIT,
 };
 
-use super::errors::{MemoryAllocationError, PluginError, PluginModuleError};
+use super::{errors::{PluginError, PluginModuleError}, memory_manager::{self, MemoryManager}, wasm_env::HostFunctionEnvironement};
 
 use plugin_api::{Action, Event};
 
@@ -14,8 +14,11 @@ use plugin_api::{Action, Event};
 // This structure represent the WASM State of the plugin.
 pub struct PluginModule {
     ecs: Arc<AtomicI32>,
-    wasm_state: Arc<Mutex<WasmState>>,
+    wasm_state: Arc<Mutex<Instance>>,
+    memory_manager: Arc<MemoryManager>,
     events: HashSet<String>,
+    allocator: Function,
+    memory: Memory,
     name: String,
 }
 
@@ -30,21 +33,8 @@ impl PluginModule {
         let module = Module::new(&store, &wasm_data).expect("Can't compile");
 
         // This is the function imported into the wasm environement
-        fn raw_emit_actions(env: &EmitActionEnv, ptr: u32, len: u32) {
-            let memory: &Memory = if let Some(e) = env.memory.get_ref() {
-                e
-            } else {
-                // This should not be possible but I prefer be safer!
-                tracing::error!("Can't get memory from: `{}` plugin", env.name);
-                return;
-            };
-            let memory: MemoryView<u8> = memory.view();
-
-            let str_slice = &memory[ptr as usize..(ptr + len) as usize];
-
-            let bytes: Vec<u8> = str_slice.iter().map(|x| x.get()).collect();
-
-            handle_actions(match bincode::deserialize(&bytes) {
+        fn raw_emit_actions(env: &HostFunctionEnvironement, ptr: u32, len: u32) {
+            handle_actions(match env.read_data(ptr as i32, len) {
                 Ok(e) => e,
                 Err(e) => {
                     tracing::error!(?e, "Can't decode action");
@@ -52,42 +42,14 @@ impl PluginModule {
                 },
             });
         }
-        
-        fn raw_retreive_action(env: &EmitActionEnv, ptr: u32, len: u32) {
-            let memory: &Memory = if let Some(e) = env.memory.get_ref() {
-                e
-            } else {
-                // This should not be possible but I prefer be safer!
-                tracing::error!("Can't get memory from: `{}` plugin", env.name);
-                return;
-            };
-            let memory: MemoryView<u8> = memory.view();
-
-            let str_slice = &memory[ptr as usize..(ptr + len) as usize];
-
-            let bytes: Vec<u8> = str_slice.iter().map(|x| x.get()).collect();
-
-            let r = env.ecs.load(std::sync::atomic::Ordering::SeqCst);
-            if r == i32::MAX {
-                println!("No ECS availible 1");
-                return;
-            }
-            unsafe {
-                if let Some(t) = (r as *const World).as_ref() {
-                    println!("We have a pointer there");
-                } else {
-                    println!("No ECS availible 2");
-                }
-            }
-        }
 
         let ecs = Arc::new(AtomicI32::new(i32::MAX));
+        let memory_manager = Arc::new(MemoryManager::new());
 
         // Create an import object.
         let import_object = imports! {
             "env" => {
-                "raw_emit_actions" => Function::new_native_with_env(&store, EmitActionEnv::new(name.clone(), ecs.clone()), raw_emit_actions),
-                "raw_retreive_action" => Function::new_native_with_env(&store, EmitActionEnv::new(name.clone(), ecs.clone()), raw_retreive_action),
+                "raw_emit_actions" => Function::new_native_with_env(&store, HostFunctionEnvironement::new(name.clone(), ecs.clone(),memory_manager.clone()), raw_emit_actions),
             }
         };
 
@@ -95,13 +57,16 @@ impl PluginModule {
         let instance = Instance::new(&module, &import_object)
             .map_err(PluginModuleError::InstantiationError)?;
         Ok(Self {
+            memory_manager,
             ecs,
+            memory: instance.exports.get_memory("memory").map_err(PluginModuleError::MemoryUninit)?.clone(),
+            allocator: instance.exports.get_function("wasm_prepare_buffer").map_err(PluginModuleError::MemoryUninit)?.clone(),
             events: instance
                 .exports
                 .iter()
                 .map(|(name, _)| name.to_string())
                 .collect(),
-            wasm_state: Arc::new(Mutex::new(WasmState::new(instance))),
+            wasm_state: Arc::new(Mutex::new(instance)),
             name,
         })
     }
@@ -123,7 +88,7 @@ impl PluginModule {
         self.ecs.store((&ecs) as *const _ as i32, std::sync::atomic::Ordering::SeqCst);
         let bytes = {
             let mut state = self.wasm_state.lock().unwrap();
-            match execute_raw(&mut state, event_name, &request.bytes) {
+            match execute_raw(self,&mut state,event_name,&request.bytes) {
                 Ok(e) => e,
                 Err(e) => return Some(Err(e)),
             }
@@ -133,54 +98,6 @@ impl PluginModule {
     }
 }
 
-/// This is an internal struct used to represent the WASM state when the
-/// emit_action function is called
-#[derive(Clone)]
-struct EmitActionEnv {
-    ecs: Arc<AtomicI32>,
-    memory: LazyInit<Memory>,
-    name: String,
-}
-
-impl EmitActionEnv {
-    fn new(name: String,ecs: Arc<AtomicI32>) -> Self {
-        Self {
-            ecs,
-            memory: LazyInit::new(),
-            name,
-        }
-    }
-}
-
-impl WasmerEnv for EmitActionEnv {
-    fn init_with_instance(&mut self, instance: &Instance) -> Result<(), HostEnvInitError> {
-        let memory = instance.exports.get_memory("memory").unwrap();
-        self.memory.initialize(memory.clone());
-        Ok(())
-    }
-}
-
-pub struct WasmMemoryContext {
-    memory_buffer_size: usize,
-    memory_pointer: i32,
-}
-
-pub struct WasmState {
-    instance: Instance,
-    memory: WasmMemoryContext,
-}
-
-impl WasmState {
-    fn new(instance: Instance) -> Self {
-        Self {
-            instance,
-            memory: WasmMemoryContext {
-                memory_buffer_size: 0,
-                memory_pointer: 0,
-            },
-        }
-    }
-}
 
 // This structure represent a Pre-encoded event object (Useful to avoid
 // reencoding for each module in every plugin)
@@ -207,71 +124,30 @@ impl<T: Event> PreparedEventQuery<T> {
 // an interface to limit unsafe behaviours
 #[allow(clippy::needless_range_loop)]
 fn execute_raw(
-    instance: &mut WasmState,
+    module: &PluginModule,
+    instance: &mut Instance,
     event_name: &str,
     bytes: &[u8],
 ) -> Result<Vec<u8>, PluginModuleError> {
-    let len = bytes.len();
-
-    let mem_position = reserve_wasm_memory_buffer(len, &instance.instance, &mut instance.memory)
-        .map_err(PluginModuleError::MemoryAllocation)? as usize;
-
-    let memory = instance
-        .instance
-        .exports
-        .get_memory("memory")
-        .map_err(PluginModuleError::MemoryUninit)?;
-
-    memory.view()[mem_position..mem_position + len]
-        .iter()
-        .zip(bytes.iter())
-        .for_each(|(cell, byte)| cell.set(*byte));
+    let (mem_position,len) = module.memory_manager.write_bytes(&module.memory, &module.allocator, bytes)?;
 
     let func = instance
-        .instance
         .exports
         .get_function(event_name)
         .map_err(PluginModuleError::MemoryUninit)?;
 
-    let mem_position = func
+    let function_result = func
         .call(&[Value::I32(mem_position as i32), Value::I32(len as i32)])
-        .map_err(PluginModuleError::RunFunction)?[0]
+        .map_err(PluginModuleError::RunFunction)?;
+        
+    let pointer = function_result[0]
         .i32()
-        .ok_or_else(PluginModuleError::InvalidArgumentType)? as usize;
+        .ok_or_else(PluginModuleError::InvalidArgumentType)?;
+    let length = function_result[1]
+        .i32()
+        .ok_or_else(PluginModuleError::InvalidArgumentType)? as u32;
 
-    let view: MemoryView<u8> = memory.view();
-
-    let mut new_len_bytes = [0u8; 4];
-    // TODO: It is probably better to dirrectly make the new_len_bytes
-    for i in 0..4 {
-        new_len_bytes[i] = view.get(i + 1).map(Cell::get).unwrap_or(0);
-    }
-
-    let len = u32::from_ne_bytes(new_len_bytes) as usize;
-
-    Ok(view[mem_position..mem_position + len]
-        .iter()
-        .map(|x| x.get())
-        .collect())
-}
-
-fn reserve_wasm_memory_buffer(
-    size: usize,
-    instance: &Instance,
-    context: &mut WasmMemoryContext,
-) -> Result<i32, MemoryAllocationError> {
-    if context.memory_buffer_size >= size {
-        return Ok(context.memory_pointer);
-    }
-    let pointer = instance
-        .exports
-        .get_function("wasm_prepare_buffer")
-        .map_err(MemoryAllocationError::AllocatorNotFound)?
-        .call(&[Value::I32(size as i32)])
-        .map_err(MemoryAllocationError::CantAllocate)?;
-    context.memory_buffer_size = size;
-    context.memory_pointer = pointer[0].i32().unwrap();
-    Ok(context.memory_pointer)
+    Ok(memory_manager::read_bytes(&module.memory, pointer, length))
 }
 
 fn handle_actions(actions: Vec<Action>) {

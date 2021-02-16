@@ -51,13 +51,9 @@ where
     bincode::deserialize(slice).map_err(|_| "Failed to deserialize function input")
 }
 
-pub fn write_output(value: impl Serialize) -> i32 {
+pub fn write_output(value: impl Serialize) -> (i32,i32) {
     let ret = bincode::serialize(&value).expect("Can't serialize event output");
-    let len = ret.len() as u32;
-    unsafe {
-        ::std::ptr::write(1 as _, len);
-    }
-    ret.as_ptr() as _
+    (ret.as_ptr() as _, ret.len() as _)
 }
 
 static mut BUFFERS: Vec<u8> = Vec::new();
