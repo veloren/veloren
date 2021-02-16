@@ -2,12 +2,11 @@ BasicRanged(
     energy_cost: 0,
     buildup_duration: 0.5,
     recover_duration: 0.35,
-    projectile: Fireball(
+    projectile: Frostball(
         damage: 100.0,
         radius: 5.0,
-        energy_regen: 50,
     ),
-    projectile_body: Object(BoltFire),
+    projectile_body: Object(BoltFire), // TODO: Get ice projectile model
     /*projectile_light: Some(LightEmitter {
         col: (1.0, 0.75, 0.11).into(),
         ..Default::default()

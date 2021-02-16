@@ -29,7 +29,6 @@ use common::{
 };
 use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
 use common_sys::state::BlockChange;
-use comp::item::Reagent;
 use hashbrown::HashSet;
 use rand::prelude::*;
 use specs::{join::Join, saveload::MarkerAllocator, Entity as EcsEntity, WorldExt};
@@ -577,19 +576,13 @@ pub fn handle_explosion(
     pos: Vec3<f32>,
     explosion: Explosion,
     owner: Option<Uid>,
-    reagent: Option<Reagent>,
 ) {
     // Go through all other entities
     let ecs = &server.state.ecs();
 
     // Add an outcome
-    // Uses radius as outcome power, makes negative if explosion has healing effect
-    let outcome_power = explosion.radius
-        * if explosion.effects.iter().any(|e| matches!(e, RadiusEffect::Attack(a) if a.effects().any(|e| matches!(e.effect(), combat::CombatEffect::Heal(h) if *h > 0.0)))) {
-        -1.0
-    } else {
-        1.0
-    };
+    // Uses radius as outcome power for now
+    let outcome_power = explosion.radius;
     ecs.write_resource::<Vec<Outcome>>()
         .push(Outcome::Explosion {
             pos,
@@ -599,7 +592,7 @@ pub fn handle_explosion(
                 .effects
                 .iter()
                 .any(|e| matches!(e, RadiusEffect::Attack(_))),
-            reagent,
+            reagent: explosion.reagent,
         });
     let owner_entity = owner.and_then(|uid| {
         ecs.read_resource::<UidAllocator>()

@@ -39,7 +39,6 @@ pub enum ServerEvent {
         pos: Vec3<f32>,
         explosion: Explosion,
         owner: Option<Uid>,
-        reagent: Option<Reagent>,
     },
     Damage {
         entity: EcsEntity,

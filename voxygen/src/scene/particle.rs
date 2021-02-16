@@ -62,38 +62,59 @@ impl ParticleMgr {
                 reagent,
             } => {
                 if *is_attack {
-                    if *power < 0.0 {
-                        self.particles.resize_with(
-                            self.particles.len() + (60.0 * power.abs()) as usize,
-                            || {
-                                Particle::new_directed(
-                                    Duration::from_secs_f32(rng.gen_range(0.2..3.0)),
-                                    time,
-                                    ParticleMode::EnergyNature,
-                                    *pos,
-                                    *pos + Vec3::<f32>::zero()
-                                        .map(|_| rng.gen_range(-1.0..1.0))
-                                        .normalized()
-                                        * rng.gen_range(1.0..*radius),
-                                )
-                            },
-                        );
-                    } else {
-                        self.particles.resize_with(
-                            self.particles.len() + (75.0 * power.abs()) as usize,
-                            || {
-                                Particle::new_directed(
-                                    Duration::from_millis(500),
-                                    time,
-                                    ParticleMode::Explosion,
-                                    *pos,
-                                    *pos + Vec3::<f32>::zero()
-                                        .map(|_| rng.gen_range(-1.0..1.0))
-                                        .normalized()
-                                        * *radius,
-                                )
-                            },
-                        );
+                    match reagent {
+                        Some(Reagent::Green) => {
+                            self.particles.resize_with(
+                                self.particles.len() + (60.0 * power.abs()) as usize,
+                                || {
+                                    Particle::new_directed(
+                                        Duration::from_secs_f32(rng.gen_range(0.2..3.0)),
+                                        time,
+                                        ParticleMode::EnergyNature,
+                                        *pos,
+                                        *pos + Vec3::<f32>::zero()
+                                            .map(|_| rng.gen_range(-1.0..1.0))
+                                            .normalized()
+                                            * rng.gen_range(1.0..*radius),
+                                    )
+                                },
+                            );
+                        },
+                        Some(Reagent::Red) => {
+                            self.particles.resize_with(
+                                self.particles.len() + (75.0 * power.abs()) as usize,
+                                || {
+                                    Particle::new_directed(
+                                        Duration::from_millis(500),
+                                        time,
+                                        ParticleMode::Explosion,
+                                        *pos,
+                                        *pos + Vec3::<f32>::zero()
+                                            .map(|_| rng.gen_range(-1.0..1.0))
+                                            .normalized()
+                                            * *radius,
+                                    )
+                                },
+                            );
+                        },
+                        Some(Reagent::Blue) => {
+                            self.particles.resize_with(
+                                self.particles.len() + (75.0 * power.abs()) as usize,
+                                || {
+                                    Particle::new_directed(
+                                        Duration::from_millis(500),
+                                        time,
+                                        ParticleMode::Ice,
+                                        *pos,
+                                        *pos + Vec3::<f32>::zero()
+                                            .map(|_| rng.gen_range(-1.0..1.0))
+                                            .normalized()
+                                            * *radius,
+                                    )
+                                },
+                            );
+                        },
+                        _ => {},
                     }
                 } else {
                     self.particles.resize_with(

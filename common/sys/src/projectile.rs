@@ -127,7 +127,6 @@ impl<'a> System<'a> for Sys {
                                 pos: pos.0,
                                 explosion: e,
                                 owner: projectile.owner,
-                                reagent: None,
                             })
                         },
                         projectile::Effect::Vanish => {
@@ -163,7 +162,6 @@ impl<'a> System<'a> for Sys {
                                 pos: pos.0,
                                 explosion: e,
                                 owner: projectile.owner,
-                                reagent: None,
                             })
                         },
                         projectile::Effect::Vanish => {

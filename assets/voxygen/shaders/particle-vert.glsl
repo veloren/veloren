@@ -58,6 +58,7 @@ const int FIRE_SHOCKWAVE = 16;
 const int FIRE_BOWL = 17;
 const int SNOW = 18;
 const int EXPLOSION = 19;
+const int ICE = 20;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -324,7 +325,7 @@ void main() {
         attr = Attr(
             spiral_motion(inst_dir, 0.3 * (floor(2 * rand0 + 0.5) - 0.5) * min(linear_scale(10), 1), lifetime / inst_lifespan, 10.0, inst_time),
             vec3((1.7 - 0.7 * abs(floor(2 * rand0 - 0.5) + 0.5)) * (1.5 + 0.5 * sin(tick.x * 10 - lifetime * 4))),
-            vec4(vec3(0.4, 1.6 + 0.3 * sin(tick.x * 10 - lifetime * 3 + 4), 1.0 + 0.15 * sin(tick.x * 5 - lifetime * 5)), start_end(1.0, 0.0) /*0.3*/),
+            vec4(vec3(0.4, 1.6 + 0.3 * sin(tick.x * 10 - lifetime * 3 + 4), 1.0 + 0.15 * sin(tick.x * 5 - lifetime * 5)), 1 /*0.3*/),
             spin_in_axis(inst_dir, tick.z)
         );
     } else if (inst_mode == ENERGY_NATURE) {
@@ -333,7 +334,7 @@ void main() {
             inst_dir * slow_end(0.03) + spiral_motion(vec3(rand1, rand2, rand3),
                 0.2 * (rand4 + 1.3) * slow_end(0.02), percent() * 3 * (rand4 + 4.0) + rand0, 1.0, 0.0),
             vec3(1.0),
-            vec4(vec3(0, 2.5, 1.5 + rand7 * 0.7), start_end(1.0, 0.0)),
+            vec4(vec3(0, 2.5, 1.5 + rand7 * 0.7), 1),
             spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3)
         );
     } else if (inst_mode == FLAMETHROWER) {
@@ -341,7 +342,7 @@ void main() {
         attr = Attr(
             (inst_dir * slow_end(1.5)) + vec3(rand0, rand1, rand2) * (lifetime * 5 + 0.25),
             vec3((2.5 * (1 - slow_start(0.3)))),
-            vec4(3, 1.6 + rand5 * 0.3 - 0.4 * percent(), 0.2, start_end(1.0, 0.0)),
+            vec4(3, 1.6 + rand5 * 0.3 - 0.4 * percent(), 0.2, 1),
             spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
         );
     } else if (inst_mode == EXPLOSION) {
@@ -349,7 +350,15 @@ void main() {
         attr = Attr(
             inst_dir * ((rand0+1.0)/2 + 0.4) * slow_end(2.0) + 0.3 * grav_vel(earth_gravity),
             vec3((3 * (1 - slow_start(0.1)))),
-            vec4(3, 1.6 + rand5 * 0.3 - 0.4 * percent(), 0.2, start_end(1.0, 0.0)),
+            vec4(3, 1.6 + rand5 * 0.3 - 0.4 * percent(), 0.2, 1),
+            spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
+        );
+    } else if (inst_mode == ICE) {
+        f_reflect = 0.0; // Ice doesn't reflect to look like magic
+        attr = Attr(
+            inst_dir * ((rand0+1.0)/2 + 0.4) * slow_end(2.0) + 0.3 * grav_vel(earth_gravity),
+            vec3((3 * (1 - slow_start(0.1)))),
+            vec4(0.2, 1.6 + rand5 * 0.3 - 0.4 * percent(), 3, 1),
             spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
         );
     } else if (inst_mode == FIRE_SHOCKWAVE) {
@@ -357,7 +366,7 @@ void main() {
         attr = Attr(
             vec3(rand0, rand1, lifetime * 10 + rand2),
             vec3((5 * (1 - slow_start(0.5)))),
-            vec4(3, 1.6 + rand5 * 0.3 - 0.4 * percent(), 0.2, start_end(1.0, 0.0)),
+            vec4(3, 1.6 + rand5 * 0.3 - 0.4 * percent(), 0.2, 1),
             spin_in_axis(vec3(rand3, rand4, rand5), rand6)
         );
     } else {

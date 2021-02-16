@@ -93,7 +93,7 @@
         abilities: [],
     ),
     Unique(WendigoMagic): (
-        primary: "common.abilities.unique.wendigomagic.firebomb",
+        primary: "common.abilities.unique.wendigomagic.frostbomb",
         secondary: "common.abilities.unique.wendigomagic.singlestrike",
         skills: [],
     ),

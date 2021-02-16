@@ -60,9 +60,9 @@ impl<'a> System<'a> for Sys {
                                     RadiusEffect::TerrainDestruction(4.0),
                                 ],
                                 radius: 12.0,
+                                reagent: None,
                             },
                             owner: *owner,
-                            reagent: None,
                         });
                     }
                 },
@@ -87,9 +87,9 @@ impl<'a> System<'a> for Sys {
                                     RadiusEffect::TerrainDestruction(4.0),
                                 ],
                                 radius: 12.0,
+                                reagent: Some(*reagent),
                             },
                             owner: *owner,
-                            reagent: Some(*reagent),
                         });
                     }
                 },
