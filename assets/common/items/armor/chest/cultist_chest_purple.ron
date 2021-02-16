@@ -9,4 +9,5 @@ ItemDef(
         ),
     )),
     quality: Epic,
+    tags: [],
 )

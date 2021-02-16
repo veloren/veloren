@@ -5,4 +5,5 @@ ItemDef(
         kind: "PlantFiber",
     ),
     quality: Common,
+    tags: [],
 )

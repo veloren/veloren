@@ -13,5 +13,6 @@ ItemDef(
         )
     ),
     quality: Debug,
+    tags: [],
 )
 // And the ground is pretty hard at maximum velocity...

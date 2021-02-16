@@ -5,4 +5,5 @@ ItemDef(
         kind: "EldwoodLogs",
     ),
     quality: Common,
+    tags: [],
 )

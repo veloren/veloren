@@ -14,4 +14,5 @@ ItemDef(
         )
     ),
     quality: Moderate,
+    tags: [],
 )

@@ -5,4 +5,5 @@ ItemDef(
         kind: "FlowerRed",
     ),
     quality: Common,
+    tags: [],
 )

@@ -3,7 +3,7 @@ use common::{
     assets::{self, AssetExt, AssetHandle, DotVoxAsset},
     comp::item::{
         armor::{Armor, ArmorKind},
-        Glider, ItemDesc, ItemKind, Lantern, Throwable, Utility,
+        Glider, ItemDef, ItemDesc, ItemKind, Lantern, Throwable, Utility,
     },
     figure::Segment,
 };
@@ -15,6 +15,11 @@ use std::sync::Arc;
 use tracing::{error, warn};
 use vek::*;
 
+pub fn animate_by_pulse(ids: &[Id], pulse: f32) -> Id {
+    let animation_frame = (pulse * 3.0) as usize;
+    ids[animation_frame % ids.len()]
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ItemKey {
     Tool(String),
@@ -25,6 +30,7 @@ pub enum ItemKey {
     Consumable(String),
     Throwable(Throwable),
     Ingredient(String),
+    TagExamples(Vec<ItemKey>),
     Empty,
 }
 
@@ -42,6 +48,12 @@ impl<T: ItemDesc> From<&T> for ItemKey {
             ItemKind::Consumable { kind, .. } => ItemKey::Consumable(kind.clone()),
             ItemKind::Throwable { kind, .. } => ItemKey::Throwable(*kind),
             ItemKind::Ingredient { kind, .. } => ItemKey::Ingredient(kind.clone()),
+            ItemKind::TagExamples { item_ids } => ItemKey::TagExamples(
+                item_ids
+                    .iter()
+                    .map(|id| ItemKey::from(&*Arc::<ItemDef>::load_expect_cloned(id)))
+                    .collect(),
+            ),
         }
     }
 }
@@ -135,22 +147,33 @@ impl ItemImgs {
         }
     }
 
-    pub fn img_id(&self, item_key: ItemKey) -> Option<Id> {
+    pub fn img_ids(&self, item_key: ItemKey) -> Vec<Id> {
+        if let ItemKey::TagExamples(keys) = item_key {
+            return keys
+                .iter()
+                .filter_map(|k| self.map.get(k))
+                .cloned()
+                .collect();
+        };
         match self.map.get(&item_key) {
-            Some(id) => Some(*id),
+            Some(id) => vec![*id],
             // There was no specification in the ron
             None => {
                 warn!(
                     ?item_key,
                     "missing specified image file (note: hot-reloading won't work here)",
                 );
-                None
+                Vec::new()
             },
         }
     }
 
-    pub fn img_id_or_not_found_img(&self, item_key: ItemKey) -> Id {
-        self.img_id(item_key).unwrap_or(self.not_found)
+    pub fn img_ids_or_not_found_img(&self, item_key: ItemKey) -> Vec<Id> {
+        let mut ids = self.img_ids(item_key);
+        if ids.is_empty() {
+            ids.push(self.not_found)
+        }
+        ids
     }
 }
 

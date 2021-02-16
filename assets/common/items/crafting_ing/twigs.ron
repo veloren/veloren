@@ -5,4 +5,5 @@ ItemDef(
         kind: "Twigs",
     ),
     quality: Common,
+    tags: [],
 )

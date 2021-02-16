@@ -30,6 +30,7 @@ pub fn item_text<'a>(item: &'a impl ItemDesc) -> (&'_ str, Cow<'a, str>) {
         ItemKind::Utility { .. } => Cow::Owned(utility_desc(item.description())),
         ItemKind::Ingredient { .. } => Cow::Owned(ingredient_desc(item.description())),
         ItemKind::Lantern { .. } => Cow::Owned(lantern_desc(item.description())),
+        ItemKind::TagExamples { .. } => Cow::Borrowed(item.description()),
         //_ => Cow::Borrowed(item.description()),
     };
 

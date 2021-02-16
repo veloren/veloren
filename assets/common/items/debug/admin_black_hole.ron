@@ -11,5 +11,6 @@ ItemDef(
         )
     ),
     quality: Artifact,
+    tags: [],
     slots: 900,
 )

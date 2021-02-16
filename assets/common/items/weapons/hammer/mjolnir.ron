@@ -13,4 +13,5 @@ ItemDef(
         )
     ),
     quality: Legendary,
+    tags: [],
 )

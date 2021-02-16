@@ -1,6 +1,6 @@
 use super::{
     img_ids::{Imgs, ImgsRot},
-    item_imgs::ItemImgs,
+    item_imgs::{animate_by_pulse, ItemImgs},
     TEXT_COLOR, TEXT_DULL_RED_COLOR, TEXT_GRAY_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
 };
 use crate::{
@@ -9,15 +9,21 @@ use crate::{
     ui::{fonts::Fonts, ImageFrame, Tooltip, TooltipManager, Tooltipable},
 };
 use client::{self, Client};
-use common::comp::{
-    item::{ItemDesc, Quality},
-    Inventory,
+use common::{
+    assets::AssetExt,
+    comp::{
+        item::{ItemDef, ItemDesc, Quality},
+        Inventory,
+    },
+    recipe::RecipeInput,
 };
 use conrod_core::{
     color,
     widget::{self, Button, Image, Rectangle, Scrollbar, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
+use std::sync::Arc;
+
 widget_ids! {
     pub struct Ids {
         window,
@@ -57,6 +63,7 @@ pub struct Crafting<'a> {
     imgs: &'a Imgs,
     fonts: &'a Fonts,
     localized_strings: &'a Localization,
+    pulse: f32,
     rot_imgs: &'a ImgsRot,
     tooltip_manager: &'a mut TooltipManager,
     item_imgs: &'a ItemImgs,
@@ -71,6 +78,7 @@ impl<'a> Crafting<'a> {
         imgs: &'a Imgs,
         fonts: &'a Fonts,
         localized_strings: &'a Localization,
+        pulse: f32,
         rot_imgs: &'a ImgsRot,
         tooltip_manager: &'a mut TooltipManager,
         item_imgs: &'a ItemImgs,
@@ -81,6 +89,7 @@ impl<'a> Crafting<'a> {
             imgs,
             fonts,
             localized_strings,
+            pulse,
             rot_imgs,
             tooltip_manager,
             item_imgs,
@@ -200,10 +209,14 @@ impl<'a> Widget for Crafting<'a> {
             .recipe_book()
             .iter()
             .map(|(name, recipe)| {
-                let at_least_some_ingredients = recipe
-                    .inputs
-                    .iter()
-                    .any(|(input, amount)| *amount > 0 && self.inventory.item_count(input) > 0);
+                let at_least_some_ingredients = recipe.inputs.iter().any(|(input, amount)| {
+                    *amount > 0
+                        && self.inventory.slots().any(|slot| {
+                            slot.as_ref()
+                                .map(|item| item.matches_recipe_input(input))
+                                .unwrap_or(false)
+                        })
+                });
                 let state = if client.available_recipes().contains(name.as_str()) {
                     RecipeIngredientQuantity::All
                 } else if at_least_some_ingredients {
@@ -286,10 +299,12 @@ impl<'a> Widget for Crafting<'a> {
                     // Output Image
                     let (title, desc) = super::util::item_text(&*recipe.output.0);
                     let quality_col = get_quality_col(&*recipe.output.0);
-                    Button::image(
-                        self.item_imgs
-                            .img_id_or_not_found_img((&*recipe.output.0).into()),
-                    )
+                    Button::image(animate_by_pulse(
+                        &self
+                            .item_imgs
+                            .img_ids_or_not_found_img((&*recipe.output.0).into()),
+                        self.pulse,
+                    ))
                     .w_h(55.0, 55.0)
                     .label(&output_text)
                     .label_color(TEXT_COLOR)
@@ -411,9 +426,29 @@ impl<'a> Widget for Crafting<'a> {
                 });
             };
             // Widget generation for every ingredient
-            for (i, (item_def, amount)) in recipe.inputs.iter().enumerate() {
+            for (i, (recipe_input, amount)) in recipe.inputs.iter().enumerate() {
+                let item_def = match recipe_input {
+                    RecipeInput::Item(item_def) => Arc::clone(item_def),
+                    RecipeInput::Tag(tag) => Arc::<ItemDef>::load_expect_cloned(
+                        &self
+                            .inventory
+                            .slots()
+                            .filter_map(|slot| {
+                                slot.as_ref().and_then(|item| {
+                                    if item.matches_recipe_input(recipe_input) {
+                                        Some(item.item_definition_id().to_string())
+                                    } else {
+                                        None
+                                    }
+                                })
+                            })
+                            .next()
+                            .unwrap_or_else(|| tag.exemplar_identifier().to_string()),
+                    ),
+                };
+
                 // Grey color for images and text if their amount is too low to craft the item
-                let item_count_in_inventory = self.inventory.item_count(item_def);
+                let item_count_in_inventory = self.inventory.item_count(&*item_def);
                 let col = if item_count_in_inventory >= u64::from(*amount.max(&1)) {
                     TEXT_COLOR
                 } else {
@@ -434,7 +469,7 @@ impl<'a> Widget for Crafting<'a> {
                 } else {
                     0.0
                 };
-                let quality_col = get_quality_col(&**item_def);
+                let quality_col = get_quality_col(&*item_def);
                 let quality_col_img = match &item_def.quality {
                     Quality::Low => self.imgs.inv_slot_grey,
                     Quality::Common => self.imgs.inv_slot,
@@ -453,18 +488,21 @@ impl<'a> Widget for Crafting<'a> {
                 };
                 frame.set(state.ids.ingredient_frame[i], ui);
                 //Item Image
-                let (title, desc) = super::util::item_text(&**item_def);
-                Button::image(self.item_imgs.img_id_or_not_found_img((&**item_def).into()))
-                    .w_h(22.0, 22.0)
-                    .middle_of(state.ids.ingredient_frame[i])
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        title,
-                        &*desc,
-                        &item_tooltip,
-                        quality_col,
-                    )
-                    .set(state.ids.ingredient_img[i], ui);
+                let (title, desc) = super::util::item_text(&*item_def);
+                Button::image(animate_by_pulse(
+                    &self.item_imgs.img_ids_or_not_found_img((&*item_def).into()),
+                    self.pulse,
+                ))
+                .w_h(22.0, 22.0)
+                .middle_of(state.ids.ingredient_frame[i])
+                .with_tooltip(
+                    self.tooltip_manager,
+                    title,
+                    &*desc,
+                    &item_tooltip,
+                    quality_col,
+                )
+                .set(state.ids.ingredient_img[i], ui);
                 // Ingredients text and amount
                 // Don't show inventory amounts above 999 to avoid the widget clipping
                 let over9k = "99+";
@@ -487,10 +525,14 @@ impl<'a> Widget for Crafting<'a> {
                         .set(state.ids.ingredients[i], ui);
                 } else {
                     // Ingredients
+                    let name = match recipe_input {
+                        RecipeInput::Item(_) => item_def.name().to_string(),
+                        RecipeInput::Tag(tag) => format!("Any {}", tag.name()),
+                    };
                     let input = format!(
                         "{}x {} ({})",
                         amount,
-                        &item_def.name(),
+                        name,
                         if item_count_in_inventory > 99 {
                             over9k
                         } else {

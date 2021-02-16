@@ -5,4 +5,5 @@ ItemDef(
         kind: "CraftsmanHammer",
     ),
     quality: Moderate,
+    tags: [],
 )
