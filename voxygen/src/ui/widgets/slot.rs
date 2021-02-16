@@ -1,4 +1,5 @@
 //! A widget for selecting a single value along some linear range.
+use crate::hud::animate_by_pulse;
 use conrod_core::{
     builder_methods, image,
     input::state::mouse,
@@ -15,7 +16,7 @@ pub trait SlotKey<C, I>: Copy {
     /// Returns an Option since the slot could be empty
     fn image_key(&self, source: &C) -> Option<(Self::ImageKey, Option<Color>)>;
     fn amount(&self, source: &C) -> Option<u32>;
-    fn image_id(key: &Self::ImageKey, source: &I) -> image::Id;
+    fn image_ids(key: &Self::ImageKey, source: &I) -> Vec<image::Id>;
 }
 
 pub trait SumSlot: Sized + PartialEq + Copy + Send + 'static {}
@@ -43,6 +44,7 @@ pub struct SlotMaker<'a, C, I, S: SumSlot> {
     pub content_source: &'a C,
     pub image_source: &'a I,
     pub slot_manager: Option<&'a mut SlotManager<S>>,
+    pub pulse: f32,
 }
 
 impl<'a, C, I, S> SlotMaker<'a, C, I, S>
@@ -82,6 +84,7 @@ where
             self.amount_text_color,
             self.content_source,
             self.image_source,
+            self.pulse,
         )
         .wh([wh[0] as f64, wh[1] as f64])
         .and_then(self.background_color, |s, c| s.with_background_color(c))
@@ -200,7 +203,7 @@ where
         widget: widget::Id,
         slot: S,
         ui: &conrod_core::Ui,
-        content_img: Option<image::Id>,
+        content_img: Option<Vec<image::Id>>,
     ) -> Interaction {
         // Add to list of slots
         self.slot_ids.push(widget);
@@ -285,7 +288,7 @@ where
         {
             // Start dragging if widget is filled
             if let Some(img) = content_img {
-                self.state = ManagerState::Dragging(widget, slot, img);
+                self.state = ManagerState::Dragging(widget, slot, img[0]);
             }
         }
 
@@ -337,6 +340,8 @@ pub struct Slot<'a, K: SlotKey<C, I> + Into<S>, C, I, S: SumSlot> {
     content_source: &'a C,
     image_source: &'a I,
 
+    pulse: f32,
+
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
 }
@@ -355,7 +360,7 @@ widget_ids! {
 /// Represents the state of the Slot widget.
 pub struct State<K> {
     ids: Ids,
-    cached_image: Option<(K, image::Id)>,
+    cached_images: Option<(K, Vec<image::Id>)>,
 }
 
 impl<'a, K, C, I, S> Slot<'a, K, C, I, S>
@@ -396,6 +401,7 @@ where
         amount_text_color: Color,
         content_source: &'a C,
         image_source: &'a I,
+        pulse: f32,
     ) -> Self {
         Self {
             slot_key,
@@ -413,6 +419,7 @@ where
             slot_manager: None,
             content_source,
             image_source,
+            pulse,
             common: widget::CommonBuilder::default(),
         }
     }
@@ -430,7 +437,7 @@ where
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
         State {
             ids: Ids::new(id_gen),
-            cached_image: None,
+            cached_images: None,
         }
     }
 
@@ -468,31 +475,31 @@ where
         let (image_key, content_color) = slot_key
             .image_key(content_source)
             .map_or((None, None), |(i, c)| (Some(i), c));
-        if state.cached_image.as_ref().map(|c| &c.0) != image_key.as_ref() {
+        if state.cached_images.as_ref().map(|c| &c.0) != image_key.as_ref() {
             state.update(|state| {
-                state.cached_image = image_key.map(|key| {
-                    let image_id = K::image_id(&key, &image_source);
-                    (key, image_id)
+                state.cached_images = image_key.map(|key| {
+                    let image_ids = K::image_ids(&key, &image_source);
+                    (key, image_ids)
                 });
             });
         }
 
         // Get image ids
-        let content_image = state.cached_image.as_ref().map(|c| c.1);
+        let content_images = state.cached_images.as_ref().map(|c| c.1.clone());
         // Get whether this slot is selected
         let interaction = self.slot_manager.map_or(Interaction::None, |m| {
-            m.update(id, slot_key.into(), ui, content_image)
+            m.update(id, slot_key.into(), ui, content_images.clone())
         });
         // No content if it is being dragged
-        let content_image = if let Interaction::Dragging = interaction {
+        let content_images = if let Interaction::Dragging = interaction {
             None
         } else {
-            content_image
+            content_images
         };
         // Go back to getting image ids
         let slot_image = if let Interaction::Selected = interaction {
             selected_slot
-        } else if content_image.is_some() {
+        } else if content_images.is_some() {
             self.filled_slot
         } else {
             empty_slot
@@ -519,7 +526,7 @@ where
 
         // Draw icon (only when there is not content)
         // Note: this could potentially be done by the user instead
-        if let (Some((icon_image, size, color)), true) = (icon, content_image.is_none()) {
+        if let (Some((icon_image, size, color)), true) = (icon, content_images.is_none()) {
             let wh = size.map(|e| e as f64).into_array();
             Image::new(icon_image)
                 .x_y(x, y)
@@ -531,8 +538,8 @@ where
         }
 
         // Draw contents
-        if let Some(content_image) = content_image {
-            Image::new(content_image)
+        if let Some(content_images) = content_images {
+            Image::new(animate_by_pulse(&content_images, self.pulse))
                 .x_y(x, y)
                 .wh((content_size
                     * if let Interaction::Selected = interaction {

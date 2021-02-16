@@ -16,7 +16,7 @@ use crate::{
         slot::{InvSlotId, SlotId},
         Item,
     },
-    recipe::Recipe,
+    recipe::{Recipe, RecipeInput},
     LoadoutBuilder,
 };
 
@@ -299,15 +299,18 @@ impl Inventory {
     pub fn contains_ingredients<'a>(
         &self,
         recipe: &'a Recipe,
-    ) -> Result<HashMap<InvSlotId, u32>, Vec<(&'a ItemDef, u32)>> {
+    ) -> Result<HashMap<InvSlotId, u32>, Vec<(&'a RecipeInput, u32)>> {
         let mut slot_claims = HashMap::<InvSlotId, u32>::new();
-        let mut missing = Vec::<(&ItemDef, u32)>::new();
+        let mut missing = Vec::<(&RecipeInput, u32)>::new();
 
         for (input, mut needed) in recipe.inputs() {
             let mut contains_any = false;
 
             for (inv_slot_id, slot) in self.slots_with_id() {
-                if let Some(item) = slot.as_ref().filter(|item| item.is_same_item_def(&*input)) {
+                if let Some(item) = slot
+                    .as_ref()
+                    .filter(|item| item.matches_recipe_input(&*input))
+                {
                     let claim = slot_claims.entry(inv_slot_id).or_insert(0);
                     let can_claim = (item.amount() - *claim).min(needed);
                     *claim += can_claim;

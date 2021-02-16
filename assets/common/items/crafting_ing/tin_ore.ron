@@ -5,4 +5,5 @@ ItemDef(
         kind: "TinOre",
     ),
     quality: Common,
+    tags: [],
 )

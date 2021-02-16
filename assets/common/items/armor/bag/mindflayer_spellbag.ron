@@ -11,5 +11,6 @@ ItemDef(
         )
     ),
     quality: Epic,
+    tags: [],
     slots: 27,
 )

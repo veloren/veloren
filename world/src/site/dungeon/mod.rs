@@ -267,9 +267,10 @@ impl Floor {
         level: i32,
         difficulty: u32,
     ) -> (Self, Vec2<i32>) {
+        const MAX_WIDTH: u32 = 4;
         let floors = 3 + difficulty / 2;
         let final_level = level == floors as i32 - 1;
-        let width = (2 + difficulty / 2).min(4);
+        let width = (2 + difficulty / 2).min(MAX_WIDTH);
         let height = (15 + difficulty * 3).min(30);
 
         let new_stair_tile = if final_level {
@@ -309,8 +310,6 @@ impl Floor {
             pillars: None,
             difficulty,
         });
-        this.tiles
-            .set(stair_tile - tile_offset, Tile::UpStair(upstair_room));
         if final_level {
             // Boss room
             this.create_room(Room {
@@ -320,7 +319,7 @@ impl Floor {
                 miniboss: false,
                 boss: true,
                 area: Rect::from((
-                    new_stair_tile - tile_offset - 4,
+                    new_stair_tile - tile_offset - MAX_WIDTH as i32 - 1,
                     Extent2::broadcast(width as i32 * 2 + 1),
                 )),
                 height: height as i32,
@@ -345,6 +344,8 @@ impl Floor {
                 Tile::DownStair(downstair_room),
             );
         }
+        this.tiles
+            .set(stair_tile - tile_offset, Tile::UpStair(upstair_room));
 
         this.create_rooms(ctx, level, 7);
         // Create routes between all rooms

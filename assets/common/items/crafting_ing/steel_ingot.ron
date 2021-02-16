@@ -5,4 +5,5 @@ ItemDef(
         kind: "SteelIngot",
     ),
     quality: Common,
+    tags: [],
 )

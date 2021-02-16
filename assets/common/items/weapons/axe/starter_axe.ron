@@ -11,4 +11,5 @@ ItemDef(
         ),
     )),
     quality: Low,
+    tags: [],
 )

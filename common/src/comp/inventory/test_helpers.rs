@@ -18,6 +18,7 @@ pub(super) fn get_test_bag(slots: u16) -> Item {
             Protection::Normal(0.0),
         )),
         Quality::Common,
+        Vec::new(),
         slots,
     );
 

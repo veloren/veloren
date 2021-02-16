@@ -38,7 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Glider can now be deployed mid-air at the cost of some stamina based on fall speed
 - Translations are now folders with multiple files instead of a huge single file
 - Default inventory slots reduced to 18 - existing characters given 3x 6-slot bags as compensation
-- Protection rating was moved to the top left of the loadout view 
+- Protection rating was moved to the top left of the loadout view
 - Changed camera smoothing to be off by default.
 - Footstep SFX is now dependant on distance moved, not time since last play
 - Adjusted most NPCs hitboxes to better fit their models.
@@ -63,6 +63,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Made zooming work on wayland
 - Fixed AI behavior so only humanoids will attempt to roll
 - Fixed missing GameInputs (sneak, swimup, swimdown) in controller mapping
+- Fixed a bug where the stairs to the boss floor in dungeons would sometimes not spawn
+- Fixed waypoints being placed underwater
 
 ## [0.8.0] - 2020-11-28
 

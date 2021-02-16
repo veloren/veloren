@@ -7,4 +7,5 @@ ItemDef(
         ),
     ),
     quality: Moderate,
+    tags: [],
 )

@@ -9,5 +9,6 @@ ItemDef(
         ),
     )),
     quality: High,
+    tags: [],
     slots: 18,
 )

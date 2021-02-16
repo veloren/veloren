@@ -6,4 +6,5 @@ ItemDef(
     ),
     amount: 1,
     quality: Moderate,
+    tags: [],
 )

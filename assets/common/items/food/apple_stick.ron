@@ -18,4 +18,5 @@ ItemDef(
         ]
     ),
     quality: Common,
+    tags: [],
 )

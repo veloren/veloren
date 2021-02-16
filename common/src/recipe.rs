@@ -1,15 +1,24 @@
 use crate::{
     assets::{self, AssetExt, AssetHandle},
-    comp::{item::ItemDef, Inventory, Item},
+    comp::{
+        item::{ItemDef, ItemTag},
+        Inventory, Item,
+    },
 };
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum RecipeInput {
+    Item(Arc<ItemDef>),
+    Tag(ItemTag),
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Recipe {
     pub output: (Arc<ItemDef>, u32),
-    pub inputs: Vec<(Arc<ItemDef>, u32)>,
+    pub inputs: Vec<(RecipeInput, u32)>,
 }
 
 #[allow(clippy::type_complexity)]
@@ -18,7 +27,7 @@ impl Recipe {
     pub fn perform(
         &self,
         inv: &mut Inventory,
-    ) -> Result<Option<(Item, u32)>, Vec<(&ItemDef, u32)>> {
+    ) -> Result<Option<(Item, u32)>, Vec<(&RecipeInput, u32)>> {
         // Get ingredient cells from inventory,
         inv.contains_ingredients(self)?
             .into_iter()
@@ -38,7 +47,7 @@ impl Recipe {
         Ok(None)
     }
 
-    pub fn inputs(&self) -> impl ExactSizeIterator<Item = (&Arc<ItemDef>, u32)> {
+    pub fn inputs(&self) -> impl ExactSizeIterator<Item = (&RecipeInput, u32)> {
         self.inputs
             .iter()
             .map(|(item_def, amount)| (item_def, *amount))
@@ -64,10 +73,16 @@ impl RecipeBook {
     }
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum RawRecipeInput {
+    Item(String),
+    Tag(ItemTag),
+}
+
 #[derive(Deserialize)]
 #[serde(transparent)]
 #[allow(clippy::type_complexity)]
-struct RawRecipeBook(HashMap<String, ((String, u32), Vec<(String, u32)>)>);
+struct RawRecipeBook(HashMap<String, ((String, u32), Vec<(RawRecipeInput, u32)>)>);
 
 impl assets::Asset for RawRecipeBook {
     type Loader = assets::RonLoader;
@@ -85,6 +100,18 @@ impl assets::Compound for RecipeBook {
             let def = Arc::<ItemDef>::load_cloned(&spec.0)?;
             Ok((def, spec.1))
         }
+        #[inline]
+        fn load_recipe_input(
+            spec: &(RawRecipeInput, u32),
+        ) -> Result<(RecipeInput, u32), assets::Error> {
+            let def = match &spec.0 {
+                RawRecipeInput::Item(name) => {
+                    RecipeInput::Item(Arc::<ItemDef>::load_cloned(&name)?)
+                },
+                RawRecipeInput::Tag(tag) => RecipeInput::Tag(*tag),
+            };
+            Ok((def, spec.1))
+        }
 
         let raw = cache.load::<RawRecipeBook>(specifier)?.read();
 
@@ -92,7 +119,10 @@ impl assets::Compound for RecipeBook {
             .0
             .iter()
             .map(|(name, (output, inputs))| {
-                let inputs = inputs.iter().map(load_item_def).collect::<Result<_, _>>()?;
+                let inputs = inputs
+                    .iter()
+                    .map(load_recipe_input)
+                    .collect::<Result<_, _>>()?;
                 let output = load_item_def(output)?;
                 Ok((name.clone(), Recipe { inputs, output }))
             })

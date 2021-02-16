@@ -1635,6 +1635,10 @@ impl WorldSim {
             .filter_map(|(i, j)| {
                 let mut pos = Vec2::new(i as i32, j as i32);
                 let mut chunk = this.get(pos)?;
+
+                if chunk.is_underwater() {
+                    return None;
+                }
                 // Slide the waypoints down hills
                 const MAX_ITERS: usize = 64;
                 for _ in 0..MAX_ITERS {

@@ -5,4 +5,5 @@ ItemDef(
         kind: "CobaltOre",
     ),
     quality: Common,
+    tags: [],
 )

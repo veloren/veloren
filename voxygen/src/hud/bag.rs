@@ -94,7 +94,7 @@ pub struct Bag<'a> {
     rot_imgs: &'a ImgsRot,
     tooltip_manager: &'a mut TooltipManager,
     slot_manager: &'a mut SlotManager,
-    _pulse: f32,
+    pulse: f32,
     localized_strings: &'a Localization,
     stats: &'a Stats,
     health: &'a Health,
@@ -130,7 +130,7 @@ impl<'a> Bag<'a> {
             rot_imgs,
             tooltip_manager,
             slot_manager,
-            _pulse: pulse,
+            pulse,
             localized_strings,
             stats,
             energy,
@@ -415,6 +415,7 @@ impl<'a> Widget for Bag<'a> {
             content_source: inventory,
             image_source: self.item_imgs,
             slot_manager: Some(self.slot_manager),
+            pulse: self.pulse,
         };
         let i18n = &self.localized_strings;
         let filled_slot = self.imgs.armor_slot;
@@ -982,6 +983,7 @@ impl<'a> Widget for Bag<'a> {
             content_source: inventory,
             image_source: self.item_imgs,
             slot_manager: Some(self.slot_manager),
+            pulse: self.pulse,
         };
 
         for (i, (pos, item)) in inventory.slots_with_id().enumerate() {
