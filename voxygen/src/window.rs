@@ -778,7 +778,9 @@ impl Window {
                                         AxisGameAction::CameraY => {
                                             self.events.push(Event::AnalogGameInput(
                                                 AnalogGameInput::CameraY(
-                                                    value
+                                                    // TODO: Use pan_invert_y here. Remove - in
+                                                    // front of `value` as well
+                                                    -value
                                                         * self.controller_settings.pan_sensitivity
                                                             as f32
                                                         / 100.0,
