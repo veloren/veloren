@@ -23,7 +23,7 @@ use crate::{
 use client::Client;
 use common::{
     assets::AssetHandle,
-    character::{CharacterId, CharacterItem, MAX_CHARACTERS_PER_PLAYER},
+    character::{CharacterId, CharacterItem, MAX_CHARACTERS_PER_PLAYER, MAX_NAME_LENGTH},
     comp::{self, humanoid, inventory::slot::EquipSlot, Inventory, Item},
     LoadoutBuilder,
 };
@@ -1238,7 +1238,7 @@ impl Controls {
             },
             Message::Name(value) => {
                 if let Mode::Create { name, .. } = &mut self.mode {
-                    *name = value;
+                    *name = value.chars().take(MAX_NAME_LENGTH).collect();
                 }
             },
             Message::BodyType(value) => {

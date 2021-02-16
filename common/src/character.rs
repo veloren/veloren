@@ -7,6 +7,8 @@ use serde::{Deserialize, Serialize};
 pub const MAX_CHARACTERS_PER_PLAYER: usize = 8;
 pub type CharacterId = i64;
 
+pub const MAX_NAME_LENGTH: usize = 20;
+
 /// The minimum character data we need to create a new character on the server.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Character {
