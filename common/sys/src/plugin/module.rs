@@ -1,4 +1,4 @@
-use std::{collections::HashSet, marker::PhantomData, sync::{Arc, Mutex, atomic::AtomicI32}};
+use std::{collections::HashSet, convert::TryInto, marker::PhantomData, sync::{Arc, Mutex, atomic::AtomicI32}};
 
 use specs::World;
 use wasmer::{
@@ -85,6 +85,7 @@ impl PluginModule {
         if !self.events.contains(event_name) {
             return None;
         }
+        // Store the ECS Pointer for later use in `retreives`
         self.ecs.store((&ecs) as *const _ as i32, std::sync::atomic::Ordering::SeqCst);
         let bytes = {
             let mut state = self.wasm_state.lock().unwrap();
@@ -93,6 +94,7 @@ impl PluginModule {
                 Err(e) => return Some(Err(e)),
             }
         };
+        // Remove the ECS Pointer to avoid UB
         self.ecs.store(i32::MAX, std::sync::atomic::Ordering::SeqCst);
         Some(bincode::deserialize(&bytes).map_err(PluginModuleError::Encoding))
     }
@@ -120,6 +122,11 @@ impl<T: Event> PreparedEventQuery<T> {
     }
 }
 
+fn from_i64(i: i64) -> (i32,i32) {
+    let i = i.to_le_bytes();
+    (i32::from_le_bytes(i[0..4].try_into().unwrap()),i32::from_le_bytes(i[4..8].try_into().unwrap()))
+}
+
 // This function is not public because this function should not be used without
 // an interface to limit unsafe behaviours
 #[allow(clippy::needless_range_loop)]
@@ -129,25 +136,33 @@ fn execute_raw(
     event_name: &str,
     bytes: &[u8],
 ) -> Result<Vec<u8>, PluginModuleError> {
+
+    // This write into memory `bytes` using allocation if necessary returning a pointer and a length
+
     let (mem_position,len) = module.memory_manager.write_bytes(&module.memory, &module.allocator, bytes)?;
+
+    // This gets the event function from module exports
 
     let func = instance
         .exports
         .get_function(event_name)
         .map_err(PluginModuleError::MemoryUninit)?;
 
+    // We call the function with the pointer and the length
+
     let function_result = func
         .call(&[Value::I32(mem_position as i32), Value::I32(len as i32)])
         .map_err(PluginModuleError::RunFunction)?;
-        
-    let pointer = function_result[0]
-        .i32()
-        .ok_or_else(PluginModuleError::InvalidArgumentType)?;
-    let length = function_result[1]
-        .i32()
-        .ok_or_else(PluginModuleError::InvalidArgumentType)? as u32;
+    
+    // Waiting for `multi-value` to be added to LLVM. So we encode the two i32 as an i64
 
-    Ok(memory_manager::read_bytes(&module.memory, pointer, length))
+    let (pointer,length) = from_i64(function_result[0]
+        .i64()
+        .ok_or_else(PluginModuleError::InvalidArgumentType)?);
+
+    // We read the return object and deserialize it
+
+    Ok(memory_manager::read_bytes(&module.memory, pointer, length as u32))
 }
 
 fn handle_actions(actions: Vec<Action>) {

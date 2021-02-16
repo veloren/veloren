@@ -5699,7 +5699,6 @@ name = "veloren-plugin-api"
 version = "0.1.0"
 dependencies = [
  "serde",
- "veloren-common",
 ]
 
 [[package]]

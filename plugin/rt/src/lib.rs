@@ -4,6 +4,8 @@ pub extern crate plugin_derive;
 
 pub mod retreive;
 
+use std::convert::TryInto;
+
 pub use retreive::*;
 
 pub use plugin_api as api;
@@ -14,22 +16,22 @@ use serde::{de::DeserializeOwned, Serialize};
 #[cfg(target_arch = "wasm32")]
 extern "C" {
     fn raw_emit_actions(ptr: *const u8, len: usize);
-    fn raw_retreive_action(ptr: *const u8, len: usize) -> (i32, u32);
+    //fn raw_retreive_action(ptr: *const u8, len: usize) -> (i32, u32);
 }
 
-pub fn retreive_action<T: DeserializeOwned>(_actions: &api::Retreive) -> Result<T,bincode::Error> {
-    #[cfg(target_arch = "wasm32")]
-    {
-        let ret = bincode::serialize(&actions).expect("Can't serialize action in emit");
-        unsafe {
-            let (ptr,len) = raw_retreive_action(ret.as_ptr(), ret.len());
-            let a = ::std::slice::from_raw_parts(ptr as _, len as _);
-            bincode::deserialize(&a)
-        }
-    }
-    #[cfg(not(target_arch = "wasm32"))]
-    unreachable!()
-}
+// pub fn retreive_action<T: DeserializeOwned>(_actions: &api::Retreive) -> Result<T,bincode::Error> {
+//     #[cfg(target_arch = "wasm32")]
+//     {
+//         let ret = bincode::serialize(&_actions).expect("Can't serialize action in emit");
+//         unsafe {
+//             let (ptr,len) = raw_retreive_action(ret.as_ptr(), ret.len());
+//             let a = ::std::slice::from_raw_parts(ptr as _, len as _);
+//             bincode::deserialize(&a)
+//         }
+//     }
+//     #[cfg(not(target_arch = "wasm32"))]
+//     unreachable!()
+// }
 
 pub fn emit_action(action: api::Action) { emit_actions(vec![action]) }
 
@@ -51,9 +53,15 @@ where
     bincode::deserialize(slice).map_err(|_| "Failed to deserialize function input")
 }
 
-pub fn write_output(value: impl Serialize) -> (i32,i32) {
+pub fn to_i64(a: i32, b: i32) -> i64 {
+    let a = a.to_le_bytes();
+    let b = b.to_le_bytes();
+    i64::from_le_bytes([a[0],a[1],a[2],a[3],b[0],b[1],b[2],b[3]])
+}
+
+pub fn write_output(value: impl Serialize) -> i64 {
     let ret = bincode::serialize(&value).expect("Can't serialize event output");
-    (ret.as_ptr() as _, ret.len() as _)
+    to_i64(ret.as_ptr() as _, ret.len() as _)
 }
 
 static mut BUFFERS: Vec<u8> = Vec::new();
