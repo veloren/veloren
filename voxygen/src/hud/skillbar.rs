@@ -418,6 +418,7 @@ impl<'a> Widget for Skillbar<'a> {
             content_source: &content_source,
             image_source: &image_source,
             slot_manager: Some(self.slot_manager),
+            pulse: self.pulse,
         };
         let item_tooltip = Tooltip::new({
             // Edge images [t, b, r, l]

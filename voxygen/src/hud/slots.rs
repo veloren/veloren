@@ -44,8 +44,8 @@ impl SlotKey<Inventory, ItemImgs> for InventorySlot {
             .filter(|amount| *amount > 1)
     }
 
-    fn image_id(key: &Self::ImageKey, source: &ItemImgs) -> image::Id {
-        source.img_id_or_not_found_img(key.clone())
+    fn image_ids(key: &Self::ImageKey, source: &ItemImgs) -> Vec<image::Id> {
+        source.img_ids_or_not_found_img(key.clone())
     }
 }
 
@@ -59,8 +59,8 @@ impl SlotKey<Inventory, ItemImgs> for EquipSlot {
 
     fn amount(&self, _: &Inventory) -> Option<u32> { None }
 
-    fn image_id(key: &Self::ImageKey, source: &ItemImgs) -> image::Id {
-        source.img_id_or_not_found_img(key.clone())
+    fn image_ids(key: &Self::ImageKey, source: &ItemImgs) -> Vec<image::Id> {
+        source.img_ids_or_not_found_img(key.clone())
     }
 }
 
@@ -85,8 +85,8 @@ impl SlotKey<Inventory, ItemImgs> for TradeSlot {
             .map(|x| x.min(self.quantity))
     }
 
-    fn image_id(key: &Self::ImageKey, source: &ItemImgs) -> image::Id {
-        source.img_id_or_not_found_img(key.clone())
+    fn image_ids(key: &Self::ImageKey, source: &ItemImgs) -> Vec<image::Id> {
+        source.img_ids_or_not_found_img(key.clone())
     }
 }
 
@@ -162,15 +162,18 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
             .filter(|amount| *amount > 1)
     }
 
-    fn image_id(key: &Self::ImageKey, (item_imgs, imgs): &HotbarImageSource<'a>) -> image::Id {
+    fn image_ids(
+        key: &Self::ImageKey,
+        (item_imgs, imgs): &HotbarImageSource<'a>,
+    ) -> Vec<image::Id> {
         match key {
-            HotbarImage::Item(key) => item_imgs.img_id_or_not_found_img(key.clone()),
-            HotbarImage::SnakeArrow => imgs.snake_arrow_0,
-            HotbarImage::FireAoe => imgs.fire_aoe,
-            HotbarImage::SwordWhirlwind => imgs.sword_whirlwind,
-            HotbarImage::HammerLeap => imgs.hammerleap,
-            HotbarImage::AxeLeapSlash => imgs.skill_axe_leap_slash,
-            HotbarImage::BowJumpBurst => imgs.skill_bow_jump_burst,
+            HotbarImage::Item(key) => item_imgs.img_ids_or_not_found_img(key.clone()),
+            HotbarImage::SnakeArrow => vec![imgs.snake_arrow_0],
+            HotbarImage::FireAoe => vec![imgs.fire_aoe],
+            HotbarImage::SwordWhirlwind => vec![imgs.sword_whirlwind],
+            HotbarImage::HammerLeap => vec![imgs.hammerleap],
+            HotbarImage::AxeLeapSlash => vec![imgs.skill_axe_leap_slash],
+            HotbarImage::BowJumpBurst => vec![imgs.skill_bow_jump_burst],
         }
     }
 }

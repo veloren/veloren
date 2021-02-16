@@ -1,0 +1,23 @@
+ItemDef(
+    name: "Any cloth item",
+    description: "Various colored fabric armors.",
+    kind: TagExamples(
+        item_ids: [
+            "common.items.armor.foot.cloth_blue_0",
+            "common.items.armor.hand.cloth_blue_0",
+            "common.items.armor.pants.cloth_blue_0",
+            "common.items.armor.shoulder.cloth_blue_0",
+            "common.items.armor.foot.cloth_green_0",
+            "common.items.armor.hand.cloth_green_0",
+            "common.items.armor.pants.cloth_green_0",
+            "common.items.armor.shoulder.cloth_green_0",
+            "common.items.armor.foot.cloth_purple_0",
+            "common.items.armor.hand.cloth_purple_0",
+            "common.items.armor.pants.cloth_purple_0",
+            "common.items.armor.shoulder.cloth_purple_0",
+        ],
+    ),
+    quality: Common,
+    tags: [ClothItem],
+)
+

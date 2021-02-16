@@ -5,4 +5,5 @@ ItemDef(
         kind: "RaptorFeather",
     ),
     quality: Common,
+    tags: [],
 )

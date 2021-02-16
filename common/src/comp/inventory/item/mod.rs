@@ -12,6 +12,7 @@ use crate::{
     },
     effect::Effect,
     lottery::Lottery,
+    recipe::RecipeInput,
     terrain::{Block, SpriteKind},
 };
 use core::mem;
@@ -77,6 +78,27 @@ pub enum Quality {
     Debug,     // Red
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum ItemTag {
+    ClothItem,
+}
+
+impl ItemTag {
+    pub fn name(&self) -> &'static str {
+        match self {
+            ItemTag::ClothItem => "cloth item",
+        }
+    }
+
+    /// What item to show in the crafting hud if the player has nothing with the
+    /// tag
+    pub fn exemplar_identifier(&self) -> &'static str {
+        match self {
+            ItemTag::ClothItem => "common.items.tag_examples.cloth_item",
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum ItemKind {
     /// Something wieldable
@@ -96,6 +118,11 @@ pub enum ItemKind {
     },
     Ingredient {
         kind: String,
+    },
+    TagExamples {
+        /// A list of item names to lookup the appearences of and animate
+        /// through
+        item_ids: Vec<String>,
     },
 }
 
@@ -147,6 +174,7 @@ pub struct ItemDef {
     pub description: String,
     pub kind: ItemKind,
     pub quality: Quality,
+    pub tags: Vec<ItemTag>,
     #[serde(default)]
     pub slots: u16,
 }
@@ -199,6 +227,7 @@ impl ItemDef {
         item_config: Option<ItemConfig>,
         kind: ItemKind,
         quality: Quality,
+        tags: Vec<ItemTag>,
         slots: u16,
     ) -> Self {
         Self {
@@ -208,6 +237,7 @@ impl ItemDef {
             description: "test item description".to_owned(),
             kind,
             quality,
+            tags,
             slots,
         }
     }
@@ -231,6 +261,7 @@ impl assets::Compound for ItemDef {
             description,
             kind,
             quality,
+            tags,
             slots,
         } = raw;
 
@@ -257,6 +288,7 @@ impl assets::Compound for ItemDef {
             description,
             kind,
             quality,
+            tags,
             slots,
         })
     }
@@ -269,6 +301,7 @@ struct RawItemDef {
     description: String,
     kind: ItemKind,
     quality: Quality,
+    tags: Vec<ItemTag>,
     #[serde(default)]
     slots: u16,
 }
@@ -345,6 +378,7 @@ impl Item {
             description: empty_def.description.clone(),
             item_definition_id: empty_def.item_definition_id.clone(),
             quality: empty_def.quality,
+            tags: Vec::new(),
             item_config: Some(ItemConfig {
                 ability1: Some(CharacterAbility::BasicMelee {
                     energy_cost: 0.010,
@@ -439,6 +473,13 @@ impl Item {
 
     pub fn is_same_item_def(&self, item_def: &ItemDef) -> bool {
         self.item_def.item_definition_id == item_def.item_definition_id
+    }
+
+    pub fn matches_recipe_input(&self, recipe_input: &RecipeInput) -> bool {
+        match recipe_input {
+            RecipeInput::Item(item_def) => self.is_same_item_def(item_def),
+            RecipeInput::Tag(tag) => self.item_def.tags.contains(tag),
+        }
     }
 
     pub fn is_stackable(&self) -> bool { self.item_def.is_stackable() }

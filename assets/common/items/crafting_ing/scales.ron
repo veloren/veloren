@@ -5,4 +5,5 @@ ItemDef(
         kind: "Scale",
     ),
     quality: Common,
+    tags: [],
 )

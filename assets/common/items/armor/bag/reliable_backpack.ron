@@ -11,5 +11,6 @@ ItemDef(
         )
     ),
     quality: High,
+    tags: [],
     slots: 16,
 )

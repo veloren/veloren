@@ -1,6 +1,6 @@
 use super::{
     img_ids::{Imgs, ImgsRot},
-    item_imgs::{ItemImgs, ItemKey::Tool},
+    item_imgs::{animate_by_pulse, ItemImgs, ItemKey::Tool},
     Show, CRITICAL_HP_COLOR, HP_COLOR, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN, XP_COLOR,
 };
 use crate::{
@@ -678,18 +678,22 @@ impl<'a> Widget for Diary<'a> {
                 use skills::{GeneralSkill::*, RollSkill::*, SkillGroupKind::*};
                 use ToolKind::*;
                 // General Combat
-                Image::new(
-                    self.item_imgs
-                        .img_id_or_not_found_img(Tool("example_general_combat_left".to_string())),
-                )
+                Image::new(animate_by_pulse(
+                    &self
+                        .item_imgs
+                        .img_ids_or_not_found_img(Tool("example_general_combat_left".to_string())),
+                    self.pulse,
+                ))
                 .wh(art_size)
                 .middle_of(state.content_align)
                 .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
                 .set(state.general_combat_render_0, ui);
-                Image::new(
-                    self.item_imgs
-                        .img_id_or_not_found_img(Tool("example_general_combat_right".to_string())),
-                )
+                Image::new(animate_by_pulse(
+                    &self
+                        .item_imgs
+                        .img_ids_or_not_found_img(Tool("example_general_combat_right".to_string())),
+                    self.pulse,
+                ))
                 .wh(art_size)
                 .middle_of(state.general_combat_render_0)
                 .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
@@ -1016,10 +1020,12 @@ impl<'a> Widget for Diary<'a> {
             SelectedSkillTree::Weapon(ToolKind::Sword) => {
                 use skills::SwordSkill::*;
                 // Sword
-                Image::new(
-                    self.item_imgs
-                        .img_id_or_not_found_img(Tool("example_sword".to_string())),
-                )
+                Image::new(animate_by_pulse(
+                    &self
+                        .item_imgs
+                        .img_ids_or_not_found_img(Tool("example_sword".to_string())),
+                    self.pulse,
+                ))
                 .wh(art_size)
                 .middle_of(state.content_align)
                 .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
@@ -1459,10 +1465,12 @@ impl<'a> Widget for Diary<'a> {
             SelectedSkillTree::Weapon(ToolKind::Axe) => {
                 use skills::AxeSkill::*;
                 // Axe
-                Image::new(
-                    self.item_imgs
-                        .img_id_or_not_found_img(Tool("example_axe".to_string())),
-                )
+                Image::new(animate_by_pulse(
+                    &self
+                        .item_imgs
+                        .img_ids_or_not_found_img(Tool("example_axe".to_string())),
+                    self.pulse,
+                ))
                 .wh(art_size)
                 .middle_of(state.content_align)
                 .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
@@ -1873,10 +1881,12 @@ impl<'a> Widget for Diary<'a> {
             SelectedSkillTree::Weapon(ToolKind::Hammer) => {
                 use skills::HammerSkill::*;
                 // Hammer
-                Image::new(
-                    self.item_imgs
-                        .img_id_or_not_found_img(Tool("example_hammer".to_string())),
-                )
+                Image::new(animate_by_pulse(
+                    &self
+                        .item_imgs
+                        .img_ids_or_not_found_img(Tool("example_hammer".to_string())),
+                    self.pulse,
+                ))
                 .wh(art_size)
                 .middle_of(state.content_align)
                 .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
@@ -2295,10 +2305,12 @@ impl<'a> Widget for Diary<'a> {
             SelectedSkillTree::Weapon(ToolKind::Bow) => {
                 use skills::BowSkill::*;
                 // Bow
-                Image::new(
-                    self.item_imgs
-                        .img_id_or_not_found_img(Tool("example_bow".to_string())),
-                )
+                Image::new(animate_by_pulse(
+                    &self
+                        .item_imgs
+                        .img_ids_or_not_found_img(Tool("example_bow".to_string())),
+                    self.pulse,
+                ))
                 .wh(art_size)
                 .middle_of(state.content_align)
                 .set(state.bow_render, ui);
@@ -2709,10 +2721,12 @@ impl<'a> Widget for Diary<'a> {
             SelectedSkillTree::Weapon(ToolKind::Staff) => {
                 use skills::StaffSkill::*;
                 // Staff
-                Image::new(
-                    self.item_imgs
-                        .img_id_or_not_found_img(Tool("example_staff_fire".to_string())),
-                )
+                Image::new(animate_by_pulse(
+                    &self
+                        .item_imgs
+                        .img_ids_or_not_found_img(Tool("example_staff_fire".to_string())),
+                    self.pulse,
+                ))
                 .wh(art_size)
                 .middle_of(state.content_align)
                 .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
@@ -3093,10 +3107,12 @@ impl<'a> Widget for Diary<'a> {
             SelectedSkillTree::Weapon(ToolKind::Sceptre) => {
                 use skills::SceptreSkill::*;
                 // Sceptre
-                Image::new(
-                    self.item_imgs
-                        .img_id_or_not_found_img(Tool("example_sceptre".to_string())),
-                )
+                Image::new(animate_by_pulse(
+                    &self
+                        .item_imgs
+                        .img_ids_or_not_found_img(Tool("example_sceptre".to_string())),
+                    self.pulse,
+                ))
                 .wh(art_size)
                 .middle_of(state.content_align)
                 .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))

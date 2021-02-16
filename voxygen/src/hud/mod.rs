@@ -23,7 +23,7 @@ mod trade;
 mod util;
 
 pub use hotbar::{SlotContents as HotbarSlotContents, State as HotbarState};
-
+pub use item_imgs::animate_by_pulse;
 pub use settings_window::ScaleChange;
 
 use bag::Bag;
@@ -2128,6 +2128,7 @@ impl Hud {
                 tooltip_manager,
                 &mut self.slot_manager,
                 i18n,
+                self.pulse,
             )
             .set(self.ids.trade, ui_widgets)
             {
@@ -2186,6 +2187,7 @@ impl Hud {
                     &self.imgs,
                     &self.fonts,
                     i18n,
+                    self.pulse,
                     &self.rot_imgs,
                     tooltip_manager,
                     &self.item_imgs,

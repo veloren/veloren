@@ -59,6 +59,7 @@ pub struct Trade<'a> {
     //tooltip_manager: &'a mut TooltipManager,
     slot_manager: &'a mut SlotManager,
     localized_strings: &'a Localization,
+    pulse: f32,
 }
 
 impl<'a> Trade<'a> {
@@ -70,6 +71,7 @@ impl<'a> Trade<'a> {
         _tooltip_manager: &'a mut TooltipManager,
         slot_manager: &'a mut SlotManager,
         localized_strings: &'a Localization,
+        pulse: f32,
     ) -> Self {
         Self {
             client,
@@ -80,6 +82,7 @@ impl<'a> Trade<'a> {
             //tooltip_manager,
             slot_manager,
             localized_strings,
+            pulse,
         }
     }
 }
@@ -239,6 +242,7 @@ impl<'a> Trade<'a> {
             content_source: inventory,
             image_source: self.item_imgs,
             slot_manager: Some(self.slot_manager),
+            pulse: self.pulse,
         };
 
         if state.ids.inv_slots.len() < 2 * MAX_TRADE_SLOTS {

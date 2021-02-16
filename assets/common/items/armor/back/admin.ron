@@ -9,4 +9,5 @@ ItemDef(
         ),
     )),
     quality: Debug,
+    tags: [],
 )

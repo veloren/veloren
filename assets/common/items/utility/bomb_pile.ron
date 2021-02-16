@@ -6,4 +6,5 @@ ItemDef(
 		amount: 10,
     ),
     quality: Common,
+    tags: [],
 )

@@ -11,5 +11,6 @@ ItemDef(
         )
     ),
     quality: Legendary,
+    tags: [],
     slots: 36,
 )
