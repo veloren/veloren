@@ -6,3 +6,4 @@ edition = "2018"
 
 [dependencies]
 serde = { version = "1.0.118", features = ["derive"] }
+common = { package = "veloren-common", path = "../../common", features = ["no-assets"] }

@@ -208,12 +208,14 @@ impl State {
         #[cfg(feature = "plugins")]
         ecs.insert(match PluginMgr::from_assets() {
             Ok(plugin_mgr) => {
-                if let Err(e) = plugin_mgr
-                    .execute_event(&ecs,"on_load", &plugin_api::event::PluginLoadEvent { game_mode: match game_mode {
-                        resources::GameMode::Server => plugin_api::GameMode::Server,
-                        resources::GameMode::Client => plugin_api::GameMode::Client,
-                        resources::GameMode::Singleplayer => plugin_api::GameMode::Singleplayer,
-                    } })
+                if let Err(e) =
+                    plugin_mgr.execute_event(&ecs, "on_load", &plugin_api::event::PluginLoadEvent {
+                        game_mode: match game_mode {
+                            resources::GameMode::Server => plugin_api::GameMode::Server,
+                            resources::GameMode::Client => plugin_api::GameMode::Client,
+                            resources::GameMode::Singleplayer => plugin_api::GameMode::Singleplayer,
+                        },
+                    })
                 {
                     tracing::error!(?e, "Failed to run plugin init");
                     tracing::info!(

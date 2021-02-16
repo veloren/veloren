@@ -1,7 +1,7 @@
 pub mod errors;
+pub mod memory_manager;
 pub mod module;
 pub mod wasm_env;
-pub mod memory_manager;
 
 use common::assets::ASSETS_PATH;
 use serde::{Deserialize, Serialize};

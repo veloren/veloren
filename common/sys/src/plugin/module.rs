@@ -1,19 +1,19 @@
-use std::{collections::HashSet, convert::TryInto, marker::PhantomData, sync::{Arc, Mutex, atomic::AtomicI32}};
 
-use specs::World;
-use wasmer::{
-    imports, Cranelift, Function, Instance, Memory, Module,
-    Store, Value, JIT,
-};
+use std::{collections::HashSet, convert::TryInto, marker::PhantomData, sync::{Arc, Mutex}};
 
-use super::{errors::{PluginError, PluginModuleError}, memory_manager::{self, MemoryManager}, wasm_env::HostFunctionEnvironement};
+use common::{comp::Player, uid::UidAllocator};
+use common_net::sync::WorldSyncExt;
+use specs::{World, WorldExt, saveload::MarkerAllocator};
+use wasmer::{imports, Cranelift, Function, Instance, Memory, Module, Store, Value, JIT};
 
-use plugin_api::{Action, Event};
+use super::{errors::{PluginError, PluginModuleError}, memory_manager::{self, EcsAccessManager, MemoryManager}, wasm_env::HostFunctionEnvironement};
+
+use plugin_api::{Action, Event, Retreive};
 
 #[derive(Clone)]
 // This structure represent the WASM State of the plugin.
 pub struct PluginModule {
-    ecs: Arc<AtomicI32>,
+    ecs: Arc<EcsAccessManager>,
     wasm_state: Arc<Mutex<Instance>>,
     memory_manager: Arc<MemoryManager>,
     events: HashSet<String>,
@@ -43,13 +43,42 @@ impl PluginModule {
             });
         }
 
-        let ecs = Arc::new(AtomicI32::new(i32::MAX));
-        let memory_manager = Arc::new(MemoryManager::new());
+        fn raw_retreive_action(env: &HostFunctionEnvironement, ptr: u32, len: u32) -> i64 {
+
+            println!("HOST DEBUG 1");
+            // TODO: Handle correctly the error
+            let data: Retreive = env.read_data(ptr as _, len).unwrap();
+            println!("HOST DEBUG 2");
+
+            let out = match data {
+                Retreive::GetEntityName(e) => {
+                    println!("HOST DEBUG 3 {:?}",env.ecs.get().is_some());
+                    let world = env.ecs.get().expect("Can't get entity name because ECS pointer isn't set");
+                    println!("HOST DEBUG 4 {}",world.has_value::<UidAllocator>());
+                    println!("HOST DEBUG 5 {:?}",&*world.read_resource::<UidAllocator>());
+                    let player = world.read_resource::<UidAllocator>().retrieve_entity_internal(e.0).expect("Invalid uid");
+                    println!("HOST DEBUG 6");
+                    format!("{:?}",world.read_component::<Player>().get(player))
+                }
+            };
+            println!("{}",out);
+            let (ptr,len) = env.write_data(&out).unwrap();
+            to_i64(ptr, len as _)
+        }
+
+        fn dbg(a: i32) {
+            println!("WASM DEBUG: {}",a);
+        }
+
+        let ecs = Arc::new(EcsAccessManager::default());
+        let memory_manager = Arc::new(MemoryManager::default());
 
         // Create an import object.
         let import_object = imports! {
             "env" => {
                 "raw_emit_actions" => Function::new_native_with_env(&store, HostFunctionEnvironement::new(name.clone(), ecs.clone(),memory_manager.clone()), raw_emit_actions),
+                "raw_retreive_action" => Function::new_native_with_env(&store, HostFunctionEnvironement::new(name.clone(), ecs.clone(),memory_manager.clone()), raw_retreive_action),
+                "dbg" => Function::new_native(&store, dbg),
             }
         };
 
@@ -59,8 +88,16 @@ impl PluginModule {
         Ok(Self {
             memory_manager,
             ecs,
-            memory: instance.exports.get_memory("memory").map_err(PluginModuleError::MemoryUninit)?.clone(),
-            allocator: instance.exports.get_function("wasm_prepare_buffer").map_err(PluginModuleError::MemoryUninit)?.clone(),
+            memory: instance
+                .exports
+                .get_memory("memory")
+                .map_err(PluginModuleError::MemoryUninit)?
+                .clone(),
+            allocator: instance
+                .exports
+                .get_function("wasm_prepare_buffer")
+                .map_err(PluginModuleError::MemoryUninit)?
+                .clone(),
             events: instance
                 .exports
                 .iter()
@@ -86,20 +123,16 @@ impl PluginModule {
             return None;
         }
         // Store the ECS Pointer for later use in `retreives`
-        self.ecs.store((&ecs) as *const _ as i32, std::sync::atomic::Ordering::SeqCst);
-        let bytes = {
+        let bytes = match self.ecs.execute_with(ecs, || {
             let mut state = self.wasm_state.lock().unwrap();
-            match execute_raw(self,&mut state,event_name,&request.bytes) {
-                Ok(e) => e,
-                Err(e) => return Some(Err(e)),
-            }
+            execute_raw(self, &mut state, event_name, &request.bytes)
+        }) {
+            Ok(e) => e,
+            Err(e) => return Some(Err(e)),
         };
-        // Remove the ECS Pointer to avoid UB
-        self.ecs.store(i32::MAX, std::sync::atomic::Ordering::SeqCst);
         Some(bincode::deserialize(&bytes).map_err(PluginModuleError::Encoding))
     }
 }
-
 
 // This structure represent a Pre-encoded event object (Useful to avoid
 // reencoding for each module in every plugin)
@@ -122,9 +155,18 @@ impl<T: Event> PreparedEventQuery<T> {
     }
 }
 
-fn from_i64(i: i64) -> (i32,i32) {
+fn from_i64(i: i64) -> (i32, i32) {
     let i = i.to_le_bytes();
-    (i32::from_le_bytes(i[0..4].try_into().unwrap()),i32::from_le_bytes(i[4..8].try_into().unwrap()))
+    (
+        i32::from_le_bytes(i[0..4].try_into().unwrap()),
+        i32::from_le_bytes(i[4..8].try_into().unwrap()),
+    )
+}
+
+pub fn to_i64(a: i32, b: i32) -> i64 {
+    let a = a.to_le_bytes();
+    let b = b.to_le_bytes();
+    i64::from_le_bytes([a[0], a[1], a[2], a[3], b[0], b[1], b[2], b[3]])
 }
 
 // This function is not public because this function should not be used without
@@ -136,10 +178,13 @@ fn execute_raw(
     event_name: &str,
     bytes: &[u8],
 ) -> Result<Vec<u8>, PluginModuleError> {
+    // This write into memory `bytes` using allocation if necessary returning a
+    // pointer and a length
 
-    // This write into memory `bytes` using allocation if necessary returning a pointer and a length
-
-    let (mem_position,len) = module.memory_manager.write_bytes(&module.memory, &module.allocator, bytes)?;
+    let (mem_position, len) =
+        module
+            .memory_manager
+            .write_bytes(&module.memory, &module.allocator, bytes)?;
 
     // This gets the event function from module exports
 
@@ -153,16 +198,23 @@ fn execute_raw(
     let function_result = func
         .call(&[Value::I32(mem_position as i32), Value::I32(len as i32)])
         .map_err(PluginModuleError::RunFunction)?;
-    
-    // Waiting for `multi-value` to be added to LLVM. So we encode the two i32 as an i64
 
-    let (pointer,length) = from_i64(function_result[0]
-        .i64()
-        .ok_or_else(PluginModuleError::InvalidArgumentType)?);
+    // Waiting for `multi-value` to be added to LLVM. So we encode the two i32 as an
+    // i64
+
+    let (pointer, length) = from_i64(
+        function_result[0]
+            .i64()
+            .ok_or_else(PluginModuleError::InvalidArgumentType)?,
+    );
 
     // We read the return object and deserialize it
 
-    Ok(memory_manager::read_bytes(&module.memory, pointer, length as u32))
+    Ok(memory_manager::read_bytes(
+        &module.memory,
+        pointer,
+        length as u32,
+    ))
 }
 
 fn handle_actions(actions: Vec<Action>) {

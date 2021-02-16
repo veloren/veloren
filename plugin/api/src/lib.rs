@@ -1,7 +1,6 @@
-
-use std::fmt;
-
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
+
+pub use common::{resources::GameMode, uid::Uid};
 
 #[derive(Deserialize, Serialize, Debug)]
 pub enum Action {
@@ -18,35 +17,6 @@ pub enum Retreive {
 
 pub trait Event: Serialize + DeserializeOwned + Send + Sync {
     type Response: Serialize + DeserializeOwned + Send + Sync;
-}
-
-#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
-pub struct Uid(pub u64);
-
-impl Into<u64> for Uid {
-    fn into(self) -> u64 { self.0 }
-}
-
-impl From<u64> for Uid {
-    fn from(uid: u64) -> Self { Self(uid) }
-}
-
-impl fmt::Display for Uid {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { write!(f, "{}", self.0) }
-}
-
-#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
-pub enum GameMode {
-    /// The game is being played in server mode (i.e: the code is running
-    /// server-side)
-    Server,
-    /// The game is being played in client mode (i.e: the code is running
-    /// client-side)
-    Client,
-    /// The game is being played in singleplayer mode (i.e: both client and
-    /// server at once)
-    // To be used later when we no longer start up an entirely new server for singleplayer
-    Singleplayer,
 }
 
 pub mod event {

@@ -18,45 +18,66 @@
     trait_alias,
     type_alias_impl_trait
 )]
-
+#[cfg(not(target_arch = "wasm32"))]
 pub mod assets;
-pub mod astar;
+#[cfg(not(target_arch = "wasm32"))] pub mod astar;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod character;
-pub mod clock;
-pub mod cmd;
+#[cfg(not(target_arch = "wasm32"))] pub mod clock;
+#[cfg(not(target_arch = "wasm32"))] pub mod cmd;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod combat;
-pub mod comp;
+#[cfg(not(target_arch = "wasm32"))] pub mod comp;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod consts;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod effect;
-pub mod event;
+#[cfg(not(target_arch = "wasm32"))] pub mod event;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod explosion;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod figure;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod generation;
-pub mod grid;
+#[cfg(not(target_arch = "wasm32"))] pub mod grid;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod lottery;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod metrics;
-pub mod npc;
+#[cfg(not(target_arch = "wasm32"))] pub mod npc;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod outcome;
-pub mod path;
-pub mod ray;
+#[cfg(not(target_arch = "wasm32"))] pub mod path;
+#[cfg(not(target_arch = "wasm32"))] pub mod ray;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod recipe;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod region;
 pub mod resources;
-pub mod rtsim;
+#[cfg(not(target_arch = "wasm32"))] pub mod rtsim;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod skillset_builder;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod spiral;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod states;
-pub mod store;
+#[cfg(not(target_arch = "wasm32"))] pub mod store;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod terrain;
-pub mod time;
-pub mod trade;
-pub mod typed;
+#[cfg(not(target_arch = "wasm32"))] pub mod time;
+#[cfg(not(target_arch = "wasm32"))] pub mod trade;
+#[cfg(not(target_arch = "wasm32"))] pub mod typed;
 pub mod uid;
-pub mod util;
-pub mod vol;
+#[cfg(not(target_arch = "wasm32"))] pub mod util;
+#[cfg(not(target_arch = "wasm32"))] pub mod vol;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod volumes;
 
+#[cfg(not(target_arch = "wasm32"))]
 pub use combat::{Damage, DamageSource, GroupTarget, Knockback, KnockbackDir};
+#[cfg(not(target_arch = "wasm32"))]
 pub use comp::inventory::loadout_builder::LoadoutBuilder;
+#[cfg(not(target_arch = "wasm32"))]
 pub use explosion::{Explosion, RadiusEffect};
+#[cfg(not(target_arch = "wasm32"))]
 pub use skillset_builder::SkillSetBuilder;

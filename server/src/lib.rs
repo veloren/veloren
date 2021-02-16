@@ -1037,12 +1037,15 @@ impl Server {
                         command: kwd.clone(),
                         command_args: args.split(' ').map(|x| x.to_owned()).collect(),
                         player: plugin_api::event::Player {
-                            id: plugin_api::Uid((self
-                                .state
-                                .ecs()
-                                .read_storage::<Uid>()
-                                .get(entity)
-                                .expect("Can't get player UUID [This should never appen]")).0),
+                            id: plugin_api::Uid(
+                                (self
+                                    .state
+                                    .ecs()
+                                    .read_storage::<Uid>()
+                                    .get(entity)
+                                    .expect("Can't get player UUID [This should never appen]"))
+                                .0,
+                            ),
                         },
                     },
                 );

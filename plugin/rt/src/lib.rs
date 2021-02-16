@@ -4,6 +4,8 @@ pub extern crate plugin_derive;
 
 pub mod retreive;
 
+pub use retreive::*;
+
 use std::convert::TryInto;
 
 pub use retreive::*;
@@ -16,22 +18,28 @@ use serde::{de::DeserializeOwned, Serialize};
 #[cfg(target_arch = "wasm32")]
 extern "C" {
     fn raw_emit_actions(ptr: *const u8, len: usize);
-    //fn raw_retreive_action(ptr: *const u8, len: usize) -> (i32, u32);
+    fn raw_retreive_action(ptr: *const u8, len: usize) -> i64;
+    pub fn dbg(i: i32);
 }
 
-// pub fn retreive_action<T: DeserializeOwned>(_actions: &api::Retreive) -> Result<T,bincode::Error> {
-//     #[cfg(target_arch = "wasm32")]
-//     {
-//         let ret = bincode::serialize(&_actions).expect("Can't serialize action in emit");
-//         unsafe {
-//             let (ptr,len) = raw_retreive_action(ret.as_ptr(), ret.len());
-//             let a = ::std::slice::from_raw_parts(ptr as _, len as _);
-//             bincode::deserialize(&a)
-//         }
-//     }
-//     #[cfg(not(target_arch = "wasm32"))]
-//     unreachable!()
-// }
+pub fn retreive_action<T: DeserializeOwned>(_actions: &api::Retreive) -> Result<T,bincode::Error> {     
+    #[cfg(target_arch = "wasm32")]
+    {
+        unsafe{dbg(0);}
+        let ret = bincode::serialize(&_actions).expect("Can't serialize action in emit");  
+        unsafe{dbg(1);}     
+        unsafe {
+            dbg(2);
+            let (ptr,len) = from_i64(raw_retreive_action(ret.as_ptr(), ret.len()));
+            dbg(3);
+            let a = ::std::slice::from_raw_parts(ptr as _, len as _);
+            dbg(4);
+            bincode::deserialize(&a)
+        }
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    unreachable!()
+}
 
 pub fn emit_action(action: api::Action) { emit_actions(vec![action]) }
 
@@ -53,10 +61,18 @@ where
     bincode::deserialize(slice).map_err(|_| "Failed to deserialize function input")
 }
 
+pub fn from_i64(i: i64) -> (i32, i32) {
+    let i = i.to_le_bytes();
+    (
+        i32::from_le_bytes(i[0..4].try_into().unwrap()),
+        i32::from_le_bytes(i[4..8].try_into().unwrap()),
+    )
+}
+
 pub fn to_i64(a: i32, b: i32) -> i64 {
     let a = a.to_le_bytes();
     let b = b.to_le_bytes();
-    i64::from_le_bytes([a[0],a[1],a[2],a[3],b[0],b[1],b[2],b[3]])
+    i64::from_le_bytes([a[0], a[1], a[2], a[3], b[0], b[1], b[2], b[3]])
 }
 
 pub fn write_output(value: impl Serialize) -> i64 {
