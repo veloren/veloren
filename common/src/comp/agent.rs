@@ -1,6 +1,5 @@
 use crate::{
     comp::{humanoid, quadruped_low, quadruped_medium, quadruped_small, Body},
-    path::Chaser,
     rtsim::RtSimController,
     uid::Uid,
 };
@@ -195,7 +194,6 @@ pub struct Agent {
     pub can_speak: bool,
     pub psyche: Psyche,
     pub inbox: VecDeque<AgentEvent>,
-    pub interaction_timer: f32,
     pub action_timer: f32,
     pub bearing: Vec2<f32>,
 }
@@ -230,175 +228,17 @@ impl Component for Agent {
 }
 
 #[derive(Clone, Debug)]
-pub struct Activity {
-    pub idle: bool,
-    pub idle_tree: bool,
-    pub interact: bool,
-    pub flee: bool,
-    pub follow: bool,
-    pub hostile_tree: bool,
-    pub attack: bool,
-    pub choose_target: bool,
+pub enum Activity {
+    Idle,
+    IdleTree,
+    Interact,
+    Flee,
+    Follow,
+    HostileTree,
+    Attack,
+    ChooseTarget,
 }
 
 impl Default for Activity {
-    fn default() -> Self {
-        Self {
-            idle: false,
-            idle_tree: true,
-            interact: false,
-            flee: false,
-            follow: false,
-            hostile_tree: false,
-            attack: false,
-            choose_target: false,
-        }
-    }
+    fn default() -> Self { Self::IdleTree }
 }
-
-impl Activity {
-    pub fn reset(&mut self) {
-        self.idle = false;
-        self.idle_tree = false;
-        self.interact = false;
-        self.flee = false;
-        self.follow = false;
-        self.hostile_tree = false;
-        self.attack = false;
-        self.choose_target = false;
-    }
-
-    pub fn idle(&mut self) {
-        self.idle = true;
-        self.idle_tree = false;
-        self.interact = false;
-        self.flee = false;
-        self.follow = false;
-        self.hostile_tree = false;
-        self.attack = false;
-        self.choose_target = false;
-    }
-
-    pub fn idle_tree(&mut self) {
-        self.idle = false;
-        self.idle_tree = true;
-        self.interact = false;
-        self.flee = false;
-        self.follow = false;
-        self.hostile_tree = false;
-        self.attack = false;
-        self.choose_target = false;
-    }
-
-    pub fn interact(&mut self) {
-        self.idle = false;
-        self.idle_tree = false;
-        self.interact = true;
-        self.flee = false;
-        self.follow = false;
-        self.hostile_tree = false;
-        self.attack = false;
-        self.choose_target = false;
-    }
-
-    pub fn flee(&mut self) {
-        self.idle = false;
-        self.idle_tree = false;
-        self.interact = false;
-        self.flee = true;
-        self.follow = false;
-        self.hostile_tree = false;
-        self.attack = false;
-        self.choose_target = false;
-    }
-
-    pub fn follow(&mut self) {
-        self.idle = false;
-        self.idle_tree = false;
-        self.interact = false;
-        self.flee = false;
-        self.follow = true;
-        self.hostile_tree = false;
-        self.attack = false;
-        self.choose_target = false;
-    }
-
-    pub fn hostile_tree(&mut self) {
-        self.idle = false;
-        self.idle_tree = false;
-        self.interact = false;
-        self.flee = false;
-        self.follow = false;
-        self.hostile_tree = true;
-        self.attack = false;
-        self.choose_target = false;
-    }
-
-    pub fn attack(&mut self) {
-        self.idle = false;
-        self.idle_tree = false;
-        self.interact = false;
-        self.flee = false;
-        self.follow = false;
-        self.hostile_tree = false;
-        self.attack = true;
-        self.choose_target = false;
-    }
-
-    pub fn choose_target(&mut self) {
-        self.idle = false;
-        self.idle_tree = false;
-        self.interact = false;
-        self.flee = false;
-        self.follow = false;
-        self.hostile_tree = false;
-        self.attack = false;
-        self.choose_target = true;
-    }
-}
-
-//pub enum Activity {
-//    Interact {
-//        timer: f32,
-//        interaction: AgentEvent,
-//    },
-//    Idle {
-//        bearing: Vec2<f32>,
-//        chaser: Chaser,
-//    },
-//    Follow {
-//        target: EcsEntity,
-//        chaser: Chaser,
-//    },
-//    Attack {
-//        target: EcsEntity,
-//        chaser: Chaser,
-//        time: f64,
-//        been_close: bool,
-//        powerup: f32,
-//    },
-//    Flee {
-//        target: EcsEntity,
-//        chaser: Chaser,
-//        timer: f32,
-//    },
-//}
-//
-//impl Activity {
-//    pub fn is_follow(&self) -> bool { matches!(self, Activity::Follow { .. })
-// }
-//
-//    pub fn is_attack(&self) -> bool { matches!(self, Activity::Attack { .. })
-// }
-//
-//    pub fn is_flee(&self) -> bool { matches!(self, Activity::Flee { .. }) }
-//}
-//
-//impl Default for Activity {
-//    fn default() -> Self {
-//        Activity::Idle {
-//            bearing: Vec2::zero(),
-//            chaser: Chaser::default(),
-//        }
-//    }
-//}
