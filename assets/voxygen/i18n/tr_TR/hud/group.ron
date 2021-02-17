@@ -4,7 +4,7 @@
 (
     string_map: {
         "hud.group": "Grup",
-        "hud.group.invite_to_join": "{name} seni grubuna davet etti!",
+        "hud.group.invite_to_join": "[{name}] seni grubuna davet etti!",
         "hud.group.invite": "Davet Et",
         "hud.group.kick": "Gruptan At",
         "hud.group.assign_leader": "Lider Seç",

@@ -332,7 +332,7 @@ Veloren 的夜晚会变得非常的黑.
         "hud.crafting.tool_cata": "需要:",
 
         "hud.group": "队伍",
-        "hud.group.invite_to_join": "{name} 邀请你加入它们的队伍!",
+        "hud.group.invite_to_join": "[{name}] 邀请你加入它们的队伍!",
         "hud.group.invite": "邀请",
         "hud.group.kick": "踢出",
         "hud.group.assign_leader": "指定队长",

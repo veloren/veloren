@@ -179,7 +179,7 @@ https://veloren.net/account/.
 
         // Chat outputs
         "hud.chat.online_msg": "[{name}] ist jetzt online.",
-        "hud.chat.offline_msg": "{name} ist jetzt offline.",
+        "hud.chat.offline_msg": "[{name}] ist jetzt offline.",
         "hud.chat.loot_msg": "Ihr erhaltet [{item}]",
         "hud.chat.loot_fail": "Euer Inventar ist voll!",
         "hud.chat.goodbye": "Verbindung getrennt.",
@@ -200,8 +200,8 @@ https://veloren.net/account/.
         "hud.chat.npc_melee_kill_msg": "{attacker} tötete [{victim}]",
         "hud.chat.npc_ranged_kill_msg": "{attacker} tötete [{victim}]",
         "hud.chat.npc_explosion_kill_msg": "{attacker} hat [{victim}] hochgejagt",
-        "hud.chat.npc_energy_kill_msg": "[{attacker}] hat [{victim}] mit Magie erledigt",
-        "hud.chat.npc_other_kill_msg": "[{attacker}] tötete [{victim}]",
+        "hud.chat.npc_energy_kill_msg": "{attacker} hat [{victim}] mit Magie erledigt",
+        "hud.chat.npc_other_kill_msg": "{attacker} tötete [{victim}]",
 
         // SCT outputs
         "hud.sct.experience": "{amount} Erf",
@@ -392,7 +392,7 @@ magischen Gegenstände ergattern?"#,
         "hud.social.zone" : "Gebiet",
 
         "hud.group": "Gruppe",
-        "hud.group.invite_to_join": "{name} lädt euch in seine Gruppe ein!",
+        "hud.group.invite_to_join": "[{name}] lädt euch in seine Gruppe ein!",
         "hud.group.invite": "Einladen",
         "hud.group.kick": "Kicken",
         "hud.group.assign_leader": "Anführer",
