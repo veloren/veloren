@@ -40,5 +40,5 @@ tracing-subscriber = { version = "0.2.3", default-features = false, features = [
 uvth = { version = ">= 3.0, <= 4.0", default-features = false }
 clap = { version = "2.33", default-features = false }
 shellexpand = "2.0.0"
-tiny_http = "0.7.0"
+tiny_http = "0.8.0"
 serde = { version = "1.0", features = ["derive"] }

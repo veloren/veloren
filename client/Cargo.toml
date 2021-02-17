@@ -27,7 +27,7 @@ num_cpus = "1.10.1"
 tracing = { version = "0.1", default-features = false }
 rayon = "1.5"
 specs = { git = "https://github.com/amethyst/specs.git", rev = "d4435bdf496cf322c74886ca09dd8795984919b4" }
-vek = { version = "0.12.0", features = ["serde"] }
+vek = { version = "=0.12.0", features = ["serde"] }
 hashbrown = { version = "0.9", features = ["rayon", "serde", "nightly"] }
 authc = { git = "https://gitlab.com/veloren/auth.git", rev = "bffb5181a35c19ddfd33ee0b4aedba741aafb68d" }
 

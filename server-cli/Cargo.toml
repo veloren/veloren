@@ -9,7 +9,6 @@ worldgen = ["server/worldgen"]
 default = ["worldgen"]
 tracy = ["common/tracy", "tracing-tracy"]
 plugins = ["server/plugins"]
-tweak = ["server/tweak"]
 
 [dependencies]
 server = { package = "veloren-server", path = "../server", default-features = false }

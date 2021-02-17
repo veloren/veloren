@@ -8,7 +8,6 @@ edition = "2018"
 worldgen = []
 simd = ["vek/platform_intrinsics"]
 plugins = ["common-sys/plugins"]
-tweak = ["const-tweaker"]
 
 default = ["worldgen", "plugins", "simd"]
 
@@ -41,7 +40,7 @@ hashbrown = { version = "0.9", features = ["rayon", "serde", "nightly"] }
 rayon = "1.5"
 crossbeam-channel = "0.5"
 prometheus = { version = "0.11", default-features = false}
-tiny_http = "0.7.0"
+tiny_http = "0.8.0"
 portpicker = { git = "https://github.com/xMAC94x/portpicker-rs", rev = "df6b37872f3586ac3b21d08b56c8ec7cd92fb172" }
 authc = { git = "https://gitlab.com/veloren/auth.git", rev = "bffb5181a35c19ddfd33ee0b4aedba741aafb68d" }
 libsqlite3-sys = { version = "0.18", features = ["bundled"] }
@@ -49,7 +48,6 @@ diesel = { version = "1.4.3", features = ["sqlite"] }
 diesel_migrations = "1.4.0"
 dotenv = "0.15.0"
 slab  = "0.4"
-const-tweaker = {version = "0.3.1", optional = true}
 
 # Plugins
 plugin-api = { package = "veloren-plugin-api", path = "../plugin/api"}
