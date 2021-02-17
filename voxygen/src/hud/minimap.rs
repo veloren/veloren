@@ -1,9 +1,12 @@
 use super::{
     img_ids::{Imgs, ImgsRot},
-    Show, QUALITY_COMMON, QUALITY_DEBUG, QUALITY_EPIC, QUALITY_HIGH, QUALITY_LOW, QUALITY_MODERATE,
+    QUALITY_COMMON, QUALITY_DEBUG, QUALITY_EPIC, QUALITY_HIGH, QUALITY_LOW, QUALITY_MODERATE,
     TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
 };
-use crate::ui::{fonts::Fonts, img_ids};
+use crate::{
+    ui::{fonts::Fonts, img_ids},
+    GlobalState,
+};
 use client::{self, Client};
 use common::{comp, comp::group::Role, terrain::TerrainChunkSize, vol::RectVolSize};
 use common_net::msg::world_msg::SiteKind;
@@ -40,8 +43,6 @@ widget_ids! {
 
 #[derive(WidgetCommon)]
 pub struct MiniMap<'a> {
-    show: &'a Show,
-
     client: &'a Client,
 
     imgs: &'a Imgs,
@@ -51,20 +52,20 @@ pub struct MiniMap<'a> {
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
     ori: Vec3<f32>,
+    global_state: &'a GlobalState,
 }
 
 impl<'a> MiniMap<'a> {
     pub fn new(
-        show: &'a Show,
         client: &'a Client,
         imgs: &'a Imgs,
         rot_imgs: &'a ImgsRot,
         world_map: &'a (img_ids::Rotations, Vec2<u32>),
         fonts: &'a Fonts,
         ori: Vec3<f32>,
+        global_state: &'a GlobalState,
     ) -> Self {
         Self {
-            show,
             client,
             imgs,
             rot_imgs,
@@ -72,6 +73,7 @@ impl<'a> MiniMap<'a> {
             fonts,
             common: widget::CommonBuilder::default(),
             ori,
+            global_state,
         }
     }
 }
@@ -80,12 +82,11 @@ pub struct State {
     ids: Ids,
 
     zoom: f64,
-
-    is_facing_north: bool,
 }
 
 pub enum Event {
-    Toggle,
+    Show(bool),
+    FaceNorth(bool),
 }
 
 impl<'a> Widget for MiniMap<'a> {
@@ -105,8 +106,6 @@ impl<'a> Widget for MiniMap<'a> {
                         * (16.0 / 1024.0),
                 )
             },
-
-            is_facing_north: false,
         }
     }
 
@@ -117,13 +116,15 @@ impl<'a> Widget for MiniMap<'a> {
         let widget::UpdateArgs { state, ui, .. } = args;
         let zoom = state.zoom;
         const SCALE: f64 = 1.5; // TODO Make this a setting
-        let orientation = if state.is_facing_north {
+        let show_minimap = self.global_state.settings.gameplay.minimap_show;
+        let is_facing_north = self.global_state.settings.gameplay.minimap_face_north;
+        let orientation = if is_facing_north {
             Vec3::new(0.0, 1.0, 0.0)
         } else {
             self.ori
         };
 
-        if self.show.mini_map {
+        if show_minimap {
             Image::new(self.imgs.mmap_frame)
                 .w_h(174.0 * SCALE, 190.0 * SCALE)
                 .top_right_with_margins_on(ui.window, 5.0, 5.0)
@@ -194,18 +195,18 @@ impl<'a> Widget for MiniMap<'a> {
             }
 
             // Always northfacing button
-            if Button::image(if state.is_facing_north {
+            if Button::image(if is_facing_north {
                 self.imgs.mmap_north_press
             } else {
                 self.imgs.mmap_north
             })
             .w_h(18.0 * SCALE, 18.0 * SCALE)
-            .hover_image(if state.is_facing_north {
+            .hover_image(if is_facing_north {
                 self.imgs.mmap_north_press_hover
             } else {
                 self.imgs.mmap_north_hover
             })
-            .press_image(if state.is_facing_north {
+            .press_image(if is_facing_north {
                 self.imgs.mmap_north_press_hover
             } else {
                 self.imgs.mmap_north_press
@@ -215,7 +216,7 @@ impl<'a> Widget for MiniMap<'a> {
             .set(state.ids.mmap_north_button, ui)
             .was_clicked()
             {
-                state.update(|s| s.is_facing_north = !s.is_facing_north);
+                return Some(Event::FaceNorth(!is_facing_north));
             }
 
             // Reload zoom in case it changed.
@@ -247,7 +248,7 @@ impl<'a> Widget for MiniMap<'a> {
             let map_size = Vec2::new(170.0 * SCALE, 170.0 * SCALE);
 
             // Map Image
-            let world_map_rotation = if state.is_facing_north {
+            let world_map_rotation = if is_facing_north {
                 world_map.none
             } else {
                 world_map.source_north
@@ -405,7 +406,7 @@ impl<'a> Widget for MiniMap<'a> {
 
             // Indicator
             let ind_scale = 0.4;
-            let ind_rotation = if state.is_facing_north {
+            let ind_rotation = if is_facing_north {
                 self.rot_imgs.indicator_mmap_small.target_north
             } else {
                 self.rot_imgs.indicator_mmap_small.none
@@ -453,18 +454,18 @@ impl<'a> Widget for MiniMap<'a> {
                 .set(state.ids.mmap_frame, ui);
         }
 
-        if Button::image(if self.show.mini_map {
+        if Button::image(if show_minimap {
             self.imgs.mmap_open
         } else {
             self.imgs.mmap_closed
         })
         .w_h(18.0 * SCALE, 18.0 * SCALE)
-        .hover_image(if self.show.mini_map {
+        .hover_image(if show_minimap {
             self.imgs.mmap_open_hover
         } else {
             self.imgs.mmap_closed_hover
         })
-        .press_image(if self.show.mini_map {
+        .press_image(if show_minimap {
             self.imgs.mmap_open_press
         } else {
             self.imgs.mmap_closed_press
@@ -474,7 +475,7 @@ impl<'a> Widget for MiniMap<'a> {
         .set(state.ids.mmap_button, ui)
         .was_clicked()
         {
-            return Some(Event::Toggle);
+            return Some(Event::Show(!show_minimap));
         }
 
         // TODO: Subregion name display

@@ -1273,6 +1273,14 @@ impl PlayState for SessionState {
                     HudEvent::AssignLeader(uid) => {
                         self.client.borrow_mut().assign_group_leader(uid);
                     },
+                    HudEvent::MinimapShow(state) => {
+                        global_state.settings.gameplay.minimap_show = state;
+                        global_state.settings.save_to_file_warn();
+                    },
+                    HudEvent::MinimapFaceNorth(state) => {
+                        global_state.settings.gameplay.minimap_face_north = state;
+                        global_state.settings.save_to_file_warn();
+                    },
                 }
             }
 

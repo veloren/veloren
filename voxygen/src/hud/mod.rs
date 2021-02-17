@@ -419,6 +419,8 @@ pub enum Event {
     AssignLeader(Uid),
     RemoveBuff(BuffKind),
     UnlockSkill(Skill),
+    MinimapShow(bool),
+    MinimapFaceNorth(bool),
 }
 
 // TODO: Are these the possible layouts we want?
@@ -495,7 +497,6 @@ pub struct Show {
     esc_menu: bool,
     open_windows: Windows,
     map: bool,
-    mini_map: bool,
     ingame: bool,
     settings_tab: SettingsTab,
     skilltreetab: SelectedSkillTree,
@@ -568,8 +569,6 @@ impl Show {
     }
 
     fn toggle_map(&mut self) { self.map(!self.map) }
-
-    fn toggle_mini_map(&mut self) { self.mini_map = !self.mini_map; }
 
     fn settings(&mut self, open: bool) {
         if !self.esc_menu {
@@ -805,7 +804,6 @@ impl Hud {
                 diary: false,
                 group: false,
                 group_menu: false,
-                mini_map: true,
                 settings_tab: SettingsTab::Interface,
                 skilltreetab: SelectedSkillTree::General,
                 social_tab: SocialTab::Online,
@@ -1992,17 +1990,22 @@ impl Hud {
 
         // MiniMap
         match MiniMap::new(
-            &self.show,
             client,
             &self.imgs,
             &self.rot_imgs,
             &self.world_map,
             &self.fonts,
             camera.get_orientation(),
+            &global_state,
         )
         .set(self.ids.minimap, ui_widgets)
         {
-            Some(minimap::Event::Toggle) => self.show.toggle_mini_map(),
+            Some(minimap::Event::Show(show)) => {
+                events.push(Event::MinimapShow(show));
+            },
+            Some(minimap::Event::FaceNorth(should_face_north)) => {
+                events.push(Event::MinimapFaceNorth(should_face_north))
+            },
             None => {},
         }
 
