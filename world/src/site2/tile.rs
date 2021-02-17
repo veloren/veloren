@@ -73,7 +73,8 @@ impl TileGrid {
             } else if aabr.size().product() + if i % 2 == 0 { aabr.size().h } else { aabr.size().w } > area_range.end as i32 {
                 break;
             } else {
-                match i % 4 {
+                // `center.sum()` to avoid biasing certain directions
+                match (i + center.sum().abs()) % 4 {
                     0 if (aabr.min.y..aabr.max.y + 1).all(|y| self.get(Vec2::new(aabr.max.x, y)).is_empty()) => {
                         aabr.max.x += 1;
                         last_growth = i;

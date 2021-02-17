@@ -110,14 +110,14 @@ impl Site {
     }
 
     pub fn find_roadside_aabr(&mut self, rng: &mut impl Rng, area_range: Range<u32>, min_dims: Extent2<u32>) -> Option<(Aabr<i32>, Vec2<i32>)> {
-        let dir = Vec2::<f32>::zero().map(|_| rng.gen_range(-1.0..1.0));
+        let dir = Vec2::<f32>::zero().map(|_| rng.gen_range(-1.0..1.0)).normalized();
         let search_pos = if rng.gen() {
-            self.plot(*self.plazas.choose(rng).unwrap()).root_tile + (dir * 5.0).map(|e: f32| e.round() as i32)
+            self.plot(*self.plazas.choose(rng)?).root_tile + (dir * 5.0).map(|e: f32| e.round() as i32)
         } else {
             if let PlotKind::Road(path) = &self.plot(*self.roads.choose(rng)?).kind {
                 *path.nodes().choose(rng)? + (dir * 1.5).map(|e: f32| e.round() as i32)
             } else {
-                return None;
+                unreachable!()
             }
         };
 
@@ -128,7 +128,7 @@ impl Site {
         let pos = attempt(32, || {
             self.plazas
                 .choose(rng)
-                .map(|&p| self.plot(p).root_tile + Vec2::new(rng.gen_range(-24..24), rng.gen_range(-24..24)))
+                .map(|&p| self.plot(p).root_tile + Vec2::new(rng.gen_range(-20..20), rng.gen_range(-20..20)))
                 .filter(|&tile| self
                     .plazas
                     .iter()
@@ -186,7 +186,7 @@ impl Site {
         let mut castles = 0;
 
         for _ in 0..1000 {
-            if site.plots.len() > 80 {
+            if site.plots.len() - site.plazas.len() > 80 {
                 break;
             }
 
