@@ -1,6 +1,11 @@
-use crate::{comp::Body, uid::Uid, DamageSource};
+#[cfg(not(target_arch = "wasm32"))]
+use crate::comp::Body;
+use crate::{uid::Uid, DamageSource};
 use serde::{Deserialize, Serialize};
+
+#[cfg(not(target_arch = "wasm32"))]
 use specs::{Component, DerefFlaggedStorage};
+#[cfg(not(target_arch = "wasm32"))]
 use specs_idvs::IdvStorage;
 
 /// Specifies what and how much changed current health
@@ -40,6 +45,7 @@ pub struct Health {
 }
 
 impl Health {
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn new(body: Body, level: u16) -> Self {
         let mut health = Health::empty();
 
@@ -67,6 +73,7 @@ impl Health {
 
     pub fn maximum(&self) -> u32 { self.maximum }
 
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn set_to(&mut self, amount: u32, cause: HealthSource) {
         let amount = amount.min(self.maximum);
         self.last_change = (0.0, HealthChange {
@@ -76,6 +83,7 @@ impl Health {
         self.current = amount;
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn change_by(&mut self, change: HealthChange) {
         self.current = ((self.current as i32 + change.amount).max(0) as u32).min(self.maximum);
         self.last_change = (0.0, change);
@@ -90,6 +98,7 @@ impl Health {
     }
 
     // This is private because max hp is based on the level
+    #[cfg(not(target_arch = "wasm32"))]
     fn set_base_max(&mut self, amount: u32) {
         self.base_max = amount;
         self.current = self.current.min(self.maximum);
@@ -97,12 +106,14 @@ impl Health {
 
     pub fn should_die(&self) -> bool { self.current == 0 }
 
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn revive(&mut self) {
         self.set_to(self.maximum(), HealthSource::Revive);
         self.is_dead = false;
     }
 
     // TODO: Delete this once stat points will be a thing
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn update_max_hp(&mut self, body: Option<Body>, level: u16) {
         if let Some(body) = body {
             self.set_base_max(body.base_health() + body.base_health_increase() * level as u32);
@@ -114,14 +125,17 @@ impl Health {
         }
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn with_max_health(mut self, amount: u32) -> Self {
         self.maximum = amount;
         self.current = amount;
         self
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn last_set(&mut self) { self.last_max = self.maximum }
 
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn reset_max(&mut self) {
         self.maximum = self.base_max;
         if self.current > self.last_max {
@@ -131,6 +145,8 @@ impl Health {
         }
     }
 }
+
+#[cfg(not(target_arch = "wasm32"))]
 impl Component for Health {
     type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
 }
@@ -140,6 +156,7 @@ pub struct Dead {
     pub cause: HealthSource,
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl Component for Dead {
     type Storage = IdvStorage<Self>;
 }

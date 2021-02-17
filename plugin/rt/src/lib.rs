@@ -2,13 +2,14 @@
 
 pub extern crate plugin_derive;
 
-pub mod retreive;
+pub mod retrieve;
 
-pub use retreive::*;
+use api::RetrieveError;
+pub use retrieve::*;
 
 use std::convert::TryInto;
 
-pub use retreive::*;
+pub use retrieve::*;
 
 pub use plugin_api as api;
 pub use plugin_derive::*;
@@ -18,23 +19,19 @@ use serde::{de::DeserializeOwned, Serialize};
 #[cfg(target_arch = "wasm32")]
 extern "C" {
     fn raw_emit_actions(ptr: *const u8, len: usize);
-    fn raw_retreive_action(ptr: *const u8, len: usize) -> i64;
+    fn raw_retrieve_action(ptr: *const u8, len: usize) -> i64;
     pub fn dbg(i: i32);
 }
 
-pub fn retreive_action<T: DeserializeOwned>(_actions: &api::Retreive) -> Result<T,bincode::Error> {     
+pub fn retrieve_action<T: DeserializeOwned>(_actions: &api::Retrieve) -> Result<T, RetrieveError> {
     #[cfg(target_arch = "wasm32")]
     {
-        unsafe{dbg(0);}
-        let ret = bincode::serialize(&_actions).expect("Can't serialize action in emit");  
-        unsafe{dbg(1);}     
+        let ret = bincode::serialize(&_actions).expect("Can't serialize action in emit");
         unsafe {
-            dbg(2);
-            let (ptr,len) = from_i64(raw_retreive_action(ret.as_ptr(), ret.len()));
-            dbg(3);
+            let (ptr, len) = from_i64(raw_retrieve_action(ret.as_ptr(), ret.len()));
             let a = ::std::slice::from_raw_parts(ptr as _, len as _);
-            dbg(4);
-            bincode::deserialize(&a)
+            bincode::deserialize::<Result<T, RetrieveError>>(&a)
+                .map_err(|x| RetrieveError::BincodeError(x.to_string()))?
         }
     }
     #[cfg(not(target_arch = "wasm32"))]

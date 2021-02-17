@@ -5698,6 +5698,7 @@ dependencies = [
 name = "veloren-plugin-api"
 version = "0.1.0"
 dependencies = [
+ "bincode",
  "serde",
  "veloren-common",
 ]

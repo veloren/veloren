@@ -25,9 +25,8 @@ pub mod assets;
 pub mod character;
 #[cfg(not(target_arch = "wasm32"))] pub mod clock;
 #[cfg(not(target_arch = "wasm32"))] pub mod cmd;
-#[cfg(not(target_arch = "wasm32"))]
 pub mod combat;
-#[cfg(not(target_arch = "wasm32"))] pub mod comp;
+pub mod comp;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod consts;
 #[cfg(not(target_arch = "wasm32"))]
@@ -73,8 +72,9 @@ pub mod uid;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod volumes;
 
+pub use combat::DamageSource;
 #[cfg(not(target_arch = "wasm32"))]
-pub use combat::{Damage, DamageSource, GroupTarget, Knockback, KnockbackDir};
+pub use combat::{Damage, GroupTarget, Knockback, KnockbackDir};
 #[cfg(not(target_arch = "wasm32"))]
 pub use comp::inventory::loadout_builder::LoadoutBuilder;
 #[cfg(not(target_arch = "wasm32"))]

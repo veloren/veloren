@@ -1,4 +1,4 @@
-use std::sync::atomic::{AtomicI32, AtomicPtr, AtomicU32, AtomicU64, Ordering};
+use std::sync::atomic::{AtomicI32, AtomicPtr, AtomicU32, Ordering};
 
 use serde::{de::DeserializeOwned, Serialize};
 use specs::World;
@@ -12,26 +12,28 @@ pub struct EcsAccessManager {
 }
 
 impl Default for EcsAccessManager {
-
     fn default() -> Self {
         Self {
-            ecs_pointer: AtomicPtr::new(std::ptr::null_mut::<_>())
+            ecs_pointer: AtomicPtr::new(std::ptr::null_mut::<_>()),
         }
     }
 }
 
 impl EcsAccessManager {
-
+    // This function take a World reference and a function to execute ensuring the
+    // pointer will never be corrupted during the execution of the function!
     pub fn execute_with<T>(&self, world: &World, func: impl FnOnce() -> T) -> T {
-        self.ecs_pointer.store(world as *const _ as *mut _, Ordering::SeqCst);
+        self.ecs_pointer
+            .store(world as *const _ as *mut _, Ordering::SeqCst);
         let out = func();
-        self.ecs_pointer.store(std::ptr::null_mut::<_>(), Ordering::SeqCst);
+        self.ecs_pointer
+            .store(std::ptr::null_mut::<_>(), Ordering::SeqCst);
         out
     }
 
     pub fn get(&self) -> Option<&World> {
         // ptr::as_ref will automatically check for null
-        unsafe {self.ecs_pointer.load(Ordering::SeqCst).as_ref()}
+        unsafe { self.ecs_pointer.load(Ordering::SeqCst).as_ref() }
     }
 }
 
@@ -50,7 +52,6 @@ impl Default for MemoryManager {
 }
 
 impl MemoryManager {
-
     // This function check if the buffer is wide enough if not it realloc the buffer
     // calling the `wasm_prepare_buffer` function Note: There is probably
     // optimizations that can be done using less restrictive ordering

@@ -1,14 +1,24 @@
+use std::{
+    collections::HashSet,
+    convert::TryInto,
+    marker::PhantomData,
+    sync::{Arc, Mutex},
+};
 
-use std::{collections::HashSet, convert::TryInto, marker::PhantomData, sync::{Arc, Mutex}};
-
-use common::{comp::Player, uid::UidAllocator};
-use common_net::sync::WorldSyncExt;
-use specs::{World, WorldExt, saveload::MarkerAllocator};
+use common::{
+    comp::{Health, Player},
+    uid::UidAllocator,
+};
+use specs::{saveload::MarkerAllocator, World, WorldExt};
 use wasmer::{imports, Cranelift, Function, Instance, Memory, Module, Store, Value, JIT};
 
-use super::{errors::{PluginError, PluginModuleError}, memory_manager::{self, EcsAccessManager, MemoryManager}, wasm_env::HostFunctionEnvironement};
+use super::{
+    errors::{PluginError, PluginModuleError},
+    memory_manager::{self, EcsAccessManager, MemoryManager},
+    wasm_env::HostFunctionEnvironement,
+};
 
-use plugin_api::{Action, Event, Retreive};
+use plugin_api::{Action, EcsAccessError, Event, Retrieve, RetrieveError, RetrieveResult};
 
 #[derive(Clone)]
 // This structure represent the WASM State of the plugin.
@@ -43,31 +53,17 @@ impl PluginModule {
             });
         }
 
-        fn raw_retreive_action(env: &HostFunctionEnvironement, ptr: u32, len: u32) -> i64 {
-
-            println!("HOST DEBUG 1");
+        fn raw_retrieve_action(env: &HostFunctionEnvironement, ptr: u32, len: u32) -> i64 {
             // TODO: Handle correctly the error
-            let data: Retreive = env.read_data(ptr as _, len).unwrap();
-            println!("HOST DEBUG 2");
+            let data: Retrieve = env.read_data(ptr as _, len).unwrap();
 
-            let out = match data {
-                Retreive::GetEntityName(e) => {
-                    println!("HOST DEBUG 3 {:?}",env.ecs.get().is_some());
-                    let world = env.ecs.get().expect("Can't get entity name because ECS pointer isn't set");
-                    println!("HOST DEBUG 4 {}",world.has_value::<UidAllocator>());
-                    println!("HOST DEBUG 5 {:?}",&*world.read_resource::<UidAllocator>());
-                    let player = world.read_resource::<UidAllocator>().retrieve_entity_internal(e.0).expect("Invalid uid");
-                    println!("HOST DEBUG 6");
-                    format!("{:?}",world.read_component::<Player>().get(player))
-                }
-            };
-            println!("{}",out);
-            let (ptr,len) = env.write_data(&out).unwrap();
+            let out = retrieve_action(&env.ecs, data);
+            let (ptr, len) = env.write_data(&out).unwrap();
             to_i64(ptr, len as _)
         }
 
         fn dbg(a: i32) {
-            println!("WASM DEBUG: {}",a);
+            println!("WASM DEBUG: {}", a);
         }
 
         let ecs = Arc::new(EcsAccessManager::default());
@@ -77,7 +73,7 @@ impl PluginModule {
         let import_object = imports! {
             "env" => {
                 "raw_emit_actions" => Function::new_native_with_env(&store, HostFunctionEnvironement::new(name.clone(), ecs.clone(),memory_manager.clone()), raw_emit_actions),
-                "raw_retreive_action" => Function::new_native_with_env(&store, HostFunctionEnvironement::new(name.clone(), ecs.clone(),memory_manager.clone()), raw_retreive_action),
+                "raw_retrieve_action" => Function::new_native_with_env(&store, HostFunctionEnvironement::new(name.clone(), ecs.clone(),memory_manager.clone()), raw_retrieve_action),
                 "dbg" => Function::new_native(&store, dbg),
             }
         };
@@ -215,6 +211,60 @@ fn execute_raw(
         pointer,
         length as u32,
     ))
+}
+
+fn retrieve_action(
+    ecs: &EcsAccessManager,
+    action: Retrieve,
+) -> Result<RetrieveResult, RetrieveError> {
+    match action {
+        Retrieve::GetPlayerName(e) => {
+            let world = ecs.get().ok_or(RetrieveError::EcsAccessError(
+                EcsAccessError::EcsPointerNotAvailable,
+            ))?;
+            let player = world
+                .read_resource::<UidAllocator>()
+                .retrieve_entity_internal(e.0)
+                .ok_or(RetrieveError::EcsAccessError(
+                    EcsAccessError::EcsEntityNotFound(e),
+                ))?;
+            Ok(RetrieveResult::GetPlayerName(
+                world
+                    .read_component::<Player>()
+                    .get(player)
+                    .ok_or_else(|| {
+                        RetrieveError::EcsAccessError(EcsAccessError::EcsComponentNotFound(
+                            e,
+                            "Player".to_owned(),
+                        ))
+                    })?
+                    .alias
+                    .to_owned(),
+            ))
+        },
+        Retrieve::GetEntityHealth(e) => {
+            let world = ecs.get().ok_or(RetrieveError::EcsAccessError(
+                EcsAccessError::EcsPointerNotAvailable,
+            ))?;
+            let player = world
+                .read_resource::<UidAllocator>()
+                .retrieve_entity_internal(e.0)
+                .ok_or(RetrieveError::EcsAccessError(
+                    EcsAccessError::EcsEntityNotFound(e),
+                ))?;
+            Ok(RetrieveResult::GetEntityHealth(
+                *world
+                    .read_component::<Health>()
+                    .get(player)
+                    .ok_or_else(|| {
+                        RetrieveError::EcsAccessError(EcsAccessError::EcsComponentNotFound(
+                            e,
+                            "Health".to_owned(),
+                        ))
+                    })?,
+            ))
+        },
+    }
 }
 
 fn handle_actions(actions: Vec<Action>) {

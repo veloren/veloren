@@ -1,23 +1,31 @@
-use std::sync::{atomic::AtomicI32, Arc};
+use std::sync::Arc;
 
 use serde::{de::DeserializeOwned, Serialize};
 use wasmer::{Function, HostEnvInitError, Instance, LazyInit, Memory, WasmerEnv};
 
-use super::{errors::PluginModuleError, memory_manager::{self, EcsAccessManager, MemoryManager}};
+use super::{
+    errors::PluginModuleError,
+    memory_manager::{self, EcsAccessManager, MemoryManager},
+};
 
 #[derive(Clone)]
 pub struct HostFunctionEnvironement {
-    pub ecs: Arc<EcsAccessManager>, /* This represent the pointer to the ECS object (set to i32::MAX if
-                              * to ECS is availible) */
+    pub ecs: Arc<EcsAccessManager>, /* This represent the pointer to the ECS object (set to
+                                     * i32::MAX if to ECS is
+                                     * availible) */
     pub memory: LazyInit<Memory>, // This object represent the WASM Memory
     pub allocator: LazyInit<Function>, // Linked to: wasm_prepare_buffer
     pub memory_manager: Arc<MemoryManager>, /* This object represent the current buffer size and
-                                             * pointer */
+                                   * pointer */
     pub name: String, // This represent the plugin name
 }
 
 impl HostFunctionEnvironement {
-    pub fn new(name: String, ecs: Arc<EcsAccessManager>, memory_manager: Arc<MemoryManager>) -> Self {
+    pub fn new(
+        name: String,
+        ecs: Arc<EcsAccessManager>,
+        memory_manager: Arc<MemoryManager>,
+    ) -> Self {
         Self {
             memory_manager,
             ecs,
