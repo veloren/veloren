@@ -24,16 +24,16 @@ impl EcsAccessManager {
     // pointer will never be corrupted during the execution of the function!
     pub fn execute_with<T>(&self, world: &World, func: impl FnOnce() -> T) -> T {
         self.ecs_pointer
-            .store(world as *const _ as *mut _, Ordering::SeqCst);
+            .store(world as *const _ as *mut _, Ordering::Relaxed);
         let out = func();
         self.ecs_pointer
-            .store(std::ptr::null_mut::<_>(), Ordering::SeqCst);
+            .store(std::ptr::null_mut::<_>(), Ordering::Relaxed);
         out
     }
 
     pub fn get(&self) -> Option<&World> {
         // ptr::as_ref will automatically check for null
-        unsafe { self.ecs_pointer.load(Ordering::SeqCst).as_ref() }
+        unsafe { self.ecs_pointer.load(Ordering::Relaxed).as_ref() }
     }
 }
 
