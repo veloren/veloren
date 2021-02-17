@@ -180,7 +180,7 @@ https://veloren.net/account/."#,
 
         // Chat outputs
         "hud.chat.online_msg": "[{name}] logget på",
-        "hud.chat.offline_msg": "{name} logget av",
+        "hud.chat.offline_msg": "[{name}] logget av",
 
         "hud.chat.default_death_msg": "[{name}] døde",
         "hud.chat.environmental_kill_msg": "[{name}] døde i {environment}",
@@ -197,8 +197,8 @@ https://veloren.net/account/."#,
         "hud.chat.npc_melee_kill_msg": "{attacker} drepte [{victim}]",
         "hud.chat.npc_ranged_kill_msg": "{attacker} skjøt [{victim}]",
         "hud.chat.npc_explosion_kill_msg": "{attacker} sprengte [{victim}]",
-        "hud.chat.npc_energy_kill_msg": "[{attacker}] drepte [{victim}] med magi",
-        "hud.chat.npc_other_kill_msg": "[{attacker}] drepte [{victim}]",
+        "hud.chat.npc_energy_kill_msg": "{attacker} drepte [{victim}] med magi",
+        "hud.chat.npc_other_kill_msg": "{attacker} drepte [{victim}]",
 
         "hud.chat.loot_msg": "Du plukket opp [{item}]",
         "hud.chat.loot_fail": "Ditt inventar er fullt!",
@@ -394,7 +394,7 @@ magisk infunderte gjenstandene?"#,
         "hud.crafting.tool_cata": "Krever:",
 
         "hud.group": "Gruppe",
-        "hud.group.invite_to_join": "{name} inviterte deg til gruppen deres!",
+        "hud.group.invite_to_join": "[{name}] inviterte deg til gruppen deres!",
         "hud.group.invite": "Inviter",
         "hud.group.kick": "Spark",
         "hud.group.assign_leader": "Tilordne leder",

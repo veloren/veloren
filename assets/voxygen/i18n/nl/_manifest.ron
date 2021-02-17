@@ -175,7 +175,7 @@ https://veloren.net/account/."#,
 
         // Chat outputs
         "hud.chat.online_msg": "[{name}] is nu online",
-        "hud.chat.offline_msg": "{name} is offline gegaan",
+        "hud.chat.offline_msg": "[{name}] is offline gegaan",
 
         "hud.chat.default_death_msg": "[{name}] is gestorven",
         "hud.chat.environmental_kill_msg": "[{name}] is gestorven in {environment}",
@@ -382,7 +382,7 @@ herstellen",
         "hud.crafting.tool_cata": "Vereisten:",
 
         "hud.group": "Groep",
-        "hud.group.invite_to_join": "{name} heeft je voor zijn/haar groep uitgenodigd!",
+        "hud.group.invite_to_join": "[{name}] heeft je voor zijn/haar groep uitgenodigd!",
         "hud.group.invite": "Uitnodigen",
         "hud.group.kick": "Kick",
         "hud.group.assign_leader": "Maak Leider",

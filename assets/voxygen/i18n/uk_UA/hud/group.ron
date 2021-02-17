@@ -4,7 +4,7 @@
 (
     string_map: {
         "hud.group": "Група",
-        "hud.group.invite_to_join": "{name} запросив(ла) Вас до їхньої групи!",
+        "hud.group.invite_to_join": "[{name}] запросив(ла) Вас до їхньої групи!",
         "hud.group.invite": "Запросити",
         "hud.group.kick": "Викинути",
         "hud.group.assign_leader": "Призначити лідером",

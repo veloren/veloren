@@ -11,6 +11,7 @@ use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
 use crate::{
     client::Client,
     presence::{Presence, RegionSubscription},
+    state_ext::StateExt,
     Server,
 };
 
@@ -133,16 +134,56 @@ pub fn handle_possess(server: &Server, possessor_uid: Uid, possesse_uid: Uid) {
             return;
         }
 
-        let mut clients = ecs.write_storage::<Client>();
-
-        if clients.get_mut(possesse).is_some() {
+        if ecs.read_storage::<Client>().get(possesse).is_some() {
             error!("can't possess other players");
             return;
         }
 
         match (|| -> Option<Result<(), specs::error::Error>> {
+            let mut clients = ecs.write_storage::<Client>();
             let c = clients.remove(possessor)?;
             clients.insert(possesse, c).ok()?;
+            let playerlist_messages = if let Some(client) = clients.get(possesse) {
+                client.send_fallible(ServerGeneral::SetPlayerEntity(possesse_uid));
+                // If a player is posessing non player, add possesse to playerlist as player and
+                // remove old player
+                if let Some(possessor_player) = ecs.read_storage::<comp::Player>().get(possessor) {
+                    let admins = ecs.read_storage::<comp::Admin>();
+                    let entity_possession_msg = ServerGeneral::PlayerListUpdate(
+                        common_net::msg::server::PlayerListUpdate::Add(
+                            possesse_uid,
+                            common_net::msg::server::PlayerInfo {
+                                player_alias: possessor_player.alias.clone(),
+                                is_online: true,
+                                is_admin: admins.get(possessor).is_some(),
+                                character: ecs.read_storage::<comp::Stats>().get(possesse).map(
+                                    |s| common_net::msg::CharacterInfo {
+                                        name: s.name.clone(),
+                                    },
+                                ),
+                            },
+                        ),
+                    );
+                    let remove_old_player_msg = ServerGeneral::PlayerListUpdate(
+                        common_net::msg::server::PlayerListUpdate::Remove(possessor_uid),
+                    );
+
+                    // Send msg to new possesse client now because it is not yet considered a player
+                    // and will be missed by notify_players
+                    client.send_fallible(entity_possession_msg.clone());
+                    client.send_fallible(remove_old_player_msg.clone());
+                    Some((remove_old_player_msg, entity_possession_msg))
+                } else {
+                    None
+                }
+            } else {
+                None
+            };
+            drop(clients);
+            if let Some((remove_player, possess_entity)) = playerlist_messages {
+                server.state().notify_players(possess_entity);
+                server.state().notify_players(remove_player);
+            }
             //optional entities
             let mut players = ecs.write_storage::<comp::Player>();
             let mut presence = ecs.write_storage::<Presence>();
@@ -177,10 +218,6 @@ pub fn handle_possess(server: &Server, possessor_uid: Uid, possesse_uid: Uid) {
                 return;
             },
         }
-
-        clients
-            .get_mut(possesse)
-            .map(|c| c.send_fallible(ServerGeneral::SetPlayerEntity(possesse_uid)));
 
         // Put possess item into loadout
         let mut inventories = ecs.write_storage::<Inventory>();

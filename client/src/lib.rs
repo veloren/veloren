@@ -1909,7 +1909,7 @@ impl Client {
                             format!("{:?}", buff_kind).to_lowercase().as_str()
                         ),
                         KillSource::NonPlayer(attacker_name, KillType::Buff(buff_kind)) => format!(
-                            "[{}] died of {} caused by [{}]",
+                            "[{}] died of {} caused by {}",
                             alias_of_uid(victim),
                             format!("{:?}", buff_kind).to_lowercase().as_str(),
                             attacker_name

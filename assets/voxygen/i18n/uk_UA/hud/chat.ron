@@ -5,7 +5,7 @@
     string_map: {
         // Chat outputs
         "hud.chat.online_msg": "[{name}] в мережі",
-        "hud.chat.offline_msg": "{name} не в мережі",
+        "hud.chat.offline_msg": "[{name}] не в мережі",
 
         "hud.chat.default_death_msg": "[{name}] помер(ла)",
         "hud.chat.environmental_kill_msg": "[{name}] помер(ла) в {environment}",
@@ -20,12 +20,12 @@
 
         "hud.chat.nonexistent_buff_kill_msg": "[{victim}] помер(ла) від: {buff}",
 
-        "hud.chat.npc_buff_kill_msg": "[{victim}] помер(ла) від: {buff} через: [{attacker}]",
+        "hud.chat.npc_buff_kill_msg": "[{victim}] помер(ла) від: {buff} через: {attacker}",
         "hud.chat.npc_melee_kill_msg": "{attacker} вбив(ла) [{victim}]",
         "hud.chat.npc_ranged_kill_msg": "{attacker} застрелив(ла) [{victim}]",
         "hud.chat.npc_explosion_kill_msg": "{attacker} підірвав(ла) [{victim}]",
-        "hud.chat.npc_energy_kill_msg": "[{attacker}] вбив(ла) [{victim}] магією",
-        "hud.chat.npc_other_kill_msg": "[{attacker}] вбив(ла) [{victim}]",
+        "hud.chat.npc_energy_kill_msg": "{attacker} вбив(ла) [{victim}] магією",
+        "hud.chat.npc_other_kill_msg": "{attacker} вбив(ла) [{victim}]",
 
         "hud.chat.loot_msg": "Ви підібрали [{item}]",
         "hud.chat.loot_fail": "Ваш інвентар переповнено!",
