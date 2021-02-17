@@ -63,6 +63,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Made zooming work on wayland
 - Fixed AI behavior so only humanoids will attempt to roll
 - Fixed missing GameInputs (sneak, swimup, swimdown) in controller mapping
+- Fixed missing controller actions (dance and crafting)
 - Fixed a bug where the stairs to the boss floor in dungeons would sometimes not spawn
 - Fixed waypoints being placed underwater
 
