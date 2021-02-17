@@ -71,6 +71,15 @@ impl ClientInit {
 
                     let mut last_err = None;
 
+                    let cores = num_cpus::get();
+                    let runtime = Arc::new(
+                        tokio::runtime::Builder::new_multi_thread()
+                            .enable_all()
+                            .worker_threads(if cores > 4 { cores - 1 } else { cores })
+                            .build()
+                            .unwrap(),
+                    );
+
                     const FOUR_MINUTES_RETRIES: u64 = 48;
                     'tries: for _ in 0..FOUR_MINUTES_RETRIES {
                         if cancel2.load(Ordering::Relaxed) {
@@ -79,7 +88,7 @@ impl ClientInit {
                         for socket_addr in
                             first_addrs.clone().into_iter().chain(second_addrs.clone())
                         {
-                            match Client::new(socket_addr, view_distance) {
+                            match Client::new(socket_addr, view_distance, Arc::clone(&runtime)) {
                                 Ok(mut client) => {
                                     if let Err(e) =
                                         client.register(username, password, |auth_server| {

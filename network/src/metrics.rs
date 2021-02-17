@@ -1,16 +1,10 @@
-use crate::types::{Cid, Frame, Pid};
-use prometheus::{
-    core::{AtomicU64, GenericCounter},
-    IntCounter, IntCounterVec, IntGauge, IntGaugeVec, Opts, Registry,
-};
+use network_protocol::{Cid, Pid};
+#[cfg(feature = "metrics")]
+use prometheus::{IntCounter, IntCounterVec, IntGauge, IntGaugeVec, Opts, Registry};
 use std::error::Error;
-use tracing::*;
 
 /// 1:1 relation between NetworkMetrics and Network
-/// use 2NF here and avoid redundant data like CHANNEL AND PARTICIPANT encoding.
-/// as this will cause a matrix that is full of 0 but needs alot of bandwith and
-/// storage
-#[allow(dead_code)]
+#[cfg(feature = "metrics")]
 pub struct NetworkMetrics {
     pub listen_requests_total: IntCounterVec,
     pub connect_requests_total: IntCounterVec,
@@ -25,33 +19,13 @@ pub struct NetworkMetrics {
     pub streams_opened_total: IntCounterVec,
     pub streams_closed_total: IntCounterVec,
     pub network_info: IntGauge,
-    // Frames counted a channel level, seperated by CHANNEL (and PARTICIPANT) AND FRAME TYPE,
-    pub frames_out_total: IntCounterVec,
-    pub frames_in_total: IntCounterVec,
-    // Frames counted at protocol level, seperated by CHANNEL (and PARTICIPANT) AND FRAME TYPE,
-    pub frames_wire_out_total: IntCounterVec,
-    pub frames_wire_in_total: IntCounterVec,
-    // throughput at protocol level, seperated by CHANNEL (and PARTICIPANT),
-    pub wire_out_throughput: IntCounterVec,
-    pub wire_in_throughput: IntCounterVec,
-    // send(prio) Messages count, seperated by STREAM AND PARTICIPANT,
-    pub message_out_total: IntCounterVec,
-    // send(prio) Messages throughput, seperated by STREAM AND PARTICIPANT,
-    pub message_out_throughput: IntCounterVec,
-    // flushed(prio) stream count, seperated by PARTICIPANT,
-    pub streams_flushed: IntCounterVec,
-    // TODO: queued Messages, seperated by STREAM (add PART, CHANNEL),
-    // queued Messages, seperated by PARTICIPANT
-    pub queued_count: IntGaugeVec,
-    // TODO: queued Messages bytes, seperated by STREAM (add PART, CHANNEL),
-    // queued Messages bytes, seperated by PARTICIPANT
-    pub queued_bytes: IntGaugeVec,
-    // ping calculated based on last msg seperated by PARTICIPANT
-    pub participants_ping: IntGaugeVec,
 }
 
+#[cfg(not(feature = "metrics"))]
+pub struct NetworkMetrics {}
+
+#[cfg(feature = "metrics")]
 impl NetworkMetrics {
-    #[allow(dead_code)]
     pub fn new(local_pid: &Pid) -> Result<Self, Box<dyn Error>> {
         let listen_requests_total = IntCounterVec::new(
             Opts::new(
@@ -115,99 +89,13 @@ impl NetworkMetrics {
                 "version",
                 &format!(
                     "{}.{}.{}",
-                    &crate::types::VELOREN_NETWORK_VERSION[0],
-                    &crate::types::VELOREN_NETWORK_VERSION[1],
-                    &crate::types::VELOREN_NETWORK_VERSION[2]
+                    &network_protocol::VELOREN_NETWORK_VERSION[0],
+                    &network_protocol::VELOREN_NETWORK_VERSION[1],
+                    &network_protocol::VELOREN_NETWORK_VERSION[2]
                 ),
             )
             .const_label("local_pid", &format!("{}", &local_pid));
         let network_info = IntGauge::with_opts(opts)?;
-        let frames_out_total = IntCounterVec::new(
-            Opts::new(
-                "frames_out_total",
-                "Number of all frames send per channel, at the channel level",
-            ),
-            &["channel", "frametype"],
-        )?;
-        let frames_in_total = IntCounterVec::new(
-            Opts::new(
-                "frames_in_total",
-                "Number of all frames received per channel, at the channel level",
-            ),
-            &["channel", "frametype"],
-        )?;
-        let frames_wire_out_total = IntCounterVec::new(
-            Opts::new(
-                "frames_wire_out_total",
-                "Number of all frames send per channel, at the protocol level",
-            ),
-            &["channel", "frametype"],
-        )?;
-        let frames_wire_in_total = IntCounterVec::new(
-            Opts::new(
-                "frames_wire_in_total",
-                "Number of all frames received per channel, at the protocol level",
-            ),
-            &["channel", "frametype"],
-        )?;
-        let wire_out_throughput = IntCounterVec::new(
-            Opts::new(
-                "wire_out_throughput",
-                "Throupgput of all data frames send per channel, at the protocol level",
-            ),
-            &["channel"],
-        )?;
-        let wire_in_throughput = IntCounterVec::new(
-            Opts::new(
-                "wire_in_throughput",
-                "Throupgput of all data frames send per channel, at the protocol level",
-            ),
-            &["channel"],
-        )?;
-        //TODO IN
-        let message_out_total = IntCounterVec::new(
-            Opts::new(
-                "message_out_total",
-                "Number of messages send by streams on the network",
-            ),
-            &["participant", "stream"],
-        )?;
-        //TODO IN
-        let message_out_throughput = IntCounterVec::new(
-            Opts::new(
-                "message_out_throughput",
-                "Throughput of messages send by streams on the network",
-            ),
-            &["participant", "stream"],
-        )?;
-        let streams_flushed = IntCounterVec::new(
-            Opts::new(
-                "stream_flushed",
-                "Number of flushed streams requested to PrioManager at participant level",
-            ),
-            &["participant"],
-        )?;
-        let queued_count = IntGaugeVec::new(
-            Opts::new(
-                "queued_count",
-                "Queued number of messages by participant on the network",
-            ),
-            &["channel"],
-        )?;
-        let queued_bytes = IntGaugeVec::new(
-            Opts::new(
-                "queued_bytes",
-                "Queued bytes of messages by participant on the network",
-            ),
-            &["channel"],
-        )?;
-        let participants_ping = IntGaugeVec::new(
-            Opts::new(
-                "participants_ping",
-                "Ping time to participants on the network",
-            ),
-            &["channel"],
-        )?;
 
         Ok(Self {
             listen_requests_total,
@@ -220,18 +108,6 @@ impl NetworkMetrics {
             streams_opened_total,
             streams_closed_total,
             network_info,
-            frames_out_total,
-            frames_in_total,
-            frames_wire_out_total,
-            frames_wire_in_total,
-            wire_out_throughput,
-            wire_in_throughput,
-            message_out_total,
-            message_out_throughput,
-            streams_flushed,
-            queued_count,
-            queued_bytes,
-            participants_ping,
         })
     }
 
@@ -246,162 +122,53 @@ impl NetworkMetrics {
         registry.register(Box::new(self.streams_opened_total.clone()))?;
         registry.register(Box::new(self.streams_closed_total.clone()))?;
         registry.register(Box::new(self.network_info.clone()))?;
-        registry.register(Box::new(self.frames_out_total.clone()))?;
-        registry.register(Box::new(self.frames_in_total.clone()))?;
-        registry.register(Box::new(self.frames_wire_out_total.clone()))?;
-        registry.register(Box::new(self.frames_wire_in_total.clone()))?;
-        registry.register(Box::new(self.wire_out_throughput.clone()))?;
-        registry.register(Box::new(self.wire_in_throughput.clone()))?;
-        registry.register(Box::new(self.message_out_total.clone()))?;
-        registry.register(Box::new(self.message_out_throughput.clone()))?;
-        registry.register(Box::new(self.queued_count.clone()))?;
-        registry.register(Box::new(self.queued_bytes.clone()))?;
-        registry.register(Box::new(self.participants_ping.clone()))?;
         Ok(())
     }
 
-    //pub fn _is_100th_tick(&self) -> bool {
-    // self.tick.load(Ordering::Relaxed).rem_euclid(100) == 0 }
+    pub(crate) fn channels_connected(&self, remote_p: &str, no: usize, cid: Cid) {
+        self.channels_connected_total
+            .with_label_values(&[remote_p])
+            .inc();
+        self.participants_channel_ids
+            .with_label_values(&[remote_p, &no.to_string()])
+            .set(cid as i64);
+    }
+
+    pub(crate) fn channels_disconnected(&self, remote_p: &str) {
+        self.channels_disconnected_total
+            .with_label_values(&[remote_p])
+            .inc();
+    }
+
+    pub(crate) fn streams_opened(&self, remote_p: &str) {
+        self.streams_opened_total
+            .with_label_values(&[remote_p])
+            .inc();
+    }
+
+    pub(crate) fn streams_closed(&self, remote_p: &str) {
+        self.streams_closed_total
+            .with_label_values(&[remote_p])
+            .inc();
+    }
+}
+
+#[cfg(not(feature = "metrics"))]
+impl NetworkMetrics {
+    pub fn new(_local_pid: &Pid) -> Result<Self, Box<dyn Error>> { Ok(Self {}) }
+
+    pub(crate) fn channels_connected(&self, _remote_p: &str, _no: usize, _cid: Cid) {}
+
+    pub(crate) fn channels_disconnected(&self, _remote_p: &str) {}
+
+    pub(crate) fn streams_opened(&self, _remote_p: &str) {}
+
+    pub(crate) fn streams_closed(&self, _remote_p: &str) {}
 }
 
 impl std::fmt::Debug for NetworkMetrics {
     #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "NetworkMetrics()")
-    }
-}
-
-/*
-pub(crate) struct PidCidFrameCache<T: MetricVecBuilder> {
-    metric: MetricVec<T>,
-    pid: String,
-    cache: Vec<[T::M; 8]>,
-}
-*/
-
-pub(crate) struct MultiCidFrameCache {
-    metric: IntCounterVec,
-    cache: Vec<[Option<GenericCounter<AtomicU64>>; Frame::FRAMES_LEN as usize]>,
-}
-
-impl MultiCidFrameCache {
-    const CACHE_SIZE: usize = 2048;
-
-    pub fn new(metric: IntCounterVec) -> Self {
-        Self {
-            metric,
-            cache: vec![],
-        }
-    }
-
-    fn populate(&mut self, cid: Cid) {
-        let start_cid = self.cache.len();
-        if cid >= start_cid as u64 && cid > (Self::CACHE_SIZE as Cid) {
-            warn!(
-                ?cid,
-                "cid, getting quite high, is this a attack on the cache?"
-            );
-        }
-        self.cache.resize((cid + 1) as usize, [
-            None, None, None, None, None, None, None, None,
-        ]);
-    }
-
-    pub fn with_label_values(&mut self, cid: Cid, frame: &Frame) -> &GenericCounter<AtomicU64> {
-        self.populate(cid);
-        let frame_int = frame.get_int() as usize;
-        let r = &mut self.cache[cid as usize][frame_int];
-        if r.is_none() {
-            *r = Some(
-                self.metric
-                    .with_label_values(&[&cid.to_string(), &frame_int.to_string()]),
-            );
-        }
-        r.as_ref().unwrap()
-    }
-}
-
-pub(crate) struct CidFrameCache {
-    cache: [GenericCounter<AtomicU64>; Frame::FRAMES_LEN as usize],
-}
-
-impl CidFrameCache {
-    pub fn new(metric: IntCounterVec, cid: Cid) -> Self {
-        let cid = cid.to_string();
-        let cache = [
-            metric.with_label_values(&[&cid, Frame::int_to_string(0)]),
-            metric.with_label_values(&[&cid, Frame::int_to_string(1)]),
-            metric.with_label_values(&[&cid, Frame::int_to_string(2)]),
-            metric.with_label_values(&[&cid, Frame::int_to_string(3)]),
-            metric.with_label_values(&[&cid, Frame::int_to_string(4)]),
-            metric.with_label_values(&[&cid, Frame::int_to_string(5)]),
-            metric.with_label_values(&[&cid, Frame::int_to_string(6)]),
-            metric.with_label_values(&[&cid, Frame::int_to_string(7)]),
-        ];
-        Self { cache }
-    }
-
-    pub fn with_label_values(&mut self, frame: &Frame) -> &GenericCounter<AtomicU64> {
-        &self.cache[frame.get_int() as usize]
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::{
-        metrics::*,
-        types::{Frame, Pid},
-    };
-
-    #[test]
-    fn register_metrics() {
-        let registry = Registry::new();
-        let metrics = NetworkMetrics::new(&Pid::fake(1)).unwrap();
-        metrics.register(&registry).unwrap();
-    }
-
-    #[test]
-    fn multi_cid_frame_cache() {
-        let pid = Pid::fake(1);
-        let frame1 = Frame::Raw(b"Foo".to_vec());
-        let frame2 = Frame::Raw(b"Bar".to_vec());
-        let metrics = NetworkMetrics::new(&pid).unwrap();
-        let mut cache = MultiCidFrameCache::new(metrics.frames_in_total);
-        let v1 = cache.with_label_values(1, &frame1);
-        v1.inc();
-        assert_eq!(v1.get(), 1);
-        let v2 = cache.with_label_values(1, &frame1);
-        v2.inc();
-        assert_eq!(v2.get(), 2);
-        let v3 = cache.with_label_values(1, &frame2);
-        v3.inc();
-        assert_eq!(v3.get(), 3);
-        let v4 = cache.with_label_values(3, &frame1);
-        v4.inc();
-        assert_eq!(v4.get(), 1);
-        let v5 = cache.with_label_values(3, &Frame::Shutdown);
-        v5.inc();
-        assert_eq!(v5.get(), 1);
-    }
-
-    #[test]
-    fn cid_frame_cache() {
-        let pid = Pid::fake(1);
-        let frame1 = Frame::Raw(b"Foo".to_vec());
-        let frame2 = Frame::Raw(b"Bar".to_vec());
-        let metrics = NetworkMetrics::new(&pid).unwrap();
-        let mut cache = CidFrameCache::new(metrics.frames_wire_out_total, 1);
-        let v1 = cache.with_label_values(&frame1);
-        v1.inc();
-        assert_eq!(v1.get(), 1);
-        let v2 = cache.with_label_values(&frame1);
-        v2.inc();
-        assert_eq!(v2.get(), 2);
-        let v3 = cache.with_label_values(&frame2);
-        v3.inc();
-        assert_eq!(v3.get(), 3);
-        let v4 = cache.with_label_values(&Frame::Shutdown);
-        v4.inc();
-        assert_eq!(v4.get(), 1);
     }
 }

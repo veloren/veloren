@@ -1,21 +1,12 @@
-//!
-//!
-//!
-//! (cd network/examples/async_recv && RUST_BACKTRACE=1 cargo run)
 use crate::{
-    message::{partial_eq_bincode, IncomingMessage, Message, OutgoingMessage},
+    message::{partial_eq_bincode, Message},
     participant::{A2bStreamOpen, S2bShutdownBparticipant},
     scheduler::Scheduler,
-    types::{Mid, Pid, Prio, Promises, Sid},
 };
-use async_std::{io, sync::Mutex, task};
-use futures::{
-    channel::{mpsc, oneshot},
-    sink::SinkExt,
-    stream::StreamExt,
-};
+use bytes::Bytes;
 #[cfg(feature = "compression")]
 use lz_fear::raw::DecodeError;
+use network_protocol::{Bandwidth, Pid, Prio, Promises, Sid};
 #[cfg(feature = "metrics")]
 use prometheus::Registry;
 use serde::{de::DeserializeOwned, Serialize};
@@ -26,9 +17,14 @@ use std::{
         atomic::{AtomicBool, Ordering},
         Arc,
     },
+    time::Duration,
+};
+use tokio::{
+    io,
+    runtime::Runtime,
+    sync::{mpsc, oneshot, Mutex},
 };
 use tracing::*;
-use tracing_futures::Instrument;
 
 type A2sDisconnect = Arc<Mutex<Option<mpsc::UnboundedSender<(Pid, S2bShutdownBparticipant)>>>>;
 
@@ -50,7 +46,7 @@ pub enum ProtocolAddr {
 pub struct Participant {
     local_pid: Pid,
     remote_pid: Pid,
-    a2b_stream_open_s: Mutex<mpsc::UnboundedSender<A2bStreamOpen>>,
+    a2b_open_stream_s: Mutex<mpsc::UnboundedSender<A2bStreamOpen>>,
     b2a_stream_opened_r: Mutex<mpsc::UnboundedReceiver<Stream>>,
     a2s_disconnect_s: A2sDisconnect,
 }
@@ -70,14 +66,15 @@ pub struct Participant {
 /// [`opened`]: Participant::opened
 #[derive(Debug)]
 pub struct Stream {
-    pid: Pid,
+    local_pid: Pid,
+    remote_pid: Pid,
     sid: Sid,
-    mid: Mid,
     prio: Prio,
     promises: Promises,
+    guaranteed_bandwidth: Bandwidth,
     send_closed: Arc<AtomicBool>,
-    a2b_msg_s: crossbeam_channel::Sender<(Prio, Sid, OutgoingMessage)>,
-    b2a_msg_recv_r: Option<mpsc::UnboundedReceiver<IncomingMessage>>,
+    a2b_msg_s: crossbeam_channel::Sender<(Sid, Bytes)>,
+    b2a_msg_recv_r: Option<async_channel::Receiver<Bytes>>,
     a2b_close_stream_s: Option<mpsc::UnboundedSender<Sid>>,
 }
 
@@ -125,17 +122,17 @@ pub enum StreamError {
 ///
 /// # Examples
 /// ```rust
+/// # use std::sync::Arc;
+/// use tokio::runtime::Runtime;
 /// use veloren_network::{Network, ProtocolAddr, Pid};
-/// use futures::executor::block_on;
 ///
 /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
 /// // Create a Network, listen on port `2999` to accept connections and connect to port `8080` to connect to a (pseudo) database Application
-/// let (network, f) = Network::new(Pid::new());
-/// std::thread::spawn(f);
-/// block_on(async{
+/// let runtime = Arc::new(Runtime::new().unwrap());
+/// let network = Network::new(Pid::new(), Arc::clone(&runtime));
+/// runtime.block_on(async{
 ///     # //setup pseudo database!
-///     # let (database, fd) = Network::new(Pid::new());
-///     # std::thread::spawn(fd);
+///     # let database = Network::new(Pid::new(), Arc::clone(&runtime));
 ///     # database.listen(ProtocolAddr::Tcp("127.0.0.1:8080".parse().unwrap())).await?;
 ///     network.listen(ProtocolAddr::Tcp("127.0.0.1:2999".parse().unwrap())).await?;
 ///     let database = network.connect(ProtocolAddr::Tcp("127.0.0.1:8080".parse().unwrap())).await?;
@@ -150,9 +147,10 @@ pub enum StreamError {
 /// [`connected`]: Network::connected
 pub struct Network {
     local_pid: Pid,
+    runtime: Arc<Runtime>,
     participant_disconnect_sender: Mutex<HashMap<Pid, A2sDisconnect>>,
     listen_sender:
-        Mutex<mpsc::UnboundedSender<(ProtocolAddr, oneshot::Sender<async_std::io::Result<()>>)>>,
+        Mutex<mpsc::UnboundedSender<(ProtocolAddr, oneshot::Sender<tokio::io::Result<()>>)>>,
     connect_sender:
         Mutex<mpsc::UnboundedSender<(ProtocolAddr, oneshot::Sender<io::Result<Participant>>)>>,
     connected_receiver: Mutex<mpsc::UnboundedReceiver<Participant>>,
@@ -165,35 +163,25 @@ impl Network {
     /// # Arguments
     /// * `participant_id` - provide it by calling [`Pid::new()`], usually you
     ///   don't want to reuse a Pid for 2 `Networks`
+    /// * `runtime` - provide a tokio::Runtime, it's used to internally spawn
+    ///   tasks. It is necessary to clean up in the non-async `Drop`. **All**
+    ///   network related components **must** be dropped before the runtime is
+    ///   stopped. dropping the runtime while a shutdown is still in progress
+    ///   leaves the network in a bad state which might cause a panic!
     ///
     /// # Result
     /// * `Self` - returns a `Network` which can be `Send` to multiple areas of
     ///   your code, including multiple threads. This is the base strct of this
     ///   crate.
-    /// * `FnOnce` - you need to run the returning FnOnce exactly once, probably
-    ///   in it's own thread. this is NOT done internally, so that you are free
-    ///   to choose the threadpool implementation of your choice. We recommend
-    ///   using [`ThreadPool`] from [`uvth`] crate. This fn will run the
-    ///   Scheduler to handle all `Network` internals. Additional threads will
-    ///   be allocated on an internal async-aware threadpool
     ///
     /// # Examples
     /// ```rust
-    /// //Example with uvth
-    /// use uvth::ThreadPoolBuilder;
+    /// use std::sync::Arc;
+    /// use tokio::runtime::Runtime;
     /// use veloren_network::{Network, Pid, ProtocolAddr};
     ///
-    /// let pool = ThreadPoolBuilder::new().build();
-    /// let (network, f) = Network::new(Pid::new());
-    /// pool.execute(f);
-    /// ```
-    ///
-    /// ```rust
-    /// //Example with std::thread
-    /// use veloren_network::{Network, Pid, ProtocolAddr};
-    ///
-    /// let (network, f) = Network::new(Pid::new());
-    /// std::thread::spawn(f);
+    /// let runtime = Runtime::new().unwrap();
+    /// let network = Network::new(Pid::new(), Arc::new(runtime));
     /// ```
     ///
     /// Usually you only create a single `Network` for an application,
@@ -201,12 +189,11 @@ impl Network {
     /// will want 2. However there are no technical limitations from
     /// creating more.
     ///
-    /// [`Pid::new()`]: crate::types::Pid::new
-    /// [`ThreadPool`]: https://docs.rs/uvth/newest/uvth/struct.ThreadPool.html
-    /// [`uvth`]: https://docs.rs/uvth
-    pub fn new(participant_id: Pid) -> (Self, impl std::ops::FnOnce()) {
+    /// [`Pid::new()`]: network_protocol::Pid::new
+    pub fn new(participant_id: Pid, runtime: Arc<Runtime>) -> Self {
         Self::internal_new(
             participant_id,
+            runtime,
             #[cfg(feature = "metrics")]
             None,
         )
@@ -221,53 +208,56 @@ impl Network {
     ///
     /// # Examples
     /// ```rust
+    /// # use std::sync::Arc;
     /// use prometheus::Registry;
+    /// use tokio::runtime::Runtime;
     /// use veloren_network::{Network, Pid, ProtocolAddr};
     ///
+    /// let runtime = Runtime::new().unwrap();
     /// let registry = Registry::new();
-    /// let (network, f) = Network::new_with_registry(Pid::new(), &registry);
-    /// std::thread::spawn(f);
+    /// let network = Network::new_with_registry(Pid::new(), Arc::new(runtime), &registry);
     /// ```
     /// [`new`]: crate::api::Network::new
     #[cfg(feature = "metrics")]
     pub fn new_with_registry(
         participant_id: Pid,
+        runtime: Arc<Runtime>,
         registry: &Registry,
-    ) -> (Self, impl std::ops::FnOnce()) {
-        Self::internal_new(participant_id, Some(registry))
+    ) -> Self {
+        Self::internal_new(participant_id, runtime, Some(registry))
     }
 
     fn internal_new(
         participant_id: Pid,
+        runtime: Arc<Runtime>,
         #[cfg(feature = "metrics")] registry: Option<&Registry>,
-    ) -> (Self, impl std::ops::FnOnce()) {
+    ) -> Self {
         let p = participant_id;
-        debug!(?p, "Starting Network");
+        let span = tracing::info_span!("network", ?p);
+        span.in_scope(|| trace!("Starting Network"));
         let (scheduler, listen_sender, connect_sender, connected_receiver, shutdown_sender) =
             Scheduler::new(
                 participant_id,
                 #[cfg(feature = "metrics")]
                 registry,
             );
-        (
-            Self {
-                local_pid: participant_id,
-                participant_disconnect_sender: Mutex::new(HashMap::new()),
-                listen_sender: Mutex::new(listen_sender),
-                connect_sender: Mutex::new(connect_sender),
-                connected_receiver: Mutex::new(connected_receiver),
-                shutdown_sender: Some(shutdown_sender),
-            },
-            move || {
-                trace!(?p, "Starting scheduler in own thread");
-                let _handle = task::block_on(
-                    scheduler
-                        .run()
-                        .instrument(tracing::info_span!("scheduler", ?p)),
-                );
-                trace!(?p, "Stopping scheduler and his own thread");
-            },
-        )
+        runtime.spawn(
+            async move {
+                trace!("Starting scheduler in own thread");
+                scheduler.run().await;
+                trace!("Stopping scheduler and his own thread");
+            }
+            .instrument(tracing::info_span!("network", ?p)),
+        );
+        Self {
+            local_pid: participant_id,
+            runtime,
+            participant_disconnect_sender: Mutex::new(HashMap::new()),
+            listen_sender: Mutex::new(listen_sender),
+            connect_sender: Mutex::new(connect_sender),
+            connected_receiver: Mutex::new(connected_receiver),
+            shutdown_sender: Some(shutdown_sender),
+        }
     }
 
     /// starts listening on an [`ProtocolAddr`].
@@ -278,15 +268,16 @@ impl Network {
     /// support multiple Protocols or NICs.
     ///
     /// # Examples
-    /// ```rust
-    /// use futures::executor::block_on;
+    /// ```ignore
+    /// # use std::sync::Arc;
+    /// use tokio::runtime::Runtime;
     /// use veloren_network::{Network, Pid, ProtocolAddr};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on port `2000` TCP on all NICs and `2001` UDP locally
-    /// let (network, f) = Network::new(Pid::new());
-    /// std::thread::spawn(f);
-    /// block_on(async {
+    /// let runtime = Arc::new(Runtime::new().unwrap());
+    /// let network = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// runtime.block_on(async {
     ///     network
     ///         .listen(ProtocolAddr::Tcp("127.0.0.1:2000".parse().unwrap()))
     ///         .await?;
@@ -299,14 +290,14 @@ impl Network {
     /// ```
     ///
     /// [`connected`]: Network::connected
+    #[instrument(name="network", skip(self, address), fields(p = %self.local_pid))]
     pub async fn listen(&self, address: ProtocolAddr) -> Result<(), NetworkError> {
-        let (s2a_result_s, s2a_result_r) = oneshot::channel::<async_std::io::Result<()>>();
+        let (s2a_result_s, s2a_result_r) = oneshot::channel::<tokio::io::Result<()>>();
         debug!(?address, "listening on address");
         self.listen_sender
             .lock()
             .await
-            .send((address, s2a_result_s))
-            .await?;
+            .send((address, s2a_result_s))?;
         match s2a_result_r.await? {
             //waiting guarantees that we either listened successfully or get an error like port in
             // use
@@ -319,17 +310,17 @@ impl Network {
     /// When the method returns the Network either returns a [`Participant`]
     /// ready to open [`Streams`] on OR has returned a [`NetworkError`] (e.g.
     /// can't connect, or invalid Handshake) # Examples
-    /// ```rust
-    /// use futures::executor::block_on;
+    /// ```ignore
+    /// # use std::sync::Arc;
+    /// use tokio::runtime::Runtime;
     /// use veloren_network::{Network, Pid, ProtocolAddr};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, connect on port `2010` TCP and `2011` UDP like listening above
-    /// let (network, f) = Network::new(Pid::new());
-    /// std::thread::spawn(f);
-    /// # let (remote, fr) = Network::new(Pid::new());
-    /// # std::thread::spawn(fr);
-    /// block_on(async {
+    /// let runtime = Arc::new(Runtime::new().unwrap());
+    /// let network = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// # let remote = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// runtime.block_on(async {
     ///     # remote.listen(ProtocolAddr::Tcp("127.0.0.1:2010".parse().unwrap())).await?;
     ///     # remote.listen(ProtocolAddr::Udp("127.0.0.1:2011".parse().unwrap())).await?;
     ///     let p1 = network
@@ -355,27 +346,24 @@ impl Network {
     ///
     /// [`Streams`]: crate::api::Stream
     /// [`ProtocolAddres`]: crate::api::ProtocolAddr
+    #[instrument(name="network", skip(self, address), fields(p = %self.local_pid))]
     pub async fn connect(&self, address: ProtocolAddr) -> Result<Participant, NetworkError> {
         let (pid_sender, pid_receiver) = oneshot::channel::<io::Result<Participant>>();
         debug!(?address, "Connect to address");
         self.connect_sender
             .lock()
             .await
-            .send((address, pid_sender))
-            .await?;
+            .send((address, pid_sender))?;
         let participant = match pid_receiver.await? {
             Ok(p) => p,
             Err(e) => return Err(NetworkError::ConnectFailed(e)),
         };
-        let pid = participant.remote_pid;
-        debug!(
-            ?pid,
-            "Received Participant id from remote and return to user"
-        );
+        let remote_pid = participant.remote_pid;
+        trace!(?remote_pid, "connected");
         self.participant_disconnect_sender
             .lock()
             .await
-            .insert(pid, Arc::clone(&participant.a2s_disconnect_s));
+            .insert(remote_pid, Arc::clone(&participant.a2s_disconnect_s));
         Ok(participant)
     }
 
@@ -386,16 +374,16 @@ impl Network {
     ///
     /// # Examples
     /// ```rust
-    /// use futures::executor::block_on;
+    /// # use std::sync::Arc;
+    /// use tokio::runtime::Runtime;
     /// use veloren_network::{Network, Pid, ProtocolAddr};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on port `2020` TCP and opens returns their Pid
-    /// let (network, f) = Network::new(Pid::new());
-    /// std::thread::spawn(f);
-    /// # let (remote, fr) = Network::new(Pid::new());
-    /// # std::thread::spawn(fr);
-    /// block_on(async {
+    /// let runtime = Arc::new(Runtime::new().unwrap());
+    /// let network = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// # let remote = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// runtime.block_on(async {
     ///     network
     ///         .listen(ProtocolAddr::Tcp("127.0.0.1:2020".parse().unwrap()))
     ///         .await?;
@@ -412,8 +400,9 @@ impl Network {
     ///
     /// [`Streams`]: crate::api::Stream
     /// [`listen`]: crate::api::Network::listen
+    #[instrument(name="network", skip(self), fields(p = %self.local_pid))]
     pub async fn connected(&self) -> Result<Participant, NetworkError> {
-        let participant = self.connected_receiver.lock().await.next().await?;
+        let participant = self.connected_receiver.lock().await.recv().await?;
         self.participant_disconnect_sender.lock().await.insert(
             participant.remote_pid,
             Arc::clone(&participant.a2s_disconnect_s),
@@ -426,14 +415,14 @@ impl Participant {
     pub(crate) fn new(
         local_pid: Pid,
         remote_pid: Pid,
-        a2b_stream_open_s: mpsc::UnboundedSender<A2bStreamOpen>,
+        a2b_open_stream_s: mpsc::UnboundedSender<A2bStreamOpen>,
         b2a_stream_opened_r: mpsc::UnboundedReceiver<Stream>,
         a2s_disconnect_s: mpsc::UnboundedSender<(Pid, S2bShutdownBparticipant)>,
     ) -> Self {
         Self {
             local_pid,
             remote_pid,
-            a2b_stream_open_s: Mutex::new(a2b_stream_open_s),
+            a2b_open_stream_s: Mutex::new(a2b_open_stream_s),
             b2a_stream_opened_r: Mutex::new(b2a_stream_opened_r),
             a2s_disconnect_s: Arc::new(Mutex::new(Some(a2s_disconnect_s))),
         }
@@ -443,10 +432,8 @@ impl Participant {
     /// [`Promises`]
     ///
     /// # Arguments
-    /// * `prio` - valid between 0-63. The priority rates the throughput for
-    ///   messages of the [`Stream`] e.g. prio 5 messages will get 1/2 the speed
-    ///   prio0 messages have. Prio10 messages only 1/4 and Prio 15 only 1/8,
-    ///   etc...
+    /// * `prio` - defines which stream is processed first when limited on
+    ///   bandwidth. See [`Prio`] for documentation.
     /// * `promises` - use a combination of you prefered [`Promises`], see the
     ///   link for further documentation. You can combine them, e.g.
     ///   `Promises::ORDERED | Promises::CONSISTENCY` The Stream will then
@@ -458,49 +445,52 @@ impl Participant {
     ///
     /// # Examples
     /// ```rust
-    /// use futures::executor::block_on;
+    /// # use std::sync::Arc;
+    /// use tokio::runtime::Runtime;
     /// use veloren_network::{Network, Pid, Promises, ProtocolAddr};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, connect on port 2100 and open a stream
-    /// let (network, f) = Network::new(Pid::new());
-    /// std::thread::spawn(f);
-    /// # let (remote, fr) = Network::new(Pid::new());
-    /// # std::thread::spawn(fr);
-    /// block_on(async {
+    /// let runtime = Arc::new(Runtime::new().unwrap());
+    /// let network = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// # let remote = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// runtime.block_on(async {
     ///     # remote.listen(ProtocolAddr::Tcp("127.0.0.1:2100".parse().unwrap())).await?;
     ///     let p1 = network
     ///         .connect(ProtocolAddr::Tcp("127.0.0.1:2100".parse().unwrap()))
     ///         .await?;
     ///     let _s1 = p1
-    ///         .open(16, Promises::ORDERED | Promises::CONSISTENCY)
+    ///         .open(4, Promises::ORDERED | Promises::CONSISTENCY)
     ///         .await?;
     ///     # Ok(())
     /// })
     /// # }
     /// ```
     ///
+    /// [`Prio`]: network_protocol::Prio
+    /// [`Promises`]: network_protocol::Promises
     /// [`Streams`]: crate::api::Stream
+    #[instrument(name="network", skip(self, prio, promises), fields(p = %self.local_pid))]
     pub async fn open(&self, prio: u8, promises: Promises) -> Result<Stream, ParticipantError> {
-        let (p2a_return_stream_s, p2a_return_stream_r) = oneshot::channel();
-        if let Err(e) = self
-            .a2b_stream_open_s
-            .lock()
-            .await
-            .send((prio, promises, p2a_return_stream_s))
-            .await
-        {
+        debug_assert!(prio <= network_protocol::HIGHEST_PRIO, "invalid prio");
+        let (p2a_return_stream_s, p2a_return_stream_r) = oneshot::channel::<Stream>();
+        if let Err(e) = self.a2b_open_stream_s.lock().await.send((
+            prio,
+            promises,
+            1_000_000,
+            p2a_return_stream_s,
+        )) {
             debug!(?e, "bParticipant is already closed, notifying");
             return Err(ParticipantError::ParticipantDisconnected);
         }
         match p2a_return_stream_r.await {
             Ok(stream) => {
                 let sid = stream.sid;
-                debug!(?sid, ?self.remote_pid, "opened stream");
+                trace!(?sid, "opened stream");
                 Ok(stream)
             },
             Err(_) => {
-                debug!(?self.remote_pid, "p2a_return_stream_r failed, closing participant");
+                debug!("p2a_return_stream_r failed, closing participant");
                 Err(ParticipantError::ParticipantDisconnected)
             },
         }
@@ -515,21 +505,21 @@ impl Participant {
     ///
     /// # Examples
     /// ```rust
+    /// # use std::sync::Arc;
+    /// use tokio::runtime::Runtime;
     /// use veloren_network::{Network, Pid, ProtocolAddr, Promises};
-    /// use futures::executor::block_on;
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, connect on port 2110 and wait for the other side to open a stream
     /// // Note: It's quite unusual to actively connect, but then wait on a stream to be connected, usually the Application taking initiative want's to also create the first Stream.
-    /// let (network, f) = Network::new(Pid::new());
-    /// std::thread::spawn(f);
-    /// # let (remote, fr) = Network::new(Pid::new());
-    /// # std::thread::spawn(fr);
-    /// block_on(async {
+    /// let runtime = Arc::new(Runtime::new().unwrap());
+    /// let network = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// # let remote = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// runtime.block_on(async {
     ///     # remote.listen(ProtocolAddr::Tcp("127.0.0.1:2110".parse().unwrap())).await?;
     ///     let p1 = network.connect(ProtocolAddr::Tcp("127.0.0.1:2110".parse().unwrap())).await?;
     ///     # let p2 = remote.connected().await?;
-    ///     # p2.open(16, Promises::ORDERED | Promises::CONSISTENCY).await?;
+    ///     # p2.open(4, Promises::ORDERED | Promises::CONSISTENCY).await?;
     ///     let _s1 = p1.opened().await?;
     ///     # Ok(())
     /// })
@@ -539,15 +529,16 @@ impl Participant {
     /// [`Streams`]: crate::api::Stream
     /// [`connected`]: Network::connected
     /// [`open`]: Participant::open
+    #[instrument(name="network", skip(self), fields(p = %self.local_pid))]
     pub async fn opened(&self) -> Result<Stream, ParticipantError> {
-        match self.b2a_stream_opened_r.lock().await.next().await {
+        match self.b2a_stream_opened_r.lock().await.recv().await {
             Some(stream) => {
                 let sid = stream.sid;
-                debug!(?sid, ?self.remote_pid, "Receive opened stream");
+                debug!(?sid, "Receive opened stream");
                 Ok(stream)
             },
             None => {
-                debug!(?self.remote_pid, "stream_opened_receiver failed, closing participant");
+                debug!("stream_opened_receiver failed, closing participant");
                 Err(ParticipantError::ParticipantDisconnected)
             },
         }
@@ -570,16 +561,16 @@ impl Participant {
     ///
     /// # Examples
     /// ```rust
-    /// use futures::executor::block_on;
+    /// # use std::sync::Arc;
+    /// use tokio::runtime::Runtime;
     /// use veloren_network::{Network, Pid, ProtocolAddr};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on port `2030` TCP and opens returns their Pid and close connection.
-    /// let (network, f) = Network::new(Pid::new());
-    /// std::thread::spawn(f);
-    /// # let (remote, fr) = Network::new(Pid::new());
-    /// # std::thread::spawn(fr);
-    /// block_on(async {
+    /// let runtime = Arc::new(Runtime::new().unwrap());
+    /// let network = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// # let remote = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// runtime.block_on(async {
     ///     network
     ///         .listen(ProtocolAddr::Tcp("127.0.0.1:2030".parse().unwrap()))
     ///         .await?;
@@ -596,27 +587,26 @@ impl Participant {
     /// ```
     ///
     /// [`Streams`]: crate::api::Stream
+    #[instrument(name="network", skip(self), fields(p = %self.local_pid))]
     pub async fn disconnect(self) -> Result<(), ParticipantError> {
         // Remove, Close and try_unwrap error when unwrap fails!
-        let pid = self.remote_pid;
-        debug!(?pid, "Closing participant from network");
+        debug!("Closing participant from network");
 
         //Streams will be closed by BParticipant
         match self.a2s_disconnect_s.lock().await.take() {
-            Some(mut a2s_disconnect_s) => {
+            Some(a2s_disconnect_s) => {
                 let (finished_sender, finished_receiver) = oneshot::channel();
                 // Participant is connecting to Scheduler here, not as usual
                 // Participant<->BParticipant
                 a2s_disconnect_s
-                    .send((pid, finished_sender))
-                    .await
+                    .send((self.remote_pid, (Duration::from_secs(120), finished_sender)))
                     .expect("Something is wrong in internal scheduler coding");
                 match finished_receiver.await {
                     Ok(res) => {
                         match res {
-                            Ok(()) => trace!(?pid, "Participant is now closed"),
+                            Ok(()) => trace!("Participant is now closed"),
                             Err(ref e) => {
-                                trace!(?pid, ?e, "Error occurred during shutdown of participant")
+                                trace!(?e, "Error occurred during shutdown of participant")
                             },
                         };
                         res
@@ -624,7 +614,6 @@ impl Participant {
                     Err(e) => {
                         //this is a bug. but as i am Participant i can't destroy the network
                         error!(
-                            ?pid,
                             ?e,
                             "Failed to get a message back from the scheduler, seems like the \
                              network is already closed"
@@ -643,28 +632,31 @@ impl Participant {
         }
     }
 
-    /// Returns the remote [`Pid`]
+    /// Returns the remote [`Pid`](network_protocol::Pid)
     pub fn remote_pid(&self) -> Pid { self.remote_pid }
 }
 
 impl Stream {
     #[allow(clippy::too_many_arguments)]
     pub(crate) fn new(
-        pid: Pid,
+        local_pid: Pid,
+        remote_pid: Pid,
         sid: Sid,
         prio: Prio,
         promises: Promises,
+        guaranteed_bandwidth: Bandwidth,
         send_closed: Arc<AtomicBool>,
-        a2b_msg_s: crossbeam_channel::Sender<(Prio, Sid, OutgoingMessage)>,
-        b2a_msg_recv_r: mpsc::UnboundedReceiver<IncomingMessage>,
+        a2b_msg_s: crossbeam_channel::Sender<(Sid, Bytes)>,
+        b2a_msg_recv_r: async_channel::Receiver<Bytes>,
         a2b_close_stream_s: mpsc::UnboundedSender<Sid>,
     ) -> Self {
         Self {
-            pid,
+            local_pid,
+            remote_pid,
             sid,
-            mid: 0,
             prio,
             promises,
+            guaranteed_bandwidth,
             send_closed,
             a2b_msg_s,
             b2a_msg_recv_r: Some(b2a_msg_recv_r),
@@ -698,21 +690,21 @@ impl Stream {
     ///
     /// # Example
     /// ```
-    /// use veloren_network::{Network, ProtocolAddr, Pid};
     /// # use veloren_network::Promises;
-    /// use futures::executor::block_on;
+    /// # use std::sync::Arc;
+    /// use tokio::runtime::Runtime;
+    /// use veloren_network::{Network, ProtocolAddr, Pid};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on Port `2200` and wait for a Stream to be opened, then answer `Hello World`
-    /// let (network, f) = Network::new(Pid::new());
-    /// std::thread::spawn(f);
-    /// # let (remote, fr) = Network::new(Pid::new());
-    /// # std::thread::spawn(fr);
-    /// block_on(async {
+    /// let runtime = Arc::new(Runtime::new().unwrap());
+    /// let network = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// # let remote = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// runtime.block_on(async {
     ///     network.listen(ProtocolAddr::Tcp("127.0.0.1:2200".parse().unwrap())).await?;
     ///     # let remote_p = remote.connect(ProtocolAddr::Tcp("127.0.0.1:2200".parse().unwrap())).await?;
     ///     # // keep it alive
-    ///     # let _stream_p = remote_p.open(16, Promises::ORDERED | Promises::CONSISTENCY).await?;
+    ///     # let _stream_p = remote_p.open(4, Promises::ORDERED | Promises::CONSISTENCY).await?;
     ///     let participant_a = network.connected().await?;
     ///     let mut stream_a = participant_a.opened().await?;
     ///     //Send  Message
@@ -738,26 +730,24 @@ impl Stream {
     ///
     /// # Example
     /// ```rust
-    /// use veloren_network::{Network, ProtocolAddr, Pid, Message};
     /// # use veloren_network::Promises;
-    /// use futures::executor::block_on;
+    /// # use std::sync::Arc;
+    /// use tokio::runtime::Runtime;
     /// use bincode;
-    /// use std::sync::Arc;
+    /// use veloren_network::{Network, ProtocolAddr, Pid, Message};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
-    /// let (network, f) = Network::new(Pid::new());
-    /// std::thread::spawn(f);
-    /// # let (remote1, fr1) = Network::new(Pid::new());
-    /// # std::thread::spawn(fr1);
-    /// # let (remote2, fr2) = Network::new(Pid::new());
-    /// # std::thread::spawn(fr2);
-    /// block_on(async {
+    /// let runtime = Arc::new(Runtime::new().unwrap());
+    /// let network = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// # let remote1 = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// # let remote2 = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// runtime.block_on(async {
     ///     network.listen(ProtocolAddr::Tcp("127.0.0.1:2210".parse().unwrap())).await?;
     ///     # let remote1_p = remote1.connect(ProtocolAddr::Tcp("127.0.0.1:2210".parse().unwrap())).await?;
     ///     # let remote2_p = remote2.connect(ProtocolAddr::Tcp("127.0.0.1:2210".parse().unwrap())).await?;
     ///     # assert_eq!(remote1_p.remote_pid(), remote2_p.remote_pid());
-    ///     # remote1_p.open(16, Promises::ORDERED | Promises::CONSISTENCY).await?;
-    ///     # remote2_p.open(16, Promises::ORDERED | Promises::CONSISTENCY).await?;
+    ///     # remote1_p.open(4, Promises::ORDERED | Promises::CONSISTENCY).await?;
+    ///     # remote2_p.open(4, Promises::ORDERED | Promises::CONSISTENCY).await?;
     ///     let participant_a = network.connected().await?;
     ///     let participant_b = network.connected().await?;
     ///     let mut stream_a = participant_a.opened().await?;
@@ -783,13 +773,7 @@ impl Stream {
         }
         #[cfg(debug_assertions)]
         message.verify(&self);
-        self.a2b_msg_s.send((self.prio, self.sid, OutgoingMessage {
-            buffer: Arc::clone(&message.buffer),
-            cursor: 0,
-            mid: self.mid,
-            sid: self.sid,
-        }))?;
-        self.mid += 1;
+        self.a2b_msg_s.send((self.sid, message.data.clone()))?;
         Ok(())
     }
 
@@ -804,20 +788,20 @@ impl Stream {
     ///
     /// # Example
     /// ```
-    /// use veloren_network::{Network, ProtocolAddr, Pid};
     /// # use veloren_network::Promises;
-    /// use futures::executor::block_on;
+    /// # use std::sync::Arc;
+    /// use tokio::runtime::Runtime;
+    /// use veloren_network::{Network, ProtocolAddr, Pid};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on Port `2220` and wait for a Stream to be opened, then listen on it
-    /// let (network, f) = Network::new(Pid::new());
-    /// std::thread::spawn(f);
-    /// # let (remote, fr) = Network::new(Pid::new());
-    /// # std::thread::spawn(fr);
-    /// block_on(async {
+    /// let runtime = Arc::new(Runtime::new().unwrap());
+    /// let network = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// # let remote = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// runtime.block_on(async {
     ///     network.listen(ProtocolAddr::Tcp("127.0.0.1:2220".parse().unwrap())).await?;
     ///     # let remote_p = remote.connect(ProtocolAddr::Tcp("127.0.0.1:2220".parse().unwrap())).await?;
-    ///     # let mut stream_p = remote_p.open(16, Promises::ORDERED | Promises::CONSISTENCY).await?;
+    ///     # let mut stream_p = remote_p.open(4, Promises::ORDERED | Promises::CONSISTENCY).await?;
     ///     # stream_p.send("Hello World");
     ///     let participant_a = network.connected().await?;
     ///     let mut stream_a = participant_a.opened().await?;
@@ -837,20 +821,20 @@ impl Stream {
     ///
     /// # Example
     /// ```
-    /// use veloren_network::{Network, ProtocolAddr, Pid};
     /// # use veloren_network::Promises;
-    /// use futures::executor::block_on;
+    /// # use std::sync::Arc;
+    /// use tokio::runtime::Runtime;
+    /// use veloren_network::{Network, ProtocolAddr, Pid};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on Port `2230` and wait for a Stream to be opened, then listen on it
-    /// let (network, f) = Network::new(Pid::new());
-    /// std::thread::spawn(f);
-    /// # let (remote, fr) = Network::new(Pid::new());
-    /// # std::thread::spawn(fr);
-    /// block_on(async {
+    /// let runtime = Arc::new(Runtime::new().unwrap());
+    /// let network = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// # let remote = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// runtime.block_on(async {
     ///     network.listen(ProtocolAddr::Tcp("127.0.0.1:2230".parse().unwrap())).await?;
     ///     # let remote_p = remote.connect(ProtocolAddr::Tcp("127.0.0.1:2230".parse().unwrap())).await?;
-    ///     # let mut stream_p = remote_p.open(16, Promises::ORDERED | Promises::CONSISTENCY).await?;
+    ///     # let mut stream_p = remote_p.open(4, Promises::ORDERED | Promises::CONSISTENCY).await?;
     ///     # stream_p.send("Hello World");
     ///     let participant_a = network.connected().await?;
     ///     let mut stream_a = participant_a.opened().await?;
@@ -869,13 +853,13 @@ impl Stream {
     pub async fn recv_raw(&mut self) -> Result<Message, StreamError> {
         match &mut self.b2a_msg_recv_r {
             Some(b2a_msg_recv_r) => {
-                match b2a_msg_recv_r.next().await {
-                    Some(msg) => Ok(Message {
-                        buffer: Arc::new(msg.buffer),
+                match b2a_msg_recv_r.recv().await {
+                    Ok(data) => Ok(Message {
+                        data,
                         #[cfg(feature = "compression")]
                         compressed: self.promises.contains(Promises::COMPRESSED),
                     }),
-                    None => {
+                    Err(_) => {
                         self.b2a_msg_recv_r = None; //prevent panic
                         Err(StreamError::StreamClosed)
                     },
@@ -892,20 +876,20 @@ impl Stream {
     ///
     /// # Example
     /// ```
-    /// use veloren_network::{Network, ProtocolAddr, Pid};
     /// # use veloren_network::Promises;
-    /// use futures::executor::block_on;
+    /// # use std::sync::Arc;
+    /// use tokio::runtime::Runtime;
+    /// use veloren_network::{Network, ProtocolAddr, Pid};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on Port `2240` and wait for a Stream to be opened, then listen on it
-    /// let (network, f) = Network::new(Pid::new());
-    /// std::thread::spawn(f);
-    /// # let (remote, fr) = Network::new(Pid::new());
-    /// # std::thread::spawn(fr);
-    /// block_on(async {
+    /// let runtime = Arc::new(Runtime::new().unwrap());
+    /// let network = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// # let remote = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// runtime.block_on(async {
     ///     network.listen(ProtocolAddr::Tcp("127.0.0.1:2240".parse().unwrap())).await?;
     ///     # let remote_p = remote.connect(ProtocolAddr::Tcp("127.0.0.1:2240".parse().unwrap())).await?;
-    ///     # let mut stream_p = remote_p.open(16, Promises::ORDERED | Promises::CONSISTENCY).await?;
+    ///     # let mut stream_p = remote_p.open(4, Promises::ORDERED | Promises::CONSISTENCY).await?;
     ///     # stream_p.send("Hello World");
     ///     # std::thread::sleep(std::time::Duration::from_secs(1));
     ///     let participant_a = network.connected().await?;
@@ -921,20 +905,20 @@ impl Stream {
     #[inline]
     pub fn try_recv<M: DeserializeOwned>(&mut self) -> Result<Option<M>, StreamError> {
         match &mut self.b2a_msg_recv_r {
-            Some(b2a_msg_recv_r) => match b2a_msg_recv_r.try_next() {
-                Err(_) => Ok(None),
-                Ok(None) => {
-                    self.b2a_msg_recv_r = None; //prevent panic
-                    Err(StreamError::StreamClosed)
-                },
-                Ok(Some(msg)) => Ok(Some(
+            Some(b2a_msg_recv_r) => match b2a_msg_recv_r.try_recv() {
+                Ok(data) => Ok(Some(
                     Message {
-                        buffer: Arc::new(msg.buffer),
+                        data,
                         #[cfg(feature = "compression")]
                         compressed: self.promises().contains(Promises::COMPRESSED),
                     }
                     .deserialize()?,
                 )),
+                Err(async_channel::TryRecvError::Empty) => Ok(None),
+                Err(async_channel::TryRecvError::Closed) => {
+                    self.b2a_msg_recv_r = None; //prevent panic
+                    Err(StreamError::StreamClosed)
+                },
             },
             None => Err(StreamError::StreamClosed),
         }
@@ -952,111 +936,129 @@ impl core::cmp::PartialEq for Participant {
 }
 
 impl Drop for Network {
+    #[instrument(name="network", skip(self), fields(p = %self.local_pid))]
     fn drop(&mut self) {
-        let pid = self.local_pid;
-        debug!(?pid, "Shutting down Network");
-        trace!(
-            ?pid,
-            "Shutting down Participants of Network, while we still have metrics"
-        );
+        debug!("Shutting down Network");
+        trace!("Shutting down Participants of Network, while we still have metrics");
         let mut finished_receiver_list = vec![];
-        task::block_on(async {
-            // we MUST avoid nested block_on, good that Network::Drop no longer triggers
-            // Participant::Drop directly but just the BParticipant
-            for (remote_pid, a2s_disconnect_s) in
-                self.participant_disconnect_sender.lock().await.drain()
-            {
-                match a2s_disconnect_s.lock().await.take() {
-                    Some(mut a2s_disconnect_s) => {
-                        trace!(?remote_pid, "Participants will be closed");
-                        let (finished_sender, finished_receiver) = oneshot::channel();
-                        finished_receiver_list.push((remote_pid, finished_receiver));
-                        a2s_disconnect_s
-                            .send((remote_pid, finished_sender))
-                            .await
-                            .expect(
-                                "Scheduler is closed, but nobody other should be able to close it",
-                            );
-                    },
-                    None => trace!(?remote_pid, "Participant already disconnected gracefully"),
+
+        if tokio::runtime::Handle::try_current().is_ok() {
+            error!("we have a runtime but we mustn't, DROP NETWORK from async runtime is illegal")
+        }
+
+        tokio::task::block_in_place(|| {
+            self.runtime.block_on(async {
+                for (remote_pid, a2s_disconnect_s) in
+                    self.participant_disconnect_sender.lock().await.drain()
+                {
+                    match a2s_disconnect_s.lock().await.take() {
+                        Some(a2s_disconnect_s) => {
+                            trace!(?remote_pid, "Participants will be closed");
+                            let (finished_sender, finished_receiver) = oneshot::channel();
+                            finished_receiver_list.push((remote_pid, finished_receiver));
+                            a2s_disconnect_s
+                                .send((remote_pid, (Duration::from_secs(120), finished_sender)))
+                                .expect(
+                                    "Scheduler is closed, but nobody other should be able to \
+                                     close it",
+                                );
+                        },
+                        None => trace!(?remote_pid, "Participant already disconnected gracefully"),
+                    }
                 }
-            }
-            //wait after close is requested for all
-            for (remote_pid, finished_receiver) in finished_receiver_list.drain(..) {
-                match finished_receiver.await {
-                    Ok(Ok(())) => trace!(?remote_pid, "disconnect successful"),
-                    Ok(Err(e)) => info!(?remote_pid, ?e, "unclean disconnect"),
-                    Err(e) => warn!(
-                        ?remote_pid,
-                        ?e,
-                        "Failed to get a message back from the scheduler, seems like the network \
-                         is already closed"
-                    ),
+                //wait after close is requested for all
+                for (remote_pid, finished_receiver) in finished_receiver_list.drain(..) {
+                    match finished_receiver.await {
+                        Ok(Ok(())) => trace!(?remote_pid, "disconnect successful"),
+                        Ok(Err(e)) => info!(?remote_pid, ?e, "unclean disconnect"),
+                        Err(e) => warn!(
+                            ?remote_pid,
+                            ?e,
+                            "Failed to get a message back from the scheduler, seems like the \
+                             network is already closed"
+                        ),
+                    }
                 }
-            }
+            });
         });
-        trace!(?pid, "Participants have shut down!");
-        trace!(?pid, "Shutting down Scheduler");
+        trace!("Participants have shut down!");
+        trace!("Shutting down Scheduler");
         self.shutdown_sender
             .take()
             .unwrap()
             .send(())
             .expect("Scheduler is closed, but nobody other should be able to close it");
-        debug!(?pid, "Network has shut down");
+        debug!("Network has shut down");
     }
 }
 
 impl Drop for Participant {
+    #[instrument(name="remote", skip(self), fields(p = %self.remote_pid))]
+    #[instrument(name="network", skip(self), fields(p = %self.local_pid))]
     fn drop(&mut self) {
+        use tokio::sync::oneshot::error::TryRecvError;
         // ignore closed, as we need to send it even though we disconnected the
         // participant from network
-        let pid = self.remote_pid;
-        debug!(?pid, "Shutting down Participant");
+        debug!("Shutting down Participant");
 
-        match task::block_on(self.a2s_disconnect_s.lock()).take() {
-            None => trace!(
-                ?pid,
-                "Participant has been shutdown cleanly, no further waiting is required!"
-            ),
-            Some(mut a2s_disconnect_s) => {
-                debug!(?pid, "Disconnect from Scheduler");
-                task::block_on(async {
-                    let (finished_sender, finished_receiver) = oneshot::channel();
-                    a2s_disconnect_s
-                        .send((self.remote_pid, finished_sender))
-                        .await
-                        .expect("Something is wrong in internal scheduler coding");
-                    if let Err(e) = finished_receiver
-                        .await
-                        .expect("Something is wrong in internal scheduler/participant coding")
-                    {
-                        error!(
-                            ?pid,
-                            ?e,
-                            "Error while dropping the participant, couldn't send all outgoing \
-                             messages, dropping remaining"
-                        );
-                    };
-                });
+        match self
+            .a2s_disconnect_s
+            .try_lock()
+            .expect("Participant in use while beeing dropped")
+            .take()
+        {
+            None => info!("Participant already has been shutdown gracefully"),
+            Some(a2s_disconnect_s) => {
+                debug!("Disconnect from Scheduler");
+                let (finished_sender, mut finished_receiver) = oneshot::channel();
+                a2s_disconnect_s
+                    .send((self.remote_pid, (Duration::from_secs(120), finished_sender)))
+                    .expect("Something is wrong in internal scheduler coding");
+                loop {
+                    match finished_receiver.try_recv() {
+                        Ok(Ok(())) => {
+                            info!("Participant dropped gracefully");
+                            break;
+                        },
+                        Ok(Err(e)) => {
+                            error!(
+                                ?e,
+                                "Error while dropping the participant, couldn't send all outgoing \
+                                 messages, dropping remaining"
+                            );
+                            break;
+                        },
+                        Err(TryRecvError::Closed) => {
+                            panic!("Something is wrong in internal scheduler/participant coding")
+                        },
+                        Err(TryRecvError::Empty) => {
+                            trace!("activly sleeping");
+                            std::thread::sleep(Duration::from_millis(20));
+                        },
+                    }
+                }
             },
         }
-        debug!(?pid, "Participant dropped");
     }
 }
 
 impl Drop for Stream {
+    #[instrument(name="remote", skip(self), fields(p = %self.remote_pid))]
+    #[instrument(name="network", skip(self), fields(p = %self.local_pid))]
     fn drop(&mut self) {
         // send if closed is unnecessary but doesn't hurt, we must not crash
         if !self.send_closed.load(Ordering::Relaxed) {
             let sid = self.sid;
-            let pid = self.pid;
-            debug!(?pid, ?sid, "Shutting down Stream");
-            task::block_on(self.a2b_close_stream_s.take().unwrap().send(self.sid))
-                .expect("bparticipant part of a gracefully shutdown must have crashed");
+            debug!(?sid, "Shutting down Stream");
+            if let Err(e) = self.a2b_close_stream_s.take().unwrap().send(self.sid) {
+                debug!(
+                    ?e,
+                    "bparticipant part of a gracefully shutdown was already closed"
+                );
+            }
         } else {
             let sid = self.sid;
-            let pid = self.pid;
-            trace!(?pid, ?sid, "Stream Drop not needed");
+            trace!(?sid, "Stream Drop not needed");
         }
     }
 }
@@ -1088,12 +1090,16 @@ impl From<std::option::NoneError> for NetworkError {
     fn from(_err: std::option::NoneError) -> Self { NetworkError::NetworkClosed }
 }
 
-impl From<mpsc::SendError> for NetworkError {
-    fn from(_err: mpsc::SendError) -> Self { NetworkError::NetworkClosed }
+impl<T> From<mpsc::error::SendError<T>> for NetworkError {
+    fn from(_err: mpsc::error::SendError<T>) -> Self { NetworkError::NetworkClosed }
 }
 
-impl From<oneshot::Canceled> for NetworkError {
-    fn from(_err: oneshot::Canceled) -> Self { NetworkError::NetworkClosed }
+impl From<oneshot::error::RecvError> for NetworkError {
+    fn from(_err: oneshot::error::RecvError) -> Self { NetworkError::NetworkClosed }
+}
+
+impl From<std::io::Error> for NetworkError {
+    fn from(_err: std::io::Error) -> Self { NetworkError::NetworkClosed }
 }
 
 impl From<Box<bincode::ErrorKind>> for StreamError {

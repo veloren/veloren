@@ -1,44 +1,67 @@
 [package]
-name = "veloren_network"
-version = "0.2.0"
+name = "veloren-network"
+version = "0.3.0"
 authors = ["Marcel Märtens <marcel.cochem@googlemail.com>"]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-metrics = ["prometheus"]
+metrics = ["prometheus", "network-protocol/metrics"]
 compression = ["lz-fear"]
 
 default = ["metrics","compression"]
 
 [dependencies]
 
+network-protocol = { package = "veloren-network-protocol", path = "protocol" }
+
 #serialisation
 bincode = "1.3.1"
 serde = { version = "1.0" }
 #sending
 crossbeam-channel = "0.5"
-# NOTE: Upgrading async-std can trigger spontanious crashes for `network`ing. Consider elaborate tests before upgrading
-async-std = { version = "~1.5", default-features = false, features = ["std", "async-task", "default"] }
+tokio = { version = "1.2", default-features = false, features = ["io-util", "macros", "rt", "net", "time"] }
+tokio-stream = { version = "0.1.2", default-features = false }
 #tracing and metrics
-tracing = { version = "0.1", default-features = false }
-tracing-futures = "0.2"
+tracing = { version = "0.1", default-features = false, features = ["attributes"]}
 prometheus = { version = "0.11", default-features = false, optional = true }
 #async
-futures = { version = "0.3", features = ["thread-pool"] }
+futures-core = { version = "0.3", default-features = false }
+futures-util = { version = "0.3", default-features = false, features = ["std"] }
+async-channel = "1.5.1" #use for .close() channels
 #mpsc channel registry
 lazy_static = { version = "1.4", default-features = false }
 rand = { version = "0.8" }
 #stream flags
 bitflags = "1.2.1"
 lz-fear = { version = "0.1.1", optional = true }
+# async traits
+async-trait = "0.1.42"
+bytes = "^1"
 
 [dev-dependencies]
 tracing-subscriber = { version = "0.2.3", default-features = false, features = ["env-filter", "fmt", "chrono", "ansi", "smallvec"] }
-# `uvth` needed for doc tests
-uvth = { version = ">= 3.0, <= 4.0", default-features = false }
+tokio = { version = "1.2", default-features = false, features = ["io-std", "fs", "rt-multi-thread"] }
+futures-util = { version = "0.3", default-features = false, features = ["sink", "std"] }
 clap = { version = "2.33", default-features = false }
 shellexpand = "2.0.0"
-tiny_http = "0.8.0"
 serde = { version = "1.0", features = ["derive"] }
+prometheus-hyper = "0.1.1"
+criterion = { version = "0.3.4", features = ["default", "async_tokio"] }
+
+[[bench]]
+name = "speed"
+harness = false
+
+[[example]]
+name = "fileshare"
+
+[[example]]
+name = "network-speed"
+
+[[example]]
+name = "chat"
+
+[[example]]
+name = "tcp_loadtest"

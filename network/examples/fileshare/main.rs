@@ -4,14 +4,9 @@
 //! --profile=release -Z unstable-options  -- --trace=info --port 15006)
 //! (cd network/examples/fileshare && RUST_BACKTRACE=1 cargo run
 //! --profile=release -Z unstable-options  -- --trace=info --port 15007) ```
-use async_std::{io, path::PathBuf};
 use clap::{App, Arg, SubCommand};
-use futures::{
-    channel::mpsc,
-    executor::{block_on, ThreadPool},
-    sink::SinkExt,
-};
-use std::{thread, time::Duration};
+use std::{path::PathBuf, sync::Arc, thread, time::Duration};
+use tokio::{io, io::AsyncBufReadExt, runtime::Runtime, sync::mpsc};
 use tracing::*;
 use tracing_subscriber::EnvFilter;
 use veloren_network::ProtocolAddr;
@@ -56,14 +51,14 @@ fn main() {
 
     let port: u16 = matches.value_of("port").unwrap().parse().unwrap();
     let address = ProtocolAddr::Tcp(format!("{}:{}", "127.0.0.1", port).parse().unwrap());
+    let runtime = Arc::new(Runtime::new().unwrap());
 
-    let (server, cmd_sender) = Server::new();
-    let pool = ThreadPool::new().unwrap();
-    pool.spawn_ok(server.run(address));
+    let (server, cmd_sender) = Server::new(Arc::clone(&runtime));
+    runtime.spawn(server.run(address));
 
     thread::sleep(Duration::from_millis(50)); //just for trace
 
-    block_on(client(cmd_sender));
+    runtime.block_on(client(cmd_sender));
 }
 
 fn file_exists(file: String) -> Result<(), String> {
@@ -130,14 +125,15 @@ fn get_options<'a, 'b>() -> App<'a, 'b> {
         )
 }
 
-async fn client(mut cmd_sender: mpsc::UnboundedSender<LocalCommand>) {
+async fn client(cmd_sender: mpsc::UnboundedSender<LocalCommand>) {
     use std::io::Write;
 
     loop {
         let mut line = String::new();
+        let mut input_lines = io::BufReader::new(io::stdin());
         print!("==> ");
         std::io::stdout().flush().unwrap();
-        io::stdin().read_line(&mut line).await.unwrap();
+        input_lines.read_line(&mut line).await.unwrap();
         let matches = match get_options().get_matches_from_safe(line.split_whitespace()) {
             Err(e) => {
                 println!("{}", e.message);
@@ -148,12 +144,12 @@ async fn client(mut cmd_sender: mpsc::UnboundedSender<LocalCommand>) {
 
         match matches.subcommand() {
             ("quit", _) => {
-                cmd_sender.send(LocalCommand::Shutdown).await.unwrap();
+                cmd_sender.send(LocalCommand::Shutdown).unwrap();
                 println!("goodbye");
                 break;
             },
             ("disconnect", _) => {
-                cmd_sender.send(LocalCommand::Disconnect).await.unwrap();
+                cmd_sender.send(LocalCommand::Disconnect).unwrap();
             },
             ("connect", Some(connect_matches)) => {
                 let socketaddr = connect_matches
@@ -163,7 +159,6 @@ async fn client(mut cmd_sender: mpsc::UnboundedSender<LocalCommand>) {
                     .unwrap();
                 cmd_sender
                     .send(LocalCommand::Connect(ProtocolAddr::Tcp(socketaddr)))
-                    .await
                     .unwrap();
             },
             ("t", _) => {
@@ -171,28 +166,23 @@ async fn client(mut cmd_sender: mpsc::UnboundedSender<LocalCommand>) {
                     .send(LocalCommand::Connect(ProtocolAddr::Tcp(
                         "127.0.0.1:1231".parse().unwrap(),
                     )))
-                    .await
                     .unwrap();
             },
             ("serve", Some(serve_matches)) => {
                 let path = shellexpand::tilde(serve_matches.value_of("file").unwrap());
                 let path: PathBuf = path.parse().unwrap();
                 if let Some(fileinfo) = FileInfo::new(&path).await {
-                    cmd_sender
-                        .send(LocalCommand::Serve(fileinfo))
-                        .await
-                        .unwrap();
+                    cmd_sender.send(LocalCommand::Serve(fileinfo)).unwrap();
                 }
             },
             ("list", _) => {
-                cmd_sender.send(LocalCommand::List).await.unwrap();
+                cmd_sender.send(LocalCommand::List).unwrap();
             },
             ("get", Some(get_matches)) => {
                 let id: u32 = get_matches.value_of("id").unwrap().parse().unwrap();
                 let file = get_matches.value_of("file");
                 cmd_sender
                     .send(LocalCommand::Get(id, file.map(|s| s.to_string())))
-                    .await
                     .unwrap();
             },
 

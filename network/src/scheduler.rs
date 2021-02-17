@@ -1,21 +1,11 @@
-#[cfg(feature = "metrics")]
-use crate::metrics::NetworkMetrics;
 use crate::{
     api::{Participant, ProtocolAddr},
-    channel::Handshake,
+    channel::Protocols,
+    metrics::NetworkMetrics,
     participant::{B2sPrioStatistic, BParticipant, S2bCreateChannel, S2bShutdownBparticipant},
-    protocols::{Protocols, TcpProtocol, UdpProtocol},
-    types::Pid,
 };
-use async_std::{io, net, sync::Mutex};
-use futures::{
-    channel::{mpsc, oneshot},
-    executor::ThreadPool,
-    future::FutureExt,
-    select,
-    sink::SinkExt,
-    stream::StreamExt,
-};
+use futures_util::{FutureExt, StreamExt};
+use network_protocol::{Cid, MpscMsg, Pid, ProtocolMetrics};
 #[cfg(feature = "metrics")]
 use prometheus::Registry;
 use rand::Rng;
@@ -25,18 +15,29 @@ use std::{
         atomic::{AtomicBool, AtomicU64, Ordering},
         Arc,
     },
+    time::Duration,
 };
+use tokio::{
+    io, net, select,
+    sync::{mpsc, oneshot, Mutex},
+};
+use tokio_stream::wrappers::UnboundedReceiverStream;
 use tracing::*;
-use tracing_futures::Instrument;
 
-/// Naming of Channels `x2x`
-///  - a: api
-///  - s: scheduler
-///  - b: bparticipant
-///  - p: prios
-///  - r: protocol
-///  - w: wire
-///  - c: channel/handshake
+// Naming of Channels `x2x`
+//  - a: api
+//  - s: scheduler
+//  - b: bparticipant
+//  - p: prios
+//  - r: protocol
+//  - w: wire
+//  - c: channel/handshake
+
+lazy_static::lazy_static! {
+    static ref MPSC_POOL: Mutex<HashMap<u64, mpsc::UnboundedSender<S2sMpscConnect>>> = {
+        Mutex::new(HashMap::new())
+    };
+}
 
 #[derive(Debug)]
 struct ParticipantInfo {
@@ -48,6 +49,10 @@ struct ParticipantInfo {
 type A2sListen = (ProtocolAddr, oneshot::Sender<io::Result<()>>);
 type A2sConnect = (ProtocolAddr, oneshot::Sender<io::Result<Participant>>);
 type A2sDisconnect = (Pid, S2bShutdownBparticipant);
+type S2sMpscConnect = (
+    mpsc::Sender<MpscMsg>,
+    oneshot::Sender<mpsc::Sender<MpscMsg>>,
+);
 
 #[derive(Debug)]
 struct ControlChannels {
@@ -70,17 +75,18 @@ pub struct Scheduler {
     local_pid: Pid,
     local_secret: u128,
     closed: AtomicBool,
-    pool: Arc<ThreadPool>,
     run_channels: Option<ControlChannels>,
     participant_channels: Arc<Mutex<Option<ParticipantChannels>>>,
     participants: Arc<Mutex<HashMap<Pid, ParticipantInfo>>>,
     channel_ids: Arc<AtomicU64>,
     channel_listener: Mutex<HashMap<ProtocolAddr, oneshot::Sender<()>>>,
-    #[cfg(feature = "metrics")]
     metrics: Arc<NetworkMetrics>,
+    protocol_metrics: Arc<ProtocolMetrics>,
 }
 
 impl Scheduler {
+    const MPSC_CHANNEL_BOUND: usize = 1000;
+
     pub fn new(
         local_pid: Pid,
         #[cfg(feature = "metrics")] registry: Option<&Registry>,
@@ -91,12 +97,13 @@ impl Scheduler {
         mpsc::UnboundedReceiver<Participant>,
         oneshot::Sender<()>,
     ) {
-        let (a2s_listen_s, a2s_listen_r) = mpsc::unbounded::<A2sListen>();
-        let (a2s_connect_s, a2s_connect_r) = mpsc::unbounded::<A2sConnect>();
-        let (s2a_connected_s, s2a_connected_r) = mpsc::unbounded::<Participant>();
+        let (a2s_listen_s, a2s_listen_r) = mpsc::unbounded_channel::<A2sListen>();
+        let (a2s_connect_s, a2s_connect_r) = mpsc::unbounded_channel::<A2sConnect>();
+        let (s2a_connected_s, s2a_connected_r) = mpsc::unbounded_channel::<Participant>();
         let (a2s_scheduler_shutdown_s, a2s_scheduler_shutdown_r) = oneshot::channel::<()>();
-        let (a2s_disconnect_s, a2s_disconnect_r) = mpsc::unbounded::<A2sDisconnect>();
-        let (b2s_prio_statistic_s, b2s_prio_statistic_r) = mpsc::unbounded::<B2sPrioStatistic>();
+        let (a2s_disconnect_s, a2s_disconnect_r) = mpsc::unbounded_channel::<A2sDisconnect>();
+        let (b2s_prio_statistic_s, b2s_prio_statistic_r) =
+            mpsc::unbounded_channel::<B2sPrioStatistic>();
 
         let run_channels = Some(ControlChannels {
             a2s_listen_r,
@@ -112,13 +119,14 @@ impl Scheduler {
             b2s_prio_statistic_s,
         };
 
-        #[cfg(feature = "metrics")]
         let metrics = Arc::new(NetworkMetrics::new(&local_pid).unwrap());
+        let protocol_metrics = Arc::new(ProtocolMetrics::new().unwrap());
 
         #[cfg(feature = "metrics")]
         {
             if let Some(registry) = registry {
                 metrics.register(registry).unwrap();
+                protocol_metrics.register(registry).unwrap();
             }
         }
 
@@ -130,14 +138,13 @@ impl Scheduler {
                 local_pid,
                 local_secret,
                 closed: AtomicBool::new(false),
-                pool: Arc::new(ThreadPool::new().unwrap()),
                 run_channels,
                 participant_channels: Arc::new(Mutex::new(Some(participant_channels))),
                 participants: Arc::new(Mutex::new(HashMap::new())),
                 channel_ids: Arc::new(AtomicU64::new(0)),
                 channel_listener: Mutex::new(HashMap::new()),
-                #[cfg(feature = "metrics")]
                 metrics,
+                protocol_metrics,
             },
             a2s_listen_s,
             a2s_connect_s,
@@ -149,7 +156,7 @@ impl Scheduler {
     pub async fn run(mut self) {
         let run_channels = self.run_channels.take().unwrap();
 
-        futures::join!(
+        tokio::join!(
             self.listen_mgr(run_channels.a2s_listen_r),
             self.connect_mgr(run_channels.a2s_connect_r),
             self.disconnect_mgr(run_channels.a2s_disconnect_r),
@@ -160,6 +167,7 @@ impl Scheduler {
 
     async fn listen_mgr(&self, a2s_listen_r: mpsc::UnboundedReceiver<A2sListen>) {
         trace!("Start listen_mgr");
+        let a2s_listen_r = UnboundedReceiverStream::new(a2s_listen_r);
         a2s_listen_r
             .for_each_concurrent(None, |(address, s2a_listen_result_s)| {
                 let address = address;
@@ -196,8 +204,8 @@ impl Scheduler {
         )>,
     ) {
         trace!("Start connect_mgr");
-        while let Some((addr, pid_sender)) = a2s_connect_r.next().await {
-            let (protocol, handshake) = match addr {
+        while let Some((addr, pid_sender)) = a2s_connect_r.recv().await {
+            let (protocol, cid, handshake) = match addr {
                 ProtocolAddr::Tcp(addr) => {
                     #[cfg(feature = "metrics")]
                     self.metrics
@@ -211,51 +219,84 @@ impl Scheduler {
                             continue;
                         },
                     };
+                    let cid = self.channel_ids.fetch_add(1, Ordering::Relaxed);
                     info!("Connecting Tcp to: {}", stream.peer_addr().unwrap());
                     (
-                        Protocols::Tcp(TcpProtocol::new(
-                            stream,
-                            #[cfg(feature = "metrics")]
-                            Arc::clone(&self.metrics),
-                        )),
+                        Protocols::new_tcp(stream, cid, Arc::clone(&self.protocol_metrics)),
+                        cid,
                         false,
                     )
                 },
-                ProtocolAddr::Udp(addr) => {
-                    #[cfg(feature = "metrics")]
-                    self.metrics
-                        .connect_requests_total
-                        .with_label_values(&["udp"])
-                        .inc();
-                    let socket = match net::UdpSocket::bind("0.0.0.0:0").await {
-                        Ok(socket) => Arc::new(socket),
-                        Err(e) => {
-                            pid_sender.send(Err(e)).unwrap();
+                ProtocolAddr::Mpsc(addr) => {
+                    let mpsc_s = match MPSC_POOL.lock().await.get(&addr) {
+                        Some(s) => s.clone(),
+                        None => {
+                            pid_sender
+                                .send(Err(std::io::Error::new(
+                                    std::io::ErrorKind::NotConnected,
+                                    "no mpsc listen on this addr",
+                                )))
+                                .unwrap();
                             continue;
                         },
                     };
-                    if let Err(e) = socket.connect(addr).await {
-                        pid_sender.send(Err(e)).unwrap();
-                        continue;
-                    };
-                    info!("Connecting Udp to: {}", addr);
-                    let (udp_data_sender, udp_data_receiver) = mpsc::unbounded::<Vec<u8>>();
-                    let protocol = UdpProtocol::new(
-                        Arc::clone(&socket),
-                        addr,
-                        #[cfg(feature = "metrics")]
-                        Arc::clone(&self.metrics),
-                        udp_data_receiver,
-                    );
-                    self.pool.spawn_ok(
-                        Self::udp_single_channel_connect(Arc::clone(&socket), udp_data_sender)
-                            .instrument(tracing::info_span!("udp", ?addr)),
-                    );
-                    (Protocols::Udp(protocol), true)
+                    let (remote_to_local_s, remote_to_local_r) =
+                        mpsc::channel(Self::MPSC_CHANNEL_BOUND);
+                    let (local_to_remote_oneshot_s, local_to_remote_oneshot_r) = oneshot::channel();
+                    mpsc_s
+                        .send((remote_to_local_s, local_to_remote_oneshot_s))
+                        .unwrap();
+                    let local_to_remote_s = local_to_remote_oneshot_r.await.unwrap();
+
+                    let cid = self.channel_ids.fetch_add(1, Ordering::Relaxed);
+                    info!(?addr, "Connecting Mpsc");
+                    (
+                        Protocols::new_mpsc(
+                            local_to_remote_s,
+                            remote_to_local_r,
+                            cid,
+                            Arc::clone(&self.protocol_metrics),
+                        ),
+                        cid,
+                        false,
+                    )
                 },
+                /* */
+                //ProtocolAddr::Udp(addr) => {
+                //#[cfg(feature = "metrics")]
+                //self.metrics
+                //.connect_requests_total
+                //.with_label_values(&["udp"])
+                //.inc();
+                //let socket = match net::UdpSocket::bind("0.0.0.0:0").await {
+                //Ok(socket) => Arc::new(socket),
+                //Err(e) => {
+                //pid_sender.send(Err(e)).unwrap();
+                //continue;
+                //},
+                //};
+                //if let Err(e) = socket.connect(addr).await {
+                //pid_sender.send(Err(e)).unwrap();
+                //continue;
+                //};
+                //info!("Connecting Udp to: {}", addr);
+                //let (udp_data_sender, udp_data_receiver) = mpsc::unbounded_channel::<Vec<u8>>();
+                //let protocol = UdpProtocol::new(
+                //Arc::clone(&socket),
+                //addr,
+                //#[cfg(feature = "metrics")]
+                //Arc::clone(&self.metrics),
+                //udp_data_receiver,
+                //);
+                //self.runtime.spawn(
+                //Self::udp_single_channel_connect(Arc::clone(&socket), udp_data_sender)
+                //.instrument(tracing::info_span!("udp", ?addr)),
+                //);
+                //(Protocols::Udp(protocol), true)
+                //},
                 _ => unimplemented!(),
             };
-            self.init_protocol(protocol, Some(pid_sender), handshake)
+            self.init_protocol(protocol, cid, Some(pid_sender), handshake)
                 .await;
         }
         trace!("Stop connect_mgr");
@@ -263,7 +304,9 @@ impl Scheduler {
 
     async fn disconnect_mgr(&self, mut a2s_disconnect_r: mpsc::UnboundedReceiver<A2sDisconnect>) {
         trace!("Start disconnect_mgr");
-        while let Some((pid, return_once_successful_shutdown)) = a2s_disconnect_r.next().await {
+        while let Some((pid, (timeout_time, return_once_successful_shutdown))) =
+            a2s_disconnect_r.recv().await
+        {
             //Closing Participants is done the following way:
             // 1. We drop our senders and receivers
             // 2. we need to close BParticipant, this will drop its senderns and receivers
@@ -277,7 +320,7 @@ impl Scheduler {
                 pi.s2b_shutdown_bparticipant_s
                     .take()
                     .unwrap()
-                    .send(finished_sender)
+                    .send((timeout_time, finished_sender))
                     .unwrap();
                 drop(pi);
                 trace!(?pid, "dropped bparticipant, waiting for finish");
@@ -298,7 +341,7 @@ impl Scheduler {
         mut b2s_prio_statistic_r: mpsc::UnboundedReceiver<B2sPrioStatistic>,
     ) {
         trace!("Start prio_adj_mgr");
-        while let Some((_pid, _frame_cnt, _unused)) = b2s_prio_statistic_r.next().await {
+        while let Some((_pid, _frame_cnt, _unused)) = b2s_prio_statistic_r.recv().await {
 
             //TODO adjust prios in participants here!
         }
@@ -320,7 +363,7 @@ impl Scheduler {
                 pi.s2b_shutdown_bparticipant_s
                     .take()
                     .unwrap()
-                    .send(finished_sender)
+                    .send((Duration::from_secs(120), finished_sender))
                     .unwrap();
                 (pid, finished_receiver)
             })
@@ -370,43 +413,51 @@ impl Scheduler {
                         info!(
                             ?addr,
                             ?e,
-                            "Listener couldn't be started due to error on tcp bind"
+                            "Tcp bind error durin listener startup"
                         );
                         s2a_listen_result_s.send(Err(e)).unwrap();
                         return;
                     },
                 };
                 trace!(?addr, "Listener bound");
-                let mut incoming = listener.incoming();
                 let mut end_receiver = s2s_stop_listening_r.fuse();
-                while let Some(stream) = select! {
-                    next = incoming.next().fuse() => next,
-                    _ = end_receiver => None,
+                while let Some(data) = select! {
+                    next = listener.accept().fuse() => Some(next),
+                    _ = &mut end_receiver => None,
                 } {
-                    let stream = match stream {
-                        Ok(s) => s,
+                    let (stream, remote_addr) = match data {
+                        Ok((s, p)) => (s, p),
                         Err(e) => {
                             warn!(?e, "TcpStream Error, ignoring connection attempt");
                             continue;
                         },
                     };
-                    let peer_addr = match stream.peer_addr() {
-                        Ok(s) => s,
-                        Err(e) => {
-                            warn!(?e, "TcpStream Error, ignoring connection attempt");
-                            continue;
-                        },
-                    };
-                    info!("Accepting Tcp from: {}", peer_addr);
-                    let protocol = TcpProtocol::new(
-                        stream,
-                        #[cfg(feature = "metrics")]
-                        Arc::clone(&self.metrics),
-                    );
-                    self.init_protocol(Protocols::Tcp(protocol), None, true)
+                    info!("Accepting Tcp from: {}", remote_addr);
+                    let cid = self.channel_ids.fetch_add(1, Ordering::Relaxed);
+                    self.init_protocol(Protocols::new_tcp(stream, cid, Arc::clone(&self.protocol_metrics)), cid, None, true)
                         .await;
                 }
             },
+            ProtocolAddr::Mpsc(addr) => {
+                let (mpsc_s, mut mpsc_r) = mpsc::unbounded_channel();
+                MPSC_POOL.lock().await.insert(addr, mpsc_s);
+                s2a_listen_result_s.send(Ok(())).unwrap();
+                trace!(?addr, "Listener bound");
+
+                let mut end_receiver = s2s_stop_listening_r.fuse();
+                while let Some((local_to_remote_s, local_remote_to_local_s)) = select! {
+                    next = mpsc_r.recv().fuse() => next,
+                    _ = &mut end_receiver => None,
+                } {
+                    let (remote_to_local_s, remote_to_local_r) = mpsc::channel(Self::MPSC_CHANNEL_BOUND);
+                    local_remote_to_local_s.send(remote_to_local_s).unwrap();
+                    info!(?addr, "Accepting Mpsc from");
+                    let cid = self.channel_ids.fetch_add(1, Ordering::Relaxed);
+                    self.init_protocol(Protocols::new_mpsc(local_to_remote_s, remote_to_local_r, cid, Arc::clone(&self.protocol_metrics)), cid, None, true)
+                        .await;
+                }
+                warn!("MpscStream Failed, stopping");
+            },/*
             ProtocolAddr::Udp(addr) => {
                 let socket = match net::UdpSocket::bind(addr).await {
                     Ok(socket) => {
@@ -432,7 +483,7 @@ impl Scheduler {
                 let mut data = [0u8; UDP_MAXIMUM_SINGLE_PACKET_SIZE_EVER];
                 while let Ok((size, remote_addr)) = select! {
                     next = socket.recv_from(&mut data).fuse() => next,
-                    _ = end_receiver => Err(std::io::Error::new(std::io::ErrorKind::Other, "")),
+                    _ = &mut end_receiver => Err(std::io::Error::new(std::io::ErrorKind::Other, "")),
                 } {
                     let mut datavec = Vec::with_capacity(size);
                     datavec.extend_from_slice(&data[0..size]);
@@ -441,7 +492,8 @@ impl Scheduler {
                     #[allow(clippy::map_entry)]
                     if !listeners.contains_key(&remote_addr) {
                         info!("Accepting Udp from: {}", &remote_addr);
-                        let (udp_data_sender, udp_data_receiver) = mpsc::unbounded::<Vec<u8>>();
+                        let (udp_data_sender, udp_data_receiver) =
+                            mpsc::unbounded_channel::<Vec<u8>>();
                         listeners.insert(remote_addr, udp_data_sender);
                         let protocol = UdpProtocol::new(
                             Arc::clone(&socket),
@@ -454,17 +506,18 @@ impl Scheduler {
                             .await;
                     }
                     let udp_data_sender = listeners.get_mut(&remote_addr).unwrap();
-                    udp_data_sender.send(datavec).await.unwrap();
+                    udp_data_sender.send(datavec).unwrap();
                 }
-            },
+            },*/
             _ => unimplemented!(),
         }
         trace!(?addr, "Ending channel creator");
     }
 
+    #[allow(dead_code)]
     async fn udp_single_channel_connect(
         socket: Arc<net::UdpSocket>,
-        mut w2p_udp_package_s: mpsc::UnboundedSender<Vec<u8>>,
+        w2p_udp_package_s: mpsc::UnboundedSender<Vec<u8>>,
     ) {
         let addr = socket.local_addr();
         trace!(?addr, "Start udp_single_channel_connect");
@@ -477,18 +530,19 @@ impl Scheduler {
         let mut data = [0u8; 9216];
         while let Ok(size) = select! {
             next = socket.recv(&mut data).fuse() => next,
-            _ = end_receiver => Err(std::io::Error::new(std::io::ErrorKind::Other, "")),
+            _ = &mut end_receiver => Err(std::io::Error::new(std::io::ErrorKind::Other, "")),
         } {
             let mut datavec = Vec::with_capacity(size);
             datavec.extend_from_slice(&data[0..size]);
-            w2p_udp_package_s.send(datavec).await.unwrap();
+            w2p_udp_package_s.send(datavec).unwrap();
         }
         trace!(?addr, "Stop udp_single_channel_connect");
     }
 
     async fn init_protocol(
         &self,
-        protocol: Protocols,
+        mut protocol: Protocols,
+        cid: Cid,
         s2a_return_pid_s: Option<oneshot::Sender<io::Result<Participant>>>,
         send_handshake: bool,
     ) {
@@ -498,36 +552,26 @@ impl Scheduler {
           Contra: - DOS possibility because we answer first
                   - Speed, because otherwise the message can be send with the creation
         */
-        let mut participant_channels = self.participant_channels.lock().await.clone().unwrap();
+        let participant_channels = self.participant_channels.lock().await.clone().unwrap();
         // spawn is needed here, e.g. for TCP connect it would mean that only 1
         // participant can be in handshake phase ever! Someone could deadlock
         // the whole server easily for new clients UDP doesnt work at all, as
         // the UDP listening is done in another place.
-        let cid = self.channel_ids.fetch_add(1, Ordering::Relaxed);
         let participants = Arc::clone(&self.participants);
-        #[cfg(feature = "metrics")]
         let metrics = Arc::clone(&self.metrics);
-        let pool = Arc::clone(&self.pool);
         let local_pid = self.local_pid;
         let local_secret = self.local_secret;
         // this is necessary for UDP to work at all and to remove code duplication
-        self.pool.spawn_ok(
+        tokio::spawn(
             async move {
                 trace!(?cid, "Open channel and be ready for Handshake");
-                let handshake = Handshake::new(
-                    cid,
-                    local_pid,
-                    local_secret,
-                    #[cfg(feature = "metrics")]
-                    Arc::clone(&metrics),
-                    send_handshake,
-                );
-                match handshake
-                    .setup(&protocol)
+                use network_protocol::InitProtocol;
+                let init_result = protocol
+                    .initialize(send_handshake, local_pid, local_secret)
                     .instrument(tracing::info_span!("handshake", ?cid))
-                    .await
-                {
-                    Ok((pid, sid, secret, leftover_cid_frame)) => {
+                    .await;
+                match init_result {
+                    Ok((pid, sid, secret)) => {
                         trace!(
                             ?cid,
                             ?pid,
@@ -538,21 +582,16 @@ impl Scheduler {
                             debug!(?cid, "New participant connected via a channel");
                             let (
                                 bparticipant,
-                                a2b_stream_open_s,
+                                a2b_open_stream_s,
                                 b2a_stream_opened_r,
-                                mut s2b_create_channel_s,
+                                s2b_create_channel_s,
                                 s2b_shutdown_bparticipant_s,
-                            ) = BParticipant::new(
-                                pid,
-                                sid,
-                                #[cfg(feature = "metrics")]
-                                Arc::clone(&metrics),
-                            );
+                            ) = BParticipant::new(local_pid, pid, sid, Arc::clone(&metrics));
 
                             let participant = Participant::new(
                                 local_pid,
                                 pid,
-                                a2b_stream_open_s,
+                                a2b_open_stream_s,
                                 b2a_stream_opened_r,
                                 participant_channels.a2s_disconnect_s,
                             );
@@ -566,24 +605,18 @@ impl Scheduler {
                             });
                             drop(participants);
                             trace!("dropped participants lock");
-                            pool.spawn_ok(
+                            let p = pid;
+                            tokio::spawn(
                                 bparticipant
                                     .run(participant_channels.b2s_prio_statistic_s)
-                                    .instrument(tracing::info_span!("participant", ?pid)),
+                                    .instrument(tracing::info_span!("remote", ?p)),
                             );
                             //create a new channel within BParticipant and wait for it to run
                             let (b2s_create_channel_done_s, b2s_create_channel_done_r) =
                                 oneshot::channel();
                             //From now on wire connects directly with bparticipant!
                             s2b_create_channel_s
-                                .send((
-                                    cid,
-                                    sid,
-                                    protocol,
-                                    leftover_cid_frame,
-                                    b2s_create_channel_done_s,
-                                ))
-                                .await
+                                .send((cid, sid, protocol, b2s_create_channel_done_s))
                                 .unwrap();
                             b2s_create_channel_done_r.await.unwrap();
                             if let Some(pid_oneshot) = s2a_return_pid_s {
@@ -594,7 +627,6 @@ impl Scheduler {
                                 participant_channels
                                     .s2a_connected_s
                                     .send(participant)
-                                    .await
                                     .unwrap();
                             }
                         } else {
@@ -632,8 +664,8 @@ impl Scheduler {
                         //From now on this CHANNEL can receiver other frames!
                         // move directly to participant!
                     },
-                    Err(()) => {
-                        debug!(?cid, "Handshake from a new connection failed");
+                    Err(e) => {
+                        debug!(?cid, ?e, "Handshake from a new connection failed");
                         if let Some(pid_oneshot) = s2a_return_pid_s {
                             // someone is waiting with `connect`, so give them their Error
                             trace!(?cid, "returning the Err to api who requested the connect");

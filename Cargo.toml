@@ -15,6 +15,7 @@ members = [
 	"voxygen/anim",
 	"world",
 	"network",
+	"network/protocol"
 ]
 
 # default profile for devs, fast to compile, okay enough to run, no debug information
@@ -30,8 +31,10 @@ incremental = true
 # All dependencies (but not this crate itself)
 [profile.dev.package."*"]
 opt-level = 3
-[profile.dev.package."veloren_network"]
+[profile.dev.package."veloren-network"]
 opt-level = 2
+[profile.dev.package."veloren-network-protocol"]
+opt-level = 3
 [profile.dev.package."veloren-common"]
 opt-level = 2
 [profile.dev.package."veloren-client"]

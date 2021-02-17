@@ -3,15 +3,17 @@
 /// (cd network/examples/network-speed && RUST_BACKTRACE=1 cargo run --profile=debuginfo -Z unstable-options -- --trace=error --protocol=tcp --mode=server)
 /// (cd network/examples/network-speed && RUST_BACKTRACE=1 cargo run --profile=debuginfo -Z unstable-options -- --trace=error --protocol=tcp --mode=client)
 /// ```
-mod metrics;
-
 use clap::{App, Arg};
-use futures::executor::block_on;
+use prometheus::Registry;
+use prometheus_hyper::Server;
 use serde::{Deserialize, Serialize};
 use std::{
+    net::SocketAddr,
+    sync::Arc,
     thread,
     time::{Duration, Instant},
 };
+use tokio::runtime::Runtime;
 use tracing::*;
 use tracing_subscriber::EnvFilter;
 use veloren_network::{Message, Network, Pid, Promises, ProtocolAddr};
@@ -101,14 +103,16 @@ fn main() {
     };
 
     let mut background = None;
+    let runtime = Arc::new(Runtime::new().unwrap());
     match matches.value_of("mode") {
-        Some("server") => server(address),
-        Some("client") => client(address),
+        Some("server") => server(address, Arc::clone(&runtime)),
+        Some("client") => client(address, Arc::clone(&runtime)),
         Some("both") => {
             let address1 = address.clone();
-            background = Some(thread::spawn(|| server(address1)));
+            let runtime2 = Arc::clone(&runtime);
+            background = Some(thread::spawn(|| server(address1, runtime2)));
             thread::sleep(Duration::from_millis(200)); //start client after server
-            client(address);
+            client(address, Arc::clone(&runtime));
         },
         _ => panic!("Invalid mode, run --help!"),
     };
@@ -117,18 +121,22 @@ fn main() {
     }
 }
 
-fn server(address: ProtocolAddr) {
-    let mut metrics = metrics::SimpleMetrics::new();
-    let (server, f) = Network::new_with_registry(Pid::new(), metrics.registry());
-    std::thread::spawn(f);
-    metrics.run("0.0.0.0:59112".parse().unwrap()).unwrap();
-    block_on(server.listen(address)).unwrap();
+fn server(address: ProtocolAddr, runtime: Arc<Runtime>) {
+    let registry = Arc::new(Registry::new());
+    let server = Network::new_with_registry(Pid::new(), Arc::clone(&runtime), &registry);
+    runtime.spawn(Server::run(
+        Arc::clone(&registry),
+        SocketAddr::from(([0; 4], 59112)),
+        futures_util::future::pending(),
+    ));
+    runtime.block_on(server.listen(address)).unwrap();
 
     loop {
+        info!("----");
         info!("Waiting for participant to connect");
-        let p1 = block_on(server.connected()).unwrap(); //remote representation of p1
-        let mut s1 = block_on(p1.opened()).unwrap(); //remote representation of s1
-        block_on(async {
+        let p1 = runtime.block_on(server.connected()).unwrap(); //remote representation of p1
+        let mut s1 = runtime.block_on(p1.opened()).unwrap(); //remote representation of s1
+        runtime.block_on(async {
             let mut last = Instant::now();
             let mut id = 0u64;
             while let Ok(_msg) = s1.recv_raw().await {
@@ -145,14 +153,19 @@ fn server(address: ProtocolAddr) {
     }
 }
 
-fn client(address: ProtocolAddr) {
-    let mut metrics = metrics::SimpleMetrics::new();
-    let (client, f) = Network::new_with_registry(Pid::new(), metrics.registry());
-    std::thread::spawn(f);
-    metrics.run("0.0.0.0:59111".parse().unwrap()).unwrap();
+fn client(address: ProtocolAddr, runtime: Arc<Runtime>) {
+    let registry = Arc::new(Registry::new());
+    let client = Network::new_with_registry(Pid::new(), Arc::clone(&runtime), &registry);
+    runtime.spawn(Server::run(
+        Arc::clone(&registry),
+        SocketAddr::from(([0; 4], 59111)),
+        futures_util::future::pending(),
+    ));
 
-    let p1 = block_on(client.connect(address)).unwrap(); //remote representation of p1
-    let mut s1 = block_on(p1.open(16, Promises::ORDERED | Promises::CONSISTENCY)).unwrap(); //remote representation of s1
+    let p1 = runtime.block_on(client.connect(address)).unwrap(); //remote representation of p1
+    let mut s1 = runtime
+        .block_on(p1.open(4, Promises::ORDERED | Promises::CONSISTENCY))
+        .unwrap(); //remote representation of s1
     let mut last = Instant::now();
     let mut id = 0u64;
     let raw_msg = Message::serialize(
@@ -173,16 +186,16 @@ fn client(address: ProtocolAddr) {
         }
         if id > 2000000 {
             println!("Stop");
-            std::thread::sleep(std::time::Duration::from_millis(5000));
+            std::thread::sleep(std::time::Duration::from_millis(2000));
             break;
         }
     }
     drop(s1);
-    std::thread::sleep(std::time::Duration::from_millis(5000));
+    std::thread::sleep(std::time::Duration::from_millis(2000));
     info!("Closing participant");
-    block_on(p1.disconnect()).unwrap();
-    std::thread::sleep(std::time::Duration::from_millis(25000));
+    runtime.block_on(p1.disconnect()).unwrap();
+    std::thread::sleep(std::time::Duration::from_millis(2000));
     info!("DROPPING! client");
     drop(client);
-    std::thread::sleep(std::time::Duration::from_millis(25000));
+    std::thread::sleep(std::time::Duration::from_millis(2000));
 }

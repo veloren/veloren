@@ -14,13 +14,14 @@ default = ["simd"]
 common = { package = "veloren-common", path = "../common", features = ["no-assets"] }
 common-sys = { package = "veloren-common-sys", path = "../common/sys", default-features = false }
 common-net = { package = "veloren-common-net", path = "../common/net" }
-network = { package = "veloren_network", path = "../network", features = ["compression"], default-features = false }
+network = { package = "veloren-network", path = "../network", features = ["compression"], default-features = false }
 
 byteorder = "1.3.2"
 uvth = "3.1.1"
 futures-util = "0.3.7"
 futures-executor = "0.3"
 futures-timer = "3.0"
+tokio = { version = "1", default-features = false, features = ["rt-multi-thread"] }
 image = { version = "0.23.12", default-features = false, features = ["png"] }
 num = "0.3.1"
 num_cpus = "1.10.1"

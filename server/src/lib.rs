@@ -76,12 +76,14 @@ use common_net::{
 use common_sys::plugin::PluginMgr;
 use common_sys::state::State;
 use futures_executor::block_on;
-use metrics::{PhysicsMetrics, ServerMetrics, StateTickMetrics, TickMetrics};
+use metrics::{PhysicsMetrics, StateTickMetrics, TickMetrics};
 use network::{Network, Pid, ProtocolAddr};
 use persistence::{
     character_loader::{CharacterLoader, CharacterLoaderResponseKind},
     character_updater::CharacterUpdater,
 };
+use prometheus::Registry;
+use prometheus_hyper::Server as PrometheusServer;
 use specs::{join::Join, Builder, Entity as EcsEntity, RunNow, SystemData, WorldExt};
 use std::{
     i32,
@@ -91,6 +93,7 @@ use std::{
 };
 #[cfg(not(feature = "worldgen"))]
 use test_world::{IndexOwned, World};
+use tokio::{runtime::Runtime, sync::Notify};
 use tracing::{debug, error, info, trace};
 use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
@@ -120,9 +123,10 @@ pub struct Server {
 
     connection_handler: ConnectionHandler,
 
+    _runtime: Arc<Runtime>,
     thread_pool: ThreadPool,
 
-    metrics: ServerMetrics,
+    metrics_shutdown: Arc<Notify>,
     tick_metrics: TickMetrics,
     state_tick_metrics: StateTickMetrics,
     physics_metrics: PhysicsMetrics,
@@ -136,6 +140,7 @@ impl Server {
         settings: Settings,
         editable_settings: EditableSettings,
         data_dir: &std::path::Path,
+        runtime: Arc<Runtime>,
     ) -> Result<Self, Error> {
         info!("Server is data dir is: {}", data_dir.display());
         if settings.auth_server_address.is_none() {
@@ -347,28 +352,35 @@ impl Server {
 
         state.ecs_mut().insert(DeletedEntities::default());
 
-        let mut metrics = ServerMetrics::new();
         // register all metrics submodules here
-        let (tick_metrics, registry_tick) = TickMetrics::new(metrics.tick_clone())
-            .expect("Failed to initialize server tick metrics submodule.");
+        let (tick_metrics, registry_tick) =
+            TickMetrics::new().expect("Failed to initialize server tick metrics submodule.");
         let (state_tick_metrics, registry_state) = StateTickMetrics::new().unwrap();
         let (physics_metrics, registry_physics) = PhysicsMetrics::new().unwrap();
 
-        registry_chunk(&metrics.registry()).expect("failed to register chunk gen metrics");
-        registry_network(&metrics.registry()).expect("failed to register network request metrics");
-        registry_player(&metrics.registry()).expect("failed to register player metrics");
-        registry_tick(&metrics.registry()).expect("failed to register tick metrics");
-        registry_state(&metrics.registry()).expect("failed to register state metrics");
-        registry_physics(&metrics.registry()).expect("failed to register state metrics");
+        let registry = Arc::new(Registry::new());
+        registry_chunk(&registry).expect("failed to register chunk gen metrics");
+        registry_network(&registry).expect("failed to register network request metrics");
+        registry_player(&registry).expect("failed to register player metrics");
+        registry_tick(&registry).expect("failed to register tick metrics");
+        registry_state(&registry).expect("failed to register state metrics");
+        registry_physics(&registry).expect("failed to register state metrics");
 
         let thread_pool = ThreadPoolBuilder::new()
             .name("veloren-worker".to_string())
             .build();
-        let (network, f) = Network::new_with_registry(Pid::new(), &metrics.registry());
-        metrics
-            .run(settings.metrics_address)
-            .expect("Failed to initialize server metrics submodule.");
-        thread_pool.execute(f);
+        let network = Network::new_with_registry(Pid::new(), Arc::clone(&runtime), &registry);
+        let metrics_shutdown = Arc::new(Notify::new());
+        let metrics_shutdown_clone = Arc::clone(&metrics_shutdown);
+        let addr = settings.metrics_address;
+        runtime.spawn(async move {
+            PrometheusServer::run(
+                Arc::clone(&registry),
+                addr,
+                metrics_shutdown_clone.notified(),
+            )
+            .await
+        });
         block_on(network.listen(ProtocolAddr::Tcp(settings.gameserver_address)))?;
         let connection_handler = ConnectionHandler::new(network);
 
@@ -386,9 +398,10 @@ impl Server {
 
             connection_handler,
 
+            _runtime: runtime,
             thread_pool,
 
-            metrics,
+            metrics_shutdown,
             tick_metrics,
             state_tick_metrics,
             physics_metrics,
@@ -900,7 +913,7 @@ impl Server {
             .tick_time
             .with_label_values(&["metrics"])
             .set(end_of_server_tick.elapsed().as_nanos() as i64);
-        self.metrics.tick();
+        self.tick_metrics.tick();
 
         // 9) Finish the tick, pass control back to the frontend.
 
@@ -1146,6 +1159,7 @@ impl Server {
 
 impl Drop for Server {
     fn drop(&mut self) {
+        self.metrics_shutdown.notify_one();
         self.state
             .notify_players(ServerGeneral::Disconnect(DisconnectReason::Shutdown));
     }

@@ -1,11 +1,12 @@
 use crate::commands::{Command, FileInfo, LocalCommand, RemoteInfo};
-use async_std::{
-    fs,
-    path::PathBuf,
-    sync::{Mutex, RwLock},
+use futures_util::{FutureExt, StreamExt};
+use std::{collections::HashMap, path::PathBuf, sync::Arc};
+use tokio::{
+    fs, join,
+    runtime::Runtime,
+    sync::{mpsc, Mutex, RwLock},
 };
-use futures::{channel::mpsc, future::FutureExt, stream::StreamExt};
-use std::{collections::HashMap, sync::Arc};
+use tokio_stream::wrappers::UnboundedReceiverStream;
 use tracing::*;
 use veloren_network::{Network, Participant, Pid, Promises, ProtocolAddr, Stream};
 
@@ -23,11 +24,10 @@ pub struct Server {
 }
 
 impl Server {
-    pub fn new() -> (Self, mpsc::UnboundedSender<LocalCommand>) {
-        let (command_sender, command_receiver) = mpsc::unbounded();
+    pub fn new(runtime: Arc<Runtime>) -> (Self, mpsc::UnboundedSender<LocalCommand>) {
+        let (command_sender, command_receiver) = mpsc::unbounded_channel();
 
-        let (network, f) = Network::new(Pid::new());
-        std::thread::spawn(f);
+        let network = Network::new(Pid::new(), runtime);
 
         let run_channels = Some(ControlChannels { command_receiver });
         (
@@ -47,7 +47,7 @@ impl Server {
 
         self.network.listen(address).await.unwrap();
 
-        futures::join!(
+        join!(
             self.command_manager(run_channels.command_receiver,),
             self.connect_manager(),
         );
@@ -55,6 +55,7 @@ impl Server {
 
     async fn command_manager(&self, command_receiver: mpsc::UnboundedReceiver<LocalCommand>) {
         trace!("Start command_manager");
+        let command_receiver = UnboundedReceiverStream::new(command_receiver);
         command_receiver
             .for_each_concurrent(None, async move |cmd| {
                 match cmd {
@@ -106,7 +107,7 @@ impl Server {
 
     async fn connect_manager(&self) {
         trace!("Start connect_manager");
-        let iter = futures::stream::unfold((), |_| {
+        let iter = futures_util::stream::unfold((), |_| {
             self.network.connected().map(|r| r.ok().map(|v| (v, ())))
         });
 
@@ -120,8 +121,8 @@ impl Server {
     #[allow(clippy::eval_order_dependence)]
     async fn loop_participant(&self, p: Participant) {
         if let (Ok(cmd_out), Ok(file_out), Ok(cmd_in), Ok(file_in)) = (
-            p.open(15, Promises::ORDERED | Promises::CONSISTENCY).await,
-            p.open(40, Promises::CONSISTENCY).await,
+            p.open(3, Promises::ORDERED | Promises::CONSISTENCY).await,
+            p.open(6, Promises::CONSISTENCY).await,
             p.opened().await,
             p.opened().await,
         ) {
@@ -129,7 +130,7 @@ impl Server {
             let id = p.remote_pid();
             let ri = Arc::new(Mutex::new(RemoteInfo::new(cmd_out, file_out, p)));
             self.remotes.write().await.insert(id, ri.clone());
-            futures::join!(
+            join!(
                 self.handle_remote_cmd(cmd_in, ri.clone()),
                 self.handle_files(file_in, ri.clone()),
             );
@@ -174,7 +175,7 @@ impl Server {
                     let mut path = std::env::current_dir().unwrap();
                     path.push(fi.path().file_name().unwrap());
                     trace!("No path provided, saving down to {:?}", path);
-                    PathBuf::from(path)
+                    path
                 },
             };
             debug!("Received file, going to save it under {:?}", path);

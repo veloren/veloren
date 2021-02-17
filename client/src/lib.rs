@@ -63,6 +63,7 @@ use std::{
     sync::Arc,
     time::{Duration, Instant},
 };
+use tokio::runtime::Runtime;
 use tracing::{debug, error, trace, warn};
 use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
@@ -129,6 +130,7 @@ impl WorldData {
 pub struct Client {
     registered: bool,
     presence: Option<PresenceKind>,
+    runtime: Arc<Runtime>,
     thread_pool: ThreadPool,
     server_info: ServerInfo,
     world_data: WorldData,
@@ -185,15 +187,18 @@ pub struct CharacterList {
 
 impl Client {
     /// Create a new `Client`.
-    pub fn new<A: Into<SocketAddr>>(addr: A, view_distance: Option<u32>) -> Result<Self, Error> {
+    pub fn new<A: Into<SocketAddr>>(
+        addr: A,
+        view_distance: Option<u32>,
+        runtime: Arc<Runtime>,
+    ) -> Result<Self, Error> {
         let mut thread_pool = ThreadPoolBuilder::new()
             .name("veloren-worker".into())
             .build();
         // We reduce the thread count by 1 to keep rendering smooth
         thread_pool.set_num_threads((num_cpus::get() - 1).max(1));
 
-        let (network, scheduler) = Network::new(Pid::new());
-        thread_pool.execute(scheduler);
+        let network = Network::new(Pid::new(), Arc::clone(&runtime));
 
         let participant = block_on(network.connect(ProtocolAddr::Tcp(addr.into())))?;
         let stream = block_on(participant.opened())?;
@@ -417,6 +422,7 @@ impl Client {
         Ok(Self {
             registered: false,
             presence: None,
+            runtime,
             thread_pool,
             server_info,
             world_data: WorldData {
@@ -1733,6 +1739,8 @@ impl Client {
     /// exempt).
     pub fn thread_pool(&self) -> &ThreadPool { &self.thread_pool }
 
+    pub fn runtime(&self) -> &Arc<Runtime> { &self.runtime }
+
     /// Get a reference to the client's game state.
     pub fn state(&self) -> &State { &self.state }
 
@@ -2058,7 +2066,8 @@ mod tests {
 
         let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 9000);
         let view_distance: Option<u32> = None;
-        let veloren_client: Result<Client, Error> = Client::new(socket, view_distance);
+        let runtime = Arc::new(Runtime::new().unwrap());
+        let veloren_client: Result<Client, Error> = Client::new(socket, view_distance, runtime);
 
         let _ = veloren_client.map(|mut client| {
             //register
