@@ -95,6 +95,9 @@ impl From<&crate::settings::GamepadSettings> for ControllerSettings {
                 map.entry(settings.game_buttons.sit)
                     .or_default()
                     .push(GameInput::Sit);
+                map.entry(settings.game_buttons.dance)
+                    .or_default()
+                    .push(GameInput::Dance);
                 map.entry(settings.game_buttons.glide)
                     .or_default()
                     .push(GameInput::Glide);
@@ -131,6 +134,9 @@ impl From<&crate::settings::GamepadSettings> for ControllerSettings {
                 map.entry(settings.game_buttons.social)
                     .or_default()
                     .push(GameInput::Social);
+                map.entry(settings.game_buttons.crafting)
+                    .or_default()
+                    .push(GameInput::Crafting);
                 map.entry(settings.game_buttons.spellbook)
                     .or_default()
                     .push(GameInput::Spellbook);
