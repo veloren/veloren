@@ -1,0 +1,27 @@
+/// CUIDADO: Arquivos de tradução devem ser criados no formato UTF-8 sem Marca de Ordem de byte - BOM(https://pt.wikipedia.org/wiki/Marca_de_ordem_de_byte)
+
+/// Localization for Portuguese (Brazil)
+(
+    string_map: {
+        // Mapa e Missões
+        "hud.map.map_title": "Mapa",
+        "hud.map.qlog_title": "Missões",
+        "hud.map.difficulty": "Dificuldade",
+        "hud.map.towns": "Cidades",
+        "hud.map.castles": "Castelos",
+        "hud.map.dungeons": "Masmorras",        
+        "hud.map.caves": "Cavernas",
+        "hud.map.cave": "Caverna",
+        "hud.map.town": "Cidade",
+        "hud.map.castle": "Castelo",
+        "hud.map.dungeon": "Masmorra",
+        "hud.map.difficulty_dungeon": "Dificuldade da\n\nMasmorra: {difficulty}",
+        "hud.map.drag": "Arrastar",
+        "hud.map.zoom": "Zoom",
+        "hud.map.recenter": "Recentralizar",
+    },
+
+
+    vector_map: {
+    }
+)
