@@ -10,6 +10,7 @@ use crate::{
     util::{attempt, seed_expan, MapVec, CARDINALS, NEIGHBORS},
     site2,
     Index,
+    Land,
 };
 use common::{
     astar::Astar,
@@ -216,11 +217,7 @@ impl Civs {
                     WorldSite::castle(Castle::generate(wpos, Some(ctx.sim), &mut rng))
                 },
                 SiteKind::Refactor => {
-                    WorldSite::refactor({
-                        let mut site = site2::Site::generate(&mut rng);
-                        site.origin = wpos;
-                        site
-                    })
+                    WorldSite::refactor(site2::Site::generate(&Land::from_sim(&ctx.sim), &mut rng, wpos))
                 },
             });
             sim_site.site_tmp = Some(site);

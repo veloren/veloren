@@ -19,6 +19,7 @@ pub mod civ;
 mod column;
 pub mod config;
 pub mod index;
+pub mod land;
 pub mod layer;
 pub mod pathfinding;
 pub mod sim;
@@ -30,6 +31,7 @@ pub mod util;
 // Reexports
 pub use crate::{
     canvas::{Canvas, CanvasInfo},
+    land::Land,
     config::CONFIG,
 };
 pub use block::BlockGen;

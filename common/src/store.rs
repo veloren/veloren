@@ -67,6 +67,10 @@ impl<T> Default for Store<T> {
 }
 
 impl<T> Store<T> {
+    pub fn len(&self) -> usize {
+        self.len
+    }
+
     pub fn contains(&self, id: Id<T>) -> bool {
         self.entries
             .get(id.idx as usize)
