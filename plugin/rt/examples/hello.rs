@@ -24,7 +24,7 @@ pub fn on_command_testplugin(command: ChatCommandEvent) -> Result<Vec<String>, S
         command
             .player
             .get_entity_health()
-            .expect("Can't get player name"),
+            .expect("Can't get player health"),
         command.command_args
     )])
 }

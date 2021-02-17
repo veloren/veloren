@@ -76,8 +76,8 @@ pub use self::{
     misc::Object,
     ori::Ori,
     phys::{
-        Collider, ForceUpdate, Gravity, Mass, PhysicsState, Pos, PreviousVelDtCache, Scale,
-        Sticky, Vel,
+        Collider, ForceUpdate, Gravity, Mass, PhysicsState, Pos, PreviousVelDtCache, Scale, Sticky,
+        Vel,
     },
     player::Player,
     poise::{Poise, PoiseChange, PoiseSource, PoiseState},
