@@ -54,10 +54,13 @@ impl PluginModule {
         }
 
         fn raw_retrieve_action(env: &HostFunctionEnvironement, ptr: u32, len: u32) -> i64 {
-            // TODO: Handle correctly the error
-            let data: Retrieve = env.read_data(ptr as _, len).unwrap();
+            let out = match env.read_data(ptr as _, len) {
+                Ok(data) => retrieve_action(&env.ecs, data),
+                Err(e) => Err(RetrieveError::BincodeError(e.to_string())),
+            };
 
-            let out = retrieve_action(&env.ecs, data);
+            // If an error happen set the i64 to 0 so the WASM side can tell an error
+            // occured
             let (ptr, len) = env.write_data(&out).unwrap();
             to_i64(ptr, len as _)
         }
