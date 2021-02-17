@@ -1,7 +1,9 @@
 pub mod armor;
+pub mod modular;
 pub mod tool;
 
 // Reexports
+pub use modular::{ModularComponent, ModularComponentKind, ModularComponentTag};
 pub use tool::{AbilitySet, Hands, Tool, ToolKind, UniqueKind};
 
 use crate::{
@@ -78,23 +80,31 @@ pub enum Quality {
     Debug,     // Red
 }
 
+pub trait TagExampleInfo {
+    fn name(&self) -> &'static str;
+    /// What item to show in the crafting hud if the player has nothing with the
+    /// tag
+    fn exemplar_identifier(&self) -> &'static str;
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ItemTag {
     ClothItem,
+    ModularComponent(ModularComponentTag),
 }
 
-impl ItemTag {
-    pub fn name(&self) -> &'static str {
+impl TagExampleInfo for ItemTag {
+    fn name(&self) -> &'static str {
         match self {
             ItemTag::ClothItem => "cloth item",
+            ItemTag::ModularComponent(kind) => kind.name(),
         }
     }
 
-    /// What item to show in the crafting hud if the player has nothing with the
-    /// tag
-    pub fn exemplar_identifier(&self) -> &'static str {
+    fn exemplar_identifier(&self) -> &'static str {
         match self {
             ItemTag::ClothItem => "common.items.tag_examples.cloth_item",
+            ItemTag::ModularComponent(tag) => tag.exemplar_identifier(),
         }
     }
 }
@@ -103,6 +113,7 @@ impl ItemTag {
 pub enum ItemKind {
     /// Something wieldable
     Tool(tool::Tool),
+    ModularComponent(modular::ModularComponent),
     Lantern(Lantern),
     Armor(armor::Armor),
     Glider(Glider),
@@ -158,18 +169,28 @@ pub struct Item {
     /// could change invariants like whether it was stackable (invalidating
     /// the amount).
     item_def: Arc<ItemDef>,
+    /// components is hidden to maintain the following invariants:
+    /// - It should only contain modular components (and enhancements, once they
+    ///   exist)
+    /// - Enhancements (once they exist) should be compatible with the available
+    ///   slot shapes
+    /// - Modular components should agree with the tool kind
+    /// - There should be exactly one damage component and exactly one held
+    ///   component for modular
+    /// weapons
+    components: Vec<Item>,
     /// amount is hidden because it needs to maintain the invariant that only
     /// stackable items can have > 1 amounts.
     amount: NonZeroU32,
     /// The slots for items that this item has
     slots: Vec<InvSlot>,
+    item_config: Option<Box<ItemConfig>>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ItemDef {
     #[serde(default)]
     item_definition_id: String,
-    pub item_config: Option<ItemConfig>,
     pub name: String,
     pub description: String,
     pub kind: ItemKind,
@@ -177,6 +198,7 @@ pub struct ItemDef {
     pub tags: Vec<ItemTag>,
     #[serde(default)]
     pub slots: u16,
+    ability_map: AbilityMap,
 }
 
 impl PartialEq for ItemDef {
@@ -190,10 +212,10 @@ pub struct ItemConfig {
     pub dodge_ability: Option<CharacterAbility>,
 }
 
-impl From<(&ItemKind, &AbilityMap)> for ItemConfig {
-    fn from((item_kind, map): (&ItemKind, &AbilityMap)) -> Self {
+impl From<(&ItemKind, &[Item], &AbilityMap)> for ItemConfig {
+    fn from((item_kind, components, map): (&ItemKind, &[Item], &AbilityMap)) -> Self {
         if let ItemKind::Tool(tool) = item_kind {
-            let abilities = tool.get_abilities(map);
+            let abilities = tool.get_abilities(components, map);
 
             return ItemConfig {
                 abilities,
@@ -217,24 +239,34 @@ impl ItemDef {
         )
     }
 
+    pub fn is_modular(&self) -> bool {
+        match &self.kind {
+            ItemKind::Tool(tool) => match tool.stats {
+                tool::StatKind::Direct { .. } => false,
+                tool::StatKind::Modular => true,
+            },
+            _ => false,
+        }
+    }
+
     #[cfg(test)]
     pub fn new_test(
         item_definition_id: String,
-        item_config: Option<ItemConfig>,
         kind: ItemKind,
         quality: Quality,
         tags: Vec<ItemTag>,
         slots: u16,
+        ability_map: AbilityMap,
     ) -> Self {
         Self {
             item_definition_id,
-            item_config,
             name: "test item name".to_owned(),
             description: "test item description".to_owned(),
             kind,
             quality,
             tags,
             slots,
+            ability_map,
         }
     }
 }
@@ -250,7 +282,15 @@ impl assets::Compound for ItemDef {
         cache: &assets_manager::AssetCache<S>,
         specifier: &str,
     ) -> Result<Self, Error> {
-        let raw = cache.load_owned::<RawItemDef>(specifier)?;
+        // load from the filesystem first, but if the file doesn't exist, see if it's a
+        // programmaticly-generated asset
+        let raw = cache
+            .load_owned::<RawItemDef>(specifier)
+            .or_else(|e| modular::synthesize_modular_asset(specifier).ok_or(e))?;
+
+        let ability_map_handle =
+            cache.load::<AbilityMap>("common.abilities.weapon_ability_manifest")?;
+        let ability_map = ability_map_handle.read().clone();
 
         let RawItemDef {
             name,
@@ -261,16 +301,6 @@ impl assets::Compound for ItemDef {
             slots,
         } = raw;
 
-        let item_config = if let ItemKind::Tool(_) = kind {
-            let ability_map_handle =
-                cache.load::<AbilityMap>("common.abilities.weapon_ability_manifest")?;
-            let ability_map = &*ability_map_handle.read();
-
-            Some(ItemConfig::from((&kind, ability_map)))
-        } else {
-            None
-        };
-
         // Some commands like /give_item provide the asset specifier separated with \
         // instead of .
         //
@@ -279,18 +309,18 @@ impl assets::Compound for ItemDef {
 
         Ok(ItemDef {
             item_definition_id,
-            item_config,
             name,
             description,
             kind,
             quality,
             tags,
             slots,
+            ability_map,
         })
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename = "ItemDef")]
 struct RawItemDef {
     name: String,
@@ -334,12 +364,32 @@ impl Item {
     // loadout when no weapon is present
     pub fn empty() -> Self { Item::new_from_asset_expect("common.items.weapons.empty.empty") }
 
-    pub fn new_from_item_def(inner_item: Arc<ItemDef>) -> Self {
+    pub fn new_from_item_def(inner_item: Arc<ItemDef>, input_components: &[Item]) -> Self {
+        let mut components = Vec::new();
+        if inner_item.is_modular() {
+            // recipe ensures that types match (i.e. no axe heads on a sword hilt, or double
+            // sword blades)
+            components.extend(input_components.iter().map(|comp| comp.duplicate()));
+        }
+
+        let kind = inner_item.kind();
+        let item_config = if let ItemKind::Tool(_) = kind {
+            Some(Box::new(ItemConfig::from((
+                kind,
+                &*components,
+                &inner_item.ability_map,
+            ))))
+        } else {
+            None
+        };
+
         Item {
             item_id: Arc::new(AtomicCell::new(None)),
             amount: NonZeroU32::new(1).unwrap(),
+            components,
             slots: vec![None; inner_item.slots as usize],
             item_def: inner_item,
+            item_config,
         }
     }
 
@@ -347,7 +397,7 @@ impl Item {
     /// Panics if the asset does not exist.
     pub fn new_from_asset_expect(asset_specifier: &str) -> Self {
         let inner_item = Arc::<ItemDef>::load_expect_cloned(asset_specifier);
-        Item::new_from_item_def(inner_item)
+        Item::new_from_item_def(inner_item, &[])
     }
 
     /// Creates a Vec containing one of each item that matches the provided
@@ -360,11 +410,13 @@ impl Item {
     /// it exists
     pub fn new_from_asset(asset: &str) -> Result<Self, Error> {
         let inner_item = Arc::<ItemDef>::load_cloned(asset)?;
-        Ok(Item::new_from_item_def(inner_item))
+        Ok(Item::new_from_item_def(inner_item, &[]))
     }
 
     /// Duplicates an item, creating an exact copy but with a new item ID
-    pub fn duplicate(&self) -> Self { Item::new_from_item_def(Arc::clone(&self.item_def)) }
+    pub fn duplicate(&self) -> Self {
+        Item::new_from_item_def(Arc::clone(&self.item_def), &self.components)
+    }
 
     /// FIXME: HACK: In order to set the entity ID asynchronously, we currently
     /// start it at None, and then atomically set it when it's saved for the
@@ -446,6 +498,8 @@ impl Item {
 
     pub fn is_stackable(&self) -> bool { self.item_def.is_stackable() }
 
+    pub fn is_modular(&self) -> bool { self.item_def.is_modular() }
+
     pub fn name(&self) -> &str { &self.item_def.name }
 
     pub fn description(&self) -> &str { &self.item_def.description }
@@ -456,13 +510,14 @@ impl Item {
 
     pub fn quality(&self) -> Quality { self.item_def.quality }
 
+    pub fn components(&self) -> &[Item] { &self.components }
+
     pub fn slots(&self) -> &[InvSlot] { &self.slots }
 
     pub fn slots_mut(&mut self) -> &mut [InvSlot] { &mut self.slots }
 
     pub fn item_config_expect(&self) -> &ItemConfig {
         &self
-            .item_def
             .item_config
             .as_ref()
             .expect("Item was expected to have an ItemConfig")
@@ -568,6 +623,7 @@ pub trait ItemDesc {
     fn quality(&self) -> &Quality;
     fn num_slots(&self) -> u16;
     fn item_definition_id(&self) -> &str;
+    fn components(&self) -> &[Item];
 }
 
 impl ItemDesc for Item {
@@ -582,6 +638,8 @@ impl ItemDesc for Item {
     fn num_slots(&self) -> u16 { self.item_def.slots }
 
     fn item_definition_id(&self) -> &str { &self.item_def.item_definition_id }
+
+    fn components(&self) -> &[Item] { &self.components }
 }
 
 impl ItemDesc for ItemDef {
@@ -596,6 +654,8 @@ impl ItemDesc for ItemDef {
     fn num_slots(&self) -> u16 { self.slots }
 
     fn item_definition_id(&self) -> &str { &self.item_definition_id }
+
+    fn components(&self) -> &[Item] { &[] }
 }
 
 impl Component for Item {

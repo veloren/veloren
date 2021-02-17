@@ -1,7 +1,7 @@
 use crate::{
     assets::{self, AssetExt, AssetHandle},
     comp::{
-        item::{ItemDef, ItemTag},
+        item::{modular, ItemDef, ItemTag},
         Inventory, Item,
     },
 };
@@ -29,16 +29,19 @@ impl Recipe {
         inv: &mut Inventory,
     ) -> Result<Option<(Item, u32)>, Vec<(&RecipeInput, u32)>> {
         // Get ingredient cells from inventory,
+        let mut components = Vec::new();
+
         inv.contains_ingredients(self)?
             .into_iter()
             .for_each(|(pos, n)| {
                 (0..n).for_each(|_| {
-                    inv.take(pos).expect("Expected item to exist in inventory");
+                    let component = inv.take(pos).expect("Expected item to exist in inventory");
+                    components.push(component);
                 })
             });
 
         for i in 0..self.output.1 {
-            let crafted_item = Item::new_from_item_def(Arc::clone(&self.output.0));
+            let crafted_item = Item::new_from_item_def(Arc::clone(&self.output.0), &components);
             if let Some(item) = inv.push(crafted_item) {
                 return Ok(Some((item, self.output.1 - i)));
             }
@@ -79,10 +82,12 @@ pub enum RawRecipeInput {
     Tag(ItemTag),
 }
 
-#[derive(Deserialize)]
+#[derive(Clone, Deserialize)]
 #[serde(transparent)]
 #[allow(clippy::type_complexity)]
-struct RawRecipeBook(HashMap<String, ((String, u32), Vec<(RawRecipeInput, u32)>)>);
+pub(crate) struct RawRecipeBook(
+    pub(crate) HashMap<String, ((String, u32), Vec<(RawRecipeInput, u32)>)>,
+);
 
 impl assets::Asset for RawRecipeBook {
     type Loader = assets::RonLoader;
@@ -113,7 +118,8 @@ impl assets::Compound for RecipeBook {
             Ok((def, spec.1))
         }
 
-        let raw = cache.load::<RawRecipeBook>(specifier)?.read();
+        let mut raw = cache.load::<RawRecipeBook>(specifier)?.read().clone();
+        modular::append_modular_recipes(&mut raw);
 
         let recipes = raw
             .0

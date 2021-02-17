@@ -5,7 +5,7 @@ use crate::{
             item::{
                 armor::Protection,
                 tool::{Tool, ToolKind},
-                ItemKind,
+                Item, ItemKind,
             },
             slot::EquipSlot,
         },
@@ -606,10 +606,10 @@ impl CombatBuff {
     }
 }
 
-fn equipped_tool(inv: &Inventory, slot: EquipSlot) -> Option<&Tool> {
+fn equipped_item_and_tool(inv: &Inventory, slot: EquipSlot) -> Option<(&Item, &Tool)> {
     inv.equipped(slot).and_then(|i| {
         if let ItemKind::Tool(tool) = &i.kind() {
-            Some(tool)
+            Some((i, tool))
         } else {
             None
         }
@@ -618,22 +618,24 @@ fn equipped_tool(inv: &Inventory, slot: EquipSlot) -> Option<&Tool> {
 
 pub fn get_weapons(inv: &Inventory) -> (Option<ToolKind>, Option<ToolKind>) {
     (
-        equipped_tool(inv, EquipSlot::Mainhand).map(|tool| tool.kind),
-        equipped_tool(inv, EquipSlot::Offhand).map(|tool| tool.kind),
+        equipped_item_and_tool(inv, EquipSlot::Mainhand).map(|(_, tool)| tool.kind),
+        equipped_item_and_tool(inv, EquipSlot::Offhand).map(|(_, tool)| tool.kind),
     )
 }
 
 fn offensive_rating(inv: &Inventory, skillset: &SkillSet) -> f32 {
-    let active_damage = equipped_tool(inv, EquipSlot::Mainhand).map_or(0.0, |tool| {
-        tool.base_power()
-            * tool.base_speed()
-            * (1.0 + 0.05 * skillset.earned_sp(SkillGroupKind::Weapon(tool.kind)) as f32)
-    });
-    let second_damage = equipped_tool(inv, EquipSlot::Offhand).map_or(0.0, |tool| {
-        tool.base_power()
-            * tool.base_speed()
-            * (1.0 + 0.05 * skillset.earned_sp(SkillGroupKind::Weapon(tool.kind)) as f32)
-    });
+    let active_damage =
+        equipped_item_and_tool(inv, EquipSlot::Mainhand).map_or(0.0, |(item, tool)| {
+            tool.base_power(item.components())
+                * tool.base_speed(item.components())
+                * (1.0 + 0.05 * skillset.earned_sp(SkillGroupKind::Weapon(tool.kind)) as f32)
+        });
+    let second_damage =
+        equipped_item_and_tool(inv, EquipSlot::Offhand).map_or(0.0, |(item, tool)| {
+            tool.base_power(item.components())
+                * tool.base_speed(item.components())
+                * (1.0 + 0.05 * skillset.earned_sp(SkillGroupKind::Weapon(tool.kind)) as f32)
+        });
     active_damage.max(second_damage)
 }
 

@@ -23,6 +23,7 @@ pub fn animate_by_pulse(ids: &[Id], pulse: f32) -> Id {
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ItemKey {
     Tool(String),
+    ModularComponent(String),
     Lantern(String),
     Glider(String),
     Armor(ArmorKind),
@@ -41,6 +42,9 @@ impl<T: ItemDesc> From<&T> for ItemKey {
 
         match item_kind {
             ItemKind::Tool(_) => ItemKey::Tool(item_definition_id.to_owned()),
+            ItemKind::ModularComponent(_) => {
+                ItemKey::ModularComponent(item_definition_id.to_owned())
+            },
             ItemKind::Lantern(Lantern { kind, .. }) => ItemKey::Lantern(kind.clone()),
             ItemKind::Glider(Glider { kind, .. }) => ItemKey::Glider(kind.clone()),
             ItemKind::Armor(Armor { kind, .. }) => ItemKey::Armor(kind.clone()),

@@ -3,7 +3,7 @@
 
 use crate::{
     assets::{self, Asset},
-    comp::{skills::Skill, CharacterAbility},
+    comp::{item::ItemKind, skills::Skill, CharacterAbility, Item},
 };
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
@@ -27,23 +27,81 @@ pub enum ToolKind {
     Empty,
 }
 
+impl ToolKind {
+    pub fn identifier_name(&self) -> &'static str {
+        match self {
+            ToolKind::Sword => "sword",
+            ToolKind::Axe => "axe",
+            ToolKind::Hammer => "hammer",
+            ToolKind::Bow => "bow",
+            ToolKind::Dagger => "dagger",
+            ToolKind::Staff => "staff",
+            ToolKind::Sceptre => "sceptre",
+            ToolKind::Shield => "shield",
+            ToolKind::Unique(_) => "unique",
+            ToolKind::Debug => "debug",
+            ToolKind::Farming => "farming",
+            ToolKind::Empty => "empty",
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum Hands {
     One,
     Two,
 }
 
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Stats {
-    equip_time_millis: u32,
-    power: f32,
-    poise_strength: f32,
-    speed: f32,
+    pub equip_time_millis: u32,
+    pub power: f32,
+    pub poise_strength: f32,
+    pub speed: f32,
 }
 
-impl From<&Tool> for Stats {
-    fn from(tool: &Tool) -> Self {
-        let raw_stats = tool.stats;
+impl Stats {
+    pub fn zeroed() -> Stats {
+        Stats {
+            equip_time_millis: 0,
+            power: 0.0,
+            poise_strength: 0.0,
+            speed: 0.0,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub enum StatKind {
+    Direct(Stats),
+    Modular,
+}
+
+impl StatKind {
+    pub fn resolve_stats(&self, components: &[Item]) -> Stats {
+        let mut stats = match self {
+            StatKind::Direct(stats) => *stats,
+            StatKind::Modular => Stats::zeroed(),
+        };
+        for item in components.iter() {
+            if let ItemKind::ModularComponent(mc) = item.kind() {
+                stats.equip_time_millis += mc.stats.equip_time_millis;
+                stats.power += mc.stats.power;
+                stats.poise_strength += mc.stats.poise_strength;
+                stats.speed += mc.stats.speed;
+            }
+            // TODO: add stats from enhancement slots
+        }
+        // if an item has 0.0 speed, that panics due to being infinite duration, so
+        // enforce speed >= 0.5
+        stats.speed = stats.speed.max(0.5);
+        stats
+    }
+}
+
+impl From<(&[Item], &Tool)> for Stats {
+    fn from((components, tool): (&[Item], &Tool)) -> Self {
+        let raw_stats = tool.stats.resolve_stats(components);
         let (power, speed) = match tool.hands {
             Hands::One => (0.67, 1.33),
             // TODO: Restore this when one-handed weapons are made accessible
@@ -63,7 +121,7 @@ impl From<&Tool> for Stats {
 pub struct Tool {
     pub kind: ToolKind,
     pub hands: Hands,
-    pub stats: Stats,
+    pub stats: StatKind,
     // TODO: item specific abilities
 }
 
@@ -81,12 +139,12 @@ impl Tool {
         Self {
             kind,
             hands,
-            stats: Stats {
+            stats: StatKind::Direct(Stats {
                 equip_time_millis,
                 power,
                 poise_strength,
                 speed,
-            },
+            }),
         }
     }
 
@@ -94,29 +152,39 @@ impl Tool {
         Self {
             kind: ToolKind::Empty,
             hands: Hands::One,
-            stats: Stats {
+            stats: StatKind::Direct(Stats {
                 equip_time_millis: 0,
                 power: 1.00,
                 poise_strength: 1.00,
                 speed: 1.00,
-            },
+            }),
         }
     }
 
     // Keep power between 0.5 and 2.00
-    pub fn base_power(&self) -> f32 { self.stats.power }
-
-    pub fn base_poise_strength(&self) -> f32 { self.stats.poise_strength }
-
-    pub fn base_speed(&self) -> f32 { self.stats.speed }
-
-    pub fn equip_time(&self) -> Duration {
-        Duration::from_millis(self.stats.equip_time_millis as u64)
+    pub fn base_power(&self, components: &[Item]) -> f32 {
+        self.stats.resolve_stats(components).power
     }
 
-    pub fn get_abilities(&self, map: &AbilityMap) -> AbilitySet<CharacterAbility> {
+    pub fn base_poise_strength(&self, components: &[Item]) -> f32 {
+        self.stats.resolve_stats(components).poise_strength
+    }
+
+    pub fn base_speed(&self, components: &[Item]) -> f32 {
+        self.stats.resolve_stats(components).speed
+    }
+
+    pub fn equip_time(&self, components: &[Item]) -> Duration {
+        Duration::from_millis(self.stats.resolve_stats(components).equip_time_millis as u64)
+    }
+
+    pub fn get_abilities(
+        &self,
+        components: &[Item],
+        map: &AbilityMap,
+    ) -> AbilitySet<CharacterAbility> {
         if let Some(set) = map.0.get(&self.kind).cloned() {
-            set.modified_by_tool(&self)
+            set.modified_by_tool(&self, components)
         } else {
             error!(
                 "ToolKind: {:?} has no AbilitySet in the ability map falling back to default",
@@ -135,8 +203,8 @@ pub struct AbilitySet<T> {
 }
 
 impl AbilitySet<CharacterAbility> {
-    pub fn modified_by_tool(self, tool: &Tool) -> Self {
-        let stats = Stats::from(tool);
+    pub fn modified_by_tool(self, tool: &Tool, components: &[Item]) -> Self {
+        let stats = Stats::from((components, tool));
         self.map(|a| a.adjusted_by_stats(stats.power, stats.poise_strength, stats.speed))
     }
 }
@@ -171,6 +239,14 @@ impl Default for AbilitySet<CharacterAbility> {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AbilityMap<T = CharacterAbility>(HashMap<ToolKind, AbilitySet<T>>);
+
+impl Default for AbilityMap {
+    fn default() -> Self {
+        let mut map = HashMap::new();
+        map.insert(ToolKind::Empty, AbilitySet::default());
+        AbilityMap(map)
+    }
+}
 
 impl Asset for AbilityMap<String> {
     type Loader = assets::RonLoader;

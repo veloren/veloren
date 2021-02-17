@@ -19,7 +19,7 @@ use common::comp::{
     inventory::slot::EquipSlot,
     item::{
         tool::{AbilityMap, Tool, ToolKind},
-        Hands, ItemKind,
+        Hands, Item, ItemKind,
     },
     Energy, Health, Inventory,
 };
@@ -583,24 +583,30 @@ impl<'a> Widget for Skillbar<'a> {
             .right_from(state.ids.m1_slot_bg, slot_offset)
             .set(state.ids.m2_slot_bg, ui);
 
-        fn get_tool(inventory: &Inventory, equip_slot: EquipSlot) -> Option<&Tool> {
-            match inventory.equipped(equip_slot).map(|i| i.kind()) {
-                Some(ItemKind::Tool(tool)) => Some(tool),
+        fn get_item_and_tool(
+            inventory: &Inventory,
+            equip_slot: EquipSlot,
+        ) -> Option<(&Item, &Tool)> {
+            match inventory.equipped(equip_slot).map(|i| (i, i.kind())) {
+                Some((i, ItemKind::Tool(tool))) => Some((i, tool)),
                 _ => None,
             }
         }
 
-        let active_tool = get_tool(self.inventory, EquipSlot::Mainhand);
-        let second_tool = get_tool(self.inventory, EquipSlot::Offhand);
+        let active_tool = get_item_and_tool(self.inventory, EquipSlot::Mainhand);
+        let second_tool = get_item_and_tool(self.inventory, EquipSlot::Offhand);
 
-        let tool = match (active_tool.map(|x| x.hands), second_tool.map(|x| x.hands)) {
+        let tool = match (
+            active_tool.map(|(_, x)| x.hands),
+            second_tool.map(|(_, x)| x.hands),
+        ) {
             (Some(Hands::Two), _) => active_tool,
             (_, Some(Hands::One)) => second_tool,
             (Some(Hands::One), _) => active_tool,
             (_, _) => None,
         };
 
-        Button::image(match tool.map(|t| t.kind) {
+        Button::image(match tool.map(|(_, t)| t.kind) {
             Some(ToolKind::Sword) => self.imgs.twohsword_m2,
             Some(ToolKind::Dagger) => self.imgs.onehdagger_m2,
             Some(ToolKind::Shield) => self.imgs.onehshield_m2,
@@ -614,10 +620,10 @@ impl<'a> Widget for Skillbar<'a> {
         })
         .w_h(36.0, 36.0)
         .middle_of(state.ids.m2_slot_bg)
-        .image_color(if let Some(tool) = tool {
+        .image_color(if let Some((item, tool)) = tool {
             if self.energy.current()
                 >= tool
-                    .get_abilities(self.ability_map)
+                    .get_abilities(item.components(), self.ability_map)
                     .secondary
                     .get_energy_cost()
             {
@@ -626,7 +632,7 @@ impl<'a> Widget for Skillbar<'a> {
                 Color::Rgba(0.3, 0.3, 0.3, 0.8)
             }
         } else {
-            match tool.map(|t| t.kind) {
+            match tool.map(|(_, t)| t.kind) {
                 None => Color::Rgba(1.0, 1.0, 1.0, 0.0),
                 _ => Color::Rgba(1.0, 1.0, 1.0, 1.0),
             }
