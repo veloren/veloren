@@ -1,0 +1,14 @@
+/// CUIDADO: Arquivos de tradução devem ser criados no formato UTF-8 sem Marca de Ordem de byte - BOM(https://pt.wikipedia.org/wiki/Marca_de_ordem_de_byte)
+
+/// Localization for Portuguese (Brazil)
+(
+    string_map: {
+        // SCT outputs
+        "hud.sct.experience": "{amount} Exp",
+        "hud.sct.block": "BLOQUEADO",       
+        },
+
+
+    vector_map: {
+    }
+)

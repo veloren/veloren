@@ -1,0 +1,73 @@
+/// CUIDADO: Arquivos de tradução devem ser criados no formato UTF-8 sem Marca de Ordem de byte - BOM(https://pt.wikipedia.org/wiki/Marca_de_ordem_de_byte)
+
+/// Localization for Portuguese (Brazil)
+(
+    string_map: {
+        // Textos utilizados em múltiplas traduções seguindo o mesmo formato
+        "common.username": "Nome de usuário",
+        "common.singleplayer": "Um Jogador",
+        "common.multiplayer": "Multijogador",
+        "common.servers": "Servidores",
+        "common.quit": "Sair",
+        "common.settings": "Configurações",
+        "common.languages": "Idiomas",
+        "common.interface": "Interface",
+        "common.gameplay": "Jogabilidade",
+        "common.controls": "Controles",
+        "common.video": "Vídeo",
+        "common.sound": "Som",
+        "common.resume": "Continuar",
+        "common.characters": "Personagens",
+        "common.close": "Fechar",
+        "common.yes": "Sim",
+        "common.no": "Não",
+        "common.back": "Voltar",
+        "common.create": "Criar",
+        "common.okay": "Okay",
+        "common.add": "Adicionar",
+        "common.accept": "Aceitar",
+        "common.decline": "Recusar",
+        "common.disclaimer": "Aviso",
+        "common.cancel": "Cancelar",
+        "common.none": "Nenhum",
+        "common.error": "Erro",
+        "common.fatal_error": "Erro Fatal",
+        "common.you": "Você",
+        "common.automatic": "Auto",
+        "common.random": "Aleatório",
+        
+        // Títulos da Janela de Configurações
+        "common.interface_settings": "Configurações de Interface",
+        "common.gameplay_settings": "Configurações de Gameplay",
+        "common.controls_settings": "Configurações de Controles",
+        "common.video_settings": "Configurações Gráficas",
+        "common.sound_settings": "Configurações de Som",
+        "common.language_settings": "Configurações de Idioma",
+
+        // Message when connection to the server is lost
+        "common.connection_lost": r#"Conexão Perdida!
+Será que o servidor reiniciou?
+O cliente está atualizado?"#,
+
+
+        "common.species.orc": "Orc",
+        "common.species.human": "Humano",
+        "common.species.dwarf": "Anão",
+        "common.species.elf": "Elfo",
+        "common.species.undead": "Morto-vivo",
+        "common.species.danari": "Danari",
+
+        "common.weapons.axe": "Machado",
+        "common.weapons.sword": "Espada",
+        "common.weapons.staff": "Cajado",
+        "common.weapons.bow": "Arco",
+        "common.weapons.hammer": "Martelo",
+        "common.weapons.general": "Combate Geral",
+        "common.weapons.sceptre": "Cetro de Cura",
+        "common.rand_appearance": "Aparência e nome aleatórios",
+    },
+
+
+    vector_map: {
+    }
+)

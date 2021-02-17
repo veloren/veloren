@@ -1,0 +1,78 @@
+/// CUIDADO: Arquivos de tradução devem ser criados no formato UTF-8 sem Marca de Ordem de byte - BOM(https://pt.wikipedia.org/wiki/Marca_de_ordem_de_byte)
+
+/// Localization for Portuguese (Brazil)
+(
+    string_map: {
+        "hud.do_not_show_on_startup": "Não exibir isto no início",
+        "hud.show_tips": "Mostrar Dicas",
+        "hud.quests": "Missões",
+        "hud.you_died": "Você Morreu",
+        "hud.waypoint_saved": "Waypoint Salvo",
+        "hud.sp_arrow_txt": "PHs",
+
+        "hud.press_key_to_show_keybindings_fmt": "[{key}] mapeamento de teclas",
+        "hud.press_key_to_toggle_lantern_fmt": "[{key}] lamparina",
+        "hud.press_key_to_show_debug_info_fmt": "Pressione {key} para mostrar informações de depuração",
+        "hud.press_key_to_toggle_keybindings_fmt": "Pressione {key} para mostrar/ocultar teclas mapeadas",
+        "hud.press_key_to_toggle_debug_info_fmt": "Pressione {key} para mostrar/ocultar informações de depuração",
+
+        // Mensagens de Renascimento
+        "hud.press_key_to_respawn": r#"Pressione {key} para renascer na última fogueira visitada."#,
+
+        // Boas Vindas
+        "hud.welcome": r#"Bem-vindo ao Veloren, versão alfa!
+
+
+Algumas dicas antes de começar:
+
+
+Pressione F1 para visualizar a lista de comandos disponíveis.
+
+Digite /help no chat para visualizar os comandos de chat
+
+
+Baús e outros objetos são gerados aleatoriamente no Mundo!
+
+Pressione o botão direito do mouse pare coletá-los.
+
+Para usar itens coletados de baús abra o inventário pressionando a tecla 'B'.
+
+Faça duplo clique nos items em sua mochila para usá-los ou equipá-los.
+
+Jogue itens fora cliquando uma vez neles e depois outra fora do inventário
+
+
+As noites podem ser bastante escuras em Veloren.
+
+Equipe sua lamparina(lâmpada a óleo/lanterna) e acenda-a pressionando G.
+
+
+Quer liberar o cursor do mouse para fechar esta janela? Pressione TAB!
+
+
+Aproveite a sua estadia no Mundo de Veloren."#,
+
+"hud.temp_quest_headline": r#"Por favor, nos ajude Viajante!"#,
+"hud.temp_quest_text": r#"As Cavernas estão repletas de cultistas maus 
+que emergiram para nossos pacíficos vilarejos!
+
+
+Consiga companheiros, junte comida
+e derrote seus líderes vis e acólitos.
+
+
+Talvez você até consiga obter um dos seus
+itens magicamente infundidos?"#,
+
+        "hud.spell": "Magias",
+        // Diary
+        "hud.diary": "Diário",
+
+        "hud.free_look_indicator": "Câmera livre ativa.  Pressione {key} para desabilitar.",
+        "hud.auto_walk_indicator": "Caminhar automático ativado",
+    },
+
+
+    vector_map: {
+    }
+)
