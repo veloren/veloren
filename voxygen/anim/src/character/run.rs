@@ -50,7 +50,7 @@ impl Animation for RunAnimation {
         let speed = Vec2::<f32>::from(velocity).magnitude();
         *rate = 1.0;
         let impact = (avg_vel.z).max(-8.0);
-        let speednorm = speed / 9.4;
+        let speednorm = (speed / 9.4).min(1.5);
 
         let lab = 1.0;
 

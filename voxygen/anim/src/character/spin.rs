@@ -57,13 +57,13 @@ impl Animation for SpinAnimation {
 
                 next.control.position = Vec3::new(
                     s_a.sc.0 + movement1 * 2.0 + movement2 * -12.0 + movement3 * -7.0,
-                    s_a.sc.1 + 8.0 + movement1 * 0.6 + movement2 * -9.0 + movement3 * -10.0,
+                    s_a.sc.1 + 8.0 + movement1 * 0.6 + movement2 * -15.0 + movement3 * -10.0,
                     s_a.sc.2 + 1.0 + movement1 * 0.6 + movement2 * 1.5 + movement3 * -4.0,
                 );
                 next.control.orientation =
                     Quaternion::rotation_x(-0.5 + s_a.sc.3 + movement1 * -1.2)
                         * Quaternion::rotation_y(
-                            s_a.sc.4 - 0.6 + movement1 * 0.0 + movement2 * -1.3,
+                            s_a.sc.4 - 0.6 + movement1 * 0.0 + movement2 * -1.7,
                         )
                         * Quaternion::rotation_z(s_a.sc.5 + 0.1 + movement1 * -1.57);
                 next.head.position = Vec3::new(
@@ -73,9 +73,11 @@ impl Animation for SpinAnimation {
                 );
 
                 next.chest.orientation = Quaternion::rotation_x(movement2 * 0.15)
-                    * Quaternion::rotation_y(movement1 * -0.1 + movement2 * 0.3 + movement3 * -0.1)
+                    * Quaternion::rotation_y(
+                        movement1 * -0.1 + movement2 * 0.15 + movement3 * -0.1,
+                    )
                     * Quaternion::rotation_z(
-                        -1.0 + movement1 * -0.6 + movement2 * 1.5 + movement3 * 0.5,
+                        -1.0 + movement1 * -0.6 + movement2 * 1.0 + movement3 * 0.5,
                     );
 
                 next.belt.orientation = Quaternion::rotation_x(movement1 * 0.1)

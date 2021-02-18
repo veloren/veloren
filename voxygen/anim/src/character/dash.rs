@@ -34,7 +34,7 @@ impl Animation for DashAnimation {
         let (movement1, movement2, movement3, movement4) = match stage_section {
             Some(StageSection::Buildup) => ((anim_time as f32).powf(0.25), 0.0, 0.0, 0.0),
             Some(StageSection::Charge) => (1.0, anim_time as f32, 0.0, 0.0),
-            Some(StageSection::Swing) => (1.0, 1.0, anim_time as f32, 0.0),
+            Some(StageSection::Swing) => (1.0, 1.0, (anim_time as f32).powf(0.01), 0.0),
             Some(StageSection::Recover) => (1.1, 1.0, 1.0, (anim_time as f32).powi(4)),
             _ => (0.0, 0.0, 0.0, 0.0),
         };
@@ -45,21 +45,6 @@ impl Animation for DashAnimation {
 
         fn short(x: f32) -> f32 {
             (((5.0) / (1.5 + 3.5 * ((x * 5.0).sin()).powi(2))).sqrt()) * ((x * 5.0).sin())
-        }
-        fn foothoril(x: f32) -> f32 { (x * 5.0 + PI * 1.45).sin() }
-        fn foothorir(x: f32) -> f32 { (x * 5.0 + PI * (0.45)).sin() }
-
-        fn footvertl(x: f32) -> f32 { (x * 5.0).sin() }
-        fn footvertr(x: f32) -> f32 { (x * 5.0 + PI).sin() }
-
-        fn footrotl(x: f32) -> f32 {
-            (((1.0) / (0.05 + (0.95) * ((x * 5.0 + PI * 1.4).sin()).powi(2))).sqrt())
-                * ((x * 5.0 + PI * 1.4).sin())
-        }
-
-        fn footrotr(x: f32) -> f32 {
-            (((1.0) / (0.05 + (0.95) * ((x * 5.0 + PI * 0.4).sin()).powi(2))).sqrt())
-                * ((x * 5.0 + PI * 0.4).sin())
         }
 
         fn shortalt(x: f32) -> f32 { (x * 5.0 + PI / 2.0).sin() }
@@ -115,22 +100,6 @@ impl Animation for DashAnimation {
 
                 next.belt.orientation =
                     Quaternion::rotation_z((short(movement2).min(1.0) * 0.1) * (1.0 - movement4));
-
-                next.foot_l.position = Vec3::new(
-                    -s_a.foot.0,
-                    s_a.foot.1 + movement1 * -12.0 + foothoril(movement2) * -7.5,
-                    s_a.foot.2 + ((footvertl(movement2) * -4.0).max(-1.0)),
-                );
-                next.foot_l.orientation =
-                    Quaternion::rotation_x(movement1 * -1.0 + footrotl(movement2) * -0.6);
-
-                next.foot_r.position = Vec3::new(
-                    s_a.foot.0,
-                    s_a.foot.1 + foothorir(movement2) * -7.5,
-                    s_a.foot.2 + ((footvertr(movement2) * -4.0).max(-1.0)),
-                );
-                next.foot_r.orientation = Quaternion::rotation_x(-0.6 + footrotr(movement2) * -0.6)
-                    * Quaternion::rotation_z(-0.2);
             },
             _ => {},
         }
