@@ -57,12 +57,10 @@ impl OTMessage {
     fn get_next_data(&mut self) -> OTFrame {
         let to_send = std::cmp::min(self.data.len(), Self::FRAME_DATA_SIZE as usize);
         let data = self.data.split_to(to_send);
-        let start = self.start;
         self.start += Self::FRAME_DATA_SIZE;
 
         OTFrame::Data {
             mid: self.mid,
-            start,
             data,
         }
     }

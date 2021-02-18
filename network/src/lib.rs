@@ -51,7 +51,7 @@
 //!         .connect(ProtocolAddr::Tcp("127.0.0.1:12345".parse().unwrap()))
 //!         .await?;
 //!     let mut stream = server
-//!         .open(4, Promises::ORDERED | Promises::CONSISTENCY)
+//!         .open(4, Promises::ORDERED | Promises::CONSISTENCY, 0)
 //!         .await?;
 //!     stream.send("Hello World")?;
 //!     Ok(())

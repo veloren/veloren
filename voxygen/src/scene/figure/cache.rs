@@ -27,6 +27,7 @@ use core::{hash::Hash, ops::Range};
 use crossbeam::atomic;
 use hashbrown::{hash_map::Entry, HashMap};
 use std::sync::Arc;
+use tokio::runtime::Runtime;
 use vek::*;
 
 /// A type produced by mesh worker threads corresponding to the information
@@ -311,7 +312,7 @@ where
         tick: u64,
         camera_mode: CameraMode,
         character_state: Option<&CharacterState>,
-        thread_pool: &uvth::ThreadPool,
+        runtime: &Arc<Runtime>,
     ) -> (FigureModelEntryLod<'c>, &'c Skel::Attr)
     where
         for<'a> &'a Skel::Body: Into<Skel::Attr>,
@@ -377,7 +378,7 @@ where
                 let manifests = self.manifests;
                 let slot_ = Arc::clone(&slot);
 
-                thread_pool.execute(move || {
+                runtime.spawn_blocking(move || {
                     // First, load all the base vertex data.
                     let manifests = &*manifests.read();
                     let meshes = <Skel::Body as BodySpec>::bone_meshes(&key, manifests);

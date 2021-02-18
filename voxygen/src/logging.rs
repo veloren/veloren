@@ -22,14 +22,14 @@ const RUST_LOG_ENV: &str = "RUST_LOG";
 /// `RUST_LOG="veloren_voxygen=trace"`
 ///
 /// more complex tracing can be done by concatenating with a `,` as seperator:
-///  - warn for `uvth`, `tiny_http`, `dot_vox`, `gfx_device_gl::factory,
+///  - warn for `prometheus_hyper`, `dot_vox`, `gfx_device_gl::factory,
 ///    `gfx_device_gl::shade` trace for `veloren_voxygen`, info for everything
 ///    else
-/// `RUST_LOG="uvth=warn,tiny_http=warn,dot_vox::parser=warn,gfx_device_gl::
+/// `RUST_LOG="prometheus_hyper=warn,dot_vox::parser=warn,gfx_device_gl::
 /// factory=warn,gfx_device_gl::shade=warn,veloren_voxygen=trace,info"`
 ///
 /// By default a few directives are set to `warn` by default, until explicitly
-/// overwritten! e.g. `RUST_LOG="uvth=debug"`
+/// overwritten! e.g. `RUST_LOG="gfx_device_gl=debug"`
 pub fn init(settings: &Settings) -> Vec<impl Drop> {
     // To hold the guards that we create, they will cause the logs to be
     // flushed when they're dropped.
@@ -42,8 +42,7 @@ pub fn init(settings: &Settings) -> Vec<impl Drop> {
     let base_exceptions = |env: EnvFilter| {
         env.add_directive("dot_vox::parser=warn".parse().unwrap())
             .add_directive("gfx_device_gl=warn".parse().unwrap())
-            .add_directive("uvth=warn".parse().unwrap())
-            .add_directive("tiny_http=warn".parse().unwrap())
+            .add_directive("prometheus_hyper=warn".parse().unwrap())
             .add_directive("mio::sys::windows=debug".parse().unwrap())
             .add_directive("veloren_network_protocol=info".parse().unwrap())
             .add_directive(

@@ -10,7 +10,7 @@ use std::{
     thread::{self, JoinHandle},
     time::Duration,
 };
-use tracing::{error, info, warn};
+use tracing::{error, info, warn, trace, debug};
 
 const TPS: u64 = 30;
 
@@ -81,15 +81,19 @@ impl Singleplayer {
         let settings = server::Settings::singleplayer(&server_data_dir);
         let editable_settings = server::EditableSettings::singleplayer(&server_data_dir);
 
-        let thread_pool = client.map(|c| c.thread_pool().clone());
-        let cores = num_cpus::get();
-        let runtime = Arc::new(
-            tokio::runtime::Builder::new_multi_thread()
-                .enable_all()
-                .worker_threads(if cores > 4 { cores - 1 } else { cores })
-                .build()
-                .unwrap(),
-        );
+        let runtime = if let Some(c) = client {
+            Arc::clone(&c.runtime())
+        } else {
+            let cores = num_cpus::get();
+            debug!("creating a new runtime for server");
+            Arc::new(
+                tokio::runtime::Builder::new_multi_thread()
+                    .enable_all()
+                    .worker_threads(if cores > 4 { cores - 1 } else { cores })
+                    .build()
+                    .unwrap(),
+            )
+        };
         let settings2 = settings.clone();
 
         let paused = Arc::new(AtomicBool::new(false));
@@ -97,37 +101,37 @@ impl Singleplayer {
 
         let (result_sender, result_receiver) = bounded(1);
 
-        let thread = thread::spawn(move || {
-            let mut server = None;
-            if let Err(e) = result_sender.send(
-                match Server::new(settings2, editable_settings, &server_data_dir, runtime) {
-                    Ok(s) => {
-                        server = Some(s);
-                        Ok(())
+        let builder = thread::Builder::new().name("singleplayer-server-thread".into());
+        let thread = builder
+            .spawn(move || {
+                trace!("starting singleplayer server thread");
+                let mut server = None;
+                if let Err(e) = result_sender.send(
+                    match Server::new(settings2, editable_settings, &server_data_dir, runtime) {
+                        Ok(s) => {
+                            server = Some(s);
+                            Ok(())
+                        },
+                        Err(e) => Err(e),
                     },
-                    Err(e) => Err(e),
-                },
-            ) {
-                warn!(
-                    ?e,
-                    "Failed to send singleplayer server initialization result. Most likely the \
-                     channel was closed by cancelling server creation. Stopping Server"
-                );
-                return;
-            };
+                ) {
+                    warn!(
+                        ?e,
+                        "Failed to send singleplayer server initialization result. Most likely \
+                         the channel was closed by cancelling server creation. Stopping Server"
+                    );
+                    return;
+                };
 
-            let server = match server {
-                Some(s) => s,
-                None => return,
-            };
+                let server = match server {
+                    Some(s) => s,
+                    None => return,
+                };
 
-            let server = match thread_pool {
-                Some(pool) => server.with_thread_pool(pool),
-                None => server,
-            };
-
-            run_server(server, receiver, paused1);
-        });
+                run_server(server, receiver, paused1);
+                trace!("ending singleplayer server thread");
+            })
+            .unwrap();
 
         Singleplayer {
             _server_thread: thread,

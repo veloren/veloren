@@ -49,7 +49,7 @@ impl Promises {
 
 pub(crate) const VELOREN_MAGIC_NUMBER: [u8; 7] = *b"VELOREN";
 /// When this semver differs, 2 Networks can't communicate.
-pub const VELOREN_NETWORK_VERSION: [u32; 3] = [0, 5, 0];
+pub const VELOREN_NETWORK_VERSION: [u32; 3] = [0, 6, 0];
 pub(crate) const STREAM_ID_OFFSET1: Sid = Sid::new(0);
 pub(crate) const STREAM_ID_OFFSET2: Sid = Sid::new(u64::MAX / 2);
 /// Maximal possible Prio to choose (for performance reasons)

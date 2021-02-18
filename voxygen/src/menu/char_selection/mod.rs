@@ -147,7 +147,7 @@ impl PlayState for CharSelectionState {
                     time: client.state().get_time(),
                     delta_time: client.state().ecs().read_resource::<DeltaTime>().0,
                     tick: client.get_tick(),
-                    thread_pool: client.thread_pool(),
+                    runtime: client.runtime(),
                     body: humanoid_body,
                     gamma: global_state.settings.graphics.gamma,
                     exposure: global_state.settings.graphics.exposure,

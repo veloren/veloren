@@ -48,9 +48,7 @@ use common_net::{
 };
 use common_sys::state::State;
 use comp::BuffKind;
-use futures_executor::block_on;
-use futures_timer::Delay;
-use futures_util::{select, FutureExt};
+use futures_util::FutureExt;
 use hashbrown::{HashMap, HashSet};
 use image::DynamicImage;
 use network::{Network, Participant, Pid, ProtocolAddr, Stream};
@@ -63,9 +61,8 @@ use std::{
     sync::Arc,
     time::{Duration, Instant},
 };
-use tokio::runtime::Runtime;
+use tokio::{runtime::Runtime, select};
 use tracing::{debug, error, trace, warn};
-use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
 
 const PING_ROLLING_AVERAGE_SECS: usize = 10;
@@ -131,7 +128,6 @@ pub struct Client {
     registered: bool,
     presence: Option<PresenceKind>,
     runtime: Arc<Runtime>,
-    thread_pool: ThreadPool,
     server_info: ServerInfo,
     world_data: WorldData,
     player_list: HashMap<Uid, PlayerInfo>,
@@ -187,28 +183,22 @@ pub struct CharacterList {
 
 impl Client {
     /// Create a new `Client`.
-    pub fn new<A: Into<SocketAddr>>(
+    pub async fn new<A: Into<SocketAddr>>(
         addr: A,
         view_distance: Option<u32>,
         runtime: Arc<Runtime>,
     ) -> Result<Self, Error> {
-        let mut thread_pool = ThreadPoolBuilder::new()
-            .name("veloren-worker".into())
-            .build();
-        // We reduce the thread count by 1 to keep rendering smooth
-        thread_pool.set_num_threads((num_cpus::get() - 1).max(1));
-
         let network = Network::new(Pid::new(), Arc::clone(&runtime));
 
-        let participant = block_on(network.connect(ProtocolAddr::Tcp(addr.into())))?;
-        let stream = block_on(participant.opened())?;
-        let mut ping_stream = block_on(participant.opened())?;
-        let mut register_stream = block_on(participant.opened())?;
-        let character_screen_stream = block_on(participant.opened())?;
-        let in_game_stream = block_on(participant.opened())?;
+        let participant = network.connect(ProtocolAddr::Tcp(addr.into())).await?;
+        let stream = participant.opened().await?;
+        let mut ping_stream = participant.opened().await?;
+        let mut register_stream = participant.opened().await?;
+        let character_screen_stream = participant.opened().await?;
+        let in_game_stream = participant.opened().await?;
 
         register_stream.send(ClientType::Game)?;
-        let server_info: ServerInfo = block_on(register_stream.recv())?;
+        let server_info: ServerInfo = register_stream.recv().await?;
 
         // TODO: Display that versions don't match in Voxygen
         if server_info.git_hash != *common::util::GIT_HASH {
@@ -236,7 +226,7 @@ impl Client {
             recipe_book,
             max_group_size,
             client_timeout,
-        ) = match block_on(register_stream.recv())? {
+        ) = match register_stream.recv().await? {
             ServerInit::GameSync {
                 entity_package,
                 time_of_day,
@@ -411,19 +401,12 @@ impl Client {
         }?;
         ping_stream.send(PingMsg::Ping)?;
 
-        let mut thread_pool = ThreadPoolBuilder::new()
-            .name("veloren-worker".into())
-            .build();
-        // We reduce the thread count by 1 to keep rendering smooth
-        thread_pool.set_num_threads((num_cpus::get() - 1).max(1));
-
         debug!("Initial sync done");
 
         Ok(Self {
             registered: false,
             presence: None,
             runtime,
-            thread_pool,
             server_info,
             world_data: WorldData {
                 lod_base,
@@ -470,13 +453,8 @@ impl Client {
         })
     }
 
-    pub fn with_thread_pool(mut self, thread_pool: ThreadPool) -> Self {
-        self.thread_pool = thread_pool;
-        self
-    }
-
     /// Request a state transition to `ClientState::Registered`.
-    pub fn register(
+    pub async fn register(
         &mut self,
         username: String,
         password: String,
@@ -496,7 +474,7 @@ impl Client {
 
         self.send_msg_err(ClientRegister { token_or_username })?;
 
-        match block_on(self.register_stream.recv::<ServerRegisterAnswer>())? {
+        match self.register_stream.recv::<ServerRegisterAnswer>().await? {
             Err(RegisterError::AlreadyLoggedIn) => Err(Error::AlreadyLoggedIn),
             Err(RegisterError::AuthError(err)) => Err(Error::AuthErr(err)),
             Err(RegisterError::InvalidCharacter) => Err(Error::InvalidCharacter),
@@ -1688,10 +1666,11 @@ impl Client {
 
         let mut handles_msg = 0;
 
-        block_on(async {
+        let runtime = Arc::clone(&self.runtime);
+        runtime.block_on(async {
             //TIMEOUT 0.01 ms for msg handling
             select!(
-                _ = Delay::new(std::time::Duration::from_micros(10)).fuse() => Ok(()),
+                _ = tokio::time::sleep(std::time::Duration::from_micros(10)).fuse() => Ok(()),
                 err = self.handle_messages(&mut frontend_events, &mut handles_msg).fuse() => err,
             )
         })?;
@@ -1733,12 +1712,10 @@ impl Client {
             * 1000.0
     }
 
-    /// Get a reference to the client's worker thread pool. This pool should be
+    /// Get a reference to the client's runtime thread pool. This pool should be
     /// used for any computationally expensive operations that run outside
     /// of the main thread (i.e., threads that block on I/O operations are
     /// exempt).
-    pub fn thread_pool(&self) -> &ThreadPool { &self.thread_pool }
-
     pub fn runtime(&self) -> &Arc<Runtime> { &self.runtime }
 
     /// Get a reference to the client's game state.
@@ -2042,7 +2019,10 @@ impl Drop for Client {
         } else {
             trace!("no disconnect msg necessary as client wasn't registered")
         }
-        if let Err(e) = block_on(self.participant.take().unwrap().disconnect()) {
+        if let Err(e) = self
+            .runtime
+            .block_on(self.participant.take().unwrap().disconnect())
+        {
             warn!(?e, "error when disconnecting, couldn't send all data");
         }
     }
@@ -2067,7 +2047,9 @@ mod tests {
         let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 9000);
         let view_distance: Option<u32> = None;
         let runtime = Arc::new(Runtime::new().unwrap());
-        let veloren_client: Result<Client, Error> = Client::new(socket, view_distance, runtime);
+        let runtime2 = Arc::clone(&runtime);
+        let veloren_client: Result<Client, Error> =
+            runtime.block_on(Client::new(socket, view_distance, runtime2));
 
         let _ = veloren_client.map(|mut client| {
             //register
@@ -2075,9 +2057,9 @@ mod tests {
             let password: String = "Bar".to_string();
             let auth_server: String = "auth.veloren.net".to_string();
             let _result: Result<(), Error> =
-                client.register(username, password, |suggestion: &str| {
+                runtime.block_on(client.register(username, password, |suggestion: &str| {
                     suggestion == auth_server
-                });
+                }));
 
             //clock
             let mut clock = Clock::new(Duration::from_secs_f64(SPT));

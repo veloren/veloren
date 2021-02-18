@@ -222,7 +222,6 @@ mod tests {
         s.send(event.clone()).await.unwrap();
         s.send(ProtocolEvent::Message {
             sid: Sid::new(1),
-            mid: 0,
             data: Bytes::from(&[8u8; 8][..]),
         })
         .await

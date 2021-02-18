@@ -80,7 +80,9 @@ where
                         .send(InitFrame::Raw(WRONG_NUMBER.as_bytes().to_vec()))
                         .await?;
                     Err(InitProtocolError::WrongMagicNumber(magic_number))
-                } else if version != VELOREN_NETWORK_VERSION {
+                } else if version[0] != VELOREN_NETWORK_VERSION[0]
+                    || version[1] != VELOREN_NETWORK_VERSION[1]
+                {
                     error!(?version, "Connection with wrong network version");
                     #[cfg(debug_assertions)]
                     drain

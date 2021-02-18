@@ -31,7 +31,7 @@ fn criterion_util(c: &mut Criterion) {
 
     let (r, _n_a, p_a, s1_a, _n_b, _p_b, _s1_b) =
         network_participant_stream(ProtocolAddr::Mpsc(5000));
-    let s2_a = r.block_on(p_a.open(4, Promises::COMPRESSED)).unwrap();
+    let s2_a = r.block_on(p_a.open(4, Promises::COMPRESSED, 0)).unwrap();
 
     c.throughput(Throughput::Bytes(1000))
         .bench_function("message_serialize", |b| {
@@ -134,7 +134,7 @@ pub fn network_participant_stream(
         let p1_b = n_b.connect(addr).await.unwrap();
         let p1_a = n_a.connected().await.unwrap();
 
-        let s1_a = p1_a.open(4, Promises::empty()).await.unwrap();
+        let s1_a = p1_a.open(4, Promises::empty(), 0).await.unwrap();
         let s1_b = p1_b.opened().await.unwrap();
 
         (n_a, p1_a, s1_a, n_b, p1_b, s1_b)

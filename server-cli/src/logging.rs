@@ -16,7 +16,6 @@ pub fn init(basic: bool) {
     let base_exceptions = |env: EnvFilter| {
         env.add_directive("veloren_world::sim=info".parse().unwrap())
             .add_directive("veloren_world::civ=info".parse().unwrap())
-            .add_directive("uvth=warn".parse().unwrap())
             .add_directive("hyper=info".parse().unwrap())
             .add_directive("prometheus_hyper=info".parse().unwrap())
             .add_directive("mio::pool=info".parse().unwrap())

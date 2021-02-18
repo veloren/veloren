@@ -81,7 +81,6 @@ rodio = {version = "0.13", default-features = false, features = ["wav", "vorbis"
 ron = {version = "0.6", default-features = false}
 serde = {version = "1.0", features = [ "rc", "derive" ]}
 treeculler = "0.1.0"
-uvth = "3.1.1"
 tokio = { version = "1", default-features = false, features = ["rt-multi-thread"] }
 num_cpus = "1.0"
 # vec_map = { version = "0.8.2" }

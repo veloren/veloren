@@ -45,27 +45,29 @@ fn main() {
     let password = read_input();
 
     let runtime = Arc::new(Runtime::new().unwrap());
+    let runtime2 = Arc::clone(&runtime);
 
     // Create a client.
-    let mut client = Client::new(
-        server_addr
-            .to_socket_addrs()
-            .expect("Invalid server address")
-            .next()
-            .unwrap(),
-        None,
-        runtime,
-    )
-    .expect("Failed to create client instance");
+    let mut client = runtime
+        .block_on(Client::new(
+            server_addr
+                .to_socket_addrs()
+                .expect("Invalid server address")
+                .next()
+                .unwrap(),
+            None,
+            runtime2,
+        ))
+        .expect("Failed to create client instance");
 
     println!("Server info: {:?}", client.server_info());
 
     println!("Players online: {:?}", client.get_players());
 
-    client
-        .register(username, password, |provider| {
+    runtime
+        .block_on(client.register(username, password, |provider| {
             provider == "https://auth.veloren.net"
-        })
+        }))
         .unwrap();
 
     let (tx, rx) = mpsc::channel();

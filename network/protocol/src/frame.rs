@@ -1,4 +1,4 @@
-use crate::types::{Mid, Pid, Prio, Promises, Sid};
+use crate::types::{Bandwidth, Mid, Pid, Prio, Promises, Sid};
 use bytes::{Buf, BufMut, Bytes, BytesMut};
 
 // const FRAME_RESERVED_1: u8 = 0;
@@ -38,6 +38,7 @@ pub enum OTFrame {
         sid: Sid,
         prio: Prio,
         promises: Promises,
+        guaranteed_bandwidth: Bandwidth,
     },
     CloseStream {
         sid: Sid,
@@ -49,7 +50,6 @@ pub enum OTFrame {
     },
     Data {
         mid: Mid,
-        start: u64, /* remove */
         data: Bytes,
     },
 }
@@ -63,6 +63,7 @@ pub enum ITFrame {
         sid: Sid,
         prio: Prio,
         promises: Promises,
+        guaranteed_bandwidth: Bandwidth,
     },
     CloseStream {
         sid: Sid,
@@ -74,7 +75,6 @@ pub enum ITFrame {
     },
     Data {
         mid: Mid,
-        start: u64, /* remove */
         data: BytesMut,
     },
 }
@@ -161,9 +161,9 @@ impl InitFrame {
 
 pub(crate) const TCP_CLOSE_STREAM_CNS: usize = 8;
 /// const part of the DATA frame, actual size is variable
-pub(crate) const TCP_DATA_CNS: usize = 18;
+pub(crate) const TCP_DATA_CNS: usize = 10;
 pub(crate) const TCP_DATA_HEADER_CNS: usize = 24;
-pub(crate) const TCP_OPEN_STREAM_CNS: usize = 10;
+pub(crate) const TCP_OPEN_STREAM_CNS: usize = 18;
 // Size WITHOUT the 1rst indicating byte
 pub(crate) const TCP_SHUTDOWN_CNS: usize = 0;
 
@@ -177,11 +177,13 @@ impl OTFrame {
                 sid,
                 prio,
                 promises,
+                guaranteed_bandwidth,
             } => {
                 bytes.put_u8(FRAME_OPEN_STREAM);
                 sid.to_bytes(bytes);
                 bytes.put_u8(prio);
                 bytes.put_u8(promises.to_le_bytes()[0]);
+                bytes.put_u64_le(guaranteed_bandwidth);
             },
             Self::CloseStream { sid } => {
                 bytes.put_u8(FRAME_CLOSE_STREAM);
@@ -193,10 +195,9 @@ impl OTFrame {
                 sid.to_bytes(bytes);
                 bytes.put_u64_le(length);
             },
-            Self::Data { mid, start, data } => {
+            Self::Data { mid, data } => {
                 bytes.put_u8(FRAME_DATA);
                 bytes.put_u64_le(mid);
-                bytes.put_u64_le(start);
                 bytes.put_u16_le(data.len() as u16);
                 bytes.put_slice(&data);
             },
@@ -216,10 +217,10 @@ impl ITFrame {
             FRAME_CLOSE_STREAM => TCP_CLOSE_STREAM_CNS,
             FRAME_DATA_HEADER => TCP_DATA_HEADER_CNS,
             FRAME_DATA => {
-                if bytes.len() < 17 + 1 + 1 {
+                if bytes.len() < 9 + 1 + 1 {
                     return None;
                 }
-                u16::from_le_bytes([bytes[16 + 1], bytes[17 + 1]]) as usize + TCP_DATA_CNS
+                u16::from_le_bytes([bytes[8 + 1], bytes[9 + 1]]) as usize + TCP_DATA_CNS
             },
             _ => return None,
         };
@@ -240,6 +241,7 @@ impl ITFrame {
                     sid: Sid::from_bytes(&mut bytes),
                     prio: bytes.get_u8(),
                     promises: Promises::from_bits_truncate(bytes.get_u8()),
+                    guaranteed_bandwidth: bytes.get_u64_le(),
                 }
             },
             FRAME_CLOSE_STREAM => {
@@ -261,11 +263,10 @@ impl ITFrame {
             FRAME_DATA => {
                 bytes.advance(1);
                 let mid = bytes.get_u64_le();
-                let start = bytes.get_u64_le();
                 let length = bytes.get_u16_le();
                 debug_assert_eq!(length as usize, size - TCP_DATA_CNS);
                 let data = bytes.split_to(length as usize);
-                Self::Data { mid, start, data }
+                Self::Data { mid, data }
             },
             _ => unreachable!("Frame::to_frame should be handled before!"),
         };
@@ -282,16 +283,18 @@ impl PartialEq<ITFrame> for OTFrame {
                 sid,
                 prio,
                 promises,
+                guaranteed_bandwidth,
             } => matches!(other, ITFrame::OpenStream {
                 sid,
                 prio,
-                promises
+                promises,
+                guaranteed_bandwidth,
             }),
             Self::CloseStream { sid } => matches!(other, ITFrame::CloseStream { sid }),
             Self::DataHeader { mid, sid, length } => {
                 matches!(other, ITFrame::DataHeader { mid, sid, length })
             },
-            Self::Data { mid, start, data } => matches!(other, ITFrame::Data { mid, start, data }),
+            Self::Data { mid, data } => matches!(other, ITFrame::Data { mid, data }),
         }
     }
 }
@@ -321,6 +324,7 @@ mod tests {
                 sid: Sid::new(1337),
                 prio: 14,
                 promises: Promises::GUARANTEED_DELIVERY,
+                guaranteed_bandwidth: 1_000_000,
             },
             OTFrame::DataHeader {
                 sid: Sid::new(1337),
@@ -329,12 +333,10 @@ mod tests {
             },
             OTFrame::Data {
                 mid: 0,
-                start: 0,
                 data: Bytes::from(&[77u8; 20][..]),
             },
             OTFrame::Data {
                 mid: 0,
-                start: 20,
                 data: Bytes::from(&[42u8; 16][..]),
             },
             OTFrame::CloseStream {
@@ -496,6 +498,7 @@ mod tests {
             sid: Sid::new(88),
             promises: Promises::ENCRYPTED,
             prio: 88,
+            guaranteed_bandwidth: 1_000_000,
         };
         OTFrame::write_bytes(frame1, &mut buffer);
     }
@@ -508,6 +511,7 @@ mod tests {
             sid: Sid::new(88),
             promises: Promises::ENCRYPTED,
             prio: 88,
+            guaranteed_bandwidth: 1_000_000,
         };
         OTFrame::write_bytes(frame1, &mut buffer);
         buffer.truncate(6); // simulate partial retrieve
@@ -527,12 +531,11 @@ mod tests {
 
         let frame1 = OTFrame::Data {
             mid: 7u64,
-            start: 1u64,
             data: Bytes::from(&b"foobar"[..]),
         };
 
         OTFrame::write_bytes(frame1, &mut buffer);
-        buffer[17] = 255;
+        buffer[9] = 255;
         let framed = ITFrame::read_frame(&mut buffer);
         assert_eq!(framed, None);
     }
@@ -543,18 +546,16 @@ mod tests {
 
         let frame1 = OTFrame::Data {
             mid: 7u64,
-            start: 1u64,
             data: Bytes::from(&b"foobar"[..]),
         };
 
         OTFrame::write_bytes(frame1, &mut buffer);
-        buffer[17] = 3;
+        buffer[9] = 3;
         let framed = ITFrame::read_frame(&mut buffer);
         assert_eq!(
             framed,
             Some(ITFrame::Data {
                 mid: 7u64,
-                start: 1u64,
                 data: BytesMut::from(&b"foo"[..]),
             })
         );

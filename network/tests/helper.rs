@@ -67,7 +67,7 @@ pub fn network_participant_stream(
         let p1_b = n_b.connect(addr).await.unwrap();
         let p1_a = n_a.connected().await.unwrap();
 
-        let s1_a = p1_a.open(4, Promises::empty()).await.unwrap();
+        let s1_a = p1_a.open(4, Promises::empty(), 0).await.unwrap();
         let s1_b = p1_b.opened().await.unwrap();
 
         (n_a, p1_a, s1_a, n_b, p1_b, s1_b)

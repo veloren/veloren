@@ -28,7 +28,7 @@ tracing = { version = "0.1", default-features = false, features = ["attributes"]
 prometheus = { version = "0.11", default-features = false, optional = true }
 #async
 futures-core = { version = "0.3", default-features = false }
-futures-util = { version = "0.3", default-features = false, features = ["std"] }
+futures-util = { version = "0.3.7", default-features = false, features = ["std"] }
 async-channel = "1.5.1" #use for .close() channels
 #mpsc channel registry
 lazy_static = { version = "1.4", default-features = false }
@@ -43,7 +43,7 @@ bytes = "^1"
 [dev-dependencies]
 tracing-subscriber = { version = "0.2.3", default-features = false, features = ["env-filter", "fmt", "chrono", "ansi", "smallvec"] }
 tokio = { version = "1.2", default-features = false, features = ["io-std", "fs", "rt-multi-thread"] }
-futures-util = { version = "0.3", default-features = false, features = ["sink", "std"] }
+futures-util = { version = "0.3.7", default-features = false, features = ["sink", "std"] }
 clap = { version = "2.33", default-features = false }
 shellexpand = "2.0.0"
 serde = { version = "1.0", features = ["derive"] }

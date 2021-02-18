@@ -1,11 +1,9 @@
 use crate::{Client, ClientType, ServerInfo};
 use crossbeam_channel::{bounded, unbounded, Receiver, Sender};
-use futures_channel::oneshot;
-use futures_executor::block_on;
-use futures_timer::Delay;
-use futures_util::{select, FutureExt};
+use futures_util::future::FutureExt;
 use network::{Network, Participant, Promises};
-use std::{sync::Arc, thread, time::Duration};
+use std::{sync::Arc, time::Duration};
+use tokio::{runtime::Runtime, select, sync::oneshot};
 use tracing::{debug, error, trace, warn};
 
 pub(crate) struct ServerInfoPacket {
@@ -17,7 +15,7 @@ pub(crate) type IncomingClient = Client;
 
 pub(crate) struct ConnectionHandler {
     _network: Arc<Network>,
-    thread_handle: Option<thread::JoinHandle<()>>,
+    thread_handle: Option<tokio::task::JoinHandle<()>>,
     pub client_receiver: Receiver<IncomingClient>,
     pub info_requester_receiver: Receiver<Sender<ServerInfoPacket>>,
     stop_sender: Option<oneshot::Sender<()>>,
@@ -28,7 +26,7 @@ pub(crate) struct ConnectionHandler {
 /// to the Server main thread sometimes though to get the current server_info
 /// and time
 impl ConnectionHandler {
-    pub fn new(network: Network) -> Self {
+    pub fn new(network: Network, runtime: Arc<Runtime>) -> Self {
         let network = Arc::new(network);
         let network_clone = Arc::clone(&network);
         let (stop_sender, stop_receiver) = oneshot::channel();
@@ -37,14 +35,12 @@ impl ConnectionHandler {
         let (info_requester_sender, info_requester_receiver) =
             bounded::<Sender<ServerInfoPacket>>(1);
 
-        let thread_handle = Some(thread::spawn(|| {
-            block_on(Self::work(
-                network_clone,
-                client_sender,
-                info_requester_sender,
-                stop_receiver,
-            ));
-        }));
+        let thread_handle = Some(runtime.spawn(Self::work(
+            network_clone,
+            client_sender,
+            info_requester_sender,
+            stop_receiver,
+        )));
 
         Self {
             _network: network,
@@ -64,7 +60,7 @@ impl ConnectionHandler {
         let mut stop_receiver = stop_receiver.fuse();
         loop {
             let participant = match select!(
-                _ = stop_receiver => None,
+                _ = &mut stop_receiver => None,
                 p = network.connected().fuse() => Some(p),
             ) {
                 None => break,
@@ -82,7 +78,7 @@ impl ConnectionHandler {
             let info_requester_sender = info_requester_sender.clone();
 
             match select!(
-                _ = stop_receiver => None,
+                _ = &mut stop_receiver => None,
                 e = Self::init_participant(participant, client_sender, info_requester_sender).fuse() => Some(e),
             ) {
                 None => break,
@@ -104,11 +100,11 @@ impl ConnectionHandler {
         let reliable = Promises::ORDERED | Promises::CONSISTENCY;
         let reliablec = reliable | Promises::COMPRESSED;
 
-        let general_stream = participant.open(3, reliablec).await?;
-        let ping_stream = participant.open(2, reliable).await?;
-        let mut register_stream = participant.open(3, reliablec).await?;
-        let character_screen_stream = participant.open(3, reliablec).await?;
-        let in_game_stream = participant.open(3, reliablec).await?;
+        let general_stream = participant.open(3, reliablec, 500).await?;
+        let ping_stream = participant.open(2, reliable, 500).await?;
+        let mut register_stream = participant.open(3, reliablec, 0).await?;
+        let character_screen_stream = participant.open(3, reliablec, 0).await?;
+        let in_game_stream = participant.open(3, reliablec, 400_000).await?;
 
         let server_data = receiver.recv()?;
 
@@ -116,7 +112,7 @@ impl ConnectionHandler {
 
         const TIMEOUT: Duration = Duration::from_secs(5);
         let client_type = match select!(
-            _ = Delay::new(TIMEOUT).fuse() => None,
+            _ = tokio::time::sleep(TIMEOUT).fuse() => None,
             t = register_stream.recv::<ClientType>().fuse() => Some(t),
         ) {
             None => {
@@ -145,12 +141,8 @@ impl ConnectionHandler {
 impl Drop for ConnectionHandler {
     fn drop(&mut self) {
         let _ = self.stop_sender.take().unwrap().send(());
-        trace!("blocking till ConnectionHandler is closed");
-        self.thread_handle
-            .take()
-            .unwrap()
-            .join()
-            .expect("There was an error in ConnectionHandler, clean shutdown impossible");
-        trace!("gracefully closed ConnectionHandler!");
+        trace!("aborting ConnectionHandler");
+        self.thread_handle.take().unwrap().abort();
+        trace!("aborted ConnectionHandler!");
     }
 }

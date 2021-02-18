@@ -1319,31 +1319,34 @@ impl Window {
                 let mut path = settings.screenshots_path.clone();
                 let sender = self.message_sender.clone();
 
-                std::thread::spawn(move || {
-                    use std::time::SystemTime;
-                    // Check if folder exists and create it if it does not
-                    if !path.exists() {
-                        if let Err(e) = std::fs::create_dir_all(&path) {
-                            warn!(?e, "Couldn't create folder for screenshot");
-                            let _result =
-                                sender.send(String::from("Couldn't create folder for screenshot"));
+                let builder = std::thread::Builder::new().name("screenshot".into());
+                builder
+                    .spawn(move || {
+                        use std::time::SystemTime;
+                        // Check if folder exists and create it if it does not
+                        if !path.exists() {
+                            if let Err(e) = std::fs::create_dir_all(&path) {
+                                warn!(?e, "Couldn't create folder for screenshot");
+                                let _result = sender
+                                    .send(String::from("Couldn't create folder for screenshot"));
+                            }
                         }
-                    }
-                    path.push(format!(
-                        "screenshot_{}.png",
-                        SystemTime::now()
-                            .duration_since(SystemTime::UNIX_EPOCH)
-                            .map(|d| d.as_millis())
-                            .unwrap_or(0)
-                    ));
-                    if let Err(e) = img.save(&path) {
-                        warn!(?e, "Couldn't save screenshot");
-                        let _result = sender.send(String::from("Couldn't save screenshot"));
-                    } else {
-                        let _result =
-                            sender.send(format!("Screenshot saved to {}", path.to_string_lossy()));
-                    }
-                });
+                        path.push(format!(
+                            "screenshot_{}.png",
+                            SystemTime::now()
+                                .duration_since(SystemTime::UNIX_EPOCH)
+                                .map(|d| d.as_millis())
+                                .unwrap_or(0)
+                        ));
+                        if let Err(e) = img.save(&path) {
+                            warn!(?e, "Couldn't save screenshot");
+                            let _result = sender.send(String::from("Couldn't save screenshot"));
+                        } else {
+                            let _result = sender
+                                .send(format!("Screenshot saved to {}", path.to_string_lossy()));
+                        }
+                    })
+                    .unwrap();
             },
             Err(e) => error!(?e, "Couldn't create screenshot due to renderer error"),
         }

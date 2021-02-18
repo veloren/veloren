@@ -29,6 +29,8 @@ use common::{
     terrain::BlockKind,
     vol::{BaseVol, ReadVol},
 };
+use std::sync::Arc;
+use tokio::runtime::Runtime;
 use tracing::error;
 use vek::*;
 use winit::event::MouseButton;
@@ -96,7 +98,7 @@ pub struct SceneData<'a> {
     pub time: f64,
     pub delta_time: f32,
     pub tick: u64,
-    pub thread_pool: &'a uvth::ThreadPool,
+    pub runtime: &'a Arc<Runtime>,
     pub body: Option<humanoid::Body>,
     pub gamma: f32,
     pub exposure: f32,
@@ -350,7 +352,7 @@ impl Scene {
                     scene_data.tick,
                     CameraMode::default(),
                     None,
-                    scene_data.thread_pool,
+                    scene_data.runtime,
                 )
                 .0;
             let mut buf = [Default::default(); anim::MAX_BONE_COUNT];

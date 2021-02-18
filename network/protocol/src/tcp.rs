@@ -28,6 +28,7 @@ where
 {
     buffer: BytesMut,
     store: PrioManager,
+    next_mid: Mid,
     closing_streams: Vec<Sid>,
     notify_closing_streams: Vec<Sid>,
     pending_shutdown: bool,
@@ -59,6 +60,7 @@ where
         Self {
             buffer: BytesMut::new(),
             store: PrioManager::new(metrics.clone()),
+            next_mid: 0u64,
             closing_streams: vec![],
             notify_closing_streams: vec![],
             pending_shutdown: false,
@@ -146,9 +148,10 @@ where
                     self.pending_shutdown = true;
                 }
             },
-            ProtocolEvent::Message { data, mid, sid } => {
+            ProtocolEvent::Message { data, sid } => {
                 self.metrics.smsg_ib(sid, data.len() as u64);
-                self.store.add(data, mid, sid);
+                self.store.add(data, self.next_mid, sid);
+                self.next_mid += 1;
             },
         }
         Ok(())
@@ -160,12 +163,7 @@ where
         let mut data_frames = 0;
         let mut data_bandwidth = 0;
         for frame in frames {
-            if let OTFrame::Data {
-                mid: _,
-                start: _,
-                data,
-            } = &frame
-            {
+            if let OTFrame::Data { mid: _, data } = &frame {
                 data_bandwidth += data.len();
                 data_frames += 1;
             }
@@ -228,12 +226,13 @@ where
                         sid,
                         prio,
                         promises,
+                        guaranteed_bandwidth,
                     } => {
                         break 'outer Ok(ProtocolEvent::OpenStream {
                             sid,
                             prio: prio.min(crate::types::HIGHEST_PRIO),
                             promises,
-                            guaranteed_bandwidth: 1_000_000,
+                            guaranteed_bandwidth,
                         });
                     },
                     ITFrame::CloseStream { sid } => {
@@ -244,11 +243,7 @@ where
                         self.metrics.rmsg_ib(sid, length);
                         self.incoming.insert(mid, m);
                     },
-                    ITFrame::Data {
-                        mid,
-                        start: _,
-                        data,
-                    } => {
+                    ITFrame::Data { mid, data } => {
                         self.metrics.rdata_frames_b(data.len() as u64);
                         let m = match self.incoming.get_mut(&mid) {
                             Some(m) => m,
@@ -271,7 +266,6 @@ where
                             );
                             break 'outer Ok(ProtocolEvent::Message {
                                 sid: m.sid,
-                                mid,
                                 data: m.data.freeze(),
                             });
                         }
@@ -431,7 +425,6 @@ mod tests {
         let _ = r.recv().await.unwrap();
         let event = ProtocolEvent::Message {
             sid: Sid::new(10),
-            mid: 0,
             data: Bytes::from(&[188u8; 600][..]),
         };
         s.send(event.clone()).await.unwrap();
@@ -441,7 +434,6 @@ mod tests {
         // 2nd short message
         let event = ProtocolEvent::Message {
             sid: Sid::new(10),
-            mid: 1,
             data: Bytes::from(&[7u8; 30][..]),
         };
         s.send(event.clone()).await.unwrap();
@@ -467,7 +459,6 @@ mod tests {
         let _ = r.recv().await.unwrap();
         let event = ProtocolEvent::Message {
             sid,
-            mid: 77,
             data: Bytes::from(&[99u8; 500_000][..]),
         };
         s.send(event.clone()).await.unwrap();
@@ -495,7 +486,6 @@ mod tests {
         let _ = r.recv().await.unwrap();
         let event = ProtocolEvent::Message {
             sid,
-            mid: 77,
             data: Bytes::from(&[99u8; 500_000][..]),
         };
         s.send(event).await.unwrap();
@@ -524,7 +514,6 @@ mod tests {
         let _ = r.recv().await.unwrap();
         let event = ProtocolEvent::Message {
             sid,
-            mid: 77,
             data: Bytes::from(&[99u8; 500_000][..]),
         };
         s.send(event).await.unwrap();
@@ -556,14 +545,12 @@ mod tests {
         s.send(event).await.unwrap();
         let event = ProtocolEvent::Message {
             sid,
-            mid: 77,
             data: Bytes::from(&[99u8; 500_000][..]),
         };
         s.send(event).await.unwrap();
         s.flush(1_000_000, Duration::from_secs(1)).await.unwrap();
         let event = ProtocolEvent::Message {
             sid,
-            mid: 78,
             data: Bytes::from(&[100u8; 500_000][..]),
         };
         s.send(event).await.unwrap();
@@ -593,6 +580,7 @@ mod tests {
             sid,
             prio: 5u8,
             promises: Promises::COMPRESSED,
+            guaranteed_bandwidth: 1_000_000,
         }
         .write_bytes(&mut bytes);
         OTFrame::DataHeader {
@@ -605,13 +593,11 @@ mod tests {
 
         OTFrame::Data {
             mid: 99,
-            start: 0,
             data: Bytes::from(&DATA1[..]),
         }
         .write_bytes(&mut bytes);
         OTFrame::Data {
             mid: 99,
-            start: DATA1.len() as u64,
             data: Bytes::from(&DATA2[..]),
         }
         .write_bytes(&mut bytes);
@@ -641,6 +627,7 @@ mod tests {
             sid,
             prio: 5u8,
             promises: Promises::COMPRESSED,
+            guaranteed_bandwidth: 1_000_000,
         }
         .write_bytes(&mut bytes);
         s.send(bytes.split()).await.unwrap();
@@ -670,7 +657,6 @@ mod tests {
         let _ = p2.1.recv().await.unwrap();
         let event = ProtocolEvent::Message {
             sid: Sid::new(10),
-            mid: 0,
             data: Bytes::from(&[188u8; 600][..]),
         };
         p2.0.send(event.clone()).await.unwrap();
@@ -695,7 +681,6 @@ mod tests {
         p2.0.notify_from_recv(e);
         let event = ProtocolEvent::Message {
             sid: Sid::new(10),
-            mid: 0,
             data: Bytes::from(&[188u8; 600][..]),
         };
         p2.0.send(event.clone()).await.unwrap();

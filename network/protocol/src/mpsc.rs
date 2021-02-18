@@ -78,7 +78,6 @@ where
         match &event {
             ProtocolEvent::Message {
                 data: _data,
-                mid: _,
                 sid: _sid,
             } => {
                 #[cfg(feature = "metrics")]
@@ -118,7 +117,7 @@ where
             MpscMsg::Event(e) => {
                 #[cfg(feature = "metrics")]
                 {
-                    if let ProtocolEvent::Message { data, mid: _, sid } = &e {
+                    if let ProtocolEvent::Message { data, sid } = &e {
                         let sid = *sid;
                         let bytes = data.len() as u64;
                         let line = self.metrics.init_sid(sid);

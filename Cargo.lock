@@ -233,7 +233,7 @@ checksum = "dac94eeee6ebd1165959e440836a452109f9f839d6cfde12974d75a5b4222406"
 dependencies = [
  "ahash 0.6.3",
  "bincode",
- "crossbeam-channel 0.5.0",
+ "crossbeam-channel",
  "log",
  "notify 4.0.15",
  "parking_lot 0.11.1",
@@ -1093,20 +1093,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fd01a6eb3daaafa260f6fc94c3a6c36390abc2080e38e3e34ced87393fb77d80"
 dependencies = [
  "cfg-if 1.0.0",
- "crossbeam-channel 0.5.0",
+ "crossbeam-channel",
  "crossbeam-deque 0.8.0",
  "crossbeam-epoch 0.9.1",
  "crossbeam-queue",
  "crossbeam-utils 0.8.1",
-]
-
-[[package]]
-name = "crossbeam-channel"
-version = "0.3.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c8ec7fcd21571dc78f96cc96243cab8d8f035247c3efd16c687be154c3fa9efa"
-dependencies = [
- "crossbeam-utils 0.6.6",
 ]
 
 [[package]]
@@ -1178,16 +1169,6 @@ checksum = "0f6cb3c7f5b8e51bc3ebb73a2327ad4abdbd119dc13223f14f961d2f38486756"
 dependencies = [
  "cfg-if 1.0.0",
  "crossbeam-utils 0.8.1",
-]
-
-[[package]]
-name = "crossbeam-utils"
-version = "0.6.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "04973fa96e96579258a5091af6003abde64af786b860f18622b82e026cca60e6"
-dependencies = [
- "cfg-if 0.1.10",
- "lazy_static",
 ]
 
 [[package]]
@@ -1830,12 +1811,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "futures-timer"
-version = "3.0.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e64b03909df88034c26dc1547e8970b91f98bdb65165d6a4e9110d94263dbb2c"
-
-[[package]]
 name = "futures-util"
 version = "0.3.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2162,7 +2137,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ac2c82074cafb68b9e459c50c655f7eedcb92d6ee7166813802934bc6fc29fa3"
 dependencies = [
  "ab_glyph",
- "crossbeam-channel 0.5.0",
+ "crossbeam-channel",
  "crossbeam-deque 0.8.0",
  "linked-hash-map",
  "rayon",
@@ -3302,7 +3277,7 @@ checksum = "58e54552360d7b89a698eca6de3927205a8e03e8080dc13d779de5c7876e098b"
 dependencies = [
  "anymap",
  "bitflags",
- "crossbeam-channel 0.5.0",
+ "crossbeam-channel",
  "filetime",
  "fsevent 2.0.2",
  "fsevent-sys 3.0.2",
@@ -4142,7 +4117,7 @@ version = "1.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9ab346ac5921dc62ffa9f89b7a773907511cdfa5490c572ae9be1be33e8afa4a"
 dependencies = [
- "crossbeam-channel 0.5.0",
+ "crossbeam-channel",
  "crossbeam-deque 0.8.0",
  "crossbeam-utils 0.8.1",
  "lazy_static",
@@ -5241,7 +5216,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9965507e507f12c8901432a33e31131222abac31edd90cabbcf85cf544b7127a"
 dependencies = [
  "chrono",
- "crossbeam-channel 0.5.0",
+ "crossbeam-channel",
  "tracing-subscriber",
 ]
 
@@ -5525,17 +5500,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "uvth"
-version = "3.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e59a167890d173eb0fcd7a1b99b84dc05c521ae8d76599130b8e19bef287abbf"
-dependencies = [
- "crossbeam-channel 0.3.9",
- "log",
- "num_cpus",
-]
-
-[[package]]
 name = "vcpkg"
 version = "0.2.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5593,19 +5557,15 @@ version = "0.8.0"
 dependencies = [
  "authc",
  "byteorder",
- "futures-executor",
- "futures-timer",
  "futures-util",
  "hashbrown 0.9.1",
  "image",
  "num 0.3.1",
- "num_cpus",
  "rayon",
  "specs",
  "tokio 1.2.0",
  "tracing",
  "tracing-subscriber",
- "uvth",
  "vek 0.12.0",
  "veloren-common",
  "veloren-common-net",
@@ -5621,7 +5581,7 @@ dependencies = [
  "arraygen",
  "assets_manager",
  "criterion",
- "crossbeam-channel 0.5.0",
+ "crossbeam-channel",
  "crossbeam-utils 0.8.1",
  "csv",
  "directories-next",
@@ -5702,7 +5662,7 @@ dependencies = [
  "bytes 1.0.1",
  "clap",
  "criterion",
- "crossbeam-channel 0.5.0",
+ "crossbeam-channel",
  "futures-core",
  "futures-util",
  "lazy_static",
@@ -5767,13 +5727,10 @@ version = "0.8.0"
 dependencies = [
  "authc",
  "chrono",
- "crossbeam-channel 0.5.0",
+ "crossbeam-channel",
  "diesel",
  "diesel_migrations",
  "dotenv",
- "futures-channel",
- "futures-executor",
- "futures-timer",
  "futures-util",
  "hashbrown 0.9.1",
  "itertools 0.9.0",
@@ -5793,7 +5750,6 @@ dependencies = [
  "specs-idvs",
  "tokio 1.2.0",
  "tracing",
- "uvth",
  "vek 0.12.0",
  "veloren-common",
  "veloren-common-net",
@@ -5880,7 +5836,6 @@ dependencies = [
  "tracing-subscriber",
  "tracing-tracy",
  "treeculler",
- "uvth",
  "vek 0.12.0",
  "veloren-client",
  "veloren-common",

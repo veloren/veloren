@@ -65,9 +65,7 @@ pub use metrics::ProtocolMetricCache;
 pub use metrics::ProtocolMetrics;
 pub use mpsc::{MpscMsg, MpscRecvProtocol, MpscSendProtocol};
 pub use tcp::{TcpRecvProtocol, TcpSendProtocol};
-pub use types::{
-    Bandwidth, Cid, Mid, Pid, Prio, Promises, Sid, HIGHEST_PRIO, VELOREN_NETWORK_VERSION,
-};
+pub use types::{Bandwidth, Cid, Pid, Prio, Promises, Sid, HIGHEST_PRIO, VELOREN_NETWORK_VERSION};
 
 ///use at own risk, might change any time, for internal benchmarks
 pub mod _internal {
