@@ -572,4 +572,56 @@
             central: ("armor.empty"),
         )
     ),
+    (Tidalwarrior, Male): (
+        head: (
+            offset: (-6.5, -6.5, -6.0),
+            central: ("npc.tidalwarrior.male.head"),
+        ),
+        torso_upper: (
+            offset: (-9.0, -8.0, -10.5),
+            central: ("npc.tidalwarrior.male.torso_upper"),
+        ),
+        torso_lower: (
+            offset: (-8.0, -7.0, -8.0),
+            central: ("npc.tidalwarrior.male.torso_lower"),
+        ),
+        jaw: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        tail: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
+    (Tidalwarrior, Female): (
+        head: (
+            offset: (-6.5, -6.5, -6.0),
+            central: ("npc.tidalwarrior.male.head"),
+        ),
+        torso_upper: (
+            offset: (-9.0, -8.0, -10.5),
+            central: ("npc.tidalwarrior.male.torso_upper"),
+        ),
+        torso_lower: (
+            offset: (-8.0, -7.0, -8.0),
+            central: ("npc.tidalwarrior.male.torso_lower"),
+        ),
+        jaw: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        tail: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
 })

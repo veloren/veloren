@@ -144,7 +144,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             head: match (body.species, body.body_type) {
                 (Grolgar, _) => (0.0, -1.0),
                 (Saber, _) => (5.0, -3.0),
-                (Tuskram, _) => (2.0, 1.0),
+                (Tuskram, _) => (0.0, 0.0),
                 (Lion, _) => (4.5, 2.0),
                 (Tarasque, _) => (-4.0, 3.5),
                 (Tiger, _) => (2.0, 1.0),
@@ -205,7 +205,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             jaw: match (body.species, body.body_type) {
                 (Grolgar, _) => (7.0, 2.0),
                 (Saber, _) => (2.5, -2.0),
-                (Tuskram, _) => (7.5, -3.5),
+                (Tuskram, _) => (4.0, -5.0),
                 (Lion, _) => (3.5, -4.0),
                 (Tarasque, _) => (9.0, -9.5),
                 (Tiger, _) => (3.0, -3.5),
@@ -235,7 +235,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             tail: match (body.species, body.body_type) {
                 (Grolgar, _) => (-11.5, -0.5),
                 (Saber, _) => (-11.0, 0.0),
-                (Tuskram, _) => (-9.0, 2.0),
+                (Tuskram, _) => (-8.0, 2.0),
                 (Lion, _) => (-11.0, 1.0),
                 (Tarasque, _) => (-11.0, 0.0),
                 (Tiger, _) => (-13.5, 3.0),
@@ -265,7 +265,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             torso_front: match (body.species, body.body_type) {
                 (Grolgar, _) => (10.0, 13.0),
                 (Saber, _) => (14.0, 13.0),
-                (Tuskram, _) => (10.0, 14.5),
+                (Tuskram, _) => (10.0, 16.0),
                 (Lion, _) => (10.0, 12.5),
                 (Tarasque, _) => (11.5, 17.5),
                 (Tiger, _) => (10.0, 13.0),
@@ -295,7 +295,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             torso_back: match (body.species, body.body_type) {
                 (Grolgar, _) => (-10.0, 1.5),
                 (Saber, _) => (-13.5, 0.0),
-                (Tuskram, _) => (-12.5, -2.0),
+                (Tuskram, _) => (-12.0, -2.5),
                 (Lion, _) => (-12.0, -0.5),
                 (Tarasque, _) => (-14.0, -1.0),
                 (Tiger, _) => (-13.0, -0.5),
@@ -325,7 +325,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             ears: match (body.species, body.body_type) {
                 (Grolgar, _) => (5.0, 8.0),
                 (Saber, _) => (3.0, 5.5),
-                (Tuskram, _) => (5.5, 12.0),
+                (Tuskram, _) => (0.0, 0.0),
                 (Lion, _) => (2.0, 3.5),
                 (Tarasque, _) => (12.0, -3.0),
                 (Tiger, _) => (2.5, 4.0),
@@ -355,7 +355,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             leg_f: match (body.species, body.body_type) {
                 (Grolgar, _) => (7.5, -5.5, -1.0),
                 (Saber, _) => (7.0, -4.0, -2.5),
-                (Tuskram, _) => (6.0, -6.5, -4.0),
+                (Tuskram, _) => (8.5, -4.5, -2.0),
                 (Lion, _) => (6.5, -6.5, -1.5),
                 (Tarasque, _) => (7.0, -8.0, -6.0),
                 (Tiger, _) => (6.0, -6.0, -1.5),
@@ -385,7 +385,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             leg_b: match (body.species, body.body_type) {
                 (Grolgar, _) => (6.0, -6.5, -4.0),
                 (Saber, _) => (6.0, -7.0, -3.5),
-                (Tuskram, _) => (5.0, -4.5, -2.5),
+                (Tuskram, _) => (6.0, -5.5, -2.5),
                 (Lion, _) => (6.0, -5.0, -1.5),
                 (Tarasque, _) => (6.0, -6.5, -6.5),
                 (Tiger, _) => (6.0, -7.0, -1.0),
@@ -415,7 +415,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             feet_f: match (body.species, body.body_type) {
                 (Grolgar, _) => (0.0, 0.0, -4.0),
                 (Saber, _) => (1.0, -3.5, -2.5),
-                (Tuskram, _) => (0.5, 0.5, -3.0),
+                (Tuskram, _) => (-1.0, -1.5, -6.0),
                 (Lion, _) => (0.5, 0.5, -3.5),
                 (Tarasque, _) => (1.0, 0.0, -3.0),
                 (Tiger, _) => (0.5, 0.0, -4.5),
@@ -445,7 +445,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             feet_b: match (body.species, body.body_type) {
                 (Grolgar, _) => (0.5, -1.5, -3.0),
                 (Saber, _) => (1.0, -1.0, -1.0),
-                (Tuskram, _) => (0.5, -1.0, -2.5),
+                (Tuskram, _) => (0.5, -1.0, -3.0),
                 (Lion, _) => (0.5, -1.0, -3.0),
                 (Tarasque, _) => (1.5, -1.0, -2.5),
                 (Tiger, _) => (0.5, -1.0, -4.0),

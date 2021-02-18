@@ -137,11 +137,11 @@
     ),
     (Tuskram, Male): (
         leg_fl: (
-            offset: (-2.0, -2.5, -3.0),
+            offset: (-2.5, -4.5, -5.0),
             lateral: ("npc.tuskram.male.leg_fr"),
         ),
         leg_fr: (
-            offset: (-2.0, -2.5, -3.0),
+            offset: (-2.5, -4.5, -5.0),
             lateral: ("npc.tuskram.male.leg_fr"),
         ),
         leg_bl: (
@@ -171,11 +171,11 @@
     ),
     (Tuskram, Female): (
         leg_fl: (
-            offset: (-2.0, -2.5, -3.0),
+            offset: (-2.5, -4.5, -5.0),
             lateral: ("npc.tuskram.male.leg_fr"),
         ),
         leg_fr: (
-            offset: (-2.0, -2.5, -3.0),
+            offset: (-2.5, -4.5, -5.0),
             lateral: ("npc.tuskram.male.leg_fr"),
         ),
         leg_bl: (

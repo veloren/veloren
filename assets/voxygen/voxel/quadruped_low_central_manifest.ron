@@ -676,4 +676,56 @@
             central: ("npc.basilisk.male.tail_front"),
         ),
     ),
+    (Deadwood, Male): (
+        upper: (
+            offset: (-3.5, -3.5, -4.0),
+            central: ("npc.deadwood.male.head_upper"),
+        ),
+        lower: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        jaw: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        chest: (
+            offset: (-12.5, -11.0, -9.0),
+            central: ("npc.deadwood.male.chest"),
+        ),
+        tail_rear: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        tail_front: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+    ),
+    (Deadwood, Female): (
+        upper: (
+            offset: (-3.5, -3.5, -4.0),
+            central: ("npc.deadwood.male.head_upper"),
+        ),
+        lower: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        jaw: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        chest: (
+            offset: (-12.5, -11.0, -9.0),
+            central: ("npc.deadwood.male.chest"),
+        ),
+        tail_rear: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        tail_front: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+    ),
 })

@@ -531,6 +531,7 @@ impl<'a> System<'a> for Sys {
                                     Tactic::QuadLowBasic
                                 },
                                 Some(ToolKind::Unique(UniqueKind::QuadLowBreathe)) => Tactic::Lavadrake,
+                                Some(ToolKind::Unique(UniqueKind::QuadLowBeam)) => Tactic::Lavadrake,
                                 Some(ToolKind::Unique(UniqueKind::TheropodBasic)) => Tactic::Theropod,
                                 Some(ToolKind::Unique(UniqueKind::TheropodBird)) => Tactic::Theropod,
                                 Some(ToolKind::Unique(UniqueKind::ObjectTurret)) => Tactic::Turret,
@@ -1349,7 +1350,7 @@ impl<'a> System<'a> for Sys {
                                             do_idle = true;
                                         }
                                     },
-                                    Tactic::Lavadrake => {
+                                    Tactic::Lavadrake | Tactic::QuadLowBeam => {
                                         if dist_sqrd < (2.5 * min_attack_dist * scale).powi(2) {
                                             inputs.move_dir = Vec2::zero();
                                             inputs.secondary.set_state(true);

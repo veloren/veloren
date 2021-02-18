@@ -749,6 +749,10 @@
         vox_spec: ("armor.empty", (0.0, 0.0, 0.0)),
         color: None
     ),
+    "common.items.npc_weapons.unique.tidal_claws": (
+        vox_spec: ("armor.empty", (0.0, 0.0, 0.0)),
+        color: None
+    ),
     "common.items.npc_weapons.spear.wooden_spear": (
         vox_spec: ("weapon.spear.sahagin", (-1.5, -3.0, -5.0)),
         color: None

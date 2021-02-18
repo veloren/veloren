@@ -25,6 +25,7 @@ pub enum Tactic {
     TailSlap,
     QuadLowQuick,
     QuadLowBasic,
+    QuadLowBeam,
     QuadMedJump,
     QuadMedBasic,
     Lavadrake,

@@ -240,6 +240,15 @@ impl Animation for WieldAnimation {
                     next.control_r.orientation =
                         Quaternion::rotation_x(PI / 3.0) * Quaternion::rotation_y(0.15);
                 },
+                Some(ToolKind::Unique(UniqueKind::TidalClaws)) => {
+                    next.control_l.position = Vec3::new(-14.0, 12.0, -12.0);
+                    next.control_r.position = Vec3::new(14.0, 12.0, -12.0);
+
+                    next.control_l.orientation =
+                        Quaternion::rotation_x(PI / 3.0) * Quaternion::rotation_y(-0.15);
+                    next.control_r.orientation =
+                        Quaternion::rotation_x(PI / 3.0) * Quaternion::rotation_y(0.15);
+                },
                 Some(ToolKind::Unique(UniqueKind::BeastClaws)) => {
                     next.shoulder_l.position =
                         Vec3::new(-s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);

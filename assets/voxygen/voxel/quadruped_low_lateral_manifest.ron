@@ -467,4 +467,40 @@
             lateral: ("npc.basilisk.male.foot_br"),
         ),
     ),
+    (Deadwood, Male): (
+        front_left: (
+            offset: (-5.0, -2.0, -7.0),
+            lateral: ("npc.deadwood.male.foot_fr"),
+        ),
+        front_right: (
+            offset: (0.0, -2.0, -7.0),
+            lateral: ("npc.deadwood.male.foot_fr"),
+        ),
+        back_left: (
+            offset: (-5.0, -1.0, -7.0),
+            lateral: ("npc.deadwood.male.foot_br"),
+        ),
+        back_right: (
+            offset: (0.0, -1.0, -7.0),
+            lateral: ("npc.deadwood.male.foot_br"),
+        ),
+    ),
+    (Deadwood, Female): (
+        front_left: (
+            offset: (-5.0, -2.0, -7.0),
+            lateral: ("npc.deadwood.male.foot_fr"),
+        ),
+        front_right: (
+            offset: (0.0, -2.0, -7.0),
+            lateral: ("npc.deadwood.male.foot_fr"),
+        ),
+        back_left: (
+            offset: (-5.0, -1.0, -7.0),
+            lateral: ("npc.deadwood.male.foot_br"),
+        ),
+        back_right: (
+            offset: (0.0, -1.0, -7.0),
+            lateral: ("npc.deadwood.male.foot_br"),
+        ),
+    ),
 })

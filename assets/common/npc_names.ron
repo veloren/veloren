@@ -845,6 +845,10 @@
             minotaur: (
                 keyword: "minotaur",
                 generic: "Minotaur"
+            ),
+            tidalwarrior: (
+                keyword: "tidalwarrior",
+                generic: "Tidal Warrior"
             )
         )
     ),
@@ -982,6 +986,10 @@
             clownfish: (
                 keyword: "clownfish",
                 generic: "Clownfish"
+            ),
+            piranha: (
+                keyword: "piranha",
+                generic: "Piranha"
             )
         )
     ),
@@ -1065,7 +1073,11 @@
             basilisk: (
                 keyword: "basilisk",
                 generic: "Basilisk"
-            )
+            ),
+            deadwood: (
+                keyword: "deadwood",
+                generic: "Deadwood"
+            ),
         )
     )
 )

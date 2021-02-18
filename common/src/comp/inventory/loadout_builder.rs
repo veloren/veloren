@@ -154,6 +154,11 @@ impl LoadoutBuilder {
                             "common.items.npc_weapons.unique.quadlowbreathe",
                         ));
                     },
+                    quadruped_low::Species::Deadwood => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.unique.quadlowbeam",
+                        ));
+                    },
                     _ => {
                         main_tool = Some(Item::new_from_asset_expect(
                             "common.items.npc_weapons.unique.quadlowbasic",
@@ -239,6 +244,11 @@ impl LoadoutBuilder {
                     (biped_large::Species::Minotaur, _) => {
                         main_tool = Some(Item::new_from_asset_expect(
                             "common.items.npc_weapons.hammer.cyclops_hammer",
+                        ));
+                    },
+                    (biped_large::Species::Tidalwarrior, _) => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.unique.tidal_claws",
                         ));
                     },
                 },

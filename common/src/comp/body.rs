@@ -188,6 +188,7 @@ impl Body {
                 quadruped_low::Species::Salamander => 2.4,
                 quadruped_low::Species::Pangolin => 2.0,
                 quadruped_low::Species::Lavadrake => 2.5,
+                quadruped_low::Species::Deadwood => 0.5,
                 _ => 1.6,
             },
             Body::Theropod(body) => match body.species {
@@ -365,6 +366,7 @@ impl Body {
                 biped_large::Species::Troll => 1500,
                 biped_large::Species::Dullahan => 2000,
                 biped_large::Species::Mindflayer => 8000,
+                biped_large::Species::Tidalwarrior => 2500,
                 _ => 1000,
             },
             Body::BipedSmall(_) => 10000,
@@ -392,6 +394,7 @@ impl Body {
                 quadruped_low::Species::Sandshark => 600,
                 quadruped_low::Species::Hakulaq => 400,
                 quadruped_low::Species::Lavadrake => 900,
+                quadruped_low::Species::Deadwood => 600,
 
                 _ => 200,
             },
@@ -461,6 +464,7 @@ impl Body {
                 biped_large::Species::Troll => 60,
                 biped_large::Species::Dullahan => 120,
                 biped_large::Species::Mindflayer => 250,
+                biped_large::Species::Tidalwarrior => 90,
                 _ => 100,
             },
             Body::BipedSmall(_) => 10,
@@ -479,6 +483,7 @@ impl Body {
                 quadruped_low::Species::Maneater => 30,
                 quadruped_low::Species::Sandshark => 40,
                 quadruped_low::Species::Hakulaq => 10,
+                quadruped_low::Species::Deadwood => 30,
                 _ => 20,
             },
         }

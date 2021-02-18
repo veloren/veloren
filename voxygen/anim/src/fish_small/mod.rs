@@ -80,18 +80,23 @@ impl<'a> From<&'a Body> for SkeletonAttr {
         Self {
             chest: match (body.species, body.body_type) {
                 (Clownfish, _) => (0.0, 5.0),
+                (Piranha, _) => (0.0, 5.0),
             },
             tail: match (body.species, body.body_type) {
                 (Clownfish, _) => (-7.5, -0.5),
+                (Piranha, _) => (-5.5, -0.5),
             },
             fin: match (body.species, body.body_type) {
                 (Clownfish, _) => (2.0, 0.5, 1.0),
+                (Piranha, _) => (2.0, 0.5, -0.5),
             },
             tempo: match (body.species, body.body_type) {
                 (Clownfish, _) => 5.0,
+                (Piranha, _) => 5.0,
             },
             amplitude: match (body.species, body.body_type) {
                 (Clownfish, _) => 4.0,
+                (Piranha, _) => 4.0,
             },
         }
     }

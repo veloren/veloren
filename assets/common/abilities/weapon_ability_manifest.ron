@@ -97,6 +97,11 @@
         secondary: "common.abilities.unique.wendigomagic.singlestrike",
         skills: [],
     ),
+    Unique(TidalClaws): (
+        primary: "common.abilities.staff.flamethrower",
+        secondary: "common.abilities.unique.wendigomagic.singlestrike",
+        skills: [],
+    ),
     Unique(QuadMedQuick): (
         primary: "common.abilities.unique.quadmedquick.triplestrike",
         secondary: "common.abilities.unique.quadmedquick.dash",
@@ -150,6 +155,13 @@
         primary: "common.abilities.unique.quadlowbasic.triplestrike",
         secondary: "common.abilities.unique.quadlowbasic.singlestrike",
         abilities: [],
+    ),
+    Unique(QuadLowBeam): (
+        primary: "common.abilities.unique.quadlowbeam.healingbeam",
+        secondary: "common.abilities.unique.quadlowbreathe.triplestrike",
+        skills: [
+            "common.abilities.unique.quadlowbreathe.dash",
+        ],
     ),
     Unique(QuadSmallBasic): (
         primary: "common.abilities.unique.quadsmallbasic.singlestrike",

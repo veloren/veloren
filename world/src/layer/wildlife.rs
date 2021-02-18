@@ -160,7 +160,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
-                    .with_body(match rng.gen_range(0..5) {
+                    .with_body(match rng.gen_range(0..4) {
                         0 => {
                             bird_medium::Body::random_with(rng, &bird_medium::Species::Eagle).into()
                         },
@@ -202,7 +202,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
-                    .with_body(match rng.gen_range(0..3) {
+                    .with_body(match rng.gen_range(0..5) {
                         0 => quadruped_medium::Body::random_with(
                             rng,
                             &quadruped_medium::Species::Tarasque,
@@ -215,6 +215,10 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                         .into(),
                         2 => {
                             theropod::Body::random_with(rng, &theropod::Species::Woodraptor).into()
+                        },
+                        3 => {
+                            quadruped_low::Body::random_with(rng, &quadruped_low::Species::Deadwood)
+                                .into()
                         },
                         _ => quadruped_medium::Body::random_with(
                             rng,
@@ -665,7 +669,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
-                    .with_body(match rng.gen_range(0..2) {
+                    .with_body(match rng.gen_range(0..4) {
                         0 => quadruped_medium::Body::random_with(
                             rng,
                             &quadruped_medium::Species::Bonerattler,
@@ -806,9 +810,12 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
-                    .with_body(match rng.gen_range(0..2) {
+                    .with_body(match rng.gen_range(0..3) {
                         0 => fish_medium::Body::random_with(rng, &fish_medium::Species::Marlin)
                             .into(),
+                        1 => {
+                            fish_small::Body::random_with(rng, &fish_small::Species::Piranha).into()
+                        },
                         _ => fish_small::Body::random_with(rng, &fish_small::Species::Clownfish)
                             .into(),
                     })
