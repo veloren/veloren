@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Basic NPC interaction
 - Lights in dungeons
 - Trading system (bound to the `R` key by default, currently only works with players)
+- Support for modular weapons.
 
 ### Changed
 

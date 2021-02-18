@@ -119,7 +119,13 @@ impl assets::Compound for RecipeBook {
         }
 
         let mut raw = cache.load::<RawRecipeBook>(specifier)?.read().clone();
-        modular::append_modular_recipes(&mut raw);
+
+        // Avoid showing purple-question-box recipes until the assets are added
+        // (the `if false` is needed because commenting out the call will add a warning
+        // that there are no other uses of append_modular_recipes)
+        if false {
+            modular::append_modular_recipes(&mut raw);
+        }
 
         let recipes = raw
             .0

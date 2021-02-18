@@ -21,16 +21,17 @@ use common::{
 };
 use core::{convert::TryFrom, num::NonZeroU64};
 use hashbrown::HashMap;
-use itertools::{Either, Itertools};
-use std::sync::Arc;
+use std::{collections::VecDeque, sync::Arc};
 
+#[derive(Debug)]
 pub struct ItemModelPair {
     pub comp: Arc<common::comp::item::ItemId>,
     pub model: Item,
 }
 
-/// The left vector contains all item rows to upsert; the right-hand vector
-/// contains all item rows to delete (by parent ID and position).
+/// Returns a vector that contains all item rows to upsert; parent is
+/// responsible for deleting items from the same owner that aren't affirmatively
+/// kept by this.
 ///
 /// NOTE: This method does not yet handle persisting nested items within
 /// inventories. Although loadout items do store items inside them this does
@@ -41,7 +42,7 @@ pub fn convert_items_to_database_items(
     inventory: &Inventory,
     inventory_container_id: EntityId,
     next_id: &mut i64,
-) -> (Vec<ItemModelPair>, Vec<(EntityId, String)>) {
+) -> Vec<ItemModelPair> {
     let loadout = inventory
         .loadout_items_with_persistence_key()
         .map(|(slot, item)| (slot.to_string(), item, loadout_container_id));
@@ -55,103 +56,125 @@ pub fn convert_items_to_database_items(
         )
     });
 
-    // Construct new items.
-    inventory.chain(loadout)
-        .partition_map(|(position, item, parent_container_item_id)| {
-            if let Some(item) = item {
-                // Try using the next available id in the sequence as the default for new items.
-                let new_item_id = NonZeroU64::new(u64::try_from(*next_id)
-                    .expect("We are willing to crash if the next entity id overflows \
-                (or is otherwise negative).")).expect("next_id should not be zero, either");
+    // Use Breadth-first search to recurse into containers/modular weapons to store
+    // their parts
+    let mut bfs_queue: VecDeque<_> = inventory.chain(loadout).collect();
+    let mut upserts = Vec::new();
+    let mut depth = HashMap::new();
+    depth.insert(inventory_container_id, 0);
+    depth.insert(loadout_container_id, 0);
+    while let Some((position, item, parent_container_item_id)) = bfs_queue.pop_front() {
+        // Construct new items.
+        if let Some(item) = item {
+            // Try using the next available id in the sequence as the default for new items.
+            let new_item_id = NonZeroU64::new(u64::try_from(*next_id).expect(
+                "We are willing to crash if the next entity id overflows (or is otherwise \
+                 negative).",
+            ))
+            .expect("next_id should not be zero, either");
 
-                let comp = item.get_item_id_for_database();
-                Either::Left(ItemModelPair {
-                    model: Item {
-                        item_definition_id: item.item_definition_id().to_owned(),
-                        position,
-                        parent_container_item_id,
-                        // Fast (kinda) path: acquire read for the common case where an id has
-                        // already been assigned.
-                        item_id: comp.load()
-                            // First, we filter out "impossible" entity IDs--IDs that are larger
-                            // than the maximum sequence value (next_id).  This is important
-                            // because we update the item ID atomically, *before* we know whether
-                            // this transaction has completed successfully, and we don't abort the
-                            // process on a failed transaction.  In such cases, new IDs from
-                            // aborted transactions will show up as having a higher value than the
-                            // current max sequence number.  Because the only place that modifies
-                            // the item_id through a shared reference is (supposed to be) this
-                            // function, which is part of the batch update transaction, we can
-                            // assume that any rollback during the update would fail to insert
-                            // *any* new items for the current character; this means that any items
-                            // inserted between the failure and now (i.e. values less than next_id)
-                            // would either not be items at all, or items belonging to other
-                            // characters, leading to an easily detectable SQLite failure that we
-                            // can use to atomically set the id back to None (if it was still the
-                            // same bad value).
-                            //
-                            // Note that this logic only requires that all the character's items be
-                            // updated within the same serializable transaction; the argument does
-                            // not depend on SQLite-specific details (like locking) or on the fact
-                            // that a user's transactions are always serialized on their own
-                            // session.  Also note that since these IDs are in-memory, we don't
-                            // have to worry about their values during, e.g., a process crash;
-                            // serializability will take care of us in those cases.  Finally, note
-                            // that while we have not yet implemented the "liveness" part of the
-                            // algorithm (resetting ids back to None if we detect errors), this is
-                            // not needed for soundness, and this part can be deferred until we
-                            // switch to an execution model where such races are actually possible
-                            // during normal gameplay.
-                            .and_then(|item_id| Some(if item_id >= new_item_id {
-                                // Try to atomically exchange with our own, "correct" next id.
-                                match comp.compare_exchange(Some(item_id), Some(new_item_id)) {
-                                    Ok(_) => {
-                                        let item_id = *next_id;
-                                        // We won the race, use next_id and increment it.
-                                        *next_id += 1;
-                                        item_id
-                                    },
-                                    Err(item_id) => {
-                                        // We raced with someone, and they won the race, so we know
-                                        // this transaction must abort unless they finish first.  So,
-                                        // just assume they will finish first, and use their assigned
-                                        // item_id.
-                                        EntityId::try_from(item_id?.get())
-                                            .expect("We always choose legal EntityIds as item ids")
-                                    },
-                                }
-                            } else { EntityId::try_from(item_id.get()).expect("We always choose legal EntityIds as item ids") }))
-                            // Finally, we're in the case where no entity was assigned yet (either
-                            // ever, or due to corrections after a rollback).  This proceeds
-                            // identically to the "impossible ID" case.
-                            .unwrap_or_else(|| {
-                                // Try to atomically compare with the empty id.
-                                match comp.compare_exchange(None, Some(new_item_id)) {
-                                    Ok(_) => {
-                                        let item_id = *next_id;
-                                        *next_id += 1;
-                                        item_id
-                                    },
-                                    Err(item_id) => {
-                                        EntityId::try_from(item_id.expect("TODO: Fix handling of reset to None when we have concurrent writers.").get())
-                                            .expect("We always choose legal EntityIds as item ids")
-                                    },
-                                }
-                            }),
-                        stack_size: if item.is_stackable() {
-                            item.amount() as i32
-                        } else {
-                            1
+            // Fast (kinda) path: acquire read for the common case where an id has
+            // already been assigned.
+            let comp = item.get_item_id_for_database();
+            let item_id = comp.load()
+                // First, we filter out "impossible" entity IDs--IDs that are larger
+                // than the maximum sequence value (next_id).  This is important
+                // because we update the item ID atomically, *before* we know whether
+                // this transaction has completed successfully, and we don't abort the
+                // process on a failed transaction.  In such cases, new IDs from
+                // aborted transactions will show up as having a higher value than the
+                // current max sequence number.  Because the only place that modifies
+                // the item_id through a shared reference is (supposed to be) this
+                // function, which is part of the batch update transaction, we can
+                // assume that any rollback during the update would fail to insert
+                // *any* new items for the current character; this means that any items
+                // inserted between the failure and now (i.e. values less than next_id)
+                // would either not be items at all, or items belonging to other
+                // characters, leading to an easily detectable SQLite failure that we
+                // can use to atomically set the id back to None (if it was still the
+                // same bad value).
+                //
+                // Note that this logic only requires that all the character's items be
+                // updated within the same serializable transaction; the argument does
+                // not depend on SQLite-specific details (like locking) or on the fact
+                // that a user's transactions are always serialized on their own
+                // session.  Also note that since these IDs are in-memory, we don't
+                // have to worry about their values during, e.g., a process crash;
+                // serializability will take care of us in those cases.  Finally, note
+                // that while we have not yet implemented the "liveness" part of the
+                // algorithm (resetting ids back to None if we detect errors), this is
+                // not needed for soundness, and this part can be deferred until we
+                // switch to an execution model where such races are actually possible
+                // during normal gameplay.
+                .and_then(|item_id| Some(if item_id >= new_item_id {
+                    // Try to atomically exchange with our own, "correct" next id.
+                    match comp.compare_exchange(Some(item_id), Some(new_item_id)) {
+                        Ok(_) => {
+                            let item_id = *next_id;
+                            // We won the race, use next_id and increment it.
+                            *next_id += 1;
+                            item_id
                         },
-                    },
-                    // Continue to remember the atomic, in case we detect an error later and want
-                    // to roll back to preserve liveness.
-                    comp,
-                })
-            } else {
-                Either::Right((parent_container_item_id, position))
+                        Err(item_id) => {
+                            // We raced with someone, and they won the race, so we know
+                            // this transaction must abort unless they finish first.  So,
+                            // just assume they will finish first, and use their assigned
+                            // item_id.
+                            EntityId::try_from(item_id?.get())
+                                .expect("We always choose legal EntityIds as item ids")
+                        },
+                    }
+                } else { EntityId::try_from(item_id.get()).expect("We always choose legal EntityIds as item ids") }))
+                // Finally, we're in the case where no entity was assigned yet (either
+                // ever, or due to corrections after a rollback).  This proceeds
+                // identically to the "impossible ID" case.
+                .unwrap_or_else(|| {
+                    // Try to atomically compare with the empty id.
+                    match comp.compare_exchange(None, Some(new_item_id)) {
+                        Ok(_) => {
+                            let item_id = *next_id;
+                            *next_id += 1;
+                            item_id
+                        },
+                        Err(item_id) => {
+                            EntityId::try_from(item_id.expect("TODO: Fix handling of reset to None when we have concurrent writers.").get())
+                                .expect("We always choose legal EntityIds as item ids")
+                        },
+                    }
+                });
+
+            depth.insert(item_id, depth[&parent_container_item_id] + 1);
+
+            for (i, component) in item.components().iter().enumerate() {
+                // recursive items' children have the same position as their parents, and since
+                // they occur afterwards in the topological sort of the parent graph (which
+                // should still always be a tree, even with recursive items), we
+                // have enough information to put them back into their parents on load
+                bfs_queue.push_back((format!("component_{}", i), Some(component), item_id));
             }
-        })
+
+            let upsert = ItemModelPair {
+                model: Item {
+                    item_definition_id: item.item_definition_id().to_owned(),
+                    position,
+                    parent_container_item_id,
+                    item_id,
+                    stack_size: if item.is_stackable() {
+                        item.amount() as i32
+                    } else {
+                        1
+                    },
+                },
+                // Continue to remember the atomic, in case we detect an error later and want
+                // to roll back to preserve liveness.
+                comp,
+            };
+            upserts.push(upsert);
+        }
+    }
+    upserts.sort_by_key(|pair| (depth[&pair.model.item_id], pair.model.item_id));
+    tracing::debug!("upserts: {:#?}", upserts);
+    upserts
 }
 
 pub fn convert_body_to_database_json(body: &CompBody) -> Result<String, Error> {
@@ -192,23 +215,30 @@ pub fn convert_waypoint_from_database_json(position: &str) -> Result<Waypoint, E
     Ok(Waypoint::new(character_position.waypoint, Time(0.0)))
 }
 
+/// Properly-recursive items (currently modular weapons) occupy the same
+/// inventory slot as their parent. The caller is responsible for ensuring that
+/// inventory_items and loadout_items are topologically sorted (i.e. forall i,
+/// `items[i].parent_container_item_id == x` implies exists j < i satisfying
+/// `items[j].item_id == x`)
 pub fn convert_inventory_from_database_items(
+    inventory_container_id: i64,
     inventory_items: &[Item],
+    loadout_container_id: i64,
     loadout_items: &[Item],
 ) -> Result<Inventory, Error> {
     // Loadout items must be loaded before inventory items since loadout items
     // provide inventory slots. Since items stored inside loadout items actually
     // have their parent_container_item_id as the loadout pseudo-container we rely
     // on populating the loadout items first, and then inserting the items into the
-    // inventory at the correct position. When we want to support items inside the
-    // player's inventory containing other items (such as "right click to
-    // unwrap" gifts perhaps) then we will need to refactor inventory/loadout
-    // persistence to traverse the tree of items and load them from the root
-    // down.
-    let loadout = convert_loadout_from_database_items(loadout_items)?;
+    // inventory at the correct position.
+    //
+    let loadout = convert_loadout_from_database_items(loadout_container_id, loadout_items)?;
     let mut inventory = Inventory::new_with_loadout(loadout);
+    let mut item_indices = HashMap::new();
 
-    for db_item in inventory_items.iter() {
+    for (i, db_item) in inventory_items.iter().enumerate() {
+        item_indices.insert(db_item.item_id, i);
+
         let mut item = get_item_from_asset(db_item.item_definition_id.as_str())?;
 
         // NOTE: Since this is freshly loaded, the atomic is *unique.*
@@ -234,55 +264,99 @@ pub fn convert_inventory_from_database_items(
         // Insert item into inventory
 
         // Slot position
-        let slot: InvSlotId = serde_json::from_str(&db_item.position).map_err(|_| {
-            Error::ConversionError(format!(
-                "Failed to parse item position: {:?}",
-                &db_item.position
-            ))
-        })?;
+        let slot = |s: &str| {
+            serde_json::from_str::<InvSlotId>(s).map_err(|_| {
+                Error::ConversionError(format!(
+                    "Failed to parse item position: {:?}",
+                    &db_item.position
+                ))
+            })
+        };
 
-        let insert_res = inventory.insert_at(slot, item).map_err(|_| {
-            // If this happens there were too many items in the database for the current
-            // inventory size
-            Error::ConversionError(format!(
-                "Error inserting item into inventory, position: {:?}",
-                slot
-            ))
-        })?;
+        if db_item.parent_container_item_id == inventory_container_id {
+            let slot = slot(&db_item.position)?;
+            let insert_res = inventory.insert_at(slot, item).map_err(|_| {
+                // If this happens there were too many items in the database for the current
+                // inventory size
+                Error::ConversionError(format!(
+                    "Error inserting item into inventory, position: {:?}",
+                    slot
+                ))
+            })?;
 
-        if insert_res.is_some() {
-            // If inventory.insert returns an item, it means it was swapped for an item that
-            // already occupied the slot. Multiple items being stored in the database for
-            // the same slot is an error.
-            return Err(Error::ConversionError(
-                "Inserted an item into the same slot twice".to_string(),
-            ));
+            if insert_res.is_some() {
+                // If inventory.insert returns an item, it means it was swapped for an item that
+                // already occupied the slot. Multiple items being stored in the database for
+                // the same slot is an error.
+                return Err(Error::ConversionError(
+                    "Inserted an item into the same slot twice".to_string(),
+                ));
+            }
+        } else if let Some(&j) = item_indices.get(&db_item.parent_container_item_id) {
+            if let Some(Some(parent)) = inventory.slot_mut(slot(&inventory_items[j].position)?) {
+                parent.add_component(item);
+            } else {
+                return Err(Error::ConversionError(format!(
+                    "Parent slot {} for component {} was empty even though it occurred earlier in \
+                     the loop?",
+                    db_item.parent_container_item_id, db_item.item_id
+                )));
+            }
+        } else {
+            return Err(Error::ConversionError(format!(
+                "Couldn't find parent item {} before item {} in inventory",
+                db_item.parent_container_item_id, db_item.item_id
+            )));
         }
     }
 
     Ok(inventory)
 }
 
-pub fn convert_loadout_from_database_items(database_items: &[Item]) -> Result<Loadout, Error> {
+pub fn convert_loadout_from_database_items(
+    loadout_container_id: i64,
+    database_items: &[Item],
+) -> Result<Loadout, Error> {
     let loadout_builder = LoadoutBuilder::new();
     let mut loadout = loadout_builder.build();
+    let mut item_indices = HashMap::new();
 
-    for db_item in database_items.iter() {
+    for (i, db_item) in database_items.iter().enumerate() {
+        item_indices.insert(db_item.item_id, i);
+
         let item = get_item_from_asset(db_item.item_definition_id.as_str())?;
+
         // NOTE: item id is currently *unique*, so we can store the ID safely.
         let comp = item.get_item_id_for_database();
         comp.store(Some(NonZeroU64::try_from(db_item.item_id as u64).map_err(
             |_| Error::ConversionError("Item with zero item_id".to_owned()),
         )?));
 
-        loadout
-            .set_item_at_slot_using_persistence_key(&db_item.position, item)
-            .map_err(|err| match err {
-                LoadoutError::InvalidPersistenceKey => Error::ConversionError(format!(
-                    "Invalid persistence key: {}",
-                    &db_item.position
-                )),
-            })?;
+        let convert_error = |err| match err {
+            LoadoutError::InvalidPersistenceKey => {
+                Error::ConversionError(format!("Invalid persistence key: {}", &db_item.position))
+            },
+            LoadoutError::NoParentAtSlot => {
+                Error::ConversionError(format!("No parent item at slot: {}", &db_item.position))
+            },
+        };
+
+        if db_item.parent_container_item_id == loadout_container_id {
+            loadout
+                .set_item_at_slot_using_persistence_key(&db_item.position, item)
+                .map_err(convert_error)?;
+        } else if let Some(&j) = item_indices.get(&db_item.parent_container_item_id) {
+            loadout
+                .update_item_at_slot_using_persistence_key(&database_items[j].position, |parent| {
+                    parent.add_component(item);
+                })
+                .map_err(convert_error)?;
+        } else {
+            return Err(Error::ConversionError(format!(
+                "Couldn't find parent item {} before item {} in loadout",
+                db_item.parent_container_item_id, db_item.item_id
+            )));
+        }
     }
 
     Ok(loadout)

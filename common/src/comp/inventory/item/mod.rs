@@ -240,13 +240,13 @@ impl ItemDef {
     }
 
     pub fn is_modular(&self) -> bool {
-        match &self.kind {
-            ItemKind::Tool(tool) => match tool.stats {
-                tool::StatKind::Direct { .. } => false,
-                tool::StatKind::Modular => true,
-            },
-            _ => false,
-        }
+        matches!(
+            &self.kind,
+            ItemKind::Tool(tool::Tool {
+                stats: tool::StatKind::Modular,
+                ..
+            })
+        )
     }
 
     #[cfg(test)]
@@ -372,25 +372,16 @@ impl Item {
             components.extend(input_components.iter().map(|comp| comp.duplicate()));
         }
 
-        let kind = inner_item.kind();
-        let item_config = if let ItemKind::Tool(_) = kind {
-            Some(Box::new(ItemConfig::from((
-                kind,
-                &*components,
-                &inner_item.ability_map,
-            ))))
-        } else {
-            None
-        };
-
-        Item {
+        let mut item = Item {
             item_id: Arc::new(AtomicCell::new(None)),
             amount: NonZeroU32::new(1).unwrap(),
             components,
             slots: vec![None; inner_item.slots as usize],
             item_def: inner_item,
-            item_config,
-        }
+            item_config: None,
+        };
+        item.update_item_config();
+        item
     }
 
     /// Creates a new instance of an `Item` from the provided asset identifier
@@ -476,6 +467,27 @@ impl Item {
         } else {
             Err(OperationFailure)
         }
+    }
+
+    pub fn add_component(&mut self, component: Item) {
+        // TODO: hook for typechecking (not needed atm if this is only used by DB
+        // persistence, but will definitely be needed once enhancement slots are
+        // added to prevent putting a sword into another sword)
+        self.components.push(component);
+        // adding a component changes the stats, so recalculate the ItemConfig
+        self.update_item_config();
+    }
+
+    fn update_item_config(&mut self) {
+        self.item_config = if let ItemKind::Tool(_) = self.kind() {
+            Some(Box::new(ItemConfig::from((
+                self.kind(),
+                self.components(),
+                &self.item_def.ability_map,
+            ))))
+        } else {
+            None
+        };
     }
 
     /// Returns an iterator that drains items contained within the item's slots
