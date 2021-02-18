@@ -7,6 +7,7 @@
 [![license](https://img.shields.io/github/license/veloren/veloren.svg)](https://gitlab.com/veloren/veloren/blob/master/LICENSE)
 [![discord](https://img.shields.io/discord/449602562165833758.svg)](https://discord.gg/WEXSY9h)
 [![lines of code](https://tokei.rs/b1/gitlab/veloren/veloren)](https://tokei.rs/b1/gitlab/veloren/veloren)
+[![contributor count](https://img.shields.io/github/contributors/veloren/veloren)](https://gitlab.com/veloren/veloren/-/graphs/master)
 
 ## Welcome To Veloren!
 
