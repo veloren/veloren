@@ -14,7 +14,7 @@ pub struct EcsAccessManager {
 impl Default for EcsAccessManager {
     fn default() -> Self {
         Self {
-            ecs_pointer: AtomicPtr::new(std::ptr::null_mut::<_>()),
+            ecs_pointer: AtomicPtr::new(std::ptr::null_mut()),
         }
     }
 }
@@ -27,7 +27,7 @@ impl EcsAccessManager {
             .store(world as *const _ as *mut _, Ordering::Relaxed);
         let out = func();
         self.ecs_pointer
-            .store(std::ptr::null_mut::<_>(), Ordering::Relaxed);
+            .store(std::ptr::null_mut(), Ordering::Relaxed);
         out
     }
 
@@ -124,5 +124,5 @@ pub fn read_bytes(memory: &Memory, position: i32, length: u32) -> Vec<u8> {
     memory.view()[(position as usize)..(position as usize) + length as usize]
         .iter()
         .map(|x| x.get())
-        .collect::<Vec<_>>()
+        .collect()
 }
