@@ -133,14 +133,15 @@ impl SessionState {
                     answer,
                     kind,
                 } => {
-                    // TODO: i18n
+                    // TODO: i18n (complicated since substituting phrases at this granularity may
+                    // not be grammatical in some languages)
                     let kind_str = match kind {
                         InviteKind::Group => "Group",
                         InviteKind::Trade => "Trade",
                     };
                     let target_name = match client.player_list().get(&target) {
                         Some(info) => info.player_alias.clone(),
-                        None => "<unknown>".to_string(),
+                        None => format!("<entity {}>", target),
                     };
                     let answer_str = match answer {
                         InviteAnswer::Accepted => "accepted",
@@ -151,11 +152,11 @@ impl SessionState {
                     self.hud.new_message(ChatType::Meta.chat_msg(msg));
                 },
                 client::Event::TradeComplete { result, trade: _ } => {
-                    // TODO: i18n, entity names
+                    let i18n = global_state.i18n.read();
                     let msg = match result {
-                        TradeResult::Completed => "Trade completed successfully.",
-                        TradeResult::Declined => "Trade declined.",
-                        TradeResult::NotEnoughSpace => "Not enough space to complete the trade.",
+                        TradeResult::Completed => i18n.get("hud.trade.result.completed"),
+                        TradeResult::Declined => i18n.get("hud.trade.result.declined"),
+                        TradeResult::NotEnoughSpace => i18n.get("hud.trade.result.nospace"),
                     };
                     self.hud.new_message(ChatType::Meta.chat_msg(msg));
                 },
@@ -573,11 +574,22 @@ impl PlayState for SessionState {
                                 match interactable {
                                     Interactable::Block(_, _) => {},
                                     Interactable::Entity(entity) => {
-                                        client
-                                            .state()
-                                            .ecs()
-                                            .uid_from_entity(entity)
-                                            .map(|uid| client.send_invite(uid, InviteKind::Trade));
+                                        if let Some(uid) =
+                                            client.state().ecs().uid_from_entity(entity)
+                                        {
+                                            let name = client
+                                                .player_list()
+                                                .get(&uid)
+                                                .map(|info| info.player_alias.clone())
+                                                .unwrap_or_else(|| format!("<entity {:?}>", uid));
+                                            let msg = global_state
+                                                .i18n
+                                                .read()
+                                                .get("hud.trade.invite_sent")
+                                                .replace("{playername}", &name);
+                                            self.hud.new_message(ChatType::Meta.chat_msg(msg));
+                                            client.send_invite(uid, InviteKind::Trade)
+                                        };
                                     },
                                 }
                             }

@@ -12,6 +12,10 @@
 	"hud.trade.has_accepted": "{playername}\nhas accepted",
 	"hud.trade.accept": "Accept",
 	"hud.trade.decline": "Decline",
+	"hud.trade.invite_sent": "Trade request sent to {playername}.",
+	"hud.trade.result.completed": "Trade completed successfully.",
+	"hud.trade.result.declined": "Trade declined.",
+	"hud.trade.result.nospace": "Not enough space to complete the trade.",
     },
 
 

@@ -343,7 +343,7 @@ impl Inventory {
         }
     }
 
-    fn slot(&self, inv_slot_id: InvSlotId) -> Option<&InvSlot> {
+    pub fn slot(&self, inv_slot_id: InvSlotId) -> Option<&InvSlot> {
         match SlotId::from(inv_slot_id) {
             SlotId::Inventory(slot_idx) => self.slots.get(slot_idx),
             SlotId::Loadout(loadout_slot_id) => self.loadout.inv_slot(loadout_slot_id),

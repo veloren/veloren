@@ -1,5 +1,6 @@
 use super::{
-    img_ids::Imgs,
+    get_quality_col,
+    img_ids::{Imgs, ImgsRot},
     item_imgs::ItemImgs,
     slots::{SlotManager, TradeSlot},
     TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
@@ -9,12 +10,12 @@ use crate::{
     ui::{
         fonts::Fonts,
         slot::{ContentSize, SlotMaker},
-        TooltipManager,
+        ImageFrame, Tooltip, TooltipManager, Tooltipable,
     },
 };
 use client::Client;
 use common::{
-    comp::Inventory,
+    comp::{inventory::item::Quality, Inventory},
     trade::{PendingTrade, TradeAction, TradePhase},
 };
 use common_net::sync::WorldSyncExt;
@@ -54,9 +55,10 @@ pub struct Trade<'a> {
     imgs: &'a Imgs,
     item_imgs: &'a ItemImgs,
     fonts: &'a Fonts,
+    rot_imgs: &'a ImgsRot,
+    tooltip_manager: &'a mut TooltipManager,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
-    //tooltip_manager: &'a mut TooltipManager,
     slot_manager: &'a mut SlotManager,
     localized_strings: &'a Localization,
     pulse: f32,
@@ -68,7 +70,8 @@ impl<'a> Trade<'a> {
         imgs: &'a Imgs,
         item_imgs: &'a ItemImgs,
         fonts: &'a Fonts,
-        _tooltip_manager: &'a mut TooltipManager,
+        rot_imgs: &'a ImgsRot,
+        tooltip_manager: &'a mut TooltipManager,
         slot_manager: &'a mut SlotManager,
         localized_strings: &'a Localization,
         pulse: f32,
@@ -78,6 +81,8 @@ impl<'a> Trade<'a> {
             imgs,
             item_imgs,
             fonts,
+            rot_imgs,
+            tooltip_manager,
             common: widget::CommonBuilder::default(),
             //tooltip_manager,
             slot_manager,
@@ -225,6 +230,24 @@ impl<'a> Trade<'a> {
         who: usize,
         tradeslots: &[TradeSlot],
     ) {
+        let item_tooltip = Tooltip::new({
+            // Edge images [t, b, r, l]
+            // Corner images [tr, tl, br, bl]
+            let edge = &self.rot_imgs.tt_side;
+            let corner = &self.rot_imgs.tt_corner;
+            ImageFrame::new(
+                [edge.cw180, edge.none, edge.cw270, edge.cw90],
+                [corner.none, corner.cw270, corner.cw90, corner.cw180],
+                Color::Rgba(0.08, 0.07, 0.04, 1.0),
+                5.0,
+            )
+        })
+        .title_font_size(self.fonts.cyri.scale(15))
+        .parent(ui.window)
+        .desc_font_size(self.fonts.cyri.scale(12))
+        .font_id(self.fonts.cyri.conrod_id)
+        .desc_text_color(TEXT_COLOR);
+
         let mut slot_maker = SlotMaker {
             empty_slot: self.imgs.inv_slot,
             filled_slot: self.imgs.inv_slot,
@@ -270,7 +293,33 @@ impl<'a> Trade<'a> {
                     0.0 + y as f64 * (40.0),
                     0.0 + x as f64 * (40.0),
                 );
-            slot_widget.set(state.ids.inv_slots[i + who * MAX_TRADE_SLOTS], ui);
+            let slot_id = state.ids.inv_slots[i + who * MAX_TRADE_SLOTS];
+            if let Some(Some(item)) = slot.invslot.and_then(|slotid| inventory.slot(slotid)) {
+                let (title, desc) = super::util::item_text(item);
+                let quality_col = get_quality_col(item);
+                let quality_col_img = match item.quality() {
+                    Quality::Low => self.imgs.inv_slot_grey,
+                    Quality::Common => self.imgs.inv_slot,
+                    Quality::Moderate => self.imgs.inv_slot_green,
+                    Quality::High => self.imgs.inv_slot_blue,
+                    Quality::Epic => self.imgs.inv_slot_purple,
+                    Quality::Legendary => self.imgs.inv_slot_gold,
+                    Quality::Artifact => self.imgs.inv_slot_orange,
+                    _ => self.imgs.inv_slot_red,
+                };
+                slot_widget
+                    .filled_slot(quality_col_img)
+                    .with_tooltip(
+                        self.tooltip_manager,
+                        title,
+                        &*desc,
+                        &item_tooltip,
+                        quality_col,
+                    )
+                    .set(slot_id, ui);
+            } else {
+                slot_widget.set(slot_id, ui);
+            }
         }
     }
 
@@ -415,25 +464,6 @@ impl<'a> Widget for Trade<'a> {
                     .resize(2, &mut ui.widget_id_generator());
             });
         }
-
-        // TODO: item tooltips in trade preview
-        /*let trade_tooltip = Tooltip::new({
-            // Edge images [t, b, r, l]
-            // Corner images [tr, tl, br, bl]
-            let edge = &self.rot_imgs.tt_side;
-            let corner = &self.rot_imgs.tt_corner;
-            ImageFrame::new(
-                [edge.cw180, edge.none, edge.cw270, edge.cw90],
-                [corner.none, corner.cw270, corner.cw90, corner.cw180],
-                Color::Rgba(0.08, 0.07, 0.04, 1.0),
-                5.0,
-            )
-        })
-        .title_font_size(self.fonts.cyri.scale(15))
-        .parent(ui.window)
-        .desc_font_size(self.fonts.cyri.scale(12))
-        .font_id(self.fonts.cyri.conrod_id)
-        .desc_text_color(TEXT_COLOR);*/
 
         self.background(&mut state, ui);
         self.title(&mut state, ui);
