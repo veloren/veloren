@@ -3,7 +3,7 @@ ItemDef(
     description: "Forged from steel.",
     kind: Tool((
         kind: Axe,
-        hands: OneHand,
+        hands: One,
         stats: (
             equip_time_millis: 400,
             power: 1.4,
@@ -12,4 +12,5 @@ ItemDef(
         ),
     )),
     quality: Moderate,
+    tags: [],
 )

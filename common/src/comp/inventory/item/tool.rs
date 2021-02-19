@@ -29,8 +29,8 @@ pub enum ToolKind {
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum Hands {
-    OneHand,
-    TwoHand,
+    One,
+    Two,
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
@@ -45,8 +45,10 @@ impl From<&Tool> for Stats {
     fn from(tool: &Tool) -> Self {
         let raw_stats = tool.stats;
         let (power, speed) = match tool.hands {
-            Hands::OneHand => (0.67, 1.33),
-            Hands::TwoHand => (1.5, 0.75),
+            Hands::One => (0.67, 1.33),
+            // TODO: Restore this when one-handed weapons are made accessible
+            // Hands::Two => (1.5, 0.75),
+            Hands::Two => (1.0, 1.0),
         };
         Self {
             equip_time_millis: raw_stats.equip_time_millis,
@@ -91,7 +93,7 @@ impl Tool {
     pub fn empty() -> Self {
         Self {
             kind: ToolKind::Empty,
-            hands: Hands::OneHand,
+            hands: Hands::One,
             stats: Stats {
                 equip_time_millis: 0,
                 power: 1.00,
@@ -129,12 +131,12 @@ impl Tool {
 pub struct AbilitySet<T> {
     pub primary: T,
     pub secondary: T,
-    pub skills: Vec<(Option<Skill>, T)>,
+    pub abilities: Vec<(Option<Skill>, T)>,
 }
 
 impl AbilitySet<CharacterAbility> {
     pub fn modified_by_tool(self, tool: &Tool) -> Self {
-        let stats: Stats = tool.into();
+        let stats: Stats = Stats::from(tool);
         self.map(|a| a.adjusted_by_stats(stats.power, stats.poise_strength, stats.speed))
     }
 }
@@ -144,7 +146,7 @@ impl<T> AbilitySet<T> {
         AbilitySet {
             primary: f(self.primary),
             secondary: f(self.secondary),
-            skills: self.skills.into_iter().map(|(s, x)| (s, f(x))).collect(),
+            abilities: self.abilities.into_iter().map(|(s, x)| (s, f(x))).collect(),
         }
     }
 
@@ -152,7 +154,7 @@ impl<T> AbilitySet<T> {
         AbilitySet {
             primary: f(&self.primary),
             secondary: f(&self.secondary),
-            skills: self.skills.iter().map(|(s, x)| (*s, f(x))).collect(),
+            abilities: self.abilities.iter().map(|(s, x)| (*s, f(x))).collect(),
         }
     }
 }
@@ -162,7 +164,7 @@ impl Default for AbilitySet<CharacterAbility> {
         AbilitySet {
             primary: CharacterAbility::default(),
             secondary: CharacterAbility::default(),
-            skills: vec![],
+            abilities: vec![],
         }
     }
 }

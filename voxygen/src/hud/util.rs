@@ -119,8 +119,8 @@ fn tool_desc(tool: &Tool, desc: &str) -> String {
     //let poise_strength = tool.base_poise_strength();
     let speed = tool.base_speed();
     let hands = match tool.hands {
-        Hands::OneHand => "One",
-        Hands::TwoHand => "Two",
+        Hands::One => "One",
+        Hands::Two => "Two",
     };
 
     if !desc.is_empty() {

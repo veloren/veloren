@@ -126,7 +126,7 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
                     hotbar_image(tool.kind).map(|i| {
                         (
                             i,
-                            if let Some(skill) = tool.get_abilities(ability_map).skills.get(0) {
+                            if let Some(skill) = tool.get_abilities(ability_map).abilities.get(0) {
                                 if energy.current() >= skill.1.get_energy_cost() {
                                     Some(Color::Rgba(1.0, 1.0, 1.0, 1.0))
                                 } else {
@@ -140,22 +140,18 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
                 })
             },
             hotbar::SlotContents::Ability4 => {
-                let active_tool_hands =
-                    match inventory.equipped(EquipSlot::Mainhand).map(|i| i.kind()) {
-                        Some(ItemKind::Tool(tool)) => Some(tool.hands),
-                        _ => None,
-                    };
+                let hands = |equip_slot| match inventory.equipped(equip_slot).map(|i| i.kind()) {
+                    Some(ItemKind::Tool(tool)) => Some(tool.hands),
+                    _ => None,
+                };
 
-                let second_tool_hands =
-                    match inventory.equipped(EquipSlot::Offhand).map(|i| i.kind()) {
-                        Some(ItemKind::Tool(tool)) => Some(tool.hands),
-                        _ => None,
-                    };
+                let active_tool_hands = hands(EquipSlot::Mainhand);
+                let second_tool_hands = hands(EquipSlot::Offhand);
 
                 let (equip_slot, skill_index) = match (active_tool_hands, second_tool_hands) {
-                    (Some(Hands::TwoHand), _) => (Some(EquipSlot::Mainhand), 1),
-                    (_, Some(Hands::OneHand)) => (Some(EquipSlot::Offhand), 0),
-                    (Some(Hands::OneHand), _) => (Some(EquipSlot::Mainhand), 1),
+                    (Some(Hands::Two), _) => (Some(EquipSlot::Mainhand), 1),
+                    (_, Some(Hands::One)) => (Some(EquipSlot::Offhand), 0),
+                    (Some(Hands::One), _) => (Some(EquipSlot::Mainhand), 1),
                     (_, _) => (None, 0),
                 };
 
@@ -170,7 +166,7 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
                         (
                             i,
                             if let Some(skill) =
-                                tool.get_abilities(ability_map).skills.get(skill_index)
+                                tool.get_abilities(ability_map).abilities.get(skill_index)
                             {
                                 if energy.current() >= skill.1.get_energy_cost() {
                                     Some(Color::Rgba(1.0, 1.0, 1.0, 1.0))

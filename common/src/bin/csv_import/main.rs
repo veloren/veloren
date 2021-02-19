@@ -206,18 +206,14 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
 
                             let hands = if let Some(hands_raw) = record.get(3) {
                                 match hands_raw {
-                                    "OneHand" | "One" | "1" | "1h" => {
-                                        comp::item::tool::Hands::OneHand
-                                    },
-                                    "TwoHand" | "Two" | "2" | "2h" => {
-                                        comp::item::tool::Hands::TwoHand
-                                    },
+                                    "One" | "1" | "1h" => comp::item::tool::Hands::One,
+                                    "Two" | "2" | "2h" => comp::item::tool::Hands::Two,
                                     _ => {
                                         eprintln!(
                                             "Unknown hand variant for {:?}",
                                             item.item_definition_id()
                                         );
-                                        comp::item::tool::Hands::TwoHand
+                                        comp::item::tool::Hands::Two
                                     },
                                 }
                             } else {
@@ -225,7 +221,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                                     "Could not unwrap hand for {:?}",
                                     item.item_definition_id()
                                 );
-                                comp::item::tool::Hands::TwoHand
+                                comp::item::tool::Hands::Two
                             };
 
                             let tool = comp::item::tool::Tool::new(

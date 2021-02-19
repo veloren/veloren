@@ -3,7 +3,7 @@ ItemDef(
     description: "Carved from wood.",
     kind: Tool((
         kind: Hammer,
-        hands: OneHand,
+        hands: One,
         stats: (
             equip_time_millis: 500,
             power: 0.5,
@@ -12,4 +12,5 @@ ItemDef(
         ),
     )),
     quality: Low,
+    tags: [],
 )

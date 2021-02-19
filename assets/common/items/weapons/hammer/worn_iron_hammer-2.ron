@@ -3,7 +3,7 @@ ItemDef(
     description: "An unremarkable mace, that has seen a lot of use.",
     kind: Tool((
         kind: Hammer,
-        hands: TwoHand,
+        hands: Two,
         stats: (
             equip_time_millis: 500,
             power: 0.85,

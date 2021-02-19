@@ -46,7 +46,6 @@ pub struct ClientRegister {
 
 /// Messages sent from the client to the server
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[allow(clippy::large_enum_variant)]
 pub enum ClientGeneral {
     //Only in Character Screen
     RequestCharacterList,
@@ -60,7 +59,7 @@ pub enum ClientGeneral {
     Spectate,
     //Only in game
     // Large enum variant allowed for clippy because of this
-    ControllerInputs(comp::ControllerInputs),
+    ControllerInputs(Box<comp::ControllerInputs>),
     ControlEvent(comp::ControlEvent),
     ControlAction(comp::ControlAction),
     SetViewDistance(u32),

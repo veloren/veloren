@@ -452,7 +452,7 @@ impl Body {
         }
     }
 
-    /// Returns the eye height for this humanoid.
+    /// Returns the eye height for this creature.
     pub fn eye_height(&self) -> f32 { self.height() * 0.9 }
 
     pub fn default_light_offset(&self) -> Vec3<f32> {

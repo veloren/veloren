@@ -78,7 +78,7 @@ fn maps_basic_melee() {
                 knockback: 0.0,
                 range: 1.0,
                 max_angle: 1.0,
-                ability_info: states::utils::AbilityInfo::empty_info(),
+                ability_info: empty_info(),
             },
             timer: Duration::default(),
             stage_section: states::utils::StageSection::Buildup,
@@ -132,7 +132,7 @@ fn matches_ability_stage() {
                 max_speed_increase: 0.8,
                 scales_from_combo: 2,
                 is_interruptible: true,
-                ability_info: states::utils::AbilityInfo::empty_info(),
+                ability_info: empty_info(),
             },
             stage: 1,
             combo: 0,
@@ -191,7 +191,7 @@ fn ignores_different_ability_stage() {
                 max_speed_increase: 0.8,
                 scales_from_combo: 2,
                 is_interruptible: true,
-                ability_info: states::utils::AbilityInfo::empty_info(),
+                ability_info: empty_info(),
             },
             stage: 1,
             combo: 0,
@@ -214,4 +214,12 @@ fn ignores_different_ability_stage() {
             ToolKind::Sword
         )
     );
+}
+
+fn empty_ability_info() -> states::utils::AbilityInfo {
+    Self {
+        tool: None,
+        hand: None,
+        key: states::utils::AbilityKey::Mouse1,
+    }
 }

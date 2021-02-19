@@ -3,7 +3,7 @@ ItemDef(
     description: "The blade has been chipped quite a few times.",
     kind: Tool((
         kind: Sword,
-        hands: TwoHand,
+        hands: Two,
         stats: (
             equip_time_millis: 500,
             power: 0.8,

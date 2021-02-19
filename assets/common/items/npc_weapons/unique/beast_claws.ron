@@ -4,7 +4,7 @@ ItemDef(
     kind: Tool(
         (
             kind: Unique(BeastClaws),
-            hands: TwoHand,
+            hands: Two,
             stats: (
                 equip_time_millis: 500,
                 power: 1.00,

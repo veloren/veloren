@@ -3,7 +3,7 @@ ItemDef(
     description: "Bone(s?)",
     kind: Tool((
         kind: Hammer,
-        hands: OneHand,
+        hands: One,
         stats: (
             equip_time_millis: 500,
             power: 0.7,
@@ -12,4 +12,5 @@ ItemDef(
         ),
     )),
     quality: Common,
+    tags: [],
 )

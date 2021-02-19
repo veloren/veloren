@@ -3,7 +3,7 @@ ItemDef(
     description: "Chiseled from stone.",
     kind: Tool((
         kind: Axe,
-        hands: OneHand,
+        hands: One,
         stats: (
             equip_time_millis: 400,
             power: 0.7,
@@ -12,4 +12,5 @@ ItemDef(
         ),
     )),
     quality: Common,
+    tags: [],
 )

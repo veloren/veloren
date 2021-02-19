@@ -3,7 +3,7 @@ ItemDef(
     description: "This axe has a heavy iron head used to cleave nearly anything.",
     kind: Tool((
         kind: Axe,
-        hands: TwoHand,
+        hands: Two,
         stats: (
             equip_time_millis: 400,
             power: 1.2,

@@ -1719,7 +1719,7 @@
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
     ),
     // Debug Items
-    Tool("common.items.debug.debug_stick"): VoxTrans(
+    Tool("common.items.debug.admin_stick"): VoxTrans(
         "voxel.weapon.tool.broom_belzeshrub_purple",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
     ),

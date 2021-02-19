@@ -3,7 +3,7 @@ ItemDef(
     description: "The fire gives off no heat.",
     kind: Tool((
         kind: Staff,
-        hands: TwoHand,
+        hands: Two,
         stats: (
             equip_time_millis: 300,
             power: 2.0,

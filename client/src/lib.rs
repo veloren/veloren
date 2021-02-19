@@ -1083,7 +1083,7 @@ impl Client {
                     "Couldn't access controller component on client entity"
                 );
             }
-            self.send_msg_err(ClientGeneral::ControllerInputs(inputs))?;
+            self.send_msg_err(ClientGeneral::ControllerInputs(Box::new(inputs)))?;
         }
 
         // 2) Build up a list of events for this frame, to be passed to the frontend.

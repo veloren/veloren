@@ -456,28 +456,22 @@ impl<'a> Widget for Skillbar<'a> {
                             _ => None,
                         }),
                     hotbar::SlotContents::Ability4 => {
-                        let active_tool_hands = match content_source
+                        let hands = |equip_slot| match content_source
                             .1
-                            .equipped(EquipSlot::Mainhand)
+                            .equipped(equip_slot)
                             .map(|i| i.kind())
                         {
                             Some(ItemKind::Tool(tool)) => Some(tool.hands),
                             _ => None,
                         };
 
-                        let second_tool_hands = match content_source
-                            .1
-                            .equipped(EquipSlot::Offhand)
-                            .map(|i| i.kind())
-                        {
-                            Some(ItemKind::Tool(tool)) => Some(tool.hands),
-                            _ => None,
-                        };
+                        let active_tool_hands = hands(EquipSlot::Mainhand);
+                        let second_tool_hands = hands(EquipSlot::Offhand);
 
                         let equip_slot = match (active_tool_hands, second_tool_hands) {
-                            (Some(Hands::TwoHand), _) => Some(EquipSlot::Mainhand),
-                            (_, Some(Hands::OneHand)) => Some(EquipSlot::Offhand),
-                            (Some(Hands::OneHand), _) => Some(EquipSlot::Mainhand),
+                            (Some(Hands::Two), _) => Some(EquipSlot::Mainhand),
+                            (_, Some(Hands::One)) => Some(EquipSlot::Offhand),
+                            (Some(Hands::One), _) => Some(EquipSlot::Mainhand),
                             (_, _) => None,
                         };
 
@@ -600,9 +594,9 @@ impl<'a> Widget for Skillbar<'a> {
         let second_tool = get_tool(self.inventory, EquipSlot::Offhand);
 
         let tool = match (active_tool.map(|x| x.hands), second_tool.map(|x| x.hands)) {
-            (Some(Hands::TwoHand), _) => active_tool,
-            (_, Some(Hands::OneHand)) => second_tool,
-            (Some(Hands::OneHand), _) => active_tool,
+            (Some(Hands::Two), _) => active_tool,
+            (_, Some(Hands::One)) => second_tool,
+            (Some(Hands::One), _) => active_tool,
             (_, _) => None,
         };
 

@@ -3,7 +3,7 @@ ItemDef(
     description: "The sword\'s almost a work of art.",
     kind: Tool((
         kind: Sword,
-        hands: TwoHand,
+        hands: Two,
         stats: (
             equip_time_millis: 500,
             power: 1.7,

@@ -82,7 +82,7 @@ impl State {
             inventory.equipped(EquipSlot::Mainhand).map_or(false, |i| {
                 i.item_config_expect()
                     .abilities
-                    .skills
+                    .abilities
                     .get(0)
                     .as_ref()
                     .map_or(false, |(s, _)| {
@@ -116,21 +116,18 @@ impl State {
         let stats = client.state().ecs().read_storage::<common::comp::Stats>();
         let stat = stats.get(client.entity());
         let should_be_present = if let (Some(inventory), Some(stat)) = (inventory, stat) {
-            let active_tool_hands = match inventory.equipped(EquipSlot::Mainhand).map(|i| i.kind())
-            {
+            let hands = |equip_slot| match inventory.equipped(equip_slot).map(|i| i.kind()) {
                 Some(ItemKind::Tool(tool)) => Some(tool.hands),
                 _ => None,
             };
 
-            let second_tool_hands = match inventory.equipped(EquipSlot::Offhand).map(|i| i.kind()) {
-                Some(ItemKind::Tool(tool)) => Some(tool.hands),
-                _ => None,
-            };
+            let active_tool_hands = hands(EquipSlot::Mainhand);
+            let second_tool_hands = hands(EquipSlot::Offhand);
 
             let (equip_slot, skill_index) = match (active_tool_hands, second_tool_hands) {
-                (Some(Hands::TwoHand), _) => (Some(EquipSlot::Mainhand), 1),
-                (_, Some(Hands::OneHand)) => (Some(EquipSlot::Offhand), 0),
-                (Some(Hands::OneHand), _) => (Some(EquipSlot::Mainhand), 1),
+                (Some(Hands::Two), _) => (Some(EquipSlot::Mainhand), 1),
+                (_, Some(Hands::One)) => (Some(EquipSlot::Offhand), 0),
+                (Some(Hands::One), _) => (Some(EquipSlot::Mainhand), 1),
                 (_, _) => (None, 0),
             };
 
@@ -138,7 +135,7 @@ impl State {
                 inventory.equipped(equip_slot).map_or(false, |i| {
                     i.item_config_expect()
                         .abilities
-                        .skills
+                        .abilities
                         .get(skill_index)
                         .as_ref()
                         .map_or(false, |(s, _)| {

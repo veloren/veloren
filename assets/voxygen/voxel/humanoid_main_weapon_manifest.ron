@@ -730,7 +730,7 @@
         color: None
     ),
     // Misc
-    "common.items.debug.debug_stick": (
+    "common.items.debug.admin_stick": (
         vox_spec: ("weapon.tool.broom_belzeshrub_purple", (-3.0, -4.0, -4.0)),
         color: None
     ),

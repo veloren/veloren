@@ -1,9 +1,9 @@
 UPDATE item
 SET item_definition_id = 'common.items.debug.admin_sword' WHERE item_definition_id = 'common.items.debug.cultist_purp_2h_boss-0';
 UPDATE item
-SET item_definition_id = 'common.items.debug.debug_stick' WHERE item_definition_id = 'common.items.debug.boost';
+SET item_definition_id = 'common.items.debug.admin_stick' WHERE item_definition_id = 'common.items.debug.boost';
 UPDATE item
-SET item_definition_id = 'common.items.debug.debug_stick' WHERE item_definition_id = 'common.items.debug.possess';
+SET item_definition_id = 'common.items.debug.admin_stick' WHERE item_definition_id = 'common.items.debug.possess';
 UPDATE item
 SET item_definition_id = 'common.items.weapons.malachite_axe-0' WHERE item_definition_id = 'common.items.npc_weapons.malachite_axe-0';
 UPDATE item

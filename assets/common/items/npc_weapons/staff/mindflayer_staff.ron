@@ -4,7 +4,7 @@ ItemDef(
     kind: Tool(
         (
             kind: Staff,
-            hands: TwoHand,
+            hands: Two,
             stats: (
                 equip_time_millis: 300,
                 power: 3.0,

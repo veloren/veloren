@@ -144,7 +144,7 @@ impl Animation for IdleAnimation {
         next.torso.position = Vec3::new(0.0, 0.0, 0.0) * s_a.scaler;
 
         next.second.scale = match hands {
-            (Some(Hands::OneHand), Some(Hands::OneHand)) => Vec3::one(),
+            (Some(Hands::One), Some(Hands::One)) => Vec3::one(),
             (_, _) => Vec3::zero(),
         };
 

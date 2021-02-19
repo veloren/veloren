@@ -3,7 +3,7 @@ ItemDef(
     description: "Forged from cobalt.",
     kind: Tool((
         kind: Hammer,
-        hands: OneHand,
+        hands: One,
         stats: (
             equip_time_millis: 500,
             power: 1.6,
@@ -12,4 +12,5 @@ ItemDef(
         ),
     )),
     quality: High,
+    tags: [],
 )

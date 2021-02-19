@@ -3,7 +3,7 @@ ItemDef(
     description: "All that remains of a tree...",
     kind: Tool((
         kind: Hammer,
-        hands: OneHand,
+        hands: One,
         stats: (
             equip_time_millis: 500,
             power: 0.8,
@@ -12,4 +12,5 @@ ItemDef(
         ),
     )),
     quality: Low,
+    tags: [],
 )

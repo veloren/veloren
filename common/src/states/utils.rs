@@ -2,7 +2,9 @@ use crate::{
     comp::{
         inventory::slot::EquipSlot,
         item::{Hands, ItemKind, Tool, ToolKind},
-        quadruped_low, quadruped_medium, theropod, Body, CharacterState, LoadoutManip, StateUpdate,
+        quadruped_low, quadruped_medium,
+        skills::Skill,
+        theropod, Body, CharacterAbility, CharacterState, LoadoutManip, StateUpdate,
     },
     consts::{FRIC_GROUND, GRAVITY},
     event::{LocalEvent, ServerEvent},
@@ -400,157 +402,84 @@ pub fn handle_jump(data: &JoinData, update: &mut StateUpdate) {
     }
 }
 
-pub fn handle_ability1_input(data: &JoinData, update: &mut StateUpdate) {
-    if data.inputs.primary.is_pressed() {
+fn handle_ability_pressed(data: &JoinData, update: &mut StateUpdate, ability_key: AbilityKey) {
+    let hands = |equip_slot| match data.inventory.equipped(equip_slot).map(|i| i.kind()) {
+        Some(ItemKind::Tool(tool)) => Some(tool.hands),
+        _ => None,
+    };
+
+    // Mouse1 and Skill1 always use the MainHand slot
+    let always_main_hand = matches!(ability_key, AbilityKey::Mouse1 | AbilityKey::Skill1);
+    // skill_index used to select ability for the AbilityKey::Skill2 input
+    let (equip_slot, skill_index) = if always_main_hand {
+        (Some(EquipSlot::Mainhand), 0)
+    } else {
+        let hands = (hands(EquipSlot::Mainhand), hands(EquipSlot::Offhand));
+        match hands {
+            (Some(Hands::Two), _) => (Some(EquipSlot::Mainhand), 1),
+            (_, Some(Hands::One)) => (Some(EquipSlot::Offhand), 0),
+            (Some(Hands::One), _) => (Some(EquipSlot::Mainhand), 1),
+            (_, _) => (None, 0),
+        }
+    };
+
+    let unlocked = |(s, a): (Option<Skill>, CharacterAbility)| {
+        s.map_or(true, |s| data.stats.skill_set.has_skill(s))
+            .then_some(a)
+    };
+
+    if let Some(equip_slot) = equip_slot {
         if let Some(ability) = data
             .inventory
-            .equipped(EquipSlot::Mainhand)
-            .map(|i| &i.item_config_expect().abilities.primary)
+            .equipped(equip_slot)
+            .map(|i| &i.item_config_expect().abilities)
+            .and_then(|abilities| match ability_key {
+                AbilityKey::Mouse1 => Some(abilities.primary.clone()),
+                AbilityKey::Mouse2 => Some(abilities.secondary.clone()),
+                AbilityKey::Skill1 => abilities.abilities.get(0).cloned().and_then(unlocked),
+                AbilityKey::Skill2 => abilities
+                    .abilities
+                    .get(skill_index)
+                    .cloned()
+                    .and_then(unlocked),
+                AbilityKey::Dodge => None,
+            })
             .map(|a| {
-                let tool = unwrap_tool_data(data, EquipSlot::Mainhand).map(|t| t.kind);
-                a.clone().adjusted_by_skills(&data.stats.skill_set, tool)
+                let tool = unwrap_tool_data(data, equip_slot).map(|t| t.kind);
+                a.adjusted_by_skills(&data.stats.skill_set, tool)
             })
             .filter(|ability| ability.requirements_paid(data, update))
         {
             update.character = (
                 &ability,
-                AbilityInfo::from_key(data, AbilityKey::Mouse1, false),
+                AbilityInfo::from_key(data, ability_key, matches!(equip_slot, EquipSlot::Offhand)),
             )
                 .into();
         }
+    }
+}
+
+pub fn handle_ability1_input(data: &JoinData, update: &mut StateUpdate) {
+    if data.inputs.primary.is_pressed() {
+        handle_ability_pressed(data, update, AbilityKey::Mouse1);
     }
 }
 
 pub fn handle_ability2_input(data: &JoinData, update: &mut StateUpdate) {
     if data.inputs.secondary.is_pressed() {
-        let active_tool_hands = match data
-            .inventory
-            .equipped(EquipSlot::Mainhand)
-            .map(|i| i.kind())
-        {
-            Some(ItemKind::Tool(tool)) => Some(tool.hands),
-            _ => None,
-        };
-
-        let second_tool_hands = match data
-            .inventory
-            .equipped(EquipSlot::Offhand)
-            .map(|i| i.kind())
-        {
-            Some(ItemKind::Tool(tool)) => Some(tool.hands),
-            _ => None,
-        };
-
-        let equip_slot = match (active_tool_hands, second_tool_hands) {
-            (Some(Hands::TwoHand), _) => Some(EquipSlot::Mainhand),
-            (_, Some(Hands::OneHand)) => Some(EquipSlot::Offhand),
-            (Some(Hands::OneHand), _) => Some(EquipSlot::Mainhand),
-            (_, _) => None,
-        };
-
-        if let Some(equip_slot) = equip_slot {
-            if let Some(ability) = data
-                .inventory
-                .equipped(equip_slot)
-                .map(|i| &i.item_config_expect().abilities.secondary)
-                .map(|a| {
-                    let tool = unwrap_tool_data(data, equip_slot).map(|t| t.kind);
-                    a.clone().adjusted_by_skills(&data.stats.skill_set, tool)
-                })
-                .filter(|ability| ability.requirements_paid(data, update))
-            {
-                update.character = (
-                    &ability,
-                    AbilityInfo::from_key(
-                        data,
-                        AbilityKey::Mouse2,
-                        matches!(equip_slot, EquipSlot::Offhand),
-                    ),
-                )
-                    .into();
-            }
-        }
+        handle_ability_pressed(data, update, AbilityKey::Mouse2);
     }
 }
 
 pub fn handle_ability3_input(data: &JoinData, update: &mut StateUpdate) {
     if data.inputs.ability3.is_pressed() {
-        if let Some(ability) = data
-            .inventory
-            .equipped(EquipSlot::Mainhand)
-            .and_then(|i| i.item_config_expect().abilities.skills.get(0))
-            .and_then(|(s, a)| {
-                s.map_or(true, |s| data.stats.skill_set.has_skill(s))
-                    .then_some(a)
-            })
-            .map(|a| {
-                let tool = unwrap_tool_data(data, EquipSlot::Mainhand).map(|t| t.kind);
-                a.clone().adjusted_by_skills(&data.stats.skill_set, tool)
-            })
-            .filter(|ability| ability.requirements_paid(data, update))
-        {
-            update.character = (
-                &ability,
-                AbilityInfo::from_key(data, AbilityKey::Skill1, false),
-            )
-                .into();
-        }
+        handle_ability_pressed(data, update, AbilityKey::Skill1);
     }
 }
 
 pub fn handle_ability4_input(data: &JoinData, update: &mut StateUpdate) {
     if data.inputs.ability4.is_pressed() {
-        let active_tool_hands = match data
-            .inventory
-            .equipped(EquipSlot::Mainhand)
-            .map(|i| i.kind())
-        {
-            Some(ItemKind::Tool(tool)) => Some(tool.hands),
-            _ => None,
-        };
-
-        let second_tool_hands = match data
-            .inventory
-            .equipped(EquipSlot::Offhand)
-            .map(|i| i.kind())
-        {
-            Some(ItemKind::Tool(tool)) => Some(tool.hands),
-            _ => None,
-        };
-
-        let (equip_slot, skill_index) = match (active_tool_hands, second_tool_hands) {
-            (Some(Hands::TwoHand), _) => (Some(EquipSlot::Mainhand), 1),
-            (_, Some(Hands::OneHand)) => (Some(EquipSlot::Offhand), 0),
-            (Some(Hands::OneHand), _) => (Some(EquipSlot::Mainhand), 1),
-            (_, _) => (None, 0),
-        };
-
-        if let Some(equip_slot) = equip_slot {
-            if let Some(ability) = data
-                .inventory
-                .equipped(equip_slot)
-                .and_then(|i| i.item_config_expect().abilities.skills.get(skill_index))
-                .and_then(|(s, a)| {
-                    s.map_or(true, |s| data.stats.skill_set.has_skill(s))
-                        .then_some(a)
-                })
-                .map(|a| {
-                    let tool = unwrap_tool_data(data, equip_slot).map(|t| t.kind);
-                    a.clone().adjusted_by_skills(&data.stats.skill_set, tool)
-                })
-                .filter(|ability| ability.requirements_paid(data, update))
-            {
-                update.character = (
-                    &ability,
-                    AbilityInfo::from_key(
-                        data,
-                        AbilityKey::Skill2,
-                        matches!(equip_slot, EquipSlot::Offhand),
-                    ),
-                )
-                    .into();
-            }
-        }
+        handle_ability_pressed(data, update, AbilityKey::Skill2);
     }
 }
 
@@ -716,15 +645,6 @@ impl AbilityInfo {
 
         Self { tool, hand, key }
     }
-
-    /// For audio sfx test
-    pub fn empty_info() -> Self {
-        Self {
-            tool: None,
-            hand: None,
-            key: AbilityKey::Mouse1,
-        }
-    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
@@ -737,8 +657,8 @@ pub enum HandInfo {
 impl HandInfo {
     pub fn from_main_tool(tool: &Tool) -> Self {
         match tool.hands {
-            Hands::TwoHand => Self::TwoHanded,
-            Hands::OneHand => Self::MainHand,
+            Hands::Two => Self::TwoHanded,
+            Hands::One => Self::MainHand,
         }
     }
 }

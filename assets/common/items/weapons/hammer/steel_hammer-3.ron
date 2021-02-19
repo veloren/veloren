@@ -3,7 +3,7 @@ ItemDef(
     description: "A heavy, spiked steel ball tip provides a great smashing weapon.",
     kind: Tool((
         kind: Hammer,
-        hands: TwoHand,
+        hands: Two,
         stats: (
             equip_time_millis: 500,
             power: 1.4,
