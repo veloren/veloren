@@ -47,6 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Adjusted Stonework Defender loot table to remove mindflayer drops (bag, staff, glider).
 - Changed default controller key bindings
 - Improved network efficiency by ≈ factor 10 by using tokio.
+- Added item tooltips to trade window.
 
 ### Removed
 
