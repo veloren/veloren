@@ -22,7 +22,6 @@ pub fn setup(tracing: bool, sleep: u64) -> (u64, u64) {
     let _subscriber = if tracing {
         let filter = EnvFilter::from_default_env()
             .add_directive("trace".parse().unwrap())
-            .add_directive("async_std::task::block_on=warn".parse().unwrap())
             .add_directive("veloren_network::tests=trace".parse().unwrap())
             .add_directive("veloren_network::controller=trace".parse().unwrap())
             .add_directive("veloren_network::channel=trace".parse().unwrap())

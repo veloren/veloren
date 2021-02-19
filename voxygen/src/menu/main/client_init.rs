@@ -6,7 +6,7 @@ use crossbeam::channel::{unbounded, Receiver, Sender, TryRecvError};
 use std::{
     net::SocketAddr,
     sync::{
-        atomic::{AtomicBool, Ordering},
+        atomic::{AtomicBool, AtomicUsize, Ordering},
         Arc,
     },
     time::Duration,
@@ -50,6 +50,7 @@ impl ClientInit {
         username: String,
         view_distance: Option<u32>,
         password: String,
+        runtime: Option<Arc<runtime::Runtime>>,
     ) -> Self {
         let (server_address, port, prefer_ipv6) = connection_args;
 
@@ -58,15 +59,21 @@ impl ClientInit {
         let cancel = Arc::new(AtomicBool::new(false));
         let cancel2 = Arc::clone(&cancel);
 
-        let cores = num_cpus::get();
-
-        let runtime = Arc::new(
-            runtime::Builder::new_multi_thread()
-                .enable_all()
-                .worker_threads(if cores > 4 { cores - 1 } else { cores })
-                .build()
-                .unwrap(),
-        );
+        let runtime = runtime.unwrap_or_else(|| {
+            let cores = num_cpus::get();
+            Arc::new(
+                runtime::Builder::new_multi_thread()
+                    .enable_all()
+                    .worker_threads(if cores > 4 { cores - 1 } else { cores })
+                    .thread_name_fn(|| {
+                        static ATOMIC_ID: AtomicUsize = AtomicUsize::new(0);
+                        let id = ATOMIC_ID.fetch_add(1, Ordering::SeqCst);
+                        format!("tokio-voxygen-{}", id)
+                    })
+                    .build()
+                    .unwrap(),
+            )
+        });
         let runtime2 = Arc::clone(&runtime);
 
         runtime.spawn(async move {
@@ -85,9 +92,7 @@ impl ClientInit {
                     break;
                 }
                 for socket_addr in &addresses {
-                    match Client::new(socket_addr.clone(), view_distance, Arc::clone(&runtime2))
-                        .await
-                    {
+                    match Client::new(*socket_addr, view_distance, Arc::clone(&runtime2)).await {
                         Ok(mut client) => {
                             if let Err(e) = client
                                 .register(username, password, |auth_server| {
@@ -140,23 +145,26 @@ impl ClientInit {
         }
     }
 
+    /// Parse ip address or resolves hostname.
+    /// Note: if you use an ipv6 address, the number after the last colon will
+    /// be used as the port unless you use [] around the address.
     async fn resolve(
         server_address: String,
         port: u16,
         prefer_ipv6: bool,
     ) -> Result<Vec<SocketAddr>, std::io::Error> {
-        //1. try if server_address already contains a port
+        // 1. try if server_address already contains a port
         if let Ok(addr) = server_address.parse::<SocketAddr>() {
             warn!("please don't add port directly to server_address");
             return Ok(vec![addr]);
         }
 
-        //2, try server_address and port
+        // 2, try server_address and port
         if let Ok(addr) = format!("{}:{}", server_address, port).parse::<SocketAddr>() {
             return Ok(vec![addr]);
         }
 
-        //3. do DNS call
+        // 3. do DNS call
         let (mut first_addrs, mut second_addrs) = match lookup_host(server_address).await {
             Ok(s) => s.partition::<Vec<_>, _>(|a| a.is_ipv6() == prefer_ipv6),
             Err(e) => {

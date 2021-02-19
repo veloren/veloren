@@ -26,7 +26,7 @@ pub(crate) struct ConnectionHandler {
 /// to the Server main thread sometimes though to get the current server_info
 /// and time
 impl ConnectionHandler {
-    pub fn new(network: Network, runtime: Arc<Runtime>) -> Self {
+    pub fn new(network: Network, runtime: &Runtime) -> Self {
         let network = Arc::new(network);
         let network_clone = Arc::clone(&network);
         let (stop_sender, stop_receiver) = oneshot::channel();

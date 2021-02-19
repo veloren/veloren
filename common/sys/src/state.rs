@@ -5,8 +5,7 @@ use common::{
     event::{EventBus, LocalEvent, ServerEvent},
     metrics::{PhysicsMetrics, SysMetrics},
     region::RegionMap,
-    resources,
-    resources::{DeltaTime, Time, TimeOfDay},
+    resources::{DeltaTime, GameMode, Time, TimeOfDay},
     span,
     terrain::{Block, TerrainChunk, TerrainGrid},
     time::DayPeriod,
@@ -90,22 +89,34 @@ pub struct State {
 
 impl State {
     /// Create a new `State` in client mode.
-    pub fn client() -> Self { Self::new(resources::GameMode::Client) }
+    pub fn client() -> Self { Self::new(GameMode::Client) }
 
     /// Create a new `State` in server mode.
-    pub fn server() -> Self { Self::new(resources::GameMode::Server) }
+    pub fn server() -> Self { Self::new(GameMode::Server) }
 
-    pub fn new(game_mode: resources::GameMode) -> Self {
+    pub fn new(game_mode: GameMode) -> Self {
+        let thread_name_infix = match game_mode {
+            GameMode::Server => "s",
+            GameMode::Client => "c",
+            GameMode::Singleplayer => "sp",
+        };
+
+        let thread_pool = Arc::new(
+            ThreadPoolBuilder::new()
+                .thread_name(move |i| format!("rayon-{}-{}", thread_name_infix, i))
+                .build()
+                .unwrap(),
+        );
         Self {
             ecs: Self::setup_ecs_world(game_mode),
-            thread_pool: Arc::new(ThreadPoolBuilder::new().build().unwrap()),
+            thread_pool,
         }
     }
 
     /// Creates ecs world and registers all the common components and resources
     // TODO: Split up registering into server and client (e.g. move
     // EventBus<ServerEvent> to the server)
-    fn setup_ecs_world(game_mode: resources::GameMode) -> specs::World {
+    fn setup_ecs_world(game_mode: GameMode) -> specs::World {
         let mut ecs = specs::World::new();
         // Uids for sync
         ecs.register_sync_marker();

@@ -376,7 +376,7 @@ impl Server {
             .await
         });
         runtime.block_on(network.listen(ProtocolAddr::Tcp(settings.gameserver_address)))?;
-        let connection_handler = ConnectionHandler::new(network, Arc::clone(&runtime));
+        let connection_handler = ConnectionHandler::new(network, &runtime);
 
         // Initiate real-time world simulation
         #[cfg(feature = "worldgen")]

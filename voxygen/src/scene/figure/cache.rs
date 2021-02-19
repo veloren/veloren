@@ -312,7 +312,7 @@ where
         tick: u64,
         camera_mode: CameraMode,
         character_state: Option<&CharacterState>,
-        runtime: &Arc<Runtime>,
+        runtime: &Runtime,
     ) -> (FigureModelEntryLod<'c>, &'c Skel::Attr)
     where
         for<'a> &'a Skel::Body: Into<Skel::Attr>,

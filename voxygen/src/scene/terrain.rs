@@ -638,7 +638,11 @@ impl<V: RectRasterableVol> Terrain<V> {
 
         // Limit ourselves to u16::MAX even if larger textures are supported.
         let max_texture_size = renderer.max_texture_size();
-        let cores = num_cpus::get();
+        let meshing_cores = match num_cpus::get() as u64 {
+            n if n < 4 => 1,
+            n if n < 8 => n - 3,
+            n => n - 4,
+        };
 
         span!(guard, "Queue meshing from todo list");
         for (todo, chunk) in self
@@ -655,7 +659,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     .cloned()?))
             })
         {
-            if self.mesh_todos_active.load(Ordering::Relaxed) > (cores as u64 - 1).max(1) {
+            if self.mesh_todos_active.load(Ordering::Relaxed) > meshing_cores {
                 break;
             }
 

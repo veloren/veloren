@@ -29,7 +29,6 @@ use common::{
     terrain::BlockKind,
     vol::{BaseVol, ReadVol},
 };
-use std::sync::Arc;
 use tokio::runtime::Runtime;
 use tracing::error;
 use vek::*;
@@ -98,7 +97,7 @@ pub struct SceneData<'a> {
     pub time: f64,
     pub delta_time: f32,
     pub tick: u64,
-    pub runtime: &'a Arc<Runtime>,
+    pub runtime: &'a Runtime,
     pub body: Option<humanoid::Body>,
     pub gamma: f32,
     pub exposure: f32,
