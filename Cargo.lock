@@ -356,25 +356,22 @@ dependencies = [
 
 [[package]]
 name = "bindgen"
-version = "0.56.0"
+version = "0.53.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2da379dbebc0b76ef63ca68d8fc6e71c0f13e59432e0987e508c1820e6ab5239"
+checksum = "c72a978d268b1d70b0e963217e60fdabd9523a941457a6c42a7315d15c7e89e5"
 dependencies = [
  "bitflags",
  "cexpr",
+ "cfg-if 0.1.10",
  "clang-sys",
- "clap",
- "env_logger",
  "lazy_static",
  "lazycell",
- "log",
  "peeking_take_while",
  "proc-macro2 1.0.24",
  "quote 1.0.9",
  "regex",
  "rustc-hash",
  "shlex",
- "which 3.1.1",
 ]
 
 [[package]]
@@ -565,13 +562,13 @@ checksum = "fff857943da45f546682664a79488be82e69e43c1a7a2307679ab9afb3a66d2e"
 
 [[package]]
 name = "clang-sys"
-version = "1.1.0"
+version = "0.29.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5cb92721cb37482245ed88428f72253ce422b3b4ee169c70a0642521bb5db4cc"
+checksum = "fe6837df1d5cba2397b835c8530f51723267e16abbf83892e9e5af4f0e5dd10a"
 dependencies = [
  "glob",
  "libc",
- "libloading",
+ "libloading 0.5.2",
 ]
 
 [[package]]
@@ -945,9 +942,9 @@ dependencies = [
 
 [[package]]
 name = "coreaudio-sys"
-version = "0.2.8"
+version = "0.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2b7e3347be6a09b46aba228d6608386739fb70beff4f61e07422da87b0bb31fa"
+checksum = "d6570ee6e089131e928d5ec9236db9e818aa3cf850f48b0eec6ef700571271d4"
 dependencies = [
  "bindgen",
 ]
@@ -1456,7 +1453,7 @@ version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b11f15d1e3268f140f68d390637d5e76d849782d971ae7063e0da69fe9709a76"
 dependencies = [
- "libloading",
+ "libloading 0.6.7",
 ]
 
 [[package]]
@@ -1546,19 +1543,6 @@ dependencies = [
  "proc-macro2 1.0.24",
  "quote 1.0.9",
  "syn 1.0.60",
-]
-
-[[package]]
-name = "env_logger"
-version = "0.8.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "17392a012ea30ef05a610aa97dfb49496e71c9f676b27879922ea5bdf60d9d3f"
-dependencies = [
- "atty",
- "humantime",
- "log",
- "regex",
- "termcolor",
 ]
 
 [[package]]
@@ -2101,7 +2085,7 @@ dependencies = [
  "glutin_glx_sys",
  "glutin_wgl_sys",
  "lazy_static",
- "libloading",
+ "libloading 0.6.7",
  "log",
  "objc",
  "osmesa-sys",
@@ -2356,12 +2340,6 @@ name = "httpdate"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "494b4d60369511e7dea41cf646832512a94e542f68bb9c49e54518e0f468eb47"
-
-[[package]]
-name = "humantime"
-version = "2.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9a3a5bfb195931eeb336b2a7b4d761daec841b97f947d34394601737a7bba5e4"
 
 [[package]]
 name = "hyper"
@@ -2773,6 +2751,16 @@ dependencies = [
 
 [[package]]
 name = "libloading"
+version = "0.5.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f2b111a074963af1d37a139918ac6d49ad1d0d5e47f72fd55388619691a7d753"
+dependencies = [
+ "cc",
+ "winapi 0.3.9",
+]
+
+[[package]]
+name = "libloading"
 version = "0.6.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "351a32417a12d5f7e82c368a66781e307834dae04c6ce0cd4456d52989229883"
@@ -3009,9 +2997,9 @@ dependencies = [
 
 [[package]]
 name = "minifb"
-version = "0.19.2"
+version = "0.19.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "87b4b6a6da61c3003a41e84ee1f6b56e079f835f4d4fce424fc84092b57ad804"
+checksum = "2eb411a297b8f714800f085846cbda55fbd2ae17ecd381f1b4652af0e5bebe63"
 dependencies = [
  "cc",
  "orbclient",
@@ -3138,7 +3126,7 @@ dependencies = [
  "raw-window-handle",
  "thiserror",
  "wfd",
- "which 4.0.2",
+ "which",
  "winapi 0.3.9",
 ]
 
@@ -5847,6 +5835,7 @@ dependencies = [
  "conrod_core",
  "conrod_winit",
  "copy_dir",
+ "coreaudio-sys",
  "cpal",
  "criterion",
  "crossbeam",
@@ -5912,7 +5901,7 @@ dependencies = [
  "find_folder",
  "inline_tweak",
  "lazy_static",
- "libloading",
+ "libloading 0.6.7",
  "notify 5.0.0-pre.5",
  "tracing",
  "vek 0.12.0",
@@ -6203,7 +6192,7 @@ dependencies = [
  "bincode",
  "cfg-if 0.1.10",
  "leb128",
- "libloading",
+ "libloading 0.6.7",
  "serde",
  "tempfile",
  "tracing",
@@ -6212,7 +6201,7 @@ dependencies = [
  "wasmer-object",
  "wasmer-types",
  "wasmer-vm",
- "which 4.0.2",
+ "which",
 ]
 
 [[package]]
@@ -6485,15 +6474,6 @@ dependencies = [
 
 [[package]]
 name = "which"
-version = "3.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d011071ae14a2f6671d0b74080ae0cd8ebf3a6f8c9589a2cd45f23126fe29724"
-dependencies = [
- "libc",
-]
-
-[[package]]
-name = "which"
 version = "4.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "87c14ef7e1b8b8ecfc75d5eca37949410046e66f15d185c01d70824f1f8111ef"
@@ -6718,11 +6698,10 @@ dependencies = [
 
 [[package]]
 name = "xkbcommon-sys"
-version = "0.7.5"
+version = "0.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "59a001b79d45b0b4541c228a501177f2b35db976bf7ee3f7fce8fa2381554ab5"
+checksum = "fa434980dca02ebf28795d71e570dbb78316d095a228707efd6117bf8246d78b"
 dependencies = [
- "bindgen",
  "libc",
  "pkg-config",
 ]
