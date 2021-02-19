@@ -10,10 +10,6 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - name: Install git-filter-repo
-        run: git clone https://github.com/newren/git-filter-repo.git;
-          ./git-filter-repo/git-filter-repo --help
-
       - name: Clone Gitlab repo
         run: git lfs install;
           git clone https://gitlab.com/veloren/veloren.git;
@@ -22,10 +18,6 @@ jobs:
         run: cd veloren;
           git lfs uninstall;
           git lfs migrate export --include="*" --everything;
-
-      - name: Remove workflow files
-        run: cd veloren;
-          ../git-filter-repo/git-filter-repo --invert-paths --path .github --force;
 
       - name: Push changes
         uses: ad-m/github-push-action@master
