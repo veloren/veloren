@@ -67,14 +67,23 @@ impl Site {
         }
     }
 
-    pub fn create_road(&mut self, land: &Land, rng: &mut impl Rng, a: Vec2<i32>, b: Vec2<i32>) -> Option<Id<Plot>> {
+    pub fn create_road(&mut self, land: &Land, rng: &mut impl Rng, a: Vec2<i32>, b: Vec2<i32>, w: i32) -> Option<Id<Plot>> {
         const MAX_ITERS: usize = 4096;
-        let heuristic = |tile: &Vec2<i32>| if self.tiles.get(*tile).is_obstacle() { 100.0 } else { 0.0 };
+        let heuristic = |tile: &Vec2<i32>| {
+            for y in 0..w {
+                for x in 0..w {
+                    if self.tiles.get(*tile + Vec2::new(x, y)).is_obstacle() {
+                        return 100.0;
+                    }
+                }
+            }
+            (tile.distance_squared(b) as f32).sqrt()
+        };
         let path = Astar::new(MAX_ITERS, a, &heuristic, DefaultHashBuilder::default()).poll(
             MAX_ITERS,
             &heuristic,
             |tile| { let tile = *tile; CARDINALS.iter().map(move |dir| tile + *dir) },
-            |a, b| (a.distance_squared(*b) as f32).sqrt(),
+            |a, b| rng.gen_range(1.0..1.5),
             |tile| *tile == b,
         ).into_path()?;
 
@@ -89,10 +98,14 @@ impl Site {
         self.roads.push(plot);
 
         for &tile in path.iter() {
-            self.tiles.set(tile, Tile {
-                kind: TileKind::Road,
-                plot: Some(plot),
-            });
+            for y in 0..w {
+                for x in 0..w {
+                    self.tiles.set(tile + Vec2::new(x, y), Tile {
+                        kind: TileKind::Road,
+                        plot: Some(plot),
+                    });
+                }
+            }
         }
 
         Some(plot)
@@ -101,21 +114,24 @@ impl Site {
     pub fn find_aabr(&mut self, search_pos: Vec2<i32>, area_range: Range<u32>, min_dims: Extent2<u32>) -> Option<(Aabr<i32>, Vec2<i32>)> {
         self.tiles.find_near(
             search_pos,
-            |center, _| if CARDINALS.iter().any(|&dir| self.tiles.get(center + dir).kind == TileKind::Road) {
-                self.tiles.grow_aabr(center, area_range.clone(), min_dims).ok()
-            } else {
-                None
-            },
+            |center, _| self.tiles.grow_aabr(center, area_range.clone(), min_dims)
+                .ok()
+                .filter(|aabr| {
+                    (aabr.min.x..aabr.max.x).any(|x| self.tiles.get(Vec2::new(x, aabr.min.y - 1)).kind == TileKind::Road)
+                    || (aabr.min.x..aabr.max.x).any(|x| self.tiles.get(Vec2::new(x, aabr.max.y)).kind == TileKind::Road)
+                    || (aabr.min.y..aabr.max.y).any(|y| self.tiles.get(Vec2::new(aabr.min.x - 1, y)).kind == TileKind::Road)
+                    || (aabr.min.y..aabr.max.y).any(|y| self.tiles.get(Vec2::new(aabr.max.x, y)).kind == TileKind::Road)
+                }),
         )
     }
 
     pub fn find_roadside_aabr(&mut self, rng: &mut impl Rng, area_range: Range<u32>, min_dims: Extent2<u32>) -> Option<(Aabr<i32>, Vec2<i32>)> {
         let dir = Vec2::<f32>::zero().map(|_| rng.gen_range(-1.0..1.0)).normalized();
         let search_pos = if rng.gen() {
-            self.plot(*self.plazas.choose(rng)?).root_tile + (dir * 5.0).map(|e: f32| e.round() as i32)
+            self.plot(*self.plazas.choose(rng)?).root_tile + (dir * 4.0).map(|e: f32| e.round() as i32)
         } else {
             if let PlotKind::Road(path) = &self.plot(*self.roads.choose(rng)?).kind {
-                *path.nodes().choose(rng)? + (dir * 1.5).map(|e: f32| e.round() as i32)
+                *path.nodes().choose(rng)? + (dir * 1.0).map(|e: f32| e.round() as i32)
             } else {
                 unreachable!()
             }
@@ -128,11 +144,11 @@ impl Site {
         let pos = attempt(32, || {
             self.plazas
                 .choose(rng)
-                .map(|&p| self.plot(p).root_tile + Vec2::new(rng.gen_range(-20..20), rng.gen_range(-20..20)))
+                .map(|&p| self.plot(p).root_tile + (Vec2::new(rng.gen_range(-1.0..1.0), rng.gen_range(-1.0..1.0)).normalized() * 24.0).map(|e| e as i32))
                 .filter(|&tile| self
                     .plazas
                     .iter()
-                    .all(|&p| self.plot(p).root_tile.distance_squared(tile) > 16i32.pow(2))
+                    .all(|&p| self.plot(p).root_tile.distance_squared(tile) > 20i32.pow(2))
                     && rng.gen_range(0..48) > tile.map(|e| e.abs()).reduce_max())
         })
             .unwrap_or_else(Vec2::zero);
@@ -152,13 +168,14 @@ impl Site {
         });
 
         let mut already_pathed = vec![plaza];
-        for _ in 0..2 {
+        // One major, one minor road
+        for width in (1..=2).rev() {
             if let Some(&p) = self.plazas
                 .iter()
                 .filter(|p| !already_pathed.contains(p))
                 .min_by_key(|&&p| self.plot(p).root_tile.distance_squared(pos))
             {
-                self.create_road(land, rng, self.plot(p).root_tile, pos);
+                self.create_road(land, rng, self.plot(p).root_tile, pos, width);
                 already_pathed.push(p);
             } else {
                 break;
@@ -179,7 +196,7 @@ impl Site {
         let build_chance = Lottery::from(vec![
             (1.0, 0),
             (48.0, 1),
-            (2.0, 2),
+            (5.0, 2),
             (1.0, 3),
         ]);
 
@@ -197,7 +214,7 @@ impl Site {
                 },
                 // House
                 1 => {
-                    let size = (2.0 + rng.gen::<f32>().powf(4.0) * 3.0).round() as u32;
+                    let size = (2.0 + rng.gen::<f32>().powf(8.0) * 3.0).round() as u32;
                     if let Some((aabr, _)) = attempt(10, || site.find_roadside_aabr(rng, 4..(size + 1).pow(2), Extent2::broadcast(size))) {
                         let plot = site.create_plot(Plot {
                             kind: PlotKind::House,
