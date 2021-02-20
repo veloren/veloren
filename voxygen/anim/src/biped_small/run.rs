@@ -89,9 +89,9 @@ impl Animation for RunAnimation {
                 .sin()
                 * 0.1,
         );
-        next.chest.scale = Vec3::one()*s_a.scaler / 11.0;
-        next.foot_l.scale = Vec3::one()*s_a.scaler / 11.0;
-        next.foot_r.scale = Vec3::one()*s_a.scaler / 11.0;
+        next.chest.scale = Vec3::one() * s_a.scaler / 11.0;
+        next.foot_l.scale = Vec3::one() * s_a.scaler / 11.0;
+        next.foot_r.scale = Vec3::one() * s_a.scaler / 11.0;
         next.head.position = Vec3::new(0.0, -1.0 + s_a.head.0, s_a.head.1 + short * 0.1);
         next.head.orientation =
             Quaternion::rotation_z(tilt * -2.5 + head_look.x * 0.2 - short * 0.02)
@@ -101,7 +101,8 @@ impl Animation for RunAnimation {
             0.0,
             s_a.chest.0,
             s_a.chest.1 + 1.0 * speednorm + shortalt * -0.8,
-        )*s_a.scaler / 11.0;
+        ) * s_a.scaler
+            / 11.0;
         next.chest.orientation = Quaternion::rotation_z(short * 0.06 + tilt * -0.6)
             * Quaternion::rotation_y(tilt * 1.6)
             * Quaternion::rotation_x(shortalter * 0.035 + speednorm * -0.4 + (tilt.abs()));
@@ -140,7 +141,8 @@ impl Animation for RunAnimation {
             s_a.foot.2
                 + (1.0 - sideabs) * (2.0 * speednorm + ((footvertl * -1.1 * speednorm).max(-1.0)))
                 + side * ((footvertsl * 1.5).max(-1.0)),
-        )*s_a.scaler / 11.0;
+        ) * s_a.scaler
+            / 11.0;
         next.foot_l.orientation = Quaternion::rotation_x(
             (1.0 - sideabs) * (-0.2 * speednorm + foothoril * -0.9 * speednorm) + sideabs * -0.5,
         ) * Quaternion::rotation_y(
@@ -155,7 +157,8 @@ impl Animation for RunAnimation {
             s_a.foot.2
                 + (1.0 - sideabs) * (2.0 * speednorm + ((footvertr * -1.1 * speednorm).max(-1.0)))
                 + side * ((footvertsr * -1.5).max(-1.0)),
-        )*s_a.scaler / 11.0;
+        ) * s_a.scaler
+            / 11.0;
         next.foot_r.orientation = Quaternion::rotation_x(
             (1.0 - sideabs) * (-0.2 * speednorm + foothorir * -0.9 * speednorm) + sideabs * -0.5,
         ) * Quaternion::rotation_y(

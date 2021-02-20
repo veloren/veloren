@@ -4,6 +4,7 @@ ItemDef(
     kind: Tool(
         (
             kind: Unique(WendigoMagic),
+            hands: Two,
             stats: (
                 equip_time_millis: 500,
                 power: 1.00,
@@ -13,4 +14,5 @@ ItemDef(
         )
     ),
     quality: Low,
+    tags: [],
 )

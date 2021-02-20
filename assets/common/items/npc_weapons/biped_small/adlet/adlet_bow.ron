@@ -3,7 +3,8 @@ ItemDef(
     description: "Strips of leather are wrapped around the handle.",  
     kind: Tool(
         (
-            kind: Bow,    
+            kind: Bow, 
+            hands: Two,   
             stats: (
                 equip_time_millis: 0,
                 power: 0.7,
@@ -13,4 +14,5 @@ ItemDef(
         )
     ),
     quality: Moderate,
+    tags: [],
 )

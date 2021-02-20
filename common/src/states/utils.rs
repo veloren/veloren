@@ -1,8 +1,9 @@
 use crate::{
     comp::{
+        biped_large, biped_small,
         inventory::slot::EquipSlot,
         item::{Hands, ItemKind, Tool, ToolKind},
-biped_large, biped_small, quadruped_low, quadruped_medium,
+        quadruped_low, quadruped_medium,
         skills::Skill,
         theropod, Body, CharacterAbility, CharacterState, LoadoutManip, StateUpdate,
     },
@@ -74,7 +75,8 @@ impl Body {
                 biped_large::Species::Mindflayer => 90.0,
                 biped_large::Species::Minotaur => 90.0,
                 _ => 80.0,
-            },           Body::BirdMedium(_) => 80.0,
+            },
+            Body::BirdMedium(_) => 80.0,
             Body::FishMedium(_) => 80.0,
             Body::Dragon(_) => 250.0,
             Body::BirdSmall(_) => 75.0,

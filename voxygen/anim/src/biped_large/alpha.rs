@@ -95,10 +95,8 @@ impl Animation for AlphaAnimation {
                     5.0 + s_a.grip / 1.2 + move1 * -4.0 + move2 * 8.0,
                     -4.0 + -s_a.grip / 2.0 + move2 * -5.0,
                 );
-                next.upper_torso.orientation =
-                    Quaternion::rotation_z(move1 * 0.5 + move2 * -0.7);
-                next.lower_torso.orientation =
-                    Quaternion::rotation_z(move1 * -0.5 + move2 * 0.7);
+                next.upper_torso.orientation = Quaternion::rotation_z(move1 * 0.5 + move2 * -0.7);
+                next.lower_torso.orientation = Quaternion::rotation_z(move1 * -0.5 + move2 * 0.7);
                 next.control_l.orientation =
                     Quaternion::rotation_x(PI / 2.0 + move1 * -0.5 + move2 * 1.5)
                         * Quaternion::rotation_y(-0.2);

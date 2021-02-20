@@ -32,30 +32,30 @@
     Spear: (
         primary: "common.abilities.spear.doublestrike",
         secondary: "common.abilities.spear.dash",
-        skills: [],
+        abilities: [],
 
     ),
     HammerSimple: (
         primary: "common.abilities.hammersimple.doublestrike",
         secondary: "common.abilities.hammersimple.doublestrike",
-        skills: [],
+        abilities: [],
 
     ),
     SwordSimple: (
         primary: "common.abilities.swordsimple.doublestrike",
         secondary: "common.abilities.swordsimple.dash",
-        skills: [
+        abilities: [
         ],
     ),
     StaffSimple: (
         primary: "common.abilities.staffsimple.firebomb",
         secondary: "common.abilities.staffsimple.firebomb",
-        skills: [],
+        abilities: [],
     ),
     BowSimple: (
         primary: "common.abilities.bowsimple.basic",
         secondary: "common.abilities.bowsimple.basic",
-        skills: [
+        abilities: [
         ],
     ),
     Staff: (
@@ -95,12 +95,12 @@
     Unique(WendigoMagic): (
         primary: "common.abilities.unique.wendigomagic.frostbomb",
         secondary: "common.abilities.unique.wendigomagic.singlestrike",
-        skills: [],
+        abilities: [],
     ),
     Unique(TidalClaws): (
         primary: "common.abilities.staff.flamethrower",
         secondary: "common.abilities.unique.wendigomagic.singlestrike",
-        skills: [],
+        abilities: [],
     ),
     Unique(QuadMedQuick): (
         primary: "common.abilities.unique.quadmedquick.triplestrike",
@@ -159,8 +159,8 @@
     Unique(QuadLowBeam): (
         primary: "common.abilities.unique.quadlowbeam.healingbeam",
         secondary: "common.abilities.unique.quadlowbreathe.triplestrike",
-        skills: [
-            "common.abilities.unique.quadlowbreathe.dash",
+        abilities: [
+    (None, "common.abilities.unique.quadlowbreathe.dash"),
         ],
     ),
     Unique(QuadSmallBasic): (

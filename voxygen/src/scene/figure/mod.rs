@@ -1516,7 +1516,6 @@ impl FigureMgr {
                                     time,
                                     state.avg_vel,
                                     state.acc_vel,
-
                                 ),
                                 state.state_time,
                                 &mut state_animation_rate,
@@ -1534,7 +1533,6 @@ impl FigureMgr {
                                 time,
                                 state.avg_vel,
                                 state.acc_vel,
-
                             ),
                             state.state_time,
                             &mut state_animation_rate,
@@ -2050,7 +2048,6 @@ impl FigureMgr {
                                 time,
                                 state.avg_vel,
                                 state.acc_vel,
-
                             ),
                             state.state_time,
                             &mut state_animation_rate,
@@ -2067,7 +2064,6 @@ impl FigureMgr {
                                 time,
                                 state.avg_vel,
                                 state.acc_vel,
-
                             ),
                             state.state_time,
                             &mut state_animation_rate,
@@ -2580,7 +2576,13 @@ impl FigureMgr {
                         // Idle
                         (true, false, false) => anim::biped_small::IdleAnimation::update_skeleton(
                             &BipedSmallSkeleton::default(),
-                            (vel.0, ori, state.last_ori, time, state.avg_vel),
+                            (
+                                vel.0,
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                time,
+                                state.avg_vel,
+                            ),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
@@ -2590,8 +2592,8 @@ impl FigureMgr {
                             &BipedSmallSkeleton::default(),
                             (
                                 vel.0,
-                                ori,
-                                state.last_ori,
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                 time,
                                 state.avg_vel,
                                 state.acc_vel,
@@ -2605,8 +2607,8 @@ impl FigureMgr {
                             &BipedSmallSkeleton::default(),
                             (
                                 vel.0,
-                                ori,
-                                state.last_ori,
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                 time,
                                 state.avg_vel,
                                 state.acc_vel,
@@ -2620,8 +2622,8 @@ impl FigureMgr {
                             &BipedSmallSkeleton::default(),
                             (
                                 vel.0,
-                                ori,
-                                state.last_ori,
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                 time,
                                 state.avg_vel,
                                 state.acc_vel,
@@ -2632,7 +2634,13 @@ impl FigureMgr {
                         ),
                         _ => anim::biped_small::IdleAnimation::update_skeleton(
                             &BipedSmallSkeleton::default(),
-                            (vel.0, ori, state.last_ori, time, state.avg_vel),
+                            (
+                                vel.0,
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                time,
+                                state.avg_vel,
+                            ),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
@@ -2646,8 +2654,8 @@ impl FigureMgr {
                                 (
                                     active_tool_kind,
                                     vel.0,
-                                    ori,
-                                    state.last_ori,
+                                    ori * anim::vek::Vec3::<f32>::unit_y(),
+                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                     time,
                                     state.avg_vel,
                                     state.acc_vel,
@@ -2678,8 +2686,8 @@ impl FigureMgr {
                                 &target_base,
                                 (
                                     vel.0,
-                                    ori,
-                                    state.last_ori,
+                                    ori * anim::vek::Vec3::<f32>::unit_y(),
+                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                     time,
                                     state.avg_vel,
                                     state.acc_vel,
@@ -2709,8 +2717,8 @@ impl FigureMgr {
                                 (
                                     active_tool_kind,
                                     vel.0,
-                                    ori,
-                                    state.last_ori,
+                                    ori * anim::vek::Vec3::<f32>::unit_y(),
+                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                     time,
                                     state.avg_vel,
                                     state.acc_vel,
@@ -2740,8 +2748,8 @@ impl FigureMgr {
                                 (
                                     active_tool_kind,
                                     vel.0,
-                                    ori,
-                                    state.last_ori,
+                                    ori * anim::vek::Vec3::<f32>::unit_y(),
+                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                     time,
                                     state.avg_vel,
                                     state.acc_vel,
@@ -2782,8 +2790,8 @@ impl FigureMgr {
                                     &target_base,
                                     (
                                         vel.0,
-                                        ori,
-                                        state.last_ori,
+                                        ori * anim::vek::Vec3::<f32>::unit_y(),
+                                        state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                         time,
                                         state.avg_vel,
                                         state.acc_vel,
@@ -2798,8 +2806,8 @@ impl FigureMgr {
                                     &target_base,
                                     (
                                         vel.0,
-                                        ori,
-                                        state.last_ori,
+                                        ori * anim::vek::Vec3::<f32>::unit_y(),
+                                        state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                         time,
                                         state.avg_vel,
                                         state.acc_vel,
@@ -3732,7 +3740,13 @@ impl FigureMgr {
                         // In air
                         (false, _, false) => anim::golem::RunAnimation::update_skeleton(
                             &GolemSkeleton::default(),
-                            (vel.0, ori, state.last_ori, time, state.acc_vel),
+                            (
+                                vel.0,
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                time,
+                                state.acc_vel,
+                            ),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
