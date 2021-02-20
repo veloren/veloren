@@ -1,0 +1,16 @@
+ItemDef(
+    name: "Gnoll Staff",
+    description: "eekum bokum",
+    kind: Tool(
+        (
+            kind: Staff,    
+            stats: (
+                equip_time_millis: 0,
+                power: 0.7,
+                poise_strength: 0.8,
+                speed: 1.0
+            ),
+        )
+    ),
+    quality: Low,
+)

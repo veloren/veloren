@@ -619,10 +619,12 @@ impl Floor {
                                 )
                                 .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
                                 .with_main_tool(comp::Item::new_from_asset_expect(
-                                    match dynamic_rng.gen_range(0..3) {
-                                        0 => "common.items.npc_weapons.spear.wooden_spear",
-                                        1 => "common.items.npc_weapons.staff.gnoll",
-                                        _ => "common.items.npc_weapons.bow.adlet",
+                                    match dynamic_rng.gen_range(0..5) {
+                                        0 => "common.items.npc_weapons.biped_small.gnarling.wooden_spear",
+                                        1 => "common.items.npc_weapons.biped_small.gnarling.wooden_spear",
+                                        2 => "common.items.npc_weapons.biped_small.gnarling.wooden_spear",
+                                        3 => "common.items.npc_weapons.biped_small.gnarling.gnoll_staff",
+                                        _ => "common.items.npc_weapons.biped_small.gnarling.adlet_bow",
                                     },
                                 )),
                             1 => entity
@@ -639,10 +641,12 @@ impl Floor {
                                 )
                                 .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
                                 .with_main_tool(comp::Item::new_from_asset_expect(
-                                    match dynamic_rng.gen_range(0..3) {
-                                        0 => "common.items.npc_weapons.spear.wooden_spear",
-                                        1 => "common.items.npc_weapons.staff.gnoll",
-                                        _ => "common.items.npc_weapons.bow.adlet",
+                                    match dynamic_rng.gen_range(0..5) {
+                                        0 => "common.items.npc_weapons.biped_small.adlet.wooden_spear",
+                                        1 => "common.items.npc_weapons.biped_small.adlet.wooden_spear",
+                                        2 => "common.items.npc_weapons.biped_small.adlet.wooden_spear",
+                                        3 => "common.items.npc_weapons.biped_small.adlet.gnoll_staff",
+                                        _ => "common.items.npc_weapons.biped_small.adlet.adlet_bow",
                                     },
                                 )),
                             2 => entity
@@ -659,12 +663,14 @@ impl Floor {
                                 )
                                 .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
                                 .with_main_tool(comp::Item::new_from_asset_expect(
-                                    match dynamic_rng.gen_range(0..3) {
-                                        0 => "common.items.npc_weapons.spear.wooden_spear",
-                                        1 => "common.items.npc_weapons.staff.gnoll",
-                                        _ => "common.items.npc_weapons.bow.adlet",
-                                    },
-                                )),
+                                        match dynamic_rng.gen_range(0..5) {
+                                            0 => "common.items.npc_weapons.biped_small.sahagin.wooden_spear",
+                                            1 => "common.items.npc_weapons.biped_small.sahagin.wooden_spear",
+                                            2 => "common.items.npc_weapons.biped_small.sahagin.wooden_spear",
+                                            3 => "common.items.npc_weapons.biped_small.sahagin.gnoll_staff",
+                                            _ => "common.items.npc_weapons.biped_small.sahagin.adlet_bow",
+                                        },
+                                    )),
                             3 => entity
                                 .with_body(comp::Body::BipedSmall(
                                     comp::biped_small::Body::random_with(
@@ -679,10 +685,12 @@ impl Floor {
                                 )
                                 .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
                                 .with_main_tool(comp::Item::new_from_asset_expect(
-                                    match dynamic_rng.gen_range(0..3) {
-                                        0 => "common.items.npc_weapons.spear.wooden_spear",
-                                        1 => "common.items.npc_weapons.staff.gnoll",
-                                        _ => "common.items.npc_weapons.bow.adlet",
+                                    match dynamic_rng.gen_range(0..5) {
+                                        0 => "common.items.npc_weapons.biped_small.haniwa.wooden_spear",
+                                        1 => "common.items.npc_weapons.biped_small.haniwa.wooden_spear",
+                                        2 => "common.items.npc_weapons.biped_small.haniwa.wooden_spear",
+                                        3 => "common.items.npc_weapons.biped_small.haniwa.gnoll_staff",
+                                        _ => "common.items.npc_weapons.biped_small.haniwa.adlet_bow",
                                     },
                                 )),
                             4 => entity
@@ -699,12 +707,14 @@ impl Floor {
                                 )
                                 .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
                                 .with_main_tool(comp::Item::new_from_asset_expect(
-                                    match dynamic_rng.gen_range(0..3) {
-                                        0 => "common.items.npc_weapons.spear.wooden_spear",
-                                        1 => "common.items.npc_weapons.staff.gnoll",
-                                        _ => "common.items.npc_weapons.bow.adlet",
-                                    },
-                                )),
+                                        match dynamic_rng.gen_range(0..5) {
+                                            0 => "common.items.npc_weapons.biped_small.myrmidon.wooden_spear",
+                                            1 => "common.items.npc_weapons.biped_small.myrmidon.wooden_spear",
+                                            2 => "common.items.npc_weapons.biped_small.myrmidon.wooden_spear",
+                                            3 => "common.items.npc_weapons.biped_small.myrmidon.gnoll_staff",
+                                            _ => "common.items.npc_weapons.biped_small.myrmidon.adlet_bow",
+                                        },
+                                    )),
                             5 => match dynamic_rng.gen_range(0..6) {
                                 0 => entity
                                     .with_body(comp::Body::BipedSmall(

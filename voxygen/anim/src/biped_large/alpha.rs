@@ -96,9 +96,9 @@ impl Animation for AlphaAnimation {
                     -4.0 + -s_a.grip / 2.0 + move2 * -5.0,
                 );
                 next.upper_torso.orientation =
-                    Quaternion::rotation_z(move1base * 0.5 + move2 * -0.7);
+                    Quaternion::rotation_z(move1 * 0.5 + move2 * -0.7);
                 next.lower_torso.orientation =
-                    Quaternion::rotation_z(move1base * -0.5 + move2 * 0.7);
+                    Quaternion::rotation_z(move1 * -0.5 + move2 * 0.7);
                 next.control_l.orientation =
                     Quaternion::rotation_x(PI / 2.0 + move1 * -0.5 + move2 * 1.5)
                         * Quaternion::rotation_y(-0.2);
@@ -108,7 +108,7 @@ impl Animation for AlphaAnimation {
                         * Quaternion::rotation_z(0.0);
 
                 next.control.orientation =
-                    Quaternion::rotation_x(-0.2 + move1 * 0.5 + move2 * -1.5)
+                    Quaternion::rotation_x(-0.2 + move1 * 0.5 + move2 * -2.0)
                         * Quaternion::rotation_y(-0.1 + move1 * -0.5 + move2 * 1.0);
             },
             Some(ToolKind::HammerSimple) => {

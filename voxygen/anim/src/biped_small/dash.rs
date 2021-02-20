@@ -63,7 +63,6 @@ impl Animation for DashAnimation {
         let pullback = 1.0 - move4;
         let move1abs = move1base * pullback;
         let move2abs = move2base * pullback;
-        let move3abs = move2base * pullback;
 
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
         next.head.orientation = Quaternion::rotation_x(move1abs * 0.6)

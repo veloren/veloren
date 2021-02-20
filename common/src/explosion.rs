@@ -1,4 +1,4 @@
-use crate::{combat::Attack, effect::Effect, comp::item::Reagent};
+use crate::{combat::Attack, comp::item::Reagent, effect::Effect};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

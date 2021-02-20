@@ -139,10 +139,7 @@ impl ProjectileConstructor {
                     ignore_group: true,
                 }
             },
-            Frostball {
-                damage,
-                radius,
-            } => {
+            Frostball { damage, radius } => {
                 let damage = AttackDamage::new(
                     Damage {
                         source: DamageSource::Explosion,
@@ -152,9 +149,7 @@ impl ProjectileConstructor {
                 );
                 let attack = Attack::default().with_damage(damage);
                 let explosion = Explosion {
-                    effects: vec![
-                        RadiusEffect::Attack(attack),
-                    ],
+                    effects: vec![RadiusEffect::Attack(attack)],
                     radius,
                     reagent: Some(Reagent::Blue),
                 };

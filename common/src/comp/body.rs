@@ -370,7 +370,14 @@ impl Body {
                 biped_large::Species::Yeti => 2000,
                 _ => 1000,
             },
-            Body::BipedSmall(_) => 10000,
+            Body::BipedSmall(biped_small) => match biped_small.species {
+                biped_small::Species::Gnarling => 300,
+                biped_small::Species::Adlet => 400,
+                biped_small::Species::Sahagin => 500,
+                biped_small::Species::Haniwa => 900,
+                biped_small::Species::Myrmidon => 1000,
+            _ => 600,
+            },   
             Body::Object(object) => match object {
                 object::Body::TrainingDummy => 10000,
                 object::Body::Crossbow => 800,

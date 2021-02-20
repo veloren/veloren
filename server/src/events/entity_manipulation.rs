@@ -571,12 +571,7 @@ pub fn handle_respawn(server: &Server, entity: EcsEntity) {
 }
 
 #[allow(clippy::blocks_in_if_conditions)]
-pub fn handle_explosion(
-    server: &Server,
-    pos: Vec3<f32>,
-    explosion: Explosion,
-    owner: Option<Uid>,
-) {
+pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, owner: Option<Uid>) {
     // Go through all other entities
     let ecs = &server.state.ecs();
 

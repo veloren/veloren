@@ -75,6 +75,7 @@ pub struct SkeletonAttr {
     hand: (f32, f32, f32),
     foot: (f32, f32, f32),
     grip: (f32, f32, f32),
+    scaler: f32,
 }
 
 impl<'a> std::convert::TryFrom<&'a comp::Body> for SkeletonAttr {
@@ -98,6 +99,7 @@ impl Default for SkeletonAttr {
             hand: (0.0, 0.0, 0.0),
             foot: (0.0, 0.0, 0.0),
             grip: (0.0, 0.0, 0.0),
+            scaler: 0.0,
         }
     }
 }
@@ -189,6 +191,18 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Gnoll, _) => (1.0, 0.0, 9.0),
                 (Haniwa, _) => (0.0, 0.5, 8.0),
                 (Myrmidon, _) => (0.0, 0.0, 8.0),
+            },
+            scaler: match (body.species, body.body_type) {
+                (Gnome, _) => 1.0,
+                (Sahagin, _) => 1.3,
+                (Adlet, _) => 1.2,
+                (Gnarling, _) => 1.0,
+                (Mandragora, _) => 1.0,
+                (Kappa, _) => 1.0,
+                (Cactid, _) => 1.0,
+                (Gnoll, _) => 1.0,
+                (Haniwa, _) => 1.4,
+                (Myrmidon, _) => 1.5,
             },
         }
     }

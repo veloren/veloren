@@ -5,10 +5,10 @@ ItemDef(
         (
             kind: Bow,    
             stats: (
-                equip_time_millis: 200,
-                power: 0.8,
+                equip_time_millis: 0,
+                power: 0.7,
                 poise_strength: 0.8,
-                speed: 1.0
+                speed: 0.5
             ),            
         )
     ),

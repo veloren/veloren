@@ -16,7 +16,7 @@ impl Animation for RunAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (velocity, orientation, last_ori, _global_time, avg_vel, acc_vel): Self::Dependency,
-        anim_time: f64,
+        _anim_time: f64,
         rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
