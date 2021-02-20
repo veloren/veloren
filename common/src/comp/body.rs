@@ -22,6 +22,8 @@ use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
 use vek::*;
 
+use super::BuffKind;
+
 make_case_elim!(
     body,
     #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -436,6 +438,13 @@ impl Body {
                 quadruped_low::Species::Hakulaq => 10,
                 _ => 20,
             },
+        }
+    }
+
+    pub fn immune_to(&self, buff: BuffKind) -> bool {
+        match buff {
+            BuffKind::Bleeding => matches!(self, Body::Object(_) | Body::Golem(_)),
+            _ => false,
         }
     }
 
