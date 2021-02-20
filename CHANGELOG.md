@@ -68,6 +68,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed missing controller actions (dance and crafting)
 - Fixed a bug where the stairs to the boss floor in dungeons would sometimes not spawn
 - Fixed waypoints being placed underwater
+- Objects and golems are not affected by bleed debuff anymore
 
 ## [0.8.0] - 2020-11-28
 

@@ -776,11 +776,17 @@ pub fn handle_aura(server: &mut Server, entity: EcsEntity, aura_change: aura::Au
 pub fn handle_buff(server: &mut Server, entity: EcsEntity, buff_change: buff::BuffChange) {
     let ecs = &server.state.ecs();
     let mut buffs_all = ecs.write_storage::<comp::Buffs>();
+    let bodies = ecs.read_storage::<comp::Body>();
     if let Some(mut buffs) = buffs_all.get_mut(entity) {
         use buff::BuffChange;
         match buff_change {
             BuffChange::Add(new_buff) => {
-                buffs.insert(new_buff);
+                if !bodies
+                    .get(entity)
+                    .map_or(false, |body| body.immune_to(new_buff.kind))
+                {
+                    buffs.insert(new_buff);
+                }
             },
             BuffChange::RemoveById(ids) => {
                 for id in ids {
