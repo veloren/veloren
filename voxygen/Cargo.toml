@@ -100,6 +100,9 @@ tracing-subscriber = {version = "0.2.3", default-features = false, features = ["
 
 [target.'cfg(target_os = "macos")'.dependencies]
 dispatch = "0.1.4"
+# This needs to be backdated for the OSX build, potentially because the SDK is not OSX 11.0 compatible yet.
+# This line should be removed when possible because coreaudio-sys is not a direct dep of voxygen.
+coreaudio-sys = { version = "=0.2.5", default-features = false }
 
 [target.'cfg(windows)'.build-dependencies]
 winres = "0.1"
