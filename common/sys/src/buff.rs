@@ -1,6 +1,6 @@
 use common::{
     comp::{
-        BuffCategory, BuffChange, BuffEffect, BuffId, BuffSource, Buffs, Energy, Health,
+        Buff, BuffCategory, BuffChange, BuffEffect, BuffId, BuffSource, Buffs, Energy, Health,
         HealthChange, HealthSource, Inventory, ModifierKind,
     },
     event::{EventBus, ServerEvent},
@@ -35,22 +35,24 @@ impl<'a> System<'a> for Sys {
         for (entity, mut buff_comp, mut health, mut energy) in
             (&entities, &mut buffs, &mut healths, &mut energies).join()
         {
+            let (buff_comp_kinds, buff_comp_buffs) = buff_comp.parts();
             let mut expired_buffs = Vec::<BuffId>::new();
-            for (id, buff) in buff_comp.buffs.iter_mut() {
-                // Tick the buff and subtract delta from it
-                if let Some(remaining_time) = &mut buff.time {
-                    if let Some(new_duration) =
-                        remaining_time.checked_sub(Duration::from_secs_f32(dt.0))
+            // For each buff kind present on entity, if the buff kind queues, only ticks
+            // duration of strongest buff of that kind, else it ticks durations of all buffs
+            // of that kind. Any buffs whose durations expire are marked expired.
+            for (kind, ids) in buff_comp_kinds.iter() {
+                if kind.queues() {
+                    if let Some((Some(buff), id)) =
+                        ids.get(0).map(|id| (buff_comp_buffs.get_mut(id), id))
                     {
-                        // The buff still continues.
-                        *remaining_time = new_duration;
-                    } else {
-                        // checked_sub returns None when remaining time
-                        // went below 0, so set to 0
-                        *remaining_time = Duration::default();
-                        // The buff has expired.
-                        // Remove it.
-                        expired_buffs.push(*id);
+                        tick_buff(*id, buff, dt.0, |id| expired_buffs.push(id));
+                    }
+                } else {
+                    for (id, buff) in buff_comp_buffs
+                        .iter_mut()
+                        .filter(|(i, _)| ids.iter().any(|id| id == *i))
+                    {
+                        tick_buff(*id, buff, dt.0, |id| expired_buffs.push(id));
                     }
                 }
             }
@@ -170,5 +172,21 @@ impl<'a> System<'a> for Sys {
         buffs.set_event_emission(true);
         healths.set_event_emission(true);
         energies.set_event_emission(true);
+    }
+}
+
+fn tick_buff(id: u64, buff: &mut Buff, dt: f32, mut expire_buff: impl FnMut(u64)) {
+    if let Some(remaining_time) = &mut buff.time {
+        if let Some(new_duration) = remaining_time.checked_sub(Duration::from_secs_f32(dt)) {
+            // The buff still continues.
+            *remaining_time = new_duration;
+        } else {
+            // checked_sub returns None when remaining time
+            // went below 0, so set to 0
+            *remaining_time = Duration::default();
+            // The buff has expired.
+            // Remove it.
+            expire_buff(id);
+        }
     }
 }
