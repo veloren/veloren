@@ -180,7 +180,6 @@ pub enum AgentEvent {
 pub struct Target {
     pub target: EcsEntity,
     pub hostile: bool,
-    pub been_close: bool,
 }
 
 #[derive(Clone, Debug, Default)]
