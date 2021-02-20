@@ -136,7 +136,7 @@ pub struct AbilitySet<T> {
 
 impl AbilitySet<CharacterAbility> {
     pub fn modified_by_tool(self, tool: &Tool) -> Self {
-        let stats: Stats = Stats::from(tool);
+        let stats = Stats::from(tool);
         self.map(|a| a.adjusted_by_stats(stats.power, stats.poise_strength, stats.speed))
     }
 }

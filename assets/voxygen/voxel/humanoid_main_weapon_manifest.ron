@@ -173,91 +173,91 @@
     ),
     // 1h Swords
     "common.items.weapons.sword_1h.bloodsteel-0": (
-        vox_spec: ("voxel.weapon.sword_1h.bloodsteel-0", (-2.0, -4.5, -7.5)),
+        vox_spec: ("weapon.sword_1h.bloodsteel-0", (-2.0, -4.5, -7.5)),
         color: None
     ),
     "common.items.weapons.sword_1h.bloodsteel-1": (
-        vox_spec: ("voxel.weapon.sword_1h.bloodsteel-1", (-2.0, -4.5, -7.5)),
+        vox_spec: ("weapon.sword_1h.bloodsteel-1", (-2.0, -4.5, -7.5)),
         color: None
     ),
     "common.items.weapons.sword_1h.bloodsteel-2": (
-        vox_spec: ("voxel.weapon.sword_1h.bloodsteel-2", (-2.0, -4.5, -7.5)),
+        vox_spec: ("weapon.sword_1h.bloodsteel-2", (-2.0, -4.5, -7.5)),
         color: None
     ),
     "common.items.weapons.sword_1h.bronze-0": (
-        vox_spec: ("voxel.weapon.sword_1h.bronze-0", (-2.0, -4.5, -7.5)),
+        vox_spec: ("weapon.sword_1h.bronze-0", (-2.0, -4.5, -7.5)),
         color: None
     ),
     "common.items.weapons.sword_1h.bronze-1": (
-        vox_spec: ("voxel.weapon.sword_1h.bronze-1", (-2.0, -4.5, -7.5)),
+        vox_spec: ("weapon.sword_1h.bronze-1", (-2.0, -4.5, -7.5)),
         color: None
     ),
     "common.items.weapons.sword_1h.bronze-2": (
-        vox_spec: ("voxel.weapon.sword_1h.bronze-2", (-2.0, -4.5, -7.5)),
+        vox_spec: ("weapon.sword_1h.bronze-2", (-2.0, -4.5, -7.5)),
         color: None
     ),
     "common.items.weapons.sword_1h.cobalt-0": (
-        vox_spec: ("voxel.weapon.sword_1h.cobalt-0", (-2.0, -4.5, -7.5)),
+        vox_spec: ("weapon.sword_1h.cobalt-0", (-2.0, -4.5, -7.5)),
         color: None
     ),
     "common.items.weapons.sword_1h.cobalt-1": (
-        vox_spec: ("voxel.weapon.sword_1h.cobalt-1", (-2.0, -4.5, -7.5)),
+        vox_spec: ("weapon.sword_1h.cobalt-1", (-2.0, -4.5, -7.5)),
         color: None
     ),
     "common.items.weapons.sword_1h.cobalt-2": (
-        vox_spec: ("voxel.weapon.sword_1h.cobalt-2", (-2.0, -4.5, -7.5)),
+        vox_spec: ("weapon.sword_1h.cobalt-2", (-2.0, -4.5, -7.5)),
         color: None
     ),
     "common.items.weapons.sword_1h.cobalt-3": (
-        vox_spec: ("voxel.weapon.sword_1h.cobalt-3", (-2.0, -4.5, -7.5)),
+        vox_spec: ("weapon.sword_1h.cobalt-3", (-2.0, -4.5, -7.5)),
         color: None
     ),
     "common.items.weapons.sword_1h.iron-0": (
-        vox_spec: ("voxel.weapon.sword_1h.iron-0", (-2.0, -4.5, -7.5)),
+        vox_spec: ("weapon.sword_1h.iron-0", (-2.0, -4.5, -7.5)),
         color: None
     ),
     "common.items.weapons.sword_1h.iron-1": (
-        vox_spec: ("voxel.weapon.sword_1h.iron-1", (-2.0, -4.5, -7.5)),
+        vox_spec: ("weapon.sword_1h.iron-1", (-2.0, -4.5, -7.5)),
         color: None
     ),
     "common.items.weapons.sword_1h.iron-2": (
-        vox_spec: ("voxel.weapon.sword_1h.iron-2", (-2.0, -4.5, -7.5)),
+        vox_spec: ("weapon.sword_1h.iron-2", (-2.0, -4.5, -7.5)),
         color: None
     ),
     "common.items.weapons.sword_1h.iron-3": (
-        vox_spec: ("voxel.weapon.sword_1h.iron-3", (-2.0, -4.5, -7.5)),
+        vox_spec: ("weapon.sword_1h.iron-3", (-2.0, -4.5, -7.5)),
         color: None
     ),
     "common.items.weapons.sword_1h.iron-4": (
-        vox_spec: ("voxel.weapon.sword_1h.iron-4", (-2.0, -4.5, -7.5)),
+        vox_spec: ("weapon.sword_1h.iron-4", (-2.0, -4.5, -7.5)),
         color: None
     ),
     "common.items.weapons.sword_1h.obsidian-0": (
-        vox_spec: ("voxel.weapon.sword_1h.obsidian-0", (-2.0, -4.5, -7.5)),
+        vox_spec: ("weapon.sword_1h.obsidian-0", (-2.0, -4.5, -7.5)),
         color: None
     ),
     "common.items.weapons.sword_1h.orichalcum-0": (
-        vox_spec: ("voxel.weapon.sword_1h.orichalcum-0", (-2.0, -4.5, -7.5)),
+        vox_spec: ("weapon.sword_1h.orichalcum-0", (-2.0, -4.5, -7.5)),
         color: None
     ),
     "common.items.weapons.sword_1h.orichalcum-1": (
-        vox_spec: ("voxel.weapon.sword_1h.orichalcum-1", (-2.0, -4.5, -7.5)),
+        vox_spec: ("weapon.sword_1h.orichalcum-1", (-2.0, -4.5, -7.5)),
         color: None
     ),
     "common.items.weapons.sword_1h.steel-0": (
-        vox_spec: ("voxel.weapon.sword_1h.steel-0", (-2.0, -4.5, -7.5)),
+        vox_spec: ("weapon.sword_1h.steel-0", (-2.0, -4.5, -7.5)),
         color: None
     ),
     "common.items.weapons.sword_1h.steel-1": (
-        vox_spec: ("voxel.weapon.sword_1h.steel-1", (-2.0, -4.5, -7.5)),
+        vox_spec: ("weapon.sword_1h.steel-1", (-2.0, -4.5, -7.5)),
         color: None
     ),
     "common.items.weapons.sword_1h.steel-2": (
-        vox_spec: ("voxel.weapon.sword_1h.steel-2", (-2.0, -4.5, -7.5)),
+        vox_spec: ("weapon.sword_1h.steel-2", (-2.0, -4.5, -7.5)),
         color: None
     ),
     "common.items.weapons.sword_1h.steel-3": (
-        vox_spec: ("voxel.weapon.sword_1h.steel-3", (-2.0, -4.5, -7.5)),
+        vox_spec: ("weapon.sword_1h.steel-3", (-2.0, -4.5, -7.5)),
         color: None
     ),
     // Axes

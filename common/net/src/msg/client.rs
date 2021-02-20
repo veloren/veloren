@@ -58,7 +58,6 @@ pub enum ClientGeneral {
     Character(CharacterId),
     Spectate,
     //Only in game
-    // Large enum variant allowed for clippy because of this
     ControllerInputs(Box<comp::ControllerInputs>),
     ControlEvent(comp::ControlEvent),
     ControlAction(comp::ControlAction),
