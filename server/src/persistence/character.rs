@@ -27,7 +27,7 @@ use crate::{
 use common::character::{CharacterId, CharacterItem, MAX_CHARACTERS_PER_PLAYER};
 use core::ops::Range;
 use diesel::{prelude::*, sql_query, sql_types::BigInt};
-use std::sync::Arc;
+use std::{collections::VecDeque, sync::Arc};
 use tracing::{error, trace, warn};
 
 /// Private module for very tightly coupled database conversion methods.  In
@@ -50,6 +50,26 @@ struct CharacterContainers {
     loadout_container_id: EntityId,
 }
 
+/// BFS the inventory/loadout to ensure that each is topologically sorted in the
+/// sense required by convert_inventory_from_database_items to support recursive
+/// items
+pub fn load_items_bfs(connection: VelorenTransaction, root: i64) -> Result<Vec<Item>, Error> {
+    use schema::item::dsl::*;
+    let mut items = Vec::new();
+    let mut queue = VecDeque::new();
+    queue.push_front(root);
+    while let Some(id) = queue.pop_front() {
+        let frontier = item
+            .filter(parent_container_item_id.eq(id))
+            .load::<Item>(&*connection)?;
+        for i in frontier.iter() {
+            queue.push_back(i.item_id);
+        }
+        items.extend(frontier);
+    }
+    Ok(items)
+}
+
 /// Load stored data for a character.
 ///
 /// After first logging in, and after a character is selected, we fetch this
@@ -59,19 +79,12 @@ pub fn load_character_data(
     char_id: CharacterId,
     connection: VelorenTransaction,
 ) -> CharacterDataResult {
-    use schema::{body::dsl::*, character::dsl::*, item::dsl::*, skill_group::dsl::*};
+    use schema::{body::dsl::*, character::dsl::*, skill_group::dsl::*};
 
     let character_containers = get_pseudo_containers(connection, char_id)?;
 
-    // TODO: Make inventory and loadout item loading work with recursive items when
-    // container items are supported
-    let inventory_items = item
-        .filter(parent_container_item_id.eq(character_containers.inventory_container_id))
-        .load::<Item>(&*connection)?;
-
-    let loadout_items = item
-        .filter(parent_container_item_id.eq(character_containers.loadout_container_id))
-        .load::<Item>(&*connection)?;
+    let inventory_items = load_items_bfs(connection, character_containers.inventory_container_id)?;
+    let loadout_items = load_items_bfs(connection, character_containers.loadout_container_id)?;
 
     let character_data = character
         .filter(
@@ -109,7 +122,12 @@ pub fn load_character_data(
     Ok((
         convert_body_from_database(&char_body)?,
         convert_stats_from_database(character_data.alias, &skill_data, &skill_group_data),
-        convert_inventory_from_database_items(&inventory_items, &loadout_items)?,
+        convert_inventory_from_database_items(
+            character_containers.inventory_container_id,
+            &inventory_items,
+            character_containers.loadout_container_id,
+            &loadout_items,
+        )?,
         char_waypoint,
     ))
 }
@@ -125,7 +143,7 @@ pub fn load_character_list(
     player_uuid_: &str,
     connection: VelorenTransaction,
 ) -> CharacterListResult {
-    use schema::{body::dsl::*, character::dsl::*, item::dsl::*};
+    use schema::{body::dsl::*, character::dsl::*};
 
     let result = character
         .filter(player_uuid.eq(player_uuid_))
@@ -149,13 +167,10 @@ pub fn load_character_list(
                 LOADOUT_PSEUDO_CONTAINER_POSITION,
             )?;
 
-            // TODO: Make work with recursive items if containers are ever supported as part
-            // of a loadout
-            let loadout_items = item
-                .filter(parent_container_item_id.eq(loadout_container_id))
-                .load::<Item>(&*connection)?;
+            let loadout_items = load_items_bfs(connection, loadout_container_id)?;
 
-            let loadout = convert_loadout_from_database_items(&loadout_items)?;
+            let loadout =
+                convert_loadout_from_database_items(loadout_container_id, &loadout_items)?;
 
             Ok(CharacterItem {
                 character: char,
@@ -276,7 +291,7 @@ pub fn create_character(
     let mut inserts = Vec::new();
 
     get_new_entity_ids(connection, |mut next_id| {
-        let (inserts_, _deletes) = convert_items_to_database_items(
+        let inserts_ = convert_items_to_database_items(
             loadout_container_id,
             &inventory,
             inventory_container_id,
@@ -541,7 +556,7 @@ pub fn update(
     // First, get all the entity IDs for any new items, and identify which slots to
     // upsert and which ones to delete.
     get_new_entity_ids(connection, |mut next_id| {
-        let (upserts_, _deletes) = convert_items_to_database_items(
+        let upserts_ = convert_items_to_database_items(
             pseudo_containers.loadout_container_id,
             &inventory,
             pseudo_containers.inventory_container_id,
@@ -553,9 +568,17 @@ pub fn update(
 
     // Next, delete any slots we aren't upserting.
     trace!("Deleting items for character_id {}", char_id);
-    let existing_items = parent_container_item_id
-        .eq(pseudo_containers.inventory_container_id)
-        .or(parent_container_item_id.eq(pseudo_containers.loadout_container_id));
+    let mut existing_item_ids: Vec<i64> = vec![
+        pseudo_containers.inventory_container_id,
+        pseudo_containers.loadout_container_id,
+    ];
+    for it in load_items_bfs(connection, pseudo_containers.inventory_container_id)? {
+        existing_item_ids.push(it.item_id);
+    }
+    for it in load_items_bfs(connection, pseudo_containers.loadout_container_id)? {
+        existing_item_ids.push(it.item_id);
+    }
+    let existing_items = parent_container_item_id.eq_any(existing_item_ids);
     let non_upserted_items = item_id.ne_all(
         upserts
             .iter()
@@ -573,7 +596,13 @@ pub fn update(
     if expected_upsert_count > 0 {
         let (upserted_items, upserted_comps_): (Vec<_>, Vec<_>) = upserts
             .into_iter()
-            .map(|model_pair| (model_pair.model, model_pair.comp))
+            .map(|model_pair| {
+                debug_assert_eq!(
+                    model_pair.model.item_id,
+                    model_pair.comp.load().unwrap().get() as i64
+                );
+                (model_pair.model, model_pair.comp)
+            })
             .unzip();
         upserted_comps = upserted_comps_;
         trace!(
@@ -582,9 +611,17 @@ pub fn update(
             char_id
         );
 
+        // When moving inventory items around, foreign key constraints on
+        // `parent_container_item_id` can be temporarily violated by one upsert, but
+        // restored by another upsert. Deferred constraints allow SQLite to check this
+        // when committing the transaction. The `defer_foreign_keys` pragma treats the
+        // foreign key constraints as deferred for the next transaction (it turns itself
+        // off at the commit boundary). https://sqlite.org/foreignkeys.html#fk_deferred
+        connection.execute("PRAGMA defer_foreign_keys = ON;")?;
         let upsert_count = diesel::replace_into(item)
             .values(&upserted_items)
             .execute(&*connection)?;
+        trace!("upsert_count: {}", upsert_count);
         if upsert_count != expected_upsert_count {
             return Err(Error::OtherError(format!(
                 "Expected upsertions={}, actual={}, for char_id {}--unsafe to continue \

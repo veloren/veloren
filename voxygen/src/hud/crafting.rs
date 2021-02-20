@@ -12,7 +12,7 @@ use client::{self, Client};
 use common::{
     assets::AssetExt,
     comp::{
-        item::{ItemDef, ItemDesc, Quality},
+        item::{ItemDef, ItemDesc, Quality, TagExampleInfo},
         Inventory,
     },
     recipe::RecipeInput,

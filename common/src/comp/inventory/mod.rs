@@ -350,7 +350,7 @@ impl Inventory {
         }
     }
 
-    fn slot_mut(&mut self, inv_slot_id: InvSlotId) -> Option<&mut InvSlot> {
+    pub fn slot_mut(&mut self, inv_slot_id: InvSlotId) -> Option<&mut InvSlot> {
         match SlotId::from(inv_slot_id) {
             SlotId::Inventory(slot_idx) => self.slots.get_mut(slot_idx),
             SlotId::Loadout(loadout_slot_id) => self.loadout.inv_slot_mut(loadout_slot_id),

@@ -5,12 +5,12 @@ ItemDef(
         (
             kind: Unique(QuadLowBreathe),
             hands: Two,
-            stats: (
+            stats: Direct((
                 equip_time_millis: 10,
                 power: 1.00,
                 poise_strength: 1.00,
                 speed: 1.00,
-            ),
+            )),
         )
     ),
     quality: Low,

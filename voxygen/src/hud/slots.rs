@@ -117,16 +117,23 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
                 .map(|item| HotbarImage::Item(item.into()))
                 .map(|i| (i, None)),
             hotbar::SlotContents::Ability3 => {
-                let tool = match inventory.equipped(EquipSlot::Mainhand).map(|i| i.kind()) {
-                    Some(ItemKind::Tool(tool)) => Some(tool),
+                let tool = match inventory
+                    .equipped(EquipSlot::Mainhand)
+                    .map(|i| (i, i.kind()))
+                {
+                    Some((item, ItemKind::Tool(tool))) => Some((item, tool)),
                     _ => None,
                 };
 
-                tool.and_then(|tool| {
+                tool.and_then(|(item, tool)| {
                     hotbar_image(tool.kind).map(|i| {
                         (
                             i,
-                            if let Some(skill) = tool.get_abilities(ability_map).abilities.get(0) {
+                            if let Some(skill) = tool
+                                .get_abilities(item.components(), ability_map)
+                                .abilities
+                                .get(0)
+                            {
                                 if energy.current() >= skill.1.get_energy_cost() {
                                     Some(Color::Rgba(1.0, 1.0, 1.0, 1.0))
                                 } else {
@@ -155,18 +162,20 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
                     (_, _) => (None, 0),
                 };
 
-                let tool = match equip_slot.and_then(|es| inventory.equipped(es).map(|i| i.kind()))
-                {
-                    Some(ItemKind::Tool(tool)) => Some(tool),
-                    _ => None,
-                };
+                let tool =
+                    match equip_slot.and_then(|es| inventory.equipped(es).map(|i| (i, i.kind()))) {
+                        Some((item, ItemKind::Tool(tool))) => Some((item, tool)),
+                        _ => None,
+                    };
 
-                tool.and_then(|tool| {
+                tool.and_then(|(item, tool)| {
                     hotbar_image(tool.kind).map(|i| {
                         (
                             i,
-                            if let Some(skill) =
-                                tool.get_abilities(ability_map).abilities.get(skill_index)
+                            if let Some(skill) = tool
+                                .get_abilities(item.components(), ability_map)
+                                .abilities
+                                .get(skill_index)
                             {
                                 if energy.current() >= skill.1.get_energy_cost() {
                                     Some(Color::Rgba(1.0, 1.0, 1.0, 1.0))

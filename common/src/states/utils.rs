@@ -294,14 +294,14 @@ pub fn handle_wield(data: &JoinData, update: &mut StateUpdate) {
 
 /// If a tool is equipped, goes into Equipping state, otherwise goes to Idle
 pub fn attempt_wield(data: &JoinData, update: &mut StateUpdate) {
-    if let Some(ItemKind::Tool(tool)) = data
+    if let Some((item, ItemKind::Tool(tool))) = data
         .inventory
         .equipped(EquipSlot::Mainhand)
-        .map(|i| i.kind())
+        .map(|i| (i, i.kind()))
     {
         update.character = CharacterState::Equipping(equipping::Data {
             static_data: equipping::StaticData {
-                buildup_duration: tool.equip_time(),
+                buildup_duration: tool.equip_time(item.components()),
             },
             timer: Duration::default(),
         });

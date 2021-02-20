@@ -4,12 +4,12 @@ ItemDef(
     kind: Tool((
         kind: Sceptre,
         hands: Two,
-        stats: (
+        stats: Direct((
             equip_time_millis: 400,
             power: 3.5,
             poise_strength: 1.5,
             speed: 0.4,
-        ),
+        )),
     )),
     quality: Moderate,
     tags: [],
