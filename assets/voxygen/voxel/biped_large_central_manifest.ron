@@ -624,4 +624,56 @@
             central: ("armor.empty"),
         )
     ),
+    (Yeti, Male): (
+        head: (
+            offset: (-5.5, -4.0, -4.0),
+            central: ("npc.yeti.male.head"),
+        ),
+        torso_upper: (
+            offset: (-8.5, -7.5, -8.5),
+            central: ("npc.yeti.male.torso_upper"),
+        ),
+        torso_lower: (
+            offset: (-6.5, -5.0, -6.0),
+            central: ("npc.yeti.male.torso_lower"),
+        ),
+        jaw: (
+            offset: (-6.5, 0.0, -4.5),
+            central: ("npc.yeti.male.jaw"),
+        ),
+        tail: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
+    (Yeti, Female): (
+        head: (
+            offset: (-5.5, -4.0, -4.0),
+            central: ("npc.yeti.male.head"),
+        ),
+        torso_upper: (
+            offset: (-8.5, -7.5, -8.5),
+            central: ("npc.yeti.male.torso_upper"),
+        ),
+        torso_lower: (
+            offset: (-6.5, -5.0, -6.0),
+            central: ("npc.yeti.male.torso_lower"),
+        ),
+        jaw: (
+            offset: (-6.5, 0.0, -4.5),
+            central: ("npc.yeti.male.jaw"),
+        ),
+        tail: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
 })

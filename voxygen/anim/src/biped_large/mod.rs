@@ -206,6 +206,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mindflayer, _) => (5.0, 5.5),
                 (Minotaur, _) => (6.0, 3.0),
                 (Tidalwarrior, _) => (6.5, 5.0),
+                (Yeti, _) => (8.5, 4.0),
             },
             jaw: match (body.species, body.body_type) {
                 (Ogre, _) => (0.0, 0.0),
@@ -220,6 +221,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mindflayer, _) => (0.0, 0.0),
                 (Minotaur, _) => (2.0, -4.0),
                 (Tidalwarrior, _) => (0.0, 0.0),
+                (Yeti, _) => (-5.0, -5.0),
             },
             upper_torso: match (body.species, body.body_type) {
                 (Ogre, Male) => (0.0, 27.5),
@@ -235,6 +237,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mindflayer, _) => (0.0, 30.5),
                 (Minotaur, _) => (-1.0, 31.5),
                 (Tidalwarrior, _) => (-1.0, 25.0),
+                (Yeti, _) => (-1.0, 23.5),
             },
             lower_torso: match (body.species, body.body_type) {
                 (Ogre, Male) => (1.0, -7.0),
@@ -250,6 +253,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mindflayer, _) => (3.5, -19.5),
                 (Minotaur, _) => (1.5, -8.5),
                 (Tidalwarrior, _) => (0.0, -9.5),
+                (Yeti, _) => (0.0, -6.5),
             },
             tail: match (body.species, body.body_type) {
                 (Werewolf, _) => (-5.5, -2.0),
@@ -273,6 +277,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mindflayer, _) => (8.0, 0.5, -1.0),
                 (Minotaur, _) => (10.0, 1.0, -1.0),
                 (Tidalwarrior, _) => (14.0, -0.5, 2.0),
+                (Yeti, _) => (10.5, 1.0, -2.5),
             },
             hand: match (body.species, body.body_type) {
                 (Ogre, Male) => (14.5, 0.0, -4.0),
@@ -288,6 +293,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mindflayer, _) => (9.0, 0.5, -4.5),
                 (Minotaur, _) => (12.5, 0.5, -7.0),
                 (Tidalwarrior, _) => (15.5, -0.5, -3.0),
+                (Yeti, _) => (12.0, 1.5, -6.0),
             },
             leg: match (body.species, body.body_type) {
                 (Ogre, Male) => (0.0, 0.0, -4.0),
@@ -303,6 +309,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mindflayer, _) => (6.0, -2.0, 6.5),
                 (Minotaur, _) => (5.0, 0.0, -10.0),
                 (Tidalwarrior, _) => (2.5, 0.0, -5.5),
+                (Yeti, _) => (4.0, 0.0, -5.5),
             },
             foot: match (body.species, body.body_type) {
                 (Ogre, Male) => (4.0, 1.0, -12.0),
@@ -318,6 +325,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mindflayer, _) => (4.5, 1.5, -7.0),
                 (Minotaur, _) => (6.0, 4.5, -17.5),
                 (Tidalwarrior, _) => (3.5, 0.5, -10.5),
+                (Yeti, _) => (4.5, 0.5, -12.5),
             },
             scaler: match (body.species, body.body_type) {
                 (Ogre, Male) => 1.4,
@@ -333,6 +341,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mindflayer, _) => 1.5,
                 (Minotaur, _) => 2.0,
                 (Tidalwarrior, _) => 2.0,
+                (Yeti, _) => 1.5,
             },
             tempo: match (body.species, body.body_type) {
                 (Ogre, Male) => 0.9,
@@ -357,6 +366,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mindflayer, _) => 12.0,
                 (Minotaur, _) => 14.0,
                 (Tidalwarrior, _) => 14.0,
+                (Yeti, _) => 12.5,
             },
             shl: match (body.species, body.body_type) {
                 (Dullahan, _) => (-4.75, -11.0, 8.5, 1.47, -0.2, 0.0),
@@ -377,18 +387,21 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Ogre, Male) => (-9.0, -10.0, 23.0, 1.57, -0.57, 0.0),
                 (Cyclops, _) => (-6.0, -10.0, 17.0, 1.57, -0.57, 0.0),
                 (Troll, _) => (-6.0, -10.0, 17.0, 1.57, -0.57, 0.0),
+                (Yeti, _) => (-6.0, -10.0, 17.0, 1.57, -0.57, 0.0),
                 _ => (-6.0, -10.0, 17.0, 1.57, -0.57, 0.0),
             },
             hhr: match (body.species, body.body_type) {
                 (Ogre, Male) => (-5.0, -13.0, 0.0, 1.57, -0.57, 0.0),
                 (Cyclops, _) => (-6.0, -10.0, 0.0, 1.57, -0.57, 0.0),
                 (Troll, _) => (-6.0, -10.0, 0.0, 1.57, -0.57, 0.0),
+                (Yeti, _) => (-6.0, -10.0, 0.0, 1.57, -0.57, 0.0),
                 _ => (-6.0, -10.0, 0.0, 1.57, -0.57, 0.0),
             },
             hc: match (body.species, body.body_type) {
                 (Ogre, Male) => (11.5, 9.0, -13.0, -0.57, -1.57, 1.0),
                 (Cyclops, _) => (8.5, 6.0, -12.0, -0.57, -1.57, 1.0),
                 (Troll, _) => (8.5, 6.0, -12.0, -0.57, -1.57, 1.0),
+                (Yeti, _) => (8.5, 6.0, -12.0, -0.57, -1.57, 1.0),
                 _ => (8.5, 6.0, -12.0, -0.57, -1.57, 1.0),
             },
             sthl: match (body.species, body.body_type) {

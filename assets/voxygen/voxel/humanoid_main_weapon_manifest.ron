@@ -965,6 +965,10 @@
         vox_spec: ("weapon.staff.firestaff_mindflayer", (-5.5, -3.5, -8.0)),
         color: None
     ),
+    "common.items.npc_weapons.hammer.yeti_hammer": (
+        vox_spec: ("weapon.hammer.2hhammer_yeti", (-7.5, -7.0, -7.0)),
+        color: None
+    ),
     "common.items.npc_weapons.unique.beast_claws": (
         vox_spec: ("armor.empty", (0.0, 0.0, 0.0)),
         color: None

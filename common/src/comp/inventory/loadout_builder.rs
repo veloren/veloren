@@ -251,6 +251,11 @@ impl LoadoutBuilder {
                             "common.items.npc_weapons.unique.tidal_claws",
                         ));
                     },
+                    (biped_large::Species::Yeti, _) => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.hammer.yeti_hammer",
+                        ));
+                    },
                 },
                 Body::Object(object::Body::Crossbow) => {
                     main_tool = Some(Item::new_from_asset_expect(

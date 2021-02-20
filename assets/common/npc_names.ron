@@ -849,6 +849,10 @@
             tidalwarrior: (
                 keyword: "tidalwarrior",
                 generic: "Tidal Warrior"
+            ),
+            yeti: (
+                keyword: "yeti",
+                generic: "Yeti"
             )
         )
     ),

@@ -60,19 +60,19 @@ impl Animation for JumpAnimation {
         next.second.scale = Vec3::one() * 0.0;
 
         match active_tool_kind {
-            Some(ToolKind::Bow) => {
+            Some(ToolKind::BowSimple) => {
                 next.main.position = Vec3::new(-2.0, -5.0, -6.0);
                 next.main.orientation = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
             },
-            Some(ToolKind::Staff) | Some(ToolKind::Sceptre) => {
+            Some(ToolKind::StaffSimple) | Some(ToolKind::Sceptre) => {
                 next.main.position = Vec3::new(-6.0, -5.0, -12.0);
                 next.main.orientation = Quaternion::rotation_y(0.6) * Quaternion::rotation_z(1.57);
             },
-            Some(ToolKind::Sword) => {
+            Some(ToolKind::SwordSimple) => {
                 next.main.position = Vec3::new(-10.0, -8.0, 12.0);
                 next.main.orientation = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
             },
-            Some(ToolKind::Hammer) => {
+            Some(ToolKind::HammerSimple) => {
                 next.main.position = Vec3::new(-10.0, -8.0, 12.0);
                 next.main.orientation = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
             },

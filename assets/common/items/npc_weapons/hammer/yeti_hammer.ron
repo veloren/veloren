@@ -1,0 +1,16 @@
+ItemDef(
+    name: "Yeti Hammer",
+    description: "Placeholder",
+    kind: Tool(
+        (
+            kind: HammerSimple,    
+            stats: (
+                equip_time_millis: 500,
+                power: 1.00,
+                poise_strength: 1.00,
+                speed: 1.0
+            ),
+        )
+    ),
+    quality: Low,
+)
