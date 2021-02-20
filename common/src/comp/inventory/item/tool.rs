@@ -3,7 +3,7 @@
 
 use crate::{
     assets::{self, Asset},
-    comp::CharacterAbility,
+    comp::{skills::Skill, CharacterAbility},
 };
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
@@ -27,31 +27,13 @@ pub enum ToolKind {
     Empty,
 }
 
-impl ToolKind {
-    pub fn hands(&self) -> Hands {
-        match self {
-            ToolKind::Sword => Hands::TwoHand,
-            ToolKind::Axe => Hands::TwoHand,
-            ToolKind::Hammer => Hands::TwoHand,
-            ToolKind::Bow => Hands::TwoHand,
-            ToolKind::Dagger => Hands::OneHand,
-            ToolKind::Staff => Hands::TwoHand,
-            ToolKind::Sceptre => Hands::TwoHand,
-            ToolKind::Shield => Hands::OneHand,
-            ToolKind::Unique(_) => Hands::TwoHand,
-            ToolKind::Debug => Hands::TwoHand,
-            ToolKind::Farming => Hands::TwoHand,
-            ToolKind::Empty => Hands::OneHand,
-        }
-    }
-}
-
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum Hands {
-    OneHand,
-    TwoHand,
+    One,
+    Two,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct Stats {
     equip_time_millis: u32,
     power: f32,
@@ -59,9 +41,28 @@ pub struct Stats {
     speed: f32,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+impl From<&Tool> for Stats {
+    fn from(tool: &Tool) -> Self {
+        let raw_stats = tool.stats;
+        let (power, speed) = match tool.hands {
+            Hands::One => (0.67, 1.33),
+            // TODO: Restore this when one-handed weapons are made accessible
+            // Hands::Two => (1.5, 0.75),
+            Hands::Two => (1.0, 1.0),
+        };
+        Self {
+            equip_time_millis: raw_stats.equip_time_millis,
+            power: raw_stats.power * power,
+            poise_strength: raw_stats.poise_strength,
+            speed: raw_stats.speed * speed,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Tool {
     pub kind: ToolKind,
+    pub hands: Hands,
     pub stats: Stats,
     // TODO: item specific abilities
 }
@@ -71,6 +72,7 @@ impl Tool {
     // Added for CSV import of stats
     pub fn new(
         kind: ToolKind,
+        hands: Hands,
         equip_time_millis: u32,
         power: f32,
         poise_strength: f32,
@@ -78,6 +80,7 @@ impl Tool {
     ) -> Self {
         Self {
             kind,
+            hands,
             stats: Stats {
                 equip_time_millis,
                 power,
@@ -90,6 +93,7 @@ impl Tool {
     pub fn empty() -> Self {
         Self {
             kind: ToolKind::Empty,
+            hands: Hands::One,
             stats: Stats {
                 equip_time_millis: 0,
                 power: 1.00,
@@ -127,18 +131,13 @@ impl Tool {
 pub struct AbilitySet<T> {
     pub primary: T,
     pub secondary: T,
-    pub skills: Vec<T>,
+    pub abilities: Vec<(Option<Skill>, T)>,
 }
 
 impl AbilitySet<CharacterAbility> {
     pub fn modified_by_tool(self, tool: &Tool) -> Self {
-        self.map(|a| {
-            a.adjusted_by_stats(
-                tool.base_power(),
-                tool.base_poise_strength(),
-                tool.base_speed(),
-            )
-        })
+        let stats = Stats::from(tool);
+        self.map(|a| a.adjusted_by_stats(stats.power, stats.poise_strength, stats.speed))
     }
 }
 
@@ -147,7 +146,7 @@ impl<T> AbilitySet<T> {
         AbilitySet {
             primary: f(self.primary),
             secondary: f(self.secondary),
-            skills: self.skills.into_iter().map(|x| f(x)).collect(),
+            abilities: self.abilities.into_iter().map(|(s, x)| (s, f(x))).collect(),
         }
     }
 
@@ -155,7 +154,7 @@ impl<T> AbilitySet<T> {
         AbilitySet {
             primary: f(&self.primary),
             secondary: f(&self.secondary),
-            skills: self.skills.iter().map(|x| f(x)).collect(),
+            abilities: self.abilities.iter().map(|(s, x)| (*s, f(x))).collect(),
         }
     }
 }
@@ -165,7 +164,7 @@ impl Default for AbilitySet<CharacterAbility> {
         AbilitySet {
             primary: CharacterAbility::default(),
             secondary: CharacterAbility::default(),
-            skills: vec![],
+            abilities: vec![],
         }
     }
 }

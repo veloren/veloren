@@ -226,7 +226,7 @@ pub fn handle_possess(server: &Server, possessor_uid: Uid, possesse_uid: Uid) {
             .expect("Could not read inventory component while possessing")
             .or_insert(Inventory::new_empty());
 
-        let debug_item = comp::Item::new_from_asset_expect("common.items.debug.possess");
+        let debug_item = comp::Item::new_from_asset_expect("common.items.debug.admin_stick");
         if let item::ItemKind::Tool(_) = debug_item.kind() {
             inventory
                 .swap(

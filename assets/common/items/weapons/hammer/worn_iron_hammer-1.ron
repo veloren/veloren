@@ -3,6 +3,7 @@ ItemDef(
     description: "Elven hammers are lighter than most. This one has seen its fair share of wear and tear.",
     kind: Tool((
         kind: Hammer,
+        hands: Two,
         stats: (
             equip_time_millis: 500,
             power: 0.85,

@@ -235,7 +235,7 @@ impl LoadoutBuilder {
         let active_item = if let Some(ItemKind::Tool(_)) = main_tool.as_ref().map(|i| i.kind()) {
             main_tool
         } else {
-            Some(Item::new_default_for_body(&body))
+            Some(Item::empty())
         };
 
         // Creates rest of loadout

@@ -3,6 +3,7 @@ ItemDef(
     description: "Walking stick with a sharpened end.",
     kind: Tool((
         kind: Staff,
+        hands: Two,
         stats: (
             equip_time_millis: 200,
             power: 0.5,

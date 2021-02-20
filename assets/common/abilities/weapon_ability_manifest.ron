@@ -4,149 +4,149 @@
     Sword: (
         primary: "common.abilities.sword.triplestrike",
         secondary: "common.abilities.sword.dash",
-        skills: [
-            "common.abilities.sword.spin",
+        abilities: [
+            (Some(Sword(UnlockSpin)), "common.abilities.sword.spin"),
         ],
     ),
     Axe: (
         primary: "common.abilities.axe.doublestrike",
         secondary: "common.abilities.axe.spin",
-        skills: [
-            "common.abilities.axe.leap",
+        abilities: [
+            (Some(Axe(UnlockLeap)), "common.abilities.axe.leap"),
         ],
     ),
     Hammer: (
         primary: "common.abilities.hammer.singlestrike",
         secondary: "common.abilities.hammer.charged",
-        skills: [
-            "common.abilities.hammer.leap",
+        abilities: [
+            (Some(Hammer(UnlockLeap)), "common.abilities.hammer.leap"),
         ],
     ),
     Bow: (
         primary: "common.abilities.bow.basic",
         secondary: "common.abilities.bow.charged",
-        skills: [
-            "common.abilities.bow.repeater",
+        abilities: [
+            (Some(Bow(UnlockRepeater)), "common.abilities.bow.repeater"),
         ],
     ),
     Staff: (
         primary: "common.abilities.staff.firebomb",
         secondary: "common.abilities.staff.flamethrower",
-        skills: [
-            "common.abilities.staff.fireshockwave",
+        abilities: [
+            (Some(Staff(UnlockShockwave)), "common.abilities.staff.fireshockwave"),
         ],
     ),
     Sceptre: (
         primary: "common.abilities.sceptre.healingbeam",
         secondary: "common.abilities.sceptre.healingbomb",
-        skills: [],
+        abilities: [],
     ),
     Dagger: (
         primary: "common.abilities.dagger.tempbasic",
         secondary: "common.abilities.dagger.tempbasic",
-        skills: [],
+        abilities: [],
     ),
     Shield: (
         primary: "common.abilities.shield.tempbasic",
         secondary: "common.abilities.shield.block",
-        skills: [],
+        abilities: [],
     ),
     Unique(StoneGolemFist): (
         primary: "common.abilities.unique.stonegolemfist.basic",
         secondary: "common.abilities.unique.stonegolemfist.shockwave",
-        skills: [
-            "common.abilities.unique.stonegolemfist.spin",
+        abilities: [
+            (None, "common.abilities.unique.stonegolemfist.spin"),
         ],
     ),
     Unique(BeastClaws): (
         primary: "common.abilities.unique.beastclaws.basic",
         secondary: "common.abilities.unique.beastclaws.basic",
-        skills: [],
+        abilities: [],
     ),
     Unique(QuadMedQuick): (
         primary: "common.abilities.unique.quadmedquick.triplestrike",
         secondary: "common.abilities.unique.quadmedquick.dash",
-        skills: [],
+        abilities: [],
     ),
     Unique(QuadMedJump): (
         primary: "common.abilities.unique.quadmedjump.leap",
         secondary: "common.abilities.unique.quadmedjump.doublestrike",
-        skills: [
-            "common.abilities.unique.quadmedjump.quickleap"
+        abilities: [
+            (None, "common.abilities.unique.quadmedjump.quickleap"),
         ],
     ),
     Unique(QuadMedCharge): (
         primary: "common.abilities.unique.quadmedcharge.doublestrike",
         secondary: "common.abilities.unique.quadmedcharge.dash",
-        skills: [],
+        abilities: [],
     ),
     Unique(QuadMedHoof): (
         primary: "common.abilities.unique.quadmedhoof.basic",
         secondary: "common.abilities.unique.quadmedhoof.basic",
-        skills: [],
+        abilities: [],
     ),
     Unique(QuadMedBasic): (
         primary: "common.abilities.unique.quadmedbasic.singlestrike",
         secondary: "common.abilities.unique.quadmedbasic.triplestrike",
-        skills: [],
+        abilities: [],
     ),
     Unique(QuadLowRanged): (
         primary: "common.abilities.unique.quadlowranged.singlestrike",
         secondary: "common.abilities.unique.quadlowranged.firebomb",
-        skills: [],
+        abilities: [],
     ),
     Unique(QuadLowBreathe): (
         primary: "common.abilities.unique.quadlowbreathe.flamethrower",
         secondary: "common.abilities.unique.quadlowbreathe.triplestrike",
-        skills: [
-            "common.abilities.unique.quadlowbreathe.dash",
+        abilities: [
+            (None, "common.abilities.unique.quadlowbreathe.dash"),
         ],
     ),
     Unique(QuadLowTail): (
         primary: "common.abilities.unique.quadlowtail.charged",
         secondary: "common.abilities.unique.quadlowtail.triplestrike",
-        skills: [],
+        abilities: [],
     ),
     Unique(QuadLowQuick): (
         primary: "common.abilities.unique.quadlowquick.dash",
         secondary: "common.abilities.unique.quadlowquick.quadstrike",
-        skills: [],
+        abilities: [],
     ),
     Unique(QuadLowBasic): (
         primary: "common.abilities.unique.quadlowbasic.triplestrike",
         secondary: "common.abilities.unique.quadlowbasic.singlestrike",
-        skills: [],
+        abilities: [],
     ),
     Unique(QuadSmallBasic): (
         primary: "common.abilities.unique.quadsmallbasic.singlestrike",
         secondary: "common.abilities.unique.quadsmallbasic.singlestrike",
-        skills: [],
+        abilities: [],
     ),
     Unique(TheropodBasic): (
         primary: "common.abilities.unique.theropodbasic.triplestrike",
         secondary: "common.abilities.unique.theropodbasic.triplestrike",
-        skills: [],
+        abilities: [],
     ),
     Unique(TheropodBird): (
         primary: "common.abilities.unique.theropodbird.triplestrike",
         secondary: "common.abilities.unique.theropodbird.triplestrike",
-        skills: [],
+        abilities: [],
     ),
     Debug: (
         primary: "common.abilities.debug.forwardboost",
         secondary: "common.abilities.debug.upboost",
-        skills: [
-            "common.abilities.debug.possess",
+        abilities: [
+            (None, "common.abilities.debug.possess"),
         ],
     ),
     Farming: (
         primary: "common.abilities.farming.basic",
         secondary: "common.abilities.farming.basic",
-        skills: [],
+        abilities: [],
     ),
     Empty: (
         primary: "common.abilities.empty.basic",
         secondary: "common.abilities.empty.basic",
-        skills: [],
+        abilities: [],
     ),
 })

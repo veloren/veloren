@@ -1,0 +1,16 @@
+ItemDef(
+    name: "Jeweled Bulawa",
+    description: "Inset with an amethyst.",
+    kind: Tool((
+        kind: Hammer,
+        hands: One,
+        stats: (
+            equip_time_millis: 500,
+            power: 1.4,
+            poise_strength: 1.0,
+            speed: 1.0,
+        ),
+    )),
+    quality: Moderate,
+    tags: [],
+)

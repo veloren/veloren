@@ -3,6 +3,7 @@ ItemDef(
     description: "Double bitted axe head, decorated iron construction.",
     kind: Tool((
         kind: Axe,
+        hands: Two,
         stats: (
             equip_time_millis: 400,
             power: 1.2,

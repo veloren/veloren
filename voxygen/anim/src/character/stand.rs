@@ -8,7 +8,14 @@ use std::{f32::consts::PI, ops::Mul};
 pub struct StandAnimation;
 
 impl Animation for StandAnimation {
-    type Dependency = (Option<ToolKind>, Option<ToolKind>, f64, Vec3<f32>);
+    #[allow(clippy::type_complexity)]
+    type Dependency = (
+        Option<ToolKind>,
+        Option<ToolKind>,
+        (Option<Hands>, Option<Hands>),
+        f64,
+        Vec3<f32>,
+    );
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -17,7 +24,7 @@ impl Animation for StandAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_stand")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, second_tool_kind, global_time, avg_vel): Self::Dependency,
+        (active_tool_kind, second_tool_kind, hands, global_time, avg_vel): Self::Dependency,
         anim_time: f64,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -143,11 +150,8 @@ impl Animation for StandAnimation {
 
         next.torso.position = Vec3::new(0.0, 0.0, 0.0) * s_a.scaler;
 
-        next.second.scale = match (
-            active_tool_kind.map(|tk| tk.hands()),
-            second_tool_kind.map(|tk| tk.hands()),
-        ) {
-            (Some(Hands::OneHand), Some(Hands::OneHand)) => Vec3::one(),
+        next.second.scale = match hands {
+            (Some(Hands::One), Some(Hands::One)) => Vec3::one(),
             (_, _) => Vec3::zero(),
         };
 

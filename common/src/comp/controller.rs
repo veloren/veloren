@@ -222,6 +222,7 @@ pub struct ControllerInputs {
     pub primary: Input,
     pub secondary: Input,
     pub ability3: Input,
+    pub ability4: Input,
     pub jump: Input,
     pub roll: Input,
     pub glide: Input,
@@ -249,6 +250,7 @@ impl ControllerInputs {
         self.primary.tick(dt);
         self.secondary.tick(dt);
         self.ability3.tick(dt);
+        self.ability4.tick(dt);
         self.jump.tick(dt);
         self.roll.tick(dt);
         self.glide.tick(dt);
@@ -261,6 +263,7 @@ impl ControllerInputs {
         self.primary.tick_freshness();
         self.secondary.tick_freshness();
         self.ability3.tick_freshness();
+        self.ability4.tick_freshness();
         self.jump.tick_freshness();
         self.roll.tick_freshness();
         self.glide.tick_freshness();
@@ -274,6 +277,7 @@ impl ControllerInputs {
         self.primary.update_with_new(new.primary);
         self.secondary.update_with_new(new.secondary);
         self.ability3.update_with_new(new.ability3);
+        self.ability4.update_with_new(new.ability4);
         self.jump.update_with_new(new.jump);
         self.roll.update_with_new(new.roll);
         self.glide.update_with_new(new.glide);
@@ -287,7 +291,10 @@ impl ControllerInputs {
     }
 
     pub fn holding_ability_key(&self) -> bool {
-        self.primary.is_pressed() || self.secondary.is_pressed() || self.ability3.is_pressed()
+        self.primary.is_pressed()
+            || self.secondary.is_pressed()
+            || self.ability3.is_pressed()
+            || self.ability4.is_pressed()
     }
 }
 

@@ -19,6 +19,7 @@ impl CharacterBehavior for Data {
         handle_ability1_input(&data, &mut update);
         handle_ability2_input(&data, &mut update);
         handle_ability3_input(&data, &mut update);
+        handle_ability4_input(&data, &mut update);
         handle_dodge_input(&data, &mut update);
 
         update

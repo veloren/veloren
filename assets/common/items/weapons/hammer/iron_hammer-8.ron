@@ -3,6 +3,7 @@ ItemDef(
     description: "This hammer has a spike on the opposite end, making it dangerous when swung either direction.",
     kind: Tool((
         kind: Hammer,
+        hands: Two,
         stats: (
             equip_time_millis: 500,
             power: 1.2,

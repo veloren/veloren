@@ -3,6 +3,7 @@ ItemDef(
     description: "A heavy hammer forged from a simple metal alloy.",
     kind: Tool((
         kind: Hammer,
+        hands: Two,
         stats: (
             equip_time_millis: 500,
             power: 1.0,

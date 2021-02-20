@@ -1,5 +1,9 @@
 use crate::hud::slots::EquipSlot;
-use common::comp::{slot::InvSlotId, Inventory};
+use common::comp::{
+    item::{tool::Hands, ItemKind},
+    slot::InvSlotId,
+    Inventory,
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -20,6 +24,7 @@ pub enum Slot {
 pub enum SlotContents {
     Inventory(InvSlotId),
     Ability3,
+    Ability4,
 }
 
 #[derive(Clone, Debug)]
@@ -74,44 +79,16 @@ impl State {
         let stats = client.state().ecs().read_storage::<common::comp::Stats>();
         let stat = stats.get(client.entity());
         let should_be_present = if let (Some(inventory), Some(stat)) = (inventory, stat) {
-            inventory
-                .equipped(EquipSlot::Mainhand)
-                .map(|i| i.kind())
-                .filter(|kind| {
-                    use common::comp::{
-                        item::{
-                            tool::{ToolKind, UniqueKind},
-                            ItemKind,
-                        },
-                        skills::{self, Skill},
-                    };
-                    if let ItemKind::Tool(tool) = kind {
-                        match tool.kind {
-                            ToolKind::Sword => stat
-                                .skill_set
-                                .has_skill(Skill::Sword(skills::SwordSkill::UnlockSpin)),
-                            ToolKind::Axe => stat
-                                .skill_set
-                                .has_skill(Skill::Axe(skills::AxeSkill::UnlockLeap)),
-                            ToolKind::Hammer => stat
-                                .skill_set
-                                .has_skill(Skill::Hammer(skills::HammerSkill::UnlockLeap)),
-                            ToolKind::Bow => stat
-                                .skill_set
-                                .has_skill(Skill::Bow(skills::BowSkill::UnlockRepeater)),
-                            ToolKind::Staff => stat
-                                .skill_set
-                                .has_skill(Skill::Staff(skills::StaffSkill::UnlockShockwave)),
-                            ToolKind::Debug
-                            | ToolKind::Unique(UniqueKind::QuadMedQuick)
-                            | ToolKind::Unique(UniqueKind::QuadLowBreathe) => true,
-                            _ => false,
-                        }
-                    } else {
-                        false
-                    }
-                })
-                .is_some()
+            inventory.equipped(EquipSlot::Mainhand).map_or(false, |i| {
+                i.item_config_expect()
+                    .abilities
+                    .abilities
+                    .get(0)
+                    .as_ref()
+                    .map_or(false, |(s, _)| {
+                        s.map_or(true, |s| stat.skill_set.has_skill(s))
+                    })
+            })
         } else {
             false
         };
@@ -128,6 +105,62 @@ impl State {
             self.slots
                 .iter_mut()
                 .filter(|s| matches!(s, Some(SlotContents::Ability3)))
+                .for_each(|s| *s = None)
+        }
+    }
+
+    pub fn maintain_ability4(&mut self, client: &client::Client) {
+        use specs::WorldExt;
+        let inventories = client.state().ecs().read_storage::<Inventory>();
+        let inventory = inventories.get(client.entity());
+        let stats = client.state().ecs().read_storage::<common::comp::Stats>();
+        let stat = stats.get(client.entity());
+        let should_be_present = if let (Some(inventory), Some(stat)) = (inventory, stat) {
+            let hands = |equip_slot| match inventory.equipped(equip_slot).map(|i| i.kind()) {
+                Some(ItemKind::Tool(tool)) => Some(tool.hands),
+                _ => None,
+            };
+
+            let active_tool_hands = hands(EquipSlot::Mainhand);
+            let second_tool_hands = hands(EquipSlot::Offhand);
+
+            let (equip_slot, skill_index) = match (active_tool_hands, second_tool_hands) {
+                (Some(Hands::Two), _) => (Some(EquipSlot::Mainhand), 1),
+                (_, Some(Hands::One)) => (Some(EquipSlot::Offhand), 0),
+                (Some(Hands::One), _) => (Some(EquipSlot::Mainhand), 1),
+                (_, _) => (None, 0),
+            };
+
+            if let Some(equip_slot) = equip_slot {
+                inventory.equipped(equip_slot).map_or(false, |i| {
+                    i.item_config_expect()
+                        .abilities
+                        .abilities
+                        .get(skill_index)
+                        .as_ref()
+                        .map_or(false, |(s, _)| {
+                            s.map_or(true, |s| stat.skill_set.has_skill(s))
+                        })
+                })
+            } else {
+                false
+            }
+        } else {
+            false
+        };
+
+        if should_be_present {
+            if !self
+                .slots
+                .iter()
+                .any(|s| matches!(s, Some(SlotContents::Ability4)))
+            {
+                self.slots[1] = Some(SlotContents::Ability4);
+            }
+        } else {
+            self.slots
+                .iter_mut()
+                .filter(|s| matches!(s, Some(SlotContents::Ability4)))
                 .for_each(|s| *s = None)
         }
     }

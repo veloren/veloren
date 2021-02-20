@@ -1,0 +1,16 @@
+ItemDef(
+    name: "Stump Club",
+    description: "All that remains of a tree...",
+    kind: Tool((
+        kind: Hammer,
+        hands: One,
+        stats: (
+            equip_time_millis: 500,
+            power: 0.8,
+            poise_strength: 1.0,
+            speed: 0.8,
+        ),
+    )),
+    quality: Low,
+    tags: [],
+)

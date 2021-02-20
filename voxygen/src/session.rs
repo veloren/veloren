@@ -1165,6 +1165,7 @@ impl PlayState for SessionState {
                         client.perform_trade_action(action);
                     },
                     HudEvent::Ability3(state) => self.inputs.ability3.set_state(state),
+                    HudEvent::Ability4(state) => self.inputs.ability4.set_state(state),
                     HudEvent::ChangeFOV(new_fov) => {
                         global_state.settings.graphics.fov = new_fov;
                         global_state.settings.save_to_file_warn();

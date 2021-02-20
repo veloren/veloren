@@ -3,6 +3,7 @@ ItemDef(
     description: "There\'s blood encrusted on the blade.",
     kind: Tool((
         kind: Sword,
+        hands: Two,
         stats: (
             equip_time_millis: 400,
             power: 0.75,

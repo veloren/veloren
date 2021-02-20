@@ -3,6 +3,7 @@ ItemDef(
     description: "A heavy and wide baton made of a durable metal alloy, decorated with spikes.",
     kind: Tool((
         kind: Hammer,
+        hands: Two,
         stats: (
             equip_time_millis: 500,
             power: 1.4,

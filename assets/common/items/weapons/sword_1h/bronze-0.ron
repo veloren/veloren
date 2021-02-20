@@ -1,0 +1,16 @@
+ItemDef(
+    name: "Bronze Khopesh",
+    description: "Forged with bronze.",
+    kind: Tool((
+        kind: Sword,
+        hands: One,
+        stats: (
+            equip_time_millis: 400,
+            power: 0.65,
+            poise_strength: 1.0,
+            speed: 1.1,
+        ),
+    )),
+    quality: Common,
+    tags: [],
+)

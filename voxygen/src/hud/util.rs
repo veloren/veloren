@@ -1,6 +1,6 @@
 use common::comp::item::{
     armor::{Armor, ArmorKind, Protection},
-    tool::{Tool, ToolKind},
+    tool::{Hands, Tool, ToolKind},
     ItemDesc, ItemKind,
 };
 use std::{borrow::Cow, fmt::Write};
@@ -118,13 +118,19 @@ fn tool_desc(tool: &Tool, desc: &str) -> String {
     let power = tool.base_power();
     //let poise_strength = tool.base_poise_strength();
     let speed = tool.base_speed();
+    let hands = match tool.hands {
+        Hands::One => "One",
+        Hands::Two => "Two",
+    };
 
     if !desc.is_empty() {
         format!(
-            "{}\n\nDPS: {:0.1}\n\nPower: {:0.1}\n\nSpeed: {:0.1}\n\n{}\n\n<Right-Click to use>",
+            "{}-Handed {}\n\nDPS: {:0.1}\n\nPower: {:0.1}\n\nSpeed: {:0.1}\n\n{}\n\n<Right-Click \
+             to use>",
             // add back when ready for poise
             //"{}\n\nDPS: {:0.1}\n\nPower: {:0.1}\n\nPoise Strength: {:0.1}\n\nSpeed: \
             // {:0.1}\n\n{}\n\n<Right-Click to use>",
+            hands,
             kind,
             speed * power * 10.0, // Damage per second
             power * 10.0,
@@ -134,10 +140,11 @@ fn tool_desc(tool: &Tool, desc: &str) -> String {
         )
     } else {
         format!(
-            "{}\n\nDPS: {:0.1}\n\nPower: {:0.1}\n\nSpeed: {:0.1}\n\n<Right-Click to use>",
+            "{}-Handed {}\n\nDPS: {:0.1}\n\nPower: {:0.1}\n\nSpeed: {:0.1}\n\n<Right-Click to use>",
             // add back when ready for poise
             //"{}\n\nDPS: {:0.1}\n\nPower: {:0.1}\n\nPoise Strength: {:0.1}\n\nSpeed: \
             // {:0.1}\n\n<Right-Click to use>",
+            hands,
             kind,
             speed * power * 10.0, // Damage per second
             power * 10.0,

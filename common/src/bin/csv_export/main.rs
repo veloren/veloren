@@ -5,7 +5,7 @@ use structopt::StructOpt;
 
 use comp::item::{
     armor::{ArmorKind, Protection},
-    tool::ToolKind,
+    tool::{Hands, Tool, ToolKind},
     ItemKind,
 };
 use veloren_common::comp;
@@ -71,6 +71,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
         "Path",
         "Kind",
         "Name",
+        "Hands",
         "Quality",
         "Power",
         "Poise Strength",
@@ -89,11 +90,13 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                 let speed = tool.base_speed().to_string();
                 let equip_time = tool.equip_time().subsec_millis().to_string();
                 let kind = get_tool_kind(&tool.kind);
+                let hands = get_tool_hands(&tool);
 
                 wtr.write_record(&[
                     item.item_definition_id(),
                     &kind,
                     item.name(),
+                    &hands,
                     &format!("{:?}", item.quality()),
                     &power,
                     &poise_strength,
@@ -124,6 +127,13 @@ fn get_tool_kind(kind: &ToolKind) -> String {
         ToolKind::Farming => "Farming".to_string(),
         ToolKind::Unique(_) => "Unique".to_string(),
         ToolKind::Empty => "Empty".to_string(),
+    }
+}
+
+fn get_tool_hands(tool: &Tool) -> String {
+    match tool.hands {
+        Hands::One => "One".to_string(),
+        Hands::Two => "Two".to_string(),
     }
 }
 
@@ -183,22 +193,22 @@ fn all_items() -> Result<(), Box<dyn Error>> {
 
 fn main() {
     let args = Cli::from_args();
-    if args.function.eq_ignore_ascii_case("armor_stats") {
+    if args.function.eq_ignore_ascii_case("armor-stats") {
         if let Err(e) = armor_stats() {
             println!("Error: {}\n", e)
         }
-    } else if args.function.eq_ignore_ascii_case("weapon_stats") {
+    } else if args.function.eq_ignore_ascii_case("weapon-stats") {
         if let Err(e) = weapon_stats() {
             println!("Error: {}\n", e)
         }
-    } else if args.function.eq_ignore_ascii_case("all_items") {
+    } else if args.function.eq_ignore_ascii_case("all-items") {
         if let Err(e) = all_items() {
             println!("Error: {}\n", e)
         }
     } else {
         println!(
             "Invalid argument, available \
-             arguments:\n\"armor_stats\"\n\"weapon_stats\"\n\"all_items\""
+             arguments:\n\"armor-stats\"\n\"weapon-stats\"\n\"all-items\""
         )
     }
 }

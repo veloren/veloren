@@ -3,6 +3,7 @@ ItemDef(
     description: "It\'s slightly cracked.",
     kind: Tool((
         kind: Sword,
+        hands: Two,
         stats: (
             equip_time_millis: 500,
             power: 0.6,

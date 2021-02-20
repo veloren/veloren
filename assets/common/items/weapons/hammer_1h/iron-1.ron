@@ -1,0 +1,16 @@
+ItemDef(
+    name: "Iron Club",
+    description: "Forged from iron.",
+    kind: Tool((
+        kind: Hammer,
+        hands: One,
+        stats: (
+            equip_time_millis: 500,
+            power: 1.3,
+            poise_strength: 1.0,
+            speed: 0.9,
+        ),
+    )),
+    quality: Moderate,
+    tags: [],
+)

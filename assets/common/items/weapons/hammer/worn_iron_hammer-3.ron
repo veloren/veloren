@@ -3,6 +3,7 @@ ItemDef(
     description: "A heavy orc crafted hammer, missing chunks from heavy use.",
     kind: Tool((
         kind: Hammer,
+        hands: Two,
         stats: (
             equip_time_millis: 500,
             power: 0.85,

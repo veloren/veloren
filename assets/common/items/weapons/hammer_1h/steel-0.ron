@@ -1,0 +1,16 @@
+ItemDef(
+    name: "Bone Breaker",
+    description: "Forged from steel.",
+    kind: Tool((
+        kind: Hammer,
+        hands: One,
+        stats: (
+            equip_time_millis: 500,
+            power: 1.5,
+            poise_strength: 1.0,
+            speed: 0.9,
+        ),
+    )),
+    quality: Moderate,
+    tags: [],
+)

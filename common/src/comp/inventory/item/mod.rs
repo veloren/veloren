@@ -8,7 +8,7 @@ use crate::{
     assets::{self, AssetExt, Error},
     comp::{
         inventory::{item::tool::AbilityMap, InvSlot},
-        Body, CharacterAbility,
+        CharacterAbility,
     },
     effect::Effect,
     lottery::Lottery,
@@ -99,7 +99,7 @@ impl ItemTag {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ItemKind {
     /// Something wieldable
     Tool(tool::Tool),
@@ -183,11 +183,9 @@ impl PartialEq for ItemDef {
     fn eq(&self, other: &Self) -> bool { self.item_definition_id == other.item_definition_id }
 }
 
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ItemConfig {
-    pub ability1: Option<CharacterAbility>,
-    pub ability2: Option<CharacterAbility>,
-    pub ability3: Option<CharacterAbility>,
+    pub abilities: AbilitySet<CharacterAbility>,
     pub block_ability: Option<CharacterAbility>,
     pub dodge_ability: Option<CharacterAbility>,
 }
@@ -198,9 +196,7 @@ impl From<(&ItemKind, &AbilityMap)> for ItemConfig {
             let abilities = tool.get_abilities(map);
 
             return ItemConfig {
-                ability1: Some(abilities.primary),
-                ability2: Some(abilities.secondary),
-                ability3: abilities.skills.get(0).cloned(),
+                abilities,
                 block_ability: None,
                 dodge_ability: Some(CharacterAbility::default_roll()),
             };
@@ -365,40 +361,6 @@ impl Item {
     pub fn new_from_asset(asset: &str) -> Result<Self, Error> {
         let inner_item = Arc::<ItemDef>::load_cloned(asset)?;
         Ok(Item::new_from_item_def(inner_item))
-    }
-
-    pub fn new_default_for_body(body: &Body) -> Self {
-        let mut item = Item::new_from_asset_expect("common.items.weapons.empty.empty");
-
-        let empty_def = &*item.item_def;
-        item.item_def = Arc::new(ItemDef {
-            slots: empty_def.slots,
-            name: empty_def.name.clone(),
-            kind: empty_def.kind.clone(),
-            description: empty_def.description.clone(),
-            item_definition_id: empty_def.item_definition_id.clone(),
-            quality: empty_def.quality,
-            tags: Vec::new(),
-            item_config: Some(ItemConfig {
-                ability1: Some(CharacterAbility::BasicMelee {
-                    energy_cost: 0.010,
-                    buildup_duration: 0.5,
-                    swing_duration: 0.1,
-                    recover_duration: 0.1,
-                    base_damage: body.base_dmg(),
-                    base_poise_damage: body.base_poise_dmg(),
-                    knockback: 0.0,
-                    range: body.base_range(),
-                    max_angle: 20.0,
-                }),
-                ability2: None,
-                ability3: None,
-                block_ability: None,
-                dodge_ability: None,
-            }),
-        });
-
-        item
     }
 
     /// Duplicates an item, creating an exact copy but with a new item ID

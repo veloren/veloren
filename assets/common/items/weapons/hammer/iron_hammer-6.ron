@@ -3,6 +3,7 @@ ItemDef(
     description: "A rough shaped iron hammer with spikes for added destruction.",
     kind: Tool((
         kind: Hammer,
+        hands: Two,
         stats: (
             equip_time_millis: 500,
             power: 1.2,

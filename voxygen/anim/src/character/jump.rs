@@ -7,9 +7,11 @@ use std::f32::consts::PI;
 
 pub struct JumpAnimation;
 impl Animation for JumpAnimation {
+    #[allow(clippy::type_complexity)]
     type Dependency = (
         Option<ToolKind>,
         Option<ToolKind>,
+        (Option<Hands>, Option<Hands>),
         Vec3<f32>,
         Vec3<f32>,
         f64,
@@ -23,7 +25,7 @@ impl Animation for JumpAnimation {
 
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, second_tool_kind, orientation, last_ori, global_time): Self::Dependency,
+        (active_tool_kind, second_tool_kind, hands, orientation, last_ori, global_time): Self::Dependency,
         anim_time: f64,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -179,11 +181,8 @@ impl Animation for JumpAnimation {
         next.torso.orientation = Quaternion::rotation_x(-0.2);
         next.torso.scale = Vec3::one() / 11.0 * s_a.scaler;
 
-        next.second.scale = match (
-            active_tool_kind.map(|tk| tk.hands()),
-            second_tool_kind.map(|tk| tk.hands()),
-        ) {
-            (Some(Hands::OneHand), Some(Hands::OneHand)) => Vec3::one(),
+        next.second.scale = match hands {
+            (Some(Hands::One), Some(Hands::One)) => Vec3::one(),
             (_, _) => Vec3::zero(),
         };
 

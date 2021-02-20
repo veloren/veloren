@@ -689,21 +689,25 @@ impl FigureMgr {
             let active_item_kind = inventory
                 .and_then(|i| i.equipped(EquipSlot::Mainhand))
                 .map(|i| i.kind());
-            let active_tool_kind = if let Some(ItemKind::Tool(tool)) = active_item_kind {
-                Some(tool.kind)
-            } else {
-                None
-            };
+            let (active_tool_kind, active_tool_hand) =
+                if let Some(ItemKind::Tool(tool)) = active_item_kind {
+                    (Some(tool.kind), Some(tool.hands))
+                } else {
+                    (None, None)
+                };
 
             let second_item_kind = inventory
                 .and_then(|i| i.equipped(EquipSlot::Offhand))
                 .map(|i| i.kind());
 
-            let second_tool_kind = if let Some(ItemKind::Tool(tool)) = second_item_kind {
-                Some(tool.kind)
-            } else {
-                None
-            };
+            let (second_tool_kind, second_tool_hand) =
+                if let Some(ItemKind::Tool(tool)) = second_item_kind {
+                    (Some(tool.kind), Some(tool.hands))
+                } else {
+                    (None, None)
+                };
+
+            let hands = (active_tool_hand, second_tool_hand);
 
             match body {
                 Body::Humanoid(body) => {
@@ -742,7 +746,13 @@ impl FigureMgr {
                         // Standing
                         (true, false, false) => anim::character::StandAnimation::update_skeleton(
                             &CharacterSkeleton::default(),
-                            (active_tool_kind, second_tool_kind, time, state.avg_vel),
+                            (
+                                active_tool_kind,
+                                second_tool_kind,
+                                hands,
+                                time,
+                                state.avg_vel,
+                            ),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
@@ -753,6 +763,7 @@ impl FigureMgr {
                             (
                                 active_tool_kind,
                                 second_tool_kind,
+                                hands,
                                 vel.0,
                                 // TODO: Update to use the quaternion.
                                 ori * anim::vek::Vec3::<f32>::unit_y(),
@@ -771,6 +782,7 @@ impl FigureMgr {
                             (
                                 active_tool_kind,
                                 second_tool_kind,
+                                hands,
                                 // TODO: Update to use the quaternion.
                                 ori * anim::vek::Vec3::<f32>::unit_y(),
                                 state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
@@ -786,6 +798,7 @@ impl FigureMgr {
                             (
                                 active_tool_kind,
                                 second_tool_kind,
+                                hands,
                                 vel.0,
                                 // TODO: Update to use the quaternion.
                                 ori * anim::vek::Vec3::<f32>::unit_y(),

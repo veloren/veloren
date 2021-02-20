@@ -3,6 +3,7 @@ ItemDef(
     description: "Tried and true iron armaments, mass produced for killing.",
     kind: Tool((
         kind: Axe,
+        hands: Two,
         stats: (
             equip_time_millis: 400,
             power: 1.2,

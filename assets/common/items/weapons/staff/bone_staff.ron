@@ -3,6 +3,7 @@ ItemDef(
     description: "There\'s a red gem suspended in the bones.",
     kind: Tool((
         kind: Staff,
+        hands: Two,
         stats: (
             equip_time_millis: 300,
             power: 1.0,

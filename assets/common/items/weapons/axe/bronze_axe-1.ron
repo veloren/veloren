@@ -3,6 +3,7 @@ ItemDef(
     description: "While the metal alloy is relatively simple, this unique circular axe has a unique appearance.",
     kind: Tool((
         kind: Axe,
+        hands: Two,
         stats: (
             equip_time_millis: 400,
             power: 1.0,

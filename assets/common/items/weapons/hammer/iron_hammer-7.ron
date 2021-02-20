@@ -3,6 +3,7 @@ ItemDef(
     description: "This iron forged hammer is roughly shaped into the shape of a fist holding the hammer head.",
     kind: Tool((
         kind: Hammer,
+        hands: Two,
         stats: (
             equip_time_millis: 500,
             power: 1.2,

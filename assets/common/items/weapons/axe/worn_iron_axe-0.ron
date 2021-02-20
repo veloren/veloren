@@ -3,6 +3,7 @@ ItemDef(
     description: "Rough cut axe of dwarven origin, it\'s very old, but still usable.",
     kind: Tool((
         kind: Axe,
+        hands: Two,
         stats: (
             equip_time_millis: 400,
             power: 0.8,

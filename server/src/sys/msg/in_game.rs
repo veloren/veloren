@@ -71,7 +71,7 @@ impl Sys {
             ClientGeneral::ControllerInputs(inputs) => {
                 if matches!(presence.kind, PresenceKind::Character(_)) {
                     if let Some(controller) = controllers.get_mut(entity) {
-                        controller.inputs.update_with_new(inputs);
+                        controller.inputs.update_with_new(*inputs);
                     }
                 }
             },

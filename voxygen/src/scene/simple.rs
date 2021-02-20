@@ -308,26 +308,30 @@ impl Scene {
             .and_then(|inv| inv.equipped(EquipSlot::Mainhand))
             .map(|i| i.kind());
 
-        let active_tool_kind = if let Some(ItemKind::Tool(tool)) = active_item_kind {
-            Some(tool.kind)
-        } else {
-            None
-        };
+        let (active_tool_kind, active_tool_hand) =
+            if let Some(ItemKind::Tool(tool)) = active_item_kind {
+                (Some(tool.kind), Some(tool.hands))
+            } else {
+                (None, None)
+            };
 
         let second_item_kind = inventory
             .and_then(|inv| inv.equipped(EquipSlot::Offhand))
             .map(|i| i.kind());
 
-        let second_tool_kind = if let Some(ItemKind::Tool(tool)) = second_item_kind {
-            Some(tool.kind)
-        } else {
-            None
-        };
+        let (second_tool_kind, second_tool_hand) =
+            if let Some(ItemKind::Tool(tool)) = second_item_kind {
+                (Some(tool.kind), Some(tool.hands))
+            } else {
+                (None, None)
+            };
+
+        let hands = (active_tool_hand, second_tool_hand);
 
         if let Some(body) = scene_data.body {
             let tgt_skeleton = IdleAnimation::update_skeleton(
                 self.figure_state.skeleton_mut(),
-                (active_tool_kind, second_tool_kind, scene_data.time),
+                (active_tool_kind, second_tool_kind, hands, scene_data.time),
                 scene_data.time,
                 &mut 0.0,
                 &SkeletonAttr::from(&body),

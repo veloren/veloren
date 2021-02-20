@@ -31,7 +31,7 @@ pub struct StaticData {
     pub projectile_gravity: Option<Gravity>,
     pub projectile_speed: f32,
     /// What key is used to press ability
-    pub ability_key: AbilityKey,
+    pub ability_info: AbilityInfo,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -53,7 +53,7 @@ impl CharacterBehavior for Data {
 
         handle_move(data, &mut update, 1.0);
         handle_jump(data, &mut update);
-        if !ability_key_is_pressed(data, self.static_data.ability_key) {
+        if !ability_key_is_pressed(data, self.static_data.ability_info.key) {
             handle_interrupt(data, &mut update, false);
             match update.character {
                 CharacterState::RepeaterRanged(_) => {},

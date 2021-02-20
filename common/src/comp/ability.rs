@@ -6,7 +6,7 @@ use crate::{
     },
     states::{
         behavior::JoinData,
-        utils::{AbilityKey, StageSection},
+        utils::{AbilityInfo, StageSection},
         *,
     },
     Knockback,
@@ -1060,8 +1060,8 @@ impl CharacterAbility {
     }
 }
 
-impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
-    fn from((ability, key): (&CharacterAbility, AbilityKey)) -> Self {
+impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
+    fn from((ability, ability_info): (&CharacterAbility, AbilityInfo)) -> Self {
         match ability {
             CharacterAbility::BasicMelee {
                 buildup_duration,
@@ -1083,7 +1083,7 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                     knockback: *knockback,
                     range: *range,
                     max_angle: *max_angle,
-                    ability_key: key,
+                    ability_info,
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
@@ -1109,7 +1109,7 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                     projectile_gravity: *projectile_gravity,
                     projectile_speed: *projectile_speed,
                     can_continue: *can_continue,
-                    ability_key: key,
+                    ability_info,
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
@@ -1162,7 +1162,7 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                     swing_duration: Duration::from_secs_f32(*swing_duration),
                     recover_duration: Duration::from_secs_f32(*recover_duration),
                     is_interruptible: *is_interruptible,
-                    ability_key: key,
+                    ability_info,
                 },
                 auto_charge: false,
                 timer: Duration::default(),
@@ -1212,7 +1212,7 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                     max_speed_increase: *max_speed_increase,
                     scales_from_combo: *scales_from_combo,
                     is_interruptible: *is_interruptible,
-                    ability_key: key,
+                    ability_info,
                 },
                 stage: 1,
                 combo: 0,
@@ -1246,7 +1246,7 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                     max_angle: *max_angle,
                     forward_leap_strength: *forward_leap_strength,
                     vertical_leap_strength: *vertical_leap_strength,
-                    ability_key: key,
+                    ability_info,
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
@@ -1281,7 +1281,7 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                     is_interruptible: *is_interruptible,
                     forward_speed: *forward_speed,
                     num_spins: *num_spins,
-                    ability_key: key,
+                    ability_info,
                 },
                 timer: Duration::default(),
                 spins_remaining: *num_spins - 1,
@@ -1321,7 +1321,7 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                     swing_duration: Duration::from_secs_f32(*swing_duration),
                     hit_timing: *hit_timing,
                     recover_duration: Duration::from_secs_f32(*recover_duration),
-                    ability_key: key,
+                    ability_info,
                 },
                 stage_section: StageSection::Charge,
                 timer: Duration::default(),
@@ -1362,7 +1362,7 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                     initial_projectile_speed: *initial_projectile_speed,
                     scaled_projectile_speed: *scaled_projectile_speed,
                     move_speed: *move_speed,
-                    ability_key: key,
+                    ability_info,
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
@@ -1393,7 +1393,7 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                     projectile_light: *projectile_light,
                     projectile_gravity: *projectile_gravity,
                     projectile_speed: *projectile_speed,
-                    ability_key: key,
+                    ability_info,
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Movement,
@@ -1427,7 +1427,7 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                     shockwave_duration: Duration::from_secs_f32(*shockwave_duration),
                     requires_ground: *requires_ground,
                     move_efficiency: *move_efficiency,
-                    ability_key: key,
+                    ability_info,
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
@@ -1459,7 +1459,7 @@ impl From<(&CharacterAbility, AbilityKey)> for CharacterState {
                     energy_regen: *energy_regen,
                     energy_cost: *energy_cost,
                     energy_drain: *energy_drain,
-                    ability_key: key,
+                    ability_info,
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,

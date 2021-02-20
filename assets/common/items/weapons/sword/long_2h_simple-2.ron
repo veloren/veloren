@@ -3,6 +3,7 @@ ItemDef(
     description: "It was well maintained by it\'s previous owner.",
     kind: Tool((
         kind: Sword,
+        hands: Two,
         stats: (
             equip_time_millis: 500,
             power: 0.9,

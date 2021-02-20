@@ -58,7 +58,7 @@ pub enum ClientGeneral {
     Character(CharacterId),
     Spectate,
     //Only in game
-    ControllerInputs(comp::ControllerInputs),
+    ControllerInputs(Box<comp::ControllerInputs>),
     ControlEvent(comp::ControlEvent),
     ControlAction(comp::ControlAction),
     SetViewDistance(u32),

@@ -1,0 +1,16 @@
+ItemDef(
+    name: "Spiky Mace",
+    description: "Forged from iron.",
+    kind: Tool((
+        kind: Hammer,
+        hands: One,
+        stats: (
+            equip_time_millis: 500,
+            power: 1.1,
+            poise_strength: 1.0,
+            speed: 1.1,
+        ),
+    )),
+    quality: Moderate,
+    tags: [],
+)

@@ -3,6 +3,7 @@ ItemDef(
     description: "Opens letters quickly.",
     kind: Tool((
         kind: Dagger,
+        hands: One,
         stats: (
             equip_time_millis: 0,
             power: 1.8,

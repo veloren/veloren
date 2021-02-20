@@ -10,6 +10,7 @@ pub struct SwimAnimation;
 type SwimAnimationDependency = (
     Option<ToolKind>,
     Option<ToolKind>,
+    (Option<Hands>, Option<Hands>),
     Vec3<f32>,
     Vec3<f32>,
     Vec3<f32>,
@@ -28,7 +29,16 @@ impl Animation for SwimAnimation {
 
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, second_tool_kind, velocity, orientation, last_ori, global_time, avg_vel): Self::Dependency,
+        (
+            active_tool_kind,
+            second_tool_kind,
+            hands,
+            velocity,
+            orientation,
+            last_ori,
+            global_time,
+            avg_vel,
+        ): Self::Dependency,
         anim_time: f64,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -223,11 +233,8 @@ impl Animation for SwimAnimation {
             * Quaternion::rotation_z(tilt * 8.0);
         next.torso.scale = Vec3::one() / 11.0 * s_a.scaler;
 
-        next.second.scale = match (
-            active_tool_kind.map(|tk| tk.hands()),
-            second_tool_kind.map(|tk| tk.hands()),
-        ) {
-            (Some(Hands::OneHand), Some(Hands::OneHand)) => Vec3::one(),
+        next.second.scale = match hands {
+            (Some(Hands::One), Some(Hands::One)) => Vec3::one(),
             (_, _) => Vec3::zero(),
         };
 

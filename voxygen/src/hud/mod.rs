@@ -401,6 +401,7 @@ pub enum Event {
     ChangeHotbarState(Box<HotbarState>),
     TradeAction(TradeAction),
     Ability3(bool),
+    Ability4(bool),
     Logout,
     Quit,
     ChangeLanguage(Box<LanguageMetadata>),
@@ -2685,8 +2686,9 @@ impl Hud {
                                         bypass_dialog: false,
                                     });
                                 },
-                                hotbar::SlotContents::Ability3 => {}, /* Event::Ability3(true),
-                                                                       * sticks */
+                                hotbar::SlotContents::Ability3 | hotbar::SlotContents::Ability4 => {
+                                }, /* Event::Ability3(true),
+                                    * sticks */
                             }
                         });
                     }
@@ -2694,6 +2696,7 @@ impl Hud {
             }
         }
         self.hotbar.maintain_ability3(client);
+        self.hotbar.maintain_ability4(client);
 
         events
     }
@@ -2752,6 +2755,7 @@ impl Hud {
                         }
                     },
                     hotbar::SlotContents::Ability3 => events.push(Event::Ability3(state)),
+                    hotbar::SlotContents::Ability4 => events.push(Event::Ability4(state)),
                 });
             }
         }
