@@ -1,12 +1,12 @@
 use crate::{
     message::{partial_eq_bincode, Message},
     participant::{A2bStreamOpen, S2bShutdownBparticipant},
-    scheduler::Scheduler,
+    scheduler::{A2sConnect, Scheduler},
 };
 use bytes::Bytes;
 #[cfg(feature = "compression")]
 use lz_fear::raw::DecodeError;
-use network_protocol::{Bandwidth, Pid, Prio, Promises, Sid};
+use network_protocol::{Bandwidth, InitProtocolError, Pid, Prio, Promises, Sid};
 #[cfg(feature = "metrics")]
 use prometheus::Registry;
 use serde::{de::DeserializeOwned, Serialize};
@@ -83,7 +83,16 @@ pub struct Stream {
 pub enum NetworkError {
     NetworkClosed,
     ListenFailed(std::io::Error),
-    ConnectFailed(std::io::Error),
+    ConnectFailed(NetworkConnectError),
+}
+
+/// Error type thrown by [`Networks`](Network) connect
+#[derive(Debug)]
+pub enum NetworkConnectError {
+    /// Either a Pid UUID clash or you are trying to hijack a connection
+    InvalidSecret,
+    Handshake(InitProtocolError),
+    Io(std::io::Error),
 }
 
 /// Error type thrown by [`Participants`](Participant) methods
@@ -149,10 +158,8 @@ pub struct Network {
     local_pid: Pid,
     runtime: Arc<Runtime>,
     participant_disconnect_sender: Mutex<HashMap<Pid, A2sDisconnect>>,
-    listen_sender:
-        Mutex<mpsc::UnboundedSender<(ProtocolAddr, oneshot::Sender<tokio::io::Result<()>>)>>,
-    connect_sender:
-        Mutex<mpsc::UnboundedSender<(ProtocolAddr, oneshot::Sender<io::Result<Participant>>)>>,
+    listen_sender: Mutex<mpsc::UnboundedSender<(ProtocolAddr, oneshot::Sender<io::Result<()>>)>>,
+    connect_sender: Mutex<mpsc::UnboundedSender<A2sConnect>>,
     connected_receiver: Mutex<mpsc::UnboundedReceiver<Participant>>,
     shutdown_sender: Option<oneshot::Sender<()>>,
 }
@@ -348,7 +355,8 @@ impl Network {
     /// [`ProtocolAddres`]: crate::api::ProtocolAddr
     #[instrument(name="network", skip(self, address), fields(p = %self.local_pid))]
     pub async fn connect(&self, address: ProtocolAddr) -> Result<Participant, NetworkError> {
-        let (pid_sender, pid_receiver) = oneshot::channel::<io::Result<Participant>>();
+        let (pid_sender, pid_receiver) =
+            oneshot::channel::<Result<Participant, NetworkConnectError>>();
         debug!(?address, "Connect to address");
         self.connect_sender
             .lock()
@@ -1147,6 +1155,18 @@ impl core::fmt::Display for NetworkError {
     }
 }
 
+impl core::fmt::Display for NetworkConnectError {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            NetworkConnectError::Io(e) => write!(f, "Io error: {}", e),
+            NetworkConnectError::Handshake(e) => write!(f, "Handshake error: {}", e),
+            NetworkConnectError::InvalidSecret => {
+                write!(f, "You specified the wrong secret on your second channel")
+            },
+        }
+    }
+}
+
 /// implementing PartialEq as it's super convenient in tests
 impl core::cmp::PartialEq for StreamError {
     fn eq(&self, other: &Self) -> bool {
@@ -1177,3 +1197,4 @@ impl core::cmp::PartialEq for StreamError {
 impl std::error::Error for StreamError {}
 impl std::error::Error for ParticipantError {}
 impl std::error::Error for NetworkError {}
+impl std::error::Error for NetworkConnectError {}

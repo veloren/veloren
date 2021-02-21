@@ -1,10 +1,11 @@
 use crate::{
+    error::{InitProtocolError, ProtocolError},
     frame::InitFrame,
     types::{
         Pid, Sid, STREAM_ID_OFFSET1, STREAM_ID_OFFSET2, VELOREN_MAGIC_NUMBER,
         VELOREN_NETWORK_VERSION,
     },
-    InitProtocol, InitProtocolError, ProtocolError,
+    InitProtocol,
 };
 use async_trait::async_trait;
 use tracing::{debug, error, info, trace};

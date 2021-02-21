@@ -12,7 +12,7 @@ use common::{
 use common_net::msg::{PlayerListUpdate, PresenceKind, ServerGeneral};
 use common_sys::state::State;
 use specs::{saveload::MarkerAllocator, Builder, Entity as EcsEntity, WorldExt};
-use tracing::*;
+use tracing::{debug, error, trace, warn, Instrument};
 
 pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity) {
     span!(_guard, "handle_exit_ingame");

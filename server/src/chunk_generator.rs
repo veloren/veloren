@@ -40,7 +40,7 @@ impl ChunkGenerator {
         &mut self,
         entity: Option<EcsEntity>,
         key: Vec2<i32>,
-        runtime: &mut Arc<Runtime>,
+        runtime: &Runtime,
         world: Arc<World>,
         index: IndexOwned,
     ) {

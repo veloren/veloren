@@ -1,5 +1,5 @@
 use authc::AuthClientError;
-pub use network::NetworkError;
+pub use network::{InitProtocolError, NetworkConnectError, NetworkError};
 use network::{ParticipantError, StreamError};
 
 #[derive(Debug)]
@@ -19,6 +19,8 @@ pub enum Error {
     Banned(String),
     /// Persisted character data is invalid or missing
     InvalidCharacter,
+    /// is thrown when parsing the address or resolving Dns fails
+    DnsResolveFailed(String),
     //TODO: InvalidAlias,
     Other(String),
 }

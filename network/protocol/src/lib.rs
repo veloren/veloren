@@ -49,6 +49,7 @@
 //! [`RecvProtocol`]: crate::RecvProtocol
 //! [`InitProtocol`]: crate::InitProtocol
 
+mod error;
 mod event;
 mod frame;
 mod handshake;
@@ -59,6 +60,7 @@ mod prio;
 mod tcp;
 mod types;
 
+pub use error::{InitProtocolError, ProtocolError};
 pub use event::ProtocolEvent;
 pub use metrics::ProtocolMetricCache;
 #[cfg(feature = "metrics")]
@@ -149,28 +151,4 @@ pub trait UnreliableDrain: Send {
 pub trait UnreliableSink: Send {
     type DataFormat;
     async fn recv(&mut self) -> Result<Self::DataFormat, ProtocolError>;
-}
-
-/// All possible Errors that can happen during Handshake [`InitProtocol`]
-///
-/// [`InitProtocol`]: crate::InitProtocol
-#[derive(Debug, PartialEq)]
-pub enum InitProtocolError {
-    Closed,
-    WrongMagicNumber([u8; 7]),
-    WrongVersion([u32; 3]),
-}
-
-/// When you return closed you must stay closed!
-#[derive(Debug, PartialEq)]
-pub enum ProtocolError {
-    Closed,
-}
-
-impl From<ProtocolError> for InitProtocolError {
-    fn from(err: ProtocolError) -> Self {
-        match err {
-            ProtocolError::Closed => InitProtocolError::Closed,
-        }
-    }
 }

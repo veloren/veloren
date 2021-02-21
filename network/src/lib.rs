@@ -107,7 +107,8 @@ mod participant;
 mod scheduler;
 
 pub use api::{
-    Network, NetworkError, Participant, ParticipantError, ProtocolAddr, Stream, StreamError,
+    Network, NetworkConnectError, NetworkError, Participant, ParticipantError, ProtocolAddr,
+    Stream, StreamError,
 };
 pub use message::Message;
-pub use network_protocol::{Pid, Promises};
+pub use network_protocol::{InitProtocolError, Pid, Promises};

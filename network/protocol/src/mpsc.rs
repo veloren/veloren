@@ -1,12 +1,13 @@
 #[cfg(feature = "metrics")]
 use crate::metrics::RemoveReason;
 use crate::{
+    error::ProtocolError,
     event::ProtocolEvent,
     frame::InitFrame,
     handshake::{ReliableDrain, ReliableSink},
     metrics::ProtocolMetricCache,
     types::Bandwidth,
-    ProtocolError, RecvProtocol, SendProtocol, UnreliableDrain, UnreliableSink,
+    RecvProtocol, SendProtocol, UnreliableDrain, UnreliableSink,
 };
 use async_trait::async_trait;
 use std::time::{Duration, Instant};

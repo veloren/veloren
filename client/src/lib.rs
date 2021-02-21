@@ -1,7 +1,8 @@
 #![deny(unsafe_code)]
 #![deny(clippy::clone_on_ref_ptr)]
-#![feature(label_break_value, option_zip)]
+#![feature(label_break_value, option_zip, str_split_once)]
 
+pub mod addr;
 pub mod cmd;
 pub mod error;
 
@@ -14,6 +15,7 @@ pub use specs::{
     Builder, DispatcherBuilder, Entity as EcsEntity, ReadStorage, WorldExt,
 };
 
+use crate::addr::ConnectionArgs;
 use byteorder::{ByteOrder, LittleEndian};
 use common::{
     character::{CharacterId, CharacterItem},
@@ -57,7 +59,6 @@ use rayon::prelude::*;
 use specs::Component;
 use std::{
     collections::VecDeque,
-    net::SocketAddr,
     sync::Arc,
     time::{Duration, Instant},
 };
@@ -183,14 +184,40 @@ pub struct CharacterList {
 
 impl Client {
     /// Create a new `Client`.
-    pub async fn new<A: Into<SocketAddr>>(
-        addr: A,
+    pub async fn new(
+        mut addr: ConnectionArgs,
         view_distance: Option<u32>,
         runtime: Arc<Runtime>,
     ) -> Result<Self, Error> {
         let network = Network::new(Pid::new(), Arc::clone(&runtime));
 
-        let participant = network.connect(ProtocolAddr::Tcp(addr.into())).await?;
+        if let Err(e) = addr.resolve().await {
+            error!(?e, "Dns resolve failed");
+            return Err(Error::DnsResolveFailed(e.to_string()));
+        }
+
+        let participant = match addr {
+            ConnectionArgs::HostnameAndOptionalPort(..) => {
+                unreachable!(".resolve() should have switched that state")
+            },
+            ConnectionArgs::IpAndPort(addrs) => {
+                // Try to connect to all IP's and return the first that works
+                let mut participant = None;
+                for addr in addrs {
+                    match network.connect(ProtocolAddr::Tcp(addr)).await {
+                        Ok(p) => {
+                            participant = Some(Ok(p));
+                            break;
+                        },
+                        Err(e) => participant = Some(Err(Error::NetworkErr(e))),
+                    }
+                }
+                participant
+                    .unwrap_or_else(|| Err(Error::Other("No Ip Addr provided".to_string())))?
+            },
+            ConnectionArgs::Mpsc(id) => network.connect(ProtocolAddr::Mpsc(id)).await?,
+        };
+
         let stream = participant.opened().await?;
         let mut ping_stream = participant.opened().await?;
         let mut register_stream = participant.opened().await?;
@@ -2019,18 +2046,22 @@ impl Drop for Client {
         } else {
             trace!("no disconnect msg necessary as client wasn't registered")
         }
-        if let Err(e) = self
-            .runtime
-            .block_on(self.participant.take().unwrap().disconnect())
-        {
-            warn!(?e, "error when disconnecting, couldn't send all data");
-        }
+
+        tokio::task::block_in_place(|| {
+            if let Err(e) = self
+                .runtime
+                .block_on(self.participant.take().unwrap().disconnect())
+            {
+                warn!(?e, "error when disconnecting, couldn't send all data");
+            }
+        });
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::net::SocketAddr;
 
     #[test]
     /// THIS TEST VERIFIES THE CONSTANT API.
@@ -2048,8 +2079,11 @@ mod tests {
         let view_distance: Option<u32> = None;
         let runtime = Arc::new(Runtime::new().unwrap());
         let runtime2 = Arc::clone(&runtime);
-        let veloren_client: Result<Client, Error> =
-            runtime.block_on(Client::new(socket, view_distance, runtime2));
+        let veloren_client: Result<Client, Error> = runtime.block_on(Client::new(
+            ConnectionArgs::IpAndPort(vec![socket]),
+            view_distance,
+            runtime2,
+        ));
 
         let _ = veloren_client.map(|mut client| {
             //register

@@ -5,14 +5,13 @@
 use common::{clock::Clock, comp};
 use std::{
     io,
-    net::ToSocketAddrs,
     sync::{mpsc, Arc},
     thread,
     time::Duration,
 };
 use tokio::runtime::Runtime;
 use tracing::{error, info};
-use veloren_client::{Client, Event};
+use veloren_client::{addr::ConnectionArgs, Client, Event};
 
 const TPS: u64 = 10; // Low value is okay, just reading messages.
 
@@ -50,11 +49,7 @@ fn main() {
     // Create a client.
     let mut client = runtime
         .block_on(Client::new(
-            server_addr
-                .to_socket_addrs()
-                .expect("Invalid server address")
-                .next()
-                .unwrap(),
+            ConnectionArgs::HostnameAndOptionalPort(server_addr, false),
             None,
             runtime2,
         ))

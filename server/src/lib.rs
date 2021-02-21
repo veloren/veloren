@@ -1008,7 +1008,7 @@ impl Server {
             .generate_chunk(
                 Some(entity),
                 key,
-                &mut self.runtime,
+                &self.runtime,
                 Arc::clone(&self.world),
                 self.index.clone(),
             );

@@ -1,4 +1,5 @@
 use crate::{
+    error::ProtocolError,
     event::ProtocolEvent,
     frame::{ITFrame, InitFrame, OTFrame},
     handshake::{ReliableDrain, ReliableSink},
@@ -6,7 +7,7 @@ use crate::{
     metrics::{ProtocolMetricCache, RemoveReason},
     prio::PrioManager,
     types::{Bandwidth, Mid, Sid},
-    ProtocolError, RecvProtocol, SendProtocol, UnreliableDrain, UnreliableSink,
+    RecvProtocol, SendProtocol, UnreliableDrain, UnreliableSink,
 };
 use async_trait::async_trait;
 use bytes::BytesMut;
@@ -377,11 +378,12 @@ mod test_utils {
 #[cfg(test)]
 mod tests {
     use crate::{
+        error::ProtocolError,
         frame::OTFrame,
         metrics::{ProtocolMetricCache, ProtocolMetrics, RemoveReason},
         tcp::test_utils::*,
         types::{Pid, Promises, Sid, STREAM_ID_OFFSET1, STREAM_ID_OFFSET2},
-        InitProtocol, ProtocolError, ProtocolEvent, RecvProtocol, SendProtocol,
+        InitProtocol, ProtocolEvent, RecvProtocol, SendProtocol,
     };
     use bytes::{Bytes, BytesMut};
     use std::{sync::Arc, time::Duration};

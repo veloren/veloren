@@ -11,6 +11,10 @@ use crate::{
     window::Event,
     Direction, GlobalState, PlayState, PlayStateResult,
 };
+use client::{
+    addr::ConnectionArgs,
+    error::{InitProtocolError, NetworkConnectError, NetworkError},
+};
 use client_init::{ClientInit, Error as InitError, Msg as InitMsg};
 use common::{assets::AssetExt, comp, span};
 use std::sync::Arc;
@@ -33,8 +37,6 @@ impl MainMenuState {
         }
     }
 }
-
-const DEFAULT_PORT: u16 = 14004;
 
 impl PlayState for MainMenuState {
     fn enter(&mut self, global_state: &mut GlobalState, _: Direction) {
@@ -74,8 +76,7 @@ impl PlayState for MainMenuState {
                             &mut global_state.info_message,
                             "singleplayer".to_owned(),
                             "".to_owned(),
-                            server_settings.gameserver_address.ip().to_string(),
-                            server_settings.gameserver_address.port(),
+                            ConnectionArgs::IpAndPort(vec![server_settings.gameserver_address]),
                             &mut self.client_init,
                             Some(runtime),
                         );
@@ -122,10 +123,15 @@ impl PlayState for MainMenuState {
                 self.client_init = None;
                 global_state.info_message = Some({
                     let err = match err {
-                        InitError::BadAddress(_) | InitError::NoAddress => {
+                        InitError::NoAddress => {
                             localized_strings.get("main.login.server_not_found").into()
                         },
                         InitError::ClientError(err) => match err {
+                            client::Error::DnsResolveFailed(reason) => format!(
+                                "{}: {}",
+                                localized_strings.get("main.login.server_not_found"),
+                                reason
+                            ),
                             client::Error::AuthErr(e) => format!(
                                 "{}: {}",
                                 localized_strings.get("main.login.authentication_error"),
@@ -160,6 +166,11 @@ impl PlayState for MainMenuState {
                             client::Error::InvalidCharacter => {
                                 localized_strings.get("main.login.invalid_character").into()
                             },
+                            client::Error::NetworkErr(NetworkError::ConnectFailed(
+                                NetworkConnectError::Handshake(InitProtocolError::WrongVersion(_)),
+                            )) => localized_strings
+                                .get("main.login.network_wrong_version")
+                                .into(),
                             client::Error::NetworkErr(e) => format!(
                                 "{}: {:?}",
                                 localized_strings.get("main.login.network_error"),
@@ -247,8 +258,7 @@ impl PlayState for MainMenuState {
                         &mut global_state.info_message,
                         username,
                         password,
-                        server_address,
-                        DEFAULT_PORT,
+                        ConnectionArgs::HostnameAndOptionalPort(server_address, false),
                         &mut self.client_init,
                         None,
                     );
@@ -321,8 +331,7 @@ fn attempt_login(
     info_message: &mut Option<String>,
     username: String,
     password: String,
-    server_address: String,
-    server_port: u16,
+    connection_args: ConnectionArgs,
     client_init: &mut Option<ClientInit>,
     runtime: Option<Arc<runtime::Runtime>>,
 ) {
@@ -330,7 +339,7 @@ fn attempt_login(
         // Don't try to connect if there is already a connection in progress.
         if client_init.is_none() {
             *client_init = Some(ClientInit::new(
-                (server_address, server_port, false),
+                connection_args,
                 username,
                 Some(settings.graphics.view_distance),
                 password,
