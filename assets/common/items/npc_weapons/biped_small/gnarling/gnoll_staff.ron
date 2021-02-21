@@ -3,13 +3,13 @@ ItemDef(
     description: "eekum bokum",
     kind: Tool(
         (
-            kind: Staff,   
+            kind: StaffSimple,   
             hands: Two, 
             stats: (
                 equip_time_millis: 0,
                 power: 0.3,
                 poise_strength: 0.8,
-                speed: 1.0
+                speed: 0.8
             ),
         )
     ),

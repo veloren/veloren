@@ -883,7 +883,6 @@ impl Floor {
                                         .with_skillset_config(
                                             common::skillset_builder::SkillSetConfig::Outcast,
                                         )
-                                        .with_scale(2.0)
                                         .with_main_tool(comp::Item::new_from_asset_expect(
                                             match dynamic_rng.gen_range(0..6) {
                                                 0 => "common.items.weapons.axe.worn_iron_axe-0",
@@ -927,7 +926,6 @@ impl Floor {
                                         .with_skillset_config(
                                             common::skillset_builder::SkillSetConfig::Bandit
                                         )
-                                        .with_scale(2.0)
                                         .with_main_tool(comp::Item::new_from_asset_expect(
                                             match dynamic_rng.gen_range(0..6) {
                                                 0 => "common.items.weapons.axe.steel_axe-0",
@@ -1138,7 +1136,6 @@ impl Floor {
                                         .with_skillset_config(
                                             common::skillset_builder::SkillSetConfig::CultistAcolyte
                                         )
-                                        .with_scale(2.0)
                                         .with_main_tool(comp::Item::new_from_asset_expect(
                                             match dynamic_rng.gen_range(0..6) {
                                                 0 => "common.items.weapons.axe.malachite_axe-0",

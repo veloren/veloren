@@ -2495,7 +2495,7 @@ make_vox_spec!(
         armor_tail: BipedSmallArmorTailSpec = "voxygen.voxel.biped_small_armor_tail_manifest",
 
     },
-    |FigureKey { body, extra }, spec| {
+    |FigureKey { body: _, extra }, spec| {
         const DEFAULT_LOADOUT: super::cache::CharacterCacheKey = super::cache::CharacterCacheKey {
             third_person: None,
             tool: None,

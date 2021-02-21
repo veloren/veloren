@@ -374,8 +374,8 @@ impl Body {
                 biped_small::Species::Gnarling => 300,
                 biped_small::Species::Adlet => 400,
                 biped_small::Species::Sahagin => 500,
-                biped_small::Species::Haniwa => 900,
-                biped_small::Species::Myrmidon => 1000,
+                biped_small::Species::Haniwa => 700,
+                biped_small::Species::Myrmidon => 800,
             _ => 600,
             },   
             Body::Object(object) => match object {

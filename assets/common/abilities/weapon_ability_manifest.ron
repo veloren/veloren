@@ -49,7 +49,7 @@
     ),
     StaffSimple: (
         primary: "common.abilities.staffsimple.firebomb",
-        secondary: "common.abilities.staffsimple.firebomb",
+        secondary: "common.abilities.staffsimple.flamethrower",
         abilities: [],
     ),
     BowSimple: (

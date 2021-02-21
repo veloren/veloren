@@ -9,7 +9,7 @@ use crate::{
 };
 use comp::{
     invite::{InviteKind, InviteResponse},
-    item::{Item, Reagent},
+    item::Item,
     Ori, Pos,
 };
 use specs::Entity as EcsEntity;

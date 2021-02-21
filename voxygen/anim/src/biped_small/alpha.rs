@@ -52,7 +52,7 @@ impl Animation for AlphaAnimation {
 
         let speednorm = speed / 9.4;
         let speednormcancel = 1.0 - speednorm;
-
+        let anim_time = anim_time.min(1.0);
         let (move1base, move2base, move3) = match stage_section {
             Some(StageSection::Buildup) => ((anim_time as f32).sqrt(), 0.0, 0.0),
             Some(StageSection::Swing) => (1.0, (anim_time as f32).powi(4), 0.0),

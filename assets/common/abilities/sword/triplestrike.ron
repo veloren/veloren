@@ -11,7 +11,7 @@ ComboMelee(
             angle: 30.0,
             base_buildup_duration: 0.2,
             base_swing_duration: 0.075,
-            base_recover_duration: 0.2,
+            base_recover_duration: 0.1,
             forward_movement: 0.5,
         ),
         (
@@ -23,7 +23,7 @@ ComboMelee(
             knockback: 12.0,
             range: 3.5,
             angle: 40.0,
-            base_buildup_duration: 0.15,
+            base_buildup_duration: 0.1,
             base_swing_duration: 0.1,
             base_recover_duration: 0.3,
             forward_movement: 0.0,

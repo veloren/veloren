@@ -9,7 +9,7 @@ ItemDef(
                 equip_time_millis: 0,
                 power: 0.3,
                 poise_strength: 0.8,
-                speed: 0.5
+                speed: 0.7
             ),            
         )
     ),
