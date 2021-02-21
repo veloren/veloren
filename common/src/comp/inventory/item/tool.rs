@@ -93,8 +93,8 @@ impl StatKind {
             // TODO: add stats from enhancement slots
         }
         // if an item has 0.0 speed, that panics due to being infinite duration, so
-        // enforce speed >= 0.5
-        stats.speed = stats.speed.max(0.5);
+        // enforce speed >= 0.1
+        stats.speed = stats.speed.max(0.1);
         stats
     }
 }
