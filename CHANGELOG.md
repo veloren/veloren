@@ -31,7 +31,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Basic NPC interaction
 - Lights in dungeons
 - Trading system (bound to the `R` key by default, currently only works with players)
+- Support for dual wielding (not accessible as animations still needed)
 - Support for modular weapons.
+- Saturation buff (healing from food) now queues
 
 ### Changed
 

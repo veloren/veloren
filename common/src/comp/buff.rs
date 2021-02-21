@@ -29,19 +29,22 @@ pub enum BuffKind {
 }
 
 impl BuffKind {
-    // Checks if buff is buff or debuff
+    /// Checks if buff is buff or debuff
     pub fn is_buff(self) -> bool {
         match self {
-            BuffKind::Regeneration { .. } => true,
-            BuffKind::Saturation { .. } => true,
-            BuffKind::Bleeding { .. } => false,
-            BuffKind::Cursed { .. } => false,
-            BuffKind::Potion { .. } => true,
-            BuffKind::CampfireHeal { .. } => true,
-            BuffKind::IncreaseMaxEnergy { .. } => true,
-            BuffKind::IncreaseMaxHealth { .. } => true,
+            BuffKind::Regeneration => true,
+            BuffKind::Saturation => true,
+            BuffKind::Bleeding => false,
+            BuffKind::Cursed => false,
+            BuffKind::Potion => true,
+            BuffKind::CampfireHeal => true,
+            BuffKind::IncreaseMaxEnergy => true,
+            BuffKind::IncreaseMaxHealth => true,
         }
     }
+
+    /// Checks if buff should queue
+    pub fn queues(self) -> bool { matches!(self, BuffKind::Saturation) }
 }
 
 // Struct used to store data relevant to a buff
@@ -321,13 +324,18 @@ impl Buffs {
 
     // Gets most powerful buff of a given kind
     // pub fn get_active_kind(&self, kind: BuffKind) -> Buff
-
     pub fn remove(&mut self, buff_id: BuffId) {
         let kind = self.buffs.remove(&buff_id).unwrap().kind;
         self.kinds
             .get_mut(&kind)
             .map(|ids| ids.retain(|id| *id != buff_id));
         self.sort_kind(kind);
+    }
+
+    /// Returns an immutable reference to the buff kinds on an entity, and a
+    /// mutable reference to the buffs
+    pub fn parts(&mut self) -> (&HashMap<BuffKind, Vec<BuffId>>, &mut HashMap<BuffId, Buff>) {
+        (&self.kinds, &mut self.buffs)
     }
 }
 
