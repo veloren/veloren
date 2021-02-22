@@ -21,7 +21,7 @@ use super::{
 use plugin_api::{Action, EcsAccessError, Event, Retrieve, RetrieveError, RetrieveResult};
 
 #[derive(Clone)]
-// This structure represent the WASM State of the plugin.
+/// This structure represent the WASM State of the plugin.
 pub struct PluginModule {
     ecs: Arc<EcsAccessManager>,
     wasm_state: Arc<Mutex<Instance>>,
@@ -33,7 +33,7 @@ pub struct PluginModule {
 }
 
 impl PluginModule {
-    // This function takes bytes from a WASM File and compile them
+    /// This function takes bytes from a WASM File and compile them
     pub fn new(name: String, wasm_data: &[u8]) -> Result<Self, PluginModuleError> {
         // This is creating the engine is this case a JIT based on Cranelift
         let engine = JIT::new(Cranelift::default()).engine();
@@ -107,8 +107,8 @@ impl PluginModule {
         })
     }
 
-    // This function tries to execute an event for the current module. Will return
-    // None if the event doesn't exists
+    /// This function tries to execute an event for the current module. Will
+    /// return None if the event doesn't exists
     pub fn try_execute<T>(
         &self,
         ecs: &World,
@@ -133,16 +133,17 @@ impl PluginModule {
     }
 }
 
-// This structure represent a Pre-encoded event object (Useful to avoid
-// reencoding for each module in every plugin)
+/// This structure represent a Pre-encoded event object (Useful to avoid
+/// reencoding for each module in every plugin)
 pub struct PreparedEventQuery<T> {
     bytes: Vec<u8>,
     _phantom: PhantomData<T>,
 }
 
 impl<T: Event> PreparedEventQuery<T> {
-    // Create a prepared query from an event reference (Encode to bytes the struct)
-    // This Prepared Query is used by the `try_execute` method in `PluginModule`
+    /// Create a prepared query from an event reference (Encode to bytes the
+    /// struct) This Prepared Query is used by the `try_execute` method in
+    /// `PluginModule`
     pub fn new(event: &T) -> Result<Self, PluginError>
     where
         T: Event,
@@ -222,9 +223,12 @@ fn retrieve_action(
 ) -> Result<RetrieveResult, RetrieveError> {
     match action {
         Retrieve::GetPlayerName(e) => {
-            let world = ecs.get().ok_or(RetrieveError::EcsAccessError(
-                EcsAccessError::EcsPointerNotAvailable,
-            ))?;
+            // Safety: No reference is leaked out the function so it is safe.
+            let world = unsafe {
+                ecs.get().ok_or(RetrieveError::EcsAccessError(
+                    EcsAccessError::EcsPointerNotAvailable,
+                ))?
+            };
             let player = world
                 .read_resource::<UidAllocator>()
                 .retrieve_entity_internal(e.0)
@@ -246,9 +250,12 @@ fn retrieve_action(
             ))
         },
         Retrieve::GetEntityHealth(e) => {
-            let world = ecs.get().ok_or(RetrieveError::EcsAccessError(
-                EcsAccessError::EcsPointerNotAvailable,
-            ))?;
+            // Safety: No reference is leaked out the function so it is safe.
+            let world = unsafe {
+                ecs.get().ok_or(RetrieveError::EcsAccessError(
+                    EcsAccessError::EcsPointerNotAvailable,
+                ))?
+            };
             let player = world
                 .read_resource::<UidAllocator>()
                 .retrieve_entity_internal(e.0)

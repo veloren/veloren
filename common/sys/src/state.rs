@@ -210,11 +210,7 @@ impl State {
             Ok(plugin_mgr) => {
                 if let Err(e) =
                     plugin_mgr.execute_event(&ecs, "on_load", &plugin_api::event::PluginLoadEvent {
-                        game_mode: match game_mode {
-                            resources::GameMode::Server => plugin_api::GameMode::Server,
-                            resources::GameMode::Client => plugin_api::GameMode::Client,
-                            resources::GameMode::Singleplayer => plugin_api::GameMode::Singleplayer,
-                        },
+                        game_mode,
                     })
                 {
                     tracing::error!(?e, "Failed to run plugin init");

@@ -6,7 +6,7 @@ use wasmer::{Function, Memory, Value};
 
 use super::errors::{MemoryAllocationError, PluginModuleError};
 
-// This structure wraps the ECS pointer to ensure safety
+/// This structure wraps the ECS pointer to ensure safety
 pub struct EcsAccessManager {
     ecs_pointer: AtomicPtr<World>,
 }
@@ -31,9 +31,21 @@ impl EcsAccessManager {
         out
     }
 
-    pub fn get(&self) -> Option<&World> {
+    /// This unsafe function returns a reference to the Ecs World
+    ///
+    /// # Safety
+    /// This function is safe to use if it matches the following requirements
+    ///  - The reference and subreferences like Entities, Components ... aren't
+    ///    leaked out the thread
+    ///  - The reference and subreferences lifetime doesn't exceed the source
+    ///    function lifetime
+    ///  - Always safe when called from `retrieve_action` if you don't pass a
+    ///    reference somewhere else
+    ///  - All that ensure that the reference doesn't exceed the execute_with
+    ///    function scope
+    pub unsafe fn get(&self) -> Option<&World> {
         // ptr::as_ref will automatically check for null
-        unsafe { self.ecs_pointer.load(Ordering::Relaxed).as_ref() }
+        self.ecs_pointer.load(Ordering::Relaxed).as_ref()
     }
 }
 
@@ -52,9 +64,10 @@ impl Default for MemoryManager {
 }
 
 impl MemoryManager {
-    // This function check if the buffer is wide enough if not it realloc the buffer
-    // calling the `wasm_prepare_buffer` function Note: There is probably
-    // optimizations that can be done using less restrictive ordering
+    /// This function check if the buffer is wide enough if not it realloc the
+    /// buffer calling the `wasm_prepare_buffer` function Note: There is
+    /// probably optimizations that can be done using less restrictive
+    /// ordering
     pub fn get_pointer(
         &self,
         object_length: u32,
@@ -74,8 +87,8 @@ impl MemoryManager {
         Ok(pointer)
     }
 
-    // This function writes an object to WASM memory returning a pointer and a
-    // length. Will realloc the buffer is not wide enough
+    /// This function writes an object to WASM memory returning a pointer and a
+    /// length. Will realloc the buffer is not wide enough
     pub fn write_data<T: Serialize>(
         &self,
         memory: &Memory,
@@ -89,8 +102,8 @@ impl MemoryManager {
         )
     }
 
-    // This function writes an raw bytes to WASM memory returning a pointer and a
-    // length. Will realloc the buffer is not wide enough
+    /// This function writes an raw bytes to WASM memory returning a pointer and
+    /// a length. Will realloc the buffer is not wide enough
     pub fn write_bytes(
         &self,
         memory: &Memory,
@@ -109,8 +122,8 @@ impl MemoryManager {
     }
 }
 
-// This function read data from memory at a position with the array length and
-// converts it to an object using bincode
+/// This function read data from memory at a position with the array length and
+/// converts it to an object using bincode
 pub fn read_data<T: DeserializeOwned>(
     memory: &Memory,
     position: i32,
@@ -119,7 +132,7 @@ pub fn read_data<T: DeserializeOwned>(
     bincode::deserialize(&read_bytes(memory, position, length))
 }
 
-// This function read raw bytes from memory at a position with the array length
+/// This function read raw bytes from memory at a position with the array length
 pub fn read_bytes(memory: &Memory, position: i32, length: u32) -> Vec<u8> {
     memory.view()[(position as usize)..(position as usize) + length as usize]
         .iter()

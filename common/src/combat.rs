@@ -635,7 +635,7 @@ impl CombatBuff {
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-fn equipped_item_and_tool(inv: &Inventory, slot: EquipSlot) -> Option<&Tool> {
+fn equipped_item_and_tool(inv: &Inventory, slot: EquipSlot) -> Option<(&Item, &Tool)> {
     inv.equipped(slot).and_then(|i| {
         if let ItemKind::Tool(tool) = &i.kind() {
             Some((i, tool))
