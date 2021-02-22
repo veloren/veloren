@@ -24,9 +24,15 @@ impl Component for Vel {
 /// It's updated and read in physics sys to speed up entity<->entity collisions
 /// no need to send it via network
 #[derive(Copy, Clone, Default, Debug, PartialEq)]
-pub struct PreviousVelDtCache(pub Vec3<f32>);
+pub struct PreviousPhysCache {
+    pub velocity: Vec3<f32>,
+    pub middle: Vec3<f32>,
+    ///calculates a Sphere over the Entity for quick boundry checking
+    pub radius: f32,
+    pub scale: f32,
+}
 
-impl Component for PreviousVelDtCache {
+impl Component for PreviousPhysCache {
     type Storage = IdvStorage<Self>;
 }
 

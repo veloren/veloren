@@ -1,7 +1,7 @@
 use common::{
     comp::{
         BeamSegment, CharacterState, Collider, Gravity, Mass, Mounting, Ori, PhysicsState, Pos,
-        PreviousVelDtCache, Projectile, Scale, Shockwave, Sticky, Vel,
+        PreviousPhysCache, Projectile, Scale, Shockwave, Sticky, Vel,
     },
     consts::{FRIC_GROUND, GRAVITY},
     event::{EventBus, ServerEvent},
@@ -67,7 +67,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Pos>,
         WriteStorage<'a, Vel>,
         WriteStorage<'a, Ori>,
-        WriteStorage<'a, PreviousVelDtCache>,
+        WriteStorage<'a, PreviousPhysCache>,
         ReadStorage<'a, Mounting>,
         ReadStorage<'a, Projectile>,
         ReadStorage<'a, BeamSegment>,
@@ -96,7 +96,7 @@ impl<'a> System<'a> for Sys {
             mut positions,
             mut velocities,
             mut orientations,
-            mut previous_velocities_times_dt,
+            mut previous_phys_cache,
             mountings,
             projectiles,
             beams,
@@ -139,12 +139,12 @@ impl<'a> System<'a> for Sys {
         // it means the step needs to take into account the speeds of both
         // entities.
         span!(guard, "Maintain pushback cache");
-        //Add PreviousVelDtCache for all relevant entities
+        //Add PreviousPhysCache for all relevant entities
         for entity in (
             &entities,
             &velocities,
             &positions,
-            !&previous_velocities_times_dt,
+            !&previous_phys_cache,
             !&mountings,
             !&beams,
             !&shockwaves,
@@ -153,22 +153,36 @@ impl<'a> System<'a> for Sys {
             .map(|(e, _, _, _, _, _, _)| e)
             .collect::<Vec<_>>()
         {
-            let _ = previous_velocities_times_dt.insert(entity, PreviousVelDtCache(Vec3::zero()));
+            let _ = previous_phys_cache.insert(entity, PreviousPhysCache {
+                velocity: Vec3::zero(),
+                middle: Vec3::zero(),
+                radius: 0.0,
+                scale: 0.0,
+            });
         }
 
-        //Update PreviousVelDtCache
-        for (_, vel, _, mut vel_dt, _, _, _) in (
+        //Update PreviousPhysCache
+        for (_, vel, position, mut phys_cache, collider, scale, _, _, _) in (
             &entities,
             &velocities,
             &positions,
-            &mut previous_velocities_times_dt,
+            &mut previous_phys_cache,
+            colliders.maybe(),
+            scales.maybe(),
             !&mountings,
             !&beams,
             !&shockwaves,
         )
             .join()
         {
-            vel_dt.0 = vel.0 * dt.0;
+            phys_cache.velocity = vel.0 * dt.0;
+            phys_cache.middle = position.0;
+
+            let scale_find = scale.map(|s| s.0).unwrap_or(1.0);
+            let radius_find = collider.map(|c| c.get_radius()).unwrap_or(0.5);
+
+            phys_cache.radius = radius_find * scale_find;
+            phys_cache.scale = scale_find;
         }
         drop(guard);
         span!(guard, "Apply pushback");
@@ -176,8 +190,7 @@ impl<'a> System<'a> for Sys {
             &entities,
             &positions,
             &mut velocities,
-            &previous_velocities_times_dt,
-            scales.maybe(),
+            &previous_phys_cache,
             masses.maybe(),
             colliders.maybe(),
             !&mountings,
@@ -189,10 +202,10 @@ impl<'a> System<'a> for Sys {
             char_states.maybe(),
         )
             .par_join()
-            .filter(|(_, _, _, _, _, _, _, _, sticky, physics, _, _)| {
+            .filter(|(_, _, _, _, _, _, _, sticky, physics, _, _)| {
                 sticky.is_none() || (physics.on_wall.is_none() && !physics.on_ground)
             })
-            .map(|(e, p, v, vd, s, m, c, _, _, ph, pr, c_s)| (e, p, v, vd, s, m, c, ph, pr, c_s))
+            .map(|(e, p, v, vd, m, c, _, _, ph, pr, c_s)| (e, p, v, vd, m, c, ph, pr, c_s))
             .fold(
                 PhysicsMetrics::default,
                 |mut metrics,
@@ -200,16 +213,13 @@ impl<'a> System<'a> for Sys {
                     entity,
                     pos,
                     vel,
-                    vel_dt,
-                    scale,
+                    previous_cache,
                     mass,
                     collider,
                     physics,
                     projectile,
                     char_state_maybe,
                 )| {
-                    let scale = scale.map(|s| s.0).unwrap_or(1.0);
-                    let radius = collider.map(|c| c.get_radius()).unwrap_or(0.5);
                     let modifier = if char_state_maybe.map_or(false, |c_s| c_s.is_dodge()) {
                         0.5
                     } else {
@@ -218,7 +228,7 @@ impl<'a> System<'a> for Sys {
                     let z_limits = collider
                         .map(|c| c.get_z_limits(modifier))
                         .unwrap_or((-0.5 * modifier, 0.5 * modifier));
-                    let mass = mass.map(|m| m.0).unwrap_or(scale);
+                    let mass = mass.map(|m| m.0).unwrap_or(previous_cache.scale);
 
                     // Resets touch_entities in physics
                     physics.touch_entities.clear();
@@ -231,8 +241,7 @@ impl<'a> System<'a> for Sys {
                         entity_other,
                         other,
                         pos_other,
-                        vel_dt_other,
-                        scale_other,
+                        previous_cache_other,
                         mass_other,
                         collider_other,
                         _,
@@ -244,8 +253,7 @@ impl<'a> System<'a> for Sys {
                         &entities,
                         &uids,
                         &positions,
-                        &previous_velocities_times_dt,
-                        scales.maybe(),
+                        &previous_phys_cache,
                         masses.maybe(),
                         colliders.maybe(),
                         !&projectiles,
@@ -256,18 +264,12 @@ impl<'a> System<'a> for Sys {
                     )
                         .join()
                     {
-                        if entity == entity_other {
-                            continue;
-                        }
-
-                        let scale_other = scale_other.map(|s| s.0).unwrap_or(1.0);
-                        let radius_other = collider_other.map(|c| c.get_radius()).unwrap_or(0.5);
-
-                        let collision_dist = scale * radius + scale_other * radius_other;
-
-                        // Sanity check: skip colliding entities that are too far from each other
-                        if (pos.0 - pos_other.0).xy().magnitude()
-                            > (vel_dt.0 - vel_dt_other.0).xy().magnitude() + collision_dist
+                        let collision_dist = previous_cache.radius + previous_cache_other.radius;
+                        if previous_cache
+                            .middle
+                            .distance_squared(previous_cache_other.middle)
+                            > collision_dist.powi(2)
+                            || entity == entity_other
                         {
                             continue;
                         }
@@ -282,7 +284,9 @@ impl<'a> System<'a> for Sys {
                         let z_limits_other = collider_other
                             .map(|c| c.get_z_limits(modifier_other))
                             .unwrap_or((-0.5 * modifier_other, 0.5 * modifier_other));
-                        let mass_other = mass_other.map(|m| m.0).unwrap_or(scale_other);
+                        let mass_other = mass_other
+                            .map(|m| m.0)
+                            .unwrap_or(previous_cache_other.scale);
                         //This check after the pos check, as we currently don't have that many
                         // massless entites [citation needed]
                         if mass_other == 0.0 {
@@ -292,7 +296,8 @@ impl<'a> System<'a> for Sys {
                         metrics.entity_entity_collision_checks += 1;
 
                         const MIN_COLLISION_DIST: f32 = 0.3;
-                        let increments = ((vel_dt.0 - vel_dt_other.0).magnitude()
+                        let increments = ((previous_cache.velocity - previous_cache_other.velocity)
+                            .magnitude()
                             / MIN_COLLISION_DIST)
                             .max(1.0)
                             .ceil() as usize;
@@ -301,16 +306,16 @@ impl<'a> System<'a> for Sys {
 
                         for i in 0..increments {
                             let factor = i as f32 * step_delta;
-                            let pos = pos.0 + vel_dt.0 * factor;
-                            let pos_other = pos_other.0 + vel_dt_other.0 * factor;
+                            let pos = pos.0 + previous_cache.velocity * factor;
+                            let pos_other = pos_other.0 + previous_cache_other.velocity * factor;
 
                             let diff = pos.xy() - pos_other.xy();
 
                             if diff.magnitude_squared() <= collision_dist.powi(2)
-                                && pos.z + z_limits.1 * scale
-                                    >= pos_other.z + z_limits_other.0 * scale_other
-                                && pos.z + z_limits.0 * scale
-                                    <= pos_other.z + z_limits_other.1 * scale_other
+                                && pos.z + z_limits.1 * previous_cache.scale
+                                    >= pos_other.z + z_limits_other.0 * previous_cache_other.scale
+                                && pos.z + z_limits.0 * previous_cache.scale
+                                    <= pos_other.z + z_limits_other.1 * previous_cache_other.scale
                             {
                                 if !collided {
                                     physics.touch_entities.push(*other);
