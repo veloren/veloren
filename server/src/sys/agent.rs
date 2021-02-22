@@ -166,6 +166,12 @@ impl<'a> System<'a> for Sys {
                     alignment.copied()
                 };
 
+                let glider_equipped = inventory.equipped(EquipSlot::Glider).as_ref().map_or(false, |item| {
+                    matches!(item.kind(), comp::item::ItemKind::Glider(_))
+                });
+
+                let is_gliding = matches!(char_states.get(entity), Some(CharacterState::GlideWield) | Some(CharacterState::Glide)) && !physics_state.on_ground;
+
                 controller.reset();
                 let mut event_emitter = event_bus.emitter();
                 // Light lanterns at night
@@ -374,7 +380,7 @@ impl<'a> System<'a> for Sys {
                                 }
 
                                 // Put away weapon
-                                if thread_rng().gen::<f32>() < 0.005 {
+                                if thread_rng().gen::<f32>() < 0.005 && matches!(char_states.get(entity), Some(CharacterState::Wielding)) {
                                     controller.actions.push(ControlAction::Unwield);
                                 }
 
@@ -384,7 +390,9 @@ impl<'a> System<'a> for Sys {
                                 }
                             }
 
-                            controller.actions.push(ControlAction::Unwield);
+                            if physics_state.on_ground {
+                                controller.actions.push(ControlAction::Unwield);
+                            }
 
                             // Sometimes try searching for new targets
                             if thread_rng().gen::<f32>() < 0.1 {
@@ -439,7 +447,7 @@ impl<'a> System<'a> for Sys {
                             timer,
                         } => {
                             if let Some(body) = body {
-                                if body.can_strafe() {
+                                if body.can_strafe() && !is_gliding {  // Keep glider open if already gliding
                                     controller.actions.push(ControlAction::Unwield);
                                 }
                             }
@@ -1434,6 +1442,15 @@ impl<'a> System<'a> for Sys {
                                 do_idle = true;
                             }
                         },
+                    }
+                }
+
+                if glider_equipped && !physics_state.on_ground {
+                    if let Some(velocity) = velocities.get(entity) {
+                        // toggle glider when vertical velocity is above some threshold (here ~ glider fall vertical speed)
+                        if velocity.0.z < -26.0 {
+                            controller.actions.push(ControlAction::GlideWield);
+                        }
                     }
                 }
 

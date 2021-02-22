@@ -45,6 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed crafting recipes involving shiny gems to use diamonds instead.
 - Cave scatter now includes all 6 gems.
 - Adjusted Stonework Defender loot table to remove mindflayer drops (bag, staff, glider).
+- Made humanoid NPCs use gliders (if equipped) when falling
 - Changed default controller key bindings
 - Improved network efficiency by ≈ factor 10 by using tokio.
 - Added item tooltips to trade window.
