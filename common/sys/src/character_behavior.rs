@@ -1,4 +1,7 @@
-use specs::{Entities, Join, LazyUpdate, Read, ReadExpect, ReadStorage, System, WriteStorage};
+use specs::{
+    shred::ResourceId, Entities, Join, LazyUpdate, Read, ReadExpect, ReadStorage, System,
+    SystemData, World, WriteStorage,
+};
 
 use common::{
     comp::{
@@ -12,26 +15,26 @@ use common::{
     span,
     states::{
         self,
-        behavior::{CharacterBehavior, JoinData, JoinTuple},
+        behavior::{CharacterBehavior, JoinData, JoinStruct},
     },
-    uid::{Uid, UidAllocator},
+    uid::Uid,
 };
 use std::time::Duration;
 
-fn incorporate_update(tuple: &mut JoinTuple, state_update: StateUpdate) {
+fn incorporate_update(join: &mut JoinStruct, state_update: StateUpdate) {
     // TODO: if checking equality is expensive use optional field in StateUpdate
-    if tuple.2.get_unchecked() != &state_update.character {
-        *tuple.2.get_mut_unchecked() = state_update.character
+    if join.char_state.get_unchecked() != &state_update.character {
+        *join.char_state.get_mut_unchecked() = state_update.character
     };
-    *tuple.3 = state_update.pos;
-    *tuple.4 = state_update.vel;
-    *tuple.5 = state_update.ori;
+    *join.pos = state_update.pos;
+    *join.vel = state_update.vel;
+    *join.ori = state_update.ori;
     // Note: might be changed every tick by timer anyway
-    if tuple.6.get_unchecked() != &state_update.energy {
-        *tuple.6.get_mut_unchecked() = state_update.energy
+    if join.energy.get_unchecked() != &state_update.energy {
+        *join.energy.get_mut_unchecked() = state_update.energy
     };
     if state_update.swap_equipped_weapons {
-        let mut inventory = tuple.7.get_mut_unchecked();
+        let mut inventory = join.inventory.get_mut_unchecked();
         let inventory = &mut *inventory;
         inventory
             .swap(
@@ -43,6 +46,24 @@ fn incorporate_update(tuple: &mut JoinTuple, state_update: StateUpdate) {
     }
 }
 
+#[derive(SystemData)]
+pub struct ImmutableData<'a> {
+    entities: Entities<'a>,
+    server_bus: Read<'a, EventBus<ServerEvent>>,
+    local_bus: Read<'a, EventBus<LocalEvent>>,
+    dt: Read<'a, DeltaTime>,
+    lazy_update: Read<'a, LazyUpdate>,
+    metrics: ReadExpect<'a, SysMetrics>,
+    healths: ReadStorage<'a, Health>,
+    bodies: ReadStorage<'a, Body>,
+    physics_states: ReadStorage<'a, PhysicsState>,
+    melee_attacks: ReadStorage<'a, Melee>,
+    beams: ReadStorage<'a, Beam>,
+    uids: ReadStorage<'a, Uid>,
+    mountings: ReadStorage<'a, Mounting>,
+    stats: ReadStorage<'a, Stats>,
+}
+
 /// ## Character Behavior System
 /// Passes `JoinData` to `CharacterState`'s `behavior` handler fn's. Receives a
 /// `StateUpdate` in return and performs updates to ECS Components from that.
@@ -51,13 +72,7 @@ pub struct Sys;
 impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
-        Entities<'a>,
-        Read<'a, UidAllocator>,
-        Read<'a, EventBus<ServerEvent>>,
-        Read<'a, EventBus<LocalEvent>>,
-        Read<'a, DeltaTime>,
-        Read<'a, LazyUpdate>,
-        ReadExpect<'a, SysMetrics>,
+        ImmutableData<'a>,
         WriteStorage<'a, CharacterState>,
         WriteStorage<'a, Pos>,
         WriteStorage<'a, Vel>,
@@ -65,28 +80,14 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Energy>,
         WriteStorage<'a, Inventory>,
         WriteStorage<'a, Controller>,
-        ReadStorage<'a, Health>,
         WriteStorage<'a, Poise>,
-        ReadStorage<'a, Body>,
-        ReadStorage<'a, PhysicsState>,
-        ReadStorage<'a, Melee>,
-        ReadStorage<'a, Beam>,
-        ReadStorage<'a, Uid>,
-        ReadStorage<'a, Mounting>,
-        ReadStorage<'a, Stats>,
     );
 
     #[allow(clippy::while_let_on_iterator)] // TODO: Pending review in #587
     fn run(
         &mut self,
         (
-            entities,
-            _uid_allocator,
-            server_bus,
-            local_bus,
-            dt,
-            updater,
-            sys_metrics,
+            immutable_data,
             mut character_states,
             mut positions,
             mut velocities,
@@ -94,25 +95,31 @@ impl<'a> System<'a> for Sys {
             mut energies,
             mut inventories,
             mut controllers,
-            healths,
             mut poises,
-            bodies,
-            physics_states,
-            attacking_storage,
-            beam_storage,
-            uids,
-            mountings,
-            stats,
         ): Self::SystemData,
     ) {
         let start_time = std::time::Instant::now();
         span!(_guard, "run", "character_behavior::Sys::run");
-        let mut server_emitter = server_bus.emitter();
-        let mut local_emitter = local_bus.emitter();
+        let mut server_emitter = immutable_data.server_bus.emitter();
+        let mut local_emitter = immutable_data.local_bus.emitter();
 
-        for mut tuple in (
-            &entities,
-            &uids,
+        for (
+            entity,
+            uid,
+            mut char_state,
+            mut pos,
+            mut vel,
+            mut ori,
+            energy,
+            inventory,
+            mut controller,
+            health,
+            body,
+            physics,
+            stat,
+        ) in (
+            &immutable_data.entities,
+            &immutable_data.uids,
             &mut character_states.restrict_mut(),
             &mut positions,
             &mut velocities,
@@ -120,39 +127,37 @@ impl<'a> System<'a> for Sys {
             &mut energies.restrict_mut(),
             &mut inventories.restrict_mut(),
             &mut controllers,
-            &healths,
-            &bodies,
-            &physics_states,
-            attacking_storage.maybe(),
-            beam_storage.maybe(),
-            &stats,
+            &immutable_data.healths,
+            &immutable_data.bodies,
+            &immutable_data.physics_states,
+            &immutable_data.stats,
         )
             .join()
         {
             // Being dead overrides all other states
-            if tuple.9.is_dead {
+            if health.is_dead {
                 // Do nothing
                 continue;
             }
             // If mounted, character state is controlled by mount
             // TODO: Make mounting a state
-            if let Some(Mounting(_)) = mountings.get(tuple.0) {
+            if let Some(Mounting(_)) = immutable_data.mountings.get(entity) {
                 let sit_state = CharacterState::Sit {};
-                if tuple.2.get_unchecked() != &sit_state {
-                    *tuple.2.get_mut_unchecked() = sit_state;
+                if char_state.get_unchecked() != &sit_state {
+                    *char_state.get_mut_unchecked() = sit_state;
                 }
                 continue;
             }
 
             // Enter stunned state if poise damage is enough
-            if let Some(mut poise) = poises.get_mut(tuple.0) {
-                let was_wielded = tuple.2.get_unchecked().is_wield();
+            if let Some(mut poise) = poises.get_mut(entity) {
+                let was_wielded = char_state.get_unchecked().is_wield();
                 let poise_state = poise.poise_state();
                 match poise_state {
                     PoiseState::Normal => {},
                     PoiseState::Interrupted => {
                         poise.reset();
-                        *tuple.2.get_mut_unchecked() =
+                        *char_state.get_mut_unchecked() =
                             CharacterState::Stunned(common::states::stunned::Data {
                                 static_data: common::states::stunned::StaticData {
                                     buildup_duration: Duration::from_millis(150),
@@ -167,7 +172,7 @@ impl<'a> System<'a> for Sys {
                     },
                     PoiseState::Stunned => {
                         poise.reset();
-                        *tuple.2.get_mut_unchecked() =
+                        *char_state.get_mut_unchecked() =
                             CharacterState::Stunned(common::states::stunned::Data {
                                 static_data: common::states::stunned::StaticData {
                                     buildup_duration: Duration::from_millis(500),
@@ -180,13 +185,13 @@ impl<'a> System<'a> for Sys {
                                 was_wielded,
                             });
                         server_emitter.emit(ServerEvent::Knockback {
-                            entity: tuple.0,
+                            entity,
                             impulse: 5.0 * poise.knockback(),
                         });
                     },
                     PoiseState::Dazed => {
                         poise.reset();
-                        *tuple.2.get_mut_unchecked() =
+                        *char_state.get_mut_unchecked() =
                             CharacterState::Stunned(common::states::stunned::Data {
                                 static_data: common::states::stunned::StaticData {
                                     buildup_duration: Duration::from_millis(800),
@@ -199,13 +204,13 @@ impl<'a> System<'a> for Sys {
                                 was_wielded,
                             });
                         server_emitter.emit(ServerEvent::Knockback {
-                            entity: tuple.0,
+                            entity,
                             impulse: 10.0 * poise.knockback(),
                         });
                     },
                     PoiseState::KnockedDown => {
                         poise.reset();
-                        *tuple.2.get_mut_unchecked() =
+                        *char_state.get_mut_unchecked() =
                             CharacterState::Stunned(common::states::stunned::Data {
                                 static_data: common::states::stunned::StaticData {
                                     buildup_duration: Duration::from_millis(1000),
@@ -218,7 +223,7 @@ impl<'a> System<'a> for Sys {
                                 was_wielded,
                             });
                         server_emitter.emit(ServerEvent::Knockback {
-                            entity: tuple.0,
+                            entity,
                             impulse: 10.0 * poise.knockback(),
                         });
                     },
@@ -226,9 +231,32 @@ impl<'a> System<'a> for Sys {
             }
 
             // Controller actions
-            let actions = std::mem::replace(&mut tuple.8.actions, Vec::new());
+            let actions = std::mem::replace(&mut controller.actions, Vec::new());
+
+            let mut join_struct = JoinStruct {
+                entity,
+                uid: &uid,
+                char_state,
+                pos: &mut pos,
+                vel: &mut vel,
+                ori: &mut ori,
+                energy,
+                inventory,
+                controller: &mut controller,
+                health: &health,
+                body: &body,
+                physics: &physics,
+                melee_attack: immutable_data.melee_attacks.get(entity),
+                beam: immutable_data.beams.get(entity),
+                stat: &stat,
+            };
+
             for action in actions {
-                let j = JoinData::new(&tuple, &updater, &dt);
+                let j = JoinData::new(
+                    &join_struct,
+                    &immutable_data.lazy_update,
+                    &immutable_data.dt,
+                );
                 let mut state_update = match j.character {
                     CharacterState::Idle => states::idle::Data.handle_event(&j, action),
                     CharacterState::Talk => states::talk::Data.handle_event(&j, action),
@@ -268,10 +296,14 @@ impl<'a> System<'a> for Sys {
                 };
                 local_emitter.append(&mut state_update.local_events);
                 server_emitter.append(&mut state_update.server_events);
-                incorporate_update(&mut tuple, state_update);
+                incorporate_update(&mut join_struct, state_update);
             }
 
-            let j = JoinData::new(&tuple, &updater, &dt);
+            let j = JoinData::new(
+                &join_struct,
+                &immutable_data.lazy_update,
+                &immutable_data.dt,
+            );
 
             let mut state_update = match j.character {
                 CharacterState::Idle => states::idle::Data.behavior(&j),
@@ -303,9 +335,9 @@ impl<'a> System<'a> for Sys {
 
             local_emitter.append(&mut state_update.local_events);
             server_emitter.append(&mut state_update.server_events);
-            incorporate_update(&mut tuple, state_update);
+            incorporate_update(&mut join_struct, state_update);
         }
-        sys_metrics.character_behavior_ns.store(
+        immutable_data.metrics.character_behavior_ns.store(
             start_time.elapsed().as_nanos() as u64,
             std::sync::atomic::Ordering::Relaxed,
         );
