@@ -12,73 +12,75 @@ use common::{
     uid::Uid,
 };
 use hashbrown::HashSet;
-use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, Write, WriteStorage};
+use specs::{
+    shred::ResourceId, Entities, Join, Read, ReadExpect, ReadStorage, System, SystemData, World,
+    Write, WriteStorage,
+};
 use vek::Vec3;
 
 const ENERGY_REGEN_ACCEL: f32 = 10.0;
 const POISE_REGEN_ACCEL: f32 = 2.0;
+
+#[derive(SystemData)]
+pub struct ImmutableData<'a> {
+    entities: Entities<'a>,
+    dt: Read<'a, DeltaTime>,
+    server_bus: Read<'a, EventBus<ServerEvent>>,
+    metrics: ReadExpect<'a, SysMetrics>,
+    positions: ReadStorage<'a, Pos>,
+    uids: ReadStorage<'a, Uid>,
+    bodies: ReadStorage<'a, Body>,
+    char_states: ReadStorage<'a, CharacterState>,
+}
 
 /// This system kills players, levels them up, and regenerates energy.
 pub struct Sys;
 impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
-        Entities<'a>,
-        Read<'a, DeltaTime>,
-        Read<'a, EventBus<ServerEvent>>,
-        ReadExpect<'a, SysMetrics>,
-        WriteStorage<'a, CharacterState>,
+        ImmutableData<'a>,
         WriteStorage<'a, Stats>,
         WriteStorage<'a, Health>,
         WriteStorage<'a, Poise>,
         WriteStorage<'a, Energy>,
-        ReadStorage<'a, Uid>,
-        ReadStorage<'a, Pos>,
         Write<'a, Vec<Outcome>>,
-        ReadStorage<'a, Body>,
     );
 
     fn run(
         &mut self,
         (
-            entities,
-            dt,
-            server_event_bus,
-            sys_metrics,
-            character_states,
+            immutable_data,
             mut stats,
             mut healths,
             mut poises,
             mut energies,
-            uids,
-            positions,
             mut outcomes,
-            bodies,
         ): Self::SystemData,
     ) {
         let start_time = std::time::Instant::now();
         span!(_guard, "run", "stats::Sys::run");
-        let mut server_event_emitter = server_event_bus.emitter();
+        let mut server_event_emitter = immutable_data.server_bus.emitter();
+        let dt = immutable_data.dt.0;
 
         // Increment last change timer
         healths.set_event_emission(false); // avoid unnecessary syncing
         poises.set_event_emission(false); // avoid unnecessary syncing
         for mut health in (&mut healths).join() {
-            health.last_change.0 += f64::from(dt.0);
+            health.last_change.0 += f64::from(dt);
         }
         for mut poise in (&mut poises).join() {
-            poise.last_change.0 += f64::from(dt.0);
+            poise.last_change.0 += f64::from(dt);
         }
         healths.set_event_emission(true);
         poises.set_event_emission(true);
 
         // Update stats
         for (entity, uid, mut stats, mut health, pos) in (
-            &entities,
-            &uids,
+            &immutable_data.entities,
+            &immutable_data.uids,
             &mut stats.restrict_mut(),
             &mut healths.restrict_mut(),
-            &positions,
+            &immutable_data.positions,
         )
             .join()
         {
@@ -127,7 +129,7 @@ impl<'a> System<'a> for Sys {
             &mut stats.restrict_mut(),
             &mut healths.restrict_mut(),
             &mut energies.restrict_mut(),
-            &bodies,
+            &immutable_data.bodies,
         )
             .join()
         {
@@ -159,7 +161,7 @@ impl<'a> System<'a> for Sys {
 
         // Update energies and poises
         for (character_state, mut energy, mut poise) in (
-            &character_states,
+            &immutable_data.char_states,
             &mut energies.restrict_mut(),
             &mut poises.restrict_mut(),
         )
@@ -186,13 +188,12 @@ impl<'a> System<'a> for Sys {
                         let energy = &mut *energy;
                         // Have to account for Calc I differential equations due to acceleration
                         energy.change_by(EnergyChange {
-                            amount: (energy.regen_rate * dt.0
-                                + ENERGY_REGEN_ACCEL * dt.0.powi(2) / 2.0)
+                            amount: (energy.regen_rate * dt + ENERGY_REGEN_ACCEL * dt.powi(2) / 2.0)
                                 as i32,
                             source: EnergySource::Regen,
                         });
                         energy.regen_rate =
-                            (energy.regen_rate + ENERGY_REGEN_ACCEL * dt.0).min(100.0);
+                            (energy.regen_rate + ENERGY_REGEN_ACCEL * dt).min(100.0);
                     }
 
                     let res_poise = {
@@ -205,14 +206,14 @@ impl<'a> System<'a> for Sys {
                         let poise = &mut *poise;
                         poise.change_by(
                             PoiseChange {
-                                amount: (poise.regen_rate * dt.0
-                                    + POISE_REGEN_ACCEL * dt.0.powi(2) / 2.0)
+                                amount: (poise.regen_rate * dt
+                                    + POISE_REGEN_ACCEL * dt.powi(2) / 2.0)
                                     as i32,
                                 source: PoiseSource::Regen,
                             },
                             Vec3::zero(),
                         );
-                        poise.regen_rate = (poise.regen_rate + POISE_REGEN_ACCEL * dt.0).min(10.0);
+                        poise.regen_rate = (poise.regen_rate + POISE_REGEN_ACCEL * dt).min(10.0);
                     }
                 },
                 // Ability and glider use does not regen and sets the rate back to zero.
@@ -255,7 +256,7 @@ impl<'a> System<'a> for Sys {
             }
         }
 
-        sys_metrics.stats_ns.store(
+        immutable_data.metrics.stats_ns.store(
             start_time.elapsed().as_nanos() as u64,
             std::sync::atomic::Ordering::Relaxed,
         );
