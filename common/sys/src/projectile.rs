@@ -35,7 +35,6 @@ pub struct ImmutableData<'a> {
 /// This system is responsible for handling projectile effect triggers
 pub struct Sys;
 impl<'a> System<'a> for Sys {
-    #[allow(clippy::type_complexity)]
     type SystemData = (
         ImmutableData<'a>,
         WriteStorage<'a, Ori>,
