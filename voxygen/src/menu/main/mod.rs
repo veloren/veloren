@@ -11,8 +11,14 @@ use crate::{
     window::Event,
     Direction, GlobalState, PlayState, PlayStateResult,
 };
-use client_init::{ClientInit, Error as InitError, Msg as InitMsg};
+use client::{
+    addr::ConnectionArgs,
+    error::{InitProtocolError, NetworkConnectError, NetworkError},
+};
+use client_init::{ClientConnArgs, ClientInit, Error as InitError, Msg as InitMsg};
 use common::{assets::AssetExt, comp, span};
+use std::sync::Arc;
+use tokio::runtime;
 use tracing::error;
 use ui::{Event as MainMenuEvent, MainMenuUi};
 
@@ -31,8 +37,6 @@ impl MainMenuState {
         }
     }
 }
-
-const DEFAULT_PORT: u16 = 14004;
 
 impl PlayState for MainMenuState {
     fn enter(&mut self, global_state: &mut GlobalState, _: Direction) {
@@ -63,14 +67,8 @@ impl PlayState for MainMenuState {
         #[cfg(feature = "singleplayer")]
         {
             if let Some(singleplayer) = &global_state.singleplayer {
-                if let Ok(result) = singleplayer.receiver.try_recv() {
-                    if let Err(error) = result {
-                        tracing::error!(?error, "Could not start server");
-                        global_state.singleplayer = None;
-                        self.client_init = None;
-                        self.main_menu_ui.cancel_connection();
-                        self.main_menu_ui.show_info(format!("Error: {:?}", error));
-                    } else {
+                match singleplayer.receiver.try_recv() {
+                    Ok(Ok(runtime)) => {
                         let server_settings = singleplayer.settings();
                         // Attempt login after the server is finished initializing
                         attempt_login(
@@ -78,11 +76,21 @@ impl PlayState for MainMenuState {
                             &mut global_state.info_message,
                             "singleplayer".to_owned(),
                             "".to_owned(),
-                            server_settings.gameserver_address.ip().to_string(),
-                            server_settings.gameserver_address.port(),
+                            ClientConnArgs::Resolved(ConnectionArgs::IpAndPort(vec![
+                                server_settings.gameserver_address,
+                            ])),
                             &mut self.client_init,
+                            Some(runtime),
                         );
-                    }
+                    },
+                    Ok(Err(e)) => {
+                        error!(?e, "Could not start server");
+                        global_state.singleplayer = None;
+                        self.client_init = None;
+                        self.main_menu_ui.cancel_connection();
+                        self.main_menu_ui.show_info(format!("Error: {:?}", e));
+                    },
+                    Err(_) => (),
                 }
             }
         }
@@ -117,7 +125,7 @@ impl PlayState for MainMenuState {
                 self.client_init = None;
                 global_state.info_message = Some({
                     let err = match err {
-                        InitError::BadAddress(_) | InitError::NoAddress => {
+                        InitError::NoAddress => {
                             localized_strings.get("main.login.server_not_found").into()
                         },
                         InitError::ClientError(err) => match err {
@@ -155,6 +163,11 @@ impl PlayState for MainMenuState {
                             client::Error::InvalidCharacter => {
                                 localized_strings.get("main.login.invalid_character").into()
                             },
+                            client::Error::NetworkErr(NetworkError::ConnectFailed(
+                                NetworkConnectError::Handshake(InitProtocolError::WrongVersion(_)),
+                            )) => localized_strings
+                                .get("main.login.network_wrong_version")
+                                .into(),
                             client::Error::NetworkErr(e) => format!(
                                 "{}: {:?}",
                                 localized_strings.get("main.login.network_error"),
@@ -242,9 +255,9 @@ impl PlayState for MainMenuState {
                         &mut global_state.info_message,
                         username,
                         password,
-                        server_address,
-                        DEFAULT_PORT,
+                        ClientConnArgs::Host(server_address),
                         &mut self.client_init,
+                        None,
                     );
                 },
                 MainMenuEvent::CancelLoginAttempt => {
@@ -270,7 +283,7 @@ impl PlayState for MainMenuState {
                 },
                 #[cfg(feature = "singleplayer")]
                 MainMenuEvent::StartSingleplayer => {
-                    let singleplayer = Singleplayer::new(None); // TODO: Make client and server use the same thread pool
+                    let singleplayer = Singleplayer::new();
 
                     global_state.singleplayer = Some(singleplayer);
                 },
@@ -315,18 +328,19 @@ fn attempt_login(
     info_message: &mut Option<String>,
     username: String,
     password: String,
-    server_address: String,
-    server_port: u16,
+    connection_args: ClientConnArgs,
     client_init: &mut Option<ClientInit>,
+    runtime: Option<Arc<runtime::Runtime>>,
 ) {
     if comp::Player::alias_is_valid(&username) {
         // Don't try to connect if there is already a connection in progress.
         if client_init.is_none() {
             *client_init = Some(ClientInit::new(
-                (server_address, server_port, false),
+                connection_args,
                 username,
                 Some(settings.graphics.view_distance),
                 password,
+                runtime,
             ));
         }
     } else {

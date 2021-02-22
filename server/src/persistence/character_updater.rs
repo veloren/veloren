@@ -24,13 +24,16 @@ impl CharacterUpdater {
 
         let mut conn = establish_connection(db_dir)?;
 
-        let handle = std::thread::spawn(move || {
-            while let Ok(updates) = update_rx.recv() {
-                trace!("Persistence batch update starting");
-                execute_batch_update(updates, &mut conn);
-                trace!("Persistence batch update finished");
-            }
-        });
+        let builder = std::thread::Builder::new().name("persistence_updater".into());
+        let handle = builder
+            .spawn(move || {
+                while let Ok(updates) = update_rx.recv() {
+                    trace!("Persistence batch update starting");
+                    execute_batch_update(updates, &mut conn);
+                    trace!("Persistence batch update finished");
+                }
+            })
+            .unwrap();
 
         Ok(Self {
             update_tx: Some(update_tx),

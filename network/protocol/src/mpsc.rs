@@ -1,12 +1,13 @@
 #[cfg(feature = "metrics")]
 use crate::metrics::RemoveReason;
 use crate::{
+    error::ProtocolError,
     event::ProtocolEvent,
     frame::InitFrame,
     handshake::{ReliableDrain, ReliableSink},
     metrics::ProtocolMetricCache,
     types::Bandwidth,
-    ProtocolError, RecvProtocol, SendProtocol, UnreliableDrain, UnreliableSink,
+    RecvProtocol, SendProtocol, UnreliableDrain, UnreliableSink,
 };
 use async_trait::async_trait;
 use std::time::{Duration, Instant};
@@ -78,7 +79,6 @@ where
         match &event {
             ProtocolEvent::Message {
                 data: _data,
-                mid: _,
                 sid: _sid,
             } => {
                 #[cfg(feature = "metrics")]
@@ -118,7 +118,7 @@ where
             MpscMsg::Event(e) => {
                 #[cfg(feature = "metrics")]
                 {
-                    if let ProtocolEvent::Message { data, mid: _, sid } = &e {
+                    if let ProtocolEvent::Message { data, sid } = &e {
                         let sid = *sid;
                         let bytes = data.len() as u64;
                         let line = self.metrics.init_sid(sid);

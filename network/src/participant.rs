@@ -52,12 +52,6 @@ struct ControlChannels {
 }
 
 #[derive(Debug)]
-struct ShutdownInfo {
-    b2b_close_stream_opened_sender_s: Option<oneshot::Sender<()>>,
-    error: Option<ParticipantError>,
-}
-
-#[derive(Debug)]
 struct OpenStreamInfo {
     a2b_msg_s: crossbeam_channel::Sender<(Sid, Bytes)>,
     a2b_close_stream_s: mpsc::UnboundedSender<Sid>,
@@ -74,7 +68,6 @@ pub struct BParticipant {
     run_channels: Option<ControlChannels>,
     shutdown_barrier: AtomicI32,
     metrics: Arc<NetworkMetrics>,
-    no_channel_error_info: RwLock<(Instant, u64)>,
     open_stream_channels: Arc<Mutex<Option<OpenStreamInfo>>>,
 }
 
@@ -84,7 +77,7 @@ impl BParticipant {
     const BARR_RECV: i32 = 4;
     const BARR_SEND: i32 = 2;
     const TICK_TIME: Duration = Duration::from_millis(Self::TICK_TIME_MS);
-    const TICK_TIME_MS: u64 = 10;
+    const TICK_TIME_MS: u64 = 5;
 
     #[allow(clippy::type_complexity)]
     pub(crate) fn new(
@@ -124,7 +117,6 @@ impl BParticipant {
                 ),
                 run_channels,
                 metrics,
-                no_channel_error_info: RwLock::new((Instant::now(), 0)),
                 open_stream_channels: Arc::new(Mutex::new(None)),
             },
             a2b_open_stream_s,
@@ -203,7 +195,6 @@ impl BParticipant {
         let mut interval = tokio::time::interval(Self::TICK_TIME);
         let mut last_instant = Instant::now();
         let mut stream_ids = self.offset_sid;
-        let mut fake_mid = 0; //TODO: move MID to protocol, should be inc per stream ? or ?
         trace!("workaround, actively wait for first protocol");
         b2b_add_protocol_r
             .recv()
@@ -267,13 +258,8 @@ impl BParticipant {
 
                 // get all messages and assign it to a channel
                 for (sid, buffer) in a2b_msg_r.try_iter() {
-                    fake_mid += 1;
                     active
-                        .send(ProtocolEvent::Message {
-                            data: buffer,
-                            mid: fake_mid,
-                            sid,
-                        })
+                        .send(ProtocolEvent::Message { data: buffer, sid })
                         .await?
                 }
 
@@ -416,7 +402,7 @@ impl BParticipant {
                         self.delete_stream(sid).await;
                         retrigger(cid, p, &mut recv_protocols);
                     },
-                    Ok(ProtocolEvent::Message { data, mid: _, sid }) => {
+                    Ok(ProtocolEvent::Message { data, sid }) => {
                         let lock = self.streams.read().await;
                         match lock.get(&sid) {
                             Some(stream) => {

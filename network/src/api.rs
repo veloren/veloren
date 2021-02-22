@@ -1,12 +1,12 @@
 use crate::{
     message::{partial_eq_bincode, Message},
     participant::{A2bStreamOpen, S2bShutdownBparticipant},
-    scheduler::Scheduler,
+    scheduler::{A2sConnect, Scheduler},
 };
 use bytes::Bytes;
 #[cfg(feature = "compression")]
 use lz_fear::raw::DecodeError;
-use network_protocol::{Bandwidth, Pid, Prio, Promises, Sid};
+use network_protocol::{Bandwidth, InitProtocolError, Pid, Prio, Promises, Sid};
 #[cfg(feature = "metrics")]
 use prometheus::Registry;
 use serde::{de::DeserializeOwned, Serialize};
@@ -83,7 +83,16 @@ pub struct Stream {
 pub enum NetworkError {
     NetworkClosed,
     ListenFailed(std::io::Error),
-    ConnectFailed(std::io::Error),
+    ConnectFailed(NetworkConnectError),
+}
+
+/// Error type thrown by [`Networks`](Network) connect
+#[derive(Debug)]
+pub enum NetworkConnectError {
+    /// Either a Pid UUID clash or you are trying to hijack a connection
+    InvalidSecret,
+    Handshake(InitProtocolError),
+    Io(std::io::Error),
 }
 
 /// Error type thrown by [`Participants`](Participant) methods
@@ -149,10 +158,8 @@ pub struct Network {
     local_pid: Pid,
     runtime: Arc<Runtime>,
     participant_disconnect_sender: Mutex<HashMap<Pid, A2sDisconnect>>,
-    listen_sender:
-        Mutex<mpsc::UnboundedSender<(ProtocolAddr, oneshot::Sender<tokio::io::Result<()>>)>>,
-    connect_sender:
-        Mutex<mpsc::UnboundedSender<(ProtocolAddr, oneshot::Sender<io::Result<Participant>>)>>,
+    listen_sender: Mutex<mpsc::UnboundedSender<(ProtocolAddr, oneshot::Sender<io::Result<()>>)>>,
+    connect_sender: Mutex<mpsc::UnboundedSender<A2sConnect>>,
     connected_receiver: Mutex<mpsc::UnboundedReceiver<Participant>>,
     shutdown_sender: Option<oneshot::Sender<()>>,
 }
@@ -348,7 +355,8 @@ impl Network {
     /// [`ProtocolAddres`]: crate::api::ProtocolAddr
     #[instrument(name="network", skip(self, address), fields(p = %self.local_pid))]
     pub async fn connect(&self, address: ProtocolAddr) -> Result<Participant, NetworkError> {
-        let (pid_sender, pid_receiver) = oneshot::channel::<io::Result<Participant>>();
+        let (pid_sender, pid_receiver) =
+            oneshot::channel::<Result<Participant, NetworkConnectError>>();
         debug!(?address, "Connect to address");
         self.connect_sender
             .lock()
@@ -438,6 +446,9 @@ impl Participant {
     ///   link for further documentation. You can combine them, e.g.
     ///   `Promises::ORDERED | Promises::CONSISTENCY` The Stream will then
     ///   guarantee that those promises are met.
+    /// * `bandwidth` - sets a guaranteed bandwidth which is reserved for this
+    ///   stream. When excess bandwidth is available it will be used. See
+    ///   [`Bandwidth`] for details.
     ///
     /// A [`ParticipantError`] might be thrown if the `Participant` is already
     /// closed. [`Streams`] can be created without a answer from the remote
@@ -460,7 +471,7 @@ impl Participant {
     ///         .connect(ProtocolAddr::Tcp("127.0.0.1:2100".parse().unwrap()))
     ///         .await?;
     ///     let _s1 = p1
-    ///         .open(4, Promises::ORDERED | Promises::CONSISTENCY)
+    ///         .open(4, Promises::ORDERED | Promises::CONSISTENCY, 1000)
     ///         .await?;
     ///     # Ok(())
     /// })
@@ -468,16 +479,22 @@ impl Participant {
     /// ```
     ///
     /// [`Prio`]: network_protocol::Prio
+    /// [`Bandwidth`]: network_protocol::Bandwidth
     /// [`Promises`]: network_protocol::Promises
     /// [`Streams`]: crate::api::Stream
     #[instrument(name="network", skip(self, prio, promises), fields(p = %self.local_pid))]
-    pub async fn open(&self, prio: u8, promises: Promises) -> Result<Stream, ParticipantError> {
+    pub async fn open(
+        &self,
+        prio: u8,
+        promises: Promises,
+        bandwidth: Bandwidth,
+    ) -> Result<Stream, ParticipantError> {
         debug_assert!(prio <= network_protocol::HIGHEST_PRIO, "invalid prio");
         let (p2a_return_stream_s, p2a_return_stream_r) = oneshot::channel::<Stream>();
         if let Err(e) = self.a2b_open_stream_s.lock().await.send((
             prio,
             promises,
-            1_000_000,
+            bandwidth,
             p2a_return_stream_s,
         )) {
             debug!(?e, "bParticipant is already closed, notifying");
@@ -519,7 +536,7 @@ impl Participant {
     ///     # remote.listen(ProtocolAddr::Tcp("127.0.0.1:2110".parse().unwrap())).await?;
     ///     let p1 = network.connect(ProtocolAddr::Tcp("127.0.0.1:2110".parse().unwrap())).await?;
     ///     # let p2 = remote.connected().await?;
-    ///     # p2.open(4, Promises::ORDERED | Promises::CONSISTENCY).await?;
+    ///     # p2.open(4, Promises::ORDERED | Promises::CONSISTENCY, 0).await?;
     ///     let _s1 = p1.opened().await?;
     ///     # Ok(())
     /// })
@@ -704,7 +721,7 @@ impl Stream {
     ///     network.listen(ProtocolAddr::Tcp("127.0.0.1:2200".parse().unwrap())).await?;
     ///     # let remote_p = remote.connect(ProtocolAddr::Tcp("127.0.0.1:2200".parse().unwrap())).await?;
     ///     # // keep it alive
-    ///     # let _stream_p = remote_p.open(4, Promises::ORDERED | Promises::CONSISTENCY).await?;
+    ///     # let _stream_p = remote_p.open(4, Promises::ORDERED | Promises::CONSISTENCY, 0).await?;
     ///     let participant_a = network.connected().await?;
     ///     let mut stream_a = participant_a.opened().await?;
     ///     //Send  Message
@@ -746,8 +763,8 @@ impl Stream {
     ///     # let remote1_p = remote1.connect(ProtocolAddr::Tcp("127.0.0.1:2210".parse().unwrap())).await?;
     ///     # let remote2_p = remote2.connect(ProtocolAddr::Tcp("127.0.0.1:2210".parse().unwrap())).await?;
     ///     # assert_eq!(remote1_p.remote_pid(), remote2_p.remote_pid());
-    ///     # remote1_p.open(4, Promises::ORDERED | Promises::CONSISTENCY).await?;
-    ///     # remote2_p.open(4, Promises::ORDERED | Promises::CONSISTENCY).await?;
+    ///     # remote1_p.open(4, Promises::ORDERED | Promises::CONSISTENCY, 0).await?;
+    ///     # remote2_p.open(4, Promises::ORDERED | Promises::CONSISTENCY, 0).await?;
     ///     let participant_a = network.connected().await?;
     ///     let participant_b = network.connected().await?;
     ///     let mut stream_a = participant_a.opened().await?;
@@ -801,7 +818,7 @@ impl Stream {
     /// runtime.block_on(async {
     ///     network.listen(ProtocolAddr::Tcp("127.0.0.1:2220".parse().unwrap())).await?;
     ///     # let remote_p = remote.connect(ProtocolAddr::Tcp("127.0.0.1:2220".parse().unwrap())).await?;
-    ///     # let mut stream_p = remote_p.open(4, Promises::ORDERED | Promises::CONSISTENCY).await?;
+    ///     # let mut stream_p = remote_p.open(4, Promises::ORDERED | Promises::CONSISTENCY, 0).await?;
     ///     # stream_p.send("Hello World");
     ///     let participant_a = network.connected().await?;
     ///     let mut stream_a = participant_a.opened().await?;
@@ -834,7 +851,7 @@ impl Stream {
     /// runtime.block_on(async {
     ///     network.listen(ProtocolAddr::Tcp("127.0.0.1:2230".parse().unwrap())).await?;
     ///     # let remote_p = remote.connect(ProtocolAddr::Tcp("127.0.0.1:2230".parse().unwrap())).await?;
-    ///     # let mut stream_p = remote_p.open(4, Promises::ORDERED | Promises::CONSISTENCY).await?;
+    ///     # let mut stream_p = remote_p.open(4, Promises::ORDERED | Promises::CONSISTENCY, 0).await?;
     ///     # stream_p.send("Hello World");
     ///     let participant_a = network.connected().await?;
     ///     let mut stream_a = participant_a.opened().await?;
@@ -889,7 +906,7 @@ impl Stream {
     /// runtime.block_on(async {
     ///     network.listen(ProtocolAddr::Tcp("127.0.0.1:2240".parse().unwrap())).await?;
     ///     # let remote_p = remote.connect(ProtocolAddr::Tcp("127.0.0.1:2240".parse().unwrap())).await?;
-    ///     # let mut stream_p = remote_p.open(4, Promises::ORDERED | Promises::CONSISTENCY).await?;
+    ///     # let mut stream_p = remote_p.open(4, Promises::ORDERED | Promises::CONSISTENCY, 0).await?;
     ///     # stream_p.send("Hello World");
     ///     # std::thread::sleep(std::time::Duration::from_secs(1));
     ///     let participant_a = network.connected().await?;
@@ -1138,6 +1155,18 @@ impl core::fmt::Display for NetworkError {
     }
 }
 
+impl core::fmt::Display for NetworkConnectError {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            NetworkConnectError::Io(e) => write!(f, "Io error: {}", e),
+            NetworkConnectError::Handshake(e) => write!(f, "Handshake error: {}", e),
+            NetworkConnectError::InvalidSecret => {
+                write!(f, "You specified the wrong secret on your second channel")
+            },
+        }
+    }
+}
+
 /// implementing PartialEq as it's super convenient in tests
 impl core::cmp::PartialEq for StreamError {
     fn eq(&self, other: &Self) -> bool {
@@ -1168,3 +1197,4 @@ impl core::cmp::PartialEq for StreamError {
 impl std::error::Error for StreamError {}
 impl std::error::Error for ParticipantError {}
 impl std::error::Error for NetworkError {}
+impl std::error::Error for NetworkConnectError {}

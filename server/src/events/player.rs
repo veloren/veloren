@@ -11,9 +11,8 @@ use common::{
 };
 use common_net::msg::{PlayerListUpdate, PresenceKind, ServerGeneral};
 use common_sys::state::State;
-use futures_executor::block_on;
 use specs::{saveload::MarkerAllocator, Builder, Entity as EcsEntity, WorldExt};
-use tracing::{debug, error, trace, warn};
+use tracing::{debug, error, trace, warn, Instrument};
 
 pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity) {
     span!(_guard, "handle_exit_ingame");
@@ -107,26 +106,26 @@ pub fn handle_client_disconnect(server: &mut Server, entity: EcsEntity) -> Event
     {
         let participant = client.participant.take().unwrap();
         let pid = participant.remote_pid();
-        std::thread::spawn(move || {
-            let span = tracing::span!(tracing::Level::DEBUG, "client_disconnect", ?pid, ?entity);
-            let _enter = span.enter();
-            let now = std::time::Instant::now();
-            debug!(?pid, ?entity, "Start handle disconnect of client");
-            if let Err(e) = block_on(participant.disconnect()) {
-                debug!(
-                    ?e,
-                    ?pid,
-                    "Error when disconnecting client, maybe the pipe already broke"
-                );
-            };
-            trace!(?pid, "finished disconnect");
-            let elapsed = now.elapsed();
-            if elapsed.as_millis() > 100 {
-                warn!(?elapsed, ?pid, "disconnecting took quite long");
-            } else {
-                debug!(?elapsed, ?pid, "disconnecting took");
+        server.runtime.spawn(
+            async {
+                let now = std::time::Instant::now();
+                debug!("Start handle disconnect of client");
+                if let Err(e) = participant.disconnect().await {
+                    debug!(
+                        ?e,
+                        "Error when disconnecting client, maybe the pipe already broke"
+                    );
+                };
+                trace!("finished disconnect");
+                let elapsed = now.elapsed();
+                if elapsed.as_millis() > 100 {
+                    warn!(?elapsed, "disconnecting took quite long");
+                } else {
+                    debug!(?elapsed, "disconnecting took");
+                }
             }
-        });
+            .instrument(tracing::debug_span!("client_disconnect", ?pid, ?entity)),
+        );
     }
 
     let state = server.state_mut();

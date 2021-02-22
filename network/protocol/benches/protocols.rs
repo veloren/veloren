@@ -47,7 +47,6 @@ async fn send_msg<T: SendProtocol>(mut s: T, data: Bytes, cnt: usize) {
     for i in 0..cnt {
         s.send(ProtocolEvent::Message {
             sid: Sid::new(12),
-            mid: i as u64,
             data: data.clone(),
         })
         .await
@@ -93,7 +92,6 @@ fn criterion_util(c: &mut Criterion) {
         let mut buffer = BytesMut::with_capacity(1500);
         let frame = OTFrame::Data {
             mid: 65,
-            start: 89u64,
             data: Bytes::from(&b"hello_world"[..]),
         };
         b.iter_with_setup(

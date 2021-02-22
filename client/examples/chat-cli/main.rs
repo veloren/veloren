@@ -5,14 +5,13 @@
 use common::{clock::Clock, comp};
 use std::{
     io,
-    net::ToSocketAddrs,
     sync::{mpsc, Arc},
     thread,
     time::Duration,
 };
 use tokio::runtime::Runtime;
 use tracing::{error, info};
-use veloren_client::{Client, Event};
+use veloren_client::{addr::ConnectionArgs, Client, Event};
 
 const TPS: u64 = 10; // Low value is okay, just reading messages.
 
@@ -45,27 +44,26 @@ fn main() {
     let password = read_input();
 
     let runtime = Arc::new(Runtime::new().unwrap());
+    let runtime2 = Arc::clone(&runtime);
 
     // Create a client.
-    let mut client = Client::new(
-        server_addr
-            .to_socket_addrs()
-            .expect("Invalid server address")
-            .next()
-            .unwrap(),
-        None,
-        runtime,
-    )
-    .expect("Failed to create client instance");
+    let mut client = runtime
+        .block_on(async {
+            let addr = ConnectionArgs::resolve(&server_addr, false)
+                .await
+                .expect("dns resolve failed");
+            Client::new(addr, None, runtime2).await
+        })
+        .expect("Failed to create client instance");
 
     println!("Server info: {:?}", client.server_info());
 
     println!("Players online: {:?}", client.get_players());
 
-    client
-        .register(username, password, |provider| {
+    runtime
+        .block_on(client.register(username, password, |provider| {
             provider == "https://auth.veloren.net"
-        })
+        }))
         .unwrap();
 
     let (tx, rx) = mpsc::channel();

@@ -124,11 +124,16 @@ fn main() {
 
             // On windows we need to spawn a thread as the msg doesn't work otherwise
             #[cfg(target_os = "windows")]
-            std::thread::spawn(move || {
-                mbox();
-            })
-            .join()
-            .unwrap();
+            {
+                let builder = std::thread::Builder::new().name("shutdown".into());
+                builder
+                    .spawn(move || {
+                        mbox();
+                    })
+                    .unwrap()
+                    .join()
+                    .unwrap();
+            }
 
             #[cfg(not(target_os = "windows"))]
             mbox();

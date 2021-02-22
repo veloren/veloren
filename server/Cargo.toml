@@ -23,11 +23,7 @@ specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git", rev = "9fab7b3
 
 tracing = "0.1"
 vek = { version = "0.12.0", features = ["serde"] }
-uvth = "3.1.1"
 futures-util = "0.3.7"
-futures-executor = "0.3"
-futures-timer = "3.0"
-futures-channel = "0.3"
 tokio = { version = "1", default-features = false, features = ["rt"] }
 prometheus-hyper = "0.1.1"
 itertools = "0.9"

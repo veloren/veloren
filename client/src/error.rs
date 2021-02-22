@@ -1,5 +1,5 @@
 use authc::AuthClientError;
-pub use network::NetworkError;
+pub use network::{InitProtocolError, NetworkConnectError, NetworkError};
 use network::{ParticipantError, StreamError};
 
 #[derive(Debug)]

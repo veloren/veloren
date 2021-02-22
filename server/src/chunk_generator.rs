@@ -8,6 +8,7 @@ use std::sync::{
     atomic::{AtomicBool, Ordering},
     Arc,
 };
+use tokio::runtime::Runtime;
 use vek::*;
 #[cfg(feature = "worldgen")]
 use world::{IndexOwned, World};
@@ -39,7 +40,7 @@ impl ChunkGenerator {
         &mut self,
         entity: Option<EcsEntity>,
         key: Vec2<i32>,
-        thread_pool: &mut uvth::ThreadPool,
+        runtime: &Runtime,
         world: Arc<World>,
         index: IndexOwned,
     ) {
@@ -52,7 +53,7 @@ impl ChunkGenerator {
         v.insert(Arc::clone(&cancel));
         let chunk_tx = self.chunk_tx.clone();
         self.metrics.chunks_requested.inc();
-        thread_pool.execute(move || {
+        runtime.spawn_blocking(move || {
             let index = index.as_index_ref();
             let payload = world
                 .generate_chunk(index, key, || cancel.load(Ordering::Relaxed))

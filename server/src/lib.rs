@@ -75,7 +75,6 @@ use common_net::{
 #[cfg(feature = "plugins")]
 use common_sys::plugin::PluginMgr;
 use common_sys::state::State;
-use futures_executor::block_on;
 use metrics::{PhysicsMetrics, StateTickMetrics, TickMetrics};
 use network::{Network, Pid, ProtocolAddr};
 use persistence::{
@@ -95,7 +94,6 @@ use std::{
 use test_world::{IndexOwned, World};
 use tokio::{runtime::Runtime, sync::Notify};
 use tracing::{debug, error, info, trace};
-use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
 
 #[cfg(feature = "worldgen")]
@@ -123,8 +121,7 @@ pub struct Server {
 
     connection_handler: ConnectionHandler,
 
-    _runtime: Arc<Runtime>,
-    thread_pool: ThreadPool,
+    runtime: Arc<Runtime>,
 
     metrics_shutdown: Arc<Notify>,
     tick_metrics: TickMetrics,
@@ -366,9 +363,6 @@ impl Server {
         registry_state(&registry).expect("failed to register state metrics");
         registry_physics(&registry).expect("failed to register state metrics");
 
-        let thread_pool = ThreadPoolBuilder::new()
-            .name("veloren-worker".to_string())
-            .build();
         let network = Network::new_with_registry(Pid::new(), Arc::clone(&runtime), &registry);
         let metrics_shutdown = Arc::new(Notify::new());
         let metrics_shutdown_clone = Arc::clone(&metrics_shutdown);
@@ -381,8 +375,8 @@ impl Server {
             )
             .await
         });
-        block_on(network.listen(ProtocolAddr::Tcp(settings.gameserver_address)))?;
-        let connection_handler = ConnectionHandler::new(network);
+        runtime.block_on(network.listen(ProtocolAddr::Tcp(settings.gameserver_address)))?;
+        let connection_handler = ConnectionHandler::new(network, &runtime);
 
         // Initiate real-time world simulation
         #[cfg(feature = "worldgen")]
@@ -397,9 +391,7 @@ impl Server {
             map,
 
             connection_handler,
-
-            _runtime: runtime,
-            thread_pool,
+            runtime,
 
             metrics_shutdown,
             tick_metrics,
@@ -429,11 +421,6 @@ impl Server {
             git_date: common::util::GIT_DATE.to_string(),
             auth_provider: settings.auth_server_address.clone(),
         }
-    }
-
-    pub fn with_thread_pool(mut self, thread_pool: ThreadPool) -> Self {
-        self.thread_pool = thread_pool;
-        self
     }
 
     /// Get a reference to the server's settings
@@ -676,7 +663,7 @@ impl Server {
             // only work we do here on the fast path is perform a relaxed read on an atomic.
             // boolean.
             let index = &mut self.index;
-            let thread_pool = &mut self.thread_pool;
+            let runtime = &mut self.runtime;
             let world = &mut self.world;
             let ecs = self.state.ecs_mut();
 
@@ -697,7 +684,7 @@ impl Server {
                         chunk_generator.generate_chunk(
                             None,
                             pos,
-                            thread_pool,
+                            runtime,
                             Arc::clone(&world),
                             index.clone(),
                         );
@@ -1021,7 +1008,7 @@ impl Server {
             .generate_chunk(
                 Some(entity),
                 key,
-                &mut self.thread_pool,
+                &self.runtime,
                 Arc::clone(&self.world),
                 self.index.clone(),
             );

@@ -1,5 +1,5 @@
 use crate::{
-    api::{Participant, ProtocolAddr},
+    api::{NetworkConnectError, Participant, ProtocolAddr},
     channel::Protocols,
     metrics::NetworkMetrics,
     participant::{B2sPrioStatistic, BParticipant, S2bCreateChannel, S2bShutdownBparticipant},
@@ -47,7 +47,10 @@ struct ParticipantInfo {
 }
 
 type A2sListen = (ProtocolAddr, oneshot::Sender<io::Result<()>>);
-type A2sConnect = (ProtocolAddr, oneshot::Sender<io::Result<Participant>>);
+pub(crate) type A2sConnect = (
+    ProtocolAddr,
+    oneshot::Sender<Result<Participant, NetworkConnectError>>,
+);
 type A2sDisconnect = (Pid, S2bShutdownBparticipant);
 type S2sMpscConnect = (
     mpsc::Sender<MpscMsg>,
@@ -196,13 +199,7 @@ impl Scheduler {
         trace!("Stop listen_mgr");
     }
 
-    async fn connect_mgr(
-        &self,
-        mut a2s_connect_r: mpsc::UnboundedReceiver<(
-            ProtocolAddr,
-            oneshot::Sender<io::Result<Participant>>,
-        )>,
-    ) {
+    async fn connect_mgr(&self, mut a2s_connect_r: mpsc::UnboundedReceiver<A2sConnect>) {
         trace!("Start connect_mgr");
         while let Some((addr, pid_sender)) = a2s_connect_r.recv().await {
             let (protocol, cid, handshake) = match addr {
@@ -215,7 +212,7 @@ impl Scheduler {
                     let stream = match net::TcpStream::connect(addr).await {
                         Ok(stream) => stream,
                         Err(e) => {
-                            pid_sender.send(Err(e)).unwrap();
+                            pid_sender.send(Err(NetworkConnectError::Io(e))).unwrap();
                             continue;
                         },
                     };
@@ -232,10 +229,10 @@ impl Scheduler {
                         Some(s) => s.clone(),
                         None => {
                             pid_sender
-                                .send(Err(std::io::Error::new(
+                                .send(Err(NetworkConnectError::Io(std::io::Error::new(
                                     std::io::ErrorKind::NotConnected,
                                     "no mpsc listen on this addr",
-                                )))
+                                ))))
                                 .unwrap();
                             continue;
                         },
@@ -543,7 +540,7 @@ impl Scheduler {
         &self,
         mut protocol: Protocols,
         cid: Cid,
-        s2a_return_pid_s: Option<oneshot::Sender<io::Result<Participant>>>,
+        s2a_return_pid_s: Option<oneshot::Sender<Result<Participant, NetworkConnectError>>>,
         send_handshake: bool,
     ) {
         //channels are unknown till PID is known!
@@ -647,10 +644,7 @@ impl Scheduler {
                                 if let Some(pid_oneshot) = s2a_return_pid_s {
                                     // someone is waiting with `connect`, so give them their Error
                                     pid_oneshot
-                                        .send(Err(std::io::Error::new(
-                                            std::io::ErrorKind::PermissionDenied,
-                                            "invalid secret, denying connection",
-                                        )))
+                                        .send(Err(NetworkConnectError::InvalidSecret))
                                         .unwrap();
                                 }
                                 return;
@@ -670,10 +664,7 @@ impl Scheduler {
                             // someone is waiting with `connect`, so give them their Error
                             trace!(?cid, "returning the Err to api who requested the connect");
                             pid_oneshot
-                                .send(Err(std::io::Error::new(
-                                    std::io::ErrorKind::PermissionDenied,
-                                    "Handshake failed, denying connection",
-                                )))
+                                .send(Err(NetworkConnectError::Handshake(e)))
                                 .unwrap();
                         }
                     },

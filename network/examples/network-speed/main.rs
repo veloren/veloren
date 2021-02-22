@@ -164,7 +164,7 @@ fn client(address: ProtocolAddr, runtime: Arc<Runtime>) {
 
     let p1 = runtime.block_on(client.connect(address)).unwrap(); //remote representation of p1
     let mut s1 = runtime
-        .block_on(p1.open(4, Promises::ORDERED | Promises::CONSISTENCY))
+        .block_on(p1.open(4, Promises::ORDERED | Promises::CONSISTENCY, 0))
         .unwrap(); //remote representation of s1
     let mut last = Instant::now();
     let mut id = 0u64;

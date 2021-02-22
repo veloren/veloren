@@ -83,7 +83,7 @@ impl Message {
     /// # runtime.block_on(async {
     ///     # network.listen(ProtocolAddr::Tcp("127.0.0.1:2300".parse().unwrap())).await?;
     ///     # let remote_p = remote.connect(ProtocolAddr::Tcp("127.0.0.1:2300".parse().unwrap())).await?;
-    ///     # let mut stream_p = remote_p.open(4, Promises::ORDERED | Promises::CONSISTENCY).await?;
+    ///     # let mut stream_p = remote_p.open(4, Promises::ORDERED | Promises::CONSISTENCY, 0).await?;
     ///     # stream_p.send("Hello World");
     ///     # let participant_a = network.connected().await?;
     ///     let mut stream_a = participant_a.opened().await?;

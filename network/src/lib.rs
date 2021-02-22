@@ -51,7 +51,7 @@
 //!         .connect(ProtocolAddr::Tcp("127.0.0.1:12345".parse().unwrap()))
 //!         .await?;
 //!     let mut stream = server
-//!         .open(4, Promises::ORDERED | Promises::CONSISTENCY)
+//!         .open(4, Promises::ORDERED | Promises::CONSISTENCY, 0)
 //!         .await?;
 //!     stream.send("Hello World")?;
 //!     Ok(())
@@ -107,7 +107,8 @@ mod participant;
 mod scheduler;
 
 pub use api::{
-    Network, NetworkError, Participant, ParticipantError, ProtocolAddr, Stream, StreamError,
+    Network, NetworkConnectError, NetworkError, Participant, ParticipantError, ProtocolAddr,
+    Stream, StreamError,
 };
 pub use message::Message;
-pub use network_protocol::{Pid, Promises};
+pub use network_protocol::{InitProtocolError, Pid, Promises};

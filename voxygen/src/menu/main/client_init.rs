@@ -1,27 +1,23 @@
 use client::{
-    error::{Error as ClientError, NetworkError},
+    addr::ConnectionArgs,
+    error::{Error as ClientError, NetworkConnectError, NetworkError},
     Client,
 };
 use crossbeam::channel::{unbounded, Receiver, Sender, TryRecvError};
 use std::{
-    net::ToSocketAddrs,
     sync::{
-        atomic::{AtomicBool, Ordering},
+        atomic::{AtomicBool, AtomicUsize, Ordering},
         Arc,
     },
-    thread,
     time::Duration,
 };
+use tokio::runtime;
 use tracing::{trace, warn};
 
 #[derive(Debug)]
 pub enum Error {
-    // Error parsing input string or error resolving host name.
-    BadAddress(std::io::Error),
-    // Parsing/host name resolution successful but there was an error within the client.
-    ClientError(ClientError),
-    // Parsing yielded an empty iterator (specifically to_socket_addrs()).
     NoAddress,
+    ClientError(ClientError),
     ClientCrashed,
 }
 
@@ -29,6 +25,11 @@ pub enum Error {
 pub enum Msg {
     IsAuthTrusted(String),
     Done(Result<Client, Error>),
+}
+
+pub enum ClientConnArgs {
+    Host(String),
+    Resolved(ConnectionArgs),
 }
 
 pub struct AuthTrust(String, bool);
@@ -45,97 +46,96 @@ impl ClientInit {
     #[allow(clippy::op_ref)] // TODO: Pending review in #587
     #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     pub fn new(
-        connection_args: (String, u16, bool),
+        connection_args: ClientConnArgs,
         username: String,
         view_distance: Option<u32>,
         password: String,
+        runtime: Option<Arc<runtime::Runtime>>,
     ) -> Self {
-        let (server_address, default_port, prefer_ipv6) = connection_args;
-
         let (tx, rx) = unbounded();
         let (trust_tx, trust_rx) = unbounded();
         let cancel = Arc::new(AtomicBool::new(false));
         let cancel2 = Arc::clone(&cancel);
 
-        thread::spawn(move || {
-            // Parse ip address or resolves hostname.
-            // Note: if you use an ipv6 address, the number after the last colon will be
-            // used as the port unless you use [] around the address.
-            match server_address
-                .to_socket_addrs()
-                .or((server_address.as_ref(), default_port).to_socket_addrs())
-            {
-                Ok(socket_address) => {
-                    let (first_addrs, second_addrs) =
-                        socket_address.partition::<Vec<_>, _>(|a| a.is_ipv6() == prefer_ipv6);
+        let runtime = runtime.unwrap_or_else(|| {
+            let cores = num_cpus::get();
+            Arc::new(
+                runtime::Builder::new_multi_thread()
+                    .enable_all()
+                    .worker_threads(if cores > 4 { cores - 1 } else { cores })
+                    .thread_name_fn(|| {
+                        static ATOMIC_ID: AtomicUsize = AtomicUsize::new(0);
+                        let id = ATOMIC_ID.fetch_add(1, Ordering::SeqCst);
+                        format!("tokio-voxygen-{}", id)
+                    })
+                    .build()
+                    .unwrap(),
+            )
+        });
+        let runtime2 = Arc::clone(&runtime);
 
-                    let mut last_err = None;
+        runtime.spawn(async move {
+            let trust_fn = |auth_server: &str| {
+                let _ = tx.send(Msg::IsAuthTrusted(auth_server.to_string()));
+                trust_rx
+                    .recv()
+                    .map(|AuthTrust(server, trust)| trust && &server == auth_server)
+                    .unwrap_or(false)
+            };
 
-                    let cores = num_cpus::get();
-                    let runtime = Arc::new(
-                        tokio::runtime::Builder::new_multi_thread()
-                            .enable_all()
-                            .worker_threads(if cores > 4 { cores - 1 } else { cores })
-                            .build()
-                            .unwrap(),
-                    );
-
-                    const FOUR_MINUTES_RETRIES: u64 = 48;
-                    'tries: for _ in 0..FOUR_MINUTES_RETRIES {
-                        if cancel2.load(Ordering::Relaxed) {
-                            break;
-                        }
-                        for socket_addr in
-                            first_addrs.clone().into_iter().chain(second_addrs.clone())
-                        {
-                            match Client::new(socket_addr, view_distance, Arc::clone(&runtime)) {
-                                Ok(mut client) => {
-                                    if let Err(e) =
-                                        client.register(username, password, |auth_server| {
-                                            let _ = tx
-                                                .send(Msg::IsAuthTrusted(auth_server.to_string()));
-                                            trust_rx
-                                                .recv()
-                                                .map(|AuthTrust(server, trust)| {
-                                                    trust && &server == auth_server
-                                                })
-                                                .unwrap_or(false)
-                                        })
-                                    {
-                                        last_err = Some(Error::ClientError(e));
-                                        break 'tries;
-                                    }
-                                    let _ = tx.send(Msg::Done(Ok(client)));
-                                    return;
-                                },
-                                Err(ClientError::NetworkErr(NetworkError::ConnectFailed(e))) => {
-                                    if e.kind() == std::io::ErrorKind::PermissionDenied {
-                                        warn!(?e, "Cannot connect to server: Incompatible version");
-                                        last_err = Some(Error::ClientError(
-                                            ClientError::NetworkErr(NetworkError::ConnectFailed(e)),
-                                        ));
-                                        break 'tries;
-                                    } else {
-                                        warn!(?e, "Failed to connect to the server. Retrying...");
-                                    }
-                                },
-                                Err(e) => {
-                                    trace!(?e, "Aborting server connection attempt");
-                                    last_err = Some(Error::ClientError(e));
-                                    break 'tries;
-                                },
-                            }
-                        }
-                        thread::sleep(Duration::from_secs(5));
-                    }
-                    // Parsing/host name resolution successful but no connection succeeded.
-                    let _ = tx.send(Msg::Done(Err(last_err.unwrap_or(Error::NoAddress))));
+            let connection_args = match connection_args {
+                ClientConnArgs::Host(host) => match ConnectionArgs::resolve(&host, false).await {
+                    Ok(r) => r,
+                    Err(_) => {
+                        let _ = tx.send(Msg::Done(Err(Error::NoAddress)));
+                        tokio::task::block_in_place(move || drop(runtime2));
+                        return;
+                    },
                 },
-                Err(err) => {
-                    // Error parsing input string or error resolving host name.
-                    let _ = tx.send(Msg::Done(Err(Error::BadAddress(err))));
-                },
+                ClientConnArgs::Resolved(r) => r,
+            };
+
+            let mut last_err = None;
+
+            const FOUR_MINUTES_RETRIES: u64 = 48;
+            'tries: for _ in 0..FOUR_MINUTES_RETRIES {
+                if cancel2.load(Ordering::Relaxed) {
+                    break;
+                }
+                match Client::new(
+                    connection_args.clone(),
+                    view_distance,
+                    Arc::clone(&runtime2),
+                )
+                .await
+                {
+                    Ok(mut client) => {
+                        if let Err(e) = client.register(username, password, trust_fn).await {
+                            last_err = Some(Error::ClientError(e));
+                            break 'tries;
+                        }
+                        let _ = tx.send(Msg::Done(Ok(client)));
+                        return;
+                    },
+                    Err(ClientError::NetworkErr(NetworkError::ConnectFailed(
+                        NetworkConnectError::Io(e),
+                    ))) => {
+                        warn!(?e, "Failed to connect to the server. Retrying...");
+                    },
+                    Err(e) => {
+                        trace!(?e, "Aborting server connection attempt");
+                        last_err = Some(Error::ClientError(e));
+                        break 'tries;
+                    },
+                }
+                tokio::time::sleep(Duration::from_secs(5)).await;
             }
+
+            // Parsing/host name resolution successful but no connection succeeded.
+            let _ = tx.send(Msg::Done(Err(last_err.unwrap_or(Error::NoAddress))));
+
+            // Safe drop runtime
+            tokio::task::block_in_place(move || drop(runtime2));
         });
 
         ClientInit {

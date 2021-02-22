@@ -1,10 +1,11 @@
 use crate::{
+    error::{InitProtocolError, ProtocolError},
     frame::InitFrame,
     types::{
         Pid, Sid, STREAM_ID_OFFSET1, STREAM_ID_OFFSET2, VELOREN_MAGIC_NUMBER,
         VELOREN_NETWORK_VERSION,
     },
-    InitProtocol, InitProtocolError, ProtocolError,
+    InitProtocol,
 };
 use async_trait::async_trait;
 use tracing::{debug, error, info, trace};
@@ -80,7 +81,9 @@ where
                         .send(InitFrame::Raw(WRONG_NUMBER.as_bytes().to_vec()))
                         .await?;
                     Err(InitProtocolError::WrongMagicNumber(magic_number))
-                } else if version != VELOREN_NETWORK_VERSION {
+                } else if version[0] != VELOREN_NETWORK_VERSION[0]
+                    || version[1] != VELOREN_NETWORK_VERSION[1]
+                {
                     error!(?version, "Connection with wrong network version");
                     #[cfg(debug_assertions)]
                     drain

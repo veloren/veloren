@@ -1,29 +1,25 @@
-use client::Client;
 use common::clock::Clock;
 use crossbeam::channel::{bounded, unbounded, Receiver, Sender, TryRecvError};
 use server::{Error as ServerError, Event, Input, Server};
 use std::{
     sync::{
-        atomic::{AtomicBool, Ordering},
+        atomic::{AtomicBool, AtomicUsize, Ordering},
         Arc,
     },
     thread::{self, JoinHandle},
     time::Duration,
 };
-use tracing::{error, info, warn};
+use tokio::runtime::Runtime;
+use tracing::{debug, error, info, trace, warn};
 
 const TPS: u64 = 30;
-
-enum Msg {
-    Stop,
-}
 
 /// Used to start and stop the background thread running the server
 /// when in singleplayer mode.
 pub struct Singleplayer {
     _server_thread: JoinHandle<()>,
-    sender: Sender<Msg>,
-    pub receiver: Receiver<Result<(), ServerError>>,
+    stop_server_s: Sender<()>,
+    pub receiver: Receiver<Result<Arc<Runtime>, ServerError>>,
     // Wether the server is stopped or not
     paused: Arc<AtomicBool>,
     // Settings that the server was started with
@@ -31,8 +27,9 @@ pub struct Singleplayer {
 }
 
 impl Singleplayer {
-    pub fn new(client: Option<&Client>) -> Self {
-        let (sender, receiver) = unbounded();
+    #[allow(clippy::new_without_default)]
+    pub fn new() -> Self {
+        let (stop_server_s, stop_server_r) = unbounded();
 
         // Determine folder to save server data in
         let server_data_dir = {
@@ -81,15 +78,21 @@ impl Singleplayer {
         let settings = server::Settings::singleplayer(&server_data_dir);
         let editable_settings = server::EditableSettings::singleplayer(&server_data_dir);
 
-        let thread_pool = client.map(|c| c.thread_pool().clone());
         let cores = num_cpus::get();
+        debug!("Creating a new runtime for server");
         let runtime = Arc::new(
             tokio::runtime::Builder::new_multi_thread()
                 .enable_all()
                 .worker_threads(if cores > 4 { cores - 1 } else { cores })
+                .thread_name_fn(|| {
+                    static ATOMIC_ID: AtomicUsize = AtomicUsize::new(0);
+                    let id = ATOMIC_ID.fetch_add(1, Ordering::SeqCst);
+                    format!("tokio-sp-{}", id)
+                })
                 .build()
                 .unwrap(),
         );
+
         let settings2 = settings.clone();
 
         let paused = Arc::new(AtomicBool::new(false));
@@ -97,41 +100,46 @@ impl Singleplayer {
 
         let (result_sender, result_receiver) = bounded(1);
 
-        let thread = thread::spawn(move || {
-            let mut server = None;
-            if let Err(e) = result_sender.send(
-                match Server::new(settings2, editable_settings, &server_data_dir, runtime) {
-                    Ok(s) => {
-                        server = Some(s);
-                        Ok(())
+        let builder = thread::Builder::new().name("singleplayer-server-thread".into());
+        let thread = builder
+            .spawn(move || {
+                trace!("starting singleplayer server thread");
+                let mut server = None;
+                if let Err(e) = result_sender.send(
+                    match Server::new(
+                        settings2,
+                        editable_settings,
+                        &server_data_dir,
+                        Arc::clone(&runtime),
+                    ) {
+                        Ok(s) => {
+                            server = Some(s);
+                            Ok(runtime)
+                        },
+                        Err(e) => Err(e),
                     },
-                    Err(e) => Err(e),
-                },
-            ) {
-                warn!(
-                    ?e,
-                    "Failed to send singleplayer server initialization result. Most likely the \
-                     channel was closed by cancelling server creation. Stopping Server"
-                );
-                return;
-            };
+                ) {
+                    warn!(
+                        ?e,
+                        "Failed to send singleplayer server initialization result. Most likely \
+                         the channel was closed by cancelling server creation. Stopping Server"
+                    );
+                    return;
+                };
 
-            let server = match server {
-                Some(s) => s,
-                None => return,
-            };
+                let server = match server {
+                    Some(s) => s,
+                    None => return,
+                };
 
-            let server = match thread_pool {
-                Some(pool) => server.with_thread_pool(pool),
-                None => server,
-            };
-
-            run_server(server, receiver, paused1);
-        });
+                run_server(server, stop_server_r, paused1);
+                trace!("ending singleplayer server thread");
+            })
+            .unwrap();
 
         Singleplayer {
             _server_thread: thread,
-            sender,
+            stop_server_s,
             receiver: result_receiver,
             paused,
             settings,
@@ -152,11 +160,11 @@ impl Singleplayer {
 impl Drop for Singleplayer {
     fn drop(&mut self) {
         // Ignore the result
-        let _ = self.sender.send(Msg::Stop);
+        let _ = self.stop_server_s.send(());
     }
 }
 
-fn run_server(mut server: Server, rec: Receiver<Msg>, paused: Arc<AtomicBool>) {
+fn run_server(mut server: Server, stop_server_r: Receiver<()>, paused: Arc<AtomicBool>) {
     info!("Starting server-cli...");
 
     // Set up an fps clock
@@ -164,14 +172,10 @@ fn run_server(mut server: Server, rec: Receiver<Msg>, paused: Arc<AtomicBool>) {
 
     loop {
         // Check any event such as stopping and pausing
-        match rec.try_recv() {
-            Ok(msg) => match msg {
-                Msg::Stop => break,
-            },
-            Err(err) => match err {
-                TryRecvError::Empty => (),
-                TryRecvError::Disconnected => break,
-            },
+        match stop_server_r.try_recv() {
+            Ok(()) => break,
+            Err(TryRecvError::Disconnected) => break,
+            Err(TryRecvError::Empty) => (),
         }
 
         // Wait for the next tick.

@@ -177,7 +177,7 @@ fn api_stream_send_main() -> std::result::Result<(), Box<dyn std::error::Error>>
             .await?;
         // keep it alive
         let _stream_p = remote_p
-            .open(4, Promises::ORDERED | Promises::CONSISTENCY)
+            .open(4, Promises::ORDERED | Promises::CONSISTENCY, 0)
             .await?;
         let participant_a = network.connected().await?;
         let mut stream_a = participant_a.opened().await?;
@@ -205,7 +205,7 @@ fn api_stream_recv_main() -> std::result::Result<(), Box<dyn std::error::Error>>
             .connect(ProtocolAddr::Tcp("127.0.0.1:1220".parse().unwrap()))
             .await?;
         let mut stream_p = remote_p
-            .open(4, Promises::ORDERED | Promises::CONSISTENCY)
+            .open(4, Promises::ORDERED | Promises::CONSISTENCY, 0)
             .await?;
         stream_p.send("Hello World")?;
         let participant_a = network.connected().await?;

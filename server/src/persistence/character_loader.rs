@@ -73,12 +73,13 @@ impl CharacterLoader {
 
         let mut conn = establish_connection(db_dir)?;
 
-        std::thread::spawn(move || {
-            for request in internal_rx {
-                let (entity, kind) = request;
+        let builder = std::thread::Builder::new().name("persistence_loader".into());
+        builder
+            .spawn(move || {
+                for request in internal_rx {
+                    let (entity, kind) = request;
 
-                if let Err(e) =
-                    internal_tx.send(CharacterLoaderResponse {
+                    if let Err(e) = internal_tx.send(CharacterLoaderResponse {
                         entity,
                         result: match kind {
                             CharacterLoaderRequestKind::CreateCharacter {
@@ -123,12 +124,12 @@ impl CharacterLoader {
                                 CharacterLoaderResponseKind::CharacterData(Box::new(result))
                             },
                         },
-                    })
-                {
-                    error!(?e, "Could not send send persistence request");
+                    }) {
+                        error!(?e, "Could not send send persistence request");
+                    }
                 }
-            }
-        });
+            })
+            .unwrap();
 
         Ok(Self {
             update_tx,

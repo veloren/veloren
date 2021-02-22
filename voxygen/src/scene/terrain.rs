@@ -27,7 +27,10 @@ use enum_iterator::IntoEnumIterator;
 use guillotiere::AtlasAllocator;
 use hashbrown::HashMap;
 use serde::Deserialize;
-use std::sync::Arc;
+use std::sync::{
+    atomic::{AtomicU64, Ordering},
+    Arc,
+};
 use tracing::warn;
 use treeculler::{BVol, Frustum, AABB};
 use vek::*;
@@ -259,6 +262,7 @@ pub struct Terrain<V: RectRasterableVol = TerrainChunk> {
     mesh_send_tmp: channel::Sender<MeshWorkerResponse>,
     mesh_recv: channel::Receiver<MeshWorkerResponse>,
     mesh_todo: HashMap<Vec2<i32>, ChunkMeshState>,
+    mesh_todos_active: Arc<AtomicU64>,
 
     // GPU data
     sprite_data: Arc<HashMap<(SpriteKind, usize), Vec<SpriteData>>>,
@@ -406,6 +410,7 @@ impl<V: RectRasterableVol> Terrain<V> {
             mesh_send_tmp: send,
             mesh_recv: recv,
             mesh_todo: HashMap::default(),
+            mesh_todos_active: Arc::new(AtomicU64::new(0)),
             sprite_data: Arc::new(sprite_data),
             sprite_col_lights,
             waves: renderer
@@ -633,6 +638,11 @@ impl<V: RectRasterableVol> Terrain<V> {
 
         // Limit ourselves to u16::MAX even if larger textures are supported.
         let max_texture_size = renderer.max_texture_size();
+        let meshing_cores = match num_cpus::get() as u64 {
+            n if n < 4 => 1,
+            n if n < 8 => n - 3,
+            n => n - 4,
+        };
 
         span!(guard, "Queue meshing from todo list");
         for (todo, chunk) in self
@@ -649,8 +659,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     .cloned()?))
             })
         {
-            // TODO: find a alternative!
-            if scene_data.thread_pool.queued_jobs() > 0 {
+            if self.mesh_todos_active.load(Ordering::Relaxed) > meshing_cores {
                 break;
             }
 
@@ -701,7 +710,9 @@ impl<V: RectRasterableVol> Terrain<V> {
             let started_tick = todo.started_tick;
             let sprite_data = Arc::clone(&self.sprite_data);
             let sprite_config = Arc::clone(&self.sprite_config);
-            scene_data.thread_pool.execute(move || {
+            let cnt = Arc::clone(&self.mesh_todos_active);
+            cnt.fetch_add(1, Ordering::Relaxed);
+            scene_data.runtime.spawn_blocking(move || {
                 let sprite_data = sprite_data;
                 let _ = send.send(mesh_worker(
                     pos,
@@ -714,6 +725,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                     &sprite_data,
                     &sprite_config,
                 ));
+                cnt.fetch_sub(1, Ordering::Relaxed);
             });
             todo.is_worker_active = true;
         }

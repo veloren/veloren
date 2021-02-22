@@ -1,6 +1,6 @@
 use crate::{
     frame::OTFrame,
-    types::{Bandwidth, Mid, Prio, Promises, Sid},
+    types::{Bandwidth, Prio, Promises, Sid},
 };
 use bytes::Bytes;
 
@@ -23,7 +23,6 @@ pub enum ProtocolEvent {
     },
     Message {
         data: Bytes,
-        mid: Mid,
         sid: Sid,
     },
 }
@@ -36,11 +35,12 @@ impl ProtocolEvent {
                 sid,
                 prio,
                 promises,
-                guaranteed_bandwidth: _,
+                guaranteed_bandwidth,
             } => OTFrame::OpenStream {
                 sid: *sid,
                 prio: *prio,
                 promises: *promises,
+                guaranteed_bandwidth: *guaranteed_bandwidth,
             },
             ProtocolEvent::CloseStream { sid } => OTFrame::CloseStream { sid: *sid },
             ProtocolEvent::Message { .. } => {
@@ -68,7 +68,6 @@ mod tests {
     fn test_msg_buffer_panic() {
         let _ = ProtocolEvent::Message {
             data: Bytes::new(),
-            mid: 0,
             sid: Sid::new(23),
         }
         .to_frame();
