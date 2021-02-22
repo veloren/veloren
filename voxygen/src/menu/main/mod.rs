@@ -15,7 +15,7 @@ use client::{
     addr::ConnectionArgs,
     error::{InitProtocolError, NetworkConnectError, NetworkError},
 };
-use client_init::{ClientInit, Error as InitError, Msg as InitMsg};
+use client_init::{ClientConnArgs, ClientInit, Error as InitError, Msg as InitMsg};
 use common::{assets::AssetExt, comp, span};
 use std::sync::Arc;
 use tokio::runtime;
@@ -76,7 +76,9 @@ impl PlayState for MainMenuState {
                             &mut global_state.info_message,
                             "singleplayer".to_owned(),
                             "".to_owned(),
-                            ConnectionArgs::IpAndPort(vec![server_settings.gameserver_address]),
+                            ClientConnArgs::Resolved(ConnectionArgs::IpAndPort(vec![
+                                server_settings.gameserver_address,
+                            ])),
                             &mut self.client_init,
                             Some(runtime),
                         );
@@ -127,11 +129,6 @@ impl PlayState for MainMenuState {
                             localized_strings.get("main.login.server_not_found").into()
                         },
                         InitError::ClientError(err) => match err {
-                            client::Error::DnsResolveFailed(reason) => format!(
-                                "{}: {}",
-                                localized_strings.get("main.login.server_not_found"),
-                                reason
-                            ),
                             client::Error::AuthErr(e) => format!(
                                 "{}: {}",
                                 localized_strings.get("main.login.authentication_error"),
@@ -258,7 +255,7 @@ impl PlayState for MainMenuState {
                         &mut global_state.info_message,
                         username,
                         password,
-                        ConnectionArgs::HostnameAndOptionalPort(server_address, false),
+                        ClientConnArgs::Host(server_address),
                         &mut self.client_init,
                         None,
                     );
@@ -331,7 +328,7 @@ fn attempt_login(
     info_message: &mut Option<String>,
     username: String,
     password: String,
-    connection_args: ConnectionArgs,
+    connection_args: ClientConnArgs,
     client_init: &mut Option<ClientInit>,
     runtime: Option<Arc<runtime::Runtime>>,
 ) {

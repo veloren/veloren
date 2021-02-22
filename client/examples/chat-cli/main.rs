@@ -48,11 +48,12 @@ fn main() {
 
     // Create a client.
     let mut client = runtime
-        .block_on(Client::new(
-            ConnectionArgs::HostnameAndOptionalPort(server_addr, false),
-            None,
-            runtime2,
-        ))
+        .block_on(async {
+            let addr = ConnectionArgs::resolve(&server_addr, false)
+                .await
+                .expect("dns resolve failed");
+            Client::new(addr, None, runtime2).await
+        })
         .expect("Failed to create client instance");
 
     println!("Server info: {:?}", client.server_info());

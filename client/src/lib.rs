@@ -185,21 +185,13 @@ pub struct CharacterList {
 impl Client {
     /// Create a new `Client`.
     pub async fn new(
-        mut addr: ConnectionArgs,
+        addr: ConnectionArgs,
         view_distance: Option<u32>,
         runtime: Arc<Runtime>,
     ) -> Result<Self, Error> {
         let network = Network::new(Pid::new(), Arc::clone(&runtime));
 
-        if let Err(e) = addr.resolve().await {
-            error!(?e, "Dns resolve failed");
-            return Err(Error::DnsResolveFailed(e.to_string()));
-        }
-
         let participant = match addr {
-            ConnectionArgs::HostnameAndOptionalPort(..) => {
-                unreachable!(".resolve() should have switched that state")
-            },
             ConnectionArgs::IpAndPort(addrs) => {
                 // Try to connect to all IP's and return the first that works
                 let mut participant = None;
