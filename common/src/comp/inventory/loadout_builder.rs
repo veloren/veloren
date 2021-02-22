@@ -317,7 +317,7 @@ impl LoadoutBuilder {
                         _ => None,
                     })
                     .glider(Some(Item::new_from_asset_expect(
-                        "common.items.glider.glider_starter",
+                        "common.items.glider.glider_cloverleaf",
                     )))
                     .build(),
                 Bandit => LoadoutBuilder::new()
@@ -345,7 +345,7 @@ impl LoadoutBuilder {
                         _ => None,
                     })
                     .glider(Some(Item::new_from_asset_expect(
-                        "common.items.glider.glider_starter",
+                        "common.items.glider.glider_cloverleaf",
                     )))
                     .build(),
                 CultistNovice => LoadoutBuilder::new()
@@ -438,7 +438,7 @@ impl LoadoutBuilder {
                         _ => None,
                     })
                     .glider(Some(Item::new_from_asset_expect(
-                        "common.items.glider.glider_cultist",
+                        "common.items.glider.glider_purp",
                     )))
                     .build(),
                 Warlock => LoadoutBuilder::new()
@@ -469,7 +469,7 @@ impl LoadoutBuilder {
                         _ => None,
                     })
                     .glider(Some(Item::new_from_asset_expect(
-                        "common.items.glider.glider_cultist",
+                        "common.items.glider.glider_purp",
                     )))
                     .build(),
                 Villager => LoadoutBuilder::new()
