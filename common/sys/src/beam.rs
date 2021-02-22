@@ -1,7 +1,7 @@
 use common::{
     combat::AttackerInfo,
     comp::{
-        group, Beam, BeamSegment, Body, Energy, Health, HealthSource, Inventory, Last, Ori, Pos,
+        Beam, BeamSegment, Body, Energy, Group, Health, HealthSource, Inventory, Last, Ori, Pos,
         Scale,
     },
     event::{EventBus, ServerEvent},
@@ -9,64 +9,55 @@ use common::{
     uid::{Uid, UidAllocator},
     GroupTarget,
 };
-use specs::{saveload::MarkerAllocator, Entities, Join, Read, ReadStorage, System, WriteStorage};
+use specs::{
+    saveload::MarkerAllocator, shred::ResourceId, Entities, Join, Read, ReadStorage, System,
+    SystemData, World, WriteStorage,
+};
 use std::time::Duration;
 use vek::*;
+
+#[derive(SystemData)]
+pub struct ImmutableData<'a> {
+    entities: Entities<'a>,
+    server_bus: Read<'a, EventBus<ServerEvent>>,
+    time: Read<'a, Time>,
+    dt: Read<'a, DeltaTime>,
+    uid_allocator: Read<'a, UidAllocator>,
+    uids: ReadStorage<'a, Uid>,
+    positions: ReadStorage<'a, Pos>,
+    last_positions: ReadStorage<'a, Last<Pos>>,
+    orientations: ReadStorage<'a, Ori>,
+    scales: ReadStorage<'a, Scale>,
+    bodies: ReadStorage<'a, Body>,
+    healths: ReadStorage<'a, Health>,
+    inventories: ReadStorage<'a, Inventory>,
+    groups: ReadStorage<'a, Group>,
+    energies: ReadStorage<'a, Energy>,
+}
 
 /// This system is responsible for handling beams that heal or do damage
 pub struct Sys;
 impl<'a> System<'a> for Sys {
-    #[allow(clippy::type_complexity)]
     type SystemData = (
-        Entities<'a>,
-        Read<'a, EventBus<ServerEvent>>,
-        Read<'a, Time>,
-        Read<'a, DeltaTime>,
-        Read<'a, UidAllocator>,
-        ReadStorage<'a, Uid>,
-        ReadStorage<'a, Pos>,
-        ReadStorage<'a, Last<Pos>>,
-        ReadStorage<'a, Ori>,
-        ReadStorage<'a, Scale>,
-        ReadStorage<'a, Body>,
-        ReadStorage<'a, Health>,
-        ReadStorage<'a, Inventory>,
-        ReadStorage<'a, group::Group>,
-        ReadStorage<'a, Energy>,
+        ImmutableData<'a>,
         WriteStorage<'a, BeamSegment>,
         WriteStorage<'a, Beam>,
     );
 
-    fn run(
-        &mut self,
-        (
-            entities,
-            server_bus,
-            time,
-            dt,
-            uid_allocator,
-            uids,
-            positions,
-            last_positions,
-            orientations,
-            scales,
-            bodies,
-            healths,
-            inventories,
-            groups,
-            energies,
-            mut beam_segments,
-            mut beams,
-        ): Self::SystemData,
-    ) {
-        let mut server_emitter = server_bus.emitter();
+    fn run(&mut self, (immutable_data, mut beam_segments, mut beams): Self::SystemData) {
+        let mut server_emitter = immutable_data.server_bus.emitter();
 
-        let time = time.0;
-        let dt = dt.0;
+        let time = immutable_data.time.0;
+        let dt = immutable_data.dt.0;
 
         // Beams
-        for (entity, pos, ori, beam_segment) in
-            (&entities, &positions, &orientations, &beam_segments).join()
+        for (entity, pos, ori, beam_segment) in (
+            &immutable_data.entities,
+            &immutable_data.positions,
+            &immutable_data.orientations,
+            &beam_segments,
+        )
+            .join()
         {
             let creation_time = match beam_segment.creation {
                 Some(time) => time,
@@ -98,13 +89,15 @@ impl<'a> System<'a> for Sys {
                 (beam_segment.speed * (time_since_creation - frame_time)).max(0.0);
             let frame_end_dist = (beam_segment.speed * time_since_creation).max(frame_start_dist);
 
-            let beam_owner = beam_segment
-                .owner
-                .and_then(|uid| uid_allocator.retrieve_entity_internal(uid.into()));
+            let beam_owner = beam_segment.owner.and_then(|uid| {
+                immutable_data
+                    .uid_allocator
+                    .retrieve_entity_internal(uid.into())
+            });
 
             // Group to ignore collisions with
             // Might make this more nuanced if beams are used for non damage effects
-            let group = beam_owner.and_then(|e| groups.get(e));
+            let group = beam_owner.and_then(|e| immutable_data.groups.get(e));
 
             let hit_entities = if let Some(beam) = beam_owner.and_then(|e| beams.get_mut(e)) {
                 &mut beam.hit_entities
@@ -113,25 +106,12 @@ impl<'a> System<'a> for Sys {
             };
 
             // Go through all other effectable entities
-            for (
-                b,
-                uid_b,
-                pos_b,
-                last_pos_b_maybe,
-                scale_b_maybe,
-                health_b,
-                body_b,
-                inventory_b_maybe,
-            ) in (
-                &entities,
-                &uids,
-                &positions,
-                // TODO: make sure that these are maintained on the client and remove `.maybe()`
-                last_positions.maybe(),
-                scales.maybe(),
-                &healths,
-                &bodies,
-                inventories.maybe(),
+            for (target, uid_b, pos_b, health_b, body_b) in (
+                &immutable_data.entities,
+                &immutable_data.uids,
+                &immutable_data.positions,
+                &immutable_data.healths,
+                &immutable_data.bodies,
             )
                 .join()
             {
@@ -141,12 +121,13 @@ impl<'a> System<'a> for Sys {
                 }
 
                 // Scales
-                let scale_b = scale_b_maybe.map_or(1.0, |s| s.0);
+                let scale_b = immutable_data.scales.get(target).map_or(1.0, |s| s.0);
+                let last_pos_b_maybe = immutable_data.last_positions.get(target);
                 let rad_b = body_b.radius() * scale_b;
                 let height_b = body_b.height() * scale_b;
 
                 // Check if it is a hit
-                let hit = entity != b
+                let hit = entity != target
                     && !health_b.is_dead
                     // Collision shapes
                     && (sphere_wedge_cylinder_collision(pos.0, frame_start_dist, frame_end_dist, *ori.look_dir(), beam_segment.angle, pos_b.0, rad_b, height_b)
@@ -155,7 +136,7 @@ impl<'a> System<'a> for Sys {
                 if hit {
                     // See if entities are in the same group
                     let same_group = group
-                        .map(|group_a| Some(group_a) == groups.get(b))
+                        .map(|group_a| Some(group_a) == immutable_data.groups.get(target))
                         .unwrap_or(Some(*uid_b) == beam_segment.owner);
 
                     let target_group = if same_group {
@@ -175,14 +156,14 @@ impl<'a> System<'a> for Sys {
                             .map(|(entity, uid)| AttackerInfo {
                                 entity,
                                 uid,
-                                energy: energies.get(entity),
+                                energy: immutable_data.energies.get(entity),
                             });
 
                     beam_segment.properties.attack.apply_attack(
                         target_group,
                         attacker_info,
-                        b,
-                        inventory_b_maybe,
+                        target,
+                        immutable_data.inventories.get(target),
                         ori.look_dir(),
                         false,
                         1.0,
