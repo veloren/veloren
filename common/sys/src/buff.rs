@@ -13,7 +13,7 @@ use specs::{
 use std::time::Duration;
 
 #[derive(SystemData)]
-pub struct ImmutableData<'a> {
+pub struct ReadData<'a> {
     entities: Entities<'a>,
     dt: Read<'a, DeltaTime>,
     server_bus: Read<'a, EventBus<ServerEvent>>,
@@ -23,26 +23,21 @@ pub struct ImmutableData<'a> {
 pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
-        ImmutableData<'a>,
+        ReadData<'a>,
         WriteStorage<'a, Health>,
         WriteStorage<'a, Energy>,
         WriteStorage<'a, Buffs>,
     );
 
-    fn run(&mut self, (immutable_data, mut healths, mut energies, mut buffs): Self::SystemData) {
-        let mut server_emitter = immutable_data.server_bus.emitter();
-        let dt = immutable_data.dt.0;
+    fn run(&mut self, (read_data, mut healths, mut energies, mut buffs): Self::SystemData) {
+        let mut server_emitter = read_data.server_bus.emitter();
+        let dt = read_data.dt.0;
         // Set to false to avoid spamming server
         buffs.set_event_emission(false);
         healths.set_event_emission(false);
         energies.set_event_emission(false);
-        for (entity, mut buff_comp, mut health, mut energy) in (
-            &immutable_data.entities,
-            &mut buffs,
-            &mut healths,
-            &mut energies,
-        )
-            .join()
+        for (entity, mut buff_comp, mut health, mut energy) in
+            (&read_data.entities, &mut buffs, &mut healths, &mut energies).join()
         {
             let (buff_comp_kinds, buff_comp_buffs) = buff_comp.parts();
             let mut expired_buffs = Vec::<BuffId>::new();
@@ -66,7 +61,7 @@ impl<'a> System<'a> for Sys {
                 }
             }
 
-            if let Some(inventory) = immutable_data.inventories.get(entity) {
+            if let Some(inventory) = read_data.inventories.get(entity) {
                 let damage_reduction = Damage::compute_damage_reduction(inventory);
                 if (damage_reduction - 1.0).abs() < f32::EPSILON {
                     for (id, buff) in buff_comp.buffs.iter() {

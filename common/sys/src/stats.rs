@@ -22,7 +22,7 @@ const ENERGY_REGEN_ACCEL: f32 = 10.0;
 const POISE_REGEN_ACCEL: f32 = 2.0;
 
 #[derive(SystemData)]
-pub struct ImmutableData<'a> {
+pub struct ReadData<'a> {
     entities: Entities<'a>,
     dt: Read<'a, DeltaTime>,
     server_bus: Read<'a, EventBus<ServerEvent>>,
@@ -38,7 +38,7 @@ pub struct Sys;
 impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
-        ImmutableData<'a>,
+        ReadData<'a>,
         WriteStorage<'a, Stats>,
         WriteStorage<'a, Health>,
         WriteStorage<'a, Poise>,
@@ -49,7 +49,7 @@ impl<'a> System<'a> for Sys {
     fn run(
         &mut self,
         (
-            immutable_data,
+            read_data,
             mut stats,
             mut healths,
             mut poises,
@@ -59,8 +59,8 @@ impl<'a> System<'a> for Sys {
     ) {
         let start_time = std::time::Instant::now();
         span!(_guard, "run", "stats::Sys::run");
-        let mut server_event_emitter = immutable_data.server_bus.emitter();
-        let dt = immutable_data.dt.0;
+        let mut server_event_emitter = read_data.server_bus.emitter();
+        let dt = read_data.dt.0;
 
         // Increment last change timer
         healths.set_event_emission(false); // avoid unnecessary syncing
@@ -76,11 +76,11 @@ impl<'a> System<'a> for Sys {
 
         // Update stats
         for (entity, uid, mut stats, mut health, pos) in (
-            &immutable_data.entities,
-            &immutable_data.uids,
+            &read_data.entities,
+            &read_data.uids,
             &mut stats.restrict_mut(),
             &mut healths.restrict_mut(),
-            &immutable_data.positions,
+            &read_data.positions,
         )
             .join()
         {
@@ -129,7 +129,7 @@ impl<'a> System<'a> for Sys {
             &mut stats.restrict_mut(),
             &mut healths.restrict_mut(),
             &mut energies.restrict_mut(),
-            &immutable_data.bodies,
+            &read_data.bodies,
         )
             .join()
         {
@@ -161,7 +161,7 @@ impl<'a> System<'a> for Sys {
 
         // Update energies and poises
         for (character_state, mut energy, mut poise) in (
-            &immutable_data.char_states,
+            &read_data.char_states,
             &mut energies.restrict_mut(),
             &mut poises.restrict_mut(),
         )
@@ -256,7 +256,7 @@ impl<'a> System<'a> for Sys {
             }
         }
 
-        immutable_data.metrics.stats_ns.store(
+        read_data.metrics.stats_ns.store(
             start_time.elapsed().as_nanos() as u64,
             std::sync::atomic::Ordering::Relaxed,
         );

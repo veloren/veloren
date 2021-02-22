@@ -16,7 +16,7 @@ use specs::{
 use std::time::Duration;
 
 #[derive(SystemData)]
-pub struct ImmutableData<'a> {
+pub struct ReadData<'a> {
     entities: Entities<'a>,
     dt: Read<'a, DeltaTime>,
     server_bus: Read<'a, EventBus<ServerEvent>>,
@@ -30,21 +30,17 @@ pub struct ImmutableData<'a> {
 
 pub struct Sys;
 impl<'a> System<'a> for Sys {
-    type SystemData = (ImmutableData<'a>, WriteStorage<'a, Auras>);
+    type SystemData = (ReadData<'a>, WriteStorage<'a, Auras>);
 
-    fn run(&mut self, (immutable_data, mut auras): Self::SystemData) {
-        let mut server_emitter = immutable_data.server_bus.emitter();
-        let dt = immutable_data.dt.0;
+    fn run(&mut self, (read_data, mut auras): Self::SystemData) {
+        let mut server_emitter = read_data.server_bus.emitter();
+        let dt = read_data.dt.0;
 
         auras.set_event_emission(false);
 
         // Iterate through all entities with an aura
-        for (entity, pos, mut auras_comp) in (
-            &immutable_data.entities,
-            &immutable_data.positions,
-            &mut auras,
-        )
-            .join()
+        for (entity, pos, mut auras_comp) in
+            (&read_data.entities, &read_data.positions, &mut auras).join()
         {
             let mut expired_auras = Vec::<AuraKey>::new();
             // Iterate through the auras attached to this entity
@@ -61,22 +57,22 @@ impl<'a> System<'a> for Sys {
                     }
                 }
                 for (target, target_pos, target_buffs, health) in (
-                    &immutable_data.entities,
-                    &immutable_data.positions,
-                    &immutable_data.buffs,
-                    &immutable_data.healths,
+                    &read_data.entities,
+                    &read_data.positions,
+                    &read_data.buffs,
+                    &read_data.healths,
                 )
                     .join()
                 {
                     // Ensure entity is within the aura radius
                     if target_pos.0.distance_squared(pos.0) < aura.radius.powi(2) {
                         if let AuraTarget::GroupOf(uid) = aura.target {
-                            let same_group = immutable_data
+                            let same_group = read_data
                                 .uid_allocator
                                 .retrieve_entity_internal(uid.into())
-                                .and_then(|e| immutable_data.groups.get(e))
+                                .and_then(|e| read_data.groups.get(e))
                                 .map_or(false, |owner_group| {
-                                    Some(owner_group) == immutable_data.groups.get(target)
+                                    Some(owner_group) == read_data.groups.get(target)
                                 });
 
                             if !same_group {
@@ -103,7 +99,7 @@ impl<'a> System<'a> for Sys {
                                     let apply_buff = match kind {
                                         BuffKind::CampfireHeal => {
                                             matches!(
-                                                immutable_data.char_states.get(target),
+                                                read_data.char_states.get(target),
                                                 Some(CharacterState::Sit)
                                             ) && health.current() < health.maximum()
                                         },

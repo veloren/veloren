@@ -17,7 +17,7 @@ use std::time::Duration;
 use vek::*;
 
 #[derive(SystemData)]
-pub struct ImmutableData<'a> {
+pub struct ReadData<'a> {
     entities: Entities<'a>,
     server_bus: Read<'a, EventBus<ServerEvent>>,
     time: Read<'a, Time>,
@@ -39,22 +39,22 @@ pub struct ImmutableData<'a> {
 pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
-        ImmutableData<'a>,
+        ReadData<'a>,
         WriteStorage<'a, BeamSegment>,
         WriteStorage<'a, Beam>,
     );
 
-    fn run(&mut self, (immutable_data, mut beam_segments, mut beams): Self::SystemData) {
-        let mut server_emitter = immutable_data.server_bus.emitter();
+    fn run(&mut self, (read_data, mut beam_segments, mut beams): Self::SystemData) {
+        let mut server_emitter = read_data.server_bus.emitter();
 
-        let time = immutable_data.time.0;
-        let dt = immutable_data.dt.0;
+        let time = read_data.time.0;
+        let dt = read_data.dt.0;
 
         // Beams
         for (entity, pos, ori, beam_segment) in (
-            &immutable_data.entities,
-            &immutable_data.positions,
-            &immutable_data.orientations,
+            &read_data.entities,
+            &read_data.positions,
+            &read_data.orientations,
             &beam_segments,
         )
             .join()
@@ -89,15 +89,13 @@ impl<'a> System<'a> for Sys {
                 (beam_segment.speed * (time_since_creation - frame_time)).max(0.0);
             let frame_end_dist = (beam_segment.speed * time_since_creation).max(frame_start_dist);
 
-            let beam_owner = beam_segment.owner.and_then(|uid| {
-                immutable_data
-                    .uid_allocator
-                    .retrieve_entity_internal(uid.into())
-            });
+            let beam_owner = beam_segment
+                .owner
+                .and_then(|uid| read_data.uid_allocator.retrieve_entity_internal(uid.into()));
 
             // Group to ignore collisions with
             // Might make this more nuanced if beams are used for non damage effects
-            let group = beam_owner.and_then(|e| immutable_data.groups.get(e));
+            let group = beam_owner.and_then(|e| read_data.groups.get(e));
 
             let hit_entities = if let Some(beam) = beam_owner.and_then(|e| beams.get_mut(e)) {
                 &mut beam.hit_entities
@@ -107,11 +105,11 @@ impl<'a> System<'a> for Sys {
 
             // Go through all other effectable entities
             for (target, uid_b, pos_b, health_b, body_b) in (
-                &immutable_data.entities,
-                &immutable_data.uids,
-                &immutable_data.positions,
-                &immutable_data.healths,
-                &immutable_data.bodies,
+                &read_data.entities,
+                &read_data.uids,
+                &read_data.positions,
+                &read_data.healths,
+                &read_data.bodies,
             )
                 .join()
             {
@@ -121,8 +119,8 @@ impl<'a> System<'a> for Sys {
                 }
 
                 // Scales
-                let scale_b = immutable_data.scales.get(target).map_or(1.0, |s| s.0);
-                let last_pos_b_maybe = immutable_data.last_positions.get(target);
+                let scale_b = read_data.scales.get(target).map_or(1.0, |s| s.0);
+                let last_pos_b_maybe = read_data.last_positions.get(target);
                 let rad_b = body_b.radius() * scale_b;
                 let height_b = body_b.height() * scale_b;
 
@@ -136,7 +134,7 @@ impl<'a> System<'a> for Sys {
                 if hit {
                     // See if entities are in the same group
                     let same_group = group
-                        .map(|group_a| Some(group_a) == immutable_data.groups.get(target))
+                        .map(|group_a| Some(group_a) == read_data.groups.get(target))
                         .unwrap_or(Some(*uid_b) == beam_segment.owner);
 
                     let target_group = if same_group {
@@ -156,14 +154,14 @@ impl<'a> System<'a> for Sys {
                             .map(|(entity, uid)| AttackerInfo {
                                 entity,
                                 uid,
-                                energy: immutable_data.energies.get(entity),
+                                energy: read_data.energies.get(entity),
                             });
 
                     beam_segment.properties.attack.apply_attack(
                         target_group,
                         attacker_info,
                         target,
-                        immutable_data.inventories.get(target),
+                        read_data.inventories.get(target),
                         ori.look_dir(),
                         false,
                         1.0,

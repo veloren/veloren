@@ -13,7 +13,7 @@ use specs::{
 use vek::*;
 
 #[derive(SystemData)]
-pub struct ImmutableData<'a> {
+pub struct ReadData<'a> {
     entities: Entities<'a>,
     uid_allocator: Read<'a, UidAllocator>,
     server_bus: Read<'a, EventBus<ServerEvent>>,
@@ -23,14 +23,14 @@ pub struct ImmutableData<'a> {
 pub struct Sys;
 
 impl<'a> System<'a> for Sys {
-    type SystemData = (ImmutableData<'a>, WriteStorage<'a, Controller>);
+    type SystemData = (ReadData<'a>, WriteStorage<'a, Controller>);
 
-    fn run(&mut self, (immutable_data, mut controllers): Self::SystemData) {
+    fn run(&mut self, (read_data, mut controllers): Self::SystemData) {
         let start_time = std::time::Instant::now();
         span!(_guard, "run", "controller::Sys::run");
-        let mut server_emitter = immutable_data.server_bus.emitter();
+        let mut server_emitter = read_data.server_bus.emitter();
 
-        for (entity, controller) in (&immutable_data.entities, &mut controllers).join() {
+        for (entity, controller) in (&read_data.entities, &mut controllers).join() {
             let mut inputs = &mut controller.inputs;
 
             // Note(imbris): I avoided incrementing the duration with inputs.tick() because
@@ -55,7 +55,7 @@ impl<'a> System<'a> for Sys {
             for event in controller.events.drain(..) {
                 match event {
                     ControlEvent::Mount(mountee_uid) => {
-                        if let Some(mountee_entity) = immutable_data
+                        if let Some(mountee_entity) = read_data
                             .uid_allocator
                             .retrieve_entity_internal(mountee_uid.id())
                         {
@@ -76,7 +76,7 @@ impl<'a> System<'a> for Sys {
                         server_emitter.emit(ServerEvent::DisableLantern(entity))
                     },
                     ControlEvent::Interact(npc_uid) => {
-                        if let Some(npc_entity) = immutable_data
+                        if let Some(npc_entity) = read_data
                             .uid_allocator
                             .retrieve_entity_internal(npc_uid.id())
                         {
@@ -103,7 +103,7 @@ impl<'a> System<'a> for Sys {
                 }
             }
         }
-        immutable_data.metrics.controller_ns.store(
+        read_data.metrics.controller_ns.store(
             start_time.elapsed().as_nanos() as u64,
             std::sync::atomic::Ordering::Relaxed,
         );

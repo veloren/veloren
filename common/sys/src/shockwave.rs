@@ -17,7 +17,7 @@ use specs::{
 use vek::*;
 
 #[derive(SystemData)]
-pub struct ImmutableData<'a> {
+pub struct ReadData<'a> {
     entities: Entities<'a>,
     server_bus: Read<'a, EventBus<ServerEvent>>,
     time: Read<'a, Time>,
@@ -41,22 +41,22 @@ pub struct ImmutableData<'a> {
 pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
-        ImmutableData<'a>,
+        ReadData<'a>,
         WriteStorage<'a, Shockwave>,
         WriteStorage<'a, ShockwaveHitEntities>,
     );
 
-    fn run(&mut self, (immutable_data, mut shockwaves, mut shockwave_hit_lists): Self::SystemData) {
-        let mut server_emitter = immutable_data.server_bus.emitter();
+    fn run(&mut self, (read_data, mut shockwaves, mut shockwave_hit_lists): Self::SystemData) {
+        let mut server_emitter = read_data.server_bus.emitter();
 
-        let time = immutable_data.time.0;
-        let dt = immutable_data.dt.0;
+        let time = read_data.time.0;
+        let dt = read_data.dt.0;
 
         // Shockwaves
         for (entity, pos, ori, shockwave, shockwave_hit_list) in (
-            &immutable_data.entities,
-            &immutable_data.positions,
-            &immutable_data.orientations,
+            &read_data.entities,
+            &read_data.positions,
+            &read_data.orientations,
             &shockwaves,
             &mut shockwave_hit_lists,
         )
@@ -99,24 +99,22 @@ impl<'a> System<'a> for Sys {
                 end: frame_end_dist,
             };
 
-            let shockwave_owner = shockwave.owner.and_then(|uid| {
-                immutable_data
-                    .uid_allocator
-                    .retrieve_entity_internal(uid.into())
-            });
+            let shockwave_owner = shockwave
+                .owner
+                .and_then(|uid| read_data.uid_allocator.retrieve_entity_internal(uid.into()));
 
             // Group to ignore collisions with
             // Might make this more nuanced if shockwaves are used for non damage effects
-            let group = shockwave_owner.and_then(|e| immutable_data.groups.get(e));
+            let group = shockwave_owner.and_then(|e| read_data.groups.get(e));
 
             // Go through all other effectable entities
             for (target, uid_b, pos_b, health_b, body_b, physics_state_b) in (
-                &immutable_data.entities,
-                &immutable_data.uids,
-                &immutable_data.positions,
-                &immutable_data.healths,
-                &immutable_data.bodies,
-                &immutable_data.physics_states,
+                &read_data.entities,
+                &read_data.uids,
+                &read_data.positions,
+                &read_data.healths,
+                &read_data.bodies,
+                &read_data.physics_states,
             )
                 .join()
             {
@@ -131,13 +129,10 @@ impl<'a> System<'a> for Sys {
 
                 // 2D versions
                 let pos_b2 = pos_b.0.xy();
-                let last_pos_b2_maybe = immutable_data
-                    .last_positions
-                    .get(target)
-                    .map(|p| (p.0).0.xy());
+                let last_pos_b2_maybe = read_data.last_positions.get(target).map(|p| (p.0).0.xy());
 
                 // Scales
-                let scale_b = immutable_data.scales.get(target).map_or(1.0, |s| s.0);
+                let scale_b = read_data.scales.get(target).map_or(1.0, |s| s.0);
                 let rad_b = body_b.radius() * scale_b;
 
                 // Angle checks
@@ -146,7 +141,7 @@ impl<'a> System<'a> for Sys {
 
                 // See if entities are in the same group
                 let same_group = group
-                    .map(|group_a| Some(group_a) == immutable_data.groups.get(target))
+                    .map(|group_a| Some(group_a) == read_data.groups.get(target))
                     .unwrap_or(Some(*uid_b) == shockwave.owner);
 
                 let target_group = if same_group {
@@ -178,14 +173,14 @@ impl<'a> System<'a> for Sys {
                             .map(|(entity, uid)| AttackerInfo {
                                 entity,
                                 uid,
-                                energy: immutable_data.energies.get(entity),
+                                energy: read_data.energies.get(entity),
                             });
 
                     shockwave.properties.attack.apply_attack(
                         target_group,
                         attacker_info,
                         target,
-                        immutable_data.inventories.get(target),
+                        read_data.inventories.get(target),
                         dir,
                         false,
                         1.0,

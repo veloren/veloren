@@ -18,7 +18,7 @@ use specs::{
 use std::time::Duration;
 
 #[derive(SystemData)]
-pub struct ImmutableData<'a> {
+pub struct ReadData<'a> {
     entities: Entities<'a>,
     dt: Read<'a, DeltaTime>,
     uid_allocator: Read<'a, UidAllocator>,
@@ -36,21 +36,21 @@ pub struct ImmutableData<'a> {
 pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
-        ImmutableData<'a>,
+        ReadData<'a>,
         WriteStorage<'a, Ori>,
         WriteStorage<'a, Projectile>,
     );
 
-    fn run(&mut self, (immutable_data, mut orientations, mut projectiles): Self::SystemData) {
+    fn run(&mut self, (read_data, mut orientations, mut projectiles): Self::SystemData) {
         let start_time = std::time::Instant::now();
         span!(_guard, "run", "projectile::Sys::run");
-        let mut server_emitter = immutable_data.server_bus.emitter();
+        let mut server_emitter = read_data.server_bus.emitter();
 
         // Attacks
         'projectile_loop: for (entity, pos, physics, ori, mut projectile) in (
-            &immutable_data.entities,
-            &immutable_data.positions,
-            &immutable_data.physics_states,
+            &read_data.entities,
+            &read_data.positions,
+            &read_data.physics_states,
             &mut orientations,
             &mut projectiles,
         )
@@ -64,12 +64,12 @@ impl<'a> System<'a> for Sys {
                     // Note: somewhat inefficient since we do the lookup for every touching
                     // entity, but if we pull this out of the loop we would want to do it only
                     // if there is at least one touching entity
-                    .and_then(|uid| immutable_data.uid_allocator.retrieve_entity_internal(uid.into()))
-                    .and_then(|e| immutable_data.groups.get(e))
+                    .and_then(|uid| read_data.uid_allocator.retrieve_entity_internal(uid.into()))
+                    .and_then(|e| read_data.groups.get(e))
                     .map_or(false, |owner_group|
-                        Some(owner_group) == immutable_data.uid_allocator
+                        Some(owner_group) == read_data.uid_allocator
                         .retrieve_entity_internal(other.into())
-                        .and_then(|e| immutable_data.groups.get(e))
+                        .and_then(|e| read_data.groups.get(e))
                     );
 
                 let target_group = if same_group {
@@ -93,14 +93,12 @@ impl<'a> System<'a> for Sys {
                 for effect in projectile.hit_entity.drain(..) {
                     match effect {
                         projectile::Effect::Attack(attack) => {
-                            if let Some(target_entity) = immutable_data
+                            if let Some(target_entity) = read_data
                                 .uid_allocator
                                 .retrieve_entity_internal(other.into())
                             {
                                 let owner_entity = projectile.owner.and_then(|u| {
-                                    immutable_data
-                                        .uid_allocator
-                                        .retrieve_entity_internal(u.into())
+                                    read_data.uid_allocator.retrieve_entity_internal(u.into())
                                 });
 
                                 let attacker_info =
@@ -108,7 +106,7 @@ impl<'a> System<'a> for Sys {
                                         AttackerInfo {
                                             entity,
                                             uid,
-                                            energy: immutable_data.energies.get(entity),
+                                            energy: read_data.energies.get(entity),
                                         }
                                     });
 
@@ -116,7 +114,7 @@ impl<'a> System<'a> for Sys {
                                     target_group,
                                     attacker_info,
                                     target_entity,
-                                    immutable_data.inventories.get(target_entity),
+                                    read_data.inventories.get(target_entity),
                                     ori.look_dir(),
                                     false,
                                     1.0,
@@ -182,7 +180,7 @@ impl<'a> System<'a> for Sys {
                 if projectile_vanished {
                     continue 'projectile_loop;
                 }
-            } else if let Some(dir) = immutable_data
+            } else if let Some(dir) = read_data
                 .velocities
                 .get(entity)
                 .and_then(|vel| Dir::from_unnormalized(vel.0))
@@ -198,10 +196,10 @@ impl<'a> System<'a> for Sys {
             }
             projectile.time_left = projectile
                 .time_left
-                .checked_sub(Duration::from_secs_f32(immutable_data.dt.0))
+                .checked_sub(Duration::from_secs_f32(read_data.dt.0))
                 .unwrap_or_default();
         }
-        immutable_data.metrics.projectile_ns.store(
+        read_data.metrics.projectile_ns.store(
             start_time.elapsed().as_nanos() as u64,
             std::sync::atomic::Ordering::Relaxed,
         );

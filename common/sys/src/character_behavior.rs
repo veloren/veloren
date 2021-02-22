@@ -47,7 +47,7 @@ fn incorporate_update(join: &mut JoinStruct, state_update: StateUpdate) {
 }
 
 #[derive(SystemData)]
-pub struct ImmutableData<'a> {
+pub struct ReadData<'a> {
     entities: Entities<'a>,
     server_bus: Read<'a, EventBus<ServerEvent>>,
     local_bus: Read<'a, EventBus<LocalEvent>>,
@@ -72,7 +72,7 @@ pub struct Sys;
 impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
-        ImmutableData<'a>,
+        ReadData<'a>,
         WriteStorage<'a, CharacterState>,
         WriteStorage<'a, Pos>,
         WriteStorage<'a, Vel>,
@@ -87,7 +87,7 @@ impl<'a> System<'a> for Sys {
     fn run(
         &mut self,
         (
-            immutable_data,
+            read_data,
             mut character_states,
             mut positions,
             mut velocities,
@@ -100,8 +100,8 @@ impl<'a> System<'a> for Sys {
     ) {
         let start_time = std::time::Instant::now();
         span!(_guard, "run", "character_behavior::Sys::run");
-        let mut server_emitter = immutable_data.server_bus.emitter();
-        let mut local_emitter = immutable_data.local_bus.emitter();
+        let mut server_emitter = read_data.server_bus.emitter();
+        let mut local_emitter = read_data.local_bus.emitter();
 
         for (
             entity,
@@ -118,8 +118,8 @@ impl<'a> System<'a> for Sys {
             physics,
             stat,
         ) in (
-            &immutable_data.entities,
-            &immutable_data.uids,
+            &read_data.entities,
+            &read_data.uids,
             &mut character_states.restrict_mut(),
             &mut positions,
             &mut velocities,
@@ -127,10 +127,10 @@ impl<'a> System<'a> for Sys {
             &mut energies.restrict_mut(),
             &mut inventories.restrict_mut(),
             &mut controllers,
-            &immutable_data.healths,
-            &immutable_data.bodies,
-            &immutable_data.physics_states,
-            &immutable_data.stats,
+            &read_data.healths,
+            &read_data.bodies,
+            &read_data.physics_states,
+            &read_data.stats,
         )
             .join()
         {
@@ -141,7 +141,7 @@ impl<'a> System<'a> for Sys {
             }
             // If mounted, character state is controlled by mount
             // TODO: Make mounting a state
-            if let Some(Mounting(_)) = immutable_data.mountings.get(entity) {
+            if let Some(Mounting(_)) = read_data.mountings.get(entity) {
                 let sit_state = CharacterState::Sit {};
                 if char_state.get_unchecked() != &sit_state {
                     *char_state.get_mut_unchecked() = sit_state;
@@ -246,17 +246,13 @@ impl<'a> System<'a> for Sys {
                 health: &health,
                 body: &body,
                 physics: &physics,
-                melee_attack: immutable_data.melee_attacks.get(entity),
-                beam: immutable_data.beams.get(entity),
+                melee_attack: read_data.melee_attacks.get(entity),
+                beam: read_data.beams.get(entity),
                 stat: &stat,
             };
 
             for action in actions {
-                let j = JoinData::new(
-                    &join_struct,
-                    &immutable_data.lazy_update,
-                    &immutable_data.dt,
-                );
+                let j = JoinData::new(&join_struct, &read_data.lazy_update, &read_data.dt);
                 let mut state_update = match j.character {
                     CharacterState::Idle => states::idle::Data.handle_event(&j, action),
                     CharacterState::Talk => states::talk::Data.handle_event(&j, action),
@@ -299,11 +295,7 @@ impl<'a> System<'a> for Sys {
                 incorporate_update(&mut join_struct, state_update);
             }
 
-            let j = JoinData::new(
-                &join_struct,
-                &immutable_data.lazy_update,
-                &immutable_data.dt,
-            );
+            let j = JoinData::new(&join_struct, &read_data.lazy_update, &read_data.dt);
 
             let mut state_update = match j.character {
                 CharacterState::Idle => states::idle::Data.behavior(&j),
@@ -337,7 +329,7 @@ impl<'a> System<'a> for Sys {
             server_emitter.append(&mut state_update.server_events);
             incorporate_update(&mut join_struct, state_update);
         }
-        immutable_data.metrics.character_behavior_ns.store(
+        read_data.metrics.character_behavior_ns.store(
             start_time.elapsed().as_nanos() as u64,
             std::sync::atomic::Ordering::Relaxed,
         );
