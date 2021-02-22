@@ -316,6 +316,9 @@ impl LoadoutBuilder {
                         0 => Some(Item::new_from_asset_expect("common.items.lantern.black_0")),
                         _ => None,
                     })
+                    .glider(Some(Item::new_from_asset_expect(
+                        "common.items.glider.glider_starter",
+                    )))
                     .build(),
                 Bandit => LoadoutBuilder::new()
                     .active_item(active_item)
@@ -341,6 +344,9 @@ impl LoadoutBuilder {
                         0 => Some(Item::new_from_asset_expect("common.items.lantern.black_0")),
                         _ => None,
                     })
+                    .glider(Some(Item::new_from_asset_expect(
+                        "common.items.glider.glider_starter",
+                    )))
                     .build(),
                 CultistNovice => LoadoutBuilder::new()
                     .active_item(active_item)
@@ -369,6 +375,9 @@ impl LoadoutBuilder {
                         0 => Some(Item::new_from_asset_expect("common.items.lantern.black_0")),
                         _ => None,
                     })
+                    .glider(Some(Item::new_from_asset_expect(
+                        "common.items.glider.glider_blue",
+                    )))
                     .build(),
                 CultistAcolyte => LoadoutBuilder::new()
                     .active_item(active_item)
@@ -397,6 +406,9 @@ impl LoadoutBuilder {
                         0 => Some(Item::new_from_asset_expect("common.items.lantern.black_0")),
                         _ => None,
                     })
+                    .glider(Some(Item::new_from_asset_expect(
+                        "common.items.glider.glider_blue",
+                    )))
                     .build(),
                 Warlord => LoadoutBuilder::new()
                     .active_item(active_item)
@@ -425,6 +437,9 @@ impl LoadoutBuilder {
                         0 => Some(Item::new_from_asset_expect("common.items.lantern.black_0")),
                         _ => None,
                     })
+                    .glider(Some(Item::new_from_asset_expect(
+                        "common.items.glider.glider_cultist",
+                    )))
                     .build(),
                 Warlock => LoadoutBuilder::new()
                     .active_item(active_item)
@@ -453,6 +468,9 @@ impl LoadoutBuilder {
                         0 => Some(Item::new_from_asset_expect("common.items.lantern.black_0")),
                         _ => None,
                     })
+                    .glider(Some(Item::new_from_asset_expect(
+                        "common.items.glider.glider_cultist",
+                    )))
                     .build(),
                 Villager => LoadoutBuilder::new()
                     .active_item(active_item)
