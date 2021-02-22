@@ -93,8 +93,7 @@ impl Animation for SneakAnimation {
 
             next.hand_r.position = Vec3::new(-1.0 + s_a.hand.0, -1.0 + s_a.hand.1, s_a.hand.2);
             next.hand_r.orientation = Quaternion::rotation_x(0.4);
-            next.head.position =
-                Vec3::new(0.0, -1.0 + s_a.head.0, -1.0 + s_a.head.1 + short * 0.06);
+            next.head.position = Vec3::new(0.0, 1.0 + s_a.head.0, -1.0 + s_a.head.1 + short * 0.06);
             next.head.orientation =
                 Quaternion::rotation_z(tilt * -2.5 + head_look.x * 0.2 - short * 0.06)
                     * Quaternion::rotation_x(head_look.y + 0.45);
@@ -144,7 +143,7 @@ impl Animation for SneakAnimation {
         } else {
             next.head.position = Vec3::new(
                 0.0,
-                -1.0 + s_a.head.0,
+                1.0 + s_a.head.0,
                 -2.0 + s_a.head.1 + slow * 0.1 + breathe * -0.05,
             );
             next.head.orientation = Quaternion::rotation_z(head_look.x)

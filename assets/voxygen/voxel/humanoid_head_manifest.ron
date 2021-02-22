@@ -1,6 +1,6 @@
 ({
     (Human, Male): (
-        offset: (-7.0, -4.0, -6.0),
+        offset: (-7.0, -4.0, -2.0),
         head: ("figure.head.human.male", (0, 2, 0)),
         eyes: [
             Some(("figure.eyes.general.male_default-0", (3, 9, 2))), 
@@ -45,7 +45,7 @@
             None]
     ),
     (Human, Female): (
-        offset: (-7.0, -4.0, -6.0),
+        offset: (-7.0, -4.0, -2.0),
         head: ("figure.head.human.female", (0, 3, 0)),
         eyes: [
             Some(("figure.eyes.general.female_default-0", (2, 10, 2))), 
@@ -82,7 +82,7 @@
             None]
     ),
     (Orc, Male): (
-        offset: (-8.0, -5.0, -6.75),
+        offset: (-8.0, -5.0, -2.0),
         head: ("figure.head.orc.male", (0, 3, 0)),
         eyes: [
             Some(("figure.eyes.orc.male-0", (5, 10, 6))), 
@@ -113,7 +113,7 @@
         ],
     ),	
     (Orc, Female): (
-        offset: (-8.0, -2.5, -6.0),
+        offset: (-8.0, -2.5, -2.0),
         head: ("figure.head.orc.female", (0, 1, 0)),
          eyes: [
             Some(("figure.eyes.general.female_default-0", (3, 8, 2))),  
@@ -141,7 +141,7 @@
             ],
     ),
     (Elf, Male): (
-        offset: (-8.0, -4.0, -6.0),
+        offset: (-8.0, -4.0, -2.0),
         head: ("figure.head.elf.male", (0, 2, 0)),
          eyes: [
             Some(("figure.eyes.general.male_default-0", (4, 9, 2))),   
@@ -164,7 +164,7 @@
             ]
     ),	
     (Elf, Female): (
-        offset: (-8.0, -4.0, -6.0),
+        offset: (-8.0, -4.0, -2.0),
         head: ("figure.head.elf.female", (0, 2, 0)),
         eyes: [
             Some(("figure.eyes.general.female_styled-0", (3, 9, 2))), 
@@ -204,7 +204,7 @@
             Some(("figure.accessory.elf.headband-0", (6, 9, 4))),]
     ),
     (Dwarf, Male): (
-        offset: (-6.0, -4.5, -6.0),
+        offset: (-6.0, -4.5, -2.0),
         head: ("figure.head.dwarf.male", (0, 3, 0)),
         eyes: [
             Some(("figure.eyes.general.male_bushy-0", (2, 10, 2))),
@@ -257,7 +257,7 @@
             ]
     ),	
     (Dwarf, Female): (
-        offset: (-6.0, -4.5, -6.0),
+        offset: (-6.0, -4.5, -2.0),
         head: ("figure.head.dwarf.female", (0, 3, 0)),
         eyes: [
             Some(("figure.eyes.general.female_default-0", (1, 10, 2))),  
@@ -289,7 +289,7 @@
             ]
     ),
     (Undead, Male): (
-        offset: (-5.0, -4.0, -6.75),
+        offset: (-5.0, -4.0, -2.0),
         head: ("figure.head.undead.male", (0, 2, 0)),
         eyes: [
             Some(("figure.eyes.undead.male-0", (2, 8, 4))),  
@@ -310,7 +310,7 @@
             Some(("figure.accessory.undead.male_eyepatch", (0, 1, 0))),]
     ),	
     (Undead, Female): (
-        offset: (-5.0, -4.0, -6.75),
+        offset: (-5.0, -4.0, -2.0),
         head: ("figure.head.undead.female", (0, 2, 0)),
         eyes: [
             Some(("figure.eyes.undead.female-0", (2, 8, 3))),
@@ -331,7 +331,7 @@
             Some(("figure.accessory.undead.female_eyepatch", (0, 1, -1))),]
     ),
     (Danari, Male): (
-        offset: (-9.0, -4.0, -7.5),
+        offset: (-9.0, -4.0, -2.0),
         head: ("figure.head.danari.male", (0, 2, 2)),
         eyes: [
             Some(("figure.eyes.general.male_bushy-0", (5, 9, 4))), 
@@ -357,7 +357,7 @@
             Some(("figure.accessory.danari.horns-0", (4, 8, 8))),]
     ),	
     (Danari, Female): (
-        offset: (-9.0, -4.0, -7.5),
+        offset: (-9.0, -4.0, -2.0),
         head: ("figure.head.danari.female", (0, 2, 2)),
         eyes: [
             Some(("figure.eyes.general.female_default-0", (4, 9, 4))),

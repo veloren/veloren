@@ -29,13 +29,14 @@ use common::{
     comp::{
         inventory::slot::EquipSlot,
         item::{ItemKind, ToolKind},
-        Body, CharacterState, Health, Inventory, Item, Last, LightAnimation, LightEmitter, Ori,
-        PhysicsState, PoiseState, Pos, Scale, Vel,
+        Body, CharacterState, Controller, Health, Inventory, Item, Last, LightAnimation,
+        LightEmitter, Ori, PhysicsState, PoiseState, Pos, Scale, Vel,
     },
     resources::DeltaTime,
     span,
     states::utils::StageSection,
     terrain::TerrainChunk,
+    util::Dir,
     vol::RectRasterableVol,
 };
 use common_sys::state::State;
@@ -543,6 +544,7 @@ impl FigureMgr {
             (
                 entity,
                 pos,
+                controller,
                 interpolated,
                 vel,
                 scale,
@@ -557,6 +559,7 @@ impl FigureMgr {
         ) in (
             &ecs.entities(),
             &ecs.read_storage::<Pos>(),
+            ecs.read_storage::<Controller>().maybe(),
             ecs.read_storage::<Interpolated>().maybe(),
             &ecs.read_storage::<Vel>(),
             ecs.read_storage::<Scale>().maybe(),
@@ -572,6 +575,9 @@ impl FigureMgr {
             .enumerate()
         {
             let vel = (anim::vek::Vec3::<f32>::from(vel.0),);
+            let look_dir = controller
+                .map(|c| c.inputs.look_dir)
+                .unwrap_or(Dir::default());
             let is_player = scene_data.player_entity == entity;
             let player_camera_mode = if is_player {
                 camera_mode
@@ -881,6 +887,7 @@ impl FigureMgr {
                                     // TODO: Update to use the quaternion.
                                     ori * anim::vek::Vec3::<f32>::unit_y(),
                                     state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                    look_dir,
                                     time,
                                     Some(s.stage_section),
                                 ),
@@ -912,6 +919,7 @@ impl FigureMgr {
                                     // TODO: Update to use the quaternion.
                                     ori * anim::vek::Vec3::<f32>::unit_y(),
                                     state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                    look_dir,
                                     time,
                                     Some(s.stage_section),
                                 ),

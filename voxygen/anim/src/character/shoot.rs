@@ -2,7 +2,7 @@ use super::{
     super::{vek::*, Animation},
     CharacterSkeleton, SkeletonAttr,
 };
-use common::{comp::item::ToolKind, states::utils::StageSection};
+use common::{comp::item::ToolKind, states::utils::StageSection, util::Dir};
 use std::f32::consts::PI;
 
 pub struct ShootAnimation;
@@ -13,6 +13,7 @@ type ShootAnimationDependency = (
     f32,
     Vec3<f32>,
     Vec3<f32>,
+    Dir,
     f64,
     Option<StageSection>,
 );
@@ -33,6 +34,7 @@ impl Animation for ShootAnimation {
             velocity,
             orientation,
             last_ori,
+            _look_dir,
             _global_time,
             stage_section,
         ): Self::Dependency,

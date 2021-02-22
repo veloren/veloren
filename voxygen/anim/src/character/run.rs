@@ -119,8 +119,7 @@ impl Animation for RunAnimation {
                 * 0.1,
         );
 
-        next.head.position =
-            Vec3::new(0.0, -1.0 * speednorm + s_a.head.0, s_a.head.1 + short * 0.1);
+        next.head.position = Vec3::new(0.0, 1.0 * speednorm + s_a.head.0, s_a.head.1 + short * 0.1);
         next.head.orientation =
             Quaternion::rotation_z(tilt * -2.5 + head_look.x * 0.2 - short * 0.02)
                 * Quaternion::rotation_x(head_look.y + 0.45 * speednorm);

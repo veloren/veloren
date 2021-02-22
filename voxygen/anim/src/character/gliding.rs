@@ -76,6 +76,7 @@ impl Animation for GlidingAnimation {
             anim_time as f32
         };
 
+        next.head.position = Vec3::new(0.0, s_a.head.0 + 1.0, s_a.head.1);
         next.head.orientation = Quaternion::rotation_x(0.35 - slow * 0.10 + head_look.y)
             * Quaternion::rotation_z(head_look.x + slowa * 0.15);
 
