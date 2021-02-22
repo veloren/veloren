@@ -42,7 +42,7 @@ impl Animation for AlphaAnimation {
         next.torso.position = Vec3::new(0.0, 0.0, 0.1) * s_a.scaler;
         next.torso.orientation = Quaternion::rotation_z(0.0);
         match active_tool_kind {
-            Some(ToolKind::Sword) => {
+            Some(ToolKind::Sword) | Some(ToolKind::SwordSimple) => {
                 next.main.position = Vec3::new(0.0, 0.0, 0.0);
                 next.main.orientation = Quaternion::rotation_x(0.0);
 
@@ -116,7 +116,7 @@ impl Animation for AlphaAnimation {
                 next.head.orientation =
                     Quaternion::rotation_z(0.0 + move1 * -1.5 + move2 * 2.5 + move3 * -1.0);
             },
-            Some(ToolKind::Hammer) => {
+            Some(ToolKind::Hammer) | Some(ToolKind::HammerSimple) => {
                 let (move1, move2, move3) = match stage_section {
                     Some(StageSection::Buildup) => ((anim_time as f32).powf(0.25), 0.0, 0.0),
                     Some(StageSection::Swing) => (1.0, anim_time as f32, 0.0),

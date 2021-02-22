@@ -157,6 +157,7 @@ fn tool_desc(tool: &Tool, components: &[Item], msm: &MaterialStatManifest, desc:
         ToolKind::HammerSimple => "HammerSimple",
         ToolKind::SwordSimple => "SwordSimple",
         ToolKind::StaffSimple => "StaffSimple",
+        ToolKind::AxeSimple => "AxeSimple",
         ToolKind::BowSimple => "BowSimple",
         ToolKind::Unique(_) => "Unique",
         ToolKind::Debug => "Debug",

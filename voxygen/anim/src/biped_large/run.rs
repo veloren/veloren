@@ -309,7 +309,7 @@ impl Animation for RunAnimation {
                     next.main.orientation =
                         Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
                 },
-                Some(ToolKind::HammerSimple) => {
+                Some(ToolKind::HammerSimple) | Some(ToolKind::AxeSimple) => {
                     next.main.position = Vec3::new(-10.0, -8.0, 12.0);
                     next.main.orientation =
                         Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
@@ -327,7 +327,7 @@ impl Animation for RunAnimation {
                 s_a.shoulder.2 - foothorir * 1.5,
             );
             next.shoulder_l.orientation =
-                Quaternion::rotation_x(0.6 * speednorm + (footrotr * -0.8) * speednorm)
+                Quaternion::rotation_x(0.6 * speednormlow + (footrotr * -0.8) * speednorm)
                     * Quaternion::rotation_y(0.0)
                     * Quaternion::rotation_z(0.0);
 
@@ -337,7 +337,7 @@ impl Animation for RunAnimation {
                 s_a.shoulder.2 - foothoril * 1.5,
             );
             next.shoulder_r.orientation =
-                Quaternion::rotation_x(0.6 * speednorm + (footrotl * -0.8) * speednorm)
+                Quaternion::rotation_x(0.6 * speednormlow + (footrotl * -0.8) * speednorm)
                     * Quaternion::rotation_y(0.0);
 
             next.hand_l.position = Vec3::new(

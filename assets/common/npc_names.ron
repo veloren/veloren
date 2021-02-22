@@ -871,6 +871,10 @@
             treant: (
                 keyword: "treant",
                 generic: "Treant"
+            ),
+            claygolem: (
+                keyword: "claygolem",
+                generic: "ClayGolem"
             )
         )
     ),

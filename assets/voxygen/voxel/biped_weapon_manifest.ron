@@ -754,6 +754,10 @@
         vox_spec: ("armor.empty", (0.0, 0.0, 0.0)),
         color: None
     ),
+    "common.items.npc_weapons.axe.minotaur_axe": (
+        vox_spec: ("weapon.axe.minotaur_axe", (-2.5, -9.0, -6.0)),
+        color: None
+    ),
     //BIPEDSMALL
     "common.items.npc_weapons.biped_small.gnarling.wooden_spear": (
         vox_spec: ("weapon.spear.sahagin", (-1.5, -3.0, -5.0)),

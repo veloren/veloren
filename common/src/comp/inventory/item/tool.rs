@@ -22,6 +22,7 @@ pub enum ToolKind {
     SwordSimple,
     StaffSimple,
     BowSimple,
+    AxeSimple,
     Bow,
     Dagger,
     Staff,

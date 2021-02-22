@@ -88,6 +88,11 @@ impl LoadoutBuilder {
                             "common.items.npc_weapons.unique.stone_golems_fist",
                         ));
                     },
+                    golem::Species::ClayGolem => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.unique.stone_golems_fist",
+                        ));
+                    },
                     _ => {},
                 },
                 Body::QuadrupedMedium(quadruped_medium) => match quadruped_medium.species {
@@ -243,7 +248,7 @@ impl LoadoutBuilder {
                     },
                     (biped_large::Species::Minotaur, _) => {
                         main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.hammer.cyclops_hammer",
+                            "common.items.npc_weapons.axe.minotaur_axe",
                         ));
                     },
                     (biped_large::Species::Tidalwarrior, _) => {

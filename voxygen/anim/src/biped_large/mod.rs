@@ -193,7 +193,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
         use comp::biped_large::{BodyType::*, Species::*};
         Self {
             head: match (body.species, body.body_type) {
-                (Ogre, Male) => (3.0, 9.0),
+                (Ogre, Male) => (5.0, 6.0),
                 (Ogre, Female) => (1.0, 7.5),
                 (Cyclops, _) => (4.5, 7.5),
                 (Wendigo, _) => (3.0, 7.5),

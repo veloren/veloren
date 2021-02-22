@@ -942,10 +942,10 @@ impl Floor {
                                         .with_body(comp::Body::Golem(
                                             comp::golem::Body::random_with(
                                                 dynamic_rng,
-                                                &comp::golem::Species::StoneGolem,
+                                                &comp::golem::Species::ClayGolem,
                                             ),
                                         ))
-                                        .with_name("Stonework Defender".to_string())
+                                        .with_name("Clay Golem".to_string())
                                         .with_loot_drop(comp::Item::new_from_asset_expect(chosen)),
                                 ],
                                 4 => vec![

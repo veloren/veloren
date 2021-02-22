@@ -55,11 +55,13 @@ impl Animation for ShootAnimation {
         let foothorir = (acc_vel * lab as f32 + PI * (0.45)).sin() * speednorm;
         let footrotl =
             (((1.0) / (0.5 + (0.5) * ((acc_vel * lab as f32 + PI * 1.4).sin()).powi(2))).sqrt())
-                * ((acc_vel * lab as f32 + PI * 1.4).sin());
+                * ((acc_vel * lab as f32 + PI * 1.4).sin())
+                * speednorm;
 
         let footrotr =
             (((1.0) / (0.5 + (0.5) * ((acc_vel * lab as f32 + PI * 0.4).sin()).powi(2))).sqrt())
-                * ((acc_vel * lab as f32 + PI * 0.4).sin());
+                * ((acc_vel * lab as f32 + PI * 0.4).sin())
+                * speednorm;
 
         next.shoulder_l.position = Vec3::new(
             -s_a.shoulder.0,
@@ -139,9 +141,8 @@ impl Animation for ShootAnimation {
                     s_a.shoulder.1,
                     s_a.shoulder.2 - foothoril * 1.0,
                 );
-                next.shoulder_r.orientation = Quaternion::rotation_x(
-                    move1 * 0.8 + 0.6 * speednorm + (footrotl * -0.2) * speednorm,
-                );
+                next.shoulder_r.orientation =
+                    Quaternion::rotation_x(move1 * 0.8 + 0.6 * speednorm + (footrotl * -0.2));
             },
             Some(ToolKind::BowSimple) => {
                 let (move1base, move2base, move3) = match stage_section {
@@ -177,18 +178,16 @@ impl Animation for ShootAnimation {
                     s_a.shoulder.1,
                     s_a.shoulder.2 - foothorir * 1.0,
                 );
-                next.shoulder_l.orientation = Quaternion::rotation_x(
-                    move1 * 0.8 + 1.2 * speednorm + (footrotr * -0.2) * speednorm,
-                );
+                next.shoulder_l.orientation =
+                    Quaternion::rotation_x(move1 * 0.8 + 1.2 * speednorm + (footrotr * -0.2));
 
                 next.shoulder_r.position = Vec3::new(
                     s_a.shoulder.0,
                     s_a.shoulder.1,
                     s_a.shoulder.2 - foothoril * 1.0,
                 );
-                next.shoulder_r.orientation = Quaternion::rotation_x(
-                    move1 * 0.8 + 1.2 * speednorm + (footrotl * -0.2) * speednorm,
-                );
+                next.shoulder_r.orientation =
+                    Quaternion::rotation_x(move1 * 0.8 + 1.2 * speednorm + (footrotl * -0.2));
             },
             Some(ToolKind::Unique(UniqueKind::WendigoMagic)) => {
                 let (move1base, _move2base, move3) = match stage_section {

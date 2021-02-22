@@ -136,7 +136,7 @@ impl Body {
             Body::Dragon(_) => 5.0,
             Body::BirdSmall(_) => 35.0,
             Body::FishSmall(_) => 10.0,
-            Body::BipedLarge(_) => 12.0,
+            Body::BipedLarge(_) => 8.0,
             Body::BipedSmall(_) => 12.0,
             Body::Object(_) => 10.0,
             Body::Golem(_) => 8.0,

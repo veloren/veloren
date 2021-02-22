@@ -502,6 +502,7 @@ impl<'a> System<'a> for Sys {
                                 Some(ToolKind::Sword) => Tactic::Sword,
                                 Some(ToolKind::Spear) => Tactic::Sword,
                                 Some(ToolKind::SwordSimple) => Tactic::Sword,
+                                Some(ToolKind::AxeSimple) => Tactic::Sword,
                                 Some(ToolKind::Axe) => Tactic::Axe,
                                 Some(ToolKind::Unique(UniqueKind::StoneGolemFist)) => {
                                     Tactic::StoneGolemBoss

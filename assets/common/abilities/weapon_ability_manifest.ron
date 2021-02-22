@@ -39,7 +39,11 @@
         primary: "common.abilities.hammersimple.doublestrike",
         secondary: "common.abilities.hammersimple.doublestrike",
         abilities: [],
-
+    ),
+    AxeSimple: (
+        primary: "common.abilities.axesimple.doublestrike",
+        secondary: "common.abilities.axesimple.dash",
+        abilities: [],
     ),
     SwordSimple: (
         primary: "common.abilities.swordsimple.doublestrike",

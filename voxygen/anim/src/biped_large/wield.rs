@@ -196,7 +196,7 @@ impl Animation for WieldAnimation {
                         * Quaternion::rotation_y(1.0)
                         * Quaternion::rotation_z(-0.3);
                 },
-                Some(ToolKind::HammerSimple) => {
+                Some(ToolKind::HammerSimple) | Some(ToolKind::AxeSimple) => {
                     next.control_l.position = Vec3::new(-1.0, 2.0, 12.0);
                     next.control_r.position = Vec3::new(1.0, 2.0, -2.0);
 
