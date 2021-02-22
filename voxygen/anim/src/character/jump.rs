@@ -61,7 +61,7 @@ impl Animation for JumpAnimation {
         next.shoulder_r.scale = Vec3::one() * 1.1;
         next.back.scale = Vec3::one() * 1.02;
 
-        next.head.position = Vec3::new(0.0, -1.0 + s_a.head.0, -1.0 + s_a.head.1);
+        next.head.position = Vec3::new(0.0, s_a.head.0, -1.0 + s_a.head.1);
         next.head.orientation =
             Quaternion::rotation_x(0.25 + slow * 0.04) * Quaternion::rotation_z(tilt * -2.5);
 
