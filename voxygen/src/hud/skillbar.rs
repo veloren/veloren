@@ -19,7 +19,7 @@ use common::comp::{
     inventory::slot::EquipSlot,
     item::{
         tool::{AbilityMap, Tool, ToolKind},
-        Hands, Item, ItemKind,
+        Hands, Item, ItemKind, MaterialStatManifest,
     },
     Energy, Health, Inventory,
 };
@@ -140,6 +140,7 @@ pub struct Skillbar<'a> {
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
     ability_map: &'a AbilityMap,
+    msm: &'a MaterialStatManifest,
 }
 
 impl<'a> Skillbar<'a> {
@@ -161,6 +162,7 @@ impl<'a> Skillbar<'a> {
         slot_manager: &'a mut slots::SlotManager,
         localized_strings: &'a Localization,
         ability_map: &'a AbilityMap,
+        msm: &'a MaterialStatManifest,
     ) -> Self {
         Self {
             global_state,
@@ -180,6 +182,7 @@ impl<'a> Skillbar<'a> {
             slot_manager,
             localized_strings,
             ability_map,
+            msm,
         }
     }
 }
@@ -623,7 +626,7 @@ impl<'a> Widget for Skillbar<'a> {
         .image_color(if let Some((item, tool)) = tool {
             if self.energy.current()
                 >= tool
-                    .get_abilities(item.components(), self.ability_map)
+                    .get_abilities(&self.msm, item.components(), self.ability_map)
                     .secondary
                     .get_energy_cost()
             {

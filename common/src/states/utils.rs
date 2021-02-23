@@ -301,7 +301,7 @@ pub fn attempt_wield(data: &JoinData, update: &mut StateUpdate) {
     {
         update.character = CharacterState::Equipping(equipping::Data {
             static_data: equipping::StaticData {
-                buildup_duration: tool.equip_time(item.components()),
+                buildup_duration: tool.equip_time(data.msm, item.components()),
             },
             timer: Duration::default(),
         });

@@ -5,5 +5,5 @@ ItemDef(
         kind: "BronzeIngot",
     ),
     quality: Common,
-    tags: [MetalIngot(0.75)],
+    tags: [MetalIngot],
 )

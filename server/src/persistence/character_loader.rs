@@ -3,8 +3,12 @@ use crate::persistence::{
     error::Error,
     establish_connection, PersistedComponents,
 };
-use common::character::{CharacterId, CharacterItem};
+use common::{
+    character::{CharacterId, CharacterItem},
+    comp::inventory::item::MaterialStatManifest,
+};
 use crossbeam_channel::{self, TryIter};
+use lazy_static::lazy_static;
 use std::path::Path;
 use tracing::error;
 
@@ -66,6 +70,13 @@ pub struct CharacterLoader {
     update_tx: crossbeam_channel::Sender<CharacterLoaderRequest>,
 }
 
+// Decoupled from the ECS resource because the plumbing is getting complicated;
+// shouldn't matter unless someone's hot-reloading material stats on the live
+// server
+lazy_static! {
+    pub static ref MATERIAL_STATS_MANIFEST: MaterialStatManifest = MaterialStatManifest::default();
+}
+
 impl CharacterLoader {
     pub fn new(db_dir: &Path) -> diesel::QueryResult<Self> {
         let (update_tx, internal_rx) = crossbeam_channel::unbounded::<CharacterLoaderRequest>();
@@ -93,6 +104,7 @@ impl CharacterLoader {
                                         &character_alias,
                                         persisted_components,
                                         txn,
+                                        &MATERIAL_STATS_MANIFEST,
                                     )
                                 },
                             )),
@@ -100,19 +112,37 @@ impl CharacterLoader {
                                 player_uuid,
                                 character_id,
                             } => CharacterLoaderResponseKind::CharacterList(conn.transaction(
-                                |txn| delete_character(&player_uuid, character_id, txn),
+                                |txn| {
+                                    delete_character(
+                                        &player_uuid,
+                                        character_id,
+                                        txn,
+                                        &MATERIAL_STATS_MANIFEST,
+                                    )
+                                },
                             )),
                             CharacterLoaderRequestKind::LoadCharacterList { player_uuid } => {
-                                CharacterLoaderResponseKind::CharacterList(
-                                    conn.transaction(|txn| load_character_list(&player_uuid, txn)),
-                                )
+                                CharacterLoaderResponseKind::CharacterList(conn.transaction(
+                                    |txn| {
+                                        load_character_list(
+                                            &player_uuid,
+                                            txn,
+                                            &MATERIAL_STATS_MANIFEST,
+                                        )
+                                    },
+                                ))
                             },
                             CharacterLoaderRequestKind::LoadCharacterData {
                                 player_uuid,
                                 character_id,
                             } => {
                                 let result = conn.transaction(|txn| {
-                                    load_character_data(player_uuid, character_id, txn)
+                                    load_character_data(
+                                        player_uuid,
+                                        character_id,
+                                        txn,
+                                        &MATERIAL_STATS_MANIFEST,
+                                    )
                                 });
                                 if result.is_err() {
                                     error!(

@@ -16,7 +16,9 @@ use crate::{
 use client::{self, Client};
 use common::{
     combat,
-    comp::{group::Role, invite::InviteKind, BuffKind, Stats},
+    comp::{
+        group::Role, inventory::item::MaterialStatManifest, invite::InviteKind, BuffKind, Stats,
+    },
     uid::{Uid, UidAllocator},
 };
 use common_net::sync::WorldSyncExt;
@@ -80,6 +82,7 @@ pub struct Group<'a> {
     pulse: f32,
     global_state: &'a GlobalState,
     tooltip_manager: &'a mut TooltipManager,
+    msm: &'a MaterialStatManifest,
 
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
@@ -98,6 +101,7 @@ impl<'a> Group<'a> {
         pulse: f32,
         global_state: &'a GlobalState,
         tooltip_manager: &'a mut TooltipManager,
+        msm: &'a MaterialStatManifest,
     ) -> Self {
         Self {
             show,
@@ -110,6 +114,7 @@ impl<'a> Group<'a> {
             pulse,
             global_state,
             tooltip_manager,
+            msm,
             common: widget::CommonBuilder::default(),
         }
     }
@@ -358,7 +363,8 @@ impl<'a> Widget for Group<'a> {
                 if let (Some(stats), Some(inventory), Some(health), Some(body)) =
                     (stats, inventory, health, body)
                 {
-                    let combat_rating = combat::combat_rating(inventory, health, stats, *body);
+                    let combat_rating =
+                        combat::combat_rating(inventory, health, stats, *body, &self.msm);
                     let char_name = stats.name.to_string();
                     let health_perc = health.current() as f64 / health.maximum() as f64;
                     // change panel positions when debug info is shown

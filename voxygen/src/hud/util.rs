@@ -1,9 +1,15 @@
 use common::comp::item::{
     armor::{Armor, ArmorKind, Protection},
     tool::{Hands, StatKind, Tool, ToolKind},
-    Item, ItemDesc, ItemKind, ModularComponent,
+    Item, ItemDesc, ItemKind, MaterialStatManifest, ModularComponent,
 };
+use lazy_static::lazy_static;
 use std::{borrow::Cow, fmt::Write};
+
+lazy_static! {
+    // TODO: even more plumbing
+    pub static ref MATERIAL_STATS_MANIFEST: MaterialStatManifest = MaterialStatManifest::default();
+}
 
 pub fn loadout_slot_text<'a>(
     item: Option<&'a impl ItemDesc>,
@@ -23,10 +29,16 @@ pub fn item_text<'a>(item: &'a impl ItemDesc) -> (&'_ str, Cow<'a, str>) {
         ItemKind::Armor(armor) => {
             Cow::Owned(armor_desc(armor, item.description(), item.num_slots()))
         },
-        ItemKind::Tool(tool) => Cow::Owned(tool_desc(&tool, item.components(), item.description())),
+        ItemKind::Tool(tool) => Cow::Owned(tool_desc(
+            &tool,
+            item.components(),
+            &MATERIAL_STATS_MANIFEST,
+            item.description(),
+        )),
         ItemKind::ModularComponent(mc) => Cow::Owned(modular_component_desc(
             mc,
             item.components(),
+            &MATERIAL_STATS_MANIFEST,
             item.description(),
         )),
         ItemKind::Glider(_glider) => Cow::Owned(glider_desc(item.description())),
@@ -43,10 +55,15 @@ pub fn item_text<'a>(item: &'a impl ItemDesc) -> (&'_ str, Cow<'a, str>) {
 }
 
 // TODO: localization
-fn modular_component_desc(mc: &ModularComponent, components: &[Item], description: &str) -> String {
+fn modular_component_desc(
+    mc: &ModularComponent,
+    components: &[Item],
+    msm: &MaterialStatManifest,
+    description: &str,
+) -> String {
     let mut result = format!(
         "Modular Component\n\n{:?}\n\n{}",
-        StatKind::Direct(mc.stats).resolve_stats(components),
+        StatKind::Direct(mc.stats).resolve_stats(msm, components),
         description
     );
     if !components.is_empty() {
@@ -119,7 +136,7 @@ fn armor_desc(armor: &Armor, desc: &str, slots: u16) -> String {
     description
 }
 
-fn tool_desc(tool: &Tool, components: &[Item], desc: &str) -> String {
+fn tool_desc(tool: &Tool, components: &[Item], msm: &MaterialStatManifest, desc: &str) -> String {
     let kind = match tool.kind {
         ToolKind::Sword => "Sword",
         ToolKind::Axe => "Axe",
@@ -136,13 +153,13 @@ fn tool_desc(tool: &Tool, components: &[Item], desc: &str) -> String {
     };
 
     // Get tool stats
-    let power = tool.base_power(components);
+    let power = tool.base_power(msm, components);
     //let poise_strength = tool.base_poise_strength();
     let hands = match tool.hands {
         Hands::One => "One",
         Hands::Two => "Two",
     };
-    let speed = tool.base_speed(components);
+    let speed = tool.base_speed(msm, components);
 
     let mut result = format!(
         "{}-Handed {}\n\nDPS: {:0.1}\n\nPower: {:0.1}\n\nSpeed: {:0.1}\n\n",

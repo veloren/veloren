@@ -260,7 +260,10 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Slo
                             }));
                         }
                         Some(comp::InventoryUpdateEvent::Used)
-                    } else if let Some(item) = inventory.take(slot) {
+                    } else if let Some(item) = inventory.take(
+                        slot,
+                        &state.ecs().read_resource::<item::MaterialStatManifest>(),
+                    ) {
                         match item.kind() {
                             ItemKind::Consumable { kind, effect, .. } => {
                                 maybe_effect = Some(effect.clone());
@@ -484,9 +487,13 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Slo
                 .get_mut(entity)
             {
                 let recipe_book = default_recipe_book().read();
-                let craft_result = recipe_book
-                    .get(&recipe)
-                    .and_then(|r| r.perform(&mut inv).ok());
+                let craft_result = recipe_book.get(&recipe).and_then(|r| {
+                    r.perform(
+                        &mut inv,
+                        &state.ecs().read_resource::<item::MaterialStatManifest>(),
+                    )
+                    .ok()
+                });
 
                 // FIXME: We should really require the drop and write to be atomic!
                 if craft_result.is_some() {

@@ -18,7 +18,10 @@ use crate::{
 use client::Client;
 use common::{
     combat::{combat_rating, Damage},
-    comp::{item::Quality, Body, Energy, Health, Stats},
+    comp::{
+        item::{MaterialStatManifest, Quality},
+        Body, Energy, Health, Stats,
+    },
 };
 use conrod_core::{
     color,
@@ -101,6 +104,7 @@ pub struct Bag<'a> {
     energy: &'a Energy,
     show: &'a Show,
     body: &'a Body,
+    msm: &'a MaterialStatManifest,
 }
 
 impl<'a> Bag<'a> {
@@ -120,6 +124,7 @@ impl<'a> Bag<'a> {
         energy: &'a Energy,
         show: &'a Show,
         body: &'a Body,
+        msm: &'a MaterialStatManifest,
     ) -> Self {
         Self {
             client,
@@ -137,6 +142,7 @@ impl<'a> Bag<'a> {
             health,
             show,
             body,
+            msm,
         }
     }
 }
@@ -433,7 +439,7 @@ impl<'a> Widget for Bag<'a> {
             });
             // Stats
             let combat_rating =
-                combat_rating(inventory, self.health, self.stats, *self.body).min(999.9);
+                combat_rating(inventory, self.health, self.stats, *self.body, &self.msm).min(999.9);
             let indicator_col = cr_color(combat_rating);
             for i in STATS.iter().copied().enumerate() {
                 let btn = Button::image(match i.1 {

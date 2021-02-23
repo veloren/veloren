@@ -2,17 +2,13 @@
 // version in voxygen\src\meta.rs in order to reset save files to being empty
 
 use crate::{
-    assets::{self, Asset},
-    comp::{
-        item::{ItemDesc, ItemKind, ItemTag},
-        skills::Skill,
-        CharacterAbility, Item,
-    },
+    assets::{self, Asset, AssetExt},
+    comp::{item::ItemKind, skills::Skill, CharacterAbility, Item},
 };
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use std::{
-    ops::{AddAssign, MulAssign},
+    ops::{AddAssign, DivAssign, MulAssign},
     time::Duration,
 };
 use tracing::error;
@@ -78,6 +74,12 @@ impl Stats {
     }
 }
 
+impl Asset for Stats {
+    type Loader = assets::RonLoader;
+
+    const EXTENSION: &'static str = "ron";
+}
+
 impl AddAssign<Stats> for Stats {
     fn add_assign(&mut self, other: Stats) {
         self.equip_time_millis += other.equip_time_millis;
@@ -86,11 +88,43 @@ impl AddAssign<Stats> for Stats {
         self.speed += other.speed;
     }
 }
-impl MulAssign<f32> for Stats {
-    fn mul_assign(&mut self, scalar: f32) {
-        self.power *= scalar;
-        self.poise_strength *= scalar;
-        self.speed *= scalar;
+impl MulAssign<Stats> for Stats {
+    fn mul_assign(&mut self, other: Stats) {
+        // equip_time_millis doesn't quite work with mul since it's u32, so we can't
+        // scale delay down, only up, so it needs to be balanced carefully in
+        // multiplicative contexts
+        self.equip_time_millis *= other.equip_time_millis;
+        self.power *= other.power;
+        self.poise_strength *= other.poise_strength;
+        self.speed *= other.speed;
+    }
+}
+impl DivAssign<usize> for Stats {
+    fn div_assign(&mut self, scalar: usize) {
+        self.equip_time_millis /= scalar as u32;
+        // since averaging occurs when the stats are used multiplicatively, don't permit
+        // multiplying an equip_time_millis by 0, since that would be overpowered
+        self.equip_time_millis = self.equip_time_millis.max(1);
+        self.power /= scalar as f32;
+        self.poise_strength /= scalar as f32;
+        self.speed /= scalar as f32;
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct MaterialStatManifest(HashMap<String, Stats>);
+
+// This could be a Compound that also loads the keys, but the RecipeBook
+// Compound impl already does that, so checking for existence here is redundant.
+impl Asset for MaterialStatManifest {
+    type Loader = assets::RonLoader;
+
+    const EXTENSION: &'static str = "ron";
+}
+
+impl Default for MaterialStatManifest {
+    fn default() -> MaterialStatManifest {
+        MaterialStatManifest::load_expect_cloned("common.material_stats_manifest")
     }
 }
 
@@ -101,38 +135,36 @@ pub enum StatKind {
 }
 
 impl StatKind {
-    pub fn resolve_stats(&self, components: &[Item]) -> Stats {
+    pub fn resolve_stats(&self, msm: &MaterialStatManifest, components: &[Item]) -> Stats {
         let mut stats = match self {
             StatKind::Direct(stats) => *stats,
             StatKind::Modular => Stats::zeroed(),
         };
-        let mut best_multiplier: Option<f32> = None;
+        let mut multipliers: Vec<Stats> = Vec::new();
         for item in components.iter() {
             match item.kind() {
                 ItemKind::ModularComponent(mc) => {
-                    let inner_stats = StatKind::Direct(mc.stats).resolve_stats(item.components());
+                    let inner_stats =
+                        StatKind::Direct(mc.stats).resolve_stats(msm, item.components());
                     stats += inner_stats;
                 },
                 ItemKind::Ingredient { .. } => {
-                    for tag in item.tags() {
-                        // exhaustive match to ensure that new tags get stats counted
-                        match tag {
-                            ItemTag::ClothItem => {},
-                            ItemTag::ModularComponent(_) => {},
-                            ItemTag::MetalIngot(multiplier) => {
-                                best_multiplier =
-                                    Some(best_multiplier.unwrap_or(*multiplier).max(*multiplier));
-                            },
-                        }
+                    if let Some(mult_stats) = msm.0.get(item.item_definition_id()) {
+                        multipliers.push(*mult_stats);
                     }
                 },
-                // TODO: add stats from enhancement slots, unless those end up as tagged
-                // ingredients
+                // TODO: add stats from enhancement slots
                 _ => (),
             }
         }
-        if let Some(multiplier) = best_multiplier {
-            stats *= multiplier;
+        // Take the average of the material multipliers, to allow alloyed blades
+        if !multipliers.is_empty() {
+            let mut average_mult = Stats::zeroed();
+            for stat in multipliers.iter() {
+                average_mult += *stat;
+            }
+            average_mult /= multipliers.len();
+            stats *= average_mult;
         }
         // if an item has 0.0 speed, that panics due to being infinite duration, so
         // enforce speed >= 0.1
@@ -141,9 +173,9 @@ impl StatKind {
     }
 }
 
-impl From<(&[Item], &Tool)> for Stats {
-    fn from((components, tool): (&[Item], &Tool)) -> Self {
-        let raw_stats = tool.stats.resolve_stats(components);
+impl From<(&MaterialStatManifest, &[Item], &Tool)> for Stats {
+    fn from((msm, components, tool): (&MaterialStatManifest, &[Item], &Tool)) -> Self {
+        let raw_stats = tool.stats.resolve_stats(msm, components);
         let (power, speed) = match tool.hands {
             Hands::One => (0.67, 1.33),
             // TODO: Restore this when one-handed weapons are made accessible
@@ -204,29 +236,30 @@ impl Tool {
     }
 
     // Keep power between 0.5 and 2.00
-    pub fn base_power(&self, components: &[Item]) -> f32 {
-        self.stats.resolve_stats(components).power
+    pub fn base_power(&self, msm: &MaterialStatManifest, components: &[Item]) -> f32 {
+        self.stats.resolve_stats(msm, components).power
     }
 
-    pub fn base_poise_strength(&self, components: &[Item]) -> f32 {
-        self.stats.resolve_stats(components).poise_strength
+    pub fn base_poise_strength(&self, msm: &MaterialStatManifest, components: &[Item]) -> f32 {
+        self.stats.resolve_stats(msm, components).poise_strength
     }
 
-    pub fn base_speed(&self, components: &[Item]) -> f32 {
-        self.stats.resolve_stats(components).speed
+    pub fn base_speed(&self, msm: &MaterialStatManifest, components: &[Item]) -> f32 {
+        self.stats.resolve_stats(msm, components).speed
     }
 
-    pub fn equip_time(&self, components: &[Item]) -> Duration {
-        Duration::from_millis(self.stats.resolve_stats(components).equip_time_millis as u64)
+    pub fn equip_time(&self, msm: &MaterialStatManifest, components: &[Item]) -> Duration {
+        Duration::from_millis(self.stats.resolve_stats(msm, components).equip_time_millis as u64)
     }
 
     pub fn get_abilities(
         &self,
+        msm: &MaterialStatManifest,
         components: &[Item],
         map: &AbilityMap,
     ) -> AbilitySet<CharacterAbility> {
         if let Some(set) = map.0.get(&self.kind).cloned() {
-            set.modified_by_tool(&self, components)
+            set.modified_by_tool(&self, msm, components)
         } else {
             error!(
                 "ToolKind: {:?} has no AbilitySet in the ability map falling back to default",
@@ -245,8 +278,13 @@ pub struct AbilitySet<T> {
 }
 
 impl AbilitySet<CharacterAbility> {
-    pub fn modified_by_tool(self, tool: &Tool, components: &[Item]) -> Self {
-        let stats = Stats::from((components, tool));
+    pub fn modified_by_tool(
+        self,
+        tool: &Tool,
+        msm: &MaterialStatManifest,
+        components: &[Item],
+    ) -> Self {
+        let stats = Stats::from((msm, components, tool));
         self.map(|a| a.adjusted_by_stats(stats.power, stats.poise_strength, stats.speed))
     }
 }

@@ -1,6 +1,6 @@
 use crate::Server;
 use common::{
-    comp::inventory::Inventory,
+    comp::inventory::{item::MaterialStatManifest, Inventory},
     trade::{PendingTrade, TradeAction, TradeId, TradeResult, Trades},
 };
 use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
@@ -116,6 +116,7 @@ fn commit_trade(ecs: &specs::World, trade: &PendingTrade) -> TradeResult {
         }
     }
     let mut items = [Vec::new(), Vec::new()];
+    let msm = ecs.read_resource::<MaterialStatManifest>();
     for who in [0, 1].iter().cloned() {
         for (slot, quantity) in trade.offers[who].iter() {
             // Take the items one by one, to benefit from Inventory's stack handling
@@ -123,7 +124,7 @@ fn commit_trade(ecs: &specs::World, trade: &PendingTrade) -> TradeResult {
                 inventories
                     .get_mut(entities[who])
                     .expect(invmsg)
-                    .take(*slot)
+                    .take(*slot, &msm)
                     .map(|item| items[who].push(item));
             }
         }

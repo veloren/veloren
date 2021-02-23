@@ -1,7 +1,7 @@
 use crate::{
     assets::{self, AssetExt, AssetHandle},
     comp::{
-        item::{modular, ItemDef, ItemTag},
+        item::{modular, ItemDef, ItemTag, MaterialStatManifest},
         Inventory, Item,
     },
 };
@@ -27,6 +27,7 @@ impl Recipe {
     pub fn perform(
         &self,
         inv: &mut Inventory,
+        msm: &MaterialStatManifest,
     ) -> Result<Option<(Item, u32)>, Vec<(&RecipeInput, u32)>> {
         // Get ingredient cells from inventory,
         let mut components = Vec::new();
@@ -35,13 +36,16 @@ impl Recipe {
             .into_iter()
             .for_each(|(pos, n)| {
                 (0..n).for_each(|_| {
-                    let component = inv.take(pos).expect("Expected item to exist in inventory");
+                    let component = inv
+                        .take(pos, msm)
+                        .expect("Expected item to exist in inventory");
                     components.push(component);
                 })
             });
 
         for i in 0..self.output.1 {
-            let crafted_item = Item::new_from_item_def(Arc::clone(&self.output.0), &components);
+            let crafted_item =
+                Item::new_from_item_def(Arc::clone(&self.output.0), &components, msm);
             if let Some(item) = inv.push(crafted_item) {
                 return Ok(Some((item, self.output.1 - i)));
             }

@@ -4,7 +4,7 @@ pub mod tool;
 
 // Reexports
 pub use modular::{ModularComponent, ModularComponentKind, ModularComponentTag};
-pub use tool::{AbilitySet, Hands, Tool, ToolKind, UniqueKind};
+pub use tool::{AbilitySet, Hands, MaterialStatManifest, Tool, ToolKind, UniqueKind};
 
 use crate::{
     assets::{self, AssetExt, Error},
@@ -87,25 +87,11 @@ pub trait TagExampleInfo {
     fn exemplar_identifier(&self) -> &'static str;
 }
 
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub enum ItemTag {
     ClothItem,
     ModularComponent(ModularComponentTag),
-    MetalIngot(f32),
-}
-
-// The PartialEq implementation for ItemTag is used for determining whether a
-// RecipeInput matches
-impl PartialEq for ItemTag {
-    fn eq(&self, other: &Self) -> bool {
-        use ItemTag::*;
-        match (self, other) {
-            (ClothItem, ClothItem) => true,
-            (ModularComponent(a), ModularComponent(b)) => a == b,
-            (MetalIngot(_), MetalIngot(_)) => true,
-            _ => false,
-        }
-    }
+    MetalIngot,
 }
 
 impl TagExampleInfo for ItemTag {
@@ -113,7 +99,7 @@ impl TagExampleInfo for ItemTag {
         match self {
             ItemTag::ClothItem => "cloth item",
             ItemTag::ModularComponent(kind) => kind.name(),
-            ItemTag::MetalIngot(_) => "metal ingot",
+            ItemTag::MetalIngot => "metal ingot",
         }
     }
 
@@ -121,7 +107,7 @@ impl TagExampleInfo for ItemTag {
         match self {
             ItemTag::ClothItem => "common.items.tag_examples.cloth_item",
             ItemTag::ModularComponent(tag) => tag.exemplar_identifier(),
-            ItemTag::MetalIngot(_) => "common.items.tag_examples.metal_ingot",
+            ItemTag::MetalIngot => "common.items.tag_examples.metal_ingot",
         }
     }
 }
@@ -229,10 +215,12 @@ pub struct ItemConfig {
     pub dodge_ability: Option<CharacterAbility>,
 }
 
-impl From<(&ItemKind, &[Item], &AbilityMap)> for ItemConfig {
-    fn from((item_kind, components, map): (&ItemKind, &[Item], &AbilityMap)) -> Self {
+impl From<(&ItemKind, &[Item], &AbilityMap, &MaterialStatManifest)> for ItemConfig {
+    fn from(
+        (item_kind, components, map, msm): (&ItemKind, &[Item], &AbilityMap, &MaterialStatManifest),
+    ) -> Self {
         if let ItemKind::Tool(tool) = item_kind {
-            let abilities = tool.get_abilities(components, map);
+            let abilities = tool.get_abilities(msm, components, map);
 
             return ItemConfig {
                 abilities,
@@ -389,12 +377,16 @@ impl Item {
     // loadout when no weapon is present
     pub fn empty() -> Self { Item::new_from_asset_expect("common.items.weapons.empty.empty") }
 
-    pub fn new_from_item_def(inner_item: Arc<ItemDef>, input_components: &[Item]) -> Self {
+    pub fn new_from_item_def(
+        inner_item: Arc<ItemDef>,
+        input_components: &[Item],
+        msm: &MaterialStatManifest,
+    ) -> Self {
         let mut components = Vec::new();
         if inner_item.is_modular() {
             // recipe ensures that types match (i.e. no axe heads on a sword hilt, or double
             // sword blades)
-            components.extend(input_components.iter().map(|comp| comp.duplicate()));
+            components.extend(input_components.iter().map(|comp| comp.duplicate(msm)));
         }
 
         let mut item = Item {
@@ -405,7 +397,7 @@ impl Item {
             item_def: inner_item,
             item_config: None,
         };
-        item.update_item_config();
+        item.update_item_config(msm);
         item
     }
 
@@ -413,7 +405,8 @@ impl Item {
     /// Panics if the asset does not exist.
     pub fn new_from_asset_expect(asset_specifier: &str) -> Self {
         let inner_item = Arc::<ItemDef>::load_expect_cloned(asset_specifier);
-        Item::new_from_item_def(inner_item, &[])
+        let msm = MaterialStatManifest::default();
+        Item::new_from_item_def(inner_item, &[], &msm)
     }
 
     /// Creates a Vec containing one of each item that matches the provided
@@ -426,12 +419,13 @@ impl Item {
     /// it exists
     pub fn new_from_asset(asset: &str) -> Result<Self, Error> {
         let inner_item = Arc::<ItemDef>::load_cloned(asset)?;
-        Ok(Item::new_from_item_def(inner_item, &[]))
+        let msm = MaterialStatManifest::default();
+        Ok(Item::new_from_item_def(inner_item, &[], &msm))
     }
 
     /// Duplicates an item, creating an exact copy but with a new item ID
-    pub fn duplicate(&self) -> Self {
-        Item::new_from_item_def(Arc::clone(&self.item_def), &self.components)
+    pub fn duplicate(&self, msm: &MaterialStatManifest) -> Self {
+        Item::new_from_item_def(Arc::clone(&self.item_def), &self.components, msm)
     }
 
     /// FIXME: HACK: In order to set the entity ID asynchronously, we currently
@@ -494,21 +488,22 @@ impl Item {
         }
     }
 
-    pub fn add_component(&mut self, component: Item) {
+    pub fn add_component(&mut self, component: Item, msm: &MaterialStatManifest) {
         // TODO: hook for typechecking (not needed atm if this is only used by DB
         // persistence, but will definitely be needed once enhancement slots are
         // added to prevent putting a sword into another sword)
         self.components.push(component);
         // adding a component changes the stats, so recalculate the ItemConfig
-        self.update_item_config();
+        self.update_item_config(msm);
     }
 
-    fn update_item_config(&mut self) {
+    fn update_item_config(&mut self, msm: &MaterialStatManifest) {
         self.item_config = if let ItemKind::Tool(_) = self.kind() {
             Some(Box::new(ItemConfig::from((
                 self.kind(),
                 self.components(),
                 &self.item_def.ability_map,
+                msm,
             ))))
         } else {
             None

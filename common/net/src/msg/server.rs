@@ -3,7 +3,7 @@ use crate::sync;
 use authc::AuthClientError;
 use common::{
     character::{self, CharacterItem},
-    comp::{self, invite::InviteKind},
+    comp::{self, invite::InviteKind, item::MaterialStatManifest},
     outcome::Outcome,
     recipe::RecipeBook,
     resources::TimeOfDay,
@@ -56,6 +56,7 @@ pub enum ServerInit {
         client_timeout: Duration,
         world_map: crate::msg::world_msg::WorldMapMsg,
         recipe_book: RecipeBook,
+        material_stats: MaterialStatManifest,
         ability_map: comp::item::tool::AbilityMap,
     },
 }

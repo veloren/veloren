@@ -66,7 +66,7 @@ use common::{
     combat,
     comp::{
         self,
-        item::{tool::ToolKind, ItemDesc, Quality},
+        item::{tool::ToolKind, ItemDesc, MaterialStatManifest, Quality},
         skills::{Skill, SkillGroupKind},
         BuffKind,
     },
@@ -875,6 +875,7 @@ impl Hud {
             let bodies = ecs.read_storage::<comp::Body>();
             let items = ecs.read_storage::<comp::Item>();
             let inventories = ecs.read_storage::<comp::Inventory>();
+            let msm = ecs.read_resource::<MaterialStatManifest>();
             let entities = ecs.entities();
             let me = client.entity();
 
@@ -1370,7 +1371,9 @@ impl Hud {
                             health,
                             buffs,
                             energy,
-                            combat_rating: combat::combat_rating(inventory, health, stats, *body),
+                            combat_rating: combat::combat_rating(
+                                inventory, health, stats, *body, &msm,
+                            ),
                         });
                         let bubble = if dist_sqr < SPEECH_BUBBLE_RANGE.powi(2) {
                             speech_bubbles.get(uid)
@@ -1932,6 +1935,7 @@ impl Hud {
         let ecs = client.state().ecs();
         let stats = ecs.read_storage::<comp::Stats>();
         let buffs = ecs.read_storage::<comp::Buffs>();
+        let msm = ecs.read_resource::<MaterialStatManifest>();
         if let Some(player_stats) = stats.get(client.entity()) {
             match Buttons::new(
                 client,
@@ -1968,6 +1972,7 @@ impl Hud {
             self.pulse,
             &global_state,
             tooltip_manager,
+            &msm,
         )
         .set(self.ids.group_window, ui_widgets)
         {
@@ -2080,6 +2085,7 @@ impl Hud {
                 &mut self.slot_manager,
                 i18n,
                 &ability_map,
+                &msm,
             )
             .set(self.ids.skillbar, ui_widgets);
         }
@@ -2106,6 +2112,7 @@ impl Hud {
                     &energy,
                     &self.show,
                     &body,
+                    &msm,
                 )
                 .set(self.ids.bag, ui_widgets)
                 {

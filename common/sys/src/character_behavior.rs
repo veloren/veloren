@@ -5,7 +5,10 @@ use specs::{
 
 use common::{
     comp::{
-        inventory::slot::{EquipSlot, Slot},
+        inventory::{
+            item::MaterialStatManifest,
+            slot::{EquipSlot, Slot},
+        },
         Beam, Body, CharacterState, Controller, Energy, Health, Inventory, Melee, Mounting, Ori,
         PhysicsState, Poise, PoiseState, Pos, StateUpdate, Stats, Vel,
     },
@@ -62,6 +65,7 @@ pub struct ReadData<'a> {
     uids: ReadStorage<'a, Uid>,
     mountings: ReadStorage<'a, Mounting>,
     stats: ReadStorage<'a, Stats>,
+    msm: Read<'a, MaterialStatManifest>,
 }
 
 /// ## Character Behavior System
@@ -252,7 +256,12 @@ impl<'a> System<'a> for Sys {
             };
 
             for action in actions {
-                let j = JoinData::new(&join_struct, &read_data.lazy_update, &read_data.dt);
+                let j = JoinData::new(
+                    &join_struct,
+                    &read_data.lazy_update,
+                    &read_data.dt,
+                    &read_data.msm,
+                );
                 let mut state_update = match j.character {
                     CharacterState::Idle => states::idle::Data.handle_event(&j, action),
                     CharacterState::Talk => states::talk::Data.handle_event(&j, action),
@@ -295,7 +304,12 @@ impl<'a> System<'a> for Sys {
                 incorporate_update(&mut join_struct, state_update);
             }
 
-            let j = JoinData::new(&join_struct, &read_data.lazy_update, &read_data.dt);
+            let j = JoinData::new(
+                &join_struct,
+                &read_data.lazy_update,
+                &read_data.dt,
+                &read_data.msm,
+            );
 
             let mut state_update = match j.character {
                 CharacterState::Idle => states::idle::Data.behavior(&j),

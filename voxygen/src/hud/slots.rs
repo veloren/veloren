@@ -2,6 +2,7 @@ use super::{
     hotbar::{self, Slot as HotbarSlot},
     img_ids,
     item_imgs::{ItemImgs, ItemKey},
+    util::MATERIAL_STATS_MANIFEST,
 };
 use crate::ui::slot::{self, SlotKey, SumSlot};
 use common::comp::{
@@ -130,7 +131,11 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
                         (
                             i,
                             if let Some(skill) = tool
-                                .get_abilities(item.components(), ability_map)
+                                .get_abilities(
+                                    &MATERIAL_STATS_MANIFEST,
+                                    item.components(),
+                                    ability_map,
+                                )
                                 .abilities
                                 .get(0)
                             {
@@ -173,7 +178,11 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
                         (
                             i,
                             if let Some(skill) = tool
-                                .get_abilities(item.components(), ability_map)
+                                .get_abilities(
+                                    &MATERIAL_STATS_MANIFEST,
+                                    item.components(),
+                                    ability_map,
+                                )
                                 .abilities
                                 .get(skill_index)
                             {
