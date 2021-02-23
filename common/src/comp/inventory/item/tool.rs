@@ -3,11 +3,18 @@
 
 use crate::{
     assets::{self, Asset},
-    comp::{item::ItemKind, skills::Skill, CharacterAbility, Item},
+    comp::{
+        item::{ItemDesc, ItemKind, ItemTag},
+        skills::Skill,
+        CharacterAbility, Item,
+    },
 };
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
-use std::time::Duration;
+use std::{
+    ops::{AddAssign, MulAssign},
+    time::Duration,
+};
 use tracing::error;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -71,6 +78,22 @@ impl Stats {
     }
 }
 
+impl AddAssign<Stats> for Stats {
+    fn add_assign(&mut self, other: Stats) {
+        self.equip_time_millis += other.equip_time_millis;
+        self.power += other.power;
+        self.poise_strength += other.poise_strength;
+        self.speed += other.speed;
+    }
+}
+impl MulAssign<f32> for Stats {
+    fn mul_assign(&mut self, scalar: f32) {
+        self.power *= scalar;
+        self.poise_strength *= scalar;
+        self.speed *= scalar;
+    }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub enum StatKind {
     Direct(Stats),
@@ -83,14 +106,33 @@ impl StatKind {
             StatKind::Direct(stats) => *stats,
             StatKind::Modular => Stats::zeroed(),
         };
+        let mut best_multiplier: Option<f32> = None;
         for item in components.iter() {
-            if let ItemKind::ModularComponent(mc) = item.kind() {
-                stats.equip_time_millis += mc.stats.equip_time_millis;
-                stats.power += mc.stats.power;
-                stats.poise_strength += mc.stats.poise_strength;
-                stats.speed += mc.stats.speed;
+            match item.kind() {
+                ItemKind::ModularComponent(mc) => {
+                    let inner_stats = StatKind::Direct(mc.stats).resolve_stats(item.components());
+                    stats += inner_stats;
+                },
+                ItemKind::Ingredient { .. } => {
+                    for tag in item.tags() {
+                        // exhaustive match to ensure that new tags get stats counted
+                        match tag {
+                            ItemTag::ClothItem => {},
+                            ItemTag::ModularComponent(_) => {},
+                            ItemTag::MetalIngot(multiplier) => {
+                                best_multiplier =
+                                    Some(best_multiplier.unwrap_or(*multiplier).max(*multiplier));
+                            },
+                        }
+                    }
+                },
+                // TODO: add stats from enhancement slots, unless those end up as tagged
+                // ingredients
+                _ => (),
             }
-            // TODO: add stats from enhancement slots
+        }
+        if let Some(multiplier) = best_multiplier {
+            stats *= multiplier;
         }
         // if an item has 0.0 speed, that panics due to being infinite duration, so
         // enforce speed >= 0.1

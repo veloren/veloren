@@ -1,6 +1,6 @@
 use common::comp::item::{
     armor::{Armor, ArmorKind, Protection},
-    tool::{Hands, Tool, ToolKind},
+    tool::{Hands, StatKind, Tool, ToolKind},
     Item, ItemDesc, ItemKind, ModularComponent,
 };
 use std::{borrow::Cow, fmt::Write};
@@ -24,7 +24,11 @@ pub fn item_text<'a>(item: &'a impl ItemDesc) -> (&'_ str, Cow<'a, str>) {
             Cow::Owned(armor_desc(armor, item.description(), item.num_slots()))
         },
         ItemKind::Tool(tool) => Cow::Owned(tool_desc(&tool, item.components(), item.description())),
-        ItemKind::ModularComponent(mc) => Cow::Owned(modular_component_desc(mc)),
+        ItemKind::ModularComponent(mc) => Cow::Owned(modular_component_desc(
+            mc,
+            item.components(),
+            item.description(),
+        )),
         ItemKind::Glider(_glider) => Cow::Owned(glider_desc(item.description())),
         ItemKind::Consumable { .. } => Cow::Owned(consumable_desc(item.description())),
         ItemKind::Throwable { .. } => Cow::Owned(throwable_desc(item.description())),
@@ -39,8 +43,21 @@ pub fn item_text<'a>(item: &'a impl ItemDesc) -> (&'_ str, Cow<'a, str>) {
 }
 
 // TODO: localization
-fn modular_component_desc(mc: &ModularComponent) -> String {
-    format!("Modular Component\n\n{:?}", mc)
+fn modular_component_desc(mc: &ModularComponent, components: &[Item], description: &str) -> String {
+    let mut result = format!(
+        "Modular Component\n\n{:?}\n\n{}",
+        StatKind::Direct(mc.stats).resolve_stats(components),
+        description
+    );
+    if !components.is_empty() {
+        result += "Made from:\n";
+        for component in components {
+            result += component.name();
+            result += "\n"
+        }
+        result += "\n";
+    }
+    result
 }
 fn glider_desc(desc: &str) -> String { format!("Glider\n\n{}\n\n<Right-Click to use>", desc) }
 

@@ -1,0 +1,19 @@
+ItemDef(
+    name: "Any metal ingot",
+    description: "Ingots made from various metals.",
+    kind: TagExamples(
+        item_ids: [
+            "common.items.crafting_ing.bloodsteel_ingot",
+            "common.items.crafting_ing.bronze_ingot",
+            "common.items.crafting_ing.cobalt_ingot",
+            "common.items.crafting_ing.copper_ingot",
+            "common.items.crafting_ing.iron_ingot",
+            "common.items.crafting_ing.steel_ingot",
+            "common.items.crafting_ing.tin_ingot",
+        ],
+    ),
+    quality: Common,
+    tags: [],
+)
+
+

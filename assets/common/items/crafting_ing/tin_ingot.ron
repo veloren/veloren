@@ -5,5 +5,5 @@ ItemDef(
         kind: "TinIngot",
     ),
     quality: Common,
-    tags: [],
+    tags: [MetalIngot(0.25)],
 )

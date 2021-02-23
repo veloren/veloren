@@ -5,5 +5,5 @@ ItemDef(
         kind: "BloodsteelIngot",
     ),
     quality: Common,
-    tags: [],
+    tags: [MetalIngot(1.75)],
 )

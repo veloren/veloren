@@ -87,10 +87,25 @@ pub trait TagExampleInfo {
     fn exemplar_identifier(&self) -> &'static str;
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum ItemTag {
     ClothItem,
     ModularComponent(ModularComponentTag),
+    MetalIngot(f32),
+}
+
+// The PartialEq implementation for ItemTag is used for determining whether a
+// RecipeInput matches
+impl PartialEq for ItemTag {
+    fn eq(&self, other: &Self) -> bool {
+        use ItemTag::*;
+        match (self, other) {
+            (ClothItem, ClothItem) => true,
+            (ModularComponent(a), ModularComponent(b)) => a == b,
+            (MetalIngot(_), MetalIngot(_)) => true,
+            _ => false,
+        }
+    }
 }
 
 impl TagExampleInfo for ItemTag {
@@ -98,6 +113,7 @@ impl TagExampleInfo for ItemTag {
         match self {
             ItemTag::ClothItem => "cloth item",
             ItemTag::ModularComponent(kind) => kind.name(),
+            ItemTag::MetalIngot(_) => "metal ingot",
         }
     }
 
@@ -105,6 +121,7 @@ impl TagExampleInfo for ItemTag {
         match self {
             ItemTag::ClothItem => "common.items.tag_examples.cloth_item",
             ItemTag::ModularComponent(tag) => tag.exemplar_identifier(),
+            ItemTag::MetalIngot(_) => "common.items.tag_examples.metal_ingot",
         }
     }
 }
@@ -245,7 +262,7 @@ impl ItemDef {
             ItemKind::Tool(tool::Tool {
                 stats: tool::StatKind::Modular,
                 ..
-            })
+            }) | ItemKind::ModularComponent(_)
         )
     }
 
@@ -644,6 +661,7 @@ pub trait ItemDesc {
     fn num_slots(&self) -> u16;
     fn item_definition_id(&self) -> &str;
     fn components(&self) -> &[Item];
+    fn tags(&self) -> &[ItemTag];
 }
 
 impl ItemDesc for Item {
@@ -660,6 +678,8 @@ impl ItemDesc for Item {
     fn item_definition_id(&self) -> &str { &self.item_def.item_definition_id }
 
     fn components(&self) -> &[Item] { &self.components }
+
+    fn tags(&self) -> &[ItemTag] { &self.item_def.tags }
 }
 
 impl ItemDesc for ItemDef {
@@ -676,6 +696,8 @@ impl ItemDesc for ItemDef {
     fn item_definition_id(&self) -> &str { &self.item_definition_id }
 
     fn components(&self) -> &[Item] { &[] }
+
+    fn tags(&self) -> &[ItemTag] { &self.tags }
 }
 
 impl Component for Item {
