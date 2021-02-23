@@ -1,0 +1,24 @@
+/// CUIDADO: Arquivos de tradução devem ser criados no formato UTF-8 sem Marca de Ordem de byte - BOM(https://pt.wikipedia.org/wiki/Marca_de_ordem_de_byte)
+
+/// Localization for Portuguese (Brazil)
+(
+    string_map: {
+        "hud.trade.trade_window": "Janela de Troca",
+        "hud.trade.phase1_description": "Arraste os itens que deseja trocar\n para a sua área.",
+		"hud.trade.phase2_description": "Troca travada para que você tenha\n tempo para revisar.",
+	    /// Phase3 should only be visible for a few milliseconds if everything is working properly, but is included for completeness
+    	"hud.trade.phase3_description": "Troca em processamento.",
+    	"hud.trade.persons_offer": "Oferta de {playername}",
+    	"hud.trade.has_accepted": "{playername}\naceitou",
+    	"hud.trade.accept": "Aceitar",
+    	"hud.trade.decline": "Recusar",
+    	"hud.trade.invite_sent": "Pedido de troca enviado para {playername}.",
+    	"hud.trade.result.completed": "Troca concluída com sucesso.",
+    	"hud.trade.result.declined": "Troca cancelada.",
+    	"hud.trade.result.nospace": "Espaço insuficiente para completar a troca.",
+    },
+
+
+    vector_map: {
+    }
+)
