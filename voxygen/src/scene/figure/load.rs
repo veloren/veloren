@@ -1,4 +1,4 @@
-use super::cache::FigureKey;
+use super::cache::{FigureKey, ToolKey};
 use common::{
     assets::{self, AssetExt, AssetHandle, DotVoxAsset, Ron},
     comp::{
@@ -10,6 +10,7 @@ use common::{
         fish_small::{self, BodyType as FSBodyType, Species as FSSpecies},
         golem::{self, BodyType as GBodyType, Species as GSpecies},
         humanoid::{self, Body, BodyType, EyeColor, Skin, Species},
+        item::{ItemDef, ModularComponentKind},
         object,
         quadruped_low::{self, BodyType as QLBodyType, Species as QLSpecies},
         quadruped_medium::{self, BodyType as QMBodyType, Species as QMSpecies},
@@ -20,6 +21,7 @@ use common::{
 };
 use hashbrown::HashMap;
 use serde::Deserialize;
+use std::sync::Arc;
 use tracing::{error, warn};
 use vek::*;
 
@@ -42,8 +44,8 @@ fn graceful_load_vox(mesh_name: &str) -> AssetHandle<DotVoxAsset> {
 fn graceful_load_segment(mesh_name: &str) -> Segment {
     Segment::from(&graceful_load_vox(mesh_name).read().0)
 }
-fn graceful_load_segment_flipped(mesh_name: &str) -> Segment {
-    Segment::from_vox(&graceful_load_vox(mesh_name).read().0, true)
+fn graceful_load_segment_flipped(mesh_name: &str, flipped: bool) -> Segment {
+    Segment::from_vox(&graceful_load_vox(mesh_name).read().0, flipped)
 }
 fn graceful_load_mat_segment(mesh_name: &str) -> MatSegment {
     MatSegment::from(&graceful_load_vox(mesh_name).read().0)
@@ -139,6 +141,14 @@ struct VoxSimple(String);
 struct ArmorVoxSpec {
     vox_spec: VoxSpec<f32>,
     color: Option<[u8; 3]>,
+}
+
+#[derive(Deserialize)]
+enum ModularComponentSpec {
+    /// item id, offset from origin to mount point
+    Damage((String, [i32; 3])),
+    /// item id, offset from origin to hand, offset from origin to mount point
+    Held((String, [f32; 3], [i32; 3])),
 }
 
 // For use by armor with a left and right component
@@ -323,6 +333,8 @@ struct HumArmorFootSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
 #[derive(Deserialize)]
 struct HumMainWeaponSpec(HashMap<String, ArmorVoxSpec>);
 #[derive(Deserialize)]
+struct HumModularComponentSpec(HashMap<String, ModularComponentSpec>);
+#[derive(Deserialize)]
 struct HumArmorLanternSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
 #[derive(Deserialize)]
 struct HumArmorGliderSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
@@ -344,6 +356,7 @@ make_vox_spec!(
         armor_pants: HumArmorPantsSpec = "voxygen.voxel.humanoid_armor_pants_manifest",
         armor_foot: HumArmorFootSpec = "voxygen.voxel.humanoid_armor_foot_manifest",
         main_weapon: HumMainWeaponSpec = "voxygen.voxel.humanoid_main_weapon_manifest",
+        modular_components: HumModularComponentSpec = "voxygen.voxel.humanoid_modular_component_manifest",
         armor_lantern: HumArmorLanternSpec = "voxygen.voxel.humanoid_lantern_manifest",
         armor_glider: HumArmorGliderSpec = "voxygen.voxel.humanoid_glider_manifest",
         // TODO: Add these.
@@ -447,12 +460,14 @@ make_vox_spec!(
             )),
             tool.and_then(|tool| tool.active.as_ref()).map(|tool| {
                 spec.main_weapon.read().0.mesh_main_weapon(
+                    &spec.modular_components.read().0,
                     tool,
                     false,
                 )
             }),
             tool.and_then(|tool| tool.second.as_ref()).map(|tool| {
                 spec.main_weapon.read().0.mesh_main_weapon(
+                    &spec.modular_components.read().0,
                     tool,
                     true,
                 )
@@ -822,32 +837,71 @@ impl HumArmorFootSpec {
 }
 
 impl HumMainWeaponSpec {
-    fn mesh_main_weapon(&self, item_definition_id: &str, flipped: bool) -> BoneMeshes {
-        let spec = match self.0.get(item_definition_id) {
-            Some(spec) => spec,
-            None => {
-                error!(?item_definition_id, "No tool/weapon specification exists");
-                return load_mesh("not_found", Vec3::new(-1.5, -1.5, -7.0));
-            },
+    fn mesh_main_weapon(
+        &self,
+        modular_components: &HumModularComponentSpec,
+        tool: &ToolKey,
+        flipped: bool,
+    ) -> BoneMeshes {
+        // TODO: resolve ItemDef info into the ToolKey earlier
+        let itemdef = Arc::<ItemDef>::load_expect_cloned(&tool.name);
+        let not_found = |name: &str| {
+            error!(?name, "No tool/weapon specification exists");
+            load_mesh("not_found", Vec3::new(-1.5, -1.5, -7.0))
         };
+        let (tool_kind_segment, mut offset) = if itemdef.is_modular() {
+            let (mut damage, mut held) = (None, None);
+            for comp in tool.components.iter() {
+                let compdef = Arc::<ItemDef>::load_expect_cloned(comp);
+                if compdef.is_component(ModularComponentKind::Held) {
+                    held = Some(comp.clone());
+                }
+                if compdef.is_component(ModularComponentKind::Damage) {
+                    damage = Some(comp.clone());
+                }
+                // TODO: when enhancements are added, line them up to make a
+                // pretty row of gems on the hilt or something
+            }
+            if let (Some(damage), Some(held)) = (damage.as_ref(), held.as_ref()) {
+                use ModularComponentSpec::*;
+                let damagespec = match modular_components.0.get(&*damage) {
+                    Some(Damage(spec)) => spec,
+                    _ => return not_found(&damage),
+                };
+                let heldspec = match modular_components.0.get(&*held) {
+                    Some(Held(spec)) => spec,
+                    _ => return not_found(&held),
+                };
+                let damage_asset = graceful_load_vox(&damagespec.0).read();
+                let held_asset = graceful_load_vox(&heldspec.0).read();
 
-        let tool_kind_segment = if flipped {
-            graceful_load_segment_flipped(&spec.vox_spec.0)
-        } else {
-            graceful_load_segment(&spec.vox_spec.0)
-        };
-
-        let offset = Vec3::new(
-            if flipped {
-                //log::warn!("tool kind segment {:?}", );
-                //tool_kind_segment.;
-                0.0 - spec.vox_spec.1[0] - (tool_kind_segment.sz.x as f32)
+                let (segment, segment_origin) = Segment::from_voxes(&[
+                    (&damage_asset.0, Vec3::from(damagespec.1), flipped),
+                    (&held_asset.0, Vec3::from(heldspec.2), flipped),
+                ]);
+                (segment, segment_origin.map(|x: i32| x as f32) + heldspec.1)
             } else {
-                spec.vox_spec.1[0]
-            },
-            spec.vox_spec.1[1],
-            spec.vox_spec.1[2],
-        );
+                error!(
+                    "A modular weapon is missing some components (damage: {:?}, held: {:?})",
+                    damage, held
+                );
+                return load_mesh("not_found", Vec3::new(-1.5, -1.5, -7.0));
+            }
+        } else {
+            let spec = match self.0.get(&tool.name) {
+                Some(spec) => spec,
+                None => return not_found(&tool.name),
+            };
+
+            (
+                graceful_load_segment_flipped(&spec.vox_spec.0, flipped),
+                Vec3::from(spec.vox_spec.1),
+            )
+        };
+
+        if flipped {
+            offset.x = 0.0 - offset.x - (tool_kind_segment.sz.x as f32);
+        }
 
         (tool_kind_segment, offset)
     }

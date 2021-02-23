@@ -22,6 +22,16 @@ impl From<&DotVoxData> for Segment {
 }
 
 impl Segment {
+    /// Take a list of voxel data, offsets, and x-mirror flags, and assembled
+    /// them into a combined segment
+    pub fn from_voxes(data: &[(&DotVoxData, Vec3<i32>, bool)]) -> (Self, Vec3<i32>) {
+        let mut union = DynaUnionizer::new();
+        for (datum, offset, xmirror) in data.iter() {
+            union = union.add(Segment::from_vox(datum, *xmirror), *offset);
+        }
+        union.unify()
+    }
+
     pub fn from_vox(dot_vox_data: &DotVoxData, flipped: bool) -> Self {
         if let Some(model) = dot_vox_data.models.get(0) {
             let palette = dot_vox_data

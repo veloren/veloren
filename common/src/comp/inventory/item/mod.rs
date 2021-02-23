@@ -249,6 +249,14 @@ impl ItemDef {
         )
     }
 
+    pub fn is_component(&self, kind: ModularComponentKind) -> bool {
+        if let ItemKind::ModularComponent(ModularComponent { modkind, .. }) = self.kind {
+            kind == modkind
+        } else {
+            false
+        }
+    }
+
     #[cfg(test)]
     pub fn new_test(
         item_definition_id: String,
