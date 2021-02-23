@@ -26,7 +26,7 @@ indexmap = "1.3.0"
 slab = "0.4.2"
 
 # ECS
-specs = { git = "https://github.com/amethyst/specs.git", features = ["serde", "storage-event-control"], rev = "d4435bdf496cf322c74886ca09dd8795984919b4" }
+specs = { git = "https://github.com/amethyst/specs.git", features = ["serde", "storage-event-control", "derive"], rev = "d4435bdf496cf322c74886ca09dd8795984919b4" }
 
 # Serde
 serde = { version = "1.0.110", features = ["derive"] }
