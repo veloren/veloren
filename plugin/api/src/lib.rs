@@ -1,5 +1,13 @@
-use common::uid::Uid;
+pub extern crate common;
+
+pub use common::comp::Health;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
+
+pub use common::{resources::GameMode, uid::Uid};
+
+mod errors;
+
+pub use errors::*;
 
 #[derive(Deserialize, Serialize, Debug)]
 pub enum Action {
@@ -9,11 +17,21 @@ pub enum Action {
     KillEntity(Uid),
 }
 
+#[derive(Deserialize, Serialize, Debug)]
+pub enum Retrieve {
+    GetPlayerName(Uid),
+    GetEntityHealth(Uid),
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub enum RetrieveResult {
+    GetPlayerName(String),
+    GetEntityHealth(Health),
+}
+
 pub trait Event: Serialize + DeserializeOwned + Send + Sync {
     type Response: Serialize + DeserializeOwned + Send + Sync;
 }
-
-pub use common::resources::GameMode;
 
 pub mod event {
     use super::*;

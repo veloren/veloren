@@ -3,7 +3,7 @@ use veloren_plugin_rt::{
     *,
 };
 
-#[veloren_plugin_rt::event_handler]
+#[event_handler]
 pub fn on_load(load: PluginLoadEvent) {
     match load.game_mode {
         GameMode::Server => emit_action(Action::Print("Hello, server!".to_owned())),
@@ -15,8 +15,17 @@ pub fn on_load(load: PluginLoadEvent) {
 #[event_handler]
 pub fn on_command_testplugin(command: ChatCommandEvent) -> Result<Vec<String>, String> {
     Ok(vec![format!(
-        "Player of id {:?} sended command with args {:?}",
-        command.player, command.command_args
+        "Player of id {:?} named {} with {:?} sended command with args {:?}",
+        command.player.id,
+        command
+            .player
+            .get_player_name()
+            .expect("Can't get player name"),
+        command
+            .player
+            .get_entity_health()
+            .expect("Can't get player health"),
+        command.command_args
     )])
 }
 

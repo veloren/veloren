@@ -1,8 +1,13 @@
+#[cfg(not(target_arch = "wasm32"))]
 use crate::uid::Uid;
+#[cfg(not(target_arch = "wasm32"))]
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
+#[cfg(not(target_arch = "wasm32"))]
 use specs::{Component, DerefFlaggedStorage};
+#[cfg(not(target_arch = "wasm32"))]
 use specs_idvs::IdvStorage;
+#[cfg(not(target_arch = "wasm32"))]
 use std::{cmp::Ordering, time::Duration};
 
 /// De/buff Kind.
@@ -28,6 +33,7 @@ pub enum BuffKind {
     IncreaseMaxHealth,
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl BuffKind {
     /// Checks if buff is buff or debuff
     pub fn is_buff(self) -> bool {
@@ -48,12 +54,14 @@ impl BuffKind {
 }
 
 // Struct used to store data relevant to a buff
+#[cfg(not(target_arch = "wasm32"))]
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct BuffData {
     pub strength: f32,
     pub duration: Option<Duration>,
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl BuffData {
     pub fn new(strength: f32, duration: Option<Duration>) -> Self { Self { strength, duration } }
 }
@@ -61,6 +69,7 @@ impl BuffData {
 /// De/buff category ID.
 /// Similar to `BuffKind`, but to mark a category (for more generic usage, like
 /// positive/negative buffs).
+#[cfg(not(target_arch = "wasm32"))]
 #[derive(Clone, Copy, Eq, PartialEq, Debug, Serialize, Deserialize)]
 pub enum BuffCategory {
     Natural,
@@ -70,6 +79,7 @@ pub enum BuffCategory {
     PersistOnDeath,
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ModifierKind {
     Additive,
@@ -77,6 +87,7 @@ pub enum ModifierKind {
 }
 
 /// Data indicating and configuring behaviour of a de/buff.
+#[cfg(not(target_arch = "wasm32"))]
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum BuffEffect {
     /// Periodically damages or heals entity
@@ -101,6 +112,7 @@ pub enum BuffEffect {
 ///
 /// To provide more classification info when needed,
 /// buff can be in one or more buff category.
+#[cfg(not(target_arch = "wasm32"))]
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Buff {
     pub kind: BuffKind,
@@ -113,6 +125,7 @@ pub struct Buff {
 
 /// Information about whether buff addition or removal was requested.
 /// This to implement "on_add" and "on_remove" hooks for constant buffs.
+#[cfg(not(target_arch = "wasm32"))]
 #[derive(Clone, Debug)]
 pub enum BuffChange {
     /// Adds this buff.
@@ -134,6 +147,7 @@ pub enum BuffChange {
     },
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl Buff {
     /// Builder function for buffs
     pub fn new(
@@ -200,6 +214,7 @@ impl Buff {
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl PartialOrd for Buff {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         if self == other {
@@ -218,10 +233,12 @@ impl PartialOrd for Buff {
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 fn compare_duration(a: Option<Duration>, b: Option<Duration>) -> bool {
     a.map_or(true, |dur_a| b.map_or(false, |dur_b| dur_a > dur_b))
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl PartialEq for Buff {
     fn eq(&self, other: &Self) -> bool {
         self.data.strength == other.data.strength && self.time == other.time
@@ -229,6 +246,7 @@ impl PartialEq for Buff {
 }
 
 /// Source of the de/buff
+#[cfg(not(target_arch = "wasm32"))]
 #[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize)]
 pub enum BuffSource {
     /// Applied by a character
@@ -256,6 +274,7 @@ pub enum BuffSource {
 /// and undone on removal of the buff (by the specs system).
 /// Example could be decreasing max health, which, if repeated each tick,
 /// would be probably an undesired effect).
+#[cfg(not(target_arch = "wasm32"))]
 #[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct Buffs {
     /// Uid used for synchronization
@@ -266,6 +285,7 @@ pub struct Buffs {
     pub buffs: HashMap<BuffId, Buff>,
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl Buffs {
     fn sort_kind(&mut self, kind: BuffKind) {
         if let Some(buff_order) = self.kinds.get_mut(&kind) {
@@ -339,8 +359,10 @@ impl Buffs {
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 pub type BuffId = u64;
 
+#[cfg(not(target_arch = "wasm32"))]
 impl Component for Buffs {
     type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
 }

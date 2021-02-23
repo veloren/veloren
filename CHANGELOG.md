@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Plugin can now retrieve data from ECS 
 - Added chat commands for inviting, kicking, leaving, and promoting in groups
 - Aura system
 - Campfire resting heal

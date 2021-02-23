@@ -25,6 +25,7 @@ pub enum PluginModuleError {
 
 #[derive(Debug)]
 pub enum MemoryAllocationError {
+    InvalidReturnType,
     AllocatorNotFound(ExportError),
     CantAllocate(RuntimeError),
 }

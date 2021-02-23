@@ -1,5 +1,7 @@
+#[cfg(not(target_arch = "wasm32"))]
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
+#[cfg(not(target_arch = "wasm32"))]
 use specs::{
     saveload::{Marker, MarkerAllocator},
     world::EntitiesRes,
@@ -22,10 +24,12 @@ impl fmt::Display for Uid {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { write!(f, "{}", self.0) }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl Component for Uid {
     type Storage = FlaggedStorage<Self, VecStorage<Self>>;
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl Marker for Uid {
     type Allocator = UidAllocator;
     type Identifier = u64;
@@ -37,11 +41,14 @@ impl Marker for Uid {
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
+#[derive(Debug)]
 pub struct UidAllocator {
     index: u64,
     mapping: HashMap<u64, Entity>,
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl UidAllocator {
     pub fn new() -> Self {
         Self {
@@ -55,10 +62,12 @@ impl UidAllocator {
     pub fn remove_entity(&mut self, id: u64) -> Option<Entity> { self.mapping.remove(&id) }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl Default for UidAllocator {
     fn default() -> Self { Self::new() }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl MarkerAllocator<Uid> for UidAllocator {
     fn allocate(&mut self, entity: Entity, id: Option<u64>) -> Uid {
         let id = id.unwrap_or_else(|| {

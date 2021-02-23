@@ -1031,17 +1031,21 @@ impl Server {
                 use common::uid::Uid;
                 let plugin_manager = self.state.ecs().read_resource::<PluginMgr>();
                 let rs = plugin_manager.execute_event(
+                    self.state.ecs(),
                     &format!("on_command_{}", &kwd),
                     &plugin_api::event::ChatCommandEvent {
                         command: kwd.clone(),
                         command_args: args.split(' ').map(|x| x.to_owned()).collect(),
                         player: plugin_api::event::Player {
-                            id: *(self
-                                .state
-                                .ecs()
-                                .read_storage::<Uid>()
-                                .get(entity)
-                                .expect("Can't get player UUID [This should never appen]")),
+                            id: plugin_api::Uid(
+                                (self
+                                    .state
+                                    .ecs()
+                                    .read_storage::<Uid>()
+                                    .get(entity)
+                                    .expect("Can't get player UUID [This should never appen]"))
+                                .0,
+                            ),
                         },
                     },
                 );

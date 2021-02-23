@@ -5637,6 +5637,7 @@ dependencies = [
  "indexmap",
  "rand 0.8.3",
  "rayon",
+ "scopeguard",
  "serde",
  "slab",
  "specs",
@@ -5698,6 +5699,7 @@ dependencies = [
 name = "veloren-plugin-api"
 version = "0.1.0"
 dependencies = [
+ "bincode",
  "serde",
  "veloren-common",
 ]

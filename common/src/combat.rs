@@ -1,6 +1,8 @@
+use crate::comp::buff::BuffKind;
+#[cfg(not(target_arch = "wasm32"))]
 use crate::{
     comp::{
-        buff::{Buff, BuffChange, BuffData, BuffKind, BuffSource},
+        buff::{Buff, BuffChange, BuffData, BuffSource},
         inventory::{
             item::{
                 armor::Protection,
@@ -18,18 +20,26 @@ use crate::{
     uid::Uid,
     util::Dir,
 };
-use rand::{thread_rng, Rng};
-use serde::{Deserialize, Serialize};
-use specs::Entity as EcsEntity;
-use std::time::Duration;
-use vek::*;
 
+#[cfg(not(target_arch = "wasm32"))]
+use rand::{thread_rng, Rng};
+
+use serde::{Deserialize, Serialize};
+
+#[cfg(not(target_arch = "wasm32"))]
+use specs::Entity as EcsEntity;
+#[cfg(not(target_arch = "wasm32"))]
+use std::time::Duration;
+#[cfg(not(target_arch = "wasm32"))] use vek::*;
+
+#[cfg(not(target_arch = "wasm32"))]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum GroupTarget {
     InGroup,
     OutOfGroup,
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 #[derive(Copy, Clone)]
 pub struct AttackerInfo<'a> {
     pub entity: EcsEntity,
@@ -37,6 +47,7 @@ pub struct AttackerInfo<'a> {
     pub energy: Option<&'a Energy>,
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 #[derive(Clone, Debug, Serialize, Deserialize)] // TODO: Yeet clone derive
 pub struct Attack {
     damages: Vec<AttackDamage>,
@@ -45,6 +56,7 @@ pub struct Attack {
     crit_multiplier: f32,
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl Default for Attack {
     fn default() -> Self {
         Self {
@@ -56,6 +68,7 @@ impl Default for Attack {
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl Attack {
     pub fn with_damage(mut self, damage: AttackDamage) -> Self {
         self.damages.push(damage);
@@ -296,6 +309,7 @@ impl Attack {
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AttackDamage {
     damage: Damage,
@@ -303,6 +317,7 @@ pub struct AttackDamage {
     effects: Vec<CombatEffect>,
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl AttackDamage {
     pub fn new(damage: Damage, target: Option<GroupTarget>) -> Self {
         Self {
@@ -318,6 +333,7 @@ impl AttackDamage {
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AttackEffect {
     target: Option<GroupTarget>,
@@ -325,6 +341,7 @@ pub struct AttackEffect {
     requirement: Option<CombatRequirement>,
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl AttackEffect {
     pub fn new(target: Option<GroupTarget>, effect: CombatEffect) -> Self {
         Self {
@@ -342,6 +359,7 @@ impl AttackEffect {
     pub fn effect(&self) -> &CombatEffect { &self.effect }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum CombatEffect {
     Heal(f32),
@@ -352,6 +370,7 @@ pub enum CombatEffect {
     Poise(f32),
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum CombatRequirement {
     AnyDamage,
@@ -370,12 +389,14 @@ pub enum DamageSource {
     Other,
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Damage {
     pub source: DamageSource,
     pub value: f32,
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl Damage {
     /// Returns the total damage reduction provided by all equipped items
     pub fn compute_damage_reduction(inventory: &Inventory) -> f32 {
@@ -520,12 +541,14 @@ impl Damage {
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Knockback {
     pub direction: KnockbackDir,
     pub strength: f32,
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum KnockbackDir {
     Away,
@@ -534,6 +557,7 @@ pub enum KnockbackDir {
     TowardsUp,
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl Knockback {
     pub fn calculate_impulse(self, dir: Dir) -> Vec3<f32> {
         match self.direction {
@@ -554,6 +578,7 @@ impl Knockback {
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct CombatBuff {
     pub kind: BuffKind,
@@ -562,12 +587,14 @@ pub struct CombatBuff {
     pub chance: f32,
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum CombatBuffStrength {
     DamageFraction(f32),
     Value(f32),
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl CombatBuffStrength {
     fn to_strength(self, damage: f32) -> f32 {
         match self {
@@ -577,6 +604,7 @@ impl CombatBuffStrength {
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl CombatBuff {
     fn to_buff(self, uid: Option<Uid>, damage: f32) -> Buff {
         // TODO: Generate BufCategoryId vec (probably requires damage overhaul?)
@@ -606,6 +634,7 @@ impl CombatBuff {
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 fn equipped_item_and_tool(inv: &Inventory, slot: EquipSlot) -> Option<(&Item, &Tool)> {
     inv.equipped(slot).and_then(|i| {
         if let ItemKind::Tool(tool) = &i.kind() {
@@ -616,6 +645,7 @@ fn equipped_item_and_tool(inv: &Inventory, slot: EquipSlot) -> Option<(&Item, &T
     })
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 pub fn get_weapons(inv: &Inventory) -> (Option<ToolKind>, Option<ToolKind>) {
     (
         equipped_item_and_tool(inv, EquipSlot::Mainhand).map(|(_, tool)| tool.kind),
@@ -623,6 +653,7 @@ pub fn get_weapons(inv: &Inventory) -> (Option<ToolKind>, Option<ToolKind>) {
     )
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 fn offensive_rating(inv: &Inventory, skillset: &SkillSet) -> f32 {
     let active_damage =
         equipped_item_and_tool(inv, EquipSlot::Mainhand).map_or(0.0, |(item, tool)| {
@@ -639,6 +670,7 @@ fn offensive_rating(inv: &Inventory, skillset: &SkillSet) -> f32 {
     active_damage.max(second_damage)
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 pub fn combat_rating(inventory: &Inventory, health: &Health, stats: &Stats, body: Body) -> f32 {
     let defensive_weighting = 1.0;
     let offensive_weighting = 1.0;

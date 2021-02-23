@@ -1,29 +1,39 @@
 use std::{
-    cell::Cell,
     collections::HashSet,
+    convert::TryInto,
     marker::PhantomData,
     sync::{Arc, Mutex},
 };
 
-use wasmer::{
-    imports, Cranelift, Function, HostEnvInitError, Instance, LazyInit, Memory, MemoryView, Module,
-    Store, Value, WasmerEnv, JIT,
+use common::{
+    comp::{Health, Player},
+    uid::UidAllocator,
+};
+use specs::{saveload::MarkerAllocator, World, WorldExt};
+use wasmer::{imports, Cranelift, Function, Instance, Memory, Module, Store, Value, JIT};
+
+use super::{
+    errors::{PluginError, PluginModuleError},
+    memory_manager::{self, EcsAccessManager, MemoryManager},
+    wasm_env::HostFunctionEnvironement,
 };
 
-use super::errors::{MemoryAllocationError, PluginError, PluginModuleError};
-
-use plugin_api::{Action, Event};
+use plugin_api::{Action, EcsAccessError, Event, Retrieve, RetrieveError, RetrieveResult};
 
 #[derive(Clone)]
-// This structure represent the WASM State of the plugin.
+/// This structure represent the WASM State of the plugin.
 pub struct PluginModule {
-    wasm_state: Arc<Mutex<WasmState>>,
+    ecs: Arc<EcsAccessManager>,
+    wasm_state: Arc<Mutex<Instance>>,
+    memory_manager: Arc<MemoryManager>,
     events: HashSet<String>,
+    allocator: Function,
+    memory: Memory,
     name: String,
 }
 
 impl PluginModule {
-    // This function takes bytes from a WASM File and compile them
+    /// This function takes bytes from a WASM File and compile them
     pub fn new(name: String, wasm_data: &[u8]) -> Result<Self, PluginModuleError> {
         // This is creating the engine is this case a JIT based on Cranelift
         let engine = JIT::new(Cranelift::default()).engine();
@@ -33,21 +43,8 @@ impl PluginModule {
         let module = Module::new(&store, &wasm_data).expect("Can't compile");
 
         // This is the function imported into the wasm environement
-        fn raw_emit_actions(env: &EmitActionEnv, ptr: u32, len: u32) {
-            let memory: &Memory = if let Some(e) = env.memory.get_ref() {
-                e
-            } else {
-                // This should not be possible but I prefer be safer!
-                tracing::error!("Can't get memory from: `{}` plugin", env.name);
-                return;
-            };
-            let memory: MemoryView<u8> = memory.view();
-
-            let str_slice = &memory[ptr as usize..(ptr + len) as usize];
-
-            let bytes: Vec<u8> = str_slice.iter().map(|x| x.get()).collect();
-
-            handle_actions(match bincode::deserialize(&bytes) {
+        fn raw_emit_actions(env: &HostFunctionEnvironement, ptr: u32, len: u32) {
+            handle_actions(match env.read_data(ptr as i32, len) {
                 Ok(e) => e,
                 Err(e) => {
                     tracing::error!(?e, "Can't decode action");
@@ -56,10 +53,31 @@ impl PluginModule {
             });
         }
 
+        fn raw_retrieve_action(env: &HostFunctionEnvironement, ptr: u32, len: u32) -> i64 {
+            let out = match env.read_data(ptr as _, len) {
+                Ok(data) => retrieve_action(&env.ecs, data),
+                Err(e) => Err(RetrieveError::BincodeError(e.to_string())),
+            };
+
+            // If an error happen set the i64 to 0 so the WASM side can tell an error
+            // occured
+            let (ptr, len) = env.write_data(&out).unwrap();
+            to_i64(ptr, len as _)
+        }
+
+        fn dbg(a: i32) {
+            println!("WASM DEBUG: {}", a);
+        }
+
+        let ecs = Arc::new(EcsAccessManager::default());
+        let memory_manager = Arc::new(MemoryManager::default());
+
         // Create an import object.
         let import_object = imports! {
             "env" => {
-                "raw_emit_actions" => Function::new_native_with_env(&store, EmitActionEnv::new(name.clone()), raw_emit_actions),
+                "raw_emit_actions" => Function::new_native_with_env(&store, HostFunctionEnvironement::new(name.clone(), ecs.clone(),memory_manager.clone()), raw_emit_actions),
+                "raw_retrieve_action" => Function::new_native_with_env(&store, HostFunctionEnvironement::new(name.clone(), ecs.clone(),memory_manager.clone()), raw_retrieve_action),
+                "dbg" => Function::new_native(&store, dbg),
             }
         };
 
@@ -67,20 +85,33 @@ impl PluginModule {
         let instance = Instance::new(&module, &import_object)
             .map_err(PluginModuleError::InstantiationError)?;
         Ok(Self {
+            memory_manager,
+            ecs,
+            memory: instance
+                .exports
+                .get_memory("memory")
+                .map_err(PluginModuleError::MemoryUninit)?
+                .clone(),
+            allocator: instance
+                .exports
+                .get_function("wasm_prepare_buffer")
+                .map_err(PluginModuleError::MemoryUninit)?
+                .clone(),
             events: instance
                 .exports
                 .iter()
                 .map(|(name, _)| name.to_string())
                 .collect(),
-            wasm_state: Arc::new(Mutex::new(WasmState::new(instance))),
+            wasm_state: Arc::new(Mutex::new(instance)),
             name,
         })
     }
 
-    // This function tries to execute an event for the current module. Will return
-    // None if the event doesn't exists
+    /// This function tries to execute an event for the current module. Will
+    /// return None if the event doesn't exists
     pub fn try_execute<T>(
         &self,
+        ecs: &World,
         event_name: &str,
         request: &PreparedEventQuery<T>,
     ) -> Option<Result<T::Response, PluginModuleError>>
@@ -90,74 +121,29 @@ impl PluginModule {
         if !self.events.contains(event_name) {
             return None;
         }
-        let bytes = {
+        // Store the ECS Pointer for later use in `retreives`
+        let bytes = match self.ecs.execute_with(ecs, || {
             let mut state = self.wasm_state.lock().unwrap();
-            match execute_raw(&mut state, event_name, &request.bytes) {
-                Ok(e) => e,
-                Err(e) => return Some(Err(e)),
-            }
+            execute_raw(self, &mut state, event_name, &request.bytes)
+        }) {
+            Ok(e) => e,
+            Err(e) => return Some(Err(e)),
         };
         Some(bincode::deserialize(&bytes).map_err(PluginModuleError::Encoding))
     }
 }
 
-/// This is an internal struct used to represent the WASM state when the
-/// emit_action function is called
-#[derive(Clone)]
-struct EmitActionEnv {
-    memory: LazyInit<Memory>,
-    name: String,
-}
-
-impl EmitActionEnv {
-    fn new(name: String) -> Self {
-        Self {
-            memory: LazyInit::new(),
-            name,
-        }
-    }
-}
-
-impl WasmerEnv for EmitActionEnv {
-    fn init_with_instance(&mut self, instance: &Instance) -> Result<(), HostEnvInitError> {
-        let memory = instance.exports.get_memory("memory").unwrap();
-        self.memory.initialize(memory.clone());
-        Ok(())
-    }
-}
-
-pub struct WasmMemoryContext {
-    memory_buffer_size: usize,
-    memory_pointer: i32,
-}
-
-pub struct WasmState {
-    instance: Instance,
-    memory: WasmMemoryContext,
-}
-
-impl WasmState {
-    fn new(instance: Instance) -> Self {
-        Self {
-            instance,
-            memory: WasmMemoryContext {
-                memory_buffer_size: 0,
-                memory_pointer: 0,
-            },
-        }
-    }
-}
-
-// This structure represent a Pre-encoded event object (Useful to avoid
-// reencoding for each module in every plugin)
+/// This structure represent a Pre-encoded event object (Useful to avoid
+/// reencoding for each module in every plugin)
 pub struct PreparedEventQuery<T> {
     bytes: Vec<u8>,
     _phantom: PhantomData<T>,
 }
 
 impl<T: Event> PreparedEventQuery<T> {
-    // Create a prepared query from an event reference (Encode to bytes the struct)
-    // This Prepared Query is used by the `try_execute` method in `PluginModule`
+    /// Create a prepared query from an event reference (Encode to bytes the
+    /// struct) This Prepared Query is used by the `try_execute` method in
+    /// `PluginModule`
     pub fn new(event: &T) -> Result<Self, PluginError>
     where
         T: Event,
@@ -169,75 +155,126 @@ impl<T: Event> PreparedEventQuery<T> {
     }
 }
 
+fn from_i64(i: i64) -> (i32, i32) {
+    let i = i.to_le_bytes();
+    (
+        i32::from_le_bytes(i[0..4].try_into().unwrap()),
+        i32::from_le_bytes(i[4..8].try_into().unwrap()),
+    )
+}
+
+pub fn to_i64(a: i32, b: i32) -> i64 {
+    let a = a.to_le_bytes();
+    let b = b.to_le_bytes();
+    i64::from_le_bytes([a[0], a[1], a[2], a[3], b[0], b[1], b[2], b[3]])
+}
+
 // This function is not public because this function should not be used without
 // an interface to limit unsafe behaviours
 #[allow(clippy::needless_range_loop)]
 fn execute_raw(
-    instance: &mut WasmState,
+    module: &PluginModule,
+    instance: &mut Instance,
     event_name: &str,
     bytes: &[u8],
 ) -> Result<Vec<u8>, PluginModuleError> {
-    let len = bytes.len();
+    // This write into memory `bytes` using allocation if necessary returning a
+    // pointer and a length
 
-    let mem_position = reserve_wasm_memory_buffer(len, &instance.instance, &mut instance.memory)
-        .map_err(PluginModuleError::MemoryAllocation)? as usize;
+    let (mem_position, len) =
+        module
+            .memory_manager
+            .write_bytes(&module.memory, &module.allocator, bytes)?;
 
-    let memory = instance
-        .instance
-        .exports
-        .get_memory("memory")
-        .map_err(PluginModuleError::MemoryUninit)?;
-
-    memory.view()[mem_position..mem_position + len]
-        .iter()
-        .zip(bytes.iter())
-        .for_each(|(cell, byte)| cell.set(*byte));
+    // This gets the event function from module exports
 
     let func = instance
-        .instance
         .exports
         .get_function(event_name)
         .map_err(PluginModuleError::MemoryUninit)?;
 
-    let mem_position = func
+    // We call the function with the pointer and the length
+
+    let function_result = func
         .call(&[Value::I32(mem_position as i32), Value::I32(len as i32)])
-        .map_err(PluginModuleError::RunFunction)?[0]
-        .i32()
-        .ok_or_else(PluginModuleError::InvalidArgumentType)? as usize;
+        .map_err(PluginModuleError::RunFunction)?;
 
-    let view: MemoryView<u8> = memory.view();
+    // Waiting for `multi-value` to be added to LLVM. So we encode the two i32 as an
+    // i64
 
-    let mut new_len_bytes = [0u8; 4];
-    // TODO: It is probably better to dirrectly make the new_len_bytes
-    for i in 0..4 {
-        new_len_bytes[i] = view.get(i + 1).map(Cell::get).unwrap_or(0);
-    }
+    let (pointer, length) = from_i64(
+        function_result[0]
+            .i64()
+            .ok_or_else(PluginModuleError::InvalidArgumentType)?,
+    );
 
-    let len = u32::from_ne_bytes(new_len_bytes) as usize;
+    // We read the return object and deserialize it
 
-    Ok(view[mem_position..mem_position + len]
-        .iter()
-        .map(|x| x.get())
-        .collect())
+    Ok(memory_manager::read_bytes(
+        &module.memory,
+        pointer,
+        length as u32,
+    ))
 }
 
-fn reserve_wasm_memory_buffer(
-    size: usize,
-    instance: &Instance,
-    context: &mut WasmMemoryContext,
-) -> Result<i32, MemoryAllocationError> {
-    if context.memory_buffer_size >= size {
-        return Ok(context.memory_pointer);
+fn retrieve_action(
+    ecs: &EcsAccessManager,
+    action: Retrieve,
+) -> Result<RetrieveResult, RetrieveError> {
+    match action {
+        Retrieve::GetPlayerName(e) => {
+            // Safety: No reference is leaked out the function so it is safe.
+            let world = unsafe {
+                ecs.get().ok_or(RetrieveError::EcsAccessError(
+                    EcsAccessError::EcsPointerNotAvailable,
+                ))?
+            };
+            let player = world
+                .read_resource::<UidAllocator>()
+                .retrieve_entity_internal(e.0)
+                .ok_or(RetrieveError::EcsAccessError(
+                    EcsAccessError::EcsEntityNotFound(e),
+                ))?;
+            Ok(RetrieveResult::GetPlayerName(
+                world
+                    .read_component::<Player>()
+                    .get(player)
+                    .ok_or_else(|| {
+                        RetrieveError::EcsAccessError(EcsAccessError::EcsComponentNotFound(
+                            e,
+                            "Player".to_owned(),
+                        ))
+                    })?
+                    .alias
+                    .to_owned(),
+            ))
+        },
+        Retrieve::GetEntityHealth(e) => {
+            // Safety: No reference is leaked out the function so it is safe.
+            let world = unsafe {
+                ecs.get().ok_or(RetrieveError::EcsAccessError(
+                    EcsAccessError::EcsPointerNotAvailable,
+                ))?
+            };
+            let player = world
+                .read_resource::<UidAllocator>()
+                .retrieve_entity_internal(e.0)
+                .ok_or(RetrieveError::EcsAccessError(
+                    EcsAccessError::EcsEntityNotFound(e),
+                ))?;
+            Ok(RetrieveResult::GetEntityHealth(
+                *world
+                    .read_component::<Health>()
+                    .get(player)
+                    .ok_or_else(|| {
+                        RetrieveError::EcsAccessError(EcsAccessError::EcsComponentNotFound(
+                            e,
+                            "Health".to_owned(),
+                        ))
+                    })?,
+            ))
+        },
     }
-    let pointer = instance
-        .exports
-        .get_function("wasm_prepare_buffer")
-        .map_err(MemoryAllocationError::AllocatorNotFound)?
-        .call(&[Value::I32(size as i32)])
-        .map_err(MemoryAllocationError::CantAllocate)?;
-    context.memory_buffer_size = size;
-    context.memory_pointer = pointer[0].i32().unwrap();
-    Ok(context.memory_pointer)
 }
 
 fn handle_actions(actions: Vec<Action>) {
