@@ -1,5 +1,6 @@
 use crate::{
     comp::{humanoid, quadruped_low, quadruped_medium, quadruped_small, Body},
+    path::Chaser,
     rtsim::RtSimController,
     uid::Uid,
 };
@@ -186,8 +187,8 @@ pub struct Target {
 pub struct Agent {
     pub rtsim_controller: RtSimController,
     pub patrol_origin: Option<Vec3<f32>>,
-    pub activity: Activity,
     pub target: Option<Target>,
+    pub chaser: Chaser,
     /// Does the agent talk when e.g. hit by the player
     // TODO move speech patterns into a Behavior component
     pub can_speak: bool,
@@ -224,20 +225,4 @@ impl Agent {
 
 impl Component for Agent {
     type Storage = IdvStorage<Self>;
-}
-
-#[derive(Clone, Debug)]
-pub enum Activity {
-    Idle,
-    IdleTree,
-    Interact,
-    Flee,
-    Follow,
-    HostileTree,
-    Attack,
-    ChooseTarget,
-}
-
-impl Default for Activity {
-    fn default() -> Self { Self::IdleTree }
 }
