@@ -16,7 +16,7 @@ use common::{
         },
         item::{
             armor::{Armor, ArmorKind},
-            ItemKind,
+            Item, ItemKind,
         },
         CharacterState,
     },
@@ -68,12 +68,18 @@ pub struct FigureKey<Body> {
     pub(super) extra: Option<Arc<CharacterCacheKey>>,
 }
 
+#[derive(Eq, Hash, PartialEq)]
+pub(super) struct ToolKey {
+    pub name: String,
+    pub components: Vec<String>,
+}
+
 /// Character data that should be visible when tools are visible (i.e. in third
 /// person or when the character is in a tool-using state).
 #[derive(Eq, Hash, PartialEq)]
 pub(super) struct CharacterToolKey {
-    pub active: Option<String>,
-    pub second: Option<String>,
+    pub active: Option<ToolKey>,
+    pub second: Option<ToolKey>,
 }
 
 /// Character data that exists in third person only.
@@ -192,13 +198,21 @@ impl CharacterCacheKey {
                 })
             },
             tool: if are_tools_visible {
+                let tool_key_from_item = |item: &Item| ToolKey {
+                    name: item.item_definition_id().to_owned(),
+                    components: item
+                        .components()
+                        .iter()
+                        .map(|comp| comp.item_definition_id().to_owned())
+                        .collect(),
+                };
                 Some(CharacterToolKey {
                     active: inventory
                         .equipped(EquipSlot::Mainhand)
-                        .map(|i| i.item_definition_id().to_owned()),
+                        .map(tool_key_from_item),
                     second: inventory
                         .equipped(EquipSlot::Offhand)
-                        .map(|i| i.item_definition_id().to_owned()),
+                        .map(tool_key_from_item),
                 })
             } else {
                 None

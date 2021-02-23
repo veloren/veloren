@@ -1845,4 +1845,12 @@
         "voxel.sprite.gem.diamondgem",
         (0.0, 0.0, 0.0), (-55.0, 30.0, 20.0), 0.6,
     ),
+    ModularComponent("common.items.crafting_ing.modular.damage.sword.tier5"): VoxTrans(
+        "voxel.weapon_components.sword.cultist.cultist_purp_2h-0_blade",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    ),
+    ModularComponent("common.items.crafting_ing.modular.held.sword.tier5"): VoxTrans(
+        "voxel.weapon_components.sword.cultist.cultist_purp_2h-0_handle",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    ),
 })
