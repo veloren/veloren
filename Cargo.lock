@@ -5637,6 +5637,7 @@ dependencies = [
  "indexmap",
  "rand 0.8.3",
  "rayon",
+ "scopeguard",
  "serde",
  "slab",
  "specs",

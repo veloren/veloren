@@ -23,12 +23,14 @@ impl EcsAccessManager {
     // This function take a World reference and a function to execute ensuring the
     // pointer will never be corrupted during the execution of the function!
     pub fn execute_with<T>(&self, world: &World, func: impl FnOnce() -> T) -> T {
+        let _guard = scopeguard::guard((), |_| {
+            // ensure the pointer is cleared in any case
+            self.ecs_pointer
+                .store(std::ptr::null_mut(), Ordering::Relaxed);
+        });
         self.ecs_pointer
             .store(world as *const _ as *mut _, Ordering::Relaxed);
-        let out = func();
-        self.ecs_pointer
-            .store(std::ptr::null_mut(), Ordering::Relaxed);
-        out
+        func()
     }
 
     /// This unsafe function returns a reference to the Ecs World
