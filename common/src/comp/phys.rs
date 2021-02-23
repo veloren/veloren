@@ -25,11 +25,12 @@ impl Component for Vel {
 /// no need to send it via network
 #[derive(Copy, Clone, Default, Debug, PartialEq)]
 pub struct PreviousPhysCache {
-    pub velocity: Vec3<f32>,
-    pub middle: Vec3<f32>,
-    ///calculates a Sphere over the Entity for quick boundry checking
-    pub radius: f32,
+    pub velocity_dt: Vec3<f32>,
+    pub center: Vec3<f32>,
+    /// Calculates a Sphere over the Entity for quick boundary checking
+    pub collision_boundary: f32,
     pub scale: f32,
+    pub scaled_radius: f32,
 }
 
 impl Component for PreviousPhysCache {

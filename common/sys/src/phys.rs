@@ -46,8 +46,23 @@ fn integrate_forces(dt: f32, mut lv: Vec3<f32>, grav: f32, damp: f32) -> Vec3<f3
     lv * linear_damp
 }
 
+fn calc_z_limit(
+    char_state_maybe: Option<&CharacterState>,
+    collider: Option<&Collider>,
+) -> (f32, f32) {
+    let modifier = if char_state_maybe.map_or(false, |c_s| c_s.is_dodge()) {
+        0.5
+    } else {
+        1.0
+    };
+    collider
+        .map(|c| c.get_z_limits(modifier))
+        .unwrap_or((-0.5 * modifier, 0.5 * modifier))
+}
+
 /// This system applies forces and calculates new positions and velocities.
 pub struct Sys;
+
 impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
@@ -154,37 +169,48 @@ impl<'a> System<'a> for Sys {
             .collect::<Vec<_>>()
         {
             let _ = previous_phys_cache.insert(entity, PreviousPhysCache {
-                velocity: Vec3::zero(),
-                middle: Vec3::zero(),
-                radius: 0.0,
+                velocity_dt: Vec3::zero(),
+                center: Vec3::zero(),
+                collision_boundary: 0.0,
                 scale: 0.0,
+                scaled_radius: 0.0,
             });
         }
 
         //Update PreviousPhysCache
-        for (_, vel, position, mut phys_cache, collider, scale, _, _, _) in (
+        for (_, vel, position, mut phys_cache, collider, scale, cs, _, _, _) in (
             &entities,
             &velocities,
             &positions,
             &mut previous_phys_cache,
             colliders.maybe(),
             scales.maybe(),
+            char_states.maybe(),
             !&mountings,
             !&beams,
             !&shockwaves,
         )
             .join()
         {
-            phys_cache.velocity = vel.0 * dt.0;
-            phys_cache.middle = position.0;
+            let scale = scale.map(|s| s.0).unwrap_or(1.0);
+            let z_limits = calc_z_limit(cs, collider);
+            let z_limits = (z_limits.0 * scale, z_limits.1 * scale);
+            let half_height = (z_limits.1 - z_limits.0) / 2.0;
 
-            let scale_find = scale.map(|s| s.0).unwrap_or(1.0);
-            let radius_find = collider.map(|c| c.get_radius()).unwrap_or(0.5);
+            phys_cache.velocity_dt = vel.0 * dt.0;
+            let entity_center = position.0 + Vec3::new(0.0, z_limits.0 + half_height, 0.0);
+            let flat_radius = collider.map(|c| c.get_radius()).unwrap_or(0.5) * scale;
+            let radius = (flat_radius.powi(2) + half_height.powi(2)).sqrt();
 
-            phys_cache.radius = radius_find * scale_find;
-            phys_cache.scale = scale_find;
+            // Move center to the middle between OLD and OLD+VEL_DT so that we can reduce
+            // the collision_boundary
+            phys_cache.center = entity_center + phys_cache.velocity_dt / 2.0;
+            phys_cache.collision_boundary = radius + (phys_cache.velocity_dt / 2.0).magnitude();
+            phys_cache.scale = scale;
+            phys_cache.scaled_radius = flat_radius;
         }
         drop(guard);
+
         span!(guard, "Apply pushback");
         let metrics = (
             &entities,
@@ -220,14 +246,7 @@ impl<'a> System<'a> for Sys {
                     projectile,
                     char_state_maybe,
                 )| {
-                    let modifier = if char_state_maybe.map_or(false, |c_s| c_s.is_dodge()) {
-                        0.5
-                    } else {
-                        1.0
-                    };
-                    let z_limits = collider
-                        .map(|c| c.get_z_limits(modifier))
-                        .unwrap_or((-0.5 * modifier, 0.5 * modifier));
+                    let z_limits = calc_z_limit(char_state_maybe, collider);
                     let mass = mass.map(|m| m.0).unwrap_or(previous_cache.scale);
 
                     // Resets touch_entities in physics
@@ -264,26 +283,21 @@ impl<'a> System<'a> for Sys {
                     )
                         .join()
                     {
-                        let collision_dist = previous_cache.radius + previous_cache_other.radius;
+                        let collision_boundary = previous_cache.collision_boundary
+                            + previous_cache_other.collision_boundary;
                         if previous_cache
-                            .middle
-                            .distance_squared(previous_cache_other.middle)
-                            > collision_dist.powi(2)
+                            .center
+                            .distance_squared(previous_cache_other.center)
+                            > collision_boundary.powi(2)
                             || entity == entity_other
                         {
                             continue;
                         }
 
-                        let modifier_other =
-                            if char_state_other_maybe.map_or(false, |c_s| c_s.is_dodge()) {
-                                0.5
-                            } else {
-                                1.0
-                            };
+                        let collision_dist =
+                            previous_cache.scaled_radius + previous_cache_other.scaled_radius;
+                        let z_limits_other = calc_z_limit(char_state_other_maybe, collider_other);
 
-                        let z_limits_other = collider_other
-                            .map(|c| c.get_z_limits(modifier_other))
-                            .unwrap_or((-0.5 * modifier_other, 0.5 * modifier_other));
                         let mass_other = mass_other
                             .map(|m| m.0)
                             .unwrap_or(previous_cache_other.scale);
@@ -296,7 +310,8 @@ impl<'a> System<'a> for Sys {
                         metrics.entity_entity_collision_checks += 1;
 
                         const MIN_COLLISION_DIST: f32 = 0.3;
-                        let increments = ((previous_cache.velocity - previous_cache_other.velocity)
+                        let increments = ((previous_cache.velocity_dt
+                            - previous_cache_other.velocity_dt)
                             .magnitude()
                             / MIN_COLLISION_DIST)
                             .max(1.0)
@@ -306,8 +321,8 @@ impl<'a> System<'a> for Sys {
 
                         for i in 0..increments {
                             let factor = i as f32 * step_delta;
-                            let pos = pos.0 + previous_cache.velocity * factor;
-                            let pos_other = pos_other.0 + previous_cache_other.velocity * factor;
+                            let pos = pos.0 + previous_cache.velocity_dt * factor;
+                            let pos_other = pos_other.0 + previous_cache_other.velocity_dt * factor;
 
                             let diff = pos.xy() - pos_other.xy();
 
