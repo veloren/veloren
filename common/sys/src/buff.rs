@@ -7,33 +7,37 @@ use common::{
     resources::DeltaTime,
     Damage, DamageSource,
 };
-use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
+use specs::{
+    shred::ResourceId, Entities, Join, Read, ReadStorage, System, SystemData, World, WriteStorage,
+};
 use std::time::Duration;
+
+#[derive(SystemData)]
+pub struct ReadData<'a> {
+    entities: Entities<'a>,
+    dt: Read<'a, DeltaTime>,
+    server_bus: Read<'a, EventBus<ServerEvent>>,
+    inventories: ReadStorage<'a, Inventory>,
+}
 
 pub struct Sys;
 impl<'a> System<'a> for Sys {
-    #[allow(clippy::type_complexity)]
     type SystemData = (
-        Entities<'a>,
-        Read<'a, DeltaTime>,
-        Read<'a, EventBus<ServerEvent>>,
-        ReadStorage<'a, Inventory>,
+        ReadData<'a>,
         WriteStorage<'a, Health>,
         WriteStorage<'a, Energy>,
         WriteStorage<'a, Buffs>,
     );
 
-    fn run(
-        &mut self,
-        (entities, dt, server_bus, inventories, mut healths, mut energies, mut buffs): Self::SystemData,
-    ) {
-        let mut server_emitter = server_bus.emitter();
+    fn run(&mut self, (read_data, mut healths, mut energies, mut buffs): Self::SystemData) {
+        let mut server_emitter = read_data.server_bus.emitter();
+        let dt = read_data.dt.0;
         // Set to false to avoid spamming server
         buffs.set_event_emission(false);
         healths.set_event_emission(false);
         energies.set_event_emission(false);
         for (entity, mut buff_comp, mut health, mut energy) in
-            (&entities, &mut buffs, &mut healths, &mut energies).join()
+            (&read_data.entities, &mut buffs, &mut healths, &mut energies).join()
         {
             let (buff_comp_kinds, buff_comp_buffs) = buff_comp.parts();
             let mut expired_buffs = Vec::<BuffId>::new();
@@ -45,19 +49,19 @@ impl<'a> System<'a> for Sys {
                     if let Some((Some(buff), id)) =
                         ids.get(0).map(|id| (buff_comp_buffs.get_mut(id), id))
                     {
-                        tick_buff(*id, buff, dt.0, |id| expired_buffs.push(id));
+                        tick_buff(*id, buff, dt, |id| expired_buffs.push(id));
                     }
                 } else {
                     for (id, buff) in buff_comp_buffs
                         .iter_mut()
                         .filter(|(i, _)| ids.iter().any(|id| id == *i))
                     {
-                        tick_buff(*id, buff, dt.0, |id| expired_buffs.push(id));
+                        tick_buff(*id, buff, dt, |id| expired_buffs.push(id));
                     }
                 }
             }
 
-            if let Some(inventory) = inventories.get(entity) {
+            if let Some(inventory) = read_data.inventories.get(entity) {
                 let damage_reduction = Damage::compute_damage_reduction(inventory);
                 if (damage_reduction - 1.0).abs() < f32::EPSILON {
                     for (id, buff) in buff_comp.buffs.iter() {
@@ -94,7 +98,7 @@ impl<'a> System<'a> for Sys {
                                 accumulated,
                                 kind,
                             } => {
-                                *accumulated += *rate * dt.0;
+                                *accumulated += *rate * dt;
                                 // Apply damage only once a second (with a minimum of 1 damage), or
                                 // when a buff is removed
                                 if accumulated.abs() > rate.abs().max(10.0)

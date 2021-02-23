@@ -1,80 +1,62 @@
 use common::{
     combat::AttackerInfo,
     comp::{
-        group, Body, Energy, Health, HealthSource, Inventory, Last, Ori, PhysicsState, Pos, Scale,
+        Body, Energy, Group, Health, HealthSource, Inventory, Last, Ori, PhysicsState, Pos, Scale,
         Shockwave, ShockwaveHitEntities,
     },
-    event::{EventBus, LocalEvent, ServerEvent},
+    event::{EventBus, ServerEvent},
     resources::{DeltaTime, Time},
     uid::{Uid, UidAllocator},
     util::Dir,
     GroupTarget,
 };
-use specs::{saveload::MarkerAllocator, Entities, Join, Read, ReadStorage, System, WriteStorage};
+use specs::{
+    saveload::MarkerAllocator, shred::ResourceId, Entities, Join, Read, ReadStorage, System,
+    SystemData, World, WriteStorage,
+};
 use vek::*;
+
+#[derive(SystemData)]
+pub struct ReadData<'a> {
+    entities: Entities<'a>,
+    server_bus: Read<'a, EventBus<ServerEvent>>,
+    time: Read<'a, Time>,
+    dt: Read<'a, DeltaTime>,
+    uid_allocator: Read<'a, UidAllocator>,
+    uids: ReadStorage<'a, Uid>,
+    positions: ReadStorage<'a, Pos>,
+    last_positions: ReadStorage<'a, Last<Pos>>,
+    orientations: ReadStorage<'a, Ori>,
+    scales: ReadStorage<'a, Scale>,
+    bodies: ReadStorage<'a, Body>,
+    healths: ReadStorage<'a, Health>,
+    inventories: ReadStorage<'a, Inventory>,
+    groups: ReadStorage<'a, Group>,
+    physics_states: ReadStorage<'a, PhysicsState>,
+    energies: ReadStorage<'a, Energy>,
+}
 
 /// This system is responsible for handling accepted inputs like moving or
 /// attacking
 pub struct Sys;
 impl<'a> System<'a> for Sys {
-    #[allow(clippy::type_complexity)]
     type SystemData = (
-        Entities<'a>,
-        Read<'a, EventBus<ServerEvent>>,
-        Read<'a, EventBus<LocalEvent>>,
-        Read<'a, Time>,
-        Read<'a, DeltaTime>,
-        Read<'a, UidAllocator>,
-        ReadStorage<'a, Uid>,
-        ReadStorage<'a, Pos>,
-        ReadStorage<'a, Last<Pos>>,
-        ReadStorage<'a, Ori>,
-        ReadStorage<'a, Scale>,
-        ReadStorage<'a, Body>,
-        ReadStorage<'a, Health>,
-        ReadStorage<'a, Inventory>,
-        ReadStorage<'a, group::Group>,
-        ReadStorage<'a, PhysicsState>,
+        ReadData<'a>,
         WriteStorage<'a, Shockwave>,
         WriteStorage<'a, ShockwaveHitEntities>,
-        ReadStorage<'a, Energy>,
     );
 
-    fn run(
-        &mut self,
-        (
-            entities,
-            server_bus,
-            local_bus,
-            time,
-            dt,
-            uid_allocator,
-            uids,
-            positions,
-            last_positions,
-            orientations,
-            scales,
-            bodies,
-            healths,
-            inventories,
-            groups,
-            physics_states,
-            mut shockwaves,
-            mut shockwave_hit_lists,
-            energies,
-        ): Self::SystemData,
-    ) {
-        let mut server_emitter = server_bus.emitter();
-        let _local_emitter = local_bus.emitter();
+    fn run(&mut self, (read_data, mut shockwaves, mut shockwave_hit_lists): Self::SystemData) {
+        let mut server_emitter = read_data.server_bus.emitter();
 
-        let time = time.0;
-        let dt = dt.0;
+        let time = read_data.time.0;
+        let dt = read_data.dt.0;
 
         // Shockwaves
         for (entity, pos, ori, shockwave, shockwave_hit_list) in (
-            &entities,
-            &positions,
-            &orientations,
+            &read_data.entities,
+            &read_data.positions,
+            &read_data.orientations,
             &shockwaves,
             &mut shockwave_hit_lists,
         )
@@ -119,32 +101,20 @@ impl<'a> System<'a> for Sys {
 
             let shockwave_owner = shockwave
                 .owner
-                .and_then(|uid| uid_allocator.retrieve_entity_internal(uid.into()));
+                .and_then(|uid| read_data.uid_allocator.retrieve_entity_internal(uid.into()));
 
             // Group to ignore collisions with
             // Might make this more nuanced if shockwaves are used for non damage effects
-            let group = shockwave_owner.and_then(|e| groups.get(e));
+            let group = shockwave_owner.and_then(|e| read_data.groups.get(e));
 
             // Go through all other effectable entities
-            for (
-                b,
-                uid_b,
-                pos_b,
-                last_pos_b_maybe,
-                scale_b_maybe,
-                health_b,
-                body_b,
-                physics_state_b,
-            ) in (
-                &entities,
-                &uids,
-                &positions,
-                // TODO: make sure that these are maintained on the client and remove `.maybe()`
-                last_positions.maybe(),
-                scales.maybe(),
-                &healths,
-                &bodies,
-                &physics_states,
+            for (target, uid_b, pos_b, health_b, body_b, physics_state_b) in (
+                &read_data.entities,
+                &read_data.uids,
+                &read_data.positions,
+                &read_data.healths,
+                &read_data.bodies,
+                &read_data.physics_states,
             )
                 .join()
             {
@@ -159,10 +129,10 @@ impl<'a> System<'a> for Sys {
 
                 // 2D versions
                 let pos_b2 = pos_b.0.xy();
-                let last_pos_b2_maybe = last_pos_b_maybe.map(|p| (p.0).0.xy());
+                let last_pos_b2_maybe = read_data.last_positions.get(target).map(|p| (p.0).0.xy());
 
                 // Scales
-                let scale_b = scale_b_maybe.map_or(1.0, |s| s.0);
+                let scale_b = read_data.scales.get(target).map_or(1.0, |s| s.0);
                 let rad_b = body_b.radius() * scale_b;
 
                 // Angle checks
@@ -171,7 +141,7 @@ impl<'a> System<'a> for Sys {
 
                 // See if entities are in the same group
                 let same_group = group
-                    .map(|group_a| Some(group_a) == groups.get(b))
+                    .map(|group_a| Some(group_a) == read_data.groups.get(target))
                     .unwrap_or(Some(*uid_b) == shockwave.owner);
 
                 let target_group = if same_group {
@@ -181,7 +151,7 @@ impl<'a> System<'a> for Sys {
                 };
 
                 // Check if it is a hit
-                let hit = entity != b
+                let hit = entity != target
                     && !health_b.is_dead
                     // Collision shapes
                     && {
@@ -203,14 +173,14 @@ impl<'a> System<'a> for Sys {
                             .map(|(entity, uid)| AttackerInfo {
                                 entity,
                                 uid,
-                                energy: energies.get(entity),
+                                energy: read_data.energies.get(entity),
                             });
 
                     shockwave.properties.attack.apply_attack(
                         target_group,
                         attacker_info,
-                        b,
-                        inventories.get(b),
+                        target,
+                        read_data.inventories.get(target),
                         dir,
                         false,
                         1.0,

@@ -1,53 +1,36 @@
 use common::{
     comp::{BuffChange, ControlEvent, Controller},
-    event::{EventBus, LocalEvent, ServerEvent},
+    event::{EventBus, ServerEvent},
     metrics::SysMetrics,
-    resources::DeltaTime,
     span,
-    uid::{Uid, UidAllocator},
+    uid::UidAllocator,
 };
 use specs::{
     saveload::{Marker, MarkerAllocator},
-    Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage,
+    shred::ResourceId,
+    Entities, Join, Read, ReadExpect, System, SystemData, World, WriteStorage,
 };
 use vek::*;
 
-// const CHARGE_COST: i32 = 200;
-// const ROLL_COST: i32 = 30;
+#[derive(SystemData)]
+pub struct ReadData<'a> {
+    entities: Entities<'a>,
+    uid_allocator: Read<'a, UidAllocator>,
+    server_bus: Read<'a, EventBus<ServerEvent>>,
+    metrics: ReadExpect<'a, SysMetrics>,
+}
 
 pub struct Sys;
 
 impl<'a> System<'a> for Sys {
-    #[allow(clippy::type_complexity)]
-    type SystemData = (
-        Entities<'a>,
-        Read<'a, UidAllocator>,
-        Read<'a, EventBus<ServerEvent>>,
-        Read<'a, EventBus<LocalEvent>>,
-        Read<'a, DeltaTime>,
-        ReadExpect<'a, SysMetrics>,
-        WriteStorage<'a, Controller>,
-        ReadStorage<'a, Uid>,
-    );
+    type SystemData = (ReadData<'a>, WriteStorage<'a, Controller>);
 
-    fn run(
-        &mut self,
-        (
-            entities,
-            uid_allocator,
-            server_bus,
-            _local_bus,
-            _dt,
-            sys_metrics,
-            mut controllers,
-            uids,
-        ): Self::SystemData,
-    ) {
+    fn run(&mut self, (read_data, mut controllers): Self::SystemData) {
         let start_time = std::time::Instant::now();
         span!(_guard, "run", "controller::Sys::run");
-        let mut server_emitter = server_bus.emitter();
+        let mut server_emitter = read_data.server_bus.emitter();
 
-        for (entity, _uid, controller) in (&entities, &uids, &mut controllers).join() {
+        for (entity, controller) in (&read_data.entities, &mut controllers).join() {
             let mut inputs = &mut controller.inputs;
 
             // Note(imbris): I avoided incrementing the duration with inputs.tick() because
@@ -72,8 +55,9 @@ impl<'a> System<'a> for Sys {
             for event in controller.events.drain(..) {
                 match event {
                     ControlEvent::Mount(mountee_uid) => {
-                        if let Some(mountee_entity) =
-                            uid_allocator.retrieve_entity_internal(mountee_uid.id())
+                        if let Some(mountee_entity) = read_data
+                            .uid_allocator
+                            .retrieve_entity_internal(mountee_uid.id())
                         {
                             server_emitter.emit(ServerEvent::Mount(entity, mountee_entity));
                         }
@@ -92,8 +76,9 @@ impl<'a> System<'a> for Sys {
                         server_emitter.emit(ServerEvent::DisableLantern(entity))
                     },
                     ControlEvent::Interact(npc_uid) => {
-                        if let Some(npc_entity) =
-                            uid_allocator.retrieve_entity_internal(npc_uid.id())
+                        if let Some(npc_entity) = read_data
+                            .uid_allocator
+                            .retrieve_entity_internal(npc_uid.id())
                         {
                             server_emitter.emit(ServerEvent::NpcInteract(entity, npc_entity));
                         }
@@ -118,7 +103,7 @@ impl<'a> System<'a> for Sys {
                 }
             }
         }
-        sys_metrics.controller_ns.store(
+        read_data.metrics.controller_ns.store(
             start_time.elapsed().as_nanos() as u64,
             std::sync::atomic::Ordering::Relaxed,
         );

@@ -9,53 +9,46 @@ use common::{
     resources::DeltaTime,
     uid::UidAllocator,
 };
-use specs::{saveload::MarkerAllocator, Entities, Join, Read, ReadStorage, System, WriteStorage};
+use specs::{
+    saveload::MarkerAllocator, shred::ResourceId, Entities, Join, Read, ReadStorage, System,
+    SystemData, World, WriteStorage,
+};
 use std::time::Duration;
+
+#[derive(SystemData)]
+pub struct ReadData<'a> {
+    entities: Entities<'a>,
+    dt: Read<'a, DeltaTime>,
+    server_bus: Read<'a, EventBus<ServerEvent>>,
+    uid_allocator: Read<'a, UidAllocator>,
+    positions: ReadStorage<'a, Pos>,
+    char_states: ReadStorage<'a, CharacterState>,
+    healths: ReadStorage<'a, Health>,
+    groups: ReadStorage<'a, Group>,
+    buffs: ReadStorage<'a, Buffs>,
+}
 
 pub struct Sys;
 impl<'a> System<'a> for Sys {
-    #[allow(clippy::type_complexity)]
-    type SystemData = (
-        Entities<'a>,
-        Read<'a, DeltaTime>,
-        ReadStorage<'a, Pos>,
-        Read<'a, EventBus<ServerEvent>>,
-        ReadStorage<'a, CharacterState>,
-        WriteStorage<'a, Auras>,
-        WriteStorage<'a, Buffs>,
-        ReadStorage<'a, Health>,
-        ReadStorage<'a, Group>,
-        Read<'a, UidAllocator>,
-    );
+    type SystemData = (ReadData<'a>, WriteStorage<'a, Auras>);
 
-    fn run(
-        &mut self,
-        (
-            entities,
-            dt,
-            positions,
-            server_bus,
-            character_states,
-            mut auras,
-            mut buffs,
-            health,
-            groups,
-            uid_allocator,
-        ): Self::SystemData,
-    ) {
-        let mut server_emitter = server_bus.emitter();
+    fn run(&mut self, (read_data, mut auras): Self::SystemData) {
+        let mut server_emitter = read_data.server_bus.emitter();
+        let dt = read_data.dt.0;
 
         auras.set_event_emission(false);
 
         // Iterate through all entities with an aura
-        for (entity, pos, mut auras_comp) in (&entities, &positions, &mut auras).join() {
+        for (entity, pos, mut auras_comp) in
+            (&read_data.entities, &read_data.positions, &mut auras).join()
+        {
             let mut expired_auras = Vec::<AuraKey>::new();
             // Iterate through the auras attached to this entity
             for (key, aura) in auras_comp.auras.iter_mut() {
                 // Tick the aura and subtract dt from it
                 if let Some(remaining_time) = &mut aura.duration {
                     if let Some(new_duration) =
-                        remaining_time.checked_sub(Duration::from_secs_f32(dt.0))
+                        remaining_time.checked_sub(Duration::from_secs_f32(dt))
                     {
                         *remaining_time = new_duration;
                     } else {
@@ -63,29 +56,23 @@ impl<'a> System<'a> for Sys {
                         expired_auras.push(key);
                     }
                 }
-                for (
-                    target_entity,
-                    target_pos,
-                    target_character_state_maybe,
-                    target_buffs,
-                    health,
-                ) in (
-                    &entities,
-                    &positions,
-                    character_states.maybe(),
-                    &mut buffs,
-                    &health,
+                for (target, target_pos, target_buffs, health) in (
+                    &read_data.entities,
+                    &read_data.positions,
+                    &read_data.buffs,
+                    &read_data.healths,
                 )
                     .join()
                 {
                     // Ensure entity is within the aura radius
                     if target_pos.0.distance_squared(pos.0) < aura.radius.powi(2) {
                         if let AuraTarget::GroupOf(uid) = aura.target {
-                            let same_group = uid_allocator
+                            let same_group = read_data
+                                .uid_allocator
                                 .retrieve_entity_internal(uid.into())
-                                .and_then(|e| groups.get(e))
+                                .and_then(|e| read_data.groups.get(e))
                                 .map_or(false, |owner_group| {
-                                    Some(owner_group) == groups.get(target_entity)
+                                    Some(owner_group) == read_data.groups.get(target)
                                 });
 
                             if !same_group {
@@ -112,7 +99,7 @@ impl<'a> System<'a> for Sys {
                                     let apply_buff = match kind {
                                         BuffKind::CampfireHeal => {
                                             matches!(
-                                                target_character_state_maybe,
+                                                read_data.char_states.get(target),
                                                 Some(CharacterState::Sit)
                                             ) && health.current() < health.maximum()
                                         },
@@ -122,7 +109,7 @@ impl<'a> System<'a> for Sys {
                                     if apply_buff {
                                         use buff::*;
                                         server_emitter.emit(ServerEvent::Buff {
-                                            entity: target_entity,
+                                            entity: target,
                                             buff_change: BuffChange::Add(Buff::new(
                                                 kind,
                                                 data,
