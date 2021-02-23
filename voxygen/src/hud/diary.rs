@@ -1367,9 +1367,9 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    &self.localized_strings.get("hud.skill.sw_spin_dmg_title"),
+                    &self.localized_strings.get("hud.skill.sw_spin_spd_title"),
                     &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.sw_spin_dmg"),
+                        &self.localized_strings.get("hud.skill.sw_spin_spd"),
                         skill,
                         &self.stats.skill_set,
                         &self.localized_strings,
