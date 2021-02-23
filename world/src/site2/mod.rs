@@ -3,19 +3,21 @@ mod tile;
 
 use self::{
     plot::{Plot, PlotKind},
-    tile::{TileGrid, Tile, TileKind, TILE_SIZE},
+    tile::{TileGrid, Tile, TileKind, HazardKind, TILE_SIZE},
 };
 use crate::{
     site::SpawnRules,
-    util::{Grid, attempt, CARDINALS, SQUARE_9},
+    util::{Grid, attempt, CARDINALS, SQUARE_4, SQUARE_9},
     Canvas,
     Land,
 };
 use common::{
-    terrain::{Block, BlockKind, SpriteKind},
+    terrain::{Block, BlockKind, SpriteKind, TerrainChunkSize},
+    vol::RectVolSize,
     store::{Id, Store},
     astar::Astar,
     lottery::Lottery,
+    spiral::Spiral2d,
 };
 use hashbrown::hash_map::DefaultHashBuilder;
 use rand::prelude::*;
@@ -33,7 +35,8 @@ pub struct Site {
 
 impl Site {
     pub fn radius(&self) -> f32 {
-        (tile::MAX_BLOCK_RADIUS.pow(2) as f32 * 2.0).sqrt()
+        ((self.tiles.bounds.min.map(|e| e.abs()).reduce_max()
+            .max(self.tiles.bounds.max.map(|e| e.abs()).reduce_max()) + 1) * tile::TILE_SIZE as i32) as f32
     }
 
     pub fn spawn_rules(&self, wpos: Vec2<i32>) -> SpawnRules {
@@ -46,10 +49,10 @@ impl Site {
     }
 
     pub fn bounds(&self) -> Aabr<i32> {
-        let radius = tile::MAX_BLOCK_RADIUS;
+        let border = 1;
         Aabr {
-            min: -Vec2::broadcast(radius as i32),
-            max: Vec2::broadcast(radius as i32),
+            min: self.origin + self.tile_wpos(self.tiles.bounds.min - border),
+            max: self.origin + self.tile_wpos(self.tiles.bounds.max + 1 + border),
         }
     }
 
@@ -73,7 +76,7 @@ impl Site {
             for y in 0..w {
                 for x in 0..w {
                     if self.tiles.get(*tile + Vec2::new(x, y)).is_obstacle() {
-                        return 100.0;
+                        return 1000.0;
                     }
                 }
             }
@@ -145,6 +148,7 @@ impl Site {
             self.plazas
                 .choose(rng)
                 .map(|&p| self.plot(p).root_tile + (Vec2::new(rng.gen_range(-1.0..1.0), rng.gen_range(-1.0..1.0)).normalized() * 24.0).map(|e| e as i32))
+                .filter(|tile| !self.tiles.get(*tile).is_obstacle())
                 .filter(|&tile| self
                     .plazas
                     .iter()
@@ -185,11 +189,28 @@ impl Site {
         plaza
     }
 
+    pub fn demarcate_obstacles(&mut self, land: &Land) {
+        const SEARCH_RADIUS: u32 = 96;
+
+        Spiral2d::new()
+            .take((SEARCH_RADIUS * 2 + 1).pow(2) as usize)
+            .for_each(|tile| {
+                if let Some(kind) = wpos_is_hazard(land, self.tile_wpos(tile)) {
+                    for &rpos in &SQUARE_4 {
+                        // `get_mut` doesn't increase generation bounds
+                        self.tiles.get_mut(tile - rpos - 1).map(|tile| tile.kind = TileKind::Hazard(kind));
+                    }
+                }
+            });
+    }
+
     pub fn generate(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
         let mut site = Site {
             origin,
             ..Site::default()
         };
+
+        site.demarcate_obstacles(land);
 
         site.make_plaza(land, rng);
 
@@ -197,7 +218,8 @@ impl Site {
             (1.0, 0),
             (48.0, 1),
             (5.0, 2),
-            (1.0, 3),
+            (20.0, 3),
+            (1.0, 4),
         ]);
 
         let mut castles = 0;
@@ -247,6 +269,38 @@ impl Site {
                         });
                     }
                 },
+                // Field
+                3 => {
+                    attempt(10, || {
+                        let search_pos = attempt(16, || {
+                            let tile = (Vec2::new(
+                                rng.gen_range(-1.0..1.0),
+                                rng.gen_range(-1.0..1.0),
+                            ).normalized() * rng.gen_range(32.0..48.0)).map(|e| e as i32);
+
+                            if site
+                                .plazas
+                                .iter()
+                                .all(|&p| site.plot(p).root_tile.distance_squared(tile) > 20i32.pow(2))
+                                && rng.gen_range(0..48) > tile.map(|e| e.abs()).reduce_max()
+                            {
+                                Some(tile)
+                            } else {
+                                None
+                            }
+                        })
+                            .unwrap_or_else(Vec2::zero);
+                        site.tiles.find_near(
+                            search_pos,
+                            |center, _| site.tiles.grow_aabr(center, 9..25, Extent2::new(3, 3)).ok())
+                    })
+                    .map(|(aabr, _)| {
+                        site.blit_aabr(aabr, Tile {
+                            kind: TileKind::Field,
+                            plot: None,
+                        });
+                    });
+                },
                 // Castle
                 _ if castles < 1 => {
                     if let Some((aabr, _)) = attempt(10, || site.find_roadside_aabr(rng, 16 * 16..18 * 18, Extent2::new(16, 16))) {
@@ -295,63 +349,152 @@ impl Site {
         site
     }
 
+    pub fn wpos_tile_pos(&self, wpos2d: Vec2<i32>) -> Vec2<i32> {
+        (wpos2d - self.origin).map(|e| e.div_euclid(TILE_SIZE as i32))
+    }
+
     pub fn wpos_tile(&self, wpos2d: Vec2<i32>) -> &Tile {
-        self.tiles.get((wpos2d - self.origin).map(|e| e.div_euclid(TILE_SIZE as i32)))
+        self.tiles.get(self.wpos_tile_pos(wpos2d))
+    }
+
+    pub fn tile_wpos(&self, tile: Vec2<i32>) -> Vec2<i32> {
+        self.origin + tile * tile::TILE_SIZE as i32
     }
 
     pub fn tile_center_wpos(&self, tile: Vec2<i32>) -> Vec2<i32> {
         self.origin + tile * tile::TILE_SIZE as i32 + tile::TILE_SIZE as i32 / 2
     }
 
+    pub fn render_tile(&self, canvas: &mut Canvas, dynamic_rng: &mut impl Rng, tpos: Vec2<i32>) {
+        let tile = self.tiles.get(tpos);
+        let twpos = self.tile_wpos(tpos);
+        let cols = (-(TILE_SIZE as i32)..TILE_SIZE as i32 * 2).map(|y| (-(TILE_SIZE as i32)..TILE_SIZE as i32 * 2).map(move |x| (twpos + Vec2::new(x, y), Vec2::new(x, y)))).flatten();
+
+        match &tile.kind {
+            TileKind::Empty | TileKind::Hazard(_) => {},
+            TileKind::Road => cols.for_each(|(wpos2d, offs)| {
+                let tpos = self.tile_wpos(wpos2d);
+
+                let is_x = [
+                    self.tiles.get(tpos - Vec2::unit_x()) == tile,
+                    self.tiles.get(tpos) == tile,
+                    self.tiles.get(tpos + Vec2::unit_x()) == tile,
+                ];
+
+                let dist_x = [
+                    if is_x[0] ^ is_x[1] { Some((offs.x % tile::TILE_SIZE as i32) * if is_x[1] { -1 } else { 1 }) } else { None },
+                    if is_x[1] ^ is_x[2] { Some((tile::TILE_SIZE as i32 - offs.x % tile::TILE_SIZE as i32) * if is_x[1] { -1 } else { 1 }) } else { None },
+                ].iter().filter_map(|x| *x).min();
+
+                let is_y = [
+                    self.tiles.get(tpos - Vec2::unit_y()) == tile,
+                    self.tiles.get(tpos) == tile,
+                    self.tiles.get(tpos + Vec2::unit_y()) == tile,
+                ];
+
+                let dist_y = [
+                    if is_y[0] ^ is_y[1] { Some((offs.y % tile::TILE_SIZE as i32) * if is_y[1] { -1 } else { 1 }) } else { None },
+                    if is_y[1] ^ is_y[2] { Some((tile::TILE_SIZE as i32 - offs.y % tile::TILE_SIZE as i32) * if is_y[1] { -1 } else { 1 }) } else { None },
+                ].iter().filter_map(|x| *x).min();
+
+                let dist = dist_x.unwrap_or(-(tile::TILE_SIZE as i32)).min(dist_y.unwrap_or(-(tile::TILE_SIZE as i32)));
+
+                if dist > 4 {
+                    let alt = canvas.col(wpos2d).map_or(0, |c| c.alt as i32);
+                    (-4..5).for_each(|z| canvas.map(
+                        Vec3::new(wpos2d.x, wpos2d.y, alt + z),
+                        |b| if [
+                            BlockKind::Grass,
+                            BlockKind::Earth,
+                            BlockKind::Sand,
+                            BlockKind::Snow,
+                            BlockKind::Rock,
+                        ]
+                        .contains(&b.kind()) {
+                            Block::new(BlockKind::Rock, Rgb::new(55, 45, 65))
+                        } else {
+                            b.with_sprite(SpriteKind::Empty)
+                        },
+                    ));
+                }
+            }),
+            _ => {},
+        }
+    }
+
     pub fn render(&self, canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
-        canvas.foreach_col(|canvas, wpos2d, col| {
-            let tile = self.wpos_tile(wpos2d);
-            let seed = tile.plot.map_or(0, |p| self.plot(p).seed);
-            match tile.kind {
-                TileKind::Field | TileKind::Road => (-4..5).for_each(|z| canvas.map(
-                    Vec3::new(wpos2d.x, wpos2d.y, col.alt as i32 + z),
-                    |b| if [
-                        BlockKind::Grass,
-                        BlockKind::Earth,
-                        BlockKind::Sand,
-                        BlockKind::Snow,
-                        BlockKind::Rock,
-                    ]
-                    .contains(&b.kind()) {
-                        match tile.kind {
-                            TileKind::Field => Block::new(BlockKind::Earth, Rgb::new(40, 5 + (seed % 32) as u8, 0)),
-                            TileKind::Road => Block::new(BlockKind::Rock, Rgb::new(55, 45, 65)),
-                            _ => unreachable!(),
-                        }
-                    } else {
-                        b.with_sprite(SpriteKind::Empty)
-                    },
-                )),
-                TileKind::Building { levels } => {
-                    let base_alt = tile.plot.map(|p| self.plot(p)).map_or(col.alt as i32, |p| p.base_alt);
-                    for z in base_alt - 12..base_alt + 4 + 6 * levels as i32 {
-                        canvas.set(
-                            Vec3::new(wpos2d.x, wpos2d.y, z),
-                            Block::new(BlockKind::Wood, Rgb::new(180, 90 + (seed % 64) as u8, 120))
-                        );
-                    }
-                },
-                TileKind::Castle | TileKind::Wall => {
-                    let base_alt = tile.plot.map(|p| self.plot(p)).map_or(col.alt as i32, |p| p.base_alt);
-                    for z in base_alt - 12..base_alt + if tile.kind == TileKind::Wall { 24 } else { 40 } {
-                        canvas.set(
-                            Vec3::new(wpos2d.x, wpos2d.y, z),
-                            Block::new(BlockKind::Wood, Rgb::new(40, 40, 55))
-                        );
-                    }
-                },
-                _ => {},
+        let tile_aabr = Aabr {
+            min: self.wpos_tile_pos(canvas.wpos()) - 1,
+            max: self.wpos_tile_pos(canvas.wpos() + TerrainChunkSize::RECT_SIZE.map(|e| e as i32) + 2) + 3, // Round up, uninclusive, border
+        };
+
+        for y in tile_aabr.min.y..tile_aabr.max.y {
+            for x in tile_aabr.min.x..tile_aabr.max.x {
+                self.render_tile(canvas, dynamic_rng, Vec2::new(x, y));
             }
-        });
+        }
+
+        // canvas.foreach_col(|canvas, wpos2d, col| {
+        //     let tile = self.wpos_tile(wpos2d);
+        //     let seed = tile.plot.map_or(0, |p| self.plot(p).seed);
+        //     match tile.kind {
+        //         TileKind::Field | TileKind::Road => (-4..5).for_each(|z| canvas.map(
+        //             Vec3::new(wpos2d.x, wpos2d.y, col.alt as i32 + z),
+        //             |b| if [
+        //                 BlockKind::Grass,
+        //                 BlockKind::Earth,
+        //                 BlockKind::Sand,
+        //                 BlockKind::Snow,
+        //                 BlockKind::Rock,
+        //             ]
+        //             .contains(&b.kind()) {
+        //                 match tile.kind {
+        //                     TileKind::Field => Block::new(BlockKind::Earth, Rgb::new(40, 5 + (seed % 32) as u8, 0)),
+        //                     TileKind::Road => Block::new(BlockKind::Rock, Rgb::new(55, 45, 65)),
+        //                     _ => unreachable!(),
+        //                 }
+        //             } else {
+        //                 b.with_sprite(SpriteKind::Empty)
+        //             },
+        //         )),
+        //         TileKind::Building { levels } => {
+        //             let base_alt = tile.plot.map(|p| self.plot(p)).map_or(col.alt as i32, |p| p.base_alt);
+        //             for z in base_alt - 12..base_alt + 4 + 6 * levels as i32 {
+        //                 canvas.set(
+        //                     Vec3::new(wpos2d.x, wpos2d.y, z),
+        //                     Block::new(BlockKind::Wood, Rgb::new(180, 90 + (seed % 64) as u8, 120))
+        //                 );
+        //             }
+        //         },
+        //         TileKind::Castle | TileKind::Wall => {
+        //             let base_alt = tile.plot.map(|p| self.plot(p)).map_or(col.alt as i32, |p| p.base_alt);
+        //             for z in base_alt - 12..base_alt + if tile.kind == TileKind::Wall { 24 } else { 40 } {
+        //                 canvas.set(
+        //                     Vec3::new(wpos2d.x, wpos2d.y, z),
+        //                     Block::new(BlockKind::Wood, Rgb::new(40, 40, 55))
+        //                 );
+        //             }
+        //         },
+        //         _ => {},
+        //     }
+        // });
     }
 }
 
 pub fn test_site() -> Site { Site::generate(&Land::empty(), &mut thread_rng(), Vec2::zero()) }
+
+fn wpos_is_hazard(land: &Land, wpos: Vec2<i32>) -> Option<HazardKind> {
+    if land
+        .get_chunk_at(wpos)
+        .map_or(true, |c| c.river.near_water())
+    {
+        Some(HazardKind::Water)
+    } else if let Some(gradient) = Some(land.get_gradient_approx(wpos)).filter(|g| *g > 0.8) {
+        Some(HazardKind::Hill { gradient })
+    } else {
+        None
+    }
+}
 
 pub fn aabr_tiles(aabr: Aabr<i32>) -> impl Iterator<Item=Vec2<i32>> {
     (0..aabr.size().h)

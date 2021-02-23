@@ -9,12 +9,14 @@ pub const TILE_RADIUS: u32 = ZONE_SIZE * ZONE_RADIUS;
 pub const MAX_BLOCK_RADIUS: u32 = TILE_SIZE * TILE_RADIUS;
 
 pub struct TileGrid {
+    pub(crate) bounds: Aabr<i32>, // Inclusive
     zones: Grid<Option<Grid<Option<Tile>>>>,
 }
 
 impl Default for TileGrid {
     fn default() -> Self {
         Self {
+            bounds: Aabr::new_empty(Vec2::zero()),
             zones: Grid::populate_from(Vec2::broadcast(ZONE_RADIUS as i32 * 2 + 1), |_| None),
         }
     }
@@ -35,6 +37,7 @@ impl TileGrid {
             .unwrap_or(&EMPTY)
     }
 
+    // WILL NOT EXPAND BOUNDS!
     pub fn get_mut(&mut self, tpos: Vec2<i32>) -> Option<&mut Tile> {
         let tpos = tpos + TILE_RADIUS as i32;
         self.zones.get_mut(tpos.map(|e| e.div_euclid(ZONE_SIZE as i32))).and_then(|zone| {
@@ -47,6 +50,7 @@ impl TileGrid {
     }
 
     pub fn set(&mut self, tpos: Vec2<i32>, tile: Tile) -> Option<Tile> {
+        self.bounds.expand_to_contain_point(tpos);
         self.get_mut(tpos).map(|t| std::mem::replace(t, tile))
     }
 
@@ -110,6 +114,7 @@ impl TileGrid {
 #[derive(Clone, PartialEq)]
 pub enum TileKind {
     Empty,
+    Hazard(HazardKind),
     Field,
     Road,
     Building { levels: u32 },
@@ -117,7 +122,7 @@ pub enum TileKind {
     Wall,
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct Tile {
     pub(crate) kind: TileKind,
     pub(crate) plot: Option<Id<Plot>>,
@@ -144,9 +149,16 @@ impl Tile {
     pub fn is_obstacle(&self) -> bool {
         matches!(
             self.kind,
-            TileKind::Building { .. }
+            TileKind::Hazard(_)
+            | TileKind::Building { .. }
             | TileKind::Castle
             | TileKind::Wall
         )
     }
+}
+
+#[derive(Copy, Clone, PartialEq)]
+pub enum HazardKind {
+    Water,
+    Hill { gradient: f32 },
 }

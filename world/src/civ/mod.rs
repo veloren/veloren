@@ -109,8 +109,8 @@ impl Civs {
             attempt(5, || {
                 let (kind, size) = match ctx.rng.gen_range(0..8) {
                     0 => (SiteKind::Castle, 3),
-                    1 => (SiteKind::Refactor, 5),
-                    _ => (SiteKind::Dungeon, 0),
+                    1 => (SiteKind::Dungeon, 0),
+                    _ => (SiteKind::Refactor, 5),
                 };
                 let loc = find_site_loc(&mut ctx, None, size)?;
                 this.establish_site(&mut ctx.reseed(), loc, |place| Site {
