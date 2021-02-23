@@ -13,7 +13,7 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
-use vek::Vec3;
+use vek::*;
 
 /// Separated out to condense update portions of character state
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -43,6 +43,8 @@ pub struct StaticData {
     pub energy_cost: f32,
     /// Energy drained per
     pub energy_drain: f32,
+    /// Used to dictate how orientation functions in this state
+    pub orientation_behavior: MovementBehavior,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
 }
@@ -56,8 +58,6 @@ pub struct Data {
     pub timer: Duration,
     /// What section the character stage is in
     pub stage_section: StageSection,
-    /// Used for particle stuffs
-    pub particle_ori: Option<Vec3<f32>>,
     /// Used to offset beam and particles
     pub offset: Vec3<f32>,
 }
@@ -65,6 +65,13 @@ pub struct Data {
 impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
+
+        match self.static_data.orientation_behavior {
+            MovementBehavior::Normal => {},
+            MovementBehavior::Turret => {
+                update.ori = Ori::from(data.inputs.look_dir);
+            },
+        }
 
         handle_move(data, &mut update, 0.4);
         handle_jump(data, &mut update);
@@ -87,7 +94,6 @@ impl CharacterBehavior for Data {
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        particle_ori: Some(*data.inputs.look_dir),
                         ..*self
                     });
                 } else {
@@ -107,7 +113,6 @@ impl CharacterBehavior for Data {
                     update.character = CharacterState::BasicBeam(Data {
                         timer: Duration::default(),
                         stage_section: StageSection::Cast,
-                        particle_ori: Some(*data.inputs.look_dir),
                         offset: body_offsets,
                         ..*self
                     });
@@ -185,7 +190,6 @@ impl CharacterBehavior for Data {
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        particle_ori: Some(*data.inputs.look_dir),
                         offset: body_offsets,
                         ..*self
                     });
@@ -199,7 +203,6 @@ impl CharacterBehavior for Data {
                     update.character = CharacterState::BasicBeam(Data {
                         timer: Duration::default(),
                         stage_section: StageSection::Recover,
-                        particle_ori: Some(*data.inputs.look_dir),
                         ..*self
                     });
                 }
@@ -211,7 +214,6 @@ impl CharacterBehavior for Data {
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        particle_ori: Some(*data.inputs.look_dir),
                         ..*self
                     });
                 } else {
@@ -231,4 +233,10 @@ impl CharacterBehavior for Data {
 
         update
     }
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum MovementBehavior {
+    Normal,
+    Turret,
 }

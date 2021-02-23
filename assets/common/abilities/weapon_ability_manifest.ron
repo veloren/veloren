@@ -132,6 +132,11 @@
         secondary: "common.abilities.unique.theropodbird.triplestrike",
         abilities: [],
     ),
+    Unique(ObjectTurret): (
+        primary: "common.abilities.unique.turret.arrows",
+        secondary: "common.abilities.unique.turret.arrows",
+        abilities: [],
+    ),
     Debug: (
         primary: "common.abilities.debug.forwardboost",
         secondary: "common.abilities.debug.upboost",

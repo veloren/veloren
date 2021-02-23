@@ -317,7 +317,10 @@ impl SfxMgr {
                 // TODO: from sfx config?
                 match body {
                     Body::Object(
-                        object::Body::Arrow | object::Body::MultiArrow | object::Body::ArrowSnake,
+                        object::Body::Arrow
+                        | object::Body::MultiArrow
+                        | object::Body::ArrowSnake
+                        | object::Body::ArrowTurret,
                     ) => {
                         let file_ref = vec![
                             "voxygen.audio.sfx.abilities.arrow_shot_1",

@@ -159,11 +159,7 @@ impl Animation for RunAnimation {
             Quaternion::rotation_x(0.6 * speednorm + (footrotr * -1.2) * speednorm)
                 * Quaternion::rotation_y(footrotr * 0.4 * speednorm);
 
-        next.hand_r.position = Vec3::new(
-            s_a.hand.0 + foothoril * 1.3 * speednorm,
-            3.0 * speednorm + s_a.hand.1 + foothoril * -7.0 * speednorm,
-            1.5 * speednorm + s_a.hand.2 - foothoril * 5.5 * speednorm,
-        );
+        next.hand_r.position = -next.hand_l.position;
         next.hand_r.orientation =
             Quaternion::rotation_x(0.6 * speednorm + (footrotl * -1.2) * speednorm)
                 * Quaternion::rotation_y(footrotl * -0.4 * speednorm);

@@ -3,378 +3,650 @@
         bone0: (
             offset: (-0.5, -6.0, -1.5),
             central: ("weapon.projectile.simple-arrow"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     Bomb: (
         bone0: (
             offset: (-5.5, -5.5, 0.0),
             central: ("object.bomb"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     FireworkBlue: (
         bone0: (
             offset: (0.0, 0.0, 0.0),
             central: ("weapon.projectile.fireworks_blue-0"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     FireworkGreen: (
         bone0: (
             offset: (0.0, 0.0, 0.0),
             central: ("weapon.projectile.fireworks_green-0"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     FireworkPurple: (
         bone0: (
             offset: (0.0, 0.0, 0.0),
             central: ("weapon.projectile.fireworks_purple-0"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     FireworkRed: (
         bone0: (
             offset: (0.0, 0.0, 0.0),
             central: ("weapon.projectile.fireworks_red-0"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     FireworkYellow: (
         bone0: (
             offset: (0.0, 0.0, 0.0),
             central: ("weapon.projectile.fireworks_yellow-0"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     Scarecrow: (
         bone0: (
             offset: (-9.5, -4.0, 0.0),
             central: ("object.scarecrow"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     Cauldron: (
         bone0: (
             offset: (-10.0, -10.0, 0.0),
             central: ("object.cauldron"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     ChestVines: (
         bone0: (
             offset: (-7.5, -6.0, 0.0),
             central: ("object.chest_vines"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     Chest: (
         bone0: (
             offset: (-7.5, -6.0, 0.0),
             central: ("object.chest"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     ChestDark: (
         bone0: (
             offset: (-7.5, -6.0, 0.0),
             central: ("object.chest_dark"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     ChestDemon: (
         bone0: (
             offset: (-7.5, -6.0, 0.0),
             central: ("object.chest_demon"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     ChestGold: (
         bone0: (
             offset: (-7.5, -6.0, 0.0),
             central: ("object.chest_gold"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     ChestLight: (
         bone0: (
             offset: (-7.5, -6.0, 0.0),
             central: ("object.chest_light"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     ChestOpen: (
         bone0: (
             offset: (-7.5, -6.0, 0.0),
             central: ("object.chest_open"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     ChestSkull: (
         bone0: (
             offset: (-7.5, -6.0, 0.0),
             central: ("object.chest_skull"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     Pumpkin: (
         bone0: (
             offset: (-5.5, -4.0, 0.0),
             central: ("object.pumpkin"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     Pumpkin2: (
         bone0: (
             offset: (-5.0, -4.0, 0.0),
             central: ("object.pumpkin_2"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     Pumpkin3: (
         bone0: (
             offset: (-5.0, -4.0, 0.0),
             central: ("object.pumpkin_3"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     Pumpkin4: (
         bone0: (
             offset: (-5.0, -4.0, 0.0),
             central: ("object.pumpkin_4"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     Pumpkin5: (
         bone0: (
             offset: (-4.0, -5.0, 0.0),
             central: ("object.pumpkin_5"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     Campfire: (
         bone0: (
             offset: (-9.0, -10.0, 0.0),
             central: ("object.campfire"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     CampfireLit: (
         bone0: (
             offset: (-9.0, -10.0, 0.0),
             central: ("object.campfire_lit"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     LanternGround: (
         bone0: (
             offset: (-3.5, -3.5, 0.0),
             central: ("object.lantern_ground"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     LanternGroundOpen: (
         bone0: (
             offset: (-3.5, -3.5, 0.0),
             central: ("object.lantern_ground_open"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     LanternStanding: (
         bone0: (
             offset: (-7.5, -3.5, 0.0),
             central: ("object.lantern_standing"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     LanternStanding2: (
         bone0: (
             offset: (-11.5, -3.5, 0.0),
             central: ("object.lantern_standing_2"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     PotionRed: (
         bone0: (
             offset: (-2.0, -2.0, 0.0),
             central: ("object.potion_red"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     PotionBlue: (
         bone0: (
             offset: (-2.0, -2.0, 0.0),
             central: ("object.potion_blue"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     PotionGreen: (
         bone0: (
             offset: (-2.0, -2.0, 0.0),
             central: ("object.potion_green"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     Crate: (
         bone0: (
             offset: (-7.0, -7.0, 0.0),
             central: ("object.crate"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     Tent: (
         bone0: (
             offset: (-18.5, -19.5, 0.0),
             central: ("object.tent"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     WindowSpooky: (
         bone0: (
             offset: (-15.0, -1.5, -1.0),
             central: ("object.window_spooky"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     DoorSpooky: (
         bone0: (
             offset: (-15.0, -4.5, 0.0),
             central: ("object.door_spooky"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     Table: (
         bone0: (
             offset: (-12.0, -8.0, 0.0),
             central: ("object.table"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     Table2: (
         bone0: (
             offset: (-8.0, -8.0, 0.0),
             central: ("object.table_2"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     Table3: (
         bone0: (
             offset: (-10.0, -10.0, 0.0),
             central: ("object.table_3"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     Drawer: (
         bone0: (
             offset: (-11.0, -7.5, 0.0),
             central: ("object.drawer"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     BedBlue: (
         bone0: (
             offset: (-11.0, -15.0, 0.0),
             central: ("object.bed_human_blue"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     Anvil: (
         bone0: (
             offset: (-3.0, -7.0, 0.0),
             central: ("object.anvil"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     Gravestone: (
         bone0: (
             offset: (-5.0, -2.0, 0.0),
             central: ("object.gravestone"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     Gravestone2: (
         bone0: (
             offset: (-8.5, -3.0, 0.0),
             central: ("object.gravestone_2"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     Chair: (
         bone0: (
             offset: (-5.0, -4.5, 0.0),
             central: ("object.chair"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     Chair2: (
         bone0: (
             offset: (-5.0, -4.5, 0.0),
             central: ("object.chair_2"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     Chair3: (
         bone0: (
             offset: (-5.0, -4.5, 0.0),
             central: ("object.chair_3"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     Bench: (
         bone0: (
             offset: (-8.8, -5.0, 0.0),
             central: ("object.bench"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     Carpet: (
         bone0: (
             offset: (-14.0, -14.0, -0.5),
             central: ("object.carpet"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     Bedroll: (
         bone0: (
             offset: (-11.0, -19.5, -0.5),
             central: ("object.bedroll"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     CarpetHumanRound: (
         bone0: (
             offset: (-14.0, -14.0, -0.5),
             central: ("object.carpet_human_round"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     CarpetHumanSquare: (
         bone0: (
             offset: (-13.5, -14.0, -0.5),
             central: ("object.carpet_human_square"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     CarpetHumanSquare2: (
         bone0: (
             offset: (-13.5, -14.0, -0.5),
             central: ("object.carpet_human_square_2"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     CarpetHumanSquircle: (
         bone0: (
             offset: (-21.0, -21.0, -0.5),
             central: ("object.carpet_human_squircle"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     Pouch: (
         bone0: (
             offset: (-5.5, -4.5, 0.0),
             central: ("object.pouch"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     CraftingBench: (
         bone0: (
             offset: (-9.5, -7.0, 0.0),
             central: ("object.crafting_bench"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     ArrowSnake: (
         bone0: (
             offset: (-1.5, -6.5, 0.0),
             central: ("weapon.projectile.snake-arrow"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     BoltFire: (
         bone0: (
             offset: (-3.0, -5.5, -3.0),
             central: ("weapon.projectile.fire-bolt-0"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     BoltFireBig: (
         bone0: (
             offset: (-6.0, -6.0, -6.0),
             central: ("weapon.projectile.fire-bolt-1"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     TrainingDummy: (
         bone0: (
             offset: (-7.0, -5.0, 0.0),
             central: ("object.training_dummy"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     MultiArrow: (
         bone0: (
             offset: (-4.0, -9.5, -5.0),
             central: ("weapon.projectile.multi-arrow"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     BoltNature: (
         bone0: (
             offset: (-6.0, -6.0, -6.0),
             central: ("weapon.projectile.nature-bolt"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     MeatDrop: (
         bone0: (
             offset: (-3.5, -8.0, 0.0),
             central: ("object.meat_drop"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
     Steak: (
         bone0: (
             offset: (-3.5, -6.0, 0.0),
             central: ("object.steak"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
+    Crossbow: (
+        bone0: (
+            offset: (-18.0, -15.5, -8.0),
+            central: ("object.crossbow.bone0"),
+        ),
+        bone1: (
+            offset: (-9.0, -7.0, -5.0 ),
+            central: ("object.crossbow.bone1"),
+        )
+    ),
+    ArrowTurret: (
+        bone0: (
+            offset: (-1.5, -6.5, -1.5),
+            central: ("weapon.projectile.turret-arrow"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
 })

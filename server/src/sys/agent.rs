@@ -533,6 +533,7 @@ impl<'a> System<'a> for Sys {
                                 Some(ToolKind::Unique(UniqueKind::QuadLowBreathe)) => Tactic::Lavadrake,
                                 Some(ToolKind::Unique(UniqueKind::TheropodBasic)) => Tactic::Theropod,
                                 Some(ToolKind::Unique(UniqueKind::TheropodBird)) => Tactic::Theropod,
+                                Some(ToolKind::Unique(UniqueKind::ObjectTurret)) => Tactic::Turret,
                                 _ => Tactic::Melee,
                             };
 
@@ -1433,6 +1434,38 @@ impl<'a> System<'a> for Sys {
                                                 inputs.jump.set_state(bearing.z > 1.5);
                                                 inputs.move_z = bearing.z;
                                             }
+                                        } else {
+                                            do_idle = true;
+                                        }
+                                    },
+                                    Tactic::Turret => {
+                                        if can_see_tgt(&*terrain, pos, tgt_pos, dist_sqrd)
+                                        {
+                                            inputs.primary.set_state(true);
+                                        } else {
+                                            do_idle = true;
+                                        }
+                                    },
+                                    Tactic::FixedTurret => {
+                                        inputs.look_dir = ori.look_dir();
+                                        if can_see_tgt(&*terrain, pos, tgt_pos, dist_sqrd)
+                                        {
+                                            inputs.primary.set_state(true);
+                                        } else {
+                                            do_idle = true;
+                                        }
+                                    },
+                                    Tactic::RotatingTurret => {
+                                        inputs.look_dir = Dir::new(
+                                            Quaternion::from_xyzw(ori.look_dir().x, ori.look_dir().y, 0.0, 0.0)
+                                            .rotated_z(6.0 * dt.0 as f32)
+                                            .into_vec3()
+                                            .try_normalized()
+                                            .unwrap_or_default(),
+                                        );
+                                        if can_see_tgt(&*terrain, pos, tgt_pos, dist_sqrd)
+                                        {
+                                            inputs.primary.set_state(true);
                                         } else {
                                             do_idle = true;
                                         }

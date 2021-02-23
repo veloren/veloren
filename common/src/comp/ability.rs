@@ -225,6 +225,7 @@ pub enum CharacterAbility {
         energy_regen: f32,
         energy_cost: f32,
         energy_drain: f32,
+        orientation_behavior: basic_beam::MovementBehavior,
     },
 }
 
@@ -1445,6 +1446,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 energy_regen,
                 energy_cost,
                 energy_drain,
+                orientation_behavior,
             } => CharacterState::BasicBeam(basic_beam::Data {
                 static_data: basic_beam::StaticData {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
@@ -1460,10 +1462,10 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                     energy_cost: *energy_cost,
                     energy_drain: *energy_drain,
                     ability_info,
+                    orientation_behavior: *orientation_behavior,
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
-                particle_ori: None::<Vec3<f32>>,
                 offset: Vec3::zero(),
             }),
         }

@@ -262,7 +262,10 @@ impl Body {
                 _ => 4.6,
             },
             Body::Golem(_) => 5.0,
-            Body::Object(_) => 1.0,
+            Body::Object(object) => match object {
+                object::Body::Crossbow => 1.7,
+                _ => 1.0,
+            },
         }
     }
 
@@ -336,7 +339,11 @@ impl Body {
                 biped_large::Species::Mindflayer => 8000,
                 _ => 1000,
             },
-            Body::Object(_) => 10000,
+            Body::Object(object) => match object {
+                object::Body::TrainingDummy => 10000,
+                object::Body::Crossbow => 800,
+                _ => 10000,
+            },
             Body::Golem(_) => 2740,
             Body::Theropod(theropod) => match theropod.species {
                 theropod::Species::Archaeos => 3000,
