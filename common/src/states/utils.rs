@@ -3,7 +3,7 @@ use crate::{
         biped_large, biped_small,
         inventory::slot::EquipSlot,
         item::{Hands, ItemKind, Tool, ToolKind},
-        quadruped_low, quadruped_medium,
+        quadruped_low, quadruped_medium, quadruped_small,
         skills::Skill,
         theropod, Body, CharacterAbility, CharacterState, LoadoutManip, StateUpdate,
     },
@@ -38,7 +38,16 @@ impl Body {
     pub fn base_accel(&self) -> f32 {
         match self {
             Body::Humanoid(_) => 100.0,
-            Body::QuadrupedSmall(_) => 125.0,
+            Body::QuadrupedSmall(body) => match body.species {
+                quadruped_small::Species::Turtle => 30.0,
+                quadruped_small::Species::Axolotl => 70.0,
+                quadruped_small::Species::Pig => 70.0,
+                quadruped_small::Species::Sheep => 70.0,
+                quadruped_small::Species::Cat => 70.0,
+                quadruped_small::Species::Truffler => 70.0,
+                quadruped_small::Species::Fungome => 70.0,
+                _ => 125.0,
+            },
             Body::QuadrupedMedium(quadruped_medium) => match quadruped_medium.species {
                 quadruped_medium::Species::Grolgar => 110.0,
                 quadruped_medium::Species::Saber => 180.0,

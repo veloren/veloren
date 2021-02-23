@@ -57,38 +57,31 @@ impl Animation for IdleAnimation {
 
         next.upper_torso.position =
             Vec3::new(0.0, s_a.upper_torso.0, s_a.upper_torso.1 + breathe * 0.5) * s_a.scaler / 8.0;
-        next.upper_torso.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
 
         next.lower_torso.position =
             Vec3::new(0.0, s_a.lower_torso.0, s_a.lower_torso.1 + breathe * -0.2);
-        next.lower_torso.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
 
         next.shoulder_l.position = Vec3::new(-s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
-        next.shoulder_l.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(-0.2);
+        next.shoulder_l.orientation = Quaternion::rotation_x(-0.2);
 
         next.shoulder_r.position = Vec3::new(s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
-        next.shoulder_r.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(-0.2);
+        next.shoulder_r.orientation = Quaternion::rotation_x(-0.2);
 
         next.hand_l.position = Vec3::new(-s_a.hand.0, s_a.hand.1, s_a.hand.2 + breathe * 0.6);
-        next.hand_l.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.2);
+        next.hand_l.orientation = Quaternion::rotation_x(0.2);
 
         next.hand_r.position = Vec3::new(s_a.hand.0, s_a.hand.1, s_a.hand.2 + breathe * 0.6);
-        next.hand_r.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.2);
+        next.hand_r.orientation = Quaternion::rotation_x(0.2);
 
         next.leg_l.position = Vec3::new(-s_a.leg.0, s_a.leg.1, s_a.leg.2 + breathe * -0.2) * 1.02;
-        next.leg_l.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
 
         next.leg_r.position = Vec3::new(s_a.leg.0, s_a.leg.1, s_a.leg.2 + breathe * -0.2) * 1.02;
-        next.leg_r.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
 
         next.foot_l.position = Vec3::new(-s_a.foot.0, s_a.foot.1, s_a.foot.2 + breathe * -0.2);
-        next.foot_l.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
 
         next.foot_r.position = Vec3::new(s_a.foot.0, s_a.foot.1, s_a.foot.2 + breathe * -0.2);
-        next.foot_r.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
 
         next.torso.position = Vec3::new(0.0, 0.0, 0.0);
-        next.torso.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
         next
     }
 }

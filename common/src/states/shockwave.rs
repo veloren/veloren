@@ -147,7 +147,7 @@ impl CharacterBehavior for Data {
                 }
             },
             StageSection::Recover => {
-                if self.timer < self.static_data.swing_duration {
+                if self.timer < self.static_data.recover_duration {
                     // Recovers
                     update.character = CharacterState::Shockwave(Data {
                         timer: self

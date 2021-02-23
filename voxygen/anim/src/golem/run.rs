@@ -92,22 +92,22 @@ impl Animation for RunAnimation {
         next.shoulder_l.position = Vec3::new(-s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
         next.shoulder_l.orientation = Quaternion::rotation_z(footrotl * 0.07)
             * Quaternion::rotation_y(0.15)
-            * Quaternion::rotation_x(footrotl * -0.25);
+            * Quaternion::rotation_x(-0.2 + footrotl * -0.25);
 
         next.shoulder_r.position = Vec3::new(s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
         next.shoulder_r.orientation = Quaternion::rotation_z(footrotr * -0.07)
             * Quaternion::rotation_y(-0.15 * speednorm)
-            * Quaternion::rotation_x(footrotr * -0.25);
+            * Quaternion::rotation_x(-0.2 + footrotr * -0.25);
 
         next.hand_l.position = Vec3::new(-s_a.hand.0, s_a.hand.1, s_a.hand.2);
         next.hand_l.orientation = Quaternion::rotation_x(0.3 + footrotl * -0.06)
-            * Quaternion::rotation_y(0.1)
-            * Quaternion::rotation_z(-0.35 + footrotl * -0.1);
+            * Quaternion::rotation_y(0.1 * speednorm)
+            * Quaternion::rotation_z(-0.35 * speednorm + footrotl * -0.1);
 
         next.hand_r.position = Vec3::new(s_a.hand.0, s_a.hand.1, s_a.hand.2);
         next.hand_r.orientation = Quaternion::rotation_x(0.3 + footrotr * -0.06)
-            * Quaternion::rotation_y(-0.1)
-            * Quaternion::rotation_z(0.35 + footrotr * 0.1);
+            * Quaternion::rotation_y(-0.1 * speednorm)
+            * Quaternion::rotation_z(0.35 * speednorm + footrotr * 0.1);
 
         next.leg_l.position = Vec3::new(-s_a.leg.0, s_a.leg.1, s_a.leg.2) * 1.02;
         next.leg_l.orientation = Quaternion::rotation_x(footrotl * 0.3)

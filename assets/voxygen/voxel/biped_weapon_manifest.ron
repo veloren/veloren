@@ -758,69 +758,69 @@
         vox_spec: ("weapon.axe.minotaur_axe", (-2.5, -9.0, -6.0)),
         color: None
     ),
+    "common.items.npc_weapons.hammer.yeti_hammer": (
+        vox_spec: ("weapon.hammer.2hhammer_yeti", (-7.5, -7.0, -7.0)),
+        color: None
+    ),
     //BIPEDSMALL
-    "common.items.npc_weapons.biped_small.gnarling.wooden_spear": (
-        vox_spec: ("weapon.spear.sahagin", (-1.5, -3.0, -5.0)),
-        color: None
-    ),
-    "common.items.npc_weapons.biped_small.gnarling.adlet_bow": (
-        vox_spec: ("weapon.bow.adlet", (-0.5, -5.5, -9.5)),
-        color: None
-    ),
-    "common.items.npc_weapons.biped_small.gnarling.gnoll_staff": (
-        vox_spec: ("weapon.staff.gnoll", (-2.5, -3.0, -4.0)),
-        color: None
-    ),
-    "common.items.npc_weapons.biped_small.adlet.wooden_spear": (
-        vox_spec: ("weapon.spear.sahagin", (-1.5, -3.0, -5.0)),
-        color: None
-    ),
     "common.items.npc_weapons.biped_small.adlet.adlet_bow": (
-        vox_spec: ("weapon.bow.adlet", (-0.5, -5.5, -9.5)),
+        vox_spec: ("weapon.biped_small.bow.adlet", (-1.5, -3.0, -5.0)),
         color: None
     ),
     "common.items.npc_weapons.biped_small.adlet.gnoll_staff": (
-        vox_spec: ("weapon.staff.gnoll", (-2.5, -3.0, -4.0)),
+        vox_spec: ("weapon.biped_small.staff.sahagin", (-0.5, -4.0, -4.0)),
         color: None
     ),
-    "common.items.npc_weapons.biped_small.sahagin.wooden_spear": (
-        vox_spec: ("weapon.spear.sahagin", (-1.5, -3.0, -5.0)),
+    "common.items.npc_weapons.biped_small.adlet.wooden_spear": (
+        vox_spec: ("weapon.biped_small.spear.adlet", (-0.5, -3.0, -4.0)),
+        color: None
+    ),
+    "common.items.npc_weapons.biped_small.gnarling.adlet_bow": (
+        vox_spec: ("weapon.biped_small.bow.adlet", (-1.5, -3.0, -5.0)),
+        color: None
+    ),
+    "common.items.npc_weapons.biped_small.gnarling.gnoll_staff": (
+        vox_spec: ("weapon.biped_small.staff.sahagin", (-0.5, -4.0, -4.0)),
+        color: None
+    ),
+    "common.items.npc_weapons.biped_small.gnarling.wooden_spear": (
+        vox_spec: ("weapon.biped_small.spear.adlet", (-0.5, -3.0, -4.0)),
         color: None
     ),
     "common.items.npc_weapons.biped_small.sahagin.adlet_bow": (
-        vox_spec: ("weapon.bow.adlet", (-0.5, -5.5, -9.5)),
+        vox_spec: ("weapon.biped_small.bow.sahagin", (-0.5, -5.5, -9.5)),
         color: None
     ),
     "common.items.npc_weapons.biped_small.sahagin.gnoll_staff": (
-        vox_spec: ("weapon.staff.gnoll", (-2.5, -3.0, -4.0)),
+        vox_spec: ("weapon.biped_small.staff.sahagin", (-0.5, -4.0, -4.0)),
         color: None
     ),
-    "common.items.npc_weapons.biped_small.haniwa.wooden_spear": (
-        vox_spec: ("weapon.spear.sahagin", (-1.5, -3.0, -5.0)),
+    "common.items.npc_weapons.biped_small.sahagin.wooden_spear": (
+        vox_spec: ("weapon.biped_small.spear.sahagin", (-0.5, -3.0, -4.0)),
         color: None
     ),
     "common.items.npc_weapons.biped_small.haniwa.adlet_bow": (
-        vox_spec: ("weapon.bow.adlet", (-0.5, -5.5, -9.5)),
+        vox_spec: ("weapon.biped_small.bow.haniwa", (-0.5, -4.5, -10.5)),
         color: None
     ),
     "common.items.npc_weapons.biped_small.haniwa.gnoll_staff": (
-        vox_spec: ("weapon.staff.gnoll", (-2.5, -3.0, -4.0)),
+        vox_spec: ("weapon.biped_small.staff.sahagin", (-0.5, -4.0, -4.0)),
         color: None
     ),
-    "common.items.npc_weapons.biped_small.myrmidon.wooden_spear": (
-        vox_spec: ("weapon.spear.sahagin", (-1.5, -3.0, -5.0)),
+    "common.items.npc_weapons.biped_small.haniwa.wooden_spear": (
+        vox_spec: ("weapon.biped_small.spear.haniwa", (-0.5, -3.0, -4.0)),
         color: None
     ),
     "common.items.npc_weapons.biped_small.myrmidon.adlet_bow": (
-        vox_spec: ("weapon.bow.adlet", (-0.5, -5.5, -9.5)),
+        vox_spec: ("weapon.biped_small.bow.myrmidon", (-0.5, -5.0, -10.5)),
         color: None
     ),
     "common.items.npc_weapons.biped_small.myrmidon.gnoll_staff": (
-        vox_spec: ("weapon.staff.gnoll", (-2.5, -3.0, -4.0)),
+        vox_spec: ("weapon.biped_small.staff.sahagin", (-0.5, -4.0, -4.0)),
         color: None
     ),
-    "common.items.npc_weapons.hammer.yeti_hammer": (
-        vox_spec: ("weapon.hammer.2hhammer_yeti", (-7.5, -7.0, -7.0)),
+    "common.items.npc_weapons.biped_small.myrmidon.wooden_spear": (
+        vox_spec: ("weapon.biped_small.spear.myrmidon", (-0.5, -2.0, -4.0)),
         color: None
     ),
 })
