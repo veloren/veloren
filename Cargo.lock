@@ -4749,7 +4749,18 @@ dependencies = [
  "serde",
  "shred",
  "shrev",
+ "specs-derive",
  "tuple_utils",
+]
+
+[[package]]
+name = "specs-derive"
+version = "0.4.1"
+source = "git+https://github.com/amethyst/specs.git?rev=d4435bdf496cf322c74886ca09dd8795984919b4#d4435bdf496cf322c74886ca09dd8795984919b4"
+dependencies = [
+ "proc-macro2 1.0.24",
+ "quote 1.0.9",
+ "syn 1.0.60",
 ]
 
 [[package]]
