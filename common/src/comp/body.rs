@@ -369,6 +369,7 @@ impl Body {
                 biped_large::Species::Tidalwarrior => 2500,
                 biped_large::Species::Yeti => 2000,
                 biped_large::Species::Minotaur => 5000,
+                biped_large::Species::Harvester => 2000,
                 _ => 1000,
             },
             Body::BipedSmall(biped_small) => match biped_small.species {
@@ -480,6 +481,7 @@ impl Body {
                 biped_large::Species::Mindflayer => 250,
                 biped_large::Species::Tidalwarrior => 90,
                 biped_large::Species::Yeti => 80,
+                biped_large::Species::Harvester => 80,
                 _ => 100,
             },
             Body::BipedSmall(_) => 10,

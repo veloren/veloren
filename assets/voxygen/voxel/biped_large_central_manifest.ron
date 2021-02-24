@@ -676,4 +676,56 @@
             central: ("armor.empty"),
         )
     ),
+    (Harvester, Male): (
+        head: (
+            offset: (-11.0, -10.0, -9.0),
+            central: ("npc.harvester.male.head"),
+        ),
+        torso_upper: (
+            offset: (-6.0, -7.0, -5.5),
+            central: ("npc.harvester.male.torso_upper"),
+        ),
+        torso_lower: (
+            offset: (-3.0, -4.0, -9.0),
+            central: ("npc.harvester.male.torso_lower"),
+        ),
+        jaw: (
+            offset: (-4.0, 0.0, -2.0),
+            central: ("npc.harvester.male.jaw"),
+        ),
+        tail: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
+    (Harvester, Female): (
+        head: (
+            offset: (-11.0, -10.0, -9.0),
+            central: ("npc.harvester.male.head"),
+        ),
+        torso_upper: (
+            offset: (-6.0, -7.0, -5.5),
+            central: ("npc.harvester.male.torso_upper"),
+        ),
+        torso_lower: (
+            offset: (-3.0, -4.0, -9.0),
+            central: ("npc.harvester.male.torso_lower"),
+        ),
+        jaw: (
+            offset: (-4.0, 0.0, -2.0),
+            central: ("npc.harvester.male.jaw"),
+        ),
+        tail: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
 })

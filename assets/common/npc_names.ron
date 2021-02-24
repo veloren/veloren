@@ -853,6 +853,10 @@
             yeti: (
                 keyword: "yeti",
                 generic: "Yeti"
+            ),
+            harvester: (
+                keyword: "harvester",
+                generic: "Harvester"
             )
         )
     ),
