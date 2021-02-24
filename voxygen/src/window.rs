@@ -513,7 +513,7 @@ pub struct Window {
     events: Vec<Event>,
     focused: bool,
     gilrs: Option<Gilrs>,
-    controller_settings: ControllerSettings,
+    pub controller_settings: ControllerSettings,
     cursor_position: winit::dpi::PhysicalPosition<f64>,
     mouse_emulation_vec: Vec2<f32>,
     // Currently used to send and receive screenshot result messages
@@ -776,13 +776,18 @@ impl Window {
                                             ));
                                         },
                                         AxisGameAction::CameraY => {
+                                            let pan_invert_y =
+                                                match self.controller_settings.pan_invert_y {
+                                                    true => -1.0,
+                                                    false => 1.0,
+                                                };
+
                                             self.events.push(Event::AnalogGameInput(
                                                 AnalogGameInput::CameraY(
-                                                    // TODO: Use pan_invert_y here. Remove - in
-                                                    // front of `value` as well
                                                     -value
                                                         * self.controller_settings.pan_sensitivity
                                                             as f32
+                                                        * pan_invert_y
                                                         / 100.0,
                                                 ),
                                             ));

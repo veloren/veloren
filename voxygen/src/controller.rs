@@ -17,6 +17,7 @@ pub struct ControllerSettings {
     pub game_axis_map: HashMap<Axis, Vec<AxisGameAction>>,
     pub menu_axis_map: HashMap<Axis, Vec<AxisMenuAction>>,
     pub pan_sensitivity: u32,
+    pub pan_invert_y: bool,
     pub axis_deadzones: HashMap<Axis, f32>,
     pub button_deadzones: HashMap<AnalogButton, f32>,
     pub mouse_emulation_sensitivity: u32,
@@ -259,6 +260,7 @@ impl From<&crate::settings::GamepadSettings> for ControllerSettings {
                 map
             },
             pan_sensitivity: settings.pan_sensitivity,
+            pan_invert_y: settings.pan_invert_y,
             axis_deadzones: settings.axis_deadzones.clone(),
             button_deadzones: settings.button_deadzones.clone(),
             mouse_emulation_sensitivity: settings.mouse_emulation_sensitivity,

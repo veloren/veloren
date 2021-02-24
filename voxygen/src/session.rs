@@ -906,6 +906,12 @@ impl PlayState for SessionState {
                         global_state.settings.gameplay.mouse_y_inversion = mouse_y_inverted;
                         global_state.settings.save_to_file_warn();
                     },
+                    HudEvent::ToggleControllerYInvert(controller_y_inverted) => {
+                        global_state.window.controller_settings.pan_invert_y =
+                            controller_y_inverted;
+                        global_state.settings.controller.pan_invert_y = controller_y_inverted;
+                        global_state.settings.save_to_file_warn();
+                    },
                     HudEvent::ToggleSmoothPan(smooth_pan_enabled) => {
                         global_state.settings.gameplay.smooth_pan_enable = smooth_pan_enabled;
                         global_state.settings.save_to_file_warn();
