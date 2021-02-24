@@ -29,7 +29,9 @@
     (0.10, "common.items.food.apple_stick"),
     (0.10, "common.items.food.mushroom_stick"),
     // Weapons
-    (0.15, "common.items.weapons.sword.wood_sword"),
+    (0.15, "common.items.weapons.sword.wood-0"),
+    (0.15, "common.items.weapons.sword.wood-1"),
+    (0.15, "common.items.weapons.sword.wood-2"),
     (0.10, "common.items.weapons.axe.worn_iron_axe-0"),
     (0.10, "common.items.weapons.axe.worn_iron_axe-1"),
     (0.10, "common.items.weapons.axe.worn_iron_axe-2"),

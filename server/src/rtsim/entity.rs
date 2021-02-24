@@ -66,9 +66,9 @@ impl Entity {
         let mut rng = self.rng(PERM_LOADOUT);
         let main_tool = comp::Item::new_from_asset_expect(
             (&[
-                "common.items.weapons.sword.wood_sword",
-                "common.items.weapons.sword.starter_sword",
-                "common.items.weapons.sword.short_sword_0",
+                "common.items.weapons.sword.wood-2",
+                "common.items.weapons.sword.starter",
+                "common.items.weapons.sword.wood-0",
                 "common.items.weapons.bow.starter_bow",
                 "common.items.weapons.bow.leafy_longbow-0",
             ])

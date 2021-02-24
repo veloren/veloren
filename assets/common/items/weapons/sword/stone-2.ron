@@ -1,0 +1,16 @@
+ItemDef(
+    name: "Ritual Greatsword",
+    description: "Chiseled from stone.",
+    kind: Tool((
+        kind: Sword,
+        hands: Two,
+        stats: Direct((
+            equip_time_millis: 300,
+            power: 0.9,
+            poise_strength: 0.4,
+            speed: 0.9,
+        )),
+    )),
+    quality: Low,
+    tags: [],
+)

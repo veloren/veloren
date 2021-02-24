@@ -24,7 +24,7 @@ use rand::Rng;
 /// // Build a loadout with character starter defaults and a specific sword with default sword abilities
 /// let loadout = LoadoutBuilder::new()
 ///     .defaults()
-///     .active_item(Some(Item::new_from_asset_expect("common.items.weapons.sword.zweihander_sword_0")))
+///     .active_item(Some(Item::new_from_asset_expect("common.items.weapons.sword.steel-8")))
 ///     .build();
 /// ```
 #[derive(Clone)]

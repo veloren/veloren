@@ -1,0 +1,16 @@
+ItemDef(
+    name: "Warlord's Blade",
+    description: "Forged with iron.",
+    kind: Tool((
+        kind: Sword,
+        hands: Two,
+        stats: Direct((
+            equip_time_millis: 300,
+            power: 1.35,
+            poise_strength: 0.4,
+            speed: 0.85,
+        )),
+    )),
+    quality: Moderate,
+    tags: [],
+)

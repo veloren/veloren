@@ -1,15 +1,13 @@
 [
     // swords
-    (0.08, "common.items.weapons.sword.long_2h_orn-0"),
-    (0.08, "common.items.weapons.sword.long_2h_orn-1"),
-    (0.08, "common.items.weapons.sword.long_2h_orn-2"),
-    (0.08, "common.items.weapons.sword.long_2h_orn-3"),
-    (0.08, "common.items.weapons.sword.long_2h_orn-4"),
-    (0.08, "common.items.weapons.sword.long_2h_orn-5"),
-    (0.20, "common.items.weapons.sword.zweihander_sword_0"),
-    (0.10, "common.items.weapons.sword.greatsword_2h_orn-0"),
-    (0.10, "common.items.weapons.sword.greatsword_2h_orn-1"),
-    (0.10, "common.items.weapons.sword.greatsword_2h_orn-2"),
+    (0.20, "common.items.weapons.sword.cobalt-0"),
+    (0.20, "common.items.weapons.sword.cobalt-1"),
+    (0.20, "common.items.weapons.sword.cobalt-2"),
+    (0.20, "common.items.weapons.sword.cobalt-3"),
+    (0.10, "common.items.weapons.sword.bloodsteel-0"),
+    (0.10, "common.items.weapons.sword.bloodsteel-1"),
+    (0.10, "common.items.weapons.sword.bloodsteel-2"),
+    (0.01, "common.items.weapons.sword.caladbolg"),
     // axes
     (0.20, "common.items.weapons.axe.bloodsteel_axe-0"),
     (0.20, "common.items.weapons.axe.bloodsteel_axe-1"),

@@ -102,7 +102,7 @@ fn maps_basic_melee() {
 fn matches_ability_stage() {
     let loadout = LoadoutBuilder::new()
         .active_item(Some(Item::new_from_asset_expect(
-            "common.items.weapons.sword.starter_sword",
+            "common.items.weapons.sword.starter",
         )))
         .build();
     let inventory = Inventory::new_with_loadout(loadout);

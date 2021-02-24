@@ -1,0 +1,16 @@
+ItemDef(
+    name: "Cobalt Longsword",
+    description: "Forged with cobalt.",
+    kind: Tool((
+        kind: Sword,
+        hands: Two,
+        stats: Direct((
+            equip_time_millis: 300,
+            power: 1.6,
+            poise_strength: 0.4,
+            speed: 1.0,
+        )),
+    )),
+    quality: High,
+    tags: [],
+)

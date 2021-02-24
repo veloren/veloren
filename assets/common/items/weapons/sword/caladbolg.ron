@@ -1,0 +1,16 @@
+ItemDef(
+    name: "Caladborg",
+    description: "You sense an eldritch presence watching you.",
+    kind: Tool((
+        kind: Sword,
+        hands: Two,
+        stats: Direct((
+            equip_time_millis: 300,
+            power: 2.5,
+            poise_strength: 0.4,
+            speed: 0.8,
+        )),
+    )),
+    quality: Legendary,
+    tags: [],
+)

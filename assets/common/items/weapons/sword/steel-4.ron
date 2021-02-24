@@ -1,0 +1,16 @@
+ItemDef(
+    name: "Steel Greatsword",
+    description: "Forged with steel.",
+    kind: Tool((
+        kind: Sword,
+        hands: Two,
+        stats: Direct((
+            equip_time_millis: 300,
+            power: 1.55,
+            poise_strength: 0.4,
+            speed: 0.85,
+        )),
+    )),
+    quality: Moderate,
+    tags: [],
+)

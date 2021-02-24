@@ -85,10 +85,10 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
     {
         match item.kind() {
             comp::item::ItemKind::Tool(tool) => {
-                let power = tool.base_power().to_string();
-                let poise_strength = tool.base_poise_strength().to_string();
-                let speed = tool.base_speed().to_string();
-                let equip_time = tool.equip_time().subsec_millis().to_string();
+                let power = tool.base_power(&[]).to_string();
+                let poise_strength = tool.base_poise_strength(&[]).to_string();
+                let speed = tool.base_speed(&[]).to_string();
+                let equip_time = tool.equip_time(&[]).subsec_millis().to_string();
                 let kind = get_tool_kind(&tool.kind);
                 let hands = get_tool_hands(&tool);
 

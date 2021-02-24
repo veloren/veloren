@@ -1,0 +1,16 @@
+ItemDef(
+    name: "Steel Towerblade",
+    description: "Forged with steel.",
+    kind: Tool((
+        kind: Sword,
+        hands: Two,
+        stats: Direct((
+            equip_time_millis: 300,
+            power: 1.6,
+            poise_strength: 0.4,
+            speed: 0.8,
+        )),
+    )),
+    quality: Moderate,
+    tags: [],
+)

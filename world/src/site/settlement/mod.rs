@@ -930,7 +930,7 @@ impl Settlement {
                             match dynamic_rng.gen_range(0..5) {
                                 0 => entity
                                     .with_main_tool(Item::new_from_asset_expect(
-                                        "common.items.weapons.sword.greatsword_2h_simple-0",
+                                        "common.items.weapons.sword.iron-4",
                                     ))
                                     .with_name("Guard")
                                     .with_level(dynamic_rng.gen_range(10..15))

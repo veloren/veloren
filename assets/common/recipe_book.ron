@@ -243,7 +243,7 @@
         ],
     ),
     "Forest Spirit": (
-        ("common.items.weapons.sword.wood_sword", 1),
+        ("common.items.weapons.sword.wood-2", 1),
         [
             (Item("common.items.crafting_ing.leather_scraps"), 4),
             (Item("common.items.crafting_ing.twigs"), 10),
