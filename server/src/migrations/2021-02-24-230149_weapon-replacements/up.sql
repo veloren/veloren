@@ -84,3 +84,25 @@ UPDATE item
 SET item_definition_id = 'common.items.weapons.sword.frost-0' WHERE item_definition_id = 'common.items.weapons.sword.frost_cleaver_2h-0';
 UPDATE item
 SET item_definition_id = 'common.items.weapons.sword.frost-1' WHERE item_definition_id = 'common.items.weapons.sword.frost_cleaver_2h-1';
+UPDATE item
+SET item_definition_id = 'common.items.weapons.bow.bone-1' WHERE item_definition_id = 'common.items.weapons.bow.horn_longbow-0';
+UPDATE item
+SET item_definition_id = 'common.items.weapons.bow.metal-4' WHERE item_definition_id = 'common.items.weapons.bow.iron_longbow-0';
+UPDATE item
+SET item_definition_id = 'common.items.weapons.bow.hardwood-2' WHERE item_definition_id = 'common.items.weapons.bow.leafy_longbow-0';
+UPDATE item
+SET item_definition_id = 'common.items.weapons.bow.wood-0' WHERE item_definition_id = 'common.items.weapons.bow.leafy_shortbow-0';
+UPDATE item
+SET item_definition_id = 'common.items.weapons.bow.velorite' WHERE item_definition_id = 'common.items.weapons.bow.nature_ore_longbow-0';
+UPDATE item
+SET item_definition_id = 'common.items.weapons.bow.metal-1' WHERE item_definition_id = 'common.items.weapons.bow.rare_longbow';
+UPDATE item
+SET item_definition_id = 'common.items.weapons.bow.starter' WHERE item_definition_id = 'common.items.weapons.bow.starter_bow';
+UPDATE item
+SET item_definition_id = 'common.items.weapons.bow.wood-3' WHERE item_definition_id = 'common.items.weapons.bow.wood_longbow-0';
+UPDATE item
+SET item_definition_id = 'common.items.weapons.bow.hardwood-4' WHERE item_definition_id = 'common.items.weapons.bow.wood_longbow-1';
+UPDATE item
+SET item_definition_id = 'common.items.weapons.bow.wood-2' WHERE item_definition_id = 'common.items.weapons.bow.wood_shortbow-0';
+UPDATE item
+SET item_definition_id = 'common.items.weapons.bow.hardwood-3' WHERE item_definition_id = 'common.items.weapons.bow.wood_shortbow-1';

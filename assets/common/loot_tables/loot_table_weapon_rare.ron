@@ -28,7 +28,11 @@
     (0.15, "common.items.weapons.hammer.ramshead_hammer"),
     (0.01, "common.items.weapons.hammer.mjolnir"),
     // bows
-    (0.60, "common.items.weapons.bow.horn_longbow-0"),
-    (0.30, "common.items.weapons.bow.iron_longbow-0"),
-    (0.05, "common.items.weapons.bow.rare_longbow"),
+    (0.20, "common.items.weapons.bow.frostwood-0"),
+    (0.20, "common.items.weapons.bow.frostwood-1"),
+    (0.20, "common.items.weapons.bow.frostwood-2"),
+    (0.10, "common.items.weapons.bow.eldwood-0"),
+    (0.10, "common.items.weapons.bow.eldwood-1"),
+    (0.10, "common.items.weapons.bow.eldwood-2"),
+    (0.01, "common.items.weapons.bow.sagitta"),
 ]

@@ -76,9 +76,9 @@
     (0.10, "common.items.weapons.sword.stone-0"),
     (0.10, "common.items.weapons.sword.stone-1"),
     (0.10, "common.items.weapons.sword.stone-2"),
-    (0.15, "common.items.weapons.sword.bronze-0"),
-    (0.15, "common.items.weapons.sword.bronze-1"),
-    (0.15, "common.items.weapons.sword.bronze-2"),
+    (0.05, "common.items.weapons.sword.bronze-0"),
+    (0.05, "common.items.weapons.sword.bronze-1"),
+    (0.05, "common.items.weapons.sword.bronze-2"),
     // axes    
     (0.20, "common.items.weapons.axe.orc_axe-0"),
     (0.10, "common.items.weapons.axe.worn_iron_axe-0"),
@@ -99,9 +99,18 @@
     (0.05, "common.items.weapons.hammer.worn_iron_hammer-1"),
     (0.05, "common.items.weapons.hammer.worn_iron_hammer-2"),
     (0.05, "common.items.weapons.hammer.worn_iron_hammer-3"),
-    // bows    
-    (0.25, "common.items.weapons.bow.wood_shortbow-0"),
-    (0.25, "common.items.weapons.bow.wood_shortbow-1"),
+    // bows
+    (0.20, "common.items.weapons.bow.rawwood-0"),
+    (0.20, "common.items.weapons.bow.rawwood-1"),
+    (0.10, "common.items.weapons.bow.wood-0"),
+    (0.10, "common.items.weapons.bow.wood-1"),
+    (0.10, "common.items.weapons.bow.wood-2"),
+    (0.10, "common.items.weapons.bow.wood-3"),
+    (0.10, "common.items.weapons.bow.wood-4"),
+    (0.05, "common.items.weapons.bow.bone-0"),
+    (0.05, "common.items.weapons.bow.bone-1"),
+    (0.05, "common.items.weapons.bow.bone-2"),
+    (0.05, "common.items.weapons.bow.bone-3"),
     // Uncommon Weapons
     // swords
     (0.04, "common.items.weapons.sword.iron-0"),
@@ -168,10 +177,17 @@
     (0.05, "common.items.weapons.hammer.steel_hammer-4"),
     (0.05, "common.items.weapons.hammer.steel_hammer-5"),
     // bows
-    (0.30, "common.items.weapons.bow.leafy_shortbow-0"),
-    (0.25, "common.items.weapons.bow.wood_longbow-0"),
-    (0.25, "common.items.weapons.bow.wood_longbow-1"),
-    (0.20, "common.items.weapons.bow.leafy_longbow-0"),
+    (0.04, "common.items.weapons.bow.hardwood-0"),
+    (0.04, "common.items.weapons.bow.hardwood-1"),
+    (0.04, "common.items.weapons.bow.hardwood-2"),
+    (0.04, "common.items.weapons.bow.hardwood-3"),
+    (0.04, "common.items.weapons.bow.hardwood-4"),
+    (0.04, "common.items.weapons.bow.hardwood-5"),
+    (0.03, "common.items.weapons.bow.metal-0"),
+    (0.03, "common.items.weapons.bow.metal-1"),
+    (0.03, "common.items.weapons.bow.metal-2"),
+    (0.03, "common.items.weapons.bow.metal-3"),
+    (0.03, "common.items.weapons.bow.metal-4"),
     // Rare Weapons
     // swords
     (0.20, "common.items.weapons.sword.cobalt-0"),
@@ -198,7 +214,11 @@
     (0.1, "common.items.weapons.hammer.ramshead_hammer"),
     (0.001, "common.items.weapons.hammer.mjolnir"),
     // bows
-    (0.6, "common.items.weapons.bow.horn_longbow-0"),
-    (0.2, "common.items.weapons.bow.iron_longbow-0"),
-    (0.10, "common.items.weapons.bow.rare_longbow"),
+    (0.20, "common.items.weapons.bow.frostwood-0"),
+    (0.20, "common.items.weapons.bow.frostwood-1"),
+    (0.20, "common.items.weapons.bow.frostwood-2"),
+    (0.10, "common.items.weapons.bow.eldwood-0"),
+    (0.10, "common.items.weapons.bow.eldwood-1"),
+    (0.10, "common.items.weapons.bow.eldwood-2"),
+    (0.001, "common.items.weapons.bow.sagitta"),
 ]

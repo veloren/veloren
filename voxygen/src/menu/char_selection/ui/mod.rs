@@ -49,7 +49,7 @@ const BANNER_ALPHA: u8 = 210;
 const SMALL_BUTTON_HEIGHT: u16 = 31;
 
 const STARTER_HAMMER: &str = "common.items.weapons.hammer.starter_hammer";
-const STARTER_BOW: &str = "common.items.weapons.bow.starter_bow";
+const STARTER_BOW: &str = "common.items.weapons.bow.starter";
 const STARTER_AXE: &str = "common.items.weapons.axe.starter_axe";
 const STARTER_STAFF: &str = "common.items.weapons.staff.starter_staff";
 const STARTER_SWORD: &str = "common.items.weapons.sword.starter";

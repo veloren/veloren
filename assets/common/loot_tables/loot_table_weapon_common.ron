@@ -33,7 +33,11 @@
     (0.05, "common.items.weapons.hammer.worn_iron_hammer-2"),
     (0.05, "common.items.weapons.hammer.worn_iron_hammer-3"),
     // bows
-    (0.50, "common.items.weapons.bow.starter_bow"),
-    (0.25, "common.items.weapons.bow.wood_shortbow-0"),
-    (0.25, "common.items.weapons.bow.wood_shortbow-1"),
-]
+    (0.15, "common.items.weapons.bow.starter"),
+    (0.10, "common.items.weapons.bow.rawwood-0"),
+    (0.10, "common.items.weapons.bow.rawwood-1"),
+    (0.05, "common.items.weapons.bow.wood-0"),
+    (0.05, "common.items.weapons.bow.wood-1"),
+    (0.05, "common.items.weapons.bow.wood-2"),
+    (0.05, "common.items.weapons.bow.wood-3"),
+    (0.05, "common.items.weapons.bow.wood-4"),

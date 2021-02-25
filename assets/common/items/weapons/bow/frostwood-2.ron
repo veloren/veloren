@@ -1,0 +1,16 @@
+ItemDef(
+    name: "Lunar Bow",
+    description: "Glows under the light of the moon",
+    kind: Tool((
+        kind: Bow,
+        hands: Two,
+        stats: Direct((
+            equip_time_millis: 400,
+            power: 1.7,
+            poise_strength: 0.8,
+            speed: 0.9,
+        )),
+    )),
+    quality: High,
+    tags: [],
+)

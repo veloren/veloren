@@ -26,5 +26,6 @@
     (0.25, "common.items.weapons.sceptre.staff_nature"),
     (0.15, "common.items.weapons.hammer.flimsy_hammer"),
     (0.10, "common.items.weapons.hammer.wood_hammer-0"),
-    (0.25, "common.items.weapons.bow.wood_shortbow-0"),
+    (0.15, "common.items.weapons.bow.rawwood-0"),
+    (0.15, "common.items.weapons.bow.rawwood-1"),
 ]

@@ -1,0 +1,16 @@
+ItemDef(
+    name: "Hunting Bow",
+    description: "You could hunt a deer with this bow",
+    kind: Tool((
+        kind: Bow,
+        hands: Two,
+        stats: Direct((
+            equip_time_millis: 400,
+            power: 0.8,
+            poise_strength: 0.8,
+            speed: 1.0,
+        )),
+    )),
+    quality: Low,
+    tags: [],
+)

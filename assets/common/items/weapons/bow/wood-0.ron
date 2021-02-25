@@ -1,0 +1,16 @@
+ItemDef(
+    name: "Elven Shortbow",
+    description: "Made with exquisite craftsmanship",
+    kind: Tool((
+        kind: Bow,
+        hands: Two,
+        stats: Direct((
+            equip_time_millis: 400,
+            power: 0.9,
+            poise_strength: 0.8,
+            speed: 0.9,
+        )),
+    )),
+    quality: Low,
+    tags: [],
+)

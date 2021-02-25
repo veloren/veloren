@@ -1,0 +1,16 @@
+ItemDef(
+    name: "Oakroot Bow",
+    description: "The wood is blackened with dirt",
+    kind: Tool((
+        kind: Bow,
+        hands: Two,
+        stats: Direct((
+            equip_time_millis: 400,
+            power: 0.7,
+            poise_strength: 0.8,
+            speed: 0.9,
+        )),
+    )),
+    quality: Low,
+    tags: [],
+)

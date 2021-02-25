@@ -69,8 +69,8 @@ impl Entity {
                 "common.items.weapons.sword.wood-2",
                 "common.items.weapons.sword.starter",
                 "common.items.weapons.sword.wood-0",
-                "common.items.weapons.bow.starter_bow",
-                "common.items.weapons.bow.leafy_longbow-0",
+                "common.items.weapons.bow.starter",
+                "common.items.weapons.bow.hardwood-2",
             ])
                 .choose(&mut rng)
                 .unwrap(),

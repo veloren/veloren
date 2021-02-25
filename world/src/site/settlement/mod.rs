@@ -948,7 +948,7 @@ impl Settlement {
                                     4 => "common.items.weapons.tool.rake",
                                     5 => "common.items.weapons.tool.shovel-0",
                                     _ => "common.items.weapons.tool.shovel-1",
-                                    //_ => "common.items.weapons.bow.starter_bow", TODO: Re-Add this when we have a better way of distributing npc_weapons here
+                                    //_ => "common.items.weapons.bow.starter", TODO: Re-Add this when we have a better way of distributing npc_weapons here
                                 },
                                     ))
                                     .with_loadout_config(loadout_builder::LoadoutConfig::Villager)

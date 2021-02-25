@@ -235,7 +235,7 @@
         ],
     ),
     "Hunting Bow": (
-        ("common.items.weapons.bow.wood_shortbow-0", 1),
+        ("common.items.weapons.bow.wood-2", 1),
         [
             (Item("common.items.crafting_ing.leather_scraps"), 8),
             (Item("common.items.crafting_ing.twigs"), 6),

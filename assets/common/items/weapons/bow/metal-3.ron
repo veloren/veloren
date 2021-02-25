@@ -1,0 +1,16 @@
+ItemDef(
+    name: "Metal Warbow",
+    description: "Its appearance is intimidating",
+    kind: Tool((
+        kind: Bow,
+        hands: Two,
+        stats: Direct((
+            equip_time_millis: 400,
+            power: 1.5,
+            poise_strength: 0.8,
+            speed: 0.9,
+        )),
+    )),
+    quality: Moderate,
+    tags: [],
+)

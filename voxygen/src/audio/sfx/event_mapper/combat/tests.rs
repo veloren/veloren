@@ -40,7 +40,7 @@ fn maps_wield_while_equipping() {
 fn maps_unwield() {
     let loadout = LoadoutBuilder::new()
         .active_item(Some(Item::new_from_asset_expect(
-            "common.items.weapons.bow.starter_bow",
+            "common.items.weapons.bow.starter",
         )))
         .build();
     let inventory = Inventory::new_with_loadout(loadout);
