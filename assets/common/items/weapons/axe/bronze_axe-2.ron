@@ -1,13 +1,13 @@
 ItemDef(
-    name: "Skull Axe",
-    description: "Infused with blood.",
+    name: "Tribal Axe",
+    description: "Stained with the blood of its wielder's enemies.",
     kind: Tool((
         kind: Axe,
         hands: Two,
         stats: Direct((
             equip_time_millis: 400,
-            power: 1.6,
-            poise_strength: 1.8,
+            power: 1.0,
+            poise_strength: 1.4,
             speed: 1.0,
         )),
     )),

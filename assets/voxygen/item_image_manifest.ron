@@ -397,6 +397,10 @@
         "voxel.weapon.axe.2haxe_bronze-1",
         (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
     ),
+    Tool("common.items.weapons.axe.bronze_axe-2"): VoxTrans(
+        "voxel.weapon.axe.2haxe_bronze-2",
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+    ),
     Tool("common.items.weapons.axe.iron_axe-0"): VoxTrans(
         "voxel.weapon.axe.2haxe_iron-0",
         (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
@@ -481,8 +485,16 @@
         "voxel.weapon.axe.2haxe_cobalt-0",
         (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
     ),
+    Tool("common.items.weapons.axe.cobalt_axe-1"): VoxTrans(
+        "voxel.weapon.axe.2haxe_cobalt-1",
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+    ),
     Tool("common.items.weapons.axe.malachite_axe-0"): VoxTrans(
         "voxel.weapon.axe.2haxe_malachite-0",
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+    ),
+    Tool("common.items.weapons.axe.parashu"): VoxTrans(
+        "voxel.weapon.axe.parashu",
         (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
     ),
     // 1h Axes

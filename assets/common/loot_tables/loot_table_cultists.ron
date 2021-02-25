@@ -127,6 +127,7 @@
     // axes
     (0.15, "common.items.weapons.axe.bronze_axe-0"),
     (0.15, "common.items.weapons.axe.bronze_axe-1"),
+    (0.15, "common.items.weapons.axe.bronze_axe-2"),
     (0.04, "common.items.weapons.axe.iron_axe-0"),
     (0.04, "common.items.weapons.axe.iron_axe-1"),
     (0.04, "common.items.weapons.axe.iron_axe-2"),
@@ -185,7 +186,7 @@
     (0.20, "common.items.weapons.axe.bloodsteel_axe-0"),
     (0.20, "common.items.weapons.axe.bloodsteel_axe-1"),
     (0.20, "common.items.weapons.axe.bloodsteel_axe-2"),
-    (0.10, "common.items.weapons.axe.malachite_axe-0"),
+    (0.001, "common.items.weapons.axe.parashu"),
     // healing staff
     (0.25, "common.items.weapons.sceptre.staff_nature"),
     // staves

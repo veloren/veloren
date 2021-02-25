@@ -13,7 +13,9 @@
     (0.20, "common.items.weapons.axe.bloodsteel_axe-1"),
     (0.20, "common.items.weapons.axe.bloodsteel_axe-2"),
     (0.30, "common.items.weapons.axe.cobalt_axe-0"),
+    (0.30, "common.items.weapons.axe.cobalt_axe-1"),
     (0.10, "common.items.weapons.axe.malachite_axe-0"),
+    (0.01, "common.items.weapons.axe.parashu"),
     // healing staff    
     (0.15, "common.items.weapons.sceptre.loops0"),
     (0.10, "common.items.weapons.sceptre.fork0"),

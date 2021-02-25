@@ -1,16 +1,16 @@
 ItemDef(
-    name: "Skull Axe",
-    description: "Infused with blood.",
+    name: "Parashu",
+    description: "Said to be able to cleave the heavens.",
     kind: Tool((
         kind: Axe,
         hands: Two,
         stats: Direct((
             equip_time_millis: 400,
-            power: 1.6,
+            power: 2.5,
             poise_strength: 1.8,
-            speed: 1.0,
+            speed: 0.8,
         )),
     )),
-    quality: High,
+    quality: Legendary,
     tags: [],
 )
