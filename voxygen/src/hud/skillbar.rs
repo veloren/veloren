@@ -400,7 +400,13 @@ impl<'a> Widget for Skillbar<'a> {
                 .set(state.ids.stamina_txt, ui);
         }
         // Slots
-        let content_source = (self.hotbar, self.inventory, self.energy, self.ability_map); // TODO: avoid this
+        let content_source = (
+            self.hotbar,
+            self.inventory,
+            self.energy,
+            self.ability_map,
+            self.msm,
+        ); // TODO: avoid this
         let image_source = (self.item_imgs, self.imgs);
         let mut slot_maker = SlotMaker {
             // TODO: is a separate image needed for the frame?

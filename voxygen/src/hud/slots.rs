@@ -2,13 +2,12 @@ use super::{
     hotbar::{self, Slot as HotbarSlot},
     img_ids,
     item_imgs::{ItemImgs, ItemKey},
-    util::MATERIAL_STATS_MANIFEST,
 };
 use crate::ui::slot::{self, SlotKey, SumSlot};
 use common::comp::{
     item::{
         tool::{AbilityMap, Hands, ToolKind},
-        ItemKind,
+        ItemKind, MaterialStatManifest,
     },
     slot::InvSlotId,
     Energy, Inventory,
@@ -102,7 +101,13 @@ pub enum HotbarImage {
     BowJumpBurst,
 }
 
-type HotbarSource<'a> = (&'a hotbar::State, &'a Inventory, &'a Energy, &'a AbilityMap);
+type HotbarSource<'a> = (
+    &'a hotbar::State,
+    &'a Inventory,
+    &'a Energy,
+    &'a AbilityMap,
+    &'a MaterialStatManifest,
+);
 type HotbarImageSource<'a> = (&'a ItemImgs, &'a img_ids::Imgs);
 
 impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
@@ -110,7 +115,7 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
 
     fn image_key(
         &self,
-        (hotbar, inventory, energy, ability_map): &HotbarSource<'a>,
+        (hotbar, inventory, energy, ability_map, msm): &HotbarSource<'a>,
     ) -> Option<(Self::ImageKey, Option<Color>)> {
         hotbar.get(*self).and_then(|contents| match contents {
             hotbar::SlotContents::Inventory(idx) => inventory
@@ -131,11 +136,7 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
                         (
                             i,
                             if let Some(skill) = tool
-                                .get_abilities(
-                                    &MATERIAL_STATS_MANIFEST,
-                                    item.components(),
-                                    ability_map,
-                                )
+                                .get_abilities(&msm, item.components(), ability_map)
                                 .abilities
                                 .get(0)
                             {
@@ -178,11 +179,7 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
                         (
                             i,
                             if let Some(skill) = tool
-                                .get_abilities(
-                                    &MATERIAL_STATS_MANIFEST,
-                                    item.components(),
-                                    ability_map,
-                                )
+                                .get_abilities(&msm, item.components(), ability_map)
                                 .abilities
                                 .get(skill_index)
                             {
@@ -201,7 +198,7 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
         })
     }
 
-    fn amount(&self, (hotbar, inventory, _, _): &HotbarSource<'a>) -> Option<u32> {
+    fn amount(&self, (hotbar, inventory, _, _, _): &HotbarSource<'a>) -> Option<u32> {
         hotbar
             .get(*self)
             .and_then(|content| match content {

@@ -12,7 +12,7 @@ use client::{self, Client};
 use common::{
     assets::AssetExt,
     comp::{
-        item::{ItemDef, ItemDesc, Quality, TagExampleInfo},
+        item::{ItemDef, ItemDesc, MaterialStatManifest, Quality, TagExampleInfo},
         Inventory,
     },
     recipe::RecipeInput,
@@ -68,6 +68,7 @@ pub struct Crafting<'a> {
     tooltip_manager: &'a mut TooltipManager,
     item_imgs: &'a ItemImgs,
     inventory: &'a Inventory,
+    msm: &'a MaterialStatManifest,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
 }
@@ -83,6 +84,7 @@ impl<'a> Crafting<'a> {
         tooltip_manager: &'a mut TooltipManager,
         item_imgs: &'a ItemImgs,
         inventory: &'a Inventory,
+        msm: &'a MaterialStatManifest,
     ) -> Self {
         Self {
             client,
@@ -94,6 +96,7 @@ impl<'a> Crafting<'a> {
             tooltip_manager,
             item_imgs,
             inventory,
+            msm,
             common: widget::CommonBuilder::default(),
         }
     }
@@ -297,7 +300,7 @@ impl<'a> Widget for Crafting<'a> {
                 {
                     let output_text = format!("x{}", &recipe.output.1.to_string());
                     // Output Image
-                    let (title, desc) = super::util::item_text(&*recipe.output.0);
+                    let (title, desc) = super::util::item_text(&*recipe.output.0, self.msm);
                     let quality_col = get_quality_col(&*recipe.output.0);
                     Button::image(animate_by_pulse(
                         &self
@@ -488,7 +491,7 @@ impl<'a> Widget for Crafting<'a> {
                 };
                 frame.set(state.ids.ingredient_frame[i], ui);
                 //Item Image
-                let (title, desc) = super::util::item_text(&*item_def);
+                let (title, desc) = super::util::item_text(&*item_def, self.msm);
                 Button::image(animate_by_pulse(
                     &self.item_imgs.img_ids_or_not_found_img((&*item_def).into()),
                     self.pulse,

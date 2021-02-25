@@ -2143,6 +2143,7 @@ impl Hud {
                 tooltip_manager,
                 &mut self.slot_manager,
                 i18n,
+                &msm,
                 self.pulse,
             )
             .set(self.ids.trade, ui_widgets)
@@ -2207,6 +2208,7 @@ impl Hud {
                     tooltip_manager,
                     &self.item_imgs,
                     &inventory,
+                    &msm,
                 )
                 .set(self.ids.crafting_window, ui_widgets)
                 {

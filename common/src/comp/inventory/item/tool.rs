@@ -72,6 +72,13 @@ impl Stats {
             speed: 0.0,
         }
     }
+
+    pub fn clamp_speed(mut self) -> Stats {
+        // if a tool has 0.0 speed, that panics due to being infinite duration, so
+        // enforce speed >= 0.1 on the final product (but not the intermediates)
+        self.speed = self.speed.max(0.1);
+        self
+    }
 }
 
 impl Asset for Stats {
@@ -112,7 +119,7 @@ impl DivAssign<usize> for Stats {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct MaterialStatManifest(HashMap<String, Stats>);
+pub struct MaterialStatManifest(pub HashMap<String, Stats>);
 
 // This could be a Compound that also loads the keys, but the RecipeBook
 // Compound impl already does that, so checking for existence here is redundant.
@@ -166,16 +173,13 @@ impl StatKind {
             average_mult /= multipliers.len();
             stats *= average_mult;
         }
-        // if an item has 0.0 speed, that panics due to being infinite duration, so
-        // enforce speed >= 0.1
-        stats.speed = stats.speed.max(0.1);
         stats
     }
 }
 
 impl From<(&MaterialStatManifest, &[Item], &Tool)> for Stats {
     fn from((msm, components, tool): (&MaterialStatManifest, &[Item], &Tool)) -> Self {
-        let raw_stats = tool.stats.resolve_stats(msm, components);
+        let raw_stats = tool.stats.resolve_stats(msm, components).clamp_speed();
         let (power, speed) = match tool.hands {
             Hands::One => (0.67, 1.33),
             // TODO: Restore this when one-handed weapons are made accessible
@@ -245,7 +249,10 @@ impl Tool {
     }
 
     pub fn base_speed(&self, msm: &MaterialStatManifest, components: &[Item]) -> f32 {
-        self.stats.resolve_stats(msm, components).speed
+        self.stats
+            .resolve_stats(msm, components)
+            .clamp_speed()
+            .speed
     }
 
     pub fn equip_time(&self, msm: &MaterialStatManifest, components: &[Item]) -> Duration {
