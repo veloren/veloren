@@ -11,6 +11,6 @@ ItemDef(
             speed: 1.0,
         )),
     )),
-    quality: High,
+    quality: Moderate,
     tags: [],
 )
