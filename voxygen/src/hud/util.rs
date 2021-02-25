@@ -1,7 +1,13 @@
-use common::comp::item::{
-    armor::{Armor, ArmorKind, Protection},
-    tool::{Hands, StatKind, Stats, Tool, ToolKind},
-    Item, ItemDesc, ItemKind, MaterialStatManifest, ModularComponent,
+use common::{
+    comp::{
+        item::{
+            armor::{Armor, ArmorKind, Protection},
+            tool::{Hands, StatKind, Stats, Tool, ToolKind},
+            Item, ItemDesc, ItemKind, MaterialStatManifest, ModularComponent,
+        },
+        BuffKind,
+    },
+    effect::Effect,
 };
 use std::{borrow::Cow, fmt::Write};
 
@@ -40,7 +46,7 @@ pub fn item_text<'a>(
             item.description(),
         )),
         ItemKind::Glider(_glider) => Cow::Owned(glider_desc(item.description())),
-        ItemKind::Consumable { .. } => Cow::Owned(consumable_desc(item.description())),
+        ItemKind::Consumable { effect, .. } => Cow::Owned(consumable_desc(Some(effect), item.description())),
         ItemKind::Throwable { .. } => Cow::Owned(throwable_desc(item.description())),
         ItemKind::Utility { .. } => Cow::Owned(utility_desc(item.description())),
         ItemKind::Ingredient { .. } => Cow::Owned(ingredient_desc(
@@ -78,8 +84,47 @@ fn modular_component_desc(
 }
 fn glider_desc(desc: &str) -> String { format!("Glider\n\n{}\n\n<Right-Click to use>", desc) }
 
-fn consumable_desc(desc: &str) -> String {
-    format!("Consumable\n\n{}\n\n<Right-Click to use>", desc)
+fn consumable_desc(maybe_effects: Option<&Vec<Effect>>, desc: &str) -> String {
+    // TODO: localization
+    let mut description = format!(
+        "Consumable"
+    );
+
+    if let Some(effects) = maybe_effects {
+        for effect in effects {
+            match effect {
+                Effect::Buff(buff) => {
+
+                    let dur_secs = buff.data.duration.unwrap().as_secs_f32();
+                    let str_total = buff.data.strength * 0.1 * dur_secs;
+
+                    let buff_desc = match buff.kind {
+                        BuffKind::Saturation { .. } => {
+                            format!("Restores {} Health over {} seconds", str_total, dur_secs)
+                        },
+                        BuffKind::Potion { .. } => {
+                            format!("Restores {} Health", str_total)
+                        },
+                        _ => {
+                            String::new()
+                        },
+                    };
+
+                    if !buff_desc.is_empty() {
+                        write!(&mut description, "\n\n{}", buff_desc).unwrap();
+                    }
+                },
+                _ => (),
+            }
+        }
+    }
+
+    if !desc.is_empty() {
+        write!(&mut description, "\n\n{}", desc).unwrap();
+    }
+
+    write!(&mut description, "\n\n<Right-Click to use>").unwrap();
+    description
 }
 
 fn throwable_desc(desc: &str) -> String {
@@ -224,7 +269,7 @@ mod tests {
 
         assert_eq!(
             "Consumable\n\nmushrooms\n\n<Right-Click to use>",
-            consumable_desc(item_description)
+            consumable_desc(None, item_description)
         );
     }
 
