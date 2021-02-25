@@ -1,6 +1,6 @@
 ItemDef(
     name: "Velorite",
-    description: "Just a slight touch makes you feel\n\the knowledge of ancient times",
+    description: "Just a slight touch makes you feel\nthe knowledge of ancient times",
     kind: Ingredient(
         kind: "Velorite",      
     ),

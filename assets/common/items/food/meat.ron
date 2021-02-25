@@ -1,6 +1,6 @@
 ItemDef(
     name: "Meat",
-    description: "Restores 10 Health over 20 seconds\n\nMeat. The lifeblood of mankind.",
+    description: "Meat. The lifeblood of mankind.",
     kind: Consumable(
         kind: "Meat",
         effect: [

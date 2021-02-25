@@ -1,6 +1,6 @@
 ItemDef(
     name: "Large Potion",
-    description: "Restores 200 Health",
+    description: "",
     kind: Consumable(
         kind: "PotionLarge",
         effect: [

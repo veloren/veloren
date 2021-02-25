@@ -1,6 +1,6 @@
 ItemDef(
     name: "Tomato Salad",
-    description: "Restores 30 Health over 20 seconds\n\nLeafy salad with some chopped, juicy tomatoes mixed in.",
+    description: "Leafy salad with some chopped, juicy tomatoes mixed in.",
     kind: Consumable(
         kind: "TomatoSalad",
         effect: [

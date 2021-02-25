@@ -1,6 +1,6 @@
 ItemDef(
     name: "Tomato",
-    description: "Restores 10 Health over 20 seconds\n\nA red fruit. Not actually a vegetable.",
+    description: "A red fruit. Not actually a vegetable.",
     kind: Consumable(
         kind: "Tomato",
         effect: [

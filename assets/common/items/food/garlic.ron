@@ -1,6 +1,6 @@
 ItemDef(
     name: "Garlic",
-    description: "Restores 10 Health over 20 seconds\n\nMake sure to brush your teeth after eating.",
+    description: "Make sure to brush your teeth after eating.",
     kind: Consumable(
         kind: "Garlic",
         effect: [

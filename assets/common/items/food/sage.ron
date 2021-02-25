@@ -1,6 +1,6 @@
 ItemDef(
     name: "Sage",
-    description: "Restores 10 Health over 20 seconds\n\nAn herb commonly used in tea.",
+    description: "A herb commonly used in tea.",
     kind: Consumable(
         kind: "Sage",
         effect: [
