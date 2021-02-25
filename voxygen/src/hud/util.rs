@@ -46,7 +46,9 @@ pub fn item_text<'a>(
             item.description(),
         )),
         ItemKind::Glider(_glider) => Cow::Owned(glider_desc(item.description())),
-        ItemKind::Consumable { effect, .. } => Cow::Owned(consumable_desc(Some(effect), item.description())),
+        ItemKind::Consumable { effect, .. } => {
+            Cow::Owned(consumable_desc(Some(effect), item.description()))
+        },
         ItemKind::Throwable { .. } => Cow::Owned(throwable_desc(item.description())),
         ItemKind::Utility { .. } => Cow::Owned(utility_desc(item.description())),
         ItemKind::Ingredient { .. } => Cow::Owned(ingredient_desc(
@@ -86,35 +88,40 @@ fn glider_desc(desc: &str) -> String { format!("Glider\n\n{}\n\n<Right-Click to 
 
 fn consumable_desc(maybe_effects: Option<&Vec<Effect>>, desc: &str) -> String {
     // TODO: localization
-    let mut description = format!(
-        "Consumable"
-    );
+    let mut description = "Consumable".to_string();
 
     if let Some(effects) = maybe_effects {
         for effect in effects {
-            match effect {
-                Effect::Buff(buff) => {
+            if let Effect::Buff(buff) = effect {
+                let strength = buff.data.strength * 0.1;
+                let dur_secs = buff.data.duration.unwrap().as_secs_f32();
+                let str_total = strength * dur_secs;
 
-                    let dur_secs = buff.data.duration.unwrap().as_secs_f32();
-                    let str_total = buff.data.strength * 0.1 * dur_secs;
+                let buff_desc = match buff.kind {
+                    BuffKind::Saturation { .. } | BuffKind::Regeneration { .. } => {
+                        format!("Restores {} Health over {} seconds", str_total, dur_secs)
+                    },
+                    BuffKind::Potion { .. } => {
+                        format!("Restores {} Health", str_total)
+                    },
+                    BuffKind::IncreaseMaxEnergy { .. } => {
+                        format!(
+                            "Raises Maximum Stamina by {} for {} seconds",
+                            strength, dur_secs
+                        )
+                    },
+                    BuffKind::IncreaseMaxHealth { .. } => {
+                        format!(
+                            "Raises Maximum Health by {} for {} seconds",
+                            strength, dur_secs
+                        )
+                    },
+                    _ => String::new(),
+                };
 
-                    let buff_desc = match buff.kind {
-                        BuffKind::Saturation { .. } => {
-                            format!("Restores {} Health over {} seconds", str_total, dur_secs)
-                        },
-                        BuffKind::Potion { .. } => {
-                            format!("Restores {} Health", str_total)
-                        },
-                        _ => {
-                            String::new()
-                        },
-                    };
-
-                    if !buff_desc.is_empty() {
-                        write!(&mut description, "\n\n{}", buff_desc).unwrap();
-                    }
-                },
-                _ => (),
+                if !buff_desc.is_empty() {
+                    write!(&mut description, "\n\n{}", buff_desc).unwrap();
+                }
             }
         }
     }
