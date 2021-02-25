@@ -46,7 +46,6 @@ impl Animation for DashAnimation {
         let mut next = (*skeleton).clone();
         let speed = Vec2::<f32>::from(velocity).magnitude();
 
-        //let fastacc = (acc_vel * 2.0).sin();
         let fast = (anim_time as f32 * 10.0).sin();
         let fastalt = (anim_time as f32 * 10.0 + PI / 2.0).sin();
 

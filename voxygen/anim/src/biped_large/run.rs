@@ -47,9 +47,9 @@ impl Animation for RunAnimation {
 
         *rate = 1.0;
 
-        let lab = 0.65 * s_a.tempo; //.65
-        let speednorm = (speed / 12.0).powf(0.6); //.powf(0.4)
-        let speednormlow = (speed / 12.0).powf(4.0); //.powf(0.4)
+        let lab = 0.65 * s_a.tempo;
+        let speednorm = (speed / 12.0).powf(0.6);
+        let speednormlow = (speed / 12.0).powf(4.0);
 
         let footvertl = (acc_vel * lab as f32 + PI * -0.2).sin() * speednorm;
         let footvertr = (acc_vel * lab as f32 + PI * -1.2).sin() * speednorm;
@@ -91,17 +91,17 @@ impl Animation for RunAnimation {
         let shift4 = speedadjust - PI * 3.0 / 4.0 + speedadjust * PI / 2.0;
 
         //FL
-        let foot1a = (acc_vel * lab as f32 * speedmult + 0.0 + canceler * 0.05 + shift1).sin(); //1.5
-        let foot1b = (acc_vel * lab as f32 * speedmult + 1.1 + canceler * 0.05 + shift1).sin(); //1.9
+        let foot1a = (acc_vel * lab as f32 * speedmult + 0.0 + canceler * 0.05 + shift1).sin();
+        let foot1b = (acc_vel * lab as f32 * speedmult + 1.1 + canceler * 0.05 + shift1).sin();
         //FR
-        let foot2a = (acc_vel * lab as f32 * speedmult + shift2).sin(); //1.2
-        let foot2b = (acc_vel * lab as f32 * speedmult + 1.1 + shift2).sin(); //1.6
+        let foot2a = (acc_vel * lab as f32 * speedmult + shift2).sin();
+        let foot2b = (acc_vel * lab as f32 * speedmult + 1.1 + shift2).sin();
         //BL
-        let foot3a = (acc_vel * lab as f32 * speedmult + shift3).sin(); //0.0
-        let foot3b = (acc_vel * lab as f32 * speedmult + 0.3 + shift3).sin(); //0.4
+        let foot3a = (acc_vel * lab as f32 * speedmult + shift3).sin();
+        let foot3b = (acc_vel * lab as f32 * speedmult + 0.3 + shift3).sin();
         //BR
-        let foot4a = (acc_vel * lab as f32 * speedmult + 0.0 + canceler * 0.05 + shift4).sin(); //0.3
-        let foot4b = (acc_vel * lab as f32 * speedmult + 1.57 + canceler * 0.05 + shift4).sin(); //0.7
+        let foot4a = (acc_vel * lab as f32 * speedmult + 0.0 + canceler * 0.05 + shift4).sin();
+        let foot4b = (acc_vel * lab as f32 * speedmult + 1.57 + canceler * 0.05 + shift4).sin();
         //
         let slow = (acc_vel * lab as f32 * speedmult + PI).sin();
 

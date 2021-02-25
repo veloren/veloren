@@ -18,7 +18,7 @@ pub enum ToolKind {
     Sword,
     Axe,
     Hammer,
-    HammerSimple,
+    HammerSimple, //simple tools utilized by small/large biped variants, to simplify movesets
     SwordSimple,
     StaffSimple,
     BowSimple,

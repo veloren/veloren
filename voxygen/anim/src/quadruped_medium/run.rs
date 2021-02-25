@@ -24,14 +24,12 @@ impl Animation for RunAnimation {
         let mut next = (*skeleton).clone();
         let speed = (Vec2::<f32>::from(velocity).magnitude()).min(24.0);
         *rate = 1.0;
-        //let increasefreqtest = (((1.0/speed)*3.0).round()).min(5.0);
-        let lab = 0.72; //0.72
+        let lab = 0.72;
         let amplitude = (speed / 24.0).powf(0.6);
         let amplitude2 = (speed / 24.0).powf(0.6);
         let amplitude3 = (speed / 24.0).powf(0.6);
         let speedmult = s_a.tempo;
         let canceler = (speed / 24.0).powf(0.6);
-        //println!("{} test",  canceler);
 
         let short = (((1.0)
             / (0.72

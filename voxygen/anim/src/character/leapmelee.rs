@@ -66,8 +66,6 @@ impl Animation for LeapAnimation {
                 * Quaternion::rotation_y(0.0 + move2 * -0.1)
                 * Quaternion::rotation_z(move1 * -0.4 + move2 * -0.2 + move3 * 0.6);
 
-            //next.hand_l.position = Vec3::new(-12.0 + move3 * 10.0, 0.0, 0.0);
-
             next.foot_l.position = Vec3::new(
                 -s_a.foot.0,
                 s_a.foot.1 + move3 * 13.0,

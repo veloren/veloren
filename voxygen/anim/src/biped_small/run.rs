@@ -75,7 +75,6 @@ impl Animation for RunAnimation {
         } else {
             0.0
         } * 1.3;
-        //println!("speednorm {} ",side);
 
         let head_look = Vec2::new(
             ((global_time + anim_time) as f32 / 18.0)

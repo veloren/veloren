@@ -333,7 +333,7 @@ impl LoadoutBuilder {
                             "common.items.npc_armor.biped_small.adlet.tail.adlet",
                         )))
                         .build(),
-                    Some(ToolKind::Spear) | Some(ToolKind::Staff) => LoadoutBuilder::new()
+                    Some(ToolKind::Spear) | Some(ToolKind::StaffSimple) => LoadoutBuilder::new()
                         .active_item(active_item)
                         .head(Some(Item::new_from_asset_expect(
                             "common.items.npc_armor.biped_small.adlet.head.adlet_spear",
@@ -378,7 +378,7 @@ impl LoadoutBuilder {
                             "common.items.npc_armor.biped_small.gnarling.tail.gnarling",
                         )))
                         .build(),
-                    Some(ToolKind::Staff) => LoadoutBuilder::new()
+                    Some(ToolKind::StaffSimple) => LoadoutBuilder::new()
                         .active_item(active_item)
                         .head(Some(Item::new_from_asset_expect(
                             "common.items.npc_armor.biped_small.gnarling.head.gnarling",

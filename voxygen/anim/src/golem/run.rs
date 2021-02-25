@@ -25,8 +25,8 @@ impl Animation for RunAnimation {
         let mut next = (*skeleton).clone();
         let speed = Vec2::<f32>::from(velocity).magnitude();
 
-        let lab = 0.45 * s_a.tempo; //.65
-        let speednorm = (speed / 7.0).powf(0.6); //.powf(0.4)
+        let lab = 0.45 * s_a.tempo;
+        let speednorm = (speed / 7.0).powf(0.6);
         let foothoril = (((1.0)
             / (0.4 + (0.6) * ((acc_vel * 2.0 * lab as f32 + PI * 1.4).sin()).powi(2)))
         .sqrt())
