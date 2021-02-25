@@ -629,6 +629,7 @@ impl Item {
             SpriteKind::RubySmall => "common.items.crafting_ing.ruby",
             SpriteKind::EmeraldSmall => "common.items.crafting_ing.emerald",
             SpriteKind::SapphireSmall => "common.items.crafting_ing.sapphire",
+            SpriteKind::Seashells => "common.items.crafting_ing.seashells",
             _ => return None,
         }))
     }

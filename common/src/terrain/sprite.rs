@@ -128,6 +128,20 @@ make_case_elim!(
         SapphireSmall = 0x65,
         WallLampSmall = 0x66,
         WallSconce = 0x67,
+        StonyCoral = 0x68,
+        SoftCoral = 0x69,
+        SeaweedTemperate = 0x6A,
+        SeaweedTropical = 0x6B,
+        GiantKelp = 0x6C,
+        BullKelp = 0x6D,
+        WavyAlgae = 0x6E,
+        SeaGrapes = 0x6F,
+        MermaidsFan = 0x70,
+        SeaAnemone = 0x71,
+        Seashells = 0x72,
+        Seagrass = 0x73,
+        RedAlgae = 0x74,
+        UnderwaterVent = 0x75,
     }
 );
 
@@ -168,6 +182,7 @@ impl SpriteKind {
             SpriteKind::Pot => 0.90,
             SpriteKind::Mud => 0.36,
             SpriteKind::ChestBurried => 0.91,
+            SpriteKind::StonyCoral => 1.4,
             // TODO: Find suitable heights.
             SpriteKind::BarrelCactus
             | SpriteKind::RoundCactus
@@ -230,6 +245,7 @@ impl SpriteKind {
             SpriteKind::RubySmall => true,
             SpriteKind::EmeraldSmall => true,
             SpriteKind::SapphireSmall => true,
+            SpriteKind::Seashells => true,
             _ => false,
         }
     }
