@@ -194,7 +194,7 @@ pub fn handle_create_waypoint(server: &mut Server, pos: Vec3<f32>) {
         .with(comp::Auras::new(Aura::new(
             AuraKind::Buff {
                 kind: BuffKind::CampfireHeal,
-                data: BuffData::new(0.01, Some(Duration::from_secs(1))),
+                data: BuffData::new(0.02, Some(Duration::from_secs(1))),
                 category: BuffCategory::Natural,
                 source: BuffSource::World,
             },
