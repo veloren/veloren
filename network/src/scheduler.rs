@@ -299,37 +299,45 @@ impl Scheduler {
         trace!("Stop connect_mgr");
     }
 
-    async fn disconnect_mgr(&self, mut a2s_disconnect_r: mpsc::UnboundedReceiver<A2sDisconnect>) {
+    async fn disconnect_mgr(&self, a2s_disconnect_r: mpsc::UnboundedReceiver<A2sDisconnect>) {
         trace!("Start disconnect_mgr");
-        while let Some((pid, (timeout_time, return_once_successful_shutdown))) =
-            a2s_disconnect_r.recv().await
-        {
-            //Closing Participants is done the following way:
-            // 1. We drop our senders and receivers
-            // 2. we need to close BParticipant, this will drop its senderns and receivers
-            // 3. Participant will try to access the BParticipant senders and receivers with
-            // their next api action, it will fail and be closed then.
-            trace!(?pid, "Got request to close participant");
-            let pi = self.participants.lock().await.remove(&pid);
-            trace!(?pid, "dropped participants lock");
-            if let Some(mut pi) = pi {
-                let (finished_sender, finished_receiver) = oneshot::channel();
-                pi.s2b_shutdown_bparticipant_s
-                    .take()
-                    .unwrap()
-                    .send((timeout_time, finished_sender))
-                    .unwrap();
-                drop(pi);
-                trace!(?pid, "dropped bparticipant, waiting for finish");
-                let e = finished_receiver.await.unwrap();
-                trace!(?pid, "waiting completed");
-                return_once_successful_shutdown.send(e).unwrap();
-            } else {
-                debug!(?pid, "Looks like participant is already dropped");
-                return_once_successful_shutdown.send(Ok(())).unwrap();
-            }
-            trace!(?pid, "Closed participant");
-        }
+
+        let a2s_disconnect_r = UnboundedReceiverStream::new(a2s_disconnect_r);
+        a2s_disconnect_r
+            .for_each_concurrent(
+                None,
+                |(pid, (timeout_time, return_once_successful_shutdown))| {
+                    //Closing Participants is done the following way:
+                    // 1. We drop our senders and receivers
+                    // 2. we need to close BParticipant, this will drop its senderns and receivers
+                    // 3. Participant will try to access the BParticipant senders and receivers with
+                    // their next api action, it will fail and be closed then.
+                    let participants = Arc::clone(&self.participants);
+                    async move {
+                        trace!(?pid, "Got request to close participant");
+                        let pi = participants.lock().await.remove(&pid);
+                        trace!(?pid, "dropped participants lock");
+                        if let Some(mut pi) = pi {
+                            let (finished_sender, finished_receiver) = oneshot::channel();
+                            pi.s2b_shutdown_bparticipant_s
+                                .take()
+                                .unwrap()
+                                .send((timeout_time, finished_sender))
+                                .unwrap();
+                            drop(pi);
+                            trace!(?pid, "dropped bparticipant, waiting for finish");
+                            let e = finished_receiver.await.unwrap();
+                            trace!(?pid, "waiting completed");
+                            return_once_successful_shutdown.send(e).unwrap();
+                        } else {
+                            debug!(?pid, "Looks like participant is already dropped");
+                            return_once_successful_shutdown.send(Ok(())).unwrap();
+                        }
+                        trace!(?pid, "Closed participant");
+                    }
+                },
+            )
+            .await;
         trace!("Stop disconnect_mgr");
     }
 
