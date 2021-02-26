@@ -322,13 +322,13 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                (Seagrass, true, |_, col| {
                    (
                            MUSH_FACT
-                           * 300.0
+                           * 600.0
                            * if col.water_level < CONFIG.sea_level && (col.water_level - col.alt) < 3.0 {
                                1.0
                            } else {
                                0.0
                            },
-                       Some((90.0, 0.4)),
+                       Some((150.0, 0.4)),
                    )
                }),
                // scattered seaweed (temperate species)
