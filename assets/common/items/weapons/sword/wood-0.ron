@@ -1,0 +1,16 @@
+ItemDef(
+    name: "Bladed Branch",
+    description: "Grown in the shape of a sword.",
+    kind: Tool((
+        kind: Sword,
+        hands: Two,
+        stats: Direct((
+            equip_time_millis: 300,
+            power: 0.6,
+            poise_strength: 0.4,
+            speed: 1.0,
+        )),
+    )),
+    quality: Low,
+    tags: [],
+)

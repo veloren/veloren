@@ -1,0 +1,16 @@
+ItemDef(
+    name: "Treant Branch",
+    description: "You occasionally see it twitch from your periphery",
+    kind: Tool((
+        kind: Bow,
+        hands: Two,
+        stats: Direct((
+            equip_time_millis: 400,
+            power: 2.0,
+            poise_strength: 0.8,
+            speed: 0.8,
+        )),
+    )),
+    quality: High,
+    tags: [],
+)

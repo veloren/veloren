@@ -10,7 +10,7 @@
     // weapons
     (1, "common.items.weapons.staff.cultist_staff"),
     (1, "common.items.weapons.hammer.cultist_purp_2h-0"),
-    (1, "common.items.weapons.sword.cultist_purp_2h-0"),
+    (1, "common.items.weapons.sword.cultist"),
     (0.25, "common.items.crafting_ing.mindflayer_bag_damaged"),
     (0.01, "common.items.weapons.sceptre.root_evil"),
     // misc    

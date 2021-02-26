@@ -1,0 +1,16 @@
+ItemDef(
+    name: "Seven-Branched Sword",
+    description: "Forged with steel.",
+    kind: Tool((
+        kind: Sword,
+        hands: Two,
+        stats: Direct((
+            equip_time_millis: 300,
+            power: 1.5,
+            poise_strength: 0.4,
+            speed: 0.9,
+        )),
+    )),
+    quality: Moderate,
+    tags: [],
+)

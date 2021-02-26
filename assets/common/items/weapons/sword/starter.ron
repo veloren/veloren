@@ -1,0 +1,16 @@
+ItemDef(
+    name: "Damaged Greatsword",
+    description: "The blade could snap at any moment...",
+    kind: Tool((
+        kind: Sword,
+        hands: Two,
+        stats: Direct((
+            equip_time_millis: 300,
+            power: 0.5,
+            poise_strength: 0.4,
+            speed: 1.0,
+        )),
+    )),
+    quality: Low,
+    tags: [],
+)

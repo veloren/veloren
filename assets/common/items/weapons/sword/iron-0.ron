@@ -1,0 +1,16 @@
+ItemDef(
+    name: "Buccaneer's Blade",
+    description: "Forged with iron.",
+    kind: Tool((
+        kind: Sword,
+        hands: Two,
+        stats: Direct((
+            equip_time_millis: 300,
+            power: 1.25,
+            poise_strength: 0.4,
+            speed: 0.95,
+        )),
+    )),
+    quality: Moderate,
+    tags: [],
+)

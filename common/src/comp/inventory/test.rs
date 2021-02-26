@@ -173,7 +173,7 @@ fn can_swap_equipped_bag_into_only_empty_slot_provided_by_itself_should_return_f
 fn unequip_items_both_hands() {
     let mut inv = Inventory::new_empty();
 
-    let sword = Item::new_from_asset_expect("common.items.weapons.sword.zweihander_sword_0");
+    let sword = Item::new_from_asset_expect("common.items.weapons.sword.steel-8");
 
     inv.replace_loadout_item(EquipSlot::Mainhand, Some(sword.clone()));
     inv.replace_loadout_item(EquipSlot::Offhand, Some(sword.clone()));

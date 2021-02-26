@@ -1,0 +1,16 @@
+ItemDef(
+    name: "Sharktooth",
+    description: "Infused with blood.",
+    kind: Tool((
+        kind: Sword,
+        hands: Two,
+        stats: Direct((
+            equip_time_millis: 300,
+            power: 2.0,
+            poise_strength: 0.4,
+            speed: 0.8,
+        )),
+    )),
+    quality: High,
+    tags: [],
+)

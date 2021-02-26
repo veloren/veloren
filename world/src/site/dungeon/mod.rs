@@ -615,11 +615,10 @@ impl Floor {
                                 .with_main_tool(comp::Item::new_from_asset_expect(
                                     match dynamic_rng.gen_range(0..6) {
                                         0 => "common.items.weapons.axe.starter_axe",
-                                        1 => "common.items.weapons.sword.starter_sword",
-                                        2 => "common.items.weapons.sword.starter_sword",
+                                        1..=2 => "common.items.weapons.sword.starter",
                                         3 => "common.items.weapons.hammer.starter_hammer",
                                         4 => "common.items.weapons.staff.starter_staff",
-                                        _ => "common.items.weapons.bow.starter_bow",
+                                        _ => "common.items.weapons.bow.starter",
                                     },
                                 )),
                             1 => entity
@@ -632,11 +631,10 @@ impl Floor {
                                 .with_main_tool(comp::Item::new_from_asset_expect(
                                     match dynamic_rng.gen_range(0..6) {
                                         0 => "common.items.weapons.axe.worn_iron_axe-0",
-                                        1 => "common.items.weapons.sword.zweihander_sword_0",
-                                        2 => "common.items.weapons.sword.zweihander_sword_0",
+                                        1..=2 => "common.items.weapons.sword.steel-8",
                                         3 => "common.items.weapons.hammer.worn_iron_hammer-0",
                                         4 => "common.items.weapons.staff.bone_staff",
-                                        _ => "common.items.weapons.bow.wood_shortbow-1",
+                                        _ => "common.items.weapons.bow.hardwood-3",
                                     },
                                 )),
                             2 => entity
@@ -649,11 +647,11 @@ impl Floor {
                                 .with_main_tool(comp::Item::new_from_asset_expect(
                                     match dynamic_rng.gen_range(0..6) {
                                         0 => "common.items.weapons.axe.bronze_axe-0",
-                                        1 => "common.items.weapons.sword.greatsword_2h_simple-0",
-                                        2 => "common.items.weapons.sword.cultist_purp_2h-0",
+                                        1 => "common.items.weapons.sword.iron-4",
+                                        2 => "common.items.weapons.sword.cultist",
                                         3 => "common.items.weapons.hammer.bronze_hammer-0",
                                         4 => "common.items.weapons.staff.bone_staff",
-                                        _ => "common.items.weapons.bow.wood_longbow-0",
+                                        _ => "common.items.weapons.bow.wood-3",
                                     },
                                 )),
                             3 => entity
@@ -666,11 +664,10 @@ impl Floor {
                                 .with_main_tool(comp::Item::new_from_asset_expect(
                                     match dynamic_rng.gen_range(0..6) {
                                         0 => "common.items.weapons.axe.steel_axe-0",
-                                        1 => "common.items.weapons.sword.long_2h_orn-0",
-                                        2 => "common.items.weapons.sword.long_2h_orn-0",
+                                        1..=2 => "common.items.weapons.sword.steel-2",
                                         3 => "common.items.weapons.hammer.cobalt_hammer-0",
                                         4 => "common.items.weapons.staff.amethyst_staff",
-                                        _ => "common.items.weapons.bow.horn_longbow-0",
+                                        _ => "common.items.weapons.bow.bone-1",
                                     },
                                 )),
                             4 => entity
@@ -683,11 +680,10 @@ impl Floor {
                                 .with_main_tool(comp::Item::new_from_asset_expect(
                                     match dynamic_rng.gen_range(0..6) {
                                         0 => "common.items.weapons.axe.malachite_axe-0",
-                                        1 => "common.items.weapons.sword.cultist_purp_2h-0",
-                                        2 => "common.items.weapons.sword.cultist_purp_2h-0",
+                                        1..=2 => "common.items.weapons.sword.cultist",
                                         3 => "common.items.weapons.hammer.cultist_purp_2h-0",
                                         4 => "common.items.weapons.staff.cultist_staff",
-                                        _ => "common.items.weapons.bow.horn_longbow-0",
+                                        _ => "common.items.weapons.bow.bone-1",
                                     },
                                 )),
                             5 => match dynamic_rng.gen_range(0..6) {
@@ -717,16 +713,15 @@ impl Floor {
                                     .with_main_tool(comp::Item::new_from_asset_expect(
                                         match dynamic_rng.gen_range(0..5) {
                                             0 => "common.items.weapons.axe.malachite_axe-0",
-                                            1 => "common.items.weapons.sword.cultist_purp_2h-0",
-                                            2 => "common.items.weapons.sword.cultist_purp_2h-0",
+                                            1..=2 => "common.items.weapons.sword.cultist",
                                             3 => "common.items.weapons.hammer.cultist_purp_2h-0",
-                                            _ => "common.items.weapons.bow.horn_longbow-0",
+                                            _ => "common.items.weapons.bow.bone-1",
                                         },
                                     )),
                             },
                             _ => entity.with_name("Humanoid").with_main_tool(
                                 comp::Item::new_from_asset_expect(
-                                    "common.items.weapons.bow.horn_longbow-0",
+                                    "common.items.weapons.bow.bone-1",
                                 ),
                             ),
                         };
@@ -789,17 +784,12 @@ impl Floor {
                                         .with_main_tool(comp::Item::new_from_asset_expect(
                                             match dynamic_rng.gen_range(0..6) {
                                                 0 => "common.items.weapons.axe.worn_iron_axe-0",
-                                                1 => {
-                                                    "common.items.weapons.sword.zweihander_sword_0"
-                                                },
-                                                2 => {
-                                                    "common.items.weapons.sword.zweihander_sword_0"
-                                                },
+                                                1..=2 => "common.items.weapons.sword.steel-8",
                                                 3 => {
                                                     "common.items.weapons.hammer.worn_iron_hammer-0"
                                                 },
                                                 4 => "common.items.weapons.staff.bone_staff",
-                                                _ => "common.items.weapons.bow.wood_shortbow-1",
+                                                _ => "common.items.weapons.bow.hardwood-3",
                                             },
                                         )),
                                     EntityInfo::at(tile_wcenter.map(|e| e as f32))
@@ -838,11 +828,10 @@ impl Floor {
                                         .with_main_tool(comp::Item::new_from_asset_expect(
                                             match dynamic_rng.gen_range(0..6) {
                                                 0 => "common.items.weapons.axe.steel_axe-0",
-                                                1 => "common.items.weapons.sword.long_2h_orn-0",
-                                                2 => "common.items.weapons.sword.long_2h_orn-0",
+                                                1..=2 => "common.items.weapons.sword.steel-2",
                                                 3 => "common.items.weapons.hammer.cobalt_hammer-0",
                                                 4 => "common.items.weapons.staff.amethyst_staff",
-                                                _ => "common.items.weapons.bow.horn_longbow-0",
+                                                _ => "common.items.weapons.bow.bone-1",
                                             },
                                         ),);
                                     2
@@ -862,12 +851,11 @@ impl Floor {
                                         .with_main_tool(comp::Item::new_from_asset_expect(
                                             match dynamic_rng.gen_range(0..6) {
                                                 0 => "common.items.weapons.axe.malachite_axe-0",
-                                                1 => "common.items.weapons.sword.cultist_purp_2h-0",
-                                                2 => "common.items.weapons.sword.cultist_purp_2h-0",
+                                                1..=2 => "common.items.weapons.sword.cultist",
                                                 3 =>
                                                     "common.items.weapons.hammer.cultist_purp_2h-0",
                                                 4 => "common.items.weapons.staff.cultist_staff",
-                                                _ => "common.items.weapons.bow.horn_longbow-0",
+                                                _ => "common.items.weapons.bow.bone-1",
                                             },
                                         ),);
                                     2
@@ -1017,13 +1005,12 @@ impl Floor {
                                         .with_main_tool(comp::Item::new_from_asset_expect(
                                             match dynamic_rng.gen_range(0..6) {
                                                 0 => "common.items.weapons.axe.malachite_axe-0",
-                                                1 => "common.items.weapons.sword.cultist_purp_2h-0",
-                                                2 => "common.items.weapons.sword.cultist_purp_2h-0",
+                                                1..=2 => "common.items.weapons.sword.cultist",
                                                 3 => {
                                                     "common.items.weapons.hammer.cultist_purp_2h-0"
                                                 },
                                                 4 => "common.items.weapons.staff.cultist_staff",
-                                                _ => "common.items.weapons.bow.horn_longbow-0",
+                                                _ => "common.items.weapons.bow.bone-1",
                                             },
                                         )),
                                     EntityInfo::at(tile_wcenter.map(|e| e as f32))

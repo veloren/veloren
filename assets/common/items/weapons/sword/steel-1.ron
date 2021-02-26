@@ -1,0 +1,16 @@
+ItemDef(
+    name: "Nomad's Longblade",
+    description: "Forged with steel.",
+    kind: Tool((
+        kind: Sword,
+        hands: Two,
+        stats: Direct((
+            equip_time_millis: 300,
+            power: 1.45,
+            poise_strength: 0.4,
+            speed: 0.95,
+        )),
+    )),
+    quality: Moderate,
+    tags: [],
+)

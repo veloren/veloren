@@ -1,0 +1,16 @@
+ItemDef(
+    name: "Swift Katana",
+    description: "Forged with iron.",
+    kind: Tool((
+        kind: Sword,
+        hands: Two,
+        stats: Direct((
+            equip_time_millis: 300,
+            power: 0.95,
+            poise_strength: 0.4,
+            speed: 1.25,
+        )),
+    )),
+    quality: Moderate,
+    tags: [],
+)

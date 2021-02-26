@@ -17,7 +17,7 @@
         (-1.0, 0.0, 0.0), (-70.0, 55.0, 0.0), 1.0,
     ),
     Tool("example_bow"): VoxTrans(
-        "voxel.weapon.bow.longbow_ore_nature-0",
+        "voxel.weapon.bow.velorite",
         (-1.0, 0.0, 0.0), (90.0, 60.0, 0.0), 1.0,
     ),
     Tool("example_staff_fire"): VoxTrans(
@@ -45,48 +45,128 @@
         (0.0, 0.0, 0.0), (125.0, 90.0, 80.0), 1.0,
     ),
     // Bows
-    Tool("common.items.weapons.bow.starter_bow"): VoxTrans(
-        "voxel.weapon.bow.shortbow_starter",
+    Tool("common.items.weapons.bow.bone-0"): VoxTrans(
+        "voxel.weapon.bow.bone-0",
         (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
     ),
-    Tool("common.items.weapons.bow.wood_shortbow-0"): VoxTrans(
-        "voxel.weapon.bow.shortbow_wood-0",
+    Tool("common.items.weapons.bow.bone-1"): VoxTrans(
+        "voxel.weapon.bow.bone-1",
         (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
     ),
-    Tool("common.items.weapons.bow.wood_shortbow-1"): VoxTrans(
-        "voxel.weapon.bow.shortbow_wood-1",
+    Tool("common.items.weapons.bow.bone-2"): VoxTrans(
+        "voxel.weapon.bow.bone-2",
         (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
     ),
-    Tool("common.items.weapons.bow.leafy_shortbow-0"): VoxTrans(
-        "voxel.weapon.bow.shortbow_leafy-0",
+    Tool("common.items.weapons.bow.bone-3"): VoxTrans(
+        "voxel.weapon.bow.bone-3",
         (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
     ),
-    Tool("common.items.weapons.bow.wood_longbow-0"): VoxTrans(
-        "voxel.weapon.bow.longbow_wood-0",
+    Tool("common.items.weapons.bow.eldwood-0"): VoxTrans(
+        "voxel.weapon.bow.eldwood-0",
         (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
     ),
-    Tool("common.items.weapons.bow.wood_longbow-1"): VoxTrans(
-        "voxel.weapon.bow.longbow_wood-1",
+    Tool("common.items.weapons.bow.eldwood-1"): VoxTrans(
+        "voxel.weapon.bow.eldwood-1",
         (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
     ),
-    Tool("common.items.weapons.bow.leafy_longbow-0"): VoxTrans(
-        "voxel.weapon.bow.longbow_leafy-0",
+    Tool("common.items.weapons.bow.eldwood-2"): VoxTrans(
+        "voxel.weapon.bow.eldwood-2",
         (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
     ),
-    Tool("common.items.weapons.bow.horn_longbow-0"): VoxTrans(
-        "voxel.weapon.bow.longbow_horn-0",
+    Tool("common.items.weapons.bow.frostwood-0"): VoxTrans(
+        "voxel.weapon.bow.frostwood-0",
         (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
     ),
-    Tool("common.items.weapons.bow.iron_longbow-0"): VoxTrans(
-        "voxel.weapon.bow.longbow_iron-0",
+    Tool("common.items.weapons.bow.frostwood-1"): VoxTrans(
+        "voxel.weapon.bow.frostwood-1",
         (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
     ),
-    Tool("common.items.weapons.bow.rare_longbow"): VoxTrans(
-        "voxel.weapon.bow.longbow_rare",
+    Tool("common.items.weapons.bow.frostwood-2"): VoxTrans(
+        "voxel.weapon.bow.frostwood-2",
         (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
     ),
-    Tool("common.items.weapons.bow.nature_ore_longbow-0"): VoxTrans(
-        "voxel.weapon.bow.longbow_ore_nature-0",
+    Tool("common.items.weapons.bow.hardwood-0"): VoxTrans(
+        "voxel.weapon.bow.hardwood-0",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    Tool("common.items.weapons.bow.hardwood-1"): VoxTrans(
+        "voxel.weapon.bow.hardwood-1",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    Tool("common.items.weapons.bow.hardwood-2"): VoxTrans(
+        "voxel.weapon.bow.hardwood-2",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    Tool("common.items.weapons.bow.hardwood-3"): VoxTrans(
+        "voxel.weapon.bow.hardwood-3",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    Tool("common.items.weapons.bow.hardwood-4"): VoxTrans(
+        "voxel.weapon.bow.hardwood-4",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    Tool("common.items.weapons.bow.hardwood-5"): VoxTrans(
+        "voxel.weapon.bow.hardwood-5",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    Tool("common.items.weapons.bow.metal-0"): VoxTrans(
+        "voxel.weapon.bow.metal-0",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    Tool("common.items.weapons.bow.metal-1"): VoxTrans(
+        "voxel.weapon.bow.metal-1",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    Tool("common.items.weapons.bow.metal-2"): VoxTrans(
+        "voxel.weapon.bow.metal-2",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    Tool("common.items.weapons.bow.metal-3"): VoxTrans(
+        "voxel.weapon.bow.metal-3",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    Tool("common.items.weapons.bow.metal-4"): VoxTrans(
+        "voxel.weapon.bow.metal-4",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    Tool("common.items.weapons.bow.rawwood-0"): VoxTrans(
+        "voxel.weapon.bow.rawwood-0",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    Tool("common.items.weapons.bow.rawwood-1"): VoxTrans(
+        "voxel.weapon.bow.rawwood-1",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    Tool("common.items.weapons.bow.sagitta"): VoxTrans(
+        "voxel.weapon.bow.sagitta",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    Tool("common.items.weapons.bow.starter"): VoxTrans(
+        "voxel.weapon.bow.starter",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    Tool("common.items.weapons.bow.velorite"): VoxTrans(
+        "voxel.weapon.bow.velorite",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    Tool("common.items.weapons.bow.wood-0"): VoxTrans(
+        "voxel.weapon.bow.wood-0",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    Tool("common.items.weapons.bow.wood-1"): VoxTrans(
+        "voxel.weapon.bow.wood-1",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    Tool("common.items.weapons.bow.wood-2"): VoxTrans(
+        "voxel.weapon.bow.wood-2",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    Tool("common.items.weapons.bow.wood-3"): VoxTrans(
+        "voxel.weapon.bow.wood-3",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    Tool("common.items.weapons.bow.wood-4"): VoxTrans(
+        "voxel.weapon.bow.wood-4",
         (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
     ),
     // Daggers
@@ -103,180 +183,172 @@
         (0.0, 0.0, -4.0), (-120.0, 90.0, 0.0), 1.1,
     ),
     // Swords
-    Tool("common.items.weapons.sword.frost_cleaver_2h-0"): VoxTrans(
-        "voxel.weapon.sword.frost_cleaver-0",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.40,
+    Tool("common.items.weapons.sword.bloodsteel-0"): VoxTrans(
+        "voxel.weapon.sword.bloodsteel-0",
+        (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.sword.frost_cleaver_2h-1"): VoxTrans(
-        "voxel.weapon.sword.frost_cleaver-1",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.40,
+    Tool("common.items.weapons.sword.bloodsteel-1"): VoxTrans(
+        "voxel.weapon.sword.bloodsteel-1",
+        (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.sword.short_sword_0"): VoxTrans(
-        "voxel.weapon.sword.short_2h-0",
-        (-3.0, 3.0, 0.0), (-135.0, 90.0, 0.0), 1.60,
+    Tool("common.items.weapons.sword.bloodsteel-2"): VoxTrans(
+        "voxel.weapon.sword.bloodsteel-2",
+        (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.sword.starter_sword"): VoxTrans(
-        "voxel.weapon.sword.rusty_2h",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.3,
+    Tool("common.items.weapons.sword.bronze-0"): VoxTrans(
+        "voxel.weapon.sword.bronze-0",
+        (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.sword.zweihander_sword_0"): VoxTrans(
-        "voxel.weapon.sword.zweihander_2h-0",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+    Tool("common.items.weapons.sword.bronze-1"): VoxTrans(
+        "voxel.weapon.sword.bronze-1",
+        (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.sword.wood_sword"): VoxTrans(
-        "voxel.weapon.sword.wood_ore_2h",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+    Tool("common.items.weapons.sword.bronze-2"): VoxTrans(
+        "voxel.weapon.sword.bronze-2",
+        (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.sword.greatsword_2h_dam-0"): VoxTrans(
-        "voxel.weapon.sword.greatsword_2h_dam-0",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    Tool("common.items.weapons.sword.caladbolg"): VoxTrans(
+        "voxel.weapon.sword.caladbolg",
+        (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.sword.greatsword_2h_dam-1"): VoxTrans(
-        "voxel.weapon.sword.greatsword_2h_dam-1",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    Tool("common.items.weapons.sword.cobalt-0"): VoxTrans(
+        "voxel.weapon.sword.cobalt-0",
+        (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.sword.greatsword_2h_dam-2"): VoxTrans(
-        "voxel.weapon.sword.greatsword_2h_dam-2",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    Tool("common.items.weapons.sword.cobalt-1"): VoxTrans(
+        "voxel.weapon.sword.cobalt-1",
+        (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.sword.greatsword_2h_simple-0"): VoxTrans(
-        "voxel.weapon.sword.greatsword_2h_simple-0",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    Tool("common.items.weapons.sword.cobalt-2"): VoxTrans(
+        "voxel.weapon.sword.cobalt-2",
+        (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.sword.greatsword_2h_simple-1"): VoxTrans(
-        "voxel.weapon.sword.greatsword_2h_simple-1",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    Tool("common.items.weapons.sword.cobalt-3"): VoxTrans(
+        "voxel.weapon.sword.cobalt-3",
+        (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.sword.greatsword_2h_simple-2"): VoxTrans(
-        "voxel.weapon.sword.greatsword_2h_simple-2",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    Tool("common.items.weapons.sword.cultist"): VoxTrans(
+        "voxel.weapon.sword.cultist",
+        (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.sword.greatsword_2h_orn-0"): VoxTrans(
-        "voxel.weapon.sword.greatsword_2h_orn-0",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    Tool("common.items.weapons.sword.frost-0"): VoxTrans(
+        "voxel.weapon.sword.frost-0",
+        (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.sword.greatsword_2h_orn-1"): VoxTrans(
-        "voxel.weapon.sword.greatsword_2h_orn-1",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    Tool("common.items.weapons.sword.frost-1"): VoxTrans(
+        "voxel.weapon.sword.frost-1",
+        (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.sword.greatsword_2h_orn-2"): VoxTrans(
-        "voxel.weapon.sword.greatsword_2h_orn-2",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    Tool("common.items.weapons.sword.iron-0"): VoxTrans(
+        "voxel.weapon.sword.iron-0",
+        (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.sword.greatsword_2h_fine-0"): VoxTrans(
-        "voxel.weapon.sword.greatsword_2h_fine-0",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    Tool("common.items.weapons.sword.iron-1"): VoxTrans(
+        "voxel.weapon.sword.iron-1",
+        (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.sword.greatsword_2h_fine-1"): VoxTrans(
-        "voxel.weapon.sword.greatsword_2h_fine-1",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    Tool("common.items.weapons.sword.iron-10"): VoxTrans(
+        "voxel.weapon.sword.iron-10",
+        (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.sword.greatsword_2h_fine-2"): VoxTrans(
-        "voxel.weapon.sword.greatsword_2h_fine-2",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    Tool("common.items.weapons.sword.iron-2"): VoxTrans(
+        "voxel.weapon.sword.iron-2",
+        (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.sword.long_2h_dam-0"): VoxTrans(
-        "voxel.weapon.sword.long_2h_dam-0",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    Tool("common.items.weapons.sword.iron-3"): VoxTrans(
+        "voxel.weapon.sword.iron-3",
+        (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.sword.long_2h_dam-1"): VoxTrans(
-        "voxel.weapon.sword.long_2h_dam-1",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    Tool("common.items.weapons.sword.iron-4"): VoxTrans(
+        "voxel.weapon.sword.iron-4",
+        (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.sword.long_2h_dam-2"): VoxTrans(
-        "voxel.weapon.sword.long_2h_dam-2",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    Tool("common.items.weapons.sword.iron-5"): VoxTrans(
+        "voxel.weapon.sword.iron-5",
+        (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.sword.long_2h_dam-3"): VoxTrans(
-        "voxel.weapon.sword.long_2h_dam-3",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    Tool("common.items.weapons.sword.iron-6"): VoxTrans(
+        "voxel.weapon.sword.iron-6",
+        (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.sword.long_2h_dam-4"): VoxTrans(
-        "voxel.weapon.sword.long_2h_dam-4",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    Tool("common.items.weapons.sword.iron-7"): VoxTrans(
+        "voxel.weapon.sword.iron-7",
+        (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.sword.long_2h_dam-5"): VoxTrans(
-        "voxel.weapon.sword.long_2h_dam-5",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    Tool("common.items.weapons.sword.iron-8"): VoxTrans(
+        "voxel.weapon.sword.iron-8",
+        (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.sword.long_2h_simple-0"): VoxTrans(
-        "voxel.weapon.sword.long_2h_simple-0",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    Tool("common.items.weapons.sword.iron-9"): VoxTrans(
+        "voxel.weapon.sword.iron-9",
+        (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.sword.long_2h_simple-1"): VoxTrans(
-        "voxel.weapon.sword.long_2h_simple-1",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    Tool("common.items.weapons.sword.starter"): VoxTrans(
+        "voxel.weapon.sword.starter",
+        (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.sword.long_2h_simple-2"): VoxTrans(
-        "voxel.weapon.sword.long_2h_simple-2",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    Tool("common.items.weapons.sword.steel-0"): VoxTrans(
+        "voxel.weapon.sword.steel-0",
+        (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.sword.long_2h_simple-3"): VoxTrans(
-        "voxel.weapon.sword.long_2h_simple-3",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    Tool("common.items.weapons.sword.steel-1"): VoxTrans(
+        "voxel.weapon.sword.steel-1",
+        (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.sword.long_2h_simple-4"): VoxTrans(
-        "voxel.weapon.sword.long_2h_simple-4",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    Tool("common.items.weapons.sword.steel-2"): VoxTrans(
+        "voxel.weapon.sword.steel-2",
+        (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.sword.long_2h_simple-5"): VoxTrans(
-        "voxel.weapon.sword.long_2h_simple-5",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    Tool("common.items.weapons.sword.steel-3"): VoxTrans(
+        "voxel.weapon.sword.steel-3",
+        (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.sword.long_2h_orn-0"): VoxTrans(
-        "voxel.weapon.sword.long_2h_orn-0",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    Tool("common.items.weapons.sword.steel-4"): VoxTrans(
+        "voxel.weapon.sword.steel-4",
+        (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.sword.long_2h_orn-1"): VoxTrans(
-        "voxel.weapon.sword.long_2h_orn-1",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    Tool("common.items.weapons.sword.steel-5"): VoxTrans(
+        "voxel.weapon.sword.steel-5",
+        (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.sword.long_2h_orn-2"): VoxTrans(
-        "voxel.weapon.sword.long_2h_orn-2",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    Tool("common.items.weapons.sword.steel-6"): VoxTrans(
+        "voxel.weapon.sword.steel-6",
+        (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.sword.long_2h_orn-3"): VoxTrans(
-        "voxel.weapon.sword.long_2h_orn-3",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    Tool("common.items.weapons.sword.steel-7"): VoxTrans(
+        "voxel.weapon.sword.steel-7",
+        (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.sword.long_2h_orn-4"): VoxTrans(
-        "voxel.weapon.sword.long_2h_orn-4",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    Tool("common.items.weapons.sword.steel-8"): VoxTrans(
+        "voxel.weapon.sword.steel-8",
+        (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.sword.long_2h_orn-5"): VoxTrans(
-        "voxel.weapon.sword.long_2h_orn-5",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    Tool("common.items.weapons.sword.stone-0"): VoxTrans(
+        "voxel.weapon.sword.stone-0",
+        (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.sword.long_2h_fine-0"): VoxTrans(
-        "voxel.weapon.sword.long_2h_fine-0",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    Tool("common.items.weapons.sword.stone-1"): VoxTrans(
+        "voxel.weapon.sword.stone-1",
+        (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.sword.long_2h_fine-1"): VoxTrans(
-        "voxel.weapon.sword.long_2h_fine-1",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    Tool("common.items.weapons.sword.stone-2"): VoxTrans(
+        "voxel.weapon.sword.stone-2",
+        (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.sword.long_2h_fine-2"): VoxTrans(
-        "voxel.weapon.sword.long_2h_fine-2",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    Tool("common.items.weapons.sword.wood-0"): VoxTrans(
+        "voxel.weapon.sword.wood-0",
+        (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.sword.long_2h_fine-3"): VoxTrans(
-        "voxel.weapon.sword.long_2h_fine-3",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    Tool("common.items.weapons.sword.wood-1"): VoxTrans(
+        "voxel.weapon.sword.wood-1",
+        (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.sword.long_2h_fine-4"): VoxTrans(
-        "voxel.weapon.sword.long_2h_fine-4",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
-    ),
-    Tool("common.items.weapons.sword.long_2h_fine-5"): VoxTrans(
-        "voxel.weapon.sword.long_2h_fine-5",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
-    ),
-    Tool("common.items.weapons.sword.cultist_purp_2h-0"): VoxTrans(
-        "voxel.weapon.sword.cultist_purp_2h-0",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
+    Tool("common.items.weapons.sword.wood-2"): VoxTrans(
+        "voxel.weapon.sword.wood-2",
+        (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
     ),
     Tool("common.items.debug.admin_sword"): VoxTrans(
-        "voxel.weapon.sword.frost_cleaver-1",
+        "voxel.weapon.sword.frost-1",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
     ),
     // 1h Swords
@@ -371,43 +443,47 @@
     // Axes
     Tool("common.items.weapons.axe.starter_axe"): VoxTrans(
         "voxel.weapon.axe.2haxe_rusty",
-        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
     ),
     Tool("common.items.weapons.axe.orc_axe-0"): VoxTrans(
         "voxel.weapon.axe.2haxe_orc-0",
-        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+        (1.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.13,
     ),
     Tool("common.items.weapons.axe.worn_iron_axe-0"): VoxTrans(
         "voxel.weapon.axe.2haxe_worn_iron-0",
-        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+        (1.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
     ),
     Tool("common.items.weapons.axe.worn_iron_axe-1"): VoxTrans(
         "voxel.weapon.axe.2haxe_worn_iron-1",
-        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+        (1.0, 0.5, 0.0), (-135.0, 90.0, 0.0), 1.1,
     ),
     Tool("common.items.weapons.axe.worn_iron_axe-2"): VoxTrans(
         "voxel.weapon.axe.2haxe_worn_iron-2",
-        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+        (1.0, 0.8, 0.0), (-135.0, 90.0, 0.0), 1.15,
     ),
     Tool("common.items.weapons.axe.worn_iron_axe-3"): VoxTrans(
         "voxel.weapon.axe.2haxe_worn_iron-3",
-        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+        (1.0, 0.5, 0.0), (-135.0, 90.0, 0.0), 1.1,
     ),
     Tool("common.items.weapons.axe.worn_iron_axe-4"): VoxTrans(
         "voxel.weapon.axe.2haxe_worn_iron-4",
-        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+        (1.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
     ),
     Tool("common.items.weapons.axe.bronze_axe-0"): VoxTrans(
         "voxel.weapon.axe.2haxe_bronze-0",
-        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+        (1.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
     ),
     Tool("common.items.weapons.axe.bronze_axe-1"): VoxTrans(
         "voxel.weapon.axe.2haxe_bronze-1",
-        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+        (1.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+    ),
+    Tool("common.items.weapons.axe.bronze_axe-2"): VoxTrans(
+        "voxel.weapon.axe.2haxe_bronze-2",
+        (1.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.,
     ),
     Tool("common.items.weapons.axe.iron_axe-0"): VoxTrans(
         "voxel.weapon.axe.2haxe_iron-0",
-        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.05,
     ),
     Tool("common.items.weapons.axe.iron_axe-1"): VoxTrans(
         "voxel.weapon.axe.2haxe_iron-1",
@@ -415,19 +491,19 @@
     ),
     Tool("common.items.weapons.axe.iron_axe-2"): VoxTrans(
         "voxel.weapon.axe.2haxe_iron-2",
-        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
     ),
     Tool("common.items.weapons.axe.iron_axe-3"): VoxTrans(
         "voxel.weapon.axe.2haxe_iron-3",
-        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
     ),
     Tool("common.items.weapons.axe.iron_axe-4"): VoxTrans(
         "voxel.weapon.axe.2haxe_iron-4",
-        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.05,
     ),
     Tool("common.items.weapons.axe.iron_axe-5"): VoxTrans(
         "voxel.weapon.axe.2haxe_iron-5",
-        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+        (1.0, -0.5, 0.0), (-135.0, 90.0, 0.0), 1.1,
     ),
     Tool("common.items.weapons.axe.iron_axe-6"): VoxTrans(
         "voxel.weapon.axe.2haxe_iron-6",
@@ -435,11 +511,11 @@
     ),
     Tool("common.items.weapons.axe.iron_axe-7"): VoxTrans(
         "voxel.weapon.axe.2haxe_iron-7",
-        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
     ),
     Tool("common.items.weapons.axe.iron_axe-8"): VoxTrans(
         "voxel.weapon.axe.2haxe_iron-8",
-        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.13,
     ),
     Tool("common.items.weapons.axe.iron_axe-9"): VoxTrans(
         "voxel.weapon.axe.2haxe_iron-9",
@@ -447,7 +523,7 @@
     ),
     Tool("common.items.weapons.axe.steel_axe-0"): VoxTrans(
         "voxel.weapon.axe.2haxe_steel-0",
-        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
     ),
     Tool("common.items.weapons.axe.steel_axe-1"): VoxTrans(
         "voxel.weapon.axe.2haxe_steel-1",
@@ -467,31 +543,39 @@
     ),
     Tool("common.items.weapons.axe.steel_axe-5"): VoxTrans(
         "voxel.weapon.axe.2haxe_steel-5",
-        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
     ),
     Tool("common.items.weapons.axe.steel_axe-6"): VoxTrans(
         "voxel.weapon.axe.2haxe_steel-6",
-        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
     ),
     Tool("common.items.weapons.axe.bloodsteel_axe-0"): VoxTrans(
         "voxel.weapon.axe.2haxe_bloodsteel-0",
-        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.15,
     ),
     Tool("common.items.weapons.axe.bloodsteel_axe-1"): VoxTrans(
         "voxel.weapon.axe.2haxe_bloodsteel-1",
-        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+        (1.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
     ),
     Tool("common.items.weapons.axe.bloodsteel_axe-2"): VoxTrans(
         "voxel.weapon.axe.2haxe_bloodsteel-2",
-        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
     ),
     Tool("common.items.weapons.axe.cobalt_axe-0"): VoxTrans(
         "voxel.weapon.axe.2haxe_cobalt-0",
-        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
+    ),
+    Tool("common.items.weapons.axe.cobalt_axe-1"): VoxTrans(
+        "voxel.weapon.axe.2haxe_cobalt-1",
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
     ),
     Tool("common.items.weapons.axe.malachite_axe-0"): VoxTrans(
         "voxel.weapon.axe.2haxe_malachite-0",
         (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+    ),
+    Tool("common.items.weapons.axe.parashu"): VoxTrans(
+        "voxel.weapon.axe.parashu",
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
     ),
     // 1h Axes
     Tool("common.items.weapons.axe_1h.bloodsteel-0"): VoxTrans(

@@ -1,0 +1,16 @@
+ItemDef(
+    name: "Recurve Bow",
+    description: "It's hard to pull back all the way",
+    kind: Tool((
+        kind: Bow,
+        hands: Two,
+        stats: Direct((
+            equip_time_millis: 400,
+            power: 1.0,
+            poise_strength: 0.8,
+            speed: 1.2,
+        )),
+    )),
+    quality: Moderate,
+    tags: [],
+)

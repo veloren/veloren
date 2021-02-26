@@ -11,7 +11,7 @@
     // weapons
     (1, "common.items.weapons.staff.cultist_staff"),
     (1, "common.items.weapons.hammer.cultist_purp_2h-0"),
-    (1, "common.items.weapons.sword.cultist_purp_2h-0"),
+    (1, "common.items.weapons.sword.cultist"),
     // misc    
     (0.25, "common.items.boss_drops.lantern"),
 ]

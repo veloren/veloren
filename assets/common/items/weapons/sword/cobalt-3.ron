@@ -1,0 +1,16 @@
+ItemDef(
+    name: "Cobalt Towerblade",
+    description: "Forged with cobalt.",
+    kind: Tool((
+        kind: Sword,
+        hands: Two,
+        stats: Direct((
+            equip_time_millis: 300,
+            power: 1.7,
+            poise_strength: 0.4,
+            speed: 0.9,
+        )),
+    )),
+    quality: High,
+    tags: [],
+)

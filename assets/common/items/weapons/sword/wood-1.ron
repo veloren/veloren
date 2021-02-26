@@ -1,0 +1,16 @@
+ItemDef(
+    name: "Oaken Greatsword",
+    description: "Carved from an oak.",
+    kind: Tool((
+        kind: Sword,
+        hands: Two,
+        stats: Direct((
+            equip_time_millis: 300,
+            power: 0.8,
+            poise_strength: 0.4,
+            speed: 0.8,
+        )),
+    )),
+    quality: Low,
+    tags: [],
+)

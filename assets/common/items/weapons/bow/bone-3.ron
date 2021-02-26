@@ -1,0 +1,16 @@
+ItemDef(
+    name: "Spinal Bow",
+    description: "Made with bones",
+    kind: Tool((
+        kind: Bow,
+        hands: Two,
+        stats: Direct((
+            equip_time_millis: 400,
+            power: 1.1,
+            poise_strength: 0.8,
+            speed: 0.9,
+        )),
+    )),
+    quality: Moderate,
+    tags: [],
+)
