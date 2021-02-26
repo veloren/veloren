@@ -482,7 +482,7 @@ impl Participant {
     /// [`Bandwidth`]: network_protocol::Bandwidth
     /// [`Promises`]: network_protocol::Promises
     /// [`Streams`]: crate::api::Stream
-    #[instrument(name="network", skip(self, prio, promises), fields(p = %self.local_pid))]
+    #[instrument(name="network", skip(self, prio, promises, bandwidth), fields(p = %self.local_pid))]
     pub async fn open(
         &self,
         prio: u8,
@@ -1013,6 +1013,9 @@ impl Drop for Participant {
     #[instrument(name="remote", skip(self), fields(p = %self.remote_pid))]
     #[instrument(name="network", skip(self), fields(p = %self.local_pid))]
     fn drop(&mut self) {
+        const SHUTDOWN_ERR: &str = "Error while dropping the participant, couldn't send all \
+                                    outgoing messages, dropping remaining";
+        const CHANNEL_ERR: &str = "Something is wrong in internal scheduler/participant coding";
         use tokio::sync::oneshot::error::TryRecvError;
         // ignore closed, as we need to send it even though we disconnected the
         // participant from network
@@ -1031,29 +1034,40 @@ impl Drop for Participant {
                 a2s_disconnect_s
                     .send((self.remote_pid, (Duration::from_secs(120), finished_sender)))
                     .expect("Something is wrong in internal scheduler coding");
-                loop {
-                    match finished_receiver.try_recv() {
-                        Ok(Ok(())) => {
-                            info!("Participant dropped gracefully");
-                            break;
-                        },
-                        Ok(Err(e)) => {
-                            error!(
-                                ?e,
-                                "Error while dropping the participant, couldn't send all outgoing \
-                                 messages, dropping remaining"
-                            );
-                            break;
-                        },
-                        Err(TryRecvError::Closed) => {
-                            panic!("Something is wrong in internal scheduler/participant coding")
-                        },
-                        Err(TryRecvError::Empty) => {
-                            trace!("activly sleeping");
-                            std::thread::sleep(Duration::from_millis(20));
-                        },
+                if let Ok(handle) = tokio::runtime::Handle::try_current() {
+                    trace!("Participant drop Async");
+                    handle.spawn(async move {
+                        match finished_receiver.await {
+                            Ok(Ok(())) => info!("Participant dropped gracefully"),
+                            Ok(Err(e)) => error!(?e, SHUTDOWN_ERR),
+                            Err(e) => panic!("{}: {}", CHANNEL_ERR, e),
+                        }
+                    });
+                } else {
+                    let mut cnt = 0;
+                    loop {
+                        match finished_receiver.try_recv() {
+                            Ok(Ok(())) => {
+                                info!("Participant dropped gracefully");
+                                break;
+                            },
+                            Ok(Err(e)) => {
+                                error!(?e, SHUTDOWN_ERR);
+                                break;
+                            },
+                            Err(TryRecvError::Closed) => panic!(CHANNEL_ERR),
+                            Err(TryRecvError::Empty) => {
+                                trace!("activly sleeping");
+                                cnt += 1;
+                                if cnt > 120 {
+                                    error!("Timeout waiting for participant shutdown, droping");
+                                    break;
+                                }
+                                std::thread::sleep(Duration::from_millis(100) * cnt);
+                            },
+                        }
                     }
-                }
+                };
             },
         }
     }
