@@ -1,0 +1,45 @@
+// Keep in mind that material stats are multiplied by the form stats, not added (e.g. equip_time_millis is most sensitive to this)
+({
+    "common.items.crafting_ing.bloodsteel_ingot": (
+        equip_time_millis: 1,
+        power: 1.75,
+        poise_strength: 1.75,
+        speed: 1.75,
+    ),
+    "common.items.crafting_ing.bronze_ingot": (
+        equip_time_millis: 1,
+        power: 0.75,
+        poise_strength: 0.75,
+        speed: 0.75,
+    ),
+    "common.items.crafting_ing.cobalt_ingot": (
+        equip_time_millis: 1,
+        power: 1.5,
+        poise_strength: 1.5,
+        speed: 1.5,
+    ),
+    "common.items.crafting_ing.copper_ingot": (
+        equip_time_millis: 1,
+        power: 0.4,
+        poise_strength: 0.4,
+        speed: 0.4,
+    ),
+    "common.items.crafting_ing.iron_ingot": (
+        equip_time_millis: 1,
+        power: 1.0,
+        poise_strength: 1.0,
+        speed: 1.0,
+    ),
+    "common.items.crafting_ing.steel_ingot": (
+        equip_time_millis: 1,
+        power: 1.25,
+        poise_strength: 1.25,
+        speed: 1.25,
+    ),
+    "common.items.crafting_ing.tin_ingot": (
+        equip_time_millis: 1,
+        power: 0.25,
+        poise_strength: 0.25,
+        speed: 0.25,
+    ),
+})

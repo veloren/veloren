@@ -13,6 +13,7 @@ use common::{
         self,
         aura::{Aura, AuraKind, AuraTarget},
         buff::{BuffCategory, BuffData, BuffKind, BuffSource},
+        inventory::item::MaterialStatManifest,
         invite::InviteKind,
         ChatType, Inventory, Item, LightEmitter, WaypointArea,
     },
@@ -205,6 +206,7 @@ fn handle_give_item(
                         }
                     });
             } else {
+                let msm = server.state.ecs().read_resource::<MaterialStatManifest>();
                 // This item can't stack. Give each item in a loop.
                 server
                     .state
@@ -213,7 +215,7 @@ fn handle_give_item(
                     .get_mut(target)
                     .map(|mut inv| {
                         for i in 0..give_amount {
-                            if inv.push(item.duplicate()).is_some() {
+                            if inv.push(item.duplicate(&msm)).is_some() {
                                 server.notify_client(
                                     client,
                                     ServerGeneral::server_msg(

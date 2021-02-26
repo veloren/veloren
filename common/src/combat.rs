@@ -7,7 +7,7 @@ use crate::{
             item::{
                 armor::Protection,
                 tool::{Tool, ToolKind},
-                Item, ItemKind,
+                Item, ItemKind, MaterialStatManifest,
             },
             slot::EquipSlot,
         },
@@ -654,30 +654,36 @@ pub fn get_weapons(inv: &Inventory) -> (Option<ToolKind>, Option<ToolKind>) {
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-fn offensive_rating(inv: &Inventory, skillset: &SkillSet) -> f32 {
+fn offensive_rating(inv: &Inventory, skillset: &SkillSet, msm: &MaterialStatManifest) -> f32 {
     let active_damage =
         equipped_item_and_tool(inv, EquipSlot::Mainhand).map_or(0.0, |(item, tool)| {
-            tool.base_power(item.components())
-                * tool.base_speed(item.components())
+            tool.base_power(msm, item.components())
+                * tool.base_speed(msm, item.components())
                 * (1.0 + 0.05 * skillset.earned_sp(SkillGroupKind::Weapon(tool.kind)) as f32)
         });
     let second_damage =
         equipped_item_and_tool(inv, EquipSlot::Offhand).map_or(0.0, |(item, tool)| {
-            tool.base_power(item.components())
-                * tool.base_speed(item.components())
+            tool.base_power(msm, item.components())
+                * tool.base_speed(msm, item.components())
                 * (1.0 + 0.05 * skillset.earned_sp(SkillGroupKind::Weapon(tool.kind)) as f32)
         });
     active_damage.max(second_damage)
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-pub fn combat_rating(inventory: &Inventory, health: &Health, stats: &Stats, body: Body) -> f32 {
+pub fn combat_rating(
+    inventory: &Inventory,
+    health: &Health,
+    stats: &Stats,
+    body: Body,
+    msm: &MaterialStatManifest,
+) -> f32 {
     let defensive_weighting = 1.0;
     let offensive_weighting = 1.0;
     let defensive_rating = health.maximum() as f32
         / (1.0 - Damage::compute_damage_reduction(inventory)).max(0.00001)
         / 100.0;
-    let offensive_rating = offensive_rating(inventory, &stats.skill_set).max(0.1)
+    let offensive_rating = offensive_rating(inventory, &stats.skill_set, msm).max(0.1)
         + 0.05 * stats.skill_set.earned_sp(SkillGroupKind::General) as f32;
     let combined_rating = (offensive_rating * offensive_weighting
         + defensive_rating * defensive_weighting)

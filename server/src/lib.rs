@@ -58,7 +58,7 @@ use common::{
     assets::AssetExt,
     cmd::ChatCommand,
     comp,
-    comp::CharacterAbility,
+    comp::{item::MaterialStatManifest, CharacterAbility},
     event::{EventBus, ServerEvent},
     recipe::default_recipe_book,
     resources::TimeOfDay,
@@ -954,6 +954,7 @@ impl Server {
                 client_timeout: self.settings().client_timeout,
                 world_map: self.map.clone(),
                 recipe_book: default_recipe_book().cloned(),
+                material_stats: MaterialStatManifest::default(),
                 ability_map: (&*self
                     .state
                     .ecs()

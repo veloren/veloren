@@ -13,6 +13,7 @@ use common::{
     comp::{
         self, aura, buff,
         chat::{KillSource, KillType},
+        inventory::item::MaterialStatManifest,
         object, Alignment, Body, CharacterState, Energy, EnergyChange, Group, Health, HealthChange,
         HealthSource, Inventory, Item, Player, Poise, PoiseChange, PoiseSource, Pos, Stats,
     },
@@ -224,9 +225,14 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
         const MAX_EXP_DIST: f32 = 150.0;
         // TODO: Scale xp from skillset rather than health, when NPCs have their own
         // skillsets
-        let mut exp_reward =
-            combat::combat_rating(entity_inventory, entity_health, entity_stats, *entity_body)
-                * 2.5;
+        let msm = state.ecs().read_resource::<MaterialStatManifest>();
+        let mut exp_reward = combat::combat_rating(
+            entity_inventory,
+            entity_health,
+            entity_stats,
+            *entity_body,
+            &msm,
+        ) * 2.5;
 
         // Distribute EXP to group
         let positions = state.ecs().read_storage::<Pos>();

@@ -1,35 +1,53 @@
 use common::comp::item::{
     armor::{Armor, ArmorKind, Protection},
-    tool::{Hands, Tool, ToolKind},
-    Item, ItemDesc, ItemKind, ModularComponent,
+    tool::{Hands, StatKind, Stats, Tool, ToolKind},
+    Item, ItemDesc, ItemKind, MaterialStatManifest, ModularComponent,
 };
 use std::{borrow::Cow, fmt::Write};
 
 pub fn loadout_slot_text<'a>(
     item: Option<&'a impl ItemDesc>,
     mut empty: impl FnMut() -> (&'a str, &'a str),
+    msm: &'a MaterialStatManifest,
 ) -> (&'a str, Cow<'a, str>) {
     item.map_or_else(
         || {
             let (title, desc) = empty();
             (title, Cow::Borrowed(desc))
         },
-        item_text,
+        |item| item_text(item, msm),
     )
 }
 
-pub fn item_text<'a>(item: &'a impl ItemDesc) -> (&'_ str, Cow<'a, str>) {
+pub fn item_text<'a>(
+    item: &'a impl ItemDesc,
+    msm: &'a MaterialStatManifest,
+) -> (&'a str, Cow<'a, str>) {
     let desc: Cow<str> = match item.kind() {
         ItemKind::Armor(armor) => {
             Cow::Owned(armor_desc(armor, item.description(), item.num_slots()))
         },
-        ItemKind::Tool(tool) => Cow::Owned(tool_desc(&tool, item.components(), item.description())),
-        ItemKind::ModularComponent(mc) => Cow::Owned(modular_component_desc(mc)),
+        ItemKind::Tool(tool) => Cow::Owned(tool_desc(
+            &tool,
+            item.components(),
+            &msm,
+            item.description(),
+        )),
+        ItemKind::ModularComponent(mc) => Cow::Owned(modular_component_desc(
+            mc,
+            item.components(),
+            &msm,
+            item.description(),
+        )),
         ItemKind::Glider(_glider) => Cow::Owned(glider_desc(item.description())),
         ItemKind::Consumable { .. } => Cow::Owned(consumable_desc(item.description())),
         ItemKind::Throwable { .. } => Cow::Owned(throwable_desc(item.description())),
         ItemKind::Utility { .. } => Cow::Owned(utility_desc(item.description())),
-        ItemKind::Ingredient { .. } => Cow::Owned(ingredient_desc(item.description())),
+        ItemKind::Ingredient { .. } => Cow::Owned(ingredient_desc(
+            item.description(),
+            item.item_definition_id(),
+            msm,
+        )),
         ItemKind::Lantern { .. } => Cow::Owned(lantern_desc(item.description())),
         ItemKind::TagExamples { .. } => Cow::Borrowed(item.description()),
         //_ => Cow::Borrowed(item.description()),
@@ -39,8 +57,24 @@ pub fn item_text<'a>(item: &'a impl ItemDesc) -> (&'_ str, Cow<'a, str>) {
 }
 
 // TODO: localization
-fn modular_component_desc(mc: &ModularComponent) -> String {
-    format!("Modular Component\n\n{:?}", mc)
+fn modular_component_desc(
+    mc: &ModularComponent,
+    components: &[Item],
+    msm: &MaterialStatManifest,
+    description: &str,
+) -> String {
+    let stats = StatKind::Direct(mc.stats).resolve_stats(msm, components);
+    let statblock = statblock_desc(&stats);
+    let mut result = format!("Modular Component\n\n{}\n\n{}", statblock, description);
+    if !components.is_empty() {
+        result += "\n\nMade from:\n";
+        for component in components {
+            result += component.name();
+            result += "\n"
+        }
+        result += "\n";
+    }
+    result
 }
 fn glider_desc(desc: &str) -> String { format!("Glider\n\n{}\n\n<Right-Click to use>", desc) }
 
@@ -54,7 +88,14 @@ fn throwable_desc(desc: &str) -> String {
 
 fn utility_desc(desc: &str) -> String { format!("{}\n\n<Right-Click to use>", desc) }
 
-fn ingredient_desc(desc: &str) -> String { format!("Crafting Ingredient\n\n{}", desc) }
+fn ingredient_desc(desc: &str, item_id: &str, msm: &MaterialStatManifest) -> String {
+    let mut result = format!("Crafting Ingredient\n\n{}", desc);
+    if let Some(stats) = msm.0.get(item_id) {
+        result += "\n\nStat multipliers:\n";
+        result += &statblock_desc(stats);
+    }
+    result
+}
 
 fn lantern_desc(desc: &str) -> String { format!("Lantern\n\n{}\n\n<Right-Click to use>", desc) }
 
@@ -102,7 +143,7 @@ fn armor_desc(armor: &Armor, desc: &str, slots: u16) -> String {
     description
 }
 
-fn tool_desc(tool: &Tool, components: &[Item], desc: &str) -> String {
+fn tool_desc(tool: &Tool, components: &[Item], msm: &MaterialStatManifest, desc: &str) -> String {
     let kind = match tool.kind {
         ToolKind::Sword => "Sword",
         ToolKind::Axe => "Axe",
@@ -119,26 +160,16 @@ fn tool_desc(tool: &Tool, components: &[Item], desc: &str) -> String {
     };
 
     // Get tool stats
-    let power = tool.base_power(components);
+    let stats = tool.stats.resolve_stats(msm, components).clamp_speed();
+
     //let poise_strength = tool.base_poise_strength();
     let hands = match tool.hands {
         Hands::One => "One",
         Hands::Two => "Two",
     };
-    let speed = tool.base_speed(components);
 
-    let mut result = format!(
-        "{}-Handed {}\n\nDPS: {:0.1}\n\nPower: {:0.1}\n\nSpeed: {:0.1}\n\n",
-        // add back when ready for poise
-        //"{}\n\nDPS: {:0.1}\n\nPower: {:0.1}\n\nPoise Strength: {:0.1}\n\nSpeed: \
-        // {:0.1}\n\n{}\n\n<Right-Click to use>",
-        hands,
-        kind,
-        speed * power * 10.0, // Damage per second
-        power * 10.0,
-        //poise_strength * 10.0,
-        speed
-    );
+    let mut result = format!("{}-Handed {}\n\n", hands, kind);
+    result += &statblock_desc(&stats);
     if !components.is_empty() {
         result += "Made from:\n";
         for component in components {
@@ -152,6 +183,19 @@ fn tool_desc(tool: &Tool, components: &[Item], desc: &str) -> String {
     }
     result += "<Right-Click to use>";
     result
+}
+
+fn statblock_desc(stats: &Stats) -> String {
+    format!(
+        "DPS: {:0.1}\n\nPower: {:0.1}\n\nSpeed: {:0.1}\n\n",
+        // add back when ready for poise
+        //"{}\n\nDPS: {:0.1}\n\nPower: {:0.1}\n\nPoise Strength: {:0.1}\n\nSpeed: \
+        // {:0.1}\n\n{}\n\n<Right-Click to use>",
+        stats.speed * stats.power * 10.0, // Damage per second
+        stats.power * 10.0,
+        //stats.poise_strength * 10.0,
+        stats.speed
+    )
 }
 
 #[cfg(test)]
@@ -200,11 +244,29 @@ mod tests {
 
     #[test]
     fn test_ingredient_desc() {
-        let item_description = "mushrooms";
+        let mut testmsm = MaterialStatManifest(hashbrown::HashMap::new());
+        testmsm.0.insert(
+            "common.items.crafting_ing.bronze_ingot".to_string(),
+            Stats {
+                equip_time_millis: 0,
+                power: 3.0,
+                poise_strength: 5.0,
+                speed: 7.0,
+            },
+        );
 
         assert_eq!(
             "Crafting Ingredient\n\nmushrooms",
-            ingredient_desc(item_description)
+            ingredient_desc("mushrooms", "common.items.food.mushroom", &testmsm)
+        );
+        assert_eq!(
+            "Crafting Ingredient\n\nA bronze ingot.\n\nStat multipliers:\nDPS: 210.0\n\nPower: \
+             30.0\n\nSpeed: 7.0\n\n",
+            ingredient_desc(
+                "A bronze ingot.",
+                "common.items.crafting_ing.bronze_ingot",
+                &testmsm
+            )
         );
     }
 

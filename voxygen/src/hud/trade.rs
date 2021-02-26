@@ -15,7 +15,10 @@ use crate::{
 };
 use client::Client;
 use common::{
-    comp::{inventory::item::Quality, Inventory},
+    comp::{
+        inventory::item::{MaterialStatManifest, Quality},
+        Inventory,
+    },
     trade::{PendingTrade, TradeAction, TradePhase},
 };
 use common_net::sync::WorldSyncExt;
@@ -61,6 +64,7 @@ pub struct Trade<'a> {
     common: widget::CommonBuilder,
     slot_manager: &'a mut SlotManager,
     localized_strings: &'a Localization,
+    msm: &'a MaterialStatManifest,
     pulse: f32,
 }
 
@@ -74,6 +78,7 @@ impl<'a> Trade<'a> {
         tooltip_manager: &'a mut TooltipManager,
         slot_manager: &'a mut SlotManager,
         localized_strings: &'a Localization,
+        msm: &'a MaterialStatManifest,
         pulse: f32,
     ) -> Self {
         Self {
@@ -84,9 +89,9 @@ impl<'a> Trade<'a> {
             rot_imgs,
             tooltip_manager,
             common: widget::CommonBuilder::default(),
-            //tooltip_manager,
             slot_manager,
             localized_strings,
+            msm,
             pulse,
         }
     }
@@ -295,7 +300,7 @@ impl<'a> Trade<'a> {
                 );
             let slot_id = state.ids.inv_slots[i + who * MAX_TRADE_SLOTS];
             if let Some(Some(item)) = slot.invslot.and_then(|slotid| inventory.slot(slotid)) {
-                let (title, desc) = super::util::item_text(item);
+                let (title, desc) = super::util::item_text(item, self.msm);
                 let quality_col = get_quality_col(item);
                 let quality_col_img = match item.quality() {
                     Quality::Low => self.imgs.inv_slot_grey,

@@ -18,7 +18,10 @@ use crate::{
 use client::Client;
 use common::{
     combat::{combat_rating, Damage},
-    comp::{item::Quality, Body, Energy, Health, Stats},
+    comp::{
+        item::{MaterialStatManifest, Quality},
+        Body, Energy, Health, Stats,
+    },
 };
 use conrod_core::{
     color,
@@ -101,6 +104,7 @@ pub struct Bag<'a> {
     energy: &'a Energy,
     show: &'a Show,
     body: &'a Body,
+    msm: &'a MaterialStatManifest,
 }
 
 impl<'a> Bag<'a> {
@@ -120,6 +124,7 @@ impl<'a> Bag<'a> {
         energy: &'a Energy,
         show: &'a Show,
         body: &'a Body,
+        msm: &'a MaterialStatManifest,
     ) -> Self {
         Self {
             client,
@@ -137,6 +142,7 @@ impl<'a> Bag<'a> {
             health,
             show,
             body,
+            msm,
         }
     }
 }
@@ -433,7 +439,7 @@ impl<'a> Widget for Bag<'a> {
             });
             // Stats
             let combat_rating =
-                combat_rating(inventory, self.health, self.stats, *self.body).min(999.9);
+                combat_rating(inventory, self.health, self.stats, *self.body, &self.msm).min(999.9);
             let indicator_col = cr_color(combat_rating);
             for i in STATS.iter().copied().enumerate() {
                 let btn = Button::image(match i.1 {
@@ -503,6 +509,7 @@ impl<'a> Widget for Bag<'a> {
             let (title, desc) = loadout_slot_text(
                 inventory.equipped(EquipSlot::Armor(ArmorSlot::Head)),
                 || (i18n.get("hud.bag.head"), ""),
+                &self.msm,
             );
             let head_q_col = inventory
                 .equipped(EquipSlot::Armor(ArmorSlot::Head))
@@ -525,6 +532,7 @@ impl<'a> Widget for Bag<'a> {
             let (title, desc) = loadout_slot_text(
                 inventory.equipped(EquipSlot::Armor(ArmorSlot::Neck)),
                 || (i18n.get("hud.bag.neck"), ""),
+                &self.msm,
             );
             let neck_q_col = inventory
                 .equipped(EquipSlot::Armor(ArmorSlot::Neck))
@@ -548,6 +556,7 @@ impl<'a> Widget for Bag<'a> {
             let (title, desc) = loadout_slot_text(
                 inventory.equipped(EquipSlot::Armor(ArmorSlot::Chest)),
                 || (i18n.get("hud.bag.chest"), ""),
+                &self.msm,
             );
             let chest_q_col = inventory
                 .equipped(EquipSlot::Armor(ArmorSlot::Chest))
@@ -570,6 +579,7 @@ impl<'a> Widget for Bag<'a> {
             let (title, desc) = loadout_slot_text(
                 inventory.equipped(EquipSlot::Armor(ArmorSlot::Shoulders)),
                 || (i18n.get("hud.bag.shoulders"), ""),
+                &self.msm,
             );
             let shoulder_q_col = inventory
                 .equipped(EquipSlot::Armor(ArmorSlot::Shoulders))
@@ -592,6 +602,7 @@ impl<'a> Widget for Bag<'a> {
             let (title, desc) = loadout_slot_text(
                 inventory.equipped(EquipSlot::Armor(ArmorSlot::Hands)),
                 || (i18n.get("hud.bag.hands"), ""),
+                &self.msm,
             );
             let chest_q_col = inventory
                 .equipped(EquipSlot::Armor(ArmorSlot::Hands))
@@ -614,6 +625,7 @@ impl<'a> Widget for Bag<'a> {
             let (title, desc) = loadout_slot_text(
                 inventory.equipped(EquipSlot::Armor(ArmorSlot::Belt)),
                 || (i18n.get("hud.bag.belt"), ""),
+                &self.msm,
             );
             let belt_q_col = inventory
                 .equipped(EquipSlot::Armor(ArmorSlot::Belt))
@@ -636,6 +648,7 @@ impl<'a> Widget for Bag<'a> {
             let (title, desc) = loadout_slot_text(
                 inventory.equipped(EquipSlot::Armor(ArmorSlot::Legs)),
                 || (i18n.get("hud.bag.legs"), ""),
+                &self.msm,
             );
             let legs_q_col = inventory
                 .equipped(EquipSlot::Armor(ArmorSlot::Legs))
@@ -658,6 +671,7 @@ impl<'a> Widget for Bag<'a> {
             let (title, desc) = loadout_slot_text(
                 inventory.equipped(EquipSlot::Armor(ArmorSlot::Ring1)),
                 || (i18n.get("hud.bag.ring"), ""),
+                &self.msm,
             );
             let ring_q_col = inventory
                 .equipped(EquipSlot::Armor(ArmorSlot::Ring1))
@@ -680,6 +694,7 @@ impl<'a> Widget for Bag<'a> {
             let (title, desc) = loadout_slot_text(
                 inventory.equipped(EquipSlot::Armor(ArmorSlot::Ring2)),
                 || (i18n.get("hud.bag.ring"), ""),
+                &self.msm,
             );
             let ring2_q_col = inventory
                 .equipped(EquipSlot::Armor(ArmorSlot::Ring2))
@@ -702,6 +717,7 @@ impl<'a> Widget for Bag<'a> {
             let (title, desc) = loadout_slot_text(
                 inventory.equipped(EquipSlot::Armor(ArmorSlot::Back)),
                 || (i18n.get("hud.bag.back"), ""),
+                &self.msm,
             );
             let back_q_col = inventory
                 .equipped(EquipSlot::Armor(ArmorSlot::Back))
@@ -724,6 +740,7 @@ impl<'a> Widget for Bag<'a> {
             let (title, desc) = loadout_slot_text(
                 inventory.equipped(EquipSlot::Armor(ArmorSlot::Feet)),
                 || (i18n.get("hud.bag.feet"), ""),
+                &self.msm,
             );
             let foot_q_col = inventory
                 .equipped(EquipSlot::Armor(ArmorSlot::Feet))
@@ -743,9 +760,11 @@ impl<'a> Widget for Bag<'a> {
                 )
                 .set(state.ids.feet_slot, ui);
             // Lantern
-            let (title, desc) = loadout_slot_text(inventory.equipped(EquipSlot::Lantern), || {
-                (i18n.get("hud.bag.lantern"), "")
-            });
+            let (title, desc) = loadout_slot_text(
+                inventory.equipped(EquipSlot::Lantern),
+                || (i18n.get("hud.bag.lantern"), ""),
+                &self.msm,
+            );
             let lantern_q_col = inventory
                 .equipped(EquipSlot::Lantern)
                 .map(|item| get_quality_col(item))
@@ -764,9 +783,11 @@ impl<'a> Widget for Bag<'a> {
                 )
                 .set(state.ids.lantern_slot, ui);
             // Glider
-            let (title, desc) = loadout_slot_text(inventory.equipped(EquipSlot::Glider), || {
-                (i18n.get("hud.bag.glider"), "")
-            });
+            let (title, desc) = loadout_slot_text(
+                inventory.equipped(EquipSlot::Glider),
+                || (i18n.get("hud.bag.glider"), ""),
+                &self.msm,
+            );
             let glider_q_col = inventory
                 .equipped(EquipSlot::Glider)
                 .map(|item| get_quality_col(item))
@@ -788,6 +809,7 @@ impl<'a> Widget for Bag<'a> {
             let (title, desc) = loadout_slot_text(
                 inventory.equipped(EquipSlot::Armor(ArmorSlot::Tabard)),
                 || (i18n.get("hud.bag.tabard"), ""),
+                &self.msm,
             );
             let tabard_q_col = inventory
                 .equipped(EquipSlot::Armor(ArmorSlot::Tabard))
@@ -807,9 +829,11 @@ impl<'a> Widget for Bag<'a> {
                 )
                 .set(state.ids.tabard_slot, ui);
             // Mainhand/Left-Slot
-            let (title, desc) = loadout_slot_text(inventory.equipped(EquipSlot::Mainhand), || {
-                (i18n.get("hud.bag.mainhand"), "")
-            });
+            let (title, desc) = loadout_slot_text(
+                inventory.equipped(EquipSlot::Mainhand),
+                || (i18n.get("hud.bag.mainhand"), ""),
+                &self.msm,
+            );
             let mainhand_q_col = inventory
                 .equipped(EquipSlot::Mainhand)
                 .map(|item| get_quality_col(item))
@@ -828,9 +852,11 @@ impl<'a> Widget for Bag<'a> {
                 )
                 .set(state.ids.mainhand_slot, ui);
             // Offhand/Right-Slot
-            let (title, desc) = loadout_slot_text(inventory.equipped(EquipSlot::Offhand), || {
-                (i18n.get("hud.bag.offhand"), "")
-            });
+            let (title, desc) = loadout_slot_text(
+                inventory.equipped(EquipSlot::Offhand),
+                || (i18n.get("hud.bag.offhand"), ""),
+                &self.msm,
+            );
             let offhand_q_col = inventory
                 .equipped(EquipSlot::Offhand)
                 .map(|item| get_quality_col(item))
@@ -853,6 +879,7 @@ impl<'a> Widget for Bag<'a> {
         let (title, desc) = loadout_slot_text(
             inventory.equipped(EquipSlot::Armor(ArmorSlot::Bag1)),
             || (i18n.get("hud.bag.bag"), ""),
+            &self.msm,
         );
         let bag1_q_col = inventory
             .equipped(EquipSlot::Armor(ArmorSlot::Bag1))
@@ -879,6 +906,7 @@ impl<'a> Widget for Bag<'a> {
         let (title, desc) = loadout_slot_text(
             inventory.equipped(EquipSlot::Armor(ArmorSlot::Bag2)),
             || (i18n.get("hud.bag.bag"), ""),
+            &self.msm,
         );
         let bag2_q_col = inventory
             .equipped(EquipSlot::Armor(ArmorSlot::Bag2))
@@ -901,6 +929,7 @@ impl<'a> Widget for Bag<'a> {
         let (title, desc) = loadout_slot_text(
             inventory.equipped(EquipSlot::Armor(ArmorSlot::Bag3)),
             || (i18n.get("hud.bag.bag"), ""),
+            &self.msm,
         );
         let bag3_q_col = inventory
             .equipped(EquipSlot::Armor(ArmorSlot::Bag3))
@@ -923,6 +952,7 @@ impl<'a> Widget for Bag<'a> {
         let (title, desc) = loadout_slot_text(
             inventory.equipped(EquipSlot::Armor(ArmorSlot::Bag4)),
             || (i18n.get("hud.bag.bag"), ""),
+            &self.msm,
         );
         let bag4_q_col = inventory
             .equipped(EquipSlot::Armor(ArmorSlot::Bag4))
@@ -1005,7 +1035,7 @@ impl<'a> Widget for Bag<'a> {
             }
 
             if let Some(item) = item {
-                let (title, desc) = super::util::item_text(item);
+                let (title, desc) = super::util::item_text(item, &self.msm);
                 let quality_col = get_quality_col(item);
                 let quality_col_img = match item.quality() {
                     Quality::Low => self.imgs.inv_slot_grey,

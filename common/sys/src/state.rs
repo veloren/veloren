@@ -196,6 +196,7 @@ impl State {
         ecs.insert(EventBus::<LocalEvent>::default());
         ecs.insert(game_mode);
         ecs.insert(Vec::<common::outcome::Outcome>::new());
+        ecs.insert(comp::inventory::item::MaterialStatManifest::default());
         // TODO: only register on the server
         ecs.insert(EventBus::<ServerEvent>::default());
         ecs.insert(comp::group::GroupManager::default());

@@ -9,7 +9,7 @@ use tracing::{debug, trace, warn};
 use crate::{
     comp::{
         inventory::{
-            item::ItemDef,
+            item::{ItemDef, MaterialStatManifest},
             loadout::Loadout,
             slot::{EquipSlot, Slot, SlotError},
         },
@@ -257,9 +257,9 @@ impl Inventory {
     }
 
     /// Remove just one item from the slot
-    pub fn take(&mut self, inv_slot_id: InvSlotId) -> Option<Item> {
+    pub fn take(&mut self, inv_slot_id: InvSlotId, msm: &MaterialStatManifest) -> Option<Item> {
         if let Some(Some(item)) = self.slot_mut(inv_slot_id) {
-            let mut return_item = item.duplicate();
+            let mut return_item = item.duplicate(msm);
 
             if item.is_stackable() && item.amount() > 1 {
                 item.decrease_amount(1).ok()?;

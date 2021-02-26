@@ -11,6 +11,7 @@ use common::{
     character::CharacterId,
     comp::{
         inventory::{
+            item::MaterialStatManifest,
             loadout::{Loadout, LoadoutError},
             loadout_builder::LoadoutBuilder,
             slot::InvSlotId,
@@ -225,6 +226,7 @@ pub fn convert_inventory_from_database_items(
     inventory_items: &[Item],
     loadout_container_id: i64,
     loadout_items: &[Item],
+    msm: &MaterialStatManifest,
 ) -> Result<Inventory, Error> {
     // Loadout items must be loaded before inventory items since loadout items
     // provide inventory slots. Since items stored inside loadout items actually
@@ -232,7 +234,7 @@ pub fn convert_inventory_from_database_items(
     // on populating the loadout items first, and then inserting the items into the
     // inventory at the correct position.
     //
-    let loadout = convert_loadout_from_database_items(loadout_container_id, loadout_items)?;
+    let loadout = convert_loadout_from_database_items(loadout_container_id, loadout_items, msm)?;
     let mut inventory = Inventory::new_with_loadout(loadout);
     let mut item_indices = HashMap::new();
 
@@ -294,7 +296,7 @@ pub fn convert_inventory_from_database_items(
             }
         } else if let Some(&j) = item_indices.get(&db_item.parent_container_item_id) {
             if let Some(Some(parent)) = inventory.slot_mut(slot(&inventory_items[j].position)?) {
-                parent.add_component(item);
+                parent.add_component(item, msm);
             } else {
                 return Err(Error::ConversionError(format!(
                     "Parent slot {} for component {} was empty even though it occurred earlier in \
@@ -316,6 +318,7 @@ pub fn convert_inventory_from_database_items(
 pub fn convert_loadout_from_database_items(
     loadout_container_id: i64,
     database_items: &[Item],
+    msm: &MaterialStatManifest,
 ) -> Result<Loadout, Error> {
     let loadout_builder = LoadoutBuilder::new();
     let mut loadout = loadout_builder.build();
@@ -348,7 +351,7 @@ pub fn convert_loadout_from_database_items(
         } else if let Some(&j) = item_indices.get(&db_item.parent_container_item_id) {
             loadout
                 .update_item_at_slot_using_persistence_key(&database_items[j].position, |parent| {
-                    parent.add_component(item);
+                    parent.add_component(item, msm);
                 })
                 .map_err(convert_error)?;
         } else {

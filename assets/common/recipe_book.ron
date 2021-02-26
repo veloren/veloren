@@ -361,6 +361,13 @@
         [
             (Tag(ClothItem), 1),
             (Item("common.items.crafting_tools.sewing_set"), 0),
-        ]
+        ],
     ),
+    //"metal_blade": (
+    //    ("common.items.crafting_ing.modular.damage.sword.metal_blade", 1),
+    //    [
+    //        (Tag(MetalIngot), 5),
+    //        (Item("common.items.crafting_tools.craftsman_hammer"), 0),
+    //    ],
+    //),
 }
