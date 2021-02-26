@@ -523,8 +523,13 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Slo
 
     // Drop items
     for (pos, ori, item) in dropped_items {
+        // hack: special case coins for now
+        let body = match item.item_definition_id() {
+            "common.items.utility.coins" => comp::object::Body::Coins,
+            _ => comp::object::Body::Pouch,
+        };
         state
-            .create_object(Default::default(), comp::object::Body::Pouch)
+            .create_object(Default::default(), body)
             .with(comp::Pos(pos.0 + *ori.look_dir() + Vec3::unit_z()))
             .with(item)
             .with(comp::Vel(Vec3::zero()))

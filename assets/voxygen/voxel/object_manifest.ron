@@ -539,6 +539,16 @@
             central: ("armor.empty"),
         )
     ),
+    Coins: (
+        bone0: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("object.coins"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
     CraftingBench: (
         bone0: (
             offset: (-9.5, -7.0, 0.0),
