@@ -1524,7 +1524,7 @@
         "element.icons.neck-1",
     ),
     Armor(Neck("NeckShell")): Png(
-    "element.icons.neck-seashell",
+        "element.icons.neck-seashell",
     ),
 
     // Tabards
@@ -1716,8 +1716,8 @@
         (0.0, 0.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
     ),
     Ingredient("Seashells"): VoxTrans(
-    "voxel.sprite.seashells.shell-0",
-    (0.0, 0.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
+        "voxel.sprite.seashells.shell-0",
+        (0.0, 0.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
     ),
     Ingredient("IcyShard"): Png(
         "element.icons.item_ice_shard",

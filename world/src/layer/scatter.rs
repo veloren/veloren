@@ -305,220 +305,184 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
             )
         }),
         // seagrass
-        (Seagrass, true, |c, col| {
-            (
-                close(c.temp, CONFIG.temperate_temp, 0.8)
-                    * MUSH_FACT
-                    * 300.0
-                    * if col.water_level < CONFIG.sea_level
-                        && col.alt < col.water_level - DEPTH_WATER_NORM + 18.0
-                    {
-                        1.0
-                    } else {
-                        0.0
-                    },
-                Some((150.0, 0.3)),
-            )
-        }),
-        // seagrass, coastal patches
-        (Seagrass, true, |_, col| {
-            (
-                MUSH_FACT
-                    * 300.0
-                    * if col.water_level < CONFIG.sea_level && (col.water_level - col.alt) < 3.0 {
-                        1.0
-                    } else {
-                        0.0
-                    },
-                Some((90.0, 0.4)),
-            )
-        }),
-        // scattered seaweed (temperate species)
-        (SeaweedTemperate, true, |c, col| {
-            (
-                close(c.temp, CONFIG.temperate_temp, 0.8)
-                    * MUSH_FACT
-                    * 50.0
-                    * if col.water_level < CONFIG.sea_level
-                        && col.alt < col.water_level - DEPTH_WATER_NORM + 11.0
-                    {
-                        1.0
-                    } else {
-                        0.0
-                    },
-                Some((500.0, 0.75)),
-            )
-        }),
-        // scattered seaweed (tropical species)
-        (SeaweedTropical, true, |c, col| {
-            (
-                close(c.temp, 1.0, 0.95)
-                    * MUSH_FACT
-                    * 50.0
-                    * if col.water_level < CONFIG.sea_level
-                        && col.alt < col.water_level - DEPTH_WATER_NORM + 11.0
-                    {
-                        1.0
-                    } else {
-                        0.0
-                    },
-                Some((500.0, 0.75)),
-            )
-        }),
-        // Caulerpa lentillifera algae patch
-        (SeaGrapes, true, |_, col| {
-            (
-                MUSH_FACT
-                    * 250.0
-                    * if col.water_level < CONFIG.sea_level
-                        && col.alt < col.water_level - DEPTH_WATER_NORM + 10.0
-                    {
-                        1.0
-                    } else {
-                        0.0
-                    },
-                Some((100.0, 0.15)),
-            )
-        }),
-        // Caulerpa prolifera algae patch
-        (WavyAlgae, true, |_, col| {
-            (
-                MUSH_FACT
-                    * 250.0
-                    * if col.water_level < CONFIG.sea_level
-                        && col.alt < col.water_level - DEPTH_WATER_NORM + 10.0
-                    {
-                        1.0
-                    } else {
-                        0.0
-                    },
-                Some((100.0, 0.15)),
-            )
-        }),
-        // Mermaids' fan algae patch
-        (MermaidsFan, true, |c, col| {
-            (
-                close(c.temp, 1.0, 0.95)
-                    * MUSH_FACT
-                    * 500.0
-                    * if col.water_level < CONFIG.sea_level
-                        && col.alt < col.water_level - DEPTH_WATER_NORM + 10.0
-                    {
-                        1.0
-                    } else {
-                        0.0
-                    },
-                Some((50.0, 0.10)),
-            )
-        }),
-        // Sea anemones
-        (SeaAnemone, true, |c, col| {
-            (
-                close(c.temp, CONFIG.temperate_temp, 0.8)
-                    * MUSH_FACT
-                    * 125.0
-                    * if col.water_level < CONFIG.sea_level
-                        && col.alt < col.water_level - DEPTH_WATER_NORM - 9.0
-                    {
-                        1.0
-                    } else {
-                        0.0
-                    },
-                Some((100.0, 0.3)),
-            )
-        }),
-        // Giant Kelp
-        (GiantKelp, true, |c, col| {
-            (
-                close(c.temp, CONFIG.temperate_temp, 0.8)
-                    * MUSH_FACT
-                    * 220.0
-                    * if col.water_level < CONFIG.sea_level
-                        && col.alt < col.water_level - DEPTH_WATER_NORM - 9.0
-                    {
-                        1.0
-                    } else {
-                        0.0
-                    },
-                Some((200.0, 0.4)),
-            )
-        }),
-        // Bull Kelp
-        (BullKelp, true, |c, col| {
-            (
-                close(c.temp, CONFIG.temperate_temp, 0.7)
-                    * MUSH_FACT
-                    * 300.0
-                    * if col.water_level < CONFIG.sea_level
-                        && col.alt < col.water_level - DEPTH_WATER_NORM + 3.0
-                    {
-                        1.0
-                    } else {
-                        0.0
-                    },
-                Some((75.0, 0.3)),
-            )
-        }),
-        // Stony Corals
-        (StonyCoral, true, |c, col| {
-            (
-                close(c.temp, 1.0, 0.9)
-                    * MUSH_FACT
-                    * 160.0
-                    * if col.water_level < CONFIG.sea_level
-                        && col.alt < col.water_level - DEPTH_WATER_NORM + 10.0
-                    {
-                        1.0
-                    } else {
-                        0.0
-                    },
-                Some((120.0, 0.4)),
-            )
-        }),
-        // Soft Corals
-        (SoftCoral, true, |c, col| {
-            (
-                close(c.temp, 1.0, 0.9)
-                    * MUSH_FACT
-                    * 120.0
-                    * if col.water_level < CONFIG.sea_level
-                        && col.alt < col.water_level - DEPTH_WATER_NORM + 10.0
-                    {
-                        1.0
-                    } else {
-                        0.0
-                    },
-                Some((120.0, 0.4)),
-            )
-        }),
-        // Seashells
-        (Seashells, true, |c, col| {
-            (
-                (c.rockiness - 0.5).max(0.0)
-                    * 1.0e-3
-                    * if col.water_level < CONFIG.sea_level
-                        && col.alt < col.water_level - DEPTH_WATER_NORM + 20.0
-                    {
-                        1.0
-                    } else {
-                        0.0
-                    },
-                None,
-            )
-        }),
-        // hydrothermal vent
-        //        (UnderwaterVent, true, |_, col| {
-        //            (
-        //                MUSH_FACT
-        //                    * 250.0
-        //                    * * if col.water_level < CONFIG.sea_level && col.alt <
-        //                      col.water_level - DEPTH_WATER_NORM - 50.0 { 1.0
-        //                    } else {
-        //                        0.0
-        //                    },
-        //                Some((100.0, 0.15)),
-        //            )
-        //        }),
+               (Seagrass, true, |c, col| {
+                   (
+                       close(c.temp, CONFIG.temperate_temp, 0.8)
+                           * MUSH_FACT
+                           * 300.0
+                           * if col.water_level < CONFIG.sea_level && col.alt < col.water_level - DEPTH_WATER_NORM + 18.0 {
+                               1.0
+                           } else {
+                               0.0
+                           },
+                       Some((150.0, 0.3)),
+                   )
+               }),
+               // seagrass, coastal patches
+               (Seagrass, true, |_, col| {
+                   (
+                           MUSH_FACT
+                           * 300.0
+                           * if col.water_level < CONFIG.sea_level && (col.water_level - col.alt) < 3.0 {
+                               1.0
+                           } else {
+                               0.0
+                           },
+                       Some((90.0, 0.4)),
+                   )
+               }),
+               // scattered seaweed (temperate species)
+               (SeaweedTemperate, true, |c, col| {
+                   (
+                       close(c.temp, CONFIG.temperate_temp, 0.8)
+                           * MUSH_FACT
+                           * 50.0
+                           * if col.water_level < CONFIG.sea_level && col.alt < col.water_level - DEPTH_WATER_NORM + 11.0 {
+                               1.0
+                           } else {
+                               0.0
+                           },
+                       Some((500.0, 0.75)),
+               )
+               }),
+               // scattered seaweed (tropical species)
+               (SeaweedTropical, true, |c, col| {
+                   (
+                       close(c.temp, 1.0, 0.95)
+                           * MUSH_FACT
+                           * 50.0
+                           * if col.water_level < CONFIG.sea_level && col.alt < col.water_level - DEPTH_WATER_NORM + 11.0 {
+                               1.0
+                           } else {
+                               0.0
+                           },
+                       Some((500.0, 0.75)),
+               )
+               }),
+               // Caulerpa lentillifera algae patch
+               (SeaGrapes, true, |_, col| {
+                   (
+                       MUSH_FACT
+                           * 250.0
+                           * if col.water_level < CONFIG.sea_level && col.alt < col.water_level - DEPTH_WATER_NORM + 10.0 {
+                               1.0
+                           } else {
+                               0.0
+                           },
+                       Some((100.0, 0.15)),
+                   )
+               }),
+               // Caulerpa prolifera algae patch
+               (WavyAlgae, true, |_, col| {
+                   (
+                       MUSH_FACT
+                           * 250.0
+                           * if col.water_level < CONFIG.sea_level && col.alt < col.water_level - DEPTH_WATER_NORM + 10.0 {
+                               1.0
+                           } else {
+                               0.0
+                           },
+                       Some((100.0, 0.15)),
+                   )
+               }),
+               // Mermaids' fan algae patch
+               (MermaidsFan, true, |c, col| {
+                   (
+                       close(c.temp, 1.0, 0.95)
+                           * MUSH_FACT
+                           * 500.0
+                           * if col.water_level < CONFIG.sea_level && col.alt < col.water_level - DEPTH_WATER_NORM + 10.0 {
+                               1.0
+                           } else {
+                               0.0
+                           },
+                       Some((50.0, 0.10)),
+                   )
+               }),
+               // Sea anemones
+               (SeaAnemone, true, |c, col| {
+                   (
+                       close(c.temp, CONFIG.temperate_temp, 0.8)
+                           * MUSH_FACT
+                           * 125.0
+                           * if col.water_level < CONFIG.sea_level && col.alt < col.water_level - DEPTH_WATER_NORM - 9.0 {
+                               1.0
+                           } else {
+                               0.0
+                           },
+                       Some((100.0, 0.3)),
+                   )
+               }),
+               // Giant Kelp
+               (GiantKelp, true, |c, col| {
+                   (
+                       close(c.temp, CONFIG.temperate_temp, 0.8)
+                           * MUSH_FACT
+                           * 220.0
+                           * if col.water_level < CONFIG.sea_level && col.alt < col.water_level - DEPTH_WATER_NORM - 9.0 {
+                               1.0
+                           } else {
+                               0.0
+                           },
+                       Some((200.0, 0.4)),
+                   )
+               }),
+               // Bull Kelp
+               (BullKelp, true, |c, col| {
+                   (
+                       close(c.temp, CONFIG.temperate_temp, 0.7)
+                           * MUSH_FACT
+                           * 300.0
+                           * if col.water_level < CONFIG.sea_level && col.alt < col.water_level - DEPTH_WATER_NORM + 3.0 {
+                               1.0
+                           } else {
+                               0.0
+                           },
+                       Some((75.0, 0.3)),
+                   )
+               }),
+               // Stony Corals
+               (StonyCoral, true, |c, col| {
+                   (
+                       close(c.temp, 1.0, 0.9)
+                           * MUSH_FACT
+                           * 160.0
+                           * if col.water_level < CONFIG.sea_level && col.alt < col.water_level - DEPTH_WATER_NORM + 10.0 {
+                               1.0
+                           } else {
+                               0.0
+                           },
+                       Some((120.0, 0.4)),
+                   )
+               }),
+               // Soft Corals
+               (SoftCoral, true, |c, col| {
+                   (
+                       close(c.temp, 1.0, 0.9)
+                           * MUSH_FACT
+                           * 120.0
+                           * if col.water_level < CONFIG.sea_level && col.alt < col.water_level - DEPTH_WATER_NORM + 10.0 {
+                               1.0
+                           } else {
+                               0.0
+                           },
+                       Some((120.0, 0.4)),
+                   )
+               }),
+               // Seashells
+               (Seashells, true, |c, col| {
+                   (
+                       (c.rockiness - 0.5).max(0.0)
+                           * 1.0e-3
+                           * if col.water_level < CONFIG.sea_level && col.alt < col.water_level - DEPTH_WATER_NORM + 20.0 {
+                               1.0
+                           } else {
+                               0.0
+                           },
+                       None,
+                   )
+               }),
+
         (Stones, true, |c, col| {
             (
                 (c.rockiness - 0.5).max(0.0)
