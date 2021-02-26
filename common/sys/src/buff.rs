@@ -180,7 +180,7 @@ impl<'a> System<'a> for Sys {
 }
 
 fn tick_buff(id: u64, buff: &mut Buff, dt: f32, mut expire_buff: impl FnMut(u64)) {
-    // If a buff is freshly applied from an aura, do not tick duration
+    // If a buff is recently applied from an aura, do not tick duration
     if buff
         .cat_ids
         .iter()

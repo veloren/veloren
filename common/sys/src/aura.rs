@@ -42,7 +42,7 @@ impl<'a> System<'a> for Sys {
         auras.set_event_emission(false);
 
         // Iterate through all buffs, on any buffs that are from an aura, sets the check
-        // for whether the buff is fresh to false
+        // for whether the buff recently set by aura to false
         for (_, mut buffs_comp) in (&read_data.entities, &mut buffs).join() {
             for (_, buff) in buffs_comp.buffs.iter_mut() {
                 if let Some(cat_id) = buff
@@ -141,7 +141,7 @@ impl<'a> System<'a> for Sys {
                                     }
                                     // Finds all buffs on target that are from an aura, are of the
                                     // same buff kind, and are of at most the same strength
-                                    // For any such buffs, sets freshness to fresh
+                                    // For any such buffs, marks it as recently applied
                                     for (_, buff) in
                                         target_buffs.buffs.iter_mut().filter(|(_, buff)| {
                                             buff.cat_ids.iter().any(|cat_id| {
