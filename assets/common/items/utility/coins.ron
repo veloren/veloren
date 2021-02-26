@@ -1,0 +1,11 @@
+ItemDef(
+    name: "Coins",
+    description: "Money can be exchanged for goods and services.",
+    kind: Utility(
+        kind: Coins,
+    ),
+    amount: 1,
+    quality: Common,
+    tags: [],
+)
+

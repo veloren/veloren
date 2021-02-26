@@ -887,6 +887,10 @@
     ),
 
     // Other
+    Utility(Coins): VoxTrans(
+        "voxel.object.coins",
+        (0.0, 0.0, 0.0), (0.0, 0.0, 0.0), 0.6,
+    ),
     Utility(Collar): Png(
         "element.icons.collar",
     ),

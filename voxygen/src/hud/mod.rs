@@ -1290,9 +1290,15 @@ impl Hud {
                 );
                 let ingame_pos = pos.0 + Vec3::unit_z() * 1.2;
 
+                let text = if item.amount() > 1 {
+                    format!("{} x {}", item.amount(), item.name())
+                } else {
+                    item.name().to_string()
+                };
+
                 // Item
                 overitem::Overitem::new(
-                    &item.name(),
+                    &text,
                     &distance,
                     &self.fonts,
                     &global_state.settings.controls,
