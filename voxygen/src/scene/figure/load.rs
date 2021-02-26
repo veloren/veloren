@@ -1219,7 +1219,7 @@ impl QuadrupedSmallLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment_flipped(&spec.left_front.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.left_front.lateral.0, true);
 
         (lateral, Vec3::from(spec.left_front.offset))
     }
@@ -1251,7 +1251,7 @@ impl QuadrupedSmallLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment_flipped(&spec.left_back.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.left_back.lateral.0, true);
 
         (lateral, Vec3::from(spec.left_back.offset))
     }
@@ -1511,7 +1511,7 @@ impl QuadrupedMediumLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment_flipped(&spec.leg_fl.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.leg_fl.lateral.0, true);
 
         (lateral, Vec3::from(spec.leg_fl.offset))
     }
@@ -1543,7 +1543,7 @@ impl QuadrupedMediumLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment_flipped(&spec.leg_bl.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.leg_bl.lateral.0, true);
 
         (lateral, Vec3::from(spec.leg_bl.offset))
     }
@@ -1575,7 +1575,7 @@ impl QuadrupedMediumLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment_flipped(&spec.foot_fl.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.foot_fl.lateral.0, true);
 
         (lateral, Vec3::from(spec.foot_fl.offset))
     }
@@ -1607,7 +1607,7 @@ impl QuadrupedMediumLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment_flipped(&spec.foot_bl.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.foot_bl.lateral.0, true);
 
         (lateral, Vec3::from(spec.foot_bl.offset))
     }
@@ -1771,7 +1771,7 @@ impl BirdMediumLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment_flipped(&spec.wing_l.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.wing_l.lateral.0, true);
 
         (lateral, Vec3::from(spec.wing_l.offset))
     }
@@ -1803,7 +1803,7 @@ impl BirdMediumLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment_flipped(&spec.foot_l.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.foot_l.lateral.0, true);
 
         (lateral, Vec3::from(spec.foot_l.offset))
     }
@@ -2052,7 +2052,7 @@ impl TheropodLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment_flipped(&spec.hand_l.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.hand_l.lateral.0, true);
 
         (lateral, Vec3::from(spec.hand_l.offset))
     }
@@ -2084,7 +2084,7 @@ impl TheropodLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment_flipped(&spec.leg_l.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.leg_l.lateral.0, true);
 
         (lateral, Vec3::from(spec.leg_l.offset))
     }
@@ -2116,7 +2116,7 @@ impl TheropodLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment_flipped(&spec.foot_l.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.foot_l.lateral.0, true);
 
         (lateral, Vec3::from(spec.foot_l.offset))
     }
@@ -2310,7 +2310,7 @@ impl FishMediumLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment_flipped(&spec.fin_l.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.fin_l.lateral.0, true);
 
         (lateral, Vec3::from(spec.fin_l.offset))
     }
@@ -2445,7 +2445,7 @@ impl FishSmallLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment_flipped(&spec.fin_l.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.fin_l.lateral.0, true);
 
         (lateral, Vec3::from(spec.fin_l.offset))
     }
@@ -2536,7 +2536,7 @@ make_vox_spec!(
             }),
             tool.and_then(|tool| tool.active.as_ref()).map(|tool| {
                 spec.weapon.read().0.mesh_main(
-                    tool,
+                    &tool.name,
                     false,
                 )
             }),
@@ -2662,7 +2662,7 @@ impl BipedSmallArmorHandSpec {
         };
 
         let hand_segment = if flipped {
-            graceful_load_segment_flipped(&spec.left.vox_spec.0)
+            graceful_load_segment_flipped(&spec.left.vox_spec.0, true)
         } else {
             graceful_load_segment(&spec.right.vox_spec.0)
         };
@@ -2694,7 +2694,7 @@ impl BipedSmallArmorFootSpec {
         };
 
         let foot_segment = if flipped {
-            graceful_load_segment_flipped(&spec.left.vox_spec.0)
+            graceful_load_segment_flipped(&spec.left.vox_spec.0, true)
         } else {
             graceful_load_segment(&spec.right.vox_spec.0)
         };
@@ -2723,7 +2723,7 @@ impl BipedSmallWeaponSpec {
         };
 
         let tool_kind_segment = if flipped {
-            graceful_load_segment_flipped(&spec.vox_spec.0)
+            graceful_load_segment_flipped(&spec.vox_spec.0, true)
         } else {
             graceful_load_segment(&spec.vox_spec.0)
         };
@@ -3244,7 +3244,7 @@ make_vox_spec!(
             )),
             tool.and_then(|tool| tool.active.as_ref()).map(|tool| {
                 spec.weapon.read().0.mesh_main(
-                    tool,
+                    &tool.name,
                     false,
                 )
             }),
@@ -3526,7 +3526,7 @@ impl BipedLargeWeaponSpec {
         };
 
         let tool_kind_segment = if flipped {
-            graceful_load_segment_flipped(&spec.vox_spec.0)
+            graceful_load_segment_flipped(&spec.vox_spec.0, true)
         } else {
             graceful_load_segment(&spec.vox_spec.0)
         };
@@ -4043,7 +4043,7 @@ impl QuadrupedLowLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment_flipped(&spec.front_left.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.front_left.lateral.0, true);
 
         (lateral, Vec3::from(spec.front_left.offset))
     }
@@ -4075,7 +4075,7 @@ impl QuadrupedLowLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment_flipped(&spec.back_left.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.back_left.lateral.0, true);
 
         (lateral, Vec3::from(spec.back_left.offset))
     }

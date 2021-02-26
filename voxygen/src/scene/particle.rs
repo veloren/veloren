@@ -399,7 +399,7 @@ impl ParticleMgr {
             .join()
             .filter(|(_, _, b)| b.creation.map_or(true, |c| (c + dt as f64) >= time))
         {
-//
+            //
             let range = beam.properties.speed * beam.properties.duration.as_secs_f32();
             if beam
                 .properties
@@ -410,65 +410,64 @@ impl ParticleMgr {
                 // Emit a light when using healing
                 lights.push(Light::new(pos.0, Rgb::new(0.1, 1.0, 0.15), 1.0));
                 for i in 0..self.scheduler.heartbeats(Duration::from_millis(1)) {
-                    self.particles.push(Particle::new_beam(
+                    self.particles.push(Particle::new_directed(
                         beam.properties.duration,
                         time + i as f64 / 1000.0,
                         ParticleMode::HealingBeam,
                         pos.0,
                         pos.0 + *ori.look_dir() * range,
                     ));
-//
-            if let CharacterState::BasicBeam(b) = character_state {
-                let particle_ori = b.particle_ori.unwrap_or_else(|| ori.look_vec());
-                if b.stage_section == StageSection::Cast {
-                    if b.static_data.base_hps > 0.0 {
-                        // Emit a light when using healing
-                        lights.push(Light::new(pos.0 + b.offset, Rgb::new(0.1, 1.0, 0.15), 1.0));
-                        for i in 0..self.scheduler.heartbeats(Duration::from_millis(1)) {
-                            self.particles.push(Particle::new_directed(
-                                b.static_data.beam_duration,
-                                time + i as f64 / 1000.0,
-                                ParticleMode::HealingBeam,
-                                pos.0 + particle_ori * 0.5 + b.offset,
-                                pos.0 + particle_ori * b.static_data.range + b.offset,
-                            ));
-                        }
-                    } else {
-                        let mut rng = thread_rng();
-                        let (from, to) = (Vec3::<f32>::unit_z(), particle_ori);
-                        let m = Mat3::<f32>::rotation_from_to_3d(from, to);
-                        // Emit a light when using flames
-                        lights.push(Light::new(
-                            pos.0 + b.offset,
-                            Rgb::new(1.0, 0.25, 0.05).map(|e| e * rng.gen_range(0.8..1.2)),
-                            2.0,
-                        ));
-                        self.particles.resize_with(
-                            self.particles.len()
-                                + 2 * usize::from(
-                                    self.scheduler.heartbeats(Duration::from_millis(1)),
-                                ),
-                            || {
-                                let phi: f32 =
-                                    rng.gen_range(0.0..b.static_data.max_angle.to_radians());
-                                let theta: f32 = rng.gen_range(0.0..2.0 * PI);
-                                let offset_z = Vec3::new(
-                                    phi.sin() * theta.cos(),
-                                    phi.sin() * theta.sin(),
-                                    phi.cos(),
-                                );
-                                let random_ori = offset_z * m * Vec3::new(-1.0, -1.0, 1.0);
-                                Particle::new_directed(
-                                    b.static_data.beam_duration,
-                                    time,
-                                    ParticleMode::FlameThrower,
-                                    pos.0 + random_ori * 0.5 + b.offset,
-                                    pos.0 + random_ori * b.static_data.range + b.offset,
-                                )
-                            },
-                        );
-                    }
-//
+                    /*
+                                if let CharacterState::BasicBeam(b) = character_state {
+                                    if b.stage_section == StageSection::Cast {
+                                        if b.static_data.base_hps > 0.0 {//
+                                            // Emit a light when using healing
+                                            lights.push(Light::new(pos.0 + b.offset, Rgb::new(0.1, 1.0, 0.15), 1.0));
+                                            for i in 0..self.scheduler.heartbeats(Duration::from_millis(1)) {
+                                                self.particles.push(Particle::new_directed(
+                                                    b.static_data.beam_duration,
+                                                    time + i as f64 / 1000.0,
+                                                    ParticleMode::HealingBeam,
+                                                    pos.0 + particle_ori * 0.5 + b.offset,
+                                                    pos.0 + particle_ori * b.static_data.range + b.offset,
+                                                ));
+                                            }
+                                        } else {
+                                            let mut rng = thread_rng();
+                                            let (from, to) = (Vec3::<f32>::unit_z(), particle_ori);
+                                            let m = Mat3::<f32>::rotation_from_to_3d(from, to);
+                                            // Emit a light when using flames
+                                            lights.push(Light::new(
+                                                pos.0 + b.offset,
+                                                Rgb::new(1.0, 0.25, 0.05).map(|e| e * rng.gen_range(0.8..1.2)),
+                                                2.0,
+                                            ));
+                                            self.particles.resize_with(
+                                                self.particles.len()
+                                                    + 2 * usize::from(
+                                                        self.scheduler.heartbeats(Duration::from_millis(1)),
+                                                    ),
+                                                || {
+                                                    let phi: f32 =
+                                                        rng.gen_range(0.0..b.static_data.max_angle.to_radians());
+                                                    let theta: f32 = rng.gen_range(0.0..2.0 * PI);
+                                                    let offset_z = Vec3::new(
+                                                        phi.sin() * theta.cos(),
+                                                        phi.sin() * theta.sin(),
+                                                        phi.cos(),
+                                                    );
+                                                    let random_ori = offset_z * m * Vec3::new(-1.0, -1.0, 1.0);
+                                                    Particle::new_directed(
+                                                        b.static_data.beam_duration,
+                                                        time,
+                                                        ParticleMode::FlameThrower,
+                                                        pos.0 + random_ori * 0.5 + b.offset,
+                                                        pos.0 + random_ori * b.static_data.range + b.offset,
+                                                    )
+                                                },
+                                            );
+                                        }
+                    */
                 }
             } else {
                 let mut rng = thread_rng();
@@ -484,16 +483,16 @@ impl ParticleMgr {
                     self.particles.len()
                         + 2 * usize::from(self.scheduler.heartbeats(Duration::from_millis(1))),
                     || {
-                        let phi: f32 = rng.gen_range(0.0..beam.properties.angle.to_radians());
+                        let phi: f32 = rng.gen_range(0.0..beam.properties.angle);
                         let theta: f32 = rng.gen_range(0.0..2.0 * PI);
                         let offset_z =
                             Vec3::new(phi.sin() * theta.cos(), phi.sin() * theta.sin(), phi.cos());
                         let random_ori = offset_z * m * Vec3::new(-1.0, -1.0, 1.0);
-                        Particle::new_beam(
+                        Particle::new_directed(
                             beam.properties.duration,
                             time,
                             ParticleMode::FlameThrower,
-                            pos.0 + random_ori,
+                            pos.0, /* + random_ori */
                             pos.0 + random_ori * range,
                         )
                     },

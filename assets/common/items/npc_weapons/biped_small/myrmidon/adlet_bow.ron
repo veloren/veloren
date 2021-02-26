@@ -5,12 +5,12 @@ ItemDef(
         (
             kind: Bow,    
             hands: Two,
-            stats: (
+            stats: Direct((
                 equip_time_millis: 0,
                 power: 1.1,
                 poise_strength: 0.8,
                 speed: 0.5
-            ),            
+            )),            
         )
     ),
     quality: Moderate,

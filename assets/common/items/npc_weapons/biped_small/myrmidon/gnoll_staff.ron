@@ -5,12 +5,12 @@ ItemDef(
         (
             kind: StaffSimple,    
             hands: Two,
-            stats: (
+            stats: Direct((
                 equip_time_millis: 0,
                 power: 1.7,
                 poise_strength: 0.8,
                 speed: 0.7
-            ),
+            )),
         )
     ),
     quality: Low,

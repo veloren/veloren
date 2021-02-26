@@ -2548,7 +2548,7 @@ impl FigureMgr {
                         tick,
                         player_camera_mode,
                         player_character_state,
-                        scene_data.thread_pool,
+                        scene_data.runtime,
                     );
 
                     let state = self

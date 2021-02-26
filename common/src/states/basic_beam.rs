@@ -163,20 +163,16 @@ impl CharacterBehavior for Data {
                     };
                     // Gets offsets
                     let body_offsets = match data.body {
-                        Body::Humanoid(_) => {
-                            Vec3::new(
-                                data.body.radius() + 2.0 * data.inputs.look_dir.x,
-                                data.body.radius() + 2.0 * data.inputs.look_dir.y,
-                                data.body.eye_height(),
-                            ) * 0.55
-                        },
-                        _ => {
-                            Vec3::new(
-                                data.body.radius() * 3.0 * data.inputs.look_dir.x,
-                                data.body.radius() * 3.0 * data.inputs.look_dir.y,
-                                data.body.eye_height(),
-                            ) * 0.55
-                        },
+                        Body::Humanoid(_) => Vec3::new(
+                            (data.body.radius() + 2.0) * data.inputs.look_dir.x,
+                            (data.body.radius() + 2.0) * data.inputs.look_dir.y,
+                            data.body.eye_height() * 0.55,
+                        ),
+                        _ => Vec3::new(
+                            (data.body.radius() + 3.0) * data.inputs.look_dir.x,
+                            (data.body.radius() + 3.0) * data.inputs.look_dir.y,
+                            data.body.eye_height() * 0.55,
+                        ),
                     };
                     let pos = Pos(data.pos.0 + body_offsets);
                     // Create beam segment

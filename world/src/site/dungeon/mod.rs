@@ -619,7 +619,7 @@ impl Floor {
                                 )
                                 .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
                                 .with_main_tool(comp::Item::new_from_asset_expect(
-                                    match dynamic_rng.gen_range(0..3) {
+                                    match dynamic_rng.gen_range(0..5) {
                                         0 => {
                                             "common.items.npc_weapons.biped_small.gnarling.\
                                              adlet_bow"
@@ -648,7 +648,7 @@ impl Floor {
                                 )
                                 .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
                                 .with_main_tool(comp::Item::new_from_asset_expect(
-                                    match dynamic_rng.gen_range(0..3) {
+                                    match dynamic_rng.gen_range(0..5) {
                                         0 => "common.items.npc_weapons.biped_small.adlet.adlet_bow",
                                         1 => {
                                             "common.items.npc_weapons.biped_small.adlet.gnoll_staff"
@@ -673,7 +673,7 @@ impl Floor {
                                 )
                                 .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
                                 .with_main_tool(comp::Item::new_from_asset_expect(
-                                    match dynamic_rng.gen_range(0..3) {
+                                    match dynamic_rng.gen_range(0..5) {
                                         0 => {
                                             "common.items.npc_weapons.biped_small.sahagin.adlet_bow"
                                         },
@@ -701,7 +701,7 @@ impl Floor {
                                 )
                                 .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
                                 .with_main_tool(comp::Item::new_from_asset_expect(
-                                    match dynamic_rng.gen_range(0..3) {
+                                    match dynamic_rng.gen_range(0..5) {
                                         0 => {
                                             "common.items.npc_weapons.biped_small.haniwa.adlet_bow"
                                         },
@@ -729,7 +729,7 @@ impl Floor {
                                 )
                                 .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
                                 .with_main_tool(comp::Item::new_from_asset_expect(
-                                    match dynamic_rng.gen_range(0..3) {
+                                    match dynamic_rng.gen_range(0..5) {
                                         0 => {
                                             "common.items.npc_weapons.biped_small.myrmidon.\
                                              adlet_bow"

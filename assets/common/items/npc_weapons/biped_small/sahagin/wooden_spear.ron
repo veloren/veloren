@@ -5,12 +5,12 @@ ItemDef(
        (
             kind: Spear,   
             hands: Two, 
-            stats: (
+            stats: Direct((
                 equip_time_millis: 0,
                 power: 1.1,
                 poise_strength: 0.8,
                 speed: 1.0
-            ),            
+            )),
         )
     ),
     quality: Low,
