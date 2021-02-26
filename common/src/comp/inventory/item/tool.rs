@@ -40,11 +40,17 @@ impl ToolKind {
     pub fn identifier_name(&self) -> &'static str {
         match self {
             ToolKind::Sword => "sword",
+            ToolKind::SwordSimple => "simple sword",
             ToolKind::Axe => "axe",
+            ToolKind::AxeSimple => "simple axe",
             ToolKind::Hammer => "hammer",
+            ToolKind::HammerSimple => "simple hammer",
             ToolKind::Bow => "bow",
+            ToolKind::BowSimple => "simple bow",
             ToolKind::Dagger => "dagger",
             ToolKind::Staff => "staff",
+            ToolKind::StaffSimple => "simple staff",
+            ToolKind::Spear => "spear",
             ToolKind::Sceptre => "sceptre",
             ToolKind::Shield => "shield",
             ToolKind::Unique(_) => "unique",

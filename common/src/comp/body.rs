@@ -378,19 +378,14 @@ impl Body {
                 biped_small::Species::Sahagin => 500,
                 biped_small::Species::Haniwa => 700,
                 biped_small::Species::Myrmidon => 800,
-            _ => 600,
-            },   
+                _ => 600,
+            },
             Body::Object(object) => match object {
                 object::Body::TrainingDummy => 10000,
                 object::Body::Crossbow => 800,
                 _ => 10000,
             },
-<<<<<<< HEAD
             Body::Golem(_) => 2740,
-=======
-            Body::Object(_) => 10000,
-            Body::Golem(_) => 3000,
->>>>>>> minotaur moves, added claygolem
             Body::Theropod(theropod) => match theropod.species {
                 theropod::Species::Archaeos => 3000,
                 theropod::Species::Odonto => 2700,

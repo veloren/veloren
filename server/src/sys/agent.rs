@@ -496,6 +496,7 @@ impl<'a> System<'a> for Sys {
                                 }
                             }) {
                                 Some(ToolKind::Bow) => Tactic::Bow,
+                                Some(ToolKind::BowSimple) => Tactic::Bow,
                                 Some(ToolKind::Staff) => Tactic::Staff,
                                 Some(ToolKind::StaffSimple) => Tactic::Staff,
                                 Some(ToolKind::Hammer) => Tactic::Hammer,
