@@ -19,50 +19,24 @@
         // Respawn message
         "hud.press_key_to_respawn": r#"Press {key} to respawn at the last campfire you visited."#,
 
-        // Welcome message
-        "hud.welcome": r#"Welcome to the Veloren Alpha!
+        // Tutorial Button
+        "hud.tutorial_btn": r#"Tutorial"#,
+        "hud.tutorial_click_here": r#"Press [ {key} ] to free your cursor and click this button!"#,
+        "hud.tutorial_elements": r#"Crafting"#,
 
+"hud.temp_quest_headline": r#"Greetings Traveller!"#,
+"hud.temp_quest_text": r#"To begin your journey you could start looking through this village and gather some supplies. 
 
-Some tips before you start:
+You are welcome to take whatever you need on your journey!
 
+Look at the bottom right of the screen to find various things like your bag, the crafting menu and the map.
 
-Press F1 to see the available key commands.
+The crafting menu allows you to create armor, weapons, food and much more!
 
-Type /help into the chat to see chat commands
+The wild animals all around town are a great source of Leather Scraps to create some protection against the dangers of the world.
 
-
-There are chests and other objects randomly spawning in the World!
-
-Right-Click to collect them.
-
-To actually use whatever you loot from those chests open your inventory with 'B'.
-
-Double click the items in your bag to use or equip them.
-
-Throw them away by clicking them once and clicking outside of the bag
-
-
-Nights can get pretty dark in Veloren.
-
-Light your lantern by pressing 'G'
-
-
-Want to free your cursor to close this window? Press TAB!
-
-
-Enjoy your stay in the World of Veloren."#,
-
-"hud.temp_quest_headline": r#"Please, help us Traveller!"#,
-"hud.temp_quest_text": r#"Dungeons filled with evil cultists
-have emerged all around our peaceful towns!
-
-
-Gather some company, stack up on food
-and defeat their vile leaders and acolytes.
-
-
-Maybe you can even obtain one of their
-magically infused items?"#,
+Whenever you feel ready, try to get even better equipment from the many challenges marked on your map!
+"#,
 
         "hud.spell": "Spells",
         // Diary

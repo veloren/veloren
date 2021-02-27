@@ -346,8 +346,6 @@ image_ids! {
 
         not_found: "voxygen.element.not_found",
 
-        help: "voxygen.element.help",
-
         death_bg: "voxygen.background.death",
         hurt_bg: "voxygen.background.hurt",
 

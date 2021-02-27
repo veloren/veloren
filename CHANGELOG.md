@@ -57,6 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed default controller key bindings
 - Improved network efficiency by ≈ factor 10 by using tokio.
 - Added item tooltips to trade window.
+- "Quest" given to new players converted to being a short tutorial
 
 ### Removed
 
