@@ -12,6 +12,7 @@ use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage}
 // How long floaters last (in seconds)
 pub const HP_SHOWTIME: f32 = 3.0;
 pub const MY_HP_SHOWTIME: f32 = 2.5;
+pub const HP_ACCUMULATETIME: f32 = 1.0;
 
 pub struct Sys;
 impl<'a> System<'a> for Sys {
@@ -84,11 +85,20 @@ impl<'a> System<'a> for Sys {
                     HealthSource::Item => true,
                     _ => false,
                 } {
-                    hp_floater_list.floaters.push(HpFloater {
-                        timer: 0.0,
-                        hp_change: health.last_change.1.amount,
-                        rand: rand::random(),
-                    });
+                    let last_floater = hp_floater_list.floaters.last_mut();
+                    match last_floater {
+                        Some(f) if f.timer < HP_ACCUMULATETIME => {
+                            //TODO: Add "jumping" animation on floater when it changes its value
+                            f.hp_change += health.last_change.1.amount;
+                        },
+                        _ => {
+                            hp_floater_list.floaters.push(HpFloater {
+                                timer: 0.0,
+                                hp_change: health.last_change.1.amount,
+                                rand: rand::random(),
+                            });
+                        },
+                    }
                 }
             }
         }
