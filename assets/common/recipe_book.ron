@@ -279,6 +279,15 @@
         ("common.items.armor.shoulder.leather_adventurer", 1),
         [(Item("common.items.crafting_ing.leather_scraps"), 12)],
     ),
+    "Seashell Necklace": (
+        ("common.items.armor.neck.neck_2", 1),
+        [
+            (Item("common.items.crafting_ing.cloth_scraps"), 2),
+            (Item("common.items.crafting_ing.sapphire"), 1),
+            (Item("common.items.crafting_ing.seashells"), 3),
+            (Item("common.items.crafting_tools.sewing_set"), 0),
+        ],
+    ),
     "red cloth": (
         ("common.items.crafting_ing.cloth_scraps_red", 1),
         [

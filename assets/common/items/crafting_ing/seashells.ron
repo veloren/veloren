@@ -1,0 +1,9 @@
+ItemDef(
+    name: "Seashells",
+    description: "Shells from a sea creture.",
+    kind: Ingredient(
+        kind: "Seashells",
+    ),
+    quality: Common,
+    tags: [],
+)

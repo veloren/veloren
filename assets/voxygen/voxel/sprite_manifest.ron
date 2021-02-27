@@ -2205,6 +2205,477 @@ ChestBurried: Some((
     ],
     wind_sway: 0.0,
 )),
+// Stony Coral
+StonyCoral: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.coral.yellow_fire_coral-0",
+            offset: (-7.0, -6.5, -0.1),
+            lod_axes: (0.5, 0.5, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.coral.red_fire_coral-0",
+            offset: (-6.5, -2.0, -0.1),
+            lod_axes: (0.5, 0.5, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.coral.red_fire_coral-1",
+            offset: (-7.5, -4.5, -0.1),
+            lod_axes: (0.5, 0.5, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.coral.red_fire_coral-2",
+            offset: (-7.0, -4, -0.1),
+            lod_axes: (0.5, 0.5, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.coral.green_brain_coral-0",
+            offset: (-9.5, -10.5, -5.1),
+            lod_axes: (0.5, 0.5, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.coral.green_brain_coral-1",
+            offset: (-9.5, -10.5, -3.1),
+            lod_axes: (0.5, 0.5, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.coral.green_brain_coral-2",
+            offset: (-6.5, -6.5, -0.1),
+            lod_axes: (0.5, 0.5, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.coral.pink_brain_coral-0",
+            offset: (-10.0, -9.5, -5.1),
+            lod_axes: (0.5, 0.5, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.coral.pink_brain_coral-1",
+            offset: (-6.0, -5.5, -0.0),
+            lod_axes: (0.5, 0.5, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.coral.pink_birdsnest_coral-0",
+            offset: (-5.5, -5.5, -0.1),
+            lod_axes: (0.5, 0.5, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.coral.pink_birdsnest_coral-1",
+            offset: (-5.5, -5.5, -0.1),
+            lod_axes: (0.5, 0.5, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.coral.pink_birdsnest_coral-2",
+            offset: (-5.5, -5.5, -0.1),
+            lod_axes: (0.5, 0.5, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.coral.pink_birdsnest_coral-3",
+            offset: (-5.5, -5.5, -0.1),
+            lod_axes: (0.5, 0.5, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.coral.plating_acropora-0",
+            offset: (-9.5, -9.0, -0.1),
+            lod_axes: (0.5, 0.5, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.coral.plating_acropora-1",
+            offset: (-9.5, -9.0, -0.1),
+            lod_axes: (0.5, 0.5, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.coral.plating_acropora-2",
+            offset: (-11.0, -10.5, -0.1),
+            lod_axes: (0.5, 0.5, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.coral.plating_acropora-3",
+            offset: (-11.0, -11.0, -0.1),
+            lod_axes: (0.5, 0.5, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.coral.plating_acropora-4",
+            offset: (-9.0, -9.0, -0.1),
+            lod_axes: (0.5, 0.5, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.coral.plating_acropora-5",
+            offset: (-8.0, -9.0, -0.1),
+            lod_axes: (0.5, 0.5, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.coral.plating_acropora-6",
+            offset: (-9.0, -8.5, -0.1),
+            lod_axes: (0.5, 0.5, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.coral.plating_acropora-7",
+            offset: (-7, -9.0, -0.1),
+            lod_axes: (0.5, 0.5, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+// Soft Coral
+SoftCoral: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.coral.yellow_gorgonian-0",
+            offset: (-3.0, -10.0, 0.0),
+            lod_axes: (0.0, 0.5, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.coral.yellow_gorgonian-1",
+            offset: (-3.0, -13.0, 0.0),
+            lod_axes: (0.0, 0.5, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.coral.yellow_gorgonian-2",
+            offset: (-3.0, -17.5, 0.0),
+            lod_axes: (0.0, 0.5, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.coral.purp-0",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.5, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.coral.purp-1",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.5, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.coral.red_sea_fan-1",
+            offset: (-2.5, -15.5, 0.0),
+            lod_axes: (0.0, 0.5, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.coral.red_sea_fan-2",
+            offset: (-2.5, -22.5, 0.0),
+            lod_axes: (0.0, 0.5, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.coral.red_sea_fan-3",
+            offset: (-3.0, -15.5, 0.0),
+            lod_axes: (0.0, 0.5, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.coral.purple_finger_soft_coral-0",
+            offset: (-9.5, -8.5, -0.1),
+            lod_axes: (0.0, 0.5, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.coral.purple_finger_soft_coral-1",
+            offset: (-10.0, -19.5, -0.1),
+            lod_axes: (0.0, 0.5, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.coral.green_ricordea-1",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.coral.green_ricordea-2",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.coral.green_ricordea-3",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.coral.green_ricordea-4",
+            offset: (-6.5, -6.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.coral.blue_ricordea-1",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.coral.blue_ricordea-2",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.coral.blue_ricordea-3",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.coral.sea_anemone-1",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+    ],
+    wind_sway: 1.0,
+)),
+// Sea Anemones
+SeaAnemone: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.coral.sea_anemone-1",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+    ],
+    wind_sway: 1.0,
+)),
+//Bull kelp
+BullKelp: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.algae.nereocystis_kelp-0",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.algae.nereocystis_kelp-1",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.algae.nereocystis_kelp-2",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.algae.nereocystis_kelp-3",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.algae.nereocystis_kelp-4",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.algae.nereocystis_kelp-5",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.algae.nereocystis_kelp-6",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.algae.nereocystis_kelp-7",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.algae.nereocystis_kelp-8",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+    ],
+    wind_sway: 0.5,
+)),
+//scattered temperate type Seaweed
+SeaweedTemperate: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.algae.kelp_sprig-0",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.algae.kelp_sprig-1",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.grass.grass_short_1",
+            offset: (-5.5, -6.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.grass.grass_short_2",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+    ],
+    wind_sway: 0.5,
+)),
+//scattered tropical type seaweed
+SeaweedTropical: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.grass.grass_short_1",
+            offset: (-5.5, -6.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.grass.grass_short_2",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.algae.acetabularia-0",
+            offset: (-5.5, -6.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.algae.acetabularia-1",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.algae.acetabularia-2",
+            offset: (-5.0, -6.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.algae.udotea-0",
+            offset: (-8.0, -1.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.algae.udotea-1",
+            offset: (-8.0, -1.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.algae.udotea-2",
+            offset: (-10.0, -2.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+    ],
+    wind_sway: 0.7,
+)),
+//Mermaids fan algae patch
+MermaidsFan: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.algae.udotea-0",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.algae.udotea-1",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.algae.udotea-2",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+    ],
+    wind_sway: 0.7,
+)),
+//Caulerpa prolifera patch
+WavyAlgae: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.algae.caulerpa_prolifera-0",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.algae.caulerpa_prolifera-1",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.algae.caulerpa_prolifera-2",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.algae.caulerpa_prolifera-3",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+    ],
+    wind_sway: 0.7,
+)),
+//Caulerpa lentillifera patch
+SeaGrapes: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.algae.caulerpa_lentillifera-0",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.algae.caulerpa_lentillifera-1",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.algae.caulerpa_lentillifera-2",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.algae.caulerpa_lentillifera-3",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+    ],
+    wind_sway: 0.7,
+)),
+//Giant Kelp
+GiantKelp: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.algae.macrocystis_kelp-0",
+            offset: (-15.5, -15.5, 0.0),
+            lod_axes: (0.5, 0.5, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.algae.macrocystis_kelp-1",
+            offset: (-15.5, -15.5, 0.0),
+            lod_axes: (0.5, 0.5, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.algae.macrocystis_kelp-2",
+            offset: (-15.5, -15.5, 0.0),
+            lod_axes: (0.5, 0.5, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.algae.macrocystis_kelp-3",
+            offset: (-15.5, -15.5, 0.0),
+            lod_axes: (0.5, 0.5, 0.0),
+        ),
+    ],
+    wind_sway: 0.2,
+)),
+//Seagrass
+Seagrass: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.grass.seagrass-0",
+            offset: (-6.0, -6.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.grass.seagrass-1",
+            offset: (-6.0, -6.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.grass.seagrass-2",
+            offset: (-6.0, -6.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.grass.seagrass-3",
+            offset: (-6.0, -6.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+		(
+            model: "voxygen.voxel.sprite.grass.seagrass-4",
+            offset: (-6.0, -6.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+    )
+],
+wind_sway: 0.7,
+)),
 // Underwater Mud Piles
 Mud: Some((
     variations: [
