@@ -50,7 +50,7 @@ impl Animation for RunAnimation {
         let speed = Vec2::<f32>::from(velocity).magnitude();
         *rate = 1.0;
         let impact = (avg_vel.z).max(-8.0);
-        let speednorm = (speed / 9.4).min(1.5);
+        let speednorm = (speed / 9.4).powf(0.6);
 
         let lab = 1.0;
 
@@ -159,7 +159,11 @@ impl Animation for RunAnimation {
             Quaternion::rotation_x(0.6 * speednorm + (footrotr * -1.2) * speednorm)
                 * Quaternion::rotation_y(footrotr * 0.4 * speednorm);
 
-        next.hand_r.position = -next.hand_l.position;
+        next.hand_r.position = Vec3::new(
+            s_a.hand.0 + foothoril * 1.3 * speednorm,
+            3.0 * speednorm + s_a.hand.1 + foothoril * -7.0 * speednorm,
+            1.5 * speednorm + s_a.hand.2 - foothoril * 5.5 * speednorm,
+        );
         next.hand_r.orientation =
             Quaternion::rotation_x(0.6 * speednorm + (footrotl * -1.2) * speednorm)
                 * Quaternion::rotation_y(footrotl * -0.4 * speednorm);

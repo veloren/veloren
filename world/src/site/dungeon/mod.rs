@@ -746,9 +746,7 @@ impl Floor {
                                 )),
                             5 => match dynamic_rng.gen_range(0..6) {
                                 0 => entity
-                                    .with_body(comp::Body::BipedSmall(
-                                        comp::biped_small::Body::random(),
-                                    ))
+                                    .with_body(comp::Body::Humanoid(comp::humanoid::Body::random()))
                                     .with_name("Cultist Warlock")
                                     .with_loadout_config(loadout_builder::LoadoutConfig::Warlock)
                                     .with_skillset_config(

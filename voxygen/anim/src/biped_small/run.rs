@@ -27,7 +27,7 @@ impl Animation for RunAnimation {
         let mut next = (*skeleton).clone();
         let speed = Vec2::<f32>::from(velocity).magnitude();
         *rate = 1.0;
-        let speednorm = speed / 9.4;
+        let speednorm = (speed / 9.4).powf(0.4);
 
         let lab = 1.0;
 

@@ -65,7 +65,7 @@ impl Animation for SpinAnimation {
                         * Quaternion::rotation_y(
                             s_a.sc.4 - 0.6 + movement1 * 0.0 + movement2 * -1.7,
                         )
-                        * Quaternion::rotation_z(s_a.sc.5 + 0.1 + movement1 * -1.57);
+                        * Quaternion::rotation_z(s_a.sc.5 + 0.1 + movement1 * 1.57);
                 next.head.position = Vec3::new(
                     0.0 + 2.0 + movement2 * -2.0,
                     2.0 + movement2 * -2.0 + s_a.head.0,

@@ -1207,6 +1207,31 @@
         "voxel.armor.shoulder.steel_right-0",
         (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
     ),
+    //PlateLeather0 Armor
+    Armor(Chest("PlateLeather")): VoxTrans(
+        "voxel.armor.chest.plate_leather",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
+    ),
+    Armor(Pants("PlateLeather")): VoxTrans(
+        "voxel.armor.pants.plate_leather-0",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
+    ),
+    Armor(Belt("PlateLeather")): VoxTrans(
+        "voxel.armor.belt.plate_leather-0",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.8,
+    ),
+    Armor(Foot("PlateLeather")): VoxTrans(
+        "voxel.armor.foot.plate_leather",
+        (0.0, 0.0, 0.0), (-95.0, 140.0, 0.0), 1.1,
+    ),
+    Armor(Hand("PlateLeather")): VoxTrans(
+        "voxel.armor.hand.plate_leather_right-0",
+        (0.0, -1.0, 0.0), (-90.0, 135.0, 0.0), 1.0,
+    ),
+    Armor(Shoulder("PlateLeather")): VoxTrans(
+        "voxel.armor.shoulder.plate_leather_right-0",
+        (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
+    ),
     //Leather0 Armor
     Armor(Chest("Leather0")): VoxTrans(
         "voxel.armor.chest.leather-0",
