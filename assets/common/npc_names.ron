@@ -506,6 +506,34 @@
             horse: (
                 keyword: "horse",
                 generic: "Horse"
+            ),
+            barghest: (
+                keyword: "barghest",
+                generic: "Barghest"
+            ),
+            cattle: (
+                keyword: "cattle",
+                generic: "Cattle"
+            ),
+            darkhound: (
+                keyword: "darkhound",
+                generic: "Darkhound"
+            ),
+            highland: (
+                keyword: "highland",
+                generic: "Highland"
+            ),
+            yak: (
+                keyword: "yak",
+                generic: "Yak"
+            ),
+            panda: (
+                keyword: "panda",
+                generic: "Panda"
+            ),
+            bear: (
+                keyword: "bear",
+                generic: "Bear"
             )
         )
     ),
@@ -717,6 +745,10 @@
             hare: (
                 keyword: "hare",
                 generic: "Hare"
+            ),
+            dog: (
+                keyword: "dog",
+                generic: "Dog"
             )
         )
     ),
@@ -748,9 +780,9 @@
                 keyword: "eagle",
                 generic: "Eagle"
             ),
-            snowyowl: (
-                keyword: "snowyowl",
-                generic: "Snowy Owl"
+            owl: (
+                keyword: "owl",
+                generic: "Owl"
             ),
             parrot: (
                 keyword: "parrot",
@@ -809,6 +841,22 @@
             mindflayer: (
                 keyword: "mindflayer",
                 generic: "Mindflayer"
+            ),
+            minotaur: (
+                keyword: "minotaur",
+                generic: "Minotaur"
+            ),
+            tidalwarrior: (
+                keyword: "tidalwarrior",
+                generic: "Tidal Warrior"
+            ),
+            yeti: (
+                keyword: "yeti",
+                generic: "Yeti"
+            ),
+            harvester: (
+                keyword: "harvester",
+                generic: "Harvester"
             )
         )
     ),
@@ -827,6 +875,10 @@
             treant: (
                 keyword: "treant",
                 generic: "Treant"
+            ),
+            claygolem: (
+                keyword: "claygolem",
+                generic: "ClayGolem"
             )
         )
     ),
@@ -857,6 +909,10 @@
             raptor_wood: (
                 keyword: "raptor_wood",
                 generic: "Wood Raptor"
+            ),
+            sunlizard: (
+                keyword: "sunlizard",
+                generic: "Sun Lizard"
             )
         )
     ),
@@ -881,6 +937,56 @@
         ),
         species: ()
     ),
+    biped_small: (
+        body: (
+            keyword: "biped_small",
+            names_0: [
+                "Harvey"
+            ]
+        ),
+        species: (
+            gnome: (
+                keyword: "gnome",
+                generic: "Gnome"
+            ),
+            sahagin: (
+                keyword: "sahagin",
+                generic: "Sahagin"
+            ),
+            adlet: (
+                keyword: "adlet",
+                generic: "Adlet"
+            ),
+            gnarling: (
+                keyword: "gnarling",
+                generic: "Gnarling"
+            ),
+            mandragora: (
+                keyword: "mandragora",
+                generic: "Mandragora"
+            ),
+            kappa: (
+                keyword: "kappa",
+                generic: "Kappa"
+            ),
+            cactid: (
+                keyword: "cactid",
+                generic: "Cactid"
+            ),
+            gnoll: (
+                keyword: "gnoll",
+                generic: "Gnoll"
+            ),
+            haniwa: (
+                keyword: "haniwa",
+                generic: "Haniwa"
+            ),
+            myrmidon: (
+                keyword: "myrmidon",
+                generic: "Myrmidon"
+            )
+        )
+    ),
     fish_small: (
         body: (
             keyword: "fish_small",
@@ -892,6 +998,10 @@
             clownfish: (
                 keyword: "clownfish",
                 generic: "Clownfish"
+            ),
+            piranha: (
+                keyword: "piranha",
+                generic: "Piranha"
             )
         )
     ),
@@ -971,7 +1081,15 @@
             lavadrake: (
                 keyword: "lavadrake",
                 generic: "Lava Drake"
-            )
+            ),
+            basilisk: (
+                keyword: "basilisk",
+                generic: "Basilisk"
+            ),
+            deadwood: (
+                keyword: "deadwood",
+                generic: "Deadwood"
+            ),
         )
     )
 )

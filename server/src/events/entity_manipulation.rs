@@ -29,7 +29,6 @@ use common::{
 };
 use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
 use common_sys::state::BlockChange;
-use comp::item::Reagent;
 use hashbrown::HashSet;
 use rand::prelude::*;
 use specs::{join::Join, saveload::MarkerAllocator, Entity as EcsEntity, WorldExt};
@@ -448,6 +447,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
             let _ = state
                 .create_object(comp::Pos(pos.0 + Vec3::unit_z() * 0.25), match old_body {
                     Some(common::comp::Body::Humanoid(_)) => object::Body::Pouch,
+                    Some(common::comp::Body::BipedSmall(_)) => object::Body::Pouch,
                     Some(common::comp::Body::Golem(_)) => object::Body::Chest,
                     Some(common::comp::Body::BipedLarge(_))
                     | Some(common::comp::Body::QuadrupedLow(_)) => object::Body::MeatDrop,
@@ -572,24 +572,13 @@ pub fn handle_respawn(server: &Server, entity: EcsEntity) {
 }
 
 #[allow(clippy::blocks_in_if_conditions)]
-pub fn handle_explosion(
-    server: &Server,
-    pos: Vec3<f32>,
-    explosion: Explosion,
-    owner: Option<Uid>,
-    reagent: Option<Reagent>,
-) {
+pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, owner: Option<Uid>) {
     // Go through all other entities
     let ecs = &server.state.ecs();
 
     // Add an outcome
-    // Uses radius as outcome power, makes negative if explosion has healing effect
-    let outcome_power = explosion.radius
-        * if explosion.effects.iter().any(|e| matches!(e, RadiusEffect::Attack(a) if a.effects().any(|e| matches!(e.effect(), combat::CombatEffect::Heal(h) if *h > 0.0)))) {
-        -1.0
-    } else {
-        1.0
-    };
+    // Uses radius as outcome power for now
+    let outcome_power = explosion.radius;
     ecs.write_resource::<Vec<Outcome>>()
         .push(Outcome::Explosion {
             pos,
@@ -599,7 +588,7 @@ pub fn handle_explosion(
                 .effects
                 .iter()
                 .any(|e| matches!(e, RadiusEffect::Attack(_))),
-            reagent,
+            reagent: explosion.reagent,
         });
     let owner_entity = owner.and_then(|uid| {
         ecs.read_resource::<UidAllocator>()

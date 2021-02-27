@@ -62,36 +62,59 @@ impl ParticleMgr {
                 reagent,
             } => {
                 if *is_attack {
-                    if *power < 0.0 {
-                        self.particles.resize_with(
-                            self.particles.len() + (200.0 * power.abs()) as usize,
-                            || {
-                                Particle::new(
-                                    Duration::from_secs(1),
-                                    time,
-                                    ParticleMode::EnergyNature,
-                                    *pos + Vec3::<f32>::zero()
-                                        .map(|_| rng.gen_range(-1.0..1.0))
-                                        .normalized()
-                                        * *radius,
-                                )
-                            },
-                        );
-                    } else {
-                        self.particles.resize_with(
-                            self.particles.len() + (200.0 * power.abs()) as usize,
-                            || {
-                                Particle::new(
-                                    Duration::from_secs(1),
-                                    time,
-                                    ParticleMode::CampfireFire,
-                                    *pos + Vec3::<f32>::zero()
-                                        .map(|_| rng.gen_range(-1.0..1.0))
-                                        .normalized()
-                                        * *radius,
-                                )
-                            },
-                        );
+                    match reagent {
+                        Some(Reagent::Green) => {
+                            self.particles.resize_with(
+                                self.particles.len() + (60.0 * power.abs()) as usize,
+                                || {
+                                    Particle::new_directed(
+                                        Duration::from_secs_f32(rng.gen_range(0.2..3.0)),
+                                        time,
+                                        ParticleMode::EnergyNature,
+                                        *pos,
+                                        *pos + Vec3::<f32>::zero()
+                                            .map(|_| rng.gen_range(-1.0..1.0))
+                                            .normalized()
+                                            * rng.gen_range(1.0..*radius),
+                                    )
+                                },
+                            );
+                        },
+                        Some(Reagent::Red) => {
+                            self.particles.resize_with(
+                                self.particles.len() + (75.0 * power.abs()) as usize,
+                                || {
+                                    Particle::new_directed(
+                                        Duration::from_millis(500),
+                                        time,
+                                        ParticleMode::Explosion,
+                                        *pos,
+                                        *pos + Vec3::<f32>::zero()
+                                            .map(|_| rng.gen_range(-1.0..1.0))
+                                            .normalized()
+                                            * *radius,
+                                    )
+                                },
+                            );
+                        },
+                        Some(Reagent::Blue) => {
+                            self.particles.resize_with(
+                                self.particles.len() + (75.0 * power.abs()) as usize,
+                                || {
+                                    Particle::new_directed(
+                                        Duration::from_millis(500),
+                                        time,
+                                        ParticleMode::Ice,
+                                        *pos,
+                                        *pos + Vec3::<f32>::zero()
+                                            .map(|_| rng.gen_range(-1.0..1.0))
+                                            .normalized()
+                                            * *radius,
+                                    )
+                                },
+                            );
+                        },
+                        _ => {},
                     }
                 } else {
                     self.particles.resize_with(
@@ -295,7 +318,7 @@ impl ParticleMgr {
                 Particle::new(
                     Duration::from_millis(250),
                     time,
-                    ParticleMode::EnergyNature,
+                    ParticleMode::CampfireSmoke,
                     pos.0,
                 )
             },
@@ -376,6 +399,7 @@ impl ParticleMgr {
             .join()
             .filter(|(_, _, b)| b.creation.map_or(true, |c| (c + dt as f64) >= time))
         {
+            //
             let range = beam.properties.speed * beam.properties.duration.as_secs_f32();
             if beam
                 .properties
@@ -386,13 +410,64 @@ impl ParticleMgr {
                 // Emit a light when using healing
                 lights.push(Light::new(pos.0, Rgb::new(0.1, 1.0, 0.15), 1.0));
                 for i in 0..self.scheduler.heartbeats(Duration::from_millis(1)) {
-                    self.particles.push(Particle::new_beam(
+                    self.particles.push(Particle::new_directed(
                         beam.properties.duration,
                         time + i as f64 / 1000.0,
                         ParticleMode::HealingBeam,
                         pos.0,
                         pos.0 + *ori.look_dir() * range,
                     ));
+                    /*
+                                if let CharacterState::BasicBeam(b) = character_state {
+                                    if b.stage_section == StageSection::Cast {
+                                        if b.static_data.base_hps > 0.0 {//
+                                            // Emit a light when using healing
+                                            lights.push(Light::new(pos.0 + b.offset, Rgb::new(0.1, 1.0, 0.15), 1.0));
+                                            for i in 0..self.scheduler.heartbeats(Duration::from_millis(1)) {
+                                                self.particles.push(Particle::new_directed(
+                                                    b.static_data.beam_duration,
+                                                    time + i as f64 / 1000.0,
+                                                    ParticleMode::HealingBeam,
+                                                    pos.0 + particle_ori * 0.5 + b.offset,
+                                                    pos.0 + particle_ori * b.static_data.range + b.offset,
+                                                ));
+                                            }
+                                        } else {
+                                            let mut rng = thread_rng();
+                                            let (from, to) = (Vec3::<f32>::unit_z(), particle_ori);
+                                            let m = Mat3::<f32>::rotation_from_to_3d(from, to);
+                                            // Emit a light when using flames
+                                            lights.push(Light::new(
+                                                pos.0 + b.offset,
+                                                Rgb::new(1.0, 0.25, 0.05).map(|e| e * rng.gen_range(0.8..1.2)),
+                                                2.0,
+                                            ));
+                                            self.particles.resize_with(
+                                                self.particles.len()
+                                                    + 2 * usize::from(
+                                                        self.scheduler.heartbeats(Duration::from_millis(1)),
+                                                    ),
+                                                || {
+                                                    let phi: f32 =
+                                                        rng.gen_range(0.0..b.static_data.max_angle.to_radians());
+                                                    let theta: f32 = rng.gen_range(0.0..2.0 * PI);
+                                                    let offset_z = Vec3::new(
+                                                        phi.sin() * theta.cos(),
+                                                        phi.sin() * theta.sin(),
+                                                        phi.cos(),
+                                                    );
+                                                    let random_ori = offset_z * m * Vec3::new(-1.0, -1.0, 1.0);
+                                                    Particle::new_directed(
+                                                        b.static_data.beam_duration,
+                                                        time,
+                                                        ParticleMode::FlameThrower,
+                                                        pos.0 + random_ori * 0.5 + b.offset,
+                                                        pos.0 + random_ori * b.static_data.range + b.offset,
+                                                    )
+                                                },
+                                            );
+                                        }
+                    */
                 }
             } else {
                 let mut rng = thread_rng();
@@ -408,16 +483,16 @@ impl ParticleMgr {
                     self.particles.len()
                         + 2 * usize::from(self.scheduler.heartbeats(Duration::from_millis(1))),
                     || {
-                        let phi: f32 = rng.gen_range(0.0..beam.properties.angle.to_radians());
+                        let phi: f32 = rng.gen_range(0.0..beam.properties.angle);
                         let theta: f32 = rng.gen_range(0.0..2.0 * PI);
                         let offset_z =
                             Vec3::new(phi.sin() * theta.cos(), phi.sin() * theta.sin(), phi.cos());
                         let random_ori = offset_z * m * Vec3::new(-1.0, -1.0, 1.0);
-                        Particle::new_beam(
+                        Particle::new_directed(
                             beam.properties.duration,
                             time,
                             ParticleMode::FlameThrower,
-                            pos.0 + random_ori,
+                            pos.0, /* + random_ori */
                             pos.0 + random_ori * range,
                         )
                     },
@@ -587,7 +662,7 @@ impl ParticleMgr {
             let theta = ori_vec.y.atan2(ori_vec.x);
             let dtheta = radians / distance;
 
-            let heartbeats = self.scheduler.heartbeats(Duration::from_millis(1));
+            let heartbeats = self.scheduler.heartbeats(Duration::from_millis(2));
 
             for heartbeat in 0..heartbeats {
                 if shockwave.properties.requires_ground {
@@ -627,7 +702,7 @@ impl ParticleMgr {
                             + distance * Vec3::new(arc_position.cos(), arc_position.sin(), 0.0);
 
                         self.particles.push(Particle::new(
-                            Duration::from_secs_f32(distance / 50.0),
+                            Duration::from_secs_f32((distance + 10.0) / 50.0),
                             time,
                             ParticleMode::FireShockwave,
                             position,
@@ -805,7 +880,7 @@ impl Particle {
         }
     }
 
-    fn new_beam(
+    fn new_directed(
         lifespan: Duration,
         time: f64,
         mode: ParticleMode,
@@ -814,7 +889,13 @@ impl Particle {
     ) -> Self {
         Particle {
             alive_until: time + lifespan.as_secs_f64(),
-            instance: ParticleInstance::new_beam(time, lifespan.as_secs_f32(), mode, pos1, pos2),
+            instance: ParticleInstance::new_directed(
+                time,
+                lifespan.as_secs_f32(),
+                mode,
+                pos1,
+                pos2,
+            ),
         }
     }
 }

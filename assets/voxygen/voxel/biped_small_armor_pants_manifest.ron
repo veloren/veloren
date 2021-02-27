@@ -1,0 +1,40 @@
+((
+    default: (
+        vox_spec: ("armor.empty", (0.0, 0.0, 0.0)),
+    ),
+    map: {
+        "Gnome": (
+            vox_spec: ("npc.gnome.male.pants", (-4.0, -3.5, -2.5)),
+        ),
+        "Sahagin": (
+            vox_spec: ("npc.sahagin.male.pants", (-2.5, -3.5, -2.0)),
+        ),
+        "AdletSpear": (
+            vox_spec: ("npc.adlet.male.spear.pants", (-5.0, -4.5, -3.0)),
+        ),
+        "AdletBow": (
+            vox_spec: ("npc.adlet.male.bow.pants", (-5.0, -4.5, -3.0)),
+        ),
+        "Gnarling": (
+            vox_spec: ("npc.gnarling.male.pants", (-3.5, -3.0, -2.5)),
+        ),
+        "Mandragora": (
+            vox_spec: ("npc.mandragora.male.pants", (-3.0, -3.0, -1.0)),
+        ),
+        "Kappa": (
+            vox_spec: ("npc.kappa.male.pants", (-3.5, -4.0, -1.5)),
+        ),
+        "Cactid": (
+            vox_spec: ("npc.cactid.male.pants", (-3.0, -2.0, -1.0)),
+        ),
+        "Gnoll": (
+            vox_spec: ("npc.gnoll.male.pants", (-5.0, -4.0, -3.0)),
+        ),
+        "Haniwa": (
+            vox_spec: ("npc.haniwa.male.pants", (-4.5, -4.5, -1.5)),
+        ),
+        "Myrmidon": (
+            vox_spec: ("npc.myrmidon.male.pants", (-2.5, -4.5, -1.5)),
+        ),
+    },
+))

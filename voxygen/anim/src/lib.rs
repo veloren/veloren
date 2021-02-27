@@ -40,6 +40,7 @@ macro_rules! skeleton_impls {
 }
 
 pub mod biped_large;
+pub mod biped_small;
 pub mod bird_medium;
 pub mod bird_small;
 pub mod character;

@@ -91,7 +91,7 @@ use client::Client;
 use common::{
     assets::{self, AssetExt, AssetHandle},
     comp::{
-        item::{ItemKind, ToolKind},
+        item::{ItemKind, Reagent, ToolKind},
         object, Body, CharacterAbilityType, InventoryUpdateEvent,
     },
     outcome::Outcome,
@@ -298,9 +298,10 @@ impl SfxMgr {
                 pos,
                 power,
                 is_attack,
+                reagent,
                 ..
             } => {
-                let file_ref = if *is_attack && *power < 0.0 {
+                let file_ref = if *is_attack && matches!(reagent, Some(Reagent::Green)) {
                     "voxygen.audio.sfx.abilities.heal_bomb"
                 } else {
                     "voxygen.audio.sfx.explosion"

@@ -38,7 +38,8 @@ impl Animation for SpinMeleeAnimation {
         next.head.orientation =
             Quaternion::rotation_z(movement2 * -2.0 * PI) * Quaternion::rotation_x(-0.2);
 
-        next.upper_torso.position = Vec3::new(0.0, s_a.upper_torso.0, s_a.upper_torso.1) / 8.0;
+        next.upper_torso.position =
+            Vec3::new(0.0, s_a.upper_torso.0, s_a.upper_torso.1) * s_a.scaler / 8.0;
         next.upper_torso.orientation = Quaternion::rotation_z(movement2 * 2.0 * PI);
 
         next.lower_torso.position =

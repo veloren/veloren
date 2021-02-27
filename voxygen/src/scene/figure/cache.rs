@@ -86,6 +86,7 @@ pub(super) struct CharacterToolKey {
 /// Character data that exists in third person only.
 #[derive(Eq, Hash, PartialEq)]
 pub(super) struct CharacterThirdPersonKey {
+    pub head: Option<String>,
     pub shoulder: Option<String>,
     pub chest: Option<String>,
     pub belt: Option<String>,
@@ -141,6 +142,17 @@ impl CharacterCacheKey {
                 None
             } else {
                 Some(CharacterThirdPersonKey {
+                    head: if let Some(ItemKind::Armor(Armor {
+                        kind: ArmorKind::Head(armor),
+                        ..
+                    })) = inventory
+                        .equipped(EquipSlot::Armor(ArmorSlot::Head))
+                        .map(|i| i.kind())
+                    {
+                        Some(armor.clone())
+                    } else {
+                        None
+                    },
                     shoulder: if let Some(ItemKind::Armor(Armor {
                         kind: ArmorKind::Shoulder(armor),
                         ..

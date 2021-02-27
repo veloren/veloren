@@ -406,9 +406,9 @@ impl Scene {
             Outcome::Explosion {
                 pos,
                 power,
-                radius: _,
-                is_attack: _,
+                is_attack,
                 reagent,
+                ..
             } => self.event_lights.push(EventLight {
                 light: Light::new(
                     *pos,
@@ -416,20 +416,21 @@ impl Scene {
                         Some(Reagent::Blue) => Rgb::new(0.15, 0.4, 1.0),
                         Some(Reagent::Green) => Rgb::new(0.0, 1.0, 0.0),
                         Some(Reagent::Purple) => Rgb::new(0.7, 0.0, 1.0),
-                        Some(Reagent::Red) => Rgb::new(1.0, 0.0, 0.0),
-                        Some(Reagent::Yellow) => Rgb::new(1.0, 1.0, 0.0),
-                        None => {
-                            if *power < 0.0 {
-                                Rgb::new(0.0, 1.0, 0.0)
-                            } else {
+                        Some(Reagent::Red) => {
+                            if *is_attack {
                                 Rgb::new(1.0, 0.5, 0.0)
+                            } else {
+                                Rgb::new(1.0, 0.0, 0.0)
                             }
                         },
+                        Some(Reagent::Yellow) => Rgb::new(1.0, 1.0, 0.0),
+                        None => Rgb::new(1.0, 0.5, 0.0),
                     },
-                    power.abs()
-                        * match reagent {
-                            Some(_) => 5.0,
-                            None => 2.5,
+                    power
+                        * if *is_attack || reagent.is_none() {
+                            2.5
+                        } else {
+                            5.0
                         },
                 ),
                 timeout: match reagent {

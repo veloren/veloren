@@ -496,9 +496,14 @@ impl<'a> System<'a> for Sys {
                                 }
                             }) {
                                 Some(ToolKind::Bow) => Tactic::Bow,
+                                Some(ToolKind::BowSimple) => Tactic::Bow,
                                 Some(ToolKind::Staff) => Tactic::Staff,
+                                Some(ToolKind::StaffSimple) => Tactic::Staff,
                                 Some(ToolKind::Hammer) => Tactic::Hammer,
                                 Some(ToolKind::Sword) => Tactic::Sword,
+                                Some(ToolKind::Spear) => Tactic::Sword,
+                                Some(ToolKind::SwordSimple) => Tactic::Sword,
+                                Some(ToolKind::AxeSimple) => Tactic::Sword,
                                 Some(ToolKind::Axe) => Tactic::Axe,
                                 Some(ToolKind::Unique(UniqueKind::StoneGolemFist)) => {
                                     Tactic::StoneGolemBoss
@@ -531,6 +536,7 @@ impl<'a> System<'a> for Sys {
                                     Tactic::QuadLowBasic
                                 },
                                 Some(ToolKind::Unique(UniqueKind::QuadLowBreathe)) => Tactic::Lavadrake,
+                                Some(ToolKind::Unique(UniqueKind::QuadLowBeam)) => Tactic::Lavadrake,
                                 Some(ToolKind::Unique(UniqueKind::TheropodBasic)) => Tactic::Theropod,
                                 Some(ToolKind::Unique(UniqueKind::TheropodBird)) => Tactic::Theropod,
                                 Some(ToolKind::Unique(UniqueKind::ObjectTurret)) => Tactic::Turret,
@@ -1349,7 +1355,7 @@ impl<'a> System<'a> for Sys {
                                             do_idle = true;
                                         }
                                     },
-                                    Tactic::Lavadrake => {
+                                    Tactic::Lavadrake | Tactic::QuadLowBeam => {
                                         if dist_sqrd < (2.5 * min_attack_dist * scale).powi(2) {
                                             inputs.move_dir = Vec2::zero();
                                             inputs.secondary.set_state(true);

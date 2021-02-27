@@ -133,13 +133,23 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
-                    .with_body(
-                        quadruped_medium::Body::random_with(
+                    .with_body(match rng.gen_range(0..3) {
+                        0 => quadruped_medium::Body::random_with(
                             rng,
                             &quadruped_medium::Species::Mouflon,
                         )
                         .into(),
-                    )
+                        1 => quadruped_medium::Body::random_with(
+                            rng,
+                            &quadruped_medium::Species::Yak,
+                        )
+                        .into(),
+                        _ => quadruped_medium::Body::random_with(
+                            rng,
+                            &quadruped_medium::Species::Highland,
+                        )
+                        .into(),
+                    })
                     .with_alignment(Alignment::Wild)
             },
             group_size: 1..4,
@@ -150,15 +160,12 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
-                    .with_body(match rng.gen_range(0..5) {
+                    .with_body(match rng.gen_range(0..4) {
                         0 => {
                             bird_medium::Body::random_with(rng, &bird_medium::Species::Eagle).into()
                         },
-                        1 => quadruped_low::Body::random_with(rng, &quadruped_low::Species::Asp)
-                            .into(),
-                        2 => bird_medium::Body::random_with(rng, &bird_medium::Species::Snowyowl)
-                            .into(),
-                        3 => quadruped_small::Body {
+                        1 => bird_medium::Body::random_with(rng, &bird_medium::Species::Owl).into(),
+                        2 => quadruped_small::Body {
                             species: quadruped_small::Species::Fox,
                             body_type: quadruped_small::BodyType::Female,
                         }
@@ -195,14 +202,23 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
-                    .with_body(match rng.gen_range(0..3) {
+                    .with_body(match rng.gen_range(0..5) {
                         0 => quadruped_medium::Body::random_with(
                             rng,
                             &quadruped_medium::Species::Tarasque,
                         )
                         .into(),
-                        1 => {
+                        1 => quadruped_medium::Body::random_with(
+                            rng,
+                            &quadruped_medium::Species::Bear,
+                        )
+                        .into(),
+                        2 => {
                             theropod::Body::random_with(rng, &theropod::Species::Woodraptor).into()
+                        },
+                        3 => {
+                            quadruped_low::Body::random_with(rng, &quadruped_low::Species::Deadwood)
+                                .into()
                         },
                         _ => quadruped_medium::Body::random_with(
                             rng,
@@ -222,7 +238,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
-                    .with_body(match rng.gen_range(0..11) {
+                    .with_body(match rng.gen_range(0..12) {
                         0 => quadruped_medium::Body::random_with(
                             rng,
                             &quadruped_medium::Species::Deer,
@@ -267,6 +283,11 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                         9 => quadruped_medium::Body::random_with(
                             rng,
                             &quadruped_medium::Species::Horse,
+                        )
+                        .into(),
+                        10 => quadruped_medium::Body::random_with(
+                            rng,
+                            &quadruped_medium::Species::Cattle,
                         )
                         .into(),
                         _ => bird_medium::Body::random_with(rng, &bird_medium::Species::Chicken)
@@ -648,13 +669,15 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
-                    .with_body(match rng.gen_range(0..2) {
+                    .with_body(match rng.gen_range(0..4) {
                         0 => quadruped_medium::Body::random_with(
                             rng,
                             &quadruped_medium::Species::Bonerattler,
                         )
                         .into(),
-                        1 => {
+                        1 => quadruped_low::Body::random_with(rng, &quadruped_low::Species::Asp)
+                            .into(),
+                        2 => {
                             theropod::Body::random_with(rng, &theropod::Species::Sandraptor).into()
                         },
                         _ => quadruped_low::Body::random_with(
@@ -787,9 +810,12 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
-                    .with_body(match rng.gen_range(0..2) {
+                    .with_body(match rng.gen_range(0..3) {
                         0 => fish_medium::Body::random_with(rng, &fish_medium::Species::Marlin)
                             .into(),
+                        1 => {
+                            fish_small::Body::random_with(rng, &fish_small::Species::Piranha).into()
+                        },
                         _ => fish_small::Body::random_with(rng, &fish_small::Species::Clownfish)
                             .into(),
                     })

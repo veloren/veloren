@@ -7,6 +7,7 @@ use crate::{
     util::{attempt, Grid, RandomField, Sampler, CARDINALS, DIRS},
     IndexRef,
 };
+
 use common::{
     assets::{AssetExt, AssetHandle},
     astar::Astar,
@@ -598,7 +599,6 @@ impl Floor {
                                 .map(|e| e as f32 / 16.0),
                         )
                         //.do_if(is_giant, |e| e.into_giant())
-                        .with_body(comp::Body::Humanoid(comp::humanoid::Body::random()))
                         .with_alignment(comp::Alignment::Enemy)
                         .with_loadout_config(loadout_builder::LoadoutConfig::CultistAcolyte)
                         .with_skillset_config(common::skillset_builder::SkillSetConfig::CultistAcolyte)
@@ -606,88 +606,147 @@ impl Floor {
                         .with_level(dynamic_rng.gen_range((room.difficulty as f32).powf(1.25) + 3.0..(room.difficulty as f32).powf(1.5) + 4.0).round() as u16);
                         let entity = match room.difficulty {
                             0 => entity
-                                .with_name("Outcast")
-                                .with_loadout_config(loadout_builder::LoadoutConfig::Outcast)
+                                .with_body(comp::Body::BipedSmall(
+                                    comp::biped_small::Body::random_with(
+                                        dynamic_rng,
+                                        &comp::biped_small::Species::Gnarling,
+                                    ),
+                                ))
+                                .with_name("Gnarling")
+                                .with_loadout_config(loadout_builder::LoadoutConfig::Gnarling)
                                 .with_skillset_config(
-                                    common::skillset_builder::SkillSetConfig::Outcast,
+                                    common::skillset_builder::SkillSetConfig::Gnarling,
                                 )
                                 .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
                                 .with_main_tool(comp::Item::new_from_asset_expect(
-                                    match dynamic_rng.gen_range(0..6) {
-                                        0 => "common.items.weapons.axe.starter_axe",
-                                        1..=2 => "common.items.weapons.sword.starter",
-                                        3 => "common.items.weapons.hammer.starter_hammer",
-                                        4 => "common.items.weapons.staff.starter_staff",
-                                        _ => "common.items.weapons.bow.starter",
+                                    match dynamic_rng.gen_range(0..5) {
+                                        0 => {
+                                            "common.items.npc_weapons.biped_small.gnarling.\
+                                             adlet_bow"
+                                        },
+                                        1 => {
+                                            "common.items.npc_weapons.biped_small.gnarling.\
+                                             gnoll_staff"
+                                        },
+                                        _ => {
+                                            "common.items.npc_weapons.biped_small.gnarling.\
+                                             wooden_spear"
+                                        },
                                     },
                                 )),
                             1 => entity
-                                .with_name("Highwayman")
-                                .with_loadout_config(loadout_builder::LoadoutConfig::Highwayman)
+                                .with_body(comp::Body::BipedSmall(
+                                    comp::biped_small::Body::random_with(
+                                        dynamic_rng,
+                                        &comp::biped_small::Species::Adlet,
+                                    ),
+                                ))
+                                .with_name("Adlet")
+                                .with_loadout_config(loadout_builder::LoadoutConfig::Adlet)
                                 .with_skillset_config(
-                                    common::skillset_builder::SkillSetConfig::Highwayman,
+                                    common::skillset_builder::SkillSetConfig::Adlet,
                                 )
                                 .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
                                 .with_main_tool(comp::Item::new_from_asset_expect(
-                                    match dynamic_rng.gen_range(0..6) {
-                                        0 => "common.items.weapons.axe.worn_iron_axe-0",
-                                        1..=2 => "common.items.weapons.sword.steel-8",
-                                        3 => "common.items.weapons.hammer.worn_iron_hammer-0",
-                                        4 => "common.items.weapons.staff.bone_staff",
-                                        _ => "common.items.weapons.bow.hardwood-3",
+                                    match dynamic_rng.gen_range(0..5) {
+                                        0 => "common.items.npc_weapons.biped_small.adlet.adlet_bow",
+                                        1 => {
+                                            "common.items.npc_weapons.biped_small.adlet.gnoll_staff"
+                                        },
+                                        _ => {
+                                            "common.items.npc_weapons.biped_small.adlet.\
+                                             wooden_spear"
+                                        },
                                     },
                                 )),
                             2 => entity
-                                .with_name("Bandit")
-                                .with_loadout_config(loadout_builder::LoadoutConfig::Bandit)
+                                .with_body(comp::Body::BipedSmall(
+                                    comp::biped_small::Body::random_with(
+                                        dynamic_rng,
+                                        &comp::biped_small::Species::Sahagin,
+                                    ),
+                                ))
+                                .with_name("Sahagin")
+                                .with_loadout_config(loadout_builder::LoadoutConfig::Sahagin)
                                 .with_skillset_config(
-                                    common::skillset_builder::SkillSetConfig::Bandit,
+                                    common::skillset_builder::SkillSetConfig::Sahagin,
                                 )
                                 .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
                                 .with_main_tool(comp::Item::new_from_asset_expect(
-                                    match dynamic_rng.gen_range(0..6) {
-                                        0 => "common.items.weapons.axe.bronze_axe-0",
-                                        1 => "common.items.weapons.sword.iron-4",
-                                        2 => "common.items.weapons.sword.cultist",
-                                        3 => "common.items.weapons.hammer.bronze_hammer-0",
-                                        4 => "common.items.weapons.staff.bone_staff",
-                                        _ => "common.items.weapons.bow.wood-3",
+                                    match dynamic_rng.gen_range(0..5) {
+                                        0 => {
+                                            "common.items.npc_weapons.biped_small.sahagin.adlet_bow"
+                                        },
+                                        1 => {
+                                            "common.items.npc_weapons.biped_small.sahagin.\
+                                             gnoll_staff"
+                                        },
+                                        _ => {
+                                            "common.items.npc_weapons.biped_small.sahagin.\
+                                             wooden_spear"
+                                        },
                                     },
                                 )),
                             3 => entity
-                                .with_name("Cultist Novice")
-                                .with_loadout_config(loadout_builder::LoadoutConfig::CultistNovice)
+                                .with_body(comp::Body::BipedSmall(
+                                    comp::biped_small::Body::random_with(
+                                        dynamic_rng,
+                                        &comp::biped_small::Species::Haniwa,
+                                    ),
+                                ))
+                                .with_name("Haniwa")
+                                .with_loadout_config(loadout_builder::LoadoutConfig::Haniwa)
                                 .with_skillset_config(
-                                    common::skillset_builder::SkillSetConfig::CultistNovice,
+                                    common::skillset_builder::SkillSetConfig::Haniwa,
                                 )
                                 .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
                                 .with_main_tool(comp::Item::new_from_asset_expect(
-                                    match dynamic_rng.gen_range(0..6) {
-                                        0 => "common.items.weapons.axe.steel_axe-0",
-                                        1..=2 => "common.items.weapons.sword.steel-2",
-                                        3 => "common.items.weapons.hammer.cobalt_hammer-0",
-                                        4 => "common.items.weapons.staff.amethyst_staff",
-                                        _ => "common.items.weapons.bow.bone-1",
+                                    match dynamic_rng.gen_range(0..5) {
+                                        0 => {
+                                            "common.items.npc_weapons.biped_small.haniwa.adlet_bow"
+                                        },
+                                        1 => {
+                                            "common.items.npc_weapons.biped_small.haniwa.\
+                                             gnoll_staff"
+                                        },
+                                        _ => {
+                                            "common.items.npc_weapons.biped_small.haniwa.\
+                                             wooden_spear"
+                                        },
                                     },
                                 )),
                             4 => entity
-                                .with_name("Cultist Acolyte")
-                                .with_loadout_config(loadout_builder::LoadoutConfig::CultistAcolyte)
+                                .with_body(comp::Body::BipedSmall(
+                                    comp::biped_small::Body::random_with(
+                                        dynamic_rng,
+                                        &comp::biped_small::Species::Myrmidon,
+                                    ),
+                                ))
+                                .with_name("Myrmidon")
+                                .with_loadout_config(loadout_builder::LoadoutConfig::Myrmidon)
                                 .with_skillset_config(
-                                    common::skillset_builder::SkillSetConfig::CultistAcolyte,
+                                    common::skillset_builder::SkillSetConfig::Myrmidon,
                                 )
                                 .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
                                 .with_main_tool(comp::Item::new_from_asset_expect(
-                                    match dynamic_rng.gen_range(0..6) {
-                                        0 => "common.items.weapons.axe.malachite_axe-0",
-                                        1..=2 => "common.items.weapons.sword.cultist",
-                                        3 => "common.items.weapons.hammer.cultist_purp_2h-0",
-                                        4 => "common.items.weapons.staff.cultist_staff",
-                                        _ => "common.items.weapons.bow.bone-1",
+                                    match dynamic_rng.gen_range(0..5) {
+                                        0 => {
+                                            "common.items.npc_weapons.biped_small.myrmidon.\
+                                             adlet_bow"
+                                        },
+                                        1 => {
+                                            "common.items.npc_weapons.biped_small.myrmidon.\
+                                             gnoll_staff"
+                                        },
+                                        _ => {
+                                            "common.items.npc_weapons.biped_small.myrmidon.\
+                                             wooden_spear"
+                                        },
                                     },
                                 )),
                             5 => match dynamic_rng.gen_range(0..6) {
                                 0 => entity
+                                    .with_body(comp::Body::Humanoid(comp::humanoid::Body::random()))
                                     .with_name("Cultist Warlock")
                                     .with_loadout_config(loadout_builder::LoadoutConfig::Warlock)
                                     .with_skillset_config(
@@ -771,104 +830,57 @@ impl Floor {
                             let entity = match room.difficulty {
                                 0 => vec![
                                     EntityInfo::at(tile_wcenter.map(|e| e as f32))
-                                        .with_body(comp::Body::Humanoid(
-                                            comp::humanoid::Body::random(),
-                                        ))
-                                        .with_name("Outcast Leader".to_string())
-                                        .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
-                                        .with_loadout_config(loadout_builder::LoadoutConfig::Outcast)
-                                        .with_skillset_config(
-                                            common::skillset_builder::SkillSetConfig::Outcast,
-                                        )
-                                        .with_scale(2.0)
-                                        .with_main_tool(comp::Item::new_from_asset_expect(
-                                            match dynamic_rng.gen_range(0..6) {
-                                                0 => "common.items.weapons.axe.worn_iron_axe-0",
-                                                1..=2 => "common.items.weapons.sword.steel-8",
-                                                3 => {
-                                                    "common.items.weapons.hammer.worn_iron_hammer-0"
-                                                },
-                                                4 => "common.items.weapons.staff.bone_staff",
-                                                _ => "common.items.weapons.bow.hardwood-3",
-                                            },
-                                        )),
-                                    EntityInfo::at(tile_wcenter.map(|e| e as f32))
-                                        .with_body(comp::Body::QuadrupedMedium(
-                                            comp::quadruped_medium::Body::random_with(
+                                        .with_body(comp::Body::BipedLarge(
+                                            comp::biped_large::Body::random_with(
                                                 dynamic_rng,
-                                                &comp::quadruped_medium::Species::Tarasque,
+                                                &comp::biped_large::Species::Harvester,
                                             ),
                                         ))
-                                        .with_name("Tarasque".to_string())
+                                        .with_name("Harvester".to_string())
                                         .with_loot_drop(comp::Item::new_from_asset_expect(chosen)),
                                 ],
                                 1 => vec![
                                     EntityInfo::at(tile_wcenter.map(|e| e as f32))
-                                        .with_body(comp::Body::Theropod(
-                                            comp::theropod::Body::random_with(
+                                        .with_body(comp::Body::BipedLarge(
+                                            comp::biped_large::Body::random_with(
                                                 dynamic_rng,
-                                                &comp::theropod::Species::Odonto,
+                                                &comp::biped_large::Species::Yeti,
                                             ),
                                         ))
-                                        .with_name("Odonto".to_string())
+                                        .with_name("Yeti".to_string())
                                         .with_loot_drop(comp::Item::new_from_asset_expect(chosen)),
                                 ],
                                 2 => vec![
                                     EntityInfo::at(tile_wcenter.map(|e| e as f32))
-                                        .with_body(comp::Body::Humanoid(
-                                            comp::humanoid::Body::random()
+                                        .with_body(comp::Body::BipedLarge(
+                                            comp::biped_large::Body::random_with(
+                                                dynamic_rng,
+                                                &comp::biped_large::Species::Tidalwarrior,
+                                            ),
                                         ))
-                                        .with_name("Bandit Captain".to_string())
-                                        .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
-                                        .with_loadout_config(loadout_builder::LoadoutConfig::Bandit)
-                                        .with_skillset_config(
-                                            common::skillset_builder::SkillSetConfig::Bandit
-                                        )
-                                        .with_scale(2.0)
-                                        .with_main_tool(comp::Item::new_from_asset_expect(
-                                            match dynamic_rng.gen_range(0..6) {
-                                                0 => "common.items.weapons.axe.steel_axe-0",
-                                                1..=2 => "common.items.weapons.sword.steel-2",
-                                                3 => "common.items.weapons.hammer.cobalt_hammer-0",
-                                                4 => "common.items.weapons.staff.amethyst_staff",
-                                                _ => "common.items.weapons.bow.bone-1",
-                                            },
-                                        ),);
-                                    2
+                                        .with_name("Tidal Warrior".to_string())
+                                        .with_loot_drop(comp::Item::new_from_asset_expect(chosen)),
                                 ],
                                 3 => vec![
-                                    EntityInfo::at(tile_wcenter.map(|e| e as f32))
-                                        .with_body(comp::Body::Humanoid(
-                                            comp::humanoid::Body::random()
-                                        ))
-                                        .with_name("Cultist Acolyte".to_string())
-                                        .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
-                                        .with_loadout_config(loadout_builder::LoadoutConfig::CultistAcolyte)
-                                        .with_skillset_config(
-                                            common::skillset_builder::SkillSetConfig::CultistAcolyte
-                                        )
-                                        .with_scale(2.0)
-                                        .with_main_tool(comp::Item::new_from_asset_expect(
-                                            match dynamic_rng.gen_range(0..6) {
-                                                0 => "common.items.weapons.axe.malachite_axe-0",
-                                                1..=2 => "common.items.weapons.sword.cultist",
-                                                3 =>
-                                                    "common.items.weapons.hammer.cultist_purp_2h-0",
-                                                4 => "common.items.weapons.staff.cultist_staff",
-                                                _ => "common.items.weapons.bow.bone-1",
-                                            },
-                                        ),);
-                                    2
-                                ],
-                                4 => vec![
                                     EntityInfo::at(tile_wcenter.map(|e| e as f32))
                                         .with_body(comp::Body::Golem(
                                             comp::golem::Body::random_with(
                                                 dynamic_rng,
-                                                &comp::golem::Species::StoneGolem,
+                                                &comp::golem::Species::ClayGolem,
                                             ),
                                         ))
-                                        .with_name("Stonework Defender".to_string())
+                                        .with_name("Clay Golem".to_string())
+                                        .with_loot_drop(comp::Item::new_from_asset_expect(chosen)),
+                                ],
+                                4 => vec![
+                                    EntityInfo::at(tile_wcenter.map(|e| e as f32))
+                                        .with_body(comp::Body::BipedLarge(
+                                            comp::biped_large::Body::random_with(
+                                                dynamic_rng,
+                                                &comp::biped_large::Species::Minotaur,
+                                            ),
+                                        ))
+                                        .with_name("Minotaur".to_string())
                                         .with_loot_drop(comp::Item::new_from_asset_expect(chosen)),
                                 ],
                                 5 => vec![
@@ -881,7 +893,9 @@ impl Floor {
                                         ))
                                         .with_name("Mindflayer".to_string())
                                         .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
-                                        .with_skillset_config(common::skillset_builder::SkillSetConfig::Mindflayer),
+                                        .with_skillset_config(
+                                            common::skillset_builder::SkillSetConfig::Mindflayer,
+                                        ),
                                 ],
                                 _ => {
                                     vec![EntityInfo::at(tile_wcenter.map(|e| e as f32)).with_body(
@@ -981,13 +995,58 @@ impl Floor {
                                 ],
                                 2 => vec![
                                     EntityInfo::at(tile_wcenter.map(|e| e as f32))
-                                        .with_body(comp::Body::QuadrupedMedium(
-                                            comp::quadruped_medium::Body::random_with(
+                                        .with_body(comp::Body::QuadrupedLow(
+                                            comp::quadruped_low::Body::random_with(
                                                 dynamic_rng,
-                                                &comp::quadruped_medium::Species::Tarasque,
+                                                &comp::quadruped_low::Species::Hakulaq,
                                             ),
                                         ))
-                                        .with_name("Tarasque".to_string())
+                                        .with_name("Hakulaq".to_string())
+                                        .with_loot_drop(comp::Item::new_from_asset_expect(chosen)),
+                                        EntityInfo::at(tile_wcenter.map(|e| e as f32))
+                                        .with_body(comp::Body::QuadrupedLow(
+                                            comp::quadruped_low::Body::random_with(
+                                                dynamic_rng,
+                                                &comp::quadruped_low::Species::Hakulaq,
+                                            ),
+                                        ))
+                                        .with_name("Hakulaq".to_string())
+                                        .with_loot_drop(comp::Item::new_from_asset_expect(chosen)),
+                                        EntityInfo::at(tile_wcenter.map(|e| e as f32))
+                                        .with_body(comp::Body::QuadrupedLow(
+                                            comp::quadruped_low::Body::random_with(
+                                                dynamic_rng,
+                                                &comp::quadruped_low::Species::Hakulaq,
+                                            ),
+                                        ))
+                                        .with_name("Hakulaq".to_string())
+                                        .with_loot_drop(comp::Item::new_from_asset_expect(chosen)),
+                                        EntityInfo::at(tile_wcenter.map(|e| e as f32))
+                                        .with_body(comp::Body::QuadrupedLow(
+                                            comp::quadruped_low::Body::random_with(
+                                                dynamic_rng,
+                                                &comp::quadruped_low::Species::Hakulaq,
+                                            ),
+                                        ))
+                                        .with_name("Hakulaq".to_string())
+                                        .with_loot_drop(comp::Item::new_from_asset_expect(chosen)),
+                                        EntityInfo::at(tile_wcenter.map(|e| e as f32))
+                                        .with_body(comp::Body::QuadrupedLow(
+                                            comp::quadruped_low::Body::random_with(
+                                                dynamic_rng,
+                                                &comp::quadruped_low::Species::Hakulaq,
+                                            ),
+                                        ))
+                                        .with_name("Hakulaq".to_string())
+                                        .with_loot_drop(comp::Item::new_from_asset_expect(chosen)),
+                                        EntityInfo::at(tile_wcenter.map(|e| e as f32))
+                                        .with_body(comp::Body::QuadrupedLow(
+                                            comp::quadruped_low::Body::random_with(
+                                                dynamic_rng,
+                                                &comp::quadruped_low::Species::Hakulaq,
+                                            ),
+                                        ))
+                                        .with_name("Hakulaq".to_string())
                                         .with_loot_drop(comp::Item::new_from_asset_expect(chosen)),
                                 ],
                                 3 => vec![
@@ -1001,7 +1060,6 @@ impl Floor {
                                         .with_skillset_config(
                                             common::skillset_builder::SkillSetConfig::CultistAcolyte
                                         )
-                                        .with_scale(2.0)
                                         .with_main_tool(comp::Item::new_from_asset_expect(
                                             match dynamic_rng.gen_range(0..6) {
                                                 0 => "common.items.weapons.axe.malachite_axe-0",
@@ -1017,19 +1075,19 @@ impl Floor {
                                         .with_body(comp::Body::QuadrupedMedium(
                                             comp::quadruped_medium::Body::random_with(
                                                 dynamic_rng,
-                                                &comp::quadruped_medium::Species::Wolf,
+                                                &comp::quadruped_medium::Species::Darkhound,
                                             ),
                                         ))
-                                        .with_name("Tamed Wolf".to_string())
+                                        .with_name("Tamed Darkhound".to_string())
                                         .with_loot_drop(comp::Item::new_from_asset_expect(chosen)),
                                     EntityInfo::at(tile_wcenter.map(|e| e as f32))
                                         .with_body(comp::Body::QuadrupedMedium(
                                             comp::quadruped_medium::Body::random_with(
                                                 dynamic_rng,
-                                                &comp::quadruped_medium::Species::Wolf,
+                                                &comp::quadruped_medium::Species::Darkhound,
                                             ),
                                         ))
-                                        .with_name("Tamed Wolf".to_string())
+                                        .with_name("Tamed Darkhound".to_string())
                                         .with_loot_drop(comp::Item::new_from_asset_expect(chosen)),
                                 ],
                                 4 => vec![

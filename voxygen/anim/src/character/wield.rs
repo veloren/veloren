@@ -143,7 +143,7 @@ impl Animation for WieldAnimation {
             next.shorts.position = Vec3::new(0.0, s_a.shorts.0, s_a.shorts.1);
         }
         match active_tool_kind {
-            Some(ToolKind::Sword) => {
+            Some(ToolKind::Sword) | Some(ToolKind::SwordSimple) => {
                 next.main.position = Vec3::new(0.0, 0.0, 0.0);
                 next.main.orientation = Quaternion::rotation_x(0.0);
 
@@ -218,7 +218,7 @@ impl Animation for WieldAnimation {
                     * Quaternion::rotation_y(s_a.ac.4)
                     * Quaternion::rotation_z(s_a.ac.5);
             },
-            Some(ToolKind::Hammer) => {
+            Some(ToolKind::Hammer) | Some(ToolKind::HammerSimple) => {
                 next.main.position = Vec3::new(0.0, 0.0, 0.0);
                 next.main.orientation = Quaternion::rotation_x(0.0);
                 next.hand_l.position = Vec3::new(s_a.hhl.0, s_a.hhl.1, s_a.hhl.2);

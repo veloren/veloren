@@ -37,25 +37,32 @@ impl Animation for ChargeswingAnimation {
             * ((anim_time as f32 * lab as f32 * 8.0).sin());
         // end spin stuff
 
-        let (movement1, movement2, movement3, tension) = match stage_section {
+        let (move1base, move2base, move3, tension, test) = match stage_section {
             Some(StageSection::Charge) => (
                 (anim_time as f32).min(1.0),
                 0.0,
                 0.0,
                 (anim_time as f32 * 18.0 * lab as f32).sin(),
+                0.0,
             ),
-            Some(StageSection::Swing) => (1.0, anim_time as f32, 0.0, 0.0),
-            Some(StageSection::Recover) => (1.0, 1.0, (anim_time as f32).powi(4), 0.0),
-            _ => (0.0, 0.0, 0.0, 0.0),
+            Some(StageSection::Swing) => (
+                1.0,
+                (anim_time as f32).powf(0.25),
+                0.0,
+                0.0,
+                (anim_time as f32).powi(4),
+            ),
+            Some(StageSection::Recover) => (1.0, 1.0, (anim_time as f32).powi(4), 0.0, 1.0),
+            _ => (0.0, 0.0, 0.0, 0.0, 0.0),
         };
+        let move1 = move1base * (1.0 - move3);
+        let slowrise = test * (1.0 - move3);
+
+        let move2 = move2base * (1.0 - move3);
         if let Some(ToolKind::Hammer) = active_tool_kind {
             next.main.position = Vec3::new(0.0, 0.0, 0.0);
             next.main.orientation = Quaternion::rotation_x(0.0);
-            next.hand_l.position = Vec3::new(
-                s_a.hhl.0,
-                s_a.hhl.1,
-                s_a.hhl.2 + (movement2 * -8.0) * (1.0 - movement3),
-            );
+            next.hand_l.position = Vec3::new(s_a.hhl.0, s_a.hhl.1, s_a.hhl.2 + (move2 * -8.0));
             next.hand_l.orientation =
                 Quaternion::rotation_x(s_a.hhl.3) * Quaternion::rotation_y(s_a.hhl.4);
             next.hand_r.position = Vec3::new(s_a.hhr.0, s_a.hhr.1, s_a.hhr.2);
@@ -63,27 +70,25 @@ impl Animation for ChargeswingAnimation {
                 Quaternion::rotation_x(s_a.hhr.3) * Quaternion::rotation_y(s_a.hhr.4);
 
             next.control.position = Vec3::new(
-                s_a.hc.0 + (movement1 * -2.0 + movement2 * -3.0) * (1.0 - movement3),
-                s_a.hc.1 + (movement1 * 2.0 + movement2 * 3.0) * (1.0 - movement3),
-                s_a.hc.2 + (movement1 * 2.0 + movement2 * 4.0) * (1.0 - movement3),
+                s_a.hc.0 + (move1 * -2.0 + move2 * -8.0),
+                s_a.hc.1 + (move1 * 2.0 + move2 * 6.0),
+                s_a.hc.2 + (move1 * -2.0 + slowrise * 8.0),
             );
-            next.control.orientation = Quaternion::rotation_x(s_a.hc.3+(movement2*4.0)*(1.0-movement3))
-                    * Quaternion::rotation_y(s_a.hc.4+(tension*0.08+movement1 * 0.7+movement2*-3.5)*(1.0-movement3))//+fire * 0.1
-                    * Quaternion::rotation_z(s_a.hc.5+(movement1 * 0.2+movement2*-0.5)*(1.0-movement3));
-            next.chest.orientation = Quaternion::rotation_z(
-                short * 0.04 + (movement1 * 2.0 + movement2 * -2.5) * (1.0 - movement3),
-            );
-            next.belt.orientation =
-                Quaternion::rotation_z(short * 0.08 + (movement1 * -1.0) * (1.0 - movement3));
-            next.shorts.orientation =
-                Quaternion::rotation_z(short * 0.15 + (movement1 * -1.0) * (1.0 - movement3));
+            next.control.orientation = Quaternion::rotation_x(s_a.hc.3 + (move2 * 0.0))
+                * Quaternion::rotation_y(
+                    s_a.hc.4 + (tension * 0.08 + move1 * 0.7 + move2 * -1.0 + slowrise * 2.0),
+                )
+                * Quaternion::rotation_z(s_a.hc.5 + (move1 * 0.2 + move2 * -1.0));
+            next.chest.orientation =
+                Quaternion::rotation_z(short * 0.04 + (move1 * 2.0 + move2 * -3.5));
+            next.belt.orientation = Quaternion::rotation_z(short * 0.08 + (move1 * -1.0));
+            next.shorts.orientation = Quaternion::rotation_z(short * 0.15 + (move1 * -1.0));
             next.head.position = Vec3::new(
-                0.0 + (movement1 * -1.0 + movement2 * 2.0) * (1.0 - movement3),
-                s_a.head.0 + (movement1 * 1.0) * (1.0 - movement3),
+                0.0 + (move1 * -1.0 + move2 * 2.0),
+                s_a.head.0 + (move1 * 1.0),
                 s_a.head.1,
             );
-            next.head.orientation =
-                Quaternion::rotation_z((movement1 * -1.5 + movement2 * 2.2) * (1.0 - movement3));
+            next.head.orientation = Quaternion::rotation_z(move1 * -1.5 + move2 * 3.2);
             next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1);
         }
         next

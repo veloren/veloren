@@ -29,6 +29,39 @@
             (Some(Bow(UnlockRepeater)), "common.abilities.bow.repeater"),
         ],
     ),
+    Spear: (
+        primary: "common.abilities.spear.doublestrike",
+        secondary: "common.abilities.spear.dash",
+        abilities: [],
+
+    ),
+    HammerSimple: (
+        primary: "common.abilities.hammersimple.doublestrike",
+        secondary: "common.abilities.hammersimple.doublestrike",
+        abilities: [],
+    ),
+    AxeSimple: (
+        primary: "common.abilities.axesimple.doublestrike",
+        secondary: "common.abilities.axesimple.dash",
+        abilities: [],
+    ),
+    SwordSimple: (
+        primary: "common.abilities.swordsimple.doublestrike",
+        secondary: "common.abilities.swordsimple.dash",
+        abilities: [
+        ],
+    ),
+    StaffSimple: (
+        primary: "common.abilities.staffsimple.firebomb",
+        secondary: "common.abilities.staffsimple.flamethrower",
+        abilities: [],
+    ),
+    BowSimple: (
+        primary: "common.abilities.bowsimple.basic",
+        secondary: "common.abilities.bowsimple.basic",
+        abilities: [
+        ],
+    ),
     Staff: (
         primary: "common.abilities.staff.firebomb",
         secondary: "common.abilities.staff.flamethrower",
@@ -52,7 +85,7 @@
         abilities: [],
     ),
     Unique(StoneGolemFist): (
-        primary: "common.abilities.unique.stonegolemfist.basic",
+        primary: "common.abilities.unique.stonegolemfist.singlestrike",
         secondary: "common.abilities.unique.stonegolemfist.shockwave",
         abilities: [
             (None, "common.abilities.unique.stonegolemfist.spin"),
@@ -61,6 +94,16 @@
     Unique(BeastClaws): (
         primary: "common.abilities.unique.beastclaws.basic",
         secondary: "common.abilities.unique.beastclaws.basic",
+        abilities: [],
+    ),
+    Unique(WendigoMagic): (
+        primary: "common.abilities.unique.wendigomagic.frostbomb",
+        secondary: "common.abilities.unique.wendigomagic.singlestrike",
+        abilities: [],
+    ),
+    Unique(TidalClaws): (
+        primary: "common.abilities.staff.flamethrower",
+        secondary: "common.abilities.unique.wendigomagic.singlestrike",
         abilities: [],
     ),
     Unique(QuadMedQuick): (
@@ -116,6 +159,13 @@
         primary: "common.abilities.unique.quadlowbasic.triplestrike",
         secondary: "common.abilities.unique.quadlowbasic.singlestrike",
         abilities: [],
+    ),
+    Unique(QuadLowBeam): (
+        primary: "common.abilities.unique.quadlowbeam.healingbeam",
+        secondary: "common.abilities.unique.quadlowbreathe.triplestrike",
+        abilities: [
+    (None, "common.abilities.unique.quadlowbreathe.dash"),
+        ],
     ),
     Unique(QuadSmallBasic): (
         primary: "common.abilities.unique.quadsmallbasic.singlestrike",

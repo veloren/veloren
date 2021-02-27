@@ -23,11 +23,8 @@
         second: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
-        ),
-        main: (
-            offset: (-5.0, -5.5, -4.0),
-            central: ("weapon.hammer.2hhammer_ogre"),
         )
+
     ),
     (Ogre, Female): (
         head: (
@@ -53,10 +50,6 @@
         second: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
-        ),
-        main: (
-            offset: (-2.5, -5.5, -4.0),
-            central: ("weapon.staff.firestaff_ogre"),
         )
     ),
     (Cyclops, Male): (
@@ -83,10 +76,6 @@
         second: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
-        ),
-        main: (
-            offset: (-5.0, -6.5, -4.0),
-            central: ("weapon.hammer.2hhammer_cyclops-0"),
         )
     ),
     (Cyclops, Female): (
@@ -113,15 +102,11 @@
         second: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
-        ),
-        main: (
-            offset: (-5.0, -6.5, -4.0),
-            central: ("weapon.hammer.2hhammer_cyclops-0"),
         )
     ),
     (Wendigo, Male): (
         head: (
-            offset: (-15.0, -4.5, -9.5),
+            offset: (-15.0, -4.5, -3.5),
             central: ("npc.wendigo.male.head"),
         ),
         torso_upper: (
@@ -141,17 +126,13 @@
             central: ("armor.empty"),
         ),
         second: (
-            offset: (0.0, 0.0, 0.0),
-            central: ("armor.empty"),
-        ),
-        main: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
         )
     ),
     (Wendigo, Female): (
         head: (
-            offset: (-15.0, -4.5, -9.5),
+            offset: (-15.0, -4.5, -3.5),
             central: ("npc.wendigo.male.head"),
         ),
         torso_upper: (
@@ -171,10 +152,6 @@
             central: ("armor.empty"),
         ),
         second: (
-            offset: (0.0, 0.0, 0.0),
-            central: ("armor.empty"),
-        ),
-        main: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
         )
@@ -203,10 +180,6 @@
         second: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
-        ),
-        main: (
-            offset: (-4.0, -6.0, -4.0),
-            central: ("weapon.hammer.2hhammer_troll"),
         )
     ),
     (Troll, Female): (
@@ -233,10 +206,6 @@
         second: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
-        ),
-        main: (
-            offset: (-4.0, -6.0, -4.0),
-            central: ("weapon.hammer.2hhammer_troll"),
         )
     ),
     (Dullahan, Male): (
@@ -263,10 +232,6 @@
         second: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
-        ),
-        main: (
-            offset: (-1.5, -9.0, -4.0),
-            central: ("weapon.sword.greatsword_2h_dullahan"),
         )
     ),
     (Dullahan, Female): (
@@ -293,10 +258,6 @@
         second: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
-        ),
-        main: (
-            offset: (-1.5, -9.0, -4.0),
-            central: ("weapon.sword.greatsword_2h_dullahan"),
         )
     ),
     (Werewolf, Male): (
@@ -321,10 +282,6 @@
             central: ("npc.werewolf.male.tail"),
         ),
         second: (
-            offset: (0.0, 0.0, 0.0),
-            central: ("armor.empty"),
-        ),
-        main: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
         )
@@ -353,10 +310,6 @@
         second: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
-        ),
-        main: (
-            offset: (0.0, 0.0, 0.0),
-            central: ("armor.empty"),
         )
     ),
     (Occultsaurok, Male): (
@@ -383,10 +336,6 @@
         second: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
-        ),
-        main: (
-            offset: (-3.0, -3.0, -4.0),
-            central: ("weapon.staff.firestaff_saurok"),
         )
     ),
     (Occultsaurok, Female): (
@@ -413,10 +362,6 @@
         second: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
-        ),
-        main: (
-            offset: (-3.0, -3.0, -4.0),
-            central: ("weapon.staff.firestaff_saurok"),
         )
     ),
     (Mightysaurok, Male): (
@@ -443,10 +388,6 @@
         second: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
-        ),
-        main: (
-            offset: (-1.5, -4.0, -4.0),
-            central: ("weapon.sword.long_2h_saurok"),
         )
     ),
     (Mightysaurok, Female): (
@@ -473,10 +414,6 @@
         second: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
-        ),
-        main: (
-            offset: (-1.5, -4.0, -4.0),
-            central: ("weapon.sword.long_2h_saurok"),
         )
     ),
     (Slysaurok, Male): (
@@ -503,10 +440,6 @@
         second: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
-        ),
-        main: (
-            offset: (-1.5, -4.0, -16.5),
-            central: ("weapon.bow.longbow_saurok"),
         )
     ),
     (Slysaurok, Female): (
@@ -533,10 +466,6 @@
         second: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
-        ),
-        main: (
-            offset: (-1.5, -4.0, -16.5),
-            central: ("weapon.bow.longbow_saurok"),
         )
     ),
     (Mindflayer, Male): (
@@ -563,10 +492,6 @@
         second: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
-        ),
-        main: (
-            offset: (-5.5, -3.5, -4.0),
-            central: ("weapon.staff.firestaff_mindflayer"),
         )
     ),
     (Mindflayer, Female): (
@@ -593,10 +518,214 @@
         second: (
             offset: (0.0, 0.0, 0.0),
             central: ("armor.empty"),
+        )
+    ),
+    (Minotaur, Male): (
+        head: (
+            offset: (-6.5, 0.0, -8.0),
+            central: ("npc.minotaur.male.head"),
         ),
-        main: (
-            offset: (-5.5, -3.5, -4.0),
-            central: ("weapon.staff.firestaff_mindflayer"),
+        torso_upper: (
+            offset: (-8.5, -8.0, -10.0),
+            central: ("npc.minotaur.male.torso_upper"),
+        ),
+        torso_lower: (
+            offset: (-5.5, -5.5, -14.0),
+            central: ("npc.minotaur.male.torso_lower"),
+        ),
+        jaw: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        tail: (
+            offset: (-1.5, -17.0, -8.0),
+            central: ("npc.minotaur.male.tail"),
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
+    (Minotaur, Female): (
+        head: (
+            offset: (-6.5, 0.0, -8.0),
+            central: ("npc.minotaur.male.head"),
+        ),
+        torso_upper: (
+            offset: (-8.5, -8.0, -10.0),
+            central: ("npc.minotaur.male.torso_upper"),
+        ),
+        torso_lower: (
+            offset: (-5.5, -5.5, -14.0),
+            central: ("npc.minotaur.male.torso_lower"),
+        ),
+        jaw: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        tail: (
+            offset: (-1.5, -17.0, -8.0),
+            central: ("npc.minotaur.male.tail"),
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
+    (Tidalwarrior, Male): (
+        head: (
+            offset: (-6.5, -6.5, -6.0),
+            central: ("npc.tidalwarrior.male.head"),
+        ),
+        torso_upper: (
+            offset: (-9.0, -8.0, -10.5),
+            central: ("npc.tidalwarrior.male.torso_upper"),
+        ),
+        torso_lower: (
+            offset: (-8.0, -7.0, -8.0),
+            central: ("npc.tidalwarrior.male.torso_lower"),
+        ),
+        jaw: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        tail: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
+    (Tidalwarrior, Female): (
+        head: (
+            offset: (-6.5, -6.5, -6.0),
+            central: ("npc.tidalwarrior.male.head"),
+        ),
+        torso_upper: (
+            offset: (-9.0, -8.0, -10.5),
+            central: ("npc.tidalwarrior.male.torso_upper"),
+        ),
+        torso_lower: (
+            offset: (-8.0, -7.0, -8.0),
+            central: ("npc.tidalwarrior.male.torso_lower"),
+        ),
+        jaw: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        tail: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
+    (Yeti, Male): (
+        head: (
+            offset: (-5.5, -4.0, -4.0),
+            central: ("npc.yeti.male.head"),
+        ),
+        torso_upper: (
+            offset: (-8.5, -7.5, -8.5),
+            central: ("npc.yeti.male.torso_upper"),
+        ),
+        torso_lower: (
+            offset: (-6.5, -5.0, -6.0),
+            central: ("npc.yeti.male.torso_lower"),
+        ),
+        jaw: (
+            offset: (-6.5, 0.0, -4.5),
+            central: ("npc.yeti.male.jaw"),
+        ),
+        tail: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
+    (Yeti, Female): (
+        head: (
+            offset: (-5.5, -4.0, -4.0),
+            central: ("npc.yeti.male.head"),
+        ),
+        torso_upper: (
+            offset: (-8.5, -7.5, -8.5),
+            central: ("npc.yeti.male.torso_upper"),
+        ),
+        torso_lower: (
+            offset: (-6.5, -5.0, -6.0),
+            central: ("npc.yeti.male.torso_lower"),
+        ),
+        jaw: (
+            offset: (-6.5, 0.0, -4.5),
+            central: ("npc.yeti.male.jaw"),
+        ),
+        tail: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
+    (Harvester, Male): (
+        head: (
+            offset: (-11.0, -10.0, -9.0),
+            central: ("npc.harvester.male.head"),
+        ),
+        torso_upper: (
+            offset: (-6.0, -7.0, -5.5),
+            central: ("npc.harvester.male.torso_upper"),
+        ),
+        torso_lower: (
+            offset: (-3.0, -4.0, -9.0),
+            central: ("npc.harvester.male.torso_lower"),
+        ),
+        jaw: (
+            offset: (-4.0, 0.0, -2.0),
+            central: ("npc.harvester.male.jaw"),
+        ),
+        tail: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
+    (Harvester, Female): (
+        head: (
+            offset: (-11.0, -10.0, -9.0),
+            central: ("npc.harvester.male.head"),
+        ),
+        torso_upper: (
+            offset: (-6.0, -7.0, -5.5),
+            central: ("npc.harvester.male.torso_upper"),
+        ),
+        torso_lower: (
+            offset: (-3.0, -4.0, -9.0),
+            central: ("npc.harvester.male.torso_lower"),
+        ),
+        jaw: (
+            offset: (-4.0, 0.0, -2.0),
+            central: ("npc.harvester.male.jaw"),
+        ),
+        tail: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
         )
     ),
 })

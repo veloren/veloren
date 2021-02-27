@@ -30,7 +30,7 @@ impl Animation for SpinMeleeAnimation {
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         *rate = 1.0;
-        let (movement1, movement2, movement3) = match stage_section {
+        let (move1, move2, move3) = match stage_section {
             Some(StageSection::Buildup) => ((anim_time as f32).powf(0.25), 0.0, 0.0),
             Some(StageSection::Swing) => (1.0, anim_time as f32, 0.0),
             Some(StageSection::Recover) => (1.0, 1.0, (anim_time as f32).powf(4.0)),
@@ -50,24 +50,19 @@ impl Animation for SpinMeleeAnimation {
                 next.hand_r.orientation =
                     Quaternion::rotation_x(s_a.shr.3) * Quaternion::rotation_y(s_a.shr.4);
 
-                next.control.position = Vec3::new(s_a.sc.0, s_a.sc.1, s_a.sc.2 + movement1 * 2.0);
+                next.control.position = Vec3::new(s_a.sc.0, s_a.sc.1, s_a.sc.2 + move1 * 2.0);
                 next.control.orientation =
-                    Quaternion::rotation_x(s_a.sc.3 + movement1 * -PI / 2.5 + movement3 * PI / 2.0)
-                        * Quaternion::rotation_z(
-                            s_a.sc.5 + movement1 * -PI / 2.0 + movement3 * PI / 2.0,
-                        );
-                next.torso.orientation = Quaternion::rotation_z(movement2 * PI * 2.0);
+                    Quaternion::rotation_x(s_a.sc.3 + move1 * -PI / 2.5 + move3 * PI / 2.0)
+                        * Quaternion::rotation_z(s_a.sc.5 + move1 * -PI / 2.0 + move3 * PI / 2.0);
+                next.torso.orientation = Quaternion::rotation_z(move2 * PI * 2.0);
 
-                next.chest.position = Vec3::new(
-                    0.0,
-                    s_a.chest.0 + movement1 * -2.0,
-                    s_a.chest.1 + movement1 * -3.0,
-                );
-                next.chest.orientation = Quaternion::rotation_x(movement1 * -0.3)
-                    * Quaternion::rotation_y(movement1 * 0.15 + movement3 * -0.15);
+                next.chest.position =
+                    Vec3::new(0.0, s_a.chest.0 + move1 * -2.0, s_a.chest.1 + move1 * -3.0);
+                next.chest.orientation = Quaternion::rotation_x(move1 * -0.3)
+                    * Quaternion::rotation_y(move1 * 0.15 + move3 * -0.15);
                 next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
-                next.head.orientation = Quaternion::rotation_x(movement1 * 0.2 + movement3 * 0.15)
-                    * Quaternion::rotation_z(movement2 * 0.8 + movement3 * -0.6);
+                next.head.orientation = Quaternion::rotation_x(move1 * 0.2 + move3 * 0.15)
+                    * Quaternion::rotation_z(move2 * 0.8 + move3 * -0.6);
                 next.belt.orientation = Quaternion::rotation_x(0.1);
                 next.shorts.orientation = Quaternion::rotation_x(0.2);
             },
@@ -82,63 +77,52 @@ impl Animation for SpinMeleeAnimation {
                 next.hand_r.orientation =
                     Quaternion::rotation_x(s_a.ahr.3) * Quaternion::rotation_z(s_a.ahr.5);
 
-                next.control.position = Vec3::new(
-                    s_a.ac.0 + movement1 * 8.0,
-                    s_a.ac.1,
-                    s_a.ac.2 + movement1 * -4.0,
-                );
+                next.control.position =
+                    Vec3::new(s_a.ac.0 + move1 * 8.0, s_a.ac.1, s_a.ac.2 + move1 * -4.0);
                 next.control.orientation =
-                    Quaternion::rotation_x(s_a.ac.3 + movement1 * -0.8 * (1.0 - movement3))
-                        * Quaternion::rotation_y(s_a.ac.4 + movement1 * -PI * (1.0 - movement3))
-                        * Quaternion::rotation_z(s_a.ac.5 + movement1 * 1.2 * (1.0 - movement3));
+                    Quaternion::rotation_x(s_a.ac.3 + move1 * -0.8 * (1.0 - move3))
+                        * Quaternion::rotation_y(s_a.ac.4 + move1 * -PI * (1.0 - move3))
+                        * Quaternion::rotation_z(s_a.ac.5 + move1 * 1.2 * (1.0 - move3));
 
-                next.head.orientation =
-                    Quaternion::rotation_x(movement1 * -0.2 * (1.0 - movement3))
-                        * Quaternion::rotation_z(movement1 * 0.4 * (1.0 - movement3));
-                next.head.position = Vec3::new(0.0, s_a.head.0 + movement1 * 2.0, s_a.head.1);
+                next.head.orientation = Quaternion::rotation_x(move1 * -0.2 * (1.0 - move3))
+                    * Quaternion::rotation_z(move1 * 0.4 * (1.0 - move3));
+                next.head.position = Vec3::new(0.0, s_a.head.0 + move1 * 2.0, s_a.head.1);
 
-                next.chest.position = Vec3::new(
-                    0.0,
-                    s_a.chest.0,
-                    s_a.chest.1 + movement1 * -1.0 * (1.0 - movement3),
-                );
-                next.chest.orientation =
-                    Quaternion::rotation_x(movement1 * 0.3 * (1.0 - movement3))
-                        * Quaternion::rotation_y(movement1 * 0.3 * (1.0 - movement3));
+                next.chest.position =
+                    Vec3::new(0.0, s_a.chest.0, s_a.chest.1 + move1 * -1.0 * (1.0 - move3));
+                next.chest.orientation = Quaternion::rotation_x(move1 * 0.3 * (1.0 - move3))
+                    * Quaternion::rotation_y(move1 * 0.3 * (1.0 - move3));
 
                 next.belt.position = Vec3::new(
                     0.0,
                     1.0 + s_a.belt.0,
-                    s_a.belt.1 + movement1 * 0.5 * (1.0 - movement3),
+                    s_a.belt.1 + move1 * 0.5 * (1.0 - move3),
                 );
                 next.belt.orientation = Quaternion::rotation_x(0.15);
                 next.shorts.position = Vec3::new(
                     0.0,
-                    1.0 + s_a.shorts.0 + movement1 * 1.0 * (1.0 - movement3),
-                    s_a.shorts.1 + movement1 * 1.0 * (1.0 - movement3),
+                    1.0 + s_a.shorts.0 + move1 * 1.0 * (1.0 - move3),
+                    s_a.shorts.1 + move1 * 1.0 * (1.0 - move3),
                 );
                 next.shorts.orientation =
-                    Quaternion::rotation_x(0.15 + 0.15 * movement1 * (1.0 - movement3));
+                    Quaternion::rotation_x(0.15 + 0.15 * move1 * (1.0 - move3));
 
-                next.torso.orientation = Quaternion::rotation_z(
-                    movement1 * 1.0 * (1.0 - movement3) + movement2 * -2.0 * PI,
-                );
+                next.torso.orientation =
+                    Quaternion::rotation_z(move1 * 1.0 * (1.0 - move3) + move2 * -2.0 * PI);
 
                 next.foot_l.position = Vec3::new(
                     -s_a.foot.0,
-                    s_a.foot.1 + movement1 * 7.0 * (1.0 - movement3),
+                    s_a.foot.1 + move1 * 7.0 * (1.0 - move3),
                     s_a.foot.2,
                 );
-                next.foot_l.orientation =
-                    Quaternion::rotation_x(movement1 * 0.8 * (1.0 - movement3));
+                next.foot_l.orientation = Quaternion::rotation_x(move1 * 0.8 * (1.0 - move3));
 
                 next.foot_r.position = Vec3::new(
                     s_a.foot.0,
-                    s_a.foot.1 + movement1 * -3.0 * (1.0 - movement3),
+                    s_a.foot.1 + move1 * -3.0 * (1.0 - move3),
                     s_a.foot.2,
                 );
-                next.foot_r.orientation =
-                    Quaternion::rotation_x(movement1 * -0.5 * (1.0 - movement3));
+                next.foot_r.orientation = Quaternion::rotation_x(move1 * -0.5 * (1.0 - move3));
             },
 
             _ => {},

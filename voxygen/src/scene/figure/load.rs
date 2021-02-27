@@ -3,6 +3,7 @@ use common::{
     assets::{self, AssetExt, AssetHandle, DotVoxAsset, Ron},
     comp::{
         biped_large::{self, BodyType as BLBodyType, Species as BLSpecies},
+        biped_small,
         bird_medium::{self, BodyType as BMBodyType, Species as BMSpecies},
         bird_small,
         dragon::{self, BodyType as DBodyType, Species as DSpecies},
@@ -355,7 +356,7 @@ make_vox_spec!(
         armor_back: HumArmorBackSpec = "voxygen.voxel.humanoid_armor_back_manifest",
         armor_pants: HumArmorPantsSpec = "voxygen.voxel.humanoid_armor_pants_manifest",
         armor_foot: HumArmorFootSpec = "voxygen.voxel.humanoid_armor_foot_manifest",
-        main_weapon: HumMainWeaponSpec = "voxygen.voxel.humanoid_main_weapon_manifest",
+        main_weapon: HumMainWeaponSpec = "voxygen.voxel.biped_weapon_manifest",
         modular_components: HumModularComponentSpec = "voxygen.voxel.humanoid_modular_component_manifest",
         armor_lantern: HumArmorLanternSpec = "voxygen.voxel.humanoid_lantern_manifest",
         armor_glider: HumArmorGliderSpec = "voxygen.voxel.humanoid_glider_manifest",
@@ -1218,7 +1219,7 @@ impl QuadrupedSmallLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.left_front.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.left_front.lateral.0, true);
 
         (lateral, Vec3::from(spec.left_front.offset))
     }
@@ -1250,7 +1251,7 @@ impl QuadrupedSmallLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.left_back.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.left_back.lateral.0, true);
 
         (lateral, Vec3::from(spec.left_back.offset))
     }
@@ -1510,7 +1511,7 @@ impl QuadrupedMediumLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.leg_fl.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.leg_fl.lateral.0, true);
 
         (lateral, Vec3::from(spec.leg_fl.offset))
     }
@@ -1542,7 +1543,7 @@ impl QuadrupedMediumLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.leg_bl.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.leg_bl.lateral.0, true);
 
         (lateral, Vec3::from(spec.leg_bl.offset))
     }
@@ -1574,7 +1575,7 @@ impl QuadrupedMediumLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.foot_fl.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.foot_fl.lateral.0, true);
 
         (lateral, Vec3::from(spec.foot_fl.offset))
     }
@@ -1606,7 +1607,7 @@ impl QuadrupedMediumLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.foot_bl.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.foot_bl.lateral.0, true);
 
         (lateral, Vec3::from(spec.foot_bl.offset))
     }
@@ -1770,7 +1771,7 @@ impl BirdMediumLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.wing_l.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.wing_l.lateral.0, true);
 
         (lateral, Vec3::from(spec.wing_l.offset))
     }
@@ -1802,7 +1803,7 @@ impl BirdMediumLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.foot_l.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.foot_l.lateral.0, true);
 
         (lateral, Vec3::from(spec.foot_l.offset))
     }
@@ -2051,7 +2052,7 @@ impl TheropodLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.hand_l.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.hand_l.lateral.0, true);
 
         (lateral, Vec3::from(spec.hand_l.offset))
     }
@@ -2083,7 +2084,7 @@ impl TheropodLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.leg_l.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.leg_l.lateral.0, true);
 
         (lateral, Vec3::from(spec.leg_l.offset))
     }
@@ -2115,7 +2116,7 @@ impl TheropodLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.foot_l.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.foot_l.lateral.0, true);
 
         (lateral, Vec3::from(spec.foot_l.offset))
     }
@@ -2309,7 +2310,7 @@ impl FishMediumLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.fin_l.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.fin_l.lateral.0, true);
 
         (lateral, Vec3::from(spec.fin_l.offset))
     }
@@ -2444,7 +2445,7 @@ impl FishSmallLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.fin_l.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.fin_l.lateral.0, true);
 
         (lateral, Vec3::from(spec.fin_l.offset))
     }
@@ -2466,6 +2467,280 @@ impl FishSmallLateralSpec {
     }
 }
 
+////
+
+#[derive(Deserialize)]
+struct BipedSmallWeaponSpec(HashMap<String, ArmorVoxSpec>);
+#[derive(Deserialize)]
+struct BipedSmallArmorHeadSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
+#[derive(Deserialize)]
+struct BipedSmallArmorHandSpec(ArmorVoxSpecMap<String, SidedArmorVoxSpec>);
+#[derive(Deserialize)]
+struct BipedSmallArmorFootSpec(ArmorVoxSpecMap<String, SidedArmorVoxSpec>);
+#[derive(Deserialize)]
+struct BipedSmallArmorChestSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
+#[derive(Deserialize)]
+struct BipedSmallArmorPantsSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
+#[derive(Deserialize)]
+struct BipedSmallArmorTailSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
+make_vox_spec!(
+    biped_small::Body,
+    struct BipedSmallSpec {
+        armor_foot: BipedSmallArmorFootSpec = "voxygen.voxel.biped_small_armor_foot_manifest",
+        weapon: BipedSmallWeaponSpec = "voxygen.voxel.biped_weapon_manifest",
+        armor_hand: BipedSmallArmorHandSpec = "voxygen.voxel.biped_small_armor_hand_manifest",
+        armor_chest: BipedSmallArmorChestSpec = "voxygen.voxel.biped_small_armor_chest_manifest",
+        armor_pants: BipedSmallArmorPantsSpec = "voxygen.voxel.biped_small_armor_pants_manifest",
+        armor_head: BipedSmallArmorHeadSpec = "voxygen.voxel.biped_small_armor_head_manifest",
+        armor_tail: BipedSmallArmorTailSpec = "voxygen.voxel.biped_small_armor_tail_manifest",
+
+    },
+    |FigureKey { body: _, extra }, spec| {
+        const DEFAULT_LOADOUT: super::cache::CharacterCacheKey = super::cache::CharacterCacheKey {
+            third_person: None,
+            tool: None,
+            lantern: None,
+            glider: None,
+            hand: None,
+            foot: None,
+        };
+
+        // TODO: This is bad code, maybe this method should return Option<_>
+        let loadout = extra.as_deref().unwrap_or(&DEFAULT_LOADOUT);
+        let third_person = loadout.third_person.as_ref();
+        let tool = loadout.tool.as_ref();
+        let hand = loadout.hand.as_deref();
+        let foot = loadout.foot.as_deref();
+
+
+[
+            third_person.map(|loadout| {
+                spec.armor_head.read().0.mesh_head(
+                    loadout.head.as_deref(),
+                )
+            }),
+            third_person.map(|loadout| {
+                spec.armor_chest.read().0.mesh_chest(
+                    loadout.chest.as_deref(),
+                )
+            }),
+            third_person.map(|loadout| {
+                spec.armor_pants.read().0.mesh_pants(
+                    loadout.pants.as_deref(),
+                )
+            }),
+            third_person.map(|loadout| {
+                spec.armor_tail.read().0.mesh_tail(
+                    loadout.belt.as_deref(),
+                )
+            }),
+            tool.and_then(|tool| tool.active.as_ref()).map(|tool| {
+                spec.weapon.read().0.mesh_main(
+                    &tool.name,
+                    false,
+                )
+            }),
+            Some(spec.armor_hand.read().0.mesh_left_hand(
+                hand,
+            )),
+            Some(spec.armor_hand.read().0.mesh_right_hand(
+                hand,
+            )),
+            Some(spec.armor_foot.read().0.mesh_left_foot(
+                foot,
+            )),
+            Some(spec.armor_foot.read().0.mesh_right_foot(
+                foot,
+            )),
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+        ]
+    },
+);
+
+impl BipedSmallArmorHeadSpec {
+    fn mesh_head(&self, head: Option<&str>) -> BoneMeshes {
+        let spec = if let Some(head) = head {
+            match self.0.map.get(head) {
+                Some(spec) => spec,
+                None => {
+                    error!(?head, "No head specification exists");
+                    return load_mesh("not_found", Vec3::new(-1.5, -1.5, -7.0));
+                },
+            }
+        } else {
+            &self.0.default
+        };
+
+        let head_segment = graceful_load_segment(&spec.vox_spec.0);
+
+        let offset = Vec3::new(spec.vox_spec.1[0], spec.vox_spec.1[1], spec.vox_spec.1[2]);
+
+        (head_segment, offset)
+    }
+}
+impl BipedSmallArmorChestSpec {
+    fn mesh_chest(&self, chest: Option<&str>) -> BoneMeshes {
+        let spec = if let Some(chest) = chest {
+            match self.0.map.get(chest) {
+                Some(spec) => spec,
+                None => {
+                    error!(?chest, "No chest specification exists");
+                    return load_mesh("not_found", Vec3::new(-1.5, -1.5, -7.0));
+                },
+            }
+        } else {
+            &self.0.default
+        };
+
+        let chest_segment = graceful_load_segment(&spec.vox_spec.0);
+
+        let offset = Vec3::new(spec.vox_spec.1[0], spec.vox_spec.1[1], spec.vox_spec.1[2]);
+
+        (chest_segment, offset)
+    }
+}
+impl BipedSmallArmorTailSpec {
+    fn mesh_tail(&self, tail: Option<&str>) -> BoneMeshes {
+        let spec = if let Some(tail) = tail {
+            match self.0.map.get(tail) {
+                Some(spec) => spec,
+                None => {
+                    error!(?tail, "No tail specification exists");
+                    return load_mesh("not_found", Vec3::new(-1.5, -1.5, -7.0));
+                },
+            }
+        } else {
+            &self.0.default
+        };
+
+        let tail_segment = graceful_load_segment(&spec.vox_spec.0);
+
+        let offset = Vec3::new(spec.vox_spec.1[0], spec.vox_spec.1[1], spec.vox_spec.1[2]);
+
+        (tail_segment, offset)
+    }
+}
+impl BipedSmallArmorPantsSpec {
+    fn mesh_pants(&self, pants: Option<&str>) -> BoneMeshes {
+        let spec = if let Some(pants) = pants {
+            match self.0.map.get(pants) {
+                Some(spec) => spec,
+                None => {
+                    error!(?pants, "No pants specification exists");
+                    return load_mesh("not_found", Vec3::new(-1.5, -1.5, -7.0));
+                },
+            }
+        } else {
+            &self.0.default
+        };
+
+        let pants_segment = graceful_load_segment(&spec.vox_spec.0);
+
+        let offset = Vec3::new(spec.vox_spec.1[0], spec.vox_spec.1[1], spec.vox_spec.1[2]);
+
+        (pants_segment, offset)
+    }
+}
+impl BipedSmallArmorHandSpec {
+    fn mesh_hand(&self, hand: Option<&str>, flipped: bool) -> BoneMeshes {
+        let spec = if let Some(hand) = hand {
+            match self.0.map.get(hand) {
+                Some(spec) => spec,
+                None => {
+                    error!(?hand, "No hand specification exists");
+                    return load_mesh("not_found", Vec3::new(-1.5, -1.5, -7.0));
+                },
+            }
+        } else {
+            &self.0.default
+        };
+
+        let hand_segment = if flipped {
+            graceful_load_segment_flipped(&spec.left.vox_spec.0, true)
+        } else {
+            graceful_load_segment(&spec.right.vox_spec.0)
+        };
+        let offset = if flipped {
+            spec.left.vox_spec.1
+        } else {
+            spec.right.vox_spec.1
+        };
+
+        (hand_segment, Vec3::from(offset))
+    }
+
+    fn mesh_left_hand(&self, hand: Option<&str>) -> BoneMeshes { self.mesh_hand(hand, true) }
+
+    fn mesh_right_hand(&self, hand: Option<&str>) -> BoneMeshes { self.mesh_hand(hand, false) }
+}
+impl BipedSmallArmorFootSpec {
+    fn mesh_foot(&self, foot: Option<&str>, flipped: bool) -> BoneMeshes {
+        let spec = if let Some(foot) = foot {
+            match self.0.map.get(foot) {
+                Some(spec) => spec,
+                None => {
+                    error!(?foot, "No foot specification exists");
+                    return load_mesh("not_found", Vec3::new(-1.5, -1.5, -7.0));
+                },
+            }
+        } else {
+            &self.0.default
+        };
+
+        let foot_segment = if flipped {
+            graceful_load_segment_flipped(&spec.left.vox_spec.0, true)
+        } else {
+            graceful_load_segment(&spec.right.vox_spec.0)
+        };
+        let offset = if flipped {
+            spec.left.vox_spec.1
+        } else {
+            spec.right.vox_spec.1
+        };
+
+        (foot_segment, Vec3::from(offset))
+    }
+
+    fn mesh_left_foot(&self, foot: Option<&str>) -> BoneMeshes { self.mesh_foot(foot, true) }
+
+    fn mesh_right_foot(&self, foot: Option<&str>) -> BoneMeshes { self.mesh_foot(foot, false) }
+}
+
+impl BipedSmallWeaponSpec {
+    fn mesh_main(&self, item_definition_id: &str, flipped: bool) -> BoneMeshes {
+        let spec = match self.0.get(item_definition_id) {
+            Some(spec) => spec,
+            None => {
+                error!(?item_definition_id, "No tool/weapon specification exists");
+                return load_mesh("not_found", Vec3::new(-1.5, -1.5, -7.0));
+            },
+        };
+
+        let tool_kind_segment = if flipped {
+            graceful_load_segment_flipped(&spec.vox_spec.0, true)
+        } else {
+            graceful_load_segment(&spec.vox_spec.0)
+        };
+
+        let offset = Vec3::new(
+            if flipped {
+                0.0 - spec.vox_spec.1[0] - (tool_kind_segment.sz.x as f32)
+            } else {
+                spec.vox_spec.1[0]
+            },
+            spec.vox_spec.1[1],
+            spec.vox_spec.1[2],
+        );
+
+        (tool_kind_segment, offset)
+    }
+}
 ////
 
 #[derive(Deserialize)]
@@ -2896,7 +3171,6 @@ struct SidedBLCentralVoxSpec {
     torso_upper: BipedLargeCentralSubSpec,
     torso_lower: BipedLargeCentralSubSpec,
     tail: BipedLargeCentralSubSpec,
-    main: BipedLargeCentralSubSpec,
     second: BipedLargeCentralSubSpec,
 }
 #[derive(Deserialize)]
@@ -2924,14 +3198,29 @@ struct BipedLargeLateralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     lateral: VoxSimple,
 }
-
+#[derive(Deserialize)]
+struct BipedLargeWeaponSpec(HashMap<String, ArmorVoxSpec>);
 make_vox_spec!(
     biped_large::Body,
     struct BipedLargeSpec {
         central: BipedLargeCentralSpec = "voxygen.voxel.biped_large_central_manifest",
         lateral: BipedLargeLateralSpec = "voxygen.voxel.biped_large_lateral_manifest",
+        weapon: BipedLargeWeaponSpec = "voxygen.voxel.biped_weapon_manifest",
     },
-    |FigureKey { body, .. }, spec| {
+    |FigureKey { body, extra }, spec| {
+        const DEFAULT_LOADOUT: super::cache::CharacterCacheKey = super::cache::CharacterCacheKey {
+            third_person: None,
+            tool: None,
+            lantern: None,
+            glider: None,
+            hand: None,
+            foot: None,
+        };
+
+        // TODO: This is bad code, maybe this method should return Option<_>
+        let loadout = extra.as_deref().unwrap_or(&DEFAULT_LOADOUT);
+        //let third_person = loadout.third_person.as_ref();
+        let tool = loadout.tool.as_ref();
         [
             Some(spec.central.read().0.mesh_head(
                 body.species,
@@ -2953,10 +3242,12 @@ make_vox_spec!(
                 body.species,
                 body.body_type,
             )),
-            Some(spec.central.read().0.mesh_main(
-                body.species,
-                body.body_type,
-            )),
+            tool.and_then(|tool| tool.active.as_ref()).map(|tool| {
+                spec.weapon.read().0.mesh_main(
+                    &tool.name,
+                    false,
+                )
+            }),
             Some(spec.central.read().0.mesh_second(
                 body.species,
                 body.body_type,
@@ -3077,22 +3368,6 @@ impl BipedLargeCentralSpec {
         let central = graceful_load_segment(&spec.tail.central.0);
 
         (central, Vec3::from(spec.tail.offset))
-    }
-
-    fn mesh_main(&self, species: BLSpecies, body_type: BLBodyType) -> BoneMeshes {
-        let spec = match self.0.get(&(species, body_type)) {
-            Some(spec) => spec,
-            None => {
-                error!(
-                    "No main weapon specification exists for the combination of {:?} and {:?}",
-                    species, body_type
-                );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            },
-        };
-        let central = graceful_load_segment(&spec.main.central.0);
-
-        (central, Vec3::from(spec.main.offset))
     }
 
     fn mesh_second(&self, species: BLSpecies, body_type: BLBodyType) -> BoneMeshes {
@@ -3238,6 +3513,35 @@ impl BipedLargeLateralSpec {
         let lateral = graceful_load_segment(&spec.foot_r.lateral.0);
 
         (lateral, Vec3::from(spec.foot_r.offset))
+    }
+}
+impl BipedLargeWeaponSpec {
+    fn mesh_main(&self, item_definition_id: &str, flipped: bool) -> BoneMeshes {
+        let spec = match self.0.get(item_definition_id) {
+            Some(spec) => spec,
+            None => {
+                error!(?item_definition_id, "No tool/weapon specification exists");
+                return load_mesh("not_found", Vec3::new(-1.5, -1.5, -7.0));
+            },
+        };
+
+        let tool_kind_segment = if flipped {
+            graceful_load_segment_flipped(&spec.vox_spec.0, true)
+        } else {
+            graceful_load_segment(&spec.vox_spec.0)
+        };
+
+        let offset = Vec3::new(
+            if flipped {
+                0.0 - spec.vox_spec.1[0] - (tool_kind_segment.sz.x as f32)
+            } else {
+                spec.vox_spec.1[0]
+            },
+            spec.vox_spec.1[1],
+            spec.vox_spec.1[2],
+        );
+
+        (tool_kind_segment, offset)
     }
 }
 ////
@@ -3739,7 +4043,7 @@ impl QuadrupedLowLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.front_left.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.front_left.lateral.0, true);
 
         (lateral, Vec3::from(spec.front_left.offset))
     }
@@ -3771,7 +4075,7 @@ impl QuadrupedLowLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.back_left.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.back_left.lateral.0, true);
 
         (lateral, Vec3::from(spec.back_left.offset))
     }

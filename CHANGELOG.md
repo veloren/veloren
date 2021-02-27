@@ -36,6 +36,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for modular weapons.
 - Saturation buff (healing from food) now queues
 - Coral reefs, kelp forests, and seagrass
+- Talk animation
+- New bosses in 5 lower dungeons
+= New enemies in 5 lower dungeons
 
 ### Changed
 

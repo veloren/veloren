@@ -9,7 +9,7 @@ use crate::{
 };
 use comp::{
     invite::{InviteKind, InviteResponse},
-    item::{Item, Reagent},
+    item::Item,
     Ori, Pos,
 };
 use specs::Entity as EcsEntity;
@@ -39,7 +39,6 @@ pub enum ServerEvent {
         pos: Vec3<f32>,
         explosion: Explosion,
         owner: Option<Uid>,
-        reagent: Option<Reagent>,
     },
     Damage {
         entity: EcsEntity,

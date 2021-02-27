@@ -3,7 +3,7 @@ ItemDef(
     description: "Placeholder",
     kind: Tool(
         (
-            kind: Staff,
+            kind: StaffSimple,
             hands: Two,
             stats: Direct((
                 equip_time_millis: 500,

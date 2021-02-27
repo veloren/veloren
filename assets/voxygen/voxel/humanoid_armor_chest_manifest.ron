@@ -138,6 +138,10 @@
             vox_spec: ("armor.chest.steel-0", (-8.0, -4.5, 2.0)),
             color: None
         ),
+        "PlateLeather": (
+            vox_spec: ("armor.chest.plate_leather", (-8.0, -5.5, 2.0)),
+            color: None
+        ),
         "Leather2": (
             vox_spec: ("armor.chest.leather-2", (-7.0, -3.5, 2.0)),
             color: None

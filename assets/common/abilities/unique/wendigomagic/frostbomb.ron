@@ -1,0 +1,17 @@
+BasicRanged(
+    energy_cost: 0,
+    buildup_duration: 0.5,
+    recover_duration: 0.35,
+    projectile: Frostball(
+        damage: 100.0,
+        radius: 5.0,
+    ),
+    projectile_body: Object(BoltFire), // TODO: Get ice projectile model
+    /*projectile_light: Some(LightEmitter {
+        col: (1.0, 0.75, 0.11).into(),
+        ..Default::default()
+    }),*/
+    projectile_gravity: Some(Gravity(0.3)),
+    projectile_speed: 60.0,
+    can_continue: true,
+)

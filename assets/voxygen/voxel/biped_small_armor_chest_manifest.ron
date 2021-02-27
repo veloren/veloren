@@ -1,0 +1,40 @@
+((
+    default: (
+        vox_spec: ("armor_none", (-5.0, -3.5, 1.0)),
+    ),
+    map: {
+        "Gnome": (
+            vox_spec: ("npc.gnome.male.chest", (-5.0, -3.0, -2.5)),
+        ),
+        "Sahagin": (
+            vox_spec: ("npc.sahagin.male.chest", (-4.5, -8.0, -8.0)),
+        ),
+        "AdletSpear": (
+            vox_spec: ("npc.adlet.male.spear.chest", (-5.0, -3.5, -2.0)),
+        ),
+        "AdletBow": (
+            vox_spec: ("npc.adlet.male.bow.chest", (-5.0, -3.5, -2.0)),
+        ),
+        "Gnarling": (
+            vox_spec: ("npc.gnarling.male.chest", (-4.5, -3.5, -2.5)),
+        ),
+        "Mandragora": (
+            vox_spec: ("npc.mandragora.male.chest", (-11.0, -11.0, -6.5)),
+        ),
+        "Kappa": (
+            vox_spec: ("npc.kappa.male.chest", (-6.5, -8.0, -7.0)),
+        ),
+        "Cactid": (
+            vox_spec: ("npc.cactid.male.chest", (-3.0, -3.0, -2.5)),
+        ),
+        "Gnoll": (
+            vox_spec: ("npc.gnoll.male.chest", (-5.0, -4.5, -6.0)),
+        ),
+        "Haniwa": (
+            vox_spec: ("npc.haniwa.male.chest", (-6.5, -4.0, -3.0)),
+        ),
+        "Myrmidon": (
+            vox_spec: ("npc.myrmidon.male.chest", (-5.5, -4.0, -3.0)),
+        ),
+    },
+))

@@ -3,6 +3,7 @@ use crate::{
         Attack, AttackDamage, AttackEffect, CombatBuff, CombatEffect, CombatRequirement, Damage,
         DamageSource, GroupTarget, Knockback, KnockbackDir,
     },
+    comp::item::Reagent,
     uid::Uid,
     Explosion, RadiusEffect,
 };
@@ -48,6 +49,10 @@ pub enum ProjectileConstructor {
         damage: f32,
         radius: f32,
         energy_regen: f32,
+    },
+    Frostball {
+        damage: f32,
+        radius: f32,
     },
     Firebolt {
         damage: f32,
@@ -124,6 +129,29 @@ impl ProjectileConstructor {
                         RadiusEffect::TerrainDestruction(2.0),
                     ],
                     radius,
+                    reagent: Some(Reagent::Red),
+                };
+                Projectile {
+                    hit_solid: vec![Effect::Explode(explosion.clone()), Effect::Vanish],
+                    hit_entity: vec![Effect::Explode(explosion), Effect::Vanish],
+                    time_left: Duration::from_secs(10),
+                    owner,
+                    ignore_group: true,
+                }
+            },
+            Frostball { damage, radius } => {
+                let damage = AttackDamage::new(
+                    Damage {
+                        source: DamageSource::Explosion,
+                        value: damage,
+                    },
+                    Some(GroupTarget::OutOfGroup),
+                );
+                let attack = Attack::default().with_damage(damage);
+                let explosion = Explosion {
+                    effects: vec![RadiusEffect::Attack(attack)],
+                    radius,
+                    reagent: Some(Reagent::Blue),
                 };
                 Projectile {
                     hit_solid: vec![Effect::Explode(explosion.clone()), Effect::Vanish],
@@ -173,6 +201,7 @@ impl ProjectileConstructor {
                 let explosion = Explosion {
                     effects: vec![RadiusEffect::Attack(attack)],
                     radius,
+                    reagent: Some(Reagent::Green),
                 };
                 Projectile {
                     hit_solid: vec![Effect::Explode(explosion.clone()), Effect::Vanish],
@@ -217,6 +246,14 @@ impl ProjectileConstructor {
             } => {
                 *damage *= power;
                 *energy_regen *= regen;
+                *radius *= range;
+            },
+            Frostball {
+                ref mut damage,
+                ref mut radius,
+                ..
+            } => {
+                *damage *= power;
                 *radius *= range;
             },
             Firebolt {

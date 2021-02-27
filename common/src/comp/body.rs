@@ -1,4 +1,5 @@
 pub mod biped_large;
+pub mod biped_small;
 pub mod bird_medium;
 pub mod bird_small;
 pub mod dragon;
@@ -38,10 +39,11 @@ make_case_elim!(
         BirdSmall(body: bird_small::Body) = 6,
         FishSmall(body: fish_small::Body) = 7,
         BipedLarge(body: biped_large::Body)= 8,
-        Object(body: object::Body) = 9,
-        Golem(body: golem::Body) = 10,
-        Theropod(body: theropod::Body) = 11,
-        QuadrupedLow(body: quadruped_low::Body) = 12,
+        BipedSmall(body: biped_small::Body)= 9,
+        Object(body: object::Body) = 10,
+        Golem(body: golem::Body) = 11,
+        Theropod(body: theropod::Body) = 12,
+        QuadrupedLow(body: quadruped_low::Body) = 13,
     }
 );
 
@@ -71,6 +73,7 @@ pub struct AllBodies<BodyMeta, SpeciesMeta> {
     pub bird_small: BodyData<BodyMeta, ()>,
     pub fish_small: BodyData<BodyMeta, fish_small::AllSpecies<SpeciesMeta>>,
     pub biped_large: BodyData<BodyMeta, biped_large::AllSpecies<SpeciesMeta>>,
+    pub biped_small: BodyData<BodyMeta, biped_small::AllSpecies<SpeciesMeta>>,
     pub object: BodyData<BodyMeta, ()>,
     pub golem: BodyData<BodyMeta, golem::AllSpecies<SpeciesMeta>>,
     pub theropod: BodyData<BodyMeta, theropod::AllSpecies<SpeciesMeta>>,
@@ -91,6 +94,7 @@ impl<BodyMeta, SpeciesMeta> core::ops::Index<NpcKind> for AllBodies<BodyMeta, Sp
             NpcKind::Marlin => &self.fish_medium.body,
             NpcKind::Clownfish => &self.fish_small.body,
             NpcKind::Ogre => &self.biped_large.body,
+            NpcKind::Gnome => &self.biped_small.body,
             NpcKind::StoneGolem => &self.golem.body,
             NpcKind::Archaeos => &self.theropod.body,
             NpcKind::Reddragon => &self.dragon.body,
@@ -115,6 +119,7 @@ impl<'a, BodyMeta, SpeciesMeta> core::ops::Index<&'a Body> for AllBodies<BodyMet
             Body::BirdSmall(_) => &self.bird_small.body,
             Body::FishSmall(_) => &self.fish_small.body,
             Body::BipedLarge(_) => &self.biped_large.body,
+            Body::BipedSmall(_) => &self.biped_small.body,
             Body::Object(_) => &self.object.body,
             Body::Golem(_) => &self.golem.body,
             Body::Theropod(_) => &self.theropod.body,
@@ -168,6 +173,12 @@ impl Body {
                 quadruped_medium::Species::Deer => 1.5,
                 quadruped_medium::Species::Donkey => 1.5,
                 quadruped_medium::Species::Kelpie => 1.5,
+                quadruped_medium::Species::Barghest => 1.8,
+                quadruped_medium::Species::Cattle => 1.8,
+                quadruped_medium::Species::Highland => 1.8,
+                quadruped_medium::Species::Yak => 1.8,
+                quadruped_medium::Species::Panda => 1.8,
+                quadruped_medium::Species::Bear => 1.8,
                 _ => 1.5,
             },
             Body::QuadrupedLow(body) => match body.species {
@@ -177,6 +188,7 @@ impl Body {
                 quadruped_low::Species::Salamander => 2.4,
                 quadruped_low::Species::Pangolin => 2.0,
                 quadruped_low::Species::Lavadrake => 2.5,
+                quadruped_low::Species::Deadwood => 0.5,
                 _ => 1.6,
             },
             Body::Theropod(body) => match body.species {
@@ -193,13 +205,16 @@ impl Body {
             Body::BirdSmall(_) => 0.6,
             Body::FishSmall(_) => 0.6,
             Body::BipedLarge(body) => match body.species {
-                biped_large::Species::Slysaurok => 2.3,
-                biped_large::Species::Occultsaurok => 2.8,
-                biped_large::Species::Mightysaurok => 2.3,
-                biped_large::Species::Mindflayer => 1.8,
-                _ => 4.6,
+                biped_large::Species::Slysaurok => 2.0,
+                biped_large::Species::Occultsaurok => 2.0,
+                biped_large::Species::Mightysaurok => 2.0,
+                biped_large::Species::Mindflayer => 2.2,
+                biped_large::Species::Minotaur => 3.0,
+
+                _ => 2.3,
             },
             Body::Golem(_) => 2.5,
+            Body::BipedSmall(_) => 0.75,
             Body::Object(_) => 0.4,
         }
     }
@@ -231,6 +246,7 @@ impl Body {
                 quadruped_medium::Species::Lion => 2.0,
                 quadruped_medium::Species::Saber => 2.0,
                 quadruped_medium::Species::Catoblepas => 2.9,
+                quadruped_medium::Species::Barghest => 2.5,
                 _ => 1.6,
             },
             Body::QuadrupedLow(body) => match body.species {
@@ -244,6 +260,7 @@ impl Body {
                 theropod::Species::Snowraptor => 2.6,
                 theropod::Species::Sandraptor => 2.6,
                 theropod::Species::Woodraptor => 2.6,
+                theropod::Species::Sunlizard => 2.5,
                 _ => 8.0,
             },
             Body::BirdMedium(body) => match body.species {
@@ -255,13 +272,19 @@ impl Body {
             Body::BirdSmall(_) => 1.1,
             Body::FishSmall(_) => 0.6,
             Body::BipedLarge(body) => match body.species {
-                biped_large::Species::Slysaurok => 2.3,
-                biped_large::Species::Occultsaurok => 2.8,
-                biped_large::Species::Mightysaurok => 2.3,
-                biped_large::Species::Mindflayer => 4.8,
-                _ => 4.6,
+                biped_large::Species::Slysaurok => 3.4,
+                biped_large::Species::Occultsaurok => 3.4,
+                biped_large::Species::Mightysaurok => 3.4,
+                biped_large::Species::Mindflayer => 6.3,
+                biped_large::Species::Minotaur => 8.0,
+                biped_large::Species::Dullahan => 5.5,
+                biped_large::Species::Cyclops => 6.5,
+                biped_large::Species::Werewolf => 3.5,
+
+                _ => 6.0,
             },
             Body::Golem(_) => 5.0,
+            Body::BipedSmall(_) => 1.4,
             Body::Object(object) => match object {
                 object::Body::Crossbow => 1.7,
                 _ => 1.0,
@@ -314,6 +337,12 @@ impl Body {
                 quadruped_medium::Species::Antelope => 300,
                 quadruped_medium::Species::Kelpie => 600,
                 quadruped_medium::Species::Horse => 600,
+                quadruped_medium::Species::Barghest => 1000,
+                quadruped_medium::Species::Cattle => 600,
+                quadruped_medium::Species::Highland => 600,
+                quadruped_medium::Species::Yak => 600,
+                quadruped_medium::Species::Panda => 800,
+                quadruped_medium::Species::Bear => 800,
                 _ => 400,
             },
             Body::BirdMedium(bird_medium) => match bird_medium.species {
@@ -337,7 +366,19 @@ impl Body {
                 biped_large::Species::Troll => 1500,
                 biped_large::Species::Dullahan => 2000,
                 biped_large::Species::Mindflayer => 8000,
+                biped_large::Species::Tidalwarrior => 2500,
+                biped_large::Species::Yeti => 2000,
+                biped_large::Species::Minotaur => 5000,
+                biped_large::Species::Harvester => 2000,
                 _ => 1000,
+            },
+            Body::BipedSmall(biped_small) => match biped_small.species {
+                biped_small::Species::Gnarling => 300,
+                biped_small::Species::Adlet => 400,
+                biped_small::Species::Sahagin => 500,
+                biped_small::Species::Haniwa => 700,
+                biped_small::Species::Myrmidon => 800,
+                _ => 600,
             },
             Body::Object(object) => match object {
                 object::Body::TrainingDummy => 10000,
@@ -363,6 +404,7 @@ impl Body {
                 quadruped_low::Species::Sandshark => 600,
                 quadruped_low::Species::Hakulaq => 400,
                 quadruped_low::Species::Lavadrake => 900,
+                quadruped_low::Species::Deadwood => 600,
 
                 _ => 200,
             },
@@ -403,6 +445,12 @@ impl Body {
                 quadruped_medium::Species::Antelope => 20,
                 quadruped_medium::Species::Kelpie => 30,
                 quadruped_medium::Species::Horse => 30,
+                quadruped_medium::Species::Barghest => 50,
+                quadruped_medium::Species::Cattle => 30,
+                quadruped_medium::Species::Highland => 30,
+                quadruped_medium::Species::Yak => 30,
+                quadruped_medium::Species::Panda => 40,
+                quadruped_medium::Species::Bear => 40,
                 _ => 20,
             },
             Body::BirdMedium(bird_medium) => match bird_medium.species {
@@ -426,8 +474,12 @@ impl Body {
                 biped_large::Species::Troll => 60,
                 biped_large::Species::Dullahan => 120,
                 biped_large::Species::Mindflayer => 250,
+                biped_large::Species::Tidalwarrior => 90,
+                biped_large::Species::Yeti => 80,
+                biped_large::Species::Harvester => 80,
                 _ => 100,
             },
+            Body::BipedSmall(_) => 10,
             Body::Object(_) => 10,
             Body::Golem(_) => 260,
             Body::Theropod(_) => 20,
@@ -443,6 +495,7 @@ impl Body {
                 quadruped_low::Species::Maneater => 30,
                 quadruped_low::Species::Sandshark => 40,
                 quadruped_low::Species::Hakulaq => 10,
+                quadruped_low::Species::Deadwood => 30,
                 _ => 20,
             },
         }
@@ -479,7 +532,12 @@ impl Body {
         }
     }
 
-    pub fn can_strafe(&self) -> bool { matches!(self, Body::Humanoid(_)) }
+    pub fn can_strafe(&self) -> bool {
+        matches!(
+            self,
+            Body::Humanoid(_) | Body::BipedSmall(_) | Body::BipedLarge(_)
+        )
+    }
 }
 
 impl Component for Body {

@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Adlet",
+    description: "Ceremonial attire used by members.",
+    kind: Armor((
+        kind: Chest("AdletSpear"),
+        stats: (
+            protection: Normal(12.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: Low,
+    tags: [],
+)

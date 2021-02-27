@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Haniwa",
+    description: "Ceremonial attire used by members..",
+    kind: Armor((
+        kind: Foot("Haniwa"),
+        stats: (
+            protection: Normal(17.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: Low,
+    tags: [],
+)

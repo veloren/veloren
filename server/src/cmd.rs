@@ -1374,9 +1374,9 @@ fn handle_explosion(
                             RadiusEffect::TerrainDestruction(power),
                         ],
                         radius: 3.0 * power,
+                        reagent: None,
                     },
                     owner: ecs.read_storage::<Uid>().get(target).copied(),
-                    reagent: None,
                 })
         },
         None => server.notify_client(

@@ -1,14 +1,13 @@
 pub mod alpha;
 pub mod idle;
-pub mod jump;
 pub mod run;
 pub mod shockwave;
 pub mod spinmelee;
 
 // Reexports
 pub use self::{
-    alpha::AlphaAnimation, idle::IdleAnimation, jump::JumpAnimation, run::RunAnimation,
-    shockwave::ShockwaveAnimation, spinmelee::SpinMeleeAnimation,
+    alpha::AlphaAnimation, idle::IdleAnimation, run::RunAnimation, shockwave::ShockwaveAnimation,
+    spinmelee::SpinMeleeAnimation,
 };
 
 use super::{make_bone, vek::*, FigureBoneData, Skeleton};
@@ -82,6 +81,8 @@ pub struct SkeletonAttr {
     hand: (f32, f32, f32),
     leg: (f32, f32, f32),
     foot: (f32, f32, f32),
+    scaler: f32,
+    tempo: f32,
 }
 
 impl<'a> std::convert::TryFrom<&'a comp::Body> for SkeletonAttr {
@@ -106,6 +107,8 @@ impl Default for SkeletonAttr {
             hand: (0.0, 0.0, 0.0),
             leg: (0.0, 0.0, 0.0),
             foot: (0.0, 0.0, 0.0),
+            scaler: 0.0,
+            tempo: 0.0,
         }
     }
 }
@@ -117,34 +120,52 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             head: match (body.species, body.body_type) {
                 (StoneGolem, _) => (0.0, 2.0),
                 (Treant, _) => (18.0, -8.0),
+                (ClayGolem, _) => (2.0, 9.0),
             },
             jaw: match (body.species, body.body_type) {
                 (StoneGolem, _) => (0.0, 0.0),
                 (Treant, _) => (-6.5, -1.0),
+                (ClayGolem, _) => (0.0, 0.0),
             },
             upper_torso: match (body.species, body.body_type) {
                 (StoneGolem, _) => (0.0, 34.5),
                 (Treant, _) => (0.0, 28.5),
+                (ClayGolem, _) => (0.0, 26.5),
             },
             lower_torso: match (body.species, body.body_type) {
                 (StoneGolem, _) => (0.0, -10.5),
                 (Treant, _) => (0.0, -10.5),
+                (ClayGolem, _) => (0.0, -4.5),
             },
             shoulder: match (body.species, body.body_type) {
                 (StoneGolem, _) => (8.0, -1.5, 4.0),
                 (Treant, _) => (8.0, 4.5, -3.0),
+                (ClayGolem, _) => (8.0, 4.5, 3.0),
             },
             hand: match (body.species, body.body_type) {
                 (StoneGolem, _) => (12.5, -1.0, -7.0),
                 (Treant, _) => (8.5, -1.0, -7.0),
+                (ClayGolem, _) => (8.5, -1.0, -7.0),
             },
             leg: match (body.species, body.body_type) {
                 (StoneGolem, _) => (4.0, 0.0, -3.5),
                 (Treant, _) => (2.0, 9.5, -1.0),
+                (ClayGolem, _) => (1.0, 0.5, -6.0),
             },
             foot: match (body.species, body.body_type) {
                 (StoneGolem, _) => (3.5, 0.5, -9.5),
                 (Treant, _) => (3.5, -5.0, -8.5),
+                (ClayGolem, _) => (3.5, -1.0, -8.5),
+            },
+            scaler: match (body.species, body.body_type) {
+                (StoneGolem, _) => 1.8,
+                (Treant, _) => 1.8,
+                (ClayGolem, _) => 1.8,
+            },
+            tempo: match (body.species, body.body_type) {
+                (StoneGolem, _) => 1.0,
+                (Treant, _) => 1.0,
+                (ClayGolem, _) => 1.0,
             },
         }
     }

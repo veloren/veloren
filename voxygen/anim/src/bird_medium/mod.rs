@@ -87,7 +87,7 @@ impl Default for SkeletonAttr {
 
 impl<'a> From<&'a Body> for SkeletonAttr {
     fn from(body: &'a Body) -> Self {
-        use comp::bird_medium::Species::*;
+        use comp::bird_medium::{BodyType::*, Species::*};
         Self {
             head: match (body.species, body.body_type) {
                 (Duck, _) => (4.0, 3.0),
@@ -95,7 +95,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Goose, _) => (5.0, 2.5),
                 (Peacock, _) => (1.0, 1.0),
                 (Eagle, _) => (2.5, 5.0),
-                (Snowyowl, _) => (2.5, 5.0),
+                (Owl, Male) => (2.5, 5.0),
+                (Owl, Female) => (2.5, 7.0),
                 (Parrot, _) => (0.5, 4.5),
                 (Cockatrice, _) => (0.0, 4.0),
             },
@@ -105,7 +106,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Goose, _) => (0.0, 8.0),
                 (Peacock, _) => (0.0, 10.0),
                 (Eagle, _) => (0.0, 8.0),
-                (Snowyowl, _) => (0.0, 4.5),
+                (Owl, Male) => (0.0, 4.5),
+                (Owl, Female) => (0.0, 4.5),
                 (Parrot, _) => (0.0, 5.0),
                 (Cockatrice, _) => (0.0, 12.5),
             },
@@ -115,7 +117,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Goose, _) => (-5.0, 3.0),
                 (Peacock, _) => (-5.5, 2.0),
                 (Eagle, _) => (-8.0, -4.0),
-                (Snowyowl, _) => (-6.0, -2.0),
+                (Owl, Male) => (-6.0, -2.0),
+                (Owl, Female) => (-6.0, -2.5),
                 (Parrot, _) => (-8.0, -2.0),
                 (Cockatrice, _) => (-10.0, -2.5),
             },
@@ -125,7 +128,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Goose, _) => (3.75, -1.0, 2.0),
                 (Peacock, _) => (3.0, 0.0, 1.0),
                 (Eagle, _) => (3.0, -8.0, 4.0),
-                (Snowyowl, _) => (3.5, -5.5, 4.0),
+                (Owl, Male) => (3.5, -5.5, 4.0),
+                (Owl, Female) => (3.5, -6.0, 3.5),
                 (Parrot, _) => (2.0, -4.5, 3.0),
                 (Cockatrice, _) => (4.5, -2.5, 1.5),
             },
@@ -135,19 +139,18 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Goose, _) => (2.0, -1.5, 7.0),
                 (Peacock, _) => (2.0, -2.5, 8.0),
                 (Eagle, _) => (2.0, -2.0, 8.0),
-                (Snowyowl, _) => (1.5, -2.5, 7.0),
+                (Owl, Male) => (1.5, -2.5, 7.0),
+                (Owl, Female) => (1.5, -3.0, 6.5),
                 (Parrot, _) => (1.5, -3.0, 3.0),
                 (Cockatrice, _) => (4.0, -3.5, 12.0),
             },
             feed: match (body.species, body.body_type) {
-                (Duck, _) => 1.0,
-                (Chicken, _) => 1.0,
                 (Goose, _) => 1.4,
                 (Peacock, _) => 1.6,
                 (Eagle, _) => 1.2,
-                (Snowyowl, _) => 1.0,
                 (Parrot, _) => 1.2,
                 (Cockatrice, _) => 1.3,
+                _ => 1.0,
             },
         }
     }

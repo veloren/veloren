@@ -60,19 +60,19 @@ impl Animation for JumpAnimation {
         next.second.scale = Vec3::one() * 0.0;
 
         match active_tool_kind {
-            Some(ToolKind::Bow) => {
+            Some(ToolKind::BowSimple) => {
                 next.main.position = Vec3::new(-2.0, -5.0, -6.0);
                 next.main.orientation = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
             },
-            Some(ToolKind::Staff) | Some(ToolKind::Sceptre) => {
+            Some(ToolKind::StaffSimple) | Some(ToolKind::Sceptre) => {
                 next.main.position = Vec3::new(-6.0, -5.0, -12.0);
                 next.main.orientation = Quaternion::rotation_y(0.6) * Quaternion::rotation_z(1.57);
             },
-            Some(ToolKind::Sword) => {
+            Some(ToolKind::SwordSimple) => {
                 next.main.position = Vec3::new(-10.0, -8.0, 12.0);
                 next.main.orientation = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
             },
-            Some(ToolKind::Hammer) => {
+            Some(ToolKind::HammerSimple) | Some(ToolKind::AxeSimple) => {
                 next.main.position = Vec3::new(-10.0, -8.0, 12.0);
                 next.main.orientation = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
             },
@@ -109,9 +109,9 @@ impl Animation for JumpAnimation {
         next.foot_r.position = Vec3::new(s_a.foot.0, 5.0 + s_a.foot.1, s_a.foot.2);
         next.foot_r.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.4);
 
-        next.torso.position = Vec3::new(0.0, 0.0, 0.0) / 8.0;
+        next.torso.position = Vec3::new(0.0, 0.0, 0.0) / 8.0 * s_a.scaler;
         next.torso.orientation = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
-        next.torso.scale = Vec3::one() / 8.0;
+        next.torso.scale = Vec3::one() / 8.0 * s_a.scaler;
 
         next
     }

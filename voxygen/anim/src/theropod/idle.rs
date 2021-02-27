@@ -63,7 +63,7 @@ impl Animation for IdleAnimation {
         next.tail_front.position = Vec3::new(0.0, s_a.tail_front.0, s_a.tail_front.1);
         next.tail_front.orientation = Quaternion::rotation_x(0.1);
 
-        next.tail_back.position = Vec3::new(0.0, s_a.tail_back.0, s_a.tail_back.1 - 0.5);
+        next.tail_back.position = Vec3::new(0.0, s_a.tail_back.0, s_a.tail_back.1);
         next.tail_back.orientation = Quaternion::rotation_x(0.1);
 
         next.hand_l.position = Vec3::new(-s_a.hand.0, s_a.hand.1, s_a.hand.2);
