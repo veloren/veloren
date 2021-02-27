@@ -586,14 +586,6 @@ pub fn ability_key_is_pressed(data: &JoinData, ability_key: AbilityKey) -> bool 
     }
 }
 
-pub fn continue_combo(data: &JoinData, update: &mut StateUpdate, combo_data: (u32, u32)) {
-    handle_ability1_input(data, update);
-    if let CharacterState::ComboMelee(data) = &mut update.character {
-        data.stage = combo_data.0;
-        data.combo = combo_data.1;
-    }
-}
-
 /// Determines what portion a state is in. Used in all attacks (eventually). Is
 /// used to control aspects of animation code, as well as logic within the
 /// character states.

@@ -109,8 +109,6 @@ pub struct Data {
     pub static_data: StaticData,
     /// Indicates what stage the combo is in
     pub stage: u32,
-    /// Number of consecutive strikes
-    pub combo: u32,
     /// Timer for each stage
     pub timer: Duration,
     /// Checks what section a stage is in
@@ -127,9 +125,6 @@ impl CharacterBehavior for Data {
         handle_move(data, &mut update, 0.3);
         if !ability_key_is_pressed(data, self.static_data.ability_info.key) {
             handle_interrupt(data, &mut update, self.static_data.is_interruptible);
-            if let CharacterState::Roll(roll) = &mut update.character {
-                roll.was_combo = Some((self.stage, self.combo));
-            }
             match update.character {
                 CharacterState::ComboMelee(_) => {},
                 _ => {
@@ -142,7 +137,11 @@ impl CharacterBehavior for Data {
 
         let speed_modifer = 1.0
             + self.static_data.max_speed_increase
-                * (1.0 - self.static_data.speed_increase.powi(self.combo as i32));
+                * (1.0
+                    - self
+                        .static_data
+                        .speed_increase
+                        .powi(data.combo.counter() as i32));
 
         match self.stage_section {
             StageSection::Buildup => {
@@ -170,7 +169,7 @@ impl CharacterBehavior for Data {
                         + (self
                             .static_data
                             .scales_from_combo
-                            .min(self.combo / self.static_data.num_stages)
+                            .min(data.combo.counter() / self.static_data.num_stages)
                             as f32)
                             * self.static_data.stage_data[stage_index].damage_increase;
 
@@ -178,7 +177,7 @@ impl CharacterBehavior for Data {
                         + (self
                             .static_data
                             .scales_from_combo
-                            .min(self.combo / self.static_data.num_stages)
+                            .min(data.combo.counter() / self.static_data.num_stages)
                             as f32)
                             * self.static_data.stage_data[stage_index].poise_damage_increase;
                     let poise = AttackEffect::new(
@@ -196,7 +195,7 @@ impl CharacterBehavior for Data {
                     .with_requirement(CombatRequirement::AnyDamage);
                     let energy = self.static_data.max_energy_gain.min(
                         self.static_data.initial_energy_gain
-                            + self.combo as f32 * self.static_data.energy_increase,
+                            + data.combo.counter() as f32 * self.static_data.energy_increase,
                     );
                     let energy = AttackEffect::new(None, CombatEffect::EnergyReward(energy))
                         .with_requirement(CombatRequirement::AnyDamage);
@@ -289,7 +288,6 @@ impl CharacterBehavior for Data {
                         timer: Duration::default(),
                         stage_section: StageSection::Buildup,
                         next_stage: false,
-                        ..*self
                     });
                 } else {
                     // Done
@@ -312,7 +310,6 @@ impl CharacterBehavior for Data {
                 update.character = CharacterState::ComboMelee(Data {
                     static_data: self.static_data.clone(),
                     stage: self.stage,
-                    combo: self.combo + 1,
                     timer: self.timer,
                     stage_section: self.stage_section,
                     next_stage: self.next_stage,

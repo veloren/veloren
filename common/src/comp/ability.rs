@@ -1191,7 +1191,6 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 stage_section: StageSection::Buildup,
                 was_wielded: false, // false by default. utils might set it to true
                 was_sneak: false,
-                was_combo: None,
             }),
             CharacterAbility::ComboMelee {
                 stage_data,
@@ -1216,7 +1215,6 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                     ability_info,
                 },
                 stage: 1,
-                combo: 0,
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
                 next_stage: false,

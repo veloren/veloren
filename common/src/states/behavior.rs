@@ -1,6 +1,6 @@
 use crate::{
     comp::{
-        item::MaterialStatManifest, Beam, Body, CharacterState, ControlAction, Controller,
+        item::MaterialStatManifest, Beam, Body, CharacterState, Combo, ControlAction, Controller,
         ControllerInputs, Energy, Health, Inventory, LoadoutManip, Melee, Ori, PhysicsState, Pos,
         StateUpdate, Stats, Vel,
     },
@@ -68,6 +68,7 @@ pub struct JoinData<'a> {
     pub updater: &'a LazyUpdate,
     pub stats: &'a Stats,
     pub msm: &'a MaterialStatManifest,
+    pub combo: &'a Combo,
 }
 
 type RestrictedMut<'a, C> = PairedStorage<
@@ -95,6 +96,7 @@ pub struct JoinStruct<'a> {
     pub melee_attack: Option<&'a Melee>,
     pub beam: Option<&'a Beam>,
     pub stat: &'a Stats,
+    pub combo: &'a Combo,
 }
 
 impl<'a> JoinData<'a> {
@@ -123,6 +125,7 @@ impl<'a> JoinData<'a> {
             updater,
             dt,
             msm,
+            combo: j.combo,
         }
     }
 }

@@ -20,7 +20,7 @@ use vek::Vec3;
 
 const ENERGY_REGEN_ACCEL: f32 = 10.0;
 const POISE_REGEN_ACCEL: f32 = 2.0;
-const COMBO_DECAY_START: f64 = 10.0; // seconds
+const COMBO_DECAY_START: f64 = 5.0; // seconds
 
 #[derive(SystemData)]
 pub struct ReadData<'a> {
