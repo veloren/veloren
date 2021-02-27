@@ -77,6 +77,7 @@ pub enum BuffCategory {
     Magical,
     Divine,
     PersistOnDeath,
+    FromAura(bool), // bool used to check if buff recently set by aura
 }
 
 #[cfg(not(target_arch = "wasm32"))]

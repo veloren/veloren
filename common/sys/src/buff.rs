@@ -99,9 +99,9 @@ impl<'a> System<'a> for Sys {
                                 kind,
                             } => {
                                 *accumulated += *rate * dt;
-                                // Apply damage only once a second (with a minimum of 1 damage), or
+                                // Apply health change only once a second or
                                 // when a buff is removed
-                                if accumulated.abs() > rate.abs().max(10.0)
+                                if accumulated.abs() > rate.abs()
                                     || buff.time.map_or(false, |dur| dur == Duration::default())
                                 {
                                     let cause = if *accumulated > 0.0 {
@@ -180,6 +180,14 @@ impl<'a> System<'a> for Sys {
 }
 
 fn tick_buff(id: u64, buff: &mut Buff, dt: f32, mut expire_buff: impl FnMut(u64)) {
+    // If a buff is recently applied from an aura, do not tick duration
+    if buff
+        .cat_ids
+        .iter()
+        .any(|cat_id| matches!(cat_id, BuffCategory::FromAura(true)))
+    {
+        return;
+    }
     if let Some(remaining_time) = &mut buff.time {
         if let Some(new_duration) = remaining_time.checked_sub(Duration::from_secs_f32(dt)) {
             // The buff still continues.

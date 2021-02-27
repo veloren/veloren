@@ -1,7 +1,7 @@
 use common::{
     comp::{
         aura::{AuraChange, AuraKey, AuraKind, AuraTarget},
-        buff,
+        buff::{self, BuffCategory},
         group::Group,
         Auras, BuffKind, Buffs, CharacterState, Health, Pos,
     },
@@ -25,18 +25,35 @@ pub struct ReadData<'a> {
     char_states: ReadStorage<'a, CharacterState>,
     healths: ReadStorage<'a, Health>,
     groups: ReadStorage<'a, Group>,
-    buffs: ReadStorage<'a, Buffs>,
 }
 
 pub struct Sys;
 impl<'a> System<'a> for Sys {
-    type SystemData = (ReadData<'a>, WriteStorage<'a, Auras>);
+    type SystemData = (
+        ReadData<'a>,
+        WriteStorage<'a, Auras>,
+        WriteStorage<'a, Buffs>,
+    );
 
-    fn run(&mut self, (read_data, mut auras): Self::SystemData) {
+    fn run(&mut self, (read_data, mut auras, mut buffs): Self::SystemData) {
         let mut server_emitter = read_data.server_bus.emitter();
         let dt = read_data.dt.0;
 
         auras.set_event_emission(false);
+
+        // Iterate through all buffs, on any buffs that are from an aura, sets the check
+        // for whether the buff recently set by aura to false
+        for (_, mut buffs_comp) in (&read_data.entities, &mut buffs).join() {
+            for (_, buff) in buffs_comp.buffs.iter_mut() {
+                if let Some(cat_id) = buff
+                    .cat_ids
+                    .iter_mut()
+                    .find(|cat_id| matches!(cat_id, BuffCategory::FromAura(true)))
+                {
+                    *cat_id = BuffCategory::FromAura(false);
+                }
+            }
+        }
 
         // Iterate through all entities with an aura
         for (entity, pos, mut auras_comp) in
@@ -56,10 +73,10 @@ impl<'a> System<'a> for Sys {
                         expired_auras.push(key);
                     }
                 }
-                for (target, target_pos, target_buffs, health) in (
+                for (target, target_pos, mut target_buffs, health) in (
                     &read_data.entities,
                     &read_data.positions,
-                    &read_data.buffs,
+                    &mut buffs,
                     &read_data.healths,
                 )
                     .join()
@@ -89,34 +106,57 @@ impl<'a> System<'a> for Sys {
                                 category,
                                 source,
                             } => {
-                                // Checks if the buff is not active so it isn't applied
-                                // every tick, but rather only once it runs out
-                                // TODO: Check for stronger buff of same kind so it can replace
-                                // active buff.
-                                if !target_buffs.contains(kind) {
-                                    // Conditions for different buffs are in this match
-                                    // statement
-                                    let apply_buff = match kind {
-                                        BuffKind::CampfireHeal => {
-                                            matches!(
-                                                read_data.char_states.get(target),
-                                                Some(CharacterState::Sit)
-                                            ) && health.current() < health.maximum()
-                                        },
-                                        // Add other specific buff conditions here
-                                        _ => true,
-                                    };
-                                    if apply_buff {
+                                let apply_buff = match kind {
+                                    BuffKind::CampfireHeal => {
+                                        matches!(
+                                            read_data.char_states.get(target),
+                                            Some(CharacterState::Sit)
+                                        ) && health.current() < health.maximum()
+                                    },
+                                    // Add other specific buff conditions here
+                                    _ => true,
+                                };
+                                if apply_buff {
+                                    // Checks that target is not already receiving a buff from an
+                                    // aura, where the buff is of the same kind, and is of at least
+                                    // the same strength
+                                    // If no such buff is present, adds the buff
+                                    let emit_buff = !target_buffs.buffs.iter().any(|(_, buff)| {
+                                        buff.cat_ids.iter().any(|cat_id| {
+                                            matches!(cat_id, BuffCategory::FromAura(_))
+                                        }) && buff.kind == kind
+                                            && buff.data.strength >= data.strength
+                                    });
+                                    if emit_buff {
                                         use buff::*;
                                         server_emitter.emit(ServerEvent::Buff {
                                             entity: target,
                                             buff_change: BuffChange::Add(Buff::new(
                                                 kind,
                                                 data,
-                                                vec![category],
+                                                vec![category, BuffCategory::FromAura(true)],
                                                 source,
                                             )),
                                         });
+                                    }
+                                    // Finds all buffs on target that are from an aura, are of the
+                                    // same buff kind, and are of at most the same strength
+                                    // For any such buffs, marks it as recently applied
+                                    for (_, buff) in
+                                        target_buffs.buffs.iter_mut().filter(|(_, buff)| {
+                                            buff.cat_ids.iter().any(|cat_id| {
+                                                matches!(cat_id, BuffCategory::FromAura(_))
+                                            }) && buff.kind == kind
+                                                && buff.data.strength <= data.strength
+                                        })
+                                    {
+                                        if let Some(cat_id) =
+                                            buff.cat_ids.iter_mut().find(|cat_id| {
+                                                matches!(cat_id, BuffCategory::FromAura(false))
+                                            })
+                                        {
+                                            *cat_id = BuffCategory::FromAura(true);
+                                        }
                                     }
                                 }
                             },
