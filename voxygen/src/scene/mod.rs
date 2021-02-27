@@ -1048,9 +1048,7 @@ impl Scene {
         let camera_data = (&self.camera, scene_data.figure_lod_render_distance);
 
         // would instead have this as an extension.
-        if drawer.renderer.render_mode().shadow.is_map()
-            && (is_daylight || !self.light_data.is_empty())
-        {
+        if drawer.render_mode().shadow.is_map() && (is_daylight || !self.light_data.is_empty()) {
             if is_daylight {
                 if let Some(mut shadow_pass) = drawer.shadow_pass() {
                     // Render terrain directed shadows.

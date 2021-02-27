@@ -10,7 +10,6 @@ use gilrs::{EventType, Gilrs};
 use hashbrown::HashMap;
 use itertools::Itertools;
 use keyboard_keynames::key_layout::KeyLayout;
-use old_school_gfx_glutin_ext::{ContextBuilderExt, WindowInitExt, WindowUpdateExt};
 use serde::{Deserialize, Serialize};
 use tracing::{error, warn};
 use vek::*;
@@ -941,6 +940,9 @@ impl Window {
                 let winit::dpi::PhysicalSize { width, height } = physical;
                 self.events
                     .push(Event::Resize(Vec2::new(width as u32, height as u32)));
+                // TODO: can get invalid scissor rect
+                // panic with this + resize several times
+                // std::thread::sleep_ms(500);
             },
             WindowEvent::ScaleFactorChanged { scale_factor, .. } => {
                 // TODO: is window resized event emitted? or do we need to handle that here?
@@ -1343,7 +1345,9 @@ impl Window {
     pub fn send_event(&mut self, event: Event) { self.events.push(event) }
 
     pub fn take_screenshot(&mut self, settings: &Settings) {
-        match self.renderer.create_screenshot() {
+        let _ = self.renderer.create_screenshot();
+        // TODO
+        /*match self.renderer.create_screenshot() {
             Ok(img) => {
                 let mut path = settings.screenshots_path.clone();
                 let sender = self.message_sender.clone();
@@ -1378,7 +1382,7 @@ impl Window {
                     .unwrap();
             },
             Err(e) => error!(?e, "Couldn't create screenshot due to renderer error"),
-        }
+        }*/
     }
 
     fn is_pressed(

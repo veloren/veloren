@@ -82,6 +82,9 @@ widget_ids! {
         refresh_rate,
         refresh_rate_label,
         //
+        gpu_profiler_button,
+        gpu_profiler_label,
+        //
         particles_button,
         particles_label,
         lossy_terrain_compression_button,
@@ -902,11 +905,37 @@ impl<'a> Widget for Video<'a> {
                 .set(state.ids.shadow_mode_map_resolution_value, ui);
         }
 
+        // GPU Profiler
+        Text::new(&self.localized_strings.get("hud.settings.gpu_profiler"))
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .down_from(state.ids.shadow_mode_list, 8.0)
+            .color(TEXT_COLOR)
+            .set(state.ids.gpu_profiler_label, ui);
+
+        let gpu_profiler_enabled = ToggleButton::new(
+            render_mode.profiler_enabled,
+            self.imgs.checkbox,
+            self.imgs.checkbox_checked,
+        )
+        .w_h(18.0, 18.0)
+        .right_from(state.ids.gpu_profiler_label, 10.0)
+        .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+        .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+        .set(state.ids.gpu_profiler_button, ui);
+
+        if render_mode.profiler_enabled != gpu_profiler_enabled {
+            events.push(GraphicsChange::ChangeRenderMode(Box::new(RenderMode {
+                profiler_enabled: gpu_profiler_enabled,
+                ..render_mode.clone()
+            })));
+        }
+
         // Particles
         Text::new(&self.localized_strings.get("hud.settings.particles"))
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
-            .down_from(state.ids.shadow_mode_list, 8.0)
+            .down_from(state.ids.gpu_profiler_label, 8.0)
             .color(TEXT_COLOR)
             .set(state.ids.particles_label, ui);
 

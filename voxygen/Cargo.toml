@@ -46,6 +46,7 @@ i18n = {package = "veloren-i18n", path = "i18n"}
 # Graphics
 winit = {version = "0.24.0", features = ["serde"]}
 wgpu = { git = "https://github.com/gfx-rs/wgpu-rs.git", rev = "1f1a7e5dd47a1610733bbc3989414acb62395359" }
+wgpu-profiler = "0.2.1"
 bytemuck = { version="1.4", features=["derive"] }
 shaderc = "0.6.2"
 
@@ -96,8 +97,7 @@ rand = "0.8"
 rodio = {version = "0.13", default-features = false, features = ["vorbis"]}
 ron = {version = "0.6", default-features = false}
 serde = {version = "1.0", features = [ "rc", "derive" ]}
-# strum = "0.20"
-strum = { version = "0.20.0", features = ["derive"] } 
+strum = "0.20"
 strum_macros = "0.20"
 treeculler = "0.2"
 tokio = { version = "1", default-features = false, features = ["rt-multi-thread"] }

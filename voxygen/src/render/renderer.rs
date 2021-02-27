@@ -1,6 +1,13 @@
 mod binding;
 pub(super) mod drawer;
-mod spans;
+// Consts and bind groups for post-process and clouds
+mod locals;
+mod shaders;
+mod shadow_map;
+
+use locals::Locals;
+use shaders::Shaders;
+use shadow_map::{ShadowMap, ShadowMapRenderer};
 
 use super::{
     consts::Consts,
@@ -18,140 +25,14 @@ use super::{
 use common::assets::{self, AssetExt, AssetHandle};
 use common_base::span;
 use core::convert::TryFrom;
-use hashbrown::HashMap;
 use tracing::{error, info, warn};
 use vek::*;
 
+// TODO: yeet this somewhere else
 /// A type representing data that can be converted to an immutable texture map
 /// of ColLight data (used for texture atlases created during greedy meshing).
 // TODO: revert to u16
 pub type ColLightInfo = (Vec<[u8; 4]>, Vec2<u32>);
-
-/// Load from a GLSL file.
-pub struct Glsl(String);
-
-impl From<String> for Glsl {
-    fn from(s: String) -> Glsl { Glsl(s) }
-}
-
-impl assets::Asset for Glsl {
-    type Loader = assets::LoadFrom<String, assets::StringLoader>;
-
-    const EXTENSION: &'static str = "glsl";
-}
-
-struct Shaders {
-    shaders: HashMap<String, AssetHandle<Glsl>>,
-}
-
-impl assets::Compound for Shaders {
-    // TODO: Taking the specifier argument as a base for shaders specifiers
-    // would allow to use several shaders groups easily
-    fn load<S: assets::source::Source>(
-        _: &assets::AssetCache<S>,
-        _: &str,
-    ) -> Result<Shaders, assets::Error> {
-        let shaders = [
-            "include.constants",
-            "include.globals",
-            "include.sky",
-            "include.light",
-            "include.srgb",
-            "include.random",
-            "include.lod",
-            "include.shadows",
-            "antialias.none",
-            "antialias.fxaa",
-            "antialias.msaa-x4",
-            "antialias.msaa-x8",
-            "antialias.msaa-x16",
-            "include.cloud.none",
-            "include.cloud.regular",
-            "figure-vert",
-            "light-shadows-figure-vert",
-            "light-shadows-directed-vert",
-            "light-shadows-directed-frag",
-            "point-light-shadows-vert",
-            "skybox-vert",
-            "skybox-frag",
-            "figure-frag",
-            "terrain-vert",
-            "terrain-frag",
-            "fluid-vert",
-            "fluid-frag.cheap",
-            "fluid-frag.shiny",
-            "sprite-vert",
-            "sprite-frag",
-            "particle-vert",
-            "particle-frag",
-            "ui-vert",
-            "ui-frag",
-            "lod-terrain-vert",
-            "lod-terrain-frag",
-            "clouds-vert",
-            "clouds-frag",
-            "postprocess-vert",
-            "postprocess-frag",
-            "player-shadow-frag",
-            "light-shadows-geom",
-            "light-shadows-frag",
-        ];
-
-        let shaders = shaders
-            .iter()
-            .map(|shader| {
-                let full_specifier = ["voxygen.shaders.", shader].concat();
-                let asset = AssetExt::load(&full_specifier)?;
-                Ok((String::from(*shader), asset))
-            })
-            .collect::<Result<HashMap<_, _>, assets::Error>>()?;
-
-        Ok(Self { shaders })
-    }
-}
-
-impl Shaders {
-    fn get(&self, shader: &str) -> Option<impl std::ops::Deref<Target = Glsl>> {
-        self.shaders.get(shader).map(|a| a.read())
-    }
-}
-
-/// A type that holds shadow map data.  Since shadow mapping may not be
-/// supported on all platforms, we try to keep it separate.
-struct ShadowMapRenderer {
-    // directed_encoder: gfx::Encoder<gfx_backend::Resources, gfx_backend::CommandBuffer>,
-    // point_encoder: gfx::Encoder<gfx_backend::Resources, gfx_backend::CommandBuffer>,
-    directed_depth: Texture,
-
-    point_depth: Texture,
-
-    point_pipeline: shadow::PointShadowPipeline,
-    terrain_directed_pipeline: shadow::ShadowPipeline,
-    figure_directed_pipeline: shadow::ShadowFigurePipeline,
-    layout: shadow::ShadowLayout,
-}
-
-enum ShadowMap {
-    Enabled(ShadowMapRenderer),
-    Disabled {
-        dummy_point: Texture, // Cube texture
-        dummy_directed: Texture,
-    },
-}
-
-impl ShadowMap {
-    fn textures(&self) -> (&Texture, &Texture) {
-        match self {
-            Self::Enabled(renderer) => (&renderer.point_depth, &renderer.directed_depth),
-            Self::Disabled {
-                dummy_point,
-                dummy_directed,
-            } => (dummy_point, dummy_directed),
-        }
-    }
-
-    fn is_enabled(&self) -> bool { matches!(self, Self::Enabled(_)) }
-}
 
 /// A type that stores all the layouts associated with this renderer.
 struct Layouts {
@@ -167,72 +48,37 @@ struct Layouts {
     ui: ui::UiLayout,
 }
 
-struct Locals {
-    clouds: Consts<clouds::Locals>,
-    clouds_bind: clouds::BindGroup,
-
-    postprocess: Consts<postprocess::Locals>,
-    postprocess_bind: postprocess::BindGroup,
+/// A type that stores all the pipelines associated with this renderer.
+struct Pipelines {
+    figure: figure::FigurePipeline,
+    fluid: fluid::FluidPipeline,
+    lod_terrain: lod_terrain::LodTerrainPipeline,
+    particle: particle::ParticlePipeline,
+    clouds: clouds::CloudsPipeline,
+    postprocess: postprocess::PostProcessPipeline,
+    // Consider reenabling at some time
+    // player_shadow: figure::FigurePipeline,
+    skybox: skybox::SkyboxPipeline,
+    sprite: sprite::SpritePipeline,
+    terrain: terrain::TerrainPipeline,
+    ui: ui::UiPipeline,
 }
 
-impl Locals {
-    fn new(
-        device: &wgpu::Device,
-        layouts: &Layouts,
-        clouds_locals: Consts<clouds::Locals>,
-        postprocess_locals: Consts<postprocess::Locals>,
-        tgt_color_view: &wgpu::TextureView,
-        tgt_depth_view: &wgpu::TextureView,
-        tgt_color_pp_view: &wgpu::TextureView,
-        sampler: &wgpu::Sampler,
-        depth_sampler: &wgpu::Sampler,
-    ) -> Self {
-        let clouds_bind = layouts.clouds.bind(
-            device,
-            tgt_color_view,
-            tgt_depth_view,
-            sampler,
-            depth_sampler,
-            &clouds_locals,
-        );
-        let postprocess_bind =
-            layouts
-                .postprocess
-                .bind(device, tgt_color_pp_view, sampler, &postprocess_locals);
+/// Render target views
+struct Views {
+    // NOTE: unused for now
+    win_depth: wgpu::TextureView,
 
-        Self {
-            clouds: clouds_locals,
-            clouds_bind,
-            postprocess: postprocess_locals,
-            postprocess_bind,
-        }
-    }
+    tgt_color: wgpu::TextureView,
+    tgt_depth: wgpu::TextureView,
+    // TODO: rename
+    tgt_color_pp: wgpu::TextureView,
+}
 
-    fn rebind(
-        &mut self,
-        device: &wgpu::Device,
-        layouts: &Layouts,
-        // Call when these are recreated and need to be rebound
-        // e.g. resizing
-        tgt_color_view: &wgpu::TextureView,
-        tgt_depth_view: &wgpu::TextureView,
-        tgt_color_pp_view: &wgpu::TextureView,
-        sampler: &wgpu::Sampler,
-        depth_sampler: &wgpu::Sampler,
-    ) {
-        self.clouds_bind = layouts.clouds.bind(
-            device,
-            tgt_color_view,
-            tgt_depth_view,
-            sampler,
-            depth_sampler,
-            &self.clouds,
-        );
-        self.postprocess_bind =
-            layouts
-                .postprocess
-                .bind(device, tgt_color_pp_view, sampler, &self.postprocess);
-    }
+/// Shadow rendering textures, layouts, pipelines, and bind groups
+struct Shadow {
+    map: ShadowMap,
+    bind: ShadowTexturesBindGroup,
 }
 
 /// A type that encapsulates rendering state. `Renderer` is central to Voxygen's
@@ -242,51 +88,28 @@ impl Locals {
 pub struct Renderer {
     device: wgpu::Device,
     queue: wgpu::Queue,
+    surface: wgpu::Surface,
     swap_chain: wgpu::SwapChain,
     sc_desc: wgpu::SwapChainDescriptor,
-    surface: wgpu::Surface,
-
-    win_depth_view: wgpu::TextureView,
-
-    tgt_color_view: wgpu::TextureView,
-    tgt_depth_view: wgpu::TextureView,
-    // TODO: rename
-    tgt_color_pp_view: wgpu::TextureView,
 
     sampler: wgpu::Sampler,
     depth_sampler: wgpu::Sampler,
 
-    shadow_map: ShadowMap,
-    shadow_bind: ShadowTexturesBindGroup,
-
     layouts: Layouts,
-
-    figure_pipeline: figure::FigurePipeline,
-    fluid_pipeline: fluid::FluidPipeline,
-    lod_terrain_pipeline: lod_terrain::LodTerrainPipeline,
-    particle_pipeline: particle::ParticlePipeline,
-    clouds_pipeline: clouds::CloudsPipeline,
-    postprocess_pipeline: postprocess::PostProcessPipeline,
-    // Consider reenabling at some time
-    // player_shadow_pipeline: figure::FigurePipeline,
-    skybox_pipeline: skybox::SkyboxPipeline,
-    sprite_pipeline: sprite::SpritePipeline,
-    terrain_pipeline: terrain::TerrainPipeline,
-    ui_pipeline: ui::UiPipeline,
-
-    shaders: AssetHandle<Shaders>,
-
+    pipelines: Pipelines,
+    shadow: Shadow,
     // Note: we keep these here since their bind groups need to be updated if we resize the
     // color/depth textures
     locals: Locals,
-
+    views: Views,
     noise_tex: Texture,
 
-    mode: RenderMode,
+    shaders: AssetHandle<Shaders>,
 
+    mode: RenderMode,
     resolution: Vec2<u32>,
 
-    tracer: super::time::GpuTracer<spans::Id>,
+    profiler: wgpu_profiler::GpuProfiler,
 }
 
 impl Renderer {
@@ -334,7 +157,10 @@ impl Renderer {
                 features: wgpu::Features::DEPTH_CLAMPING
                     | wgpu::Features::ADDRESS_MODE_CLAMP_TO_BORDER
                     | wgpu::Features::PUSH_CONSTANTS
-                    | super::time::required_features(),
+                    // TODO: make optional based on enabling profiling
+                    // NOTE: requires recreating the device/queue is this setting changes
+                    // alternatively it could be a compile time feature toggle
+                    | super::scope::required_features(),
                 limits,
             },
             None,
@@ -399,16 +225,7 @@ impl Renderer {
         };
 
         let (
-            skybox_pipeline,
-            figure_pipeline,
-            terrain_pipeline,
-            fluid_pipeline,
-            sprite_pipeline,
-            particle_pipeline,
-            ui_pipeline,
-            lod_terrain_pipeline,
-            clouds_pipeline,
-            postprocess_pipeline,
+            pipelines,
             //player_shadow_pipeline,
             point_shadow_pipeline,
             terrain_directed_shadow_pipeline,
@@ -422,8 +239,7 @@ impl Renderer {
             shadow_views.is_some(),
         )?;
 
-        let (tgt_color_view, tgt_depth_view, tgt_color_pp_view, win_depth_view) =
-            Self::create_rt_views(&device, (dims.width, dims.height), &mode)?;
+        let views = Self::create_rt_views(&device, (dims.width, dims.height), &mode)?;
 
         let shadow_map = if let (
             Some(point_pipeline),
@@ -467,6 +283,11 @@ impl Renderer {
                 .bind_shadow_textures(&device, point, directed)
         };
 
+        let shadow = Shadow {
+            map: shadow_map,
+            bind: shadow_bind,
+        };
+
         let create_sampler = |filter| {
             device.create_sampler(&wgpu::SamplerDescriptor {
                 label: None,
@@ -502,77 +323,51 @@ impl Renderer {
             &layouts,
             clouds_locals,
             postprocess_locals,
-            &tgt_color_view,
-            &tgt_depth_view,
-            &tgt_color_pp_view,
+            &views.tgt_color,
+            &views.tgt_depth,
+            &views.tgt_color_pp,
             &sampler,
             &depth_sampler,
         );
 
-        let tracer =
-            super::time::GpuTracer::new(&device, &queue, "voxygen_gpu_chrome_trace.json").unwrap();
+        let mut profiler = wgpu_profiler::GpuProfiler::new(4, queue.get_timestamp_period());
+        profiler.enable_timer = mode.profiler_enabled;
+        profiler.enable_debug_marker = mode.profiler_enabled;
 
         Ok(Self {
             device,
             queue,
+            surface,
             swap_chain,
             sc_desc,
-            surface,
 
-            win_depth_view,
-
-            tgt_color_view,
-            tgt_depth_view,
-            tgt_color_pp_view,
+            layouts,
+            pipelines,
+            shadow,
+            locals,
+            views,
 
             sampler,
             depth_sampler,
-
-            shadow_map,
-            shadow_bind,
-
-            layouts,
-
-            skybox_pipeline,
-            figure_pipeline,
-            terrain_pipeline,
-            fluid_pipeline,
-            sprite_pipeline,
-            particle_pipeline,
-            ui_pipeline,
-            lod_terrain_pipeline,
-            clouds_pipeline,
-            postprocess_pipeline,
-            shaders,
-            //player_shadow_pipeline,
-            locals,
-
             noise_tex,
 
-            mode,
+            shaders,
 
+            mode,
             resolution: Vec2::new(dims.width, dims.height),
 
-            tracer,
+            profiler,
         })
     }
-
-    /// Get references to the internal render target views that get rendered to
-    /// before post-processing.
-    #[allow(dead_code)]
-    pub fn tgt_views(&self) -> (&wgpu::TextureView, &wgpu::TextureView) {
-        (&self.tgt_color_view, &self.tgt_depth_view)
-    }
-
-    /// Get references to the internal render target views that get displayed
-    /// directly by the window.
-    #[allow(dead_code)]
-    pub fn win_views(&self) -> &wgpu::TextureView { &self.win_depth_view }
 
     /// Change the render mode.
     pub fn set_render_mode(&mut self, mode: RenderMode) -> Result<(), RenderError> {
         self.mode = mode;
         self.sc_desc.present_mode = self.mode.present_mode.into();
+
+        // Enable/disable profiler
+        self.profiler.enable_timer = self.mode.profiler_enabled;
+        self.profiler.enable_debug_marker = self.mode.profiler_enabled;
 
         // Recreate render target
         self.on_resize(self.resolution)?;
@@ -597,31 +392,26 @@ impl Renderer {
             self.swap_chain = self.device.create_swap_chain(&self.surface, &self.sc_desc);
 
             // Resize other render targets
-            let (tgt_color_view, tgt_depth_view, tgt_color_pp_view, win_depth_view) =
-                Self::create_rt_views(&mut self.device, (dims.x, dims.y), &self.mode)?;
-            self.win_depth_view = win_depth_view;
-            self.tgt_color_view = tgt_color_view;
-            self.tgt_depth_view = tgt_depth_view;
-            self.tgt_color_pp_view = tgt_color_pp_view;
+            self.views = Self::create_rt_views(&mut self.device, (dims.x, dims.y), &self.mode)?;
             // Rebind views to clouds/postprocess bind groups
             self.locals.rebind(
                 &self.device,
                 &self.layouts,
-                &self.tgt_color_view,
-                &self.tgt_depth_view,
-                &self.tgt_color_pp_view,
+                &self.views.tgt_color,
+                &self.views.tgt_depth,
+                &self.views.tgt_color_pp,
                 &self.sampler,
                 &self.depth_sampler,
             );
 
             if let (ShadowMap::Enabled(shadow_map), ShadowMode::Map(mode)) =
-                (&mut self.shadow_map, self.mode.shadow)
+                (&mut self.shadow.map, self.mode.shadow)
             {
                 match Self::create_shadow_views(&mut self.device, (dims.x, dims.y), &mode) {
                     Ok((point_depth, directed_depth)) => {
                         shadow_map.point_depth = point_depth;
                         shadow_map.directed_depth = directed_depth;
-                        self.shadow_bind = self.layouts.global.bind_shadow_textures(
+                        self.shadow.bind = self.layouts.global.bind_shadow_textures(
                             &self.device,
                             &shadow_map.point_depth,
                             &shadow_map.directed_depth,
@@ -637,19 +427,12 @@ impl Renderer {
         Ok(())
     }
 
+    /// Create render target views
     fn create_rt_views(
         device: &wgpu::Device,
         size: (u32, u32),
         mode: &RenderMode,
-    ) -> Result<
-        (
-            wgpu::TextureView,
-            wgpu::TextureView,
-            wgpu::TextureView,
-            wgpu::TextureView,
-        ),
-        RenderError,
-    > {
+    ) -> Result<Views, RenderError> {
         let upscaled = Vec2::<u32>::from(size)
             .map(|e| (e as f32 * mode.upscale_mode.factor) as u32)
             .into_tuple();
@@ -743,12 +526,12 @@ impl Renderer {
             array_layer_count: None,
         });
 
-        Ok((
-            tgt_color_view,
-            tgt_depth_view,
-            tgt_color_pp_view,
-            win_depth_view,
-        ))
+        Ok(Views {
+            tgt_color: tgt_color_view,
+            tgt_depth: tgt_depth_view,
+            tgt_color_pp: tgt_color_pp_view,
+            win_depth: win_depth_view,
+        })
     }
 
     fn create_dummy_shadow_tex(device: &wgpu::Device, queue: &wgpu::Queue) -> (Texture, Texture) {
@@ -959,7 +742,7 @@ impl Renderer {
 
     /// Get the resolution of the shadow render target.
     pub fn get_shadow_resolution(&self) -> (Vec2<u32>, Vec2<u32>) {
-        if let ShadowMap::Enabled(shadow_map) = &self.shadow_map {
+        if let ShadowMap::Enabled(shadow_map) = &self.shadow.map {
             (
                 shadow_map.point_depth.get_dimensions().xy(),
                 shadow_map.directed_depth.get_dimensions().xy(),
@@ -993,7 +776,6 @@ impl Renderer {
     /// there may be some GPUs that don't quite support it correctly, the
     /// impact is relatively small, so there is no reason not to enable it where
     /// available.
-    #[allow(unsafe_code)]
     fn enable_seamless_cube_maps() {
         todo!()
         // unsafe {
@@ -1072,34 +854,16 @@ impl Renderer {
             &self.shaders.read(),
             &self.mode,
             &self.sc_desc,
-            self.shadow_map.is_enabled(),
+            self.shadow.map.is_enabled(),
         ) {
             Ok((
-                skybox_pipeline,
-                figure_pipeline,
-                terrain_pipeline,
-                fluid_pipeline,
-                sprite_pipeline,
-                particle_pipeline,
-                ui_pipeline,
-                lod_terrain_pipeline,
-                clouds_pipeline,
-                postprocess_pipeline,
+                pipelines,
                 //player_shadow_pipeline,
                 point_shadow_pipeline,
                 terrain_directed_shadow_pipeline,
                 figure_directed_shadow_pipeline,
             )) => {
-                self.skybox_pipeline = skybox_pipeline;
-                self.figure_pipeline = figure_pipeline;
-                self.terrain_pipeline = terrain_pipeline;
-                self.fluid_pipeline = fluid_pipeline;
-                self.sprite_pipeline = sprite_pipeline;
-                self.particle_pipeline = particle_pipeline;
-                self.ui_pipeline = ui_pipeline;
-                self.lod_terrain_pipeline = lod_terrain_pipeline;
-                self.clouds_pipeline = clouds_pipeline;
-                self.postprocess_pipeline = postprocess_pipeline;
+                self.pipelines = pipelines;
                 //self.player_shadow_pipeline = player_shadow_pipeline;
                 if let (
                     Some(point_pipeline),
@@ -1110,7 +874,7 @@ impl Renderer {
                     point_shadow_pipeline,
                     terrain_directed_shadow_pipeline,
                     figure_directed_shadow_pipeline,
-                    &mut self.shadow_map,
+                    &mut self.shadow.map,
                 ) {
                     shadow_map.point_pipeline = point_pipeline;
                     shadow_map.terrain_directed_pipeline = terrain_directed_pipeline;
@@ -1275,9 +1039,34 @@ impl Renderer {
 
     /// Creates a download buffer, downloads the win_color_view, and converts to
     /// a image::DynamicImage.
-    #[allow(clippy::map_clone)] // TODO: Pending review in #587
-    pub fn create_screenshot(&mut self) -> Result<image::DynamicImage, RenderError> {
-        todo!()
+    //pub fn create_screenshot(&mut self) -> Result<image::DynamicImage,
+    // RenderError> {
+    pub fn create_screenshot(&mut self) {
+        // TODO: check if enabled
+        // TODO: save alongside a screenshot
+        // Take profiler snapshot
+        let profiling_data = if let Some(data) = self.profiler.process_finished_frame() {
+            data
+        } else {
+            error!("Failed to retrieve profiling data");
+            return;
+        };
+
+        let file_name = format!(
+            "frame-trace_{}.json",
+            std::time::SystemTime::now()
+                .duration_since(std::time::SystemTime::UNIX_EPOCH)
+                .map(|d| d.as_millis())
+                .unwrap_or(0)
+        );
+
+        wgpu_profiler::chrometrace::write_chrometrace(
+            std::path::Path::new(&file_name),
+            &profiling_data,
+        );
+
+        println!("{}", file_name);
+        //todo!()
         // let (width, height) = self.get_resolution().into_tuple();
 
         // let download_buf = self
@@ -2042,7 +1831,6 @@ impl Renderer {
 }
 
 /// Creates all the pipelines used to render.
-#[allow(clippy::type_complexity)] // TODO: Pending review in #587
 fn create_pipelines(
     device: &wgpu::Device,
     layouts: &Layouts,
@@ -2052,16 +1840,7 @@ fn create_pipelines(
     has_shadow_views: bool,
 ) -> Result<
     (
-        skybox::SkyboxPipeline,
-        figure::FigurePipeline,
-        terrain::TerrainPipeline,
-        fluid::FluidPipeline,
-        sprite::SpritePipeline,
-        particle::ParticlePipeline,
-        ui::UiPipeline,
-        lod_terrain::LodTerrainPipeline,
-        clouds::CloudsPipeline,
-        postprocess::PostProcessPipeline,
+        Pipelines,
         //figure::FigurePipeline,
         Option<shadow::PointShadowPipeline>,
         Option<shadow::ShadowPipeline>,
@@ -2351,16 +2130,18 @@ fn create_pipelines(
     );
 
     Ok((
-        skybox_pipeline,
-        figure_pipeline,
-        terrain_pipeline,
-        fluid_pipeline,
-        sprite_pipeline,
-        particle_pipeline,
-        ui_pipeline,
-        lod_terrain_pipeline,
-        clouds_pipeline,
-        postprocess_pipeline,
+        Pipelines {
+            skybox: skybox_pipeline,
+            figure: figure_pipeline,
+            terrain: terrain_pipeline,
+            fluid: fluid_pipeline,
+            sprite: sprite_pipeline,
+            particle: particle_pipeline,
+            ui: ui_pipeline,
+            lod_terrain: lod_terrain_pipeline,
+            clouds: clouds_pipeline,
+            postprocess: postprocess_pipeline,
+        },
         // player_shadow_pipeline,
         Some(point_shadow_pipeline),
         Some(terrain_directed_shadow_pipeline),

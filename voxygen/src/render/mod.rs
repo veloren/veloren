@@ -8,8 +8,8 @@ pub mod mesh;
 pub mod model;
 pub mod pipelines;
 pub mod renderer;
+mod scope;
 pub mod texture;
-mod time;
 
 // Reexports
 pub use self::{
@@ -271,4 +271,5 @@ pub struct RenderMode {
     pub shadow: ShadowMode,
     pub upscale_mode: UpscaleMode,
     pub present_mode: PresentMode,
+    pub profiler_enabled: bool,
 }

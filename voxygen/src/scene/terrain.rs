@@ -516,7 +516,7 @@ impl SpriteRenderContext {
                             .into_iter()
                             .map(
                                 |SpriteDataResponse {
-                                     locals,
+                                     locals: locals_buffer,
                                      model,
                                      offset,
                                  }| {
