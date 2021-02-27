@@ -1,13 +1,13 @@
 use common::{
     comp::{
         skills::{GeneralSkill, Skill},
-        Body, CharacterState, Energy, EnergyChange, EnergySource, Health, Poise, PoiseChange,
-        PoiseSource, Pos, Stats,
+        Body, CharacterState, Combo, Energy, EnergyChange, EnergySource, Health, Poise,
+        PoiseChange, PoiseSource, Pos, Stats,
     },
     event::{EventBus, ServerEvent},
     metrics::SysMetrics,
     outcome::Outcome,
-    resources::DeltaTime,
+    resources::{DeltaTime, Time},
     span,
     uid::Uid,
 };
@@ -20,11 +20,13 @@ use vek::Vec3;
 
 const ENERGY_REGEN_ACCEL: f32 = 10.0;
 const POISE_REGEN_ACCEL: f32 = 2.0;
+const COMBO_DECAY_START: f64 = 10.0; // seconds
 
 #[derive(SystemData)]
 pub struct ReadData<'a> {
     entities: Entities<'a>,
     dt: Read<'a, DeltaTime>,
+    time: Read<'a, Time>,
     server_bus: Read<'a, EventBus<ServerEvent>>,
     metrics: ReadExpect<'a, SysMetrics>,
     positions: ReadStorage<'a, Pos>,
@@ -43,6 +45,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Health>,
         WriteStorage<'a, Poise>,
         WriteStorage<'a, Energy>,
+        WriteStorage<'a, Combo>,
         Write<'a, Vec<Outcome>>,
     );
 
@@ -54,6 +57,7 @@ impl<'a> System<'a> for Sys {
             mut healths,
             mut poises,
             mut energies,
+            mut combos,
             mut outcomes,
         ): Self::SystemData,
     ) {
@@ -253,6 +257,13 @@ impl<'a> System<'a> for Sys {
                 CharacterState::Roll { .. }
                 | CharacterState::Climb { .. }
                 | CharacterState::Stunned { .. } => {},
+            }
+        }
+
+        // Decay combo
+        for (_, mut combo) in (&read_data.entities, &mut combos).join() {
+            if combo.counter() > 0 && read_data.time.0 - combo.last_increase() > COMBO_DECAY_START {
+                combo.reset();
             }
         }
 

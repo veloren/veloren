@@ -8,6 +8,7 @@ pub mod buff;
 #[cfg(not(target_arch = "wasm32"))]
 mod character_state;
 #[cfg(not(target_arch = "wasm32"))] pub mod chat;
+pub mod combo;
 #[cfg(not(target_arch = "wasm32"))]
 mod controller;
 #[cfg(not(target_arch = "wasm32"))] mod energy;
@@ -58,6 +59,7 @@ pub use self::{
     chat::{
         ChatMode, ChatMsg, ChatType, Faction, SpeechBubble, SpeechBubbleType, UnresolvedChatMsg,
     },
+    combo::Combo,
     controller::{
         Climb, ControlAction, ControlEvent, Controller, ControllerInputs, GroupManip, Input,
         InventoryManip, LoadoutManip, MountState, Mounting, SlotManip,

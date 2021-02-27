@@ -86,6 +86,13 @@ impl Attack {
         self
     }
 
+    pub fn with_combo_increment(self) -> Self {
+        self.with_effect(
+            AttackEffect::new(None, CombatEffect::Combo(1))
+                .with_requirement(CombatRequirement::AnyDamage),
+        )
+    }
+
     pub fn effects(&self) -> impl Iterator<Item = &AttackEffect> { self.effects.iter() }
 
     #[allow(clippy::too_many_arguments)]
@@ -192,6 +199,14 @@ impl Attack {
                                 emit(ServerEvent::Damage {
                                     entity: target_entity,
                                     change,
+                                });
+                            }
+                        },
+                        CombatEffect::Combo(c) => {
+                            if let Some(attacker_entity) = attacker_info.map(|a| a.entity) {
+                                emit(ServerEvent::ComboChange {
+                                    entity: attacker_entity,
+                                    change: *c,
                                 });
                             }
                         },
@@ -303,6 +318,14 @@ impl Attack {
                             });
                         }
                     },
+                    CombatEffect::Combo(c) => {
+                        if let Some(attacker_entity) = attacker_info.map(|a| a.entity) {
+                            emit(ServerEvent::ComboChange {
+                                entity: attacker_entity,
+                                change: c,
+                            });
+                        }
+                    },
                 }
             }
         }
@@ -368,6 +391,7 @@ pub enum CombatEffect {
     EnergyReward(f32),
     Lifesteal(f32),
     Poise(f32),
+    Combo(i32),
 }
 
 #[cfg(not(target_arch = "wasm32"))]

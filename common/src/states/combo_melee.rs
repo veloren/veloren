@@ -214,7 +214,8 @@ impl CharacterBehavior for Data {
                         .with_crit(0.5, 1.3)
                         .with_effect(energy)
                         .with_effect(poise)
-                        .with_effect(knockback);
+                        .with_effect(knockback)
+                        .with_combo_increment();
 
                     data.updater.insert(data.entity, Melee {
                         attack,
