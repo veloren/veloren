@@ -1338,7 +1338,13 @@ impl FigureMgr {
                         },
                         CharacterState::Talk => anim::character::TalkAnimation::update_skeleton(
                             &target_base,
-                            (active_tool_kind, second_tool_kind, vel.0.magnitude(), time),
+                            (
+                                active_tool_kind,
+                                second_tool_kind,
+                                vel.0.magnitude(),
+                                time,
+                                look_dir,
+                            ),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
@@ -1361,6 +1367,7 @@ impl FigureMgr {
                                         // TODO: Update to use the quaternion.
                                         ori * anim::vek::Vec3::<f32>::unit_y(),
                                         state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                        look_dir,
                                         vel.0,
                                         time,
                                     ),

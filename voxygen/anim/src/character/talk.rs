@@ -2,13 +2,13 @@ use super::{
     super::{vek::*, Animation},
     CharacterSkeleton, SkeletonAttr,
 };
-use common::comp::item::ToolKind;
+use common::{comp::item::ToolKind, util::Dir};
 use std::f32::consts::PI;
 
 pub struct TalkAnimation;
 
 impl Animation for TalkAnimation {
-    type Dependency = (Option<ToolKind>, Option<ToolKind>, f32, f64);
+    type Dependency = (Option<ToolKind>, Option<ToolKind>, f32, f64, Dir);
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -18,7 +18,7 @@ impl Animation for TalkAnimation {
     #[allow(clippy::approx_constant)] // TODO: Pending review in #587
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (_active_tool_kind, _second_tool_kind, _velocity, _global_time): Self::Dependency,
+        (_active_tool_kind, _second_tool_kind, _velocity, _global_time, look_dir): Self::Dependency,
         anim_time: f64,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -30,7 +30,7 @@ impl Animation for TalkAnimation {
         let slowb = (anim_time as f32 * 4.0 + PI / 2.0).sin();
         let slowc = (anim_time as f32 * 12.0 + PI / 2.0).sin();
 
-        next.head.orientation = Quaternion::rotation_x(slowc * 0.035);
+        next.head.orientation = Quaternion::rotation_x(slowc * 0.035 + look_dir.z * 0.7);
         next.hand_l.position = Vec3::new(
             -s_a.hand.0 + 0.5 + slowb * 0.5,
             s_a.hand.1 + 5.0 + slowc * 1.0,
