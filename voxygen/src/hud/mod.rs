@@ -204,17 +204,6 @@ widget_ids! {
         overheads[],
         overitems[],
 
-        // Intro Text
-        intro_bg,
-        intro_text,
-        intro_close,
-        intro_close_2,
-        intro_close_3,
-        intro_close_4,
-        intro_close_5,
-        intro_check,
-        intro_check_text,
-
         // Alpha Disclaimer
         alpha_text,
 
@@ -284,13 +273,17 @@ widget_ids! {
         auto_walk_txt,
         auto_walk_bg,
 
-        // Example Quest
+        // Tutorial
         quest_bg,
         q_headline_bg,
         q_headline,
         q_text_bg,
         q_text,
         accept_button,
+        intro_button,
+        tut_arrow,
+        tut_arrow_txt_bg,
+        tut_arrow_txt,
     }
 }
 
@@ -603,7 +596,8 @@ impl Show {
         };
     }
 
-    fn toggle_help(&mut self) { self.help = !self.help }
+    // TODO: Add self updating key-bindings element
+    //fn toggle_help(&mut self) { self.help = !self.help }
 
     fn toggle_ui(&mut self) { self.ui = !self.ui; }
 
@@ -791,7 +785,7 @@ impl Hud {
             //intro_2: false,
             show: Show {
                 help: false,
-                intro: true,
+                intro: false,
                 debug: false,
                 bag: false,
                 bag_inv: false,
@@ -1617,10 +1611,69 @@ impl Hud {
         }
 
         // Temporary Example Quest
+        let arrow_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.8; //Animation timer
+        if let Some(toggle_cursor_key) = global_state
+            .settings
+            .controls
+            .get_binding(GameInput::ToggleCursor)
+        {
+            if !self.show.intro {
+                match global_state.settings.gameplay.intro_show {
+                    Intro::Show => {
+                        if Button::image(self.imgs.button)
+                            .w_h(150.0, 40.0)
+                            .hover_image(self.imgs.button_hover)
+                            .press_image(self.imgs.button_press)
+                            .bottom_left_with_margins_on(ui_widgets.window, 200.0, 120.0)
+                            .label(&i18n.get("hud.tutorial_btn"))
+                            .label_font_id(self.fonts.cyri.conrod_id)
+                            .label_font_size(self.fonts.cyri.scale(18))
+                            .label_color(TEXT_COLOR)
+                            .label_y(conrod_core::position::Relative::Scalar(2.0))
+                            .image_color(ENEMY_HP_COLOR)
+                            .set(self.ids.intro_button, ui_widgets)
+                            .was_clicked()
+                        {
+                            self.show.intro = true;
+                            self.show.want_grab = true;
+                        }
+                        Image::new(self.imgs.sp_indicator_arrow)
+                            .w_h(20.0, 11.0)
+                            .mid_top_with_margin_on(self.ids.intro_button, -20.0 + arrow_ani as f64)
+                            .color(Some(QUALITY_LEGENDARY))
+                            .set(self.ids.tut_arrow, ui_widgets);
+                        Text::new(
+                            &i18n
+                                .get("hud.tutorial_click_here")
+                                .replace("{key}", toggle_cursor_key.to_string().as_str()),
+                        )
+                        .mid_top_with_margin_on(self.ids.tut_arrow, -18.0)
+                        .font_id(self.fonts.cyri.conrod_id)
+                        .font_size(self.fonts.cyri.scale(14))
+                        .color(BLACK)
+                        .set(self.ids.tut_arrow_txt_bg, ui_widgets);
+                        Text::new(
+                            &i18n
+                                .get("hud.tutorial_click_here")
+                                .replace("{key}", toggle_cursor_key.to_string().as_str()),
+                        )
+                        .bottom_right_with_margins_on(self.ids.tut_arrow_txt_bg, 1.0, 1.0)
+                        .font_id(self.fonts.cyri.conrod_id)
+                        .font_size(self.fonts.cyri.scale(14))
+                        .color(QUALITY_LEGENDARY)
+                        .set(self.ids.tut_arrow_txt, ui_widgets);
+                    },
+                    Intro::Never => {
+                        self.show.intro = false;
+                    },
+                }
+            }
+        }
+        // TODO: Add event/stat based tutorial system
         if self.show.intro && !self.show.esc_menu {
             match global_state.settings.gameplay.intro_show {
                 Intro::Show => {
-                    if self.pulse > 20.0 {
+                    if self.show.intro {
                         self.show.want_grab = false;
                         let quest_headline = &i18n.get("hud.temp_quest_headline");
                         let quest_text = &i18n.get("hud.temp_quest_text");
@@ -1643,13 +1696,15 @@ impl Hud {
                             .set(self.ids.q_headline, ui_widgets);
 
                         Text::new(quest_text)
-                            .down_from(self.ids.q_headline_bg, 40.0)
+                            .mid_top_with_margin_on(self.ids.quest_bg, 360.0)
+                            .w(350.0)
                             .font_size(self.fonts.cyri.scale(17))
                             .font_id(self.fonts.cyri.conrod_id)
                             .color(TEXT_BG)
                             .set(self.ids.q_text_bg, ui_widgets);
                         Text::new(quest_text)
                             .bottom_left_with_margins_on(self.ids.q_text_bg, 1.0, 1.0)
+                            .w(350.0)
                             .font_size(self.fonts.cyri.scale(17))
                             .font_id(self.fonts.cyri.conrod_id)
                             .color(TEXT_COLOR)
@@ -1659,8 +1714,8 @@ impl Hud {
                             .w_h(212.0, 52.0)
                             .hover_image(self.imgs.button_hover)
                             .press_image(self.imgs.button_press)
-                            .mid_bottom_with_margin_on(self.ids.q_text_bg, -120.0)
-                            .label(&i18n.get("common.accept"))
+                            .mid_bottom_with_margin_on(self.ids.q_text_bg, -80.0)
+                            .label(&i18n.get("common.close"))
                             .label_font_id(self.fonts.cyri.conrod_id)
                             .label_font_size(self.fonts.cyri.scale(22))
                             .label_color(TEXT_COLOR)
@@ -1668,9 +1723,34 @@ impl Hud {
                             .set(self.ids.accept_button, ui_widgets)
                             .was_clicked()
                         {
-                            self.show.intro = !self.show.intro;
+                            self.show.intro = false;
                             events.push(Event::Intro(Intro::Never));
                             self.show.want_grab = true;
+                        }
+                        if !self.show.crafting && !self.show.bag {
+                            Image::new(self.imgs.sp_indicator_arrow)
+                                .w_h(20.0, 11.0)
+                                .bottom_right_with_margins_on(
+                                    ui_widgets.window,
+                                    40.0 + arrow_ani as f64,
+                                    205.0,
+                                )
+                                .color(Some(QUALITY_LEGENDARY))
+                                .set(self.ids.tut_arrow, ui_widgets);
+                            Text::new(&i18n.get("hud.tutorial_elements"))
+                                .mid_top_with_margin_on(self.ids.tut_arrow, -50.0)
+                                .font_id(self.fonts.cyri.conrod_id)
+                                .font_size(self.fonts.cyri.scale(40))
+                                .color(BLACK)
+                                .floating(true)
+                                .set(self.ids.tut_arrow_txt_bg, ui_widgets);
+                            Text::new(&i18n.get("hud.tutorial_elements"))
+                                .bottom_right_with_margins_on(self.ids.tut_arrow_txt_bg, 1.0, 1.0)
+                                .font_id(self.fonts.cyri.conrod_id)
+                                .font_size(self.fonts.cyri.scale(40))
+                                .color(QUALITY_LEGENDARY)
+                                .floating(true)
+                                .set(self.ids.tut_arrow_txt, ui_widgets);
                         }
                     }
                 },
@@ -1918,7 +1998,8 @@ impl Hud {
         }
 
         // Help Text
-        if self.show.help && !self.show.map && !self.show.esc_menu {
+        // TODO Add dynamic controls display
+        /*if self.show.help && !self.show.map && !self.show.esc_menu {
             Image::new(self.imgs.help)
                 .middle_of(ui_widgets.window)
                 .w_h(1260.0, 519.0)
@@ -1935,7 +2016,7 @@ impl Hud {
             {
                 self.show.help = false;
             };
-        }
+        }*/
 
         // Bag button and nearby icons
         let ecs = client.state().ecs();
@@ -2884,7 +2965,8 @@ impl Hud {
                     true
                 },
                 GameInput::Help if state => {
-                    self.show.toggle_help();
+                    self.show.toggle_settings(global_state);
+                    self.show.settings_tab = SettingsTab::Controls;
                     true
                 },
                 GameInput::ToggleDebug if state => {
