@@ -1,5 +1,6 @@
 mod binding;
 pub(super) mod drawer;
+mod spans;
 
 use super::{
     consts::Consts,
@@ -284,6 +285,8 @@ pub struct Renderer {
     mode: RenderMode,
 
     resolution: Vec2<u32>,
+
+    tracer: super::time::GpuTracer<spans::Id>,
 }
 
 impl Renderer {
@@ -330,7 +333,8 @@ impl Renderer {
                 label: None,
                 features: wgpu::Features::DEPTH_CLAMPING
                     | wgpu::Features::ADDRESS_MODE_CLAMP_TO_BORDER
-                    | wgpu::Features::PUSH_CONSTANTS,
+                    | wgpu::Features::PUSH_CONSTANTS
+                    | super::time::required_features(),
                 limits,
             },
             None,
@@ -505,6 +509,9 @@ impl Renderer {
             &depth_sampler,
         );
 
+        let tracer =
+            super::time::GpuTracer::new(&device, &queue, "voxygen_gpu_chrome_trace.json").unwrap();
+
         Ok(Self {
             device,
             queue,
@@ -545,6 +552,8 @@ impl Renderer {
             mode,
 
             resolution: Vec2::new(dims.width, dims.height),
+
+            tracer,
         })
     }
 
@@ -1037,7 +1046,7 @@ impl Renderer {
             Err(wgpu::SwapChainError::Timeout) => {
                 // This will probably be resolved on the next frame
                 // NOTE: we don't log this because it happens very frequently with
-                // PresentMode::Fifo and unlimited FPS
+                // PresentMode::Fifo on certain machines
                 return Ok(None);
             },
             Err(err @ wgpu::SwapChainError::Outdated) => {

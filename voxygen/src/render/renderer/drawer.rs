@@ -9,26 +9,29 @@ use super::{
             terrain, ui, ColLights, GlobalsBindGroup, Light, Shadow,
         },
     },
+    spans::{self, OwningSpan, Span},
     Renderer, ShadowMap, ShadowMapRenderer,
 };
 use core::{num::NonZeroU32, ops::Range};
 use std::sync::Arc;
 use vek::Aabr;
 
-pub struct Drawer<'a> {
+pub struct Drawer<'frame> {
     encoder: Option<wgpu::CommandEncoder>,
-    pub renderer: &'a mut Renderer,
+    pub renderer: &'frame mut Renderer,
     tex: wgpu::SwapChainTexture,
-    globals: &'a GlobalsBindGroup,
+    globals: &'frame GlobalsBindGroup,
 }
 
-impl<'a> Drawer<'a> {
+impl<'frame> Drawer<'frame> {
     pub fn new(
-        encoder: wgpu::CommandEncoder,
-        renderer: &'a mut Renderer,
+        mut encoder: wgpu::CommandEncoder,
+        renderer: &'frame mut Renderer,
         tex: wgpu::SwapChainTexture,
-        globals: &'a GlobalsBindGroup,
+        globals: &'frame GlobalsBindGroup,
     ) -> Self {
+        renderer.tracer.start_span(&mut encoder, &spans::Id::Frame);
+
         Self {
             encoder: Some(encoder),
             renderer,
@@ -58,6 +61,11 @@ impl<'a> Drawer<'a> {
                         ),
                     });
 
+            let mut render_pass = OwningSpan::start(
+                &self.renderer.tracer,
+                render_pass,
+                spans::Id::DirectedShadows,
+            );
             render_pass.set_bind_group(0, &self.globals.bind_group, &[]);
 
             Some(ShadowPassDrawer {
@@ -71,7 +79,7 @@ impl<'a> Drawer<'a> {
     }
 
     pub fn first_pass(&mut self) -> FirstPassDrawer {
-        let mut render_pass =
+        let render_pass =
             self.encoder
                 .as_mut()
                 .unwrap()
@@ -97,17 +105,21 @@ impl<'a> Drawer<'a> {
                     ),
                 });
 
+        let mut render_pass =
+            OwningSpan::start(&self.renderer.tracer, render_pass, spans::Id::PassOne);
+
         render_pass.set_bind_group(0, &self.globals.bind_group, &[]);
         render_pass.set_bind_group(1, &self.renderer.shadow_bind.bind_group, &[]);
 
         FirstPassDrawer {
             render_pass,
             renderer: &self.renderer,
+            figures_called: false,
         }
     }
 
     pub fn second_pass(&mut self) -> SecondPassDrawer {
-        let mut render_pass =
+        let render_pass =
             self.encoder
                 .as_mut()
                 .unwrap()
@@ -124,6 +136,9 @@ impl<'a> Drawer<'a> {
                     depth_stencil_attachment: None,
                 });
 
+        let mut render_pass =
+            OwningSpan::start(&self.renderer.tracer, render_pass, spans::Id::PassTwo);
+
         render_pass.set_bind_group(0, &self.globals.bind_group, &[]);
         render_pass.set_bind_group(1, &self.renderer.shadow_bind.bind_group, &[]);
 
@@ -134,7 +149,7 @@ impl<'a> Drawer<'a> {
     }
 
     pub fn third_pass(&mut self) -> ThirdPassDrawer {
-        let mut render_pass =
+        let render_pass =
             self.encoder
                 .as_mut()
                 .unwrap()
@@ -151,6 +166,9 @@ impl<'a> Drawer<'a> {
                     depth_stencil_attachment: None,
                 });
 
+        let mut render_pass =
+            OwningSpan::start(&self.renderer.tracer, render_pass, spans::Id::PassThree);
+
         render_pass.set_bind_group(0, &self.globals.bind_group, &[]);
 
         ThirdPassDrawer {
@@ -159,13 +177,16 @@ impl<'a> Drawer<'a> {
         }
     }
 
-    pub fn draw_point_shadows<'data: 'a>(
+    pub fn draw_point_shadows<'data: 'frame>(
         &mut self,
         matrices: &[shadow::PointLightMatrix; 126],
         chunks: impl Clone
         + Iterator<Item = (&'data Model<terrain::Vertex>, &'data terrain::BoundLocals)>,
     ) {
         if let ShadowMap::Enabled(ref shadow_renderer) = self.renderer.shadow_map {
+            self.renderer
+                .tracer
+                .start_span(self.encoder.as_mut().unwrap(), &spans::Id::PointShadows);
             const STRIDE: usize = std::mem::size_of::<shadow::PointLightMatrix>();
             let data = bytemuck::cast_slice(matrices);
 
@@ -223,6 +244,9 @@ impl<'a> Drawer<'a> {
                     });
                 });
             }
+            self.renderer
+                .tracer
+                .end_span(self.encoder.as_mut().unwrap(), &spans::Id::PointShadows);
         }
     }
 
@@ -293,45 +317,59 @@ impl<'a> Drawer<'a> {
     }
 }
 
-impl<'a> Drop for Drawer<'a> {
+impl<'frame> Drop for Drawer<'frame> {
     fn drop(&mut self) {
         // TODO: submitting things to the queue can let the gpu start on them sooner
         // maybe we should submit each render pass to the queue as they are produced?
         self.renderer
+            .tracer
+            .end_span(self.encoder.as_mut().unwrap(), &spans::Id::Frame);
+        self.renderer
+            .tracer
+            .resolve_timestamps(self.encoder.as_mut().unwrap());
+        self.renderer
             .queue
             .submit(std::iter::once(self.encoder.take().unwrap().finish()));
+        // NOTE: this introduces blocking on GPU work
+        self.renderer
+            .tracer
+            .record_timestamps(&self.renderer.device)
     }
 }
 
 // Shadow pass
 pub struct ShadowPassDrawer<'pass> {
-    render_pass: wgpu::RenderPass<'pass>,
+    render_pass: OwningSpan<'pass, wgpu::RenderPass<'pass>>,
     pub renderer: &'pass Renderer,
     shadow_renderer: &'pass ShadowMapRenderer,
 }
 
 impl<'pass> ShadowPassDrawer<'pass> {
     pub fn draw_figure_shadows(&mut self) -> FigureShadowDrawer<'_, 'pass> {
-        self.render_pass
-            .set_pipeline(&self.shadow_renderer.figure_directed_pipeline.pipeline);
+        let mut render_pass = Span::start(
+            &self.renderer.tracer,
+            &mut *self.render_pass,
+            spans::Id::DirectedFigureShadows,
+        );
+        render_pass.set_pipeline(&self.shadow_renderer.figure_directed_pipeline.pipeline);
 
-        FigureShadowDrawer {
-            render_pass: &mut self.render_pass,
-        }
+        FigureShadowDrawer { render_pass }
     }
 
     pub fn draw_terrain_shadows(&mut self) -> TerrainShadowDrawer<'_, 'pass> {
-        self.render_pass
-            .set_pipeline(&self.shadow_renderer.terrain_directed_pipeline.pipeline);
+        let mut render_pass = Span::start(
+            &self.renderer.tracer,
+            &mut *self.render_pass,
+            spans::Id::DirectedTerrainShadows,
+        );
+        render_pass.set_pipeline(&self.shadow_renderer.terrain_directed_pipeline.pipeline);
 
-        TerrainShadowDrawer {
-            render_pass: &mut self.render_pass,
-        }
+        TerrainShadowDrawer { render_pass }
     }
 }
 
 pub struct FigureShadowDrawer<'pass_ref, 'pass: 'pass_ref> {
-    render_pass: &'pass_ref mut wgpu::RenderPass<'pass>,
+    render_pass: Span<'pass_ref, wgpu::RenderPass<'pass>>,
 }
 
 impl<'pass_ref, 'pass: 'pass_ref> FigureShadowDrawer<'pass_ref, 'pass> {
@@ -347,7 +385,7 @@ impl<'pass_ref, 'pass: 'pass_ref> FigureShadowDrawer<'pass_ref, 'pass> {
 }
 
 pub struct TerrainShadowDrawer<'pass_ref, 'pass: 'pass_ref> {
-    render_pass: &'pass_ref mut wgpu::RenderPass<'pass>,
+    render_pass: Span<'pass_ref, wgpu::RenderPass<'pass>>,
 }
 
 impl<'pass_ref, 'pass: 'pass_ref> TerrainShadowDrawer<'pass_ref, 'pass> {
@@ -364,83 +402,112 @@ impl<'pass_ref, 'pass: 'pass_ref> TerrainShadowDrawer<'pass_ref, 'pass> {
 
 // First pass
 pub struct FirstPassDrawer<'pass> {
-    pub(super) render_pass: wgpu::RenderPass<'pass>,
+    pub(super) render_pass: OwningSpan<'pass, wgpu::RenderPass<'pass>>,
     pub renderer: &'pass Renderer,
+    // TODO: hack
+    figures_called: bool,
 }
 
 impl<'pass> FirstPassDrawer<'pass> {
     pub fn draw_skybox<'data: 'pass>(&mut self, model: &'data Model<skybox::Vertex>) {
-        self.render_pass
-            .set_pipeline(&self.renderer.skybox_pipeline.pipeline);
-        self.render_pass.set_vertex_buffer(0, model.buf().slice(..));
-        self.render_pass.draw(0..model.len() as u32, 0..1);
+        let mut render_pass = Span::start(
+            &self.renderer.tracer,
+            &mut *self.render_pass,
+            spans::Id::Skybox,
+        );
+        render_pass.set_pipeline(&self.renderer.skybox_pipeline.pipeline);
+        render_pass.set_vertex_buffer(0, model.buf().slice(..));
+        render_pass.draw(0..model.len() as u32, 0..1);
     }
 
     pub fn draw_lod_terrain<'data: 'pass>(&mut self, model: &'data Model<lod_terrain::Vertex>) {
-        self.render_pass
-            .set_pipeline(&self.renderer.lod_terrain_pipeline.pipeline);
-        self.render_pass.set_vertex_buffer(0, model.buf().slice(..));
-        self.render_pass.draw(0..model.len() as u32, 0..1);
+        let mut render_pass = Span::start(
+            &self.renderer.tracer,
+            &mut *self.render_pass,
+            spans::Id::Lod,
+        );
+        render_pass.set_pipeline(&self.renderer.lod_terrain_pipeline.pipeline);
+        render_pass.set_vertex_buffer(0, model.buf().slice(..));
+        render_pass.draw(0..model.len() as u32, 0..1);
     }
 
     pub fn draw_figures(&mut self) -> FigureDrawer<'_, 'pass> {
-        self.render_pass
-            .set_pipeline(&self.renderer.figure_pipeline.pipeline);
+        let mut render_pass = Span::start(
+            &self.renderer.tracer,
+            &mut *self.render_pass,
+            if !self.figures_called {
+                spans::Id::Figures1
+            } else {
+                spans::Id::Figures2
+            },
+        );
+        self.figures_called = true;
+        render_pass.set_pipeline(&self.renderer.figure_pipeline.pipeline);
 
-        FigureDrawer {
-            render_pass: &mut self.render_pass,
-        }
+        FigureDrawer { render_pass }
     }
 
     pub fn draw_terrain<'data: 'pass>(&mut self) -> TerrainDrawer<'_, 'pass> {
-        self.render_pass
-            .set_pipeline(&self.renderer.terrain_pipeline.pipeline);
+        let mut render_pass = Span::start(
+            &self.renderer.tracer,
+            &mut *self.render_pass,
+            spans::Id::Terrain,
+        );
+        render_pass.set_pipeline(&self.renderer.terrain_pipeline.pipeline);
 
         TerrainDrawer {
-            render_pass: &mut self.render_pass,
+            render_pass,
+
             col_lights: None,
         }
     }
 
     pub fn draw_particles(&mut self) -> ParticleDrawer<'_, 'pass> {
-        self.render_pass
-            .set_pipeline(&self.renderer.particle_pipeline.pipeline);
+        let mut render_pass = Span::start(
+            &self.renderer.tracer,
+            &mut *self.render_pass,
+            spans::Id::Particles,
+        );
+        render_pass.set_pipeline(&self.renderer.particle_pipeline.pipeline);
 
-        ParticleDrawer {
-            render_pass: &mut self.render_pass,
-        }
+        ParticleDrawer { render_pass }
     }
 
     pub fn draw_sprites<'data: 'pass>(
         &mut self,
         col_lights: &'data ColLights<sprite::Locals>,
     ) -> SpriteDrawer<'_, 'pass> {
+        let mut render_pass = Span::start(
+            &self.renderer.tracer,
+            &mut *self.render_pass,
+            spans::Id::Sprites,
+        );
         self.render_pass
             .set_pipeline(&self.renderer.sprite_pipeline.pipeline);
         self.render_pass
             .set_bind_group(4, &col_lights.bind_group, &[]);
 
-        SpriteDrawer {
-            render_pass: &mut self.render_pass,
-        }
+        SpriteDrawer { render_pass }
     }
 
     pub fn draw_fluid<'data: 'pass>(
         &mut self,
         waves: &'data fluid::BindGroup,
     ) -> FluidDrawer<'_, 'pass> {
-        self.render_pass
-            .set_pipeline(&self.renderer.fluid_pipeline.pipeline);
-        self.render_pass.set_bind_group(2, &waves.bind_group, &[]);
+        let mut render_pass = Span::start(
+            &self.renderer.tracer,
+            &mut *self.render_pass,
+            spans::Id::Fluid,
+        );
+        render_pass.set_pipeline(&self.renderer.fluid_pipeline.pipeline);
+        render_pass.set_bind_group(2, &waves.bind_group, &[]);
 
-        FluidDrawer {
-            render_pass: &mut self.render_pass,
-        }
+        FluidDrawer { render_pass }
     }
 }
 
 pub struct FigureDrawer<'pass_ref, 'pass: 'pass_ref> {
-    render_pass: &'pass_ref mut wgpu::RenderPass<'pass>,
+    render_pass: Span<'pass_ref, wgpu::RenderPass<'pass>>,
 }
 
 impl<'pass_ref, 'pass: 'pass_ref> FigureDrawer<'pass_ref, 'pass> {
@@ -460,7 +527,7 @@ impl<'pass_ref, 'pass: 'pass_ref> FigureDrawer<'pass_ref, 'pass> {
 }
 
 pub struct TerrainDrawer<'pass_ref, 'pass: 'pass_ref> {
-    render_pass: &'pass_ref mut wgpu::RenderPass<'pass>,
+    render_pass: Span<'pass_ref, wgpu::RenderPass<'pass>>,
     col_lights: Option<&'pass_ref Arc<ColLights<terrain::Locals>>>,
 }
 
@@ -492,7 +559,7 @@ impl<'pass_ref, 'pass: 'pass_ref> TerrainDrawer<'pass_ref, 'pass> {
 }
 
 pub struct ParticleDrawer<'pass_ref, 'pass: 'pass_ref> {
-    render_pass: &'pass_ref mut wgpu::RenderPass<'pass>,
+    render_pass: Span<'pass_ref, wgpu::RenderPass<'pass>>,
 }
 
 impl<'pass_ref, 'pass: 'pass_ref> ParticleDrawer<'pass_ref, 'pass> {
@@ -513,7 +580,7 @@ impl<'pass_ref, 'pass: 'pass_ref> ParticleDrawer<'pass_ref, 'pass> {
 }
 
 pub struct SpriteDrawer<'pass_ref, 'pass: 'pass_ref> {
-    render_pass: &'pass_ref mut wgpu::RenderPass<'pass>,
+    render_pass: Span<'pass_ref, wgpu::RenderPass<'pass>>,
 }
 
 impl<'pass_ref, 'pass: 'pass_ref> SpriteDrawer<'pass_ref, 'pass> {
@@ -550,7 +617,7 @@ impl<'pass_ref, 'pass: 'pass_ref> ChunkSpriteDrawer<'pass_ref, 'pass> {
 }
 
 pub struct FluidDrawer<'pass_ref, 'pass: 'pass_ref> {
-    render_pass: &'pass_ref mut wgpu::RenderPass<'pass>,
+    render_pass: Span<'pass_ref, wgpu::RenderPass<'pass>>,
 }
 
 impl<'pass_ref, 'pass: 'pass_ref> FluidDrawer<'pass_ref, 'pass> {
@@ -567,8 +634,8 @@ impl<'pass_ref, 'pass: 'pass_ref> FluidDrawer<'pass_ref, 'pass> {
 
 // Second pass: clouds
 pub struct SecondPassDrawer<'pass> {
-    pub(super) render_pass: wgpu::RenderPass<'pass>,
-    pub renderer: &'pass Renderer,
+    render_pass: OwningSpan<'pass, wgpu::RenderPass<'pass>>,
+    renderer: &'pass Renderer,
 }
 
 impl<'pass> SecondPassDrawer<'pass> {
@@ -583,31 +650,33 @@ impl<'pass> SecondPassDrawer<'pass> {
 
 // Third pass: postprocess + ui
 pub struct ThirdPassDrawer<'pass> {
-    render_pass: wgpu::RenderPass<'pass>,
+    render_pass: OwningSpan<'pass, wgpu::RenderPass<'pass>>,
     renderer: &'pass Renderer,
 }
 
 impl<'pass> ThirdPassDrawer<'pass> {
     pub fn draw_post_process(&mut self) {
-        self.render_pass
-            .set_pipeline(&self.renderer.postprocess_pipeline.pipeline);
-        self.render_pass
-            .set_bind_group(1, &self.renderer.locals.postprocess_bind.bind_group, &[]);
-        self.render_pass.draw(0..3, 0..1);
+        let mut render_pass = Span::start(
+            &self.renderer.tracer,
+            &mut *self.render_pass,
+            spans::Id::Postprocess,
+        );
+        render_pass.set_pipeline(&self.renderer.postprocess_pipeline.pipeline);
+        render_pass.set_bind_group(1, &self.renderer.locals.postprocess_bind.bind_group, &[]);
+        render_pass.draw(0..3, 0..1);
     }
 
     pub fn draw_ui(&mut self) -> UiDrawer<'_, 'pass> {
-        self.render_pass
-            .set_pipeline(&self.renderer.ui_pipeline.pipeline);
+        let mut render_pass =
+            Span::start(&self.renderer.tracer, &mut *self.render_pass, spans::Id::Ui);
+        render_pass.set_pipeline(&self.renderer.ui_pipeline.pipeline);
 
-        UiDrawer {
-            render_pass: &mut self.render_pass,
-        }
+        UiDrawer { render_pass }
     }
 }
 
 pub struct UiDrawer<'pass_ref, 'pass: 'pass_ref> {
-    render_pass: &'pass_ref mut wgpu::RenderPass<'pass>,
+    render_pass: Span<'pass_ref, wgpu::RenderPass<'pass>>,
 }
 
 pub struct PreparedUiDrawer<'pass_ref, 'pass: 'pass_ref> {
@@ -628,7 +697,7 @@ impl<'pass_ref, 'pass: 'pass_ref> UiDrawer<'pass_ref, 'pass> {
         // Note: not actually prepared yet
         // we do this to avoid having to write extra code for the set functions
         let mut prepared = PreparedUiDrawer {
-            render_pass: self.render_pass,
+            render_pass: &mut *self.render_pass,
         };
         // Prepare
         prepared.set_locals(locals);

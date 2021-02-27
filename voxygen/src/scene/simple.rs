@@ -381,6 +381,7 @@ impl Scene {
                 &self.col_lights.texture(model),
             );
         }
+        drop(figure_drawer);
 
         drawer.draw_skybox(&self.skybox.model);
     }
