@@ -9,7 +9,7 @@ use std::f32::consts::PI;
 pub struct BreatheAnimation;
 
 impl Animation for BreatheAnimation {
-    type Dependency = (f32, f64, Option<StageSection>, f64);
+    type Dependency = (f32, f32, Option<StageSection>, f32);
     type Skeleton = QuadrupedLowSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -19,7 +19,7 @@ impl Animation for BreatheAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (velocity, global_time, stage_section, timer): Self::Dependency,
-        anim_time: f64,
+        anim_time: f32,
         _rate: &mut f32,
         _s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
@@ -27,15 +27,15 @@ impl Animation for BreatheAnimation {
         let speed = (Vec2::<f32>::from(velocity).magnitude()).min(24.0);
 
         let (movement1base, _movement2base, movement3, twitch) = match stage_section {
-            Some(StageSection::Buildup) => ((anim_time as f32).sqrt(), 0.0, 0.0, 0.0),
-            Some(StageSection::Cast) => (1.0, (anim_time as f32).min(1.0), 0.0, anim_time as f32),
-            Some(StageSection::Recover) => (1.0, 1.0, anim_time as f32, 1.0),
+            Some(StageSection::Buildup) => (anim_time.sqrt(), 0.0, 0.0, 0.0),
+            Some(StageSection::Cast) => (1.0, anim_time.min(1.0), 0.0, anim_time),
+            Some(StageSection::Recover) => (1.0, 1.0, anim_time, 1.0),
             _ => (0.0, 0.0, 0.0, 0.0),
         };
         let pullback = 1.0 - movement3;
         let subtract = global_time - timer;
         let check = subtract - subtract.trunc();
-        let mirror = (check - 0.5).signum() as f32;
+        let mirror = (check - 0.5).signum();
         let twitch2 = mirror * (twitch * 20.0).sin() * pullback;
         let twitch2alt = mirror * (twitch * 20.0 + PI / 2.0).sin() * pullback;
 

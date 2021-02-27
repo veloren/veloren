@@ -12,7 +12,7 @@ impl Animation for SpinMeleeAnimation {
         Option<ToolKind>,
         Option<ToolKind>,
         Vec3<f32>,
-        f64,
+        f32,
         Option<StageSection>,
     );
     type Skeleton = CharacterSkeleton;
@@ -25,15 +25,15 @@ impl Animation for SpinMeleeAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (active_tool_kind, _second_tool_kind, _velocity, _global_time, stage_section): Self::Dependency,
-        anim_time: f64,
+        anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         *rate = 1.0;
         let (move1, move2, move3) = match stage_section {
-            Some(StageSection::Buildup) => ((anim_time as f32).powf(0.25), 0.0, 0.0),
-            Some(StageSection::Swing) => (1.0, anim_time as f32, 0.0),
-            Some(StageSection::Recover) => (1.0, 1.0, (anim_time as f32).powf(4.0)),
+            Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
+            Some(StageSection::Swing) => (1.0, anim_time, 0.0),
+            Some(StageSection::Recover) => (1.0, 1.0, anim_time.powf(4.0)),
             _ => (0.0, 0.0, 0.0),
         };
         let mut next = (*skeleton).clone();

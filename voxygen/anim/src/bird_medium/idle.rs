@@ -7,7 +7,7 @@ use std::ops::Mul;
 pub struct IdleAnimation;
 
 impl Animation for IdleAnimation {
-    type Dependency = f64;
+    type Dependency = f32;
     type Skeleton = BirdMediumSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -18,26 +18,18 @@ impl Animation for IdleAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         global_time: Self::Dependency,
-        anim_time: f64,
+        anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        let wave_slow = (anim_time as f32 * 4.5).sin();
-        let wave_slow_cos = (anim_time as f32 * 4.5).cos();
+        let wave_slow = (anim_time * 4.5).sin();
+        let wave_slow_cos = (anim_time * 4.5).cos();
 
         let duck_head_look = Vec2::new(
-            ((global_time + anim_time) as f32 / 8.0)
-                .floor()
-                .mul(7331.0)
-                .sin()
-                * 0.5,
-            ((global_time + anim_time) as f32 / 8.0)
-                .floor()
-                .mul(1337.0)
-                .sin()
-                * 0.25,
+            (global_time + anim_time / 8.0).floor().mul(7331.0).sin() * 0.5,
+            (global_time + anim_time / 8.0).floor().mul(1337.0).sin() * 0.25,
         );
 
         next.torso.scale = Vec3::one() / 11.0;

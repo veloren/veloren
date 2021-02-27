@@ -8,7 +8,7 @@ use std::{f32::consts::PI, ops::Mul};
 pub struct DanceAnimation;
 
 impl Animation for DanceAnimation {
-    type Dependency = (Option<ToolKind>, Option<ToolKind>, f64);
+    type Dependency = (Option<ToolKind>, Option<ToolKind>, f32);
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -18,7 +18,7 @@ impl Animation for DanceAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (_active_tool_kind, _second_tool_kind, global_time): Self::Dependency,
-        anim_time: f64,
+        anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
@@ -26,33 +26,22 @@ impl Animation for DanceAnimation {
 
         *rate = 1.0;
 
-        let lab = 1.0;
-        let short = (((5.0) / (3.0 + 2.0 * ((anim_time as f32 * lab as f32 * 6.0).sin()).powi(2)))
-            .sqrt())
-            * ((anim_time as f32 * lab as f32 * 6.0).sin());
-        let noisea = (anim_time as f32 * 11.0 + PI / 6.0).sin();
-        let noiseb = (anim_time as f32 * 19.0 + PI / 4.0).sin();
+        let lab: f32 = 1.0;
+        let short = ((5.0 / (3.0 + 2.0 * ((anim_time * lab * 6.0).sin()).powi(2))).sqrt())
+            * ((anim_time * lab * 6.0).sin());
+        let noisea = (anim_time * 11.0 + PI / 6.0).sin();
+        let noiseb = (anim_time * 19.0 + PI / 4.0).sin();
 
-        let shorte = (anim_time as f32 * lab as f32 * 6.0).sin();
+        let shorte = (anim_time * lab * 6.0).sin();
 
-        let shortealt = (anim_time as f32 * lab as f32 * 6.0 + PI / 2.0).sin();
+        let shortealt = (anim_time * lab * 6.0 + PI / 2.0).sin();
 
-        let foot = (((5.0)
-            / (1.0 + (4.0) * ((anim_time as f32 * lab as f32 * 8.0).sin()).powi(2)))
-        .sqrt())
-            * ((anim_time as f32 * lab as f32 * 8.0).sin());
+        let foot = ((5.0 / (1.0 + (4.0) * ((anim_time * lab * 8.0).sin()).powi(2))).sqrt())
+            * ((anim_time * lab * 8.0).sin());
 
         let head_look = Vec2::new(
-            ((global_time + anim_time) as f32 / 6.0)
-                .floor()
-                .mul(7331.0)
-                .sin()
-                * 0.3,
-            ((global_time + anim_time) as f32 / 6.0)
-                .floor()
-                .mul(1337.0)
-                .sin()
-                * 0.15,
+            (global_time + anim_time / 6.0).floor().mul(7331.0).sin() * 0.3,
+            (global_time + anim_time / 6.0).floor().mul(1337.0).sin() * 0.15,
         );
 
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);

@@ -332,8 +332,13 @@ impl Scene {
         if let Some(body) = scene_data.body {
             let tgt_skeleton = IdleAnimation::update_skeleton(
                 self.figure_state.skeleton_mut(),
-                (active_tool_kind, second_tool_kind, hands, scene_data.time),
-                scene_data.time,
+                (
+                    active_tool_kind,
+                    second_tool_kind,
+                    hands,
+                    scene_data.time as f32,
+                ),
+                scene_data.time as f32,
                 &mut 0.0,
                 &SkeletonAttr::from(&body),
             );

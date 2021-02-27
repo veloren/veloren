@@ -6,7 +6,7 @@ use std::{f32::consts::PI, ops::Mul};
 
 pub struct RunAnimation;
 
-type RunAnimationDependency = (Vec3<f32>, Vec3<f32>, Vec3<f32>, f64, Vec3<f32>, f32);
+type RunAnimationDependency = (Vec3<f32>, Vec3<f32>, Vec3<f32>, f32, Vec3<f32>, f32);
 
 impl Animation for RunAnimation {
     type Dependency = RunAnimationDependency;
@@ -20,7 +20,7 @@ impl Animation for RunAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (velocity, orientation, last_ori, global_time, _avg_vel, acc_vel): Self::Dependency,
-        anim_time: f64,
+        anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
@@ -29,34 +29,32 @@ impl Animation for RunAnimation {
         *rate = 1.0;
         let speednorm = (speed / 9.4).powf(0.4);
 
-        let lab = 1.0;
+        let lab: f32 = 1.0;
 
-        let footrotl = (((5.0)
-            / (0.5 + (5.5) * ((acc_vel * 1.4 * lab as f32 + PI * 1.4).sin()).powi(2)))
-        .sqrt())
-            * ((acc_vel * 1.4 * lab as f32 + PI * 1.4).sin());
+        let footrotl = ((5.0 / (0.5 + (5.5) * ((acc_vel * 1.4 * lab + PI * 1.4).sin()).powi(2)))
+            .sqrt())
+            * ((acc_vel * 1.4 * lab + PI * 1.4).sin());
 
-        let footrotr = (((5.0)
-            / (0.5 + (5.5) * ((acc_vel * 1.4 * lab as f32 + PI * 0.4).sin()).powi(2)))
-        .sqrt())
-            * ((acc_vel * 1.4 * lab as f32 + PI * 0.4).sin());
+        let footrotr = ((5.0 / (0.5 + (5.5) * ((acc_vel * 1.4 * lab + PI * 0.4).sin()).powi(2)))
+            .sqrt())
+            * ((acc_vel * 1.4 * lab + PI * 0.4).sin());
 
-        let shortalter = (acc_vel * lab as f32 * 1.4 + PI / -2.0).sin();
+        let shortalter = (acc_vel * lab * 1.4 + PI / -2.0).sin();
 
-        let foothoril = (acc_vel * 1.4 * lab as f32 + PI * 1.45).sin();
-        let foothorir = (acc_vel * 1.4 * lab as f32 + PI * (0.45)).sin();
-        let footstrafel = (acc_vel * 1.4 * lab as f32 + PI * 1.45).sin();
-        let footstrafer = (acc_vel * 1.4 * lab as f32 + PI * (0.95)).sin();
+        let foothoril = (acc_vel * 1.4 * lab + PI * 1.45).sin();
+        let foothorir = (acc_vel * 1.4 * lab + PI * (0.45)).sin();
+        let footstrafel = (acc_vel * 1.4 * lab + PI * 1.45).sin();
+        let footstrafer = (acc_vel * 1.4 * lab + PI * (0.95)).sin();
 
-        let footvertl = (acc_vel * 1.4 * lab as f32).sin();
-        let footvertr = (acc_vel * 1.4 * lab as f32 + PI).sin();
-        let footvertsl = (acc_vel * 1.4 * lab as f32).sin();
-        let footvertsr = (acc_vel * 1.4 * lab as f32 + PI * 0.5).sin();
+        let footvertl = (acc_vel * 1.4 * lab).sin();
+        let footvertr = (acc_vel * 1.4 * lab + PI).sin();
+        let footvertsl = (acc_vel * 1.4 * lab).sin();
+        let footvertsr = (acc_vel * 1.4 * lab + PI * 0.5).sin();
 
-        let shortalt = (acc_vel * lab as f32 * 1.4 + PI / 2.0).sin();
+        let shortalt = (acc_vel * lab * 1.4 + PI / 2.0).sin();
 
-        let short = (((5.0) / (1.5 + 3.5 * ((acc_vel * lab as f32 * 1.4).sin()).powi(2))).sqrt())
-            * ((acc_vel * lab as f32 * 1.4).sin());
+        let short = ((5.0 / (1.5 + 3.5 * ((acc_vel * lab * 1.4).sin()).powi(2))).sqrt())
+            * ((acc_vel * lab * 1.4).sin());
         let direction = velocity.y * -0.098 * orientation.y + velocity.x * -0.098 * orientation.x;
 
         let side =
@@ -77,16 +75,8 @@ impl Animation for RunAnimation {
         } * 1.3;
 
         let head_look = Vec2::new(
-            ((global_time + anim_time) as f32 / 18.0)
-                .floor()
-                .mul(7331.0)
-                .sin()
-                * 0.2,
-            ((global_time + anim_time) as f32 / 18.0)
-                .floor()
-                .mul(1137.0)
-                .sin()
-                * 0.1,
+            (global_time + anim_time / 18.0).floor().mul(7331.0).sin() * 0.2,
+            (global_time + anim_time / 18.0).floor().mul(1137.0).sin() * 0.1,
         );
         next.chest.scale = Vec3::one() * s_a.scaler / 11.0;
         next.foot_l.scale = Vec3::one() * s_a.scaler / 11.0;

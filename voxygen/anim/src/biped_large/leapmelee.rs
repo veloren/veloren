@@ -10,7 +10,7 @@ impl Animation for LeapAnimation {
         Option<ToolKind>,
         Option<ToolKind>,
         Vec3<f32>,
-        f64,
+        f32,
         Option<StageSection>,
     );
     type Skeleton = BipedLargeSkeleton;
@@ -23,7 +23,7 @@ impl Animation for LeapAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (active_tool_kind, _second_tool_kind, _velocity, _global_time, stage_section): Self::Dependency,
-        anim_time: f64,
+        anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
@@ -31,10 +31,10 @@ impl Animation for LeapAnimation {
         let mut next = (*skeleton).clone();
 
         let (movement1, movement2, movement3, movement4) = match stage_section {
-            Some(StageSection::Buildup) => (anim_time as f32, 0.0, 0.0, 0.0),
-            Some(StageSection::Movement) => (1.0, (anim_time as f32).powf(0.25), 0.0, 0.0),
-            Some(StageSection::Swing) => (1.0, 1.0, (anim_time as f32).powf(0.25), 0.0),
-            Some(StageSection::Recover) => (1.0, 1.0, 1.0, anim_time as f32),
+            Some(StageSection::Buildup) => (anim_time, 0.0, 0.0, 0.0),
+            Some(StageSection::Movement) => (1.0, anim_time.powf(0.25), 0.0, 0.0),
+            Some(StageSection::Swing) => (1.0, 1.0, anim_time.powf(0.25), 0.0),
+            Some(StageSection::Recover) => (1.0, 1.0, 1.0, anim_time),
             _ => (0.0, 0.0, 0.0, 0.0),
         };
 

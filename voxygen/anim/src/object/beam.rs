@@ -26,7 +26,7 @@ impl Animation for BeamAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (_active_tool_kind, _second_tool_kind, _stage_section, _body): Self::Dependency,
-        _anim_time: f64,
+        _anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {

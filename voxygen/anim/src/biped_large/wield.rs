@@ -8,7 +8,7 @@ use std::{f32::consts::PI, ops::Mul};
 pub struct WieldAnimation;
 
 impl Animation for WieldAnimation {
-    type Dependency = (Option<ToolKind>, Option<ToolKind>, Vec3<f32>, f64, f32);
+    type Dependency = (Option<ToolKind>, Option<ToolKind>, Vec3<f32>, f32, f32);
     type Skeleton = BipedLargeSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -18,52 +18,34 @@ impl Animation for WieldAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (active_tool_kind, _second_tool_kind, velocity, global_time, acc_vel): Self::Dependency,
-        anim_time: f64,
+        anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
         let speed = Vec2::<f32>::from(velocity).magnitude();
 
-        let lab = 0.65 * s_a.tempo; //.65
-        let torso = (anim_time as f32 * lab as f32 + 1.5 * PI).sin();
+        let lab: f32 = 0.65 * s_a.tempo; //.65
+        let torso = (anim_time * lab + 1.5 * PI).sin();
         let speednorm = (speed / 12.0).powf(0.4);
-        let foothoril = (acc_vel * lab as f32 + PI * 1.45).sin() * speednorm;
-        let foothorir = (acc_vel * lab as f32 + PI * (0.45)).sin() * speednorm;
-        let footrotl =
-            (((1.0) / (0.5 + (0.5) * ((acc_vel * lab as f32 + PI * 1.4).sin()).powi(2))).sqrt())
-                * ((acc_vel * lab as f32 + PI * 1.4).sin());
+        let foothoril = (acc_vel * lab + PI * 1.45).sin() * speednorm;
+        let foothorir = (acc_vel * lab + PI * (0.45)).sin() * speednorm;
+        let footrotl = ((1.0 / (0.5 + (0.5) * ((acc_vel * lab + PI * 1.4).sin()).powi(2))).sqrt())
+            * ((acc_vel * lab + PI * 1.4).sin());
 
-        let footrotr =
-            (((1.0) / (0.5 + (0.5) * ((acc_vel * lab as f32 + PI * 0.4).sin()).powi(2))).sqrt())
-                * ((acc_vel * lab as f32 + PI * 0.4).sin());
-        let slower = (anim_time as f32 * 1.0 + PI).sin();
-        let slow = (anim_time as f32 * 3.5 + PI).sin();
+        let footrotr = ((1.0 / (0.5 + (0.5) * ((acc_vel * lab + PI * 0.4).sin()).powi(2))).sqrt())
+            * ((acc_vel * lab + PI * 0.4).sin());
+        let slower = (anim_time * 1.0 + PI).sin();
+        let slow = (anim_time * 3.5 + PI).sin();
 
         let tailmove = Vec2::new(
-            ((global_time + anim_time) as f32 / 2.0)
-                .floor()
-                .mul(7331.0)
-                .sin()
-                * 0.25,
-            ((global_time + anim_time) as f32 / 2.0)
-                .floor()
-                .mul(1337.0)
-                .sin()
-                * 0.125,
+            (global_time + anim_time / 2.0).floor().mul(7331.0).sin() * 0.25,
+            (global_time + anim_time / 2.0).floor().mul(1337.0).sin() * 0.125,
         );
 
         let look = Vec2::new(
-            ((global_time + anim_time) as f32 / 8.0)
-                .floor()
-                .mul(7331.0)
-                .sin()
-                * 0.5,
-            ((global_time + anim_time) as f32 / 8.0)
-                .floor()
-                .mul(1337.0)
-                .sin()
-                * 0.25,
+            (global_time + anim_time / 8.0).floor().mul(7331.0).sin() * 0.5,
+            (global_time + anim_time / 8.0).floor().mul(1337.0).sin() * 0.25,
         );
 
         let breathe = if s_a.beast {
@@ -72,23 +54,20 @@ impl Animation for WieldAnimation {
             let lenght = 1.5;
             let chop = 0.2;
             let chop_freq = 60.0;
-            intensity * (lenght * anim_time as f32).sin()
-                + 0.05
-                    * chop
-                    * (anim_time as f32 * chop_freq).sin()
-                    * (anim_time as f32 * lenght).cos()
+            intensity * (lenght * anim_time).sin()
+                + 0.05 * chop * (anim_time * chop_freq).sin() * (anim_time * lenght).cos()
         } else {
             0.0
         };
 
-        let footvertl = (anim_time as f32 * 16.0 * lab as f32).sin();
-        let footvertr = (anim_time as f32 * 16.0 * lab as f32 + PI).sin();
-        let handhoril = (anim_time as f32 * 16.0 * lab as f32 + PI * 1.4).sin();
-        let handhorir = (anim_time as f32 * 16.0 * lab as f32 + PI * 0.4).sin();
+        let footvertl = (anim_time * 16.0 * lab).sin();
+        let footvertr = (anim_time * 16.0 * lab + PI).sin();
+        let handhoril = (anim_time * 16.0 * lab + PI * 1.4).sin();
+        let handhorir = (anim_time * 16.0 * lab + PI * 0.4).sin();
 
-        let short = (acc_vel * lab as f32).sin() * speednorm;
+        let short = (acc_vel * lab).sin() * speednorm;
 
-        let shortalt = (anim_time as f32 * lab as f32 * 16.0 + PI / 2.0).sin();
+        let shortalt = (anim_time * lab * 16.0 + PI / 2.0).sin();
 
         if s_a.beast {
             next.jaw.position = Vec3::new(0.0, s_a.jaw.0, s_a.jaw.1);

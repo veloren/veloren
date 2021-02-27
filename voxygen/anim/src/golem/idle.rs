@@ -7,7 +7,7 @@ use std::{f32::consts::PI, ops::Mul};
 pub struct IdleAnimation;
 
 impl Animation for IdleAnimation {
-    type Dependency = f64;
+    type Dependency = f32;
     type Skeleton = GolemSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -18,26 +18,18 @@ impl Animation for IdleAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         global_time: Self::Dependency,
-        anim_time: f64,
+        anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        let lab = 1.0;
-        let breathe = (anim_time as f32 * lab as f32 + 1.5 * PI).sin();
+        let lab: f32 = 1.0;
+        let breathe = (anim_time * lab + 1.5 * PI).sin();
 
         let look = Vec2::new(
-            ((global_time + anim_time) as f32 / 8.0)
-                .floor()
-                .mul(7331.0)
-                .sin()
-                * 0.5,
-            ((global_time + anim_time) as f32 / 8.0)
-                .floor()
-                .mul(1337.0)
-                .sin()
-                * 0.25,
+            (global_time + anim_time / 8.0).floor().mul(7331.0).sin() * 0.5,
+            (global_time + anim_time / 8.0).floor().mul(1337.0).sin() * 0.25,
         );
         next.head.scale = Vec3::one() * 1.02;
         next.jaw.scale = Vec3::one() * 1.02;

@@ -11,7 +11,7 @@ impl Animation for SpinAnimation {
     type Dependency = (
         Option<ToolKind>,
         Option<ToolKind>,
-        f64,
+        f32,
         Option<StageSection>,
     );
     type Skeleton = BipedLargeSkeleton;
@@ -23,31 +23,29 @@ impl Animation for SpinAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (active_tool_kind, _second_tool_kind, _global_time, stage_section): Self::Dependency,
-        anim_time: f64,
+        anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         *rate = 1.0;
         let mut next = (*skeleton).clone();
 
-        let lab = 1.0;
+        let lab: f32 = 1.0;
 
         let (movement1, movement2, movement3) = match stage_section {
-            Some(StageSection::Buildup) => ((anim_time as f32).powf(0.25), 0.0, 0.0),
-            Some(StageSection::Swing) => (1.0, (anim_time as f32).powf(1.8), 0.0),
-            Some(StageSection::Recover) => (1.0, 1.0, (anim_time as f32).powi(4)),
+            Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
+            Some(StageSection::Swing) => (1.0, anim_time.powf(1.8), 0.0),
+            Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
             _ => (0.0, 0.0, 0.0),
         };
 
-        let foot = (((5.0)
-            / (1.1 + 3.9 * ((anim_time as f32 * lab as f32 * 10.32).sin()).powi(2)))
-        .sqrt())
-            * ((anim_time as f32 * lab as f32 * 10.32).sin());
+        let foot = ((5.0 / (1.1 + 3.9 * ((anim_time * lab * 10.32).sin()).powi(2))).sqrt())
+            * ((anim_time * lab * 10.32).sin());
 
-        let decel = (anim_time as f32 * 16.0 * lab as f32).min(PI / 2.0).sin();
+        let decel = (anim_time * 16.0 * lab).min(PI / 2.0).sin();
 
-        let spin = (anim_time as f32 * 2.8 * lab as f32).sin();
-        let spinhalf = (anim_time as f32 * 1.4 * lab as f32).sin();
+        let spin = (anim_time * 2.8 * lab).sin();
+        let spinhalf = (anim_time * 1.4 * lab).sin();
 
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
 

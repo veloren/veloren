@@ -13,7 +13,7 @@ impl Animation for ShockwaveAnimation {
     type Dependency = (
         Option<ToolKind>,
         Option<ToolKind>,
-        f64,
+        f32,
         f32,
         Option<StageSection>,
     );
@@ -27,7 +27,7 @@ impl Animation for ShockwaveAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (_active_tool_kind, _second_tool_kind, _global_time, velocity, stage_section): Self::Dependency,
-        anim_time: f64,
+        anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
@@ -35,9 +35,9 @@ impl Animation for ShockwaveAnimation {
         let mut next = (*skeleton).clone();
 
         let (move1, move2, move3) = match stage_section {
-            Some(StageSection::Buildup) => (anim_time as f32, 0.0, 0.0),
-            Some(StageSection::Swing) => (1.0, anim_time as f32, 0.0),
-            Some(StageSection::Recover) => (1.0, 1.0, anim_time as f32),
+            Some(StageSection::Buildup) => (anim_time, 0.0, 0.0),
+            Some(StageSection::Swing) => (1.0, anim_time, 0.0),
+            Some(StageSection::Recover) => (1.0, 1.0, anim_time),
             _ => (0.0, 0.0, 0.0),
         };
 

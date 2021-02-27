@@ -8,7 +8,7 @@ use std::{f32::consts::PI, ops::Mul};
 pub struct SneakAnimation;
 
 impl Animation for SneakAnimation {
-    type Dependency = (Option<ToolKind>, Vec3<f32>, Vec3<f32>, Vec3<f32>, f64);
+    type Dependency = (Option<ToolKind>, Vec3<f32>, Vec3<f32>, Vec3<f32>, f32);
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -19,56 +19,45 @@ impl Animation for SneakAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (_active_tool_kind, velocity, orientation, last_ori, global_time): Self::Dependency,
-        anim_time: f64,
+        anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
         let speed = Vec2::<f32>::from(velocity).magnitude();
         *rate = 1.0;
-        let slow = (anim_time as f32 * 3.0).sin();
-        let breathe = ((anim_time as f32 * 0.5).sin()).abs();
+        let slow = (anim_time * 3.0).sin();
+        let breathe = ((anim_time * 0.5).sin()).abs();
         let walkintensity = if speed > 5.0 { 1.0 } else { 0.45 };
         let lower = if speed > 5.0 { 0.0 } else { 1.0 };
         let _snapfoot = if speed > 5.0 { 1.1 } else { 2.0 };
-        let lab = 1.0;
-        let foothoril = (anim_time as f32 * 7.0 * lab as f32 + PI * 1.45).sin();
-        let foothorir = (anim_time as f32 * 7.0 * lab as f32 + PI * (0.45)).sin();
+        let lab: f32 = 1.0;
+        let foothoril = (anim_time * 7.0 * lab + PI * 1.45).sin();
+        let foothorir = (anim_time * 7.0 * lab + PI * (0.45)).sin();
 
-        let footvertl = (anim_time as f32 * 7.0 * lab as f32).sin();
-        let footvertr = (anim_time as f32 * 7.0 * lab as f32 + PI).sin();
+        let footvertl = (anim_time * 7.0 * lab).sin();
+        let footvertr = (anim_time * 7.0 * lab + PI).sin();
 
-        let footrotl = (((5.0)
-            / (2.5 + (2.5) * ((anim_time as f32 * 7.0 * lab as f32 + PI * 1.4).sin()).powi(2)))
-        .sqrt())
-            * ((anim_time as f32 * 7.0 * lab as f32 + PI * 1.4).sin());
+        let footrotl = ((5.0 / (2.5 + (2.5) * ((anim_time * 7.0 * lab + PI * 1.4).sin()).powi(2)))
+            .sqrt())
+            * ((anim_time * 7.0 * lab + PI * 1.4).sin());
 
-        let footrotr = (((5.0)
-            / (1.0 + (4.0) * ((anim_time as f32 * 7.0 * lab as f32 + PI * 0.4).sin()).powi(2)))
-        .sqrt())
-            * ((anim_time as f32 * 7.0 * lab as f32 + PI * 0.4).sin());
+        let footrotr = ((5.0 / (1.0 + (4.0) * ((anim_time * 7.0 * lab + PI * 0.4).sin()).powi(2)))
+            .sqrt())
+            * ((anim_time * 7.0 * lab + PI * 0.4).sin());
 
-        let short = (anim_time as f32 * lab as f32 * 7.0).sin();
-        let noisea = (anim_time as f32 * 11.0 + PI / 6.0).sin();
-        let noiseb = (anim_time as f32 * 19.0 + PI / 4.0).sin();
+        let short = (anim_time * lab * 7.0).sin();
+        let noisea = (anim_time * 11.0 + PI / 6.0).sin();
+        let noiseb = (anim_time * 19.0 + PI / 4.0).sin();
 
-        let shorte =
-            (((5.0) / (4.0 + 1.0 * ((anim_time as f32 * lab as f32 * 7.0).sin()).powi(2))).sqrt())
-                * ((anim_time as f32 * lab as f32 * 7.0).sin());
+        let shorte = ((5.0 / (4.0 + 1.0 * ((anim_time * lab * 7.0).sin()).powi(2))).sqrt())
+            * ((anim_time * lab * 7.0).sin());
 
-        let shortalt = (anim_time as f32 * lab as f32 * 7.0 + PI / 2.0).sin();
+        let shortalt = (anim_time * lab * 7.0 + PI / 2.0).sin();
 
         let head_look = Vec2::new(
-            ((global_time + anim_time) as f32 / 18.0)
-                .floor()
-                .mul(7331.0)
-                .sin()
-                * 0.2,
-            ((global_time + anim_time) as f32 / 18.0)
-                .floor()
-                .mul(1337.0)
-                .sin()
-                * 0.1,
+            (global_time + anim_time / 18.0).floor().mul(7331.0).sin() * 0.2,
+            (global_time + anim_time / 18.0).floor().mul(1337.0).sin() * 0.1,
         );
 
         let orientation: Vec2<f32> = Vec2::from(orientation);

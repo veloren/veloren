@@ -7,7 +7,7 @@ use common::comp::item::ToolKind;
 pub struct BlockAnimation;
 
 impl Animation for BlockAnimation {
-    type Dependency = (Option<ToolKind>, Option<ToolKind>, f64);
+    type Dependency = (Option<ToolKind>, Option<ToolKind>, f32);
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -17,7 +17,7 @@ impl Animation for BlockAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (_active_tool_kind, _second_tool_kind, _global_time): Self::Dependency,
-        _anim_time: f64,
+        _anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {

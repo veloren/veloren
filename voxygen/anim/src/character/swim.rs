@@ -14,7 +14,7 @@ type SwimAnimationDependency = (
     Vec3<f32>,
     Vec3<f32>,
     Vec3<f32>,
-    f64,
+    f32,
     Vec3<f32>,
 );
 
@@ -39,7 +39,7 @@ impl Animation for SwimAnimation {
             global_time,
             avg_vel,
         ): Self::Dependency,
-        anim_time: f64,
+        anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
@@ -53,31 +53,29 @@ impl Animation for SwimAnimation {
         let tempo = if speed > 0.5 { 1.5 } else { 0.7 };
         let intensity = if speed > 0.5 { 1.0 } else { 0.3 };
 
-        let lab = 1.0 * tempo;
+        let lab: f32 = 1.0 * tempo;
 
-        let short = (anim_time as f32 * lab as f32 * 6.0 + PI * 0.9).sin();
+        let short = (anim_time * lab * 6.0 + PI * 0.9).sin();
 
-        let foot = (anim_time as f32 * lab as f32 * 6.0 + PI * -0.1).sin();
+        let foot = (anim_time * lab * 6.0 + PI * -0.1).sin();
 
-        let footrotl = (((1.0)
-            / (0.2 + (0.8) * ((anim_time as f32 * 6.0 * lab as f32 + PI * 1.4).sin()).powi(2)))
-        .sqrt())
-            * ((anim_time as f32 * 6.0 * lab as f32 + PI * 1.4).sin());
+        let footrotl = ((1.0 / (0.2 + (0.8) * ((anim_time * 6.0 * lab + PI * 1.4).sin()).powi(2)))
+            .sqrt())
+            * ((anim_time * 6.0 * lab + PI * 1.4).sin());
 
-        let footrotr = (((1.0)
-            / (0.2 + (0.8) * ((anim_time as f32 * 6.0 * lab as f32 + PI * 0.4).sin()).powi(2)))
-        .sqrt())
-            * ((anim_time as f32 * 6.0 * lab as f32 + PI * 0.4).sin());
+        let footrotr = ((1.0 / (0.2 + (0.8) * ((anim_time * 6.0 * lab + PI * 0.4).sin()).powi(2)))
+            .sqrt())
+            * ((anim_time * 6.0 * lab + PI * 0.4).sin());
 
-        let foothoril = (anim_time as f32 * 6.0 * lab as f32 + PI * 1.4).sin();
-        let foothorir = (anim_time as f32 * 6.0 * lab as f32 + PI * (0.4)).sin();
+        let foothoril = (anim_time * 6.0 * lab + PI * 1.4).sin();
+        let foothorir = (anim_time * 6.0 * lab + PI * (0.4)).sin();
         let head_look = Vec2::new(
-            ((global_time + anim_time) as f32 / 4.0 * (1.0 / tempo))
+            (global_time + anim_time / 4.0 * (1.0 / tempo))
                 .floor()
                 .mul(7331.0)
                 .sin()
                 * 0.2,
-            ((global_time + anim_time) as f32 / 4.0 * (1.0 / tempo))
+            (global_time + anim_time / 4.0 * (1.0 / tempo))
                 .floor()
                 .mul(1337.0)
                 .sin()

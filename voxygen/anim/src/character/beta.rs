@@ -11,7 +11,7 @@ impl Animation for BetaAnimation {
         Option<ToolKind>,
         Option<ToolKind>,
         f32,
-        f64,
+        f32,
         Option<StageSection>,
     );
     type Skeleton = CharacterSkeleton;
@@ -23,7 +23,7 @@ impl Animation for BetaAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (_active_tool_kind, _second_tool_kind, _velocity, _global_time, stage_section): Self::Dependency,
-        anim_time: f64,
+        anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
@@ -31,9 +31,9 @@ impl Animation for BetaAnimation {
         let mut next = (*skeleton).clone();
 
         let (move1, move2, move3) = match stage_section {
-            Some(StageSection::Buildup) => ((anim_time as f32).powf(0.25), 0.0, 0.0),
-            Some(StageSection::Swing) => (1.0, anim_time as f32, 0.0),
-            Some(StageSection::Recover) => (1.0, 1.0, (anim_time as f32).powi(4)),
+            Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
+            Some(StageSection::Swing) => (1.0, anim_time, 0.0),
+            Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
             _ => (0.0, 0.0, 0.0),
         };
 

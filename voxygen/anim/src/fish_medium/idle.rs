@@ -6,7 +6,7 @@ use std::f32::consts::PI;
 
 pub struct IdleAnimation;
 
-type IdleAnimationDependency = (Vec3<f32>, Vec3<f32>, Vec3<f32>, f64, Vec3<f32>);
+type IdleAnimationDependency = (Vec3<f32>, Vec3<f32>, Vec3<f32>, f32, Vec3<f32>);
 
 impl Animation for IdleAnimation {
     type Dependency = IdleAnimationDependency;
@@ -20,14 +20,14 @@ impl Animation for IdleAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (_velocity, _orientation, _last_ori, _global_time, _avg_vel): Self::Dependency,
-        anim_time: f64,
+        anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        let slow = (anim_time as f32 * 3.5 + PI).sin();
-        let slowalt = (anim_time as f32 * 3.5 + PI + 0.2).sin();
+        let slow = (anim_time * 3.5 + PI).sin();
+        let slowalt = (anim_time * 3.5 + PI + 0.2).sin();
 
         next.chest_front.scale = Vec3::one() / 11.0;
 

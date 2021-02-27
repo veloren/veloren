@@ -10,7 +10,7 @@ impl Animation for ChargeswingAnimation {
         Option<ToolKind>,
         Option<ToolKind>,
         Vec3<f32>,
-        f64,
+        f32,
         Option<StageSection>,
     );
     type Skeleton = CharacterSkeleton;
@@ -23,36 +23,29 @@ impl Animation for ChargeswingAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (active_tool_kind, _second_tool_kind, _velocity, _global_time, stage_section): Self::Dependency,
-        anim_time: f64,
+        anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         *rate = 1.0;
         let mut next = (*skeleton).clone();
 
-        let lab = 1.0;
+        let lab: f32 = 1.0;
 
-        let short = (((5.0) / (1.5 + 3.5 * ((anim_time as f32 * lab as f32 * 8.0).sin()).powi(2)))
-            .sqrt())
-            * ((anim_time as f32 * lab as f32 * 8.0).sin());
+        let short = ((5.0 / (1.5 + 3.5 * ((anim_time * lab * 8.0).sin()).powi(2))).sqrt())
+            * ((anim_time * lab * 8.0).sin());
         // end spin stuff
 
         let (move1base, move2base, move3, tension, test) = match stage_section {
             Some(StageSection::Charge) => (
-                (anim_time as f32).min(1.0),
+                anim_time.min(1.0),
                 0.0,
                 0.0,
-                (anim_time as f32 * 18.0 * lab as f32).sin(),
+                (anim_time * 18.0 * lab).sin(),
                 0.0,
             ),
-            Some(StageSection::Swing) => (
-                1.0,
-                (anim_time as f32).powf(0.25),
-                0.0,
-                0.0,
-                (anim_time as f32).powi(4),
-            ),
-            Some(StageSection::Recover) => (1.0, 1.0, (anim_time as f32).powi(4), 0.0, 1.0),
+            Some(StageSection::Swing) => (1.0, anim_time.powf(0.25), 0.0, 0.0, anim_time.powi(4)),
+            Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4), 0.0, 1.0),
             _ => (0.0, 0.0, 0.0, 0.0, 0.0),
         };
         let move1 = move1base * (1.0 - move3);

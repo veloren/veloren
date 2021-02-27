@@ -8,7 +8,7 @@ use std::{f32::consts::PI, ops::Mul};
 pub struct SwimWieldAnimation;
 
 impl Animation for SwimWieldAnimation {
-    type Dependency = (Option<ToolKind>, Option<ToolKind>, f32, f64);
+    type Dependency = (Option<ToolKind>, Option<ToolKind>, f32, f32);
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -19,49 +19,38 @@ impl Animation for SwimWieldAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (active_tool_kind, _second_tool_kind, velocity, global_time): Self::Dependency,
-        anim_time: f64,
+        anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
         *rate = 1.0;
-        let lab = 1.0;
+        let lab: f32 = 1.0;
         let speed = Vec3::<f32>::from(velocity).magnitude();
         *rate = 1.0;
         let intensity = if speed > 0.5 { 1.0 } else { 0.3 };
-        let footrotl = (((1.0)
-            / (0.2 + (0.8) * ((anim_time as f32 * 6.0 * lab as f32 + PI * 1.4).sin()).powi(2)))
-        .sqrt())
-            * ((anim_time as f32 * 6.0 * lab as f32 + PI * 1.4).sin());
+        let footrotl = ((1.0 / (0.2 + (0.8) * ((anim_time * 6.0 * lab + PI * 1.4).sin()).powi(2)))
+            .sqrt())
+            * ((anim_time * 6.0 * lab + PI * 1.4).sin());
 
-        let footrotr = (((1.0)
-            / (0.2 + (0.8) * ((anim_time as f32 * 6.0 * lab as f32 + PI * 0.4).sin()).powi(2)))
-        .sqrt())
-            * ((anim_time as f32 * 6.0 * lab as f32 + PI * 0.4).sin());
+        let footrotr = ((1.0 / (0.2 + (0.8) * ((anim_time * 6.0 * lab + PI * 0.4).sin()).powi(2)))
+            .sqrt())
+            * ((anim_time * 6.0 * lab + PI * 0.4).sin());
 
         let head_look = Vec2::new(
-            ((global_time + anim_time) as f32 / 3.0)
-                .floor()
-                .mul(7331.0)
-                .sin()
-                * 0.2,
-            ((global_time + anim_time) as f32 / 3.0)
-                .floor()
-                .mul(1337.0)
-                .sin()
-                * 0.1,
+            (global_time + anim_time / 3.0).floor().mul(7331.0).sin() * 0.2,
+            (global_time + anim_time / 3.0).floor().mul(1337.0).sin() * 0.1,
         );
 
-        let slowalt = (anim_time as f32 * 6.0 + PI).cos();
-        let u_slow = (anim_time as f32 * 1.0 + PI).sin();
-        let foothoril = (anim_time as f32 * 6.0 * lab as f32 + PI * 1.45).sin();
-        let foothorir = (anim_time as f32 * 6.0 * lab as f32 + PI * (0.45)).sin();
-        let u_slowalt = (anim_time as f32 * 3.0 + PI).cos();
-        let short =
-            (((5.0) / (1.5 + 3.5 * ((anim_time as f32 * lab as f32 * 16.0).sin()).powi(2))).sqrt())
-                * ((anim_time as f32 * lab as f32 * 16.0).sin());
-        let noisea = (anim_time as f32 * 11.0 + PI / 6.0).sin();
-        let noiseb = (anim_time as f32 * 19.0 + PI / 4.0).sin();
+        let slowalt = (anim_time * 6.0 + PI).cos();
+        let u_slow = (anim_time * 1.0 + PI).sin();
+        let foothoril = (anim_time * 6.0 * lab + PI * 1.45).sin();
+        let foothorir = (anim_time * 6.0 * lab + PI * (0.45)).sin();
+        let u_slowalt = (anim_time * 3.0 + PI).cos();
+        let short = ((5.0 / (1.5 + 3.5 * ((anim_time * lab * 16.0).sin()).powi(2))).sqrt())
+            * ((anim_time * lab * 16.0).sin());
+        let noisea = (anim_time * 11.0 + PI / 6.0).sin();
+        let noiseb = (anim_time * 19.0 + PI / 4.0).sin();
 
         next.foot_l.position = Vec3::new(
             -s_a.foot.0,

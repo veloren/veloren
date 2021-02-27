@@ -8,7 +8,7 @@ use std::f32::consts::PI;
 pub struct EquipAnimation;
 
 impl Animation for EquipAnimation {
-    type Dependency = (Option<ToolKind>, Option<ToolKind>, f32, f64);
+    type Dependency = (Option<ToolKind>, Option<ToolKind>, f32, f32);
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -19,14 +19,14 @@ impl Animation for EquipAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (active_tool_kind, _second_tool_kind, _velocity, _global_time): Self::Dependency,
-        anim_time: f64,
+        anim_time: f32,
         rate: &mut f32,
         _s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         *rate = 1.0;
         let mut next = (*skeleton).clone();
-        let equip_slow = 1.0 + (anim_time as f32 * 12.0 + PI).cos();
-        let equip_slowa = 1.0 + (anim_time as f32 * 12.0 + PI / 4.0).cos();
+        let equip_slow = 1.0 + (anim_time * 12.0 + PI).cos();
+        let equip_slowa = 1.0 + (anim_time * 12.0 + PI / 4.0).cos();
         next.hand_l.orientation = Quaternion::rotation_y(-2.3) * Quaternion::rotation_z(1.57);
         next.hand_r.orientation = Quaternion::rotation_y(-2.3) * Quaternion::rotation_z(1.57);
         next.control.position = Vec3::new(equip_slowa * -1.5, 0.0, equip_slow * 1.5);

@@ -14,7 +14,7 @@ type RunAnimationDependency = (
     Vec3<f32>,
     Vec3<f32>,
     Vec3<f32>,
-    f64,
+    f32,
     Vec3<f32>,
     f32,
 );
@@ -41,7 +41,7 @@ impl Animation for RunAnimation {
             avg_vel,
             acc_vel,
         ): Self::Dependency,
-        anim_time: f64,
+        anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
@@ -52,40 +52,38 @@ impl Animation for RunAnimation {
         let impact = (avg_vel.z).max(-8.0);
         let speednorm = (speed / 9.4).powf(0.6);
 
-        let lab = 1.0;
+        let lab: f32 = 1.0;
 
-        let footrotl = (((1.0)
-            / (0.5 + (0.5) * ((acc_vel * 1.6 * lab as f32 + PI * 1.4).sin()).powi(2)))
-        .sqrt())
-            * ((acc_vel * 1.6 * lab as f32 + PI * 1.4).sin());
+        let footrotl = ((1.0 / (0.5 + (0.5) * ((acc_vel * 1.6 * lab + PI * 1.4).sin()).powi(2)))
+            .sqrt())
+            * ((acc_vel * 1.6 * lab + PI * 1.4).sin());
 
-        let footrotr = (((1.0)
-            / (0.5 + (0.5) * ((acc_vel * 1.6 * lab as f32 + PI * 0.4).sin()).powi(2)))
-        .sqrt())
-            * ((acc_vel * 1.6 * lab as f32 + PI * 0.4).sin());
+        let footrotr = ((1.0 / (0.5 + (0.5) * ((acc_vel * 1.6 * lab + PI * 0.4).sin()).powi(2)))
+            .sqrt())
+            * ((acc_vel * 1.6 * lab + PI * 0.4).sin());
 
         let noisea = (acc_vel * 11.0 + PI / 6.0).sin();
         let noiseb = (acc_vel * 19.0 + PI / 4.0).sin();
 
-        let shorte = (((1.0) / (0.8 + 0.2 * ((acc_vel * lab as f32 * 1.6).sin()).powi(2))).sqrt())
-            * ((acc_vel * lab as f32 * 1.6).sin());
+        let shorte = ((1.0 / (0.8 + 0.2 * ((acc_vel * lab * 1.6).sin()).powi(2))).sqrt())
+            * ((acc_vel * lab * 1.6).sin());
 
-        let shortalter = (acc_vel * lab as f32 * 1.6 + PI / -2.0).sin();
+        let shortalter = (acc_vel * lab * 1.6 + PI / -2.0).sin();
 
-        let foothoril = (acc_vel * 1.6 * lab as f32 + PI * 1.45).sin();
-        let foothorir = (acc_vel * 1.6 * lab as f32 + PI * (0.45)).sin();
-        let footstrafel = (acc_vel * 1.6 * lab as f32 + PI * 1.45).sin();
-        let footstrafer = (acc_vel * 1.6 * lab as f32 + PI * (0.95)).sin();
+        let foothoril = (acc_vel * 1.6 * lab + PI * 1.45).sin();
+        let foothorir = (acc_vel * 1.6 * lab + PI * (0.45)).sin();
+        let footstrafel = (acc_vel * 1.6 * lab + PI * 1.45).sin();
+        let footstrafer = (acc_vel * 1.6 * lab + PI * (0.95)).sin();
 
-        let footvertl = (acc_vel * 1.6 * lab as f32).sin();
-        let footvertr = (acc_vel * 1.6 * lab as f32 + PI).sin();
-        let footvertsl = (acc_vel * 1.6 * lab as f32).sin();
-        let footvertsr = (acc_vel * 1.6 * lab as f32 + PI * 0.5).sin();
+        let footvertl = (acc_vel * 1.6 * lab).sin();
+        let footvertr = (acc_vel * 1.6 * lab + PI).sin();
+        let footvertsl = (acc_vel * 1.6 * lab).sin();
+        let footvertsr = (acc_vel * 1.6 * lab + PI * 0.5).sin();
 
-        let shortalt = (acc_vel * lab as f32 * 1.6 + PI / 2.0).sin();
+        let shortalt = (acc_vel * lab * 1.6 + PI / 2.0).sin();
 
-        let short = (((5.0) / (1.5 + 3.5 * ((acc_vel * lab as f32 * 1.6).sin()).powi(2))).sqrt())
-            * ((acc_vel * lab as f32 * 1.6).sin());
+        let short = ((5.0 / (1.5 + 3.5 * ((acc_vel * lab * 1.6).sin()).powi(2))).sqrt())
+            * ((acc_vel * lab * 1.6).sin());
         let direction = velocity.y * -0.098 * orientation.y + velocity.x * -0.098 * orientation.x;
 
         let side =
@@ -107,16 +105,8 @@ impl Animation for RunAnimation {
         //println!("speednorm {} ",side);
 
         let head_look = Vec2::new(
-            ((global_time + anim_time) as f32 / 18.0)
-                .floor()
-                .mul(7331.0)
-                .sin()
-                * 0.2,
-            ((global_time + anim_time) as f32 / 18.0)
-                .floor()
-                .mul(1337.0)
-                .sin()
-                * 0.1,
+            (global_time + anim_time / 18.0).floor().mul(7331.0).sin() * 0.2,
+            (global_time + anim_time / 18.0).floor().mul(1337.0).sin() * 0.1,
         );
 
         next.head.position = Vec3::new(0.0, 1.0 * speednorm + s_a.head.0, s_a.head.1 + short * 0.1);

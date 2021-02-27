@@ -11,9 +11,9 @@ impl Animation for StunnedAnimation {
         Option<ToolKind>,
         Option<ToolKind>,
         f32,
-        f64,
+        f32,
         Option<StageSection>,
-        f64,
+        f32,
         bool,
     );
     type Skeleton = CharacterSkeleton;
@@ -34,7 +34,7 @@ impl Animation for StunnedAnimation {
             timer,
             wield_status,
         ): Self::Dependency,
-        anim_time: f64,
+        anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
@@ -42,14 +42,14 @@ impl Animation for StunnedAnimation {
         let mut next = (*skeleton).clone();
 
         let (movement1base, movement2) = match stage_section {
-            Some(StageSection::Buildup) => ((anim_time as f32).powf(0.25), 0.0),
-            Some(StageSection::Recover) => (1.0, (anim_time as f32).powf(4.0)),
+            Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0),
+            Some(StageSection::Recover) => (1.0, anim_time.powf(4.0)),
             _ => (0.0, 0.0),
         };
         let pullback = 1.0 - movement2;
         let subtract = global_time - timer;
         let check = subtract - subtract.trunc();
-        let mirror = (check - 0.5).signum() as f32;
+        let mirror = (check - 0.5).signum();
         let movement1 = movement1base * pullback * mirror;
         let movement1abs = movement1base * pullback;
 

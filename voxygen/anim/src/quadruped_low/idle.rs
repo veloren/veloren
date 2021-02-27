@@ -7,7 +7,7 @@ use std::{f32::consts::PI, ops::Mul};
 pub struct IdleAnimation;
 
 impl Animation for IdleAnimation {
-    type Dependency = f64;
+    type Dependency = f32;
     type Skeleton = QuadrupedLowSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -17,27 +17,19 @@ impl Animation for IdleAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         global_time: Self::Dependency,
-        anim_time: f64,
+        anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        let slower = (anim_time as f32 * 1.25).sin();
-        let slow = (anim_time as f32 * 2.5).sin();
-        let slowalt = (anim_time as f32 * 2.5 + PI / 2.0).sin();
+        let slower = (anim_time * 1.25).sin();
+        let slow = (anim_time * 2.5).sin();
+        let slowalt = (anim_time * 2.5 + PI / 2.0).sin();
 
         let dragon_look = Vec2::new(
-            ((global_time + anim_time) as f32 / 8.0)
-                .floor()
-                .mul(7331.0)
-                .sin()
-                * 0.2,
-            ((global_time + anim_time) as f32 / 8.0)
-                .floor()
-                .mul(1337.0)
-                .sin()
-                * 0.1,
+            (global_time + anim_time / 8.0).floor().mul(7331.0).sin() * 0.2,
+            (global_time + anim_time / 8.0).floor().mul(1337.0).sin() * 0.1,
         );
         next.jaw.scale = Vec3::one() * 0.98;
         next.chest.scale = Vec3::one() * s_a.scaler / 11.0;

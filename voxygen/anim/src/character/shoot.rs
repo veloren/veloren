@@ -14,7 +14,7 @@ type ShootAnimationDependency = (
     Vec3<f32>,
     Vec3<f32>,
     Dir,
-    f64,
+    f32,
     Option<StageSection>,
 );
 impl Animation for ShootAnimation {
@@ -38,7 +38,7 @@ impl Animation for ShootAnimation {
             _global_time,
             stage_section,
         ): Self::Dependency,
-        anim_time: f64,
+        anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
@@ -47,7 +47,7 @@ impl Animation for ShootAnimation {
 
         let mut next = (*skeleton).clone();
 
-        let lab = 1.0;
+        let lab: f32 = 1.0;
         let ori: Vec2<f32> = Vec2::from(orientation);
         let last_ori = Vec2::from(last_ori);
         let tilt = if ::vek::Vec2::new(ori, last_ori)
@@ -64,13 +64,13 @@ impl Animation for ShootAnimation {
         match active_tool_kind {
             Some(ToolKind::Staff) | Some(ToolKind::Sceptre) => {
                 let (move1, move2, move3) = match stage_section {
-                    Some(StageSection::Buildup) => (anim_time as f32, 0.0, 0.0),
-                    Some(StageSection::Shoot) => (1.0, (anim_time as f32).powf(0.25), 0.0),
-                    Some(StageSection::Recover) => (1.0, 1.0, anim_time as f32),
+                    Some(StageSection::Buildup) => (anim_time, 0.0, 0.0),
+                    Some(StageSection::Shoot) => (1.0, anim_time.powf(0.25), 0.0),
+                    Some(StageSection::Recover) => (1.0, 1.0, anim_time),
                     _ => (0.0, 0.0, 0.0),
                 };
-                let xmove = (move1 as f32 * 6.0 * lab as f32 + PI).sin();
-                let ymove = (move1 as f32 * 6.0 * lab as f32 + PI * (0.5)).sin();
+                let xmove = (move1 * 6.0 * lab + PI).sin();
+                let ymove = (move1 * 6.0 * lab + PI * (0.5)).sin();
                 next.hand_l.position = Vec3::new(s_a.sthl.0, s_a.sthl.1, s_a.sthl.2);
                 next.hand_l.orientation = Quaternion::rotation_x(s_a.sthl.3);
 
@@ -118,9 +118,9 @@ impl Animation for ShootAnimation {
             },
             Some(ToolKind::Bow) => {
                 let (_move1, move2, _move3) = match stage_section {
-                    Some(StageSection::Buildup) => ((anim_time as f32).powf(0.25), 0.0, 0.0),
-                    Some(StageSection::Shoot) => (1.0, anim_time as f32, 0.0),
-                    Some(StageSection::Recover) => (1.0, 1.0, (anim_time as f32).powi(4)),
+                    Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
+                    Some(StageSection::Shoot) => (1.0, anim_time, 0.0),
+                    Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
                     _ => (0.0, 0.0, 0.0),
                 };
                 next.main.position = Vec3::new(0.0, 0.0, 0.0);
@@ -151,7 +151,7 @@ impl Animation for ShootAnimation {
                 next.head.position = Vec3::new(0.0 - 2.0, s_a.head.0, s_a.head.1);
 
                 next.head.orientation = Quaternion::rotation_x(look_dir.z * 0.7)
-                    * Quaternion::rotation_z(tilt * -2.5 - 0.5 + (move2 as f32 * -0.2).sin());
+                    * Quaternion::rotation_z(tilt * -2.5 - 0.5 + (move2 * -0.2).sin());
                 next.chest.orientation = Quaternion::rotation_z(0.8 + move2 * 0.2);
                 next.belt.orientation = Quaternion::rotation_z(move2 * 0.3);
                 next.shorts.orientation = Quaternion::rotation_z(move2 * 0.5);

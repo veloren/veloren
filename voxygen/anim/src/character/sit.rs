@@ -8,7 +8,7 @@ use std::{f32::consts::PI, ops::Mul};
 pub struct SitAnimation;
 
 impl Animation for SitAnimation {
-    type Dependency = (Option<ToolKind>, Option<ToolKind>, f64);
+    type Dependency = (Option<ToolKind>, Option<ToolKind>, f32);
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -18,27 +18,19 @@ impl Animation for SitAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (_active_tool_kind, _second_tool_kind, global_time): Self::Dependency,
-        anim_time: f64,
+        anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        let slow = (anim_time as f32 * 1.0).sin();
-        let slowa = (anim_time as f32 * 1.0 + PI / 2.0).sin();
-        let stop = (anim_time as f32 * 3.0).min(PI / 2.0).sin();
+        let slow = (anim_time * 1.0).sin();
+        let slowa = (anim_time * 1.0 + PI / 2.0).sin();
+        let stop = (anim_time * 3.0).min(PI / 2.0).sin();
 
         let head_look = Vec2::new(
-            ((global_time + anim_time) as f32 / 18.0)
-                .floor()
-                .mul(7331.0)
-                .sin()
-                * 0.25,
-            ((global_time + anim_time) as f32 / 18.0)
-                .floor()
-                .mul(1337.0)
-                .sin()
-                * 0.125,
+            (global_time + anim_time / 18.0).floor().mul(7331.0).sin() * 0.25,
+            (global_time + anim_time / 18.0).floor().mul(1337.0).sin() * 0.125,
         );
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1 + slow * 0.1 + stop * -0.8);
         next.head.orientation = Quaternion::rotation_z(head_look.x + slow * 0.2 - slow * 0.1)

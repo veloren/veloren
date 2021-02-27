@@ -12,7 +12,7 @@ type GlideWieldAnimationDependency = (
     Vec3<f32>,
     Vec3<f32>,
     Vec3<f32>,
-    f64,
+    f32,
 );
 
 impl Animation for GlideWieldAnimation {
@@ -27,7 +27,7 @@ impl Animation for GlideWieldAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (_active_tool_kind, _second_tool_kind, velocity, _orientation, _last_ori, _global_time): Self::Dependency,
-        _anim_time: f64,
+        _anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {

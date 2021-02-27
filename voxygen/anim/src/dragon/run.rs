@@ -7,7 +7,7 @@ use std::f32::consts::PI;
 pub struct RunAnimation;
 
 impl Animation for RunAnimation {
-    type Dependency = (f32, Vec3<f32>, Vec3<f32>, f64, Vec3<f32>);
+    type Dependency = (f32, Vec3<f32>, Vec3<f32>, f32, Vec3<f32>);
     type Skeleton = DragonSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -17,22 +17,21 @@ impl Animation for RunAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (_velocity, orientation, last_ori, _global_time, avg_vel): Self::Dependency,
-        anim_time: f64,
+        anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        let lab = 0.6; //6
+        let lab: f32 = 0.6; //6
 
-        let short = (((1.0)
-            / (0.72 + 0.28 * ((anim_time as f32 * 16.0 * lab as f32 + PI * 1.0).sin()).powi(2)))
-        .sqrt())
-            * ((anim_time as f32 * 16.0 * lab as f32 + PI * 1.0).sin());
+        let short = ((1.0 / (0.72 + 0.28 * ((anim_time * 16.0 * lab + PI * 1.0).sin()).powi(2)))
+            .sqrt())
+            * ((anim_time * 16.0 * lab + PI * 1.0).sin());
 
         //
 
-        let shortalt = (anim_time as f32 * 16.0 * lab as f32 + PI * 0.5).sin();
+        let shortalt = (anim_time * 16.0 * lab + PI * 0.5).sin();
 
         //
         let ori: Vec2<f32> = Vec2::from(orientation);
@@ -50,23 +49,23 @@ impl Animation for RunAnimation {
         } * 1.3;
         let x_tilt = avg_vel.z.atan2(avg_vel.xy().magnitude());
 
-        let lab = 14;
+        let lab: f32 = 14.0;
 
-        let wave_ultra_slow_cos = (anim_time as f32 * 3.0 + PI).cos();
-        let wave_slow = (anim_time as f32 * 4.5).sin();
+        let wave_ultra_slow_cos = (anim_time * 3.0 + PI).cos();
+        let wave_slow = (anim_time * 4.5).sin();
 
-        let vertlf = (anim_time as f32 * lab as f32 + PI * 1.8).sin().max(0.15);
-        let vertrfoffset = (anim_time as f32 * lab as f32 + PI * 0.80).sin().max(0.15);
-        let vertlboffset = (anim_time as f32 * lab as f32).sin().max(0.15);
-        let vertrb = (anim_time as f32 * lab as f32 + PI).sin().max(0.15);
+        let vertlf = (anim_time * lab + PI * 1.8).sin().max(0.15);
+        let vertrfoffset = (anim_time * lab + PI * 0.80).sin().max(0.15);
+        let vertlboffset = (anim_time * lab).sin().max(0.15);
+        let vertrb = (anim_time * lab + PI).sin().max(0.15);
 
-        let horilf = (anim_time as f32 * lab as f32 + PI * 1.2).sin();
-        let horirfoffset = (anim_time as f32 * lab as f32 + PI * 0.20).sin();
-        let horilboffset = (anim_time as f32 * lab as f32 + PI * 1.4).sin();
-        let horirb = (anim_time as f32 * lab as f32 + PI * 0.4).sin();
+        let horilf = (anim_time * lab + PI * 1.2).sin();
+        let horirfoffset = (anim_time * lab + PI * 0.20).sin();
+        let horilboffset = (anim_time * lab + PI * 1.4).sin();
+        let horirb = (anim_time * lab + PI * 0.4).sin();
 
-        let center = (anim_time as f32 * lab as f32 + PI / 2.0).sin();
-        let centeroffset = (anim_time as f32 * lab as f32 + PI * 1.5).sin();
+        let center = (anim_time * lab + PI / 2.0).sin();
+        let centeroffset = (anim_time * lab + PI * 1.5).sin();
 
         next.head_lower.scale = Vec3::one() * 1.02;
         next.jaw.scale = Vec3::one() * 1.05;

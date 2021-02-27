@@ -12,7 +12,7 @@ type WieldAnimationDependency = (
     Vec3<f32>,
     Vec3<f32>,
     Vec3<f32>,
-    f64,
+    f32,
     Vec3<f32>,
     f32,
 );
@@ -29,7 +29,7 @@ impl Animation for WieldAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (active_tool_kind, velocity, _orientation, _last_ori, _global_time, _avg_vel, acc_vel): Self::Dependency,
-        anim_time: f64,
+        anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
@@ -37,9 +37,9 @@ impl Animation for WieldAnimation {
         let speed = Vec2::<f32>::from(velocity).magnitude();
 
         let fastacc = (acc_vel * 2.0).sin();
-        let fast = (anim_time as f32 * 10.0).sin();
-        let fastalt = (anim_time as f32 * 10.0 + PI / 2.0).sin();
-        let slow = (anim_time as f32 * 2.0).sin();
+        let fast = (anim_time * 10.0).sin();
+        let fastalt = (anim_time * 10.0 + PI / 2.0).sin();
+        let slow = (anim_time * 2.0).sin();
 
         let speednorm = speed / 9.4;
         let speednormcancel = 1.0 - speednorm;

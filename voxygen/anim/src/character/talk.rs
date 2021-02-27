@@ -8,7 +8,7 @@ use std::f32::consts::PI;
 pub struct TalkAnimation;
 
 impl Animation for TalkAnimation {
-    type Dependency = (Option<ToolKind>, Option<ToolKind>, f32, f64, Dir);
+    type Dependency = (Option<ToolKind>, Option<ToolKind>, f32, f32, Dir);
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -19,16 +19,16 @@ impl Animation for TalkAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (_active_tool_kind, _second_tool_kind, _velocity, _global_time, look_dir): Self::Dependency,
-        anim_time: f64,
+        anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         *rate = 1.0;
         let mut next = (*skeleton).clone();
 
-        let slowa = (anim_time as f32 * 6.0).sin();
-        let slowb = (anim_time as f32 * 4.0 + PI / 2.0).sin();
-        let slowc = (anim_time as f32 * 12.0 + PI / 2.0).sin();
+        let slowa = (anim_time * 6.0).sin();
+        let slowb = (anim_time * 4.0 + PI / 2.0).sin();
+        let slowc = (anim_time * 12.0 + PI / 2.0).sin();
 
         next.head.orientation = Quaternion::rotation_x(slowc * 0.035 + look_dir.z * 0.7);
         next.hand_l.position = Vec3::new(

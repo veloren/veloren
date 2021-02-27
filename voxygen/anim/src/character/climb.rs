@@ -13,7 +13,7 @@ impl Animation for ClimbAnimation {
         Option<ToolKind>,
         Vec3<f32>,
         Vec3<f32>,
-        f64,
+        f32,
     );
     type Skeleton = CharacterSkeleton;
 
@@ -24,7 +24,7 @@ impl Animation for ClimbAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (_active_tool_kind, _second_tool_kind, velocity, _orientation, global_time): Self::Dependency,
-        anim_time: f64,
+        anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
@@ -32,31 +32,20 @@ impl Animation for ClimbAnimation {
         let lateral = Vec2::<f32>::from(velocity).magnitude();
         let speed = velocity.z;
         *rate = speed;
-        let constant = 1.0;
-        let smooth = (anim_time as f32 * constant as f32 * 1.5).sin();
-        let smootha = (anim_time as f32 * constant as f32 * 1.5 + PI / 2.0).sin();
-        let drop = (anim_time as f32 * constant as f32 * 4.0 + PI / 2.0).sin();
-        let dropa = (anim_time as f32 * constant as f32 * 4.0).sin();
+        let constant: f32 = 1.0;
+        let smooth = (anim_time * constant * 1.5).sin();
+        let smootha = (anim_time * constant * 1.5 + PI / 2.0).sin();
+        let drop = (anim_time * constant * 4.0 + PI / 2.0).sin();
+        let dropa = (anim_time * constant * 4.0).sin();
 
-        let quick = (((5.0)
-            / (0.6 + 4.0 * ((anim_time as f32 * constant as f32 * 1.5).sin()).powi(2)))
-        .sqrt())
-            * ((anim_time as f32 * constant as f32 * 1.5).sin());
-        let quicka = (((5.0)
-            / (0.6 + 4.0 * ((anim_time as f32 * constant as f32 * 1.5 + PI / 2.0).sin()).powi(2)))
-        .sqrt())
-            * ((anim_time as f32 * constant as f32 * 1.5 + PI / 2.0).sin());
+        let quick = ((5.0 / (0.6 + 4.0 * ((anim_time * constant * 1.5).sin()).powi(2))).sqrt())
+            * ((anim_time * constant * 1.5).sin());
+        let quicka =
+            ((5.0 / (0.6 + 4.0 * ((anim_time * constant * 1.5 + PI / 2.0).sin()).powi(2))).sqrt())
+                * ((anim_time * constant * 1.5 + PI / 2.0).sin());
         let head_look = Vec2::new(
-            ((global_time + anim_time) as f32 / 2.0)
-                .floor()
-                .mul(7331.0)
-                .sin()
-                * 0.3,
-            ((global_time + anim_time) as f32 / 2.0)
-                .floor()
-                .mul(1337.0)
-                .sin()
-                * 0.15,
+            (global_time + anim_time / 2.0).floor().mul(7331.0).sin() * 0.3,
+            (global_time + anim_time / 2.0).floor().mul(1337.0).sin() * 0.15,
         );
         let stagnant = if speed > -0.7 { 1.0 } else { 0.0 }; //sets static position when there is no movement
 

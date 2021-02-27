@@ -12,7 +12,7 @@ impl Animation for SpinMeleeAnimation {
         Option<ToolKind>,
         Option<ToolKind>,
         Vec3<f32>,
-        f64,
+        f32,
         Option<StageSection>,
     );
     type Skeleton = BipedLargeSkeleton;
@@ -25,41 +25,41 @@ impl Animation for SpinMeleeAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (active_tool_kind, _second_tool_kind, velocity, _global_time, stage_section): Self::Dependency,
-        anim_time: f64,
+        anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         *rate = 1.0;
-        let lab = 1.0;
+        let lab: f32 = 1.0;
         let (_movement1, movement2, movement3) = match stage_section {
-            Some(StageSection::Buildup) => (anim_time as f32, 0.0, 0.0),
-            Some(StageSection::Swing) => (1.0, anim_time as f32, 0.0),
-            Some(StageSection::Recover) => (1.0, 1.0, anim_time as f32),
+            Some(StageSection::Buildup) => (anim_time, 0.0, 0.0),
+            Some(StageSection::Swing) => (1.0, anim_time, 0.0),
+            Some(StageSection::Recover) => (1.0, 1.0, anim_time),
             _ => (0.0, 0.0, 0.0),
         };
         let speed = Vec2::<f32>::from(velocity).magnitude();
         let mut next = (*skeleton).clone();
         //torso movement
         let xshift = if velocity.z.abs() < 0.1 {
-            ((anim_time as f32 - 1.1) * lab as f32 * 3.0).sin()
+            ((anim_time - 1.1) * lab * 3.0).sin()
         } else {
             0.0
         };
         let yshift = if velocity.z.abs() < 0.1 {
-            ((anim_time as f32 - 1.1) * lab as f32 * 3.0 + PI / 2.0).sin()
+            ((anim_time - 1.1) * lab * 3.0 + PI / 2.0).sin()
         } else {
             0.0
         };
 
         let spin = if anim_time < 1.1 && velocity.z.abs() < 0.1 {
-            0.5 * ((anim_time as f32).powi(2))
+            0.5 * (anim_time.powi(2))
         } else {
-            lab as f32 * anim_time as f32 * 0.9
+            lab * anim_time * 0.9
         };
 
         //feet
-        let slowersmooth = (anim_time as f32 * lab as f32 * 4.0).sin();
-        let quick = (anim_time as f32 * lab as f32 * 8.0).sin();
+        let slowersmooth = (anim_time * lab * 4.0).sin();
+        let quick = (anim_time * lab * 8.0).sin();
 
         match active_tool_kind {
             Some(ToolKind::Sword) => {
@@ -111,8 +111,8 @@ impl Animation for SpinMeleeAnimation {
                     * Quaternion::rotation_x(0.7)
                     * Quaternion::rotation_y(0.0);
                 next.torso.position = Vec3::new(
-                    -xshift * (anim_time as f32).min(0.6),
-                    -yshift * (anim_time as f32).min(0.6),
+                    -xshift * anim_time.min(0.6),
+                    -yshift * anim_time.min(0.6),
                     0.0,
                 );
                 next.torso.orientation = Quaternion::rotation_z(spin * -16.0)

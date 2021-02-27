@@ -11,7 +11,7 @@ impl Animation for DashAnimation {
     type Dependency = (
         Option<ToolKind>,
         Option<ToolKind>,
-        f64,
+        f32,
         Option<StageSection>,
     );
     type Skeleton = CharacterSkeleton;
@@ -24,7 +24,7 @@ impl Animation for DashAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (active_tool_kind, _second_tool_kind, _global_time, stage_section): Self::Dependency,
-        anim_time: f64,
+        anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
@@ -32,19 +32,19 @@ impl Animation for DashAnimation {
         let mut next = (*skeleton).clone();
 
         let (movement1, movement2, movement3, movement4) = match stage_section {
-            Some(StageSection::Buildup) => ((anim_time as f32).powf(0.25), 0.0, 0.0, 0.0),
-            Some(StageSection::Charge) => (1.0, anim_time as f32, 0.0, 0.0),
-            Some(StageSection::Swing) => (1.0, 1.0, (anim_time as f32).powf(0.01), 0.0),
-            Some(StageSection::Recover) => (1.1, 1.0, 1.0, (anim_time as f32).powi(4)),
+            Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0, 0.0),
+            Some(StageSection::Charge) => (1.0, anim_time, 0.0, 0.0),
+            Some(StageSection::Swing) => (1.0, 1.0, anim_time.powf(0.01), 0.0),
+            Some(StageSection::Recover) => (1.1, 1.0, 1.0, anim_time.powi(4)),
             _ => (0.0, 0.0, 0.0, 0.0),
         };
 
         fn slow(x: f32) -> f32 {
-            (((5.0) / (1.1 + 3.9 * ((x * 12.4).sin()).powi(2))).sqrt()) * ((x * 12.4).sin())
+            ((5.0 / (1.1 + 3.9 * ((x * 12.4).sin()).powi(2))).sqrt()) * ((x * 12.4).sin())
         }
 
         fn short(x: f32) -> f32 {
-            (((5.0) / (1.5 + 3.5 * ((x * 5.0).sin()).powi(2))).sqrt()) * ((x * 5.0).sin())
+            ((5.0 / (1.5 + 3.5 * ((x * 5.0).sin()).powi(2))).sqrt()) * ((x * 5.0).sin())
         }
 
         fn shortalt(x: f32) -> f32 { (x * 5.0 + PI / 2.0).sin() }
@@ -104,8 +104,8 @@ impl Animation for DashAnimation {
             _ => {},
         }
 
-        next.lantern.orientation = Quaternion::rotation_x(slow(anim_time as f32) * -0.7 + 0.4)
-            * Quaternion::rotation_y(slow(anim_time as f32) * 0.4);
+        next.lantern.orientation = Quaternion::rotation_x(slow(anim_time) * -0.7 + 0.4)
+            * Quaternion::rotation_y(slow(anim_time) * 0.4);
 
         next
     }
