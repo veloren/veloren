@@ -586,16 +586,6 @@ pub fn handle_interrupt(data: &JoinData, update: &mut StateUpdate, attacks_inter
     handle_dodge_input(data, update);
 }
 
-pub fn resume_combo(data: &JoinData, update: &mut StateUpdate, key: AbilityKey, stage: u32) {
-    if ability_key_is_pressed(data, key) {
-        handle_interrupt(data, update, true);
-    }
-    // If other states are introduced that progress through stages, add them here
-    if let CharacterState::ComboMelee(c) = &mut update.character {
-        c.stage = stage;
-    }
-}
-
 pub fn ability_key_is_pressed(data: &JoinData, ability_key: AbilityKey) -> bool {
     match ability_key {
         AbilityKey::Mouse1 => data.inputs.primary.is_pressed(),

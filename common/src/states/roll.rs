@@ -115,7 +115,16 @@ impl CharacterBehavior for Data {
                 } else {
                     // Done
                     if let Some((key, stage)) = self.was_combo {
-                        resume_combo(data, &mut update, key, stage);
+                        if ability_key_is_pressed(data, key) {
+                            handle_interrupt(data, &mut update, true);
+                            // If other states are introduced that progress through stages, add them
+                            // here
+                            if let CharacterState::ComboMelee(c) = &mut update.character {
+                                c.stage = stage;
+                            }
+                        } else {
+                            update.character = CharacterState::Wielding;
+                        }
                     } else if self.was_wielded {
                         update.character = CharacterState::Wielding;
                     } else if self.was_sneak {
@@ -127,15 +136,7 @@ impl CharacterBehavior for Data {
             },
             _ => {
                 // If it somehow ends up in an incorrect stage section
-                if let Some((key, stage)) = self.was_combo {
-                    resume_combo(data, &mut update, key, stage);
-                } else if self.was_wielded {
-                    update.character = CharacterState::Wielding;
-                } else if self.was_sneak {
-                    update.character = CharacterState::Sneak;
-                } else {
-                    update.character = CharacterState::Idle;
-                }
+                update.character = CharacterState::Idle;
             },
         }
 
