@@ -8,8 +8,9 @@ use entity_creation::{
     handle_loaded_character_data, handle_shockwave, handle_shoot,
 };
 use entity_manipulation::{
-    handle_aura, handle_buff, handle_damage, handle_delete, handle_destroy, handle_energy_change,
-    handle_explosion, handle_knockback, handle_land_on_ground, handle_poise, handle_respawn,
+    handle_aura, handle_buff, handle_combo_change, handle_damage, handle_delete, handle_destroy,
+    handle_energy_change, handle_explosion, handle_knockback, handle_land_on_ground, handle_poise,
+    handle_respawn,
 };
 use group_manip::handle_group;
 use interaction::{
@@ -181,6 +182,9 @@ impl Server {
                 } => handle_buff(self, entity, buff_change),
                 ServerEvent::EnergyChange { entity, change } => {
                     handle_energy_change(&self, entity, change)
+                },
+                ServerEvent::ComboChange { entity, change } => {
+                    handle_combo_change(&self, entity, change)
                 },
             }
         }

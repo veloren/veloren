@@ -529,7 +529,17 @@ pub fn handle_dodge_input(data: &JoinData, update: &mut StateUpdate) {
             })
             .filter(|ability| ability.requirements_paid(data, update))
         {
-            if data.character.is_wield() {
+            if let CharacterState::ComboMelee(c) = data.character {
+                update.character = (
+                    &ability,
+                    AbilityInfo::from_key(data, AbilityKey::Dodge, false),
+                )
+                    .into();
+                if let CharacterState::Roll(roll) = &mut update.character {
+                    roll.was_combo = Some((c.static_data.ability_info.key, c.stage));
+                    roll.was_wielded = true;
+                }
+            } else if data.character.is_wield() {
                 update.character = (
                     &ability,
                     AbilityInfo::from_key(data, AbilityKey::Dodge, false),
@@ -576,6 +586,16 @@ pub fn handle_interrupt(data: &JoinData, update: &mut StateUpdate, attacks_inter
     handle_dodge_input(data, update);
 }
 
+pub fn resume_combo(data: &JoinData, update: &mut StateUpdate, key: AbilityKey, stage: u32) {
+    if ability_key_is_pressed(data, key) {
+        handle_interrupt(data, update, true);
+    }
+    // If other states are introduced that progress through stages, add them here
+    if let CharacterState::ComboMelee(c) = &mut update.character {
+        c.stage = stage;
+    }
+}
+
 pub fn ability_key_is_pressed(data: &JoinData, ability_key: AbilityKey) -> bool {
     match ability_key {
         AbilityKey::Mouse1 => data.inputs.primary.is_pressed(),
@@ -583,14 +603,6 @@ pub fn ability_key_is_pressed(data: &JoinData, ability_key: AbilityKey) -> bool 
         AbilityKey::Skill1 => data.inputs.ability3.is_pressed(),
         AbilityKey::Skill2 => data.inputs.ability4.is_pressed(),
         AbilityKey::Dodge => data.inputs.roll.is_pressed(),
-    }
-}
-
-pub fn continue_combo(data: &JoinData, update: &mut StateUpdate, combo_data: (u32, u32)) {
-    handle_ability1_input(data, update);
-    if let CharacterState::ComboMelee(data) = &mut update.character {
-        data.stage = combo_data.0;
-        data.combo = combo_data.1;
     }
 }
 

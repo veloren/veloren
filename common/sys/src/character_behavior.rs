@@ -9,8 +9,8 @@ use common::{
             item::MaterialStatManifest,
             slot::{EquipSlot, Slot},
         },
-        Beam, Body, CharacterState, Controller, Energy, Health, Inventory, Melee, Mounting, Ori,
-        PhysicsState, Poise, PoiseState, Pos, StateUpdate, Stats, Vel,
+        Beam, Body, CharacterState, Combo, Controller, Energy, Health, Inventory, Melee, Mounting,
+        Ori, PhysicsState, Poise, PoiseState, Pos, StateUpdate, Stats, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     metrics::SysMetrics,
@@ -66,6 +66,7 @@ pub struct ReadData<'a> {
     mountings: ReadStorage<'a, Mounting>,
     stats: ReadStorage<'a, Stats>,
     msm: Read<'a, MaterialStatManifest>,
+    combos: ReadStorage<'a, Combo>,
 }
 
 /// ## Character Behavior System
@@ -121,6 +122,7 @@ impl<'a> System<'a> for Sys {
             body,
             physics,
             stat,
+            combo,
         ) in (
             &read_data.entities,
             &read_data.uids,
@@ -135,6 +137,7 @@ impl<'a> System<'a> for Sys {
             &read_data.bodies,
             &read_data.physics_states,
             &read_data.stats,
+            &read_data.combos,
         )
             .join()
         {
@@ -253,6 +256,7 @@ impl<'a> System<'a> for Sys {
                 melee_attack: read_data.melee_attacks.get(entity),
                 beam: read_data.beams.get(entity),
                 stat: &stat,
+                combo: &combo,
             };
 
             for action in actions {

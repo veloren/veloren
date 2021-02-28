@@ -20,6 +20,7 @@ use common::{
     event::{EventBus, ServerEvent},
     lottery::Lottery,
     outcome::Outcome,
+    resources::Time,
     rtsim::RtSimEntity,
     terrain::{Block, TerrainGrid},
     uid::{Uid, UidAllocator},
@@ -879,4 +880,16 @@ fn handle_exp_gain(
         uid: *uid,
         exp: exp_reward as i32,
     });
+}
+
+pub fn handle_combo_change(server: &Server, entity: EcsEntity, change: i32) {
+    let ecs = &server.state.ecs();
+    if let Some(mut combo) = ecs.write_storage::<comp::Combo>().get_mut(entity) {
+        if change > 0 {
+            let time = ecs.read_resource::<Time>();
+            combo.increase_by(change as u32, time.0);
+        } else {
+            combo.decrease_by(change.abs() as u32);
+        }
+    }
 }

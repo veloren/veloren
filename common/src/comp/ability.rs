@@ -1216,7 +1216,6 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                     ability_info,
                 },
                 stage: 1,
-                combo: 0,
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
                 next_stage: false,
