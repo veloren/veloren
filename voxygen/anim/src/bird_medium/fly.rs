@@ -7,7 +7,7 @@ use std::f32::consts::PI;
 pub struct FlyAnimation;
 
 impl Animation for FlyAnimation {
-    type Dependency = (f32, f64);
+    type Dependency = (f32, f32);
     type Skeleton = BirdMediumSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -17,18 +17,18 @@ impl Animation for FlyAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         _global_time: Self::Dependency,
-        anim_time: f64,
+        anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        let lab = 12.0; //14.0
+        let lab: f32 = 12.0; //14.0
 
-        let footl = (anim_time as f32 * lab as f32 + PI).sin();
-        let footr = (anim_time as f32 * lab as f32).sin();
-        let center = (anim_time as f32 * lab as f32 + PI / 2.0).sin();
-        let centeroffset = (anim_time as f32 * lab as f32 + PI * 1.5).sin();
+        let footl = (anim_time * lab + PI).sin();
+        let footr = (anim_time * lab).sin();
+        let center = (anim_time * lab + PI / 2.0).sin();
+        let centeroffset = (anim_time * lab + PI * 1.5).sin();
 
         next.torso.scale = Vec3::one() / 11.0;
         next.wing_l.scale = Vec3::one() * 1.05;

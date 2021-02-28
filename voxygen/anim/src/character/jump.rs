@@ -15,7 +15,7 @@ impl Animation for JumpAnimation {
         Vec3<f32>,
         Vec3<f32>,
         Vec3<f32>,
-        f64,
+        f32,
     );
     type Skeleton = CharacterSkeleton;
 
@@ -27,20 +27,18 @@ impl Animation for JumpAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (active_tool_kind, second_tool_kind, hands, velocity, orientation, last_ori, global_time): Self::Dependency,
-        anim_time: f64,
+        anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
-        let slow = (anim_time as f32 * 7.0).sin();
+        let slow = (anim_time * 7.0).sin();
 
-        let random = ((((2.0
-            * ((global_time as f32 - anim_time as f32)
-                - ((global_time as f32 - anim_time as f32).round())))
-        .abs())
-            * 10.0)
-            .round())
-            / 10.0;
+        let random =
+            ((((2.0 * ((global_time - anim_time) - ((global_time - anim_time).round()))).abs())
+                * 10.0)
+                .round())
+                / 10.0;
 
         let switch = if random > 0.5 { 1.0 } else { -1.0 };
 

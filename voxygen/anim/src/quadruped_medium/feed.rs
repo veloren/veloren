@@ -7,7 +7,7 @@ use std::{f32::consts::PI, ops::Mul};
 pub struct FeedAnimation;
 
 impl Animation for FeedAnimation {
-    type Dependency = f64;
+    type Dependency = f32;
     type Skeleton = QuadrupedMediumSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -17,29 +17,21 @@ impl Animation for FeedAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         global_time: Self::Dependency,
-        anim_time: f64,
+        anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
-        let slower = (anim_time as f32 * 1.0 + PI).sin();
-        let slow = (anim_time as f32 * 3.5 + PI).sin();
-        let fast = (anim_time as f32 * 5.0).sin();
-        let faster = (anim_time as f32 * 14.0).sin();
+        let slower = (anim_time * 1.0 + PI).sin();
+        let slow = (anim_time * 3.5 + PI).sin();
+        let fast = (anim_time * 5.0).sin();
+        let faster = (anim_time * 14.0).sin();
 
-        let transition = (((anim_time as f32).powf(2.0)).min(1.0)) * s_a.feed.1;
+        let transition = ((anim_time.powf(2.0)).min(1.0)) * s_a.feed.1;
 
         let look = Vec2::new(
-            ((global_time + anim_time) as f32 / 8.0)
-                .floor()
-                .mul(7331.0)
-                .sin()
-                * 0.5,
-            ((global_time + anim_time) as f32 / 8.0)
-                .floor()
-                .mul(1337.0)
-                .sin()
-                * 0.25,
+            (global_time + anim_time / 8.0).floor().mul(7331.0).sin() * 0.5,
+            (global_time + anim_time / 8.0).floor().mul(1337.0).sin() * 0.25,
         );
 
         if s_a.feed.0 {
@@ -69,8 +61,7 @@ impl Animation for FeedAnimation {
 
             next.jaw.position =
                 Vec3::new(0.0, s_a.jaw.0 - slower * 0.12, s_a.jaw.1 + slow * 0.2 + 0.5);
-            next.jaw.orientation =
-                Quaternion::rotation_x(slow * 0.05 * (anim_time as f32).min(1.0) - 0.08);
+            next.jaw.orientation = Quaternion::rotation_x(slow * 0.05 * anim_time.min(1.0) - 0.08);
         }
 
         next.tail.position = Vec3::new(0.0, s_a.tail.0, s_a.tail.1);

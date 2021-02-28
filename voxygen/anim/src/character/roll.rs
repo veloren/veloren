@@ -12,7 +12,7 @@ type RollAnimationDependency = (
     Option<ToolKind>,
     Vec3<f32>,
     Vec3<f32>,
-    f64,
+    f32,
     Option<StageSection>,
 );
 
@@ -28,7 +28,7 @@ impl Animation for RollAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (_active_tool_kind, _second_tool_kind, orientation, last_ori, _global_time, stage_section): Self::Dependency,
-        anim_time: f64,
+        anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
@@ -50,9 +50,9 @@ impl Animation for RollAnimation {
         };
 
         let (movement1base, movement2, movement3) = match stage_section {
-            Some(StageSection::Buildup) => ((anim_time as f32).powf(2.0), 0.0, 0.0),
-            Some(StageSection::Movement) => (1.0, (anim_time as f32).powf(0.75), 0.0),
-            Some(StageSection::Recover) => (1.0, 1.0, (anim_time as f32).powf(0.75)),
+            Some(StageSection::Buildup) => (anim_time.powf(2.0), 0.0, 0.0),
+            Some(StageSection::Movement) => (1.0, anim_time.powf(0.75), 0.0),
+            Some(StageSection::Recover) => (1.0, 1.0, anim_time.powf(0.75)),
             _ => (0.0, 0.0, 0.0),
         };
         let movement1 = movement1base * (1.0 - movement3);

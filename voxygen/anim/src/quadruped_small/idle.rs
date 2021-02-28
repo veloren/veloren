@@ -7,7 +7,7 @@ use std::{f32::consts::PI, ops::Mul};
 pub struct IdleAnimation;
 
 impl Animation for IdleAnimation {
-    type Dependency = f64;
+    type Dependency = f32;
     type Skeleton = QuadrupedSmallSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -17,27 +17,19 @@ impl Animation for IdleAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         global_time: Self::Dependency,
-        anim_time: f64,
+        anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        let slow = (anim_time as f32 * 3.5).sin();
+        let slow = (anim_time * 3.5).sin();
 
-        let slow_alt = (anim_time as f32 * 3.5 + PI / 2.0).sin();
+        let slow_alt = (anim_time * 3.5 + PI / 2.0).sin();
 
         let head_look = Vec2::new(
-            ((global_time + anim_time) as f32 / 8.0)
-                .floor()
-                .mul(7331.0)
-                .sin()
-                * 0.5,
-            ((global_time + anim_time) as f32 / 8.0)
-                .floor()
-                .mul(1337.0)
-                .sin()
-                * 0.25,
+            (global_time + anim_time / 8.0).floor().mul(7331.0).sin() * 0.5,
+            (global_time + anim_time / 8.0).floor().mul(1337.0).sin() * 0.25,
         );
 
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1 + slow * 0.2);

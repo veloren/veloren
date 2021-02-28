@@ -7,7 +7,7 @@ use std::f32::consts::PI;
 pub struct RunAnimation;
 
 impl Animation for RunAnimation {
-    type Dependency = (f32, Vec3<f32>, Vec3<f32>, f64, Vec3<f32>, f32);
+    type Dependency = (f32, Vec3<f32>, Vec3<f32>, f32, Vec3<f32>, f32);
     type Skeleton = QuadrupedLowSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -17,7 +17,7 @@ impl Animation for RunAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (velocity, orientation, last_ori, _global_time, avg_vel, acc_vel): Self::Dependency,
-        _anim_time: f64,
+        _anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
@@ -26,39 +26,38 @@ impl Animation for RunAnimation {
 
         let speednorm = (speed / 15.0).powf(0.25);
 
-        let lab = 0.8 * s_a.tempo;
+        let lab: f32 = 0.8 * s_a.tempo;
         let x_tilt = avg_vel.z.atan2(avg_vel.xy().magnitude()).max(-0.7) * speednorm;
 
-        let short = (((1.0) / (0.72 + 0.28 * ((acc_vel * lab as f32 + PI * 0.25).sin()).powi(2)))
-            .sqrt())
-            * ((acc_vel * lab as f32 + PI * 0.25).sin())
+        let short = ((1.0 / (0.72 + 0.28 * ((acc_vel * lab + PI * 0.25).sin()).powi(2))).sqrt())
+            * ((acc_vel * lab + PI * 0.25).sin())
             * speednorm;
-        let shortalt = (acc_vel * lab as f32 + PI * 0.25).sin();
+        let shortalt = (acc_vel * lab + PI * 0.25).sin();
 
-        let foothoril =
-            (((1.0) / (0.4 + (0.6) * ((acc_vel * lab as f32 + PI * 1.45).sin()).powi(2))).sqrt())
-                * ((acc_vel * lab as f32 + PI * 1.45).sin())
-                * speednorm;
-        let footvertl = (acc_vel * lab as f32 + PI * 0.0).sin() * speednorm;
+        let foothoril = ((1.0 / (0.4 + (0.6) * ((acc_vel * lab + PI * 1.45).sin()).powi(2)))
+            .sqrt())
+            * ((acc_vel * lab + PI * 1.45).sin())
+            * speednorm;
+        let footvertl = (acc_vel * lab + PI * 0.0).sin() * speednorm;
 
-        let foothorir =
-            (((1.0) / (0.4 + (0.6) * ((acc_vel * lab as f32 + PI * 0.45).sin()).powi(2))).sqrt())
-                * ((acc_vel * lab as f32 + PI * 0.45).sin())
-                * speednorm;
-        let footvertr = (acc_vel * lab as f32 + PI).sin() * speednorm;
+        let foothorir = ((1.0 / (0.4 + (0.6) * ((acc_vel * lab + PI * 0.45).sin()).powi(2)))
+            .sqrt())
+            * ((acc_vel * lab + PI * 0.45).sin())
+            * speednorm;
+        let footvertr = (acc_vel * lab + PI).sin() * speednorm;
 
         //back feet
-        let foothorilb =
-            (((1.0) / (0.4 + (0.6) * ((acc_vel * lab as f32 + PI * 1.05).sin()).powi(2))).sqrt())
-                * ((acc_vel * lab as f32 + PI * 1.05).sin())
-                * speednorm;
-        let footvertlb = (acc_vel * lab as f32 + PI * (-0.4)).sin() * speednorm;
+        let foothorilb = ((1.0 / (0.4 + (0.6) * ((acc_vel * lab + PI * 1.05).sin()).powi(2)))
+            .sqrt())
+            * ((acc_vel * lab + PI * 1.05).sin())
+            * speednorm;
+        let footvertlb = (acc_vel * lab + PI * (-0.4)).sin() * speednorm;
 
-        let foothorirb =
-            (((1.0) / (0.4 + (0.6) * ((acc_vel * lab as f32 + PI * 0.05).sin()).powi(2))).sqrt())
-                * ((acc_vel * lab as f32 + PI * 0.05).sin())
-                * speednorm;
-        let footvertrb = (acc_vel * lab as f32 + PI * 0.6).sin() * speednorm;
+        let foothorirb = ((1.0 / (0.4 + (0.6) * ((acc_vel * lab + PI * 0.05).sin()).powi(2)))
+            .sqrt())
+            * ((acc_vel * lab + PI * 0.05).sin())
+            * speednorm;
+        let footvertrb = (acc_vel * lab + PI * 0.6).sin() * speednorm;
 
         let ori: Vec2<f32> = Vec2::from(orientation);
         let last_ori = Vec2::from(last_ori);

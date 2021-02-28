@@ -5,7 +5,7 @@ use super::super::vek::*;
 pub struct JumpAnimation;
 
 impl Animation for JumpAnimation {
-    type Dependency = (f32, f64);
+    type Dependency = (f32, f32);
     type Skeleton = BirdSmallSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -15,7 +15,7 @@ impl Animation for JumpAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         _global_time: Self::Dependency,
-        _anim_time: f64,
+        _anim_time: f32,
         _rate: &mut f32,
         _skeleton_attr: &SkeletonAttr,
     ) -> Self::Skeleton {

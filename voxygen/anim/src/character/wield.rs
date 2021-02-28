@@ -14,7 +14,7 @@ type WieldAnimationDependency = (
     Vec3<f32>,
     Dir,
     Vec3<f32>,
-    f64,
+    f32,
 );
 impl Animation for WieldAnimation {
     type Dependency = WieldAnimationDependency;
@@ -36,48 +36,38 @@ impl Animation for WieldAnimation {
             velocity,
             global_time,
         ): Self::Dependency,
-        anim_time: f64,
+        anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         *rate = 1.0;
-        let lab = 1.0;
+        let lab: f32 = 1.0;
         let speed = Vec2::<f32>::from(velocity).magnitude();
 
         let mut next = (*skeleton).clone();
         let head_look = Vec2::new(
-            ((global_time + anim_time) as f32 / 3.0)
-                .floor()
-                .mul(7331.0)
-                .sin()
-                * 0.2,
-            ((global_time + anim_time) as f32 / 3.0)
-                .floor()
-                .mul(1337.0)
-                .sin()
-                * 0.1,
+            (global_time + anim_time / 3.0).floor().mul(7331.0).sin() * 0.2,
+            (global_time + anim_time / 3.0).floor().mul(1337.0).sin() * 0.1,
         );
 
-        let foothoril = (anim_time as f32 * 16.0 * lab as f32 + PI * 1.45).sin();
+        let foothoril = (anim_time * 16.0 * lab + PI * 1.45).sin();
 
-        let beltstatic = (anim_time as f32 * 10.0 * lab as f32 + PI / 2.0).sin();
-        let footvertlstatic = (anim_time as f32 * 10.0 * lab as f32).sin();
-        let footvertrstatic = (anim_time as f32 * 10.0 * lab as f32 + PI).sin();
-        let footrotl = (((1.0)
-            / (0.5 + (0.5) * ((anim_time as f32 * 16.0 * lab as f32 + PI * 1.4).sin()).powi(2)))
-        .sqrt())
-            * ((anim_time as f32 * 16.0 * lab as f32 + PI * 1.4).sin());
+        let beltstatic = (anim_time * 10.0 * lab + PI / 2.0).sin();
+        let footvertlstatic = (anim_time * 10.0 * lab).sin();
+        let footvertrstatic = (anim_time * 10.0 * lab + PI).sin();
+        let footrotl =
+            ((1.0 / (0.5 + (0.5) * ((anim_time * 16.0 * lab + PI * 1.4).sin()).powi(2))).sqrt())
+                * ((anim_time * 16.0 * lab + PI * 1.4).sin());
 
-        let shortalt = (anim_time as f32 * lab as f32 * 16.0 + PI / 2.0).sin();
+        let shortalt = (anim_time * lab * 16.0 + PI / 2.0).sin();
 
-        let slowalt = (anim_time as f32 * 6.0 + PI).cos();
-        let u_slow = (anim_time as f32 * 2.5 + PI).sin();
-        let slow = (anim_time as f32 * 5.0 + PI).sin();
+        let slowalt = (anim_time * 6.0 + PI).cos();
+        let u_slow = (anim_time * 2.5 + PI).sin();
+        let slow = (anim_time * 5.0 + PI).sin();
 
-        let u_slowalt = (anim_time as f32 * 3.0 + PI).cos();
-        let short =
-            (((5.0) / (1.5 + 3.5 * ((anim_time as f32 * lab as f32 * 16.0).sin()).powi(2))).sqrt())
-                * ((anim_time as f32 * lab as f32 * 16.0).sin());
+        let u_slowalt = (anim_time * 3.0 + PI).cos();
+        let short = ((5.0 / (1.5 + 3.5 * ((anim_time * lab * 16.0).sin()).powi(2))).sqrt())
+            * ((anim_time * lab * 16.0).sin());
         let direction = velocity.y * -0.098 * orientation.y + velocity.x * -0.098 * orientation.x;
         let side = velocity.x * -0.098 * orientation.y + velocity.y * 0.098 * orientation.x;
         let strafe = -((1.0 / (direction).abs() - 1.0).min(1.0)).copysign(side);

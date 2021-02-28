@@ -13,7 +13,7 @@ type RunAnimationDependency = (
     Vec3<f32>,
     Vec3<f32>,
     Vec3<f32>,
-    f64,
+    f32,
     Vec3<f32>,
     f32,
 );
@@ -37,7 +37,7 @@ impl Animation for RunAnimation {
             avg_vel,
             acc_vel,
         ): Self::Dependency,
-        anim_time: f64,
+        anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
@@ -47,20 +47,18 @@ impl Animation for RunAnimation {
 
         *rate = 1.0;
 
-        let lab = 0.65 * s_a.tempo;
+        let lab: f32 = 0.65 * s_a.tempo;
         let speednorm = (speed / 12.0).powf(0.6);
         let speednormlow = (speed / 12.0).powf(4.0);
 
-        let footvertl = (acc_vel * lab as f32 + PI * -0.2).sin() * speednorm;
-        let footvertr = (acc_vel * lab as f32 + PI * -1.2).sin() * speednorm;
+        let footvertl = (acc_vel * lab + PI * -0.2).sin() * speednorm;
+        let footvertr = (acc_vel * lab + PI * -1.2).sin() * speednorm;
 
-        let footrotl =
-            (((1.0) / (0.5 + (0.5) * ((acc_vel * lab as f32 + PI * 1.4).sin()).powi(2))).sqrt())
-                * ((acc_vel * lab as f32 + PI * 1.4).sin());
+        let footrotl = ((1.0 / (0.5 + (0.5) * ((acc_vel * lab + PI * 1.4).sin()).powi(2))).sqrt())
+            * ((acc_vel * lab + PI * 1.4).sin());
 
-        let footrotr =
-            (((1.0) / (0.5 + (0.5) * ((acc_vel * lab as f32 + PI * 0.4).sin()).powi(2))).sqrt())
-                * ((acc_vel * lab as f32 + PI * 0.4).sin());
+        let footrotr = ((1.0 / (0.5 + (0.5) * ((acc_vel * lab + PI * 0.4).sin()).powi(2))).sqrt())
+            * ((acc_vel * lab + PI * 0.4).sin());
 
         let amplitude = (speed / 21.0).max(0.25);
         let amplitude2 = (speed * 1.4 / 21.0).sqrt().max(0.6);
@@ -68,20 +66,12 @@ impl Animation for RunAnimation {
         let speedmult = 1.0;
         let canceler = (speed / 21.0).sqrt();
 
-        let short = (acc_vel * lab as f32 * speedmult).sin();
+        let short = (acc_vel * lab * speedmult).sin();
         //
-        let shortalt = (acc_vel * lab as f32 * speedmult + PI * 3.0 + 0.7).sin();
+        let shortalt = (acc_vel * lab * speedmult + PI * 3.0 + 0.7).sin();
         let look = Vec2::new(
-            ((global_time + anim_time) as f32 / 2.0)
-                .floor()
-                .mul(7331.0)
-                .sin()
-                * 0.5,
-            ((global_time + anim_time) as f32 / 2.0)
-                .floor()
-                .mul(1337.0)
-                .sin()
-                * 0.25,
+            (global_time + anim_time / 2.0).floor().mul(7331.0).sin() * 0.5,
+            (global_time + anim_time / 2.0).floor().mul(1337.0).sin() * 0.25,
         );
 
         let speedadjust = if speed < 5.0 { 0.0 } else { speed / 21.0 };
@@ -91,19 +81,19 @@ impl Animation for RunAnimation {
         let shift4 = speedadjust - PI * 3.0 / 4.0 + speedadjust * PI / 2.0;
 
         //FL
-        let foot1a = (acc_vel * lab as f32 * speedmult + 0.0 + canceler * 0.05 + shift1).sin();
-        let foot1b = (acc_vel * lab as f32 * speedmult + 1.1 + canceler * 0.05 + shift1).sin();
+        let foot1a = (acc_vel * lab * speedmult + 0.0 + canceler * 0.05 + shift1).sin();
+        let foot1b = (acc_vel * lab * speedmult + 1.1 + canceler * 0.05 + shift1).sin();
         //FR
-        let foot2a = (acc_vel * lab as f32 * speedmult + shift2).sin();
-        let foot2b = (acc_vel * lab as f32 * speedmult + 1.1 + shift2).sin();
+        let foot2a = (acc_vel * lab * speedmult + shift2).sin();
+        let foot2b = (acc_vel * lab * speedmult + 1.1 + shift2).sin();
         //BL
-        let foot3a = (acc_vel * lab as f32 * speedmult + shift3).sin();
-        let foot3b = (acc_vel * lab as f32 * speedmult + 0.3 + shift3).sin();
+        let foot3a = (acc_vel * lab * speedmult + shift3).sin();
+        let foot3b = (acc_vel * lab * speedmult + 0.3 + shift3).sin();
         //BR
-        let foot4a = (acc_vel * lab as f32 * speedmult + 0.0 + canceler * 0.05 + shift4).sin();
-        let foot4b = (acc_vel * lab as f32 * speedmult + 1.57 + canceler * 0.05 + shift4).sin();
+        let foot4a = (acc_vel * lab * speedmult + 0.0 + canceler * 0.05 + shift4).sin();
+        let foot4b = (acc_vel * lab * speedmult + 1.57 + canceler * 0.05 + shift4).sin();
         //
-        let slow = (acc_vel * lab as f32 * speedmult + PI).sin();
+        let slow = (acc_vel * lab * speedmult + PI).sin();
 
         let ori: Vec2<f32> = Vec2::from(orientation);
         let last_ori = Vec2::from(last_ori);
@@ -119,12 +109,12 @@ impl Animation for RunAnimation {
             0.0
         } * 1.3;
 
-        let foothoril = (acc_vel * lab as f32 + PI * 1.45).sin() * speednorm;
-        let foothorir = (acc_vel * lab as f32 + PI * (0.45)).sin() * speednorm;
-        let footstrafel = (acc_vel * lab as f32 + PI * 1.45).sin();
-        let footstrafer = (acc_vel * lab as f32 + PI * (0.95)).sin();
-        let footvertsl = (acc_vel * lab as f32).sin();
-        let footvertsr = (acc_vel * lab as f32 + PI * 0.5).sin();
+        let foothoril = (acc_vel * lab + PI * 1.45).sin() * speednorm;
+        let foothorir = (acc_vel * lab + PI * (0.45)).sin() * speednorm;
+        let footstrafel = (acc_vel * lab + PI * 1.45).sin();
+        let footstrafer = (acc_vel * lab + PI * (0.95)).sin();
+        let footvertsl = (acc_vel * lab).sin();
+        let footvertsr = (acc_vel * lab + PI * 0.5).sin();
         let direction = velocity.y * -0.098 * orientation.y + velocity.x * -0.098 * orientation.x;
 
         let side =

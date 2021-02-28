@@ -6,7 +6,7 @@ use std::f32::consts::PI;
 
 pub struct SwimAnimation;
 
-type SwimAnimationDependency = (Vec3<f32>, Vec3<f32>, Vec3<f32>, f64, Vec3<f32>, f32);
+type SwimAnimationDependency = (Vec3<f32>, Vec3<f32>, Vec3<f32>, f32, Vec3<f32>, f32);
 
 impl Animation for SwimAnimation {
     type Dependency = SwimAnimationDependency;
@@ -20,13 +20,13 @@ impl Animation for SwimAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (velocity, orientation, last_ori, _global_time, avg_vel, acc_vel): Self::Dependency,
-        _anim_time: f64,
+        _anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        let slowalt = (acc_vel as f32 * s_a.tempo / 1.5 + PI + 0.2).sin();
+        let slowalt = (acc_vel * s_a.tempo / 1.5 + PI + 0.2).sin();
         let fast = (acc_vel * s_a.tempo + PI).sin();
         let fastalt = (acc_vel * s_a.tempo + PI + 0.2).sin();
 

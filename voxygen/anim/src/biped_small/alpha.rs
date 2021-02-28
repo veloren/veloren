@@ -11,11 +11,11 @@ type AlphaAnimationDependency = (
     Vec3<f32>,
     Vec3<f32>,
     Vec3<f32>,
-    f64,
+    f32,
     Vec3<f32>,
     f32,
     Option<StageSection>,
-    f64,
+    f32,
 );
 
 impl Animation for AlphaAnimation {
@@ -39,23 +39,23 @@ impl Animation for AlphaAnimation {
             stage_section,
             _timer,
         ): Self::Dependency,
-        anim_time: f64,
+        anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
         let speed = Vec2::<f32>::from(velocity).magnitude();
 
-        let fast = (anim_time as f32 * 10.0).sin();
-        let fastalt = (anim_time as f32 * 10.0 + PI / 2.0).sin();
+        let fast = (anim_time * 10.0).sin();
+        let fastalt = (anim_time * 10.0 + PI / 2.0).sin();
 
         let speednorm = speed / 9.4;
         let speednormcancel = 1.0 - speednorm;
         let anim_time = anim_time.min(1.0);
         let (move1base, move2base, move3) = match stage_section {
-            Some(StageSection::Buildup) => ((anim_time as f32).sqrt(), 0.0, 0.0),
-            Some(StageSection::Swing) => (1.0, (anim_time as f32).powi(4), 0.0),
-            Some(StageSection::Recover) => (1.0, 1.0, anim_time as f32),
+            Some(StageSection::Buildup) => (anim_time.sqrt(), 0.0, 0.0),
+            Some(StageSection::Swing) => (1.0, anim_time.powi(4), 0.0),
+            Some(StageSection::Recover) => (1.0, 1.0, anim_time),
             _ => (0.0, 0.0, 0.0),
         };
         let pullback = 1.0 - move3;

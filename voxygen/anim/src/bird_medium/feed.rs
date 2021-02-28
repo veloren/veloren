@@ -7,7 +7,7 @@ use std::ops::Mul;
 pub struct FeedAnimation;
 
 impl Animation for FeedAnimation {
-    type Dependency = f64;
+    type Dependency = f32;
     type Skeleton = BirdMediumSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -18,28 +18,20 @@ impl Animation for FeedAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         global_time: Self::Dependency,
-        anim_time: f64,
+        anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        let wave_slow = (anim_time as f32 * 4.5).sin();
-        let wave = (anim_time as f32 * 8.0).sin();
+        let wave_slow = (anim_time * 4.5).sin();
+        let wave = (anim_time * 8.0).sin();
 
-        let wave_slow_cos = (anim_time as f32 * 4.5).cos();
+        let wave_slow_cos = (anim_time * 4.5).cos();
 
         let duck_head_look = Vec2::new(
-            ((global_time + anim_time) as f32 / 2.0)
-                .floor()
-                .mul(7331.0)
-                .sin()
-                * 0.5,
-            ((global_time + anim_time) as f32 / 8.0)
-                .floor()
-                .mul(1337.0)
-                .sin()
-                * 0.25,
+            (global_time + anim_time / 2.0).floor().mul(7331.0).sin() * 0.5,
+            (global_time + anim_time / 8.0).floor().mul(1337.0).sin() * 0.25,
         );
 
         next.head.position = Vec3::new(0.0, s_a.head.0 + 1.0, -2.0 + s_a.head.1);

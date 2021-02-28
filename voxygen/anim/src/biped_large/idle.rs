@@ -8,7 +8,7 @@ use std::{f32::consts::PI, ops::Mul};
 pub struct IdleAnimation;
 
 impl Animation for IdleAnimation {
-    type Dependency = (Option<ToolKind>, Option<ToolKind>, f64);
+    type Dependency = (Option<ToolKind>, Option<ToolKind>, f32);
     type Skeleton = BipedLargeSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -18,29 +18,21 @@ impl Animation for IdleAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (active_tool_kind, _second_tool_kind, global_time): Self::Dependency,
-        anim_time: f64,
+        anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        let lab = 1.0;
-        let torso = (anim_time as f32 * lab as f32 + 1.5 * PI).sin() * 1.5;
+        let lab: f32 = 1.0;
+        let torso = (anim_time * lab + 1.5 * PI).sin() * 1.5;
 
-        let slower = (anim_time as f32 * 2.0 + PI).sin() * 1.5;
-        let slow = (anim_time as f32 * 7.0 + PI).sin() * 1.5;
+        let slower = (anim_time * 2.0 + PI).sin() * 1.5;
+        let slow = (anim_time * 7.0 + PI).sin() * 1.5;
 
         let look = Vec2::new(
-            ((global_time + anim_time) as f32 / 8.0)
-                .floor()
-                .mul(7331.0)
-                .sin()
-                * 0.5,
-            ((global_time + anim_time) as f32 / 8.0)
-                .floor()
-                .mul(1337.0)
-                .sin()
-                * 0.25,
+            (global_time + anim_time / 8.0).floor().mul(7331.0).sin() * 0.5,
+            (global_time + anim_time / 8.0).floor().mul(1337.0).sin() * 0.25,
         );
 
         let breathe = if s_a.beast {
@@ -49,11 +41,8 @@ impl Animation for IdleAnimation {
             let lenght = 1.5;
             let chop = 0.2;
             let chop_freq = 60.0;
-            intensity * (lenght * anim_time as f32).sin()
-                + 0.05
-                    * chop
-                    * (anim_time as f32 * chop_freq).sin()
-                    * (anim_time as f32 * lenght).cos()
+            intensity * (lenght * anim_time).sin()
+                + 0.05 * chop * (anim_time * chop_freq).sin() * (anim_time * lenght).cos()
         } else {
             0.0
         };

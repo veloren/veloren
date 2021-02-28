@@ -12,7 +12,7 @@ impl Animation for AlphaAnimation {
         Option<ToolKind>,
         Option<ToolKind>,
         f32,
-        f64,
+        f32,
         Option<StageSection>,
     );
     type Skeleton = CharacterSkeleton;
@@ -25,7 +25,7 @@ impl Animation for AlphaAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (active_tool_kind, _second_tool_kind, _velocity, _global_time, stage_section): Self::Dependency,
-        anim_time: f64,
+        anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
@@ -33,9 +33,9 @@ impl Animation for AlphaAnimation {
         let mut next = (*skeleton).clone();
 
         let (move1, move2, move3) = match stage_section {
-            Some(StageSection::Buildup) => ((anim_time as f32).powf(0.25), 0.0, 0.0),
-            Some(StageSection::Swing) => (1.0, anim_time as f32, 0.0),
-            Some(StageSection::Recover) => (1.0, 1.0, (anim_time as f32).powi(4)),
+            Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
+            Some(StageSection::Swing) => (1.0, anim_time, 0.0),
+            Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
             _ => (0.0, 0.0, 0.0),
         };
 
@@ -89,9 +89,9 @@ impl Animation for AlphaAnimation {
                     Vec3::new(0. + move2 * 2.0, s_a.head.0 + move2 * 2.0, s_a.head.1);
 
                 let (move1, move2, move3) = match stage_section {
-                    Some(StageSection::Buildup) => ((anim_time as f32).powf(0.25), 0.0, 0.0),
-                    Some(StageSection::Swing) => (1.0, anim_time as f32, 0.0),
-                    Some(StageSection::Recover) => (1.0, 1.0, (anim_time as f32).powi(4)),
+                    Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
+                    Some(StageSection::Swing) => (1.0, anim_time, 0.0),
+                    Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
                     _ => (0.0, 0.0, 0.0),
                 };
                 next.control.position = Vec3::new(
@@ -118,9 +118,9 @@ impl Animation for AlphaAnimation {
             },
             Some(ToolKind::Hammer) | Some(ToolKind::HammerSimple) => {
                 let (move1, move2, move3) = match stage_section {
-                    Some(StageSection::Buildup) => ((anim_time as f32).powf(0.25), 0.0, 0.0),
-                    Some(StageSection::Swing) => (1.0, anim_time as f32, 0.0),
-                    Some(StageSection::Recover) => (1.0, 1.0, (anim_time as f32).powi(4)),
+                    Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
+                    Some(StageSection::Swing) => (1.0, anim_time, 0.0),
+                    Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
                     _ => (0.0, 0.0, 0.0),
                 };
                 next.main.position = Vec3::new(0.0, 0.0, 0.0);

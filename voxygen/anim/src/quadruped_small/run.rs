@@ -7,7 +7,7 @@ use std::f32::consts::PI;
 pub struct RunAnimation;
 
 impl Animation for RunAnimation {
-    type Dependency = (f32, Vec3<f32>, Vec3<f32>, f64, Vec3<f32>, f32);
+    type Dependency = (f32, Vec3<f32>, Vec3<f32>, f32, Vec3<f32>, f32);
     type Skeleton = QuadrupedSmallSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -17,25 +17,25 @@ impl Animation for RunAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (velocity, orientation, last_ori, _global_time, avg_vel, acc_vel): Self::Dependency,
-        _anim_time: f64,
+        _anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        let lab = 0.8; //6
+        let lab: f32 = 0.8; //6
         let speed = (Vec2::<f32>::from(velocity).magnitude()).min(12.0);
         let speednorm = (speed / 12.0).powf(0.4);
 
         let speedmult = s_a.tempo;
-        let short = (acc_vel * lab as f32 * speedmult + PI * 1.0).sin() * speednorm;
-        let shortalt = (acc_vel * lab as f32 * speedmult + PI * 0.5).sin() * speednorm;
+        let short = (acc_vel * lab * speedmult + PI * 1.0).sin() * speednorm;
+        let shortalt = (acc_vel * lab * speedmult + PI * 0.5).sin() * speednorm;
 
-        let footvert = (acc_vel * lab as f32 * speedmult + PI * 0.0).sin() * speednorm;
-        let footvertt = (acc_vel * lab as f32 * speedmult + PI * 0.4).sin() * speednorm;
+        let footvert = (acc_vel * lab * speedmult + PI * 0.0).sin() * speednorm;
+        let footvertt = (acc_vel * lab * speedmult + PI * 0.4).sin() * speednorm;
 
-        let footvertf = (acc_vel * lab as f32 * speedmult + PI * 0.3).sin() * speednorm;
-        let footverttf = (acc_vel * lab as f32 * speedmult + PI * 0.7).sin() * speednorm;
+        let footvertf = (acc_vel * lab * speedmult + PI * 0.3).sin() * speednorm;
+        let footverttf = (acc_vel * lab * speedmult + PI * 0.7).sin() * speednorm;
 
         let ori: Vec2<f32> = Vec2::from(orientation);
         let last_ori = Vec2::from(last_ori);

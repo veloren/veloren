@@ -482,7 +482,7 @@ impl FigureMgr {
     ) -> anim::vek::Aabb<f32> {
         span!(_guard, "maintain", "FigureManager::maintain");
         let state = scene_data.state;
-        let time = state.get_time();
+        let time = state.get_time() as f32;
         let tick = scene_data.tick;
         let ecs = state.ecs();
         let view_distance = scene_data.view_distance;
@@ -838,17 +838,17 @@ impl FigureMgr {
                     };
                     let target_bones = match &character {
                         CharacterState::Roll(s) => {
-                            let stage_time = s.timer.as_secs_f64();
+                            let stage_time = s.timer.as_secs_f32();
 
                             let stage_progress = match s.stage_section {
                                 StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f64()
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
                                 StageSection::Movement => {
-                                    stage_time / s.static_data.movement_duration.as_secs_f64()
+                                    stage_time / s.static_data.movement_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
                                 },
                                 _ => 0.0,
                             };
@@ -884,14 +884,14 @@ impl FigureMgr {
                             )
                         },
                         CharacterState::ChargedRanged(s) => {
-                            let stage_time = s.timer.as_secs_f64();
+                            let stage_time = s.timer.as_secs_f32();
 
                             let stage_progress = match s.stage_section {
                                 StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f64()
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
                                 },
 
                                 _ => 0.0,
@@ -916,14 +916,14 @@ impl FigureMgr {
                             )
                         },
                         CharacterState::BasicRanged(s) => {
-                            let stage_time = s.timer.as_secs_f64();
+                            let stage_time = s.timer.as_secs_f32();
 
                             let stage_progress = match s.stage_section {
                                 StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f64()
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
                                 },
 
                                 _ => 0.0,
@@ -948,17 +948,17 @@ impl FigureMgr {
                             )
                         },
                         CharacterState::ChargedMelee(s) => {
-                            let stage_time = s.timer.as_secs_f64();
+                            let stage_time = s.timer.as_secs_f32();
 
                             let stage_progress = match s.stage_section {
                                 StageSection::Charge => {
-                                    stage_time / s.static_data.charge_duration.as_secs_f64()
+                                    stage_time / s.static_data.charge_duration.as_secs_f32()
                                 },
                                 StageSection::Swing => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f64()
+                                    stage_time / s.static_data.swing_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
                                 },
                                 _ => 0.0,
                             };
@@ -978,20 +978,20 @@ impl FigureMgr {
                             )
                         },
                         CharacterState::RepeaterRanged(s) => {
-                            let stage_time = s.timer.as_secs_f64();
+                            let stage_time = s.timer.as_secs_f32();
 
                             let stage_progress = match s.stage_section {
                                 StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f64()
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
                                 StageSection::Movement => {
-                                    stage_time / s.static_data.movement_duration.as_secs_f64()
+                                    stage_time / s.static_data.movement_duration.as_secs_f32()
                                 },
                                 StageSection::Shoot => {
-                                    stage_time / s.static_data.shoot_duration.as_secs_f64()
+                                    stage_time / s.static_data.shoot_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
                                 },
                                 _ => 0.0,
                             };
@@ -1042,19 +1042,19 @@ impl FigureMgr {
                             )
                         },
                         CharacterState::DashMelee(s) => {
-                            let stage_time = s.timer.as_secs_f64();
+                            let stage_time = s.timer.as_secs_f32();
                             let stage_progress = match s.stage_section {
                                 StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f64()
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
                                 StageSection::Charge => {
-                                    stage_time / s.static_data.charge_duration.as_secs_f64()
+                                    stage_time / s.static_data.charge_duration.as_secs_f32()
                                 },
                                 StageSection::Swing => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f64()
+                                    stage_time / s.static_data.swing_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
                                 },
                                 _ => 0.0,
                             };
@@ -1072,16 +1072,16 @@ impl FigureMgr {
                             )
                         },
                         CharacterState::Shockwave(s) => {
-                            let stage_time = s.timer.as_secs_f64();
+                            let stage_time = s.timer.as_secs_f32();
                             let stage_progress = match s.stage_section {
                                 StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f64()
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
                                 StageSection::Swing => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f64()
+                                    stage_time / s.static_data.swing_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
                                 },
                                 _ => 0.0,
                             };
@@ -1102,22 +1102,22 @@ impl FigureMgr {
                         CharacterState::LeapMelee(s) => {
                             let stage_progress = match active_tool_kind {
                                 Some(ToolKind::Axe | ToolKind::Hammer) => {
-                                    let stage_time = s.timer.as_secs_f64();
+                                    let stage_time = s.timer.as_secs_f32();
                                     match s.stage_section {
                                         StageSection::Buildup => {
                                             stage_time
-                                                / s.static_data.buildup_duration.as_secs_f64()
+                                                / s.static_data.buildup_duration.as_secs_f32()
                                         },
                                         StageSection::Movement => {
                                             stage_time
-                                                / s.static_data.movement_duration.as_secs_f64()
+                                                / s.static_data.movement_duration.as_secs_f32()
                                         },
                                         StageSection::Swing => {
-                                            stage_time / s.static_data.swing_duration.as_secs_f64()
+                                            stage_time / s.static_data.swing_duration.as_secs_f32()
                                         },
                                         StageSection::Recover => {
                                             stage_time
-                                                / s.static_data.recover_duration.as_secs_f64()
+                                                / s.static_data.recover_duration.as_secs_f32()
                                         },
                                         _ => 0.0,
                                     }
@@ -1142,18 +1142,18 @@ impl FigureMgr {
                         CharacterState::SpinMelee(s) => {
                             let stage_progress = match active_tool_kind {
                                 Some(ToolKind::Axe | ToolKind::Sword) => {
-                                    let stage_time = s.timer.as_secs_f64();
+                                    let stage_time = s.timer.as_secs_f32();
                                     match s.stage_section {
                                         StageSection::Buildup => {
                                             stage_time
-                                                / s.static_data.buildup_duration.as_secs_f64()
+                                                / s.static_data.buildup_duration.as_secs_f32()
                                         },
                                         StageSection::Swing => {
-                                            stage_time / s.static_data.swing_duration.as_secs_f64()
+                                            stage_time / s.static_data.swing_duration.as_secs_f32()
                                         },
                                         StageSection::Recover => {
                                             stage_time
-                                                / s.static_data.recover_duration.as_secs_f64()
+                                                / s.static_data.recover_duration.as_secs_f32()
                                         },
                                         _ => 0.0,
                                     }
@@ -1176,14 +1176,14 @@ impl FigureMgr {
                             )
                         },
                         CharacterState::Stunned(s) => {
-                            let stage_time = s.timer.as_secs_f64();
+                            let stage_time = s.timer.as_secs_f32();
                             let wield_status = s.was_wielded;
                             let stage_progress = match s.stage_section {
                                 StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f64()
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
                                 },
                                 _ => 0.0,
                             };
@@ -1227,14 +1227,14 @@ impl FigureMgr {
                             }
                         },
                         CharacterState::BasicBeam(s) => {
-                            let stage_time = s.timer.as_secs_f64();
+                            let stage_time = s.timer.as_secs_f32();
                             let stage_progress = match s.stage_section {
                                 StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f64()
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
-                                StageSection::Cast => s.timer.as_secs_f64(),
+                                StageSection::Cast => s.timer.as_secs_f32(),
                                 StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
                                 },
                                 _ => 0.0,
                             };
@@ -1254,25 +1254,25 @@ impl FigureMgr {
                         },
                         CharacterState::ComboMelee(s) => {
                             let stage_index = (s.stage - 1) as usize;
-                            let stage_time = s.timer.as_secs_f64();
+                            let stage_time = s.timer.as_secs_f32();
                             let stage_progress = match s.stage_section {
                                 StageSection::Buildup => {
                                     stage_time
                                         / s.static_data.stage_data[stage_index]
                                             .base_buildup_duration
-                                            .as_secs_f64()
+                                            .as_secs_f32()
                                 },
                                 StageSection::Swing => {
                                     stage_time
                                         / s.static_data.stage_data[stage_index]
                                             .base_swing_duration
-                                            .as_secs_f64()
+                                            .as_secs_f32()
                                 },
                                 StageSection::Recover => {
                                     stage_time
                                         / s.static_data.stage_data[stage_index]
                                             .base_recover_duration
-                                            .as_secs_f64()
+                                            .as_secs_f32()
                                 },
                                 _ => 0.0,
                             };
@@ -1564,25 +1564,25 @@ impl FigureMgr {
                     let target_bones = match &character {
                         CharacterState::ComboMelee(s) => {
                             let stage_index = (s.stage - 1) as usize;
-                            let stage_time = s.timer.as_secs_f64();
+                            let stage_time = s.timer.as_secs_f32();
                             let stage_progress = match s.stage_section {
                                 StageSection::Buildup => {
                                     stage_time
                                         / s.static_data.stage_data[stage_index]
                                             .base_buildup_duration
-                                            .as_secs_f64()
+                                            .as_secs_f32()
                                 },
                                 StageSection::Swing => {
                                     stage_time
                                         / s.static_data.stage_data[stage_index]
                                             .base_swing_duration
-                                            .as_secs_f64()
+                                            .as_secs_f32()
                                 },
                                 StageSection::Recover => {
                                     stage_time
                                         / s.static_data.stage_data[stage_index]
                                             .base_recover_duration
-                                            .as_secs_f64()
+                                            .as_secs_f32()
                                 },
                                 _ => 0.0,
                             };
@@ -1602,13 +1602,13 @@ impl FigureMgr {
                             }
                         },
                         CharacterState::Stunned(s) => {
-                            let stage_time = s.timer.as_secs_f64();
+                            let stage_time = s.timer.as_secs_f32();
                             let stage_progress = match s.stage_section {
                                 StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f64()
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
                                 },
                                 _ => 0.0,
                             };
@@ -1775,17 +1775,17 @@ impl FigureMgr {
                     };
                     let target_bones = match &character {
                         CharacterState::BasicMelee(s) => {
-                            let stage_time = s.timer.as_secs_f64();
+                            let stage_time = s.timer.as_secs_f32();
 
                             let stage_progress = match s.stage_section {
                                 StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f64()
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
                                 StageSection::Swing => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f64()
+                                    stage_time / s.static_data.swing_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
                                 },
 
                                 _ => 0.0,
@@ -1804,17 +1804,17 @@ impl FigureMgr {
                             )
                         },
                         CharacterState::DashMelee(s) => {
-                            let stage_time = s.timer.as_secs_f64();
+                            let stage_time = s.timer.as_secs_f32();
                             let stage_progress = match s.stage_section {
                                 StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f64()
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
                                 StageSection::Charge => stage_time,
                                 StageSection::Swing => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f64()
+                                    stage_time / s.static_data.swing_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
                                 },
                                 _ => 0.0,
                             };
@@ -1832,19 +1832,19 @@ impl FigureMgr {
                             )
                         },
                         CharacterState::LeapMelee(s) => {
-                            let stage_time = s.timer.as_secs_f64();
+                            let stage_time = s.timer.as_secs_f32();
                             let stage_progress = match s.stage_section {
                                 StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f64()
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
                                 StageSection::Movement => {
-                                    stage_time / s.static_data.movement_duration.as_secs_f64()
+                                    stage_time / s.static_data.movement_duration.as_secs_f32()
                                 },
                                 StageSection::Swing => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f64()
+                                    stage_time / s.static_data.swing_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
                                 },
                                 _ => 0.0,
                             };
@@ -1863,25 +1863,25 @@ impl FigureMgr {
                         },
                         CharacterState::ComboMelee(s) => {
                             let stage_index = (s.stage - 1) as usize;
-                            let stage_time = s.timer.as_secs_f64();
+                            let stage_time = s.timer.as_secs_f32();
                             let stage_progress = match s.stage_section {
                                 StageSection::Buildup => {
                                     stage_time
                                         / s.static_data.stage_data[stage_index]
                                             .base_buildup_duration
-                                            .as_secs_f64()
+                                            .as_secs_f32()
                                 },
                                 StageSection::Swing => {
                                     stage_time
                                         / s.static_data.stage_data[stage_index]
                                             .base_swing_duration
-                                            .as_secs_f64()
+                                            .as_secs_f32()
                                 },
                                 StageSection::Recover => {
                                     stage_time
                                         / s.static_data.stage_data[stage_index]
                                             .base_recover_duration
-                                            .as_secs_f64()
+                                            .as_secs_f32()
                                 },
                                 _ => 0.0,
                             };
@@ -1925,13 +1925,13 @@ impl FigureMgr {
                             }
                         },
                         CharacterState::Stunned(s) => {
-                            let stage_time = s.timer.as_secs_f64();
+                            let stage_time = s.timer.as_secs_f32();
                             let stage_progress = match s.stage_section {
                                 StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f64()
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
                                 },
                                 _ => 0.0,
                             };
@@ -2094,14 +2094,14 @@ impl FigureMgr {
                     };
                     let target_bones = match &character {
                         CharacterState::BasicRanged(s) => {
-                            let stage_time = s.timer.as_secs_f64();
+                            let stage_time = s.timer.as_secs_f32();
 
                             let stage_progress = match s.stage_section {
                                 StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f64()
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
                                 },
 
                                 _ => 0.0,
@@ -2115,17 +2115,17 @@ impl FigureMgr {
                             )
                         },
                         CharacterState::BasicMelee(s) => {
-                            let stage_time = s.timer.as_secs_f64();
+                            let stage_time = s.timer.as_secs_f32();
 
                             let stage_progress = match s.stage_section {
                                 StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f64()
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
                                 StageSection::Swing => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f64()
+                                    stage_time / s.static_data.swing_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
                                 },
 
                                 _ => 0.0,
@@ -2145,17 +2145,17 @@ impl FigureMgr {
                         },
 
                         CharacterState::ChargedMelee(s) => {
-                            let stage_time = s.timer.as_secs_f64();
+                            let stage_time = s.timer.as_secs_f32();
 
                             let stage_progress = match s.stage_section {
                                 StageSection::Charge => {
-                                    stage_time / s.static_data.charge_duration.as_secs_f64()
+                                    stage_time / s.static_data.charge_duration.as_secs_f32()
                                 },
                                 StageSection::Swing => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f64()
+                                    stage_time / s.static_data.swing_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
                                 },
 
                                 _ => 0.0,
@@ -2174,13 +2174,13 @@ impl FigureMgr {
                             )
                         },
                         CharacterState::Stunned(s) => {
-                            let stage_time = s.timer.as_secs_f64();
+                            let stage_time = s.timer.as_secs_f32();
                             let stage_progress = match s.stage_section {
                                 StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f64()
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
                                 },
                                 _ => 0.0,
                             };
@@ -2219,25 +2219,25 @@ impl FigureMgr {
                         },
                         CharacterState::ComboMelee(s) => {
                             let stage_index = (s.stage - 1) as usize;
-                            let stage_time = s.timer.as_secs_f64();
+                            let stage_time = s.timer.as_secs_f32();
                             let stage_progress = match s.stage_section {
                                 StageSection::Buildup => {
                                     stage_time
                                         / s.static_data.stage_data[stage_index]
                                             .base_buildup_duration
-                                            .as_secs_f64()
+                                            .as_secs_f32()
                                 },
                                 StageSection::Swing => {
                                     stage_time
                                         / s.static_data.stage_data[stage_index]
                                             .base_swing_duration
-                                            .as_secs_f64()
+                                            .as_secs_f32()
                                 },
                                 StageSection::Recover => {
                                     stage_time
                                         / s.static_data.stage_data[stage_index]
                                             .base_recover_duration
-                                            .as_secs_f64()
+                                            .as_secs_f32()
                                 },
                                 _ => 0.0,
                             };
@@ -2281,14 +2281,14 @@ impl FigureMgr {
                             }
                         },
                         CharacterState::BasicBeam(s) => {
-                            let stage_time = s.timer.as_secs_f64();
+                            let stage_time = s.timer.as_secs_f32();
                             let stage_progress = match s.stage_section {
                                 StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f64()
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
-                                StageSection::Cast => s.timer.as_secs_f64(),
+                                StageSection::Cast => s.timer.as_secs_f32(),
                                 StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
                                 },
                                 _ => 0.0,
                             };
@@ -2306,17 +2306,17 @@ impl FigureMgr {
                             )
                         },
                         CharacterState::DashMelee(s) => {
-                            let stage_time = s.timer.as_secs_f64();
+                            let stage_time = s.timer.as_secs_f32();
                             let stage_progress = match s.stage_section {
                                 StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f64()
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
                                 StageSection::Charge => stage_time,
                                 StageSection::Swing => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f64()
+                                    stage_time / s.static_data.swing_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
                                 },
                                 _ => 0.0,
                             };
@@ -2673,19 +2673,19 @@ impl FigureMgr {
                             )
                         },
                         CharacterState::DashMelee(s) => {
-                            let stage_time = s.timer.as_secs_f64();
+                            let stage_time = s.timer.as_secs_f32();
                             let stage_progress = match s.stage_section {
                                 StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f64()
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
                                 StageSection::Charge => {
-                                    stage_time / s.static_data.charge_duration.as_secs_f64()
+                                    stage_time / s.static_data.charge_duration.as_secs_f32()
                                 },
                                 StageSection::Swing => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f64()
+                                    stage_time / s.static_data.swing_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
                                 },
                                 _ => 0.0,
                             };
@@ -2707,14 +2707,14 @@ impl FigureMgr {
                             )
                         },
                         CharacterState::ChargedRanged(s) => {
-                            let stage_time = s.timer.as_secs_f64();
+                            let stage_time = s.timer.as_secs_f32();
 
                             let stage_progress = match s.stage_section {
                                 StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f64()
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
                                 },
 
                                 _ => 0.0,
@@ -2738,14 +2738,14 @@ impl FigureMgr {
                             )
                         },
                         CharacterState::BasicRanged(s) => {
-                            let stage_time = s.timer.as_secs_f64();
+                            let stage_time = s.timer.as_secs_f32();
 
                             let stage_progress = match s.stage_section {
                                 StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f64()
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
                                 },
 
                                 _ => 0.0,
@@ -2770,25 +2770,25 @@ impl FigureMgr {
                         },
                         CharacterState::ComboMelee(s) => {
                             let stage_index = (s.stage - 1) as usize;
-                            let stage_time = s.timer.as_secs_f64();
+                            let stage_time = s.timer.as_secs_f32();
                             let stage_progress = match s.stage_section {
                                 StageSection::Buildup => {
                                     stage_time
                                         / s.static_data.stage_data[stage_index]
                                             .base_buildup_duration
-                                            .as_secs_f64()
+                                            .as_secs_f32()
                                 },
                                 StageSection::Swing => {
                                     stage_time
                                         / s.static_data.stage_data[stage_index]
                                             .base_swing_duration
-                                            .as_secs_f64()
+                                            .as_secs_f32()
                                 },
                                 StageSection::Recover => {
                                     stage_time
                                         / s.static_data.stage_data[stage_index]
                                             .base_recover_duration
-                                            .as_secs_f64()
+                                            .as_secs_f32()
                                 },
                                 _ => 0.0,
                             };
@@ -3021,25 +3021,25 @@ impl FigureMgr {
                     let target_bones = match &character {
                         CharacterState::ComboMelee(s) => {
                             let stage_index = (s.stage - 1) as usize;
-                            let stage_time = s.timer.as_secs_f64();
+                            let stage_time = s.timer.as_secs_f32();
                             let stage_progress = match s.stage_section {
                                 StageSection::Buildup => {
                                     stage_time
                                         / s.static_data.stage_data[stage_index]
                                             .base_buildup_duration
-                                            .as_secs_f64()
+                                            .as_secs_f32()
                                 },
                                 StageSection::Swing => {
                                     stage_time
                                         / s.static_data.stage_data[stage_index]
                                             .base_swing_duration
-                                            .as_secs_f64()
+                                            .as_secs_f32()
                                 },
                                 StageSection::Recover => {
                                     stage_time
                                         / s.static_data.stage_data[stage_index]
                                             .base_recover_duration
-                                            .as_secs_f64()
+                                            .as_secs_f32()
                                 },
                                 _ => 0.0,
                             };
@@ -3374,14 +3374,14 @@ impl FigureMgr {
                             )
                         },
                         CharacterState::BasicRanged(s) => {
-                            let stage_time = s.timer.as_secs_f64();
+                            let stage_time = s.timer.as_secs_f32();
 
                             let stage_progress = match s.stage_section {
                                 StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f64()
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
                                 },
 
                                 _ => 0.0,
@@ -3406,14 +3406,14 @@ impl FigureMgr {
                             )
                         },
                         CharacterState::ChargedRanged(s) => {
-                            let stage_time = s.timer.as_secs_f64();
+                            let stage_time = s.timer.as_secs_f32();
 
                             let stage_progress = match s.stage_section {
                                 StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f64()
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
                                 },
 
                                 _ => 0.0,
@@ -3438,19 +3438,19 @@ impl FigureMgr {
                             )
                         },
                         CharacterState::DashMelee(s) => {
-                            let stage_time = s.timer.as_secs_f64();
+                            let stage_time = s.timer.as_secs_f32();
                             let stage_progress = match s.stage_section {
                                 StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f64()
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
                                 StageSection::Charge => {
-                                    stage_time / s.static_data.charge_duration.as_secs_f64()
+                                    stage_time / s.static_data.charge_duration.as_secs_f32()
                                 },
                                 StageSection::Swing => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f64()
+                                    stage_time / s.static_data.swing_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
                                 },
                                 _ => 0.0,
                             };
@@ -3471,25 +3471,25 @@ impl FigureMgr {
                         },
                         CharacterState::ComboMelee(s) => {
                             let stage_index = (s.stage - 1) as usize;
-                            let stage_time = s.timer.as_secs_f64();
+                            let stage_time = s.timer.as_secs_f32();
                             let stage_progress = match s.stage_section {
                                 StageSection::Buildup => {
                                     stage_time
                                         / s.static_data.stage_data[stage_index]
                                             .base_buildup_duration
-                                            .as_secs_f64()
+                                            .as_secs_f32()
                                 },
                                 StageSection::Swing => {
                                     stage_time
                                         / s.static_data.stage_data[stage_index]
                                             .base_swing_duration
-                                            .as_secs_f64()
+                                            .as_secs_f32()
                                 },
                                 StageSection::Recover => {
                                     stage_time
                                         / s.static_data.stage_data[stage_index]
                                             .base_recover_duration
-                                            .as_secs_f64()
+                                            .as_secs_f32()
                                 },
                                 _ => 0.0,
                             };
@@ -3541,18 +3541,18 @@ impl FigureMgr {
                         CharacterState::SpinMelee(s) => {
                             let stage_progress = match active_tool_kind {
                                 Some(ToolKind::Sword) => {
-                                    let stage_time = s.timer.as_secs_f64();
+                                    let stage_time = s.timer.as_secs_f32();
                                     match s.stage_section {
                                         StageSection::Buildup => {
                                             stage_time
-                                                / s.static_data.buildup_duration.as_secs_f64()
+                                                / s.static_data.buildup_duration.as_secs_f32()
                                         },
                                         StageSection::Swing => {
-                                            stage_time / s.static_data.swing_duration.as_secs_f64()
+                                            stage_time / s.static_data.swing_duration.as_secs_f32()
                                         },
                                         StageSection::Recover => {
                                             stage_time
-                                                / s.static_data.recover_duration.as_secs_f64()
+                                                / s.static_data.recover_duration.as_secs_f32()
                                         },
                                         _ => 0.0,
                                     }
@@ -3577,22 +3577,22 @@ impl FigureMgr {
                         CharacterState::LeapMelee(s) => {
                             let stage_progress = match active_tool_kind {
                                 Some(ToolKind::Axe | ToolKind::Hammer) => {
-                                    let stage_time = s.timer.as_secs_f64();
+                                    let stage_time = s.timer.as_secs_f32();
                                     match s.stage_section {
                                         StageSection::Buildup => {
                                             stage_time
-                                                / s.static_data.buildup_duration.as_secs_f64()
+                                                / s.static_data.buildup_duration.as_secs_f32()
                                         },
                                         StageSection::Movement => {
                                             stage_time
-                                                / s.static_data.movement_duration.as_secs_f64()
+                                                / s.static_data.movement_duration.as_secs_f32()
                                         },
                                         StageSection::Swing => {
-                                            stage_time / s.static_data.swing_duration.as_secs_f64()
+                                            stage_time / s.static_data.swing_duration.as_secs_f32()
                                         },
                                         StageSection::Recover => {
                                             stage_time
-                                                / s.static_data.recover_duration.as_secs_f64()
+                                                / s.static_data.recover_duration.as_secs_f32()
                                         },
                                         _ => 0.0,
                                     }
@@ -3615,16 +3615,16 @@ impl FigureMgr {
                             )
                         },
                         CharacterState::Shockwave(s) => {
-                            let stage_time = s.timer.as_secs_f64();
+                            let stage_time = s.timer.as_secs_f32();
                             let stage_progress = match s.stage_section {
                                 StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f64()
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
                                 StageSection::Swing => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f64()
+                                    stage_time / s.static_data.swing_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
                                 },
                                 _ => 0.0,
                             };
@@ -3643,14 +3643,14 @@ impl FigureMgr {
                             )
                         },
                         CharacterState::BasicBeam(s) => {
-                            let stage_time = s.timer.as_secs_f64();
+                            let stage_time = s.timer.as_secs_f32();
                             let stage_progress = match s.stage_section {
                                 StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f64()
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
-                                StageSection::Cast => s.timer.as_secs_f64(),
+                                StageSection::Cast => s.timer.as_secs_f32(),
                                 StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
                                 },
                                 _ => 0.0,
                             };
@@ -3771,25 +3771,25 @@ impl FigureMgr {
                     let target_bones = match &character {
                         CharacterState::ComboMelee(s) => {
                             let stage_index = (s.stage - 1) as usize;
-                            let stage_time = s.timer.as_secs_f64();
+                            let stage_time = s.timer.as_secs_f32();
                             let stage_progress = match s.stage_section {
                                 StageSection::Buildup => {
                                     stage_time
                                         / s.static_data.stage_data[stage_index]
                                             .base_buildup_duration
-                                            .as_secs_f64()
+                                            .as_secs_f32()
                                 },
                                 StageSection::Swing => {
                                     stage_time
                                         / s.static_data.stage_data[stage_index]
                                             .base_swing_duration
-                                            .as_secs_f64()
+                                            .as_secs_f32()
                                 },
                                 StageSection::Recover => {
                                     stage_time
                                         / s.static_data.stage_data[stage_index]
                                             .base_recover_duration
-                                            .as_secs_f64()
+                                            .as_secs_f32()
                                 },
                                 _ => 0.0,
                             };
@@ -3803,16 +3803,16 @@ impl FigureMgr {
                             )
                         },
                         CharacterState::Shockwave(s) => {
-                            let stage_time = s.timer.as_secs_f64();
+                            let stage_time = s.timer.as_secs_f32();
                             let stage_progress = match s.stage_section {
                                 StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f64()
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
                                 StageSection::Swing => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f64()
+                                    stage_time / s.static_data.swing_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
                                 },
                                 _ => 0.0,
                             };
@@ -3826,16 +3826,16 @@ impl FigureMgr {
                         },
                         CharacterState::SpinMelee(s) => {
                             let stage_progress = {
-                                let stage_time = s.timer.as_secs_f64();
+                                let stage_time = s.timer.as_secs_f32();
                                 match s.stage_section {
                                     StageSection::Buildup => {
-                                        stage_time / s.static_data.buildup_duration.as_secs_f64()
+                                        stage_time / s.static_data.buildup_duration.as_secs_f32()
                                     },
                                     StageSection::Swing => {
-                                        stage_time / s.static_data.swing_duration.as_secs_f64()
+                                        stage_time / s.static_data.swing_duration.as_secs_f32()
                                     },
                                     StageSection::Recover => {
-                                        stage_time / s.static_data.recover_duration.as_secs_f64()
+                                        stage_time / s.static_data.recover_duration.as_secs_f32()
                                     },
                                     _ => 0.0,
                                 }
@@ -3923,14 +3923,14 @@ impl FigureMgr {
 
                     let target_bones = match &character {
                         CharacterState::BasicRanged(s) => {
-                            let stage_time = s.timer.as_secs_f64();
+                            let stage_time = s.timer.as_secs_f32();
 
                             let stage_progress = match s.stage_section {
                                 StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f64()
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
                                 },
 
                                 _ => 0.0,
@@ -3949,14 +3949,14 @@ impl FigureMgr {
                             )
                         },
                         CharacterState::BasicBeam(s) => {
-                            let stage_time = s.timer.as_secs_f64();
+                            let stage_time = s.timer.as_secs_f32();
                             let stage_progress = match s.stage_section {
                                 StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f64()
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
-                                StageSection::Cast => s.timer.as_secs_f64(),
+                                StageSection::Cast => s.timer.as_secs_f32(),
                                 StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f64()
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
                                 },
                                 _ => 0.0,
                             };
@@ -4594,7 +4594,7 @@ pub struct FigureStateMeta {
     bone_consts: Consts<FigureBoneData>,
     locals: Consts<FigureLocals>,
     lantern_offset: anim::vek::Vec3<f32>,
-    state_time: f64,
+    state_time: f32,
     last_ori: anim::vek::Quaternion<f32>,
     lpindex: u8,
     can_shadow_sun: bool,
@@ -4702,7 +4702,7 @@ impl<S: Skeleton> FigureState<S> {
 
         self.last_ori = vek::Lerp::lerp(self.last_ori, ori, 15.0 * dt).normalized();
 
-        self.state_time += (dt * state_animation_rate) as f64;
+        self.state_time += dt * state_animation_rate;
 
         let mat = {
             anim::vek::Mat4::from(ori)

@@ -13,7 +13,7 @@ impl Animation for ChargeAnimation {
         f32,
         Vec3<f32>,
         Vec3<f32>,
-        f64,
+        f32,
     );
     type Skeleton = BipedLargeSkeleton;
 
@@ -24,29 +24,24 @@ impl Animation for ChargeAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (active_tool_kind, _second_tool_kind, velocity, orientation, last_ori, _global_time): Self::Dependency,
-        anim_time: f64,
+        anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        let lab = 1.0;
+        let lab: f32 = 1.0;
 
-        let foot = (((5.0) / (0.2 + 4.8 * ((anim_time as f32 * lab as f32 * 8.0).sin()).powi(2)))
-            .sqrt())
-            * ((anim_time as f32 * lab as f32 * 8.0).sin());
-        let foote = (((5.0)
-            / (0.5 + 4.5 * ((anim_time as f32 * lab as f32 * 8.0 + 1.57).sin()).powi(2)))
-        .sqrt())
-            * ((anim_time as f32 * lab as f32 * 8.0).sin());
-        let stress =
-            (((5.0) / (0.5 + 4.5 * ((anim_time as f32 * lab as f32 * 20.0).cos()).powi(2))).sqrt())
-                * ((anim_time as f32 * lab as f32 * 20.0).cos());
-        let quick = (((5.0) / (3.5 + 1.5 * ((anim_time as f32 * lab as f32 * 8.0).sin()).powi(2)))
-            .sqrt())
-            * ((anim_time as f32 * lab as f32 * 8.0).sin());
-        let stop = ((anim_time as f32).powf(0.3)).min(1.2);
-        let stopa = ((anim_time as f32).powf(0.9)).min(5.0);
+        let foot = ((5.0 / (0.2 + 4.8 * ((anim_time * lab * 8.0).sin()).powi(2))).sqrt())
+            * ((anim_time * lab * 8.0).sin());
+        let foote = ((5.0 / (0.5 + 4.5 * ((anim_time * lab * 8.0 + 1.57).sin()).powi(2))).sqrt())
+            * ((anim_time * lab * 8.0).sin());
+        let stress = ((5.0 / (0.5 + 4.5 * ((anim_time * lab * 20.0).cos()).powi(2))).sqrt())
+            * ((anim_time * lab * 20.0).cos());
+        let quick = ((5.0 / (3.5 + 1.5 * ((anim_time * lab * 8.0).sin()).powi(2))).sqrt())
+            * ((anim_time * lab * 8.0).sin());
+        let stop = (anim_time.powf(0.3)).min(1.2);
+        let stopa = (anim_time.powf(0.9)).min(5.0);
 
         let ori: Vec2<f32> = Vec2::from(orientation);
         let last_ori = Vec2::from(last_ori);

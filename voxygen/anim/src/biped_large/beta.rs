@@ -15,7 +15,7 @@ impl Animation for BetaAnimation {
         Option<ToolKind>,
         Option<ToolKind>,
         Vec3<f32>,
-        f64,
+        f32,
         Option<StageSection>,
         f32,
     );
@@ -28,7 +28,7 @@ impl Animation for BetaAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (active_tool_kind, _second_tool_kind, velocity, _global_time, stage_section, acc_vel): Self::Dependency,
-        anim_time: f64,
+        anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
@@ -36,21 +36,19 @@ impl Animation for BetaAnimation {
         let mut next = (*skeleton).clone();
         let speed = Vec2::<f32>::from(velocity).magnitude();
 
-        let lab = 0.65 * s_a.tempo;
+        let lab: f32 = 0.65 * s_a.tempo;
         let speednorm = (speed / 12.0).powf(0.4);
-        let foothoril = (acc_vel * lab as f32 + PI * 1.45).sin() * speednorm;
-        let foothorir = (acc_vel * lab as f32 + PI * (0.45)).sin() * speednorm;
-        let footrotl =
-            (((1.0) / (0.5 + (0.5) * ((acc_vel * lab as f32 + PI * 1.4).sin()).powi(2))).sqrt())
-                * ((acc_vel * lab as f32 + PI * 1.4).sin());
+        let foothoril = (acc_vel * lab + PI * 1.45).sin() * speednorm;
+        let foothorir = (acc_vel * lab + PI * (0.45)).sin() * speednorm;
+        let footrotl = ((1.0 / (0.5 + (0.5) * ((acc_vel * lab + PI * 1.4).sin()).powi(2))).sqrt())
+            * ((acc_vel * lab + PI * 1.4).sin());
 
-        let footrotr =
-            (((1.0) / (0.5 + (0.5) * ((acc_vel * lab as f32 + PI * 0.4).sin()).powi(2))).sqrt())
-                * ((acc_vel * lab as f32 + PI * 0.4).sin());
+        let footrotr = ((1.0 / (0.5 + (0.5) * ((acc_vel * lab + PI * 0.4).sin()).powi(2))).sqrt())
+            * ((acc_vel * lab + PI * 0.4).sin());
         let (move1base, move2base, move3) = match stage_section {
-            Some(StageSection::Buildup) => ((anim_time as f32).powf(0.25), 0.0, 0.0),
-            Some(StageSection::Swing) => (1.0, anim_time as f32, 0.0),
-            Some(StageSection::Recover) => (1.0, 1.0, (anim_time as f32).powi(6)),
+            Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
+            Some(StageSection::Swing) => (1.0, anim_time, 0.0),
+            Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(6)),
             _ => (0.0, 0.0, 0.0),
         };
         let pullback = 1.0 - move3;

@@ -136,7 +136,7 @@ pub trait Animation {
     fn update_skeleton_inner(
         _skeleton: &Self::Skeleton,
         _dependency: Self::Dependency,
-        _anim_time: f64,
+        _anim_time: f32,
         _rate: &mut f32,
         _skeleton_attr: &<<Self as Animation>::Skeleton as Skeleton>::Attr,
     ) -> Self::Skeleton;
@@ -146,7 +146,7 @@ pub trait Animation {
     fn update_skeleton(
         skeleton: &Self::Skeleton,
         dependency: Self::Dependency,
-        anim_time: f64,
+        anim_time: f32,
         rate: &mut f32,
         skeleton_attr: &<<Self as Animation>::Skeleton as Skeleton>::Attr,
     ) -> Self::Skeleton {
@@ -163,7 +163,7 @@ pub trait Animation {
                 fn(
                     &Self::Skeleton,
                     Self::Dependency,
-                    f64,
+                    f32,
                     &mut f32,
                     &<Self::Skeleton as Skeleton>::Attr,
                 ) -> Self::Skeleton,

@@ -8,7 +8,7 @@ use std::f32::consts::PI;
 pub struct ShockwaveAnimation;
 
 impl Animation for ShockwaveAnimation {
-    type Dependency = (Option<StageSection>, f32, f64);
+    type Dependency = (Option<StageSection>, f32, f32);
     type Skeleton = GolemSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -19,16 +19,16 @@ impl Animation for ShockwaveAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (stage_section, velocity, _global_time): Self::Dependency,
-        anim_time: f64,
+        anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
         let (move1base, move2base, move3) = match stage_section {
-            Some(StageSection::Buildup) => (anim_time as f32, 0.0, 0.0),
-            Some(StageSection::Swing) => (1.0, anim_time as f32, 0.0),
-            Some(StageSection::Recover) => (1.0, 1.0, (anim_time as f32).powf(2.0)),
+            Some(StageSection::Buildup) => (anim_time, 0.0, 0.0),
+            Some(StageSection::Swing) => (1.0, anim_time, 0.0),
+            Some(StageSection::Recover) => (1.0, 1.0, anim_time.powf(2.0)),
             _ => (0.0, 0.0, 0.0),
         };
 

@@ -5,7 +5,7 @@ use super::{
 
 pub struct IdleAnimation;
 
-type IdleAnimationDependency = (Vec3<f32>, Vec3<f32>, Vec3<f32>, f64, Vec3<f32>);
+type IdleAnimationDependency = (Vec3<f32>, Vec3<f32>, Vec3<f32>, f32, Vec3<f32>);
 
 impl Animation for IdleAnimation {
     type Dependency = IdleAnimationDependency;
@@ -19,12 +19,12 @@ impl Animation for IdleAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (_velocity, _orientation, _last_ori, _global_time, _avg_vel): Self::Dependency,
-        anim_time: f64,
+        anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
-        let slow = (anim_time as f32 * 4.0).sin();
+        let slow = (anim_time * 4.0).sin();
 
         next.foot_l.scale = Vec3::one() * s_a.scaler / 11.0;
         next.foot_r.scale = Vec3::one() * s_a.scaler / 11.0;

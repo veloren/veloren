@@ -5,7 +5,7 @@ use super::super::vek::*;
 pub struct IdleAnimation;
 
 impl Animation for IdleAnimation {
-    type Dependency = f64;
+    type Dependency = f32;
     type Skeleton = BirdSmallSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -15,7 +15,7 @@ impl Animation for IdleAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         _global_time: Self::Dependency,
-        _anim_time: f64,
+        _anim_time: f32,
         _rate: &mut f32,
         _skeleton_attr: &SkeletonAttr,
     ) -> Self::Skeleton {

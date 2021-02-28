@@ -7,7 +7,7 @@ use common::states::utils::StageSection;
 pub struct TailwhipAnimation;
 
 impl Animation for TailwhipAnimation {
-    type Dependency = (f32, f64, Option<StageSection>, f64);
+    type Dependency = (f32, f32, Option<StageSection>, f32);
     type Skeleton = QuadrupedLowSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -17,34 +17,26 @@ impl Animation for TailwhipAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (_velocity, global_time, stage_section, timer): Self::Dependency,
-        anim_time: f64,
+        anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
         let (movement1base, movement2base, movement3, twitch1, twitch2) = match stage_section {
-            Some(StageSection::Charge) => (
-                (anim_time as f32).min(1.2),
-                0.0,
-                0.0,
-                (anim_time as f32 * 15.0).sin(),
-                0.0,
-            ),
-            Some(StageSection::Swing) => (1.0, (anim_time as f32).powi(4), 0.0, 1.0, 0.0),
-            Some(StageSection::Recover) => (
-                1.0,
-                1.0,
-                (anim_time as f32).powi(6),
-                1.0,
-                (anim_time as f32 * 7.0).sin(),
-            ),
+            Some(StageSection::Charge) => {
+                (anim_time.min(1.2), 0.0, 0.0, (anim_time * 15.0).sin(), 0.0)
+            },
+            Some(StageSection::Swing) => (1.0, anim_time.powi(4), 0.0, 1.0, 0.0),
+            Some(StageSection::Recover) => {
+                (1.0, 1.0, anim_time.powi(6), 1.0, (anim_time * 7.0).sin())
+            },
             _ => (0.0, 0.0, 0.0, 0.0, 0.0),
         };
         let pullback = 1.0 - movement3;
         let subtract = global_time - timer;
         let check = subtract - subtract.trunc();
-        let mirror = (check - 0.5).signum() as f32;
+        let mirror = (check - 0.5).signum();
         let movement1 = mirror * movement1base * pullback;
         let movement2 = mirror * movement2base * pullback;
         let movement1abs = movement1base * pullback;
