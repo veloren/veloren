@@ -183,6 +183,10 @@ impl Server {
             "common.abilities.weapon_ability_manifest",
         );
         state.ecs_mut().insert(ability_map);
+
+        let msm = comp::inventory::item::MaterialStatManifest::default();
+        state.ecs_mut().insert(msm);
+
         state
             .ecs_mut()
             .insert(CharacterLoader::new(&persistence_db_dir)?);
