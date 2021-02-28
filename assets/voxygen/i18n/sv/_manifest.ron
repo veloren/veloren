@@ -207,6 +207,7 @@ Enjoy your stay in the World of Veloren."#,
         "hud.settings.zoom_sensitivity": "Zoom Sensitivity",
         "hud.settings.invert_scroll_zoom": "Invert Scroll Zoom",
         "hud.settings.invert_mouse_y_axis": "Invert Mouse Y Axis",
+        "hud.settings.invert_controller_y_axis": "Invert Controller Y Axis",
 
         "hud.settings.view_distance": "View Distance",
         "hud.settings.maximum_fps": "Maximum FPS",

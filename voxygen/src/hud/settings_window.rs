@@ -95,6 +95,8 @@ widget_ids! {
         mouse_zoom_invert_label,
         mouse_y_invert_button,
         mouse_y_invert_label,
+        controller_y_invert_button,
+        controller_y_invert_label,
         smooth_pan_toggle_button,
         smooth_pan_toggle_label,
         ch_title,
@@ -296,6 +298,7 @@ pub enum Event {
     AdjustMouseZoom(u32),
     ToggleZoomInvert(bool),
     ToggleMouseYInvert(bool),
+    ToggleControllerYInvert(bool),
     ToggleSmoothPan(bool),
     AdjustViewDistance(u32),
     AdjustSpriteRenderDistance(u32),
@@ -1455,6 +1458,36 @@ impl<'a> Widget for SettingsWindow<'a> {
             .color(TEXT_COLOR)
             .set(state.ids.mouse_y_invert_label, ui);
 
+            // Controller Y Pan Inversion
+            let controller_y_inverted = ToggleButton::new(
+                self.global_state.settings.controller.pan_invert_y,
+                self.imgs.checkbox,
+                self.imgs.checkbox_checked,
+            )
+            .w_h(18.0, 18.0)
+            .right_from(state.ids.mouse_y_invert_label, 10.0)
+            .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+            .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+            .set(state.ids.controller_y_invert_button, ui);
+
+            if self.global_state.settings.controller.pan_invert_y != controller_y_inverted {
+                events.push(Event::ToggleControllerYInvert(
+                    !self.global_state.settings.controller.pan_invert_y,
+                ));
+            }
+
+            Text::new(
+                &self
+                    .localized_strings
+                    .get("hud.settings.invert_controller_y_axis"),
+            )
+            .right_from(state.ids.controller_y_invert_button, 10.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .graphics_for(state.ids.controller_y_invert_button)
+            .color(TEXT_COLOR)
+            .set(state.ids.controller_y_invert_label, ui);
+
             // Mouse Smoothing Toggle
             let smooth_pan_enabled = ToggleButton::new(
                 self.global_state.settings.gameplay.smooth_pan_enable,
@@ -1462,7 +1495,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 self.imgs.checkbox_checked,
             )
             .w_h(18.0, 18.0)
-            .right_from(state.ids.mouse_y_invert_label, 10.0)
+            .right_from(state.ids.controller_y_invert_label, 10.0)
             .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
             .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
             .set(state.ids.smooth_pan_toggle_button, ui);
