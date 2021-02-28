@@ -6,7 +6,7 @@ use super::{
 };
 
 use crate::{
-    hud::get_buff_info,
+    hud::{get_buff_image, get_buff_info},
     i18n::Localization,
     settings::Settings,
     ui::{fonts::Fonts, ImageFrame, Tooltip, TooltipManager, Tooltipable},
@@ -504,20 +504,7 @@ impl<'a> Widget for Group<'a> {
                                         cur.as_secs_f32() / max.as_secs_f32() * 1000.0
                                     })
                                 }) as u32; // Percentage to determine which frame of the timer overlay is displayed
-                                let buff_img = match buff.kind {
-                                    BuffKind::Regeneration { .. } => self.imgs.buff_plus_0,
-                                    BuffKind::Saturation { .. } => self.imgs.buff_saturation_0,
-                                    BuffKind::Bleeding { .. } => self.imgs.debuff_bleed_0,
-                                    BuffKind::Cursed { .. } => self.imgs.debuff_skull_0,
-                                    BuffKind::Potion { .. } => self.imgs.buff_potion_0,
-                                    BuffKind::CampfireHeal { .. } => self.imgs.buff_campfire_heal_0,
-                                    BuffKind::IncreaseMaxEnergy { .. } => {
-                                        self.imgs.buff_energyplus_0
-                                    },
-                                    BuffKind::IncreaseMaxHealth { .. } => {
-                                        self.imgs.buff_healthplus_0
-                                    },
-                                };
+                                let buff_img = get_buff_image(buff.kind, &self.imgs);
                                 let buff_widget = Image::new(buff_img).w_h(15.0, 15.0);
                                 let buff_widget = if let Some(id) = prev_id {
                                     buff_widget.right_from(id, 1.0)

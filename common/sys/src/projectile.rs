@@ -1,7 +1,8 @@
 use common::{
-    combat::AttackerInfo,
+    combat::{AttackerInfo, TargetInfo},
     comp::{
-        projectile, Energy, Group, HealthSource, Inventory, Ori, PhysicsState, Pos, Projectile, Vel,
+        projectile, Energy, Group, HealthSource, Inventory, Ori, PhysicsState, Pos, Projectile,
+        Stats, Vel,
     },
     event::{EventBus, ServerEvent},
     metrics::SysMetrics,
@@ -30,6 +31,7 @@ pub struct ReadData<'a> {
     inventories: ReadStorage<'a, Inventory>,
     groups: ReadStorage<'a, Group>,
     energies: ReadStorage<'a, Energy>,
+    stats: ReadStorage<'a, Stats>,
 }
 
 /// This system is responsible for handling projectile effect triggers
@@ -93,7 +95,7 @@ impl<'a> System<'a> for Sys {
                 for effect in projectile.hit_entity.drain(..) {
                     match effect {
                         projectile::Effect::Attack(attack) => {
-                            if let Some(target_entity) = read_data
+                            if let Some(target) = read_data
                                 .uid_allocator
                                 .retrieve_entity_internal(other.into())
                             {
@@ -110,11 +112,16 @@ impl<'a> System<'a> for Sys {
                                         }
                                     });
 
+                                let target_info = TargetInfo {
+                                    entity: target,
+                                    inventory: read_data.inventories.get(target),
+                                    stats: read_data.stats.get(target),
+                                };
+
                                 attack.apply_attack(
                                     target_group,
                                     attacker_info,
-                                    target_entity,
-                                    read_data.inventories.get(target_entity),
+                                    target_info,
                                     ori.look_dir(),
                                     false,
                                     1.0,

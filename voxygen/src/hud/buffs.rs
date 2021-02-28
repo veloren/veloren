@@ -3,7 +3,7 @@ use super::{
     BUFF_COLOR, DEBUFF_COLOR, TEXT_COLOR,
 };
 use crate::{
-    hud::{get_buff_info, BuffPosition},
+    hud::{get_buff_image, get_buff_info, BuffPosition},
     i18n::Localization,
     ui::{fonts::Fonts, ImageFrame, Tooltip, TooltipManager, Tooltipable},
     GlobalState,
@@ -201,15 +201,7 @@ impl<'a> Widget for BuffsBar<'a> {
                         max_duration
                             .map_or(1000.0, |max| cur.as_secs_f32() / max.as_secs_f32() * 1000.0)
                     }) as u32; // Percentage to determine which frame of the timer overlay is displayed
-                    let buff_img = match buff.kind {
-                        BuffKind::Regeneration { .. } => self.imgs.buff_plus_0,
-                        BuffKind::Saturation { .. } => self.imgs.buff_saturation_0,
-                        BuffKind::Potion { .. } => self.imgs.buff_potion_0,
-                        BuffKind::CampfireHeal { .. } => self.imgs.buff_campfire_heal_0,
-                        BuffKind::IncreaseMaxHealth { .. } => self.imgs.buff_healthplus_0,
-                        BuffKind::IncreaseMaxEnergy { .. } => self.imgs.buff_energyplus_0,
-                        _ => self.imgs.missing_icon,
-                    };
+                    let buff_img = get_buff_image(buff.kind, self.imgs);
                     let buff_widget = Image::new(buff_img).w_h(40.0, 40.0);
                     // Sort buffs into rows of 11 slots
                     let x = i % 6;
@@ -437,16 +429,7 @@ impl<'a> Widget for BuffsBar<'a> {
                         max_duration
                             .map_or(1000.0, |max| cur.as_secs_f32() / max.as_secs_f32() * 1000.0)
                     }) as u32;
-                    let buff_img = match buff.kind {
-                        BuffKind::Regeneration { .. } => self.imgs.buff_plus_0,
-                        BuffKind::Saturation { .. } => self.imgs.buff_saturation_0,
-                        BuffKind::Bleeding { .. } => self.imgs.debuff_bleed_0,
-                        BuffKind::Cursed { .. } => self.imgs.debuff_skull_0,
-                        BuffKind::Potion { .. } => self.imgs.buff_potion_0,
-                        BuffKind::CampfireHeal { .. } => self.imgs.buff_campfire_heal_0,
-                        BuffKind::IncreaseMaxEnergy { .. } => self.imgs.buff_energyplus_0,
-                        BuffKind::IncreaseMaxHealth { .. } => self.imgs.buff_healthplus_0,
-                    };
+                    let buff_img = get_buff_image(buff.kind, &self.imgs);
                     let buff_widget = Image::new(buff_img).w_h(40.0, 40.0);
                     // Sort buffs into rows of 6 slots
                     let x = i % 6;

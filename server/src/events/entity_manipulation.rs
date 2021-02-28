@@ -511,14 +511,16 @@ pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>)
     if vel.z <= -30.0 {
         let falldmg = (vel.z.powi(2) / 20.0 - 40.0) * 10.0;
         let inventories = state.ecs().read_storage::<Inventory>();
+        let stats = state.ecs().read_storage::<Stats>();
         // Handle health change
         if let Some(mut health) = state.ecs().write_storage::<comp::Health>().get_mut(entity) {
             let damage = Damage {
                 source: DamageSource::Falling,
                 value: falldmg,
             };
-            let change =
-                damage.calculate_health_change(inventories.get(entity), None, false, 0.0, 1.0);
+            let damage_reduction =
+                Damage::compute_damage_reduction(inventories.get(entity), stats.get(entity));
+            let change = damage.calculate_health_change(damage_reduction, None, false, 0.0, 1.0);
             health.change_by(change);
         }
         // Handle poise change
@@ -674,14 +676,15 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
             },
             RadiusEffect::Attack(attack) => {
                 let energies = &ecs.read_storage::<comp::Energy>();
-                for (entity_b, pos_b, _health_b, inventory_b_maybe) in (
+                for (entity_b, pos_b, _health_b, inventory_b_maybe, stats_b_maybe) in (
                     &ecs.entities(),
                     &ecs.read_storage::<comp::Pos>(),
                     &ecs.read_storage::<comp::Health>(),
                     ecs.read_storage::<comp::Inventory>().maybe(),
+                    ecs.read_storage::<comp::Stats>().maybe(),
                 )
                     .join()
-                    .filter(|(_, _, h, _)| !h.is_dead)
+                    .filter(|(_, _, h, _, _)| !h.is_dead)
                 {
                     // Check if it is a hit
                     let distance_squared = pos.distance_squared(pos_b.0);
@@ -714,13 +717,18 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                                     energy: energies.get(entity),
                                 });
 
+                        let target_info = combat::TargetInfo {
+                            entity: entity_b,
+                            inventory: inventory_b_maybe,
+                            stats: stats_b_maybe,
+                        };
+
                         let server_eventbus = ecs.read_resource::<EventBus<ServerEvent>>();
 
                         attack.apply_attack(
                             target_group,
                             attacker_info,
-                            entity_b,
-                            inventory_b_maybe,
+                            target_info,
                             dir,
                             false,
                             strength,

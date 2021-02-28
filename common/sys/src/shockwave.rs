@@ -1,8 +1,8 @@
 use common::{
-    combat::AttackerInfo,
+    combat::{AttackerInfo, TargetInfo},
     comp::{
         Body, Energy, Group, Health, HealthSource, Inventory, Last, Ori, PhysicsState, Pos, Scale,
-        Shockwave, ShockwaveHitEntities,
+        Shockwave, ShockwaveHitEntities, Stats,
     },
     event::{EventBus, ServerEvent},
     resources::{DeltaTime, Time},
@@ -34,6 +34,7 @@ pub struct ReadData<'a> {
     groups: ReadStorage<'a, Group>,
     physics_states: ReadStorage<'a, PhysicsState>,
     energies: ReadStorage<'a, Energy>,
+    stats: ReadStorage<'a, Stats>,
 }
 
 /// This system is responsible for handling accepted inputs like moving or
@@ -176,11 +177,16 @@ impl<'a> System<'a> for Sys {
                                 energy: read_data.energies.get(entity),
                             });
 
+                    let target_info = TargetInfo {
+                        entity: target,
+                        inventory: read_data.inventories.get(target),
+                        stats: read_data.stats.get(target),
+                    };
+
                     shockwave.properties.attack.apply_attack(
                         target_group,
                         attacker_info,
-                        target,
-                        read_data.inventories.get(target),
+                        target_info,
                         dir,
                         false,
                         1.0,

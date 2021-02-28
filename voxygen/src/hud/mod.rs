@@ -3170,3 +3170,17 @@ pub fn cr_color(combat_rating: f32) -> Color {
         _ => XP_COLOR,
     }
 }
+
+pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
+    match buff {
+        BuffKind::Regeneration { .. } => imgs.buff_plus_0,
+        BuffKind::Saturation { .. } => imgs.buff_saturation_0,
+        BuffKind::Bleeding { .. } => imgs.debuff_bleed_0,
+        BuffKind::Cursed { .. } => imgs.debuff_skull_0,
+        BuffKind::Potion { .. } => imgs.buff_potion_0,
+        BuffKind::CampfireHeal { .. } => imgs.buff_campfire_heal_0,
+        BuffKind::IncreaseMaxEnergy { .. } => imgs.buff_energyplus_0,
+        BuffKind::IncreaseMaxHealth { .. } => imgs.buff_healthplus_0,
+        BuffKind::Invulnerability => imgs.buff_plus_0,
+    }
+}

@@ -4,6 +4,7 @@ use crate::{
 };
 use common::{
     character::CharacterId,
+    combat,
     comp::{
         self,
         skills::{GeneralSkill, Skill},
@@ -89,8 +90,12 @@ impl StateExt for State {
             },
             Effect::Damage(damage) => {
                 let inventories = self.ecs().read_storage::<Inventory>();
+                let stats = self.ecs().read_storage::<comp::Stats>();
                 let change = damage.calculate_health_change(
-                    inventories.get(entity),
+                    combat::Damage::compute_damage_reduction(
+                        inventories.get(entity),
+                        stats.get(entity),
+                    ),
                     source,
                     false,
                     0.0,
