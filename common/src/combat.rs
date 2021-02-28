@@ -431,7 +431,7 @@ pub struct Damage {
 impl Damage {
     /// Returns the total damage reduction provided by all equipped items
     pub fn compute_damage_reduction(inventory: Option<&Inventory>, stats: Option<&Stats>) -> f32 {
-        let invetory_dr = if let Some(inventory) = inventory {
+        let inventory_dr = if let Some(inventory) = inventory {
             let protection = inventory
                 .equipped_items()
                 .filter_map(|item| {
@@ -461,7 +461,7 @@ impl Damage {
         } else {
             0.0
         };
-        1.0 - (1.0 - invetory_dr) * (1.0 - stats_dr)
+        1.0 - (1.0 - inventory_dr) * (1.0 - stats_dr)
     }
 
     pub fn calculate_health_change(

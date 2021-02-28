@@ -111,6 +111,7 @@ fn get_handler(cmd: &ChatCommand) -> CommandHandler {
         ChatCommand::Players => handle_players,
         ChatCommand::Region => handle_region,
         ChatCommand::RemoveLights => handle_remove_lights,
+        ChatCommand::Safezone => handle_safezone,
         ChatCommand::Say => handle_say,
         ChatCommand::SetMotd => handle_set_motd,
         ChatCommand::SkillPoint => handle_skill_point,
@@ -975,35 +976,61 @@ fn handle_spawn_campfire(
                     animated: true,
                 })
                 .with(WaypointArea::default())
-                .with(comp::Auras::new(vec![
-                    Aura::new(
-                        AuraKind::Buff {
-                            kind: BuffKind::CampfireHeal,
-                            data: BuffData::new(0.02, Some(Duration::from_secs(1))),
-                            category: BuffCategory::Natural,
-                            source: BuffSource::World,
-                        },
-                        5.0,
-                        None,
-                        AuraTarget::All,
-                    ),
-                    Aura::new(
-                        AuraKind::Buff {
-                            kind: BuffKind::Invulnerability,
-                            data: BuffData::new(1.0, Some(Duration::from_secs(1))),
-                            category: BuffCategory::Natural,
-                            source: BuffSource::World,
-                        },
-                        100.0,
-                        None,
-                        AuraTarget::All,
-                    ),
-                ]))
+                .with(comp::Auras::new(vec![Aura::new(
+                    AuraKind::Buff {
+                        kind: BuffKind::CampfireHeal,
+                        data: BuffData::new(0.02, Some(Duration::from_secs(1))),
+                        category: BuffCategory::Natural,
+                        source: BuffSource::World,
+                    },
+                    5.0,
+                    None,
+                    AuraTarget::All,
+                )]))
                 .build();
 
             server.notify_client(
                 client,
                 ServerGeneral::server_msg(ChatType::CommandInfo, "Spawned a campfire"),
+            );
+        },
+        None => server.notify_client(
+            client,
+            ServerGeneral::server_msg(ChatType::CommandError, "You have no position!"),
+        ),
+    }
+}
+
+fn handle_safezone(
+    server: &mut Server,
+    client: EcsEntity,
+    target: EcsEntity,
+    args: String,
+    action: &ChatCommand,
+) {
+    let range = scan_fmt_some!(&args, &action.arg_fmt(), f32);
+
+    match server.state.read_component_copied::<comp::Pos>(target) {
+        Some(pos) => {
+            server
+                .state
+                .create_object(pos, comp::object::Body::BoltNature)
+                .with(comp::Auras::new(vec![Aura::new(
+                    AuraKind::Buff {
+                        kind: BuffKind::Invulnerability,
+                        data: BuffData::new(1.0, Some(Duration::from_secs(1))),
+                        category: BuffCategory::Natural,
+                        source: BuffSource::World,
+                    },
+                    range.unwrap_or(100.0),
+                    None,
+                    AuraTarget::All,
+                )]))
+                .build();
+
+            server.notify_client(
+                client,
+                ServerGeneral::server_msg(ChatType::CommandInfo, "Spawned a safe zone"),
             );
         },
         None => server.notify_client(
