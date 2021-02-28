@@ -197,6 +197,10 @@ impl GameInput {
             GameInput::Slot9,
             GameInput::Slot10,
             GameInput::SwapLoadout,
+            GameInput::CycleCamera,
+            GameInput::Select,
+            GameInput::AcceptGroupInvite,
+            GameInput::DeclineGroupInvite,
         ]
         .iter()
         .copied()
