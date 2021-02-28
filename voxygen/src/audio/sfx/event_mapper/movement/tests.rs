@@ -189,6 +189,7 @@ fn maps_roll() {
             stage_section: states::utils::StageSection::Buildup,
             was_wielded: true,
             was_sneak: false,
+            was_combo: None,
         }),
         &PhysicsState {
             on_ground: true,

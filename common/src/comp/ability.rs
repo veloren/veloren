@@ -1191,6 +1191,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 stage_section: StageSection::Buildup,
                 was_wielded: false, // false by default. utils might set it to true
                 was_sneak: false,
+                was_combo: None,
             }),
             CharacterAbility::ComboMelee {
                 stage_data,

@@ -529,7 +529,17 @@ pub fn handle_dodge_input(data: &JoinData, update: &mut StateUpdate) {
             })
             .filter(|ability| ability.requirements_paid(data, update))
         {
-            if data.character.is_wield() {
+            if let CharacterState::ComboMelee(c) = data.character {
+                update.character = (
+                    &ability,
+                    AbilityInfo::from_key(data, AbilityKey::Dodge, false),
+                )
+                    .into();
+                if let CharacterState::Roll(roll) = &mut update.character {
+                    roll.was_combo = Some((c.static_data.ability_info.key, c.stage));
+                    roll.was_wielded = true;
+                }
+            } else if data.character.is_wield() {
                 update.character = (
                     &ability,
                     AbilityInfo::from_key(data, AbilityKey::Dodge, false),
@@ -574,6 +584,16 @@ pub fn handle_interrupt(data: &JoinData, update: &mut StateUpdate, attacks_inter
         handle_ability4_input(data, update);
     }
     handle_dodge_input(data, update);
+}
+
+pub fn resume_combo(data: &JoinData, update: &mut StateUpdate, key: AbilityKey, stage: u32) {
+    if ability_key_is_pressed(data, key) {
+        handle_interrupt(data, update, true);
+    }
+    // If other states are introduced that progress through stages, add them here
+    if let CharacterState::ComboMelee(c) = &mut update.character {
+        c.stage = stage;
+    }
 }
 
 pub fn ability_key_is_pressed(data: &JoinData, ability_key: AbilityKey) -> bool {

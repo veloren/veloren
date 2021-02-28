@@ -36,6 +36,8 @@ pub struct Data {
     pub was_wielded: bool,
     /// Was sneaking
     pub was_sneak: bool,
+    /// Was in state with combo
+    pub was_combo: Option<(AbilityKey, u32)>,
 }
 
 impl CharacterBehavior for Data {
@@ -112,7 +114,9 @@ impl CharacterBehavior for Data {
                     });
                 } else {
                     // Done
-                    if self.was_wielded {
+                    if let Some((key, stage)) = self.was_combo {
+                        resume_combo(data, &mut update, key, stage);
+                    } else if self.was_wielded {
                         update.character = CharacterState::Wielding;
                     } else if self.was_sneak {
                         update.character = CharacterState::Sneak;
@@ -123,7 +127,9 @@ impl CharacterBehavior for Data {
             },
             _ => {
                 // If it somehow ends up in an incorrect stage section
-                if self.was_wielded {
+                if let Some((key, stage)) = self.was_combo {
+                    resume_combo(data, &mut update, key, stage);
+                } else if self.was_wielded {
                     update.character = CharacterState::Wielding;
                 } else if self.was_sneak {
                     update.character = CharacterState::Sneak;
