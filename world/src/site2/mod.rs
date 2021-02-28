@@ -444,9 +444,9 @@ impl Site {
             for fill in fills {
                 let aabb = fill.get_bounds(&prim_tree);
 
-                for x in aabb.min.x..aabb.max.x + 1 {
-                    for y in aabb.min.y..aabb.max.y + 1 {
-                        for z in aabb.min.z..aabb.max.z + 1 {
+                for x in aabb.min.x..aabb.max.x {
+                    for y in aabb.min.y..aabb.max.y {
+                        for z in aabb.min.z..aabb.max.z {
                             let pos = Vec3::new(x, y, z);
 
                             if let Some(block) = fill.sample_at(&prim_tree, pos) {

@@ -27,17 +27,36 @@ impl Structure for House {
         mut emit_prim: F,
         mut emit_fill: G,
     ) {
+        let ceiling = 12;
+
+        // Walls
         let wall = emit_prim(Primitive::Aabb(Aabb {
             min: Vec3::new(self.bounds.min.x, self.bounds.min.y, self.alt - 8),
-            max: Vec3::new(self.bounds.max.x, self.bounds.max.y, self.alt + 16),
+            max: Vec3::new(self.bounds.max.x, self.bounds.max.y, self.alt + ceiling),
         }));
         let inner = emit_prim(Primitive::Aabb(Aabb {
             min: Vec3::new(self.bounds.min.x + 1, self.bounds.min.y + 1, self.alt - 8),
-            max: Vec3::new(self.bounds.max.x - 1, self.bounds.max.y - 1, self.alt + 16),
+            max: Vec3::new(self.bounds.max.x - 1, self.bounds.max.y - 1, self.alt + ceiling),
         }));
         emit_fill(Fill {
             prim: emit_prim(Primitive::Xor(wall, inner)),
             block: Block::new(BlockKind::Rock, Rgb::new(150, 50, 10)),
+        });
+
+
+        let roof_lip = 3;
+        let roof_height = self.bounds.size().reduce_min() / 2 + roof_lip;
+
+        // Roof
+        emit_fill(Fill {
+            prim: emit_prim(Primitive::Pyramid {
+                aabb: Aabb {
+                    min: Vec3::new(self.bounds.min.x - roof_lip, self.bounds.min.y - roof_lip, self.alt + ceiling),
+                    max: Vec3::new(self.bounds.max.x + roof_lip, self.bounds.max.y + roof_lip, self.alt + ceiling + roof_height),
+                },
+                inset: roof_height,
+            }),
+            block: Block::new(BlockKind::Wood, Rgb::new(100, 80, 100)),
         });
     }
 }
