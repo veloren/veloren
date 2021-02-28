@@ -1,3 +1,10 @@
+mod house;
+
+pub use self::{
+    house::House,
+};
+
+use super::*;
 use crate::util::DHashSet;
 use common::path::Path;
 use vek::*;
@@ -7,7 +14,6 @@ pub struct Plot {
     pub(crate) root_tile: Vec2<i32>,
     pub(crate) tiles: DHashSet<Vec2<i32>>,
     pub(crate) seed: u32,
-    pub(crate) base_alt: i32,
 }
 
 impl Plot {
@@ -22,7 +28,7 @@ impl Plot {
 
 pub enum PlotKind {
     Field,
-    House,
+    House(House),
     Plaza,
     Castle,
     Road(Path<Vec2<i32>>),

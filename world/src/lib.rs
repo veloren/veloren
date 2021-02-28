@@ -9,7 +9,8 @@
     const_panic,
     label_break_value,
     or_patterns,
-    array_value_iter
+    array_value_iter,
+    array_map,
 )]
 
 mod all;
@@ -282,7 +283,7 @@ impl World {
                 wpos: chunk_pos * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
                 column_grid: &zcache_grid,
                 column_grid_border: grid_border,
-                land: &self.sim,
+                chunks: &self.sim,
                 index,
                 chunk: sim_chunk,
             },

@@ -1,13 +1,15 @@
+mod gen;
 mod plot;
 mod tile;
 
 use self::{
     plot::{Plot, PlotKind},
     tile::{TileGrid, Tile, TileKind, HazardKind, TILE_SIZE},
+    gen::{Primitive, Fill, Structure},
 };
 use crate::{
     site::SpawnRules,
-    util::{Grid, attempt, CARDINALS, SQUARE_4, SQUARE_9},
+    util::{Grid, attempt, DHashSet, CARDINALS, SQUARE_4, SQUARE_9, LOCALITY},
     Canvas,
     Land,
 };
@@ -86,7 +88,11 @@ impl Site {
             MAX_ITERS,
             &heuristic,
             |tile| { let tile = *tile; CARDINALS.iter().map(move |dir| tile + *dir) },
-            |a, b| rng.gen_range(1.0..1.5),
+            |a, b| {
+                let alt_a = land.get_alt_approx(self.tile_center_wpos(*a));
+                let alt_b = land.get_alt_approx(self.tile_center_wpos(*b));
+                (alt_a - alt_b).abs() / TILE_SIZE as f32
+            },
             |tile| *tile == b,
         ).into_path()?;
 
@@ -95,7 +101,6 @@ impl Site {
             root_tile: a,
             tiles: path.clone().into_iter().collect(),
             seed: rng.gen(),
-            base_alt: 0,
         });
 
         self.roads.push(plot);
@@ -163,7 +168,6 @@ impl Site {
             root_tile: pos,
             tiles: aabr_tiles(aabr).collect(),
             seed: rng.gen(),
-            base_alt: land.get_alt_approx(self.tile_center_wpos(aabr.center())) as i32,
         });
         self.plazas.push(plaza);
         self.blit_aabr(aabr, Tile {
@@ -239,11 +243,10 @@ impl Site {
                     let size = (2.0 + rng.gen::<f32>().powf(8.0) * 3.0).round() as u32;
                     if let Some((aabr, _)) = attempt(10, || site.find_roadside_aabr(rng, 4..(size + 1).pow(2), Extent2::broadcast(size))) {
                         let plot = site.create_plot(Plot {
-                            kind: PlotKind::House,
+                            kind: PlotKind::House(plot::House::generate(land, rng, &site, aabr)),
                             root_tile: aabr.center(),
                             tiles: aabr_tiles(aabr).collect(),
                             seed: rng.gen(),
-                            base_alt: land.get_alt_approx(site.tile_center_wpos(aabr.center())) as i32,
                         });
 
                         site.blit_aabr(aabr, Tile {
@@ -260,7 +263,6 @@ impl Site {
                             root_tile: aabr.center(),
                             tiles: aabr_tiles(aabr).collect(),
                             seed: rng.gen(),
-                            base_alt: land.get_alt_approx(site.tile_center_wpos(aabr.center())) as i32,
                         });
 
                         site.blit_aabr(aabr, Tile {
@@ -309,7 +311,6 @@ impl Site {
                             root_tile: aabr.center(),
                             tiles: aabr_tiles(aabr).collect(),
                             seed: rng.gen(),
-                            base_alt: land.get_alt_approx(site.tile_center_wpos(aabr.center())) as i32,
                         });
 
                         // Walls
@@ -367,57 +368,47 @@ impl Site {
 
     pub fn render_tile(&self, canvas: &mut Canvas, dynamic_rng: &mut impl Rng, tpos: Vec2<i32>) {
         let tile = self.tiles.get(tpos);
-        let twpos = self.tile_wpos(tpos);
+        let twpos = self.tile_center_wpos(tpos);
         let cols = (-(TILE_SIZE as i32)..TILE_SIZE as i32 * 2).map(|y| (-(TILE_SIZE as i32)..TILE_SIZE as i32 * 2).map(move |x| (twpos + Vec2::new(x, y), Vec2::new(x, y)))).flatten();
 
         match &tile.kind {
             TileKind::Empty | TileKind::Hazard(_) => {},
-            TileKind::Road => cols.for_each(|(wpos2d, offs)| {
-                let tpos = self.tile_wpos(wpos2d);
+            TileKind::Road => {
+                let near_roads = CARDINALS
+                    .map(|rpos| if self.tiles.get(tpos + rpos) == tile {
+                        Some(LineSegment2 {
+                            start: self.tile_center_wpos(tpos).map(|e| e as f32),
+                            end: self.tile_center_wpos(tpos + rpos).map(|e| e as f32),
+                        })
+                    } else {
+                        None
+                    });
 
-                let is_x = [
-                    self.tiles.get(tpos - Vec2::unit_x()) == tile,
-                    self.tiles.get(tpos) == tile,
-                    self.tiles.get(tpos + Vec2::unit_x()) == tile,
-                ];
+                cols.for_each(|(wpos2d, offs)| {
+                    let wpos2df = wpos2d.map(|e| e as f32);
+                    let nearest_road = near_roads
+                        .iter()
+                        .copied()
+                        .filter_map(|line| Some(line?.projected_point(wpos2df)))
+                        .min_by_key(|p| p.distance_squared(wpos2df) as i32);
 
-                let dist_x = [
-                    if is_x[0] ^ is_x[1] { Some((offs.x % tile::TILE_SIZE as i32) * if is_x[1] { -1 } else { 1 }) } else { None },
-                    if is_x[1] ^ is_x[2] { Some((tile::TILE_SIZE as i32 - offs.x % tile::TILE_SIZE as i32) * if is_x[1] { -1 } else { 1 }) } else { None },
-                ].iter().filter_map(|x| *x).min();
+                    let is_near_road = nearest_road.map_or(false, |r| r.distance_squared(wpos2df) < 3.0f32.powi(2));
 
-                let is_y = [
-                    self.tiles.get(tpos - Vec2::unit_y()) == tile,
-                    self.tiles.get(tpos) == tile,
-                    self.tiles.get(tpos + Vec2::unit_y()) == tile,
-                ];
-
-                let dist_y = [
-                    if is_y[0] ^ is_y[1] { Some((offs.y % tile::TILE_SIZE as i32) * if is_y[1] { -1 } else { 1 }) } else { None },
-                    if is_y[1] ^ is_y[2] { Some((tile::TILE_SIZE as i32 - offs.y % tile::TILE_SIZE as i32) * if is_y[1] { -1 } else { 1 }) } else { None },
-                ].iter().filter_map(|x| *x).min();
-
-                let dist = dist_x.unwrap_or(-(tile::TILE_SIZE as i32)).min(dist_y.unwrap_or(-(tile::TILE_SIZE as i32)));
-
-                if dist > 4 {
-                    let alt = canvas.col(wpos2d).map_or(0, |c| c.alt as i32);
-                    (-4..5).for_each(|z| canvas.map(
-                        Vec3::new(wpos2d.x, wpos2d.y, alt + z),
-                        |b| if [
-                            BlockKind::Grass,
-                            BlockKind::Earth,
-                            BlockKind::Sand,
-                            BlockKind::Snow,
-                            BlockKind::Rock,
-                        ]
-                        .contains(&b.kind()) {
-                            Block::new(BlockKind::Rock, Rgb::new(55, 45, 65))
-                        } else {
-                            b.with_sprite(SpriteKind::Empty)
-                        },
-                    ));
-                }
-            }),
+                    if let Some(nearest_road) = nearest_road
+                        .filter(|r| r.distance_squared(wpos2df) < 4.0f32.powi(2))
+                    {
+                        let road_alt = canvas.col(nearest_road.map(|e| e.floor() as i32)).map_or(0, |col| col.alt as i32);
+                        (-4..5).for_each(|z| canvas.map(
+                            Vec3::new(wpos2d.x, wpos2d.y, road_alt + z),
+                            |b| if z > 0 {
+                                Block::air(SpriteKind::Empty)
+                            } else {
+                                Block::new(BlockKind::Rock, Rgb::new(55, 45, 65))
+                            },
+                        ));
+                    }
+                });
+            },
             _ => {},
         }
     }
@@ -428,9 +419,42 @@ impl Site {
             max: self.wpos_tile_pos(canvas.wpos() + TerrainChunkSize::RECT_SIZE.map(|e| e as i32) + 2) + 3, // Round up, uninclusive, border
         };
 
+        // Don't double-generate the same plot per chunk!
+        let mut plots = DHashSet::default();
+
         for y in tile_aabr.min.y..tile_aabr.max.y {
             for x in tile_aabr.min.x..tile_aabr.max.x {
                 self.render_tile(canvas, dynamic_rng, Vec2::new(x, y));
+
+                if let Some(plot) = self.tiles.get(Vec2::new(x, y)).plot {
+                    plots.insert(plot);
+                }
+            }
+        }
+
+        let mut plots_to_render = plots.into_iter().collect::<Vec<_>>();
+        plots_to_render.sort_unstable();
+
+        for plot in plots_to_render {
+            let (prim_tree, fills) = match &self.plots[plot].kind {
+                PlotKind::House(house) => house.render_collect(),
+                _ => continue,
+            };
+
+            for fill in fills {
+                let aabb = fill.get_bounds(&prim_tree);
+
+                for x in aabb.min.x..aabb.max.x + 1 {
+                    for y in aabb.min.y..aabb.max.y + 1 {
+                        for z in aabb.min.z..aabb.max.z + 1 {
+                            let pos = Vec3::new(x, y, z);
+
+                            if let Some(block) = fill.sample_at(&prim_tree, pos) {
+                                canvas.set(pos, block);
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -438,7 +462,7 @@ impl Site {
         //     let tile = self.wpos_tile(wpos2d);
         //     let seed = tile.plot.map_or(0, |p| self.plot(p).seed);
         //     match tile.kind {
-        //         TileKind::Field | TileKind::Road => (-4..5).for_each(|z| canvas.map(
+        //         TileKind::Field /*| TileKind::Road*/ => (-4..5).for_each(|z| canvas.map(
         //             Vec3::new(wpos2d.x, wpos2d.y, col.alt as i32 + z),
         //             |b| if [
         //                 BlockKind::Grass,

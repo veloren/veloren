@@ -1,5 +1,5 @@
 use std::{
-    cmp::{Eq, PartialEq},
+    cmp::{Eq, PartialEq, Ord, PartialOrd, Ordering},
     fmt, hash,
     marker::PhantomData,
     ops::{Index, IndexMut},
@@ -28,6 +28,16 @@ impl<T> Clone for Id<T> {
 impl<T> Eq for Id<T> {}
 impl<T> PartialEq for Id<T> {
     fn eq(&self, other: &Self) -> bool { self.idx == other.idx && self.gen == other.gen }
+}
+impl<T> Ord for Id<T> {
+    fn cmp(&self, other: &Self) -> Ordering {
+        (self.idx, self.gen).cmp(&(other.idx, other.gen))
+    }
+}
+impl<T> PartialOrd for Id<T> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
 }
 impl<T> fmt::Debug for Id<T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

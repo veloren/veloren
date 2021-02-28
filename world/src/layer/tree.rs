@@ -58,11 +58,11 @@ pub fn apply_trees_to(canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
 
     let info = canvas.info();
     canvas.foreach_col(|canvas, wpos2d, col| {
-        let trees = info.land().get_near_trees(wpos2d);
+        let trees = info.chunks().get_near_trees(wpos2d);
 
         for TreeAttr { pos, seed, scale, forest_kind, inhabited } in trees {
             let tree = if let Some(tree) = tree_cache.entry(pos).or_insert_with(|| {
-                let col = ColumnGen::new(info.land()).get((pos, info.index()))?;
+                let col = ColumnGen::new(info.chunks()).get((pos, info.index()))?;
 
                 let is_quirky = QUIRKY_RAND.chance(seed, 1.0 / 500.0);
 
