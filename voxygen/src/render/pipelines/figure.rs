@@ -211,7 +211,7 @@ impl FigurePipeline {
                 topology: wgpu::PrimitiveTopology::TriangleList,
                 strip_index_format: None,
                 front_face: wgpu::FrontFace::Ccw,
-                cull_mode: wgpu::CullMode::Back,
+                cull_mode: Some(wgpu::Face::Back),
                 polygon_mode: wgpu::PolygonMode::Fill,
             },
             depth_stencil: Some(wgpu::DepthStencilState {
@@ -241,8 +241,7 @@ impl FigurePipeline {
                 entry_point: "main",
                 targets: &[wgpu::ColorTargetState {
                     format: sc_desc.format,
-                    color_blend: wgpu::BlendState::REPLACE,
-                    alpha_blend: wgpu::BlendState::REPLACE,
+                    blend: None,
                     write_mask: wgpu::ColorWrite::ALL,
                 }],
             }),

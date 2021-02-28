@@ -33,7 +33,7 @@ impl Vertex {
     }
 
     fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
-        const ATTRIBUTES: [wgpu::VertexAttribute; 1] = wgpu::vertex_attr_array![0 => Uint];
+        const ATTRIBUTES: [wgpu::VertexAttribute; 1] = wgpu::vertex_attr_array![0 => Uint32];
         wgpu::VertexBufferLayout {
             array_stride: Self::STRIDE,
             step_mode: wgpu::InputStepMode::Vertex,
@@ -153,7 +153,7 @@ impl FluidPipeline {
                 topology: wgpu::PrimitiveTopology::TriangleList,
                 strip_index_format: None,
                 front_face: wgpu::FrontFace::Ccw,
-                cull_mode: wgpu::CullMode::None,
+                cull_mode: None,
                 polygon_mode: wgpu::PolygonMode::Fill,
             },
             depth_stencil: Some(wgpu::DepthStencilState {
@@ -183,16 +183,18 @@ impl FluidPipeline {
                 entry_point: "main",
                 targets: &[wgpu::ColorTargetState {
                     format: sc_desc.format,
-                    color_blend: wgpu::BlendState {
-                        src_factor: wgpu::BlendFactor::SrcAlpha,
-                        dst_factor: wgpu::BlendFactor::OneMinusSrcAlpha,
-                        operation: wgpu::BlendOperation::Add,
-                    },
-                    alpha_blend: wgpu::BlendState {
-                        src_factor: wgpu::BlendFactor::One,
-                        dst_factor: wgpu::BlendFactor::One,
-                        operation: wgpu::BlendOperation::Add,
-                    },
+                    blend: Some(wgpu::BlendState {
+                        color: wgpu::BlendComponent {
+                            src_factor: wgpu::BlendFactor::SrcAlpha,
+                            dst_factor: wgpu::BlendFactor::OneMinusSrcAlpha,
+                            operation: wgpu::BlendOperation::Add,
+                        },
+                        alpha: wgpu::BlendComponent {
+                            src_factor: wgpu::BlendFactor::One,
+                            dst_factor: wgpu::BlendFactor::One,
+                            operation: wgpu::BlendOperation::Add,
+                        },
+                    }),
                     write_mask: wgpu::ColorWrite::ALL,
                 }],
             }),

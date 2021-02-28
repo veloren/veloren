@@ -121,7 +121,7 @@ impl Vertex {
 
     pub fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
         const ATTRIBUTES: [wgpu::VertexAttribute; 2] =
-            wgpu::vertex_attr_array![0 => Uint,1 => Uint];
+            wgpu::vertex_attr_array![0 => Uint32,1 => Uint32];
         wgpu::VertexBufferLayout {
             array_stride: Self::STRIDE,
             step_mode: wgpu::InputStepMode::Vertex,
@@ -245,7 +245,7 @@ impl TerrainPipeline {
                 topology: wgpu::PrimitiveTopology::TriangleList,
                 strip_index_format: None,
                 front_face: wgpu::FrontFace::Ccw,
-                cull_mode: wgpu::CullMode::Back,
+                cull_mode: Some(wgpu::Face::Back),
                 polygon_mode: wgpu::PolygonMode::Fill,
             },
             depth_stencil: Some(wgpu::DepthStencilState {
@@ -275,8 +275,7 @@ impl TerrainPipeline {
                 entry_point: "main",
                 targets: &[wgpu::ColorTargetState {
                     format: sc_desc.format,
-                    color_blend: wgpu::BlendState::REPLACE,
-                    alpha_blend: wgpu::BlendState::REPLACE,
+                    blend: None,
                     write_mask: wgpu::ColorWrite::ALL,
                 }],
             }),

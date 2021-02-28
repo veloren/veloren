@@ -62,7 +62,7 @@ impl Vertex {
 
     fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
         const ATTRIBUTES: [wgpu::VertexAttribute; 3] =
-            wgpu::vertex_attr_array![0 => Float3, 1 => Uint, 2 => Uint];
+            wgpu::vertex_attr_array![0 => Float32x3, 1 => Uint32, 2 => Uint32];
         wgpu::VertexBufferLayout {
             array_stride: Self::STRIDE,
             step_mode: wgpu::InputStepMode::Vertex,
@@ -114,7 +114,15 @@ impl Instance {
     }
 
     fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
-        const ATTRIBUTES: [wgpu::VertexAttribute; 7] = wgpu::vertex_attr_array![3 => Uint, 4 => Float4, 5 => Float4, 6 => Float4,7 => Float4, 8 => Float4, 9 => Float];
+        const ATTRIBUTES: [wgpu::VertexAttribute; 7] = wgpu::vertex_attr_array![
+            3 => Uint32,
+            4 => Float32x4,
+            5 => Float32x4,
+            6 => Float32x4,
+            7 => Float32x4,
+            8 => Float32x4,
+            9 => Float32,
+        ];
         wgpu::VertexBufferLayout {
             array_stride: mem::size_of::<Self>() as wgpu::BufferAddress,
             step_mode: wgpu::InputStepMode::Instance,
@@ -246,7 +254,7 @@ impl SpritePipeline {
                 topology: wgpu::PrimitiveTopology::TriangleList,
                 strip_index_format: None,
                 front_face: wgpu::FrontFace::Ccw,
-                cull_mode: wgpu::CullMode::Back,
+                cull_mode: Some(wgpu::Face::Back),
                 polygon_mode: wgpu::PolygonMode::Fill,
             },
             depth_stencil: Some(wgpu::DepthStencilState {
@@ -276,16 +284,19 @@ impl SpritePipeline {
                 entry_point: "main",
                 targets: &[wgpu::ColorTargetState {
                     format: sc_desc.format,
-                    color_blend: wgpu::BlendState {
-                        src_factor: wgpu::BlendFactor::SrcAlpha,
-                        dst_factor: wgpu::BlendFactor::OneMinusSrcAlpha,
-                        operation: wgpu::BlendOperation::Add,
-                    },
-                    alpha_blend: wgpu::BlendState {
-                        src_factor: wgpu::BlendFactor::One,
-                        dst_factor: wgpu::BlendFactor::One,
-                        operation: wgpu::BlendOperation::Add,
-                    },
+                    // TODO: can we remove sprite transparency?
+                    blend: Some(wgpu::BlendState {
+                        color: wgpu::BlendComponent {
+                            src_factor: wgpu::BlendFactor::SrcAlpha,
+                            dst_factor: wgpu::BlendFactor::OneMinusSrcAlpha,
+                            operation: wgpu::BlendOperation::Add,
+                        },
+                        alpha: wgpu::BlendComponent {
+                            src_factor: wgpu::BlendFactor::One,
+                            dst_factor: wgpu::BlendFactor::One,
+                            operation: wgpu::BlendOperation::Add,
+                        },
+                    }),
                     write_mask: wgpu::ColorWrite::ALL,
                 }],
             }),

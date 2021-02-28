@@ -114,4 +114,4 @@ nativeBuildInputs = ["pkg-config"]
 winit = { git = "https://gitlab.com/veloren/winit.git", branch = "macos-test-spiffed" }
 vek = { git = "https://gitlab.com/veloren/vek.git", branch = "fix_intrinsics2" }
 # patch wgpu so we can use wgpu-profiler crate
-wgpu = { git = "https://github.com/gfx-rs/wgpu-rs.git", rev = "1f1a7e5dd47a1610733bbc3989414acb62395359" }
+wgpu = { git = "https://github.com/gfx-rs/wgpu-rs.git", rev = "fd4a9925334264725fda5c5d82fa16d7f8aaaa24" }

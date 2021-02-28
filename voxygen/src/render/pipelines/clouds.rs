@@ -181,7 +181,7 @@ impl CloudsPipeline {
                 topology: wgpu::PrimitiveTopology::TriangleList,
                 strip_index_format: None,
                 front_face: wgpu::FrontFace::Ccw,
-                cull_mode: wgpu::CullMode::None,
+                cull_mode: None,
                 polygon_mode: wgpu::PolygonMode::Fill,
             },
             depth_stencil: None,
@@ -195,8 +195,7 @@ impl CloudsPipeline {
                 entry_point: "main",
                 targets: &[wgpu::ColorTargetState {
                     format: sc_desc.format,
-                    alpha_blend: wgpu::BlendState::REPLACE,
-                    color_blend: wgpu::BlendState::REPLACE,
+                    blend: None,
                     write_mask: wgpu::ColorWrite::ALL,
                 }],
             }),
