@@ -1,7 +1,7 @@
 use super::{
     super::{
-        AaMode, Bound, Consts, GlobalsLayouts, Mesh, Renderer, TerrainLayout, Texture,
-        Vertex as VertexTrait,
+        buffer::Buffer, AaMode, Bound, Consts, GlobalsLayouts, Mesh, Renderer, TerrainLayout,
+        Texture, Vertex as VertexTrait,
     },
     lod_terrain, GlobalModel,
 };
@@ -88,24 +88,24 @@ impl VertexTrait for Vertex {
     const STRIDE: wgpu::BufferAddress = mem::size_of::<Self>() as wgpu::BufferAddress;
 }
 
-pub fn create_verts_texture(renderer: &mut Renderer, mut mesh: Mesh<Vertex>) -> Texture {
+pub fn create_verts_buffer(renderer: &mut Renderer, mut mesh: Mesh<Vertex>) -> Buffer<Vertex> {
     renderer.ensure_sufficient_index_length::<Vertex>(VERT_PAGE_SIZE as usize);
     // TODO: type buffer by Usage
-    /*Buffer::new(
+    Buffer::new(
         &renderer.device,
         wgpu::BufferUsage::STORAGE,
         mesh.vertices(),
-    )*/
-    let mut verts = mesh.vertices_mut_vec();
-    let format = wgpu::TextureFormat::Rg32Uint;
+    )
+    //let mut verts = mesh.vertices_mut_vec();
+    //let format = wgpu::TextureFormat::Rg32Uint;
 
     // TODO: temp
-    const WIDTH: u32 = 8192;
-    let height = verts.len() as u32 / WIDTH;
+    //const WIDTH: u32 = 8192;
+    //let height = verts.len() as u32 / WIDTH;
     // Fill in verts to full texture size
-    verts.resize_with(height as usize * WIDTH as usize, Vertex::default);
+    //verts.resize_with(height as usize * WIDTH as usize, Vertex::default);
 
-    let texture_info = wgpu::TextureDescriptor {
+    /*let texture_info = wgpu::TextureDescriptor {
         label: Some("Sprite verts"),
         size: wgpu::Extent3d {
             width: WIDTH,
@@ -146,7 +146,7 @@ pub fn create_verts_texture(renderer: &mut Renderer, mut mesh: Mesh<Vertex>) -> 
         &view_info,
         &sampler_info,
         bytemuck::cast_slice(verts),
-    )
+    )*/
 }
 
 #[repr(C)]
@@ -263,8 +263,21 @@ impl SpriteLayout {
         let mut entries = GlobalsLayouts::base_globals_layout();
         debug_assert_eq!(12, entries.len()); // To remember to adjust the bindings below
         entries.extend_from_slice(&[
-            // sprite verts (t_sprite_verts)
+            // sprite_verts
             wgpu::BindGroupLayoutEntry {
+                binding: 12,
+                visibility: wgpu::ShaderStage::VERTEX,
+                ty: wgpu::BindingType::Buffer {
+                    ty: wgpu::BufferBindingType::Storage { read_only: true },
+                    has_dynamic_offset: false,
+                    min_binding_size: core::num::NonZeroU64::new(
+                        core::mem::size_of::<Vertex>() as u64
+                    ),
+                },
+                count: None,
+            },
+            /* sprite verts (t_sprite_verts) */
+            /*wgpu::BindGroupLayoutEntry {
                 binding: 12,
                 visibility: wgpu::ShaderStage::VERTEX,
                 ty: wgpu::BindingType::Texture {
@@ -282,7 +295,7 @@ impl SpriteLayout {
                     comparison: false,
                 },
                 count: None,
-            },
+            },*/
         ]);
 
         Self {
@@ -323,20 +336,26 @@ impl SpriteLayout {
         global_model: &GlobalModel,
         lod_data: &lod_terrain::LodData,
         noise: &Texture,
-        sprite_verts: &Texture,
+        //sprite_verts: &Texture,
+        sprite_verts: &Buffer<Vertex>,
     ) -> wgpu::BindGroup {
         let mut entries = GlobalsLayouts::bind_base_globals(global_model, lod_data, noise);
 
         entries.extend_from_slice(&[
-            // sprite verts (t_sprite_verts)
+            // sprite_verts
             wgpu::BindGroupEntry {
+                binding: 12,
+                resource: sprite_verts.buf.as_entire_binding(),
+            },
+            /* sprite verts (t_sprite_verts) */
+            /*wgpu::BindGroupEntry {
                 binding: 12,
                 resource: wgpu::BindingResource::TextureView(&sprite_verts.view),
             },
             wgpu::BindGroupEntry {
                 binding: 13,
                 resource: wgpu::BindingResource::Sampler(&sprite_verts.sampler),
-            },
+            },*/
         ]);
 
         device.create_bind_group(&wgpu::BindGroupDescriptor {
@@ -352,7 +371,8 @@ impl SpriteLayout {
         global_model: &GlobalModel,
         lod_data: &lod_terrain::LodData,
         noise: &Texture,
-        sprite_verts: &Texture,
+        //sprite_verts: &Texture,
+        sprite_verts: &Buffer<Vertex>,
     ) -> SpriteGlobalsBindGroup {
         let bind_group =
             self.bind_globals_inner(device, global_model, lod_data, noise, sprite_verts);

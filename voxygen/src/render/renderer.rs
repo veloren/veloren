@@ -90,7 +90,8 @@ struct Shadow {
 /// GPU, along with pipeline state objects (PSOs) needed to renderer different
 /// kinds of models to the screen.
 pub struct Renderer {
-    device: wgpu::Device,
+    // TODO: remove pub(super)
+    pub(super) device: wgpu::Device,
     queue: wgpu::Queue,
     surface: wgpu::Surface,
     swap_chain: wgpu::SwapChain,
@@ -1975,7 +1976,7 @@ fn create_pipelines(
     let mut compiler = Compiler::new().ok_or(RenderError::ErrorInitializingCompiler)?;
     let mut options = CompileOptions::new().ok_or(RenderError::ErrorInitializingCompiler)?;
     options.set_optimization_level(OptimizationLevel::Performance);
-    options.set_forced_version_profile(420, shaderc::GlslProfile::Core);
+    options.set_forced_version_profile(430, shaderc::GlslProfile::Core);
     options.set_include_callback(move |name, _, shader_name, _| {
         Ok(ResolvedInclude {
             resolved_name: name.to_string(),

@@ -14,6 +14,7 @@ pub mod texture;
 // Reexports
 pub use self::{
     bound::Bound,
+    buffer::Buffer,
     consts::Consts,
     error::RenderError,
     instances::Instances,
@@ -32,7 +33,7 @@ pub use self::{
         shadow::{Locals as ShadowLocals, PointLightMatrix},
         skybox::{create_mesh as create_skybox_mesh, Vertex as SkyboxVertex},
         sprite::{
-            create_verts_texture as create_sprite_verts_texture, Instance as SpriteInstance,
+            create_verts_buffer as create_sprite_verts_buffer, Instance as SpriteInstance,
             SpriteGlobalsBindGroup, Vertex as SpriteVertex,
             VERT_PAGE_SIZE as SPRITE_VERT_PAGE_SIZE,
         },

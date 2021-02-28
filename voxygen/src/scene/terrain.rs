@@ -9,12 +9,12 @@ use crate::{
         terrain::{generate_mesh, SUNLIGHT},
     },
     render::{
-        create_sprite_verts_texture,
+        create_sprite_verts_buffer,
         pipelines::{self, ColLights},
-        ColLightInfo, Consts, Drawer, FirstPassDrawer, FluidVertex, FluidWaves, GlobalModel,
-        Instances, LodData, Mesh, Model, RenderError, Renderer, SpriteGlobalsBindGroup,
-        SpriteInstance, SpriteVertex, TerrainLocals, TerrainShadowDrawer, TerrainVertex, Texture,
-        SPRITE_VERT_PAGE_SIZE,
+        Buffer, ColLightInfo, Consts, Drawer, FirstPassDrawer, FluidVertex, FluidWaves,
+        GlobalModel, Instances, LodData, Mesh, Model, RenderError, Renderer,
+        SpriteGlobalsBindGroup, SpriteInstance, SpriteVertex, TerrainLocals, TerrainShadowDrawer,
+        TerrainVertex, Texture, SPRITE_VERT_PAGE_SIZE,
     },
 };
 
@@ -381,7 +381,7 @@ pub struct SpriteRenderContext {
     // Maps sprite kind + variant to data detailing how to render it
     sprite_data: Arc<HashMap<(SpriteKind, usize), [SpriteData; SPRITE_LOD_LEVELS]>>,
     sprite_col_lights: Arc<ColLights<pipelines::sprite::Locals>>,
-    sprite_verts_texture: Arc<Texture>,
+    sprite_verts_buffer: Arc<Buffer<SpriteVertex>>,
 }
 
 pub type SpriteRenderContextLazy = Box<dyn FnMut(&mut Renderer) -> SpriteRenderContext>;
@@ -550,14 +550,14 @@ impl SpriteRenderContext {
             let sprite_col_lights = renderer.sprite_bind_col_light(sprite_col_lights);
 
             // Write sprite model to a 1D texture
-            let sprite_verts_texture = create_sprite_verts_texture(renderer, sprite_mesh);
+            let sprite_verts_buffer = create_sprite_verts_buffer(renderer, sprite_mesh);
 
             Self {
                 // TODO: this are all Arcs, would it makes sense to factor out the Arc?
                 sprite_config: Arc::clone(&sprite_config),
                 sprite_data: Arc::new(sprite_data),
                 sprite_col_lights: Arc::new(sprite_col_lights),
-                sprite_verts_texture: Arc::new(sprite_verts_texture),
+                sprite_verts_buffer: Arc::new(sprite_verts_buffer),
             }
         };
         Box::new(move |renderer| init.get_or_init(|| closure(renderer)).clone())
@@ -593,7 +593,7 @@ impl<V: RectRasterableVol> Terrain<V> {
             sprite_globals: renderer.bind_sprite_globals(
                 global_model,
                 lod_data,
-                &sprite_render_context.sprite_verts_texture,
+                &sprite_render_context.sprite_verts_buffer,
             ),
             col_lights: Arc::new(col_lights),
             waves: {
