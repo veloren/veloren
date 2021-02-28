@@ -160,7 +160,7 @@ impl Renderer {
                     // TODO: make optional based on enabling profiling
                     // NOTE: requires recreating the device/queue is this setting changes
                     // alternatively it could be a compile time feature toggle
-                    | super::scope::required_features(),
+                    | wgpu_profiler::GpuProfiler::REQUIRED_WGPU_FEATURES,
                 limits,
             },
             None,
@@ -330,7 +330,7 @@ impl Renderer {
             &depth_sampler,
         );
 
-        let mut profiler = wgpu_profiler::GpuProfiler::new(4, queue.get_timestamp_period());
+        let mut profiler = wgpu_profiler::GpuProfiler::new(1, queue.get_timestamp_period());
         profiler.enable_timer = mode.profiler_enabled;
         profiler.enable_debug_marker = mode.profiler_enabled;
 
@@ -1042,8 +1042,10 @@ impl Renderer {
     //pub fn create_screenshot(&mut self) -> Result<image::DynamicImage,
     // RenderError> {
     pub fn create_screenshot(&mut self) {
-        // TODO: check if enabled
+        // TODO: check if profiler enabled
         // TODO: save alongside a screenshot
+        // Ensure timestamp query data buffers are mapped
+        self.device.poll(wgpu::Maintain::Wait);
         // Take profiler snapshot
         let profiling_data = if let Some(data) = self.profiler.process_finished_frame() {
             data

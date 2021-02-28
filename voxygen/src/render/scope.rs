@@ -1,7 +1,5 @@
 use wgpu_profiler::{GpuProfiler, ProfilerCommandRecorder};
 
-pub fn required_features() -> wgpu::Features { wgpu::Features::TIMESTAMP_QUERY }
-
 pub struct Scope<'a, W: ProfilerCommandRecorder> {
     profiler: &'a mut GpuProfiler,
     wgpu_thing: &'a mut W,
