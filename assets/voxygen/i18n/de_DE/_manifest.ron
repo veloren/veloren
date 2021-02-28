@@ -537,8 +537,8 @@ Willenskraft
         "buff.title.heal": "HoT Buff Test",
         "buff.desc.heal": "HoT Buff Test",
         // Debuffs
-        "debuff.title.bleed": "Blutung",
-        "debuff.desc.bleed": "Fügt regelmäßig Schaden zu.",
+        "buff.title.bleed": "Blutung",
+        "buff.desc.bleed": "Fügt regelmäßig Schaden zu.",
     },
 
     vector_map: {

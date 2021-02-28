@@ -550,8 +550,8 @@ https://veloren.net/account/."#,
         "buff.title.saturation": "Сыт",
         "buff.desc.saturation": "Получайте здоровье от расходников в течении времени.",
         // Debuffs
-        "debuff.title.bleed": "Кровотечение",
-        "debuff.desc.bleed": "Наносит переодический урон.",
+        "buff.title.bleed": "Кровотечение",
+        "buff.desc.bleed": "Наносит переодический урон.",
 
     },
 

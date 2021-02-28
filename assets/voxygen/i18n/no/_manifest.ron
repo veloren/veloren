@@ -534,8 +534,8 @@ Beskyttelse
         "buff.title.saturation": "Metning",
         "buff.desc.saturation": "Helbred over tid fra forbruksvarer.",
         // Debuffs
-        "debuff.title.bleed": "Blør",
-        "debuff.desc.bleed": "Påfører regelmessig skade.",
+        "buff.title.bleed": "Blør",
+        "buff.desc.bleed": "Påfører regelmessig skade.",
     },
 
 
