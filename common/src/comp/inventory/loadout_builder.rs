@@ -515,7 +515,7 @@ impl LoadoutBuilder {
                         "common.items.armor.cloth_purple.hand",
                     )))
                     .pants(Some(Item::new_from_asset_expect(
-                        "common.items.armor.pacloth_purplents.pants",
+                        "common.items.armor.cloth_purple.pants",
                     )))
                     .feet(Some(Item::new_from_asset_expect(
                         "common.items.armor.cloth_purple.foot",
