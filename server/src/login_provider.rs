@@ -81,7 +81,7 @@ impl LoginProvider {
 
                 match plugin_manager.execute_event(&world, "on_join", &PlayerJoinEvent {
                     player_name: username.clone(),
-                    player_id: uuid.as_bytes().clone(),
+                    player_id: *uuid.as_bytes(),
                 }) {
                     Ok(e) => {
                         for i in e.into_iter() {
