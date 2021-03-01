@@ -2,7 +2,7 @@ ItemDef(
     name: "Twig Pants",
     description: "Magically imbued twigs formed into links similar to chainmail.",
     kind: Armor((
-        kind: Pants("Twig"),
+        kind: Pants("Twigs"),
         stats: (
             protection: Normal(12.0),
             poise_resilience: Normal(9.0),

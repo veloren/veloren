@@ -2,7 +2,7 @@ ItemDef(
     name: "Velorite Battlemage Boots",
     description: "",
     kind: Armor((
-        kind: Foot("VeloriteMage0"),
+        kind: Foot("VeloriteMage"),
         stats: (
             protection: Normal(5.9),
             poise_resilience: Normal(5.0),

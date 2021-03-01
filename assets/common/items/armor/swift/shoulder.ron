@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Swift Shoulderpads",
+    description: "Swift like the wind.",
+    kind: Armor((
+        kind: Shoulder("Swift"),
+        stats: (
+            protection: Normal(6.0),
+            poise_resilience: Normal(5.0),
+        ),
+    )),
+    quality: Common,
+    tags: [],
+)

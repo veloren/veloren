@@ -3,7 +3,7 @@ ItemDef(
     description: "Ceremonial attire used by members.",
     kind: Armor(
         (
-            kind: Hand("CultistPurple"),
+            kind: Hand("Cultist"),
             stats: (
                 protection: Normal(2.0),
                 poise_resilience: Normal(2.0),

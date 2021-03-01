@@ -2,7 +2,7 @@ ItemDef(
     name: "Purple Linen Coat",
     description: "A rough fabric coat, dyed purple.",
     kind: Armor((
-        kind: Shoulder("ClothPurple0"),
+        kind: Shoulder("ClothPurple"),
         stats: (
             protection: Normal(1.0),
             poise_resilience: Normal(1.0),

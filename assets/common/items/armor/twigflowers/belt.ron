@@ -2,7 +2,7 @@ ItemDef(
     name: "Flowery Belt",
     description: "Magically imbued twigs, held together with a flower intertwining its stem to hold the belt together.",
     kind: Armor((
-        kind: Belt("Twigsflowers"),
+        kind: Belt("TwigsFlowers"),
         stats: (
             protection: Normal(2.0),
             poise_resilience: Normal(1.0),

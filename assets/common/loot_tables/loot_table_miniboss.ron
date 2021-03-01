@@ -1,13 +1,13 @@
 [
     // armor
-    (1, "common.items.armor.belt.cultist_belt"),
-    (1, "common.items.armor.chest.cultist_chest_purple"),
-    (1, "common.items.armor.foot.cultist_boots"),
-    (1, "common.items.armor.hand.cultist_hands_purple"),
-    (1, "common.items.armor.pants.cultist_legs_purple"),
-    (1, "common.items.armor.shoulder.cultist_shoulder_purple"),
-    (1, "common.items.armor.back.dungeon_purple-0"),
-    (1, "common.items.armor.ring.ring_purp_high_0"),
+    (1, "common.items.armor.cultist.belt"),
+    (1, "common.items.armor.cultist.chest"),
+    (1, "common.items.armor.cultist.foot"),
+    (1, "common.items.armor.cultist.hand"),
+    (1, "common.items.armor.cultist.pants"),
+    (1, "common.items.armor.cultist.shoulder"),
+    (1, "common.items.armor.misc.back.dungeon_purple"),
+    (1, "common.items.armor.misc.ring.skull"),
     // weapons
     (1, "common.items.weapons.staff.cultist_staff"),
     (1, "common.items.weapons.hammer.cultist_purp_2h-0"),

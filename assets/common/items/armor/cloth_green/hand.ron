@@ -2,7 +2,7 @@ ItemDef(
     name: "Green Linen Wrists",
     description: "Rough cloth bracelets provide a stylish fashion statement, dyed green.",
     kind: Armor((
-        kind: Hand("ClothGreen0"),
+        kind: Hand("ClothGreen"),
         stats: (
             protection: Normal(0.0),
             poise_resilience: Normal(0.0),

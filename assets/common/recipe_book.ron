@@ -252,35 +252,35 @@
         ],
     ),
     "adventure back": (
-        ("common.items.armor.back.leather_adventurer", 1),
+        ("common.items.armor.agile.back", 1),
         [(Item("common.items.crafting_ing.leather_scraps"), 4)],
     ),
     "adventure belt": (
-        ("common.items.armor.belt.leather_adventurer", 1),
+        ("common.items.armor.agile.belt", 1),
         [(Item("common.items.crafting_ing.leather_scraps"), 2)],
     ),
     "adventure chest": (
-        ("common.items.armor.chest.leather_adventurer", 1),
+        ("common.items.armor.agile.chest", 1),
         [(Item("common.items.crafting_ing.leather_scraps"), 12)],
     ),
     "adventure feet": (
-        ("common.items.armor.foot.leather_adventurer", 1),
+        ("common.items.armor.agile.foot", 1),
         [(Item("common.items.crafting_ing.leather_scraps"), 3)],
     ),
     "adventure hands": (
-        ("common.items.armor.hand.leather_adventurer", 1),
+        ("common.items.armor.agile.hand", 1),
         [(Item("common.items.crafting_ing.leather_scraps"), 4)],
     ),
     "adventure pants": (
-        ("common.items.armor.pants.leather_adventurer", 1),
+        ("common.items.armor.agile.pants", 1),
         [(Item("common.items.crafting_ing.leather_scraps"), 8)],
     ),
     "adventure shoulder": (
-        ("common.items.armor.shoulder.leather_adventurer", 1),
+        ("common.items.armor.agile.shoulder", 1),
         [(Item("common.items.crafting_ing.leather_scraps"), 12)],
     ),
     "Seashell Necklace": (
-        ("common.items.armor.neck.neck_2", 1),
+        ("common.items.armor.misc.neck.shell", 1),
         [
             (Item("common.items.crafting_ing.cloth_scraps"), 2),
             (Item("common.items.crafting_ing.sapphire"), 1),
@@ -297,57 +297,57 @@
         ],
     ),
     "tiny red pouch": (
-        ("common.items.armor.bag.tiny_red_pouch", 1),
+        ("common.items.armor.misc.bag.tiny_red_pouch", 1),
         [
             (Item("common.items.crafting_ing.cloth_scraps_red"), 3),
             (Item("common.items.crafting_tools.sewing_set"), 0),
         ],
     ),
     "tiny leather pouch": (
-        ("common.items.armor.bag.tiny_leather_pouch", 1),
+        ("common.items.armor.misc.bag.tiny_leather_pouch", 1),
         [
             (Item("common.items.crafting_ing.leather_scraps"), 6),
             (Item("common.items.crafting_tools.sewing_set"), 0),
         ],
     ),
     "knitted red pouch": (
-        ("common.items.armor.bag.knitted_red_pouch", 1),
+        ("common.items.armor.misc.bag.knitted_red_pouch", 1),
         [
             (Item("common.items.crafting_ing.cloth_scraps_red"), 3),
-            (Item("common.items.armor.bag.tiny_red_pouch"), 2),
+            (Item("common.items.armor.misc.bag.tiny_red_pouch"), 2),
             (Item("common.items.crafting_tools.sewing_set"), 0),
         ],
     ),
     "woven red bag": (
-        ("common.items.armor.bag.woven_red_bag", 1),
+        ("common.items.armor.misc.bag.woven_red_bag", 1),
         [
             (Item("common.items.crafting_ing.cloth_scraps_red"), 6),
-            (Item("common.items.armor.bag.knitted_red_pouch"), 1),
+            (Item("common.items.armor.misc.bag.knitted_red_pouch"), 1),
             (Item("common.items.crafting_tools.sewing_set"), 0),
         ],
     ),
     "traveler backpack": (
-        ("common.items.armor.back.backpack_0", 1),
+        ("common.items.armor.misc.back.backpack", 1),
         [
             (Item("common.items.crafting_ing.diamond"), 2),
             (Item("common.items.crafting_ing.twigs"), 2),
             (Item("common.items.crafting_ing.cloth_scraps"), 3),
             (Item("common.items.crafting_ing.leather_scraps"), 3),
-            (Item("common.items.armor.bag.tiny_leather_pouch"), 2),
+            (Item("common.items.armor.misc.bag.tiny_leather_pouch"), 2),
             (Item("common.items.crafting_tools.sewing_set"), 0),
         ],
     ),
     "sturdy red backpack": (
-        ("common.items.armor.bag.sturdy_red_backpack", 1),
+        ("common.items.armor.misc.bag.sturdy_red_backpack", 1),
         [
             (Item("common.items.crafting_ing.diamond"), 2),
             (Item("common.items.crafting_ing.cloth_scraps_red"), 3),
-            (Item("common.items.armor.bag.woven_red_bag"), 1),
+            (Item("common.items.armor.misc.bag.woven_red_bag"), 1),
             (Item("common.items.crafting_tools.sewing_set"), 0),
         ],
     ),
     "troll hide pack": (
-        ("common.items.armor.bag.troll_hide_pack", 1),
+        ("common.items.armor.misc.bag.troll_hide_pack", 1),
         [
             (Item("common.items.crafting_ing.leather_troll"), 10),
             (Item("common.items.crafting_ing.leather_scraps"), 10),
@@ -356,7 +356,7 @@
         ],
     ),
     "Mindflayer Spellbag": (
-        ("common.items.armor.bag.mindflayer_spellbag", 1),
+        ("common.items.armor.misc.bag.mindflayer_spellbag", 1),
         [
             (Item("common.items.crafting_ing.mindflayer_bag_damaged"), 1),
             (Item("common.items.crafting_ing.leather_scraps"), 10),

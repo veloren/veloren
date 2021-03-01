@@ -2,7 +2,7 @@ ItemDef(
     name: "Steel Shoulder Pad",
     description: "The metal alloy plates provide better protection and comfort.",
     kind: Armor((
-        kind: Shoulder("Steel0"),
+        kind: Shoulder("Steel"),
         stats: (
             protection: Normal(15.0),
             poise_resilience: Normal(20.0),

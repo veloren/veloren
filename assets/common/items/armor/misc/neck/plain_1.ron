@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Gem of lesser Protection",
+    description: "Surrounded by a discrete magical glow.",
+    kind: Armor((
+        kind: Neck("Plain1"),
+        stats: (
+            protection: Normal(2.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: Moderate,
+    tags: [],
+)

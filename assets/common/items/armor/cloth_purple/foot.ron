@@ -2,7 +2,7 @@ ItemDef(
     name: "Purple Linen Boots",
     description: "Cobbled rough fabric boots, dyed purple.",
     kind: Armor((
-        kind: Foot("ClothPurple0"),
+        kind: Foot("ClothPurple"),
         stats: (
             protection: Normal(0.0),
             poise_resilience: Normal(0.0),

@@ -6,7 +6,7 @@
     // Consumables
     (0.2, "common.items.consumable.potion_minor"),
     // Ring
-    (0.02, "common.items.armor.ring.ring_gold_0"),
+    (0.02, "common.items.armor.misc.ring.gold"),
     // Utility
     (0.05, "common.items.utility.collar"),
     // Food

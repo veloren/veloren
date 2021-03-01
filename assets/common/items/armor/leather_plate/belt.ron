@@ -2,7 +2,7 @@ ItemDef(
     name: "Leather Plate Belt",
     description: "Leather adorned with steel for better protection.",
     kind: Armor((
-        kind: Belt("PlateLeather"),
+        kind: Belt("LeatherPlate"),
         stats: (
             protection: Normal(4.0),
             poise_resilience: Normal(8.0),

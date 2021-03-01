@@ -56,13 +56,13 @@ impl LoadoutBuilder {
     /// updates, but should be safe defaults for a new character.
     pub fn defaults(self) -> Self {
         self.chest(Some(Item::new_from_asset_expect(
-            "common.items.armor.chest.rugged",
+            "common.items.armor.rugged.chest",
         )))
         .pants(Some(Item::new_from_asset_expect(
-            "common.items.armor.pants.rugged",
+            "common.items.armor.rugged.pants",
         )))
         .feet(Some(Item::new_from_asset_expect(
-            "common.items.armor.foot.sandals_0",
+            "common.items.armor.misc.foot.sandals",
         )))
         .lantern(Some(Item::new_from_asset_expect(
             "common.items.lantern.black_0",
@@ -478,22 +478,22 @@ impl LoadoutBuilder {
                 Guard => LoadoutBuilder::new()
                     .active_item(active_item)
                     .shoulder(Some(Item::new_from_asset_expect(
-                        "common.items.armor.shoulder.plate_leather_0",
+                        "common.items.armor.leather_plate.shoulder",
                     )))
                     .chest(Some(Item::new_from_asset_expect(
-                        "common.items.armor.chest.plate_leather_0",
+                        "common.items.armor.leather_plate.chest",
                     )))
                     .belt(Some(Item::new_from_asset_expect(
-                        "common.items.armor.belt.plate_leather_0",
+                        "common.items.armor.leather_plate.belt",
                     )))
                     .hands(Some(Item::new_from_asset_expect(
-                        "common.items.armor.hand.plate_leather_0",
+                        "common.items.armor.leather_plate.hand",
                     )))
                     .pants(Some(Item::new_from_asset_expect(
-                        "common.items.armor.pants.plate_leather_0",
+                        "common.items.armor.leather_plate.pants",
                     )))
                     .feet(Some(Item::new_from_asset_expect(
-                        "common.items.armor.foot.plate_leather_0",
+                        "common.items.armor.leather_plate.foot",
                     )))
                     .lantern(match rand::thread_rng().gen_range(0..3) {
                         0 => Some(Item::new_from_asset_expect("common.items.lantern.black_0")),
@@ -503,22 +503,22 @@ impl LoadoutBuilder {
                 Outcast => LoadoutBuilder::new()
                     .active_item(active_item)
                     .shoulder(Some(Item::new_from_asset_expect(
-                        "common.items.armor.shoulder.cloth_purple_0",
+                        "common.items.armor.cloth_purple.shoulder",
                     )))
                     .chest(Some(Item::new_from_asset_expect(
-                        "common.items.armor.chest.cloth_purple_0",
+                        "common.items.armor.cloth_purple.chest",
                     )))
                     .belt(Some(Item::new_from_asset_expect(
-                        "common.items.armor.belt.cloth_purple_0",
+                        "common.items.armor.cloth_purple.belt",
                     )))
                     .hands(Some(Item::new_from_asset_expect(
-                        "common.items.armor.hand.cloth_purple_0",
+                        "common.items.armor.cloth_purple.hand",
                     )))
                     .pants(Some(Item::new_from_asset_expect(
-                        "common.items.armor.pants.cloth_purple_0",
+                        "common.items.armor.pacloth_purplents.pants",
                     )))
                     .feet(Some(Item::new_from_asset_expect(
-                        "common.items.armor.foot.cloth_purple_0",
+                        "common.items.armor.cloth_purple.foot",
                     )))
                     .lantern(match rand::thread_rng().gen_range(0..3) {
                         0 => Some(Item::new_from_asset_expect("common.items.lantern.black_0")),
@@ -528,22 +528,22 @@ impl LoadoutBuilder {
                 Highwayman => LoadoutBuilder::new()
                     .active_item(active_item)
                     .shoulder(Some(Item::new_from_asset_expect(
-                        "common.items.armor.shoulder.leather_0",
+                        "common.items.armor.swift.shoulder",
                     )))
                     .chest(Some(Item::new_from_asset_expect(
-                        "common.items.armor.chest.leather_0",
+                        "common.items.armor.swift.chest",
                     )))
                     .belt(Some(Item::new_from_asset_expect(
-                        "common.items.armor.belt.leather_0",
+                        "common.items.armor.swift.belt",
                     )))
                     .hands(Some(Item::new_from_asset_expect(
-                        "common.items.armor.hand.leather_0",
+                        "common.items.armor.swift.hand",
                     )))
                     .pants(Some(Item::new_from_asset_expect(
-                        "common.items.armor.pants.leather_0",
+                        "common.items.armor.swift.pants",
                     )))
                     .feet(Some(Item::new_from_asset_expect(
-                        "common.items.armor.foot.leather_0",
+                        "common.items.armor.swift.foot",
                     )))
                     .lantern(match rand::thread_rng().gen_range(0..3) {
                         0 => Some(Item::new_from_asset_expect("common.items.lantern.black_0")),
@@ -556,22 +556,22 @@ impl LoadoutBuilder {
                 Bandit => LoadoutBuilder::new()
                     .active_item(active_item)
                     .shoulder(Some(Item::new_from_asset_expect(
-                        "common.items.armor.shoulder.assassin",
+                        "common.items.armor.assassin.shoulder",
                     )))
                     .chest(Some(Item::new_from_asset_expect(
-                        "common.items.armor.chest.assassin",
+                        "common.items.armor.assassin.chest",
                     )))
                     .belt(Some(Item::new_from_asset_expect(
-                        "common.items.armor.belt.assassin",
+                        "common.items.armor.assassin.belt",
                     )))
                     .hands(Some(Item::new_from_asset_expect(
-                        "common.items.armor.hand.assassin",
+                        "common.items.armor.assassin.hand",
                     )))
                     .pants(Some(Item::new_from_asset_expect(
-                        "common.items.armor.pants.assassin",
+                        "common.items.armor.assassin.pants",
                     )))
                     .feet(Some(Item::new_from_asset_expect(
-                        "common.items.armor.foot.assassin",
+                        "common.items.armor.assassin.foot",
                     )))
                     .lantern(match rand::thread_rng().gen_range(0..3) {
                         0 => Some(Item::new_from_asset_expect("common.items.lantern.black_0")),
@@ -584,25 +584,25 @@ impl LoadoutBuilder {
                 CultistNovice => LoadoutBuilder::new()
                     .active_item(active_item)
                     .shoulder(Some(Item::new_from_asset_expect(
-                        "common.items.armor.shoulder.steel_0",
+                        "common.items.armor.steel.shoulder",
                     )))
                     .chest(Some(Item::new_from_asset_expect(
-                        "common.items.armor.chest.steel_0",
+                        "common.items.armor.steel.chest",
                     )))
                     .belt(Some(Item::new_from_asset_expect(
-                        "common.items.armor.belt.steel_0",
+                        "common.items.armor.steel.belt",
                     )))
                     .hands(Some(Item::new_from_asset_expect(
-                        "common.items.armor.hand.steel_0",
+                        "common.items.armor.steel.hand",
                     )))
                     .pants(Some(Item::new_from_asset_expect(
-                        "common.items.armor.pants.steel_0",
+                        "common.items.armor.steel.pants",
                     )))
                     .feet(Some(Item::new_from_asset_expect(
-                        "common.items.armor.foot.steel_0",
+                        "common.items.armor.steel.foot",
                     )))
                     .back(Some(Item::new_from_asset_expect(
-                        "common.items.armor.back.dungeon_purple-0",
+                        "common.items.armor.misc.back.dungeon_purple",
                     )))
                     .lantern(match rand::thread_rng().gen_range(0..3) {
                         0 => Some(Item::new_from_asset_expect("common.items.lantern.black_0")),
@@ -615,25 +615,25 @@ impl LoadoutBuilder {
                 CultistAcolyte => LoadoutBuilder::new()
                     .active_item(active_item)
                     .shoulder(Some(Item::new_from_asset_expect(
-                        "common.items.armor.shoulder.cultist_shoulder_purple",
+                        "common.items.armor.cultist.shoulder",
                     )))
                     .chest(Some(Item::new_from_asset_expect(
-                        "common.items.armor.chest.cultist_chest_purple",
+                        "common.items.armor.cultist.chest",
                     )))
                     .belt(Some(Item::new_from_asset_expect(
-                        "common.items.armor.belt.cultist_belt",
+                        "common.items.armor.cultist.belt",
                     )))
                     .hands(Some(Item::new_from_asset_expect(
-                        "common.items.armor.hand.cultist_hands_purple",
+                        "common.items.armor.cultist.hand",
                     )))
                     .pants(Some(Item::new_from_asset_expect(
-                        "common.items.armor.pants.cultist_legs_purple",
+                        "common.items.armor.cultist.pants",
                     )))
                     .feet(Some(Item::new_from_asset_expect(
-                        "common.items.armor.foot.cultist_boots",
+                        "common.items.armor.cultist.foot",
                     )))
                     .back(Some(Item::new_from_asset_expect(
-                        "common.items.armor.back.dungeon_purple-0",
+                        "common.items.armor.misc.back.dungeon_purple",
                     )))
                     .lantern(match rand::thread_rng().gen_range(0..3) {
                         0 => Some(Item::new_from_asset_expect("common.items.lantern.black_0")),
@@ -646,25 +646,25 @@ impl LoadoutBuilder {
                 Warlord => LoadoutBuilder::new()
                     .active_item(active_item)
                     .shoulder(Some(Item::new_from_asset_expect(
-                        "common.items.armor.shoulder.warlord",
+                        "common.items.armor.warlord.shoulder",
                     )))
                     .chest(Some(Item::new_from_asset_expect(
-                        "common.items.armor.chest.warlord",
+                        "common.items.armor.warlord.chest",
                     )))
                     .belt(Some(Item::new_from_asset_expect(
-                        "common.items.armor.belt.warlord",
+                        "common.items.armor.warlord.belt",
                     )))
                     .hands(Some(Item::new_from_asset_expect(
-                        "common.items.armor.hand.warlord",
+                        "common.items.armor.warlord.hand",
                     )))
                     .pants(Some(Item::new_from_asset_expect(
-                        "common.items.armor.pants.warlord",
+                        "common.items.armor.warlord.pants",
                     )))
                     .feet(Some(Item::new_from_asset_expect(
-                        "common.items.armor.foot.warlord",
+                        "common.items.armor.warlord.foot",
                     )))
                     .back(Some(Item::new_from_asset_expect(
-                        "common.items.armor.back.warlord",
+                        "common.items.armor.warlord.back",
                     )))
                     .lantern(match rand::thread_rng().gen_range(0..3) {
                         0 => Some(Item::new_from_asset_expect("common.items.lantern.black_0")),
@@ -677,25 +677,25 @@ impl LoadoutBuilder {
                 Warlock => LoadoutBuilder::new()
                     .active_item(active_item)
                     .shoulder(Some(Item::new_from_asset_expect(
-                        "common.items.armor.shoulder.warlock",
+                        "common.items.armor.warlock.shoulder",
                     )))
                     .chest(Some(Item::new_from_asset_expect(
-                        "common.items.armor.chest.warlock",
+                        "common.items.armor.warlock.chest",
                     )))
                     .belt(Some(Item::new_from_asset_expect(
-                        "common.items.armor.belt.warlock",
+                        "common.items.armor.warlock.belt",
                     )))
                     .hands(Some(Item::new_from_asset_expect(
-                        "common.items.armor.hand.warlock",
+                        "common.items.armor.warlock.hand",
                     )))
                     .pants(Some(Item::new_from_asset_expect(
-                        "common.items.armor.pants.warlock",
+                        "common.items.armor.warlock.pants",
                     )))
                     .feet(Some(Item::new_from_asset_expect(
-                        "common.items.armor.foot.warlock",
+                        "common.items.armor.warlock.foot",
                     )))
                     .back(Some(Item::new_from_asset_expect(
-                        "common.items.armor.back.warlock",
+                        "common.items.armor.warlock.back",
                     )))
                     .lantern(match rand::thread_rng().gen_range(0..3) {
                         0 => Some(Item::new_from_asset_expect("common.items.lantern.black_0")),
@@ -709,28 +709,28 @@ impl LoadoutBuilder {
                     .active_item(active_item)
                     .chest(Some(Item::new_from_asset_expect(
                         match rand::thread_rng().gen_range(0..10) {
-                            0 => "common.items.armor.chest.worker_green_0",
-                            1 => "common.items.armor.chest.worker_green_1",
-                            2 => "common.items.armor.chest.worker_red_0",
-                            3 => "common.items.armor.chest.worker_red_1",
-                            4 => "common.items.armor.chest.worker_purple_0",
-                            5 => "common.items.armor.chest.worker_purple_1",
-                            6 => "common.items.armor.chest.worker_yellow_0",
-                            7 => "common.items.armor.chest.worker_yellow_1",
-                            8 => "common.items.armor.chest.worker_orange_0",
-                            _ => "common.items.armor.chest.worker_orange_1",
+                            0 => "common.items.armor.misc.chest.worker_green_0",
+                            1 => "common.items.armor.misc.chest.worker_green_1",
+                            2 => "common.items.armor.misc.chest.worker_red_0",
+                            3 => "common.items.armor.misc.chest.worker_red_1",
+                            4 => "common.items.armor.misc.chest.worker_purple_0",
+                            5 => "common.items.armor.misc.chest.worker_purple_1",
+                            6 => "common.items.armor.misc.chest.worker_yellow_0",
+                            7 => "common.items.armor.misc.chest.worker_yellow_1",
+                            8 => "common.items.armor.misc.chest.worker_orange_0",
+                            _ => "common.items.armor.misc.chest.worker_orange_1",
                         },
                     )))
                     .belt(Some(Item::new_from_asset_expect(
-                        "common.items.armor.belt.leather_0",
+                        "common.items.armor.swift.belt",
                     )))
                     .pants(Some(Item::new_from_asset_expect(
-                        "common.items.armor.pants.worker_blue_0",
+                        "common.items.armor.misc.pants.worker_blue",
                     )))
                     .feet(Some(Item::new_from_asset_expect(
                         match rand::thread_rng().gen_range(0..2) {
-                            0 => "common.items.armor.foot.leather_0",
-                            _ => "common.items.armor.foot.sandals_0",
+                            0 => "common.items.armor.swift.foot",
+                            _ => "common.items.armor.misc.foot.sandals",
                         },
                     )))
                     .build(),

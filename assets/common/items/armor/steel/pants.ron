@@ -2,7 +2,7 @@ ItemDef(
     name: "Steel Chausses",
     description: "The metal alloy provides improvements to fit, durability, and lightness.",
     kind: Armor((
-        kind: Pants("Steel0"),
+        kind: Pants("Steel"),
         stats: (
             protection: Normal(20.0),
             poise_resilience: Normal(26.0),

@@ -3,7 +3,7 @@ ItemDef(
     description: "",
     kind: Armor(
         (
-            kind: Belt("VeloriteMage0"),
+            kind: Belt("VeloriteMage"),
             stats: (
                 protection: Invincible,
                 poise_resilience: Invincible,

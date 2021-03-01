@@ -6,11 +6,11 @@
     // Consumables
     (0.5, "common.items.consumable.potion_minor"),
     // Ring
-    (0.2, "common.items.armor.ring.ring_gold_0"),
+    (0.2, "common.items.armor.misc.ring.gold"),
     // Utility
     (0.1, "common.items.utility.collar"),
     // Bag
-    (0.1, "common.items.armor.bag.liana_kit"),
+    (0.1, "common.items.armor.misc.bag.liana_kit"),
     // Food
     (2.0, "common.items.food.coconut"),
     (0.3, "common.items.food.apple_mushroom_curry"),

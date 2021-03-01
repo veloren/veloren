@@ -2,7 +2,7 @@ ItemDef(
     name: "Velorite Battlemage Kilt",
     description: "",
     kind: Armor((
-        kind: Pants("VeloriteMage0"),
+        kind: Pants("VeloriteMage"),
         stats: (
             protection: Normal(23.0),
             poise_resilience: Normal(23.0),

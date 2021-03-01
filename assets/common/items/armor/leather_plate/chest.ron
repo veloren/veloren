@@ -2,7 +2,7 @@ ItemDef(
     name: "Leather Plate Chest",
     description: "Leather adorned with steel for better protection.",
     kind: Armor((
-        kind: Chest("PlateLeather"),
+        kind: Chest("LeatherPlate"),
         stats: (
             protection: Normal(25.0),
             poise_resilience: Normal(40.0),
