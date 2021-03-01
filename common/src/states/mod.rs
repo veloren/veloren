@@ -4,6 +4,7 @@ pub mod basic_melee;
 pub mod basic_ranged;
 pub mod behavior;
 pub mod boost;
+pub mod cast_aura;
 pub mod charged_melee;
 pub mod charged_ranged;
 pub mod climb;

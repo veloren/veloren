@@ -232,7 +232,8 @@ impl<'a> System<'a> for Sys {
                 | CharacterState::ChargedRanged { .. }
                 | CharacterState::RepeaterRanged { .. }
                 | CharacterState::Shockwave { .. }
-                | CharacterState::BasicBeam { .. } => {
+                | CharacterState::BasicBeam { .. }
+                | CharacterState::CastAura { .. } => {
                     if energy.get_unchecked().regen_rate != 0.0 {
                         energy.get_mut_unchecked().regen_rate = 0.0
                     }

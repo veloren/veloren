@@ -1,4 +1,5 @@
 use crate::{
+    combat::GroupTarget,
     comp::buff::{BuffCategory, BuffData, BuffKind, BuffSource},
     uid::Uid,
 };
@@ -62,9 +63,22 @@ pub enum AuraTarget {
     /// Targets the group of the entity specified by the `Uid`. This is useful
     /// for auras which should only affect a player's party.
     GroupOf(Uid),
-
+    /// Targets everyone not in the group of the entity specified by the `Uid`.
+    /// This is useful for auras which should only affect a player's
+    /// enemies.
+    NotGroupOf(Uid),
     /// Targets all entities. This is for auras which are global or neutral.
     All,
+}
+
+impl From<(Option<GroupTarget>, Option<&Uid>)> for AuraTarget {
+    fn from((target, uid): (Option<GroupTarget>, Option<&Uid>)) -> Self {
+        match (target, uid) {
+            (Some(GroupTarget::InGroup), Some(uid)) => Self::GroupOf(*uid),
+            (Some(GroupTarget::OutOfGroup), Some(uid)) => Self::NotGroupOf(*uid),
+            _ => Self::All,
+        }
+    }
 }
 
 impl Aura {
@@ -102,6 +116,35 @@ impl Auras {
     pub fn insert(&mut self, aura: Aura) { self.auras.insert(aura); }
 
     pub fn remove(&mut self, key: AuraKey) { self.auras.remove(key); }
+}
+
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct AuraBuffConstructor {
+    pub kind: BuffKind,
+    pub strength: f32,
+    pub duration: Option<f32>,
+    pub category: BuffCategory,
+}
+
+impl AuraBuffConstructor {
+    pub fn to_aura(
+        self,
+        uid: &Uid,
+        radius: f32,
+        duration: Option<Duration>,
+        target: AuraTarget,
+    ) -> Aura {
+        let aura_kind = AuraKind::Buff {
+            kind: self.kind,
+            data: BuffData {
+                strength: self.strength,
+                duration: self.duration.map(Duration::from_secs_f32),
+            },
+            category: self.category,
+            source: BuffSource::Character { by: *uid },
+        };
+        Aura::new(aura_kind, radius, duration, target)
+    }
 }
 
 impl Component for Auras {

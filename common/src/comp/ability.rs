@@ -1,7 +1,8 @@
 use crate::{
     assets::{self, Asset},
+    combat,
     comp::{
-        inventory::item::tool::ToolKind, projectile::ProjectileConstructor, skills, Body,
+        aura, inventory::item::tool::ToolKind, projectile::ProjectileConstructor, skills, Body,
         CharacterState, EnergySource, Gravity, LightEmitter, StateUpdate,
     },
     states::{
@@ -227,6 +228,15 @@ pub enum CharacterAbility {
         energy_drain: f32,
         orientation_behavior: basic_beam::MovementBehavior,
     },
+    CastAura {
+        buildup_duration: f32,
+        cast_duration: f32,
+        recover_duration: f32,
+        targets: combat::GroupTarget,
+        aura: aura::AuraBuffConstructor,
+        range: f32,
+        energy_cost: f32,
+    },
 }
 
 impl Default for CharacterAbility {
@@ -264,34 +274,14 @@ impl CharacterAbility {
                         .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
                         .is_ok()
             },
-            CharacterAbility::DashMelee { energy_cost, .. } => update
-                .energy
-                .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
-                .is_ok(),
-            CharacterAbility::BasicMelee { energy_cost, .. } => update
-                .energy
-                .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
-                .is_ok(),
-            CharacterAbility::BasicRanged { energy_cost, .. } => update
-                .energy
-                .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
-                .is_ok(),
-            CharacterAbility::LeapMelee { energy_cost, .. } => {
-                update.vel.0.z >= 0.0
-                    && update
-                        .energy
-                        .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
-                        .is_ok()
-            },
-            CharacterAbility::SpinMelee { energy_cost, .. } => update
-                .energy
-                .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
-                .is_ok(),
-            CharacterAbility::ChargedRanged { energy_cost, .. } => update
-                .energy
-                .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
-                .is_ok(),
-            CharacterAbility::ChargedMelee { energy_cost, .. } => update
+            CharacterAbility::DashMelee { energy_cost, .. }
+            | CharacterAbility::BasicMelee { energy_cost, .. }
+            | CharacterAbility::BasicRanged { energy_cost, .. }
+            | CharacterAbility::SpinMelee { energy_cost, .. }
+            | CharacterAbility::ChargedRanged { energy_cost, .. }
+            | CharacterAbility::ChargedMelee { energy_cost, .. }
+            | CharacterAbility::Shockwave { energy_cost, .. }
+            | CharacterAbility::CastAura { energy_cost, .. } => update
                 .energy
                 .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
                 .is_ok(),
@@ -304,10 +294,13 @@ impl CharacterAbility {
                         .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
                         .is_ok()
             },
-            CharacterAbility::Shockwave { energy_cost, .. } => update
-                .energy
-                .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
-                .is_ok(),
+            CharacterAbility::LeapMelee { energy_cost, .. } => {
+                update.vel.0.z >= 0.0
+                    && update
+                        .energy
+                        .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
+                        .is_ok()
+            },
             _ => true,
         }
     }
@@ -500,6 +493,17 @@ impl CharacterAbility {
                 *base_dps *= power * speed;
                 *tick_rate *= speed;
             },
+            CastAura {
+                ref mut buildup_duration,
+                ref mut recover_duration,
+                // cast_duration explicitly not affected by speed
+                ref mut aura,
+                ..
+            } => {
+                *buildup_duration /= speed;
+                *recover_duration /= speed;
+                aura.strength *= power;
+            },
         }
         self
     }
@@ -517,7 +521,8 @@ impl CharacterAbility {
             | ChargedMelee { energy_cost, .. }
             | ChargedRanged { energy_cost, .. }
             | Shockwave { energy_cost, .. }
-            | BasicBeam { energy_cost, .. } => *energy_cost as u32,
+            | BasicBeam { energy_cost, .. }
+            | CastAura { energy_cost, .. } => *energy_cost as u32,
             BasicBlock | Boost { .. } | ComboMelee { .. } => 0,
         }
     }
@@ -1466,6 +1471,27 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
                 offset: Vec3::zero(),
+            }),
+            CharacterAbility::CastAura {
+                buildup_duration,
+                cast_duration,
+                recover_duration,
+                targets,
+                aura,
+                range,
+                energy_cost: _,
+            } => CharacterState::CastAura(cast_aura::Data {
+                static_data: cast_aura::StaticData {
+                    buildup_duration: Duration::from_secs_f32(*buildup_duration),
+                    cast_duration: Duration::from_secs_f32(*cast_duration),
+                    recover_duration: Duration::from_secs_f32(*recover_duration),
+                    targets: *targets,
+                    aura: *aura,
+                    range: *range,
+                    ability_info,
+                },
+                timer: Duration::default(),
+                stage_section: StageSection::Buildup,
             }),
         }
     }

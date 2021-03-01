@@ -1,0 +1,14 @@
+CastAura(
+    buildup_duration: 0.25,
+    cast_duration: 1.5,
+    recover_duration: 0.25,
+    targets: InGroup,
+    aura: (
+        kind: Invulnerability,
+        strength: 1.0,
+        duration: Some(0.5),
+        category: Magical,
+    ),
+    range: 25.0,
+    energy_cost: 400,
+)

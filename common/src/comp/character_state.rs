@@ -81,6 +81,8 @@ pub enum CharacterState {
     /// A continuous attack that affects all creatures in a cone originating
     /// from the source
     BasicBeam(basic_beam::Data),
+    /// Creates an aura that persists as long as you are actively casting
+    CastAura(cast_aura::Data),
 }
 
 impl CharacterState {
@@ -100,6 +102,7 @@ impl CharacterState {
                 | CharacterState::RepeaterRanged(_)
                 | CharacterState::Shockwave(_)
                 | CharacterState::BasicBeam(_)
+                | CharacterState::CastAura(_)
         )
     }
 
@@ -121,6 +124,7 @@ impl CharacterState {
                 | CharacterState::RepeaterRanged(_)
                 | CharacterState::Shockwave(_)
                 | CharacterState::BasicBeam(_)
+                | CharacterState::CastAura(_)
         )
     }
 

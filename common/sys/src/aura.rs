@@ -7,7 +7,7 @@ use common::{
     },
     event::{EventBus, ServerEvent},
     resources::DeltaTime,
-    uid::UidAllocator,
+    uid::{Uid, UidAllocator},
 };
 use common_ecs::{Job, Origin, Phase, System};
 use specs::{
@@ -26,6 +26,7 @@ pub struct ReadData<'a> {
     char_states: ReadStorage<'a, CharacterState>,
     healths: ReadStorage<'a, Health>,
     groups: ReadStorage<'a, Group>,
+    uids: ReadStorage<'a, Uid>,
 }
 
 #[derive(Default)]
@@ -79,11 +80,12 @@ impl<'a> System<'a> for Sys {
                         expired_auras.push(key);
                     }
                 }
-                for (target, target_pos, mut target_buffs, health) in (
+                for (target, target_pos, mut target_buffs, health, target_uid) in (
                     &read_data.entities,
                     &read_data.positions,
                     &mut buffs,
                     &read_data.healths,
+                    &read_data.uids,
                 )
                     .join()
                 {
@@ -96,7 +98,8 @@ impl<'a> System<'a> for Sys {
                                 .and_then(|e| read_data.groups.get(e))
                                 .map_or(false, |owner_group| {
                                     Some(owner_group) == read_data.groups.get(target)
-                                });
+                                })
+                                || *target_uid == uid;
 
                             if !same_group {
                                 continue;
