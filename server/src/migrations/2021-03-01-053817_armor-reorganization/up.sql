@@ -47,7 +47,7 @@ SET item_definition_id = 'common.items.armor.tarasque.belt' WHERE item_definitio
 UPDATE item
 SET item_definition_id = 'common.items.armor.twigs.belt' WHERE item_definition_id = 'common.items.armor.belt.twig';
 UPDATE item
-SET item_definition_id = 'common.items.armor.twigflowers.belt' WHERE item_definition_id = 'common.items.armor.belt.twigsflowers';
+SET item_definition_id = 'common.items.armor.twigsflowers.belt' WHERE item_definition_id = 'common.items.armor.belt.twigsflowers';
 UPDATE item
 SET item_definition_id = 'common.items.armor.twigsleaves.belt' WHERE item_definition_id = 'common.items.armor.belt.twigsleaves';
 UPDATE item
@@ -91,7 +91,7 @@ SET item_definition_id = 'common.items.armor.tarasque.chest' WHERE item_definiti
 UPDATE item
 SET item_definition_id = 'common.items.armor.twigs.chest' WHERE item_definition_id = 'common.items.armor.chest.twig';
 UPDATE item
-SET item_definition_id = 'common.items.armor.twigflowers.chest' WHERE item_definition_id = 'common.items.armor.chest.twigsflowers';
+SET item_definition_id = 'common.items.armor.twigsflowers.chest' WHERE item_definition_id = 'common.items.armor.chest.twigsflowers';
 UPDATE item
 SET item_definition_id = 'common.items.armor.twigsleaves.chest' WHERE item_definition_id = 'common.items.armor.chest.twigsleaves';
 UPDATE item
@@ -155,7 +155,7 @@ SET item_definition_id = 'common.items.armor.tarasque.foot' WHERE item_definitio
 UPDATE item
 SET item_definition_id = 'common.items.armor.twigs.foot' WHERE item_definition_id = 'common.items.armor.foot.twig';
 UPDATE item
-SET item_definition_id = 'common.items.armor.twigflowers.foot' WHERE item_definition_id = 'common.items.armor.foot.twigsflowers';
+SET item_definition_id = 'common.items.armor.twigsflowers.foot' WHERE item_definition_id = 'common.items.armor.foot.twigsflowers';
 UPDATE item
 SET item_definition_id = 'common.items.armor.twigsleaves.foot' WHERE item_definition_id = 'common.items.armor.foot.twigsleaves';
 UPDATE item
@@ -197,7 +197,7 @@ SET item_definition_id = 'common.items.armor.tarasque.hand' WHERE item_definitio
 UPDATE item
 SET item_definition_id = 'common.items.armor.twigs.hand' WHERE item_definition_id = 'common.items.armor.hand.twig';
 UPDATE item
-SET item_definition_id = 'common.items.armor.twigflowers.hand' WHERE item_definition_id = 'common.items.armor.hand.twigsflowers';
+SET item_definition_id = 'common.items.armor.twigsflowers.hand' WHERE item_definition_id = 'common.items.armor.hand.twigsflowers';
 UPDATE item
 SET item_definition_id = 'common.items.armor.twigsleaves.hand' WHERE item_definition_id = 'common.items.armor.hand.twigsleaves';
 UPDATE item
@@ -257,7 +257,7 @@ SET item_definition_id = 'common.items.armor.tarasque.pants' WHERE item_definiti
 UPDATE item
 SET item_definition_id = 'common.items.armor.twigs.pants' WHERE item_definition_id = 'common.items.armor.pants.twig';
 UPDATE item
-SET item_definition_id = 'common.items.armor.twigflowers.pants' WHERE item_definition_id = 'common.items.armor.pants.twigsflowers';
+SET item_definition_id = 'common.items.armor.twigsflowers.pants' WHERE item_definition_id = 'common.items.armor.pants.twigsflowers';
 UPDATE item
 SET item_definition_id = 'common.items.armor.twigsleaves.pants' WHERE item_definition_id = 'common.items.armor.pants.twigsleaves';
 UPDATE item
@@ -323,7 +323,7 @@ SET item_definition_id = 'common.items.armor.tarasque.shoulder' WHERE item_defin
 UPDATE item
 SET item_definition_id = 'common.items.armor.twigs.shoulder' WHERE item_definition_id = 'common.items.armor.shoulder.twigs';
 UPDATE item
-SET item_definition_id = 'common.items.armor.twigflowers.shoulder' WHERE item_definition_id = 'common.items.armor.shoulder.twigsflowers';
+SET item_definition_id = 'common.items.armor.twigsflowers.shoulder' WHERE item_definition_id = 'common.items.armor.shoulder.twigsflowers';
 UPDATE item
 SET item_definition_id = 'common.items.armor.twigsleaves.shoulder' WHERE item_definition_id = 'common.items.armor.shoulder.twigsleaves';
 UPDATE item

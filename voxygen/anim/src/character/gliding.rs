@@ -44,8 +44,8 @@ impl Animation for GlidingAnimation {
         let slowa = (anim_time * 3.0 + PI / 2.0).sin();
 
         let head_look = Vec2::new(
-            (global_time + anim_time / 4.0).floor().mul(7331.0).sin() * 0.5,
-            (global_time + anim_time / 4.0).floor().mul(1337.0).sin() * 0.25,
+            ((global_time + anim_time) / 5.0).floor().mul(7331.0).sin() * 0.5,
+            ((global_time + anim_time) / 5.0).floor().mul(1337.0).sin() * 0.25,
         );
 
         let ori: Vec2<f32> = Vec2::from(orientation);
@@ -71,8 +71,10 @@ impl Animation for GlidingAnimation {
         next.chest.orientation = Quaternion::rotation_z(slowa * 0.02);
 
         next.belt.orientation = Quaternion::rotation_z(slowa * 0.1 + tilt * tiltcancel * 12.0);
+        next.belt.position = Vec3::new(0.0, s_a.belt.0, s_a.belt.1);
 
         next.shorts.orientation = Quaternion::rotation_z(slowa * 0.12 + tilt * tiltcancel * 16.0);
+        next.shorts.position = Vec3::new(0.0, s_a.shorts.0, s_a.shorts.1);
 
         next.hand_l.position = Vec3::new(-9.5, -3.0, 10.0);
         next.hand_l.orientation =
@@ -105,8 +107,8 @@ impl Animation for GlidingAnimation {
             Quaternion::rotation_x(0.8) * Quaternion::rotation_y(slowa * 0.04);
         next.glider.scale = Vec3::one();
 
-        next.torso.position = Vec3::new(0.0, -4.0, 10.0) / 11.0 * s_a.scaler;
-        next.torso.orientation = Quaternion::rotation_x(-0.06 * speed.max(12.0) + slow * 0.04)
+        next.torso.position = Vec3::new(0.0, -1.0, 0.0) / 11.0 * s_a.scaler;
+        next.torso.orientation = Quaternion::rotation_x(-0.03 * speed.max(12.0) + slow * 0.04)
             * Quaternion::rotation_y(tilt * tiltcancel * 32.0);
 
         next
