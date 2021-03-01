@@ -5,7 +5,7 @@ ItemDef(
         toolkind: Sword,
         modkind: Damage,
         stats: (
-            equip_time_millis: 250,
+            equip_time_secs: 0.25,
             power: 1.0,
             poise_strength: 0.75,
             speed: 0.0,

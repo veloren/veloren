@@ -5,7 +5,7 @@ ItemDef(
         kind: Sceptre,
         hands: Two,
         stats: Direct((
-            equip_time_millis: 400,
+            equip_time_secs: 0.4,
             power: 4.0,
             poise_strength: 1.5,
             speed: 0.5,
