@@ -68,8 +68,8 @@ impl Fill {
 pub trait Structure {
     fn render<F: FnMut(Primitive) -> Id<Primitive>, G: FnMut(Fill)>(
         &self,
-        emit_prim: F,
-        emit_fill: G,
+        prim: F,
+        fill: G,
     ) {}
 
     // Generate a primitive tree and fills for this structure
