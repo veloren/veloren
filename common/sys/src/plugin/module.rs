@@ -43,8 +43,8 @@ impl PluginModule {
         let module = Module::new(&store, &wasm_data).expect("Can't compile");
 
         // This is the function imported into the wasm environement
-        fn raw_emit_actions(env: &HostFunctionEnvironement, ptr: u32, len: u32) {
-            handle_actions(match env.read_data(ptr as i32, len) {
+        fn raw_emit_actions(env: &HostFunctionEnvironement, ptr: i64, len: i64) {
+            handle_actions(match env.read_data(from_i64(ptr), from_i64(len)) {
                 Ok(e) => e,
                 Err(e) => {
                     tracing::error!(?e, "Can't decode action");
@@ -53,16 +53,15 @@ impl PluginModule {
             });
         }
 
-        fn raw_retrieve_action(env: &HostFunctionEnvironement, ptr: u32, len: u32) -> i64 {
-            let out = match env.read_data(ptr as _, len) {
+        fn raw_retrieve_action(env: &HostFunctionEnvironement, ptr: i64, len: i64) -> i64 {
+            let out = match env.read_data(from_i64(ptr), from_i64(len)) {
                 Ok(data) => retrieve_action(&env.ecs, data),
                 Err(e) => Err(RetrieveError::BincodeError(e.to_string())),
             };
 
             // If an error happen set the i64 to 0 so the WASM side can tell an error
             // occured
-            let (ptr, len) = env.write_data(&out).unwrap();
-            to_i64(ptr, len as _)
+            to_i64(env.write_data_as_pointer(&out).unwrap())
         }
 
         fn dbg(a: i32) {
@@ -155,19 +154,23 @@ impl<T: Event> PreparedEventQuery<T> {
     }
 }
 
-fn from_i64(i: i64) -> (i32, i32) {
+pub fn from_u128(i: u128) -> (u64, u64) {
     let i = i.to_le_bytes();
     (
-        i32::from_le_bytes(i[0..4].try_into().unwrap()),
-        i32::from_le_bytes(i[4..8].try_into().unwrap()),
+        u64::from_le_bytes(i[0..8].try_into().unwrap()),
+        u64::from_le_bytes(i[8..16].try_into().unwrap()),
     )
 }
 
-pub fn to_i64(a: i32, b: i32) -> i64 {
+pub fn to_u128(a: u64, b: u64) -> u128 {
     let a = a.to_le_bytes();
     let b = b.to_le_bytes();
-    i64::from_le_bytes([a[0], a[1], a[2], a[3], b[0], b[1], b[2], b[3]])
+    u128::from_le_bytes([a, b].concat().try_into().unwrap())
 }
+
+pub fn to_i64(i: u64) -> i64 { i64::from_le_bytes(i.to_le_bytes()) }
+
+pub fn from_i64(i: i64) -> u64 { u64::from_le_bytes(i.to_le_bytes()) }
 
 // This function is not public because this function should not be used without
 // an interface to limit unsafe behaviours
@@ -196,24 +199,26 @@ fn execute_raw(
     // We call the function with the pointer and the length
 
     let function_result = func
-        .call(&[Value::I32(mem_position as i32), Value::I32(len as i32)])
+        .call(&[Value::I64(to_i64(mem_position)), Value::I64(to_i64(len))])
         .map_err(PluginModuleError::RunFunction)?;
 
     // Waiting for `multi-value` to be added to LLVM. So we encode the two i32 as an
     // i64
 
-    let (pointer, length) = from_i64(
+    let u128_pointer = from_i64(
         function_result[0]
             .i64()
             .ok_or_else(PluginModuleError::InvalidArgumentType)?,
     );
 
+    let bytes = memory_manager::read_bytes(&module.memory, u128_pointer, 16);
+
     // We read the return object and deserialize it
 
     Ok(memory_manager::read_bytes(
         &module.memory,
-        pointer,
-        length as u32,
+        u64::from_le_bytes(bytes[0..8].try_into().unwrap()),
+        u64::from_le_bytes(bytes[8..16].try_into().unwrap()),
     ))
 }
 

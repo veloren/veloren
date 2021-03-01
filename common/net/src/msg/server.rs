@@ -191,6 +191,7 @@ pub enum RegisterError {
     AlreadyLoggedIn,
     AuthError(String),
     Banned(String),
+    KickedByPlugin(String),
     InvalidCharacter,
     NotOnWhitelist,
     //TODO: InvalidAlias,

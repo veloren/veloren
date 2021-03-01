@@ -56,7 +56,7 @@ pub mod event {
     #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
     pub struct PlayerJoinEvent {
         pub player_name: String,
-        pub player_id: Uid,
+        pub player_id: [u8; 16],
     }
 
     impl Event for PlayerJoinEvent {
@@ -64,8 +64,9 @@ pub mod event {
     }
 
     #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
+    #[repr(u8)]
     pub enum PlayerJoinResult {
-        CloseConnection,
+        CloseConnection(String),
         None,
     }
 

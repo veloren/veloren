@@ -507,7 +507,7 @@ impl Server {
         // (e.g. run before controller system)
         //TODO: run in parallel
         sys::msg::general::Sys.run_now(&self.state.ecs());
-        sys::msg::register::Sys.run_now(&self.state.ecs());
+        sys::msg::register::register_run(self.state_mut().ecs_mut());
         sys::msg::character_screen::Sys.run_now(&self.state.ecs());
         sys::msg::in_game::Sys.run_now(&self.state.ecs());
         sys::msg::ping::Sys.run_now(&self.state.ecs());

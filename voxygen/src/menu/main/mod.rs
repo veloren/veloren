@@ -134,6 +134,7 @@ impl PlayState for MainMenuState {
                                 localized_strings.get("main.login.authentication_error"),
                                 e
                             ),
+                            client::Error::KickedByPlugin(e) => e,
                             client::Error::TooManyPlayers => {
                                 localized_strings.get("main.login.server_full").into()
                             },

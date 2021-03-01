@@ -1,7 +1,10 @@
 use crate::settings::BanRecord;
 use authc::{AuthClient, AuthClientError, AuthToken, Uuid};
 use common_net::msg::RegisterError;
+use common_sys::plugin::PluginMgr;
 use hashbrown::{HashMap, HashSet};
+use plugin_api::event::{PlayerJoinEvent, PlayerJoinResult};
+use specs::World;
 use std::str::FromStr;
 use tracing::{error, info};
 
@@ -53,6 +56,8 @@ impl LoginProvider {
     pub fn try_login(
         &mut self,
         username_or_token: &str,
+        world: &World,
+        plugin_manager: &PluginMgr,
         admins: &HashSet<Uuid>,
         whitelist: &HashSet<Uuid>,
         banlist: &HashMap<Uuid, BanRecord>,
@@ -73,6 +78,22 @@ impl LoginProvider {
                 if !whitelist.is_empty() && !whitelist.contains(&uuid) && !admins.contains(&uuid) {
                     return Err(RegisterError::NotOnWhitelist);
                 }
+
+                match plugin_manager.execute_event(&world, "on_join", &PlayerJoinEvent {
+                    player_name: username.clone(),
+                    player_id: uuid.as_bytes().clone(),
+                }) {
+                    Ok(e) => {
+                        for i in e.into_iter() {
+                            if let PlayerJoinResult::CloseConnection(a) = i {
+                                return Err(RegisterError::KickedByPlugin(a));
+                            }
+                        }
+                    },
+                    Err(e) => {
+                        error!("Error occured while executing `on_join`: {:?}",e);
+                    },
+                };
 
                 // add the user to self.accounts
                 self.login(uuid, username.clone())?;
