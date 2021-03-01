@@ -58,7 +58,7 @@ use common::{
     assets::AssetExt,
     cmd::ChatCommand,
     comp,
-    comp::{item::MaterialStatManifest, CharacterAbility},
+    comp::{item::MaterialStatManifest, Admin, CharacterAbility, Player, Stats},
     event::{EventBus, ServerEvent},
     recipe::default_recipe_book,
     resources::TimeOfDay,
@@ -68,22 +68,30 @@ use common::{
 };
 use common_net::{
     msg::{
-        ClientType, DisconnectReason, ServerGeneral, ServerInfo, ServerInit, ServerMsg, WorldMapMsg,
+        CharacterInfo, ClientRegister, ClientType, DisconnectReason, PlayerInfo, PlayerListUpdate,
+        RegisterError, ServerGeneral, ServerInfo, ServerInit, ServerMsg, ServerRegisterAnswer,
+        WorldMapMsg,
     },
     sync::WorldSyncExt,
 };
 #[cfg(feature = "plugins")]
 use common_sys::plugin::PluginMgr;
 use common_sys::state::State;
-use metrics::{PhysicsMetrics, StateTickMetrics, TickMetrics};
+use hashbrown::HashMap;
+use metrics::{PhysicsMetrics, PlayerMetrics, StateTickMetrics, TickMetrics};
 use network::{Network, Pid, ProtocolAddr};
 use persistence::{
     character_loader::{CharacterLoader, CharacterLoaderResponseKind},
     character_updater::CharacterUpdater,
 };
+use plugin_api::Uid;
 use prometheus::Registry;
 use prometheus_hyper::Server as PrometheusServer;
-use specs::{join::Join, Builder, Entity as EcsEntity, RunNow, SystemData, WorldExt};
+use specs::{
+    join::Join,
+    shred::{Fetch, FetchMut},
+    Builder, Entity as EcsEntity, RunNow, SystemData, WorldExt, WriteStorage,
+};
 use std::{
     i32,
     ops::{Deref, DerefMut},
@@ -195,7 +203,6 @@ impl Server {
         state.ecs_mut().insert(sys::EntitySyncTimer::default());
         state.ecs_mut().insert(sys::GeneralMsgTimer::default());
         state.ecs_mut().insert(sys::PingMsgTimer::default());
-        state.ecs_mut().insert(sys::RegisterMsgTimer::default());
         state
             .ecs_mut()
             .insert(sys::CharacterScreenMsgTimer::default());
@@ -507,7 +514,7 @@ impl Server {
         // (e.g. run before controller system)
         //TODO: run in parallel
         sys::msg::general::Sys.run_now(&self.state.ecs());
-        sys::msg::register::register_run(self.state_mut().ecs_mut());
+        self.register_run();
         sys::msg::character_screen::Sys.run_now(&self.state.ecs());
         sys::msg::in_game::Sys.run_now(&self.state.ecs());
         sys::msg::ping::Sys.run_now(&self.state.ecs());
@@ -711,7 +718,6 @@ impl Server {
             let state = self.state.ecs();
             (state.read_resource::<sys::GeneralMsgTimer>().nanos
                 + state.read_resource::<sys::PingMsgTimer>().nanos
-                + state.read_resource::<sys::RegisterMsgTimer>().nanos
                 + state.read_resource::<sys::CharacterScreenMsgTimer>().nanos
                 + state.read_resource::<sys::InGameMsgTimer>().nanos) as i64
         };
@@ -917,6 +923,139 @@ impl Server {
         self.state.cleanup();
     }
 
+    fn handle_register_msg(
+        world: &specs::World,
+        player_list: &HashMap<Uid, PlayerInfo>,
+        new_players: &mut Vec<specs::Entity>,
+        entity: specs::Entity,
+        client: &Client,
+        player_metrics: &Fetch<'_, PlayerMetrics>,
+        login_provider: &mut FetchMut<'_, LoginProvider>,
+        admins: &mut WriteStorage<'_, Admin>,
+        players: &mut WriteStorage<'_, Player>,
+        editable_settings: &Fetch<'_, EditableSettings>,
+        msg: ClientRegister,
+    ) -> Result<(), crate::error::Error> {
+        let plugin_mgr = world.read_resource::<PluginMgr>();
+        let (username, uuid) = match login_provider.try_login(
+            &msg.token_or_username,
+            world,
+            &plugin_mgr,
+            &*editable_settings.admins,
+            &*editable_settings.whitelist,
+            &*editable_settings.banlist,
+        ) {
+            Err(err) => {
+                client.send(ServerRegisterAnswer::Err(err))?;
+                return Ok(());
+            },
+            Ok((username, uuid)) => (username, uuid),
+        };
+
+        let player = Player::new(username, uuid);
+        let is_admin = editable_settings.admins.contains(&uuid);
+
+        if !player.is_valid() {
+            // Invalid player
+            client.send(ServerRegisterAnswer::Err(RegisterError::InvalidCharacter))?;
+            return Ok(());
+        }
+
+        if !players.contains(entity) {
+            // Add Player component to this client
+            let _ = players.insert(entity, player);
+            player_metrics.players_connected.inc();
+
+            // Give the Admin component to the player if their name exists in
+            // admin list
+            if is_admin {
+                let _ = admins.insert(entity, Admin);
+            }
+
+            // Tell the client its request was successful.
+            client.send(ServerRegisterAnswer::Ok(()))?;
+
+            // Send initial player list
+            client.send(ServerGeneral::PlayerListUpdate(PlayerListUpdate::Init(
+                player_list.clone(),
+            )))?;
+
+            // Add to list to notify all clients of the new player
+            new_players.push(entity);
+        }
+
+        Ok(())
+    }
+
+    pub fn register_run(&mut self) {
+        let world = self.state_mut().ecs_mut();
+        let entities = world.entities();
+        let player_metrics = world.read_resource::<PlayerMetrics>();
+        let uids = world.read_storage::<Uid>();
+        let clients = world.read_storage::<Client>();
+        let mut players = world.write_storage::<Player>();
+        let stats = world.read_storage::<Stats>();
+        let mut login_provider = world.write_resource::<LoginProvider>();
+        let mut admins = world.write_storage::<Admin>();
+        let editable_settings = world.read_resource::<EditableSettings>();
+
+        // Player list to send new players.
+        let player_list = (&uids, &players, stats.maybe(), admins.maybe())
+            .join()
+            .map(|(uid, player, stats, admin)| {
+                (*uid, PlayerInfo {
+                    is_online: true,
+                    is_admin: admin.is_some(),
+                    player_alias: player.alias.clone(),
+                    character: stats.map(|stats| CharacterInfo {
+                        name: stats.name.clone(),
+                    }),
+                })
+            })
+            .collect::<HashMap<_, _>>();
+        // List of new players to update player lists of all clients.
+        let mut new_players = Vec::new();
+
+        for (entity, client) in (&entities, &clients).join() {
+            let _ = sys::msg::try_recv_all(client, 0, |client, msg| {
+                Server::handle_register_msg(
+                    &world,
+                    &player_list,
+                    &mut new_players,
+                    entity,
+                    client,
+                    &player_metrics,
+                    &mut login_provider,
+                    &mut admins,
+                    &mut players,
+                    &editable_settings,
+                    msg,
+                )
+            });
+        }
+
+        // Handle new players.
+        // Tell all clients to add them to the player list.
+        for entity in new_players {
+            if let (Some(uid), Some(player)) = (uids.get(entity), players.get(entity)) {
+                let mut lazy_msg = None;
+                for (_, client) in (&players, &clients).join() {
+                    if lazy_msg.is_none() {
+                        lazy_msg = Some(client.prepare(ServerGeneral::PlayerListUpdate(
+                            PlayerListUpdate::Add(*uid, PlayerInfo {
+                                player_alias: player.alias.clone(),
+                                is_online: true,
+                                is_admin: admins.get(entity).is_some(),
+                                character: None, // new players will be on character select.
+                            }),
+                        )));
+                    }
+                    lazy_msg.as_ref().map(|ref msg| client.send_prepared(&msg));
+                }
+            }
+        }
+    }
+
     fn initialize_client(
         &mut self,
         client: crate::connection_handler::IncomingClient,
@@ -1033,7 +1172,6 @@ impl Server {
         } else {
             #[cfg(feature = "plugins")]
             {
-                use common::uid::Uid;
                 let plugin_manager = self.state.ecs().read_resource::<PluginMgr>();
                 let rs = plugin_manager.execute_event(
                     self.state.ecs(),

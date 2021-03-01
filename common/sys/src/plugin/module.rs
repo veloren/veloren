@@ -157,6 +157,7 @@ impl<T: Event> PreparedEventQuery<T> {
     pub fn get_function_name(&self) -> &str { &self.function_name }
 }
 
+/// This function split a u128 in two u64 encoding them as le bytes
 pub fn from_u128(i: u128) -> (u64, u64) {
     let i = i.to_le_bytes();
     (
@@ -165,14 +166,17 @@ pub fn from_u128(i: u128) -> (u64, u64) {
     )
 }
 
+/// This function merge two u64 encoded as le in one u128
 pub fn to_u128(a: u64, b: u64) -> u128 {
     let a = a.to_le_bytes();
     let b = b.to_le_bytes();
     u128::from_le_bytes([a, b].concat().try_into().unwrap())
 }
 
+/// This function encode a u64 into a i64 using le bytes
 pub fn to_i64(i: u64) -> i64 { i64::from_le_bytes(i.to_le_bytes()) }
 
+/// This function decode a i64 into a u64 using le bytes
 pub fn from_i64(i: i64) -> u64 { u64::from_le_bytes(i.to_le_bytes()) }
 
 // This function is not public because this function should not be used without
