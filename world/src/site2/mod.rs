@@ -241,9 +241,9 @@ impl Site {
                 // House
                 1 => {
                     let size = (2.0 + rng.gen::<f32>().powf(8.0) * 3.0).round() as u32;
-                    if let Some((aabr, _)) = attempt(10, || site.find_roadside_aabr(rng, 4..(size + 1).pow(2), Extent2::broadcast(size))) {
+                    if let Some((aabr, door_tile)) = attempt(10, || site.find_roadside_aabr(rng, 4..(size + 1).pow(2), Extent2::broadcast(size))) {
                         let plot = site.create_plot(Plot {
-                            kind: PlotKind::House(plot::House::generate(land, rng, &site, aabr)),
+                            kind: PlotKind::House(plot::House::generate(land, rng, &site, door_tile, aabr)),
                             root_tile: aabr.center(),
                             tiles: aabr_tiles(aabr).collect(),
                             seed: rng.gen(),
