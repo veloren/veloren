@@ -500,7 +500,7 @@ impl Client {
             Err(RegisterError::AuthError(err)) => Err(Error::AuthErr(err)),
             Err(RegisterError::InvalidCharacter) => Err(Error::InvalidCharacter),
             Err(RegisterError::NotOnWhitelist) => Err(Error::NotOnWhitelist),
-            Err(RegisterError::KickedByPlugin(err)) => Err(Error::KickedByPlugin(err)),
+            Err(RegisterError::Kicked(err)) => Err(Error::Kicked(err)),
             Err(RegisterError::Banned(reason)) => Err(Error::Banned(reason)),
             Ok(()) => {
                 self.registered = true;

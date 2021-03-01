@@ -36,7 +36,7 @@ static COUNTER: AtomicBool = AtomicBool::new(false);
 #[event_handler]
 pub fn on_join(input: PlayerJoinEvent) -> PlayerJoinResult {
     if COUNTER.swap(!COUNTER.load(Ordering::SeqCst), Ordering::SeqCst) {
-        PlayerJoinResult::CloseConnection(format!("You are a cheater {:?}", input))
+        PlayerJoinResult::Kick(format!("You are a cheater {:?}", input))
     } else {
         PlayerJoinResult::None
     }

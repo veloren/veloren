@@ -209,10 +209,8 @@ impl State {
         #[cfg(feature = "plugins")]
         ecs.insert(match PluginMgr::from_assets() {
             Ok(plugin_mgr) => {
-                if let Err(e) =
-                    plugin_mgr.execute_event(&ecs, "on_load", &plugin_api::event::PluginLoadEvent {
-                        game_mode,
-                    })
+                if let Err(e) = plugin_mgr
+                    .execute_event(&ecs, &plugin_api::event::PluginLoadEvent { game_mode })
                 {
                     tracing::error!(?e, "Failed to run plugin init");
                     tracing::info!(

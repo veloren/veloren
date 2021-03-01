@@ -1037,7 +1037,6 @@ impl Server {
                 let plugin_manager = self.state.ecs().read_resource::<PluginMgr>();
                 let rs = plugin_manager.execute_event(
                     self.state.ecs(),
-                    &format!("on_command_{}", &kwd),
                     &plugin_api::event::ChatCommandEvent {
                         command: kwd.clone(),
                         command_args: args.split(' ').map(|x| x.to_owned()).collect(),

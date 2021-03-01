@@ -31,6 +31,8 @@ pub enum RetrieveResult {
 
 pub trait Event: Serialize + DeserializeOwned + Send + Sync {
     type Response: Serialize + DeserializeOwned + Send + Sync;
+
+    fn get_event_name(&self) -> String;
 }
 
 pub mod event {
@@ -46,6 +48,8 @@ pub mod event {
 
     impl Event for ChatCommandEvent {
         type Response = Result<Vec<String>, String>;
+
+        fn get_event_name(&self) -> String { format!("on_command_{}", self.command) }
     }
 
     #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
@@ -61,12 +65,14 @@ pub mod event {
 
     impl Event for PlayerJoinEvent {
         type Response = PlayerJoinResult;
+
+        fn get_event_name(&self) -> String { "on_join".to_owned() }
     }
 
     #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
     #[repr(u8)]
     pub enum PlayerJoinResult {
-        CloseConnection(String),
+        Kick(String),
         None,
     }
 
@@ -81,6 +87,8 @@ pub mod event {
 
     impl Event for PluginLoadEvent {
         type Response = ();
+
+        fn get_event_name(&self) -> String { "on_load".to_owned() }
     }
 
     // #[derive(Serialize, Deserialize, Debug)]

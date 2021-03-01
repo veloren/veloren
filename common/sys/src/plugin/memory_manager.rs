@@ -106,6 +106,11 @@ impl MemoryManager {
         )
     }
 
+    /// This function writes an object to the wasm memory using the allocator if
+    /// necessary using length padding.
+    ///
+    /// With length padding the first 8 bytes written are the length of the the
+    /// following slice (The object serialized).
     pub fn write_data_as_pointer<T: Serialize>(
         &self,
         memory: &Memory,
@@ -125,32 +130,39 @@ impl MemoryManager {
         &self,
         memory: &Memory,
         allocator: &Function,
-        array: &[u8],
+        bytes: &[u8],
     ) -> Result<(u64, u64), PluginModuleError> {
-        let len = array.len();
+        let len = bytes.len();
         let mem_position = self
             .get_pointer(len as u32, allocator)
             .map_err(PluginModuleError::MemoryAllocation)? as usize;
         memory.view()[mem_position..mem_position + len]
             .iter()
-            .zip(array.iter())
+            .zip(bytes.iter())
             .for_each(|(cell, byte)| cell.set(*byte));
         Ok((mem_position as u64, len as u64))
     }
 
+    /// This function writes bytes to the wasm memory using the allocator if
+    /// necessary using length padding.
+    ///
+    /// With length padding the first 8 bytes written are the length of the the
+    /// following slice.
     pub fn write_bytes_as_pointer(
         &self,
         memory: &Memory,
         allocator: &Function,
-        array: &[u8],
+        bytes: &[u8],
     ) -> Result<u64, PluginModuleError> {
-        let len = array.len();
+        let len = bytes.len();
         let mem_position = self
             .get_pointer(len as u32 + 8, allocator)
             .map_err(PluginModuleError::MemoryAllocation)? as usize;
+        // Here we write the length as le bytes followed by the slice data itself in
+        // WASM memory
         memory.view()[mem_position..mem_position + len + 8]
             .iter()
-            .zip((len as u64).to_le_bytes().iter().chain(array.iter()))
+            .zip((len as u64).to_le_bytes().iter().chain(bytes.iter()))
             .for_each(|(cell, byte)| cell.set(*byte));
         Ok(mem_position as u64)
     }

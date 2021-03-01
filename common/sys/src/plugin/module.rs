@@ -111,19 +111,18 @@ impl PluginModule {
     pub fn try_execute<T>(
         &self,
         ecs: &World,
-        event_name: &str,
         request: &PreparedEventQuery<T>,
     ) -> Option<Result<T::Response, PluginModuleError>>
     where
         T: Event,
     {
-        if !self.events.contains(event_name) {
+        if !self.events.contains(&request.function_name) {
             return None;
         }
         // Store the ECS Pointer for later use in `retreives`
         let bytes = match self.ecs.execute_with(ecs, || {
             let mut state = self.wasm_state.lock().unwrap();
-            execute_raw(self, &mut state, event_name, &request.bytes)
+            execute_raw(self, &mut state, &request.function_name, &request.bytes)
         }) {
             Ok(e) => e,
             Err(e) => return Some(Err(e)),
@@ -136,6 +135,7 @@ impl PluginModule {
 /// reencoding for each module in every plugin)
 pub struct PreparedEventQuery<T> {
     bytes: Vec<u8>,
+    function_name: String,
     _phantom: PhantomData<T>,
 }
 
@@ -149,9 +149,12 @@ impl<T: Event> PreparedEventQuery<T> {
     {
         Ok(Self {
             bytes: bincode::serialize(&event).map_err(PluginError::Encoding)?,
+            function_name: event.get_event_name(),
             _phantom: PhantomData::default(),
         })
     }
+
+    pub fn get_function_name(&self) -> &str { &self.function_name }
 }
 
 pub fn from_u128(i: u128) -> (u64, u64) {
@@ -202,8 +205,8 @@ fn execute_raw(
         .call(&[Value::I64(to_i64(mem_position)), Value::I64(to_i64(len))])
         .map_err(PluginModuleError::RunFunction)?;
 
-    // Waiting for `multi-value` to be added to LLVM. So we encode the two i32 as an
-    // i64
+    // Waiting for `multi-value` to be added to LLVM. So we encode a pointer to a
+    // u128 that represent [u64; 2]
 
     let u128_pointer = from_i64(
         function_result[0]
@@ -215,6 +218,8 @@ fn execute_raw(
 
     // We read the return object and deserialize it
 
+    // The first 8 bytes are encoded as le and represent the pointer to the data
+    // The next 8 bytes are encoded as le and represent the length of the data
     Ok(memory_manager::read_bytes(
         &module.memory,
         u64::from_le_bytes(bytes[0..8].try_into().unwrap()),

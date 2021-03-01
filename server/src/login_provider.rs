@@ -79,14 +79,14 @@ impl LoginProvider {
                     return Err(RegisterError::NotOnWhitelist);
                 }
 
-                match plugin_manager.execute_event(&world, "on_join", &PlayerJoinEvent {
+                match plugin_manager.execute_event(&world, &PlayerJoinEvent {
                     player_name: username.clone(),
                     player_id: *uuid.as_bytes(),
                 }) {
                     Ok(e) => {
                         for i in e.into_iter() {
-                            if let PlayerJoinResult::CloseConnection(a) = i {
-                                return Err(RegisterError::KickedByPlugin(a));
+                            if let PlayerJoinResult::Kick(a) = i {
+                                return Err(RegisterError::Kicked(a));
                             }
                         }
                     },
