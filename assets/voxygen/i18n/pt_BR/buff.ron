@@ -14,6 +14,8 @@
         "buff.desc.saturation": "Ganha vida no decorrer do tempo através de consumíveis.",
         "buff.title.campfire_heal": "Cura de Acampamento",
         "buff.desc.campfire_heal": "Descansar próximo a uma fogueira de acampamento cura 1% de vida por segundo.",
+        "buff.title.bleed": "Sangramento",
+        "buff.desc.bleed": "Inflige Dano contínuo.",
     },
 
 

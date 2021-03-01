@@ -6,7 +6,7 @@ use super::{
 };
 
 use crate::{
-    hud::get_buff_info,
+    hud,
     i18n::Localization,
     settings::Settings,
     ui::{fonts::Fonts, ImageFrame, Tooltip, TooltipManager, Tooltipable},
@@ -16,9 +16,7 @@ use crate::{
 use client::{self, Client};
 use common::{
     combat,
-    comp::{
-        group::Role, inventory::item::MaterialStatManifest, invite::InviteKind, BuffKind, Stats,
-    },
+    comp::{group::Role, inventory::item::MaterialStatManifest, invite::InviteKind, Stats},
     uid::{Uid, UidAllocator},
 };
 use common_net::sync::WorldSyncExt;
@@ -493,7 +491,7 @@ impl<'a> Widget for Group<'a> {
                             .copied()
                             .zip(state.ids.buff_timers.iter().copied())
                             .skip(total_buff_count - buff_count)
-                            .zip(buffs.iter_active().map(get_buff_info))
+                            .zip(buffs.iter_active().map(hud::get_buff_info))
                             .for_each(|((id, timer_id), buff)| {
                                 let max_duration = buff.data.duration;
                                 let pulsating_col = Color::Rgba(1.0, 1.0, 1.0, buff_ani);
@@ -504,20 +502,7 @@ impl<'a> Widget for Group<'a> {
                                         cur.as_secs_f32() / max.as_secs_f32() * 1000.0
                                     })
                                 }) as u32; // Percentage to determine which frame of the timer overlay is displayed
-                                let buff_img = match buff.kind {
-                                    BuffKind::Regeneration { .. } => self.imgs.buff_plus_0,
-                                    BuffKind::Saturation { .. } => self.imgs.buff_saturation_0,
-                                    BuffKind::Bleeding { .. } => self.imgs.debuff_bleed_0,
-                                    BuffKind::Cursed { .. } => self.imgs.debuff_skull_0,
-                                    BuffKind::Potion { .. } => self.imgs.buff_potion_0,
-                                    BuffKind::CampfireHeal { .. } => self.imgs.buff_campfire_heal_0,
-                                    BuffKind::IncreaseMaxEnergy { .. } => {
-                                        self.imgs.buff_energyplus_0
-                                    },
-                                    BuffKind::IncreaseMaxHealth { .. } => {
-                                        self.imgs.buff_healthplus_0
-                                    },
-                                };
+                                let buff_img = hud::get_buff_image(buff.kind, &self.imgs);
                                 let buff_widget = Image::new(buff_img).w_h(15.0, 15.0);
                                 let buff_widget = if let Some(id) = prev_id {
                                     buff_widget.right_from(id, 1.0)
@@ -541,38 +526,9 @@ impl<'a> Widget for Group<'a> {
                                     )
                                     .set(id, ui);
                                 // Create Buff tooltip
-                                let title = match buff.kind {
-                                    BuffKind::Regeneration { .. } => {
-                                        localized_strings.get("buff.title.heal")
-                                    },
-                                    BuffKind::Saturation { .. } => {
-                                        localized_strings.get("buff.title.saturation")
-                                    },
-                                    BuffKind::Bleeding { .. } => {
-                                        localized_strings.get("debuff.title.bleed")
-                                    },
-                                    _ => localized_strings.get("buff.title.missing"),
-                                };
-                                let remaining_time = if current_duration.is_none() {
-                                    "Permanent".to_string()
-                                } else {
-                                    format!(
-                                        "Remaining: {:.0}s",
-                                        current_duration.unwrap().as_secs_f32()
-                                    )
-                                };
-                                let desc_txt = match buff.kind {
-                                    BuffKind::Regeneration { .. } => {
-                                        localized_strings.get("buff.desc.heal")
-                                    },
-                                    BuffKind::Saturation { .. } => {
-                                        localized_strings.get("buff.desc.saturation")
-                                    },
-                                    BuffKind::Bleeding { .. } => {
-                                        localized_strings.get("debuff.desc.bleed")
-                                    },
-                                    _ => localized_strings.get("buff.desc.missing"),
-                                };
+                                let title = hud::get_buff_title(buff.kind, localized_strings);
+                                let desc_txt = hud::get_buff_desc(buff.kind, localized_strings);
+                                let remaining_time = hud::get_buff_time(buff);
                                 let desc = format!("{}\n\n{}", desc_txt, remaining_time);
                                 Image::new(match duration_percentage as u64 {
                                     875..=1000 => self.imgs.nothing, // 8/8

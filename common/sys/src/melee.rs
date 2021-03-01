@@ -1,6 +1,6 @@
 use common::{
-    combat::AttackerInfo,
-    comp::{Body, CharacterState, Energy, Group, Health, Inventory, Melee, Ori, Pos, Scale},
+    combat::{AttackerInfo, TargetInfo},
+    comp::{Body, CharacterState, Energy, Group, Health, Inventory, Melee, Ori, Pos, Scale, Stats},
     event::{EventBus, ServerEvent},
     metrics::SysMetrics,
     span,
@@ -29,6 +29,7 @@ pub struct ReadData<'a> {
     char_states: ReadStorage<'a, CharacterState>,
     server_bus: Read<'a, EventBus<ServerEvent>>,
     metrics: ReadExpect<'a, SysMetrics>,
+    stats: ReadStorage<'a, Stats>,
 }
 
 /// This system is responsible for handling accepted inputs like moving or
@@ -114,11 +115,16 @@ impl<'a> System<'a> for Sys {
                         energy: read_data.energies.get(attacker),
                     });
 
+                    let target_info = TargetInfo {
+                        entity: target,
+                        inventory: read_data.inventories.get(target),
+                        stats: read_data.stats.get(target),
+                    };
+
                     melee_attack.attack.apply_attack(
                         target_group,
                         attacker_info,
-                        target,
-                        read_data.inventories.get(target),
+                        target_info,
                         dir,
                         is_dodge,
                         1.0,

@@ -3,6 +3,7 @@
 /// Localization for "global" English
 (
     string_map: {
+        // Buffs
         "buff.remove": "Click to remove",
         "buff.title.missing": "Missing Title",
         "buff.desc.missing": "Missing Description",
@@ -14,6 +15,13 @@
         "buff.desc.saturation": "Gain health over time from consumables.",
         "buff.title.campfire_heal": "Campfire Heal",
         "buff.desc.campfire_heal": "Resting at a campfire heals 1% per second.",
+        "buff.title.invulnerability": "Invulnerability",
+        "buff.desc.invulnerability": "You cannot be damaged by any attack.",
+        // Debuffs
+        "buff.title.bleed": "Bleeding",
+        "buff.desc.bleed": "Inflicts regular damage.",
+        "buff.title.cursed": "Cursed",
+        "buff.desc.cursed": "You are cursed.",
     },
 
 

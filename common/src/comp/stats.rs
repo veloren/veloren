@@ -23,7 +23,10 @@ impl Error for StatChangeError {}
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Stats {
     pub name: String,
+    // TODO: Make skillset a separate component, probably too heavy for something that will
+    // potentially be updated every tick (especially as more buffs are added)
     pub skill_set: SkillSet,
+    pub damage_reduction: f32,
 }
 
 impl Stats {
@@ -31,6 +34,7 @@ impl Stats {
         Self {
             name,
             skill_set: SkillSet::default(),
+            damage_reduction: 0.0,
         }
     }
 
@@ -40,6 +44,7 @@ impl Stats {
         Self {
             name: "".to_owned(),
             skill_set: SkillSet::default(),
+            damage_reduction: 0.0,
         }
     }
 }

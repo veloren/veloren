@@ -3198,3 +3198,59 @@ pub fn cr_color(combat_rating: f32) -> Color {
         _ => XP_COLOR,
     }
 }
+
+pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
+    match buff {
+        // Buffs
+        BuffKind::Regeneration { .. } => imgs.buff_plus_0,
+        BuffKind::Saturation { .. } => imgs.buff_saturation_0,
+        BuffKind::Potion { .. } => imgs.buff_potion_0,
+        BuffKind::CampfireHeal { .. } => imgs.buff_campfire_heal_0,
+        BuffKind::IncreaseMaxEnergy { .. } => imgs.buff_energyplus_0,
+        BuffKind::IncreaseMaxHealth { .. } => imgs.buff_healthplus_0,
+        BuffKind::Invulnerability => imgs.buff_invincibility_0,
+        //  Debuffs
+        BuffKind::Bleeding { .. } => imgs.debuff_bleed_0,
+        BuffKind::Cursed { .. } => imgs.debuff_skull_0,
+    }
+}
+
+pub fn get_buff_title(buff: BuffKind, localized_strings: &Localization) -> &str {
+    match buff {
+        // Buffs
+        BuffKind::Regeneration { .. } => localized_strings.get("buff.title.heal"),
+        BuffKind::Saturation { .. } => localized_strings.get("buff.title.saturation"),
+        BuffKind::Potion { .. } => localized_strings.get("buff.title.potion"),
+        BuffKind::CampfireHeal { .. } => localized_strings.get("buff.title.campfire_heal"),
+        BuffKind::IncreaseMaxHealth { .. } => localized_strings.get("buff.title.IncreaseMaxHealth"),
+        BuffKind::IncreaseMaxEnergy { .. } => localized_strings.get("buff.title.staminaup"),
+        BuffKind::Invulnerability => localized_strings.get("buff.title.invulnerability"),
+        // Debuffs
+        BuffKind::Bleeding { .. } => localized_strings.get("buff.title.bleed"),
+        BuffKind::Cursed { .. } => localized_strings.get("buff.title.cursed"),
+    }
+}
+
+pub fn get_buff_desc(buff: BuffKind, localized_strings: &Localization) -> &str {
+    match buff {
+        // Buffs
+        BuffKind::Regeneration { .. } => localized_strings.get("buff.desc.heal"),
+        BuffKind::Saturation { .. } => localized_strings.get("buff.desc.saturation"),
+        BuffKind::Potion { .. } => localized_strings.get("buff.desc.potion"),
+        BuffKind::CampfireHeal { .. } => localized_strings.get("buff.desc.campfire_heal"),
+        BuffKind::IncreaseMaxHealth { .. } => localized_strings.get("buff.desc.IncreaseMaxHealth"),
+        BuffKind::IncreaseMaxEnergy { .. } => localized_strings.get("buff.desc.IncreaseMaxEnergy"),
+        BuffKind::Invulnerability => localized_strings.get("buff.desc.invulnerability"),
+        // Debuffs
+        BuffKind::Bleeding { .. } => localized_strings.get("buff.desc.bleed"),
+        BuffKind::Cursed { .. } => localized_strings.get("buff.desc.cursed"),
+    }
+}
+
+pub fn get_buff_time(buff: BuffInfo) -> String {
+    if let Some(dur) = buff.dur {
+        format!("Remaining: {:.0}s", dur.as_secs_f32())
+    } else {
+        "Permanent".to_string()
+    }
+}
