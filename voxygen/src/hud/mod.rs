@@ -2720,9 +2720,10 @@ impl Hud {
         // Maintain slot manager
         for event in self.slot_manager.maintain(ui_widgets) {
             use comp::slot::Slot;
-            use slots::SlotKind::*;
+            use slots::{InventorySlot, SlotKind::*};
             let to_slot = |slot_kind| match slot_kind {
-                Inventory(i) => Some(Slot::Inventory(i.0)),
+                Inventory(InventorySlot { slot, ours: true }) => Some(Slot::Inventory(slot)),
+                Inventory(InventorySlot { ours: false, .. }) => None,
                 Equip(e) => Some(Slot::Equip(e)),
                 Hotbar(_) => None,
                 Trade(_) => None,
@@ -2736,26 +2737,34 @@ impl Hud {
                             slot_b: b,
                             bypass_dialog: false,
                         });
-                    } else if let (Inventory(i), Hotbar(h)) = (a, b) {
-                        self.hotbar.add_inventory_link(h, i.0);
+                    } else if let (Inventory(InventorySlot { slot, ours: true }), Hotbar(h)) =
+                        (a, b)
+                    {
+                        self.hotbar.add_inventory_link(h, slot);
                         events.push(Event::ChangeHotbarState(Box::new(self.hotbar.to_owned())));
                     } else if let (Hotbar(a), Hotbar(b)) = (a, b) {
                         self.hotbar.swap(a, b);
                         events.push(Event::ChangeHotbarState(Box::new(self.hotbar.to_owned())));
-                    } else if let (Inventory(i), Trade(_)) = (a, b) {
-                        if let Some(inventory) = inventories.get(entity) {
-                            events.push(Event::TradeAction(TradeAction::AddItem {
-                                item: i.0,
-                                quantity: i.amount(inventory).unwrap_or(1),
-                            }));
-                        }
-                    } else if let (Trade(t), Inventory(_)) = (a, b) {
-                        if let Some(inventory) = inventories.get(entity) {
-                            if let Some(invslot) = t.invslot {
-                                events.push(Event::TradeAction(TradeAction::RemoveItem {
-                                    item: invslot,
-                                    quantity: t.amount(inventory).unwrap_or(1),
+                    } else if let (Inventory(i), Trade(t)) = (a, b) {
+                        if i.ours == t.ours {
+                            if let Some(inventory) = inventories.get(t.entity) {
+                                events.push(Event::TradeAction(TradeAction::AddItem {
+                                    item: i.slot,
+                                    quantity: i.amount(inventory).unwrap_or(1),
+                                    ours: i.ours,
                                 }));
+                            }
+                        }
+                    } else if let (Trade(t), Inventory(i)) = (a, b) {
+                        if i.ours == t.ours {
+                            if let Some(inventory) = inventories.get(t.entity) {
+                                if let Some(invslot) = t.invslot {
+                                    events.push(Event::TradeAction(TradeAction::RemoveItem {
+                                        item: invslot,
+                                        quantity: t.amount(inventory).unwrap_or(1),
+                                        ours: t.ours,
+                                    }));
+                                }
                             }
                         }
                     }
@@ -2767,6 +2776,16 @@ impl Hud {
                     } else if let Hotbar(h) = from {
                         self.hotbar.clear_slot(h);
                         events.push(Event::ChangeHotbarState(Box::new(self.hotbar.to_owned())));
+                    } else if let Trade(t) = from {
+                        if let Some(inventory) = inventories.get(t.entity) {
+                            if let Some(invslot) = t.invslot {
+                                events.push(Event::TradeAction(TradeAction::RemoveItem {
+                                    item: invslot,
+                                    quantity: t.amount(inventory).unwrap_or(1),
+                                    ours: t.ours,
+                                }));
+                            }
+                        }
                     }
                 },
                 slot::Event::Used(from) => {
@@ -2839,8 +2858,13 @@ impl Hud {
             slot_manager: &mut slots::SlotManager,
             hotbar: &mut hotbar::State,
         ) {
-            if let Some(slots::SlotKind::Inventory(i)) = slot_manager.selected() {
-                hotbar.add_inventory_link(slot, i.0);
+            use slots::InventorySlot;
+            if let Some(slots::SlotKind::Inventory(InventorySlot {
+                slot: i,
+                ours: true,
+            })) = slot_manager.selected()
+            {
+                hotbar.add_inventory_link(slot, i);
                 events.push(Event::ChangeHotbarState(Box::new(hotbar.to_owned())));
                 slot_manager.idle();
             } else {

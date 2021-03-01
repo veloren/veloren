@@ -3,7 +3,10 @@ use common::{
     comp::inventory::{item::MaterialStatManifest, Inventory},
     trade::{PendingTrade, TradeAction, TradeId, TradeResult, Trades},
 };
-use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
+use common_net::{
+    msg::ServerGeneral,
+    sync::{Uid, WorldSyncExt},
+};
 use hashbrown::hash_map::Entry;
 use specs::{world::WorldExt, Entity as EcsEntity};
 use std::cmp::Ordering;
@@ -26,8 +29,17 @@ pub fn handle_process_trade_action(
                     server.notify_client(e, ServerGeneral::FinishedTrade(TradeResult::Declined))
                 });
         } else {
-            if let Some(inv) = server.state.ecs().read_component::<Inventory>().get(entity) {
-                trades.process_trade_action(trade_id, uid, action, inv);
+            {
+                let ecs = server.state.ecs();
+                let inventories = ecs.read_component::<Inventory>();
+                let get_inventory = |uid: Uid| {
+                    if let Some(entity) = ecs.entity_from_uid(uid.0) {
+                        inventories.get(entity)
+                    } else {
+                        None
+                    }
+                };
+                trades.process_trade_action(trade_id, uid, action, get_inventory);
             }
             if let Entry::Occupied(entry) = trades.trades.entry(trade_id) {
                 let parties = entry.get().parties;
