@@ -165,7 +165,7 @@ fn make_component_def(
         toolkind,
         modkind,
         stats: tool::Stats {
-            equip_time_millis: 250,
+            equip_time_secs: 0.25,
             power: if matches!(modkind, ModularComponentKind::Damage) {
                 AVERAGE_STAT_VALUE[tier]
             } else {

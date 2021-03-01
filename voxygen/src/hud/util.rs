@@ -254,7 +254,7 @@ mod tests {
         testmsm.0.insert(
             "common.items.crafting_ing.bronze_ingot".to_string(),
             Stats {
-                equip_time_millis: 0,
+                equip_time_secs: 0.0,
                 power: 3.0,
                 poise_strength: 5.0,
                 speed: 7.0,

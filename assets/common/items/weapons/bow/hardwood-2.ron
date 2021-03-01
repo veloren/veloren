@@ -5,7 +5,7 @@ ItemDef(
         kind: Bow,
         hands: Two,
         stats: Direct((
-            equip_time_millis: 400,
+            equip_time_secs: 0.4,
             power: 1.1,
             poise_strength: 0.8,
             speed: 1.1,

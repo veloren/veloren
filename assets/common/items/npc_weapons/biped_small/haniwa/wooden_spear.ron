@@ -5,7 +5,7 @@ ItemDef(
             kind: Spear,    
             hands: Two,
             stats: Direct((
-                equip_time_millis: 0,
+                equip_time_secs: 0.0,
                 power: 1.4,
                 poise_strength: 0.8,
                 speed: 1.0
