@@ -131,6 +131,9 @@ impl Vertex {
 }
 
 impl VertexTrait for Vertex {
+    // Note: I think it's u32 due to figures??
+    // potentiall optimize by splitting
+    const QUADS_INDEX: Option<wgpu::IndexFormat> = Some(wgpu::IndexFormat::Uint32);
     const STRIDE: wgpu::BufferAddress = mem::size_of::<Self>() as wgpu::BufferAddress;
 }
 

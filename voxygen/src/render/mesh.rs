@@ -42,31 +42,48 @@ impl<V: Vertex> Mesh<V> {
     pub fn push_quad(&mut self, quad: Quad<V>) {
         // A quad is composed of two triangles. The code below converts the former to
         // the latter.
+        if V::QUADS_INDEX.is_some() {
+            // 0, 1, 2, 2, 1, 3
+            // b, c, a, a, c, d
+            self.verts.push(quad.b);
+            self.verts.push(quad.c);
+            self.verts.push(quad.a);
+            self.verts.push(quad.d);
+        } else {
+            // Tri 1
+            self.verts.push(quad.a.clone());
+            self.verts.push(quad.b);
+            self.verts.push(quad.c.clone());
 
-        // Tri 1
-        self.verts.push(quad.a.clone());
-        self.verts.push(quad.b);
-        self.verts.push(quad.c.clone());
-
-        // Tri 2
-        self.verts.push(quad.c);
-        self.verts.push(quad.d);
-        self.verts.push(quad.a);
+            // Tri 2
+            self.verts.push(quad.c);
+            self.verts.push(quad.d);
+            self.verts.push(quad.a);
+        }
     }
 
     /// Overwrite a quad
     pub fn replace_quad(&mut self, index: usize, quad: Quad<V>) {
-        debug_assert!(index % 3 == 0);
-        assert!(index + 5 < self.verts.len());
-        // Tri 1
-        self.verts[index] = quad.a.clone();
-        self.verts[index + 1] = quad.b;
-        self.verts[index + 2] = quad.c.clone();
+        if V::QUADS_INDEX.is_some() {
+            debug_assert!(index % 4 == 0);
+            assert!(index + 3 < self.verts.len());
+            self.verts[index] = quad.b;
+            self.verts[index + 1] = quad.c;
+            self.verts[index + 2] = quad.a;
+            self.verts[index + 3] = quad.d;
+        } else {
+            debug_assert!(index % 3 == 0);
+            assert!(index + 5 < self.verts.len());
+            // Tri 1
+            self.verts[index] = quad.a.clone();
+            self.verts[index + 1] = quad.b;
+            self.verts[index + 2] = quad.c.clone();
 
-        // Tri 2
-        self.verts[index + 3] = quad.c;
-        self.verts[index + 4] = quad.d;
-        self.verts[index + 5] = quad.a;
+            // Tri 2
+            self.verts[index + 3] = quad.c;
+            self.verts[index + 4] = quad.d;
+            self.verts[index + 5] = quad.a;
+        }
     }
 
     /// Push the vertices of another mesh onto the end of this mesh.

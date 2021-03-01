@@ -4,6 +4,8 @@ use core::fmt;
 use std::mem;
 use vek::*;
 
+// pub const VERT_PAGE_SIZE: u32 = 256;
+
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Zeroable, Pod)]
 pub struct Vertex {
@@ -72,8 +74,71 @@ impl Vertex {
 }
 
 impl VertexTrait for Vertex {
+    const QUADS_INDEX: Option<wgpu::IndexFormat> = Some(wgpu::IndexFormat::Uint16);
     const STRIDE: wgpu::BufferAddress = mem::size_of::<Self>() as wgpu::BufferAddress;
 }
+
+/* pub fn create_verts_buffer(renderer: &mut Renderer, mut mesh: Mesh<Vertex>) -> Buffer<Vertex> {
+    renderer.ensure_sufficient_index_length::<Vertex>(VERT_PAGE_SIZE as usize);
+    // TODO: type buffer by Usage
+    Buffer::new(
+        &renderer.device,
+        wgpu::BufferUsage::STORAGE,
+        mesh.vertices(),
+    )
+    //let mut verts = mesh.vertices_mut_vec();
+    //let format = wgpu::TextureFormat::Rg32Uint;
+
+    // TODO: temp
+    //const WIDTH: u32 = 8192;
+    //let height = verts.len() as u32 / WIDTH;
+    // Fill in verts to full texture size
+    //verts.resize_with(height as usize * WIDTH as usize, Vertex::default);
+
+    /*let texture_info = wgpu::TextureDescriptor {
+        label: Some("Sprite verts"),
+        size: wgpu::Extent3d {
+            width: WIDTH,
+            height,
+            depth: 1,
+        },
+        mip_level_count: 1,
+        sample_count: 1,
+        dimension: wgpu::TextureDimension::D2,
+        format,
+        usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::COPY_DST,
+    };
+
+    let sampler_info = wgpu::SamplerDescriptor {
+        label: None,
+        address_mode_u: wgpu::AddressMode::Repeat,
+        address_mode_v: wgpu::AddressMode::Repeat,
+        address_mode_w: wgpu::AddressMode::Repeat,
+        mag_filter: wgpu::FilterMode::Nearest,
+        min_filter: wgpu::FilterMode::Nearest,
+        mipmap_filter: wgpu::FilterMode::Nearest,
+        ..Default::default()
+    };
+
+    let view_info = wgpu::TextureViewDescriptor {
+        label: None,
+        format: Some(format),
+        dimension: Some(wgpu::TextureViewDimension::D2),
+        aspect: wgpu::TextureAspect::All,
+        base_mip_level: 0,
+        level_count: None,
+        base_array_layer: 0,
+        array_layer_count: None,
+    };
+
+    renderer.create_texture_with_data_raw::<8>(
+        &texture_info,
+        &view_info,
+        &sampler_info,
+        bytemuck::cast_slice(verts),
+    )*/
+}
+*/
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Zeroable, Pod)]

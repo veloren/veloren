@@ -55,6 +55,8 @@ pub use wgpu::{AddressMode, FilterMode};
 
 pub trait Vertex: Clone + bytemuck::Pod {
     const STRIDE: wgpu::BufferAddress;
+    // Whether these types of verts use the quad index buffer for drawing them
+    const QUADS_INDEX: Option<wgpu::IndexFormat>;
 }
 
 use serde::{Deserialize, Serialize};

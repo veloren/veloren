@@ -10,6 +10,7 @@ use shaders::Shaders;
 use shadow_map::{ShadowMap, ShadowMapRenderer};
 
 use super::{
+    buffer::Buffer,
     consts::Consts,
     instances::Instances,
     mesh::Mesh,
@@ -33,6 +34,9 @@ use vek::*;
 /// of ColLight data (used for texture atlases created during greedy meshing).
 // TODO: revert to u16
 pub type ColLightInfo = (Vec<[u8; 4]>, Vec2<u32>);
+
+const QUAD_INDEX_BUFFER_U16_START_VERT_LEN: u16 = 3000;
+const QUAD_INDEX_BUFFER_U32_START_VERT_LEN: u32 = 3000;
 
 /// A type that stores all the layouts associated with this renderer.
 struct Layouts {
@@ -103,6 +107,9 @@ pub struct Renderer {
     locals: Locals,
     views: Views,
     noise_tex: Texture,
+
+    quad_index_buffer_u16: Buffer<u16>,
+    quad_index_buffer_u32: Buffer<u32>,
 
     shaders: AssetHandle<Shaders>,
 
@@ -330,6 +337,10 @@ impl Renderer {
             &depth_sampler,
         );
 
+        let quad_index_buffer_u16 =
+            create_quad_index_buffer_u16(&device, QUAD_INDEX_BUFFER_U16_START_VERT_LEN as usize);
+        let quad_index_buffer_u32 =
+            create_quad_index_buffer_u32(&device, QUAD_INDEX_BUFFER_U32_START_VERT_LEN as usize);
         let mut profiler = wgpu_profiler::GpuProfiler::new(1, queue.get_timestamp_period());
         profiler.enable_timer = mode.profiler_enabled;
         profiler.enable_debug_marker = mode.profiler_enabled;
@@ -350,6 +361,9 @@ impl Renderer {
             sampler,
             depth_sampler,
             noise_tex,
+
+            quad_index_buffer_u16,
+            quad_index_buffer_u32,
 
             shaders,
 
@@ -927,8 +941,50 @@ impl Renderer {
         Ok(instances)
     }
 
+    /// Ensure that the quad index buffer is large enough for a quad vertex
+    /// buffer with this many vertices
+    pub(super) fn ensure_sufficient_index_length<V: Vertex>(
+        &mut self,
+        // Length of the vert buffer with 4 verts per quad
+        length: usize,
+    ) {
+        match V::QUADS_INDEX {
+            Some(wgpu::IndexFormat::Uint16) => {
+                // Make sure the global quad index buffer is large enough
+                if self.quad_index_buffer_u16.len() < length {
+                    // Make sure we aren't over the max
+                    if length > u16::MAX as usize {
+                        panic!(
+                            "Vertex type: {} needs to use a larger index type, length: {}",
+                            core::any::type_name::<V>(),
+                            length
+                        );
+                    }
+                    self.quad_index_buffer_u16 = create_quad_index_buffer_u16(&self.device, length);
+                }
+            },
+            Some(wgpu::IndexFormat::Uint32) => {
+                // Make sure the global quad index buffer is large enough
+                if self.quad_index_buffer_u32.len() < length {
+                    // Make sure we aren't over the max
+                    if length > u32::MAX as usize {
+                        panic!(
+                            "More than u32::MAX({}) verts({}) for type({}) using an index buffer!",
+                            u32::MAX,
+                            length,
+                            core::any::type_name::<V>()
+                        );
+                    }
+                    self.quad_index_buffer_u32 = create_quad_index_buffer_u32(&self.device, length);
+                }
+            },
+            None => {},
+        }
+    }
+
     /// Create a new model from the provided mesh.
     pub fn create_model<V: Vertex>(&mut self, mesh: &Mesh<V>) -> Result<Model<V>, RenderError> {
+        self.ensure_sufficient_index_length::<V>(mesh.vertices().len());
         Ok(Model::new(&self.device, mesh))
     }
 
@@ -2170,4 +2226,32 @@ fn create_shader_module(
         source: wgpu::ShaderSource::SpirV(Cow::Borrowed(spv.as_binary())),
         flags: wgpu::ShaderFlags::empty(), // TODO: renable wgpu::ShaderFlags::VALIDATION,
     }))
+}
+
+fn create_quad_index_buffer_u16(device: &wgpu::Device, vert_length: usize) -> Buffer<u16> {
+    assert!(vert_length <= u16::MAX as usize);
+    let indices = [0, 1, 2, 2, 1, 3]
+        .iter()
+        .cycle()
+        .copied()
+        .take(vert_length / 4 * 6)
+        .enumerate()
+        .map(|(i, b)| (i / 6 * 4 + b) as u16)
+        .collect::<Vec<_>>();
+
+    Buffer::new(device, wgpu::BufferUsage::INDEX, &indices)
+}
+
+fn create_quad_index_buffer_u32(device: &wgpu::Device, vert_length: usize) -> Buffer<u32> {
+    assert!(vert_length <= u32::MAX as usize);
+    let indices = [0, 1, 2, 2, 1, 3]
+        .iter()
+        .cycle()
+        .copied()
+        .take(vert_length / 4 * 6)
+        .enumerate()
+        .map(|(i, b)| (i / 6 * 4 + b) as u32)
+        .collect::<Vec<_>>();
+
+    Buffer::new(device, wgpu::BufferUsage::INDEX, &indices)
 }

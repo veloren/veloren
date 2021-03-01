@@ -86,6 +86,8 @@ const float SCALE = 1.0 / 11.0;
 const float SCALE_FACTOR = pow(SCALE, 1.3) * 0.2;
 
 const int EXTRA_NEG_Z = 32768;
+//const int VERT_EXTRA_NEG_Z = 128;
+//const int VERT_PAGE_SIZE = 256;
 
 void main() {
     // vec3 inst_chunk_pos = vec3(ivec3((uvec3(inst_pos_ori) >> uvec3(0, 6, 12)) & uvec3(0x3Fu, 0x3Fu, 0xFFFFu)) - ivec3(0, 0, EXTRA_NEG_Z));

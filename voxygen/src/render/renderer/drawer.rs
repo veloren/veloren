@@ -26,6 +26,8 @@ struct RendererBorrow<'frame> {
     locals: &'frame super::locals::Locals,
     views: &'frame super::Views,
     mode: &'frame super::super::RenderMode,
+    quad_index_buffer_u16: &'frame Buffer<u16>,
+    quad_index_buffer_u32: &'frame Buffer<u32>,
 }
 
 pub struct Drawer<'frame> {
@@ -50,6 +52,8 @@ impl<'frame> Drawer<'frame> {
             locals: &renderer.locals,
             views: &renderer.views,
             mode: &renderer.mode,
+            quad_index_buffer_u16: &renderer.quad_index_buffer_u16,
+            quad_index_buffer_u32: &renderer.quad_index_buffer_u32,
         };
 
         let mut encoder =
@@ -233,6 +237,7 @@ impl<'frame> Drawer<'frame> {
                     });
 
                 render_pass.set_pipeline(&shadow_renderer.point_pipeline.pipeline);
+                set_quad_index_buffer::<terrain::Vertex>(&mut render_pass, &self.borrow);
                 render_pass.set_bind_group(0, &self.globals.bind_group, &[]);
 
                 (0../*20*/1).for_each(|point_light| {
@@ -245,7 +250,7 @@ impl<'frame> Drawer<'frame> {
                     chunks.clone().for_each(|(model, locals)| {
                         render_pass.set_bind_group(1, &locals.bind_group, &[]);
                         render_pass.set_vertex_buffer(0, model.buf().slice(..));
-                        render_pass.draw(0..model.len() as u32, 0..1);
+                        render_pass.draw_indexed(0..model.len() as u32 / 4 * 6, 0, 0..1);
                     });
                 });
             }
@@ -346,6 +351,7 @@ impl<'pass> ShadowPassDrawer<'pass> {
             .scope(self.borrow.device, "direcred_figure_shadows");
 
         render_pass.set_pipeline(&self.shadow_renderer.figure_directed_pipeline.pipeline);
+        set_quad_index_buffer::<terrain::Vertex>(&mut render_pass, &self.borrow);
 
         FigureShadowDrawer { render_pass }
     }
@@ -356,6 +362,7 @@ impl<'pass> ShadowPassDrawer<'pass> {
             .scope(self.borrow.device, "direcred_terrain_shadows");
 
         render_pass.set_pipeline(&self.shadow_renderer.terrain_directed_pipeline.pipeline);
+        set_quad_index_buffer::<terrain::Vertex>(&mut render_pass, &self.borrow);
 
         TerrainShadowDrawer { render_pass }
     }
@@ -373,7 +380,8 @@ impl<'pass_ref, 'pass: 'pass_ref> FigureShadowDrawer<'pass_ref, 'pass> {
     ) {
         self.render_pass.set_bind_group(1, &locals.bind_group, &[]);
         self.render_pass.set_vertex_buffer(0, model.buf());
-        self.render_pass.draw(0..model.len(), 0..1);
+        self.render_pass
+            .draw_indexed(0..model.len() as u32 / 4 * 6, 0, 0..1);
     }
 }
 
@@ -389,7 +397,8 @@ impl<'pass_ref, 'pass: 'pass_ref> TerrainShadowDrawer<'pass_ref, 'pass> {
     ) {
         self.render_pass.set_bind_group(1, &locals.bind_group, &[]);
         self.render_pass.set_vertex_buffer(0, model.buf().slice(..));
-        self.render_pass.draw(0..model.len() as u32, 0..1);
+        self.render_pass
+            .draw_indexed(0..model.len() as u32 / 4 * 6, 0, 0..1);
     }
 }
 
@@ -404,6 +413,7 @@ impl<'pass> FirstPassDrawer<'pass> {
         let mut render_pass = self.render_pass.scope(self.borrow.device, "skybox");
 
         render_pass.set_pipeline(&self.borrow.pipelines.skybox.pipeline);
+        set_quad_index_buffer::<skybox::Vertex>(&mut render_pass, &self.borrow);
         render_pass.set_vertex_buffer(0, model.buf().slice(..));
         render_pass.draw(0..model.len() as u32, 0..1);
     }
@@ -412,14 +422,16 @@ impl<'pass> FirstPassDrawer<'pass> {
         let mut render_pass = self.render_pass.scope(self.borrow.device, "lod_terrain");
 
         render_pass.set_pipeline(&self.borrow.pipelines.lod_terrain.pipeline);
+        set_quad_index_buffer::<lod_terrain::Vertex>(&mut render_pass, &self.borrow);
         render_pass.set_vertex_buffer(0, model.buf().slice(..));
-        render_pass.draw(0..model.len() as u32, 0..1);
+        render_pass.draw_indexed(0..model.len() as u32 / 4 * 6, 0, 0..1);
     }
 
     pub fn draw_figures(&mut self) -> FigureDrawer<'_, 'pass> {
         let mut render_pass = self.render_pass.scope(self.borrow.device, "figures");
 
         render_pass.set_pipeline(&self.borrow.pipelines.figure.pipeline);
+        set_quad_index_buffer::<terrain::Vertex>(&mut render_pass, &self.borrow);
 
         FigureDrawer { render_pass }
     }
@@ -428,6 +440,7 @@ impl<'pass> FirstPassDrawer<'pass> {
         let mut render_pass = self.render_pass.scope(self.borrow.device, "terrain");
 
         render_pass.set_pipeline(&self.borrow.pipelines.terrain.pipeline);
+        set_quad_index_buffer::<terrain::Vertex>(&mut render_pass, &self.borrow);
 
         TerrainDrawer {
             render_pass,
@@ -439,6 +452,7 @@ impl<'pass> FirstPassDrawer<'pass> {
         let mut render_pass = self.render_pass.scope(self.borrow.device, "particles");
 
         render_pass.set_pipeline(&self.borrow.pipelines.particle.pipeline);
+        set_quad_index_buffer::<particle::Vertex>(&mut render_pass, &self.borrow);
 
         ParticleDrawer { render_pass }
     }
@@ -450,6 +464,7 @@ impl<'pass> FirstPassDrawer<'pass> {
         let mut render_pass = self.render_pass.scope(self.borrow.device, "sprites");
 
         render_pass.set_pipeline(&self.borrow.pipelines.sprite.pipeline);
+        set_quad_index_buffer::<particle::Vertex>(&mut render_pass, &self.borrow);
         render_pass.set_bind_group(4, &col_lights.bind_group, &[]);
 
         SpriteDrawer { render_pass }
@@ -462,6 +477,7 @@ impl<'pass> FirstPassDrawer<'pass> {
         let mut render_pass = self.render_pass.scope(self.borrow.device, "fluid");
 
         render_pass.set_pipeline(&self.borrow.pipelines.fluid.pipeline);
+        set_quad_index_buffer::<fluid::Vertex>(&mut render_pass, &self.borrow);
         render_pass.set_bind_group(2, &waves.bind_group, &[]);
 
         FluidDrawer { render_pass }
@@ -484,7 +500,8 @@ impl<'pass_ref, 'pass: 'pass_ref> FigureDrawer<'pass_ref, 'pass> {
         self.render_pass
             .set_bind_group(3, &col_lights.bind_group, &[]);
         self.render_pass.set_vertex_buffer(0, model.buf());
-        self.render_pass.draw(0..model.len(), 0..1);
+        self.render_pass
+            .draw_indexed(0..model.len() as u32 / 4 * 6, 0, 0..1);
     }
 }
 
@@ -516,7 +533,8 @@ impl<'pass_ref, 'pass: 'pass_ref> TerrainDrawer<'pass_ref, 'pass> {
 
         self.render_pass.set_bind_group(2, &locals.bind_group, &[]); // TODO: put this in slot 3
         self.render_pass.set_vertex_buffer(0, model.buf().slice(..));
-        self.render_pass.draw(0..model.len() as u32, 0..1)
+        self.render_pass
+            .draw_indexed(0..model.len() as u32 / 4 * 6, 0, 0..1);
     }
 }
 
@@ -537,7 +555,7 @@ impl<'pass_ref, 'pass: 'pass_ref> ParticleDrawer<'pass_ref, 'pass> {
             .set_vertex_buffer(1, instances.buf().slice(..));
         self.render_pass
             // TODO: since we cast to u32 maybe this should returned by the len/count functions?
-            .draw(0..model.len() as u32, 0..instances.count() as u32);
+            .draw_indexed(0..model.len() as u32 / 4 * 6, 0, 0..instances.count() as u32);
     }
 }
 
@@ -556,6 +574,14 @@ impl<'pass_ref, 'pass: 'pass_ref> SpriteDrawer<'pass_ref, 'pass> {
         ChunkSpriteDrawer {
             render_pass: &mut self.render_pass,
         }
+        /* //self.render_pass.set_vertex_buffer(0, model.buf().slice(..));
+        self.render_pass
+            .set_vertex_buffer(0, instances.buf().slice(..));
+        self.render_pass.draw_indexed(
+            0..sprite::VERT_PAGE_SIZE / 4 * 6,
+            0,
+            0..instances.count() as u32,
+        ); */
     }
 }
 pub struct ChunkSpriteDrawer<'pass_ref, 'pass: 'pass_ref> {
@@ -573,8 +599,11 @@ impl<'pass_ref, 'pass: 'pass_ref> ChunkSpriteDrawer<'pass_ref, 'pass> {
         self.render_pass
             .set_vertex_buffer(1, instances.buf().slice(..));
         self.render_pass.set_bind_group(3, &locals.bind_group, &[]);
-        self.render_pass
-            .draw(0..model.len() as u32, 0..instances.count() as u32);
+        self.render_pass.draw_indexed(
+            0..model.len() as u32 / 4 * 6,
+            0,
+            0..instances.count() as u32,
+        );
     }
 }
 
@@ -590,7 +619,8 @@ impl<'pass_ref, 'pass: 'pass_ref> FluidDrawer<'pass_ref, 'pass> {
     ) {
         self.render_pass.set_vertex_buffer(0, model.buf().slice(..));
         self.render_pass.set_bind_group(3, &locals.bind_group, &[]);
-        self.render_pass.draw(0..model.len() as u32, 0..1);
+        self.render_pass
+            .draw_indexed(0..model.len() as u32 / 4 * 6, 0, 0..1);
     }
 }
 
@@ -627,6 +657,7 @@ impl<'pass> ThirdPassDrawer<'pass> {
     pub fn draw_ui(&mut self) -> UiDrawer<'_, 'pass> {
         let mut render_pass = self.render_pass.scope(self.borrow.device, "ui");
         render_pass.set_pipeline(&self.borrow.pipelines.ui.pipeline);
+        set_quad_index_buffer::<ui::Vertex>(&mut render_pass, &self.borrow);
 
         UiDrawer { render_pass }
     }
@@ -693,5 +724,22 @@ impl<'pass_ref, 'pass: 'pass_ref> PreparedUiDrawer<'pass_ref, 'pass> {
     pub fn draw<'data: 'pass>(&mut self, texture: &'data ui::TextureBindGroup, verts: Range<u32>) {
         self.render_pass.set_bind_group(2, &texture.bind_group, &[]);
         self.render_pass.draw(verts, 0..1);
+    }
+}
+
+fn set_quad_index_buffer<'a, V: super::super::Vertex>(
+    pass: &mut wgpu::RenderPass<'a>,
+    borrow: &RendererBorrow<'a>,
+) {
+    match V::QUADS_INDEX {
+        Some(format) => {
+            let slice = match format {
+                wgpu::IndexFormat::Uint16 => borrow.quad_index_buffer_u16.buf.slice(..),
+                wgpu::IndexFormat::Uint32 => borrow.quad_index_buffer_u32.buf.slice(..),
+            };
+
+            pass.set_index_buffer(slice, format);
+        },
+        None => {},
     }
 }

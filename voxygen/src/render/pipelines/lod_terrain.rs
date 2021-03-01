@@ -27,6 +27,7 @@ impl Vertex {
 }
 
 impl VertexTrait for Vertex {
+    const QUADS_INDEX: Option<wgpu::IndexFormat> = Some(wgpu::IndexFormat::Uint32);
     const STRIDE: wgpu::BufferAddress = mem::size_of::<Self>() as wgpu::BufferAddress;
 }
 
