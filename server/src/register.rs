@@ -15,6 +15,7 @@ use crate::{
     client::Client, login_provider::LoginProvider, metrics::PlayerMetrics, EditableSettings,
 };
 
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn handle_register_msg(
     world: &World,
     player_list: &HashMap<Uid, PlayerInfo>,
