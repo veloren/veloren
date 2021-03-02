@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Velorite Battlemage Guards",
+    description: "",
+    kind: Armor((
+        kind: Shoulder("VeloriteMage"),
+        stats: (
+            protection: Normal(17.0),
+            poise_resilience: Normal(17.0),
+        ),
+    )),
+    quality: High,
+    tags: [],
+)

@@ -1,99 +1,99 @@
 ((
     default: (
-        vox_spec: ("armor.foot.foot_none", (-2.5, -3.5, -2.0)),
+        vox_spec: ("armor.misc.foot.none", (-2.5, -3.5, -2.0)),
         color: None
     ),
     map: {
         "Dark": (
-            vox_spec: ("armor.foot.dark-0", (-2.5, -3.5, -2.0)),
+            vox_spec: ("armor.misc.foot.dark", (-2.5, -3.5, -2.0)),
             color: None
         ),
         "Assassin": (
-            vox_spec: ("armor.foot.assa", (-2.5, -3.5, -2.0)),
+            vox_spec: ("armor.assassin.foot", (-2.5, -3.5, -2.0)),
             color: None
         ),
         "Jester": (
-            vox_spec: ("armor.foot.dark_jester-elf_shoe", (-2.5, -3.0, -2.0)),
+            vox_spec: ("armor.misc.foot.dark_jester_elf", (-2.5, -3.0, -2.0)),
             color: None
         ),
-        "Plate0": (
-            vox_spec: ("armor.foot.plate-0", (-2.5, -3.5, -2.0)),
+        "Plate": (
+            vox_spec: ("armor.plate.foot", (-2.5, -3.5, -2.0)),
             color: None
         ),
-        "Leather0": (
-            vox_spec: ("armor.foot.leather-0", (-2.5, -3.5, -2.0)),
+        "Swift": (
+            vox_spec: ("armor.swift.foot", (-2.5, -3.5, -2.0)),
             color: None
         ),
-        "ClothPurple0": (
-            vox_spec: ("armor.foot.cloth_purple-0", (-2.5, -3.5, -2.0)),
+        "ClothPurple": (
+            vox_spec: ("armor.cloth_purple.foot", (-2.5, -3.5, -2.0)),
             color: None
         ),
-        "ClothBlue0": (
-            vox_spec: ("armor.foot.cloth_blue-0", (-2.5, -3.5, -2.0)),
+        "ClothBlue": (
+            vox_spec: ("armor.cloth_blue.foot", (-2.5, -3.5, -2.0)),
             color: None
         ),
-        "ClothGreen0": (
-            vox_spec: ("armor.foot.cloth_green-0", (-2.5, -3.5, -2.0)),
+        "ClothGreen": (
+            vox_spec: ("armor.cloth_green.foot", (-2.5, -3.5, -2.0)),
             color: None
         ),
-        "Sandal0": (
-            vox_spec: ("armor.foot.cloth_sandals", (-2.5, -3.5, -2.0)),
+        "Sandal": (
+            vox_spec: ("armor.misc.foot.cloth_sandal", (-2.5, -3.5, -2.0)),
             color: None
         ),
         "Cultist": (
-            vox_spec: ("armor.foot.cultist", (-2.5, -3.5, -2.0)),
+            vox_spec: ("armor.cultist.foot", (-2.5, -3.5, -2.0)),
             color: None
         ),
-        "Steel0": (
-            vox_spec: ("armor.foot.steel-0", (-2.5, -3.5, -2.0)),
+        "Steel": (
+            vox_spec: ("armor.steel.foot", (-2.5, -3.5, -2.0)),
             color: None
         ),
-        "PlateLeather": (
-            vox_spec: ("armor.foot.plate_leather", (-2.5, -3.5, -2.0)),
+        "LeatherPlate": (
+            vox_spec: ("armor.leather_plate.foot", (-2.5, -3.5, -2.0)),
             color: None
         ),
-        "Leather2": (
-            vox_spec: ("armor.foot.leather-2", (-2.5, -3.5, -2.0)),
+        "Agile": (
+            vox_spec: ("armor.agile.foot", (-2.5, -3.5, -2.0)),
             color: None
         ),
-        "JackalopeSlips": (
-            vox_spec: ("armor.foot.jackalope_slippers", (-2.5, -3.5, -2.0)),
+        "Jackalope": (
+            vox_spec: ("armor.misc.foot.jackalope", (-2.5, -3.5, -2.0)),
             color: None
         ),
         "Druid": (
-            vox_spec: ("armor.foot.druid", (-2.5, -3.5, -2.0)),
+            vox_spec: ("armor.druid.foot", (-2.5, -3.5, -2.0)),
             color: None
         ),
-        "Twig": (
-            vox_spec: ("armor.foot.twigs_foot", (-2.5, -3.5, -2.0)),
+        "Twigs": (
+            vox_spec: ("armor.twigs.foot", (-2.5, -3.5, -2.0)),
             color: None
         ),
-        "Twigsleaves": (
-            vox_spec: ("armor.foot.twigsleaves_foot", (-2.5, -3.5, -2.0)),
+        "TwigsLeaves": (
+            vox_spec: ("armor.twigsleaves.foot", (-2.5, -3.5, -2.0)),
             color: None
         ),
-        "Twigsflowers": (
-            vox_spec: ("armor.foot.twigsflowers_foot", (-2.5, -3.5, -2.0)),
+        "TwigsFlowers": (
+            vox_spec: ("armor.twigsflowers.foot", (-2.5, -3.5, -2.0)),
             color: None
         ),
         "Tarasque":(
-            vox_spec: ("armor.foot.tarasque", (-2.5, -3.5, -2.0)),
+            vox_spec: ("armor.tarasque.foot", (-2.5, -3.5, -2.0)),
             color: None
         ),
         "Bonerattler":(
-            vox_spec: ("armor.foot.bonerattler", (-2.5, -3.5, -2.0)),
+            vox_spec: ("armor.bonerattler.foot", (-2.5, -3.5, -2.0)),
             color: None
         ),
-        "VeloriteMage0": (
-          vox_spec: ("armor.foot.velorite_battlemage", (-2.5, -3.5, -2.0)),
+        "VeloriteMage": (
+          vox_spec: ("armor.velorite_battlemage.foot", (-2.5, -3.5, -2.0)),
           color: None
         ),
         "Warlord": (
-          vox_spec: ("armor.foot.warlord", (-2.5, -3.5, -2.0)),
+          vox_spec: ("armor.warlord.foot", (-2.5, -3.5, -2.0)),
           color: None
         ),
         "Warlock": (
-          vox_spec: ("armor.foot.warlock", (-2.5, -3.5, -2.0)),
+          vox_spec: ("armor.warlock.foot", (-2.5, -3.5, -2.0)),
           color: None
         ),
     },

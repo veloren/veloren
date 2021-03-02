@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Leather Plate Gloves",
+    description: "Leather adorned with steel for better protection.",
+    kind: Armor((
+        kind: Hand("LeatherPlate"),
+        stats: (
+            protection: Normal(10.0),
+            poise_resilience: Normal(15.0),
+        ),
+    )),
+    quality: Moderate,
+    tags: [],
+)

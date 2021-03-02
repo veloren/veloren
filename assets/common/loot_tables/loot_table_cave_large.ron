@@ -1,13 +1,13 @@
 [
     // Misc
-    (0.25, "common.items.armor.neck.neck_1"),
+    (0.25, "common.items.armor.misc.neck.plain_1"),
     (2.0, "common.items.crafting_ing.cloth_scraps"),
     (1.0, "common.items.crafting_ing.empty_vial"),  
     (0.1, "common.items.glider.glider_blue"),
     (0.05, "common.items.glider.glider_morpho"),
     (0.05, "common.items.glider.glider_monarch"),
     (0.05, "common.items.glider.glider_moth"),
-    (0.05, "common.items.armor.ring.ring_gold_0"),   
+    (0.05, "common.items.armor.misc.ring.gold"),   
     // swords
     (0.03, "common.items.weapons.sword.steel-0"),
     (0.03, "common.items.weapons.sword.steel-1"),

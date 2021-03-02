@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Cultist Skirt",
+    description: "Ceremonial attire used by members.",
+    kind: Armor((
+        kind: Pants("Cultist"),
+        stats: (
+            protection: Normal(24.0),
+            poise_resilience: Normal(14.0),
+        ),
+    )),
+    quality: Epic,
+    tags: [],
+)

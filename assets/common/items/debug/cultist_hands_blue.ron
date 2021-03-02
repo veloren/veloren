@@ -3,7 +3,7 @@ ItemDef(
     description: "",
     kind: Armor(
         (
-            kind: Hand("VeloriteMage0"),
+            kind: Hand("VeloriteMage"),
             stats: (
                 protection: Invincible,
                 poise_resilience: Invincible,

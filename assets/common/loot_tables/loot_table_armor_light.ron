@@ -1,27 +1,27 @@
 [
     // belts
-    (0.50, "common.items.armor.belt.leather_0"),
-    (0.50, "common.items.armor.belt.leather_2"),
+    (0.50, "common.items.armor.swift.belt"),
+    (0.50, "common.items.armor.leather.belt"),
     // chests
-    (0.50, "common.items.armor.chest.leather_0"),
-    (0.50, "common.items.armor.chest.leather_2"),
+    (0.50, "common.items.armor.swift.chest"),
+    (0.50, "common.items.armor.leather.chest"),
     // shoes
-    (0.50, "common.items.armor.foot.leather_0"),
-    (0.50, "common.items.armor.foot.leather_2"),
+    (0.50, "common.items.armor.swift.foot"),
+    (0.50, "common.items.armor.leather.foot"),
     // pants
-    (0.33, "common.items.armor.pants.leather_0"),
-    (0.33, "common.items.armor.pants.leather_2"),
-    (0.33, "common.items.armor.pants.hunting"),
+    (0.33, "common.items.armor.swift.pants"),
+    (0.33, "common.items.armor.leather.pants"),
+    (0.33, "common.items.armor.misc.pants.hunting"),
     // shoulders
-    (0.10, "common.items.armor.shoulder.leather_strips"),
-    (0.20, "common.items.armor.shoulder.leather_0"),
-    (0.20, "common.items.armor.shoulder.leather_1"),
-    (0.20, "common.items.armor.shoulder.leather_2"),
-    (0.07, "common.items.armor.shoulder.leather_iron_0"),
-    (0.07, "common.items.armor.shoulder.leather_iron_1"),
-    (0.07, "common.items.armor.shoulder.leather_iron_2"),
-    (0.07, "common.items.armor.shoulder.leather_iron_3"),
+    (0.10, "common.items.armor.misc.shoulder.leather_strip"),
+    (0.20, "common.items.armor.swift.shoulder"),
+    (0.20, "common.items.armor.leather.shoulder"),
+    (0.20, "common.items.armor.agile.shoulder"),
+    (0.07, "common.items.armor.misc.shoulder.leather_iron_0"),
+    (0.07, "common.items.armor.misc.shoulder.leather_iron_1"),
+    (0.07, "common.items.armor.misc.shoulder.leather_iron_2"),
+    (0.07, "common.items.armor.misc.shoulder.leather_iron_3"),
     //gloves
-    (0.50, "common.items.armor.hand.leather_0"),
-    (0.50, "common.items.armor.hand.leather_2"),
+    (0.50, "common.items.armor.swift.hand"),
+    (0.50, "common.items.armor.leather.hand"),
 ]

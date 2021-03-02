@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Velorite Battlemage Vest",
+    description: "",
+    kind: Armor((
+        kind: Chest("VeloriteMage"),
+        stats: (
+            protection: Normal(28.0),
+            poise_resilience: Normal(20.0),
+        ),
+    )),
+    quality: High,
+    tags: [],
+)

@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Scratched Ring",
+    description: "Barely fits your finger.",
+    kind: Armor((
+        kind: Ring("Scratched"),
+        stats: (
+            protection: Normal(0.1),
+            poise_resilience: Normal(0.0),
+        ),
+    )),
+    quality: Low,
+    tags: [],
+)

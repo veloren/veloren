@@ -78,16 +78,16 @@ impl Entity {
 
         let back = match rng.gen_range(0..5) {
             0 => Some(comp::Item::new_from_asset_expect(
-                "common.items.armor.back.leather_adventurer",
+                "common.items.armor.agile.back",
             )),
             1 => Some(comp::Item::new_from_asset_expect(
-                "common.items.npc_armor.back.backpack_0",
+                "common.items.npc_armor.back.backpack",
             )),
             2 => Some(comp::Item::new_from_asset_expect(
-                "common.items.npc_armor.back.backpack_blue_0",
+                "common.items.npc_armor.back.backpack_blue",
             )),
             3 => Some(comp::Item::new_from_asset_expect(
-                "common.items.npc_armor.back.leather_blue_0",
+                "common.items.npc_armor.back.leather_blue",
             )),
             _ => None,
         };
@@ -105,13 +105,13 @@ impl Entity {
         };
 
         let chest = Some(comp::Item::new_from_asset_expect(
-            "common.items.npc_armor.chest.leather_blue_0",
+            "common.items.npc_armor.chest.leather_blue",
         ));
         let pants = Some(comp::Item::new_from_asset_expect(
-            "common.items.npc_armor.pants.leather_blue_0",
+            "common.items.npc_armor.pants.leather_blue",
         ));
         let shoulder = Some(comp::Item::new_from_asset_expect(
-            "common.items.armor.shoulder.leather_0",
+            "common.items.armor.swift.shoulder",
         ));
 
         LoadoutBuilder::build_loadout(self.get_body(), Some(main_tool), None)

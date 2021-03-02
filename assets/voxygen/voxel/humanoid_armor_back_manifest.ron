@@ -5,47 +5,47 @@
     ),
     map: {
         "Short0": (
-            vox_spec: ("armor.back.short-0", (-5.0, -1.0, -11.0)),
+            vox_spec: ("armor.misc.back.short-0", (-5.0, -1.0, -11.0)),
             color: None
         ),
         "Admin": (
-            vox_spec: ("armor.back.admin", (-5.0, -1.0, -11.0)),
+            vox_spec: ("armor.misc.back.admin", (-5.0, -1.0, -11.0)),
             color: None
         ),
-        "DungPurp0": (
-            vox_spec: ("armor.back.dung_purp-0", (-5.0, -1.0, -14.0)),
+        "DungeonPurple": (
+            vox_spec: ("armor.misc.back.dungeon_purple", (-5.0, -1.0, -14.0)),
             color: None
         ),
         "Short1": (
-            vox_spec: ("armor.back.short-1", (-5.0, -1.0, -11.0)),
+            vox_spec: ("armor.misc.back.short-1", (-5.0, -1.0, -11.0)),
             color: None
         ),
-        "Short2": (
-            vox_spec: ("armor.back.short-2", (-5.0, -1.0, -11.0)),
+        "Agile": (
+            vox_spec: ("armor.agile.back", (-5.0, -1.0, -11.0)),
             color: None
         ),
-        "Backpack0": (
-            vox_spec: ("armor.back.backpack-0", (-7.0, -5.0, -10.0)),
+        "Backpack": (
+            vox_spec: ("armor.misc.back.backpack", (-7.0, -5.0, -10.0)),
             color: None
         ),
-        "BackpackBlue0": (
-            vox_spec: ("armor.back.backpack-grey", (-7.0, -5.0, -10.0)),
+        "BackpackBlue": (
+            vox_spec: ("armor.misc.back.backpack-grey", (-7.0, -5.0, -10.0)),
             color: Some((76, 72, 178))
         ),
-        "VeloriteMage0": (
-            vox_spec: ("armor.back.velorite_battlemage", (-5.0, -1.0, -14.0)),
+        "VeloriteMage": (
+            vox_spec: ("armor.velorite_battlemage.back", (-5.0, -1.0, -14.0)),
             color: None
         ),
-        "LeatherBlue0": (
-            vox_spec: ("armor.back.leather_blue-0", (-5.0, -1.0, -11.0)),
+        "LeatherBlue": (
+            vox_spec: ("armor.leather_blue.back", (-5.0, -1.0, -11.0)),
             color: None
         ),
         "Warlord": (
-            vox_spec: ("armor.back.warlord", (-5.0, -1.0, -14.0)),
+            vox_spec: ("armor.warlord.back", (-5.0, -1.0, -14.0)),
             color: None
         ),
         "Warlock": (
-            vox_spec: ("armor.back.warlock", (-5.0, -1.5, -15.5)),
+            vox_spec: ("armor.warlock.back", (-5.0, -1.5, -15.5)),
             color: None
         ),
     },
