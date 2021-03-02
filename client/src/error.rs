@@ -4,6 +4,7 @@ use network::{ParticipantError, StreamError};
 
 #[derive(Debug)]
 pub enum Error {
+    Kicked(String),
     NetworkErr(NetworkError),
     ParticipantErr(ParticipantError),
     StreamErr(StreamError),

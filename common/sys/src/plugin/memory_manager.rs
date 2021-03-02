@@ -1,4 +1,4 @@
-use std::sync::atomic::{AtomicI32, AtomicPtr, AtomicU32, Ordering};
+use std::sync::atomic::{AtomicPtr, AtomicU32, AtomicU64, Ordering};
 
 use serde::{de::DeserializeOwned, Serialize};
 use specs::World;
@@ -52,14 +52,14 @@ impl EcsAccessManager {
 }
 
 pub struct MemoryManager {
-    pub pointer: AtomicI32,
+    pub pointer: AtomicU64,
     pub length: AtomicU32,
 }
 
 impl Default for MemoryManager {
     fn default() -> Self {
         Self {
-            pointer: AtomicI32::new(0),
+            pointer: AtomicU64::new(0),
             length: AtomicU32::new(0),
         }
     }
@@ -74,16 +74,18 @@ impl MemoryManager {
         &self,
         object_length: u32,
         allocator: &Function,
-    ) -> Result<i32, MemoryAllocationError> {
+    ) -> Result<u64, MemoryAllocationError> {
         if self.length.load(Ordering::SeqCst) >= object_length {
             return Ok(self.pointer.load(Ordering::SeqCst));
         }
         let pointer = allocator
             .call(&[Value::I32(object_length as i32)])
             .map_err(MemoryAllocationError::CantAllocate)?;
-        let pointer = pointer[0]
-            .i32()
-            .ok_or(MemoryAllocationError::InvalidReturnType)?;
+        let pointer = super::module::from_i64(
+            pointer[0]
+                .i64()
+                .ok_or(MemoryAllocationError::InvalidReturnType)?,
+        );
         self.length.store(object_length, Ordering::SeqCst);
         self.pointer.store(pointer, Ordering::SeqCst);
         Ok(pointer)
@@ -96,8 +98,26 @@ impl MemoryManager {
         memory: &Memory,
         allocator: &Function,
         object: &T,
-    ) -> Result<(i32, u32), PluginModuleError> {
+    ) -> Result<(u64, u64), PluginModuleError> {
         self.write_bytes(
+            memory,
+            allocator,
+            &bincode::serialize(object).map_err(PluginModuleError::Encoding)?,
+        )
+    }
+
+    /// This function writes an object to the wasm memory using the allocator if
+    /// necessary using length padding.
+    ///
+    /// With length padding the first 8 bytes written are the length of the the
+    /// following slice (The object serialized).
+    pub fn write_data_as_pointer<T: Serialize>(
+        &self,
+        memory: &Memory,
+        allocator: &Function,
+        object: &T,
+    ) -> Result<u64, PluginModuleError> {
+        self.write_bytes_as_pointer(
             memory,
             allocator,
             &bincode::serialize(object).map_err(PluginModuleError::Encoding)?,
@@ -110,17 +130,41 @@ impl MemoryManager {
         &self,
         memory: &Memory,
         allocator: &Function,
-        array: &[u8],
-    ) -> Result<(i32, u32), PluginModuleError> {
-        let len = array.len();
+        bytes: &[u8],
+    ) -> Result<(u64, u64), PluginModuleError> {
+        let len = bytes.len();
         let mem_position = self
             .get_pointer(len as u32, allocator)
             .map_err(PluginModuleError::MemoryAllocation)? as usize;
         memory.view()[mem_position..mem_position + len]
             .iter()
-            .zip(array.iter())
+            .zip(bytes.iter())
             .for_each(|(cell, byte)| cell.set(*byte));
-        Ok((mem_position as i32, len as u32))
+        Ok((mem_position as u64, len as u64))
+    }
+
+    /// This function writes bytes to the wasm memory using the allocator if
+    /// necessary using length padding.
+    ///
+    /// With length padding the first 8 bytes written are the length of the the
+    /// following slice.
+    pub fn write_bytes_as_pointer(
+        &self,
+        memory: &Memory,
+        allocator: &Function,
+        bytes: &[u8],
+    ) -> Result<u64, PluginModuleError> {
+        let len = bytes.len();
+        let mem_position = self
+            .get_pointer(len as u32 + 8, allocator)
+            .map_err(PluginModuleError::MemoryAllocation)? as usize;
+        // Here we write the length as le bytes followed by the slice data itself in
+        // WASM memory
+        memory.view()[mem_position..mem_position + len + 8]
+            .iter()
+            .zip((len as u64).to_le_bytes().iter().chain(bytes.iter()))
+            .for_each(|(cell, byte)| cell.set(*byte));
+        Ok(mem_position as u64)
     }
 }
 
@@ -128,14 +172,14 @@ impl MemoryManager {
 /// converts it to an object using bincode
 pub fn read_data<T: DeserializeOwned>(
     memory: &Memory,
-    position: i32,
-    length: u32,
+    position: u64,
+    length: u64,
 ) -> Result<T, bincode::Error> {
     bincode::deserialize(&read_bytes(memory, position, length))
 }
 
 /// This function read raw bytes from memory at a position with the array length
-pub fn read_bytes(memory: &Memory, position: i32, length: u32) -> Vec<u8> {
+pub fn read_bytes(memory: &Memory, position: u64, length: u64) -> Vec<u8> {
     memory.view()[(position as usize)..(position as usize) + length as usize]
         .iter()
         .map(|x| x.get())

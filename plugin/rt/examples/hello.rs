@@ -1,3 +1,5 @@
+use std::sync::atomic::{AtomicBool, Ordering};
+
 use veloren_plugin_rt::{
     api::{event::*, Action, GameMode},
     *,
@@ -29,14 +31,12 @@ pub fn on_command_testplugin(command: ChatCommandEvent) -> Result<Vec<String>, S
     )])
 }
 
+static COUNTER: AtomicBool = AtomicBool::new(false);
+
 #[event_handler]
-pub fn on_player_join(input: PlayerJoinEvent) -> PlayerJoinResult {
-    emit_action(Action::PlayerSendMessage(
-        input.player_id,
-        format!("Welcome {} on our server", input.player_name),
-    ));
-    if input.player_name == "Cheater123" {
-        PlayerJoinResult::CloseConnection
+pub fn on_join(input: PlayerJoinEvent) -> PlayerJoinResult {
+    if COUNTER.swap(!COUNTER.load(Ordering::SeqCst), Ordering::SeqCst) {
+        PlayerJoinResult::Kick(format!("You are a cheater {:?}", input))
     } else {
         PlayerJoinResult::None
     }

@@ -38,7 +38,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Coral reefs, kelp forests, and seagrass
 - Talk animation
 - New bosses in 5 lower dungeons
-= New enemies in 5 lower dungeons
+- New enemies in 5 lower dungeons
+- Added on join event in plugins
 - Item stacking and splitting
 
 ### Changed

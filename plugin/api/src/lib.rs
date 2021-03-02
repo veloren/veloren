@@ -96,6 +96,8 @@ pub enum RetrieveResult {
 /// This trait is implement by all events and ensure type safety of FFI.
 pub trait Event: Serialize + DeserializeOwned + Send + Sync {
     type Response: Serialize + DeserializeOwned + Send + Sync;
+
+    fn get_event_name(&self) -> String;
 }
 
 /// This module contains all events from the api
@@ -138,6 +140,8 @@ pub mod event {
 
     impl Event for ChatCommandEvent {
         type Response = Result<Vec<String>, String>;
+
+        fn get_event_name(&self) -> String { format!("on_command_{}", self.command) }
     }
 
     /// This struct represent a player
@@ -162,11 +166,13 @@ pub mod event {
     #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
     pub struct PlayerJoinEvent {
         pub player_name: String,
-        pub player_id: Uid,
+        pub player_id: [u8; 16],
     }
 
     impl Event for PlayerJoinEvent {
         type Response = PlayerJoinResult;
+
+        fn get_event_name(&self) -> String { "on_join".to_owned() }
     }
 
     /// This is the return type of an `on_join` event. See [`PlayerJoinEvent`]
@@ -175,8 +181,9 @@ pub mod event {
     ///  - `CloseConnection` will kick the player.
     ///  - `None` will let the player join the server.
     #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
+    #[repr(u8)]
     pub enum PlayerJoinResult {
-        CloseConnection,
+        Kick(String),
         None,
     }
 
@@ -205,6 +212,8 @@ pub mod event {
 
     impl Event for PluginLoadEvent {
         type Response = ();
+
+        fn get_event_name(&self) -> String { "on_load".to_owned() }
     }
 
     // impl Default for PlayerJoinResult {

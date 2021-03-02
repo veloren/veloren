@@ -19,7 +19,6 @@ use std::{
 pub type EntitySyncTimer = SysTimer<entity_sync::Sys>;
 pub type GeneralMsgTimer = SysTimer<msg::general::Sys>;
 pub type PingMsgTimer = SysTimer<msg::ping::Sys>;
-pub type RegisterMsgTimer = SysTimer<msg::register::Sys>;
 pub type CharacterScreenMsgTimer = SysTimer<msg::character_screen::Sys>;
 pub type InGameMsgTimer = SysTimer<msg::in_game::Sys>;
 pub type SentinelTimer = SysTimer<sentinel::Sys>;

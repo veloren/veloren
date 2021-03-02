@@ -84,7 +84,6 @@ impl Plugin {
     pub fn execute_prepared<T>(
         &self,
         ecs: &World,
-        event_name: &str,
         event: &PreparedEventQuery<T>,
     ) -> Result<Vec<T::Response>, PluginError>
     where
@@ -93,11 +92,11 @@ impl Plugin {
         self.modules
             .iter()
             .flat_map(|module| {
-                module.try_execute(ecs, event_name, event).map(|x| {
+                module.try_execute(ecs, event).map(|x| {
                     x.map_err(|e| {
                         PluginError::PluginModuleError(
                             self.data.name.to_owned(),
-                            event_name.to_owned(),
+                            event.get_function_name().to_owned(),
                             e,
                         )
                     })
@@ -123,7 +122,6 @@ impl PluginMgr {
     pub fn execute_prepared<T>(
         &self,
         ecs: &World,
-        event_name: &str,
         event: &PreparedEventQuery<T>,
     ) -> Result<Vec<T::Response>, PluginError>
     where
@@ -132,23 +130,18 @@ impl PluginMgr {
         Ok(self
             .plugins
             .par_iter()
-            .map(|plugin| plugin.execute_prepared(ecs, event_name, event))
+            .map(|plugin| plugin.execute_prepared(ecs, event))
             .collect::<Result<Vec<_>, _>>()?
             .into_iter()
             .flatten()
             .collect())
     }
 
-    pub fn execute_event<T>(
-        &self,
-        ecs: &World,
-        event_name: &str,
-        event: &T,
-    ) -> Result<Vec<T::Response>, PluginError>
+    pub fn execute_event<T>(&self, ecs: &World, event: &T) -> Result<Vec<T::Response>, PluginError>
     where
         T: Event,
     {
-        self.execute_prepared(ecs, event_name, &PreparedEventQuery::new(event)?)
+        self.execute_prepared(ecs, &PreparedEventQuery::new(event)?)
     }
 
     pub fn from_dir<P: AsRef<Path>>(path: P) -> Result<Self, PluginError> {

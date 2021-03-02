@@ -37,8 +37,21 @@ impl HostFunctionEnvironement {
 
     /// This function is a safe interface to WASM memory that writes data to the
     /// memory returning a pointer and length
-    pub fn write_data<T: Serialize>(&self, object: &T) -> Result<(i32, u32), PluginModuleError> {
+    pub fn write_data<T: Serialize>(&self, object: &T) -> Result<(u64, u64), PluginModuleError> {
         self.memory_manager.write_data(
+            self.memory.get_ref().unwrap(),
+            self.allocator.get_ref().unwrap(),
+            object,
+        )
+    }
+
+    /// This function is a safe interface to WASM memory that writes data to the
+    /// memory returning a pointer and length
+    pub fn write_data_as_pointer<T: Serialize>(
+        &self,
+        object: &T,
+    ) -> Result<u64, PluginModuleError> {
+        self.memory_manager.write_data_as_pointer(
             self.memory.get_ref().unwrap(),
             self.allocator.get_ref().unwrap(),
             object,
@@ -49,8 +62,8 @@ impl HostFunctionEnvironement {
     /// pointer and length returning an object
     pub fn read_data<T: DeserializeOwned>(
         &self,
-        position: i32,
-        length: u32,
+        position: u64,
+        length: u64,
     ) -> Result<T, bincode::Error> {
         memory_manager::read_data(self.memory.get_ref().unwrap(), position, length)
     }
