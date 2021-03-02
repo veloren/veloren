@@ -5,7 +5,7 @@ use crate::{
         item::{Hands, ItemKind, Tool, ToolKind},
         quadruped_low, quadruped_medium, quadruped_small,
         skills::Skill,
-        theropod, Body, CharacterAbility, CharacterState, LoadoutManip, StateUpdate,
+        theropod, Body, CharacterAbility, CharacterState, InventoryAction, StateUpdate,
     },
     consts::{FRIC_GROUND, GRAVITY},
     event::{LocalEvent, ServerEvent},
@@ -395,12 +395,11 @@ pub fn attempt_swap_equipped_weapons(data: &JoinData, update: &mut StateUpdate) 
 pub fn handle_manipulate_loadout(
     data: &JoinData,
     update: &mut StateUpdate,
-    loadout_manip: LoadoutManip,
+    inv_action: InventoryAction,
 ) {
-    update.server_events.push_front(ServerEvent::InventoryManip(
-        data.entity,
-        loadout_manip.into(),
-    ));
+    update
+        .server_events
+        .push_front(ServerEvent::InventoryManip(data.entity, inv_action.into()));
 }
 
 /// Checks that player can wield the glider and updates `CharacterState` if so

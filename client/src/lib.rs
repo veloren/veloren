@@ -27,7 +27,7 @@ use common::{
         skills::Skill,
         slot::Slot,
         ChatMode, ControlAction, ControlEvent, Controller, ControllerInputs, GroupManip,
-        InventoryManip, InventoryUpdateEvent, LoadoutManip,
+        InventoryAction, InventoryEvent, InventoryUpdateEvent,
     },
     event::{EventBus, LocalEvent},
     grid::Grid,
@@ -621,24 +621,17 @@ impl Client {
     }
 
     pub fn use_slot(&mut self, slot: Slot) {
-        match slot {
-            Slot::Equip(equip) => {
-                self.control_action(ControlAction::LoadoutManip(LoadoutManip::Use(equip)))
-            },
-            Slot::Inventory(inv) => self.send_msg(ClientGeneral::ControlEvent(
-                ControlEvent::InventoryManip(InventoryManip::Use(inv)),
-            )),
-        }
+        self.control_action(ControlAction::InventoryAction(InventoryAction::Use(slot)))
     }
 
     pub fn swap_slots(&mut self, a: Slot, b: Slot) {
         match (a, b) {
-            (Slot::Equip(equip), slot) | (slot, Slot::Equip(equip)) => {
-                self.control_action(ControlAction::LoadoutManip(LoadoutManip::Swap(equip, slot)))
-            },
+            (Slot::Equip(equip), slot) | (slot, Slot::Equip(equip)) => self.control_action(
+                ControlAction::InventoryAction(InventoryAction::Swap(equip, slot)),
+            ),
             (Slot::Inventory(inv1), Slot::Inventory(inv2)) => {
-                self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InventoryManip(
-                    InventoryManip::Swap(inv1, inv2),
+                self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InventoryEvent(
+                    InventoryEvent::Swap(inv1, inv2),
                 )))
             },
         }
@@ -647,10 +640,10 @@ impl Client {
     pub fn drop_slot(&mut self, slot: Slot) {
         match slot {
             Slot::Equip(equip) => {
-                self.control_action(ControlAction::LoadoutManip(LoadoutManip::Drop(equip)))
+                self.control_action(ControlAction::InventoryAction(InventoryAction::Drop(equip)))
             },
             Slot::Inventory(inv) => self.send_msg(ClientGeneral::ControlEvent(
-                ControlEvent::InventoryManip(InventoryManip::Drop(inv)),
+                ControlEvent::InventoryEvent(InventoryEvent::Drop(inv)),
             )),
         }
     }
@@ -670,12 +663,12 @@ impl Client {
 
     pub fn split_swap_slots(&mut self, a: comp::slot::Slot, b: comp::slot::Slot) {
         match (a, b) {
-            (Slot::Equip(equip), slot) | (slot, Slot::Equip(equip)) => {
-                self.control_action(ControlAction::LoadoutManip(LoadoutManip::Swap(equip, slot)))
-            },
+            (Slot::Equip(equip), slot) | (slot, Slot::Equip(equip)) => self.control_action(
+                ControlAction::InventoryAction(InventoryAction::Swap(equip, slot)),
+            ),
             (Slot::Inventory(inv1), Slot::Inventory(inv2)) => {
-                self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InventoryManip(
-                    InventoryManip::SplitSwap(inv1, inv2),
+                self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InventoryEvent(
+                    InventoryEvent::SplitSwap(inv1, inv2),
                 )))
             },
         }
@@ -684,10 +677,10 @@ impl Client {
     pub fn split_drop_slot(&mut self, slot: comp::slot::Slot) {
         match slot {
             Slot::Equip(equip) => {
-                self.control_action(ControlAction::LoadoutManip(LoadoutManip::Drop(equip)))
+                self.control_action(ControlAction::InventoryAction(InventoryAction::Drop(equip)))
             },
             Slot::Inventory(inv) => self.send_msg(ClientGeneral::ControlEvent(
-                ControlEvent::InventoryManip(InventoryManip::SplitDrop(inv)),
+                ControlEvent::InventoryEvent(InventoryEvent::SplitDrop(inv)),
             )),
         }
     }
@@ -701,8 +694,8 @@ impl Client {
                 return;
             }
 
-            self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InventoryManip(
-                InventoryManip::Pickup(uid),
+            self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InventoryEvent(
+                InventoryEvent::Pickup(uid),
             )));
         }
     }
@@ -740,8 +733,8 @@ impl Client {
 
     pub fn craft_recipe(&mut self, recipe: &str) -> bool {
         if self.can_craft_recipe(recipe) {
-            self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InventoryManip(
-                InventoryManip::CraftRecipe(recipe.to_string()),
+            self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InventoryEvent(
+                InventoryEvent::CraftRecipe(recipe.to_string()),
             )));
             true
         } else {
@@ -1048,8 +1041,8 @@ impl Client {
     }
 
     pub fn collect_block(&mut self, pos: Vec3<i32>) {
-        self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InventoryManip(
-            InventoryManip::Collect(pos),
+        self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InventoryEvent(
+            InventoryEvent::Collect(pos),
         )));
     }
 

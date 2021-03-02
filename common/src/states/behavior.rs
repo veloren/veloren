@@ -1,8 +1,8 @@
 use crate::{
     comp::{
         item::MaterialStatManifest, Beam, Body, CharacterState, Combo, ControlAction, Controller,
-        ControllerInputs, Energy, Health, Inventory, LoadoutManip, Melee, Ori, PhysicsState, Pos,
-        StateUpdate, Stats, Vel,
+        ControllerInputs, Energy, Health, Inventory, InventoryAction, Melee, Ori, PhysicsState,
+        Pos, StateUpdate, Stats, Vel,
     },
     resources::DeltaTime,
     uid::Uid,
@@ -18,7 +18,7 @@ pub trait CharacterBehavior {
     fn behavior(&self, data: &JoinData) -> StateUpdate;
     // Impl these to provide behavior for these inputs
     fn swap_equipped_weapons(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
-    fn manipulate_loadout(&self, data: &JoinData, _loadout_manip: LoadoutManip) -> StateUpdate {
+    fn manipulate_loadout(&self, data: &JoinData, _inv_action: InventoryAction) -> StateUpdate {
         StateUpdate::from(data)
     }
     fn wield(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
@@ -32,9 +32,7 @@ pub trait CharacterBehavior {
     fn handle_event(&self, data: &JoinData, event: ControlAction) -> StateUpdate {
         match event {
             ControlAction::SwapEquippedWeapons => self.swap_equipped_weapons(data),
-            ControlAction::LoadoutManip(loadout_manip) => {
-                self.manipulate_loadout(data, loadout_manip)
-            },
+            ControlAction::InventoryAction(inv_action) => self.manipulate_loadout(data, inv_action),
             ControlAction::Wield => self.wield(data),
             ControlAction::GlideWield => self.glide_wield(data),
             ControlAction::Unwield => self.unwield(data),

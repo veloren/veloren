@@ -18,10 +18,9 @@ use vek::*;
 pub const DEFAULT_HOLD_DURATION: Duration = Duration::from_millis(200);
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub enum InventoryManip {
+pub enum InventoryEvent {
     Pickup(Uid),
     Collect(Vec3<i32>),
-    Use(InvSlotId),
     Swap(InvSlotId, InvSlotId),
     SplitSwap(InvSlotId, InvSlotId),
     Drop(InvSlotId),
@@ -30,14 +29,14 @@ pub enum InventoryManip {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
-pub enum LoadoutManip {
-    Use(EquipSlot),
+pub enum InventoryAction {
     Swap(EquipSlot, Slot),
     Drop(EquipSlot),
+    Use(Slot),
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub enum SlotManip {
+pub enum InventoryManip {
     Pickup(Uid),
     Collect(Vec3<i32>),
     Use(Slot),
@@ -48,31 +47,30 @@ pub enum SlotManip {
     CraftRecipe(String),
 }
 
-impl From<LoadoutManip> for SlotManip {
-    fn from(loadout_manip: LoadoutManip) -> Self {
-        match loadout_manip {
-            LoadoutManip::Use(equip) => Self::Use(Slot::Equip(equip)),
-            LoadoutManip::Swap(equip, slot) => Self::Swap(Slot::Equip(equip), slot),
-            LoadoutManip::Drop(equip) => Self::Drop(Slot::Equip(equip)),
+impl From<InventoryAction> for InventoryManip {
+    fn from(inv_action: InventoryAction) -> Self {
+        match inv_action {
+            InventoryAction::Use(slot) => Self::Use(slot),
+            InventoryAction::Swap(equip, slot) => Self::Swap(Slot::Equip(equip), slot),
+            InventoryAction::Drop(equip) => Self::Drop(Slot::Equip(equip)),
         }
     }
 }
 
-impl From<InventoryManip> for SlotManip {
-    fn from(inv_manip: InventoryManip) -> Self {
-        match inv_manip {
-            InventoryManip::Pickup(pickup) => Self::Pickup(pickup),
-            InventoryManip::Collect(collect) => Self::Collect(collect),
-            InventoryManip::Use(inv) => Self::Use(Slot::Inventory(inv)),
-            InventoryManip::Swap(inv1, inv2) => {
+impl From<InventoryEvent> for InventoryManip {
+    fn from(inv_event: InventoryEvent) -> Self {
+        match inv_event {
+            InventoryEvent::Pickup(pickup) => Self::Pickup(pickup),
+            InventoryEvent::Collect(collect) => Self::Collect(collect),
+            InventoryEvent::Swap(inv1, inv2) => {
                 Self::Swap(Slot::Inventory(inv1), Slot::Inventory(inv2))
             },
-            InventoryManip::SplitSwap(inv1, inv2) => {
+            InventoryEvent::SplitSwap(inv1, inv2) => {
                 Self::SplitSwap(Slot::Inventory(inv1), Slot::Inventory(inv2))
             },
-            InventoryManip::Drop(inv) => Self::Drop(Slot::Inventory(inv)),
-            InventoryManip::SplitDrop(inv) => Self::SplitDrop(Slot::Inventory(inv)),
-            InventoryManip::CraftRecipe(recipe) => Self::CraftRecipe(recipe),
+            InventoryEvent::Drop(inv) => Self::Drop(Slot::Inventory(inv)),
+            InventoryEvent::SplitDrop(inv) => Self::SplitDrop(Slot::Inventory(inv)),
+            InventoryEvent::CraftRecipe(recipe) => Self::CraftRecipe(recipe),
         }
     }
 }
@@ -95,7 +93,7 @@ pub enum ControlEvent {
     PerformTradeAction(TradeId, TradeAction),
     Mount(Uid),
     Unmount,
-    InventoryManip(InventoryManip),
+    InventoryEvent(InventoryEvent),
     GroupManip(GroupManip),
     RemoveBuff(BuffKind),
     Respawn,
@@ -104,7 +102,7 @@ pub enum ControlEvent {
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub enum ControlAction {
     SwapEquippedWeapons,
-    LoadoutManip(LoadoutManip),
+    InventoryAction(InventoryAction),
     Wield,
     GlideWield,
     Unwield,
