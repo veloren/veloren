@@ -58,15 +58,17 @@ pub fn event_handler(_args: TokenStream, item: TokenStream) -> TokenStream {
                 // Artificially force the event handler to be type-correct
                 fn force_event<E: ::veloren_plugin_rt::api::Event>(event: E, inner: fn(E, &mut PLUGIN_STATE_TYPE) -> E::Response) -> E::Response {
                     //let mut plugin_state = PLUGIN_STATE.lock().unwrap();
-                    unsafe {
+
                         assert_eq!(PLUGIN_STATE_GUARD.swap(true, std::sync::atomic::Ordering::Acquire), false);
-                        if PLUGIN_STATE.is_none() {
-                            PLUGIN_STATE = Some(PLUGIN_STATE_TYPE::default());
+                        unsafe {
+                            if PLUGIN_STATE.is_none() {
+                                PLUGIN_STATE = Some(PLUGIN_STATE_TYPE::default());
+                            }
                         }
-                        let out = inner(event, PLUGIN_STATE.as_mut().unwrap());
+                        let out = inner(event, unsafe {PLUGIN_STATE.as_mut().unwrap()});
                         PLUGIN_STATE_GUARD.store(false, std::sync::atomic::Ordering::Release);
                         out
-                    }
+
                 }
                 ::veloren_plugin_rt::write_output(&force_event(input, inner))
             }
