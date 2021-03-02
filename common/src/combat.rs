@@ -13,8 +13,8 @@ use crate::{
         },
         poise::PoiseChange,
         skills::{SkillGroupKind, SkillSet},
-        Body, Energy, EnergyChange, EnergySource, Health, HealthChange, HealthSource, Inventory,
-        Stats,
+        Body, Combo, Energy, EnergyChange, EnergySource, Health, HealthChange, HealthSource,
+        Inventory, Stats,
     },
     event::ServerEvent,
     uid::Uid,
@@ -45,6 +45,7 @@ pub struct AttackerInfo<'a> {
     pub entity: EcsEntity,
     pub uid: Uid,
     pub energy: Option<&'a Energy>,
+    pub combo: Option<&'a Combo>,
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -229,7 +230,7 @@ impl Attack {
         {
             if match &effect.requirement {
                 Some(CombatRequirement::AnyDamage) => accumulated_damage > 0.0,
-                Some(CombatRequirement::SufficientEnergy(r)) => {
+                Some(CombatRequirement::Energy(r)) => {
                     if let Some(AttackerInfo {
                         entity,
                         energy: Some(e),
@@ -248,6 +249,26 @@ impl Attack {
                         }
 
                         sufficient_energy
+                    } else {
+                        false
+                    }
+                },
+                Some(CombatRequirement::Combo(r)) => {
+                    if let Some(AttackerInfo {
+                        entity,
+                        combo: Some(c),
+                        ..
+                    }) = attacker
+                    {
+                        let sufficient_combo = c.counter() >= *r;
+                        if sufficient_combo {
+                            emit(ServerEvent::ComboChange {
+                                entity,
+                                change: -(*r as i32),
+                            });
+                        }
+
+                        sufficient_combo
                     } else {
                         false
                     }
@@ -405,7 +426,8 @@ pub enum CombatEffect {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum CombatRequirement {
     AnyDamage,
-    SufficientEnergy(f32),
+    Energy(f32),
+    Combo(u32),
 }
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]

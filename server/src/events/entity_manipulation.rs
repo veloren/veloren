@@ -676,6 +676,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
             },
             RadiusEffect::Attack(attack) => {
                 let energies = &ecs.read_storage::<comp::Energy>();
+                let combos = &ecs.read_storage::<comp::Combo>();
                 for (entity_b, pos_b, _health_b, inventory_b_maybe, stats_b_maybe) in (
                     &ecs.entities(),
                     &ecs.read_storage::<comp::Pos>(),
@@ -715,6 +716,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                                     entity,
                                     uid,
                                     energy: energies.get(entity),
+                                    combo: combos.get(entity),
                                 });
 
                         let target_info = combat::TargetInfo {

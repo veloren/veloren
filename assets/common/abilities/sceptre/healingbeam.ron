@@ -2,7 +2,7 @@ HealingBeam(
     buildup_duration: 0.25,
     recover_duration: 0.25,
     beam_duration: 1.0,
-    heal: 80,
+    heal: 40,
     tick_rate: 2.0,
     range: 25.0,
     max_angle: 1.0,

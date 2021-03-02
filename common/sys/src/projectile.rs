@@ -1,8 +1,8 @@
 use common::{
     combat::{AttackerInfo, TargetInfo},
     comp::{
-        projectile, Energy, Group, HealthSource, Inventory, Ori, PhysicsState, Pos, Projectile,
-        Stats, Vel,
+        projectile, Combo, Energy, Group, HealthSource, Inventory, Ori, PhysicsState, Pos,
+        Projectile, Stats, Vel,
     },
     event::{EventBus, ServerEvent},
     resources::DeltaTime,
@@ -30,6 +30,7 @@ pub struct ReadData<'a> {
     groups: ReadStorage<'a, Group>,
     energies: ReadStorage<'a, Energy>,
     stats: ReadStorage<'a, Stats>,
+    combos: ReadStorage<'a, Combo>,
 }
 
 /// This system is responsible for handling projectile effect triggers
@@ -110,6 +111,7 @@ impl<'a> System<'a> for Sys {
                                             entity,
                                             uid,
                                             energy: read_data.energies.get(entity),
+                                            combo: read_data.combos.get(entity),
                                         }
                                     });
 

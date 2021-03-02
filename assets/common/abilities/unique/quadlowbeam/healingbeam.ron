@@ -2,7 +2,7 @@ BasicBeam(
     buildup_duration: 0.25,
     recover_duration: 0.25,
     beam_duration: 1.0,
-    damage: 60,
+    damage: 30,
     //base_hps: 60, Don't merge until this comment is removed
     tick_rate: 2.0,
     range: 25.0,

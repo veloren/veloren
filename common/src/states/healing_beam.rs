@@ -96,9 +96,8 @@ impl CharacterBehavior for Data {
                         Some(GroupTarget::InGroup),
                         CombatEffect::Heal(self.static_data.heal),
                     )
-                    .with_requirement(CombatRequirement::SufficientEnergy(
-                        self.static_data.energy_cost,
-                    ));
+                    .with_requirement(CombatRequirement::Energy(self.static_data.energy_cost))
+                    .with_requirement(CombatRequirement::Combo(1));
                     let attack = Attack::default().with_effect(heal);
 
                     let properties = beam::Properties {
