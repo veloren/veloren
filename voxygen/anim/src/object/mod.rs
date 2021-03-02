@@ -36,7 +36,7 @@ impl Skeleton for ObjectSkeleton {
             make_bone(bone0_mat * Mat4::scaling_3d(1.0 / 11.0)),
             make_bone(Mat4::<f32>::from(self.bone1) * Mat4::scaling_3d(1.0 / 11.0)), /* Decorellated from ori */
         ];
-        Vec3::default()
+        Vec3::unit_z() * 0.5
     }
 }
 
