@@ -61,16 +61,6 @@
                 color: None
             )
         ),
-        "Leather": (
-            left: (
-                vox_spec: ("armor.leather.shoulder", (-3.6, -4.5, 0.0)),
-                color: None
-            ),
-            right: (
-                vox_spec: ("armor.leather.shoulder", (-2.6, -4.5, 0.0)),
-                color: None
-            )
-        ),
         "ClothPurple": (
             left: (
                 vox_spec: ("armor.cloth_purple.shoulder", (-3.2, -3.5, 0.0)),
