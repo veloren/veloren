@@ -167,6 +167,32 @@ impl Inventory {
         }
     }
 
+    /// Merge the stack of items at src into the stack at dst if the items are
+    /// compatible and stackable, and return whether anything was changed
+    pub fn merge_stack_into(&mut self, src: InvSlotId, dst: InvSlotId) -> bool {
+        let mut amount = None;
+        if let (Some(srcitem), Some(dstitem)) = (self.get(src), self.get(dst)) {
+            // The equality check ensures the items have the same definition, to avoid e.g.
+            // transmuting coins to diamonds, and the stackable check avoids creating a
+            // stack of swords
+            if srcitem == dstitem && srcitem.is_stackable() {
+                amount = Some(srcitem.amount());
+            }
+        }
+        if let Some(amount) = amount {
+            self.remove(src);
+            let dstitem = self
+                .get_mut(dst)
+                .expect("self.get(dst) was Some right above this");
+            dstitem
+                .increase_amount(amount)
+                .expect("already checked is_stackable");
+            true
+        } else {
+            false
+        }
+    }
+
     /// Checks if inserting item exists in given cell. Inserts an item if it
     /// exists.
     pub fn insert_or_stack_at(
@@ -213,6 +239,11 @@ impl Inventory {
     /// Get content of a slot
     pub fn get(&self, inv_slot_id: InvSlotId) -> Option<&Item> {
         self.slot(inv_slot_id).and_then(Option::as_ref)
+    }
+
+    /// Mutably get content of a slot
+    fn get_mut(&mut self, inv_slot_id: InvSlotId) -> Option<&mut Item> {
+        self.slot_mut(inv_slot_id).and_then(Option::as_mut)
     }
 
     /// Returns a reference to the item (if any) equipped in the given EquipSlot
@@ -265,6 +296,29 @@ impl Inventory {
                 item.decrease_amount(1).ok()?;
                 return_item
                     .set_amount(1)
+                    .expect("Items duplicated from a stackable item must be stackable.");
+                Some(return_item)
+            } else {
+                self.remove(inv_slot_id)
+            }
+        } else {
+            None
+        }
+    }
+
+    /// Takes half of the items from a slot in the inventory
+    pub fn take_half(
+        &mut self,
+        inv_slot_id: InvSlotId,
+        msm: &MaterialStatManifest,
+    ) -> Option<Item> {
+        if let Some(Some(item)) = self.slot_mut(inv_slot_id) {
+            if item.is_stackable() && item.amount() > 1 {
+                let mut return_item = item.duplicate(msm);
+                let returning_amount = item.amount() / 2;
+                item.decrease_amount(returning_amount).ok()?;
+                return_item
+                    .set_amount(returning_amount)
                     .expect("Items duplicated from a stackable item must be stackable.");
                 Some(return_item)
             } else {

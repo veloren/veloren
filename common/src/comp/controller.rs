@@ -23,7 +23,9 @@ pub enum InventoryManip {
     Collect(Vec3<i32>),
     Use(InvSlotId),
     Swap(InvSlotId, InvSlotId),
+    SplitSwap(InvSlotId, InvSlotId),
     Drop(InvSlotId),
+    SplitDrop(InvSlotId),
     CraftRecipe(String),
 }
 
@@ -40,7 +42,9 @@ pub enum SlotManip {
     Collect(Vec3<i32>),
     Use(Slot),
     Swap(Slot, Slot),
+    SplitSwap(Slot, Slot),
     Drop(Slot),
+    SplitDrop(Slot),
     CraftRecipe(String),
 }
 
@@ -63,7 +67,11 @@ impl From<InventoryManip> for SlotManip {
             InventoryManip::Swap(inv1, inv2) => {
                 Self::Swap(Slot::Inventory(inv1), Slot::Inventory(inv2))
             },
+            InventoryManip::SplitSwap(inv1, inv2) => {
+                Self::SplitSwap(Slot::Inventory(inv1), Slot::Inventory(inv2))
+            },
             InventoryManip::Drop(inv) => Self::Drop(Slot::Inventory(inv)),
+            InventoryManip::SplitDrop(inv) => Self::SplitDrop(Slot::Inventory(inv)),
             InventoryManip::CraftRecipe(recipe) => Self::CraftRecipe(recipe),
         }
     }
