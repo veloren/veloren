@@ -94,7 +94,13 @@ where
 
 #[derive(Clone, Copy)]
 enum ManagerState<K> {
-    Dragging(widget::Id, K, image::Id),
+    Dragging(
+        widget::Id,
+        K,
+        image::Id,
+        /// Amount of items being dragged in the stack.
+        Option<u32>,
+    ),
     Selected(widget::Id, K),
     Idle,
 }
@@ -110,6 +116,10 @@ pub enum Event<K> {
     Dragged(K, K),
     // Dragged to open space
     Dropped(K),
+    // Dropped half of the stack
+    SplitDropped(K),
+    // Dragged half of the stack
+    SplitDragged(K, K),
     // Clicked while selected
     Used(K),
 }
@@ -127,21 +137,56 @@ pub struct SlotManager<S: SumSlot> {
     // Note: could potentially be specialized for each slot if needed
     drag_img_size: Vec2<f32>,
     pub mouse_over_slot: Option<S>,
+    /* TODO(heyzoos) Will be useful for whoever works on rendering the number of items "in
+     * hand".
+     *
+     * drag_amount_id: widget::Id,
+     * drag_amount_shadow_id: widget::Id, */
+
+    /* Asset ID pointing to a font set.
+     * amount_font: font::Id, */
+
+    /* Specifies the size of the font used to display number of items held in
+     * a stack when dragging.
+     * amount_font_size: u32, */
+
+    /* Specifies how much space should be used in the margins of the item
+     * amount relative to the slot.
+     * amount_margins: Vec2<f32>, */
+
+    /* Specifies the color of the text used to display the number of items held
+     * in a stack when dragging.
+     * amount_text_color: Color, */
 }
 
 impl<S> SlotManager<S>
 where
     S: SumSlot,
 {
-    pub fn new(mut gen: widget::id::Generator, drag_img_size: Vec2<f32>) -> Self {
+    pub fn new(
+        mut gen: widget::id::Generator,
+        drag_img_size: Vec2<f32>,
+        /* TODO(heyzoos) Will be useful for whoever works on rendering the number of items "in
+         * hand". amount_font: font::Id,
+         * amount_margins: Vec2<f32>,
+         * amount_font_size: u32,
+         * amount_text_color: Color, */
+    ) -> Self {
         Self {
             state: ManagerState::Idle,
             slot_ids: Vec::new(),
             slots: Vec::new(),
             events: Vec::new(),
             drag_id: gen.next(),
-            drag_img_size,
             mouse_over_slot: None,
+            // TODO(heyzoos) Will be useful for whoever works on rendering the number of items "in
+            // hand". drag_amount_id: gen.next(),
+            // drag_amount_shadow_id: gen.next(),
+            // amount_font,
+            // amount_font_size,
+            // amount_margins,
+            // amount_text_color,
+            drag_img_size,
         }
     }
 
@@ -166,8 +211,32 @@ where
 
         // If dragging and mouse is released check if there is a slot widget under the
         // mouse
-        if let ManagerState::Dragging(_, slot, content_img) = &self.state {
+        if let ManagerState::Dragging(_, slot, content_img, drag_amount) = &self.state {
             let content_img = *content_img;
+            let drag_amount = *drag_amount;
+
+            // If we are dragging and we right click, drop half the stack
+            // on the ground or into the slot under the cursor. This only
+            // works with open slots or slots containing the same kind of
+            // item.
+
+            if drag_amount.is_some() {
+                if let Some(id) = input.widget_under_mouse {
+                    if ui.widget_input(id).clicks().right().next().is_some() {
+                        if id == ui.window {
+                            let temp_slot = *slot;
+                            self.events.push(Event::SplitDropped(temp_slot));
+                        } else if let Some(idx) = slot_ids.iter().position(|slot_id| *slot_id == id)
+                        {
+                            let (from, to) = (*slot, slots[idx]);
+                            if from != to {
+                                self.events.push(Event::SplitDragged(from, to));
+                            }
+                        }
+                    }
+                }
+            }
+
             if let mouse::ButtonPosition::Up = input.mouse.buttons.left() {
                 // Get widget under the mouse
                 if let Some(id) = input.widget_under_mouse {
@@ -186,6 +255,7 @@ where
                 // Mouse released stop dragging
                 self.state = ManagerState::Idle;
             }
+
             // Draw image of contents being dragged
             let [mouse_x, mouse_y] = input.mouse.xy;
             let size = self.drag_img_size.map(|e| e as f64).into_array();
@@ -193,6 +263,34 @@ where
                 .wh(size)
                 .xy([mouse_x, mouse_y])
                 .set(self.drag_id, ui);
+
+            // TODO(heyzoos) Will be useful for whoever works on rendering the
+            // number of items "in hand".
+            //
+            // if let Some(drag_amount) = drag_amount {
+            //     Text::new(format!("{}", drag_amount).as_str())
+            //         .parent(self.drag_id)
+            //         .font_id(self.amount_font)
+            //         .font_size(self.amount_font_size)
+            //         .bottom_right_with_margins_on(
+            //             self.drag_id,
+            //             self.amount_margins.x as f64,
+            //             self.amount_margins.y as f64,
+            //         )
+            //         .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
+            //         .set(self.drag_amount_shadow_id, ui);
+            //     Text::new(format!("{}", drag_amount).as_str())
+            //         .parent(self.drag_id)
+            //         .font_id(self.amount_font)
+            //         .font_size(self.amount_font_size)
+            //         .bottom_right_with_margins_on(
+            //             self.drag_id,
+            //             self.amount_margins.x as f64,
+            //             self.amount_margins.y as f64,
+            //         )
+            //         .color(self.amount_text_color)
+            //         .set(self.drag_amount_id, ui);
+            // }
         }
 
         std::mem::replace(&mut self.events, Vec::new())
@@ -204,6 +302,7 @@ where
         slot: S,
         ui: &conrod_core::Ui,
         content_img: Option<Vec<image::Id>>,
+        drag_amount: Option<u32>,
     ) -> Interaction {
         // Add to list of slots
         self.slot_ids.push(widget);
@@ -212,7 +311,7 @@ where
         let filled = content_img.is_some();
         // If the slot is no longer filled deselect it or cancel dragging
         match &self.state {
-            ManagerState::Selected(id, _) | ManagerState::Dragging(id, _, _)
+            ManagerState::Selected(id, _) | ManagerState::Dragging(id, _, _, _)
                 if *id == widget && !filled =>
             {
                 self.state = ManagerState::Idle;
@@ -223,7 +322,7 @@ where
         // If this is the selected/dragged widget make sure the slot value is up to date
         match &mut self.state {
             ManagerState::Selected(id, stored_slot)
-            | ManagerState::Dragging(id, stored_slot, _)
+            | ManagerState::Dragging(id, stored_slot, _, _)
                 if *id == widget =>
             {
                 *stored_slot = slot
@@ -278,24 +377,26 @@ where
                     // If something is selected, deselect
                     self.state = ManagerState::Idle;
                 },
-                ManagerState::Dragging(_, _, _) => {},
+                ManagerState::Dragging(_, _, _, _) => {},
             }
         }
 
         // If not dragging and there is a drag event on this slot start dragging
         if input.drags().left().next().is_some()
-            && !matches!(self.state, ManagerState::Dragging(_, _, _))
+            && !matches!(self.state, ManagerState::Dragging(_, _, _, _))
         {
             // Start dragging if widget is filled
-            if let Some(img) = content_img {
-                self.state = ManagerState::Dragging(widget, slot, img[0]);
+            if let Some(images) = content_img {
+                if !images.is_empty() {
+                    self.state = ManagerState::Dragging(widget, slot, images[0], drag_amount);
+                }
             }
         }
 
         // Determine whether this slot is being interacted with
         match self.state {
             ManagerState::Selected(id, _) if id == widget => Interaction::Selected,
-            ManagerState::Dragging(id, _, _) if id == widget => Interaction::Dragging,
+            ManagerState::Dragging(id, _, _, _) if id == widget => Interaction::Dragging,
             _ => Interaction::None,
         }
     }
@@ -488,7 +589,13 @@ where
         let content_images = state.cached_images.as_ref().map(|c| c.1.clone());
         // Get whether this slot is selected
         let interaction = self.slot_manager.map_or(Interaction::None, |m| {
-            m.update(id, slot_key.into(), ui, content_images.clone())
+            m.update(
+                id,
+                slot_key.into(),
+                ui,
+                content_images.clone(),
+                slot_key.amount(content_source),
+            )
         });
         // No content if it is being dragged
         let content_images = if let Interaction::Dragging = interaction {

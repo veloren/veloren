@@ -5,7 +5,8 @@ use vek::{Rgb, Vec3};
 
 use common::{
     comp::{
-        self, item,
+        self,
+        item::{self, MaterialStatManifest},
         slot::{self, Slot},
     },
     consts::MAX_PICKUP_RANGE,
@@ -429,17 +430,77 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Slo
             if let Some(pos) = ecs.read_storage::<comp::Pos>().get(entity) {
                 if let Some(mut inventory) = ecs.write_storage::<comp::Inventory>().get_mut(entity)
                 {
-                    dropped_items.extend(inventory.swap(a, b).into_iter().map(|x| {
-                        (
-                            *pos,
-                            state
-                                .read_component_copied::<comp::Ori>(entity)
-                                .unwrap_or_default(),
-                            x,
-                        )
-                    }));
+                    let mut merged_stacks = false;
+
+                    // If both slots have items and we're attemping to drag from one stack
+                    // into another, stack the items.
+                    if let (Slot::Inventory(slot_a), Slot::Inventory(slot_b)) = (a, b) {
+                        merged_stacks |= inventory.merge_stack_into(slot_a, slot_b);
+                    }
+
+                    // If the stacks weren't mergable carry out a swap.
+                    if !merged_stacks {
+                        dropped_items.extend(inventory.swap(a, b).into_iter().map(|x| {
+                            (
+                                *pos,
+                                state
+                                    .read_component_copied::<comp::Ori>(entity)
+                                    .unwrap_or_default(),
+                                x,
+                            )
+                        }));
+                    }
                 }
             }
+
+            state.write_component(
+                entity,
+                comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Swapped),
+            );
+        },
+
+        comp::SlotManip::SplitSwap(slot, target) => {
+            let msm = state.ecs().read_resource::<MaterialStatManifest>();
+            let mut inventories = state.ecs().write_storage::<comp::Inventory>();
+            let mut inventory = if let Some(inventory) = inventories.get_mut(entity) {
+                inventory
+            } else {
+                error!(
+                    ?entity,
+                    "Can't manipulate inventory, entity doesn't have one"
+                );
+                return;
+            };
+
+            // If both slots have items and we're attemping to split from one stack
+            // into another, ensure that they are the same type of item. If they are
+            // the same type do nothing, as you don't want to overwrite the existing item.
+
+            if let (Slot::Inventory(source_inv_slot_id), Slot::Inventory(target_inv_slot_id)) =
+                (slot, target)
+            {
+                if let Some(source_item) = inventory.get(source_inv_slot_id) {
+                    if let Some(target_item) = inventory.get(target_inv_slot_id) {
+                        if source_item != target_item {
+                            return;
+                        }
+                    }
+                }
+            }
+
+            let item = match slot {
+                Slot::Inventory(slot) => inventory.take_half(slot, &msm),
+                Slot::Equip(_) => None,
+            };
+
+            if let Some(item) = item {
+                if let Slot::Inventory(target) = target {
+                    inventory.insert_or_stack_at(target, item).ok();
+                }
+            }
+            drop(inventory);
+            drop(inventories);
+            drop(msm);
 
             state.write_component(
                 entity,
@@ -474,6 +535,37 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Slo
                     item,
                 ));
             }
+            state.write_component(
+                entity,
+                comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Dropped),
+            );
+        },
+
+        comp::SlotManip::SplitDrop(slot) => {
+            let msm = state.ecs().read_resource::<MaterialStatManifest>();
+            let item = match slot {
+                Slot::Inventory(slot) => state
+                    .ecs()
+                    .write_storage::<comp::Inventory>()
+                    .get_mut(entity)
+                    .and_then(|mut inv| inv.take_half(slot, &msm)),
+                Slot::Equip(_) => None,
+            };
+
+            // FIXME: We should really require the drop and write to be atomic!
+            if let (Some(mut item), Some(pos)) =
+                (item, state.ecs().read_storage::<comp::Pos>().get(entity))
+            {
+                item.put_in_world();
+                dropped_items.push((
+                    *pos,
+                    state
+                        .read_component_copied::<comp::Ori>(entity)
+                        .unwrap_or_default(),
+                    item,
+                ));
+            }
+            drop(msm);
             state.write_component(
                 entity,
                 comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Dropped),

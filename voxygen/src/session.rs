@@ -1136,9 +1136,67 @@ impl PlayState for SessionState {
                             self.client.borrow_mut().swap_slots(slot_a, slot_b);
                         }
                     },
+                    HudEvent::SplitSwapSlots {
+                        slot_a,
+                        slot_b,
+                        bypass_dialog,
+                    } => {
+                        let mut move_allowed = true;
+                        if !bypass_dialog {
+                            if let Some(inventory) = self
+                                .client
+                                .borrow()
+                                .state()
+                                .ecs()
+                                .read_storage::<comp::Inventory>()
+                                .get(self.client.borrow().entity())
+                            {
+                                match (slot_a, slot_b) {
+                                    (Slot::Inventory(inv_slot), Slot::Equip(equip_slot))
+                                    | (Slot::Equip(equip_slot), Slot::Inventory(inv_slot)) => {
+                                        if !inventory.can_swap(inv_slot, equip_slot) {
+                                            move_allowed = false;
+                                        } else {
+                                            let slot_deficit =
+                                                inventory.free_after_swap(equip_slot, inv_slot);
+                                            if slot_deficit < 0 {
+                                                self.hud.set_prompt_dialog(
+                                                    PromptDialogSettings::new(
+                                                        format!(
+                                                            "This will result in dropping {} \
+                                                             item(s) on the ground. Are you sure?",
+                                                            slot_deficit.abs()
+                                                        ),
+                                                        HudEvent::SwapSlots {
+                                                            slot_a,
+                                                            slot_b,
+                                                            bypass_dialog: true,
+                                                        },
+                                                        None,
+                                                    ),
+                                                );
+                                                move_allowed = false;
+                                            }
+                                        }
+                                    },
+                                    _ => {},
+                                }
+                            }
+                        };
+                        if move_allowed {
+                            self.client.borrow_mut().split_swap_slots(slot_a, slot_b);
+                        }
+                    },
                     HudEvent::DropSlot(x) => {
                         let mut client = self.client.borrow_mut();
                         client.drop_slot(x);
+                        if let comp::slot::Slot::Equip(comp::slot::EquipSlot::Lantern) = x {
+                            client.disable_lantern();
+                        }
+                    },
+                    HudEvent::SplitDropSlot(x) => {
+                        let mut client = self.client.borrow_mut();
+                        client.split_drop_slot(x);
                         if let comp::slot::Slot::Equip(comp::slot::EquipSlot::Lantern) = x {
                             client.disable_lantern();
                         }

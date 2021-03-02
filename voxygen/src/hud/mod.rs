@@ -391,7 +391,13 @@ pub enum Event {
         slot_b: comp::slot::Slot,
         bypass_dialog: bool,
     },
+    SplitSwapSlots {
+        slot_a: comp::slot::Slot,
+        slot_b: comp::slot::Slot,
+        bypass_dialog: bool,
+    },
     DropSlot(comp::slot::Slot),
+    SplitDropSlot(comp::slot::Slot),
     ChangeHotbarState(Box<HotbarState>),
     TradeAction(TradeAction),
     Ability3(bool),
@@ -769,7 +775,15 @@ impl Hud {
         let hotbar_state =
             HotbarState::new(global_state.profile.get_hotbar_slots(server, character_id));
 
-        let slot_manager = slots::SlotManager::new(ui.id_generator(), Vec2::broadcast(40.0));
+        let slot_manager = slots::SlotManager::new(
+            ui.id_generator(),
+            Vec2::broadcast(40.0)
+            // TODO(heyzoos) Will be useful for whoever works on rendering the number of items "in hand".
+            // fonts.cyri.conrod_id,
+            // Vec2::new(1.0, 1.0),
+            // fonts.cyri.scale(12),
+            // TEXT_COLOR,
+        );
 
         Self {
             ui,
@@ -2786,6 +2800,31 @@ impl Hud {
                                 }));
                             }
                         }
+                    }
+                },
+                slot::Event::SplitDropped(from) => {
+                    // Drop item
+                    if let Some(from) = to_slot(from) {
+                        events.push(Event::SplitDropSlot(from));
+                    } else if let Hotbar(h) = from {
+                        self.hotbar.clear_slot(h);
+                        events.push(Event::ChangeHotbarState(Box::new(self.hotbar.to_owned())));
+                    }
+                },
+                slot::Event::SplitDragged(a, b) => {
+                    // Swap between slots
+                    if let (Some(a), Some(b)) = (to_slot(a), to_slot(b)) {
+                        events.push(Event::SplitSwapSlots {
+                            slot_a: a,
+                            slot_b: b,
+                            bypass_dialog: false,
+                        });
+                    } else if let (Inventory(i), Hotbar(h)) = (a, b) {
+                        self.hotbar.add_inventory_link(h, i.slot);
+                        events.push(Event::ChangeHotbarState(Box::new(self.hotbar.to_owned())));
+                    } else if let (Hotbar(a), Hotbar(b)) = (a, b) {
+                        self.hotbar.swap(a, b);
+                        events.push(Event::ChangeHotbarState(Box::new(self.hotbar.to_owned())));
                     }
                 },
                 slot::Event::Used(from) => {

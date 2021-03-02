@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Talk animation
 - New bosses in 5 lower dungeons
 = New enemies in 5 lower dungeons
+- Item stacking and splitting
 
 ### Changed
 

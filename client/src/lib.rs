@@ -668,6 +668,30 @@ impl Client {
 
     pub fn is_dead(&self) -> bool { self.current::<comp::Health>().map_or(false, |h| h.is_dead) }
 
+    pub fn split_swap_slots(&mut self, a: comp::slot::Slot, b: comp::slot::Slot) {
+        match (a, b) {
+            (Slot::Equip(equip), slot) | (slot, Slot::Equip(equip)) => {
+                self.control_action(ControlAction::LoadoutManip(LoadoutManip::Swap(equip, slot)))
+            },
+            (Slot::Inventory(inv1), Slot::Inventory(inv2)) => {
+                self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InventoryManip(
+                    InventoryManip::SplitSwap(inv1, inv2),
+                )))
+            },
+        }
+    }
+
+    pub fn split_drop_slot(&mut self, slot: comp::slot::Slot) {
+        match slot {
+            Slot::Equip(equip) => {
+                self.control_action(ControlAction::LoadoutManip(LoadoutManip::Drop(equip)))
+            },
+            Slot::Inventory(inv) => self.send_msg(ClientGeneral::ControlEvent(
+                ControlEvent::InventoryManip(InventoryManip::SplitDrop(inv)),
+            )),
+        }
+    }
+
     pub fn pick_up(&mut self, entity: EcsEntity) {
         // Get the health component from the entity
 
