@@ -1,15 +1,11 @@
-BasicBeam(
+HealingBeam(
     buildup_duration: 0.25,
     recover_duration: 0.25,
     beam_duration: 1.0,
-    base_hps: 80,
-    base_dps: 0,
+    heal: 80,
     tick_rate: 2.0,
     range: 25.0,
     max_angle: 1.0,
     lifesteal_eff: 0.0,
-    energy_regen: 0,
     energy_cost: 50,
-    energy_drain: 0,
-    orientation_behavior: Normal,
 )

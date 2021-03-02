@@ -14,6 +14,7 @@ pub mod dash_melee;
 pub mod equipping;
 pub mod glide;
 pub mod glide_wield;
+pub mod healing_beam;
 pub mod idle;
 pub mod leap_melee;
 pub mod repeater_ranged;

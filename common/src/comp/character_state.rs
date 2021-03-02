@@ -83,6 +83,8 @@ pub enum CharacterState {
     BasicBeam(basic_beam::Data),
     /// Creates an aura that persists as long as you are actively casting
     CastAura(cast_aura::Data),
+    /// A directed beam that heals targets in range
+    HealingBeam(healing_beam::Data),
 }
 
 impl CharacterState {
@@ -103,6 +105,7 @@ impl CharacterState {
                 | CharacterState::Shockwave(_)
                 | CharacterState::BasicBeam(_)
                 | CharacterState::CastAura(_)
+                | CharacterState::HealingBeam(_)
         )
     }
 
@@ -125,6 +128,7 @@ impl CharacterState {
                 | CharacterState::Shockwave(_)
                 | CharacterState::BasicBeam(_)
                 | CharacterState::CastAura(_)
+                | CharacterState::HealingBeam(_)
         )
     }
 
@@ -145,6 +149,7 @@ impl CharacterState {
                 | CharacterState::Stunned(_)
                 | CharacterState::Wielding
                 | CharacterState::Talk
+                | CharacterState::HealingBeam(_)
         )
     }
 

@@ -304,6 +304,7 @@ impl<'a> System<'a> for Sys {
                     CharacterState::Shockwave(data) => data.handle_event(&j, action),
                     CharacterState::BasicBeam(data) => data.handle_event(&j, action),
                     CharacterState::CastAura(data) => data.handle_event(&j, action),
+                    CharacterState::HealingBeam(data) => data.handle_event(&j, action),
                 };
                 local_emitter.append(&mut state_update.local_events);
                 server_emitter.append(&mut state_update.server_events);
@@ -344,6 +345,7 @@ impl<'a> System<'a> for Sys {
                 CharacterState::Shockwave(data) => data.behavior(&j),
                 CharacterState::BasicBeam(data) => data.behavior(&j),
                 CharacterState::CastAura(data) => data.behavior(&j),
+                CharacterState::HealingBeam(data) => data.behavior(&j),
             };
 
             local_emitter.append(&mut state_update.local_events);

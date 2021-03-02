@@ -14,7 +14,6 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
-use vek::Vec3;
 
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug, Serialize, Deserialize)]
 pub enum CharacterAbilityType {
@@ -217,14 +216,12 @@ pub enum CharacterAbility {
         buildup_duration: f32,
         recover_duration: f32,
         beam_duration: f32,
-        base_hps: f32,
-        base_dps: f32,
+        damage: f32,
         tick_rate: f32,
         range: f32,
         max_angle: f32,
         lifesteal_eff: f32,
         energy_regen: f32,
-        energy_cost: f32,
         energy_drain: f32,
         orientation_behavior: basic_beam::MovementBehavior,
     },
@@ -235,6 +232,16 @@ pub enum CharacterAbility {
         targets: combat::GroupTarget,
         aura: aura::AuraBuffConstructor,
         range: f32,
+        energy_cost: f32,
+    },
+    HealingBeam {
+        buildup_duration: f32,
+        recover_duration: f32,
+        beam_duration: f32,
+        heal: f32,
+        tick_rate: f32,
+        range: f32,
+        max_angle: f32,
         energy_cost: f32,
     },
 }
@@ -481,16 +488,13 @@ impl CharacterAbility {
             BasicBeam {
                 ref mut buildup_duration,
                 ref mut recover_duration,
-                ref mut base_hps,
-                ref mut base_dps,
+                ref mut damage,
                 ref mut tick_rate,
                 ..
             } => {
                 *buildup_duration /= speed;
                 *recover_duration /= speed;
-                // hps and dps adjusted by speed as they are normalized by tick rate already
-                *base_hps *= power * speed;
-                *base_dps *= power * speed;
+                *damage *= power;
                 *tick_rate *= speed;
             },
             CastAura {
@@ -503,6 +507,18 @@ impl CharacterAbility {
                 *buildup_duration /= speed;
                 *recover_duration /= speed;
                 aura.strength *= power;
+            },
+            HealingBeam {
+                ref mut buildup_duration,
+                ref mut recover_duration,
+                ref mut heal,
+                ref mut tick_rate,
+                ..
+            } => {
+                *buildup_duration /= speed;
+                *recover_duration /= speed;
+                *heal *= power;
+                *tick_rate *= speed;
             },
         }
         self
@@ -521,8 +537,15 @@ impl CharacterAbility {
             | ChargedMelee { energy_cost, .. }
             | ChargedRanged { energy_cost, .. }
             | Shockwave { energy_cost, .. }
-            | BasicBeam { energy_cost, .. }
+            | HealingBeam { energy_cost, .. }
             | CastAura { energy_cost, .. } => *energy_cost as u32,
+            BasicBeam { energy_drain, .. } => {
+                if *energy_drain > f32::EPSILON {
+                    1
+                } else {
+                    0
+                }
+            },
             BasicBlock | Boost { .. } | ComboMelee { .. } => 0,
         }
     }
@@ -922,14 +945,14 @@ impl CharacterAbility {
                         *projectile = projectile.modified_projectile(power, regen, range, 1_f32);
                     },
                     BasicBeam {
-                        ref mut base_dps,
+                        ref mut damage,
                         ref mut range,
                         ref mut energy_drain,
                         ref mut beam_duration,
                         ..
                     } => {
                         if let Ok(Some(level)) = skillset.skill_level(Staff(FDamage)) {
-                            *base_dps *= 1.3_f32.powi(level.into());
+                            *damage *= 1.3_f32.powi(level.into());
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Staff(FRange)) {
                             let range_mod = 1.25_f32.powi(level.into());
@@ -970,8 +993,8 @@ impl CharacterAbility {
                 }
             },
             Some(ToolKind::Sceptre) => {
-                use skills::SceptreSkill::*;
-                match self {
+                //use skills::SceptreSkill::*;
+                /*match self {
                     BasicBeam {
                         ref mut base_hps,
                         ref mut base_dps,
@@ -1036,7 +1059,7 @@ impl CharacterAbility {
                         }
                     },
                     _ => {},
-                }
+                }*/
             },
             None => {
                 use skills::RollSkill::*;
@@ -1441,14 +1464,12 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 buildup_duration,
                 recover_duration,
                 beam_duration,
-                base_hps,
-                base_dps,
+                damage,
                 tick_rate,
                 range,
                 max_angle,
                 lifesteal_eff,
                 energy_regen,
-                energy_cost,
                 energy_drain,
                 orientation_behavior,
             } => CharacterState::BasicBeam(basic_beam::Data {
@@ -1456,21 +1477,18 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
                     recover_duration: Duration::from_secs_f32(*recover_duration),
                     beam_duration: Duration::from_secs_f32(*beam_duration),
-                    base_hps: *base_hps,
-                    base_dps: *base_dps,
+                    damage: *damage,
                     tick_rate: *tick_rate,
                     range: *range,
                     max_angle: *max_angle,
                     lifesteal_eff: *lifesteal_eff,
                     energy_regen: *energy_regen,
-                    energy_cost: *energy_cost,
                     energy_drain: *energy_drain,
                     ability_info,
                     orientation_behavior: *orientation_behavior,
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
-                offset: Vec3::zero(),
             }),
             CharacterAbility::CastAura {
                 buildup_duration,
@@ -1488,6 +1506,30 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                     targets: *targets,
                     aura: *aura,
                     range: *range,
+                    ability_info,
+                },
+                timer: Duration::default(),
+                stage_section: StageSection::Buildup,
+            }),
+            CharacterAbility::HealingBeam {
+                buildup_duration,
+                recover_duration,
+                beam_duration,
+                heal,
+                tick_rate,
+                range,
+                max_angle,
+                energy_cost,
+            } => CharacterState::HealingBeam(healing_beam::Data {
+                static_data: healing_beam::StaticData {
+                    buildup_duration: Duration::from_secs_f32(*buildup_duration),
+                    recover_duration: Duration::from_secs_f32(*recover_duration),
+                    beam_duration: Duration::from_secs_f32(*beam_duration),
+                    heal: *heal,
+                    tick_rate: *tick_rate,
+                    range: *range,
+                    max_angle: *max_angle,
+                    energy_cost: *energy_cost,
                     ability_info,
                 },
                 timer: Duration::default(),
