@@ -9,6 +9,7 @@ mod group;
 mod hotbar;
 mod img_ids;
 mod item_imgs;
+mod item_info;
 mod map;
 mod minimap;
 mod overhead;
@@ -37,6 +38,7 @@ use esc_menu::EscMenu;
 use group::Group;
 use img_ids::Imgs;
 use item_imgs::ItemImgs;
+use item_info::ItemInfo;
 use map::Map;
 use minimap::MiniMap;
 use popup::Popup;
@@ -263,6 +265,7 @@ widget_ids! {
         crafting_window,
         settings_window,
         group_window,
+        item_info,
 
         // Free look indicator
         free_look_txt,
@@ -903,7 +906,8 @@ impl Hud {
     ) -> Vec<Event> {
         span!(_guard, "update_layout", "Hud::update_layout");
         let mut events = std::mem::replace(&mut self.events, Vec::new());
-        let (ref mut ui_widgets, ref mut tooltip_manager) = self.ui.set_widgets();
+        let (ref mut ui_widgets, ref mut item_tooltip_manager, ref mut tooltip_manager) = &mut self.ui.set_widgets();
+        //let (ref mut ui_item_widgets, ref mut item_tooltip_manager) = &mut self.ui.set_item_widgets();
         // pulse time for pulsating elements
         self.pulse = self.pulse + dt.as_secs_f32();
         // FPS
@@ -1338,6 +1342,12 @@ impl Hud {
                     &mut self.ids.overitems,
                     &mut ui_widgets.widget_id_generator(),
                 );
+
+                let overitem_id2 = overitem_walker.next(
+                    &mut self.ids.overitems,
+                    &mut ui_widgets.widget_id_generator(),
+                );
+
                 let ingame_pos = pos.0 + Vec3::unit_z() * 1.2;
 
                 let text = if item.amount() > 1 {
@@ -1346,9 +1356,12 @@ impl Hud {
                     item.name().to_string()
                 };
 
+                let quality = get_quality_col(item);
+
                 // Item
                 overitem::Overitem::new(
                     &text,
+                    &quality,
                     &distance,
                     &self.fonts,
                     &global_state.settings.controls,
@@ -1356,6 +1369,19 @@ impl Hud {
                 .x_y(0.0, 100.0)
                 .position_ingame(ingame_pos)
                 .set(overitem_id, ui_widgets);
+
+                item_info::ItemInfo::new(
+                    client,
+                    &self.imgs,
+                    &self.item_imgs,
+                    &self.fonts,
+                    self.pulse,
+                    i18n,
+                    item,
+                    &msm,
+                )
+                .x_y(0.0, 100.0)
+                .set(overitem_id2, ui_widgets);
             }
 
             let speech_bubbles = &self.speech_bubbles;
@@ -2239,6 +2265,7 @@ impl Hud {
                 //&controller,
                 &self.hotbar,
                 tooltip_manager,
+                item_tooltip_manager,
                 &mut self.slot_manager,
                 i18n,
                 &ability_map,
@@ -2262,6 +2289,7 @@ impl Hud {
                     &self.fonts,
                     &self.rot_imgs,
                     tooltip_manager,
+                    item_tooltip_manager,
                     &mut self.slot_manager,
                     self.pulse,
                     i18n,

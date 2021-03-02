@@ -206,6 +206,18 @@ impl Loadout {
             .or_else(|| first.map(|x| x.equip_slot))
     }
 
+    /// Returns all items currently equipped that an item of the given ItemKind
+    /// could replace
+    pub(super) fn equipped_items_of_kind(
+        &self,
+        item_kind: ItemKind,
+    ) -> impl Iterator<Item = &Item> {
+        self.slots
+            .iter()
+            .filter(move |s| s.equip_slot.can_hold(&item_kind))
+            .filter_map(|s| s.slot.as_ref())
+    }
+
     /// Returns the `InvSlot` for a given `LoadoutSlotId`
     pub(super) fn inv_slot(&self, loadout_slot_id: LoadoutSlotId) -> Option<&InvSlot> {
         self.slots

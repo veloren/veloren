@@ -12,7 +12,7 @@ use crate::{
     ui::{
         fonts::Fonts,
         slot::{ContentSize, SlotMaker},
-        ImageFrame, Tooltip, TooltipManager, Tooltipable,
+        ImageFrame, Tooltip, TooltipManager, Tooltipable, ItemTooltip, ItemTooltipManager, ItemTooltipable,
     },
 };
 use client::Client;
@@ -451,6 +451,7 @@ pub struct Bag<'a> {
     common: widget::CommonBuilder,
     rot_imgs: &'a ImgsRot,
     tooltip_manager: &'a mut TooltipManager,
+    item_tooltip_manager: &'a mut ItemTooltipManager,
     slot_manager: &'a mut SlotManager,
     pulse: f32,
     localized_strings: &'a Localization,
@@ -471,6 +472,7 @@ impl<'a> Bag<'a> {
         fonts: &'a Fonts,
         rot_imgs: &'a ImgsRot,
         tooltip_manager: &'a mut TooltipManager,
+        item_tooltip_manager: &'a mut ItemTooltipManager,
         slot_manager: &'a mut SlotManager,
         pulse: f32,
         localized_strings: &'a Localization,
@@ -489,6 +491,7 @@ impl<'a> Bag<'a> {
             common: widget::CommonBuilder::default(),
             rot_imgs,
             tooltip_manager,
+            item_tooltip_manager,
             slot_manager,
             pulse,
             localized_strings,
@@ -561,6 +564,25 @@ impl<'a> Widget for Bag<'a> {
 
         // Tooltips
         let item_tooltip = Tooltip::new({
+            // Edge images [t, b, r, l]
+            // Corner images [tr, tl, br, bl]
+            let edge = &self.rot_imgs.tt_side;
+            let corner = &self.rot_imgs.tt_corner;
+            ImageFrame::new(
+                [edge.cw180, edge.none, edge.cw270, edge.cw90],
+                [corner.none, corner.cw270, corner.cw90, corner.cw180],
+                Color::Rgba(0.08, 0.07, 0.04, 1.0),
+                5.0,
+            )
+        })
+        .title_font_size(self.fonts.cyri.scale(15))
+        .parent(ui.window)
+        .desc_font_size(self.fonts.cyri.scale(12))
+        .font_id(self.fonts.cyri.conrod_id)
+        .desc_text_color(TEXT_COLOR);
+
+        // Tooltips
+        let item_tooltip2 = ItemTooltip::new({
             // Edge images [t, b, r, l]
             // Corner images [tr, tl, br, bl]
             let edge = &self.rot_imgs.tt_side;
@@ -816,11 +838,11 @@ impl<'a> Widget for Bag<'a> {
                 .mid_bottom_with_margin_on(state.ids.neck_slot, -95.0)
                 .with_icon(self.imgs.chest_bg, Vec2::new(64.0, 42.0), Some(UI_MAIN))
                 .filled_slot(filled_slot)
-                .with_tooltip(
-                    self.tooltip_manager,
+                .with_item_tooltip(
+                    self.item_tooltip_manager,
                     title,
                     &*desc,
-                    &item_tooltip,
+                    &item_tooltip2,
                     chest_q_col,
                 )
                 .set(state.ids.chest_slot, ui);

@@ -11,7 +11,7 @@ use crate::{
     ui::{
         fonts::Fonts,
         slot::{ContentSize, SlotMaker},
-        ImageFrame, Tooltip, TooltipManager, Tooltipable,
+        ImageFrame, Tooltip, TooltipManager, Tooltipable, ItemTooltip, ItemTooltipManager, ItemTooltipable,
     },
     window::GameInput,
     GlobalState,
@@ -142,6 +142,7 @@ pub struct Skillbar<'a> {
     // controller: &'a ControllerInputs,
     hotbar: &'a hotbar::State,
     tooltip_manager: &'a mut TooltipManager,
+    item_tooltip_manager: &'a mut ItemTooltipManager,
     slot_manager: &'a mut slots::SlotManager,
     localized_strings: &'a Localization,
     pulse: f32,
@@ -168,6 +169,7 @@ impl<'a> Skillbar<'a> {
         // controller: &'a ControllerInputs,
         hotbar: &'a hotbar::State,
         tooltip_manager: &'a mut TooltipManager,
+        item_tooltip_manager: &'a mut ItemTooltipManager,
         slot_manager: &'a mut slots::SlotManager,
         localized_strings: &'a Localization,
         ability_map: &'a AbilityMap,
@@ -189,6 +191,7 @@ impl<'a> Skillbar<'a> {
             // controller,
             hotbar,
             tooltip_manager,
+            item_tooltip_manager,
             slot_manager,
             localized_strings,
             ability_map,
@@ -481,6 +484,25 @@ impl<'a> Widget for Skillbar<'a> {
         .desc_font_size(self.fonts.cyri.scale(12))
         .font_id(self.fonts.cyri.conrod_id)
         .desc_text_color(TEXT_COLOR);
+
+        let item_tooltip2 = ItemTooltip::new({
+            // Edge images [t, b, r, l]
+            // Corner images [tr, tl, br, bl]
+            let edge = &self.rot_imgs.tt_side;
+            let corner = &self.rot_imgs.tt_corner;
+            ImageFrame::new(
+                [edge.cw180, edge.none, edge.cw270, edge.cw90],
+                [corner.none, corner.cw270, corner.cw90, corner.cw180],
+                Color::Rgba(0.08, 0.07, 0.04, 1.0),
+                5.0,
+            )
+        })
+        .title_font_size(self.fonts.cyri.scale(15))
+        .parent(ui.window)
+        .desc_font_size(self.fonts.cyri.scale(12))
+        .font_id(self.fonts.cyri.conrod_id)
+        .desc_text_color(TEXT_COLOR);
+
         // Helper
         let tooltip_text = |slot| {
             content_source
@@ -543,7 +565,7 @@ impl<'a> Widget for Skillbar<'a> {
             .filled_slot(self.imgs.skillbar_slot)
             .bottom_left_with_margins_on(state.ids.frame, 0.0, 0.0);
         if let Some((title, desc)) = tooltip_text(hotbar::Slot::One) {
-            slot.with_tooltip(self.tooltip_manager, title, desc, &item_tooltip, TEXT_COLOR)
+            slot.with_item_tooltip(self.item_tooltip_manager, title, desc, &item_tooltip2, TEXT_COLOR)
                 .set(state.ids.slot1, ui);
         } else {
             slot.set(state.ids.slot1, ui);

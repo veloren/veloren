@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::{cmp::Ordering, ops::Sub};
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ArmorKind {
@@ -26,12 +27,12 @@ impl Armor {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
-pub struct Stats {
-    protection: Protection,
-    poise_resilience: Protection,
+pub struct Stats<Protection> {
+    pub protection: Protection,
+    pub poise_resilience: Protection,
 }
 
-impl Stats {
+impl Stats<Protection> {
     // DO NOT USE UNLESS YOU KNOW WHAT YOU ARE DOING
     // Added for csv import of stats
     pub fn new(protection: Protection, poise_resilience: Protection) -> Self {
@@ -42,16 +43,52 @@ impl Stats {
     }
 }
 
+impl Sub<Stats<Protection>> for Stats<Protection> {
+    type Output = Self;
+
+    fn sub(self, other: Self) -> Self::Output {
+        Self {
+            protection: self.protection - other.protection,
+            poise_resilience: self.poise_resilience - other.poise_resilience,
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Protection {
     Invincible,
     Normal(f32),
 }
 
+impl Sub<Protection> for Protection {
+    type Output = Self;
+
+    fn sub(self, other: Self) -> Self::Output {
+        let diff = match (self, other) {
+            (Protection::Invincible, Protection::Normal(_)) => f32::INFINITY,
+            (Protection::Invincible, Protection::Invincible) => 0_f32,
+            (Protection::Normal(_), Protection::Invincible) => -f32::INFINITY,
+            (Protection::Normal(a), Protection::Normal(b)) => a - b,
+        };
+        Protection::Normal(diff)
+    }
+}
+
+impl PartialOrd for Protection {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        match (*self, *other) {
+            (Protection::Invincible, Protection::Invincible) => Some(Ordering::Equal),
+            (Protection::Invincible, _) => Some(Ordering::Less),
+            (_, Protection::Invincible) => Some(Ordering::Greater),
+            (Protection::Normal(a), Protection::Normal(b)) => f32::partial_cmp(&a, &b),
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Armor {
     pub kind: ArmorKind,
-    pub stats: Stats,
+    pub stats: Stats<Protection>,
 }
 
 impl Armor {
