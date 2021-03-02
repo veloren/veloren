@@ -42,21 +42,21 @@
     //Light Armour
     // belts
     (0.50, "common.items.armor.swift.belt"),
-    (0.50, "common.items.armor.leather.belt"),
+    (0.50, "common.items.armor.agile.belt"),
     // chests
     (0.50, "common.items.armor.swift.chest"),
-    (0.50, "common.items.armor.leather.chest"),
+    (0.50, "common.items.armor.agile.chest"),
     // shoes
     (0.50, "common.items.armor.swift.foot"),
-    (0.50, "common.items.armor.leather.foot"),
+    (0.50, "common.items.armor.agile.foot"),
     // pants
     (0.33, "common.items.armor.swift.pants"),
-    (0.33, "common.items.armor.leather.pants"),
+    (0.33, "common.items.armor.agile.pants"),
     (0.33, "common.items.armor.misc.pants.hunting"),
     // shoulders
     (0.6, "common.items.armor.misc.shoulder.leather_strip"),
     (0.4, "common.items.armor.swift.shoulder"),
-    (0.4, "common.items.armor.leather.shoulder"),
+    (0.4, "common.items.armor.agile.shoulder"),
     (0.4, "common.items.armor.misc.shoulder.leather_3"),
     (0.3, "common.items.armor.misc.shoulder.leather_iron_0"),
     (0.3, "common.items.armor.misc.shoulder.leather_iron_1"),
@@ -64,7 +64,7 @@
     (0.3, "common.items.armor.misc.shoulder.leather_iron_3"),
     //gloves
     (0.50, "common.items.armor.swift.hand"),
-    (0.50, "common.items.armor.leather.hand"),    
+    (0.50, "common.items.armor.agile.hand"),    
     //backpack
     (0.001, "common.items.armor.misc.back.backpack"),
     (0.1, "common.items.armor.misc.bag.heavy_seabag"),

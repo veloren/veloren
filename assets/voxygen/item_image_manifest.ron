@@ -1257,11 +1257,6 @@
         "voxel.armor.swift.shoulder",
         (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
     ),
-    //Leather Armor
-    Armor(Shoulder("Leather")): VoxTrans(
-        "voxel.armor.leather.shoulder",
-        (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
-    ),
     //Agile Armor
     Armor(Chest("Agile")): VoxTrans(
         "voxel.armor.agile.chest",
