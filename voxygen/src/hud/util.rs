@@ -47,7 +47,7 @@ pub fn item_text<'a>(
         )),
         ItemKind::Glider(_glider) => Cow::Owned(glider_desc(item.description())),
         ItemKind::Consumable { effect, .. } => {
-            Cow::Owned(consumable_desc(Some(effect), item.description()))
+            Cow::Owned(consumable_desc(effect, item.description()))
         },
         ItemKind::Throwable { .. } => Cow::Owned(throwable_desc(item.description())),
         ItemKind::Utility { .. } => Cow::Owned(utility_desc(item.description())),
@@ -86,72 +86,70 @@ fn modular_component_desc(
 }
 fn glider_desc(desc: &str) -> String { format!("Glider\n\n{}\n\n<Right-Click to use>", desc) }
 
-fn consumable_desc(maybe_effects: Option<&Vec<Effect>>, desc: &str) -> String {
+fn consumable_desc(effects: &[Effect], desc: &str) -> String {
     // TODO: localization
     let mut description = "Consumable".to_string();
 
-    if let Some(effects) = maybe_effects {
-        for effect in effects {
-            if let Effect::Buff(buff) = effect {
-                let strength = buff.data.strength * 0.1;
-                let dur_secs = match buff.data.duration {
-                    Some(dur_secs) => dur_secs.as_secs_f32(),
-                    None => 0.0,
-                };
+    for effect in effects {
+        if let Effect::Buff(buff) = effect {
+            let strength = buff.data.strength * 0.1;
+            let dur_secs = match buff.data.duration {
+                Some(dur_secs) => dur_secs.as_secs_f32(),
+                None => 0.0,
+            };
 
-                let str_total = {
-                    if dur_secs > 0.0 {
-                        strength * dur_secs
-                    } else {
-                        strength
+            let str_total = {
+                if dur_secs > 0.0 {
+                    strength * dur_secs
+                } else {
+                    strength
+                }
+            };
+
+            let buff_desc = match buff.kind {
+                BuffKind::Saturation { .. }
+                | BuffKind::Regeneration { .. }
+                | BuffKind::Potion { .. } => {
+                    format!("Restores {} Health", str_total)
+                },
+                BuffKind::IncreaseMaxEnergy { .. } => {
+                    format!("Raises Maximum Stamina by {}", strength)
+                },
+                BuffKind::IncreaseMaxHealth { .. } => {
+                    format!("Raises Maximum Health by {}", strength)
+                },
+                _ => String::new(),
+            };
+
+            if buff_desc.is_empty() {
+                continue;
+            }
+
+            write!(&mut description, "\n\n{}", buff_desc).unwrap();
+
+            // The Potion buff has no real duration
+            if let BuffKind::Potion { .. } = buff.kind {
+                continue;
+            }
+
+            let dur_desc = {
+                if dur_secs > 0.0 {
+                    match buff.kind {
+                        BuffKind::Saturation { .. } | BuffKind::Regeneration { .. } => {
+                            format!("over {} seconds", dur_secs)
+                        },
+                        BuffKind::IncreaseMaxEnergy | BuffKind::IncreaseMaxHealth { .. } => {
+                            format!("for {} seconds", dur_secs)
+                        },
+                        _ => String::new(),
                     }
-                };
-
-                let buff_desc = match buff.kind {
-                    BuffKind::Saturation { .. }
-                    | BuffKind::Regeneration { .. }
-                    | BuffKind::Potion { .. } => {
-                        format!("Restores {} Health", str_total)
-                    },
-                    BuffKind::IncreaseMaxEnergy { .. } => {
-                        format!("Raises Maximum Stamina by {}", strength)
-                    },
-                    BuffKind::IncreaseMaxHealth { .. } => {
-                        format!("Raises Maximum Health by {}", strength)
-                    },
-                    _ => String::new(),
-                };
-
-                if buff_desc.is_empty() {
-                    continue;
+                } else {
+                    "every second".to_string()
                 }
+            };
 
-                write!(&mut description, "\n\n{}", buff_desc).unwrap();
-
-                // The Potion buff has no real duration
-                if let BuffKind::Potion { .. } = buff.kind {
-                    continue;
-                }
-
-                let dur_desc = {
-                    if dur_secs > 0.0 {
-                        match buff.kind {
-                            BuffKind::Saturation { .. } | BuffKind::Regeneration { .. } => {
-                                format!("over {} seconds", dur_secs)
-                            },
-                            BuffKind::IncreaseMaxEnergy | BuffKind::IncreaseMaxHealth { .. } => {
-                                format!("for {} seconds", dur_secs)
-                            },
-                            _ => String::new(),
-                        }
-                    } else {
-                        "every second".to_string()
-                    }
-                };
-
-                if !dur_desc.is_empty() {
-                    write!(&mut description, " {}", dur_desc).unwrap();
-                }
+            if !dur_desc.is_empty() {
+                write!(&mut description, " {}", dur_desc).unwrap();
             }
         }
     }
@@ -306,7 +304,7 @@ mod tests {
 
         assert_eq!(
             "Consumable\n\nmushrooms\n\n<Right-Click to use>",
-            consumable_desc(None, item_description)
+            consumable_desc(&[], item_description)
         );
     }
 
