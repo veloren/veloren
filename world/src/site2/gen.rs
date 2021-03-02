@@ -1,3 +1,4 @@
+use super::*;
 use common::{
     terrain::Block,
     store::{Id, Store},
@@ -26,7 +27,8 @@ impl Fill {
     fn contains_at(&self, tree: &Store<Primitive>, prim: Id<Primitive>, pos: Vec3<i32>) -> bool {
         // Custom closure because vek's impl of `contains_point` is inclusive :(
         let aabb_contains = |aabb: Aabb<i32>, pos: Vec3<i32>| (aabb.min.x..aabb.max.x).contains(&pos.x)
-            && (aabb.min.y..aabb.max.y).contains(&pos.y);
+            && (aabb.min.y..aabb.max.y).contains(&pos.y)
+            && (aabb.min.z..aabb.max.z).contains(&pos.z);
 
         match &tree[prim] {
             Primitive::Empty => false,
@@ -40,8 +42,8 @@ impl Fill {
                     .reduce_max() as f32 / (inset as f32) < 1.0 - ((pos.z - aabb.min.z) as f32 + 0.5) / (aabb.max.z - aabb.min.z) as f32
             },
 
-            Primitive::And(a, b) => self.contains_at(tree, *a, pos) & self.contains_at(tree, *b, pos),
-            Primitive::Or(a, b) => self.contains_at(tree, *a, pos) | self.contains_at(tree, *b, pos),
+            Primitive::And(a, b) => self.contains_at(tree, *a, pos) && self.contains_at(tree, *b, pos),
+            Primitive::Or(a, b) => self.contains_at(tree, *a, pos) || self.contains_at(tree, *b, pos),
             Primitive::Xor(a, b) => self.contains_at(tree, *a, pos) ^ self.contains_at(tree, *b, pos),
         }
     }
@@ -68,15 +70,16 @@ impl Fill {
 pub trait Structure {
     fn render<F: FnMut(Primitive) -> Id<Primitive>, G: FnMut(Fill)>(
         &self,
+        site: &Site,
         prim: F,
         fill: G,
     ) {}
 
     // Generate a primitive tree and fills for this structure
-    fn render_collect(&self) -> (Store<Primitive>, Vec<Fill>) {
+    fn render_collect(&self, site: &Site) -> (Store<Primitive>, Vec<Fill>) {
         let mut tree = Store::default();
         let mut fills = Vec::new();
-        let root = self.render(|p| tree.insert(p), |f| fills.push(f));
+        let root = self.render(site, |p| tree.insert(p), |f| fills.push(f));
         (tree, fills)
     }
 }

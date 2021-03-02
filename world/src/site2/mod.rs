@@ -437,7 +437,7 @@ impl Site {
 
         for plot in plots_to_render {
             let (prim_tree, fills) = match &self.plots[plot].kind {
-                PlotKind::House(house) => house.render_collect(),
+                PlotKind::House(house) => house.render_collect(self),
                 _ => continue,
             };
 
