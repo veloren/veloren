@@ -1,8 +1,8 @@
 use common::{
-    combat::AttackerInfo,
+    combat::{AttackerInfo, TargetInfo},
     comp::{
         Beam, BeamSegment, Body, Energy, Group, Health, HealthSource, Inventory, Last, Ori, Pos,
-        Scale,
+        Scale, Stats,
     },
     event::{EventBus, ServerEvent},
     resources::{DeltaTime, Time},
@@ -33,6 +33,7 @@ pub struct ReadData<'a> {
     inventories: ReadStorage<'a, Inventory>,
     groups: ReadStorage<'a, Group>,
     energies: ReadStorage<'a, Energy>,
+    stats: ReadStorage<'a, Stats>,
 }
 
 /// This system is responsible for handling beams that heal or do damage
@@ -157,11 +158,16 @@ impl<'a> System<'a> for Sys {
                                 energy: read_data.energies.get(entity),
                             });
 
+                    let target_info = TargetInfo {
+                        entity: target,
+                        inventory: read_data.inventories.get(target),
+                        stats: read_data.stats.get(target),
+                    };
+
                     beam_segment.properties.attack.apply_attack(
                         target_group,
                         attacker_info,
-                        target,
-                        read_data.inventories.get(target),
+                        target_info,
                         ori.look_dir(),
                         false,
                         1.0,

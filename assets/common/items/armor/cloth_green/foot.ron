@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Green Linen Boots",
+    description: "Cobbled rough fabric boots, dyed green.",
+    kind: Armor((
+        kind: Foot("ClothGreen"),
+        stats: (
+            protection: Normal(0.0),
+            poise_resilience: Normal(0.0),
+        ),
+    )),
+    quality: Common,
+    tags: [ClothItem],
+)

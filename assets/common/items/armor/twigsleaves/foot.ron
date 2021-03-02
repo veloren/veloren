@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Leafy Boots",
+    description: "Leaves cover the magically entwined twigs to provide simple protection from the elements.",
+    kind: Armor((
+        kind: Foot("TwigsLeaves"),
+        stats: (
+            protection: Normal(3.0),
+            poise_resilience: Normal(2.0),
+        ),
+    )),
+    quality: Moderate,
+    tags: [],
+)

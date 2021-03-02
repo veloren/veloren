@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Purple Linen Wrists",
+    description: "Rough cloth bracelets provide a stylish fashion statement, dyed purple.",
+    kind: Armor((
+        kind: Hand("ClothPurple"),
+        stats: (
+            protection: Normal(0.0),
+            poise_resilience: Normal(0.0),
+        ),
+    )),
+    quality: Common,
+    tags: [ClothItem],
+)

@@ -554,8 +554,8 @@ Protección
         "buff.title.campfire_heal": "Curación de fogata",
         "buff.desc.campfire_heal": "Descansar en una fogata recupera 1% por segundo.",
         // Debuffs
-        "debuff.title.bleed": "Sangrando",
-        "debuff.desc.bleed": "Inflinge daño regularmente.",
+        "buff.title.bleed": "Sangrando",
+        "buff.desc.bleed": "Inflinge daño regularmente.",
 
 
     },

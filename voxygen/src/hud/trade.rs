@@ -6,6 +6,7 @@ use super::{
     TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
 };
 use crate::{
+    hud::bag::{BackgroundIds, InventoryScroller},
     i18n::Localization,
     ui::{
         fonts::Fonts,
@@ -28,10 +29,12 @@ use conrod_core::{
     widget::{self, Button, Image, Rectangle, State as ConrodState, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, UiCell, Widget, WidgetCommon,
 };
+use specs::Entity as EcsEntity;
 use vek::*;
 
 pub struct State {
     ids: Ids,
+    bg_ids: BackgroundIds,
 }
 
 widget_ids! {
@@ -49,6 +52,7 @@ widget_ids! {
         phase_indicator,
         accept_button,
         decline_button,
+        inventory_scroller,
     }
 }
 
@@ -157,6 +161,7 @@ impl<'a> Trade<'a> {
         let inventories = self.client.inventories();
         let uid = trade.parties[who];
         let entity = self.client.state().ecs().entity_from_uid(uid.0)?;
+        let ours = entity == self.client.entity();
         // TODO: update in accordence with https://gitlab.com/veloren/veloren/-/issues/960
         let inventory = inventories.get(entity)?;
 
@@ -215,13 +220,15 @@ impl<'a> Trade<'a> {
                 index,
                 quantity,
                 invslot: Some(k),
+                ours,
+                entity,
             })
             .collect();
 
         if matches!(trade.phase(), TradePhase::Mutate) {
-            self.phase1_itemwidget(state, ui, inventory, who, &tradeslots);
+            self.phase1_itemwidget(state, ui, inventory, who, ours, entity, name, &tradeslots);
         } else {
-            self.phase2_itemwidget(state, ui, inventory, who, &tradeslots);
+            self.phase2_itemwidget(state, ui, inventory, who, ours, entity, &tradeslots);
         }
 
         None
@@ -233,6 +240,9 @@ impl<'a> Trade<'a> {
         ui: &mut UiCell<'_>,
         inventory: &Inventory,
         who: usize,
+        ours: bool,
+        entity: EcsEntity,
+        name: String,
         tradeslots: &[TradeSlot],
     ) {
         let item_tooltip = Tooltip::new({
@@ -252,6 +262,28 @@ impl<'a> Trade<'a> {
         .desc_font_size(self.fonts.cyri.scale(12))
         .font_id(self.fonts.cyri.conrod_id)
         .desc_text_color(TEXT_COLOR);
+
+        if !ours {
+            InventoryScroller::new(
+                self.imgs,
+                self.item_imgs,
+                self.fonts,
+                self.tooltip_manager,
+                self.slot_manager,
+                self.pulse,
+                self.localized_strings,
+                false,
+                true,
+                self.msm,
+                false,
+                &item_tooltip,
+                name,
+                false,
+                &inventory,
+                &state.bg_ids,
+            )
+            .set(state.ids.inventory_scroller, ui);
+        }
 
         let mut slot_maker = SlotMaker {
             empty_slot: self.imgs.inv_slot,
@@ -289,6 +321,8 @@ impl<'a> Trade<'a> {
                 index: i,
                 quantity: 0,
                 invslot: None,
+                ours,
+                entity,
             });
             // Slot
             let slot_widget = slot_maker
@@ -334,6 +368,8 @@ impl<'a> Trade<'a> {
         ui: &mut UiCell<'_>,
         inventory: &Inventory,
         who: usize,
+        ours: bool,
+        entity: EcsEntity,
         tradeslots: &[TradeSlot],
     ) {
         if state.ids.inv_textslots.len() < 2 * MAX_TRADE_SLOTS {
@@ -348,6 +384,8 @@ impl<'a> Trade<'a> {
                 index: i,
                 quantity: 0,
                 invslot: None,
+                ours,
+                entity,
             });
             let itemname = slot
                 .invslot
@@ -435,8 +473,12 @@ impl<'a> Widget for Trade<'a> {
     type State = State;
     type Style = ();
 
-    fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
+    fn init_state(&self, mut id_gen: widget::id::Generator) -> Self::State {
         State {
+            bg_ids: BackgroundIds {
+                bg: id_gen.next(),
+                bg_frame: id_gen.next(),
+            },
             ids: Ids::new(id_gen),
         }
     }

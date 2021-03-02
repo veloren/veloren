@@ -170,7 +170,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                         if item.item_definition_id() == record.get(0).expect("No file path in csv?")
                         {
                             let kind = tool.kind;
-                            let equip_time_millis: u32 = record
+                            let equip_time_secs: f32 = record
                                 .get(8)
                                 .expect(&format!(
                                     "Error unwrapping equip time for {:?}",
@@ -227,7 +227,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                             let tool = comp::item::tool::Tool::new(
                                 kind,
                                 hands,
-                                equip_time_millis,
+                                equip_time_secs,
                                 power,
                                 poise_strength,
                                 speed,

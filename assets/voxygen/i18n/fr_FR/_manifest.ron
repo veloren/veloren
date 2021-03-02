@@ -533,8 +533,8 @@ Protection
         "buff.title.campfire_heal": "Soin autour d'un feu de camp",
         "buff.desc.campfire_heal": "Se reposer à côté d'un feu de camp restaure 1% de santé par seconde.",
         // Debuffs
-        "debuff.title.bleed": "Saignement",
-        "debuff.desc.bleed": "Inflige régulièrement des dommages.",
+        "buff.title.bleed": "Saignement",
+        "buff.desc.bleed": "Inflige régulièrement des dommages.",
     },
 
 

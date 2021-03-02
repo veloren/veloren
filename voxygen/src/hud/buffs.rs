@@ -3,7 +3,7 @@ use super::{
     BUFF_COLOR, DEBUFF_COLOR, TEXT_COLOR,
 };
 use crate::{
-    hud::{get_buff_info, BuffPosition},
+    hud::{self, BuffPosition},
     i18n::Localization,
     ui::{fonts::Fonts, ImageFrame, Tooltip, TooltipManager, Tooltipable},
     GlobalState,
@@ -145,7 +145,7 @@ impl<'a> Widget for BuffsBar<'a> {
                 .set(state.ids.buffs_align, ui);
 
             // Buffs and Debuffs
-            let (buff_count, debuff_count) = buffs.iter_active().map(get_buff_info).fold(
+            let (buff_count, debuff_count) = buffs.iter_active().map(hud::get_buff_info).fold(
                 (0, 0),
                 |(buff_count, debuff_count), info| {
                     if info.is_buff {
@@ -183,7 +183,7 @@ impl<'a> Widget for BuffsBar<'a> {
                 .zip(
                     buffs
                         .iter_active()
-                        .map(get_buff_info)
+                        .map(hud::get_buff_info)
                         .filter(|info| info.is_buff),
                 )
                 .collect::<Vec<_>>();
@@ -201,15 +201,7 @@ impl<'a> Widget for BuffsBar<'a> {
                         max_duration
                             .map_or(1000.0, |max| cur.as_secs_f32() / max.as_secs_f32() * 1000.0)
                     }) as u32; // Percentage to determine which frame of the timer overlay is displayed
-                    let buff_img = match buff.kind {
-                        BuffKind::Regeneration { .. } => self.imgs.buff_plus_0,
-                        BuffKind::Saturation { .. } => self.imgs.buff_saturation_0,
-                        BuffKind::Potion { .. } => self.imgs.buff_potion_0,
-                        BuffKind::CampfireHeal { .. } => self.imgs.buff_campfire_heal_0,
-                        BuffKind::IncreaseMaxHealth { .. } => self.imgs.buff_healthplus_0,
-                        BuffKind::IncreaseMaxEnergy { .. } => self.imgs.buff_energyplus_0,
-                        _ => self.imgs.missing_icon,
-                    };
+                    let buff_img = hud::get_buff_image(buff.kind, self.imgs);
                     let buff_widget = Image::new(buff_img).w_h(40.0, 40.0);
                     // Sort buffs into rows of 11 slots
                     let x = i % 6;
@@ -229,46 +221,10 @@ impl<'a> Widget for BuffsBar<'a> {
                         )
                         .set(*id, ui);
                     // Create Buff tooltip
-                    let title = match buff.kind {
-                        BuffKind::Regeneration { .. } => localized_strings.get("buff.title.heal"),
-                        BuffKind::Saturation { .. } => {
-                            localized_strings.get("buff.title.saturation")
-                        },
-                        BuffKind::Potion { .. } => localized_strings.get("buff.title.potion"),
-                        BuffKind::CampfireHeal { .. } => {
-                            localized_strings.get("buff.title.campfire_heal")
-                        },
-                        BuffKind::IncreaseMaxHealth { .. } => {
-                            localized_strings.get("buff.title.IncreaseMaxHealth")
-                        },
-                        BuffKind::IncreaseMaxEnergy { .. } => {
-                            localized_strings.get("buff.title.staminaup")
-                        },
-                        _ => localized_strings.get("buff.title.missing"),
-                    };
-                    let remaining_time = if current_duration.is_none() {
-                        "Permanent".to_string()
-                    } else {
-                        format!("Remaining: {:.0}s", current_duration.unwrap().as_secs_f32())
-                    };
+                    let title = hud::get_buff_title(buff.kind, localized_strings);
+                    let desc_txt = hud::get_buff_desc(buff.kind, localized_strings);
+                    let remaining_time = hud::get_buff_time(*buff);
                     let click_to_remove = format!("<{}>", &localized_strings.get("buff.remove"));
-                    let desc_txt = match buff.kind {
-                        BuffKind::Regeneration { .. } => localized_strings.get("buff.desc.heal"),
-                        BuffKind::Saturation { .. } => {
-                            localized_strings.get("buff.desc.saturation")
-                        },
-                        BuffKind::Potion { .. } => localized_strings.get("buff.desc.potion"),
-                        BuffKind::CampfireHeal { .. } => {
-                            localized_strings.get("buff.desc.campfire_heal")
-                        },
-                        BuffKind::IncreaseMaxHealth { .. } => {
-                            localized_strings.get("buff.desc.IncreaseMaxHealth")
-                        },
-                        BuffKind::IncreaseMaxEnergy { .. } => {
-                            localized_strings.get("buff.desc.IncreaseMaxEnergy")
-                        },
-                        _ => localized_strings.get("buff.desc.missing"),
-                    };
                     let desc = format!("{}\n\n{}\n\n{}", desc_txt, remaining_time, click_to_remove);
                     // Timer overlay
                     if Button::image(match duration_percentage as u64 {
@@ -308,7 +264,7 @@ impl<'a> Widget for BuffsBar<'a> {
                 .zip(
                     buffs
                         .iter_active()
-                        .map(get_buff_info)
+                        .map(hud::get_buff_info)
                         .filter(|info| !info.is_buff),
                 )
                 .collect::<Vec<_>>();
@@ -351,19 +307,9 @@ impl<'a> Widget for BuffsBar<'a> {
                         )
                         .set(*id, ui);
                     // Create Debuff tooltip
-                    let title = match debuff.kind {
-                        BuffKind::Bleeding { .. } => localized_strings.get("debuff.title.bleed"),
-                        _ => localized_strings.get("buff.title.missing"),
-                    };
-                    let remaining_time = if current_duration.is_none() {
-                        "Permanent".to_string()
-                    } else {
-                        format!("Remaining: {:.0}s", current_duration.unwrap().as_secs_f32())
-                    };
-                    let desc_txt = match debuff.kind {
-                        BuffKind::Bleeding { .. } => localized_strings.get("debuff.desc.bleed"),
-                        _ => localized_strings.get("debuff.desc.missing"),
-                    };
+                    let title = hud::get_buff_title(debuff.kind, localized_strings);
+                    let desc_txt = hud::get_buff_desc(debuff.kind, localized_strings);
+                    let remaining_time = hud::get_buff_time(*debuff);
                     let desc = format!("{}\n\n{}", desc_txt, remaining_time);
                     Image::new(match duration_percentage as u64 {
                         875..=1000 => self.imgs.nothing, // 8/8
@@ -420,7 +366,7 @@ impl<'a> Widget for BuffsBar<'a> {
                 .copied()
                 .zip(state.ids.buff_timers.iter().copied())
                 .zip(state.ids.buff_txts.iter().copied())
-                .zip(buffs.iter_active().map(get_buff_info))
+                .zip(buffs.iter_active().map(hud::get_buff_info))
                 .collect::<Vec<_>>();
 
             // Sort the buffs by kind
@@ -437,16 +383,7 @@ impl<'a> Widget for BuffsBar<'a> {
                         max_duration
                             .map_or(1000.0, |max| cur.as_secs_f32() / max.as_secs_f32() * 1000.0)
                     }) as u32;
-                    let buff_img = match buff.kind {
-                        BuffKind::Regeneration { .. } => self.imgs.buff_plus_0,
-                        BuffKind::Saturation { .. } => self.imgs.buff_saturation_0,
-                        BuffKind::Bleeding { .. } => self.imgs.debuff_bleed_0,
-                        BuffKind::Cursed { .. } => self.imgs.debuff_skull_0,
-                        BuffKind::Potion { .. } => self.imgs.buff_potion_0,
-                        BuffKind::CampfireHeal { .. } => self.imgs.buff_campfire_heal_0,
-                        BuffKind::IncreaseMaxEnergy { .. } => self.imgs.buff_energyplus_0,
-                        BuffKind::IncreaseMaxHealth { .. } => self.imgs.buff_healthplus_0,
-                    };
+                    let buff_img = hud::get_buff_image(buff.kind, &self.imgs);
                     let buff_widget = Image::new(buff_img).w_h(40.0, 40.0);
                     // Sort buffs into rows of 6 slots
                     let x = i % 6;
@@ -466,36 +403,10 @@ impl<'a> Widget for BuffsBar<'a> {
                         )
                         .set(*id, ui);
                     // Create Buff tooltip
-                    let title = match buff.kind {
-                        BuffKind::Regeneration { .. } => localized_strings.get("buff.title.heal"),
-                        BuffKind::Saturation { .. } => {
-                            localized_strings.get("buff.title.saturation")
-                        },
-                        BuffKind::Potion { .. } => localized_strings.get("buff.title.potion"),
-                        BuffKind::Bleeding { .. } => localized_strings.get("debuff.title.bleed"),
-                        BuffKind::CampfireHeal { .. } => {
-                            localized_strings.get("buff.title.campfire_heal")
-                        },
-                        _ => localized_strings.get("buff.title.missing"),
-                    };
-                    let remaining_time = if current_duration.is_none() {
-                        "".to_string()
-                    } else {
-                        format!("{:.0}s", current_duration.unwrap().as_secs_f32())
-                    };
+                    let title = hud::get_buff_title(buff.kind, localized_strings);
+                    let desc_txt = hud::get_buff_desc(buff.kind, localized_strings);
+                    let remaining_time = hud::get_buff_time(*buff);
                     let click_to_remove = format!("<{}>", &localized_strings.get("buff.remove"));
-                    let desc_txt = match buff.kind {
-                        BuffKind::Regeneration { .. } => localized_strings.get("buff.desc.heal"),
-                        BuffKind::Saturation { .. } => {
-                            localized_strings.get("buff.desc.saturation")
-                        },
-                        BuffKind::Potion { .. } => localized_strings.get("buff.desc.potion"),
-                        BuffKind::Bleeding { .. } => localized_strings.get("debuff.desc.bleed"),
-                        BuffKind::CampfireHeal { .. } => {
-                            localized_strings.get("buff.desc.campfire_heal")
-                        },
-                        _ => localized_strings.get("buff.desc.missing"),
-                    };
                     let desc = if buff.is_buff {
                         format!("{}\n\n{}", desc_txt, click_to_remove)
                     } else {

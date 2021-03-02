@@ -17,23 +17,25 @@ use crate::{
 };
 use client::Client;
 use common::{
+    assets::AssetExt,
     combat::{combat_rating, Damage},
     comp::{
-        item::{MaterialStatManifest, Quality},
-        Body, Energy, Health, Stats,
+        item::{ItemDef, MaterialStatManifest, Quality},
+        Body, Energy, Health, Inventory, Stats,
     },
 };
 use conrod_core::{
     color,
-    widget::{self, Button, Image, Rectangle, Scrollbar, Text},
-    widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget::{self, Button, Image, Rectangle, Scrollbar, State as ConrodState, Text},
+    widget_ids, Color, Colorable, Positionable, Sizeable, UiCell, Widget, WidgetCommon,
 };
 
 use crate::hud::slots::SlotKind;
+use std::sync::Arc;
 use vek::Vec2;
 
 widget_ids! {
-    pub struct Ids {
+    pub struct InventoryScrollerIds {
         test,
         bag_close,
         inv_alignment,
@@ -45,6 +47,351 @@ widget_ids! {
         //tooltip[],
         bg,
         bg_frame,
+        char_ico,
+        coin_ico,
+        space_txt,
+        currency_txt,
+        inventory_title,
+        inventory_title_bg,
+        scrollbar_bg,
+        scrollbar_slots,
+    }
+}
+
+pub struct InventoryScrollerState {
+    ids: InventoryScrollerIds,
+}
+
+#[derive(WidgetCommon)]
+pub struct InventoryScroller<'a> {
+    imgs: &'a Imgs,
+    item_imgs: &'a ItemImgs,
+    fonts: &'a Fonts,
+    #[conrod(common_builder)]
+    common: widget::CommonBuilder,
+    tooltip_manager: &'a mut TooltipManager,
+    slot_manager: &'a mut SlotManager,
+    pulse: f32,
+    localized_strings: &'a Localization,
+    show_stats: bool,
+    show_bag_inv: bool,
+    msm: &'a MaterialStatManifest,
+    on_right: bool,
+    item_tooltip: &'a Tooltip<'a>,
+    playername: String,
+    is_us: bool,
+    inventory: &'a Inventory,
+    bg_ids: &'a BackgroundIds,
+}
+
+impl<'a> InventoryScroller<'a> {
+    #[allow(clippy::too_many_arguments)]
+    pub fn new(
+        imgs: &'a Imgs,
+        item_imgs: &'a ItemImgs,
+        fonts: &'a Fonts,
+        tooltip_manager: &'a mut TooltipManager,
+        slot_manager: &'a mut SlotManager,
+        pulse: f32,
+        localized_strings: &'a Localization,
+        show_stats: bool,
+        show_bag_inv: bool,
+        msm: &'a MaterialStatManifest,
+        on_right: bool,
+        item_tooltip: &'a Tooltip<'a>,
+        playername: String,
+        is_us: bool,
+        inventory: &'a Inventory,
+        bg_ids: &'a BackgroundIds,
+    ) -> Self {
+        InventoryScroller {
+            imgs,
+            item_imgs,
+            fonts,
+            common: widget::CommonBuilder::default(),
+            tooltip_manager,
+            slot_manager,
+            pulse,
+            localized_strings,
+            show_stats,
+            show_bag_inv,
+            msm,
+            on_right,
+            item_tooltip,
+            playername,
+            is_us,
+            inventory,
+            bg_ids,
+        }
+    }
+
+    fn background(&mut self, ui: &mut UiCell<'_>) {
+        let mut bg = Image::new(if self.show_stats {
+            self.imgs.inv_bg_stats
+        } else if self.show_bag_inv {
+            self.imgs.inv_bg_bag
+        } else {
+            self.imgs.inv_bg_armor
+        })
+        .w_h(424.0, 708.0);
+        if self.on_right {
+            bg = bg.bottom_right_with_margins_on(ui.window, 60.0, 5.0);
+        } else {
+            bg = bg.bottom_left_with_margins_on(ui.window, 60.0, 5.0);
+        }
+        bg.color(Some(UI_MAIN)).set(self.bg_ids.bg, ui);
+        Image::new(if self.show_bag_inv {
+            self.imgs.inv_frame_bag
+        } else {
+            self.imgs.inv_frame
+        })
+        .w_h(424.0, 708.0)
+        .middle_of(self.bg_ids.bg)
+        .color(Some(UI_HIGHLIGHT_0))
+        .set(self.bg_ids.bg_frame, ui);
+    }
+
+    fn title(&mut self, state: &mut ConrodState<'_, InventoryScrollerState>, ui: &mut UiCell<'_>) {
+        Text::new(
+            &self
+                .localized_strings
+                .get("hud.bag.inventory")
+                .replace("{playername}", &*self.playername),
+        )
+        .mid_top_with_margin_on(self.bg_ids.bg_frame, 9.0)
+        .font_id(self.fonts.cyri.conrod_id)
+        .font_size(self.fonts.cyri.scale(22))
+        .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
+        .set(state.ids.inventory_title_bg, ui);
+        Text::new(
+            &self
+                .localized_strings
+                .get("hud.bag.inventory")
+                .replace("{playername}", &*self.playername),
+        )
+        .top_left_with_margins_on(state.ids.inventory_title_bg, 2.0, 2.0)
+        .font_id(self.fonts.cyri.conrod_id)
+        .font_size(self.fonts.cyri.scale(22))
+        .color(TEXT_COLOR)
+        .set(state.ids.inventory_title, ui);
+    }
+
+    fn scrollbar_and_slots(
+        &mut self,
+        state: &mut ConrodState<'_, InventoryScrollerState>,
+        ui: &mut UiCell<'_>,
+    ) {
+        let space_max = self.inventory.slots().count();
+        // Slots Scrollbar
+        if space_max > 45 && !self.show_bag_inv {
+            // Scrollbar-BG
+            Image::new(self.imgs.scrollbar_bg)
+                .w_h(9.0, 173.0)
+                .bottom_right_with_margins_on(self.bg_ids.bg_frame, 42.0, 3.0)
+                .color(Some(UI_HIGHLIGHT_0))
+                .set(state.ids.scrollbar_bg, ui);
+            // Scrollbar
+            Scrollbar::y_axis(state.ids.inv_alignment)
+                .thickness(5.0)
+                .h(123.0)
+                .color(UI_MAIN)
+                .middle_of(state.ids.scrollbar_bg)
+                .set(state.ids.scrollbar_slots, ui);
+        } else if space_max > 135 {
+            // Scrollbar-BG
+            Image::new(self.imgs.scrollbar_bg_big)
+                .w_h(9.0, 592.0)
+                .bottom_right_with_margins_on(self.bg_ids.bg_frame, 42.0, 3.0)
+                .color(Some(UI_HIGHLIGHT_0))
+                .set(state.ids.scrollbar_bg, ui);
+            // Scrollbar
+            Scrollbar::y_axis(state.ids.inv_alignment)
+                .thickness(5.0)
+                .h(542.0)
+                .color(UI_MAIN)
+                .middle_of(state.ids.scrollbar_bg)
+                .set(state.ids.scrollbar_slots, ui);
+        };
+        // Alignment for Grid
+        Rectangle::fill_with(
+            [362.0, if self.show_bag_inv { 600.0 } else { 200.0 }],
+            color::TRANSPARENT,
+        )
+        .bottom_left_with_margins_on(self.bg_ids.bg_frame, 29.0, 46.5)
+        .scroll_kids_vertically()
+        .set(state.ids.inv_alignment, ui);
+
+        // Bag Slots
+        // Create available inventory slot widgets
+        if state.ids.inv_slots.len() < self.inventory.capacity() {
+            state.update(|s| {
+                s.ids
+                    .inv_slots
+                    .resize(self.inventory.capacity(), &mut ui.widget_id_generator());
+            });
+        }
+        // Determine the range of inventory slots that are provided by the loadout item
+        // that the mouse is over
+        let mouseover_loadout_slots = self
+            .slot_manager
+            .mouse_over_slot
+            .and_then(|x| {
+                if let SlotKind::Equip(e) = x {
+                    self.inventory.get_slot_range_for_equip_slot(e)
+                } else {
+                    None
+                }
+            })
+            .unwrap_or(0usize..0usize);
+
+        // Display inventory contents
+        let mut slot_maker = SlotMaker {
+            empty_slot: self.imgs.inv_slot,
+            filled_slot: self.imgs.inv_slot,
+            selected_slot: self.imgs.inv_slot_sel,
+            background_color: Some(UI_MAIN),
+            content_size: ContentSize {
+                width_height_ratio: 1.0,
+                max_fraction: 0.75,
+            },
+            selected_content_scale: 1.067,
+            amount_font: self.fonts.cyri.conrod_id,
+            amount_margins: Vec2::new(-4.0, 0.0),
+            amount_font_size: self.fonts.cyri.scale(12),
+            amount_text_color: TEXT_COLOR,
+            content_source: self.inventory,
+            image_source: self.item_imgs,
+            slot_manager: Some(self.slot_manager),
+            pulse: self.pulse,
+        };
+
+        for (i, (pos, item)) in self.inventory.slots_with_id().enumerate() {
+            let x = i % 9;
+            let y = i / 9;
+
+            // Slot
+            let mut slot_widget = slot_maker
+                .fabricate(
+                    InventorySlot {
+                        slot: pos,
+                        ours: self.is_us,
+                    },
+                    [40.0; 2],
+                )
+                .top_left_with_margins_on(
+                    state.ids.inv_alignment,
+                    0.0 + y as f64 * (40.0),
+                    0.0 + x as f64 * (40.0),
+                );
+
+            // Highlight slots are provided by the loadout item that the mouse is over
+            if mouseover_loadout_slots.contains(&i) {
+                slot_widget = slot_widget.with_background_color(Color::Rgba(1.0, 1.0, 1.0, 1.0));
+            }
+
+            if let Some(item) = item {
+                let (title, desc) = super::util::item_text(item, &self.msm);
+                let quality_col = get_quality_col(item);
+                let quality_col_img = match item.quality() {
+                    Quality::Low => self.imgs.inv_slot_grey,
+                    Quality::Common => self.imgs.inv_slot,
+                    Quality::Moderate => self.imgs.inv_slot_green,
+                    Quality::High => self.imgs.inv_slot_blue,
+                    Quality::Epic => self.imgs.inv_slot_purple,
+                    Quality::Legendary => self.imgs.inv_slot_gold,
+                    Quality::Artifact => self.imgs.inv_slot_orange,
+                    _ => self.imgs.inv_slot_red,
+                };
+                slot_widget
+                    .filled_slot(quality_col_img)
+                    .with_tooltip(
+                        self.tooltip_manager,
+                        title,
+                        &*desc,
+                        self.item_tooltip,
+                        quality_col,
+                    )
+                    .set(state.ids.inv_slots[i], ui);
+            } else {
+                slot_widget.set(state.ids.inv_slots[i], ui);
+            }
+        }
+    }
+
+    fn footer_metrics(
+        &mut self,
+        state: &mut ConrodState<'_, InventoryScrollerState>,
+        ui: &mut UiCell<'_>,
+    ) {
+        let space_used = self.inventory.populated_slots();
+        let space_max = self.inventory.slots().count();
+        let bag_space = format!("{}/{}", space_used, space_max);
+        let bag_space_percentage = space_used as f32 / space_max as f32;
+        let coin_itemdef = Arc::<ItemDef>::load_expect_cloned("common.items.utility.coins");
+        let currency = self.inventory.item_count(&coin_itemdef);
+
+        // Coin Icon and Currency Text
+        Image::new(self.imgs.coin_ico)
+            .w_h(16.0, 17.0)
+            .bottom_left_with_margins_on(self.bg_ids.bg_frame, 2.0, 43.0)
+            .set(state.ids.coin_ico, ui);
+        Text::new(&format!("{}", currency))
+            .bottom_left_with_margins_on(self.bg_ids.bg_frame, 6.0, 64.0)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(14))
+            .color(Color::Rgba(0.871, 0.863, 0.05, 1.0))
+            .set(state.ids.currency_txt, ui);
+        //Free Bag-Space
+        Text::new(&bag_space)
+            .bottom_right_with_margins_on(self.bg_ids.bg_frame, 6.0, 43.0)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(14))
+            .color(if bag_space_percentage < 0.8 {
+                TEXT_COLOR
+            } else if bag_space_percentage < 1.0 {
+                LOW_HP_COLOR
+            } else {
+                CRITICAL_HP_COLOR
+            })
+            .set(state.ids.space_txt, ui);
+    }
+}
+
+impl<'a> Widget for InventoryScroller<'a> {
+    type Event = ();
+    type State = InventoryScrollerState;
+    type Style = ();
+
+    fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
+        InventoryScrollerState {
+            ids: InventoryScrollerIds::new(id_gen),
+        }
+    }
+
+    fn style(&self) -> Self::Style {}
+
+    fn update(mut self, args: widget::UpdateArgs<Self>) -> Self::Event {
+        let widget::UpdateArgs { state, ui, .. } = args;
+        self.background(ui);
+        self.title(state, ui);
+        self.scrollbar_and_slots(state, ui);
+        self.footer_metrics(state, ui);
+    }
+}
+
+widget_ids! {
+    pub struct BackgroundIds {
+        bg,
+        bg_frame,
+    }
+}
+
+widget_ids! {
+    pub struct BagIds {
+        test,
+        inventory_scroller,
+        bag_close,
+        //tooltip[],
         char_ico,
         coin_ico,
         space_txt,
@@ -148,8 +495,9 @@ impl<'a> Bag<'a> {
 }
 const STATS: [&str; 4] = ["Health", "Stamina", "Protection", "Combat Rating"];
 
-pub struct State {
-    ids: Ids,
+pub struct BagState {
+    ids: BagIds,
+    bg_ids: BackgroundIds,
 }
 
 pub enum Event {
@@ -159,12 +507,16 @@ pub enum Event {
 
 impl<'a> Widget for Bag<'a> {
     type Event = Option<Event>;
-    type State = State;
+    type State = BagState;
     type Style = ();
 
-    fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
-        State {
-            ids: Ids::new(id_gen),
+    fn init_state(&self, mut id_gen: widget::id::Generator) -> Self::State {
+        BagState {
+            bg_ids: BackgroundIds {
+                bg: id_gen.next(),
+                bg_frame: id_gen.next(),
+            },
+            ids: BagIds::new(id_gen),
         }
     }
 
@@ -199,12 +551,6 @@ impl<'a> Widget for Bag<'a> {
             None => return None,
         };
 
-        let space_used = inventory.populated_slots();
-        let space_max = inventory.slots().count();
-        let bag_space = format!("{}/{}", space_used, space_max);
-        let bag_space_percentage = space_used as f32 / space_max as f32;
-        let currency = 0; // TODO: Add as a Stat
-
         // Tooltips
         let item_tooltip = Tooltip::new({
             // Edge images [t, b, r, l]
@@ -223,117 +569,32 @@ impl<'a> Widget for Bag<'a> {
         .desc_font_size(self.fonts.cyri.scale(12))
         .font_id(self.fonts.cyri.conrod_id)
         .desc_text_color(TEXT_COLOR);
-        // BG
-        Image::new(if self.show.stats {
-            self.imgs.inv_bg_stats
-        } else if self.show.bag_inv {
-            self.imgs.inv_bg_bag
-        } else {
-            self.imgs.inv_bg_armor
-        })
-        .w_h(424.0, 708.0)
-        .bottom_right_with_margins_on(ui.window, 60.0, 5.0)
-        .color(Some(UI_MAIN))
-        .set(state.ids.bg, ui);
-        Image::new(if self.show.bag_inv {
-            self.imgs.inv_frame_bag
-        } else {
-            self.imgs.inv_frame
-        })
-        .w_h(424.0, 708.0)
-        .middle_of(state.ids.bg)
-        .color(Some(UI_HIGHLIGHT_0))
-        .set(state.ids.bg_frame, ui);
-        // Title
-        Text::new(
-            &self
-                .localized_strings
-                .get("hud.bag.inventory")
-                .replace("{playername}", &self.stats.name.to_string().as_str()),
+
+        InventoryScroller::new(
+            self.imgs,
+            self.item_imgs,
+            self.fonts,
+            self.tooltip_manager,
+            self.slot_manager,
+            self.pulse,
+            self.localized_strings,
+            self.show.stats,
+            self.show.bag_inv,
+            self.msm,
+            true,
+            &item_tooltip,
+            self.stats.name.to_string(),
+            true,
+            &inventory,
+            &state.bg_ids,
         )
-        .mid_top_with_margin_on(state.ids.bg_frame, 9.0)
-        .font_id(self.fonts.cyri.conrod_id)
-        .font_size(self.fonts.cyri.scale(20))
-        .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
-        .set(state.ids.inventory_title_bg, ui);
-        Text::new(
-            &self
-                .localized_strings
-                .get("hud.bag.inventory")
-                .replace("{playername}", &self.stats.name.to_string().as_str()),
-        )
-        .top_left_with_margins_on(state.ids.inventory_title_bg, 2.0, 2.0)
-        .font_id(self.fonts.cyri.conrod_id)
-        .font_size(self.fonts.cyri.scale(20))
-        .color(TEXT_COLOR)
-        .set(state.ids.inventory_title, ui);
-        // Slots Scrollbar
-        if space_max > 45 && !self.show.bag_inv {
-            // Scrollbar-BG
-            Image::new(self.imgs.scrollbar_bg)
-                .w_h(9.0, 173.0)
-                .bottom_right_with_margins_on(state.ids.bg_frame, 42.0, 3.0)
-                .color(Some(UI_HIGHLIGHT_0))
-                .set(state.ids.scrollbar_bg, ui);
-            // Scrollbar
-            Scrollbar::y_axis(state.ids.inv_alignment)
-                .thickness(5.0)
-                .h(123.0)
-                .color(UI_MAIN)
-                .middle_of(state.ids.scrollbar_bg)
-                .set(state.ids.scrollbar_slots, ui);
-        } else if space_max > 135 {
-            // Scrollbar-BG
-            Image::new(self.imgs.scrollbar_bg_big)
-                .w_h(9.0, 592.0)
-                .bottom_right_with_margins_on(state.ids.bg_frame, 42.0, 3.0)
-                .color(Some(UI_HIGHLIGHT_0))
-                .set(state.ids.scrollbar_bg, ui);
-            // Scrollbar
-            Scrollbar::y_axis(state.ids.inv_alignment)
-                .thickness(5.0)
-                .h(542.0)
-                .color(UI_MAIN)
-                .middle_of(state.ids.scrollbar_bg)
-                .set(state.ids.scrollbar_slots, ui);
-        };
+        .set(state.ids.inventory_scroller, ui);
+
         // Char Pixel-Art
         Image::new(self.imgs.char_art)
             .w_h(40.0, 37.0)
-            .top_left_with_margins_on(state.ids.bg, 4.0, 2.0)
+            .top_left_with_margins_on(state.bg_ids.bg, 4.0, 2.0)
             .set(state.ids.char_ico, ui);
-        // Coin Icon and Currency Text
-        Image::new(self.imgs.coin_ico)
-            .w_h(16.0, 17.0)
-            .bottom_left_with_margins_on(state.ids.bg_frame, 2.0, 43.0)
-            .set(state.ids.coin_ico, ui);
-        Text::new(&format!("{}", currency))
-            .bottom_left_with_margins_on(state.ids.bg_frame, 6.0, 64.0)
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(14))
-            .color(Color::Rgba(0.871, 0.863, 0.05, 1.0))
-            .set(state.ids.currency_txt, ui);
-        //Free Bag-Space
-        Text::new(&bag_space)
-            .bottom_right_with_margins_on(state.ids.bg_frame, 6.0, 43.0)
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(14))
-            .color(if bag_space_percentage < 0.8 {
-                TEXT_COLOR
-            } else if bag_space_percentage < 1.0 {
-                LOW_HP_COLOR
-            } else {
-                CRITICAL_HP_COLOR
-            })
-            .set(state.ids.space_txt, ui);
-        // Alignment for Grid
-        Rectangle::fill_with(
-            [362.0, if self.show.bag_inv { 600.0 } else { 200.0 }],
-            color::TRANSPARENT,
-        )
-        .bottom_left_with_margins_on(state.ids.bg_frame, 29.0, 46.5)
-        .scroll_kids_vertically()
-        .set(state.ids.inv_alignment, ui);
         // Button to expand bag
         let txt = if self.show.bag_inv {
             "Show Loadout"
@@ -357,9 +618,10 @@ impl<'a> Widget for Bag<'a> {
             self.imgs.expand_btn_press
         });
         // Only show expand button when it's needed...
+        let space_max = inventory.slots().count();
         if space_max > 45 && !self.show.bag_inv {
             if expand_btn
-                .top_left_with_margins_on(state.ids.bg_frame, 460.0, 211.5)
+                .top_left_with_margins_on(state.bg_ids.bg_frame, 460.0, 211.5)
                 .with_tooltip(self.tooltip_manager, &txt, "", &bag_tooltip, TEXT_COLOR)
                 .set(state.ids.bag_expand_btn, ui)
                 .was_clicked()
@@ -369,7 +631,7 @@ impl<'a> Widget for Bag<'a> {
         } else if self.show.bag_inv {
             //... but always show it when the bag is expanded
             if expand_btn
-                .top_left_with_margins_on(state.ids.bg_frame, 53.0, 211.5)
+                .top_left_with_margins_on(state.bg_ids.bg_frame, 53.0, 211.5)
                 .with_tooltip(self.tooltip_manager, &txt, "", &bag_tooltip, TEXT_COLOR)
                 .set(state.ids.bag_expand_btn, ui)
                 .was_clicked()
@@ -378,29 +640,6 @@ impl<'a> Widget for Bag<'a> {
             }
         }
 
-        // Title
-        Text::new(
-            &self
-                .localized_strings
-                .get("hud.bag.inventory")
-                .replace("{playername}", &self.stats.name.to_string().as_str()),
-        )
-        .mid_top_with_margin_on(state.ids.bg_frame, 9.0)
-        .font_id(self.fonts.cyri.conrod_id)
-        .font_size(self.fonts.cyri.scale(22))
-        .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
-        .set(state.ids.inventory_title_bg, ui);
-        Text::new(
-            &self
-                .localized_strings
-                .get("hud.bag.inventory")
-                .replace("{playername}", &self.stats.name.to_string().as_str()),
-        )
-        .top_left_with_margins_on(state.ids.inventory_title_bg, 2.0, 2.0)
-        .font_id(self.fonts.cyri.conrod_id)
-        .font_size(self.fonts.cyri.scale(22))
-        .color(TEXT_COLOR)
-        .set(state.ids.inventory_title, ui);
         // Armor Slots
         let mut slot_maker = SlotMaker {
             empty_slot: self.imgs.armor_slot_empty,
@@ -457,14 +696,15 @@ impl<'a> Widget for Bag<'a> {
                 });
                 let protection_txt = format!(
                     "{}%",
-                    (100.0 * Damage::compute_damage_reduction(inventory)) as i32
+                    (100.0 * Damage::compute_damage_reduction(Some(inventory), Some(self.stats)))
+                        as i32
                 );
                 let health_txt = format!("{}", (self.health.maximum() as f32 / 10.0) as usize);
                 let stamina_txt = format!("{}", (self.energy.maximum() as f32 / 10.0) as usize);
                 let combat_rating_txt = format!("{}", (combat_rating * 10.0) as usize);
 
                 let btn = if i.0 == 0 {
-                    btn.top_left_with_margins_on(state.ids.bg_frame, 55.0, 10.0)
+                    btn.top_left_with_margins_on(state.bg_ids.bg_frame, 55.0, 10.0)
                 } else {
                     btn.down_from(state.ids.stat_icons[i.0 - 1], 7.0)
                 };
@@ -517,7 +757,7 @@ impl<'a> Widget for Bag<'a> {
                 .unwrap_or(QUALITY_COMMON);
             slot_maker
                 .fabricate(EquipSlot::Armor(ArmorSlot::Head), [45.0; 2])
-                .mid_top_with_margin_on(state.ids.bg_frame, 60.0)
+                .mid_top_with_margin_on(state.bg_ids.bg_frame, 60.0)
                 .with_icon(self.imgs.head_bg, Vec2::new(32.0, 40.0), Some(UI_MAIN))
                 .filled_slot(filled_slot)
                 .with_tooltip(
@@ -771,7 +1011,7 @@ impl<'a> Widget for Bag<'a> {
                 .unwrap_or(QUALITY_COMMON);
             slot_maker
                 .fabricate(EquipSlot::Lantern, [45.0; 2])
-                .top_right_with_margins_on(state.ids.bg_frame, 60.0, 5.0)
+                .top_right_with_margins_on(state.bg_ids.bg_frame, 60.0, 5.0)
                 .with_icon(self.imgs.lantern_bg, Vec2::new(24.0, 38.0), Some(UI_MAIN))
                 .filled_slot(filled_slot)
                 .with_tooltip(
@@ -888,7 +1128,7 @@ impl<'a> Widget for Bag<'a> {
         slot_maker
             .fabricate(EquipSlot::Armor(ArmorSlot::Bag1), [35.0; 2])
             .bottom_left_with_margins_on(
-                state.ids.bg_frame,
+                state.bg_ids.bg_frame,
                 if self.show.bag_inv { 600.0 } else { 167.0 },
                 3.0,
             )
@@ -971,102 +1211,13 @@ impl<'a> Widget for Bag<'a> {
                 bag4_q_col,
             )
             .set(state.ids.bag4_slot, ui);
-        // Bag Slots
-        // Create available inventory slot widgets
-        if state.ids.inv_slots.len() < inventory.capacity() {
-            state.update(|s| {
-                s.ids
-                    .inv_slots
-                    .resize(inventory.capacity(), &mut ui.widget_id_generator());
-            });
-        }
 
-        // Determine the range of inventory slots that are provided by the loadout item
-        // that the mouse is over
-        let mouseover_loadout_slots = self
-            .slot_manager
-            .mouse_over_slot
-            .and_then(|x| {
-                if let SlotKind::Equip(e) = x {
-                    inventory.get_slot_range_for_equip_slot(e)
-                } else {
-                    None
-                }
-            })
-            .unwrap_or(0usize..0usize);
-
-        // Display inventory contents
-        let mut slot_maker = SlotMaker {
-            empty_slot: self.imgs.inv_slot,
-            filled_slot: self.imgs.inv_slot,
-            selected_slot: self.imgs.inv_slot_sel,
-            background_color: Some(UI_MAIN),
-            content_size: ContentSize {
-                width_height_ratio: 1.0,
-                max_fraction: 0.75,
-            },
-            selected_content_scale: 1.067,
-            amount_font: self.fonts.cyri.conrod_id,
-            amount_margins: Vec2::new(-4.0, 0.0),
-            amount_font_size: self.fonts.cyri.scale(12),
-            amount_text_color: TEXT_COLOR,
-            content_source: inventory,
-            image_source: self.item_imgs,
-            slot_manager: Some(self.slot_manager),
-            pulse: self.pulse,
-        };
-
-        for (i, (pos, item)) in inventory.slots_with_id().enumerate() {
-            let x = i % 9;
-            let y = i / 9;
-
-            // Slot
-            let mut slot_widget = slot_maker
-                .fabricate(InventorySlot(pos), [40.0; 2])
-                .top_left_with_margins_on(
-                    state.ids.inv_alignment,
-                    0.0 + y as f64 * (40.0),
-                    0.0 + x as f64 * (40.0),
-                );
-
-            // Highlight slots are provided by the loadout item that the mouse is over
-            if mouseover_loadout_slots.contains(&i) {
-                slot_widget = slot_widget.with_background_color(Color::Rgba(1.0, 1.0, 1.0, 1.0));
-            }
-
-            if let Some(item) = item {
-                let (title, desc) = super::util::item_text(item, &self.msm);
-                let quality_col = get_quality_col(item);
-                let quality_col_img = match item.quality() {
-                    Quality::Low => self.imgs.inv_slot_grey,
-                    Quality::Common => self.imgs.inv_slot,
-                    Quality::Moderate => self.imgs.inv_slot_green,
-                    Quality::High => self.imgs.inv_slot_blue,
-                    Quality::Epic => self.imgs.inv_slot_purple,
-                    Quality::Legendary => self.imgs.inv_slot_gold,
-                    Quality::Artifact => self.imgs.inv_slot_orange,
-                    _ => self.imgs.inv_slot_red,
-                };
-                slot_widget
-                    .filled_slot(quality_col_img)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        title,
-                        &*desc,
-                        &item_tooltip,
-                        quality_col,
-                    )
-                    .set(state.ids.inv_slots[i], ui);
-            } else {
-                slot_widget.set(state.ids.inv_slots[i], ui);
-            }
-        }
         // Close button
         if Button::image(self.imgs.close_btn)
             .w_h(24.0, 25.0)
             .hover_image(self.imgs.close_btn_hover)
             .press_image(self.imgs.close_btn_press)
-            .top_right_with_margins_on(state.ids.bg, 0.0, 0.0)
+            .top_right_with_margins_on(state.bg_ids.bg, 0.0, 0.0)
             .set(state.ids.bag_close, ui)
             .was_clicked()
         {

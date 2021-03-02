@@ -43,7 +43,7 @@ impl Animation for JumpAnimation {
         let switch = if random > 0.5 { 1.0 } else { -1.0 };
 
         let speed = Vec2::<f32>::from(velocity).magnitude();
-        let speednorm = speed / 10.0;
+        let speednorm = (speed / 10.0).min(1.0);
 
         let ori: Vec2<f32> = Vec2::from(orientation);
         let last_ori = Vec2::from(last_ori);

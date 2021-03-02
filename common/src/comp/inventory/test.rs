@@ -203,7 +203,7 @@ fn equip_replace_already_equipped_item() {
     let boots = Item::new_from_asset_expect("common.items.testing.test_boots");
 
     let starting_sandles = Some(Item::new_from_asset_expect(
-        "common.items.armor.foot.sandals_0",
+        "common.items.armor.misc.foot.sandals",
     ));
 
     let mut inv = Inventory::new_empty();

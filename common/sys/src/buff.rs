@@ -1,7 +1,7 @@
 use common::{
     comp::{
         Buff, BuffCategory, BuffChange, BuffEffect, BuffId, BuffSource, Buffs, Energy, Health,
-        HealthChange, HealthSource, Inventory, ModifierKind,
+        HealthChange, HealthSource, Inventory, ModifierKind, Stats,
     },
     event::{EventBus, ServerEvent},
     resources::DeltaTime,
@@ -27,17 +27,29 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Health>,
         WriteStorage<'a, Energy>,
         WriteStorage<'a, Buffs>,
+        WriteStorage<'a, Stats>,
     );
 
-    fn run(&mut self, (read_data, mut healths, mut energies, mut buffs): Self::SystemData) {
+    fn run(
+        &mut self,
+        (read_data, mut healths, mut energies, mut buffs, mut stats): Self::SystemData,
+    ) {
         let mut server_emitter = read_data.server_bus.emitter();
         let dt = read_data.dt.0;
         // Set to false to avoid spamming server
         buffs.set_event_emission(false);
         healths.set_event_emission(false);
         energies.set_event_emission(false);
-        for (entity, mut buff_comp, mut health, mut energy) in
-            (&read_data.entities, &mut buffs, &mut healths, &mut energies).join()
+        healths.set_event_emission(false);
+        stats.set_event_emission(false);
+        for (entity, mut buff_comp, mut health, mut energy, mut stat) in (
+            &read_data.entities,
+            &mut buffs,
+            &mut healths,
+            &mut energies,
+            &mut stats,
+        )
+            .join()
         {
             let (buff_comp_kinds, buff_comp_buffs) = buff_comp.parts();
             let mut expired_buffs = Vec::<BuffId>::new();
@@ -61,13 +73,12 @@ impl<'a> System<'a> for Sys {
                 }
             }
 
-            if let Some(inventory) = read_data.inventories.get(entity) {
-                let damage_reduction = Damage::compute_damage_reduction(inventory);
-                if (damage_reduction - 1.0).abs() < f32::EPSILON {
-                    for (id, buff) in buff_comp.buffs.iter() {
-                        if !buff.kind.is_buff() {
-                            expired_buffs.push(*id);
-                        }
+            let damage_reduction =
+                Damage::compute_damage_reduction(read_data.inventories.get(entity), Some(&stat));
+            if (damage_reduction - 1.0).abs() < f32::EPSILON {
+                for (id, buff) in buff_comp.buffs.iter() {
+                    if !buff.kind.is_buff() {
+                        expired_buffs.push(*id);
                     }
                 }
             }
@@ -77,6 +88,7 @@ impl<'a> System<'a> for Sys {
             energy.last_set();
             health.reset_max();
             energy.reset_max();
+            stat.damage_reduction = 0.0;
 
             // Iterator over the lists of buffs by kind
             let buff_comp = &mut *buff_comp;
@@ -147,6 +159,9 @@ impl<'a> System<'a> for Sys {
                                     energy.set_maximum(new_max);
                                 },
                             },
+                            BuffEffect::ImmuneToAttacks => {
+                                stat.damage_reduction = 1.0;
+                            },
                         };
                     }
                 }
@@ -176,6 +191,7 @@ impl<'a> System<'a> for Sys {
         buffs.set_event_emission(true);
         healths.set_event_emission(true);
         energies.set_event_emission(true);
+        stats.set_event_emission(true);
     }
 }
 

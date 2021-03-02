@@ -21,10 +21,12 @@ pub enum TradeAction {
     AddItem {
         item: InvSlotId,
         quantity: u32,
+        ours: bool,
     },
     RemoveItem {
         item: InvSlotId,
         quantity: u32,
+        ours: bool,
     },
     /// Accept needs the phase indicator to avoid progressing too far in the
     /// trade if there's latency and a player presses the accept button
@@ -118,16 +120,26 @@ impl PendingTrade {
     /// - Modifications can only happen in phase 1
     /// - Whenever a trade is modified, both accept flags get reset
     /// - Accept flags only get set for the current phase
-    pub fn process_trade_action(&mut self, who: usize, action: TradeAction, inventory: &Inventory) {
+    pub fn process_trade_action(
+        &mut self,
+        mut who: usize,
+        action: TradeAction,
+        inventories: &[&Inventory],
+    ) {
         use TradeAction::*;
         match action {
             AddItem {
                 item,
                 quantity: delta,
+                ours,
             } => {
                 if self.phase() == TradePhase::Mutate && delta > 0 {
+                    if !ours {
+                        who = 1 - who;
+                    }
                     let total = self.offers[who].entry(item).or_insert(0);
-                    let owned_quantity = inventory.get(item).map(|i| i.amount()).unwrap_or(0);
+                    let owned_quantity =
+                        inventories[who].get(item).map(|i| i.amount()).unwrap_or(0);
                     *total = total.saturating_add(delta).min(owned_quantity);
                     self.accept_flags = [false, false];
                 }
@@ -135,8 +147,12 @@ impl PendingTrade {
             RemoveItem {
                 item,
                 quantity: delta,
+                ours,
             } => {
                 if self.phase() == TradePhase::Mutate {
+                    if !ours {
+                        who = 1 - who;
+                    }
                     self.offers[who]
                         .entry(item)
                         .and_replace_entry_with(|_, mut total| {
@@ -180,17 +196,24 @@ impl Trades {
         id
     }
 
-    pub fn process_trade_action(
+    pub fn process_trade_action<'a, F: Fn(Uid) -> Option<&'a Inventory>>(
         &mut self,
         id: TradeId,
         who: Uid,
         action: TradeAction,
-        inventory: &Inventory,
+        get_inventory: F,
     ) {
         trace!("for trade id {:?}, message {:?}", id, action);
         if let Some(trade) = self.trades.get_mut(&id) {
             if let Some(party) = trade.which_party(who) {
-                trade.process_trade_action(party, action, inventory);
+                let mut inventories = Vec::new();
+                for party in trade.parties.iter() {
+                    match get_inventory(*party) {
+                        Some(inventory) => inventories.push(inventory),
+                        None => return,
+                    }
+                }
+                trade.process_trade_action(party, action, &*inventories);
             } else {
                 warn!(
                     "An entity who is not a party to trade {:?} tried to modify it",

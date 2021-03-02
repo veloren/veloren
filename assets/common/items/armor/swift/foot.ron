@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Swift Boots",
+    description: "Swift like the wind.",
+    kind: Armor((
+        kind: Foot("Swift"),
+        stats: (
+            protection: Normal(2.0),
+            poise_resilience: Normal(2.0),
+        ),
+    )),
+    quality: Common,
+    tags: [],
+)

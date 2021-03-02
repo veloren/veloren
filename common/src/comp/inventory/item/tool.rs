@@ -69,7 +69,7 @@ pub enum Hands {
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Stats {
-    pub equip_time_millis: u32,
+    pub equip_time_secs: f32,
     pub power: f32,
     pub poise_strength: f32,
     pub speed: f32,
@@ -78,7 +78,7 @@ pub struct Stats {
 impl Stats {
     pub fn zeroed() -> Stats {
         Stats {
-            equip_time_millis: 0,
+            equip_time_secs: 0.0,
             power: 0.0,
             poise_strength: 0.0,
             speed: 0.0,
@@ -101,7 +101,7 @@ impl Asset for Stats {
 
 impl AddAssign<Stats> for Stats {
     fn add_assign(&mut self, other: Stats) {
-        self.equip_time_millis += other.equip_time_millis;
+        self.equip_time_secs += other.equip_time_secs;
         self.power += other.power;
         self.poise_strength += other.poise_strength;
         self.speed += other.speed;
@@ -109,10 +109,7 @@ impl AddAssign<Stats> for Stats {
 }
 impl MulAssign<Stats> for Stats {
     fn mul_assign(&mut self, other: Stats) {
-        // equip_time_millis doesn't quite work with mul since it's u32, so we can't
-        // scale delay down, only up, so it needs to be balanced carefully in
-        // multiplicative contexts
-        self.equip_time_millis *= other.equip_time_millis;
+        self.equip_time_secs *= other.equip_time_secs;
         self.power *= other.power;
         self.poise_strength *= other.poise_strength;
         self.speed *= other.speed;
@@ -120,10 +117,10 @@ impl MulAssign<Stats> for Stats {
 }
 impl DivAssign<usize> for Stats {
     fn div_assign(&mut self, scalar: usize) {
-        self.equip_time_millis /= scalar as u32;
+        self.equip_time_secs /= scalar as f32;
         // since averaging occurs when the stats are used multiplicatively, don't permit
-        // multiplying an equip_time_millis by 0, since that would be overpowered
-        self.equip_time_millis = self.equip_time_millis.max(1);
+        // multiplying an equip_time_secs by 0, since that would be overpowered
+        self.equip_time_secs = self.equip_time_secs.max(0.001);
         self.power /= scalar as f32;
         self.poise_strength /= scalar as f32;
         self.speed /= scalar as f32;
@@ -199,7 +196,7 @@ impl From<(&MaterialStatManifest, &[Item], &Tool)> for Stats {
             Hands::Two => (1.0, 1.0),
         };
         Self {
-            equip_time_millis: raw_stats.equip_time_millis,
+            equip_time_secs: raw_stats.equip_time_secs,
             power: raw_stats.power * power,
             poise_strength: raw_stats.poise_strength,
             speed: raw_stats.speed * speed,
@@ -221,7 +218,7 @@ impl Tool {
     pub fn new(
         kind: ToolKind,
         hands: Hands,
-        equip_time_millis: u32,
+        equip_time_secs: f32,
         power: f32,
         poise_strength: f32,
         speed: f32,
@@ -230,7 +227,7 @@ impl Tool {
             kind,
             hands,
             stats: StatKind::Direct(Stats {
-                equip_time_millis,
+                equip_time_secs,
                 power,
                 poise_strength,
                 speed,
@@ -243,7 +240,7 @@ impl Tool {
             kind: ToolKind::Empty,
             hands: Hands::One,
             stats: StatKind::Direct(Stats {
-                equip_time_millis: 0,
+                equip_time_secs: 0.0,
                 power: 1.00,
                 poise_strength: 1.00,
                 speed: 1.00,
@@ -268,7 +265,7 @@ impl Tool {
     }
 
     pub fn equip_time(&self, msm: &MaterialStatManifest, components: &[Item]) -> Duration {
-        Duration::from_millis(self.stats.resolve_stats(msm, components).equip_time_millis as u64)
+        Duration::from_secs_f32(self.stats.resolve_stats(msm, components).equip_time_secs)
     }
 
     pub fn get_abilities(

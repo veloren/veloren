@@ -91,10 +91,12 @@ pub struct Auras {
 }
 
 impl Auras {
-    pub fn new(aura: Aura) -> Self {
-        let mut auras: SlotMap<AuraKey, Aura> = SlotMap::with_key();
-        auras.insert(aura);
-        Self { auras }
+    pub fn new(auras: Vec<Aura>) -> Self {
+        let mut auras_comp: SlotMap<AuraKey, Aura> = SlotMap::with_key();
+        for aura in auras {
+            auras_comp.insert(aura);
+        }
+        Self { auras: auras_comp }
     }
 
     pub fn insert(&mut self, aura: Aura) { self.auras.insert(aura); }

@@ -1,0 +1,15 @@
+ItemDef(
+    name: "Iron Legguards",
+    description: "Greaves forged from iron.",
+    kind: Armor(
+        (
+            kind: Pants("PlateRed"),
+            stats: (
+                protection: Normal(10.0),
+                poise_resilience: Normal(10.0),
+            ),
+        )
+    ),
+    quality: Low,
+    tags: [],
+)

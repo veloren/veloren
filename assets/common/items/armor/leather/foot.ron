@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Leather Boots",
+    description: "Boots made of simple leather.",
+    kind: Armor((
+        kind: Foot("Leather"),
+        stats: (
+            protection: Normal(2.0),
+            poise_resilience: Normal(3.0),
+        ),
+    )),
+    quality: Common,
+    tags: [],
+)

@@ -1,0 +1,15 @@
+ItemDef(
+    name: "Velorite Admin Cape",
+    description: "Where did I put my banhammer again?",
+    kind: Armor(
+        (
+            kind: Back("VeloriteMage"),
+            stats: (
+                protection: Invincible,
+                poise_resilience: Invincible,
+            ),
+        )
+    ),
+    quality: Debug,
+    tags: [],
+)

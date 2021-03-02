@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Swift Gloves",
+    description: "Swift like the wind.",
+    kind: Armor((
+        kind: Hand("Swift"),
+        stats: (
+            protection: Normal(4.0),
+            poise_resilience: Normal(3.0),
+        ),
+    )),
+    quality: Common,
+    tags: [],
+)

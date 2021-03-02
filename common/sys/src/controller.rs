@@ -93,8 +93,8 @@ impl<'a> System<'a> for Sys {
                         server_emitter
                             .emit(ServerEvent::ProcessTradeAction(entity, trade_id, action));
                     },
-                    ControlEvent::InventoryManip(manip) => {
-                        server_emitter.emit(ServerEvent::InventoryManip(entity, manip.into()));
+                    ControlEvent::InventoryEvent(event) => {
+                        server_emitter.emit(ServerEvent::InventoryManip(entity, event.into()));
                     },
                     ControlEvent::GroupManip(manip) => {
                         server_emitter.emit(ServerEvent::GroupManip(entity, manip))

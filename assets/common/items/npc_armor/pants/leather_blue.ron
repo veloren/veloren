@@ -1,0 +1,15 @@
+ItemDef(
+    name: "Blue Leather Guards",
+    description: "",
+    kind: Armor(
+        (
+            kind: Pants("LeatherBlue"),
+            stats: (
+                protection: Normal(10.0),
+                poise_resilience: Normal(10.0),
+            ),
+        )
+    ),
+    quality: Low,
+    tags: [],
+)

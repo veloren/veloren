@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Plain Necklace",
+    description: "It\'s become tarnished with age.",
+    kind: Armor((
+        kind: Neck("Plain0"),
+        stats: (
+            protection: Normal(1.0),
+            poise_resilience: Normal(1.0),
+        ),
+    )),
+    quality: Common,
+    tags: [],
+)

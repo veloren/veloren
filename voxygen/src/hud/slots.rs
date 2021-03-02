@@ -13,6 +13,7 @@ use common::comp::{
     Energy, Inventory,
 };
 use conrod_core::{image, Color};
+use specs::Entity as EcsEntity;
 
 pub use common::comp::slot::{ArmorSlot, EquipSlot};
 
@@ -28,18 +29,21 @@ pub enum SlotKind {
 pub type SlotManager = slot::SlotManager<SlotKind>;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
-pub struct InventorySlot(pub InvSlotId);
+pub struct InventorySlot {
+    pub slot: InvSlotId,
+    pub ours: bool,
+}
 
 impl SlotKey<Inventory, ItemImgs> for InventorySlot {
     type ImageKey = ItemKey;
 
     fn image_key(&self, source: &Inventory) -> Option<(Self::ImageKey, Option<Color>)> {
-        source.get(self.0).map(|i| (i.into(), None))
+        source.get(self.slot).map(|i| (i.into(), None))
     }
 
     fn amount(&self, source: &Inventory) -> Option<u32> {
         source
-            .get(self.0)
+            .get(self.slot)
             .map(|item| item.amount())
             .filter(|amount| *amount > 1)
     }
@@ -69,19 +73,32 @@ pub struct TradeSlot {
     pub index: usize,
     pub quantity: u32,
     pub invslot: Option<InvSlotId>,
+    pub entity: EcsEntity,
+    pub ours: bool,
 }
 
 impl SlotKey<Inventory, ItemImgs> for TradeSlot {
     type ImageKey = ItemKey;
 
     fn image_key(&self, source: &Inventory) -> Option<(Self::ImageKey, Option<Color>)> {
-        self.invslot
-            .and_then(|inv_id| InventorySlot(inv_id).image_key(source))
+        self.invslot.and_then(|inv_id| {
+            InventorySlot {
+                slot: inv_id,
+                ours: self.ours,
+            }
+            .image_key(source)
+        })
     }
 
     fn amount(&self, source: &Inventory) -> Option<u32> {
         self.invslot
-            .and_then(|inv_id| InventorySlot(inv_id).amount(source))
+            .and_then(|inv_id| {
+                InventorySlot {
+                    slot: inv_id,
+                    ours: self.ours,
+                }
+                .amount(source)
+            })
             .map(|x| x.min(self.quantity))
     }
 

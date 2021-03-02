@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Agile Pantalons",
+    description: "\'Tightly packed pieces of leather to endure all weather.\'",
+    kind: Armor((
+        kind: Pants("Agile"),
+        stats: (
+            protection: Normal(6.0),
+            poise_resilience: Normal(3.0),
+        ),
+    )),
+    quality: Moderate,
+    tags: [],
+)

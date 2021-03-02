@@ -3,7 +3,7 @@ ItemDef(
     description: "It just works.",
     kind: Armor(
         (
-            kind: Bag("BrownFace"),
+            kind: Bag("BlackHole"),
             stats: (
                 protection: Normal(0.0),
                 poise_resilience: Normal(0.0)

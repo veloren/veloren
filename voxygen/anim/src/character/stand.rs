@@ -34,8 +34,8 @@ impl Animation for StandAnimation {
         let slow = (anim_time * 1.0).sin();
         let impact = (avg_vel.z).max(-15.0);
         let head_look = Vec2::new(
-            (global_time + anim_time / 12.0).floor().mul(7331.0).sin() * 0.3,
-            (global_time + anim_time / 12.0).floor().mul(1337.0).sin() * 0.15,
+            ((global_time + anim_time) / 10.0).floor().mul(7331.0).sin() * 0.15,
+            ((global_time + anim_time) / 10.0).floor().mul(1337.0).sin() * 0.07,
         );
         next.head.scale = Vec3::one() * s_a.head_scale;
         next.chest.scale = Vec3::one() * 1.01;

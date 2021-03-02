@@ -5,7 +5,7 @@ use structopt::StructOpt;
 
 use comp::item::{
     armor::{ArmorKind, Protection},
-    tool::{Hands, Tool, ToolKind},
+    tool::{Hands, MaterialStatManifest, Tool, ToolKind},
     ItemKind,
 };
 use veloren_common::comp;
@@ -80,15 +80,17 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
         "Description",
     ])?;
 
+    let msm = MaterialStatManifest::default();
+
     for item in comp::item::Item::new_from_asset_glob("common.items.weapons.*")
         .expect("Failed to iterate over item folders!")
     {
         match item.kind() {
             comp::item::ItemKind::Tool(tool) => {
-                let power = tool.base_power(&[]).to_string();
-                let poise_strength = tool.base_poise_strength(&[]).to_string();
-                let speed = tool.base_speed(&[]).to_string();
-                let equip_time = tool.equip_time(&[]).subsec_millis().to_string();
+                let power = tool.base_power(&msm, &[]).to_string();
+                let poise_strength = tool.base_poise_strength(&msm, &[]).to_string();
+                let speed = tool.base_speed(&msm, &[]).to_string();
+                let equip_time = tool.equip_time(&msm, &[]).subsec_millis().to_string();
                 let kind = get_tool_kind(&tool.kind);
                 let hands = get_tool_hands(&tool);
 
@@ -115,14 +117,15 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
 
 fn get_tool_kind(kind: &ToolKind) -> String {
     match kind {
-        ToolKind::Sword => "Sword".to_string(),
-        ToolKind::Axe => "Axe".to_string(),
-        ToolKind::Hammer => "Hammer".to_string(),
-        ToolKind::Bow => "Bow".to_string(),
+        ToolKind::Sword | ToolKind::SwordSimple => "Sword".to_string(),
+        ToolKind::Axe | ToolKind::AxeSimple => "Axe".to_string(),
+        ToolKind::Hammer | ToolKind::HammerSimple => "Hammer".to_string(),
+        ToolKind::Bow | ToolKind::BowSimple => "Bow".to_string(),
         ToolKind::Dagger => "Dagger".to_string(),
-        ToolKind::Staff => "Staff".to_string(),
+        ToolKind::Staff | ToolKind::StaffSimple => "Staff".to_string(),
         ToolKind::Sceptre => "Sceptre".to_string(),
         ToolKind::Shield => "Shield".to_string(),
+        ToolKind::Spear => "Spear".to_string(),
         ToolKind::Debug => "Debug".to_string(),
         ToolKind::Farming => "Farming".to_string(),
         ToolKind::Unique(_) => "Unique".to_string(),

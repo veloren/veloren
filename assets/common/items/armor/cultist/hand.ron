@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Cultist Gloves",
+    description: "Ceremonial attire used by members.",
+    kind: Armor((
+        kind: Hand("Cultist"),
+        stats: (
+            protection: Normal(12.0),
+            poise_resilience: Normal(8.0),
+        ),
+    )),
+    quality: Epic,
+    tags: [],
+)

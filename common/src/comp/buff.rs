@@ -31,6 +31,8 @@ pub enum BuffKind {
     IncreaseMaxEnergy,
     /// Raises maximum health
     IncreaseMaxHealth,
+    /// Makes you immune to attacks
+    Invulnerability,
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -46,6 +48,7 @@ impl BuffKind {
             BuffKind::CampfireHeal => true,
             BuffKind::IncreaseMaxEnergy => true,
             BuffKind::IncreaseMaxHealth => true,
+            BuffKind::Invulnerability => true,
         }
     }
 
@@ -98,9 +101,16 @@ pub enum BuffEffect {
         kind: ModifierKind,
     },
     /// Changes maximum health by a certain amount
-    MaxHealthModifier { value: f32, kind: ModifierKind },
+    MaxHealthModifier {
+        value: f32,
+        kind: ModifierKind,
+    },
     /// Changes maximum stamina by a certain amount
-    MaxEnergyModifier { value: f32, kind: ModifierKind },
+    MaxEnergyModifier {
+        value: f32,
+        kind: ModifierKind,
+    },
+    ImmuneToAttacks,
 }
 
 /// Actual de/buff.
@@ -203,6 +213,7 @@ impl Buff {
                 }],
                 data.duration,
             ),
+            BuffKind::Invulnerability => (vec![BuffEffect::ImmuneToAttacks], data.duration),
         };
         Buff {
             kind,

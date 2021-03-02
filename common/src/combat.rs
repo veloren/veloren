@@ -48,6 +48,13 @@ pub struct AttackerInfo<'a> {
 }
 
 #[cfg(not(target_arch = "wasm32"))]
+pub struct TargetInfo<'a> {
+    pub entity: EcsEntity,
+    pub inventory: Option<&'a Inventory>,
+    pub stats: Option<&'a Stats>,
+}
+
+#[cfg(not(target_arch = "wasm32"))]
 #[derive(Clone, Debug, Serialize, Deserialize)] // TODO: Yeet clone derive
 pub struct Attack {
     damages: Vec<AttackDamage>,
@@ -99,9 +106,8 @@ impl Attack {
     pub fn apply_attack(
         &self,
         target_group: GroupTarget,
-        attacker_info: Option<AttackerInfo>,
-        target_entity: EcsEntity,
-        target_inventory: Option<&Inventory>,
+        attacker: Option<AttackerInfo>,
+        target: TargetInfo,
         dir: Dir,
         target_dodging: bool,
         // Currently just modifies damage, maybe look into modifying strength of other effects?
@@ -116,9 +122,10 @@ impl Attack {
             .filter(|d| d.target.map_or(true, |t| t == target_group))
             .filter(|d| !(matches!(d.target, Some(GroupTarget::OutOfGroup)) && target_dodging))
         {
+            let damage_reduction = Damage::compute_damage_reduction(target.inventory, target.stats);
             let change = damage.damage.calculate_health_change(
-                target_inventory,
-                attacker_info.map(|a| a.uid),
+                damage_reduction,
+                attacker.map(|a| a.uid),
                 is_crit,
                 self.crit_multiplier,
                 strength_modifier,
@@ -127,7 +134,7 @@ impl Attack {
             accumulated_damage += applied_damage;
             if change.amount != 0 {
                 emit(ServerEvent::Damage {
-                    entity: target_entity,
+                    entity: target.entity,
                     change,
                 });
                 for effect in damage.effects.iter() {
@@ -136,13 +143,13 @@ impl Attack {
                             let impulse = kb.calculate_impulse(dir);
                             if !impulse.is_approx_zero() {
                                 emit(ServerEvent::Knockback {
-                                    entity: target_entity,
+                                    entity: target.entity,
                                     impulse,
                                 });
                             }
                         },
                         CombatEffect::EnergyReward(ec) => {
-                            if let Some(attacker_entity) = attacker_info.map(|a| a.entity) {
+                            if let Some(attacker_entity) = attacker.map(|a| a.entity) {
                                 emit(ServerEvent::EnergyChange {
                                     entity: attacker_entity,
                                     change: EnergyChange {
@@ -155,19 +162,19 @@ impl Attack {
                         CombatEffect::Buff(b) => {
                             if thread_rng().gen::<f32>() < b.chance {
                                 emit(ServerEvent::Buff {
-                                    entity: target_entity,
+                                    entity: target.entity,
                                     buff_change: BuffChange::Add(
-                                        b.to_buff(attacker_info.map(|a| a.uid), applied_damage),
+                                        b.to_buff(attacker.map(|a| a.uid), applied_damage),
                                     ),
                                 });
                             }
                         },
                         CombatEffect::Lifesteal(l) => {
-                            if let Some(attacker_entity) = attacker_info.map(|a| a.entity) {
+                            if let Some(attacker_entity) = attacker.map(|a| a.entity) {
                                 let change = HealthChange {
                                     amount: (applied_damage * l) as i32,
                                     cause: HealthSource::Heal {
-                                        by: attacker_info.map(|a| a.uid),
+                                        by: attacker.map(|a| a.uid),
                                     },
                                 };
                                 if change.amount != 0 {
@@ -179,10 +186,10 @@ impl Attack {
                             }
                         },
                         CombatEffect::Poise(p) => {
-                            let change = PoiseChange::from_value(*p, target_inventory);
+                            let change = PoiseChange::from_value(*p, target.inventory);
                             if change.amount != 0 {
                                 emit(ServerEvent::PoiseChange {
-                                    entity: target_entity,
+                                    entity: target.entity,
                                     change,
                                     kb_dir: *dir,
                                 });
@@ -192,18 +199,18 @@ impl Attack {
                             let change = HealthChange {
                                 amount: *h as i32,
                                 cause: HealthSource::Heal {
-                                    by: attacker_info.map(|a| a.uid),
+                                    by: attacker.map(|a| a.uid),
                                 },
                             };
                             if change.amount != 0 {
                                 emit(ServerEvent::Damage {
-                                    entity: target_entity,
+                                    entity: target.entity,
                                     change,
                                 });
                             }
                         },
                         CombatEffect::Combo(c) => {
-                            if let Some(attacker_entity) = attacker_info.map(|a| a.entity) {
+                            if let Some(attacker_entity) = attacker.map(|a| a.entity) {
                                 emit(ServerEvent::ComboChange {
                                     entity: attacker_entity,
                                     change: *c,
@@ -227,7 +234,7 @@ impl Attack {
                         entity,
                         energy: Some(e),
                         ..
-                    }) = attacker_info
+                    }) = attacker
                     {
                         let sufficient_energy = e.current() as f32 >= *r;
                         if sufficient_energy {
@@ -252,13 +259,13 @@ impl Attack {
                         let impulse = kb.calculate_impulse(dir);
                         if !impulse.is_approx_zero() {
                             emit(ServerEvent::Knockback {
-                                entity: target_entity,
+                                entity: target.entity,
                                 impulse,
                             });
                         }
                     },
                     CombatEffect::EnergyReward(ec) => {
-                        if let Some(attacker_entity) = attacker_info.map(|a| a.entity) {
+                        if let Some(attacker_entity) = attacker.map(|a| a.entity) {
                             emit(ServerEvent::EnergyChange {
                                 entity: attacker_entity,
                                 change: EnergyChange {
@@ -271,19 +278,19 @@ impl Attack {
                     CombatEffect::Buff(b) => {
                         if thread_rng().gen::<f32>() < b.chance {
                             emit(ServerEvent::Buff {
-                                entity: target_entity,
+                                entity: target.entity,
                                 buff_change: BuffChange::Add(
-                                    b.to_buff(attacker_info.map(|a| a.uid), accumulated_damage),
+                                    b.to_buff(attacker.map(|a| a.uid), accumulated_damage),
                                 ),
                             });
                         }
                     },
                     CombatEffect::Lifesteal(l) => {
-                        if let Some(attacker_entity) = attacker_info.map(|a| a.entity) {
+                        if let Some(attacker_entity) = attacker.map(|a| a.entity) {
                             let change = HealthChange {
                                 amount: (accumulated_damage * l) as i32,
                                 cause: HealthSource::Heal {
-                                    by: attacker_info.map(|a| a.uid),
+                                    by: attacker.map(|a| a.uid),
                                 },
                             };
                             if change.amount != 0 {
@@ -295,10 +302,10 @@ impl Attack {
                         }
                     },
                     CombatEffect::Poise(p) => {
-                        let change = PoiseChange::from_value(p, target_inventory);
+                        let change = PoiseChange::from_value(p, target.inventory);
                         if change.amount != 0 {
                             emit(ServerEvent::PoiseChange {
-                                entity: target_entity,
+                                entity: target.entity,
                                 change,
                                 kb_dir: *dir,
                             });
@@ -308,18 +315,18 @@ impl Attack {
                         let change = HealthChange {
                             amount: h as i32,
                             cause: HealthSource::Heal {
-                                by: attacker_info.map(|a| a.uid),
+                                by: attacker.map(|a| a.uid),
                             },
                         };
                         if change.amount != 0 {
                             emit(ServerEvent::Damage {
-                                entity: target_entity,
+                                entity: target.entity,
                                 change,
                             });
                         }
                     },
                     CombatEffect::Combo(c) => {
-                        if let Some(attacker_entity) = attacker_info.map(|a| a.entity) {
+                        if let Some(attacker_entity) = attacker.map(|a| a.entity) {
                             emit(ServerEvent::ComboChange {
                                 entity: attacker_entity,
                                 change: c,
@@ -423,40 +430,49 @@ pub struct Damage {
 #[cfg(not(target_arch = "wasm32"))]
 impl Damage {
     /// Returns the total damage reduction provided by all equipped items
-    pub fn compute_damage_reduction(inventory: &Inventory) -> f32 {
-        let protection = inventory
-            .equipped_items()
-            .filter_map(|item| {
-                if let ItemKind::Armor(armor) = &item.kind() {
-                    Some(armor.get_protection())
-                } else {
-                    None
-                }
-            })
-            .map(|protection| match protection {
-                Protection::Normal(protection) => Some(protection),
-                Protection::Invincible => None,
-            })
-            .sum::<Option<f32>>();
+    pub fn compute_damage_reduction(inventory: Option<&Inventory>, stats: Option<&Stats>) -> f32 {
+        let inventory_dr = if let Some(inventory) = inventory {
+            let protection = inventory
+                .equipped_items()
+                .filter_map(|item| {
+                    if let ItemKind::Armor(armor) = &item.kind() {
+                        Some(armor.get_protection())
+                    } else {
+                        None
+                    }
+                })
+                .map(|protection| match protection {
+                    Protection::Normal(protection) => Some(protection),
+                    Protection::Invincible => None,
+                })
+                .sum::<Option<f32>>();
 
-        const FIFTY_PERCENT_DR_THRESHOLD: f32 = 60.0;
+            const FIFTY_PERCENT_DR_THRESHOLD: f32 = 60.0;
 
-        match protection {
-            Some(dr) => dr / (FIFTY_PERCENT_DR_THRESHOLD + dr.abs()),
-            None => 1.0,
-        }
+            match protection {
+                Some(dr) => dr / (FIFTY_PERCENT_DR_THRESHOLD + dr.abs()),
+                None => 1.0,
+            }
+        } else {
+            0.0
+        };
+        let stats_dr = if let Some(stats) = stats {
+            stats.damage_reduction
+        } else {
+            0.0
+        };
+        1.0 - (1.0 - inventory_dr) * (1.0 - stats_dr)
     }
 
     pub fn calculate_health_change(
         self,
-        inventory: Option<&Inventory>,
+        damage_reduction: f32,
         uid: Option<Uid>,
         is_crit: bool,
         crit_mult: f32,
         damage_modifier: f32,
     ) -> HealthChange {
         let mut damage = self.value * damage_modifier;
-        let damage_reduction = inventory.map_or(0.0, Damage::compute_damage_reduction);
         match self.source {
             DamageSource::Melee => {
                 // Critical hit
@@ -705,7 +721,7 @@ pub fn combat_rating(
     let defensive_weighting = 1.0;
     let offensive_weighting = 1.0;
     let defensive_rating = health.maximum() as f32
-        / (1.0 - Damage::compute_damage_reduction(inventory)).max(0.00001)
+        / (1.0 - Damage::compute_damage_reduction(Some(inventory), Some(stats))).max(0.00001)
         / 100.0;
     let offensive_rating = offensive_rating(inventory, &stats.skill_set, msm).max(0.1)
         + 0.05 * stats.skill_set.earned_sp(SkillGroupKind::General) as f32;

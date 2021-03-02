@@ -14,6 +14,8 @@
         "buff.desc.saturation": "Поступово відновлює здоров'я з їжі.",
         "buff.title.campfire_heal": "Відновлення біля ватри",
         "buff.desc.campfire_heal": "Відпочинок біля ватри лікує на 1% за секунду.",
+        "buff.title.bleed": "Кровотеча",
+        "buff.desc.bleed": "Наносить регулярні ушкодження.",
     },
 
 

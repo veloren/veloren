@@ -391,7 +391,13 @@ pub enum Event {
         slot_b: comp::slot::Slot,
         bypass_dialog: bool,
     },
+    SplitSwapSlots {
+        slot_a: comp::slot::Slot,
+        slot_b: comp::slot::Slot,
+        bypass_dialog: bool,
+    },
     DropSlot(comp::slot::Slot),
+    SplitDropSlot(comp::slot::Slot),
     ChangeHotbarState(Box<HotbarState>),
     TradeAction(TradeAction),
     Ability3(bool),
@@ -769,7 +775,15 @@ impl Hud {
         let hotbar_state =
             HotbarState::new(global_state.profile.get_hotbar_slots(server, character_id));
 
-        let slot_manager = slots::SlotManager::new(ui.id_generator(), Vec2::broadcast(40.0));
+        let slot_manager = slots::SlotManager::new(
+            ui.id_generator(),
+            Vec2::broadcast(40.0)
+            // TODO(heyzoos) Will be useful for whoever works on rendering the number of items "in hand".
+            // fonts.cyri.conrod_id,
+            // Vec2::new(1.0, 1.0),
+            // fonts.cyri.scale(12),
+            // TEXT_COLOR,
+        );
 
         Self {
             ui,
@@ -2720,9 +2734,10 @@ impl Hud {
         // Maintain slot manager
         for event in self.slot_manager.maintain(ui_widgets) {
             use comp::slot::Slot;
-            use slots::SlotKind::*;
+            use slots::{InventorySlot, SlotKind::*};
             let to_slot = |slot_kind| match slot_kind {
-                Inventory(i) => Some(Slot::Inventory(i.0)),
+                Inventory(InventorySlot { slot, ours: true }) => Some(Slot::Inventory(slot)),
+                Inventory(InventorySlot { ours: false, .. }) => None,
                 Equip(e) => Some(Slot::Equip(e)),
                 Hotbar(_) => None,
                 Trade(_) => None,
@@ -2736,26 +2751,34 @@ impl Hud {
                             slot_b: b,
                             bypass_dialog: false,
                         });
-                    } else if let (Inventory(i), Hotbar(h)) = (a, b) {
-                        self.hotbar.add_inventory_link(h, i.0);
+                    } else if let (Inventory(InventorySlot { slot, ours: true }), Hotbar(h)) =
+                        (a, b)
+                    {
+                        self.hotbar.add_inventory_link(h, slot);
                         events.push(Event::ChangeHotbarState(Box::new(self.hotbar.to_owned())));
                     } else if let (Hotbar(a), Hotbar(b)) = (a, b) {
                         self.hotbar.swap(a, b);
                         events.push(Event::ChangeHotbarState(Box::new(self.hotbar.to_owned())));
-                    } else if let (Inventory(i), Trade(_)) = (a, b) {
-                        if let Some(inventory) = inventories.get(entity) {
-                            events.push(Event::TradeAction(TradeAction::AddItem {
-                                item: i.0,
-                                quantity: i.amount(inventory).unwrap_or(1),
-                            }));
-                        }
-                    } else if let (Trade(t), Inventory(_)) = (a, b) {
-                        if let Some(inventory) = inventories.get(entity) {
-                            if let Some(invslot) = t.invslot {
-                                events.push(Event::TradeAction(TradeAction::RemoveItem {
-                                    item: invslot,
-                                    quantity: t.amount(inventory).unwrap_or(1),
+                    } else if let (Inventory(i), Trade(t)) = (a, b) {
+                        if i.ours == t.ours {
+                            if let Some(inventory) = inventories.get(t.entity) {
+                                events.push(Event::TradeAction(TradeAction::AddItem {
+                                    item: i.slot,
+                                    quantity: i.amount(inventory).unwrap_or(1),
+                                    ours: i.ours,
                                 }));
+                            }
+                        }
+                    } else if let (Trade(t), Inventory(i)) = (a, b) {
+                        if i.ours == t.ours {
+                            if let Some(inventory) = inventories.get(t.entity) {
+                                if let Some(invslot) = t.invslot {
+                                    events.push(Event::TradeAction(TradeAction::RemoveItem {
+                                        item: invslot,
+                                        quantity: t.amount(inventory).unwrap_or(1),
+                                        ours: t.ours,
+                                    }));
+                                }
                             }
                         }
                     }
@@ -2766,6 +2789,41 @@ impl Hud {
                         events.push(Event::DropSlot(from));
                     } else if let Hotbar(h) = from {
                         self.hotbar.clear_slot(h);
+                        events.push(Event::ChangeHotbarState(Box::new(self.hotbar.to_owned())));
+                    } else if let Trade(t) = from {
+                        if let Some(inventory) = inventories.get(t.entity) {
+                            if let Some(invslot) = t.invslot {
+                                events.push(Event::TradeAction(TradeAction::RemoveItem {
+                                    item: invslot,
+                                    quantity: t.amount(inventory).unwrap_or(1),
+                                    ours: t.ours,
+                                }));
+                            }
+                        }
+                    }
+                },
+                slot::Event::SplitDropped(from) => {
+                    // Drop item
+                    if let Some(from) = to_slot(from) {
+                        events.push(Event::SplitDropSlot(from));
+                    } else if let Hotbar(h) = from {
+                        self.hotbar.clear_slot(h);
+                        events.push(Event::ChangeHotbarState(Box::new(self.hotbar.to_owned())));
+                    }
+                },
+                slot::Event::SplitDragged(a, b) => {
+                    // Swap between slots
+                    if let (Some(a), Some(b)) = (to_slot(a), to_slot(b)) {
+                        events.push(Event::SplitSwapSlots {
+                            slot_a: a,
+                            slot_b: b,
+                            bypass_dialog: false,
+                        });
+                    } else if let (Inventory(i), Hotbar(h)) = (a, b) {
+                        self.hotbar.add_inventory_link(h, i.slot);
+                        events.push(Event::ChangeHotbarState(Box::new(self.hotbar.to_owned())));
+                    } else if let (Hotbar(a), Hotbar(b)) = (a, b) {
+                        self.hotbar.swap(a, b);
                         events.push(Event::ChangeHotbarState(Box::new(self.hotbar.to_owned())));
                     }
                 },
@@ -2839,8 +2897,13 @@ impl Hud {
             slot_manager: &mut slots::SlotManager,
             hotbar: &mut hotbar::State,
         ) {
-            if let Some(slots::SlotKind::Inventory(i)) = slot_manager.selected() {
-                hotbar.add_inventory_link(slot, i.0);
+            use slots::InventorySlot;
+            if let Some(slots::SlotKind::Inventory(InventorySlot {
+                slot: i,
+                ours: true,
+            })) = slot_manager.selected()
+            {
+                hotbar.add_inventory_link(slot, i);
                 events.push(Event::ChangeHotbarState(Box::new(hotbar.to_owned())));
                 slot_manager.idle();
             } else {
@@ -3172,5 +3235,61 @@ pub fn cr_color(combat_rating: f32) -> Color {
         x if (artifact..debug).contains(&x) => QUALITY_ARTIFACT,
         x if x >= debug => QUALITY_DEBUG,
         _ => XP_COLOR,
+    }
+}
+
+pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
+    match buff {
+        // Buffs
+        BuffKind::Regeneration { .. } => imgs.buff_plus_0,
+        BuffKind::Saturation { .. } => imgs.buff_saturation_0,
+        BuffKind::Potion { .. } => imgs.buff_potion_0,
+        BuffKind::CampfireHeal { .. } => imgs.buff_campfire_heal_0,
+        BuffKind::IncreaseMaxEnergy { .. } => imgs.buff_energyplus_0,
+        BuffKind::IncreaseMaxHealth { .. } => imgs.buff_healthplus_0,
+        BuffKind::Invulnerability => imgs.buff_invincibility_0,
+        //  Debuffs
+        BuffKind::Bleeding { .. } => imgs.debuff_bleed_0,
+        BuffKind::Cursed { .. } => imgs.debuff_skull_0,
+    }
+}
+
+pub fn get_buff_title(buff: BuffKind, localized_strings: &Localization) -> &str {
+    match buff {
+        // Buffs
+        BuffKind::Regeneration { .. } => localized_strings.get("buff.title.heal"),
+        BuffKind::Saturation { .. } => localized_strings.get("buff.title.saturation"),
+        BuffKind::Potion { .. } => localized_strings.get("buff.title.potion"),
+        BuffKind::CampfireHeal { .. } => localized_strings.get("buff.title.campfire_heal"),
+        BuffKind::IncreaseMaxHealth { .. } => localized_strings.get("buff.title.IncreaseMaxHealth"),
+        BuffKind::IncreaseMaxEnergy { .. } => localized_strings.get("buff.title.staminaup"),
+        BuffKind::Invulnerability => localized_strings.get("buff.title.invulnerability"),
+        // Debuffs
+        BuffKind::Bleeding { .. } => localized_strings.get("buff.title.bleed"),
+        BuffKind::Cursed { .. } => localized_strings.get("buff.title.cursed"),
+    }
+}
+
+pub fn get_buff_desc(buff: BuffKind, localized_strings: &Localization) -> &str {
+    match buff {
+        // Buffs
+        BuffKind::Regeneration { .. } => localized_strings.get("buff.desc.heal"),
+        BuffKind::Saturation { .. } => localized_strings.get("buff.desc.saturation"),
+        BuffKind::Potion { .. } => localized_strings.get("buff.desc.potion"),
+        BuffKind::CampfireHeal { .. } => localized_strings.get("buff.desc.campfire_heal"),
+        BuffKind::IncreaseMaxHealth { .. } => localized_strings.get("buff.desc.IncreaseMaxHealth"),
+        BuffKind::IncreaseMaxEnergy { .. } => localized_strings.get("buff.desc.IncreaseMaxEnergy"),
+        BuffKind::Invulnerability => localized_strings.get("buff.desc.invulnerability"),
+        // Debuffs
+        BuffKind::Bleeding { .. } => localized_strings.get("buff.desc.bleed"),
+        BuffKind::Cursed { .. } => localized_strings.get("buff.desc.cursed"),
+    }
+}
+
+pub fn get_buff_time(buff: BuffInfo) -> String {
+    if let Some(dur) = buff.dur {
+        format!("Remaining: {:.0}s", dur.as_secs_f32())
+    } else {
+        "Permanent".to_string()
     }
 }
