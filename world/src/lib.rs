@@ -10,7 +10,7 @@
     label_break_value,
     or_patterns,
     array_value_iter,
-    array_map,
+    array_map
 )]
 
 mod all;
@@ -32,8 +32,8 @@ pub mod util;
 // Reexports
 pub use crate::{
     canvas::{Canvas, CanvasInfo},
-    land::Land,
     config::CONFIG,
+    land::Land,
 };
 pub use block::BlockGen;
 pub use column::ColumnSample;

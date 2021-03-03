@@ -1,8 +1,8 @@
 use super::*;
-use crate::{Land, util::SQUARE_4};
+use crate::{util::SQUARE_4, Land};
 use common::terrain::{Block, BlockKind, SpriteKind};
-use vek::*;
 use rand::prelude::*;
+use vek::*;
 
 pub struct House {
     door_tile: Vec2<i32>,
@@ -13,7 +13,13 @@ pub struct House {
 }
 
 impl House {
-    pub fn generate(land: &Land, rng: &mut impl Rng, site: &Site, door_tile: Vec2<i32>, tile_aabr: Aabr<i32>) -> Self {
+    pub fn generate(
+        land: &Land,
+        rng: &mut impl Rng,
+        site: &Site,
+        door_tile: Vec2<i32>,
+        tile_aabr: Aabr<i32>,
+    ) -> Self {
         Self {
             door_tile,
             tile_aabr,
@@ -40,12 +46,12 @@ impl Structure for House {
 
         // Walls
         let outer = prim(Primitive::Aabb(Aabb {
-            min: Vec3::new(self.bounds.min.x, self.bounds.min.y, self.alt - foundations),
-            max: Vec3::new(self.bounds.max.x, self.bounds.max.y, self.alt + roof),
+            min: self.bounds.min.with_z(self.alt - foundations),
+            max: (self.bounds.max + 1).with_z(self.alt + roof),
         }));
         let inner = prim(Primitive::Aabb(Aabb {
-            min: Vec3::new(self.bounds.min.x + 1, self.bounds.min.y + 1, self.alt + 0),
-            max: Vec3::new(self.bounds.max.x - 1, self.bounds.max.y - 1, self.alt + roof),
+            min: (self.bounds.min + 1).with_z(self.alt),
+            max: self.bounds.max.with_z(self.alt + roof),
         }));
         let walls = prim(Primitive::Xor(outer, inner));
         fill(Fill {
@@ -57,16 +63,16 @@ impl Structure for House {
         let mut pillars_y = prim(Primitive::Empty);
         for x in self.tile_aabr.min.x..self.tile_aabr.max.x + 2 {
             let pillar = prim(Primitive::Aabb(Aabb {
-                min: Vec3::from(site.tile_wpos(Vec2::new(x, self.tile_aabr.min.y))) + Vec3::unit_z() * self.alt,
-                max: Vec3::from(site.tile_wpos(Vec2::new(x, self.tile_aabr.max.y)) + Vec2::unit_x()) + Vec3::unit_z() * (self.alt + roof),
+                min: site.tile_wpos(Vec2::new(x, self.tile_aabr.min.y)).with_z(self.alt),
+                max: (site.tile_wpos(Vec2::new(x, self.tile_aabr.max.y + 1)) + Vec2::unit_x()).with_z(self.alt + roof),
             }));
             pillars_y = prim(Primitive::Or(pillars_y, pillar));
         }
         let mut pillars_x = prim(Primitive::Empty);
         for y in self.tile_aabr.min.y..self.tile_aabr.max.y + 2 {
             let pillar = prim(Primitive::Aabb(Aabb {
-                min: Vec3::from(site.tile_wpos(Vec2::new(self.tile_aabr.min.x, y))) + Vec3::unit_z() * self.alt,
-                max: Vec3::from(site.tile_wpos(Vec2::new(self.tile_aabr.max.x, y)) + Vec2::unit_y()) + Vec3::unit_z() * (self.alt + roof),
+                min: site.tile_wpos(Vec2::new(self.tile_aabr.min.x, y)).with_z(self.alt),
+                max: (site.tile_wpos(Vec2::new(self.tile_aabr.max.x + 1, y)) + Vec2::unit_y()).with_z(self.alt + roof),
             }));
             pillars_x = prim(Primitive::Or(pillars_x, pillar));
         }
@@ -85,16 +91,14 @@ impl Structure for House {
                 let mut windows = prim(Primitive::Empty);
                 for y in self.tile_aabr.min.y..self.tile_aabr.max.y {
                     let window = prim(Primitive::Aabb(Aabb {
-                        min: Vec3::from(site.tile_wpos(Vec2::new(self.tile_aabr.min.x, y)) + Vec2::unit_y() * 2) + Vec3::unit_z() * (self.alt + height + 2),
-                        max: Vec3::from(site.tile_wpos(Vec2::new(self.tile_aabr.max.x, y + 1)) - Vec2::unit_y() * 1) + Vec3::unit_z() * (self.alt + height + 5),
+                        min: (site.tile_wpos(Vec2::new(self.tile_aabr.min.x, y)) + Vec2::unit_y() * 2).with_z(self.alt + height + 2),
+                        max: (site.tile_wpos(Vec2::new(self.tile_aabr.max.x, y + 1)) + Vec2::new(1, -1)).with_z(self.alt + height + 5),
                     }));
                     windows = prim(Primitive::Or(windows, window));
                 }
                 fill(Fill {
                     prim: prim(Primitive::And(walls, windows)),
-                    block: Block::air(SpriteKind::Window1)
-                        .with_ori(2)
-                        .unwrap(),
+                    block: Block::air(SpriteKind::Window1).with_ori(2).unwrap(),
                 });
             }
             // Windows y axis
@@ -102,24 +106,22 @@ impl Structure for House {
                 let mut windows = prim(Primitive::Empty);
                 for x in self.tile_aabr.min.x..self.tile_aabr.max.x {
                     let window = prim(Primitive::Aabb(Aabb {
-                        min: Vec3::from(site.tile_wpos(Vec2::new(x, self.tile_aabr.min.y)) + Vec2::unit_x() * 2) + Vec3::unit_z() * (self.alt + height + 2),
-                        max: Vec3::from(site.tile_wpos(Vec2::new(x + 1, self.tile_aabr.max.y)) - Vec2::unit_x() * 1) + Vec3::unit_z() * (self.alt + height + 5),
+                        min: (site.tile_wpos(Vec2::new(x, self.tile_aabr.min.y)) + Vec2::unit_x() * 2).with_z(self.alt + height + 2),
+                        max: (site.tile_wpos(Vec2::new(x + 1, self.tile_aabr.max.y)) + Vec2::new(-1, 1)).with_z(self.alt + height + 5),
                     }));
                     windows = prim(Primitive::Or(windows, window));
                 }
                 fill(Fill {
                     prim: prim(Primitive::And(walls, windows)),
-                    block: Block::air(SpriteKind::Window1)
-                        .with_ori(0)
-                        .unwrap(),
+                    block: Block::air(SpriteKind::Window1).with_ori(0).unwrap(),
                 });
             }
 
             // Floor
             fill(Fill {
                 prim: prim(Primitive::Aabb(Aabb {
-                    min: Vec3::new(self.bounds.min.x, self.bounds.min.y, self.alt + height + 0),
-                    max: Vec3::new(self.bounds.max.x, self.bounds.max.y, self.alt + height + 1),
+                    min: self.bounds.min.with_z(self.alt + height),
+                    max: (self.bounds.max + 1).with_z(self.alt + height + 1),
                 })),
                 block: Block::new(BlockKind::Rock, Rgb::new(89, 44, 14)),
             });
@@ -137,16 +139,20 @@ impl Structure for House {
         //     });
         // }
 
-
         let roof_lip = 3;
-        let roof_height = (self.bounds.min - self.bounds.max).map(|e| e.abs()).reduce_min() / 2 + roof_lip;
+        let roof_height = (self.bounds.min - self.bounds.max)
+            .map(|e| e.abs())
+            .reduce_min()
+            / 2
+            + roof_lip
+            + 1;
 
         // Roof
         fill(Fill {
             prim: prim(Primitive::Pyramid {
                 aabb: Aabb {
-                    min: Vec3::new(self.bounds.min.x - roof_lip, self.bounds.min.y - roof_lip, self.alt + roof),
-                    max: Vec3::new(self.bounds.max.x + roof_lip, self.bounds.max.y + roof_lip, self.alt + roof + roof_height),
+                    min: (self.bounds.min - roof_lip).with_z(self.alt + roof),
+                    max: (self.bounds.max + 1 + roof_lip).with_z(self.alt + roof + roof_height),
                 },
                 inset: roof_height,
             }),
@@ -156,8 +162,8 @@ impl Structure for House {
         // Foundations
         fill(Fill {
             prim: prim(Primitive::Aabb(Aabb {
-                min: Vec3::new(self.bounds.min.x - 1, self.bounds.min.y - 1, self.alt - foundations),
-                max: Vec3::new(self.bounds.max.x + 1, self.bounds.max.y + 1, self.alt + 1),
+                min: (self.bounds.min - 1).with_z(self.alt - foundations),
+                max: (self.bounds.max + 2).with_z(self.alt + 1),
             })),
             block: Block::new(BlockKind::Rock, Rgb::new(31, 33, 32)),
         });
