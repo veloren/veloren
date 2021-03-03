@@ -935,7 +935,7 @@ impl<V: RectRasterableVol> Terrain<V> {
             .collect::<Vec<_>>();
 
             let cam_pos = math::Vec4::from(view_mat.inverted() * Vec4::unit_w()).xyz();
-            let up: math::Vec3<f32> = { math::Vec3::up() };
+            let up: math::Vec3<f32> = { math::Vec3::unit_y() };
 
             let ray_mat = math::Mat4::look_at_rh(cam_pos, cam_pos + ray_direction, up);
             let visible_bounds = math::Aabr::from(math::fit_psr(

@@ -14,7 +14,7 @@ default = ["simd"]
 common = {package = "veloren-common", path = "../../common"}
 
 sum_type = "0.2.0"
-vek = { version = "=0.12.0", features = ["serde"] }
+vek = { version = "=0.14.1", features = ["serde"] }
 tracing = { version = "0.1", default-features = false }
 
 # Data structures

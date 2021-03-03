@@ -18,7 +18,7 @@ common-net = { package = "veloren-common-net", path = "../net" }
 rand = "0.8"
 rayon = "1.5"
 tracing = { version = "0.1", default-features = false }
-vek = { version = "=0.12.0", features = ["serde"] }
+vek = { version = "=0.14.1", features = ["serde"] }
 
 # Data structures
 hashbrown = { version = "0.9", features = ["rayon", "serde", "nightly"] }

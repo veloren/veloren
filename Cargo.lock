@@ -5551,10 +5551,10 @@ dependencies = [
 
 [[package]]
 name = "vek"
-version = "0.12.0"
-source = "git+https://gitlab.com/veloren/vek.git?branch=fix_intrinsics#237a78528b505f34f6dde5dc77db3b642388fe4a"
+version = "0.14.1"
+source = "git+https://gitlab.com/veloren/vek.git?branch=fix_intrinsics2#df6842cc874a697dec8896c66851817e744af7e8"
 dependencies = [
- "approx 0.3.2",
+ "approx 0.4.0",
  "num-integer",
  "num-traits",
  "rustc_version",
@@ -5577,7 +5577,7 @@ dependencies = [
  "tokio 1.2.0",
  "tracing",
  "tracing-subscriber",
- "vek 0.12.0",
+ "vek 0.14.1",
  "veloren-common",
  "veloren-common-net",
  "veloren-common-sys",
@@ -5621,7 +5621,7 @@ dependencies = [
  "tracing",
  "tracy-client",
  "uuid",
- "vek 0.12.0",
+ "vek 0.14.1",
 ]
 
 [[package]]
@@ -5635,7 +5635,7 @@ dependencies = [
  "sum_type",
  "tracing",
  "tracy-client",
- "vek 0.12.0",
+ "vek 0.14.1",
  "veloren-common",
 ]
 
@@ -5656,7 +5656,7 @@ dependencies = [
  "toml",
  "tracing",
  "tracy-client",
- "vek 0.12.0",
+ "vek 0.14.1",
  "veloren-common",
  "veloren-common-net",
  "veloren-plugin-api",
@@ -5763,7 +5763,7 @@ dependencies = [
  "specs-idvs",
  "tokio 1.2.0",
  "tracing",
- "vek 0.12.0",
+ "vek 0.14.1",
  "veloren-common",
  "veloren-common-net",
  "veloren-common-sys",
@@ -5849,7 +5849,7 @@ dependencies = [
  "tracing-subscriber",
  "tracing-tracy",
  "treeculler",
- "vek 0.12.0",
+ "vek 0.14.1",
  "veloren-client",
  "veloren-common",
  "veloren-common-net",
@@ -5872,7 +5872,7 @@ dependencies = [
  "libloading 0.6.7",
  "notify 5.0.0-pre.5",
  "tracing",
- "vek 0.12.0",
+ "vek 0.14.1",
  "veloren-common",
 ]
 
@@ -5901,7 +5901,7 @@ dependencies = [
  "serde",
  "tracing",
  "tracing-subscriber",
- "vek 0.12.0",
+ "vek 0.14.1",
  "veloren-common",
  "veloren-common-net",
 ]
