@@ -52,18 +52,27 @@ impl Fill {
         Some(self.block).filter(|_| self.contains_at(tree, self.prim, pos))
     }
 
-    fn get_bounds_inner(&self, tree: &Store<Primitive>, prim: Id<Primitive>) -> Aabb<i32> {
-        match &tree[prim] {
-            Primitive::Empty => Aabb::new_empty(Vec3::zero()),
+    fn get_bounds_inner(&self, tree: &Store<Primitive>, prim: Id<Primitive>) -> Option<Aabb<i32>> {
+        fn or_zip_with<T, F: FnOnce(T, T) -> T>(a: Option<T>, b: Option<T>, f: F) -> Option<T> {
+            match (a, b) {
+                (Some(a), Some(b)) => Some(f(a, b)),
+                (Some(a), _) => Some(a),
+                (_, b) => b,
+            }
+        }
+
+        Some(match &tree[prim] {
+            Primitive::Empty => return None,
             Primitive::Aabb(aabb) => *aabb,
             Primitive::Pyramid { aabb, .. } => *aabb,
-            Primitive::And(a, b) => self.get_bounds_inner(tree, *a).intersection(self.get_bounds_inner(tree, *b)),
-            Primitive::Or(a, b) | Primitive::Xor(a, b) => self.get_bounds_inner(tree, *a).union(self.get_bounds_inner(tree, *b)),
-        }
+            Primitive::And(a, b) => or_zip_with(self.get_bounds_inner(tree, *a), self.get_bounds_inner(tree, *b), |a, b| a.intersection(b))?,
+            Primitive::Or(a, b) | Primitive::Xor(a, b) =>
+                or_zip_with(self.get_bounds_inner(tree, *a), self.get_bounds_inner(tree, *b), |a, b| a.union(b))?,
+        })
     }
 
     pub fn get_bounds(&self, tree: &Store<Primitive>) -> Aabb<i32> {
-        self.get_bounds_inner(tree, self.prim)
+        self.get_bounds_inner(tree, self.prim).unwrap_or_else(|| Aabb::new_empty(Vec3::zero()))
     }
 }
 

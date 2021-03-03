@@ -250,7 +250,7 @@ impl Site {
                         });
 
                         site.blit_aabr(aabr, Tile {
-                            kind: TileKind::Building { levels: size - 1 + rng.gen_range(0..2) },
+                            kind: TileKind::Building,
                             plot: Some(plot),
                         });
                     }
@@ -481,9 +481,9 @@ impl Site {
         //                 b.with_sprite(SpriteKind::Empty)
         //             },
         //         )),
-        //         TileKind::Building { levels } => {
+        //         TileKind::Building => {
         //             let base_alt = tile.plot.map(|p| self.plot(p)).map_or(col.alt as i32, |p| p.base_alt);
-        //             for z in base_alt - 12..base_alt + 4 + 6 * levels as i32 {
+        //             for z in base_alt - 12..base_alt + 16 {
         //                 canvas.set(
         //                     Vec3::new(wpos2d.x, wpos2d.y, z),
         //                     Block::new(BlockKind::Wood, Rgb::new(180, 90 + (seed % 64) as u8, 120))

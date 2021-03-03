@@ -54,23 +54,25 @@ impl Structure for House {
         });
 
         // wall pillars
-        let mut pillars = prim(Primitive::Empty);
-        for x in self.tile_aabr.min.x + 1..self.tile_aabr.max.x {
+        let mut pillars_y = prim(Primitive::Empty);
+        for x in self.tile_aabr.min.x..self.tile_aabr.max.x + 2 {
             let pillar = prim(Primitive::Aabb(Aabb {
                 min: Vec3::from(site.tile_wpos(Vec2::new(x, self.tile_aabr.min.y))) + Vec3::unit_z() * self.alt,
                 max: Vec3::from(site.tile_wpos(Vec2::new(x, self.tile_aabr.max.y)) + Vec2::unit_x()) + Vec3::unit_z() * (self.alt + roof),
             }));
-            pillars = prim(Primitive::Or(pillars, pillar));
+            pillars_y = prim(Primitive::Or(pillars_y, pillar));
         }
-        for y in self.tile_aabr.min.y + 1..self.tile_aabr.max.y {
+        let mut pillars_x = prim(Primitive::Empty);
+        for y in self.tile_aabr.min.y..self.tile_aabr.max.y + 2 {
             let pillar = prim(Primitive::Aabb(Aabb {
                 min: Vec3::from(site.tile_wpos(Vec2::new(self.tile_aabr.min.x, y))) + Vec3::unit_z() * self.alt,
                 max: Vec3::from(site.tile_wpos(Vec2::new(self.tile_aabr.max.x, y)) + Vec2::unit_y()) + Vec3::unit_z() * (self.alt + roof),
             }));
-            pillars = prim(Primitive::Or(pillars, pillar));
+            pillars_x = prim(Primitive::Or(pillars_x, pillar));
         }
+        let pillars = prim(Primitive::And(pillars_x, pillars_y));
         fill(Fill {
-            prim: prim(Primitive::And(walls, pillars)),
+            prim: pillars,
             block: Block::new(BlockKind::Wood, Rgb::new(89, 44, 14)),
         });
 
@@ -124,16 +126,16 @@ impl Structure for House {
         }
 
         // Corner pillars
-        for &rpos in SQUARE_4.iter() {
-            let pos = self.bounds.min + (self.bounds.max - self.bounds.min) * rpos;
-            fill(Fill {
-                prim: prim(Primitive::Aabb(Aabb {
-                    min: Vec3::new(pos.x - 1, pos.y - 1, self.alt - foundations),
-                    max: Vec3::new(pos.x + 1, pos.y + 1, self.alt + roof),
-                })),
-                block: Block::new(BlockKind::Wood, Rgb::new(89, 44, 14)),
-            });
-        }
+        // for &rpos in SQUARE_4.iter() {
+        //     let pos = self.bounds.min + (self.bounds.max - self.bounds.min) * rpos;
+        //     fill(Fill {
+        //         prim: prim(Primitive::Aabb(Aabb {
+        //             min: Vec3::new(pos.x - 1, pos.y - 1, self.alt - foundations),
+        //             max: Vec3::new(pos.x + 1, pos.y + 1, self.alt + roof),
+        //         })),
+        //         block: Block::new(BlockKind::Wood, Rgb::new(89, 44, 14)),
+        //     });
+        // }
 
 
         let roof_lip = 3;

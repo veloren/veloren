@@ -117,7 +117,7 @@ pub enum TileKind {
     Hazard(HazardKind),
     Field,
     Road,
-    Building { levels: u32 },
+    Building,
     Castle,
     Wall,
 }
@@ -150,7 +150,7 @@ impl Tile {
         matches!(
             self.kind,
             TileKind::Hazard(_)
-            | TileKind::Building { .. }
+            | TileKind::Building
             | TileKind::Castle
             | TileKind::Wall
         )
