@@ -93,64 +93,41 @@ fn consumable_desc(effects: &[Effect], desc: &str) -> String {
     for effect in effects {
         if let Effect::Buff(buff) = effect {
             let strength = buff.data.strength * 0.1;
-            let dur_secs = match buff.data.duration {
-                Some(dur_secs) => dur_secs.as_secs_f32(),
-                None => 0.0,
-            };
-
-            let str_total = {
-                if dur_secs > 0.0 {
-                    strength * dur_secs
-                } else {
-                    strength
-                }
-            };
+            let dur_secs = buff.data.duration.map(|d| d.as_secs_f32());
+            let str_total = dur_secs.map_or(strength, |secs| strength * secs);
 
             let buff_desc = match buff.kind {
-                BuffKind::Saturation { .. }
-                | BuffKind::Regeneration { .. }
-                | BuffKind::Potion { .. } => {
+                BuffKind::Saturation | BuffKind::Regeneration | BuffKind::Potion => {
                     format!("Restores {} Health", str_total)
                 },
-                BuffKind::IncreaseMaxEnergy { .. } => {
+                BuffKind::IncreaseMaxEnergy => {
                     format!("Raises Maximum Stamina by {}", strength)
                 },
-                BuffKind::IncreaseMaxHealth { .. } => {
+                BuffKind::IncreaseMaxHealth => {
                     format!("Raises Maximum Health by {}", strength)
                 },
-                _ => String::new(),
+                _ => continue,
             };
-
-            if buff_desc.is_empty() {
-                continue;
-            }
 
             write!(&mut description, "\n\n{}", buff_desc).unwrap();
 
-            // The Potion buff has no real duration
-            if let BuffKind::Potion { .. } = buff.kind {
-                continue;
-            }
-
-            let dur_desc = {
-                if dur_secs > 0.0 {
-                    match buff.kind {
-                        BuffKind::Saturation { .. } | BuffKind::Regeneration { .. } => {
-                            format!("over {} seconds", dur_secs)
-                        },
-                        BuffKind::IncreaseMaxEnergy | BuffKind::IncreaseMaxHealth { .. } => {
-                            format!("for {} seconds", dur_secs)
-                        },
-                        _ => String::new(),
-                    }
-                } else {
-                    "every second".to_string()
+            let dur_desc = if dur_secs.is_some() {
+                match buff.kind {
+                    BuffKind::Saturation | BuffKind::Regeneration => {
+                        format!("over {} seconds", dur_secs.unwrap())
+                    },
+                    BuffKind::IncreaseMaxEnergy | BuffKind::IncreaseMaxHealth => {
+                        format!("for {} seconds", dur_secs.unwrap())
+                    },
+                    _ => continue,
                 }
+            } else if let BuffKind::Saturation | BuffKind::Regeneration = buff.kind {
+                "every second".to_string()
+            } else {
+                continue;
             };
 
-            if !dur_desc.is_empty() {
-                write!(&mut description, " {}", dur_desc).unwrap();
-            }
+            write!(&mut description, " {}", dur_desc).unwrap();
         }
     }
 
