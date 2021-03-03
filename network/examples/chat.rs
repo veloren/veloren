@@ -100,7 +100,7 @@ fn main() {
 
 fn server(address: ProtocolAddr) {
     let r = Arc::new(Runtime::new().unwrap());
-    let server = Network::new(Pid::new(), Arc::clone(&r));
+    let server = Network::new(Pid::new(), &r);
     let server = Arc::new(server);
     let participants = Arc::new(RwLock::new(Vec::new()));
     r.block_on(async {
@@ -146,7 +146,7 @@ async fn client_connection(
 
 fn client(address: ProtocolAddr) {
     let r = Arc::new(Runtime::new().unwrap());
-    let client = Network::new(Pid::new(), Arc::clone(&r));
+    let client = Network::new(Pid::new(), &r);
 
     r.block_on(async {
         let p1 = client.connect(address.clone()).await.unwrap(); //remote representation of p1

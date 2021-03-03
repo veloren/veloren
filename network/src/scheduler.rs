@@ -629,10 +629,13 @@ impl Scheduler {
                                 pid_oneshot.send(Ok(participant)).unwrap();
                             } else {
                                 // no one is waiting on this Participant, return in to Network
-                                participant_channels
+                                if participant_channels
                                     .s2a_connected_s
                                     .send(participant)
-                                    .unwrap();
+                                    .is_err()
+                                {
+                                    warn!("seems like Network already got closed");
+                                };
                             }
                         } else {
                             let pi = &participants[&pid];

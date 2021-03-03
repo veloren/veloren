@@ -150,7 +150,7 @@ fn stream_send_100000_then_close_stream() {
 #[test]
 fn stream_send_100000_then_close_stream_remote() {
     let (_, _) = helper::setup(false, 0);
-    let (_, _n_a, _p_a, mut s1_a, _n_b, _p_b, _s1_b) = network_participant_stream(tcp());
+    let (_r, _n_a, _p_a, mut s1_a, _n_b, _p_b, _s1_b) = network_participant_stream(tcp());
     for _ in 0..100000 {
         s1_a.send("woop_PARTY_HARD_woop").unwrap();
     }
@@ -163,7 +163,7 @@ fn stream_send_100000_then_close_stream_remote() {
 #[test]
 fn stream_send_100000_then_close_stream_remote2() {
     let (_, _) = helper::setup(false, 0);
-    let (_, _n_a, _p_a, mut s1_a, _n_b, _p_b, _s1_b) = network_participant_stream(tcp());
+    let (_r, _n_a, _p_a, mut s1_a, _n_b, _p_b, _s1_b) = network_participant_stream(tcp());
     for _ in 0..100000 {
         s1_a.send("woop_PARTY_HARD_woop").unwrap();
     }
@@ -177,7 +177,7 @@ fn stream_send_100000_then_close_stream_remote2() {
 #[test]
 fn stream_send_100000_then_close_stream_remote3() {
     let (_, _) = helper::setup(false, 0);
-    let (_, _n_a, _p_a, mut s1_a, _n_b, _p_b, _s1_b) = network_participant_stream(tcp());
+    let (_r, _n_a, _p_a, mut s1_a, _n_b, _p_b, _s1_b) = network_participant_stream(tcp());
     for _ in 0..100000 {
         s1_a.send("woop_PARTY_HARD_woop").unwrap();
     }
@@ -191,7 +191,7 @@ fn stream_send_100000_then_close_stream_remote3() {
 #[test]
 fn close_part_then_network() {
     let (_, _) = helper::setup(false, 0);
-    let (_, n_a, p_a, mut s1_a, _n_b, _p_b, _s1_b) = network_participant_stream(tcp());
+    let (_r, n_a, p_a, mut s1_a, _n_b, _p_b, _s1_b) = network_participant_stream(tcp());
     for _ in 0..1000 {
         s1_a.send("woop_PARTY_HARD_woop").unwrap();
     }
@@ -204,7 +204,7 @@ fn close_part_then_network() {
 #[test]
 fn close_network_then_part() {
     let (_, _) = helper::setup(false, 0);
-    let (_, n_a, p_a, mut s1_a, _n_b, _p_b, _s1_b) = network_participant_stream(tcp());
+    let (_r, n_a, p_a, mut s1_a, _n_b, _p_b, _s1_b) = network_participant_stream(tcp());
     for _ in 0..1000 {
         s1_a.send("woop_PARTY_HARD_woop").unwrap();
     }
@@ -224,6 +224,61 @@ fn close_network_then_disconnect_part() {
     drop(n_a);
     assert!(r.block_on(p_a.disconnect()).is_err());
     std::thread::sleep(std::time::Duration::from_millis(1000));
+    drop((_n_b, _p_b)); //clean teardown
+}
+
+#[test]
+fn close_runtime_then_network() {
+    let (_, _) = helper::setup(false, 0);
+    let (r, _n_a, _p_a, mut s1_a, _n_b, _p_b, _s1_b) = network_participant_stream(tcp());
+    for _ in 0..100 {
+        s1_a.send("woop_PARTY_HARD_woop").unwrap();
+    }
+    drop(r);
+    drop(_n_a);
+    std::thread::sleep(std::time::Duration::from_millis(1000));
+    drop(_p_b);
+}
+
+#[test]
+fn close_runtime_then_part() {
+    let (_, _) = helper::setup(false, 0);
+    let (r, _n_a, _p_a, mut s1_a, _n_b, _p_b, _s1_b) = network_participant_stream(tcp());
+    for _ in 0..100 {
+        s1_a.send("woop_PARTY_HARD_woop").unwrap();
+    }
+    drop(r);
+    drop(_p_a);
+    std::thread::sleep(std::time::Duration::from_millis(1000));
+    drop(_p_b);
+    drop(_n_a);
+}
+
+#[test]
+fn close_network_from_async() {
+    let (_, _) = helper::setup(false, 0);
+    let (r, _n_a, _p_a, mut s1_a, _n_b, _p_b, _s1_b) = network_participant_stream(tcp());
+    for _ in 0..100 {
+        s1_a.send("woop_PARTY_HARD_woop").unwrap();
+    }
+    r.block_on(async move {
+        drop(_n_a);
+    });
+    drop(_p_b);
+}
+
+#[test]
+fn close_part_from_async() {
+    let (_, _) = helper::setup(false, 0);
+    let (r, _n_a, p_a, mut s1_a, _n_b, _p_b, _s1_b) = network_participant_stream(tcp());
+    for _ in 0..100 {
+        s1_a.send("woop_PARTY_HARD_woop").unwrap();
+    }
+    r.block_on(async move {
+        p_a.disconnect().await.unwrap();
+        drop(_p_b);
+    });
+    drop(_n_a);
 }
 
 #[test]
@@ -289,8 +344,8 @@ fn failed_stream_open_after_remote_part_is_closed() {
 fn open_participant_before_remote_part_is_closed() {
     let (_, _) = helper::setup(false, 0);
     let r = Arc::new(Runtime::new().unwrap());
-    let n_a = Network::new(Pid::fake(0), Arc::clone(&r));
-    let n_b = Network::new(Pid::fake(1), Arc::clone(&r));
+    let n_a = Network::new(Pid::fake(0), &r);
+    let n_b = Network::new(Pid::fake(1), &r);
     let addr = tcp();
     r.block_on(n_a.listen(addr.clone())).unwrap();
     let p_b = r.block_on(n_b.connect(addr)).unwrap();
@@ -309,8 +364,8 @@ fn open_participant_before_remote_part_is_closed() {
 fn open_participant_after_remote_part_is_closed() {
     let (_, _) = helper::setup(false, 0);
     let r = Arc::new(Runtime::new().unwrap());
-    let n_a = Network::new(Pid::fake(0), Arc::clone(&r));
-    let n_b = Network::new(Pid::fake(1), Arc::clone(&r));
+    let n_a = Network::new(Pid::fake(0), &r);
+    let n_b = Network::new(Pid::fake(1), &r);
     let addr = tcp();
     r.block_on(n_a.listen(addr.clone())).unwrap();
     let p_b = r.block_on(n_b.connect(addr)).unwrap();
@@ -329,8 +384,8 @@ fn open_participant_after_remote_part_is_closed() {
 fn close_network_scheduler_completely() {
     let (_, _) = helper::setup(false, 0);
     let r = Arc::new(Runtime::new().unwrap());
-    let n_a = Network::new(Pid::fake(0), Arc::clone(&r));
-    let n_b = Network::new(Pid::fake(1), Arc::clone(&r));
+    let n_a = Network::new(Pid::fake(0), &r);
+    let n_b = Network::new(Pid::fake(1), &r);
     let addr = tcp();
     r.block_on(n_a.listen(addr.clone())).unwrap();
     let p_b = r.block_on(n_b.connect(addr)).unwrap();
@@ -353,7 +408,7 @@ fn close_network_scheduler_completely() {
 #[test]
 fn dont_panic_on_multiply_recv_after_close() {
     let (_, _) = helper::setup(false, 0);
-    let (_, _n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(tcp());
+    let (_r, _n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(tcp());
 
     s1_a.send(11u32).unwrap();
     drop(s1_a);
@@ -368,7 +423,7 @@ fn dont_panic_on_multiply_recv_after_close() {
 #[test]
 fn dont_panic_on_recv_send_after_close() {
     let (_, _) = helper::setup(false, 0);
-    let (_, _n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(tcp());
+    let (_r, _n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(tcp());
 
     s1_a.send(11u32).unwrap();
     drop(s1_a);
@@ -381,7 +436,7 @@ fn dont_panic_on_recv_send_after_close() {
 #[test]
 fn dont_panic_on_multiple_send_after_close() {
     let (_, _) = helper::setup(false, 0);
-    let (_, _n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(tcp());
+    let (_r, _n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(tcp());
 
     s1_a.send(11u32).unwrap();
     drop(s1_a);

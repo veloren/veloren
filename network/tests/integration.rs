@@ -27,7 +27,7 @@ fn stream_simple() {
 #[test]
 fn stream_try_recv() {
     let (_, _) = helper::setup(false, 0);
-    let (_, _n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(tcp());
+    let (_r, _n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(tcp());
 
     s1_a.send(4242u32).unwrap();
     std::thread::sleep(std::time::Duration::from_secs(1));
@@ -104,8 +104,8 @@ fn stream_simple_udp_3msg() {
 fn tcp_and_udp_2_connections() -> std::result::Result<(), Box<dyn std::error::Error>> {
     let (_, _) = helper::setup(false, 0);
     let r = Arc::new(Runtime::new().unwrap());
-    let network = Network::new(Pid::new(), Arc::clone(&r));
-    let remote = Network::new(Pid::new(), Arc::clone(&r));
+    let network = Network::new(Pid::new(), &r);
+    let remote = Network::new(Pid::new(), &r);
     r.block_on(async {
         let network = network;
         let remote = remote;
@@ -131,14 +131,14 @@ fn tcp_and_udp_2_connections() -> std::result::Result<(), Box<dyn std::error::Er
 fn failed_listen_on_used_ports() -> std::result::Result<(), Box<dyn std::error::Error>> {
     let (_, _) = helper::setup(false, 0);
     let r = Arc::new(Runtime::new().unwrap());
-    let network = Network::new(Pid::new(), Arc::clone(&r));
+    let network = Network::new(Pid::new(), &r);
     let udp1 = udp();
     let tcp1 = tcp();
     r.block_on(network.listen(udp1.clone()))?;
     r.block_on(network.listen(tcp1.clone()))?;
     std::thread::sleep(std::time::Duration::from_millis(200));
 
-    let network2 = Network::new(Pid::new(), Arc::clone(&r));
+    let network2 = Network::new(Pid::new(), &r);
     let e1 = r.block_on(network2.listen(udp1));
     let e2 = r.block_on(network2.listen(tcp1));
     match e1 {
@@ -164,8 +164,8 @@ fn api_stream_send_main() -> std::result::Result<(), Box<dyn std::error::Error>>
     // Create a Network, listen on Port `1200` and wait for a Stream to be opened,
     // then answer `Hello World`
     let r = Arc::new(Runtime::new().unwrap());
-    let network = Network::new(Pid::new(), Arc::clone(&r));
-    let remote = Network::new(Pid::new(), Arc::clone(&r));
+    let network = Network::new(Pid::new(), &r);
+    let remote = Network::new(Pid::new(), &r);
     r.block_on(async {
         let network = network;
         let remote = remote;
@@ -193,8 +193,8 @@ fn api_stream_recv_main() -> std::result::Result<(), Box<dyn std::error::Error>>
     // Create a Network, listen on Port `1220` and wait for a Stream to be opened,
     // then listen on it
     let r = Arc::new(Runtime::new().unwrap());
-    let network = Network::new(Pid::new(), Arc::clone(&r));
-    let remote = Network::new(Pid::new(), Arc::clone(&r));
+    let network = Network::new(Pid::new(), &r);
+    let remote = Network::new(Pid::new(), &r);
     r.block_on(async {
         let network = network;
         let remote = remote;
@@ -232,7 +232,7 @@ fn wrong_parse() {
 #[test]
 fn multiple_try_recv() {
     let (_, _) = helper::setup(false, 0);
-    let (_, _n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(tcp());
+    let (_r, _n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(tcp());
 
     s1_a.send("asd").unwrap();
     s1_a.send(11u32).unwrap();

@@ -189,7 +189,7 @@ impl Client {
         view_distance: Option<u32>,
         runtime: Arc<Runtime>,
     ) -> Result<Self, Error> {
-        let network = Network::new(Pid::new(), Arc::clone(&runtime));
+        let network = Network::new(Pid::new(), &runtime);
 
         let participant = match addr {
             ConnectionArgs::IpAndPort(addrs) => {

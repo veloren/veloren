@@ -69,16 +69,13 @@ impl PlayState for MainMenuState {
             if let Some(singleplayer) = &global_state.singleplayer {
                 match singleplayer.receiver.try_recv() {
                     Ok(Ok(runtime)) => {
-                        let server_settings = singleplayer.settings();
                         // Attempt login after the server is finished initializing
                         attempt_login(
                             &mut global_state.settings,
                             &mut global_state.info_message,
                             "singleplayer".to_owned(),
                             "".to_owned(),
-                            ClientConnArgs::Resolved(ConnectionArgs::IpAndPort(vec![
-                                server_settings.gameserver_address,
-                            ])),
+                            ClientConnArgs::Resolved(ConnectionArgs::Mpsc(14004)),
                             &mut self.client_init,
                             Some(runtime),
                         );

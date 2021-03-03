@@ -370,7 +370,7 @@ impl Server {
         registry_state(&registry).expect("failed to register state metrics");
         registry_physics(&registry).expect("failed to register state metrics");
 
-        let network = Network::new_with_registry(Pid::new(), Arc::clone(&runtime), &registry);
+        let network = Network::new_with_registry(Pid::new(), &runtime, &registry);
         let metrics_shutdown = Arc::new(Notify::new());
         let metrics_shutdown_clone = Arc::clone(&metrics_shutdown);
         let addr = settings.metrics_address;
@@ -383,6 +383,7 @@ impl Server {
             .await
         });
         runtime.block_on(network.listen(ProtocolAddr::Tcp(settings.gameserver_address)))?;
+        runtime.block_on(network.listen(ProtocolAddr::Mpsc(14004)))?;
         let connection_handler = ConnectionHandler::new(network, &runtime);
 
         // Initiate real-time world simulation
