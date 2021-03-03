@@ -2825,6 +2825,28 @@ impl Hud {
                     } else if let (Hotbar(a), Hotbar(b)) = (a, b) {
                         self.hotbar.swap(a, b);
                         events.push(Event::ChangeHotbarState(Box::new(self.hotbar.to_owned())));
+                    } else if let (Inventory(i), Trade(t)) = (a, b) {
+                        if i.ours == t.ours {
+                            if let Some(inventory) = inventories.get(t.entity) {
+                                events.push(Event::TradeAction(TradeAction::AddItem {
+                                    item: i.slot,
+                                    quantity: i.amount(inventory).unwrap_or(1) / 2,
+                                    ours: i.ours,
+                                }));
+                            }
+                        }
+                    } else if let (Trade(t), Inventory(i)) = (a, b) {
+                        if i.ours == t.ours {
+                            if let Some(inventory) = inventories.get(t.entity) {
+                                if let Some(invslot) = t.invslot {
+                                    events.push(Event::TradeAction(TradeAction::RemoveItem {
+                                        item: invslot,
+                                        quantity: t.amount(inventory).unwrap_or(1) / 2,
+                                        ours: t.ours,
+                                    }));
+                                }
+                            }
+                        }
                     }
                 },
                 slot::Event::Used(from) => {
