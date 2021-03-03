@@ -21,7 +21,7 @@ use common::comp::{
         tool::{AbilityMap, Tool, ToolKind},
         Hands, Item, ItemKind, MaterialStatManifest,
     },
-    Energy, Health, Inventory,
+    Combo, Energy, Health, Inventory,
 };
 use conrod_core::{
     color,
@@ -141,6 +141,7 @@ pub struct Skillbar<'a> {
     common: widget::CommonBuilder,
     ability_map: &'a AbilityMap,
     msm: &'a MaterialStatManifest,
+    combo: &'a Combo,
 }
 
 impl<'a> Skillbar<'a> {
@@ -163,6 +164,7 @@ impl<'a> Skillbar<'a> {
         localized_strings: &'a Localization,
         ability_map: &'a AbilityMap,
         msm: &'a MaterialStatManifest,
+        combo: &'a Combo,
     ) -> Self {
         Self {
             global_state,
@@ -183,6 +185,7 @@ impl<'a> Skillbar<'a> {
             localized_strings,
             ability_map,
             msm,
+            combo,
         }
     }
 }

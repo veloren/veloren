@@ -2158,6 +2158,7 @@ impl Hud {
         let controllers = ecs.read_storage::<comp::Controller>();
         let ability_map = ecs.fetch::<comp::item::tool::AbilityMap>();
         let bodies = ecs.read_storage::<comp::Body>();
+        let combos = ecs.read_storage::<comp::Combo>();
 
         if let (
             Some(health),
@@ -2165,12 +2166,14 @@ impl Hud {
             Some(energy),
             Some(_character_state),
             Some(_controller),
+            Some(combo),
         ) = (
             healths.get(entity),
             inventories.get(entity),
             energies.get(entity),
             character_states.get(entity),
             controllers.get(entity).map(|c| &c.inputs),
+            combos.get(entity),
         ) {
             Skillbar::new(
                 global_state,
@@ -2190,6 +2193,7 @@ impl Hud {
                 i18n,
                 &ability_map,
                 &msm,
+                &combo,
             )
             .set(self.ids.skillbar, ui_widgets);
         }
