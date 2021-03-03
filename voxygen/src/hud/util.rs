@@ -106,7 +106,8 @@ fn consumable_desc(effects: &[Effect], desc: &str) -> String {
                 BuffKind::IncreaseMaxHealth => {
                     format!("Raises Maximum Health by {}", strength)
                 },
-                _ => continue,
+                BuffKind::Invulnerability => "Grants invulnerability".to_string(),
+                BuffKind::Bleeding | BuffKind::CampfireHeal | BuffKind::Cursed => continue,
             };
 
             write!(&mut description, "\n\n{}", buff_desc).unwrap();
@@ -116,10 +117,15 @@ fn consumable_desc(effects: &[Effect], desc: &str) -> String {
                     BuffKind::Saturation | BuffKind::Regeneration => {
                         format!("over {} seconds", dur_secs.unwrap())
                     },
-                    BuffKind::IncreaseMaxEnergy | BuffKind::IncreaseMaxHealth => {
+                    BuffKind::IncreaseMaxEnergy
+                    | BuffKind::IncreaseMaxHealth
+                    | BuffKind::Invulnerability => {
                         format!("for {} seconds", dur_secs.unwrap())
                     },
-                    _ => continue,
+                    BuffKind::Bleeding
+                    | BuffKind::Potion
+                    | BuffKind::CampfireHeal
+                    | BuffKind::Cursed => continue,
                 }
             } else if let BuffKind::Saturation | BuffKind::Regeneration = buff.kind {
                 "every second".to_string()
