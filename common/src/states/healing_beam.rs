@@ -1,6 +1,6 @@
 use crate::{
     combat::{Attack, AttackEffect, CombatEffect, CombatRequirement, GroupTarget},
-    comp::{beam, Body, CharacterState, Ori, Pos, StateUpdate},
+    comp::{beam, CharacterState, Ori, Pos, StateUpdate},
     event::ServerEvent,
     states::{
         behavior::{CharacterBehavior, JoinData},
@@ -111,18 +111,11 @@ impl CharacterBehavior for Data {
                         specifier: self.static_data.specifier,
                     };
                     // Gets offsets
-                    let body_offsets = match data.body {
-                        Body::Humanoid(_) => Vec3::new(
-                            (data.body.radius() + 2.0) * data.inputs.look_dir.x,
-                            (data.body.radius() + 2.0) * data.inputs.look_dir.y,
-                            data.body.eye_height() * 0.55,
-                        ),
-                        _ => Vec3::new(
-                            (data.body.radius() + 3.0) * data.inputs.look_dir.x,
-                            (data.body.radius() + 3.0) * data.inputs.look_dir.y,
-                            data.body.eye_height() * 0.55,
-                        ),
-                    };
+                    let body_offsets = Vec3::new(
+                        (data.body.radius() + 1.0) * data.inputs.look_dir.x,
+                        (data.body.radius() + 1.0) * data.inputs.look_dir.y,
+                        data.body.eye_height() * 0.6,
+                    );
                     let pos = Pos(data.pos.0 + body_offsets);
                     // Create beam segment
                     update.server_events.push_front(ServerEvent::BeamSegment {
