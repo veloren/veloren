@@ -139,6 +139,10 @@ float lights_at(vec3 wpos, vec3 wnorm, vec3 /*cam_to_frag*/view_dir, vec3 mu, ve
         vec3 difference = light_pos - wpos;
         float distance_2 = dot(difference, difference);
 
+        if (distance_2 > 10000.0) {
+            continue;
+        }
+
         // float strength = attenuation_strength(difference);// pow(attenuation_strength(difference), 0.6);
         // NOTE: This normalizes strength to 0.25 at the center of the point source.
         float strength = 1.0 / (4 + distance_2);

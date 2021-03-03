@@ -139,7 +139,7 @@ impl Structure for House {
         //     });
         // }
 
-        let roof_lip = 3;
+        let roof_lip = 2;
         let roof_height = (self.bounds.min - self.bounds.max)
             .map(|e| e.abs())
             .reduce_min()
