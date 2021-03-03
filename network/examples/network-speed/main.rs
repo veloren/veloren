@@ -123,7 +123,7 @@ fn main() {
 
 fn server(address: ProtocolAddr, runtime: Arc<Runtime>) {
     let registry = Arc::new(Registry::new());
-    let server = Network::new_with_registry(Pid::new(), Arc::clone(&runtime), &registry);
+    let server = Network::new_with_registry(Pid::new(), &runtime, &registry);
     runtime.spawn(Server::run(
         Arc::clone(&registry),
         SocketAddr::from(([0; 4], 59112)),
@@ -155,7 +155,7 @@ fn server(address: ProtocolAddr, runtime: Arc<Runtime>) {
 
 fn client(address: ProtocolAddr, runtime: Arc<Runtime>) {
     let registry = Arc::new(Registry::new());
-    let client = Network::new_with_registry(Pid::new(), Arc::clone(&runtime), &registry);
+    let client = Network::new_with_registry(Pid::new(), &runtime, &registry);
     runtime.spawn(Server::run(
         Arc::clone(&registry),
         SocketAddr::from(([0; 4], 59111)),

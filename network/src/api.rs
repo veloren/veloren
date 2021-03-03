@@ -129,39 +129,43 @@ pub enum StreamError {
 /// via their [`ProtocolAddr`], or [`listen`] passively for [`connected`]
 /// [`Participants`].
 ///
+/// Too guarantee a clean shutdown, the [`Runtime`] MUST NOT be droped before
+/// the Network.
+///
 /// # Examples
 /// ```rust
-/// # use std::sync::Arc;
 /// use tokio::runtime::Runtime;
 /// use veloren_network::{Network, ProtocolAddr, Pid};
 ///
 /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
 /// // Create a Network, listen on port `2999` to accept connections and connect to port `8080` to connect to a (pseudo) database Application
-/// let runtime = Arc::new(Runtime::new().unwrap());
-/// let network = Network::new(Pid::new(), Arc::clone(&runtime));
+/// let runtime = Runtime::new().unwrap();
+/// let network = Network::new(Pid::new(), &runtime);
 /// runtime.block_on(async{
 ///     # //setup pseudo database!
-///     # let database = Network::new(Pid::new(), Arc::clone(&runtime));
+///     # let database = Network::new(Pid::new(), &runtime);
 ///     # database.listen(ProtocolAddr::Tcp("127.0.0.1:8080".parse().unwrap())).await?;
 ///     network.listen(ProtocolAddr::Tcp("127.0.0.1:2999".parse().unwrap())).await?;
 ///     let database = network.connect(ProtocolAddr::Tcp("127.0.0.1:8080".parse().unwrap())).await?;
+///     drop(network);
+///     # drop(database);
 ///     # Ok(())
 /// })
 /// # }
 /// ```
 ///
 /// [`Participants`]: crate::api::Participant
+/// [`Runtime`]: tokio::runtime::Runtime
 /// [`connect`]: Network::connect
 /// [`listen`]: Network::listen
 /// [`connected`]: Network::connected
 pub struct Network {
     local_pid: Pid,
-    runtime: Arc<Runtime>,
-    participant_disconnect_sender: Mutex<HashMap<Pid, A2sDisconnect>>,
+    participant_disconnect_sender: Arc<Mutex<HashMap<Pid, A2sDisconnect>>>,
     listen_sender: Mutex<mpsc::UnboundedSender<(ProtocolAddr, oneshot::Sender<io::Result<()>>)>>,
     connect_sender: Mutex<mpsc::UnboundedSender<A2sConnect>>,
     connected_receiver: Mutex<mpsc::UnboundedReceiver<Participant>>,
-    shutdown_sender: Option<oneshot::Sender<()>>,
+    shutdown_network_s: Option<oneshot::Sender<oneshot::Sender<()>>>,
 }
 
 impl Network {
@@ -170,7 +174,7 @@ impl Network {
     /// # Arguments
     /// * `participant_id` - provide it by calling [`Pid::new()`], usually you
     ///   don't want to reuse a Pid for 2 `Networks`
-    /// * `runtime` - provide a tokio::Runtime, it's used to internally spawn
+    /// * `runtime` - provide a [`Runtime`], it's used to internally spawn
     ///   tasks. It is necessary to clean up in the non-async `Drop`. **All**
     ///   network related components **must** be dropped before the runtime is
     ///   stopped. dropping the runtime while a shutdown is still in progress
@@ -183,12 +187,11 @@ impl Network {
     ///
     /// # Examples
     /// ```rust
-    /// use std::sync::Arc;
     /// use tokio::runtime::Runtime;
     /// use veloren_network::{Network, Pid, ProtocolAddr};
     ///
     /// let runtime = Runtime::new().unwrap();
-    /// let network = Network::new(Pid::new(), Arc::new(runtime));
+    /// let network = Network::new(Pid::new(), &runtime);
     /// ```
     ///
     /// Usually you only create a single `Network` for an application,
@@ -197,7 +200,8 @@ impl Network {
     /// creating more.
     ///
     /// [`Pid::new()`]: network_protocol::Pid::new
-    pub fn new(participant_id: Pid, runtime: Arc<Runtime>) -> Self {
+    /// [`Runtime`]: tokio::runtime::Runtime
+    pub fn new(participant_id: Pid, runtime: &Runtime) -> Self {
         Self::internal_new(
             participant_id,
             runtime,
@@ -215,28 +219,23 @@ impl Network {
     ///
     /// # Examples
     /// ```rust
-    /// # use std::sync::Arc;
     /// use prometheus::Registry;
     /// use tokio::runtime::Runtime;
     /// use veloren_network::{Network, Pid, ProtocolAddr};
     ///
     /// let runtime = Runtime::new().unwrap();
     /// let registry = Registry::new();
-    /// let network = Network::new_with_registry(Pid::new(), Arc::new(runtime), &registry);
+    /// let network = Network::new_with_registry(Pid::new(), &runtime, &registry);
     /// ```
     /// [`new`]: crate::api::Network::new
     #[cfg(feature = "metrics")]
-    pub fn new_with_registry(
-        participant_id: Pid,
-        runtime: Arc<Runtime>,
-        registry: &Registry,
-    ) -> Self {
+    pub fn new_with_registry(participant_id: Pid, runtime: &Runtime, registry: &Registry) -> Self {
         Self::internal_new(participant_id, runtime, Some(registry))
     }
 
     fn internal_new(
         participant_id: Pid,
-        runtime: Arc<Runtime>,
+        runtime: &Runtime,
         #[cfg(feature = "metrics")] registry: Option<&Registry>,
     ) -> Self {
         let p = participant_id;
@@ -248,6 +247,15 @@ impl Network {
                 #[cfg(feature = "metrics")]
                 registry,
             );
+        let participant_disconnect_sender = Arc::new(Mutex::new(HashMap::new()));
+        let (shutdown_network_s, shutdown_network_r) = oneshot::channel();
+        let f = Self::shutdown_mgr(
+            p,
+            shutdown_network_r,
+            Arc::clone(&participant_disconnect_sender),
+            shutdown_sender,
+        );
+        runtime.spawn(f);
         runtime.spawn(
             async move {
                 trace!("Starting scheduler in own thread");
@@ -258,12 +266,11 @@ impl Network {
         );
         Self {
             local_pid: participant_id,
-            runtime,
-            participant_disconnect_sender: Mutex::new(HashMap::new()),
+            participant_disconnect_sender,
             listen_sender: Mutex::new(listen_sender),
             connect_sender: Mutex::new(connect_sender),
             connected_receiver: Mutex::new(connected_receiver),
-            shutdown_sender: Some(shutdown_sender),
+            shutdown_network_s: Some(shutdown_network_s),
         }
     }
 
@@ -276,14 +283,13 @@ impl Network {
     ///
     /// # Examples
     /// ```ignore
-    /// # use std::sync::Arc;
     /// use tokio::runtime::Runtime;
     /// use veloren_network::{Network, Pid, ProtocolAddr};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on port `2000` TCP on all NICs and `2001` UDP locally
-    /// let runtime = Arc::new(Runtime::new().unwrap());
-    /// let network = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// let runtime = Runtime::new().unwrap();
+    /// let network = Network::new(Pid::new(), &runtime);
     /// runtime.block_on(async {
     ///     network
     ///         .listen(ProtocolAddr::Tcp("127.0.0.1:2000".parse().unwrap()))
@@ -291,6 +297,7 @@ impl Network {
     ///     network
     ///         .listen(ProtocolAddr::Udp("127.0.0.1:2001".parse().unwrap()))
     ///         .await?;
+    ///     drop(network);
     ///     # Ok(())
     /// })
     /// # }
@@ -318,15 +325,14 @@ impl Network {
     /// ready to open [`Streams`] on OR has returned a [`NetworkError`] (e.g.
     /// can't connect, or invalid Handshake) # Examples
     /// ```ignore
-    /// # use std::sync::Arc;
     /// use tokio::runtime::Runtime;
     /// use veloren_network::{Network, Pid, ProtocolAddr};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, connect on port `2010` TCP and `2011` UDP like listening above
-    /// let runtime = Arc::new(Runtime::new().unwrap());
-    /// let network = Network::new(Pid::new(), Arc::clone(&runtime));
-    /// # let remote = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// let runtime = Runtime::new().unwrap();
+    /// let network = Network::new(Pid::new(), &runtime);
+    /// # let remote = Network::new(Pid::new(), &runtime);
     /// runtime.block_on(async {
     ///     # remote.listen(ProtocolAddr::Tcp("127.0.0.1:2010".parse().unwrap())).await?;
     ///     # remote.listen(ProtocolAddr::Udp("127.0.0.1:2011".parse().unwrap())).await?;
@@ -341,7 +347,10 @@ impl Network {
     ///         .await?;
     ///     assert_eq!(&p1, &p2);
     ///     # Ok(())
-    /// })
+    /// })?;
+    /// drop(network);
+    /// # drop(remote);
+    /// # Ok(())
     /// # }
     /// ```
     /// Usually the `Network` guarantees that a operation on a [`Participant`]
@@ -382,15 +391,14 @@ impl Network {
     ///
     /// # Examples
     /// ```rust
-    /// # use std::sync::Arc;
     /// use tokio::runtime::Runtime;
     /// use veloren_network::{Network, Pid, ProtocolAddr};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on port `2020` TCP and opens returns their Pid
-    /// let runtime = Arc::new(Runtime::new().unwrap());
-    /// let network = Network::new(Pid::new(), Arc::clone(&runtime));
-    /// # let remote = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// let runtime = Runtime::new().unwrap();
+    /// let network = Network::new(Pid::new(), &runtime);
+    /// # let remote = Network::new(Pid::new(), &runtime);
     /// runtime.block_on(async {
     ///     network
     ///         .listen(ProtocolAddr::Tcp("127.0.0.1:2020".parse().unwrap()))
@@ -401,6 +409,8 @@ impl Network {
     ///         # //skip test here as it would be a endless loop
     ///         # break;
     ///     }
+    ///     drop(network);
+    ///     # drop(remote);
     ///     # Ok(())
     /// })
     /// # }
@@ -416,6 +426,58 @@ impl Network {
             Arc::clone(&participant.a2s_disconnect_s),
         );
         Ok(participant)
+    }
+
+    /// Use a mgr to handle shutdown smoothly and not in `Drop`
+    #[instrument(name="network", skip(participant_disconnect_sender, shutdown_scheduler_s), fields(p = %local_pid))]
+    async fn shutdown_mgr(
+        local_pid: Pid,
+        shutdown_network_r: oneshot::Receiver<oneshot::Sender<()>>,
+        participant_disconnect_sender: Arc<Mutex<HashMap<Pid, A2sDisconnect>>>,
+        shutdown_scheduler_s: oneshot::Sender<()>,
+    ) {
+        trace!("waiting for shutdown triggerNetwork");
+        let return_s = shutdown_network_r.await;
+        trace!("Shutting down Participants of Network");
+        let mut finished_receiver_list = vec![];
+
+        for (remote_pid, a2s_disconnect_s) in participant_disconnect_sender.lock().await.drain() {
+            match a2s_disconnect_s.lock().await.take() {
+                Some(a2s_disconnect_s) => {
+                    trace!(?remote_pid, "Participants will be closed");
+                    let (finished_sender, finished_receiver) = oneshot::channel();
+                    finished_receiver_list.push((remote_pid, finished_receiver));
+                    a2s_disconnect_s
+                        .send((remote_pid, (Duration::from_secs(120), finished_sender)))
+                        .expect("Scheduler is closed, but nobody other should be able to close it");
+                },
+                None => trace!(?remote_pid, "Participant already disconnected gracefully"),
+            }
+        }
+        //wait after close is requested for all
+        for (remote_pid, finished_receiver) in finished_receiver_list.drain(..) {
+            match finished_receiver.await {
+                Ok(Ok(())) => trace!(?remote_pid, "disconnect successful"),
+                Ok(Err(e)) => info!(?remote_pid, ?e, "unclean disconnect"),
+                Err(e) => warn!(
+                    ?remote_pid,
+                    ?e,
+                    "Failed to get a message back from the scheduler, seems like the network is \
+                     already closed"
+                ),
+            }
+        }
+
+        trace!("Participants have shut down - next: Scheduler");
+        shutdown_scheduler_s
+            .send(())
+            .expect("Scheduler is closed, but nobody other should be able to close it");
+        if let Ok(return_s) = return_s {
+            if return_s.send(()).is_err() {
+                warn!("Network::drop stoped after a timeout and didn't wait for our shutdown");
+            };
+        }
+        debug!("Network has shut down");
     }
 }
 
@@ -456,15 +518,14 @@ impl Participant {
     ///
     /// # Examples
     /// ```rust
-    /// # use std::sync::Arc;
     /// use tokio::runtime::Runtime;
     /// use veloren_network::{Network, Pid, Promises, ProtocolAddr};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, connect on port 2100 and open a stream
-    /// let runtime = Arc::new(Runtime::new().unwrap());
-    /// let network = Network::new(Pid::new(), Arc::clone(&runtime));
-    /// # let remote = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// let runtime = Runtime::new().unwrap();
+    /// let network = Network::new(Pid::new(), &runtime);
+    /// # let remote = Network::new(Pid::new(), &runtime);
     /// runtime.block_on(async {
     ///     # remote.listen(ProtocolAddr::Tcp("127.0.0.1:2100".parse().unwrap())).await?;
     ///     let p1 = network
@@ -473,6 +534,8 @@ impl Participant {
     ///     let _s1 = p1
     ///         .open(4, Promises::ORDERED | Promises::CONSISTENCY, 1000)
     ///         .await?;
+    ///     drop(network);
+    ///     # drop(remote);
     ///     # Ok(())
     /// })
     /// # }
@@ -522,22 +585,23 @@ impl Participant {
     ///
     /// # Examples
     /// ```rust
-    /// # use std::sync::Arc;
     /// use tokio::runtime::Runtime;
     /// use veloren_network::{Network, Pid, ProtocolAddr, Promises};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, connect on port 2110 and wait for the other side to open a stream
     /// // Note: It's quite unusual to actively connect, but then wait on a stream to be connected, usually the Application taking initiative want's to also create the first Stream.
-    /// let runtime = Arc::new(Runtime::new().unwrap());
-    /// let network = Network::new(Pid::new(), Arc::clone(&runtime));
-    /// # let remote = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// let runtime = Runtime::new().unwrap();
+    /// let network = Network::new(Pid::new(), &runtime);
+    /// # let remote = Network::new(Pid::new(), &runtime);
     /// runtime.block_on(async {
     ///     # remote.listen(ProtocolAddr::Tcp("127.0.0.1:2110".parse().unwrap())).await?;
     ///     let p1 = network.connect(ProtocolAddr::Tcp("127.0.0.1:2110".parse().unwrap())).await?;
     ///     # let p2 = remote.connected().await?;
     ///     # p2.open(4, Promises::ORDERED | Promises::CONSISTENCY, 0).await?;
     ///     let _s1 = p1.opened().await?;
+    ///     drop(network);
+    ///     # drop(remote);
     ///     # Ok(())
     /// })
     /// # }
@@ -578,16 +642,15 @@ impl Participant {
     ///
     /// # Examples
     /// ```rust
-    /// # use std::sync::Arc;
     /// use tokio::runtime::Runtime;
     /// use veloren_network::{Network, Pid, ProtocolAddr};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on port `2030` TCP and opens returns their Pid and close connection.
-    /// let runtime = Arc::new(Runtime::new().unwrap());
-    /// let network = Network::new(Pid::new(), Arc::clone(&runtime));
-    /// # let remote = Network::new(Pid::new(), Arc::clone(&runtime));
-    /// runtime.block_on(async {
+    /// let runtime = Runtime::new().unwrap();
+    /// let network = Network::new(Pid::new(), &runtime);
+    /// # let remote = Network::new(Pid::new(), &runtime);
+    /// let err = runtime.block_on(async {
     ///     network
     ///         .listen(ProtocolAddr::Tcp("127.0.0.1:2030".parse().unwrap()))
     ///         .await?;
@@ -599,7 +662,10 @@ impl Participant {
     ///         # break;
     ///     }
     ///     # Ok(())
-    /// })
+    /// });
+    /// drop(network);
+    /// # drop(remote);
+    /// # err
     /// # }
     /// ```
     ///
@@ -708,15 +774,14 @@ impl Stream {
     /// # Example
     /// ```
     /// # use veloren_network::Promises;
-    /// # use std::sync::Arc;
     /// use tokio::runtime::Runtime;
     /// use veloren_network::{Network, ProtocolAddr, Pid};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on Port `2200` and wait for a Stream to be opened, then answer `Hello World`
-    /// let runtime = Arc::new(Runtime::new().unwrap());
-    /// let network = Network::new(Pid::new(), Arc::clone(&runtime));
-    /// # let remote = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// let runtime = Runtime::new().unwrap();
+    /// let network = Network::new(Pid::new(), &runtime);
+    /// # let remote = Network::new(Pid::new(), &runtime);
     /// runtime.block_on(async {
     ///     network.listen(ProtocolAddr::Tcp("127.0.0.1:2200".parse().unwrap())).await?;
     ///     # let remote_p = remote.connect(ProtocolAddr::Tcp("127.0.0.1:2200".parse().unwrap())).await?;
@@ -726,6 +791,8 @@ impl Stream {
     ///     let mut stream_a = participant_a.opened().await?;
     ///     //Send  Message
     ///     stream_a.send("Hello World")?;
+    ///     drop(network);
+    ///     # drop(remote);
     ///     # Ok(())
     /// })
     /// # }
@@ -748,16 +815,15 @@ impl Stream {
     /// # Example
     /// ```rust
     /// # use veloren_network::Promises;
-    /// # use std::sync::Arc;
     /// use tokio::runtime::Runtime;
     /// use bincode;
     /// use veloren_network::{Network, ProtocolAddr, Pid, Message};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
-    /// let runtime = Arc::new(Runtime::new().unwrap());
-    /// let network = Network::new(Pid::new(), Arc::clone(&runtime));
-    /// # let remote1 = Network::new(Pid::new(), Arc::clone(&runtime));
-    /// # let remote2 = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// let runtime = Runtime::new().unwrap();
+    /// let network = Network::new(Pid::new(), &runtime);
+    /// # let remote1 = Network::new(Pid::new(), &runtime);
+    /// # let remote2 = Network::new(Pid::new(), &runtime);
     /// runtime.block_on(async {
     ///     network.listen(ProtocolAddr::Tcp("127.0.0.1:2210".parse().unwrap())).await?;
     ///     # let remote1_p = remote1.connect(ProtocolAddr::Tcp("127.0.0.1:2210".parse().unwrap())).await?;
@@ -775,6 +841,9 @@ impl Stream {
     ///     //Send same Message to multiple Streams
     ///     stream_a.send_raw(&msg);
     ///     stream_b.send_raw(&msg);
+    ///     drop(network);
+    ///     # drop(remote1);
+    ///     # drop(remote2);
     ///     # Ok(())
     /// })
     /// # }
@@ -806,15 +875,14 @@ impl Stream {
     /// # Example
     /// ```
     /// # use veloren_network::Promises;
-    /// # use std::sync::Arc;
     /// use tokio::runtime::Runtime;
     /// use veloren_network::{Network, ProtocolAddr, Pid};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on Port `2220` and wait for a Stream to be opened, then listen on it
-    /// let runtime = Arc::new(Runtime::new().unwrap());
-    /// let network = Network::new(Pid::new(), Arc::clone(&runtime));
-    /// # let remote = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// let runtime = Runtime::new().unwrap();
+    /// let network = Network::new(Pid::new(), &runtime);
+    /// # let remote = Network::new(Pid::new(), &runtime);
     /// runtime.block_on(async {
     ///     network.listen(ProtocolAddr::Tcp("127.0.0.1:2220".parse().unwrap())).await?;
     ///     # let remote_p = remote.connect(ProtocolAddr::Tcp("127.0.0.1:2220".parse().unwrap())).await?;
@@ -824,6 +892,8 @@ impl Stream {
     ///     let mut stream_a = participant_a.opened().await?;
     ///     //Recv  Message
     ///     println!("{}", stream_a.recv::<String>().await?);
+    ///     drop(network);
+    ///     # drop(remote);
     ///     # Ok(())
     /// })
     /// # }
@@ -839,15 +909,14 @@ impl Stream {
     /// # Example
     /// ```
     /// # use veloren_network::Promises;
-    /// # use std::sync::Arc;
     /// use tokio::runtime::Runtime;
     /// use veloren_network::{Network, ProtocolAddr, Pid};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on Port `2230` and wait for a Stream to be opened, then listen on it
-    /// let runtime = Arc::new(Runtime::new().unwrap());
-    /// let network = Network::new(Pid::new(), Arc::clone(&runtime));
-    /// # let remote = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// let runtime = Runtime::new().unwrap();
+    /// let network = Network::new(Pid::new(), &runtime);
+    /// # let remote = Network::new(Pid::new(), &runtime);
     /// runtime.block_on(async {
     ///     network.listen(ProtocolAddr::Tcp("127.0.0.1:2230".parse().unwrap())).await?;
     ///     # let remote_p = remote.connect(ProtocolAddr::Tcp("127.0.0.1:2230".parse().unwrap())).await?;
@@ -859,6 +928,8 @@ impl Stream {
     ///     let msg = stream_a.recv_raw().await?;
     ///     //Resend Message, without deserializing
     ///     stream_a.send_raw(&msg)?;
+    ///     drop(network);
+    ///     # drop(remote);
     ///     # Ok(())
     /// })
     /// # }
@@ -894,15 +965,14 @@ impl Stream {
     /// # Example
     /// ```
     /// # use veloren_network::Promises;
-    /// # use std::sync::Arc;
     /// use tokio::runtime::Runtime;
     /// use veloren_network::{Network, ProtocolAddr, Pid};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on Port `2240` and wait for a Stream to be opened, then listen on it
-    /// let runtime = Arc::new(Runtime::new().unwrap());
-    /// let network = Network::new(Pid::new(), Arc::clone(&runtime));
-    /// # let remote = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// let runtime = Runtime::new().unwrap();
+    /// let network = Network::new(Pid::new(), &runtime);
+    /// # let remote = Network::new(Pid::new(), &runtime);
     /// runtime.block_on(async {
     ///     network.listen(ProtocolAddr::Tcp("127.0.0.1:2240".parse().unwrap())).await?;
     ///     # let remote_p = remote.connect(ProtocolAddr::Tcp("127.0.0.1:2240".parse().unwrap())).await?;
@@ -913,6 +983,8 @@ impl Stream {
     ///     let mut stream_a = participant_a.opened().await?;
     ///     //Try Recv  Message
     ///     println!("{:?}", stream_a.try_recv::<String>()?);
+    ///     drop(network);
+    ///     # drop(remote);
     ///     # Ok(())
     /// })
     /// # }
@@ -952,60 +1024,61 @@ impl core::cmp::PartialEq for Participant {
     }
 }
 
+fn actively_wait<T, F>(mut finished_receiver: oneshot::Receiver<T>, f: F)
+where
+    F: FnOnce(T) + Send + 'static,
+    T: Send + 'static,
+{
+    const CHANNEL_ERR: &str = "Something is wrong in internal scheduler/participant coding";
+
+    if let Ok(handle) = tokio::runtime::Handle::try_current() {
+        // When in Async Context WE MUST NOT SYNC BLOCK (as a deadlock might occur as
+        // other is queued behind). And we CANNOT join our Future_Handle
+        trace!("async context detected, defer shutdown");
+        handle.spawn(async move {
+            match finished_receiver.await {
+                Ok(data) => f(data),
+                Err(e) => panic!("{}: {}", CHANNEL_ERR, e),
+            }
+        });
+    } else {
+        let mut cnt = 0;
+        loop {
+            use tokio::sync::oneshot::error::TryRecvError;
+            match finished_receiver.try_recv() {
+                Ok(data) => {
+                    f(data);
+                    break;
+                },
+                Err(TryRecvError::Closed) => panic!(CHANNEL_ERR),
+                Err(TryRecvError::Empty) => {
+                    trace!("activly sleeping");
+                    cnt += 1;
+                    if cnt > 120 {
+                        error!("Timeout waiting for shutdown, dropping");
+                        break;
+                    }
+                    std::thread::sleep(Duration::from_millis(100) * cnt);
+                },
+            }
+        }
+    };
+}
+
 impl Drop for Network {
     #[instrument(name="network", skip(self), fields(p = %self.local_pid))]
     fn drop(&mut self) {
-        debug!("Shutting down Network");
-        trace!("Shutting down Participants of Network, while we still have metrics");
-        let mut finished_receiver_list = vec![];
-
-        if tokio::runtime::Handle::try_current().is_ok() {
-            error!("we have a runtime but we mustn't, DROP NETWORK from async runtime is illegal")
-        }
-
-        tokio::task::block_in_place(|| {
-            self.runtime.block_on(async {
-                for (remote_pid, a2s_disconnect_s) in
-                    self.participant_disconnect_sender.lock().await.drain()
-                {
-                    match a2s_disconnect_s.lock().await.take() {
-                        Some(a2s_disconnect_s) => {
-                            trace!(?remote_pid, "Participants will be closed");
-                            let (finished_sender, finished_receiver) = oneshot::channel();
-                            finished_receiver_list.push((remote_pid, finished_receiver));
-                            a2s_disconnect_s
-                                .send((remote_pid, (Duration::from_secs(120), finished_sender)))
-                                .expect(
-                                    "Scheduler is closed, but nobody other should be able to \
-                                     close it",
-                                );
-                        },
-                        None => trace!(?remote_pid, "Participant already disconnected gracefully"),
-                    }
-                }
-                //wait after close is requested for all
-                for (remote_pid, finished_receiver) in finished_receiver_list.drain(..) {
-                    match finished_receiver.await {
-                        Ok(Ok(())) => trace!(?remote_pid, "disconnect successful"),
-                        Ok(Err(e)) => info!(?remote_pid, ?e, "unclean disconnect"),
-                        Err(e) => warn!(
-                            ?remote_pid,
-                            ?e,
-                            "Failed to get a message back from the scheduler, seems like the \
-                             network is already closed"
-                        ),
-                    }
-                }
-            });
-        });
-        trace!("Participants have shut down!");
-        trace!("Shutting down Scheduler");
-        self.shutdown_sender
+        trace!("Dropping Network");
+        let (finished_sender, finished_receiver) = oneshot::channel();
+        match self
+            .shutdown_network_s
             .take()
             .unwrap()
-            .send(())
-            .expect("Scheduler is closed, but nobody other should be able to close it");
-        debug!("Network has shut down");
+            .send(finished_sender)
+        {
+            Err(e) => warn!(?e, "Runtime seems to be dropped already"),
+            Ok(()) => actively_wait(finished_receiver, |()| info!("Network dropped gracefully")),
+        };
     }
 }
 
@@ -1015,59 +1088,31 @@ impl Drop for Participant {
     fn drop(&mut self) {
         const SHUTDOWN_ERR: &str = "Error while dropping the participant, couldn't send all \
                                     outgoing messages, dropping remaining";
-        const CHANNEL_ERR: &str = "Something is wrong in internal scheduler/participant coding";
-        use tokio::sync::oneshot::error::TryRecvError;
+        const SCHEDULER_ERR: &str =
+            "Something is wrong in internal scheduler coding or you dropped the runtime to early";
         // ignore closed, as we need to send it even though we disconnected the
         // participant from network
         debug!("Shutting down Participant");
 
-        match self
-            .a2s_disconnect_s
-            .try_lock()
-            .expect("Participant in use while beeing dropped")
-            .take()
-        {
-            None => info!("Participant already has been shutdown gracefully"),
-            Some(a2s_disconnect_s) => {
-                debug!("Disconnect from Scheduler");
-                let (finished_sender, mut finished_receiver) = oneshot::channel();
-                a2s_disconnect_s
-                    .send((self.remote_pid, (Duration::from_secs(120), finished_sender)))
-                    .expect("Something is wrong in internal scheduler coding");
-                if let Ok(handle) = tokio::runtime::Handle::try_current() {
-                    trace!("Participant drop Async");
-                    handle.spawn(async move {
-                        match finished_receiver.await {
-                            Ok(Ok(())) => info!("Participant dropped gracefully"),
-                            Ok(Err(e)) => error!(?e, SHUTDOWN_ERR),
-                            Err(e) => panic!("{}: {}", CHANNEL_ERR, e),
-                        }
-                    });
-                } else {
-                    let mut cnt = 0;
-                    loop {
-                        match finished_receiver.try_recv() {
-                            Ok(Ok(())) => {
-                                info!("Participant dropped gracefully");
-                                break;
-                            },
-                            Ok(Err(e)) => {
-                                error!(?e, SHUTDOWN_ERR);
-                                break;
-                            },
-                            Err(TryRecvError::Closed) => panic!(CHANNEL_ERR),
-                            Err(TryRecvError::Empty) => {
-                                trace!("activly sleeping");
-                                cnt += 1;
-                                if cnt > 120 {
-                                    error!("Timeout waiting for participant shutdown, droping");
-                                    break;
-                                }
-                                std::thread::sleep(Duration::from_millis(100) * cnt);
-                            },
-                        }
+        match self.a2s_disconnect_s.try_lock() {
+            Err(e) => debug!(?e, "Participant is beeing dropped by Network right now"),
+            Ok(mut s) => match s.take() {
+                None => info!("Participant already has been shutdown gracefully"),
+                Some(a2s_disconnect_s) => {
+                    debug!("Disconnect from Scheduler");
+                    let (finished_sender, finished_receiver) = oneshot::channel();
+                    match a2s_disconnect_s
+                        .send((self.remote_pid, (Duration::from_secs(120), finished_sender)))
+                    {
+                        Err(e) => warn!(?e, SCHEDULER_ERR),
+                        Ok(()) => {
+                            actively_wait(finished_receiver, |d| match d {
+                                Ok(()) => info!("Participant dropped gracefully"),
+                                Err(e) => error!(?e, SHUTDOWN_ERR),
+                            });
+                        },
                     }
-                };
+                },
             },
         }
     }

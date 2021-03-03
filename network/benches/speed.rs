@@ -117,7 +117,7 @@ criterion_main!(benches);
 pub fn network_participant_stream(
     addr: ProtocolAddr,
 ) -> (
-    Arc<Runtime>,
+    Runtime,
     Network,
     Participant,
     Stream,
@@ -125,10 +125,10 @@ pub fn network_participant_stream(
     Participant,
     Stream,
 ) {
-    let runtime = Arc::new(Runtime::new().unwrap());
+    let runtime = Runtime::new().unwrap();
     let (n_a, p1_a, s1_a, n_b, p1_b, s1_b) = runtime.block_on(async {
-        let n_a = Network::new(Pid::fake(0), Arc::clone(&runtime));
-        let n_b = Network::new(Pid::fake(1), Arc::clone(&runtime));
+        let n_a = Network::new(Pid::fake(0), &runtime);
+        let n_b = Network::new(Pid::fake(1), &runtime);
 
         n_a.listen(addr.clone()).await.unwrap();
         let p1_b = n_b.connect(addr).await.unwrap();

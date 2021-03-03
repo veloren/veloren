@@ -77,9 +77,9 @@ impl Message {
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on Port `2300` and wait for a Stream to be opened, then listen on it
-    /// # let runtime = Arc::new(Runtime::new().unwrap());
-    /// # let network = Network::new(Pid::new(), Arc::clone(&runtime));
-    /// # let remote = Network::new(Pid::new(), Arc::clone(&runtime));
+    /// # let runtime = Runtime::new().unwrap();
+    /// # let network = Network::new(Pid::new(), &runtime);
+    /// # let remote = Network::new(Pid::new(), &runtime);
     /// # runtime.block_on(async {
     ///     # network.listen(ProtocolAddr::Tcp("127.0.0.1:2300".parse().unwrap())).await?;
     ///     # let remote_p = remote.connect(ProtocolAddr::Tcp("127.0.0.1:2300".parse().unwrap())).await?;
@@ -90,6 +90,8 @@ impl Message {
     ///     //Recv  Message
     ///     let msg = stream_a.recv_raw().await?;
     ///     println!("Msg is {}", msg.deserialize::<String>()?);
+    ///     drop(network);
+    ///     # drop(remote);
     ///     # Ok(())
     /// # })
     /// # }
