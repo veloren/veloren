@@ -33,6 +33,8 @@ pub struct StaticData {
     pub energy_cost: f32,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
+    /// Used to specify the beam to the frontend
+    pub specifier: beam::FrontendSpecifier,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -106,6 +108,7 @@ impl CharacterBehavior for Data {
                         speed,
                         duration: self.static_data.beam_duration,
                         owner: Some(*data.uid),
+                        specifier: self.static_data.specifier,
                     };
                     // Gets offsets
                     let body_offsets = match data.body {

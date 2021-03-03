@@ -1,5 +1,5 @@
 use crate::{comp, uid::Uid};
-use comp::item::Reagent;
+use comp::{beam, item::Reagent};
 use serde::{Deserialize, Serialize};
 use vek::*;
 
@@ -24,7 +24,7 @@ pub enum Outcome {
     },
     Beam {
         pos: Vec3<f32>,
-        heal: bool,
+        specifier: beam::FrontendSpecifier,
     },
     ExpChange {
         uid: Uid,

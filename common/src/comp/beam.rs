@@ -11,6 +11,7 @@ pub struct Properties {
     pub speed: f32,
     pub duration: Duration,
     pub owner: Option<Uid>,
+    pub specifier: FrontendSpecifier,
 }
 
 // TODO: Separate components out for cheaper network syncing
@@ -43,4 +44,11 @@ pub struct Beam {
 
 impl Component for Beam {
     type Storage = IdvStorage<Self>;
+}
+
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub enum FrontendSpecifier {
+    Flamethrower,
+    LifestealBeam,
+    HealingBeam,
 }

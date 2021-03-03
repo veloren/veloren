@@ -60,6 +60,7 @@ const int FIRE_BOWL = 18;
 const int SNOW = 19;
 const int EXPLOSION = 20;
 const int ICE = 21;
+const int LIFESTEAL_BEAM = 22;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -338,6 +339,14 @@ void main() {
             spiral_motion(inst_dir, 0.3 * (floor(2 * rand0 + 0.5) - 0.5) * min(linear_scale(10), 1), lifetime / inst_lifespan, 10.0, inst_time),
             vec3((1.7 - 0.7 * abs(floor(2 * rand0 - 0.5) + 0.5)) * (1.5 + 0.5 * sin(tick.x * 10 - lifetime * 4))),
             vec4(vec3(0.4, 1.6 + 0.3 * sin(tick.x * 10 - lifetime * 3 + 4), 1.0 + 0.15 * sin(tick.x * 5 - lifetime * 5)), 1 /*0.3*/),
+            spin_in_axis(inst_dir, tick.z)
+        );
+    } else if (inst_mode == LIFESTEAL_BEAM) {
+        f_reflect = 0.01;
+        attr = Attr(
+            spiral_motion(inst_dir, 0.3 * (floor(2 * rand0 + 0.5) - 0.5) * min(linear_scale(10), 1), lifetime / inst_lifespan, 10.0, inst_time),
+            vec3((1.7 - 0.7 * abs(floor(2 * rand0 - 0.5) + 0.5)) * (1.5 + 0.5 * sin(tick.x * 10 - lifetime * 4))),
+            vec4(vec3(1.0 + 0.3 * sin(tick.x + lifetime * 5), 1.25 + 0.2 * sin(tick.x * 10 - lifetime * 3 + 4), 0.7), 1 /*0.3*/),
             spin_in_axis(inst_dir, tick.z)
         );
     } else if (inst_mode == ENERGY_NATURE) {

@@ -91,6 +91,7 @@ use client::Client;
 use common::{
     assets::{self, AssetExt, AssetHandle},
     comp::{
+        beam,
         item::{ItemKind, Reagent, ToolKind},
         object, Body, CharacterAbilityType, InventoryUpdateEvent,
     },
@@ -353,14 +354,15 @@ impl SfxMgr {
                 let file_ref = "voxygen.audio.sfx.character.level_up_sound_-_shorter_wind_up";
                 audio.play_sfx(file_ref, *pos, None);
             },
-            Outcome::Beam { pos, heal } => {
-                if *heal {
+            Outcome::Beam { pos, specifier } => match specifier {
+                beam::FrontendSpecifier::LifestealBeam | beam::FrontendSpecifier::HealingBeam => {
                     let file_ref = "voxygen.audio.sfx.abilities.staff_channeling";
                     audio.play_sfx(file_ref, *pos, None);
-                } else {
+                },
+                beam::FrontendSpecifier::Flamethrower => {
                     let file_ref = "voxygen.audio.sfx.abilities.flame_thrower";
                     audio.play_sfx(file_ref, *pos, None);
-                }
+                },
             },
             Outcome::ExpChange { .. } => {},
         }

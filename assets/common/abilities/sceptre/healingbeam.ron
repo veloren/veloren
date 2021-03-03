@@ -8,4 +8,5 @@ HealingBeam(
     max_angle: 1.0,
     lifesteal_eff: 0.0,
     energy_cost: 50,
+    specifier: HealingBeam,
 )

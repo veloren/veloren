@@ -2,8 +2,8 @@ use crate::{
     assets::{self, Asset},
     combat,
     comp::{
-        aura, inventory::item::tool::ToolKind, projectile::ProjectileConstructor, skills, Body,
-        CharacterState, EnergySource, Gravity, LightEmitter, StateUpdate,
+        aura, beam, inventory::item::tool::ToolKind, projectile::ProjectileConstructor, skills,
+        Body, CharacterState, EnergySource, Gravity, LightEmitter, StateUpdate,
     },
     states::{
         behavior::JoinData,
@@ -224,6 +224,7 @@ pub enum CharacterAbility {
         energy_regen: f32,
         energy_drain: f32,
         orientation_behavior: basic_beam::MovementBehavior,
+        specifier: beam::FrontendSpecifier,
     },
     CastAura {
         buildup_duration: f32,
@@ -243,6 +244,7 @@ pub enum CharacterAbility {
         range: f32,
         max_angle: f32,
         energy_cost: f32,
+        specifier: beam::FrontendSpecifier,
     },
 }
 
@@ -1472,6 +1474,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 energy_regen,
                 energy_drain,
                 orientation_behavior,
+                specifier,
             } => CharacterState::BasicBeam(basic_beam::Data {
                 static_data: basic_beam::StaticData {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
@@ -1486,6 +1489,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                     energy_drain: *energy_drain,
                     ability_info,
                     orientation_behavior: *orientation_behavior,
+                    specifier: *specifier,
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
@@ -1520,6 +1524,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 range,
                 max_angle,
                 energy_cost,
+                specifier,
             } => CharacterState::HealingBeam(healing_beam::Data {
                 static_data: healing_beam::StaticData {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
@@ -1531,6 +1536,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                     max_angle: *max_angle,
                     energy_cost: *energy_cost,
                     ability_info,
+                    specifier: *specifier,
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
