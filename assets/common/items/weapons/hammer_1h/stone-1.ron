@@ -4,12 +4,12 @@ ItemDef(
     kind: Tool((
         kind: Hammer,
         hands: One,
-        stats: (
+        stats: Direct((
             equip_time_secs: 0.5,
             power: 1.0,
             poise_strength: 1.0,
             speed: 0.8,
-        ),
+        )),
     )),
     quality: Common,
     tags: [],

@@ -248,3 +248,112 @@ impl Compound for Directory {
         Ok(Directory(files))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_assets_items() {
+        // TODO: Figure out how to get file name in error so only a single glob is
+        // needed
+
+        // Separated out into subsections so that error more descriptive
+        crate::comp::item::Item::new_from_asset_glob("common.items.armor.*")
+            .expect("Failed to iterate over armors.");
+
+        crate::comp::item::Item::new_from_asset_glob("common.items.boss_drops.*")
+            .expect("Failed to iterate over boss drops.");
+
+        crate::comp::item::Item::new_from_asset_glob("common.items.consumable.*")
+            .expect("Failed to iterate over consumables.");
+
+        crate::comp::item::Item::new_from_asset_glob("common.items.crafting_ing.*")
+            .expect("Failed to iterate over crafting ingredients.");
+
+        crate::comp::item::Item::new_from_asset_glob("common.items.crafting_tools.*")
+            .expect("Failed to iterate over crafting tools.");
+
+        crate::comp::item::Item::new_from_asset_glob("common.items.debug.*")
+            .expect("Failed to iterate over debug items.");
+
+        crate::comp::item::Item::new_from_asset_glob("common.items.flowers.*")
+            .expect("Failed to iterate over flower items.");
+
+        crate::comp::item::Item::new_from_asset_glob("common.items.food.*")
+            .expect("Failed to iterate over food items.");
+
+        crate::comp::item::Item::new_from_asset_glob("common.items.glider.*")
+            .expect("Failed to iterate over gliders.");
+
+        crate::comp::item::Item::new_from_asset_glob("common.items.grasses.*")
+            .expect("Failed to iterate over grasses.");
+
+        crate::comp::item::Item::new_from_asset_glob("common.items.lantern.*")
+            .expect("Failed to iterate over lanterns.");
+
+        crate::comp::item::Item::new_from_asset_glob("common.items.npc_armor.*")
+            .expect("Failed to iterate over npc armors.");
+
+        crate::comp::item::Item::new_from_asset_glob("common.items.npc_weapons.*")
+            .expect("Failed to iterate over npc weapons.");
+
+        crate::comp::item::Item::new_from_asset_glob("common.items.ore.*")
+            .expect("Failed to iterate over ores.");
+
+        crate::comp::item::Item::new_from_asset_glob("common.items.tag_examples.*")
+            .expect("Failed to iterate over tag examples.");
+
+        crate::comp::item::Item::new_from_asset_glob("common.items.testing.*")
+            .expect("Failed to iterate over testing items.");
+
+        crate::comp::item::Item::new_from_asset_glob("common.items.utility.*")
+            .expect("Failed to iterate over utility items.");
+
+        // Checks each weapon type to allow errors to be located more easily
+        crate::comp::item::Item::new_from_asset_glob("common.items.weapons.axe.*")
+            .expect("Failed to iterate over axes.");
+
+        crate::comp::item::Item::new_from_asset_glob("common.items.weapons.axe_1h.*")
+            .expect("Failed to iterate over 1h axes.");
+
+        crate::comp::item::Item::new_from_asset_glob("common.items.weapons.bow.*")
+            .expect("Failed to iterate over bows.");
+
+        crate::comp::item::Item::new_from_asset_glob("common.items.weapons.dagger.*")
+            .expect("Failed to iterate over daggers.");
+
+        crate::comp::item::Item::new_from_asset_glob("common.items.weapons.empty.*")
+            .expect("Failed to iterate over empty.");
+
+        crate::comp::item::Item::new_from_asset_glob("common.items.weapons.hammer.*")
+            .expect("Failed to iterate over hammers.");
+
+        crate::comp::item::Item::new_from_asset_glob("common.items.weapons.hammer_1h.*")
+            .expect("Failed to iterate over 1h hammers.");
+
+        crate::comp::item::Item::new_from_asset_glob("common.items.weapons.sceptre.*")
+            .expect("Failed to iterate over sceptres.");
+
+        crate::comp::item::Item::new_from_asset_glob("common.items.weapons.shield.*")
+            .expect("Failed to iterate over shields.");
+
+        crate::comp::item::Item::new_from_asset_glob("common.items.weapons.staff.*")
+            .expect("Failed to iterate over staffs.");
+
+        crate::comp::item::Item::new_from_asset_glob("common.items.weapons.sword.*")
+            .expect("Failed to iterate over swords.");
+
+        crate::comp::item::Item::new_from_asset_glob("common.items.weapons.sword_1h.*")
+            .expect("Failed to iterate over 1h swords.");
+
+        crate::comp::item::Item::new_from_asset_glob("common.items.weapons.tool.*")
+            .expect("Failed to iterate over tools.");
+
+        // Checks all weapons should more weapons be added later
+        crate::comp::item::Item::new_from_asset_glob("common.items.weapons.*")
+            .expect("Failed to iterate over weapons.");
+
+        // Final at the end to account for a new folder being added
+        crate::comp::item::Item::new_from_asset_glob("common.items.*")
+            .expect("Failed to iterate over item folders.");
+    }
+}
