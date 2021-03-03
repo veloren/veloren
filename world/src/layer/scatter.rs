@@ -161,7 +161,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
         (LongGrass, false, |c, _| {
             (
                 close(c.temp, 0.3, 0.35).min(close(c.humidity, CONFIG.jungle_hum, 0.3)) * 0.15,
-                Some((45.0, 0.5)),
+                Some((48.0, 0.2)),
             )
         }),
         // Jungle Sprites
@@ -196,26 +196,42 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
         // Savanna Plants
         (SavannaGrass, false, |c, _| {
             (
-                close(c.temp, 1.0, 0.90).min(close(c.humidity, 0.2, 0.25)) * 0.015,
-                Some((45.0, 0.5)),
+                {
+                    let savanna = close(c.temp, 1.0, 0.4).min(close(c.humidity, 0.2, 0.25));
+                    let desert = close(c.temp, 1.0, 0.25).min(close(c.humidity, 0.0, 0.1));
+                    (savanna - desert * 5.0).max(0.0)
+                },
+                Some((0.5, 0.2)),
             )
         }),
         (TallSavannaGrass, false, |c, _| {
             (
-                close(c.temp, 1.0, 0.90).min(close(c.humidity, 0.2, 0.25)) * 0.15,
-                Some((45.0, 0.5)),
+                {
+                    let savanna = close(c.temp, 1.0, 0.4).min(close(c.humidity, 0.2, 0.25));
+                    let desert = close(c.temp, 1.0, 0.25).min(close(c.humidity, 0.0, 0.1));
+                    (savanna - desert * 5.0).max(0.0)
+                },
+                Some((12.5, 0.25)),
             )
         }),
         (RedSavannaGrass, false, |c, _| {
             (
-                close(c.temp, 1.0, 0.90).min(close(c.humidity, 0.2, 0.25)) * MUSH_FACT * 7.5,
-                None,
+                {
+                    let savanna = close(c.temp, 1.0, 0.4).min(close(c.humidity, 0.2, 0.25));
+                    let desert = close(c.temp, 1.0, 0.25).min(close(c.humidity, 0.0, 0.1));
+                    (savanna - desert * 5.0).max(0.0)
+                },
+                Some((0.1, 0.1)),
             )
         }),
         (SavannaBush, false, |c, _| {
             (
-                close(c.temp, 1.0, 0.90).min(close(c.humidity, 0.2, 0.25)) * MUSH_FACT * 7.5,
-                None,
+                {
+                    let savanna = close(c.temp, 1.0, 0.4).min(close(c.humidity, 0.2, 0.25));
+                    let desert = close(c.temp, 1.0, 0.25).min(close(c.humidity, 0.0, 0.1));
+                    (savanna - desert * 5.0).max(0.0)
+                },
+                Some((0.08, 0.05)),
             )
         }),
         // Desert Plants
@@ -227,31 +243,31 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
         }),
         (LargeCactus, false, |c, _| {
             (
-                close(c.temp, 1.0, 0.95).min(close(c.humidity, 0.0, 0.3)) * MUSH_FACT * 0.3,
+                close(c.temp, 1.0, 0.25).min(close(c.humidity, 0.0, 0.1)) * MUSH_FACT * 3.5,
                 None,
             )
         }),
         (RoundCactus, false, |c, _| {
             (
-                close(c.temp, 1.0, 0.95).min(close(c.humidity, 0.0, 0.3)) * MUSH_FACT * 0.3,
+                close(c.temp, 1.0, 0.25).min(close(c.humidity, 0.0, 0.1)) * MUSH_FACT * 5.5,
                 None,
             )
         }),
         (ShortCactus, false, |c, _| {
             (
-                close(c.temp, 1.0, 0.95).min(close(c.humidity, 0.0, 0.3)) * MUSH_FACT * 0.3,
+                close(c.temp, 1.0, 0.25).min(close(c.humidity, 0.0, 0.1)) * MUSH_FACT * 5.5,
                 None,
             )
         }),
         (MedFlatCactus, false, |c, _| {
             (
-                close(c.temp, 1.0, 0.95).min(close(c.humidity, 0.0, 0.3)) * MUSH_FACT * 0.3,
+                close(c.temp, 1.0, 0.25).min(close(c.humidity, 0.0, 0.1)) * MUSH_FACT * 5.5,
                 None,
             )
         }),
         (ShortFlatCactus, false, |c, _| {
             (
-                close(c.temp, 1.0, 0.95).min(close(c.humidity, 0.0, 0.3)) * MUSH_FACT * 0.3,
+                close(c.temp, 1.0, 0.25).min(close(c.humidity, 0.0, 0.1)) * MUSH_FACT * 5.5,
                 None,
             )
         }),
