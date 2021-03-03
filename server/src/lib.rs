@@ -383,6 +383,7 @@ impl Server {
             .await
         });
         runtime.block_on(network.listen(ProtocolAddr::Tcp(settings.gameserver_address)))?;
+        runtime.block_on(network.listen(ProtocolAddr::Mpsc(14004)))?;
         let connection_handler = ConnectionHandler::new(network, &runtime);
 
         // Initiate real-time world simulation
