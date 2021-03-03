@@ -87,8 +87,8 @@ pub struct ReadData<'a> {
 }
 
 // This is 3.1 to last longer than the last damage timer (3.0 seconds)
-const DAMAGE_MEMORY_DURATION: f64 = 3.0;
-const FLEE_DURATION: f32 = 3.1;
+const DAMAGE_MEMORY_DURATION: f64 = 0.1;
+const FLEE_DURATION: f32 = 3.0;
 const MAX_FOLLOW_DIST: f32 = 12.0;
 const MAX_CHASE_DIST: f32 = 20.0;
 const MAX_FLEE_DIST: f32 = 20.0;
@@ -250,71 +250,103 @@ impl<'a> System<'a> for Sys {
                         // glider fall vertical speed)
                         if vel.0.z < -26.0 {
                             controller.actions.push(ControlAction::GlideWield);
+                            if let Some(Target { target, hostile: _ }) = agent.target {
+                                if let Some(tgt_pos) = read_data.positions.get(target) {
+                                    controller.inputs.move_dir = (pos.0 - tgt_pos.0)
+                                        .xy()
+                                        .try_normalized()
+                                        .unwrap_or_else(Vec2::zero);
+                                }
+                            }
                         }
-
-                    // Pet branch
-                    } else if let Some(Alignment::Owned(owner)) = alignment {
-                        if let Some(owner) =
-                            read_data.uid_allocator.retrieve_entity_internal(owner.id())
-                        {
-                            if let (Some(owner_pos), Some(owner_health)) =
-                                (read_data.positions.get(owner), read_data.healths.get(owner))
-                            {
-                                agent.target = Some(Target {
-                                    target: owner,
-                                    hostile: false,
-                                });
-                                let dist_sqrd = pos.0.distance_squared(owner_pos.0);
-
-                                // If really far away drop everything and follow
-                                if dist_sqrd > (2.0 * MAX_FOLLOW_DIST).powi(2) {
-                                    data.follow(agent, controller, &read_data.terrain, owner_pos);
-                                // Attack owner's attacker
-                                } else if owner_health.last_change.0 < 5.0
-                                    && owner_health.last_change.1.amount < 0
-                                {
-                                    if let comp::HealthSource::Damage { by: Some(by), .. } =
-                                        owner_health.last_change.1.cause
-                                    {
-                                        if let Some(attacker) = read_data
-                                            .uid_allocator
-                                            .retrieve_entity_internal(by.id())
+                    } else if let Some(Target { target, hostile }) = agent.target {
+                        if let Some(tgt_health) = read_data.healths.get(target) {
+                            // If the target is hostile (either based on alignment or if
+                            // the target just attacked
+                            if !tgt_health.is_dead {
+                                if hostile {
+                                    data.hostile_tree(
+                                        agent,
+                                        controller,
+                                        &read_data,
+                                        &mut event_emitter,
+                                    );
+                                // Target is something worth following methinks
+                                } else if let Some(Alignment::Owned(_)) = data.alignment {
+                                    if let Some(tgt_pos) = read_data.positions.get(target) {
+                                        let dist_sqrd = pos.0.distance_squared(tgt_pos.0);
+                                        // If really far away drop everything and follow
+                                        if dist_sqrd > (2.0 * MAX_FOLLOW_DIST).powi(2) {
+                                            agent.bearing = Vec2::zero();
+                                            data.follow(
+                                                agent,
+                                                controller,
+                                                &read_data.terrain,
+                                                tgt_pos,
+                                            );
+                                        // Attack target's attacker
+                                        } else if tgt_health.last_change.0 < 5.0
+                                            && tgt_health.last_change.1.amount < 0
                                         {
-                                            agent.target = Some(Target {
-                                                target: attacker,
-                                                hostile: true,
-                                            });
-                                            if let (Some(tgt_pos), Some(tgt_health)) = (
-                                                read_data.positions.get(attacker),
-                                                read_data.healths.get(attacker),
-                                            ) {
-                                                if tgt_health.is_dead
-                                                    || dist_sqrd > MAX_CHASE_DIST.powi(2)
+                                            if let comp::HealthSource::Damage {
+                                                by: Some(by), ..
+                                            } = tgt_health.last_change.1.cause
+                                            {
+                                                if let Some(attacker) = read_data
+                                                    .uid_allocator
+                                                    .retrieve_entity_internal(by.id())
                                                 {
                                                     agent.target = Some(Target {
-                                                        target: owner,
-                                                        hostile: false,
+                                                        target: attacker,
+                                                        hostile: true,
                                                     });
-                                                    data.idle(agent, controller, &read_data);
-                                                } else {
-                                                    data.attack(
-                                                        agent,
-                                                        controller,
-                                                        &read_data.terrain,
-                                                        tgt_pos,
-                                                        read_data.bodies.get(attacker),
-                                                        &read_data.dt,
-                                                    );
+                                                    if let (Some(tgt_pos), Some(tgt_health)) = (
+                                                        read_data.positions.get(attacker),
+                                                        read_data.healths.get(attacker),
+                                                    ) {
+                                                        if tgt_health.is_dead
+                                                            || dist_sqrd > MAX_CHASE_DIST.powi(2)
+                                                        {
+                                                            agent.target = Some(Target {
+                                                                target,
+                                                                hostile: false,
+                                                            });
+                                                            data.idle(
+                                                                agent, controller, &read_data,
+                                                            );
+                                                        } else {
+                                                            data.attack(
+                                                                agent,
+                                                                controller,
+                                                                &read_data.terrain,
+                                                                tgt_pos,
+                                                                read_data.bodies.get(attacker),
+                                                                &read_data.dt,
+                                                            );
+                                                        }
+                                                    }
                                                 }
                                             }
+                                        // Follow owner if too far away and not
+                                        // fighting
+                                        } else if dist_sqrd > MAX_FOLLOW_DIST.powi(2) {
+                                            data.follow(
+                                                agent,
+                                                controller,
+                                                &read_data.terrain,
+                                                tgt_pos,
+                                            );
+
+                                        // Otherwise just idle
+                                        } else {
+                                            data.idle_tree(
+                                                agent,
+                                                controller,
+                                                &read_data,
+                                                &mut event_emitter,
+                                            );
                                         }
                                     }
-
-                                // Follow owner if too far away and not fighting
-                                } else if dist_sqrd > MAX_FOLLOW_DIST.powi(2) {
-                                    data.follow(agent, controller, &read_data.terrain, owner_pos);
-
-                                // Otherwise just idle
                                 } else {
                                     data.idle_tree(
                                         agent,
@@ -323,26 +355,12 @@ impl<'a> System<'a> for Sys {
                                         &mut event_emitter,
                                     );
                                 }
-                            }
-                        }
-
-                    // Non-owned agent branch
-                    } else if let Some(Target { target, hostile }) = agent.target {
-                        if let Some(tgt_health) = read_data.healths.get(target) {
-                            // If the target is hostile (either based on alignment or if
-                            // the target just attacked
-                            if hostile && !tgt_health.is_dead {
-                                data.hostile_tree(
-                                    agent,
-                                    controller,
-                                    &read_data,
-                                    &mut event_emitter,
-                                );
-                            // If the target is not hostile, just idle
                             } else {
+                                agent.target = None;
                                 data.idle_tree(agent, controller, &read_data, &mut event_emitter);
                             }
                         } else {
+                            agent.target = None;
                             data.idle_tree(agent, controller, &read_data, &mut event_emitter);
                         }
                     } else {
@@ -355,11 +373,20 @@ impl<'a> System<'a> for Sys {
                                     read_data.uid_allocator.retrieve_entity_internal(by.id())
                                 {
                                     if let Some(tgt_pos) = read_data.positions.get(attacker) {
+                                        // If the target is dead, remove the target and idle.
                                         if read_data
                                             .healths
                                             .get(attacker)
-                                            .map_or(false, |a| !a.is_dead)
+                                            .map_or(true, |a| a.is_dead)
                                         {
+                                            agent.target = None;
+                                            data.idle_tree(
+                                                agent,
+                                                controller,
+                                                &read_data,
+                                                &mut event_emitter,
+                                            );
+                                        } else {
                                             agent.target = Some(Target {
                                                 target: attacker,
                                                 hostile: true,
@@ -371,14 +398,6 @@ impl<'a> System<'a> for Sys {
                                                 tgt_pos,
                                                 read_data.bodies.get(attacker),
                                                 &read_data.dt,
-                                            );
-                                        } else {
-                                            agent.target = None;
-                                            data.idle_tree(
-                                                agent,
-                                                controller,
-                                                &read_data,
-                                                &mut event_emitter,
                                             );
                                         }
                                     } else {
@@ -424,23 +443,28 @@ impl<'a> AgentData<'a> {
         read_data: &ReadData,
         event_emitter: &mut Emitter<'_, ServerEvent>,
     ) {
+        // Set owner if no target
+        if agent.target.is_none() && thread_rng().gen_bool(0.1) {
+            if let Some(Alignment::Owned(owner)) = self.alignment {
+                if let Some(owner) = read_data.uid_allocator.retrieve_entity_internal(owner.id()) {
+                    agent.target = Some(Target {
+                        target: owner,
+                        hostile: false,
+                    });
+                }
+            }
+        }
         // Interact if incoming messages
         if !agent.inbox.is_empty() {
-            agent.action_timer = 0.1
+            agent.action_timer = 0.1;
         }
         if agent.action_timer > 0.0 {
-            if self.flees && agent.can_speak {
-                if agent.action_timer < DEFAULT_INTERACTION_TIME {
-                    self.interact(agent, controller, &read_data, event_emitter);
-                } else {
-                    agent.action_timer = 0.0;
-                    agent.target = None;
-                    controller.actions.push(ControlAction::Stand);
-                    self.idle(agent, controller, &read_data);
-                }
+            if agent.action_timer < DEFAULT_INTERACTION_TIME {
+                self.interact(agent, controller, &read_data, event_emitter);
             } else {
-                agent.inbox.clear();
+                agent.action_timer = 0.0;
                 agent.target = None;
+                controller.actions.push(ControlAction::Stand);
                 self.idle(agent, controller, &read_data);
             }
         } else if thread_rng().gen::<f32>() < 0.1 {
@@ -526,28 +550,19 @@ impl<'a> AgentData<'a> {
         let lantern_turned_on = self.light_emitter.is_some();
         let day_period = DayPeriod::from(read_data.time_of_day.0);
         // Only emit event for agents that have a lantern equipped
-        if lantern_equipped {
-            let mut rng = thread_rng();
+        if lantern_equipped && thread_rng().gen_bool(0.001) {
             if day_period.is_dark() && !lantern_turned_on {
                 // Agents with turned off lanterns turn them on randomly once it's
                 // nighttime and keep them on
                 // Only emit event for agents that sill need to
                 // turn on their lantern
-                if let 0 = rng.gen_range(0..1000) {
-                    controller.events.push(ControlEvent::EnableLantern)
-                }
+                controller.events.push(ControlEvent::EnableLantern)
             } else if lantern_turned_on && day_period.is_light() {
                 // agents with turned on lanterns turn them off randomly once it's
                 // daytime and keep them off
-                if let 0 = rng.gen_range(0..2000) {
-                    controller.events.push(ControlEvent::DisableLantern)
-                }
+                controller.events.push(ControlEvent::DisableLantern)
             }
         };
-
-        if self.physics_state.on_ground {
-            controller.actions.push(ControlAction::Unwield);
-        }
 
         agent.action_timer = 0.0;
         if let Some((travel_to, _destination)) = &agent.rtsim_controller.travel_to {
@@ -607,7 +622,7 @@ impl<'a> AgentData<'a> {
                     };
 
                 // Put away weapon
-                if thread_rng().gen::<f32>() < 0.05
+                if thread_rng().gen_bool(0.1)
                     && matches!(
                         read_data.char_states.get(*self.entity),
                         Some(CharacterState::Wielding)
@@ -654,7 +669,7 @@ impl<'a> AgentData<'a> {
             }
 
             // Put away weapon
-            if thread_rng().gen::<f32>() < 0.05
+            if thread_rng().gen_bool(0.1)
                 && matches!(
                     read_data.char_states.get(*self.entity),
                     Some(CharacterState::Wielding)
@@ -692,54 +707,58 @@ impl<'a> AgentData<'a> {
                 .push(ControlEvent::InviteResponse(InviteResponse::Decline));
         }
         agent.action_timer += read_data.dt.0;
-        if let Some(AgentEvent::Talk(by)) = agent.inbox.pop_back() {
-            if let Some(target) = read_data.uid_allocator.retrieve_entity_internal(by.id()) {
-                agent.target = Some(Target {
-                    target,
-                    hostile: false,
-                });
-                if let Some(tgt_pos) = read_data.positions.get(target) {
+        if agent.can_speak {
+            if let Some(AgentEvent::Talk(by)) = agent.inbox.pop_back() {
+                if let Some(target) = read_data.uid_allocator.retrieve_entity_internal(by.id()) {
+                    agent.target = Some(Target {
+                        target,
+                        hostile: false,
+                    });
+                    if let Some(tgt_pos) = read_data.positions.get(target) {
+                        let eye_offset = self.body.map_or(0.0, |b| b.eye_height());
+                        let tgt_eye_offset =
+                            read_data.bodies.get(target).map_or(0.0, |b| b.eye_height());
+                        if let Some(dir) = Dir::from_unnormalized(
+                            Vec3::new(tgt_pos.0.x, tgt_pos.0.y, tgt_pos.0.z + tgt_eye_offset)
+                                - Vec3::new(self.pos.0.x, self.pos.0.y, self.pos.0.z + eye_offset),
+                        ) {
+                            controller.inputs.look_dir = dir;
+                        }
+                        controller.actions.push(ControlAction::Stand);
+                        controller.actions.push(ControlAction::Talk);
+                        if let Some((_travel_to, destination_name)) =
+                            &agent.rtsim_controller.travel_to
+                        {
+                            let msg =
+                                format!("I'm heading to {}! Want to come along?", destination_name);
+                            event_emitter
+                                .emit(ServerEvent::Chat(UnresolvedChatMsg::npc(*self.uid, msg)));
+                        } else {
+                            let msg = "npc.speech.villager".to_string();
+                            event_emitter
+                                .emit(ServerEvent::Chat(UnresolvedChatMsg::npc(*self.uid, msg)));
+                        }
+                    }
+                }
+            } else if let Some(Target { target, .. }) = &agent.target {
+                if let Some(tgt_pos) = read_data.positions.get(*target) {
                     let eye_offset = self.body.map_or(0.0, |b| b.eye_height());
-                    let tgt_eye_offset =
-                        read_data.bodies.get(target).map_or(0.0, |b| b.eye_height());
+                    let tgt_eye_offset = read_data
+                        .bodies
+                        .get(*target)
+                        .map_or(0.0, |b| b.eye_height());
                     if let Some(dir) = Dir::from_unnormalized(
                         Vec3::new(tgt_pos.0.x, tgt_pos.0.y, tgt_pos.0.z + tgt_eye_offset)
                             - Vec3::new(self.pos.0.x, self.pos.0.y, self.pos.0.z + eye_offset),
                     ) {
                         controller.inputs.look_dir = dir;
                     }
-                    controller.actions.push(ControlAction::Stand);
-                    controller.actions.push(ControlAction::Talk);
-                    if let Some((_travel_to, destination_name)) = &agent.rtsim_controller.travel_to
-                    {
-                        let msg =
-                            format!("I'm heading to {}! Want to come along?", destination_name);
-                        event_emitter
-                            .emit(ServerEvent::Chat(UnresolvedChatMsg::npc(*self.uid, msg)));
-                    } else {
-                        let msg = "npc.speech.villager".to_string();
-                        event_emitter
-                            .emit(ServerEvent::Chat(UnresolvedChatMsg::npc(*self.uid, msg)));
-                    }
-                    //}
                 }
-            }
-        } else if let Some(Target { target, .. }) = &agent.target {
-            if let Some(tgt_pos) = read_data.positions.get(*target) {
-                let eye_offset = self.body.map_or(0.0, |b| b.eye_height());
-                let tgt_eye_offset = read_data
-                    .bodies
-                    .get(*target)
-                    .map_or(0.0, |b| b.eye_height());
-                if let Some(dir) = Dir::from_unnormalized(
-                    Vec3::new(tgt_pos.0.x, tgt_pos.0.y, tgt_pos.0.z + tgt_eye_offset)
-                        - Vec3::new(self.pos.0.x, self.pos.0.y, self.pos.0.z + eye_offset),
-                ) {
-                    controller.inputs.look_dir = dir;
-                }
+            } else {
+                agent.action_timer = 0.0;
             }
         } else {
-            agent.action_timer = 0.0;
+            agent.inbox.clear();
         }
     }
 
@@ -842,10 +861,13 @@ impl<'a> AgentData<'a> {
                     None
                 }
             }) {
-            Some(ToolKind::Bow) => Tactic::Bow,
-            Some(ToolKind::Staff) => Tactic::Staff,
+            Some(ToolKind::Bow) | Some(ToolKind::BowSimple) => Tactic::Bow,
+            Some(ToolKind::Staff) | Some(ToolKind::StaffSimple) => Tactic::Staff,
             Some(ToolKind::Hammer) => Tactic::Hammer,
-            Some(ToolKind::Sword) => Tactic::Sword,
+            Some(ToolKind::Sword)
+            | Some(ToolKind::Spear)
+            | Some(ToolKind::SwordSimple)
+            | Some(ToolKind::AxeSimple) => Tactic::Sword,
             Some(ToolKind::Axe) => Tactic::Axe,
             Some(ToolKind::Unique(UniqueKind::StoneGolemFist)) => Tactic::StoneGolemBoss,
             Some(ToolKind::Unique(UniqueKind::QuadMedQuick)) => Tactic::CircleCharge {
@@ -863,7 +885,8 @@ impl<'a> AgentData<'a> {
             Some(ToolKind::Unique(UniqueKind::QuadLowTail)) => Tactic::TailSlap,
             Some(ToolKind::Unique(UniqueKind::QuadLowQuick)) => Tactic::QuadLowQuick,
             Some(ToolKind::Unique(UniqueKind::QuadLowBasic)) => Tactic::QuadLowBasic,
-            Some(ToolKind::Unique(UniqueKind::QuadLowBreathe)) => Tactic::Lavadrake,
+            Some(ToolKind::Unique(UniqueKind::QuadLowBreathe))
+            | Some(ToolKind::Unique(UniqueKind::QuadLowBeam)) => Tactic::Lavadrake,
             Some(ToolKind::Unique(UniqueKind::TheropodBasic)) => Tactic::Theropod,
             Some(ToolKind::Unique(UniqueKind::TheropodBird)) => Tactic::Theropod,
             Some(ToolKind::Unique(UniqueKind::ObjectTurret)) => Tactic::Turret,
@@ -1605,7 +1628,7 @@ impl<'a> AgentData<'a> {
                     agent.target = None;
                 }
             },
-            Tactic::Lavadrake => {
+            Tactic::Lavadrake | Tactic::QuadLowBeam => {
                 if dist_sqrd < (2.5 * min_attack_dist * self.scale).powi(2) {
                     controller.inputs.move_dir = Vec2::zero();
                     controller.inputs.secondary.set_state(true);
@@ -1677,8 +1700,7 @@ impl<'a> AgentData<'a> {
                 }
             },
             Tactic::Turret => {
-                if can_see_tgt(&*terrain, self.pos, tgt_pos, dist_sqrd)
-                {
+                if can_see_tgt(&*terrain, self.pos, tgt_pos, dist_sqrd) {
                     controller.inputs.primary.set_state(true);
                 } else {
                     agent.target = None;
@@ -1686,8 +1708,7 @@ impl<'a> AgentData<'a> {
             },
             Tactic::FixedTurret => {
                 controller.inputs.look_dir = self.ori.look_dir();
-                if can_see_tgt(&*terrain, self.pos, tgt_pos, dist_sqrd)
-                {
+                if can_see_tgt(&*terrain, self.pos, tgt_pos, dist_sqrd) {
                     controller.inputs.primary.set_state(true);
                 } else {
                     agent.target = None;
@@ -1696,13 +1717,12 @@ impl<'a> AgentData<'a> {
             Tactic::RotatingTurret => {
                 controller.inputs.look_dir = Dir::new(
                     Quaternion::from_xyzw(self.ori.look_dir().x, self.ori.look_dir().y, 0.0, 0.0)
-                    .rotated_z(6.0 * dt.0 as f32)
-                    .into_vec3()
-                    .try_normalized()
-                    .unwrap_or_default(),
+                        .rotated_z(6.0 * dt.0 as f32)
+                        .into_vec3()
+                        .try_normalized()
+                        .unwrap_or_default(),
                 );
-                if can_see_tgt(&*terrain, self.pos, tgt_pos, dist_sqrd)
-                {
+                if can_see_tgt(&*terrain, self.pos, tgt_pos, dist_sqrd) {
                     controller.inputs.primary.set_state(true);
                 } else {
                     agent.target = None;
