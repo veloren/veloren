@@ -28,6 +28,7 @@ use conrod_core::{
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
+use inline_tweak::*;
 use vek::*;
 
 widget_ids! {
@@ -74,6 +75,11 @@ widget_ids! {
         stamina_txt_alignment,
         stamina_txt_bg,
         stamina_txt,
+        // Combo Counter
+        combo_icon,
+        combo_align,
+        combo_bg,
+        combo,
         // Slots
         m1_slot,
         m1_slot_bg,
@@ -912,6 +918,43 @@ impl<'a> Widget for Skillbar<'a> {
             .w_h(16.0, 18.0)
             .mid_bottom_with_margin_on(state.ids.m2_content, -11.0)
             .set(state.ids.m2_ico, ui);
+
+        // Combo Counter
+        if self.combo.counter() > 0 {
+            let combo_txt = format!("{}", self.combo.counter());
+            let combo_cnt = self.combo.counter() as f32;
+            let fnt_col = Color::Rgba(
+                (1.0 - combo_cnt / (combo_cnt + tweak!(1.0))).max(0.79),
+                (1.0 - combo_cnt / (combo_cnt + tweak!(40.0))).max(0.19),
+                (1.0 - combo_cnt / (combo_cnt + tweak!(5.0))).max(0.17),
+                1.0,
+            );
+            let fnt_size =
+                ((14.0 + self.combo.counter() as f32 * tweak!(0.5)).min(tweak!(50.0))) as u32;
+
+            Rectangle::fill_with([10.0, 10.0], color::TRANSPARENT)
+                .middle_of(ui.window)
+                .set(state.ids.combo_align, ui);
+            Text::new(combo_txt.as_str())
+                .bottom_right_with_margins_on(state.ids.combo_align, tweak!(-300.0), tweak!(-190.0))
+                .font_size(self.fonts.cyri.scale(fnt_size))
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(BLACK)
+                .set(state.ids.combo_bg, ui);
+            Text::new(combo_txt.as_str())
+                .bottom_right_with_margins_on(state.ids.combo_bg, 1.0, 1.0)
+                .font_size(self.fonts.cyri.scale(fnt_size))
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(fnt_col)
+                .set(state.ids.combo, ui);
+            let icon_size = fnt_size as f64 * tweak!(0.75);
+            Image::new(self.imgs.combat_rating_ico_shadow)
+                .wh([icon_size, icon_size])
+                .bottom_right_with_margins_on(state.ids.combo, 0.0, tweak!(-5.0) - icon_size)
+                .color(Some(fnt_col))
+                .graphics_for(state.ids.combo)
+                .set(state.ids.combo_icon, ui);
+        }
     }
 }
 
@@ -938,6 +981,10 @@ fn ability_description(tool: &ToolKind) -> Option<(&str, &str)> {
         ToolKind::Debug => Some((
             "Possessing Arrow",
             "\nShoots a poisonous arrow.\nLets you control your target.",
+        )),
+        ToolKind::Sceptre => Some((
+            "Thorn Bulwark",
+            "\nProtects you and your group with thorns\nfor a short amount of time.",
         )),
         _ => None,
     }
