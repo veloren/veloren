@@ -6,6 +6,7 @@ use super::{
     STAMINA_COLOR, TEXT_COLOR, UI_HIGHLIGHT_0,
 };
 use crate::{
+    hud::ComboFloater,
     i18n::Localization,
     ui::{
         fonts::Fonts,
@@ -15,16 +16,14 @@ use crate::{
     window::GameInput,
     GlobalState,
 };
-use common::{
-    comp::{
-        inventory::slot::EquipSlot,
-        item::{
-            tool::{AbilityMap, Tool, ToolKind},
-            Hands, Item, ItemKind, MaterialStatManifest,
-        },
-        Combo, Energy, Health, Inventory,
+use common::comp::{
+    self,
+    inventory::slot::EquipSlot,
+    item::{
+        tool::{AbilityMap, Tool, ToolKind},
+        Hands, Item, ItemKind, MaterialStatManifest,
     },
-    resources::Time,
+    Energy, Health, Inventory,
 };
 use conrod_core::{
     color,
@@ -149,8 +148,7 @@ pub struct Skillbar<'a> {
     common: widget::CommonBuilder,
     ability_map: &'a AbilityMap,
     msm: &'a MaterialStatManifest,
-    combo: &'a Combo,
-    time: &'a Time,
+    combo: Option<ComboFloater>,
 }
 
 impl<'a> Skillbar<'a> {
@@ -173,8 +171,7 @@ impl<'a> Skillbar<'a> {
         localized_strings: &'a Localization,
         ability_map: &'a AbilityMap,
         msm: &'a MaterialStatManifest,
-        combo: &'a Combo,
-        time: &'a Time,
+        combo: Option<ComboFloater>,
     ) -> Self {
         Self {
             global_state,
@@ -196,7 +193,6 @@ impl<'a> Skillbar<'a> {
             ability_map,
             msm,
             combo,
-            time,
         }
     }
 }
@@ -925,49 +921,50 @@ impl<'a> Widget for Skillbar<'a> {
             .set(state.ids.m2_ico, ui);
 
         // Combo Counter
-        if self.combo.counter() > 0 {
-            let combo_txt = format!("{} Combo", self.combo.counter());
-            let combo_cnt = self.combo.counter() as f32;
-            let time_since_last_update = self.combo.last_increase() - self.time.0 as f64;
-            let fnt_col = Color::Rgba(
-                // White -> Yellow -> Red text color gradient depending on count
-                (1.0 - combo_cnt / (combo_cnt + tweak!(1.0))).max(0.79),
-                (1.0 - combo_cnt / (combo_cnt + tweak!(80.0))).max(0.19),
-                (1.0 - combo_cnt / (combo_cnt + tweak!(5.0))).max(0.17),
-                (time_since_last_update - 8.0).min(1.0) as f32,
-            );
-
-            let fnt_size = ((14.0 + self.combo.counter() as f32 * tweak!(0.5)).min(tweak!(20.0)))
-                as u32
-                + if (time_since_last_update - 12.0) < 1.0 {
-                    1
-                } else {
-                    0
-                }; // Increase size for higher counts, "flash" on update by increasing the font size by 2                  
-            println!("{}", time_since_last_update); // REMOVE THIS            
-            Rectangle::fill_with([10.0, 10.0], color::TRANSPARENT)
-                .middle_of(ui.window)
-                .set(state.ids.combo_align, ui);
-            Text::new(combo_txt.as_str())
-                .mid_bottom_with_margin_on(
-                    state.ids.combo_align,
-                    tweak!(-350.0) + time_since_last_update * tweak!(4.0) - 8.0,
-                )
-                .font_size(self.fonts.cyri.scale(fnt_size))
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(Color::Rgba(
-                    0.0,
-                    0.0,
-                    0.0,
+        if let Some(combo) = self.combo {
+            if combo.combo > 0 {
+                let combo_txt = format!("{} Combo", combo.combo);
+                let combo_cnt = combo.combo as f32;
+                let time_since_last_update = comp::combo::COMBO_DECAY_START - combo.timer;
+                let fnt_col = Color::Rgba(
+                    // White -> Yellow -> Red text color gradient depending on count
+                    (1.0 - combo_cnt / (combo_cnt + tweak!(1.0))).max(0.79),
+                    (1.0 - combo_cnt / (combo_cnt + tweak!(80.0))).max(0.19),
+                    (1.0 - combo_cnt / (combo_cnt + tweak!(5.0))).max(0.17),
                     (time_since_last_update - 8.0).min(1.0) as f32,
-                ))
-                .set(state.ids.combo_bg, ui);
-            Text::new(combo_txt.as_str())
-                .bottom_right_with_margins_on(state.ids.combo_bg, 1.0, 1.0)
-                .font_size(self.fonts.cyri.scale(fnt_size))
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(fnt_col)
-                .set(state.ids.combo, ui);
+                );
+
+                let fnt_size = ((14.0 + combo.timer as f32 * tweak!(0.5)).min(tweak!(20.0))) as u32
+                    + if (time_since_last_update - 12.0) < 1.0 {
+                        1
+                    } else {
+                        0
+                    }; // Increase size for higher counts, "flash" on update by increasing the font size by 2                  
+                //dbg!(combo); // Delete this before merging
+                Rectangle::fill_with([10.0, 10.0], color::TRANSPARENT)
+                    .middle_of(ui.window)
+                    .set(state.ids.combo_align, ui);
+                Text::new(combo_txt.as_str())
+                    .mid_bottom_with_margin_on(
+                        state.ids.combo_align,
+                        tweak!(-350.0) + time_since_last_update * tweak!(4.0) - 8.0,
+                    )
+                    .font_size(self.fonts.cyri.scale(fnt_size))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .color(Color::Rgba(
+                        0.0,
+                        0.0,
+                        0.0,
+                        (time_since_last_update - 8.0).min(1.0) as f32,
+                    ))
+                    .set(state.ids.combo_bg, ui);
+                Text::new(combo_txt.as_str())
+                    .bottom_right_with_margins_on(state.ids.combo_bg, 1.0, 1.0)
+                    .font_size(self.fonts.cyri.scale(fnt_size))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .color(fnt_col)
+                    .set(state.ids.combo, ui);
+            }
         }
     }
 }

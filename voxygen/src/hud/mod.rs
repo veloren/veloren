@@ -61,7 +61,6 @@ use crate::{
     GlobalState,
 };
 use client::Client;
-use common::resources::Time;
 use common::{
     combat,
     comp::{
@@ -307,6 +306,13 @@ pub struct SkillPointGain {
     pub skill_tree: SkillGroupKind,
     pub total_points: u16,
     pub timer: f32,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct ComboFloater {
+    pub owner: Uid,
+    pub combo: u32,
+    pub timer: f64,
 }
 
 pub struct DebugInfo {
@@ -732,6 +738,7 @@ pub struct Hud {
     crosshair_opacity: f32,
     exp_floaters: Vec<ExpFloater>,
     skill_point_displays: Vec<SkillPointGain>,
+    combo_floaters: VecDeque<ComboFloater>,
 }
 
 impl Hud {
@@ -840,6 +847,7 @@ impl Hud {
             crosshair_opacity: 0.0,
             exp_floaters: Vec::new(),
             skill_point_displays: Vec::new(),
+            combo_floaters: VecDeque::new(),
         }
     }
 
@@ -887,7 +895,7 @@ impl Hud {
             let items = ecs.read_storage::<comp::Item>();
             let inventories = ecs.read_storage::<comp::Inventory>();
             let msm = ecs.read_resource::<MaterialStatManifest>();
-            let entities = ecs.entities();            
+            let entities = ecs.entities();
             let me = client.entity();
 
             if (client.pending_trade().is_some() && !self.show.trade)
@@ -2158,8 +2166,19 @@ impl Hud {
         let controllers = ecs.read_storage::<comp::Controller>();
         let ability_map = ecs.fetch::<comp::item::tool::AbilityMap>();
         let bodies = ecs.read_storage::<comp::Body>();
-        let combos = ecs.read_storage::<comp::Combo>();
-        let time = ecs.read_resource::<Time>();
+        // Combo floater stuffs
+        for combo_floater in self.combo_floaters.iter_mut() {
+            combo_floater.timer -= dt.as_secs_f64();
+        }
+        self.combo_floaters.retain(|f| f.timer > 0_f64);
+        let combo = if let Some(uid) = ecs.read_storage::<Uid>().get(entity) {
+            self.combo_floaters
+                .iter()
+                .find(|c| c.owner == *uid)
+                .copied()
+        } else {
+            None
+        };
 
         if let (
             Some(health),
@@ -2167,16 +2186,12 @@ impl Hud {
             Some(energy),
             Some(_character_state),
             Some(_controller),
-            Some(combo),
-            time,
         ) = (
             healths.get(entity),
             inventories.get(entity),
             energies.get(entity),
             character_states.get(entity),
             controllers.get(entity).map(|c| &c.inputs),
-            combos.get(entity),
-            time,
         ) {
             Skillbar::new(
                 global_state,
@@ -2196,8 +2211,7 @@ impl Hud {
                 i18n,
                 &ability_map,
                 &msm,
-                &combo,
-                &time,
+                combo,
             )
             .set(self.ids.skillbar, ui_widgets);
         }
@@ -3210,6 +3224,11 @@ impl Hud {
                 skill_tree: *skill_tree,
                 total_points: *total_points,
                 timer: 5.0,
+            }),
+            Outcome::ComboChange { uid, combo } => self.combo_floaters.push_front(ComboFloater {
+                owner: *uid,
+                combo: *combo,
+                timer: comp::combo::COMBO_DECAY_START,
             }),
             _ => {},
         }

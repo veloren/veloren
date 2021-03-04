@@ -895,11 +895,14 @@ fn handle_exp_gain(
 pub fn handle_combo_change(server: &Server, entity: EcsEntity, change: i32) {
     let ecs = &server.state.ecs();
     if let Some(mut combo) = ecs.write_storage::<comp::Combo>().get_mut(entity) {
-        if change > 0 {
-            let time = ecs.read_resource::<Time>();
-            combo.increase_by(change as u32, time.0);
-        } else {
-            combo.decrease_by(change.abs() as u32);
+        let time = ecs.read_resource::<Time>();
+        let mut outcomes = ecs.write_resource::<Vec<Outcome>>();
+        combo.change_by(change, time.0);
+        if let Some(uid) = ecs.read_storage::<Uid>().get(entity) {
+            outcomes.push(Outcome::ComboChange {
+                uid: *uid,
+                combo: combo.counter(),
+            });
         }
     }
 }

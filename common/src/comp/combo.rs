@@ -2,6 +2,8 @@ use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
 
+pub const COMBO_DECAY_START: f64 = 5.0; // seconds
+
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Combo {
     counter: u32,
@@ -24,13 +26,13 @@ impl Combo {
 
     pub fn reset(&mut self) { self.counter = 0; }
 
-    pub fn increase_by(&mut self, amount: u32, time: f64) {
-        self.counter = self.counter.saturating_add(amount);
+    pub fn change_by(&mut self, amount: i32, time: f64) {
+        if amount > 0 {
+            self.counter = self.counter.saturating_add(amount as u32);
+        } else {
+            self.counter = self.counter.saturating_sub(amount.abs() as u32);
+        }
         self.last_increase = time;
-    }
-
-    pub fn decrease_by(&mut self, amount: u32) {
-        self.counter = self.counter.saturating_sub(amount);
     }
 }
 
