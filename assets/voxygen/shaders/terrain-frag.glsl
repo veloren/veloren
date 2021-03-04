@@ -266,7 +266,7 @@ void main() {
     max_light *= f_light;
 
     // TODO: Apply AO after this
-    vec3 glow = GLOW_COLOR * (pow(f_glow, 6) * 5 + pow(f_glow, 1.5) * 2);
+    vec3 glow = glow_light(f_pos) * (pow(f_glow, 6) * 5 + pow(f_glow, 1.5) * 2);
     reflected_light += glow;
 
     max_light += lights_at(f_pos, f_norm, view_dir, mu, cam_attenuation, fluid_alt, k_a, k_d, k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);

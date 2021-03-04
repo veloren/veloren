@@ -26,6 +26,11 @@ float hash_fast(uvec3 q)
     return float(n) * (1.0/float(0xffffffffU));
 }
 
+// 2D, but using shifted 2D textures
+float noise_2d(vec2 pos) {
+    return texture(t_noise, pos).x;
+}
+
 // 3D, but using shifted 2D textures
 float noise_3d(vec3 pos) {
     pos.z *= 15.0;
