@@ -3,18 +3,19 @@ use crate::client::Client;
 use common::{
     comp::{Player, Pos, Waypoint, WaypointArea},
     resources::Time,
-    span,
+    vsystem::{Origin, Phase, VJob, VSystem},
 };
 use common_net::msg::{Notification, ServerGeneral};
-use specs::{Entities, Join, Read, ReadStorage, System, Write, WriteStorage};
+use specs::{Entities, Join, Read, ReadStorage, Write, WriteStorage};
 
 /// Cooldown time (in seconds) for "Waypoint Saved" notifications
 const NOTIFY_TIME: f64 = 10.0;
 
 /// This system updates player waypoints
 /// TODO: Make this faster by only considering local waypoints
+#[derive(Default)]
 pub struct Sys;
-impl<'a> System<'a> for Sys {
+impl<'a> VSystem<'a> for Sys {
     #[allow(clippy::type_complexity)] // TODO: Pending review in #587
     type SystemData = (
         Entities<'a>,
@@ -27,8 +28,12 @@ impl<'a> System<'a> for Sys {
         Write<'a, SysTimer<Self>>,
     );
 
+    const NAME: &'static str = "waypoint";
+    const ORIGIN: Origin = Origin::Server;
+    const PHASE: Phase = Phase::Create;
+
     fn run(
-        &mut self,
+        _job: &mut VJob<Self>,
         (
             entities,
             positions,
@@ -40,7 +45,6 @@ impl<'a> System<'a> for Sys {
             mut timer,
         ): Self::SystemData,
     ) {
-        span!(_guard, "run", "waypoint::Sys::run");
         timer.start();
 
         for (entity, player_pos, _, client) in (&entities, &positions, &players, &clients).join() {

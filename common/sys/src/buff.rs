@@ -5,10 +5,11 @@ use common::{
     },
     event::{EventBus, ServerEvent},
     resources::DeltaTime,
+    vsystem::{Origin, Phase, VJob, VSystem},
     Damage, DamageSource,
 };
 use specs::{
-    shred::ResourceId, Entities, Join, Read, ReadStorage, System, SystemData, World, WriteStorage,
+    shred::ResourceId, Entities, Join, Read, ReadStorage, SystemData, World, WriteStorage,
 };
 use std::time::Duration;
 
@@ -20,8 +21,9 @@ pub struct ReadData<'a> {
     inventories: ReadStorage<'a, Inventory>,
 }
 
+#[derive(Default)]
 pub struct Sys;
-impl<'a> System<'a> for Sys {
+impl<'a> VSystem<'a> for Sys {
     type SystemData = (
         ReadData<'a>,
         WriteStorage<'a, Health>,
@@ -30,8 +32,12 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Stats>,
     );
 
+    const NAME: &'static str = "buff";
+    const ORIGIN: Origin = Origin::Common;
+    const PHASE: Phase = Phase::Create;
+
     fn run(
-        &mut self,
+        _job: &mut VJob<Self>,
         (read_data, mut healths, mut energies, mut buffs, mut stats): Self::SystemData,
     ) {
         let mut server_emitter = read_data.server_bus.emitter();

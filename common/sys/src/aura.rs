@@ -8,10 +8,11 @@ use common::{
     event::{EventBus, ServerEvent},
     resources::DeltaTime,
     uid::UidAllocator,
+    vsystem::{Origin, Phase, VJob, VSystem},
 };
 use specs::{
-    saveload::MarkerAllocator, shred::ResourceId, Entities, Join, Read, ReadStorage, System,
-    SystemData, World, WriteStorage,
+    saveload::MarkerAllocator, shred::ResourceId, Entities, Join, Read, ReadStorage, SystemData,
+    World, WriteStorage,
 };
 use std::time::Duration;
 
@@ -27,15 +28,20 @@ pub struct ReadData<'a> {
     groups: ReadStorage<'a, Group>,
 }
 
+#[derive(Default)]
 pub struct Sys;
-impl<'a> System<'a> for Sys {
+impl<'a> VSystem<'a> for Sys {
     type SystemData = (
         ReadData<'a>,
         WriteStorage<'a, Auras>,
         WriteStorage<'a, Buffs>,
     );
 
-    fn run(&mut self, (read_data, mut auras, mut buffs): Self::SystemData) {
+    const NAME: &'static str = "aura";
+    const ORIGIN: Origin = Origin::Common;
+    const PHASE: Phase = Phase::Create;
+
+    fn run(_job: &mut VJob<Self>, (read_data, mut auras, mut buffs): Self::SystemData) {
         let mut server_emitter = read_data.server_bus.emitter();
         let dt = read_data.dt.0;
 

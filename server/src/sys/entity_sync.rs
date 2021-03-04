@@ -12,20 +12,21 @@ use common::{
     outcome::Outcome,
     region::{Event as RegionEvent, RegionMap},
     resources::TimeOfDay,
-    span,
     terrain::TerrainChunkSize,
     uid::Uid,
     vol::RectVolSize,
+    vsystem::{Origin, Phase, VJob, VSystem},
 };
 use common_net::{msg::ServerGeneral, sync::CompSyncPackage};
 use specs::{
-    Entities, Entity as EcsEntity, Join, Read, ReadExpect, ReadStorage, System, Write, WriteStorage,
+    Entities, Entity as EcsEntity, Join, Read, ReadExpect, ReadStorage, Write, WriteStorage,
 };
 use vek::*;
 
 /// This system will send physics updates to the client
+#[derive(Default)]
 pub struct Sys;
-impl<'a> System<'a> for Sys {
+impl<'a> VSystem<'a> for Sys {
     #[allow(clippy::type_complexity)] // TODO: Pending review in #587
     type SystemData = (
         Entities<'a>,
@@ -52,8 +53,12 @@ impl<'a> System<'a> for Sys {
         ReadTrackers<'a>,
     );
 
+    const NAME: &'static str = "entity_sync";
+    const ORIGIN: Origin = Origin::Server;
+    const PHASE: Phase = Phase::Create;
+
     fn run(
-        &mut self,
+        _job: &mut VJob<Self>,
         (
             entities,
             tick,
@@ -79,7 +84,6 @@ impl<'a> System<'a> for Sys {
             trackers,
         ): Self::SystemData,
     ) {
-        span!(_guard, "run", "entity_sync::Sys::run");
         timer.start();
 
         let tick = tick.0;

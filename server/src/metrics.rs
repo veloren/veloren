@@ -1,6 +1,6 @@
 use prometheus::{
-    Gauge, HistogramOpts, HistogramVec, IntCounter, IntCounterVec, IntGauge, IntGaugeVec, Opts,
-    Registry,
+    Gauge, GaugeVec, HistogramOpts, HistogramVec, IntCounter, IntCounterVec, IntGauge, IntGaugeVec,
+    Opts, Registry,
 };
 use std::{
     convert::TryInto,
@@ -54,6 +54,9 @@ pub struct TickMetrics {
     pub start_time: IntGauge,
     pub time_of_day: Gauge,
     pub light_count: IntGauge,
+    pub system_start_time: IntGaugeVec,
+    pub system_length_time: IntGaugeVec,
+    pub system_thread_avg: GaugeVec,
     tick: Arc<AtomicU64>,
 }
 
@@ -290,6 +293,24 @@ impl TickMetrics {
             Opts::new("tick_time", "time in ns required for a tick of the server"),
             &["period"],
         )?;
+        let system_start_time = IntGaugeVec::new(
+            Opts::new(
+                "system_start_time",
+                "start relative to tick start in ns required per ECS system",
+            ),
+            &["system"],
+        )?;
+        let system_length_time = IntGaugeVec::new(
+            Opts::new("system_length_time", "time in ns required per ECS system"),
+            &["system"],
+        )?;
+        let system_thread_avg = GaugeVec::new(
+            Opts::new(
+                "system_thread_avg",
+                "average threads used by the ECS system",
+            ),
+            &["system"],
+        )?;
 
         let since_the_epoch = SystemTime::now()
             .duration_since(UNIX_EPOCH)
@@ -306,6 +327,9 @@ impl TickMetrics {
         let light_count_clone = light_count.clone();
         let tick_time_clone = tick_time.clone();
         let tick = Arc::new(AtomicU64::new(0));
+        let system_start_time_clone = system_start_time.clone();
+        let system_length_time_clone = system_length_time.clone();
+        let system_thread_avg_clone = system_thread_avg.clone();
 
         let f = |registry: &Registry| {
             registry.register(Box::new(chonks_count_clone))?;
@@ -317,6 +341,9 @@ impl TickMetrics {
             registry.register(Box::new(time_of_day_clone))?;
             registry.register(Box::new(light_count_clone))?;
             registry.register(Box::new(tick_time_clone))?;
+            registry.register(Box::new(system_start_time_clone))?;
+            registry.register(Box::new(system_length_time_clone))?;
+            registry.register(Box::new(system_thread_avg_clone))?;
             Ok(())
         };
 
@@ -331,6 +358,9 @@ impl TickMetrics {
                 start_time,
                 time_of_day,
                 light_count,
+                system_start_time,
+                system_length_time,
+                system_thread_avg,
                 tick,
             },
             Box::new(f),

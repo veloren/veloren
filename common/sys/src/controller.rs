@@ -2,13 +2,13 @@ use common::{
     comp::{BuffChange, ControlEvent, Controller},
     event::{EventBus, ServerEvent},
     metrics::SysMetrics,
-    span,
     uid::UidAllocator,
+    vsystem::{Origin, Phase, VJob, VSystem},
 };
 use specs::{
     saveload::{Marker, MarkerAllocator},
     shred::ResourceId,
-    Entities, Join, Read, ReadExpect, System, SystemData, World, WriteStorage,
+    Entities, Join, Read, ReadExpect, SystemData, World, WriteStorage,
 };
 use vek::*;
 
@@ -20,14 +20,18 @@ pub struct ReadData<'a> {
     metrics: ReadExpect<'a, SysMetrics>,
 }
 
+#[derive(Default)]
 pub struct Sys;
 
-impl<'a> System<'a> for Sys {
+impl<'a> VSystem<'a> for Sys {
     type SystemData = (ReadData<'a>, WriteStorage<'a, Controller>);
 
-    fn run(&mut self, (read_data, mut controllers): Self::SystemData) {
+    const NAME: &'static str = "controller";
+    const ORIGIN: Origin = Origin::Common;
+    const PHASE: Phase = Phase::Create;
+
+    fn run(_job: &mut VJob<Self>, (read_data, mut controllers): Self::SystemData) {
         let start_time = std::time::Instant::now();
-        span!(_guard, "run", "controller::Sys::run");
         let mut server_emitter = read_data.server_bus.emitter();
 
         for (entity, controller) in (&read_data.entities, &mut controllers).join() {

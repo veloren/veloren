@@ -8,13 +8,13 @@ use common::{
     metrics::SysMetrics,
     outcome::Outcome,
     resources::{DeltaTime, Time},
-    span,
     uid::Uid,
+    vsystem::{Origin, Phase, VJob, VSystem},
 };
 use hashbrown::HashSet;
 use specs::{
-    shred::ResourceId, Entities, Join, Read, ReadExpect, ReadStorage, System, SystemData, World,
-    Write, WriteStorage,
+    shred::ResourceId, Entities, Join, Read, ReadExpect, ReadStorage, SystemData, World, Write,
+    WriteStorage,
 };
 use vek::Vec3;
 
@@ -36,8 +36,9 @@ pub struct ReadData<'a> {
 }
 
 /// This system kills players, levels them up, and regenerates energy.
+#[derive(Default)]
 pub struct Sys;
-impl<'a> System<'a> for Sys {
+impl<'a> VSystem<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
         ReadData<'a>,
@@ -49,8 +50,12 @@ impl<'a> System<'a> for Sys {
         Write<'a, Vec<Outcome>>,
     );
 
+    const NAME: &'static str = "stats";
+    const ORIGIN: Origin = Origin::Common;
+    const PHASE: Phase = Phase::Create;
+
     fn run(
-        &mut self,
+        _job: &mut VJob<Self>,
         (
             read_data,
             mut stats,
@@ -62,7 +67,6 @@ impl<'a> System<'a> for Sys {
         ): Self::SystemData,
     ) {
         let start_time = std::time::Instant::now();
-        span!(_guard, "run", "stats::Sys::run");
         let mut server_event_emitter = read_data.server_bus.emitter();
         let dt = read_data.dt.0;
 

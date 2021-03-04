@@ -1,14 +1,19 @@
 use super::SysTimer;
 use crate::{client::Client, presence::Presence};
-use common::{comp::Pos, span, terrain::TerrainGrid};
+use common::{
+    comp::Pos,
+    terrain::TerrainGrid,
+    vsystem::{Origin, Phase, VJob, VSystem},
+};
 use common_net::msg::ServerGeneral;
 use common_sys::state::TerrainChanges;
-use specs::{Join, Read, ReadExpect, ReadStorage, System, Write};
+use specs::{Join, Read, ReadExpect, ReadStorage, Write};
 
 /// This systems sends new chunks to clients as well as changes to existing
 /// chunks
+#[derive(Default)]
 pub struct Sys;
-impl<'a> System<'a> for Sys {
+impl<'a> VSystem<'a> for Sys {
     #[allow(clippy::type_complexity)] // TODO: Pending review in #587
     type SystemData = (
         ReadExpect<'a, TerrainGrid>,
@@ -19,11 +24,14 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Client>,
     );
 
+    const NAME: &'static str = "terrain_sync";
+    const ORIGIN: Origin = Origin::Server;
+    const PHASE: Phase = Phase::Create;
+
     fn run(
-        &mut self,
+        _job: &mut VJob<Self>,
         (terrain, terrain_changes, mut timer, positions, presences, clients): Self::SystemData,
     ) {
-        span!(_guard, "run", "terrain_sync::Sys::run");
         timer.start();
 
         // Sync changed chunks

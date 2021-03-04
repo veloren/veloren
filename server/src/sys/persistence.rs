@@ -5,14 +5,15 @@ use crate::{
 };
 use common::{
     comp::{Inventory, Stats, Waypoint},
-    span,
+    vsystem::{Origin, Phase, VJob, VSystem},
 };
 use common_net::msg::PresenceKind;
-use specs::{Join, ReadExpect, ReadStorage, System, Write};
+use specs::{Join, ReadExpect, ReadStorage, Write};
 
+#[derive(Default)]
 pub struct Sys;
 
-impl<'a> System<'a> for Sys {
+impl<'a> VSystem<'a> for Sys {
     #[allow(clippy::type_complexity)] // TODO: Pending review in #587
     type SystemData = (
         ReadStorage<'a, Presence>,
@@ -24,8 +25,12 @@ impl<'a> System<'a> for Sys {
         Write<'a, SysTimer<Self>>,
     );
 
+    const NAME: &'static str = "persistence";
+    const ORIGIN: Origin = Origin::Server;
+    const PHASE: Phase = Phase::Create;
+
     fn run(
-        &mut self,
+        _job: &mut VJob<Self>,
         (
             presences,
             player_stats,
@@ -36,7 +41,6 @@ impl<'a> System<'a> for Sys {
             mut timer,
         ): Self::SystemData,
     ) {
-        span!(_guard, "run", "persistence::Sys::run");
         if scheduler.should_run() {
             timer.start();
             updater.batch_update(

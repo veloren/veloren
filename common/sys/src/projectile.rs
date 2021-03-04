@@ -7,14 +7,14 @@ use common::{
     event::{EventBus, ServerEvent},
     metrics::SysMetrics,
     resources::DeltaTime,
-    span,
     uid::UidAllocator,
     util::Dir,
+    vsystem::{Origin, Phase, VJob, VSystem},
     GroupTarget,
 };
 use specs::{
     saveload::MarkerAllocator, shred::ResourceId, Entities, Join, Read, ReadExpect, ReadStorage,
-    System, SystemData, World, WriteStorage,
+    SystemData, World, WriteStorage,
 };
 use std::time::Duration;
 
@@ -35,17 +35,24 @@ pub struct ReadData<'a> {
 }
 
 /// This system is responsible for handling projectile effect triggers
+#[derive(Default)]
 pub struct Sys;
-impl<'a> System<'a> for Sys {
+impl<'a> VSystem<'a> for Sys {
     type SystemData = (
         ReadData<'a>,
         WriteStorage<'a, Ori>,
         WriteStorage<'a, Projectile>,
     );
 
-    fn run(&mut self, (read_data, mut orientations, mut projectiles): Self::SystemData) {
+    const NAME: &'static str = "projectile";
+    const ORIGIN: Origin = Origin::Common;
+    const PHASE: Phase = Phase::Create;
+
+    fn run(
+        _job: &mut VJob<Self>,
+        (read_data, mut orientations, mut projectiles): Self::SystemData,
+    ) {
         let start_time = std::time::Instant::now();
-        span!(_guard, "run", "projectile::Sys::run");
         let mut server_emitter = read_data.server_bus.emitter();
 
         // Attacks

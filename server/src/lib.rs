@@ -66,6 +66,7 @@ use common::{
     rtsim::RtSimEntity,
     terrain::TerrainChunkSize,
     vol::{ReadVol, RectVolSize},
+    vsystem::run_now,
 };
 use common_net::{
     msg::{
@@ -87,11 +88,11 @@ use persistence::{
 use plugin_api::Uid;
 use prometheus::Registry;
 use prometheus_hyper::Server as PrometheusServer;
-use specs::{join::Join, Builder, Entity as EcsEntity, RunNow, SystemData, WorldExt};
+use specs::{join::Join, Builder, Entity as EcsEntity, SystemData, WorldExt};
 use std::{
     i32,
     ops::{Deref, DerefMut},
-    sync::{atomic::Ordering, Arc},
+    sync::Arc,
     time::{Duration, Instant},
 };
 #[cfg(not(feature = "worldgen"))]
@@ -510,12 +511,12 @@ impl Server {
         // Run message receiving sys before the systems in common for decreased latency
         // (e.g. run before controller system)
         //TODO: run in parallel
-        sys::msg::general::Sys.run_now(&self.state.ecs());
+        run_now::<sys::msg::general::Sys>(&self.state.ecs());
         self.register_run();
-        sys::msg::character_screen::Sys.run_now(&self.state.ecs());
-        sys::msg::in_game::Sys.run_now(&self.state.ecs());
-        sys::msg::ping::Sys.run_now(&self.state.ecs());
-        sys::agent::Sys.run_now(&self.state.ecs());
+        run_now::<sys::msg::character_screen::Sys>(&self.state.ecs());
+        run_now::<sys::msg::in_game::Sys>(&self.state.ecs());
+        run_now::<sys::msg::ping::Sys>(&self.state.ecs());
+        run_now::<sys::agent::Sys>(&self.state.ecs());
 
         let before_state_tick = Instant::now();
 
@@ -705,6 +706,29 @@ impl Server {
 
         // 8) Update Metrics
         // Get system timing info
+
+        {
+            let lock = self
+                .state
+                .ecs()
+                .read_resource::<common::metrics::SysMetrics>();
+            let state = lock.stats.lock().unwrap();
+            for (name, stat) in common::vsystem::gen_stats(&state, before_new_connections, 8, 8) {
+                self.tick_metrics
+                    .system_start_time
+                    .with_label_values(&[&name])
+                    .set(stat.start_ns() as i64);
+                self.tick_metrics
+                    .system_length_time
+                    .with_label_values(&[&name])
+                    .set(stat.length_ns() as i64);
+                self.tick_metrics
+                    .system_thread_avg
+                    .with_label_values(&[&name])
+                    .set(stat.avg_threads() as f64);
+            }
+        }
+
         let agent_nanos = self.state.ecs().read_resource::<sys::AgentTimer>().nanos as i64;
         let entity_sync_nanos = self
             .state
@@ -819,6 +843,7 @@ impl Server {
 
         //detailed state metrics
         {
+            /*
             let res = self
                 .state
                 .ecs()
@@ -834,7 +859,7 @@ impl Server {
             let melee_ns = res.melee_ns.load(Ordering::Relaxed);
 
             c.with_label_values(&[sys::AGENT_SYS]).inc_by(agent_ns);
-            c.with_label_values(&[common_sys::MOUNT_SYS])
+            c.with_label_values(&[common_sys::])
                 .inc_by(mount_ns);
             c.with_label_values(&[common_sys::CONTROLLER_SYS])
                 .inc_by(controller_ns);
@@ -866,6 +891,7 @@ impl Server {
                 .observe(projectile_ns as f64 / NANOSEC_PER_SEC);
             h.with_label_values(&[common_sys::MELEE_SYS])
                 .observe(melee_ns as f64 / NANOSEC_PER_SEC);
+             */
         }
 
         //detailed physics metrics

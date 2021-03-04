@@ -3,11 +3,13 @@ use common::{
     comp::Pos,
     event::{EventBus, ServerEvent},
     terrain::TerrainGrid,
+    vsystem::{Origin, Phase, VJob, VSystem},
 };
-use specs::{Entities, Read, ReadExpect, ReadStorage, System, WriteExpect};
+use specs::{Entities, Read, ReadExpect, ReadStorage, WriteExpect};
 
+#[derive(Default)]
 pub struct Sys;
-impl<'a> System<'a> for Sys {
+impl<'a> VSystem<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
         Read<'a, EventBus<ServerEvent>>,
@@ -18,8 +20,12 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Pos>,
     );
 
+    const NAME: &'static str = "rtsim::unload_chunks";
+    const ORIGIN: Origin = Origin::Server;
+    const PHASE: Phase = Phase::Create;
+
     fn run(
-        &mut self,
+        _job: &mut VJob<Self>,
         (
             _server_event_bus,
             mut rtsim,

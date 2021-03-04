@@ -5,8 +5,8 @@ use common::{
         Gravity, Group, Health, Inventory, Item, LightEmitter, Mass, MountState, Mounting, Ori,
         Player, Poise, Pos, Scale, Shockwave, Stats, Sticky, Vel,
     },
-    span,
     uid::Uid,
+    vsystem::{Origin, Phase, VJob, VSystem},
 };
 use common_net::{
     msg::EcsCompPacket,
@@ -14,24 +14,28 @@ use common_net::{
 };
 use hashbrown::HashMap;
 use specs::{
-    shred::ResourceId, Entity as EcsEntity, Join, ReadExpect, ReadStorage, System, SystemData,
-    World, Write, WriteExpect,
+    shred::ResourceId, Entity as EcsEntity, Join, ReadExpect, ReadStorage, SystemData, World,
+    Write, WriteExpect,
 };
 use vek::*;
 
 /// Always watching
 /// This system will monitor specific components for insertion, removal, and
 /// modification
+#[derive(Default)]
 pub struct Sys;
-impl<'a> System<'a> for Sys {
+impl<'a> VSystem<'a> for Sys {
     type SystemData = (
         Write<'a, SysTimer<Self>>,
         TrackedComps<'a>,
         WriteTrackers<'a>,
     );
 
-    fn run(&mut self, (mut timer, comps, mut trackers): Self::SystemData) {
-        span!(_guard, "run", "sentinel::Sys::run");
+    const NAME: &'static str = "sentinel";
+    const ORIGIN: Origin = Origin::Server;
+    const PHASE: Phase = Phase::Create;
+
+    fn run(_job: &mut VJob<Self>, (mut timer, comps, mut trackers): Self::SystemData) {
         timer.start();
 
         record_changes(&comps, &mut trackers);

@@ -11,11 +11,10 @@ use common::{
     terrain::{Block, TerrainGrid},
     uid::Uid,
     vol::ReadVol,
+    vsystem::{Origin, ParMode, Phase, VJob, VSystem},
 };
 use rayon::iter::ParallelIterator;
-use specs::{
-    Entities, Join, ParJoin, Read, ReadExpect, ReadStorage, System, WriteExpect, WriteStorage,
-};
+use specs::{Entities, Join, ParJoin, Read, ReadExpect, ReadStorage, WriteExpect, WriteStorage};
 use std::ops::Range;
 use vek::*;
 
@@ -61,9 +60,10 @@ fn calc_z_limit(
 }
 
 /// This system applies forces and calculates new positions and velocities.
+#[derive(Default)]
 pub struct Sys;
 
-impl<'a> System<'a> for Sys {
+impl<'a> VSystem<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
         Entities<'a>,
@@ -90,10 +90,14 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, CharacterState>,
     );
 
+    const NAME: &'static str = "phys";
+    const ORIGIN: Origin = Origin::Common;
+    const PHASE: Phase = Phase::Create;
+
     #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     #[allow(clippy::blocks_in_if_conditions)] // TODO: Pending review in #587
     fn run(
-        &mut self,
+        job: &mut VJob<Self>,
         (
             entities,
             uids,
@@ -120,7 +124,6 @@ impl<'a> System<'a> for Sys {
         ): Self::SystemData,
     ) {
         let start_time = std::time::Instant::now();
-        span!(_guard, "run", "phys::Sys::run");
         let mut event_emitter = event_bus.emitter();
 
         // Add/reset physics state components
@@ -212,6 +215,7 @@ impl<'a> System<'a> for Sys {
         drop(guard);
 
         span!(guard, "Apply pushback");
+        job.cpu_stats.measure(ParMode::Rayon);
         let metrics = (
             &entities,
             &positions,
@@ -776,6 +780,7 @@ impl<'a> System<'a> for Sys {
             land_on_grounds_a
         });
         drop(guard);
+        job.cpu_stats.measure(ParMode::Single);
 
         land_on_grounds.into_iter().for_each(|(entity, vel)| {
             event_emitter.emit(ServerEvent::LandOnGround { entity, vel: vel.0 });

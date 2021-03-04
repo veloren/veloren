@@ -3,13 +3,13 @@ use crate::{client::Client, metrics::NetworkRequestMetrics, presence::Presence, 
 use common::{
     comp::{CanBuild, ControlEvent, Controller, ForceUpdate, Health, Ori, Pos, Stats, Vel},
     event::{EventBus, ServerEvent},
-    span,
     terrain::{TerrainChunkSize, TerrainGrid},
     vol::{ReadVol, RectVolSize},
+    vsystem::{Origin, Phase, VJob, VSystem},
 };
 use common_net::msg::{ClientGeneral, PresenceKind, ServerGeneral};
 use common_sys::state::BlockChange;
-use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, Write, WriteStorage};
+use specs::{Entities, Join, Read, ReadExpect, ReadStorage, Write, WriteStorage};
 use tracing::{debug, trace};
 
 impl Sys {
@@ -165,8 +165,9 @@ impl Sys {
 }
 
 /// This system will handle new messages from clients
+#[derive(Default)]
 pub struct Sys;
-impl<'a> System<'a> for Sys {
+impl<'a> VSystem<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
         Entities<'a>,
@@ -188,8 +189,12 @@ impl<'a> System<'a> for Sys {
         Read<'a, Settings>,
     );
 
+    const NAME: &'static str = "msg::in_game";
+    const ORIGIN: Origin = Origin::Server;
+    const PHASE: Phase = Phase::Create;
+
     fn run(
-        &mut self,
+        _job: &mut VJob<Self>,
         (
             entities,
             server_event_bus,
@@ -210,7 +215,6 @@ impl<'a> System<'a> for Sys {
             settings,
         ): Self::SystemData,
     ) {
-        span!(_guard, "run", "msg::in_game::Sys::run");
         timer.start();
 
         let mut server_emitter = server_event_bus.emitter();

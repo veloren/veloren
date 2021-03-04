@@ -15,33 +15,23 @@ pub mod state;
 mod stats;
 
 // External
+use common::vsystem::{dispatch, VSystem};
 use specs::DispatcherBuilder;
 
-// System names
-pub const CHARACTER_BEHAVIOR_SYS: &str = "character_behavior_sys";
-pub const MELEE_SYS: &str = "melee_sys";
-pub const BEAM_SYS: &str = "beam_sys";
-pub const CONTROLLER_SYS: &str = "controller_sys";
-pub const MOUNT_SYS: &str = "mount_sys";
-pub const PHYS_SYS: &str = "phys_sys";
-pub const PROJECTILE_SYS: &str = "projectile_sys";
-pub const SHOCKWAVE_SYS: &str = "shockwave_sys";
-pub const STATS_SYS: &str = "stats_sys";
-pub const BUFFS_SYS: &str = "buffs_sys";
-pub const AURAS_SYS: &str = "auras_sys";
-
 pub fn add_local_systems(dispatch_builder: &mut DispatcherBuilder) {
-    dispatch_builder.add(mount::Sys, MOUNT_SYS, &[]);
-    dispatch_builder.add(controller::Sys, CONTROLLER_SYS, &[MOUNT_SYS]);
-    dispatch_builder.add(character_behavior::Sys, CHARACTER_BEHAVIOR_SYS, &[
-        CONTROLLER_SYS,
+    dispatch::<mount::Sys>(dispatch_builder, &[]);
+    dispatch::<controller::Sys>(dispatch_builder, &[&mount::Sys::sys_name()]);
+    dispatch::<character_behavior::Sys>(dispatch_builder, &[&controller::Sys::sys_name()]);
+    dispatch::<stats::Sys>(dispatch_builder, &[]);
+    dispatch::<buff::Sys>(dispatch_builder, &[]);
+    dispatch::<phys::Sys>(dispatch_builder, &[
+        &controller::Sys::sys_name(),
+        &mount::Sys::sys_name(),
+        &stats::Sys::sys_name(),
     ]);
-    dispatch_builder.add(stats::Sys, STATS_SYS, &[]);
-    dispatch_builder.add(buff::Sys, BUFFS_SYS, &[]);
-    dispatch_builder.add(phys::Sys, PHYS_SYS, &[CONTROLLER_SYS, MOUNT_SYS, STATS_SYS]);
-    dispatch_builder.add(projectile::Sys, PROJECTILE_SYS, &[PHYS_SYS]);
-    dispatch_builder.add(shockwave::Sys, SHOCKWAVE_SYS, &[PHYS_SYS]);
-    dispatch_builder.add(beam::Sys, BEAM_SYS, &[PHYS_SYS]);
-    dispatch_builder.add(melee::Sys, MELEE_SYS, &[PROJECTILE_SYS]);
-    dispatch_builder.add(aura::Sys, AURAS_SYS, &[]);
+    dispatch::<projectile::Sys>(dispatch_builder, &[&phys::Sys::sys_name()]);
+    dispatch::<shockwave::Sys>(dispatch_builder, &[&phys::Sys::sys_name()]);
+    dispatch::<beam::Sys>(dispatch_builder, &[&phys::Sys::sys_name()]);
+    dispatch::<melee::Sys>(dispatch_builder, &[&projectile::Sys::sys_name()]);
+    dispatch::<aura::Sys>(dispatch_builder, &[]);
 }

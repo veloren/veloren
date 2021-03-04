@@ -19,20 +19,20 @@ use common::{
     metrics::SysMetrics,
     path::TraversalConfig,
     resources::{DeltaTime, TimeOfDay},
-    span,
     terrain::{Block, TerrainGrid},
     time::DayPeriod,
     uid::{Uid, UidAllocator},
     util::Dir,
     vol::ReadVol,
+    vsystem::{Origin, Phase, VJob, VSystem},
 };
 use rand::{thread_rng, Rng};
 use rayon::iter::ParallelIterator;
 use specs::{
     saveload::{Marker, MarkerAllocator},
     shred::ResourceId,
-    Entities, Entity as EcsEntity, Join, ParJoin, Read, ReadExpect, ReadStorage, System,
-    SystemData, World, Write, WriteStorage,
+    Entities, Entity as EcsEntity, Join, ParJoin, Read, ReadExpect, ReadStorage, SystemData, World,
+    Write, WriteStorage,
 };
 use std::f32::consts::PI;
 use vek::*;
@@ -99,8 +99,9 @@ const SNEAK_COEFFICIENT: f32 = 0.25;
 const AVG_FOLLOW_DIST: f32 = 6.0;
 
 /// This system will allow NPCs to modify their controller
+#[derive(Default)]
 pub struct Sys;
-impl<'a> System<'a> for Sys {
+impl<'a> VSystem<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
         ReadData<'a>,
@@ -110,13 +111,16 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Controller>,
     );
 
+    const NAME: &'static str = "agent";
+    const ORIGIN: Origin = Origin::Server;
+    const PHASE: Phase = Phase::Create;
+
     #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     fn run(
-        &mut self,
+        _job: &mut VJob<Self>,
         (read_data, mut sys_timer, event_bus, mut agents, mut controllers): Self::SystemData,
     ) {
         let start_time = std::time::Instant::now();
-        span!(_guard, "run", "agent::Sys::run");
         sys_timer.start();
 
         (

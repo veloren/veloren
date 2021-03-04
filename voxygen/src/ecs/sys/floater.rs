@@ -6,16 +6,18 @@ use common::{
     comp::{Health, HealthSource, Pos},
     resources::DeltaTime,
     uid::Uid,
+    vsystem::{Origin, Phase, VJob, VSystem},
 };
-use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage};
+use specs::{Entities, Join, Read, ReadExpect, ReadStorage, WriteStorage};
 
 // How long floaters last (in seconds)
 pub const HP_SHOWTIME: f32 = 3.0;
 pub const MY_HP_SHOWTIME: f32 = 2.5;
 pub const HP_ACCUMULATETIME: f32 = 1.0;
 
+#[derive(Default)]
 pub struct Sys;
-impl<'a> System<'a> for Sys {
+impl<'a> VSystem<'a> for Sys {
     #[allow(clippy::type_complexity)] // TODO: Pending review in #587
     type SystemData = (
         Entities<'a>,
@@ -27,9 +29,13 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, HpFloaterList>,
     );
 
+    const NAME: &'static str = "floater";
+    const ORIGIN: Origin = Origin::Frontend("voxygen");
+    const PHASE: Phase = Phase::Create;
+
     #[allow(clippy::blocks_in_if_conditions)] // TODO: Pending review in #587
     fn run(
-        &mut self,
+        _job: &mut VJob<Self>,
         (entities, my_entity, dt, uids, pos, healths, mut hp_floater_lists): Self::SystemData,
     ) {
         // Add hp floater lists to all entities with health and a position

@@ -2,14 +2,16 @@ use crate::ecs::comp::Interpolated;
 use common::{
     comp::{object, Body, Ori, Pos, Vel},
     resources::DeltaTime,
+    vsystem::{Origin, Phase, VJob, VSystem},
 };
-use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
+use specs::{Entities, Join, Read, ReadStorage, WriteStorage};
 use tracing::warn;
 use vek::*;
 
 /// This system will allow NPCs to modify their controller
+#[derive(Default)]
 pub struct Sys;
-impl<'a> System<'a> for Sys {
+impl<'a> VSystem<'a> for Sys {
     #[allow(clippy::type_complexity)] // TODO: Pending review in #587
     type SystemData = (
         Entities<'a>,
@@ -21,8 +23,12 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Interpolated>,
     );
 
+    const NAME: &'static str = "interpolation";
+    const ORIGIN: Origin = Origin::Frontend("voxygen");
+    const PHASE: Phase = Phase::Create;
+
     fn run(
-        &mut self,
+        _job: &mut VJob<Self>,
         (entities, dt, positions, orientations, velocities, bodies, mut interpolated): Self::SystemData,
     ) {
         // Update interpolated positions and orientations

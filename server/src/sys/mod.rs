@@ -10,6 +10,7 @@ pub mod terrain;
 pub mod terrain_sync;
 pub mod waypoint;
 
+use common::vsystem::{dispatch, run_now};
 use specs::DispatcherBuilder;
 use std::{
     marker::PhantomData,
@@ -31,38 +32,23 @@ pub type PersistenceTimer = SysTimer<persistence::Sys>;
 pub type PersistenceScheduler = SysScheduler<persistence::Sys>;
 pub type AgentTimer = SysTimer<agent::Sys>;
 
-// System names
-// Note: commented names may be useful in the future
-//const ENTITY_SYNC_SYS: &str = "server_entity_sync_sys";
-//const SENTINEL_SYS: &str = "sentinel_sys";
-//const SUBSCRIPTION_SYS: &str = "server_subscription_sys";
-//const TERRAIN_SYNC_SYS: &str = "server_terrain_sync_sys";
-const TERRAIN_SYS: &str = "server_terrain_sys";
-const WAYPOINT_SYS: &str = "server_waypoint_sys";
-const INVITE_TIMEOUT_SYS: &str = "server_invite_timeout_sys";
-const PERSISTENCE_SYS: &str = "server_persistence_sys";
-const OBJECT_SYS: &str = "server_object_sys";
-pub const AGENT_SYS: &str = "agent_sys";
-
 pub fn add_server_systems(dispatch_builder: &mut DispatcherBuilder) {
-    dispatch_builder.add(terrain::Sys, TERRAIN_SYS, &[]);
-    dispatch_builder.add(waypoint::Sys, WAYPOINT_SYS, &[]);
-    dispatch_builder.add(invite_timeout::Sys, INVITE_TIMEOUT_SYS, &[]);
-    dispatch_builder.add(persistence::Sys, PERSISTENCE_SYS, &[]);
-    dispatch_builder.add(object::Sys, OBJECT_SYS, &[]);
+    dispatch::<terrain::Sys>(dispatch_builder, &[]);
+    dispatch::<waypoint::Sys>(dispatch_builder, &[]);
+    dispatch::<invite_timeout::Sys>(dispatch_builder, &[]);
+    dispatch::<persistence::Sys>(dispatch_builder, &[]);
+    dispatch::<object::Sys>(dispatch_builder, &[]);
 }
 
 pub fn run_sync_systems(ecs: &mut specs::World) {
-    use specs::RunNow;
-
     // Setup for entity sync
     // If I'm not mistaken, these two could be ran in parallel
-    sentinel::Sys.run_now(ecs);
-    subscription::Sys.run_now(ecs);
+    run_now::<sentinel::Sys>(ecs);
+    run_now::<subscription::Sys>(ecs);
 
     // Sync
-    terrain_sync::Sys.run_now(ecs);
-    entity_sync::Sys.run_now(ecs);
+    run_now::<terrain_sync::Sys>(ecs);
+    run_now::<entity_sync::Sys>(ecs);
 }
 
 /// Used to schedule systems to run at an interval

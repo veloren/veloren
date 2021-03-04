@@ -1,6 +1,6 @@
 use specs::{
-    shred::ResourceId, Entities, Join, LazyUpdate, Read, ReadExpect, ReadStorage, System,
-    SystemData, World, WriteStorage,
+    shred::ResourceId, Entities, Join, LazyUpdate, Read, ReadExpect, ReadStorage, SystemData,
+    World, WriteStorage,
 };
 
 use common::{
@@ -15,12 +15,12 @@ use common::{
     event::{EventBus, LocalEvent, ServerEvent},
     metrics::SysMetrics,
     resources::DeltaTime,
-    span,
     states::{
         self,
         behavior::{CharacterBehavior, JoinData, JoinStruct},
     },
     uid::Uid,
+    vsystem::{Origin, Phase, VJob, VSystem},
 };
 use std::time::Duration;
 
@@ -72,9 +72,10 @@ pub struct ReadData<'a> {
 /// ## Character Behavior System
 /// Passes `JoinData` to `CharacterState`'s `behavior` handler fn's. Receives a
 /// `StateUpdate` in return and performs updates to ECS Components from that.
+#[derive(Default)]
 pub struct Sys;
 
-impl<'a> System<'a> for Sys {
+impl<'a> VSystem<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
         ReadData<'a>,
@@ -88,9 +89,13 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Poise>,
     );
 
+    const NAME: &'static str = "character_behavior";
+    const ORIGIN: Origin = Origin::Common;
+    const PHASE: Phase = Phase::Create;
+
     #[allow(clippy::while_let_on_iterator)] // TODO: Pending review in #587
     fn run(
-        &mut self,
+        _job: &mut VJob<Self>,
         (
             read_data,
             mut character_states,
@@ -104,7 +109,6 @@ impl<'a> System<'a> for Sys {
         ): Self::SystemData,
     ) {
         let start_time = std::time::Instant::now();
-        span!(_guard, "run", "character_behavior::Sys::run");
         let mut server_emitter = read_data.server_bus.emitter();
         let mut local_emitter = read_data.local_bus.emitter();
 

@@ -3,13 +3,15 @@ use common::{
     effect::Effect,
     event::{EventBus, ServerEvent},
     resources::DeltaTime,
-    span, Damage, DamageSource, Explosion, RadiusEffect,
+    vsystem::{Origin, Phase, VJob, VSystem},
+    Damage, DamageSource, Explosion, RadiusEffect,
 };
-use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
+use specs::{Entities, Join, Read, ReadStorage, WriteStorage};
 
 /// This system is responsible for handling misc object behaviours
+#[derive(Default)]
 pub struct Sys;
-impl<'a> System<'a> for Sys {
+impl<'a> VSystem<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
         Entities<'a>,
@@ -21,11 +23,14 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Object>,
     );
 
+    const NAME: &'static str = "object";
+    const ORIGIN: Origin = Origin::Server;
+    const PHASE: Phase = Phase::Create;
+
     fn run(
-        &mut self,
+        _job: &mut VJob<Self>,
         (entities, _dt, server_bus, positions, velocities, physics_states, mut objects): Self::SystemData,
     ) {
-        span!(_guard, "run", "object::Sys::run");
         let mut server_emitter = server_bus.emitter();
 
         // Objects

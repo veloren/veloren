@@ -3,13 +3,13 @@ use common::{
     comp::{Body, CharacterState, Energy, Group, Health, Inventory, Melee, Ori, Pos, Scale, Stats},
     event::{EventBus, ServerEvent},
     metrics::SysMetrics,
-    span,
     uid::Uid,
     util::Dir,
+    vsystem::{Origin, Phase, VJob, VSystem},
     GroupTarget,
 };
 use specs::{
-    shred::ResourceId, Entities, Join, Read, ReadExpect, ReadStorage, System, SystemData, World,
+    shred::ResourceId, Entities, Join, Read, ReadExpect, ReadStorage, SystemData, World,
     WriteStorage,
 };
 use vek::*;
@@ -34,14 +34,18 @@ pub struct ReadData<'a> {
 
 /// This system is responsible for handling accepted inputs like moving or
 /// attacking
+#[derive(Default)]
 pub struct Sys;
 
-impl<'a> System<'a> for Sys {
+impl<'a> VSystem<'a> for Sys {
     type SystemData = (ReadData<'a>, WriteStorage<'a, Melee>);
 
-    fn run(&mut self, (read_data, mut melee_attacks): Self::SystemData) {
+    const NAME: &'static str = "melee";
+    const ORIGIN: Origin = Origin::Common;
+    const PHASE: Phase = Phase::Create;
+
+    fn run(_job: &mut VJob<Self>, (read_data, mut melee_attacks): Self::SystemData) {
         let start_time = std::time::Instant::now();
-        span!(_guard, "run", "melee::Sys::run");
         let mut server_emitter = read_data.server_bus.emitter();
         // Attacks
         for (attacker, uid, pos, ori, melee_attack, body) in (

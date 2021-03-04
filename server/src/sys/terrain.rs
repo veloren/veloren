@@ -7,13 +7,13 @@ use common::{
     event::{EventBus, ServerEvent},
     generation::get_npc_name,
     npc::NPC_NAMES,
-    span,
     terrain::TerrainGrid,
+    vsystem::{Origin, Phase, VJob, VSystem},
     LoadoutBuilder, SkillSetBuilder,
 };
 use common_net::msg::ServerGeneral;
 use common_sys::state::TerrainChanges;
-use specs::{Join, Read, ReadStorage, System, Write, WriteExpect};
+use specs::{Join, Read, ReadStorage, Write, WriteExpect};
 use std::sync::Arc;
 use vek::*;
 
@@ -23,8 +23,9 @@ use vek::*;
 ///     2. Sends new chunks to nearby clients
 ///     3. Handles the chunk's supplement (e.g. npcs)
 ///     4. Removes chunks outside the range of players
+#[derive(Default)]
 pub struct Sys;
-impl<'a> System<'a> for Sys {
+impl<'a> VSystem<'a> for Sys {
     #[allow(clippy::type_complexity)] // TODO: Pending review in #587
     type SystemData = (
         Read<'a, EventBus<ServerEvent>>,
@@ -39,8 +40,12 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Client>,
     );
 
+    const NAME: &'static str = "terrain";
+    const ORIGIN: Origin = Origin::Server;
+    const PHASE: Phase = Phase::Create;
+
     fn run(
-        &mut self,
+        _job: &mut VJob<Self>,
         (
             server_event_bus,
             tick,
@@ -54,7 +59,6 @@ impl<'a> System<'a> for Sys {
             clients,
         ): Self::SystemData,
     ) {
-        span!(_guard, "run", "terrain::Sys::run");
         timer.start();
 
         let mut server_emitter = server_event_bus.emitter();

@@ -2,15 +2,16 @@ use super::SysTimer;
 use crate::client::Client;
 use common::{
     comp::invite::{Invite, PendingInvites},
-    span,
     uid::Uid,
+    vsystem::{Origin, Phase, VJob, VSystem},
 };
 use common_net::msg::{InviteAnswer, ServerGeneral};
-use specs::{Entities, Join, ReadStorage, System, Write, WriteStorage};
+use specs::{Entities, Join, ReadStorage, Write, WriteStorage};
 
 /// This system removes timed out invites
+#[derive(Default)]
 pub struct Sys;
-impl<'a> System<'a> for Sys {
+impl<'a> VSystem<'a> for Sys {
     #[allow(clippy::type_complexity)] // TODO: Pending review in #587
     type SystemData = (
         Entities<'a>,
@@ -21,11 +22,14 @@ impl<'a> System<'a> for Sys {
         Write<'a, SysTimer<Self>>,
     );
 
+    const NAME: &'static str = "invite_timeout";
+    const ORIGIN: Origin = Origin::Server;
+    const PHASE: Phase = Phase::Create;
+
     fn run(
-        &mut self,
+        _job: &mut VJob<Self>,
         (entities, mut invites, mut pending_invites, clients, uids, mut timer): Self::SystemData,
     ) {
-        span!(_guard, "run", "invite_timeout::Sys::run");
         timer.start();
 
         let now = std::time::Instant::now();

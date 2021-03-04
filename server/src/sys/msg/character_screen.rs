@@ -6,11 +6,11 @@ use crate::{
 use common::{
     comp::{ChatType, Player, UnresolvedChatMsg},
     event::{EventBus, ServerEvent},
-    span,
     uid::Uid,
+    vsystem::{Origin, Phase, VJob, VSystem},
 };
 use common_net::msg::{ClientGeneral, ServerGeneral};
-use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, Write};
+use specs::{Entities, Join, Read, ReadExpect, ReadStorage, Write};
 use std::sync::atomic::Ordering;
 use tracing::{debug, warn};
 
@@ -121,8 +121,9 @@ impl Sys {
 }
 
 /// This system will handle new messages from clients
+#[derive(Default)]
 pub struct Sys;
-impl<'a> System<'a> for Sys {
+impl<'a> VSystem<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
         Entities<'a>,
@@ -137,8 +138,12 @@ impl<'a> System<'a> for Sys {
         ReadExpect<'a, AliasValidator>,
     );
 
+    const NAME: &'static str = "msg::character_screen";
+    const ORIGIN: Origin = Origin::Server;
+    const PHASE: Phase = Phase::Create;
+
     fn run(
-        &mut self,
+        _job: &mut VJob<Self>,
         (
             entities,
             server_event_bus,
@@ -152,7 +157,6 @@ impl<'a> System<'a> for Sys {
             alias_validator,
         ): Self::SystemData,
     ) {
-        span!(_guard, "run", "msg::character_screen::Sys::run");
         timer.start();
 
         let mut server_emitter = server_event_bus.emitter();
