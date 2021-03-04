@@ -61,6 +61,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added item tooltips to trade window.
 - "Quest" given to new players converted to being a short tutorial
 - Items can be requested from the counterparty's inventory during trade.
+- Savanna grasses restricted to savanna, cacti to desert.
 
 ### Removed
 
