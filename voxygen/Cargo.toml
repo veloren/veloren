@@ -16,7 +16,7 @@ simd = ["vek/platform_intrinsics"]
 tracy = ["tracing-tracy", "common/tracy"]
 plugins = ["client/plugins"]
 
-default = ["gl", "singleplayer", "native-dialog", "plugins"]#, "simd"]
+default = ["gl", "singleplayer", "native-dialog", "plugins", "simd"]
 
 [dependencies]
 client = {package = "veloren-client", path = "../client"}
