@@ -4,12 +4,12 @@ ItemDef(
     kind: Tool((
         kind: Sword,
         hands: One,
-        stats: (
+        stats: Direct((
             equip_time_secs: 0.4,
             power: 1.5,
             poise_strength: 1.0,
             speed: 0.75,
-        ),
+        )),
     )),
     quality: Moderate,
     tags: [],
