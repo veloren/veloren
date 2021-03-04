@@ -630,13 +630,25 @@ impl<V: RectRasterableVol> Terrain<V> {
         // be meshed
         span!(guard, "Add chunks with modified blocks to mesh todo list");
         // TODO: would be useful if modified blocks were grouped by chunk
-        for pos in scene_data
+        for (&pos, &block) in scene_data
             .state
             .terrain_changes()
             .modified_blocks
             .iter()
-            .map(|(p, _)| *p)
         {
+            // TODO: Be cleverer about this to avoid remeshing all neighbours. There are a few things that can create
+            // an 'effect at a distance'. These are as follows:
+            // - A glowing block is added or removed, thereby causing a lighting recalculation proportional to its glow
+            //   radius.
+            // - An opaque block that was blocking sunlight from entering a cavity is removed (or added) thereby
+            // changing the way that sunlight propagates into the cavity.
+            //
+            // We can and should be cleverer about this, but it's non-trivial. For now, just conservatively assume that
+            // the lighting in all neighbouring chunks is invalidated. Thankfully, this doesn't need to happen often
+            // because block modification is unusual in Veloren.
+            // let block_effect_radius = block.get_glow().unwrap_or(0).max(1);
+            let block_effect_radius = crate::mesh::terrain::MAX_LIGHT_DIST;
+
             // Handle block changes on chunk borders
             // Remesh all neighbours because we have complex lighting now
             // TODO: if lighting is on the server this can be updated to only remesh when
@@ -644,7 +656,7 @@ impl<V: RectRasterableVol> Terrain<V> {
             // change was on the border
             for x in -1..2 {
                 for y in -1..2 {
-                    let neighbour_pos = pos + Vec3::new(x, y, 0);
+                    let neighbour_pos = pos + Vec3::new(x, y, 0) * block_effect_radius;
                     let neighbour_chunk_pos = scene_data.state.terrain().pos_key(neighbour_pos);
 
                     // Only remesh if this chunk has all its neighbors
