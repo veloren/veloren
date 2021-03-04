@@ -84,4 +84,4 @@ debug = 1
 [patch.crates-io]
 # macos CI fix isn't merged yet
 winit = { git = "https://gitlab.com/veloren/winit.git", branch = "macos-test-spiffed" }
-vek = { git = "https://gitlab.com/veloren/vek.git", branch = "fix_intrinsics" }
+vek = { git = "https://gitlab.com/veloren/vek.git", branch = "fix_intrinsics2" }

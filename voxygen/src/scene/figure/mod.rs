@@ -510,7 +510,7 @@ impl FigureMgr {
 
             // Transform (semi) world space to light space.
             let ray_mat: math::Mat4<f32> =
-                math::Mat4::look_at_rh(cam_pos, cam_pos + ray_direction, math::Vec3::up());
+                math::Mat4::look_at_rh(cam_pos, cam_pos + ray_direction, math::Vec3::unit_y());
             let focus_off = math::Vec3::from(camera.get_focus_pos().map(f32::trunc));
             let ray_mat = ray_mat * math::Mat4::translation_3d(-focus_off);
 

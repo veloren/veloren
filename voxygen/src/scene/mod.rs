@@ -744,7 +744,7 @@ impl Scene {
             let mut directed_shadow_mats = Vec::with_capacity(6);
             let new_dir = math::Vec3::from(view_dir);
             let new_dir = new_dir.normalized();
-            let up: math::Vec3<f32> = math::Vec3::up();
+            let up: math::Vec3<f32> = math::Vec3::unit_y();
             directed_shadow_mats.push(math::Mat4::look_at_rh(
                 look_at,
                 look_at + directed_light_dir,
@@ -787,7 +787,7 @@ impl Scene {
                     v_p.z = 0.0;
                     v_p.normalize();
                     let l_r: math::Mat4<f32> = if factor > EPSILON_UPSILON {
-                        math::Mat4::look_at_rh(math::Vec3::zero(), math::Vec3::forward_rh(), v_p)
+                        math::Mat4::look_at_rh(math::Vec3::zero(), -math::Vec3::unit_z(), v_p)
                     } else {
                         math::Mat4::identity()
                     };
