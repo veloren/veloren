@@ -53,12 +53,14 @@ widget_ids! {
         skill_sword_combo_1,
         skill_sword_combo_2,
         skill_sword_combo_3,
+        skill_sword_combo_4,
         skill_sword_dash_0,
         skill_sword_dash_1,
         skill_sword_dash_2,
         skill_sword_dash_3,
         skill_sword_dash_4,
         skill_sword_dash_5,
+        skill_sword_dash_6,
         skill_sword_spin_0,
         skill_sword_spin_1,
         skill_sword_spin_2,
@@ -70,11 +72,13 @@ widget_ids! {
         skill_axe_combo_1,
         skill_axe_combo_2,
         skill_axe_combo_3,
+        skill_axe_combo_4,
         skill_axe_spin_0,
         skill_axe_spin_1,
         skill_axe_spin_2,
         skill_axe_spin_3,
         skill_axe_spin_4,
+        skill_axe_spin_5,
         skill_axe_leap_0,
         skill_axe_leap_1,
         skill_axe_leap_2,
@@ -85,10 +89,12 @@ widget_ids! {
         skill_hammer_combo_1,
         skill_hammer_combo_2,
         skill_hammer_combo_3,
+        skill_hammer_combo_4,
         skill_hammer_charged_0,
         skill_hammer_charged_1,
         skill_hammer_charged_2,
         skill_hammer_charged_3,
+        skill_hammer_charged_4,
         skill_hammer_leap_0,
         skill_hammer_leap_1,
         skill_hammer_leap_2,
@@ -98,12 +104,14 @@ widget_ids! {
         bow_render,
         skill_bow_basic_0,
         skill_bow_basic_1,
+        skill_bow_basic_2,
         skill_bow_charged_0,
         skill_bow_charged_1,
         skill_bow_charged_2,
         skill_bow_charged_3,
         skill_bow_charged_4,
         skill_bow_charged_5,
+        skill_bow_charged_6,
         skill_bow_repeater_0,
         skill_bow_repeater_1,
         skill_bow_repeater_2,
@@ -115,10 +123,12 @@ widget_ids! {
         skill_staff_basic_1,
         skill_staff_basic_2,
         skill_staff_basic_3,
+        skill_staff_basic_4,
         skill_staff_beam_0,
         skill_staff_beam_1,
         skill_staff_beam_2,
         skill_staff_beam_3,
+        skill_staff_beam_4,
         skill_staff_shockwave_0,
         skill_staff_shockwave_1,
         skill_staff_shockwave_2,
@@ -131,11 +141,13 @@ widget_ids! {
         skill_sceptre_beam_3,
         skill_sceptre_beam_4,
         skill_sceptre_beam_5,
+        skill_sceptre_beam_6,
         skill_sceptre_bomb_0,
         skill_sceptre_bomb_1,
         skill_sceptre_bomb_2,
         skill_sceptre_bomb_3,
         skill_sceptre_bomb_4,
+        skill_sceptre_bomb_5,
         general_combat_render_0,
         general_combat_render_1,
         skill_general_stat_0,
@@ -518,22 +530,22 @@ impl<'a> Widget for Diary<'a> {
         // Maximum of 9 skills/8 indices
         let skills_top_l = match sel_tab {
             SelectedSkillTree::General => 2,
-            SelectedSkillTree::Weapon(ToolKind::Sword) => 4,
-            SelectedSkillTree::Weapon(ToolKind::Axe) => 4,
-            SelectedSkillTree::Weapon(ToolKind::Hammer) => 4,
-            SelectedSkillTree::Weapon(ToolKind::Bow) => 2,
-            SelectedSkillTree::Weapon(ToolKind::Staff) => 4,
-            SelectedSkillTree::Weapon(ToolKind::Sceptre) => 6,
+            SelectedSkillTree::Weapon(ToolKind::Sword) => 5,
+            SelectedSkillTree::Weapon(ToolKind::Axe) => 5,
+            SelectedSkillTree::Weapon(ToolKind::Hammer) => 5,
+            SelectedSkillTree::Weapon(ToolKind::Bow) => 3,
+            SelectedSkillTree::Weapon(ToolKind::Staff) => 5,
+            SelectedSkillTree::Weapon(ToolKind::Sceptre) => 7,
             _ => 0,
         };
         let skills_top_r = match sel_tab {
             SelectedSkillTree::General => 6,
-            SelectedSkillTree::Weapon(ToolKind::Sword) => 6,
-            SelectedSkillTree::Weapon(ToolKind::Axe) => 5,
-            SelectedSkillTree::Weapon(ToolKind::Hammer) => 4,
-            SelectedSkillTree::Weapon(ToolKind::Bow) => 6,
-            SelectedSkillTree::Weapon(ToolKind::Staff) => 4,
-            SelectedSkillTree::Weapon(ToolKind::Sceptre) => 5,
+            SelectedSkillTree::Weapon(ToolKind::Sword) => 7,
+            SelectedSkillTree::Weapon(ToolKind::Axe) => 6,
+            SelectedSkillTree::Weapon(ToolKind::Hammer) => 5,
+            SelectedSkillTree::Weapon(ToolKind::Bow) => 7,
+            SelectedSkillTree::Weapon(ToolKind::Staff) => 5,
+            SelectedSkillTree::Weapon(ToolKind::Sceptre) => 6,
             _ => 0,
         };
         let skills_bot_l = match sel_tab {
@@ -914,7 +926,7 @@ impl<'a> Widget for Diary<'a> {
                 // Bottom left skills
                 let skill = Skill::Roll(ImmuneMelee);
                 if create_skill_button(
-                    self.imgs.swords_crossed,
+                    self.imgs.skill_dodge_skill,
                     state.skills_bot_l[0],
                     &self.stats.skill_set,
                     skill,
@@ -940,7 +952,7 @@ impl<'a> Widget for Diary<'a> {
                 };
                 let skill = Skill::Roll(Cost);
                 if create_skill_button(
-                    self.imgs.swords_crossed,
+                    self.imgs.utility_cost_skill,
                     state.skills_bot_l[1],
                     &self.stats.skill_set,
                     skill,
@@ -966,7 +978,7 @@ impl<'a> Widget for Diary<'a> {
                 };
                 let skill = Skill::Roll(Strength);
                 if create_skill_button(
-                    self.imgs.swords_crossed,
+                    self.imgs.utility_speed_skill,
                     state.skills_bot_l[2],
                     &self.stats.skill_set,
                     skill,
@@ -992,7 +1004,7 @@ impl<'a> Widget for Diary<'a> {
                 };
                 let skill = Skill::Roll(Duration);
                 if create_skill_button(
-                    self.imgs.swords_crossed,
+                    self.imgs.utility_amount_skill,
                     state.skills_bot_l[3],
                     &self.stats.skill_set,
                     skill,
@@ -1034,10 +1046,21 @@ impl<'a> Widget for Diary<'a> {
                 //        5 1 6
                 //        3 0 4
                 //        8 2 7
+                Button::image(self.imgs.twohsword_m1)
+                    .w_h(74.0, 74.0)
+                    .mid_top_with_margin_on(state.skills_top_l[0], 3.0)
+                    .with_tooltip(
+                        self.tooltip_manager,
+                        &self.localized_strings.get("hud.skill.sw_trip_str_title"),
+                        &self.localized_strings.get("hud.skill.sw_trip_str"),
+                        &diary_tooltip,
+                        TEXT_COLOR,
+                    )
+                    .set(state.skill_sword_combo_0, ui);
                 let skill = Skill::Sword(TsCombo);
                 if create_skill_button(
-                    self.imgs.sword_whirlwind,
-                    state.skills_top_l[0],
+                    self.imgs.physical_combo_skill,
+                    state.skills_top_l[1],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -1049,9 +1072,7 @@ impl<'a> Widget for Diary<'a> {
                         .localized_strings
                         .get("hud.skill.sw_trip_str_combo_title"),
                     &add_sp_cost_tooltip(
-                        &self
-                            .localized_strings
-                            .get("hud.skill.sw_trip_str_combo_title"),
+                        &self.localized_strings.get("hud.skill.sw_trip_str_combo"),
                         skill,
                         &self.stats.skill_set,
                         &self.localized_strings,
@@ -1059,15 +1080,15 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_sword_combo_0, ui)
+                .set(state.skill_sword_combo_1, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Sword(TsDamage);
                 if create_skill_button(
-                    self.imgs.sword_whirlwind,
-                    state.skills_top_l[1],
+                    self.imgs.physical_damage_skill,
+                    state.skills_top_l[2],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -1087,15 +1108,15 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_sword_combo_1, ui)
+                .set(state.skill_sword_combo_2, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Sword(TsSpeed);
                 if create_skill_button(
-                    self.imgs.sword_whirlwind,
-                    state.skills_top_l[2],
+                    self.imgs.physical_speed_skill,
+                    state.skills_top_l[3],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -1113,15 +1134,15 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_sword_combo_2, ui)
+                .set(state.skill_sword_combo_3, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Sword(TsRegen);
                 if create_skill_button(
-                    self.imgs.sword_whirlwind,
-                    state.skills_top_l[3],
+                    self.imgs.physical_energy_regen_skill,
+                    state.skills_top_l[4],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -1141,16 +1162,27 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_sword_combo_3, ui)
+                .set(state.skill_sword_combo_4, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 // Top right skills
+                Button::image(self.imgs.twohsword_m2)
+                    .w_h(74.0, 74.0)
+                    .mid_top_with_margin_on(state.skills_top_r[0], 3.0)
+                    .with_tooltip(
+                        self.tooltip_manager,
+                        &self.localized_strings.get("hud.skill.sw_dash_title"),
+                        &self.localized_strings.get("hud.skill.sw_dash"),
+                        &diary_tooltip,
+                        TEXT_COLOR,
+                    )
+                    .set(state.skill_sword_dash_0, ui);
                 let skill = Skill::Sword(DDamage);
                 if create_skill_button(
-                    self.imgs.sword_whirlwind,
-                    state.skills_top_r[0],
+                    self.imgs.physical_damage_skill,
+                    state.skills_top_r[1],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -1168,15 +1200,15 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_sword_dash_0, ui)
+                .set(state.skill_sword_dash_1, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Sword(DDrain);
                 if create_skill_button(
-                    self.imgs.sword_whirlwind,
-                    state.skills_top_r[1],
+                    self.imgs.physical_energy_drain_skill,
+                    state.skills_top_r[2],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -1194,15 +1226,15 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_sword_dash_1, ui)
+                .set(state.skill_sword_dash_2, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Sword(DCost);
                 if create_skill_button(
-                    self.imgs.sword_whirlwind,
-                    state.skills_top_r[2],
+                    self.imgs.physical_cost_skill,
+                    state.skills_top_r[3],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -1220,15 +1252,15 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_sword_dash_2, ui)
+                .set(state.skill_sword_dash_3, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Sword(DSpeed);
                 if create_skill_button(
-                    self.imgs.sword_whirlwind,
-                    state.skills_top_r[3],
+                    self.imgs.physical_speed_skill,
+                    state.skills_top_r[4],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -1246,15 +1278,15 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_sword_dash_3, ui)
+                .set(state.skill_sword_dash_4, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Sword(DInfinite);
                 if create_skill_button(
-                    self.imgs.sword_whirlwind,
-                    state.skills_top_r[4],
+                    self.imgs.physical_infinite_skill,
+                    state.skills_top_r[5],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -1272,15 +1304,15 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_sword_dash_4, ui)
+                .set(state.skill_sword_dash_5, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Sword(DScaling);
                 if create_skill_button(
-                    self.imgs.sword_whirlwind,
-                    state.skills_top_r[5],
+                    self.imgs.physical_amount_skill,
+                    state.skills_top_r[6],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -1298,7 +1330,7 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_sword_dash_5, ui)
+                .set(state.skill_sword_dash_6, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
@@ -1332,7 +1364,7 @@ impl<'a> Widget for Diary<'a> {
                 };
                 let skill = Skill::Sword(SDamage);
                 if create_skill_button(
-                    self.imgs.sword_whirlwind,
+                    self.imgs.physical_damage_skill,
                     state.skills_bot_l[1],
                     &self.stats.skill_set,
                     skill,
@@ -1358,7 +1390,7 @@ impl<'a> Widget for Diary<'a> {
                 };
                 let skill = Skill::Sword(SSpeed);
                 if create_skill_button(
-                    self.imgs.sword_whirlwind,
+                    self.imgs.physical_damage_skill,
                     state.skills_bot_l[2],
                     &self.stats.skill_set,
                     skill,
@@ -1384,7 +1416,7 @@ impl<'a> Widget for Diary<'a> {
                 };
                 let skill = Skill::Sword(SCost);
                 if create_skill_button(
-                    self.imgs.sword_whirlwind,
+                    self.imgs.physical_cost_skill,
                     state.skills_bot_l[3],
                     &self.stats.skill_set,
                     skill,
@@ -1410,7 +1442,7 @@ impl<'a> Widget for Diary<'a> {
                 };
                 let skill = Skill::Sword(SSpins);
                 if create_skill_button(
-                    self.imgs.sword_whirlwind,
+                    self.imgs.physical_amount_skill,
                     state.skills_bot_l[4],
                     &self.stats.skill_set,
                     skill,
@@ -1437,7 +1469,7 @@ impl<'a> Widget for Diary<'a> {
                 // Bottom right skills
                 let skill = Skill::Sword(InterruptingAttacks);
                 if create_skill_button(
-                    self.imgs.sword_whirlwind,
+                    self.imgs.physical_damage_skill,
                     state.skills_bot_r[0],
                     &self.stats.skill_set,
                     skill,
@@ -1479,10 +1511,23 @@ impl<'a> Widget for Diary<'a> {
                 //        5 1 6
                 //        3 0 4
                 //        8 2 7
+                Button::image(self.imgs.twohaxe_m1)
+                    .w_h(74.0, 74.0)
+                    .mid_top_with_margin_on(state.skills_top_l[0], 3.0)
+                    .with_tooltip(
+                        self.tooltip_manager,
+                        &self
+                            .localized_strings
+                            .get("hud.skill.axe_double_strike_title"),
+                        &self.localized_strings.get("hud.skill.axe_double_strike"),
+                        &diary_tooltip,
+                        TEXT_COLOR,
+                    )
+                    .set(state.skill_axe_combo_0, ui);
                 let skill = Skill::Axe(DsCombo);
                 if create_skill_button(
-                    self.imgs.axespin,
-                    state.skills_top_l[0],
+                    self.imgs.physical_combo_skill,
+                    state.skills_top_l[1],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -1504,15 +1549,15 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_axe_combo_0, ui)
+                .set(state.skill_axe_combo_1, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Axe(DsDamage);
                 if create_skill_button(
-                    self.imgs.axespin,
-                    state.skills_top_l[1],
+                    self.imgs.physical_damage_skill,
+                    state.skills_top_l[2],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -1534,15 +1579,15 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_axe_combo_1, ui)
+                .set(state.skill_axe_combo_2, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Axe(DsSpeed);
                 if create_skill_button(
-                    self.imgs.axespin,
-                    state.skills_top_l[2],
+                    self.imgs.physical_speed_skill,
+                    state.skills_top_l[3],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -1564,15 +1609,15 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_axe_combo_2, ui)
+                .set(state.skill_axe_combo_3, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Axe(DsRegen);
                 if create_skill_button(
-                    self.imgs.axespin,
-                    state.skills_top_l[3],
+                    self.imgs.physical_energy_regen_skill,
+                    state.skills_top_l[4],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -1594,16 +1639,27 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_axe_combo_3, ui)
+                .set(state.skill_axe_combo_4, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 // Top right skills
+                Button::image(self.imgs.axespin)
+                    .w_h(74.0, 74.0)
+                    .mid_top_with_margin_on(state.skills_top_r[0], 3.0)
+                    .with_tooltip(
+                        self.tooltip_manager,
+                        &self.localized_strings.get("hud.skill.axe_spin_title"),
+                        &self.localized_strings.get("hud.skill.axe_spin"),
+                        &diary_tooltip,
+                        TEXT_COLOR,
+                    )
+                    .set(state.skill_axe_spin_0, ui);
                 let skill = Skill::Axe(SInfinite);
                 if create_skill_button(
-                    self.imgs.spin_infinite_skill,
-                    state.skills_top_r[0],
+                    self.imgs.physical_infinite_skill,
+                    state.skills_top_r[1],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -1625,15 +1681,15 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_axe_spin_0, ui)
+                .set(state.skill_axe_spin_1, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Axe(SDamage);
                 if create_skill_button(
-                    self.imgs.spin_damage_skill,
-                    state.skills_top_r[1],
+                    self.imgs.physical_damage_skill,
+                    state.skills_top_r[2],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -1653,15 +1709,15 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_axe_spin_1, ui)
+                .set(state.skill_axe_spin_2, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Axe(SHelicopter);
                 if create_skill_button(
-                    self.imgs.spin_helicopter_skill,
-                    state.skills_top_r[2],
+                    self.imgs.physical_helicopter_skill,
+                    state.skills_top_r[3],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -1681,15 +1737,15 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_axe_spin_2, ui)
+                .set(state.skill_axe_spin_3, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Axe(SSpeed);
                 if create_skill_button(
-                    self.imgs.spin_speed_skill,
-                    state.skills_top_r[3],
+                    self.imgs.physical_speed_skill,
+                    state.skills_top_r[4],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -1707,15 +1763,15 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_axe_spin_3, ui)
+                .set(state.skill_axe_spin_4, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Axe(SCost);
                 if create_skill_button(
-                    self.imgs.spin_cost_skill,
-                    state.skills_top_r[4],
+                    self.imgs.physical_cost_skill,
+                    state.skills_top_r[5],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -1733,7 +1789,7 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_axe_spin_4, ui)
+                .set(state.skill_axe_spin_5, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
@@ -1741,7 +1797,7 @@ impl<'a> Widget for Diary<'a> {
                 // Bottom left skills
                 let skill = Skill::Axe(UnlockLeap);
                 if create_skill_button(
-                    self.imgs.axespin,
+                    self.imgs.skill_axe_leap_slash,
                     state.skills_bot_l[0],
                     &self.stats.skill_set,
                     skill,
@@ -1769,7 +1825,7 @@ impl<'a> Widget for Diary<'a> {
                 };
                 let skill = Skill::Axe(LDamage);
                 if create_skill_button(
-                    self.imgs.leap_damage_skill,
+                    self.imgs.physical_damage_skill,
                     state.skills_bot_l[1],
                     &self.stats.skill_set,
                     skill,
@@ -1797,7 +1853,7 @@ impl<'a> Widget for Diary<'a> {
                 };
                 let skill = Skill::Axe(LKnockback);
                 if create_skill_button(
-                    self.imgs.leap_knockback_skill,
+                    self.imgs.physical_knockback_skill,
                     state.skills_bot_l[2],
                     &self.stats.skill_set,
                     skill,
@@ -1825,7 +1881,7 @@ impl<'a> Widget for Diary<'a> {
                 };
                 let skill = Skill::Axe(LCost);
                 if create_skill_button(
-                    self.imgs.leap_cost_skill,
+                    self.imgs.physical_cost_skill,
                     state.skills_bot_l[3],
                     &self.stats.skill_set,
                     skill,
@@ -1851,7 +1907,7 @@ impl<'a> Widget for Diary<'a> {
                 };
                 let skill = Skill::Axe(LDistance);
                 if create_skill_button(
-                    self.imgs.leap_distance_skill,
+                    self.imgs.physical_distance_skill,
                     state.skills_bot_l[4],
                     &self.stats.skill_set,
                     skill,
@@ -1895,10 +1951,23 @@ impl<'a> Widget for Diary<'a> {
                 //        5 1 6
                 //        3 0 4
                 //        8 2 7
+                Button::image(self.imgs.twohhammer_m1)
+                    .w_h(74.0, 74.0)
+                    .mid_top_with_margin_on(state.skills_top_l[0], 3.0)
+                    .with_tooltip(
+                        self.tooltip_manager,
+                        &self
+                            .localized_strings
+                            .get("hud.skill.hmr_single_strike_title"),
+                        &self.localized_strings.get("hud.skill.hmr_single_strike"),
+                        &diary_tooltip,
+                        TEXT_COLOR,
+                    )
+                    .set(state.skill_hammer_combo_0, ui);
                 let skill = Skill::Hammer(SsKnockback);
                 if create_skill_button(
-                    self.imgs.hammergolf,
-                    state.skills_top_l[0],
+                    self.imgs.physical_knockback_skill,
+                    state.skills_top_l[1],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -1920,15 +1989,15 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_hammer_combo_0, ui)
+                .set(state.skill_hammer_combo_1, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Hammer(SsDamage);
                 if create_skill_button(
-                    self.imgs.hammergolf,
-                    state.skills_top_l[1],
+                    self.imgs.physical_damage_skill,
+                    state.skills_top_l[2],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -1950,15 +2019,15 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_hammer_combo_1, ui)
+                .set(state.skill_hammer_combo_2, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Hammer(SsSpeed);
                 if create_skill_button(
-                    self.imgs.hammergolf,
-                    state.skills_top_l[2],
+                    self.imgs.physical_speed_skill,
+                    state.skills_top_l[3],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -1980,15 +2049,15 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_hammer_combo_2, ui)
+                .set(state.skill_hammer_combo_3, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Hammer(SsRegen);
                 if create_skill_button(
-                    self.imgs.hammergolf,
-                    state.skills_top_l[3],
+                    self.imgs.physical_energy_regen_skill,
+                    state.skills_top_l[4],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -2010,16 +2079,29 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_hammer_combo_3, ui)
+                .set(state.skill_hammer_combo_4, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 // Top right skills
+                Button::image(self.imgs.hammergolf)
+                    .w_h(74.0, 74.0)
+                    .mid_top_with_margin_on(state.skills_top_r[0], 3.0)
+                    .with_tooltip(
+                        self.tooltip_manager,
+                        &self
+                            .localized_strings
+                            .get("hud.skill.hmr_charged_melee_title"),
+                        &self.localized_strings.get("hud.skill.hmr_charged_melee"),
+                        &diary_tooltip,
+                        TEXT_COLOR,
+                    )
+                    .set(state.skill_hammer_charged_0, ui);
                 let skill = Skill::Hammer(CKnockback);
                 if create_skill_button(
-                    self.imgs.hammergolf,
-                    state.skills_top_r[0],
+                    self.imgs.physical_knockback_skill,
+                    state.skills_top_r[1],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -2041,15 +2123,15 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_hammer_charged_0, ui)
+                .set(state.skill_hammer_charged_1, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Hammer(CDamage);
                 if create_skill_button(
-                    self.imgs.hammergolf,
-                    state.skills_top_r[1],
+                    self.imgs.physical_damage_skill,
+                    state.skills_top_r[2],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -2071,15 +2153,15 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_hammer_charged_1, ui)
+                .set(state.skill_hammer_charged_2, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Hammer(CDrain);
                 if create_skill_button(
-                    self.imgs.hammergolf,
-                    state.skills_top_r[2],
+                    self.imgs.physical_energy_drain_skill,
+                    state.skills_top_r[3],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -2101,15 +2183,15 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_hammer_charged_2, ui)
+                .set(state.skill_hammer_charged_3, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Hammer(CSpeed);
                 if create_skill_button(
-                    self.imgs.hammergolf,
-                    state.skills_top_r[3],
+                    self.imgs.physical_amount_skill,
+                    state.skills_top_r[4],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -2129,7 +2211,7 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_hammer_charged_3, ui)
+                .set(state.skill_hammer_charged_4, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
@@ -2137,7 +2219,7 @@ impl<'a> Widget for Diary<'a> {
                 // Bottom left skills
                 let skill = Skill::Hammer(UnlockLeap);
                 if create_skill_button(
-                    self.imgs.hammergolf,
+                    self.imgs.hammerleap,
                     state.skills_bot_l[0],
                     &self.stats.skill_set,
                     skill,
@@ -2165,7 +2247,7 @@ impl<'a> Widget for Diary<'a> {
                 };
                 let skill = Skill::Hammer(LDamage);
                 if create_skill_button(
-                    self.imgs.hammergolf,
+                    self.imgs.physical_damage_skill,
                     state.skills_bot_l[1],
                     &self.stats.skill_set,
                     skill,
@@ -2193,7 +2275,7 @@ impl<'a> Widget for Diary<'a> {
                 };
                 let skill = Skill::Hammer(LKnockback);
                 if create_skill_button(
-                    self.imgs.hammergolf,
+                    self.imgs.physical_knockback_skill,
                     state.skills_bot_l[2],
                     &self.stats.skill_set,
                     skill,
@@ -2221,7 +2303,7 @@ impl<'a> Widget for Diary<'a> {
                 };
                 let skill = Skill::Hammer(LCost);
                 if create_skill_button(
-                    self.imgs.hammergolf,
+                    self.imgs.physical_cost_skill,
                     state.skills_bot_l[3],
                     &self.stats.skill_set,
                     skill,
@@ -2247,7 +2329,7 @@ impl<'a> Widget for Diary<'a> {
                 };
                 let skill = Skill::Hammer(LDistance);
                 if create_skill_button(
-                    self.imgs.hammergolf,
+                    self.imgs.physical_distance_skill,
                     state.skills_bot_l[4],
                     &self.stats.skill_set,
                     skill,
@@ -2275,7 +2357,7 @@ impl<'a> Widget for Diary<'a> {
                 };
                 let skill = Skill::Hammer(LRange);
                 if create_skill_button(
-                    self.imgs.hammer_leap_radius_skill,
+                    self.imgs.physical_radius_skill,
                     state.skills_bot_l[5],
                     &self.stats.skill_set,
                     skill,
@@ -2318,10 +2400,21 @@ impl<'a> Widget for Diary<'a> {
                 //        5 1 6
                 //        3 0 4
                 //        8 2 7
+                Button::image(self.imgs.bow_m1)
+                    .w_h(74.0, 74.0)
+                    .mid_top_with_margin_on(state.skills_top_l[0], 3.0)
+                    .with_tooltip(
+                        self.tooltip_manager,
+                        &self.localized_strings.get("hud.skill.bow_title"),
+                        &self.localized_strings.get("hud.skill.bow"),
+                        &diary_tooltip,
+                        TEXT_COLOR,
+                    )
+                    .set(state.skill_bow_basic_0, ui);
                 let skill = Skill::Bow(BDamage);
                 if create_skill_button(
-                    self.imgs.bow_m1,
-                    state.skills_top_l[0],
+                    self.imgs.physical_damage_skill,
+                    state.skills_top_l[1],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -2339,15 +2432,15 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_bow_basic_0, ui)
+                .set(state.skill_bow_basic_1, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Bow(BRegen);
                 if create_skill_button(
-                    self.imgs.bow_m1,
-                    state.skills_top_l[1],
+                    self.imgs.physical_energy_regen_skill,
+                    state.skills_top_l[2],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -2367,16 +2460,27 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_bow_basic_1, ui)
+                .set(state.skill_bow_basic_2, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 // Top right skills
+                Button::image(self.imgs.bow_m2)
+                    .w_h(74.0, 74.0)
+                    .mid_top_with_margin_on(state.skills_top_r[0], 3.0)
+                    .with_tooltip(
+                        self.tooltip_manager,
+                        &self.localized_strings.get("hud.skill.bow_charged_title"),
+                        &self.localized_strings.get("hud.skill.bow_charged"),
+                        &diary_tooltip,
+                        TEXT_COLOR,
+                    )
+                    .set(state.skill_bow_charged_0, ui);
                 let skill = Skill::Bow(CDamage);
                 if create_skill_button(
-                    self.imgs.bow_m1,
-                    state.skills_top_r[0],
+                    self.imgs.physical_damage_skill,
+                    state.skills_top_r[1],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -2396,15 +2500,15 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_bow_charged_0, ui)
+                .set(state.skill_bow_charged_1, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Bow(CDrain);
                 if create_skill_button(
-                    self.imgs.bow_m1,
-                    state.skills_top_r[1],
+                    self.imgs.physical_energy_drain_skill,
+                    state.skills_top_r[2],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -2424,15 +2528,15 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_bow_charged_1, ui)
+                .set(state.skill_bow_charged_2, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Bow(CProjSpeed);
                 if create_skill_button(
-                    self.imgs.bow_m1,
-                    state.skills_top_r[2],
+                    self.imgs.physical_projectile_speed_skill,
+                    state.skills_top_r[3],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -2454,15 +2558,15 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_bow_charged_2, ui)
+                .set(state.skill_bow_charged_3, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Bow(CSpeed);
                 if create_skill_button(
-                    self.imgs.bow_m1,
-                    state.skills_top_r[3],
+                    self.imgs.physical_speed_skill,
+                    state.skills_top_r[4],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -2482,15 +2586,15 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_bow_charged_3, ui)
+                .set(state.skill_bow_charged_4, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Bow(CMove);
                 if create_skill_button(
-                    self.imgs.bow_m1,
-                    state.skills_top_r[4],
+                    self.imgs.physical_speed_skill,
+                    state.skills_top_r[5],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -2512,15 +2616,15 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_bow_charged_4, ui)
+                .set(state.skill_bow_charged_5, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Bow(CKnockback);
                 if create_skill_button(
-                    self.imgs.bow_m1,
-                    state.skills_top_r[5],
+                    self.imgs.physical_knockback_skill,
+                    state.skills_top_r[6],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -2542,7 +2646,7 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_bow_charged_5, ui)
+                .set(state.skill_bow_charged_6, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
@@ -2550,7 +2654,7 @@ impl<'a> Widget for Diary<'a> {
                 // Bottom left skills
                 let skill = Skill::Bow(UnlockRepeater);
                 if create_skill_button(
-                    self.imgs.bow_m1,
+                    self.imgs.skill_bow_jump_burst,
                     state.skills_bot_l[0],
                     &self.stats.skill_set,
                     skill,
@@ -2578,7 +2682,7 @@ impl<'a> Widget for Diary<'a> {
                 };
                 let skill = Skill::Bow(RDamage);
                 if create_skill_button(
-                    self.imgs.bow_m1,
+                    self.imgs.physical_damage_skill,
                     state.skills_bot_l[1],
                     &self.stats.skill_set,
                     skill,
@@ -2606,7 +2710,7 @@ impl<'a> Widget for Diary<'a> {
                 };
                 let skill = Skill::Bow(RGlide);
                 if create_skill_button(
-                    self.imgs.bow_m1,
+                    self.imgs.physical_helicopter_skill,
                     state.skills_bot_l[2],
                     &self.stats.skill_set,
                     skill,
@@ -2634,7 +2738,7 @@ impl<'a> Widget for Diary<'a> {
                 };
                 let skill = Skill::Bow(RCost);
                 if create_skill_button(
-                    self.imgs.bow_m1,
+                    self.imgs.physical_cost_skill,
                     state.skills_bot_l[3],
                     &self.stats.skill_set,
                     skill,
@@ -2662,7 +2766,7 @@ impl<'a> Widget for Diary<'a> {
                 };
                 let skill = Skill::Bow(RArrows);
                 if create_skill_button(
-                    self.imgs.bow_m1,
+                    self.imgs.physical_amount_skill,
                     state.skills_bot_l[4],
                     &self.stats.skill_set,
                     skill,
@@ -2691,7 +2795,7 @@ impl<'a> Widget for Diary<'a> {
                 // Bottom right skills
                 let skill = Skill::Bow(ProjSpeed);
                 if create_skill_button(
-                    self.imgs.bow_m1,
+                    self.imgs.physical_projectile_speed_skill,
                     state.skills_bot_r[0],
                     &self.stats.skill_set,
                     skill,
@@ -2735,10 +2839,21 @@ impl<'a> Widget for Diary<'a> {
                 //        5 1 6
                 //        3 0 4
                 //        8 2 7
+                Button::image(self.imgs.fireball)
+                    .w_h(74.0, 74.0)
+                    .mid_top_with_margin_on(state.skills_top_l[0], 3.0)
+                    .with_tooltip(
+                        self.tooltip_manager,
+                        &self.localized_strings.get("hud.skill.st_fireball_title"),
+                        &self.localized_strings.get("hud.skill.st_fireball"),
+                        &diary_tooltip,
+                        TEXT_COLOR,
+                    )
+                    .set(state.skill_staff_basic_0, ui);
                 let skill = Skill::Staff(BExplosion);
                 if create_skill_button(
-                    self.imgs.fireball,
-                    state.skills_top_l[0],
+                    self.imgs.magic_explosion_skill,
+                    state.skills_top_l[1],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -2756,15 +2871,15 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_staff_basic_0, ui)
+                .set(state.skill_staff_basic_1, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Staff(BDamage);
                 if create_skill_button(
-                    self.imgs.fireball,
-                    state.skills_top_l[1],
+                    self.imgs.magic_damage_skill,
+                    state.skills_top_l[2],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -2782,15 +2897,15 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_staff_basic_1, ui)
+                .set(state.skill_staff_basic_2, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Staff(BRegen);
                 if create_skill_button(
-                    self.imgs.fireball,
-                    state.skills_top_l[2],
+                    self.imgs.magic_energy_regen_skill,
+                    state.skills_top_l[3],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -2810,15 +2925,15 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_staff_basic_2, ui)
+                .set(state.skill_staff_basic_3, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Staff(BRadius);
                 if create_skill_button(
-                    self.imgs.fireball,
-                    state.skills_top_l[3],
+                    self.imgs.magic_radius_skill,
+                    state.skills_top_l[4],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -2838,16 +2953,29 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_staff_basic_3, ui)
+                .set(state.skill_staff_basic_4, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 // Top right skills
+                Button::image(self.imgs.flamethrower)
+                    .w_h(74.0, 74.0)
+                    .mid_top_with_margin_on(state.skills_top_r[0], 3.0)
+                    .with_tooltip(
+                        self.tooltip_manager,
+                        &self
+                            .localized_strings
+                            .get("hud.skill.st_flamethrower_title"),
+                        &self.localized_strings.get("hud.skill.st_flamethrower"),
+                        &diary_tooltip,
+                        TEXT_COLOR,
+                    )
+                    .set(state.skill_staff_beam_0, ui);
                 let skill = Skill::Staff(FDamage);
                 if create_skill_button(
-                    self.imgs.fireball,
-                    state.skills_top_r[0],
+                    self.imgs.magic_damage_skill,
+                    state.skills_top_r[1],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -2869,15 +2997,15 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_staff_beam_0, ui)
+                .set(state.skill_staff_beam_1, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Staff(FDrain);
                 if create_skill_button(
-                    self.imgs.fireball,
-                    state.skills_top_r[1],
+                    self.imgs.magic_energy_drain_skill,
+                    state.skills_top_r[2],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -2897,15 +3025,15 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_staff_beam_1, ui)
+                .set(state.skill_staff_beam_2, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Staff(FRange);
                 if create_skill_button(
-                    self.imgs.fireball,
-                    state.skills_top_r[2],
+                    self.imgs.magic_radius_skill,
+                    state.skills_top_r[3],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -2927,15 +3055,15 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_staff_beam_2, ui)
+                .set(state.skill_staff_beam_3, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Staff(FVelocity);
                 if create_skill_button(
-                    self.imgs.fireball,
-                    state.skills_top_r[3],
+                    self.imgs.magic_projectile_speed_skill,
+                    state.skills_top_r[4],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -2955,7 +3083,7 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_staff_beam_3, ui)
+                .set(state.skill_staff_beam_4, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
@@ -2963,7 +3091,7 @@ impl<'a> Widget for Diary<'a> {
                 // Bottom left skills
                 let skill = Skill::Staff(UnlockShockwave);
                 if create_skill_button(
-                    self.imgs.fireball,
+                    self.imgs.fire_aoe,
                     state.skills_bot_l[0],
                     &self.stats.skill_set,
                     skill,
@@ -2991,7 +3119,7 @@ impl<'a> Widget for Diary<'a> {
                 };
                 let skill = Skill::Staff(SDamage);
                 if create_skill_button(
-                    self.imgs.fireball,
+                    self.imgs.magic_damage_skill,
                     state.skills_bot_l[1],
                     &self.stats.skill_set,
                     skill,
@@ -3019,7 +3147,7 @@ impl<'a> Widget for Diary<'a> {
                 };
                 let skill = Skill::Staff(SKnockback);
                 if create_skill_button(
-                    self.imgs.fireball,
+                    self.imgs.magic_knockback_skill,
                     state.skills_bot_l[2],
                     &self.stats.skill_set,
                     skill,
@@ -3049,7 +3177,7 @@ impl<'a> Widget for Diary<'a> {
                 };
                 let skill = Skill::Staff(SCost);
                 if create_skill_button(
-                    self.imgs.fireball,
+                    self.imgs.magic_cost_skill,
                     state.skills_bot_l[3],
                     &self.stats.skill_set,
                     skill,
@@ -3077,7 +3205,7 @@ impl<'a> Widget for Diary<'a> {
                 };
                 let skill = Skill::Staff(SRange);
                 if create_skill_button(
-                    self.imgs.fireball,
+                    self.imgs.magic_radius_skill,
                     state.skills_bot_l[4],
                     &self.stats.skill_set,
                     skill,
@@ -3121,10 +3249,21 @@ impl<'a> Widget for Diary<'a> {
                 //        5 1 6
                 //        3 0 4
                 //        8 2 7
+                Button::image(self.imgs.heal_0)
+                    .w_h(74.0, 74.0)
+                    .mid_top_with_margin_on(state.skills_top_l[0], 3.0)
+                    .with_tooltip(
+                        self.tooltip_manager,
+                        &self.localized_strings.get("hud.skill.sc_beam_title"),
+                        &self.localized_strings.get("hud.skill.sc_beam"),
+                        &diary_tooltip,
+                        TEXT_COLOR,
+                    )
+                    .set(state.skill_sceptre_beam_0, ui);
                 let skill = Skill::Sceptre(BHeal);
                 if create_skill_button(
-                    self.imgs.heal_0,
-                    state.skills_top_l[0],
+                    self.imgs.heal_heal_skill,
+                    state.skills_top_l[1],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -3142,15 +3281,15 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_sceptre_beam_0, ui)
+                .set(state.skill_sceptre_beam_1, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Sceptre(BDamage);
                 if create_skill_button(
-                    self.imgs.heal_0,
-                    state.skills_top_l[1],
+                    self.imgs.heal_damage_skill,
+                    state.skills_top_l[2],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -3168,15 +3307,15 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_sceptre_beam_1, ui)
+                .set(state.skill_sceptre_beam_2, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Sceptre(BRegen);
                 if create_skill_button(
-                    self.imgs.heal_0,
-                    state.skills_top_l[2],
+                    self.imgs.heal_energy_regen_skill,
+                    state.skills_top_l[3],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -3196,15 +3335,15 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_sceptre_beam_2, ui)
+                .set(state.skill_sceptre_beam_3, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Sceptre(BRange);
                 if create_skill_button(
-                    self.imgs.heal_0,
-                    state.skills_top_l[3],
+                    self.imgs.heal_radius_skill,
+                    state.skills_top_l[4],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -3222,15 +3361,15 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_sceptre_beam_3, ui)
+                .set(state.skill_sceptre_beam_4, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Sceptre(BLifesteal);
                 if create_skill_button(
-                    self.imgs.heal_0,
-                    state.skills_top_l[4],
+                    self.imgs.heal_lifesteal_skill,
+                    state.skills_top_l[5],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -3252,15 +3391,15 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_sceptre_beam_4, ui)
+                .set(state.skill_sceptre_beam_5, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Sceptre(BCost);
                 if create_skill_button(
-                    self.imgs.heal_0,
-                    state.skills_top_l[5],
+                    self.imgs.heal_cost_skill,
+                    state.skills_top_l[6],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -3278,16 +3417,27 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_sceptre_beam_5, ui)
+                .set(state.skill_sceptre_beam_6, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
+                Button::image(self.imgs.heal_bomb)
+                    .w_h(74.0, 74.0)
+                    .mid_top_with_margin_on(state.skills_top_r[0], 3.0)
+                    .with_tooltip(
+                        self.tooltip_manager,
+                        &self.localized_strings.get("hud.skill.sc_healbomb_title"),
+                        &self.localized_strings.get("hud.skill.sc_healbomb"),
+                        &diary_tooltip,
+                        TEXT_COLOR,
+                    )
+                    .set(state.skill_sceptre_bomb_0, ui);
                 // Top right skills
                 let skill = Skill::Sceptre(PHeal);
                 if create_skill_button(
-                    self.imgs.heal_0,
-                    state.skills_top_r[0],
+                    self.imgs.heal_heal_skill,
+                    state.skills_top_r[1],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -3305,15 +3455,15 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_sceptre_bomb_0, ui)
+                .set(state.skill_sceptre_bomb_1, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Sceptre(PDamage);
                 if create_skill_button(
-                    self.imgs.heal_0,
-                    state.skills_top_r[1],
+                    self.imgs.heal_damage_skill,
+                    state.skills_top_r[2],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -3331,15 +3481,15 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_sceptre_bomb_1, ui)
+                .set(state.skill_sceptre_bomb_2, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Sceptre(PRadius);
                 if create_skill_button(
-                    self.imgs.heal_0,
-                    state.skills_top_r[2],
+                    self.imgs.heal_radius_skill,
+                    state.skills_top_r[3],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -3357,15 +3507,15 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_sceptre_bomb_2, ui)
+                .set(state.skill_sceptre_bomb_3, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Sceptre(PCost);
                 if create_skill_button(
-                    self.imgs.heal_0,
-                    state.skills_top_r[3],
+                    self.imgs.heal_cost_skill,
+                    state.skills_top_r[4],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -3383,15 +3533,15 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_sceptre_bomb_3, ui)
+                .set(state.skill_sceptre_bomb_4, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
                 let skill = Skill::Sceptre(PProjSpeed);
                 if create_skill_button(
-                    self.imgs.heal_0,
-                    state.skills_top_r[4],
+                    self.imgs.heal_projectile_speed_skill,
+                    state.skills_top_r[5],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -3411,7 +3561,7 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_sceptre_bomb_4, ui)
+                .set(state.skill_sceptre_bomb_5, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
