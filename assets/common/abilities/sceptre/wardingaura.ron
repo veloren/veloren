@@ -4,9 +4,9 @@ CastAura(
     recover_duration: 0.25,
     targets: InGroup,
     aura: (
-        kind: Invulnerability,
-        strength: 1.0,
-        duration: Some(0.5),
+        kind: ProtectingWard,
+        strength: 0.5,
+        duration: Some(10.0),
         category: Magical,
     ),
     range: 25.0,

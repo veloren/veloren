@@ -47,7 +47,7 @@ impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
-        handle_move(data, &mut update, 0.6);
+        handle_move(data, &mut update, 0.8);
         handle_jump(data, &mut update);
         if !ability_key_is_pressed(data, self.static_data.ability_info.key) {
             handle_interrupt(data, &mut update, false);

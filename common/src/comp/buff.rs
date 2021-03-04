@@ -33,6 +33,8 @@ pub enum BuffKind {
     IncreaseMaxHealth,
     /// Makes you immune to attacks
     Invulnerability,
+    /// Reduces incoming damage
+    ProtectingWard,
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -49,6 +51,7 @@ impl BuffKind {
             BuffKind::IncreaseMaxEnergy => true,
             BuffKind::IncreaseMaxHealth => true,
             BuffKind::Invulnerability => true,
+            BuffKind::ProtectingWard => true,
         }
     }
 
@@ -101,16 +104,11 @@ pub enum BuffEffect {
         kind: ModifierKind,
     },
     /// Changes maximum health by a certain amount
-    MaxHealthModifier {
-        value: f32,
-        kind: ModifierKind,
-    },
+    MaxHealthModifier { value: f32, kind: ModifierKind },
     /// Changes maximum stamina by a certain amount
-    MaxEnergyModifier {
-        value: f32,
-        kind: ModifierKind,
-    },
-    ImmuneToAttacks,
+    MaxEnergyModifier { value: f32, kind: ModifierKind },
+    /// Reduces damage after armor is accounted for by this fraction
+    DamageReduction(f32),
 }
 
 /// Actual de/buff.
@@ -213,7 +211,16 @@ impl Buff {
                 }],
                 data.duration,
             ),
-            BuffKind::Invulnerability => (vec![BuffEffect::ImmuneToAttacks], data.duration),
+            BuffKind::Invulnerability => (vec![BuffEffect::DamageReduction(1.0)], data.duration),
+            BuffKind::ProtectingWard => (
+                vec![BuffEffect::DamageReduction(
+                    // Causes non-linearity in effect strength, but necessary to allow for tool
+                    // power and other things to affect the strength. 0.5 also still provides 50%
+                    // damage reduction.
+                    data.strength / (0.5 + data.strength),
+                )],
+                data.duration,
+            ),
         };
         Buff {
             kind,

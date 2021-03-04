@@ -3282,6 +3282,8 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::IncreaseMaxEnergy { .. } => imgs.buff_energyplus_0,
         BuffKind::IncreaseMaxHealth { .. } => imgs.buff_healthplus_0,
         BuffKind::Invulnerability => imgs.buff_invincibility_0,
+        // Do not merge until icon for this buff
+        BuffKind::ProtectingWard => imgs.buff_invincibility_0,
         //  Debuffs
         BuffKind::Bleeding { .. } => imgs.debuff_bleed_0,
         BuffKind::Cursed { .. } => imgs.debuff_skull_0,
@@ -3298,6 +3300,7 @@ pub fn get_buff_title(buff: BuffKind, localized_strings: &Localization) -> &str 
         BuffKind::IncreaseMaxHealth { .. } => localized_strings.get("buff.title.IncreaseMaxHealth"),
         BuffKind::IncreaseMaxEnergy { .. } => localized_strings.get("buff.title.staminaup"),
         BuffKind::Invulnerability => localized_strings.get("buff.title.invulnerability"),
+        BuffKind::ProtectingWard => localized_strings.get("buff.title.protectingward"),
         // Debuffs
         BuffKind::Bleeding { .. } => localized_strings.get("buff.title.bleed"),
         BuffKind::Cursed { .. } => localized_strings.get("buff.title.cursed"),
@@ -3314,6 +3317,7 @@ pub fn get_buff_desc(buff: BuffKind, localized_strings: &Localization) -> &str {
         BuffKind::IncreaseMaxHealth { .. } => localized_strings.get("buff.desc.IncreaseMaxHealth"),
         BuffKind::IncreaseMaxEnergy { .. } => localized_strings.get("buff.desc.IncreaseMaxEnergy"),
         BuffKind::Invulnerability => localized_strings.get("buff.desc.invulnerability"),
+        BuffKind::ProtectingWard => localized_strings.get("buff.desc.protectingward"),
         // Debuffs
         BuffKind::Bleeding { .. } => localized_strings.get("buff.desc.bleed"),
         BuffKind::Cursed { .. } => localized_strings.get("buff.desc.cursed"),
