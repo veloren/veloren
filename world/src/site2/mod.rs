@@ -329,11 +329,17 @@ impl Site {
                 },
                 // Guard tower
                 2 => {
-                    if let Some((aabr, _)) = attempt(10, || {
+                    if let Some((aabr, entrance_tile)) = attempt(10, || {
                         site.find_roadside_aabr(&mut rng, 4..4, Extent2::new(2, 2))
                     }) {
                         let plot = site.create_plot(Plot {
-                            kind: PlotKind::Castle,
+                            kind: PlotKind::Castle(plot::Castle::generate(
+                                land,
+                                &mut rng,
+                                &site,
+                                entrance_tile,
+                                aabr,
+                            )),
                             root_tile: aabr.center(),
                             tiles: aabr_tiles(aabr).collect(),
                             seed: rng.gen(),
@@ -381,11 +387,17 @@ impl Site {
                 },
                 // Castle
                 4 if castles < 1 => {
-                    if let Some((aabr, _)) = attempt(10, || {
+                    if let Some((aabr, entrance_tile)) = attempt(10, || {
                         site.find_roadside_aabr(&mut rng, 16 * 16..18 * 18, Extent2::new(16, 16))
                     }) {
                         let plot = site.create_plot(Plot {
-                            kind: PlotKind::Castle,
+                            kind: PlotKind::Castle(plot::Castle::generate(
+                                land,
+                                &mut rng,
+                                &site,
+                                entrance_tile,
+                                aabr,
+                            )),
                             root_tile: aabr.center(),
                             tiles: aabr_tiles(aabr).collect(),
                             seed: rng.gen(),
@@ -626,6 +638,7 @@ impl Site {
         for plot in plots_to_render {
             let (prim_tree, fills) = match &self.plots[plot].kind {
                 PlotKind::House(house) => house.render_collect(self),
+                PlotKind::Castle(castle) => castle.render_collect(self),
                 _ => continue,
             };
 
