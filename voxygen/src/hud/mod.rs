@@ -61,7 +61,7 @@ use crate::{
     GlobalState,
 };
 use client::Client;
-
+use common::resources::Time;
 use common::{
     combat,
     comp::{
@@ -887,7 +887,7 @@ impl Hud {
             let items = ecs.read_storage::<comp::Item>();
             let inventories = ecs.read_storage::<comp::Inventory>();
             let msm = ecs.read_resource::<MaterialStatManifest>();
-            let entities = ecs.entities();
+            let entities = ecs.entities();            
             let me = client.entity();
 
             if (client.pending_trade().is_some() && !self.show.trade)
@@ -2159,6 +2159,7 @@ impl Hud {
         let ability_map = ecs.fetch::<comp::item::tool::AbilityMap>();
         let bodies = ecs.read_storage::<comp::Body>();
         let combos = ecs.read_storage::<comp::Combo>();
+        let time = ecs.read_resource::<Time>();
 
         if let (
             Some(health),
@@ -2167,6 +2168,7 @@ impl Hud {
             Some(_character_state),
             Some(_controller),
             Some(combo),
+            time,
         ) = (
             healths.get(entity),
             inventories.get(entity),
@@ -2174,6 +2176,7 @@ impl Hud {
             character_states.get(entity),
             controllers.get(entity).map(|c| &c.inputs),
             combos.get(entity),
+            time,
         ) {
             Skillbar::new(
                 global_state,
@@ -2194,6 +2197,7 @@ impl Hud {
                 &ability_map,
                 &msm,
                 &combo,
+                &time,
             )
             .set(self.ids.skillbar, ui_widgets);
         }

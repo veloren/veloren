@@ -15,13 +15,16 @@ use crate::{
     window::GameInput,
     GlobalState,
 };
-use common::comp::{
-    inventory::slot::EquipSlot,
-    item::{
-        tool::{AbilityMap, Tool, ToolKind},
-        Hands, Item, ItemKind, MaterialStatManifest,
+use common::{
+    comp::{
+        inventory::slot::EquipSlot,
+        item::{
+            tool::{AbilityMap, Tool, ToolKind},
+            Hands, Item, ItemKind, MaterialStatManifest,
+        },
+        Combo, Energy, Health, Inventory,
     },
-    Combo, Energy, Health, Inventory,
+    resources::Time,
 };
 use conrod_core::{
     color,
@@ -76,7 +79,6 @@ widget_ids! {
         stamina_txt_bg,
         stamina_txt,
         // Combo Counter
-        combo_icon,
         combo_align,
         combo_bg,
         combo,
@@ -148,6 +150,7 @@ pub struct Skillbar<'a> {
     ability_map: &'a AbilityMap,
     msm: &'a MaterialStatManifest,
     combo: &'a Combo,
+    time: &'a Time,
 }
 
 impl<'a> Skillbar<'a> {
@@ -171,6 +174,7 @@ impl<'a> Skillbar<'a> {
         ability_map: &'a AbilityMap,
         msm: &'a MaterialStatManifest,
         combo: &'a Combo,
+        time: &'a Time,
     ) -> Self {
         Self {
             global_state,
@@ -192,6 +196,7 @@ impl<'a> Skillbar<'a> {
             ability_map,
             msm,
             combo,
+            time,
         }
     }
 }
@@ -921,25 +926,41 @@ impl<'a> Widget for Skillbar<'a> {
 
         // Combo Counter
         if self.combo.counter() > 0 {
-            let combo_txt = format!("{}", self.combo.counter());
+            let combo_txt = format!("{} Combo", self.combo.counter());
             let combo_cnt = self.combo.counter() as f32;
+            let time_since_last_update = self.combo.last_increase() - self.time.0 as f64;
             let fnt_col = Color::Rgba(
+                // White -> Yellow -> Red text color gradient depending on count
                 (1.0 - combo_cnt / (combo_cnt + tweak!(1.0))).max(0.79),
-                (1.0 - combo_cnt / (combo_cnt + tweak!(40.0))).max(0.19),
+                (1.0 - combo_cnt / (combo_cnt + tweak!(80.0))).max(0.19),
                 (1.0 - combo_cnt / (combo_cnt + tweak!(5.0))).max(0.17),
-                1.0,
+                (time_since_last_update - 8.0).min(1.0) as f32,
             );
-            let fnt_size =
-                ((14.0 + self.combo.counter() as f32 * tweak!(0.5)).min(tweak!(50.0))) as u32;
 
+            let fnt_size = ((14.0 + self.combo.counter() as f32 * tweak!(0.5)).min(tweak!(20.0)))
+                as u32
+                + if (time_since_last_update - 12.0) < 1.0 {
+                    1
+                } else {
+                    0
+                }; // Increase size for higher counts, "flash" on update by increasing the font size by 2                  
+            println!("{}", time_since_last_update); // REMOVE THIS            
             Rectangle::fill_with([10.0, 10.0], color::TRANSPARENT)
                 .middle_of(ui.window)
                 .set(state.ids.combo_align, ui);
             Text::new(combo_txt.as_str())
-                .bottom_right_with_margins_on(state.ids.combo_align, tweak!(-300.0), tweak!(-190.0))
+                .mid_bottom_with_margin_on(
+                    state.ids.combo_align,
+                    tweak!(-350.0) + time_since_last_update * tweak!(4.0) - 8.0,
+                )
                 .font_size(self.fonts.cyri.scale(fnt_size))
                 .font_id(self.fonts.cyri.conrod_id)
-                .color(BLACK)
+                .color(Color::Rgba(
+                    0.0,
+                    0.0,
+                    0.0,
+                    (time_since_last_update - 8.0).min(1.0) as f32,
+                ))
                 .set(state.ids.combo_bg, ui);
             Text::new(combo_txt.as_str())
                 .bottom_right_with_margins_on(state.ids.combo_bg, 1.0, 1.0)
@@ -947,13 +968,6 @@ impl<'a> Widget for Skillbar<'a> {
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(fnt_col)
                 .set(state.ids.combo, ui);
-            let icon_size = fnt_size as f64 * tweak!(0.75);
-            Image::new(self.imgs.combat_rating_ico_shadow)
-                .wh([icon_size, icon_size])
-                .bottom_right_with_margins_on(state.ids.combo, 0.0, tweak!(-5.0) - icon_size)
-                .color(Some(fnt_col))
-                .graphics_for(state.ids.combo)
-                .set(state.ids.combo_icon, ui);
         }
     }
 }
