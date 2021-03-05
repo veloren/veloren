@@ -1,0 +1,16 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for "global" English
+(
+    string_map: {
+        "hud.crafting": "Fabrication",
+        "hud.crafting.recipes": "Recettes",
+        "hud.crafting.ingredients": "Ingrédients :",
+        "hud.crafting.craft": "Fabriquer",
+        "hud.crafting.tool_cata": "Nécessite :",
+    },
+
+
+    vector_map: {
+    }
+)

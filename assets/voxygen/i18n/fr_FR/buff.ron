@@ -1,0 +1,25 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for "global" English
+(
+    string_map: {
+        "buff.remove": "Cliquer pour retirer",
+        "buff.title.missing": "Titre Manquant",
+        "buff.desc.missing": "Description Manquante",
+        // Buffs
+        "buff.title.heal": "Soin",
+        "buff.desc.heal": "Régénère progressivement des points de vie.",
+        "buff.title.potion": "Potion",
+        "buff.desc.potion": "En train de boire...",
+        "buff.title.saturation": "Saturation",
+        "buff.desc.saturation": "Régénère progressivement des points de vie grâce à la nourriture.",
+        "buff.title.campfire_heal": "Soin autour d'un feu de camp",
+        "buff.desc.campfire_heal": "Se reposer à côté d'un feu de camp restaure 1% de santé chaque seconde.",
+        "buff.title.bleed": "Saignement",
+        "buff.desc.bleed": "Inflige régulièrement des dommages.",
+    },
+
+
+    vector_map: {
+    }
+)

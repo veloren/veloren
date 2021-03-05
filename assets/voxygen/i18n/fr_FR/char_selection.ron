@@ -1,0 +1,33 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for "global" English
+(
+    string_map: {
+        "char_selection.loading_characters": "Chargement des personnages...",
+        "char_selection.delete_permanently": "Supprimer définitivement ce personnage ?",
+        "char_selection.deleting_character": "Suppression du personnage...",
+        "char_selection.change_server": "Changer de serveur",
+        "char_selection.enter_world": "Rejoindre",
+        "char_selection.logout": "Déconnexion",
+        "char_selection.create_new_character": "Créer un nouveau personnage",
+        "char_selection.creating_character": "Création du personnage...",
+        "char_selection.character_creation": "Création de personnage",
+
+        "char_selection.human_default": "Humain par défaut",
+        "char_selection.level_fmt": "Niveau {level_nb}",
+        "char_selection.uncanny_valley": "Région sauvage",
+        "char_selection.plains_of_uncertainty": "Plaines de l'Incertitude",
+        "char_selection.beard": "Barbe",
+        "char_selection.hair_style": "Coupe de cheveux",
+        "char_selection.hair_color": "Couleur des cheveux",
+        "char_selection.eye_color": "Couleur des yeux",
+        "char_selection.skin": "Couleur de la peau",
+        "char_selection.eyeshape": "Forme des yeux",
+        "char_selection.accessories": "Accessoires",
+        "char_selection.create_info_name": "Votre personnage doit avoir un nom !",
+    },
+
+
+    vector_map: {
+    }
+)

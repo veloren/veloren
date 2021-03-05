@@ -1,0 +1,62 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for "global" English
+(
+    string_map: {
+        "main.username": "Nom d'utilisateur",
+        "main.server": "Serveur",
+        "main.password": "Mot de passe",
+        "main.connecting": "Connexion",
+        "main.creating_world": "Création du monde",
+        "main.tip": "Astuce:",
+
+        // Annonce de bienvenue qui apparaît la première fois que Veloren est lancé
+        "main.notice": r#"Bienvenue dans la version alpha de Veloren !
+
+Avant de commencer à vous amuser, merci de garder les choses suivantes en tête :
+
+- Il s'agit d'une version alpha très jeune. Attendez-vous à des bugs, un gameplay non terminé, des mécaniques non peaufinées et des fonctionalités manquantes.
+
+- Si vous avez des retours constructifs ou avez detecté un bug, vous pouvez nous contacter via Reddit, GitLab ou notre serveur communautaire Discord.
+
+- Veloren est un logiciel open-source sous licence GPL3. Cela signifit que vous êtes libre de jouer, modfier et redistribuer le jeu comme il vous semble (licence contaminante sous GPL 3 pour toute modification)
+
+- Veloren est un projet communautaire à but non-lucratif développé par des bénévoles.
+Si vous appréciez ce jeu, vous êtes les bienvenus pour rejoindre les équipes de développement ou d'artistes!
+
+Merci d'avoir pris le temps de lire cette annonce, nous espérons que vous apprécierez le jeu!
+
+~ L'équipe de Veloren"#,
+
+        //Informations de connection
+        "main.login_process": r#"Information sur la procédure de connexion:
+
+Vous devez à présent posséder un compte
+afin de jouer sur les serveurs avec authentification.
+
+Vous pouvez créer un compte à l'adresse 
+
+https://veloren.net/account/."#,
+        "main.login.server_not_found": "Serveur introuvable",
+        "main.login.authentication_error": "Erreur d'authentification sur le serveur",
+        "main.login.server_full": "Serveur plein",
+        "main.login.untrusted_auth_server": "Le serveur d'authentification n'est pas de confiance",
+        "main.login.outdated_client_or_server": "ServeurPasContent: Les versions sont probablement incompatibles, verifiez les mises à jour.",
+        "main.login.timeout": "DélaiEcoulé: Le serveur n'a pas répondu à temps. (Surchage ou problèmes réseau).",
+        "main.login.server_shut_down": "Extinction du Serveur",
+        "main.login.already_logged_in": "Vous êtes déjà connecté sur ce serveur.",
+        "main.login.network_error": "Problème Réseau",
+        "main.login.failed_sending_request": "Demande d'authentification serveur échouée",
+        "main.login.invalid_character": "Le personnage sélectionné n'est pas valide",
+        "main.login.client_crashed": "Le client a planté",
+        "main.login.not_on_whitelist": "Vous devez être ajouté à la liste blanche par un Admin pour pouvoir entrer",
+        "main.login.banned": "Vous avez été banni pour la raison suivante",
+        "main.login.kicked": "Vous avez été exclus pour la raison suivante",
+        "main.login.select_language": "Sélectionnez une langue",
+        "main.servers.select_server": "Sélectionnez un serveur",
+    },
+
+
+    vector_map: {
+    }
+)

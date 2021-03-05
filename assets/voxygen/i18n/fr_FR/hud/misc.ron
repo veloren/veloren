@@ -1,0 +1,75 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for "global" English
+(
+    string_map: {
+        "hud.do_not_show_on_startup": "Ne pas afficher au démarage",
+        "hud.show_tips": "Voir les astuces",
+        "hud.quests": "Quêtes",
+        "hud.you_died": "Vous êtes mort",
+        "hud.waypoint_saved": "Point de Repère Sauvegardé",
+
+        "hud.press_key_to_show_keybindings_fmt": "[{key}] Contrôles",
+        "hud.press_key_to_toggle_lantern_fmt": "[{key}] Lanterne",
+        "hud.press_key_to_show_debug_info_fmt": "Appuyer sur {key} pour afficher les informations de débogage",
+        "hud.press_key_to_toggle_keybindings_fmt": "Appuyer sur {key} pour afficher les contrôles",
+        "hud.press_key_to_toggle_debug_info_fmt": "Appuyer sur {key} pour activer les informations de débogage",
+
+                // Respawn message
+        "hud.press_key_to_respawn": r#"Appuyez sur {key} pour réapparaitre au dernier feu de camp visité"#,
+
+        /// Welcome message
+        "hud.welcome": r#"Bienvenue dans la version Alpha de Veloren !
+
+
+Quelques astuces avant de démarrer:
+
+
+Appuyer sur F1 pour voir les commandes disponibles.
+
+Tapez /help dans le tchat pour voir les commandes disponibles.
+
+
+Des coffres et autres objets sont disposés aléatoirement dans le monde !
+
+Appuyez sur la touche 'E' pour les collecter.
+
+Pour utiliser ce que vous ramassez des coffres, ouvrez votre inventaire avec 'B'.
+
+Double cliquez sur les éléments de votre sac pour les utiliser ou les équiper.
+
+Jettez-les en cliquant sur un élément puis en cliquant en dehors du sac.
+
+
+Les nuits peuvent être très sombre dans Veloren.
+
+Allumez votre lanterne en appuyant sur 'G'.
+
+
+Vous souhaitez libérer votre souris pour fermer cette fenêtre? Appuyez sur TAB !
+
+
+Profitez de votre séjour dans le monde de Veloren."#,
+
+"hud.temp_quest_headline": r#"S'il vous plaît, aidez-nous voyageur !"#,
+"hud.temp_quest_text": r#"Des donjons remplis de cultistes malfaisants 
+sont apparus tout autour de nos paisibles villages !
+
+
+Trouvez des alliés, faites des provisions
+et venez à bout de leurs chefs ainsi que de leurs sbires.
+
+
+Peut être pourrez-vous même obtenir un de leurs 
+objets magiques ?"#,
+
+        "hud.spell": "Sorts",
+
+        "hud.free_look_indicator": "Vue libre active, Pressez {key} pour la désactiver.",
+        "hud.auto_walk_indicator": "Marche automatique active",
+    },
+
+
+    vector_map: {
+    }
+)
