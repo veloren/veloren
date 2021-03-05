@@ -3249,7 +3249,7 @@ impl<'a> Widget for Diary<'a> {
                 //        5 1 6
                 //        3 0 4
                 //        8 2 7
-                Button::image(self.imgs.heal_0)
+                Button::image(self.imgs.skill_sceptre_heal)
                     .w_h(74.0, 74.0)
                     .mid_top_with_margin_on(state.skills_top_l[0], 3.0)
                     .with_tooltip(
@@ -3422,7 +3422,7 @@ impl<'a> Widget for Diary<'a> {
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
-                Button::image(self.imgs.heal_bomb)
+                Button::image(self.imgs.skill_sceptre_heal)
                     .w_h(74.0, 74.0)
                     .mid_top_with_margin_on(state.skills_top_r[0], 3.0)
                     .with_tooltip(

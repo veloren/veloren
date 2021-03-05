@@ -446,12 +446,13 @@ image_ids! {
 
         // Icons
         snake_arrow_0: "voxygen.element.icons.snake",
-        heal_0: "voxygen.element.icons.heal_0",
+        skill_sceptre_lifesteal: "voxygen.element.icons.lifesteal",
         sword_whirlwind: "voxygen.element.icons.sword_whirlwind",
-        heal_bomb: "voxygen.element.icons.heal_bomb",
+        skill_sceptre_heal: "voxygen.element.icons.heal_0",
         hammerleap: "voxygen.element.icons.skill_hammerleap",
         skill_axe_leap_slash: "voxygen.element.icons.skill_axe_leap_slash",
         skill_bow_jump_burst: "voxygen.element.icons.skill_bow_jump_burst",
+        skill_sceptre_aura: "voxygen.element.icons.heal_bomb",
         missing_icon: "voxygen.element.icons.missing_icon_grey",
 
         // Buttons

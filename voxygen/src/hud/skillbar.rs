@@ -585,7 +585,7 @@ impl<'a> Widget for Skillbar<'a> {
                     ToolKind::Hammer => self.imgs.twohhammer_m1,
                     ToolKind::Axe => self.imgs.twohaxe_m1,
                     ToolKind::Bow => self.imgs.bow_m1,
-                    ToolKind::Sceptre => self.imgs.heal_0,
+                    ToolKind::Sceptre => self.imgs.skill_sceptre_lifesteal,
                     ToolKind::Staff => self.imgs.fireball,
                     ToolKind::Debug => self.imgs.flyingrod_m1,
                     _ => self.imgs.nothing,
@@ -632,7 +632,7 @@ impl<'a> Widget for Skillbar<'a> {
             Some(ToolKind::Hammer) => self.imgs.hammergolf,
             Some(ToolKind::Axe) => self.imgs.axespin,
             Some(ToolKind::Bow) => self.imgs.bow_m2,
-            Some(ToolKind::Sceptre) => self.imgs.heal_bomb,
+            Some(ToolKind::Sceptre) => self.imgs.skill_sceptre_heal,
             Some(ToolKind::Staff) => self.imgs.flamethrower,
             Some(ToolKind::Debug) => self.imgs.flyingrod_m2,
             _ => self.imgs.nothing,
@@ -926,37 +926,32 @@ impl<'a> Widget for Skillbar<'a> {
                 let combo_txt = format!("{} Combo", combo.combo);
                 let combo_cnt = combo.combo as f32;
                 let time_since_last_update = comp::combo::COMBO_DECAY_START - combo.timer;
+                let alpha = (1.0 - time_since_last_update * tweak!(0.2)).min(1.0) as f32;
                 let fnt_col = Color::Rgba(
                     // White -> Yellow -> Red text color gradient depending on count
-                    (1.0 - combo_cnt / (combo_cnt + tweak!(1.0))).max(0.79),
+                    (1.0 - combo_cnt / (combo_cnt + tweak!(20.0))).max(0.79),
                     (1.0 - combo_cnt / (combo_cnt + tweak!(80.0))).max(0.19),
                     (1.0 - combo_cnt / (combo_cnt + tweak!(5.0))).max(0.17),
-                    (time_since_last_update - 8.0).min(1.0) as f32,
+                    alpha,
                 );
 
-                let fnt_size = ((14.0 + combo.timer as f32 * tweak!(0.5)).min(tweak!(20.0))) as u32
-                    + if (time_since_last_update - 12.0) < 1.0 {
-                        1
+                let fnt_size = ((14.0 + combo.timer as f32 * tweak!(0.8)).min(tweak!(30.0))) as u32
+                    + if (time_since_last_update) < tweak!(0.1) {
+                        tweak!(2)
                     } else {
                         0
-                    }; // Increase size for higher counts, "flash" on update by increasing the font size by 2                  
-                //dbg!(combo); // Delete this before merging
+                    }; // Increase size for higher counts, "flash" on update by increasing the font size by 2              
                 Rectangle::fill_with([10.0, 10.0], color::TRANSPARENT)
                     .middle_of(ui.window)
                     .set(state.ids.combo_align, ui);
                 Text::new(combo_txt.as_str())
                     .mid_bottom_with_margin_on(
                         state.ids.combo_align,
-                        tweak!(-350.0) + time_since_last_update * tweak!(4.0) - 8.0,
+                        tweak!(-350.0) + time_since_last_update * tweak!(-8.0),
                     )
                     .font_size(self.fonts.cyri.scale(fnt_size))
                     .font_id(self.fonts.cyri.conrod_id)
-                    .color(Color::Rgba(
-                        0.0,
-                        0.0,
-                        0.0,
-                        (time_since_last_update - 8.0).min(1.0) as f32,
-                    ))
+                    .color(Color::Rgba(0.0, 0.0, 0.0, alpha))
                     .set(state.ids.combo_bg, ui);
                 Text::new(combo_txt.as_str())
                     .bottom_right_with_margins_on(state.ids.combo_bg, 1.0, 1.0)
