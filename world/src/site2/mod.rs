@@ -98,16 +98,19 @@ impl Site {
         w: u16,
     ) -> Option<Id<Plot>> {
         const MAX_ITERS: usize = 4096;
-        let range = -(w as i32) / 2..w as i32 - w as i32 / 2;
+        let range = -(w as i32) / 2..w as i32 - (w as i32 + 1) / 2;
         let heuristic = |tile: &Vec2<i32>| {
+            let mut max_cost = (tile.distance_squared(b) as f32).sqrt();
             for y in range.clone() {
                 for x in range.clone() {
                     if self.tiles.get(*tile + Vec2::new(x, y)).is_obstacle() {
-                        return 1000.0;
+                        max_cost = max_cost.max(1000.0);
+                    } else if !self.tiles.get(*tile + Vec2::new(x, y)).is_empty() {
+                        max_cost = max_cost.max(25.0);
                     }
                 }
             }
-            (tile.distance_squared(b) as f32).sqrt()
+            max_cost
         };
         let path = Astar::new(MAX_ITERS, a, &heuristic, DefaultHashBuilder::default())
             .poll(
@@ -488,7 +491,7 @@ impl Site {
                         .map(|aabr| aabr.distance_to_point(wpos2df))
                         .min_by_key(|d| (*d * 100.0) as i32);
 
-                    if dist.map_or(false, |d| d <= 3.0) {
+                    if dist.map_or(false, |d| d <= 1.5) {
                         let alt = canvas.col(wpos2d).map_or(0, |col| col.alt as i32);
                         (-8..6).for_each(|z| {
                             canvas.map(Vec3::new(wpos2d.x, wpos2d.y, alt + z), |b| {
@@ -521,8 +524,8 @@ impl Site {
                     if let TileKind::Road { a, b, w } = &tile.kind {
                         if let Some(PlotKind::Road(path)) = tile.plot.map(|p| &self.plot(p).kind) {
                             Some((LineSegment2 {
-                                start: self.tile_wpos(path.nodes()[*a as usize]).map(|e| e as f32),
-                                end: self.tile_wpos(path.nodes()[*b as usize]).map(|e| e as f32),
+                                start: self.tile_center_wpos(path.nodes()[*a as usize]).map(|e| e as f32),
+                                end: self.tile_center_wpos(path.nodes()[*b as usize]).map(|e| e as f32),
                             }, *w))
                         } else {
                             None

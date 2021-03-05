@@ -1,7 +1,8 @@
 use super::*;
+use crate::util::{RandomField, Sampler};
 use common::{
     store::{Id, Store},
-    terrain::Block,
+    terrain::{Block, BlockKind},
 };
 use vek::*;
 
@@ -20,6 +21,7 @@ pub enum Primitive {
 
 pub enum Fill {
     Block(Block),
+    Brick(BlockKind, Rgb<u8>, u8),
 }
 
 impl Fill {
@@ -71,6 +73,12 @@ impl Fill {
         if self.contains_at(tree, prim, pos) {
             match self {
                 Fill::Block(block) => Some(*block),
+                Fill::Brick(bk, col, range) => Some(Block::new(
+                    *bk,
+                    *col + (RandomField::new(13)
+                        .get((pos + Vec3::new(pos.z, pos.z, 0)) / Vec3::new(2, 2, 1))
+                        % *range as u32) as u8,
+                )),
             }
         } else {
             None

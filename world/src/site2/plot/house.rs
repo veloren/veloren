@@ -68,7 +68,7 @@ impl Structure for House {
         }));
         fill(
             outer,
-            Fill::Block(Block::new(BlockKind::Rock, Rgb::new(181, 170, 148))),
+            Fill::Brick(BlockKind::Rock, Rgb::new(80, 75, 85), 24),
         );
         fill(inner, Fill::Block(Block::empty()));
         let walls = prim(Primitive::Xor(outer, inner));
@@ -149,8 +149,8 @@ impl Structure for House {
             // Floor
             fill(
                 prim(Primitive::Aabb(Aabb {
-                    min: self.bounds.min.with_z(self.alt + height),
-                    max: (self.bounds.max + 1).with_z(self.alt + height + 1),
+                    min: (self.bounds.min + 1).with_z(self.alt + height),
+                    max: self.bounds.max.with_z(self.alt + height + 1),
                 })),
                 Fill::Block(Block::new(BlockKind::Rock, Rgb::new(89, 44, 14))),
             );
