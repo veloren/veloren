@@ -1,6 +1,7 @@
 use crate::settings::BanRecord;
 use authc::{AuthClient, AuthClientError, AuthToken, Uuid};
 use common_net::msg::RegisterError;
+#[cfg(feature = "plugins")]
 use common_sys::plugin::PluginMgr;
 use hashbrown::{HashMap, HashSet};
 use plugin_api::event::{PlayerJoinEvent, PlayerJoinResult};
@@ -57,7 +58,7 @@ impl LoginProvider {
         &mut self,
         username_or_token: &str,
         world: &World,
-        plugin_manager: &PluginMgr,
+        #[cfg(feature = "plugins")] plugin_manager: &PluginMgr,
         admins: &HashSet<Uuid>,
         whitelist: &HashSet<Uuid>,
         banlist: &HashMap<Uuid, BanRecord>,
@@ -78,7 +79,7 @@ impl LoginProvider {
                 if !whitelist.is_empty() && !whitelist.contains(&uuid) && !admins.contains(&uuid) {
                     return Err(RegisterError::NotOnWhitelist);
                 }
-
+                #[cfg(feature = "plugins")]
                 match plugin_manager.execute_event(&world, &PlayerJoinEvent {
                     player_name: username.clone(),
                     player_id: *uuid.as_bytes(),
