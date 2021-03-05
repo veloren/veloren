@@ -520,8 +520,8 @@ impl Site {
                     if let TileKind::Road { a, b, w } = &tile.kind {
                         if let Some(PlotKind::Road(path)) = tile.plot.map(|p| &self.plot(p).kind) {
                             Some((LineSegment2 {
-                                start: self.tile_center_wpos(path.nodes()[*a as usize]).map(|e| e as f32),
-                                end: self.tile_center_wpos(path.nodes()[*b as usize]).map(|e| e as f32),
+                                start: self.tile_wpos(path.nodes()[*a as usize]).map(|e| e as f32),
+                                end: self.tile_wpos(path.nodes()[*b as usize]).map(|e| e as f32),
                             }, *w))
                         } else {
                             None
