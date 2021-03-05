@@ -3,6 +3,8 @@ use common_net::msg::{
     ClientRegister, PlayerInfo, PlayerListUpdate, RegisterError, ServerGeneral,
     ServerRegisterAnswer,
 };
+
+#[cfg(feature = "plugins")]
 use common_sys::plugin::PluginMgr;
 use hashbrown::HashMap;
 use plugin_api::Uid;
@@ -29,10 +31,12 @@ pub(crate) fn handle_register_msg(
     editable_settings: &Fetch<'_, EditableSettings>,
     msg: ClientRegister,
 ) -> Result<(), crate::error::Error> {
+    #[cfg(feature = "plugins")]
     let plugin_mgr = world.read_resource::<PluginMgr>();
     let (username, uuid) = match login_provider.try_login(
         &msg.token_or_username,
         world,
+        #[cfg(feature = "plugins")]
         &plugin_mgr,
         &*editable_settings.admins,
         &*editable_settings.whitelist,
