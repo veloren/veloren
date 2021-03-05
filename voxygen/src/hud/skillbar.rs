@@ -30,7 +30,6 @@ use conrod_core::{
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
-use inline_tweak::*;
 use vek::*;
 
 widget_ids! {
@@ -926,28 +925,24 @@ impl<'a> Widget for Skillbar<'a> {
                 let combo_txt = format!("{} Combo", combo.combo);
                 let combo_cnt = combo.combo as f32;
                 let time_since_last_update = comp::combo::COMBO_DECAY_START - combo.timer;
-                let alpha = (1.0 - time_since_last_update * tweak!(0.2)).min(1.0) as f32;
+                let alpha = (1.0 - time_since_last_update * 0.2).min(1.0) as f32;
                 let fnt_col = Color::Rgba(
                     // White -> Yellow -> Red text color gradient depending on count
-                    (1.0 - combo_cnt / (combo_cnt + tweak!(20.0))).max(0.79),
-                    (1.0 - combo_cnt / (combo_cnt + tweak!(80.0))).max(0.19),
-                    (1.0 - combo_cnt / (combo_cnt + tweak!(5.0))).max(0.17),
+                    (1.0 - combo_cnt / (combo_cnt + 20.0)).max(0.79),
+                    (1.0 - combo_cnt / (combo_cnt + 80.0)).max(0.19),
+                    (1.0 - combo_cnt / (combo_cnt + 5.0)).max(0.17),
                     alpha,
                 );
 
-                let fnt_size = ((14.0 + combo.timer as f32 * tweak!(0.8)).min(tweak!(30.0))) as u32
-                    + if (time_since_last_update) < tweak!(0.1) {
-                        tweak!(2)
-                    } else {
-                        0
-                    }; // Increase size for higher counts, "flash" on update by increasing the font size by 2              
+                let fnt_size = ((14.0 + combo.timer as f32 * 0.8).min(30.0)) as u32
+                    + if (time_since_last_update) < 0.1 { 2 } else { 0 }; // Increase size for higher counts, "flash" on update by increasing the font size by 2
                 Rectangle::fill_with([10.0, 10.0], color::TRANSPARENT)
                     .middle_of(ui.window)
                     .set(state.ids.combo_align, ui);
                 Text::new(combo_txt.as_str())
                     .mid_bottom_with_margin_on(
                         state.ids.combo_align,
-                        tweak!(-350.0) + time_since_last_update * tweak!(-8.0),
+                        -350.0 + time_since_last_update * -8.0,
                     )
                     .font_size(self.fonts.cyri.scale(fnt_size))
                     .font_id(self.fonts.cyri.conrod_id)

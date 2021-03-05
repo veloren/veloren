@@ -3305,8 +3305,7 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::IncreaseMaxEnergy { .. } => imgs.buff_energyplus_0,
         BuffKind::IncreaseMaxHealth { .. } => imgs.buff_healthplus_0,
         BuffKind::Invulnerability => imgs.buff_invincibility_0,
-        // Do not merge until icon for this buff
-        BuffKind::ProtectingWard => imgs.buff_invincibility_0,
+        BuffKind::ProtectingWard => imgs.buff_dmg_red_0,
         //  Debuffs
         BuffKind::Bleeding { .. } => imgs.debuff_bleed_0,
         BuffKind::Cursed { .. } => imgs.debuff_skull_0,
