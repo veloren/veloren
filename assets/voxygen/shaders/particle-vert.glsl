@@ -221,7 +221,7 @@ void main() {
                 normalize(vec3(rand1, rand2, rand3)) * 40.0 + grav_vel(earth_gravity)
             ),
             vec3(3.0 + rand0),
-            vec4(0.15, 0.4, 1, 1),
+            vec4(vec3(0, 0, 2), 1),
             identity()
         );
     } else if (inst_mode == FIREWORK_GREEN) {
@@ -232,7 +232,7 @@ void main() {
                 normalize(vec3(rand1, rand2, rand3)) * 40.0 + grav_vel(earth_gravity)
             ),
             vec3(3.0 + rand0),
-            vec4(0, 1, 0, 1),
+            vec4(vec3(0, 2, 0), 1),
             identity()
         );
     } else if (inst_mode == FIREWORK_PURPLE) {
@@ -243,7 +243,7 @@ void main() {
                 normalize(vec3(rand1, rand2, rand3)) * 40.0 + grav_vel(earth_gravity)
             ),
             vec3(3.0 + rand0),
-            vec4(0.7, 0.0, 1.0, 1.0),
+            vec4(vec3(2, 0, 2), 1),
             identity()
         );
     } else if (inst_mode == FIREWORK_RED) {
@@ -254,7 +254,7 @@ void main() {
                 normalize(vec3(rand1, rand2, rand3)) * 40.0 + grav_vel(earth_gravity)
             ),
             vec3(3.0 + rand0),
-            vec4(1, 0, 0, 1),
+            vec4(vec3(2, 0, 0), 1),
             identity()
         );
     } else if (inst_mode == FIREWORK_YELLOW) {
@@ -265,7 +265,7 @@ void main() {
                 normalize(vec3(rand1, rand2, rand3)) * 40.0 + grav_vel(earth_gravity)
             ),
             vec3(3.0 + rand0),
-            vec4(1, 1, 0, 1),
+            vec4(vec3(2, 2, 0), 1),
             identity()
         );
     } else if (inst_mode == LEAF) {
