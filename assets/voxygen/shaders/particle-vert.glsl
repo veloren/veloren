@@ -343,10 +343,12 @@ void main() {
         );
     } else if (inst_mode == LIFESTEAL_BEAM) {
         f_reflect = 0.01;
+        float green_col = 0.8 + 1.0 * sin(tick.x * 5 + lifetime * 5);
+        float purple_col = 1.1 + 0.15 * sin(tick.x * 3 - lifetime * 3) - max(green_col, 1) + 1;
         attr = Attr(
             spiral_motion(inst_dir, 0.3 * (floor(2 * rand0 + 0.5) - 0.5) * min(linear_scale(10), 1), lifetime / inst_lifespan, 10.0, inst_time),
             vec3((1.7 - 0.7 * abs(floor(2 * rand0 - 0.5) + 0.5)) * (1.5 + 0.5 * sin(tick.x * 10 - lifetime * 4))),
-            vec4(vec3(1.35 + 0.25 * sin(tick.x * 3 - lifetime * 3 + 4), 0.7 + 1.0 * sin(tick.x * 5 + lifetime * 5), 0.8 + 0.25 * sin(lifetime - tick.x * 5)), 1 /*0.3*/),
+            vec4(vec3(purple_col, green_col, purple_col), 1 /*0.3*/),
             spin_in_axis(inst_dir, tick.z)
         );
     } else if (inst_mode == ENERGY_NATURE) {
