@@ -18,9 +18,8 @@ pub enum Primitive {
     Xor(Id<Primitive>, Id<Primitive>),
 }
 
-pub struct Fill {
-    pub prim: Id<Primitive>,
-    pub block: Block,
+pub enum Fill {
+    Block(Block),
 }
 
 impl Fill {
@@ -63,8 +62,19 @@ impl Fill {
         }
     }
 
-    pub fn sample_at(&self, tree: &Store<Primitive>, pos: Vec3<i32>) -> Option<Block> {
-        Some(self.block).filter(|_| self.contains_at(tree, self.prim, pos))
+    pub fn sample_at(
+        &self,
+        tree: &Store<Primitive>,
+        prim: Id<Primitive>,
+        pos: Vec3<i32>,
+    ) -> Option<Block> {
+        if self.contains_at(tree, prim, pos) {
+            match self {
+                Fill::Block(block) => Some(*block),
+            }
+        } else {
+            None
+        }
     }
 
     fn get_bounds_inner(&self, tree: &Store<Primitive>, prim: Id<Primitive>) -> Option<Aabb<i32>> {
@@ -93,26 +103,25 @@ impl Fill {
         })
     }
 
-    pub fn get_bounds(&self, tree: &Store<Primitive>) -> Aabb<i32> {
-        self.get_bounds_inner(tree, self.prim)
+    pub fn get_bounds(&self, tree: &Store<Primitive>, prim: Id<Primitive>) -> Aabb<i32> {
+        self.get_bounds_inner(tree, prim)
             .unwrap_or_else(|| Aabb::new_empty(Vec3::zero()))
     }
 }
 
 pub trait Structure {
-    fn render<F: FnMut(Primitive) -> Id<Primitive>, G: FnMut(Fill)>(
+    fn render<F: FnMut(Primitive) -> Id<Primitive>, G: FnMut(Id<Primitive>, Fill)>(
         &self,
         site: &Site,
         prim: F,
         fill: G,
-    ) {
-    }
+    );
 
     // Generate a primitive tree and fills for this structure
-    fn render_collect(&self, site: &Site) -> (Store<Primitive>, Vec<Fill>) {
+    fn render_collect(&self, site: &Site) -> (Store<Primitive>, Vec<(Id<Primitive>, Fill)>) {
         let mut tree = Store::default();
         let mut fills = Vec::new();
-        let root = self.render(site, |p| tree.insert(p), |f| fills.push(f));
+        let root = self.render(site, |p| tree.insert(p), |p, f| fills.push((p, f)));
         (tree, fills)
     }
 }

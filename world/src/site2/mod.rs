@@ -470,16 +470,16 @@ impl Site {
 
         match &tile.kind {
             TileKind::Plaza => {
-                let near_roads = CARDINALS
-                    .iter()
-                    .filter_map(|rpos| if self.tiles.get(tpos + rpos) == tile {
+                let near_roads = CARDINALS.iter().filter_map(|rpos| {
+                    if self.tiles.get(tpos + rpos) == tile {
                         Some(Aabr {
                             min: self.tile_wpos(tpos).map(|e| e as f32),
                             max: self.tile_wpos(tpos + 1).map(|e| e as f32),
                         })
                     } else {
                         None
-                    });
+                    }
+                });
 
                 cols.for_each(|(wpos2d, offs)| {
                     let wpos2df = wpos2d.map(|e| e as f32);
@@ -490,18 +490,19 @@ impl Site {
 
                     if dist.map_or(false, |d| d <= 3.0) {
                         let alt = canvas.col(wpos2d).map_or(0, |col| col.alt as i32);
-                        (-8..6).for_each(|z| canvas.map(
-                            Vec3::new(wpos2d.x, wpos2d.y, alt + z),
-                            |b| if z >= 0 {
-                                if b.is_filled() {
-                                    Block::empty()
+                        (-8..6).for_each(|z| {
+                            canvas.map(Vec3::new(wpos2d.x, wpos2d.y, alt + z), |b| {
+                                if z >= 0 {
+                                    if b.is_filled() {
+                                        Block::empty()
+                                    } else {
+                                        b.with_sprite(SpriteKind::Empty)
+                                    }
                                 } else {
-                                    b.with_sprite(SpriteKind::Empty)
+                                    Block::new(BlockKind::Rock, Rgb::new(55, 45, 50))
                                 }
-                            } else {
-                                Block::new(BlockKind::Rock, Rgb::new(55, 45, 50))
-                            },
-                        ));
+                            })
+                        });
                     }
                 });
             },
@@ -625,15 +626,15 @@ impl Site {
                 _ => continue,
             };
 
-            for fill in fills {
-                let aabb = fill.get_bounds(&prim_tree);
+            for (prim, fill) in fills {
+                let aabb = fill.get_bounds(&prim_tree, prim);
 
                 for x in aabb.min.x..aabb.max.x {
                     for y in aabb.min.y..aabb.max.y {
                         for z in aabb.min.z..aabb.max.z {
                             let pos = Vec3::new(x, y, z);
 
-                            if let Some(block) = fill.sample_at(&prim_tree, pos) {
+                            if let Some(block) = fill.sample_at(&prim_tree, prim, pos) {
                                 canvas.set(pos, block);
                             }
                         }
