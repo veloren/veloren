@@ -1,6 +1,6 @@
 pub mod fast_noise;
-pub mod math;
 pub mod map_vec;
+pub mod math;
 pub mod random;
 pub mod sampler;
 pub mod seed_expan;

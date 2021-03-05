@@ -272,11 +272,12 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             .rem_euclid(200.0)
             / 64.0
             - 1.0;
-        let cliff_scale = ((self.sim.gen_ctx.hill_nz.get(wposf.div(128.0).into_array()) as f32 * 1.5 + 0.75)
-            + self.sim.gen_ctx.hill_nz.get(wposf.div(48.0).into_array()) as f32 * 0.1)
-            .clamped(0.0, 1.0).powf(2.0);
-        let cliff_height =
-            sim.get_interpolated(wpos, |chunk| chunk.cliff_height)? * cliff_scale;
+        let cliff_scale =
+            ((self.sim.gen_ctx.hill_nz.get(wposf.div(128.0).into_array()) as f32 * 1.5 + 0.75)
+                + self.sim.gen_ctx.hill_nz.get(wposf.div(48.0).into_array()) as f32 * 0.1)
+                .clamped(0.0, 1.0)
+                .powf(2.0);
+        let cliff_height = sim.get_interpolated(wpos, |chunk| chunk.cliff_height)? * cliff_scale;
         let cliff = if cliff_factor < 0.0 {
             cliff_factor.abs().powf(1.5)
         } else {

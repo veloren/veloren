@@ -1,8 +1,6 @@
 mod house;
 
-pub use self::{
-    house::House,
-};
+pub use self::house::House;
 
 use super::*;
 use crate::util::DHashSet;

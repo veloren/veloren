@@ -60,7 +60,14 @@ pub fn apply_trees_to(canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
     canvas.foreach_col(|canvas, wpos2d, col| {
         let trees = info.chunks().get_near_trees(wpos2d);
 
-        for TreeAttr { pos, seed, scale, forest_kind, inhabited } in trees {
+        for TreeAttr {
+            pos,
+            seed,
+            scale,
+            forest_kind,
+            inhabited,
+        } in trees
+        {
             let tree = if let Some(tree) = tree_cache.entry(pos).or_insert_with(|| {
                 let col = ColumnGen::new(info.chunks()).get((pos, info.index()))?;
 
@@ -127,7 +134,11 @@ pub fn apply_trees_to(canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
                                 ForestKind::Giant => {
                                     break 'model TreeModel::Procedural(
                                         ProceduralTree::generate(
-                                            TreeConfig::giant(&mut RandomPerm::new(seed), scale, inhabited),
+                                            TreeConfig::giant(
+                                                &mut RandomPerm::new(seed),
+                                                scale,
+                                                inhabited,
+                                            ),
                                             &mut RandomPerm::new(seed),
                                         ),
                                         StructureBlock::TemperateLeaves,
@@ -184,7 +195,9 @@ pub fn apply_trees_to(canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
                         TreeModel::Structure(s) => s.get(model_pos).ok().copied(),
                         TreeModel::Procedural(t, leaf_block) => Some(
                             match t.is_branch_or_leaves_at(model_pos.map(|e| e as f32 + 0.5)) {
-                                (_, _, true, _) => StructureBlock::Block(BlockKind::Wood, Rgb::new(110, 68, 22)),
+                                (_, _, true, _) => {
+                                    StructureBlock::Block(BlockKind::Wood, Rgb::new(110, 68, 22))
+                                },
                                 (_, _, _, true) => StructureBlock::None,
                                 (true, _, _, _) => StructureBlock::Log,
                                 (_, true, _, _) => *leaf_block,
@@ -204,9 +217,14 @@ pub fn apply_trees_to(canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
                 )
                 .map(|block| {
                     // Add lights to the tree
-                    if inhabited && last_block.is_air() && block.kind() == BlockKind::Wood && dynamic_rng.gen_range(0..256) == 0 {
+                    if inhabited
+                        && last_block.is_air()
+                        && block.kind() == BlockKind::Wood
+                        && dynamic_rng.gen_range(0..256) == 0
+                    {
                         canvas.set(wpos + Vec3::unit_z(), Block::air(SpriteKind::Lantern));
-                    // Add a snow covering to the block above under certain circumstances
+                    // Add a snow covering to the block above under certain
+                    // circumstances
                     } else if col.snow_cover
                         && ((block.kind() == BlockKind::Leaves && is_leaf_top)
                             || (is_top && block.is_filled()))
@@ -423,8 +441,7 @@ impl ProceduralTree {
 
                 const PHI: f32 = 0.618;
                 const RAD_PER_BRANCH: f32 = f32::consts::TAU * PHI;
-                let screw = (screw_shift + dist * splits as f32 * RAD_PER_BRANCH).sin()
-                    * x_axis
+                let screw = (screw_shift + dist * splits as f32 * RAD_PER_BRANCH).sin() * x_axis
                     + (screw_shift + dist * splits as f32 * RAD_PER_BRANCH).cos() * y_axis;
 
                 // Choose a point close to the branch to act as the target direction for the
@@ -488,7 +505,12 @@ impl ProceduralTree {
     pub fn get_bounds(&self) -> Aabb<f32> { self.branches[self.trunk_idx].aabb }
 
     // Recursively search for branches or leaves by walking the tree's branch graph.
-    fn is_branch_or_leaves_at_inner(&self, pos: Vec3<f32>, parent: &Branch, branch_idx: usize) -> (bool, bool, bool, bool) {
+    fn is_branch_or_leaves_at_inner(
+        &self,
+        pos: Vec3<f32>,
+        parent: &Branch,
+        branch_idx: usize,
+    ) -> (bool, bool, bool, bool) {
         let branch = &self.branches[branch_idx];
         // Always probe the sibling branch, since our AABB doesn't include its bounds
         // (it's not one of our children)
@@ -506,7 +528,8 @@ impl ProceduralTree {
             let siblings = branch_or_leaves | Vec4::from(this);
 
             // Probe the children of this branch
-            let children = branch.child_idx
+            let children = branch
+                .child_idx
                 .map(|idx| Vec4::<bool>::from(self.is_branch_or_leaves_at_inner(pos, branch, idx)))
                 .unwrap_or_default();
 
@@ -521,8 +544,9 @@ impl ProceduralTree {
     /// position in the tree.
     #[inline(always)]
     pub fn is_branch_or_leaves_at(&self, pos: Vec3<f32>) -> (bool, bool, bool, bool) {
-        let (log, leaf, platform, air) = self.is_branch_or_leaves_at_inner(pos, &self.branches[self.trunk_idx], self.trunk_idx);
-        (log /*& !air*/, leaf & !air, platform & !air, air)
+        let (log, leaf, platform, air) =
+            self.is_branch_or_leaves_at_inner(pos, &self.branches[self.trunk_idx], self.trunk_idx);
+        (log /* & !air */, leaf & !air, platform & !air, air)
     }
 }
 
@@ -547,7 +571,11 @@ struct Branch {
 impl Branch {
     /// Determine whether there are either branches or leaves at the given
     /// position in the branch.
-    pub fn is_branch_or_leaves_at(&self, pos: Vec3<f32>, parent: &Branch) -> ((bool, bool, bool, bool), f32) {
+    pub fn is_branch_or_leaves_at(
+        &self,
+        pos: Vec3<f32>,
+        parent: &Branch,
+    ) -> ((bool, bool, bool, bool), f32) {
         // fn finvsqrt(x: f32) -> f32 {
         //     let y = f32::from_bits(0x5f375a86 - (x.to_bits() >> 1));
         //     y * (1.5 - ( x * 0.5 * y * y ))
@@ -588,20 +616,32 @@ impl Branch {
             let stair_thickness = 2.0;
             let stair_space = 5.0;
             if self.has_stairs {
-                let (platform, air) = if pos.z >= self.line.start.z.min(self.line.end.z) - 1.0 && pos.z <= self.line.start.z.max(self.line.end.z) + stair_thickness + stair_space && d2 < (wood_radius + stair_width).powi(2) {
+                let (platform, air) = if pos.z >= self.line.start.z.min(self.line.end.z) - 1.0
+                    && pos.z
+                        <= self.line.start.z.max(self.line.end.z) + stair_thickness + stair_space
+                    && d2 < (wood_radius + stair_width).powi(2)
+                {
                     let rpos = pos.xy() - p;
                     let stretch = 32.0;
-                    let stair_section = ((rpos.x as f32).atan2(rpos.y as f32) / (f32::consts::PI * 2.0) * stretch + pos.z).rem_euclid(stretch);
-                    (stair_section < stair_thickness, stair_section >= stair_thickness && stair_section < stair_thickness + stair_space) // Stairs
+                    let stair_section =
+                        ((rpos.x as f32).atan2(rpos.y as f32) / (f32::consts::PI * 2.0) * stretch
+                            + pos.z)
+                            .rem_euclid(stretch);
+                    (
+                        stair_section < stair_thickness,
+                        stair_section >= stair_thickness
+                            && stair_section < stair_thickness + stair_space,
+                    ) // Stairs
                 } else {
                     (false, false)
                 };
 
-                let platform = platform || (self.has_stairs
-                    && self.wood_radius > 4.0
-                    && !air
-                    && d2 < (wood_radius + 10.0).powi(2)
-                    && pos.z % 48.0 < stair_thickness);
+                let platform = platform
+                    || (self.has_stairs
+                        && self.wood_radius > 4.0
+                        && !air
+                        && d2 < (wood_radius + 10.0).powi(2)
+                        && pos.z % 48.0 < stair_thickness);
 
                 (false, false, platform, air)
             } else {

@@ -1,7 +1,7 @@
-use std::ops::Range;
-use enum_iterator::IntoEnumIterator;
-use vek::*;
 use crate::util::math::close;
+use enum_iterator::IntoEnumIterator;
+use std::ops::Range;
+use vek::*;
 
 #[derive(Copy, Clone, Debug, IntoEnumIterator)]
 pub enum ForestKind {
@@ -33,7 +33,7 @@ impl ForestKind {
             ForestKind::Birch => 0.0..0.6,
             ForestKind::Mangrove => 0.65..1.3,
             ForestKind::Swamp => 0.5..1.1,
-            _ => 0.0..0.0
+            _ => 0.0..0.0,
         }
     }
 
@@ -76,9 +76,11 @@ impl ForestKind {
 
     pub fn proclivity(&self, env: &Environment) -> f32 {
         self.ideal_proclivity()
-        * close(env.humid, self.humid_range())
-        * close(env.temp, self.temp_range())
-        * self.near_water_range().map_or(1.0, |near_water_range| close(env.near_water, near_water_range))
+            * close(env.humid, self.humid_range())
+            * close(env.temp, self.temp_range())
+            * self.near_water_range().map_or(1.0, |near_water_range| {
+                close(env.near_water, near_water_range)
+            })
     }
 }
 

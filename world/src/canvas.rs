@@ -2,9 +2,9 @@ use crate::{
     block::ZCache,
     column::ColumnSample,
     index::IndexRef,
+    land::Land,
     sim::{SimChunk, WorldSim},
     util::Grid,
-    land::Land,
 };
 use common::{
     terrain::{Block, TerrainChunk, TerrainChunkSize},
@@ -48,9 +48,7 @@ impl<'a> CanvasInfo<'a> {
 
     pub fn chunks(&self) -> &'a WorldSim { self.chunks }
 
-    pub fn land(&self) -> Land<'_> {
-        Land::from_sim(self.chunks)
-    }
+    pub fn land(&self) -> Land<'_> { Land::from_sim(self.chunks) }
 }
 
 pub struct Canvas<'a> {
@@ -66,7 +64,11 @@ impl<'a> Canvas<'a> {
     pub fn info(&mut self) -> CanvasInfo<'a> { self.info }
 
     pub fn get(&mut self, pos: Vec3<i32>) -> Block {
-        self.chunk.get(pos - self.wpos()).ok().copied().unwrap_or(Block::empty())
+        self.chunk
+            .get(pos - self.wpos())
+            .ok()
+            .copied()
+            .unwrap_or(Block::empty())
     }
 
     pub fn set(&mut self, pos: Vec3<i32>, block: Block) {

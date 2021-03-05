@@ -161,7 +161,10 @@ pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 .mul(45.0) as i32;
 
             // Generate stalagtites if there's something for them to hold on to
-            if canvas.get(Vec3::new(wpos2d.x, wpos2d.y, cave_roof)).is_filled() {
+            if canvas
+                .get(Vec3::new(wpos2d.x, wpos2d.y, cave_roof))
+                .is_filled()
+            {
                 for z in cave_roof - stalagtites..cave_roof {
                     canvas.set(
                         Vec3::new(wpos2d.x, wpos2d.y, z),

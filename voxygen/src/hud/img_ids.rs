@@ -364,7 +364,7 @@ image_ids! {
         mmap_site_cave_bg: "voxygen.element.map.cave_bg",
         mmap_site_cave_hover: "voxygen.element.map.cave_hover",
         mmap_site_cave: "voxygen.element.map.cave",
-        mmap_site_excl: "voxygen.element.map.excl",        
+        mmap_site_excl: "voxygen.element.map.excl",
 
         // Window Parts
         window_3: "voxygen.element.frames.window_3",

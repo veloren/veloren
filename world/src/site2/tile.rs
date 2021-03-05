@@ -41,13 +41,15 @@ impl TileGrid {
     // WILL NOT EXPAND BOUNDS!
     pub fn get_mut(&mut self, tpos: Vec2<i32>) -> Option<&mut Tile> {
         let tpos = tpos + TILE_RADIUS as i32;
-        self.zones.get_mut(tpos.map(|e| e.div_euclid(ZONE_SIZE as i32))).and_then(|zone| {
-            zone.get_or_insert_with(|| {
-                Grid::populate_from(Vec2::broadcast(ZONE_SIZE as i32), |_| None)
+        self.zones
+            .get_mut(tpos.map(|e| e.div_euclid(ZONE_SIZE as i32)))
+            .and_then(|zone| {
+                zone.get_or_insert_with(|| {
+                    Grid::populate_from(Vec2::broadcast(ZONE_SIZE as i32), |_| None)
+                })
+                .get_mut(tpos.map(|e| e.rem_euclid(ZONE_SIZE as i32)))
+                .map(|tile| tile.get_or_insert_with(|| Tile::empty()))
             })
-            .get_mut(tpos.map(|e| e.rem_euclid(ZONE_SIZE as i32)))
-            .map(|tile| tile.get_or_insert_with(|| Tile::empty()))
-        })
     }
 
     pub fn set(&mut self, tpos: Vec2<i32>, tile: Tile) -> Option<Tile> {
@@ -55,7 +57,11 @@ impl TileGrid {
         self.get_mut(tpos).map(|t| std::mem::replace(t, tile))
     }
 
-    pub fn find_near<R>(&self, tpos: Vec2<i32>, mut f: impl FnMut(Vec2<i32>, &Tile) -> Option<R>) -> Option<(R, Vec2<i32>)> {
+    pub fn find_near<R>(
+        &self,
+        tpos: Vec2<i32>,
+        mut f: impl FnMut(Vec2<i32>, &Tile) -> Option<R>,
+    ) -> Option<(R, Vec2<i32>)> {
         const MAX_SEARCH_RADIUS_BLOCKS: u32 = 70;
         const MAX_SEARCH_CELLS: u32 = ((MAX_SEARCH_RADIUS_BLOCKS / TILE_SIZE) * 2 + 1).pow(2);
         Spiral2d::new()
@@ -64,8 +70,16 @@ impl TileGrid {
             .find_map(|tpos| (&mut f)(tpos, self.get(tpos)).zip(Some(tpos)))
     }
 
-    pub fn grow_aabr(&self, center: Vec2<i32>, area_range: Range<u32>, min_dims: Extent2<u32>) -> Result<Aabr<i32>, Aabr<i32>> {
-        let mut aabr = Aabr { min: center, max: center + 1 };
+    pub fn grow_aabr(
+        &self,
+        center: Vec2<i32>,
+        area_range: Range<u32>,
+        min_dims: Extent2<u32>,
+    ) -> Result<Aabr<i32>, Aabr<i32>> {
+        let mut aabr = Aabr {
+            min: center,
+            max: center + 1,
+        };
 
         if !self.get(center).is_empty() {
             return Err(aabr);
@@ -75,27 +89,42 @@ impl TileGrid {
         for i in 0..32 {
             if i - last_growth >= 4 {
                 break;
-            } else if aabr.size().product() + if i % 2 == 0 { aabr.size().h } else { aabr.size().w } > area_range.end as i32 {
+            } else if aabr.size().product()
+                + if i % 2 == 0 {
+                    aabr.size().h
+                } else {
+                    aabr.size().w
+                }
+                > area_range.end as i32
+            {
                 break;
             } else {
                 // `center.sum()` to avoid biasing certain directions
                 match (i + center.sum().abs()) % 4 {
-                    0 if (aabr.min.y..aabr.max.y + 1).all(|y| self.get(Vec2::new(aabr.max.x, y)).is_empty()) => {
+                    0 if (aabr.min.y..aabr.max.y + 1)
+                        .all(|y| self.get(Vec2::new(aabr.max.x, y)).is_empty()) =>
+                    {
                         aabr.max.x += 1;
                         last_growth = i;
-                    },
-                    1 if (aabr.min.x..aabr.max.x + 1).all(|x| self.get(Vec2::new(x, aabr.max.y)).is_empty()) => {
+                    }
+                    1 if (aabr.min.x..aabr.max.x + 1)
+                        .all(|x| self.get(Vec2::new(x, aabr.max.y)).is_empty()) =>
+                    {
                         aabr.max.y += 1;
                         last_growth = i;
-                    },
-                    2 if (aabr.min.y..aabr.max.y + 1).all(|y| self.get(Vec2::new(aabr.min.x - 1, y)).is_empty()) => {
+                    }
+                    2 if (aabr.min.y..aabr.max.y + 1)
+                        .all(|y| self.get(Vec2::new(aabr.min.x - 1, y)).is_empty()) =>
+                    {
                         aabr.min.x -= 1;
                         last_growth = i;
-                    },
-                    3 if (aabr.min.x..aabr.max.x + 1).all(|x| self.get(Vec2::new(x, aabr.min.y - 1)).is_empty()) => {
+                    }
+                    3 if (aabr.min.x..aabr.max.x + 1)
+                        .all(|x| self.get(Vec2::new(x, aabr.min.y - 1)).is_empty()) =>
+                    {
                         aabr.min.y -= 1;
                         last_growth = i;
-                    },
+                    }
                     _ => {},
                 }
             }
@@ -111,7 +140,12 @@ impl TileGrid {
         }
     }
 
-    pub fn grow_organic(&self, rng: &mut impl Rng, center: Vec2<i32>, area_range: Range<u32>) -> Result<DHashSet<Vec2<i32>>, DHashSet<Vec2<i32>>> {
+    pub fn grow_organic(
+        &self,
+        rng: &mut impl Rng,
+        center: Vec2<i32>,
+        area_range: Range<u32>,
+    ) -> Result<DHashSet<Vec2<i32>>, DHashSet<Vec2<i32>>> {
         let mut tiles = DHashSet::default();
         let mut open = Vec::new();
 
@@ -165,26 +199,16 @@ impl Tile {
     }
 
     /// Create a tile that is not associated with any plot.
-    pub const fn free(kind: TileKind) -> Self {
-        Self {
-            kind,
-            plot: None,
-        }
-    }
+    pub const fn free(kind: TileKind) -> Self { Self { kind, plot: None } }
 
     pub fn is_empty(&self) -> bool { self.kind == TileKind::Empty }
 
-    pub fn is_road(&self) -> bool {
-        matches!(self.kind, TileKind::Road { .. })
-    }
+    pub fn is_road(&self) -> bool { matches!(self.kind, TileKind::Road { .. }) }
 
     pub fn is_obstacle(&self) -> bool {
         matches!(
             self.kind,
-            TileKind::Hazard(_)
-            | TileKind::Building
-            | TileKind::Castle
-            | TileKind::Wall
+            TileKind::Hazard(_) | TileKind::Building | TileKind::Castle | TileKind::Wall
         )
     }
 }

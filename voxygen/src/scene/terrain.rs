@@ -3,7 +3,7 @@ mod watcher;
 pub use self::watcher::BlocksOfInterest;
 
 use crate::{
-    mesh::{greedy::GreedyMesh, Meshable, terrain::SUNLIGHT},
+    mesh::{greedy::GreedyMesh, terrain::SUNLIGHT, Meshable},
     render::{
         ColLightFmt, ColLightInfo, Consts, FluidPipeline, GlobalModel, Instances, Mesh, Model,
         RenderError, Renderer, ShadowPipeline, SpriteInstance, SpriteLocals, SpritePipeline,
@@ -524,22 +524,35 @@ impl<V: RectRasterableVol> Terrain<V> {
                     .map(|c| c.blocks_of_interest.lights.iter())
                     .into_iter()
                     .flatten()
-                    .map(move |(lpos, level)| (Vec3::<i32>::from(chunk_pos * TerrainChunk::RECT_SIZE.map(|e| e as i32)) + *lpos, level))
+                    .map(move |(lpos, level)| {
+                        (
+                            Vec3::<i32>::from(
+                                chunk_pos * TerrainChunk::RECT_SIZE.map(|e| e as i32),
+                            ) + *lpos,
+                            level,
+                        )
+                    })
             })
             .flatten()
-            .fold((Vec3::broadcast(0.001), 0.0, 0.0f32), |(bias, total, max), (lpos, level)| {
-                let rpos = lpos.map(|e| e as f32 + 0.5) - wpos;
-                let level = (*level as f32 - rpos.magnitude()).max(0.0) / SUNLIGHT as f32;
-                (
-                    bias + rpos.try_normalized().unwrap_or_else(Vec3::zero) * level,
-                    total + level,
-                    max.max(level),
-                )
-            });
+            .fold(
+                (Vec3::broadcast(0.001), 0.0, 0.0f32),
+                |(bias, total, max), (lpos, level)| {
+                    let rpos = lpos.map(|e| e as f32 + 0.5) - wpos;
+                    let level = (*level as f32 - rpos.magnitude()).max(0.0) / SUNLIGHT as f32;
+                    (
+                        bias + rpos.try_normalized().unwrap_or_else(Vec3::zero) * level,
+                        total + level,
+                        max.max(level),
+                    )
+                },
+            );
 
         let bias_factor = bias.magnitude() * (1.0 - AMBIANCE) / total.max(0.001);
 
-        (bias.try_normalized().unwrap_or_else(Vec3::zero) * bias_factor.powf(0.5), self.glow_at_wpos(wpos.map(|e| e.floor() as i32)))
+        (
+            bias.try_normalized().unwrap_or_else(Vec3::zero) * bias_factor.powf(0.5),
+            self.glow_at_wpos(wpos.map(|e| e.floor() as i32)),
+        )
     }
 
     /// Maintain terrain data. To be called once per tick.
@@ -630,21 +643,19 @@ impl<V: RectRasterableVol> Terrain<V> {
         // be meshed
         span!(guard, "Add chunks with modified blocks to mesh todo list");
         // TODO: would be useful if modified blocks were grouped by chunk
-        for (&pos, &block) in scene_data
-            .state
-            .terrain_changes()
-            .modified_blocks
-            .iter()
-        {
-            // TODO: Be cleverer about this to avoid remeshing all neighbours. There are a few things that can create
-            // an 'effect at a distance'. These are as follows:
-            // - A glowing block is added or removed, thereby causing a lighting recalculation proportional to its glow
-            //   radius.
-            // - An opaque block that was blocking sunlight from entering a cavity is removed (or added) thereby
+        for (&pos, &block) in scene_data.state.terrain_changes().modified_blocks.iter() {
+            // TODO: Be cleverer about this to avoid remeshing all neighbours. There are a
+            // few things that can create an 'effect at a distance'. These are
+            // as follows:
+            // - A glowing block is added or removed, thereby causing a lighting
+            //   recalculation proportional to its glow radius.
+            // - An opaque block that was blocking sunlight from entering a cavity is
+            //   removed (or added) thereby
             // changing the way that sunlight propagates into the cavity.
             //
-            // We can and should be cleverer about this, but it's non-trivial. For now, just conservatively assume that
-            // the lighting in all neighbouring chunks is invalidated. Thankfully, this doesn't need to happen often
+            // We can and should be cleverer about this, but it's non-trivial. For now, just
+            // conservatively assume that the lighting in all neighbouring
+            // chunks is invalidated. Thankfully, this doesn't need to happen often
             // because block modification is unusual in Veloren.
             // let block_effect_radius = block.get_glow().unwrap_or(0).max(1);
             let block_effect_radius = crate::mesh::terrain::MAX_LIGHT_DIST;

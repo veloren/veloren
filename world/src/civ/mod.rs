@@ -7,10 +7,9 @@ use crate::{
     config::CONFIG,
     sim::WorldSim,
     site::{namegen::NameGen, Castle, Dungeon, Settlement, Site as WorldSite},
-    util::{attempt, seed_expan, MapVec, CARDINALS, NEIGHBORS},
     site2,
-    Index,
-    Land,
+    util::{attempt, seed_expan, MapVec, CARDINALS, NEIGHBORS},
+    Index, Land,
 };
 use common::{
     astar::Astar,
@@ -216,9 +215,11 @@ impl Civs {
                 SiteKind::Castle => {
                     WorldSite::castle(Castle::generate(wpos, Some(ctx.sim), &mut rng))
                 },
-                SiteKind::Refactor => {
-                    WorldSite::refactor(site2::Site::generate(&Land::from_sim(&ctx.sim), &mut rng, wpos))
-                },
+                SiteKind::Refactor => WorldSite::refactor(site2::Site::generate(
+                    &Land::from_sim(&ctx.sim),
+                    &mut rng,
+                    wpos,
+                )),
             });
             sim_site.site_tmp = Some(site);
             let site_ref = &index.sites[site];

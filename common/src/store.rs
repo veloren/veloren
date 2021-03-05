@@ -1,5 +1,5 @@
 use std::{
-    cmp::{Eq, PartialEq, Ord, PartialOrd, Ordering},
+    cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd},
     fmt, hash,
     marker::PhantomData,
     ops::{Index, IndexMut},
@@ -30,14 +30,10 @@ impl<T> PartialEq for Id<T> {
     fn eq(&self, other: &Self) -> bool { self.idx == other.idx && self.gen == other.gen }
 }
 impl<T> Ord for Id<T> {
-    fn cmp(&self, other: &Self) -> Ordering {
-        (self.idx, self.gen).cmp(&(other.idx, other.gen))
-    }
+    fn cmp(&self, other: &Self) -> Ordering { (self.idx, self.gen).cmp(&(other.idx, other.gen)) }
 }
 impl<T> PartialOrd for Id<T> {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> { Some(self.cmp(other)) }
 }
 impl<T> fmt::Debug for Id<T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -77,9 +73,7 @@ impl<T> Default for Store<T> {
 }
 
 impl<T> Store<T> {
-    pub fn len(&self) -> usize {
-        self.len
-    }
+    pub fn len(&self) -> usize { self.len }
 
     pub fn contains(&self, id: Id<T>) -> bool {
         self.entries

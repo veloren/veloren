@@ -586,8 +586,10 @@ impl<'a> Widget for Map<'a> {
                     if show_caves {
                         site_btn.set(state.ids.mmap_site_icons[i], ui);
                     }
-                }, 
-                _ =>  {site_btn.set(state.ids.mmap_site_icons[i], ui);},              
+                },
+                _ => {
+                    site_btn.set(state.ids.mmap_site_icons[i], ui);
+                },
             }
 
             // Difficulty from 0-6

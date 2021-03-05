@@ -166,7 +166,11 @@ pub fn sample_pos(
         });
 
     let downhill_wpos = downhill.unwrap_or(wpos + TerrainChunkSize::RECT_SIZE.map(|e| e as i32));
-    let alt = if is_basement { basement } else { column_rgb_alt.map_or(alt, |(_, alt)| alt) };
+    let alt = if is_basement {
+        basement
+    } else {
+        column_rgb_alt.map_or(alt, |(_, alt)| alt)
+    };
 
     let true_water_alt = (alt.max(water_alt) as f64 - focus.z) / gain as f64;
     let true_alt = (alt as f64 - focus.z) / gain as f64;

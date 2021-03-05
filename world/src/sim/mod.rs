@@ -29,22 +29,22 @@ use crate::{
     column::ColumnGen,
     site::Site,
     util::{
-        seed_expan, FastNoise, FastNoise2d, RandomField, RandomPerm, Sampler, StructureGen2d, LOCALITY,
-        NEIGHBORS, CARDINALS, DHashSet,
+        seed_expan, DHashSet, FastNoise, FastNoise2d, RandomField, RandomPerm, Sampler,
+        StructureGen2d, CARDINALS, LOCALITY, NEIGHBORS,
     },
     IndexRef, CONFIG,
 };
 use common::{
     assets::{self, AssetExt},
     grid::Grid,
+    lottery::Lottery,
+    spiral::Spiral2d,
     store::Id,
     terrain::{
         map::MapConfig, uniform_idx_as_vec2, vec2_as_uniform_idx, BiomeKind, MapSizeLg,
         TerrainChunkSize,
     },
     vol::RectVolSize,
-    lottery::Lottery,
-    spiral::Spiral2d,
 };
 use common_net::msg::WorldMapMsg;
 use enum_iterator::IntoEnumIterator;
@@ -1535,7 +1535,10 @@ impl WorldSim {
                     pos += CARDINALS
                         .iter()
                         .copied()
-                        .max_by_key(|rpos| self.get_gradient_approx(pos + rpos).map_or(0, |g| (g * 1000.0) as i32))
+                        .max_by_key(|rpos| {
+                            self.get_gradient_approx(pos + rpos)
+                                .map_or(0, |g| (g * 1000.0) as i32)
+                        })
                         .unwrap(); // Can't fail
                 } else {
                     break;
@@ -1563,8 +1566,8 @@ impl WorldSim {
             //     self.get_mut(locs[2].0).unwrap().cliff.0.neighbors |=
             //         1 << ((to_next_idx as u8 + 4) % 8);
 
-            //     self.get_mut(locs[1].0).unwrap().cliff.0.offset = Vec2::new(rng.gen_range(-16..17), rng.gen_range(-16..17));
-            // }
+            //     self.get_mut(locs[1].0).unwrap().cliff.0.offset =
+            // Vec2::new(rng.gen_range(-16..17), rng.gen_range(-16..17)); }
 
             for cliff in cliffs {
                 let alt = self.get(cliff).map_or(0.0, |c| c.alt);
@@ -2076,21 +2079,30 @@ impl WorldSim {
                 let env = Environment {
                     humid: chunk.humidity,
                     temp: chunk.temp,
-                    near_water: if chunk.river.is_lake() || chunk.river.near_river() { 1.0 } else { 0.0 },
+                    near_water: if chunk.river.is_lake() || chunk.river.near_river() {
+                        1.0
+                    } else {
+                        0.0
+                    },
                 };
                 Some(TreeAttr {
                     pos,
                     seed,
                     scale: 1.0,
-                    forest_kind: *Lottery::from(ForestKind::into_enum_iter()
-                        .enumerate()
-                        .map(|(i, fk)| {
-                            const CLUSTER_SIZE: f64 = 48.0;
-                            let nz = (FastNoise2d::new(i as u32 * 37).get(pos.map(|e| e as f64) / CLUSTER_SIZE) + 1.0) / 2.0;
-                            (fk.proclivity(&env) * nz, fk)
-                        })
-                        .collect::<Vec<_>>())
-                        .choose_seeded(seed),
+                    forest_kind: *Lottery::from(
+                        ForestKind::into_enum_iter()
+                            .enumerate()
+                            .map(|(i, fk)| {
+                                const CLUSTER_SIZE: f64 = 48.0;
+                                let nz = (FastNoise2d::new(i as u32 * 37)
+                                    .get(pos.map(|e| e as f64) / CLUSTER_SIZE)
+                                    + 1.0)
+                                    / 2.0;
+                                (fk.proclivity(&env) * nz, fk)
+                            })
+                            .collect::<Vec<_>>(),
+                    )
+                    .choose_seeded(seed),
                     inhabited: false,
                 })
             });
@@ -2344,7 +2356,11 @@ impl SimChunk {
                 let env = Environment {
                     humid: humidity,
                     temp,
-                    near_water: if river.is_lake() || river.near_river() { 1.0 } else { 0.0 },
+                    near_water: if river.is_lake() || river.near_river() {
+                        1.0
+                    } else {
+                        0.0
+                    },
                 };
 
                 ForestKind::into_enum_iter()
@@ -2393,7 +2409,5 @@ impl SimChunk {
         }
     }
 
-    pub fn near_cliffs(&self) -> bool {
-        self.cliff_height > 0.0
-    }
+    pub fn near_cliffs(&self) -> bool { self.cliff_height > 0.0 }
 }
