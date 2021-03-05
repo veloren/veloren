@@ -1,0 +1,13 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for "global" English
+(
+    string_map: {
+        "esc_menu.logout": "Déconnexion",
+        "esc_menu.quit_game": "Quitter le jeu",
+    },
+
+
+    vector_map: {
+    }
+)

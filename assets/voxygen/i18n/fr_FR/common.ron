@@ -1,0 +1,70 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for "global" English
+(
+    string_map: {
+        "common.username": "Nom d'utilisateur",
+        "common.singleplayer": "Solo",
+        "common.multiplayer": "Multijoueur",
+        "common.servers": "Serveurs",
+        "common.quit": "Quitter",
+        "common.settings": "Paramètres",
+        "common.languages": "Langues",
+        "common.interface": "Interface",
+        "common.gameplay": "Gameplay",
+        "common.controls": "Contrôles",
+        "common.video": "Vidéo",
+        "common.sound": "Audio",
+        "common.resume": "Reprendre",
+        "common.characters": "Personages",
+        "common.close": "Fermer",
+        "common.yes": "Oui",
+        "common.no": "Non",
+        "common.back": "Retour",
+        "common.create": "Créer",
+        "common.okay": "Compris",
+        "common.add": "Ajouter",
+        "common.accept": "Accepter",
+        "common.decline": "Refuser",
+        "common.disclaimer": "Avertissement",
+        "common.cancel": "Annuler",
+        "common.none": "Aucun",
+        "common.error": "Erreur",
+        "common.fatal_error": "Erreur Fatale",
+        "common.you": "Toi",
+        "common.automatic": "Auto",
+        "common.random": "Aléatoire",
+        // Settings Window title
+        "common.interface_settings": "Options de l'interface",
+        "common.gameplay_settings": "Options de gameplay",
+        "common.controls_settings": "Configuration clavier",
+        "common.video_settings": "Options Vidéo",
+        "common.sound_settings": "Options Audio",
+        "common.language_settings": "Langage",
+
+        // Message when connection to the server is lost
+        "common.connection_lost": r#"Connexion perdue !
+Le serveur a-t-il redémarré?
+Le client est-il à jour?"#,
+
+
+        "common.species.orc": "Orc",
+        "common.species.human": "Humain",
+        "common.species.dwarf": "Nain",
+        "common.species.elf": "Elfe",
+        "common.species.undead": "Mort-vivant",
+        "common.species.danari": "Danari",
+
+        "common.weapons.axe": "Hâche",
+        "common.weapons.sword": "Épée",
+        "common.weapons.staff": "Bâton",
+        "common.weapons.bow": "Arc",
+        "common.weapons.hammer": "Marteau",
+        "common.weapons.sceptre": "Sceptre de soin",
+        "common.rand_appearance": "Apparence et nom aléatoire",
+    },
+
+
+    vector_map: {
+    }
+)

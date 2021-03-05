@@ -1,0 +1,27 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for "global" English
+(
+    string_map: {
+        // Carte et journal de quetes
+        "hud.map.map_title": "Carte",
+        "hud.map.qlog_title": "Quêtes",
+        "hud.map.difficulty": "Difficulté",
+        "hud.map.towns": "Villes",
+        "hud.map.castles": "Châteaux",
+        "hud.map.dungeons": "Donjons",        
+        "hud.map.caves": "Cavernes",
+        "hud.map.cave": "Caverne",
+        "hud.map.town": "Ville",
+        "hud.map.castle": "Château",
+        "hud.map.dungeon": "Donjon",
+        "hud.map.difficulty_dungeon": "Difficulté\n\ndu Donjon: {difficulty}",
+        "hud.map.drag": "Déplacer",
+        "hud.map.zoom": "Zoomer",
+        "hud.map.recenter": "Recentrer",
+    },
+
+
+    vector_map: {
+    }
+)

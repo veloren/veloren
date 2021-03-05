@@ -1,0 +1,37 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for "global" English
+(
+    string_map: {
+        // Sorties Tchat
+        "hud.chat.online_msg": "[{name}] est maintenant en ligne.",
+        "hud.chat.offline_msg": "[{name}] s'est déconnecté.",
+
+        "hud.chat.default_death_msg": "[{name}] est mort",
+        "hud.chat.environmental_kill_msg": "[{name}] est mort dans {environment}",
+        "hud.chat.fall_kill_msg": "[{name}] est mort de dégâts de chute",
+        "hud.chat.suicide_msg": "[{name}] est mort des suites de ses propres blessures",
+
+        "hud.chat.pvp_melee_kill_msg": "[{attacker}] a tué [{victim}]",
+        "hud.chat.pvp_ranged_kill_msg": "[{attacker}] a tiré sur [{victim}]",
+        "hud.chat.pvp_explosion_kill_msg": "[{attacker}] a explosé [{victim}]",
+        "hud.chat.pvp_energy_kill_msg": "[{attacker}] a tué [{victim}] avec de la magie",
+        "hud.chat.pvp_buff_kill_msg": "[{attacker}] a tué [{victim}]",
+
+
+        "hud.chat.npc_melee_kill_msg": "{attacker} a tué [{victim}]",
+        "hud.chat.npc_ranged_kill_msg": "{attacker} a tiré sur [{victim}]",
+        "hud.chat.npc_explosion_kill_msg": "{attacker} a fait exploser [{victim}]",
+        "hud.chat.npc_energy_kill_msg": "[{attacker}] a tué [{victim}] avec de la magie",
+        "hud.chat.npc_other_kill_msg": "[{attacker}] a tué [{victim}]",
+
+        "hud.chat.loot_msg": "Vous avez ramassé [{item}]",
+        "hud.chat.loot_fail": "Votre inventaire est plein !",
+        "hud.chat.goodbye": "Au revoir!",
+        "hud.chat.connection_lost": "Connexion perdue. Expulsion dans {time} secondes.",
+    },
+
+
+    vector_map: {
+    }
+)
