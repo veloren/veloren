@@ -287,7 +287,7 @@ impl Site {
 
         site.make_plaza(land, &mut rng);
 
-        let build_chance = Lottery::from(vec![(64.0, 1), (5.0, 2), (20.0, 3), (0.75, 4)]);
+        let build_chance = Lottery::from(vec![(64.0, 1), (5.0, 2), (8.0, 3), (0.75, 4)]);
 
         let mut castles = 0;
 
