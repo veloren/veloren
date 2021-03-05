@@ -178,6 +178,7 @@ pub enum TileKind {
     Empty,
     Hazard(HazardKind),
     Field,
+    Plaza,
     Road { a: u16, b: u16, w: u16 },
     Building,
     Castle,

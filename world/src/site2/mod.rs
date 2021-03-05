@@ -138,14 +138,17 @@ impl Site {
         for (i, &tile) in path.iter().enumerate() {
             for y in range.clone() {
                 for x in range.clone() {
-                    self.tiles.set(tile + Vec2::new(x, y), Tile {
-                        kind: TileKind::Road {
-                            a: i.saturating_sub(1) as u16,
-                            b: (i + 1).min(path.len() - 1) as u16,
-                            w,
-                        },
-                        plot: Some(plot),
-                    });
+                    let tile = tile + Vec2::new(x, y);
+                    if self.tiles.get(tile).is_empty() {
+                        self.tiles.set(tile, Tile {
+                            kind: TileKind::Road {
+                                a: i.saturating_sub(1) as u16,
+                                b: (i + 1).min(path.len() - 1) as u16,
+                                w,
+                            },
+                            plot: Some(plot),
+                        });
+                    }
                 }
             }
         }
@@ -232,7 +235,7 @@ impl Site {
         });
         self.plazas.push(plaza);
         self.blit_aabr(aabr, Tile {
-            kind: TileKind::Road { a: 0, b: 0, w: 0 },
+            kind: TileKind::Plaza,
             plot: Some(plaza),
         });
 
@@ -466,85 +469,42 @@ impl Site {
             .flatten();
 
         match &tile.kind {
-            TileKind::Empty | TileKind::Hazard(_) => {},
-            // TileKind::Road => {
-            //     let near_roads = CARDINALS
-            //         .map(|rpos| if self.tiles.get(tpos + rpos) == tile {
-            //             Some(LineSegment2 {
-            //                 start: self.tile_center_wpos(tpos).map(|e| e as f32),
-            //                 end: self.tile_center_wpos(tpos + rpos).map(|e| e as f32),
-            //             })
-            //         } else {
-            //             None
-            //         });
+            TileKind::Plaza => {
+                let near_roads = CARDINALS
+                    .iter()
+                    .filter_map(|rpos| if self.tiles.get(tpos + rpos) == tile {
+                        Some(Aabr {
+                            min: self.tile_wpos(tpos).map(|e| e as f32),
+                            max: self.tile_wpos(tpos + 1).map(|e| e as f32),
+                        })
+                    } else {
+                        None
+                    });
 
-            //     let near_roads = CARDINALS
-            //         .iter()
-            //         .filter_map(|rpos| if self.tiles.get(tpos + rpos) == tile {
-            //             Some(Aabr {
-            //                 min: self.tile_wpos(tpos).map(|e| e as f32),
-            //                 max: self.tile_wpos(tpos + 1).map(|e| e as f32),
-            //             })
-            //         } else {
-            //             None
-            //         });
+                cols.for_each(|(wpos2d, offs)| {
+                    let wpos2df = wpos2d.map(|e| e as f32);
+                    let dist = near_roads
+                        .clone()
+                        .map(|aabr| aabr.distance_to_point(wpos2df))
+                        .min_by_key(|d| (*d * 100.0) as i32);
 
-            //     // cols.for_each(|(wpos2d, offs)| {
-            //     //     let wpos2df = wpos2d.map(|e| e as f32);
-            //     //     let nearest_road = near_roads
-            //     //         .iter()
-            //     //         .copied()
-            //     //         .filter_map(|line| Some(line?.projected_point(wpos2df)))
-            //     //         .min_by_key(|p| p.distance_squared(wpos2df) as i32);
-
-            //     //     let is_near_road = nearest_road.map_or(false, |r|
-            // r.distance_squared(wpos2df) < 3.0f32.powi(2));
-
-            //     //     if let Some(nearest_road) = nearest_road
-            //     //         .filter(|r| r.distance_squared(wpos2df) < 6.0f32.powi(2))
-            //     //     {
-            //     //         let road_alt = canvas.col(nearest_road.map(|e| e.floor() as
-            // i32)).map_or(0, |col| col.alt as i32);     //
-            // (-4..5).for_each(|z| canvas.map(     //             Vec3::new(wpos2d.x,
-            // wpos2d.y, road_alt + z),     //             |b| if z > 0 {
-            //     //                 Block::air(SpriteKind::Empty)
-            //     //             } else {
-            //     //                 Block::new(BlockKind::Rock, Rgb::new(55, 45, 65))
-            //     //             },
-            //     //         ));
-            //     //     }
-            //     // });
-
-            //     cols.for_each(|(wpos2d, offs)| {
-            //         let wpos2df = wpos2d.map(|e| e as f32);
-
-            //         let dist = near_roads
-            //             .clone()
-            //             .map(|aabr| aabr.distance_to_point(wpos2df).powi(2))
-            //             .sum::<f32>()
-            //             .sqrt();
-
-            //         if dist < 4.0 {
-            //             let mut z = canvas.col(wpos2d).map_or(0, |col| col.alt as i32) + 8;
-            //             for _ in 0..16 {
-            //                 let pos = Vec3::new(wpos2d.x, wpos2d.y, z);
-            //                 z -= 1;
-            //                 if !canvas.get(pos).is_filled() {
-            //                     canvas.map(pos, |b| b.with_sprite(SpriteKind::Empty));
-            //                 } else {
-            //                     canvas.set(pos, Block::empty());
-            //                     break;
-            //                 }
-            //             }
-
-            //             for _ in 0..2 {
-            //                 let pos = Vec3::new(wpos2d.x, wpos2d.y, z);
-            //                 z -= 1;
-            //                 canvas.set(pos, Block::new(BlockKind::Rock, Rgb::new(55, 45, 50)));
-            //             }
-            //         }
-            //     });
-            // },
+                    if dist.map_or(false, |d| d <= 3.0) {
+                        let alt = canvas.col(wpos2d).map_or(0, |col| col.alt as i32);
+                        (-8..6).for_each(|z| canvas.map(
+                            Vec3::new(wpos2d.x, wpos2d.y, alt + z),
+                            |b| if z >= 0 {
+                                if b.is_filled() {
+                                    Block::empty()
+                                } else {
+                                    b.with_sprite(SpriteKind::Empty)
+                                }
+                            } else {
+                                Block::new(BlockKind::Rock, Rgb::new(55, 45, 50))
+                            },
+                        ));
+                    }
+                });
+            },
             _ => {},
         }
     }
@@ -577,23 +537,19 @@ impl Site {
                 .min_by_key(|d| (*d * 100.0) as i32);
 
             if dist.map_or(false, |d| d <= 0.75) {
-                let mut z = canvas.col(wpos2d).map_or(0, |col| col.alt as i32) + 8;
-                for _ in 0..16 {
-                    let pos = Vec3::new(wpos2d.x, wpos2d.y, z);
-                    z -= 1;
-                    if !canvas.get(pos).is_filled() {
-                        canvas.map(pos, |b| b.with_sprite(SpriteKind::Empty));
+                let alt = canvas.col(wpos2d).map_or(0, |col| col.alt as i32);
+                (-6..4).for_each(|z| canvas.map(
+                    Vec3::new(wpos2d.x, wpos2d.y, alt + z),
+                    |b| if z >= 0 {
+                        if b.is_filled() {
+                            Block::empty()
+                        } else {
+                            b.with_sprite(SpriteKind::Empty)
+                        }
                     } else {
-                        canvas.set(pos, Block::empty());
-                        break;
-                    }
-                }
-
-                for _ in 0..2 {
-                    let pos = Vec3::new(wpos2d.x, wpos2d.y, z);
-                    z -= 1;
-                    canvas.set(pos, Block::new(BlockKind::Rock, Rgb::new(55, 45, 50)));
-                }
+                        Block::new(BlockKind::Rock, Rgb::new(55, 45, 50))
+                    },
+                ));
             }
 
             let tile = self.wpos_tile(wpos2d);

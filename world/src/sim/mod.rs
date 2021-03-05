@@ -2098,11 +2098,13 @@ impl WorldSim {
                                     .get(pos.map(|e| e as f64) / CLUSTER_SIZE)
                                     + 1.0)
                                     / 2.0;
-                                (fk.proclivity(&env) * nz, fk)
+                                (fk.proclivity(&env) * nz, Some(fk))
                             })
+                            .chain(std::iter::once((0.001, None)))
                             .collect::<Vec<_>>(),
                     )
-                    .choose_seeded(seed),
+                    .choose_seeded(seed)
+                    .as_ref()?,
                     inhabited: false,
                 })
             });
