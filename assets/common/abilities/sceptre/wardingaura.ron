@@ -10,5 +10,5 @@ CastAura(
         category: Magical,
     ),
     range: 25.0,
-    energy_cost: 400,
+    energy_cost: 00,
 )

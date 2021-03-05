@@ -8,7 +8,10 @@ use crate::{
 };
 use common::{
     assets::{AssetExt, DotVoxAsset},
-    comp::{beam, item::Reagent, object, BeamSegment, Body, CharacterState, Ori, Pos, Shockwave},
+    comp::{
+        self, aura, beam, buff, item::Reagent, object, BeamSegment, Body, CharacterState, Ori, Pos,
+        Shockwave,
+    },
     figure::Segment,
     outcome::Outcome,
     resources::DeltaTime,
@@ -179,6 +182,7 @@ impl ParticleMgr {
             self.maintain_beam_particles(scene_data, lights);
             self.maintain_block_particles(scene_data, terrain);
             self.maintain_shockwave_particles(scene_data);
+            self.maintain_aura_particles(scene_data);
         } else {
             // remove all particle lifespans
             self.particles.clear();
@@ -464,6 +468,48 @@ impl ParticleMgr {
                         ));
                     }
                 },
+            }
+        }
+    }
+
+    fn maintain_aura_particles(&mut self, scene_data: &SceneData) {
+        let state = scene_data.state;
+        let ecs = state.ecs();
+        let time = state.get_time();
+
+        for (pos, auras) in (
+            &ecs.read_storage::<Pos>(),
+            &ecs.read_storage::<comp::Auras>(),
+        )
+            .join()
+        {
+            for (_, aura) in auras.auras.iter() {
+                #[allow(clippy::single_match)]
+                match aura.aura_kind {
+                    aura::AuraKind::Buff {
+                        kind: buff::BuffKind::ProtectingWard,
+                        ..
+                    } => {
+                        let mut rng = thread_rng();
+                        let heartbeats = self.scheduler.heartbeats(Duration::from_millis(5));
+                        self.particles.resize_with(
+                            self.particles.len()
+                                + aura.radius.powi(2) as usize * usize::from(heartbeats) / 300,
+                            || {
+                                let rand_dist = aura.radius * (1.0 - rng.gen::<f32>().powi(100));
+                                let init_pos = Vec3::new(rand_dist, 0_f32, 0_f32);
+                                Particle::new_directed(
+                                    aura.duration.unwrap_or_else(|| Duration::from_secs(1)),
+                                    time,
+                                    ParticleMode::EnergyNature,
+                                    pos.0,
+                                    pos.0 + init_pos,
+                                )
+                            },
+                        );
+                    },
+                    _ => {},
+                }
             }
         }
     }
