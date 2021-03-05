@@ -350,6 +350,10 @@ impl<'a> System<'a> for Sys {
 
             local_emitter.append(&mut state_update.local_events);
             server_emitter.append(&mut state_update.server_events);
+            join_struct
+                .controller
+                .queued_inputs
+                .append(&mut state_update.queued_inputs);
             incorporate_update(&mut join_struct, state_update);
         }
     }

@@ -26,7 +26,7 @@ use common::{
         invite::{InviteKind, InviteResponse},
         skills::Skill,
         slot::Slot,
-        ChatMode, ControlAction, ControlEvent, Controller, ControllerInputs, GroupManip,
+        ChatMode, ControlAction, ControlEvent, Controller, ControllerInputs, GroupManip, InputKind,
         InventoryAction, InventoryEvent, InventoryUpdateEvent,
     },
     event::{EventBus, LocalEvent},
@@ -60,7 +60,7 @@ use num::traits::FloatConst;
 use rayon::prelude::*;
 use specs::Component;
 use std::{
-    collections::VecDeque,
+    collections::{BTreeSet, VecDeque},
     sync::Arc,
     time::{Duration, Instant},
 };
@@ -991,6 +991,17 @@ impl Client {
         }
     }
 
+    pub fn handle_input(&mut self, input: InputKind, pressed: bool) {
+        if pressed {
+            self.control_action(ControlAction::StartInput {
+                ability: input,
+                target: None,
+            });
+        } else {
+            self.control_action(ControlAction::CancelInput);
+        }
+    }
+
     fn control_action(&mut self, control_action: ControlAction) {
         if let Some(controller) = self
             .state
@@ -1133,6 +1144,7 @@ impl Client {
                     entry
                         .or_insert_with(|| Controller {
                             inputs: inputs.clone(),
+                            queued_inputs: BTreeSet::new(),
                             events: Vec::new(),
                             actions: Vec::new(),
                         })

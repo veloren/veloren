@@ -1,8 +1,8 @@
 use crate::{
     comp::{
         item::MaterialStatManifest, Beam, Body, CharacterState, Combo, ControlAction, Controller,
-        ControllerInputs, Energy, Health, Inventory, InventoryAction, Melee, Ori, PhysicsState,
-        Pos, StateUpdate, Stats, Vel,
+        ControllerInputs, Energy, Health, InputKind, Inventory, InventoryAction, Melee, Ori,
+        PhysicsState, Pos, StateUpdate, Stats, Vel,
     },
     resources::DeltaTime,
     uid::Uid,
@@ -29,6 +29,12 @@ pub trait CharacterBehavior {
     fn sneak(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
     fn stand(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
     fn talk(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
+    fn handle_input(&self, data: &JoinData, input: InputKind, _target: Option<Uid>) -> StateUpdate {
+        let mut update = StateUpdate::from(data);
+        update.queued_inputs.insert(input);
+        update
+    }
+    fn cancel_input(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
     fn handle_event(&self, data: &JoinData, event: ControlAction) -> StateUpdate {
         match event {
             ControlAction::SwapEquippedWeapons => self.swap_equipped_weapons(data),
@@ -41,6 +47,10 @@ pub trait CharacterBehavior {
             ControlAction::Sneak => self.sneak(data),
             ControlAction::Stand => self.stand(data),
             ControlAction::Talk => self.talk(data),
+            ControlAction::StartInput { ability, target } => {
+                self.handle_input(data, ability, target)
+            },
+            ControlAction::CancelInput => self.cancel_input(data),
         }
     }
     // fn init(data: &JoinData) -> CharacterState;

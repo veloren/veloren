@@ -5,7 +5,7 @@ use crate::{
         item::{Hands, ItemKind, Tool, ToolKind},
         quadruped_low, quadruped_medium, quadruped_small,
         skills::Skill,
-        theropod, Body, CharacterAbility, CharacterState, InventoryAction, StateUpdate,
+        theropod, Body, CharacterAbility, CharacterState, InputKind, InventoryAction, StateUpdate,
     },
     consts::{FRIC_GROUND, GRAVITY},
     event::{LocalEvent, ServerEvent},
@@ -314,8 +314,10 @@ fn fly_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
 /// First checks whether `primary`, `secondary`, `ability3`, or `ability4` input
 /// is pressed, then attempts to go into Equipping state, otherwise Idle
 pub fn handle_wield(data: &JoinData, update: &mut StateUpdate) {
-    if data.inputs.primary.is_pressed()
-        || data.inputs.secondary.is_pressed()
+    if
+    /*data.inputs.primary.is_pressed()
+    || */
+    data.inputs.secondary.is_pressed()
         || data.inputs.ability3.is_pressed()
         || data.inputs.ability4.is_pressed()
     {
@@ -489,11 +491,17 @@ fn handle_ability_pressed(data: &JoinData, update: &mut StateUpdate, ability_key
     }
 }
 
-pub fn handle_ability1_input(data: &JoinData, update: &mut StateUpdate) {
+pub fn handle_input(data: &JoinData, update: &mut StateUpdate, input: InputKind) {
+    match input {
+        InputKind::Primary => handle_ability_pressed(data, update, AbilityKey::Mouse1),
+    }
+}
+
+/*pub fn handle_ability1_input(data: &JoinData, update: &mut StateUpdate) {
     if data.inputs.primary.is_pressed() {
         handle_ability_pressed(data, update, AbilityKey::Mouse1);
     }
-}
+}*/
 
 pub fn handle_ability2_input(data: &JoinData, update: &mut StateUpdate) {
     if data.inputs.secondary.is_pressed() {
@@ -595,7 +603,7 @@ pub fn get_crit_data(data: &JoinData, ai: AbilityInfo) -> (f32, f32) {
 
 pub fn handle_interrupt(data: &JoinData, update: &mut StateUpdate, attacks_interrupt: bool) {
     if attacks_interrupt {
-        handle_ability1_input(data, update);
+        //handle_ability1_input(data, update);
         handle_ability2_input(data, update);
         handle_ability3_input(data, update);
         handle_ability4_input(data, update);
@@ -605,7 +613,11 @@ pub fn handle_interrupt(data: &JoinData, update: &mut StateUpdate, attacks_inter
 
 pub fn ability_key_is_pressed(data: &JoinData, ability_key: AbilityKey) -> bool {
     match ability_key {
-        AbilityKey::Mouse1 => data.inputs.primary.is_pressed(),
+        AbilityKey::Mouse1 =>
+        /* data.inputs.primary.is_pressed() */
+        {
+            false
+        },
         AbilityKey::Mouse2 => data.inputs.secondary.is_pressed(),
         AbilityKey::Skill1 => data.inputs.ability3.is_pressed(),
         AbilityKey::Skill2 => data.inputs.ability4.is_pressed(),

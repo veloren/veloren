@@ -1,13 +1,13 @@
 use crate::{
     combat::Attack,
-    comp::{Energy, Ori, Pos, Vel},
+    comp::{Energy, InputKind, Ori, Pos, Vel},
     event::{LocalEvent, ServerEvent},
     states::{behavior::JoinData, *},
 };
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage, VecStorage};
 use specs_idvs::IdvStorage;
-use std::collections::VecDeque;
+use std::collections::{BTreeSet, VecDeque};
 
 /// Data returned from character behavior fn's to Character Behavior System.
 pub struct StateUpdate {
@@ -17,6 +17,7 @@ pub struct StateUpdate {
     pub ori: Ori,
     pub energy: Energy,
     pub swap_equipped_weapons: bool,
+    pub queued_inputs: BTreeSet<InputKind>,
     pub local_events: VecDeque<LocalEvent>,
     pub server_events: VecDeque<ServerEvent>,
 }
@@ -30,6 +31,7 @@ impl From<&JoinData<'_>> for StateUpdate {
             energy: *data.energy,
             swap_equipped_weapons: false,
             character: data.character.clone(),
+            queued_inputs: BTreeSet::new(),
             local_events: VecDeque::new(),
             server_events: VecDeque::new(),
         }

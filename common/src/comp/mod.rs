@@ -62,7 +62,7 @@ pub use self::{
     combo::Combo,
     controller::{
         Climb, ControlAction, ControlEvent, Controller, ControllerInputs, GroupManip, Input,
-        InventoryAction, InventoryEvent, InventoryManip, MountState, Mounting,
+        InputKind, InventoryAction, InventoryEvent, InventoryManip, MountState, Mounting,
     },
     energy::{Energy, EnergyChange, EnergySource},
     group::Group,

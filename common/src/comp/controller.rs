@@ -11,7 +11,7 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
-use std::time::Duration;
+use std::{collections::BTreeSet, time::Duration};
 use vek::*;
 
 /// Default duration before an input is considered 'held'.
@@ -111,6 +111,24 @@ pub enum ControlAction {
     Sneak,
     Stand,
     Talk,
+    StartInput {
+        ability: InputKind,
+        target: Option<Uid>,
+    },
+    CancelInput,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Ord, PartialOrd)]
+#[repr(u32)]
+pub enum InputKind {
+    Primary = 0,
+    /* Secondary = 1,
+     * Ability(usize) = 2,
+     * Jump = 3,
+     * Roll = 4,
+     * Glide = 5,
+     * Fly = 6,
+     * WallLeap = 7, */
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -225,7 +243,7 @@ pub enum Climb {
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct ControllerInputs {
-    pub primary: Input,
+    //pub primary: Input,
     pub secondary: Input,
     pub ability3: Input,
     pub ability4: Input,
@@ -245,6 +263,7 @@ pub struct ControllerInputs {
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct Controller {
     pub inputs: ControllerInputs,
+    pub queued_inputs: BTreeSet<InputKind>,
     // TODO: consider SmallVec
     pub events: Vec<ControlEvent>,
     pub actions: Vec<ControlAction>,
@@ -253,7 +272,7 @@ pub struct Controller {
 impl ControllerInputs {
     /// Updates all inputs, accounting for delta time
     pub fn tick(&mut self, dt: Duration) {
-        self.primary.tick(dt);
+        //self.primary.tick(dt);
         self.secondary.tick(dt);
         self.ability3.tick(dt);
         self.ability4.tick(dt);
@@ -266,7 +285,7 @@ impl ControllerInputs {
     }
 
     pub fn tick_freshness(&mut self) {
-        self.primary.tick_freshness();
+        //self.primary.tick_freshness();
         self.secondary.tick_freshness();
         self.ability3.tick_freshness();
         self.ability4.tick_freshness();
@@ -280,7 +299,7 @@ impl ControllerInputs {
 
     /// Updates Controller inputs with new version received from the client
     pub fn update_with_new(&mut self, new: Self) {
-        self.primary.update_with_new(new.primary);
+        //self.primary.update_with_new(new.primary);
         self.secondary.update_with_new(new.secondary);
         self.ability3.update_with_new(new.ability3);
         self.ability4.update_with_new(new.ability4);
@@ -297,10 +316,8 @@ impl ControllerInputs {
     }
 
     pub fn holding_ability_key(&self) -> bool {
-        self.primary.is_pressed()
-            || self.secondary.is_pressed()
-            || self.ability3.is_pressed()
-            || self.ability4.is_pressed()
+        //self.primary.is_pressed() ||
+        self.secondary.is_pressed() || self.ability3.is_pressed() || self.ability4.is_pressed()
     }
 }
 
