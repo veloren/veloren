@@ -1,6 +1,6 @@
 ItemDef(
     name: "Apple",
-    description: "Restores 10 Health over 10 seconds\n\nRed and juicy",
+    description: "Red and juicy",
     kind: Consumable(
         kind: "Apple",
         effect: [

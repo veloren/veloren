@@ -1,6 +1,6 @@
 ItemDef(
     name: "Minor Potion",
-    description: "Restores 50 Health",
+    description: "",
     kind: Consumable(
         kind: "PotionMinor",
         effect: [

@@ -1,6 +1,6 @@
 ItemDef(
     name: "Dwarven Cheese",
-    description: "Restores 15 Health over 10 seconds\n\nAromatic and nutritious",
+    description: "Aromatic and nutritious",
     kind: Consumable(
         kind: "Cheese",
         effect: [

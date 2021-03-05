@@ -1,6 +1,6 @@
 ItemDef(
     name: "Coltsfoot",
-    description: "Restores 10 Health over 20 seconds\n\nA daisy-like flower often used in herbal teas.",
+    description: "A daisy-like flower often used in herbal teas.",
     kind: Consumable(
         kind: "Coltsfoot",
         effect: [

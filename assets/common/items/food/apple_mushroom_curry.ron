@@ -1,6 +1,6 @@
 ItemDef(
     name: "Mushroom Curry",
-    description: "Restores 120 Health over 10 seconds\n\nWho could say no to that?",
+    description: "Who could say no to that?",
     kind: Consumable(
         kind: "AppleShroomCurry",
         effect: [

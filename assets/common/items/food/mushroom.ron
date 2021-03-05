@@ -1,6 +1,6 @@
 ItemDef(
     name: "Mushroom",
-    description: "Restores 5 Health over 10 seconds\n\nHopefully this one is not poisonous",
+    description: "Hopefully this one is not poisonous",
     kind: Consumable(
         kind: "Mushroom",
         effect: [

@@ -1,6 +1,6 @@
 ItemDef(
     name: "Sunflower Ice Tea",
-    description: "Restores 50 Health over 10 seconds\n\nBrewed from freshly shelled sunflower seeds",
+    description: "Brewed from freshly shelled sunflower seeds",
     kind: Consumable(
         kind: "SunflowerTea",
         effect: [

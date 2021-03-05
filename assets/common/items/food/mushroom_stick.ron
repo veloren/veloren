@@ -1,6 +1,6 @@
 ItemDef(
     name: "Mushroom Stick",
-    description: "Restores 20 Health over 10 seconds\n\nRoasted mushrooms on a stick for easy carrying",
+    description: "Roasted mushrooms on a stick for easy carrying",
     kind: Consumable(
         kind: "MushroomStick",
         effect: [

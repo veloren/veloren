@@ -1,6 +1,6 @@
 ItemDef(
     name: "Coconut",
-    description: "Restores 20 health over 10 seconds\n\nReliable source of water and fat.\n\nNaturally growing at the top of palm trees.",
+    description: "Reliable source of water and fat.\n\nNaturally growing at the top of palm trees.",
     kind: Consumable(
         kind: "Coconut",
         effect: [

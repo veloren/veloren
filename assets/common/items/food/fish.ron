@@ -1,6 +1,6 @@
 ItemDef(
     name: "Fish",
-    description: "Restores 10 Health over 20 seconds\n\nA fresh seafood steak, chopped from a fish.",
+    description: "A fresh seafood steak, chopped from a fish.",
     kind: Consumable(
         kind: "Fish",
         effect: [
