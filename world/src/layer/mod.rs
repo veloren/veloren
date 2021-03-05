@@ -99,7 +99,7 @@ pub fn apply_paths_to(canvas: &mut Canvas) {
             let head_space = path.head_space(path_dist);
             for z in inset..inset + head_space {
                 let pos = Vec3::new(wpos2d.x, wpos2d.y, surface_z + z);
-                if canvas.get(pos).unwrap().kind() != BlockKind::Water {
+                if canvas.get(pos).kind() != BlockKind::Water {
                     let _ = canvas.set(pos, EMPTY_AIR);
                 }
             }
@@ -135,11 +135,7 @@ pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 {
                     // If the block a little above is liquid, we should stop carving out the cave in
                     // order to leave a ceiling, and not floating water
-                    if canvas
-                        .get(Vec3::new(wpos2d.x, wpos2d.y, z + 2))
-                        .map(|b| b.is_liquid())
-                        .unwrap_or(false)
-                    {
+                    if canvas.get(Vec3::new(wpos2d.x, wpos2d.y, z + 2)).is_liquid() {
                         break;
                     }
 
@@ -165,11 +161,7 @@ pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 .mul(45.0) as i32;
 
             // Generate stalagtites if there's something for them to hold on to
-            if canvas
-                .get(Vec3::new(wpos2d.x, wpos2d.y, cave_roof))
-                .map(|b| b.is_filled())
-                .unwrap_or(false)
-            {
+            if canvas.get(Vec3::new(wpos2d.x, wpos2d.y, cave_roof)).is_filled() {
                 for z in cave_roof - stalagtites..cave_roof {
                     canvas.set(
                         Vec3::new(wpos2d.x, wpos2d.y, z),

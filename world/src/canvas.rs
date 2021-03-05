@@ -65,8 +65,8 @@ impl<'a> Canvas<'a> {
     /// inner `CanvasInfo` such that it may be used independently.
     pub fn info(&mut self) -> CanvasInfo<'a> { self.info }
 
-    pub fn get(&mut self, pos: Vec3<i32>) -> Option<Block> {
-        self.chunk.get(pos - self.wpos()).ok().copied()
+    pub fn get(&mut self, pos: Vec3<i32>) -> Block {
+        self.chunk.get(pos - self.wpos()).ok().copied().unwrap_or(Block::empty())
     }
 
     pub fn set(&mut self, pos: Vec3<i32>, block: Block) {

@@ -1,8 +1,9 @@
 use super::*;
+use crate::util::DHashSet;
 use common::spiral::Spiral2d;
 use std::ops::Range;
 
-pub const TILE_SIZE: u32 = 7;
+pub const TILE_SIZE: u32 = 6;
 pub const ZONE_SIZE: u32 = 16;
 pub const ZONE_RADIUS: u32 = 16;
 pub const TILE_RADIUS: u32 = ZONE_SIZE * ZONE_RADIUS;
@@ -54,13 +55,13 @@ impl TileGrid {
         self.get_mut(tpos).map(|t| std::mem::replace(t, tile))
     }
 
-    pub fn find_near<R>(&self, tpos: Vec2<i32>, f: impl Fn(Vec2<i32>, &Tile) -> Option<R>) -> Option<(R, Vec2<i32>)> {
+    pub fn find_near<R>(&self, tpos: Vec2<i32>, mut f: impl FnMut(Vec2<i32>, &Tile) -> Option<R>) -> Option<(R, Vec2<i32>)> {
         const MAX_SEARCH_RADIUS_BLOCKS: u32 = 70;
         const MAX_SEARCH_CELLS: u32 = ((MAX_SEARCH_RADIUS_BLOCKS / TILE_SIZE) * 2 + 1).pow(2);
         Spiral2d::new()
             .take(MAX_SEARCH_CELLS as usize)
             .map(|r| tpos + r)
-            .find_map(|tpos| (&f)(tpos, self.get(tpos)).zip(Some(tpos)))
+            .find_map(|tpos| (&mut f)(tpos, self.get(tpos)).zip(Some(tpos)))
     }
 
     pub fn grow_aabr(&self, center: Vec2<i32>, area_range: Range<u32>, min_dims: Extent2<u32>) -> Result<Aabr<i32>, Aabr<i32>> {
@@ -71,7 +72,7 @@ impl TileGrid {
         };
 
         let mut last_growth = 0;
-        for i in 0.. {
+        for i in 0..32 {
             if i - last_growth >= 4 {
                 break;
             } else if aabr.size().product() + if i % 2 == 0 { aabr.size().h } else { aabr.size().w } > area_range.end as i32 {
@@ -109,6 +110,33 @@ impl TileGrid {
             Err(aabr)
         }
     }
+
+    pub fn grow_organic(&self, rng: &mut impl Rng, center: Vec2<i32>, area_range: Range<u32>) -> Result<DHashSet<Vec2<i32>>, DHashSet<Vec2<i32>>> {
+        let mut tiles = DHashSet::default();
+        let mut open = Vec::new();
+
+        tiles.insert(center);
+        open.push(center);
+
+        while tiles.len() < area_range.end as usize && !open.is_empty() {
+            let tile = open.remove(rng.gen_range(0..open.len()));
+
+            for &rpos in CARDINALS.iter() {
+                let neighbor = tile + rpos;
+
+                if self.get(neighbor).is_empty() && !tiles.contains(&neighbor) {
+                    tiles.insert(neighbor);
+                    open.push(neighbor);
+                }
+            }
+        }
+
+        if tiles.len() >= area_range.start as usize {
+            Ok(tiles)
+        } else {
+            Err(tiles)
+        }
+    }
 }
 
 #[derive(Clone, PartialEq)]
@@ -116,7 +144,7 @@ pub enum TileKind {
     Empty,
     Hazard(HazardKind),
     Field,
-    Road,
+    Road { a: u16, b: u16, w: u16 },
     Building,
     Castle,
     Wall,
@@ -145,6 +173,10 @@ impl Tile {
     }
 
     pub fn is_empty(&self) -> bool { self.kind == TileKind::Empty }
+
+    pub fn is_road(&self) -> bool {
+        matches!(self.kind, TileKind::Road { .. })
+    }
 
     pub fn is_obstacle(&self) -> bool {
         matches!(
