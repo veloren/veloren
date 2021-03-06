@@ -90,7 +90,7 @@ pub struct ReadData<'a> {
 const DAMAGE_MEMORY_DURATION: f64 = 0.1;
 const FLEE_DURATION: f32 = 3.0;
 const MAX_FOLLOW_DIST: f32 = 12.0;
-const MAX_CHASE_DIST: f32 = 20.0;
+const MAX_CHASE_DIST: f32 = 250.0;
 const MAX_FLEE_DIST: f32 = 20.0;
 const LISTEN_DIST: f32 = 16.0;
 const SEARCH_DIST: f32 = 48.0;
