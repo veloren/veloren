@@ -106,10 +106,10 @@ impl Civs {
 
         for _ in 0..initial_civ_count * 3 {
             attempt(5, || {
-                let (kind, size) = match ctx.rng.gen_range(0..16) {
-                    0..=1 => (SiteKind::Castle, 3),
-                    2..=7 => (SiteKind::Refactor, 6),
-                    8 => (SiteKind::Tree, 4),
+                let (kind, size) = match ctx.rng.gen_range(0..64) {
+                    0..=4 => (SiteKind::Castle, 3),
+                    5..=28 => (SiteKind::Refactor, 6),
+                    29..=31 => (SiteKind::Tree, 4),
                     _ => (SiteKind::Dungeon, 0),
                 };
                 let loc = find_site_loc(&mut ctx, None, size)?;
