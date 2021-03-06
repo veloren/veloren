@@ -82,7 +82,7 @@ pub enum CharacterState {
     /// from the source
     BasicBeam(basic_beam::Data),
     /// Creates an aura that persists as long as you are actively casting
-    CastAura(cast_aura::Data),
+    BasicAura(basic_aura::Data),
     /// A directed beam that heals targets in range
     HealingBeam(healing_beam::Data),
 }
@@ -104,7 +104,7 @@ impl CharacterState {
                 | CharacterState::RepeaterRanged(_)
                 | CharacterState::Shockwave(_)
                 | CharacterState::BasicBeam(_)
-                | CharacterState::CastAura(_)
+                | CharacterState::BasicAura(_)
                 | CharacterState::HealingBeam(_)
         )
     }
@@ -127,7 +127,7 @@ impl CharacterState {
                 | CharacterState::RepeaterRanged(_)
                 | CharacterState::Shockwave(_)
                 | CharacterState::BasicBeam(_)
-                | CharacterState::CastAura(_)
+                | CharacterState::BasicAura(_)
                 | CharacterState::HealingBeam(_)
         )
     }

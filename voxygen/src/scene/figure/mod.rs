@@ -1099,7 +1099,7 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
-                        CharacterState::CastAura(s) => {
+                        CharacterState::BasicAura(s) => {
                             let stage_time = s.timer.as_secs_f32();
                             let stage_progress = match s.stage_section {
                                 StageSection::Buildup => {

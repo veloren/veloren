@@ -226,12 +226,13 @@ pub enum CharacterAbility {
         orientation_behavior: basic_beam::MovementBehavior,
         specifier: beam::FrontendSpecifier,
     },
-    CastAura {
+    BasicAura {
         buildup_duration: f32,
         cast_duration: f32,
         recover_duration: f32,
         targets: combat::GroupTarget,
         aura: aura::AuraBuffConstructor,
+        aura_duration: f32,
         range: f32,
         energy_cost: f32,
     },
@@ -290,7 +291,7 @@ impl CharacterAbility {
             | CharacterAbility::ChargedRanged { energy_cost, .. }
             | CharacterAbility::ChargedMelee { energy_cost, .. }
             | CharacterAbility::Shockwave { energy_cost, .. }
-            | CharacterAbility::CastAura { energy_cost, .. } => update
+            | CharacterAbility::BasicAura { energy_cost, .. } => update
                 .energy
                 .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
                 .is_ok(),
@@ -310,6 +311,7 @@ impl CharacterAbility {
                         .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
                         .is_ok()
             },
+            CharacterAbility::HealingBeam { .. } => data.combo.counter() > 0,
             _ => true,
         }
     }
@@ -350,7 +352,7 @@ impl CharacterAbility {
             } => {
                 *buildup_duration /= speed;
                 *recover_duration /= speed;
-                *projectile = projectile.modified_projectile(power, 1_f32, 1_f32, power);
+                *projectile = projectile.modified_projectile(power, 1_f32, 1_f32);
             },
             RepeaterRanged {
                 ref mut movement_duration,
@@ -364,7 +366,7 @@ impl CharacterAbility {
                 *buildup_duration /= speed;
                 *shoot_duration /= speed;
                 *recover_duration /= speed;
-                *projectile = projectile.modified_projectile(power, 1_f32, 1_f32, power);
+                *projectile = projectile.modified_projectile(power, 1_f32, 1_f32);
             },
             Boost {
                 ref mut movement_duration,
@@ -499,14 +501,15 @@ impl CharacterAbility {
                 *damage *= power;
                 *tick_rate *= speed;
             },
-            CastAura {
+            BasicAura {
                 ref mut buildup_duration,
+                ref mut cast_duration,
                 ref mut recover_duration,
-                // cast_duration explicitly not affected by speed
                 ref mut aura,
                 ..
             } => {
                 *buildup_duration /= speed;
+                *cast_duration /= speed;
                 *recover_duration /= speed;
                 aura.strength *= power;
             },
@@ -540,7 +543,7 @@ impl CharacterAbility {
             | ChargedRanged { energy_cost, .. }
             | Shockwave { energy_cost, .. }
             | HealingBeam { energy_cost, .. }
-            | CastAura { energy_cost, .. } => *energy_cost as u32,
+            | BasicAura { energy_cost, .. } => *energy_cost as u32,
             BasicBeam { energy_drain, .. } => {
                 if *energy_drain > f32::EPSILON {
                     1
@@ -857,7 +860,7 @@ impl CharacterAbility {
                             .unwrap_or(0);
                         let power = 1.20_f32.powi(damage_level.into());
                         let regen = 1.4_f32.powi(regen_level.into());
-                        *projectile = projectile.modified_projectile(power, regen, 1_f32, 1_f32);
+                        *projectile = projectile.modified_projectile(power, regen, 1_f32);
                     },
                     ChargedRanged {
                         ref mut scaled_damage,
@@ -904,8 +907,7 @@ impl CharacterAbility {
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Bow(RDamage)) {
                             let power = 1.4_f32.powi(level.into());
-                            *projectile =
-                                projectile.modified_projectile(power, 1_f32, 1_f32, 1_f32);
+                            *projectile = projectile.modified_projectile(power, 1_f32, 1_f32);
                         }
                         if !skillset.has_skill(Bow(RGlide)) {
                             *buildup_duration = 0.001;
@@ -944,7 +946,7 @@ impl CharacterAbility {
                         let power = 1.2_f32.powi(damage_level.into());
                         let regen = 1.2_f32.powi(regen_level.into());
                         let range = 1.1_f32.powi(range_level.into());
-                        *projectile = projectile.modified_projectile(power, regen, range, 1_f32);
+                        *projectile = projectile.modified_projectile(power, regen, range);
                     },
                     BasicBeam {
                         ref mut damage,
@@ -1051,7 +1053,7 @@ impl CharacterAbility {
                             let heal = 1.15_f32.powi(heal_level.into());
                             let power = 1.2_f32.powi(damage_level.into());
                             let range = 1.3_f32.powi(range_level.into());
-                            *projectile = projectile.modified_projectile(power, 1_f32, range, heal);
+                            *projectile = projectile.modified_projectile(power, 1_f32, range);
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Sceptre(PCost)) {
                             *energy_cost *= 0.85_f32.powi(level.into());
@@ -1494,21 +1496,23 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
             }),
-            CharacterAbility::CastAura {
+            CharacterAbility::BasicAura {
                 buildup_duration,
                 cast_duration,
                 recover_duration,
                 targets,
                 aura,
+                aura_duration,
                 range,
                 energy_cost: _,
-            } => CharacterState::CastAura(cast_aura::Data {
-                static_data: cast_aura::StaticData {
+            } => CharacterState::BasicAura(basic_aura::Data {
+                static_data: basic_aura::StaticData {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
                     cast_duration: Duration::from_secs_f32(*cast_duration),
                     recover_duration: Duration::from_secs_f32(*recover_duration),
                     targets: *targets,
                     aura: *aura,
+                    aura_duration: Duration::from_secs_f32(*aura_duration),
                     range: *range,
                     ability_info,
                 },

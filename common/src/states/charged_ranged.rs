@@ -129,7 +129,8 @@ impl CharacterBehavior for Data {
                     let attack = Attack::default()
                         .with_damage(damage)
                         .with_crit(crit_chance, crit_mult)
-                        .with_effect(knockback);
+                        .with_effect(knockback)
+                        .with_combo_increment();
 
                     // Fire
                     let projectile = Projectile {

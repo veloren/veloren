@@ -58,11 +58,6 @@ pub enum ProjectileConstructor {
         damage: f32,
         energy_regen: f32,
     },
-    Heal {
-        heal: f32,
-        damage: f32,
-        radius: f32,
-    },
     Possess,
 }
 
@@ -103,7 +98,8 @@ impl ProjectileConstructor {
                     .with_damage(damage)
                     .with_crit(crit_chance, crit_mult)
                     .with_effect(energy)
-                    .with_effect(knockback);
+                    .with_effect(knockback)
+                    .with_combo_increment();
 
                 Projectile {
                     hit_solid: vec![Effect::Stick],
@@ -130,7 +126,8 @@ impl ProjectileConstructor {
                 let attack = Attack::default()
                     .with_damage(damage)
                     .with_crit(crit_chance, crit_mult)
-                    .with_effect(energy);
+                    .with_effect(energy)
+                    .with_combo_increment();
                 let explosion = Explosion {
                     effects: vec![
                         RadiusEffect::Attack(attack),
@@ -157,7 +154,8 @@ impl ProjectileConstructor {
                 );
                 let attack = Attack::default()
                     .with_damage(damage)
-                    .with_crit(crit_chance, crit_mult);
+                    .with_crit(crit_chance, crit_mult)
+                    .with_combo_increment();
                 let explosion = Explosion {
                     effects: vec![RadiusEffect::Attack(attack)],
                     radius,
@@ -187,7 +185,8 @@ impl ProjectileConstructor {
                 let attack = Attack::default()
                     .with_damage(damage)
                     .with_crit(crit_chance, crit_mult)
-                    .with_effect(energy);
+                    .with_effect(energy)
+                    .with_combo_increment();
 
                 Projectile {
                     hit_solid: vec![Effect::Vanish],
@@ -195,36 +194,6 @@ impl ProjectileConstructor {
                     time_left: Duration::from_secs(10),
                     owner,
                     ignore_group: true,
-                }
-            },
-            Heal {
-                heal,
-                damage,
-                radius,
-            } => {
-                let damage = AttackDamage::new(
-                    Damage {
-                        source: DamageSource::Explosion,
-                        value: damage,
-                    },
-                    Some(GroupTarget::OutOfGroup),
-                );
-                let heal = AttackEffect::new(Some(GroupTarget::InGroup), CombatEffect::Heal(heal));
-                let attack = Attack::default()
-                    .with_damage(damage)
-                    .with_crit(crit_chance, crit_mult)
-                    .with_effect(heal);
-                let explosion = Explosion {
-                    effects: vec![RadiusEffect::Attack(attack)],
-                    radius,
-                    reagent: Some(Reagent::Green),
-                };
-                Projectile {
-                    hit_solid: vec![Effect::Explode(explosion.clone()), Effect::Vanish],
-                    hit_entity: vec![Effect::Explode(explosion), Effect::Vanish],
-                    time_left: Duration::from_secs(10),
-                    owner,
-                    ignore_group: false,
                 }
             },
             Possess => Projectile {
@@ -237,13 +206,7 @@ impl ProjectileConstructor {
         }
     }
 
-    pub fn modified_projectile(
-        mut self,
-        power: f32,
-        regen: f32,
-        range: f32,
-        heal_power: f32,
-    ) -> Self {
+    pub fn modified_projectile(mut self, power: f32, regen: f32, range: f32) -> Self {
         use ProjectileConstructor::*;
         match self {
             Arrow {
@@ -279,16 +242,6 @@ impl ProjectileConstructor {
             } => {
                 *damage *= power;
                 *energy_regen *= regen;
-            },
-            Heal {
-                ref mut damage,
-                ref mut heal,
-                ref mut radius,
-                ..
-            } => {
-                *damage *= power;
-                *heal *= heal_power;
-                *radius *= range;
             },
             Possess => {},
         }

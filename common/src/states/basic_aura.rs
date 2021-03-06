@@ -26,6 +26,8 @@ pub struct StaticData {
     pub targets: GroupTarget,
     /// Has information used to construct the aura
     pub aura: AuraBuffConstructor,
+    /// How long aura lasts
+    pub aura_duration: Duration,
     /// Radius of aura
     pub range: f32,
     /// What key is used to press ability
@@ -52,7 +54,7 @@ impl CharacterBehavior for Data {
         if !ability_key_is_pressed(data, self.static_data.ability_info.key) {
             handle_interrupt(data, &mut update, false);
             match update.character {
-                CharacterState::CastAura(_) => {},
+                CharacterState::BasicAura(_) => {},
                 _ => {
                     return update;
                 },
@@ -63,7 +65,7 @@ impl CharacterBehavior for Data {
             StageSection::Buildup => {
                 if self.timer < self.static_data.buildup_duration {
                     // Build up
-                    update.character = CharacterState::CastAura(Data {
+                    update.character = CharacterState::BasicAura(Data {
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
@@ -77,7 +79,7 @@ impl CharacterBehavior for Data {
                     let aura = self.static_data.aura.to_aura(
                         data.uid,
                         self.static_data.range,
-                        Some(self.static_data.cast_duration),
+                        Some(self.static_data.aura_duration),
                         targets,
                     );
                     update.server_events.push_front(ServerEvent::Aura {
@@ -85,7 +87,7 @@ impl CharacterBehavior for Data {
                         aura_change: AuraChange::Add(aura),
                     });
                     // Build up
-                    update.character = CharacterState::CastAura(Data {
+                    update.character = CharacterState::BasicAura(Data {
                         timer: Duration::default(),
                         stage_section: StageSection::Cast,
                         ..*self
@@ -95,7 +97,7 @@ impl CharacterBehavior for Data {
             StageSection::Cast => {
                 if self.timer < self.static_data.cast_duration {
                     // Cast
-                    update.character = CharacterState::CastAura(Data {
+                    update.character = CharacterState::BasicAura(Data {
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
@@ -103,7 +105,7 @@ impl CharacterBehavior for Data {
                         ..*self
                     });
                 } else {
-                    update.character = CharacterState::CastAura(Data {
+                    update.character = CharacterState::BasicAura(Data {
                         timer: Duration::default(),
                         stage_section: StageSection::Recover,
                         ..*self
@@ -112,7 +114,7 @@ impl CharacterBehavior for Data {
             },
             StageSection::Recover => {
                 if self.timer < self.static_data.recover_duration {
-                    update.character = CharacterState::CastAura(Data {
+                    update.character = CharacterState::BasicAura(Data {
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
