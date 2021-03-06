@@ -81,7 +81,7 @@ impl Tree {
                         canvas.set(wpos, Block::new(BlockKind::Wood, Rgb::new(80, 32, 0)));
                     }
 
-                    above = true;
+                    above = false;
                 }
             }
         });

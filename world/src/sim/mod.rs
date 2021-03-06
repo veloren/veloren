@@ -1545,30 +1545,6 @@ impl WorldSim {
                 }
             }
 
-            // for locs in cliff_path.windows(3) {
-            //     let to_prev_idx = NEIGHBORS
-            //         .iter()
-            //         .enumerate()
-            //         .find(|(_, dir)| **dir == locs[0].0 - locs[1].0)
-            //         .expect("Track locations must be neighbors")
-            //         .0;
-            //     let to_next_idx = NEIGHBORS
-            //         .iter()
-            //         .enumerate()
-            //         .find(|(_, dir)| **dir == locs[2].0 - locs[1].0)
-            //         .expect("Track locations must be neighbors")
-            //         .0;
-
-            //     self.get_mut(locs[0].0).unwrap().cliff.0.neighbors |=
-            //         1 << ((to_prev_idx as u8 + 4) % 8);
-            //     self.get_mut(locs[1].0).unwrap().cliff.0.neighbors |=
-            //         (1 << (to_prev_idx as u8)) | (1 << (to_next_idx as u8));
-            //     self.get_mut(locs[2].0).unwrap().cliff.0.neighbors |=
-            //         1 << ((to_next_idx as u8 + 4) % 8);
-
-            //     self.get_mut(locs[1].0).unwrap().cliff.0.offset =
-            // Vec2::new(rng.gen_range(-16..17), rng.gen_range(-16..17)); }
-
             for cliff in cliffs {
                 Spiral2d::new()
                     .take((4usize * 2 + 1).pow(2))

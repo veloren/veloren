@@ -305,6 +305,7 @@ pub fn apply_caves_supplement<'a>(
     }
 }
 
+#[allow(dead_code)]
 pub fn apply_coral_to(canvas: &mut Canvas) {
     let info = canvas.info();
 

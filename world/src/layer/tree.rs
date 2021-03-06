@@ -313,21 +313,21 @@ impl TreeConfig {
     }
 
     pub fn pine(rng: &mut impl Rng, scale: f32) -> Self {
-        let scale = scale * (1.0 + rng.gen::<f32>().powi(4));
+        let scale = scale * (1.0 + rng.gen::<f32>().powi(4) * 0.5);
         let log_scale = 1.0 + scale.log2().max(0.0);
 
         Self {
-            trunk_len: 24.0 * scale,
+            trunk_len: 32.0 * scale,
             trunk_radius: 1.25 * scale,
-            branch_child_len: 0.4 / scale,
+            branch_child_len: 0.35 / scale,
             branch_child_radius: 0.0,
-            leaf_radius: 1.5 * log_scale..2.0 * log_scale,
+            leaf_radius: 2.5 * log_scale..2.75 * log_scale,
             straightness: 0.0,
             max_depth: 1,
-            splits: 50.0..70.0,
-            split_range: 0.15..1.2,
+            splits: 40.0..50.0,
+            split_range: 0.165..1.2,
             branch_len_bias: 0.75,
-            leaf_vertical_scale: 0.5,
+            leaf_vertical_scale: 0.3,
             proportionality: 1.0,
             inhabited: false,
         }
@@ -443,8 +443,8 @@ impl ProceduralTree {
 
                 const PHI: f32 = 0.618;
                 const RAD_PER_BRANCH: f32 = f32::consts::TAU * PHI;
-                let screw = (screw_shift + dist * splits as f32 * RAD_PER_BRANCH).sin() * x_axis
-                    + (screw_shift + dist * splits as f32 * RAD_PER_BRANCH).cos() * y_axis;
+                let screw = (screw_shift + i as f32 * RAD_PER_BRANCH).sin() * x_axis
+                    + (screw_shift + i as f32 * RAD_PER_BRANCH).cos() * y_axis;
 
                 // Choose a point close to the branch to act as the target direction for the
                 // branch to grow in let split_factor =
