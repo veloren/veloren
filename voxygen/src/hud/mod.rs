@@ -362,6 +362,7 @@ pub enum Event {
     MapShowDungeons(bool),
     MapShowCastles(bool),
     MapShowCaves(bool),
+    MapShowTrees(bool),
     AdjustWindowSize([u16; 2]),
     ChangeFullscreenMode(FullScreenSettings),
     ToggleParticlesEnabled(bool),
@@ -2641,6 +2642,9 @@ impl Hud {
                     },
                     map::Event::ShowCaves(map_show_caves) => {
                         events.push(Event::MapShowCaves(map_show_caves));
+                    },
+                    map::Event::ShowTrees(map_show_trees) => {
+                        events.push(Event::MapShowTrees(map_show_trees));
                     },
                 }
             }

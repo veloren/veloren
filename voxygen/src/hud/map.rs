@@ -49,6 +49,12 @@ widget_ids! {
         show_dungeons_img,
         show_dungeons_box,
         show_dungeons_text,
+        show_caves_img,
+        show_caves_box,
+        show_caves_text,
+        show_trees_img,
+        show_trees_box,
+        show_trees_text,
         show_difficulty_img,
         show_difficulty_box,
         show_difficulty_text,
@@ -57,9 +63,6 @@ widget_ids! {
         drag_ico,
         zoom_txt,
         zoom_ico,
-        show_caves_img,
-        show_caves_box,
-        show_caves_text,
     }
 }
 
@@ -117,6 +120,7 @@ pub enum Event {
     ShowCastles(bool),
     ShowDungeons(bool),
     ShowCaves(bool),
+    ShowTrees(bool),
     Close,
 }
 
@@ -143,6 +147,7 @@ impl<'a> Widget for Map<'a> {
         let show_dungeons = self.global_state.settings.gameplay.map_show_dungeons;
         let show_castles = self.global_state.settings.gameplay.map_show_castles;
         let show_caves = self.global_state.settings.gameplay.map_show_caves;
+        let show_trees = self.global_state.settings.gameplay.map_show_trees;
         let mut events = Vec::new();
         let i18n = &self.localized_strings;
         // Tooltips
@@ -471,6 +476,40 @@ impl<'a> Widget for Map<'a> {
             .graphics_for(state.ids.show_caves_box)
             .color(TEXT_COLOR)
             .set(state.ids.show_caves_text, ui);
+        // Trees
+        Image::new(self.imgs.mmap_site_tree)
+            .down_from(state.ids.show_caves_img, 10.0)
+            .w_h(20.0, 20.0)
+            .set(state.ids.show_trees_img, ui);
+        if Button::image(if show_trees {
+            self.imgs.checkbox_checked
+        } else {
+            self.imgs.checkbox
+        })
+        .w_h(18.0, 18.0)
+        .hover_image(if show_trees {
+            self.imgs.checkbox_checked_mo
+        } else {
+            self.imgs.checkbox_mo
+        })
+        .press_image(if show_trees {
+            self.imgs.checkbox_checked
+        } else {
+            self.imgs.checkbox_press
+        })
+        .right_from(state.ids.show_trees_img, 10.0)
+        .set(state.ids.show_trees_box, ui)
+        .was_clicked()
+        {
+            events.push(Event::ShowTrees(!show_trees));
+        }
+        Text::new(i18n.get("hud.map.trees"))
+            .right_from(state.ids.show_trees_box, 10.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .graphics_for(state.ids.show_trees_box)
+            .color(TEXT_COLOR)
+            .set(state.ids.show_trees_text, ui);
         // Map icons
         if state.ids.mmap_site_icons.len() < self.client.sites().len() {
             state.update(|state| {
@@ -512,6 +551,7 @@ impl<'a> Widget for Map<'a> {
                 SiteKind::Dungeon { .. } => i18n.get("hud.map.dungeon"),
                 SiteKind::Castle => i18n.get("hud.map.castle"),
                 SiteKind::Cave => i18n.get("hud.map.cave"),
+                SiteKind::Tree => i18n.get("hud.map.tree"),
             });
             let (difficulty, desc) = match &site.kind {
                 SiteKind::Town => (0, i18n.get("hud.map.town").to_string()),
@@ -522,6 +562,7 @@ impl<'a> Widget for Map<'a> {
                 ),
                 SiteKind::Castle => (0, i18n.get("hud.map.castle").to_string()),
                 SiteKind::Cave => (0, i18n.get("hud.map.cave").to_string()),
+                SiteKind::Tree => (0, i18n.get("hud.map.tree").to_string()),
             };
             let site_btn = Button::image(match &site.kind {
                 SiteKind::Town => self.imgs.mmap_site_town,
@@ -645,6 +686,11 @@ impl<'a> Widget for Map<'a> {
                     },
                     SiteKind::Cave => {
                         if show_caves {
+                            dif_img.set(state.ids.site_difs[i], ui)
+                        }
+                    },
+                    SiteKind::Tree => {
+                        if show_trees {
                             dif_img.set(state.ids.site_difs[i], ui)
                         }
                     },

@@ -1266,6 +1266,10 @@ impl PlayState for SessionState {
                         global_state.settings.gameplay.map_show_caves = map_show_caves;
                         global_state.settings.save_to_file_warn();
                     },
+                    HudEvent::MapShowTrees(map_show_trees) => {
+                        global_state.settings.gameplay.map_show_trees = map_show_trees;
+                        global_state.settings.save_to_file_warn();
+                    },
                     HudEvent::ChangeGamma(new_gamma) => {
                         global_state.settings.graphics.gamma = new_gamma;
                         global_state.settings.save_to_file_warn();

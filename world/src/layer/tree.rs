@@ -571,6 +571,7 @@ struct Branch {
 impl Branch {
     /// Determine whether there are either branches or leaves at the given
     /// position in the branch.
+    /// (branch, leaves, stairs, forced_air)
     pub fn is_branch_or_leaves_at(
         &self,
         pos: Vec3<f32>,

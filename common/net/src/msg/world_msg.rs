@@ -138,4 +138,5 @@ pub enum SiteKind {
     Dungeon { difficulty: u32 },
     Castle,
     Cave,
+    Tree,
 }

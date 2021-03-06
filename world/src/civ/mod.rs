@@ -6,7 +6,7 @@ use self::{Occupation::*, Stock::*};
 use crate::{
     config::CONFIG,
     sim::WorldSim,
-    site::{namegen::NameGen, Castle, Dungeon, Settlement, Site as WorldSite},
+    site::{namegen::NameGen, Castle, Dungeon, Settlement, Site as WorldSite, Tree},
     site2,
     util::{attempt, seed_expan, MapVec, CARDINALS, NEIGHBORS},
     Index, Land,
@@ -106,10 +106,11 @@ impl Civs {
 
         for _ in 0..initial_civ_count * 3 {
             attempt(5, || {
-                let (kind, size) = match ctx.rng.gen_range(0..8) {
-                    0 => (SiteKind::Castle, 3),
-                    1 => (SiteKind::Dungeon, 0),
-                    _ => (SiteKind::Refactor, 5),
+                let (kind, size) = match ctx.rng.gen_range(0..16) {
+                    0..=1 => (SiteKind::Castle, 3),
+                    2..=7 => (SiteKind::Refactor, 6),
+                    8 => (SiteKind::Tree, 4),
+                    _ => (SiteKind::Dungeon, 0),
                 };
                 let loc = find_site_loc(&mut ctx, None, size)?;
                 this.establish_site(&mut ctx.reseed(), loc, |place| Site {
@@ -151,6 +152,7 @@ impl Civs {
                 SiteKind::Dungeon => (8i32, 2.0),
                 SiteKind::Castle => (16i32, 5.0),
                 SiteKind::Refactor => (0i32, 0.0),
+                SiteKind::Tree => (12i32, 8.0),
             };
 
             let (raise, raise_dist): (f32, i32) = match &site.kind {
@@ -220,6 +222,9 @@ impl Civs {
                     &mut rng,
                     wpos,
                 )),
+                SiteKind::Tree => {
+                    WorldSite::tree(Tree::generate(wpos, &Land::from_sim(&ctx.sim), &mut rng))
+                },
             });
             sim_site.site_tmp = Some(site);
             let site_ref = &index.sites[site];
@@ -899,6 +904,7 @@ pub enum SiteKind {
     Dungeon,
     Castle,
     Refactor,
+    Tree,
 }
 
 impl Site {

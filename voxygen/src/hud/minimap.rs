@@ -325,6 +325,7 @@ impl<'a> Widget for MiniMap<'a> {
                         _ => Color::Rgba(1.0, 1.0, 1.0, 0.0),
                     },
                     SiteKind::Cave => Color::Rgba(1.0, 1.0, 1.0, 0.0),
+                    SiteKind::Tree => Color::Rgba(1.0, 1.0, 1.0, 0.0),
                 }))
                 .parent(state.ids.grid)
                 .set(state.ids.mmap_site_icons_bgs[i], ui);
@@ -333,6 +334,7 @@ impl<'a> Widget for MiniMap<'a> {
                     SiteKind::Dungeon { .. } => self.imgs.mmap_site_dungeon,
                     SiteKind::Castle => self.imgs.mmap_site_castle,
                     SiteKind::Cave => self.imgs.mmap_site_cave,
+                    SiteKind::Tree => self.imgs.mmap_site_tree,
                     _ => self.imgs.mmap_site_excl,
                 })
                 .middle_of(state.ids.mmap_site_icons_bgs[i])

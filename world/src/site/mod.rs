@@ -4,11 +4,12 @@ mod dungeon;
 pub mod economy;
 pub mod namegen;
 mod settlement;
+mod tree;
 
 // Reexports
 pub use self::{
     block_mask::BlockMask, castle::Castle, dungeon::Dungeon, economy::Economy,
-    settlement::Settlement,
+    settlement::Settlement, tree::Tree,
 };
 
 use crate::{column::ColumnSample, site2, Canvas, IndexRef};
@@ -46,6 +47,7 @@ pub enum SiteKind {
     Dungeon(Dungeon),
     Castle(Castle),
     Refactor(site2::Site),
+    Tree(tree::Tree),
 }
 
 impl Site {
@@ -77,12 +79,20 @@ impl Site {
         }
     }
 
+    pub fn tree(t: tree::Tree) -> Self {
+        Self {
+            kind: SiteKind::Tree(t),
+            economy: Economy::default(),
+        }
+    }
+
     pub fn radius(&self) -> f32 {
         match &self.kind {
             SiteKind::Settlement(s) => s.radius(),
             SiteKind::Dungeon(d) => d.radius(),
             SiteKind::Castle(c) => c.radius(),
             SiteKind::Refactor(s) => s.radius(),
+            SiteKind::Tree(t) => t.radius(),
         }
     }
 
@@ -92,6 +102,7 @@ impl Site {
             SiteKind::Dungeon(d) => d.get_origin(),
             SiteKind::Castle(c) => c.get_origin(),
             SiteKind::Refactor(s) => s.origin,
+            SiteKind::Tree(t) => t.origin,
         }
     }
 
@@ -101,6 +112,7 @@ impl Site {
             SiteKind::Dungeon(d) => d.spawn_rules(wpos),
             SiteKind::Castle(c) => c.spawn_rules(wpos),
             SiteKind::Refactor(s) => s.spawn_rules(wpos),
+            SiteKind::Tree(t) => t.spawn_rules(wpos),
         }
     }
 
@@ -109,7 +121,8 @@ impl Site {
             SiteKind::Settlement(s) => s.name(),
             SiteKind::Dungeon(d) => d.name(),
             SiteKind::Castle(c) => c.name(),
-            SiteKind::Refactor(s) => "Experimental",
+            SiteKind::Refactor(s) => "Town",
+            SiteKind::Tree(t) => "Tree",
         }
     }
 
@@ -120,9 +133,8 @@ impl Site {
             SiteKind::Settlement(s) => s.apply_to(canvas.index, canvas.wpos, get_col, canvas.chunk),
             SiteKind::Dungeon(d) => d.apply_to(canvas.index, canvas.wpos, get_col, canvas.chunk),
             SiteKind::Castle(c) => c.apply_to(canvas.index, canvas.wpos, get_col, canvas.chunk),
-            SiteKind::Refactor(s) => {
-                s.render(canvas, dynamic_rng);
-            },
+            SiteKind::Refactor(s) => s.render(canvas, dynamic_rng),
+            SiteKind::Tree(t) => t.render(canvas, dynamic_rng),
         }
     }
 
@@ -141,6 +153,7 @@ impl Site {
             SiteKind::Dungeon(d) => d.apply_supplement(dynamic_rng, wpos2d, get_column, supplement),
             SiteKind::Castle(c) => c.apply_supplement(dynamic_rng, wpos2d, get_column, supplement),
             SiteKind::Refactor(_) => {},
+            SiteKind::Tree(_) => {},
         }
     }
 }
