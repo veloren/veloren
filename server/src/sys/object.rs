@@ -80,12 +80,26 @@ impl<'a> System<'a> for Sys {
                             let mut rng = rand::thread_rng();
                             // Note that if the expected fireworks per firework is > 1, this will
                             // eventually cause enough server lag that more players can't log in.
-                            // 0.25 * 2 + (0.70 - 0.25) * 1 = 0.5 + 0.45 = 0.95
-                            let num_fireworks = match rng.gen_range(0.0..1.0) {
-                                x if x < 0.25 => 2,
-                                x if x < 0.70 => 1,
-                                _ => 0,
+                            let thresholds: &[(f32, usize)] = &[(0.25, 2), (0.7, 1)];
+                            let expected = {
+                                let mut total = 0.0;
+                                let mut cumulative_probability = 0.0;
+                                for (p, n) in thresholds {
+                                    total += (p - cumulative_probability) * *n as f32;
+                                    cumulative_probability += p;
+                                }
+                                total
                             };
+                            assert!(expected < 1.0);
+                            let num_fireworks = (|| {
+                                let x = rng.gen_range(0.0..1.0);
+                                for (p, n) in thresholds {
+                                    if x < *p {
+                                        return *n;
+                                    }
+                                }
+                                0
+                            })();
                             for _ in 0..num_fireworks {
                                 let speed: f32 = rng.gen_range(40.0..80.0);
                                 let theta: f32 = rng.gen_range(0.0..2.0 * PI);
