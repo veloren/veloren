@@ -149,6 +149,7 @@ impl CharacterBehavior for Data {
                         gravity: self.static_data.projectile_gravity,
                         speed: self.static_data.initial_projectile_speed
                             + charge_frac * self.static_data.scaled_projectile_speed,
+                        object: None,
                     });
 
                     update.character = CharacterState::ChargedRanged(Data {

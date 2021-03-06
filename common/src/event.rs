@@ -65,6 +65,7 @@ pub enum ServerEvent {
         projectile: comp::Projectile,
         gravity: Option<comp::Gravity>,
         speed: f32,
+        object: Option<comp::Object>,
     },
     Shockwave {
         properties: comp::shockwave::Properties,
