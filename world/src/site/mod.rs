@@ -12,12 +12,8 @@ pub use self::{
     settlement::Settlement, tree::Tree,
 };
 
-use crate::{column::ColumnSample, site2, Canvas, IndexRef};
-use common::{
-    generation::ChunkSupplement,
-    terrain::Block,
-    vol::{BaseVol, ReadVol, RectSizedVol, WriteVol},
-};
+use crate::{column::ColumnSample, site2, Canvas};
+use common::generation::ChunkSupplement;
 use rand::Rng;
 use serde::Deserialize;
 use vek::*;
@@ -121,8 +117,8 @@ impl Site {
             SiteKind::Settlement(s) => s.name(),
             SiteKind::Dungeon(d) => d.name(),
             SiteKind::Castle(c) => c.name(),
-            SiteKind::Refactor(s) => "Town",
-            SiteKind::Tree(t) => "Tree",
+            SiteKind::Refactor(_) => "Town",
+            SiteKind::Tree(_) => "Giant Tree",
         }
     }
 

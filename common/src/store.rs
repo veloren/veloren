@@ -73,6 +73,8 @@ impl<T> Default for Store<T> {
 }
 
 impl<T> Store<T> {
+    pub fn is_empty(&self) -> bool { self.len == 0 }
+
     pub fn len(&self) -> usize { self.len }
 
     pub fn contains(&self, id: Id<T>) -> bool {

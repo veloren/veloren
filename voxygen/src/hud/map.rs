@@ -570,7 +570,6 @@ impl<'a> Widget for Map<'a> {
                 SiteKind::Castle => self.imgs.mmap_site_castle,
                 SiteKind::Cave => self.imgs.mmap_site_cave,
                 SiteKind::Tree => self.imgs.mmap_site_tree,
-                _ => self.imgs.mmap_site_excl,
             })
             .x_y_position_relative_to(
                 state.ids.grid,
@@ -584,7 +583,6 @@ impl<'a> Widget for Map<'a> {
                 SiteKind::Castle => self.imgs.mmap_site_castle_hover,
                 SiteKind::Cave => self.imgs.mmap_site_cave_hover,
                 SiteKind::Tree => self.imgs.mmap_site_tree_hover,
-                _ => self.imgs.mmap_site_excl,
             })
             .image_color(UI_HIGHLIGHT_0)
             .with_tooltip(
@@ -605,7 +603,7 @@ impl<'a> Widget for Map<'a> {
                         _ => TEXT_COLOR,
                     },
                     SiteKind::Cave => TEXT_COLOR,
-                    _ => TEXT_COLOR,
+                    SiteKind::Tree => TEXT_COLOR,
                 },
             );
             // Only display sites that are toggled on
@@ -630,8 +628,10 @@ impl<'a> Widget for Map<'a> {
                         site_btn.set(state.ids.mmap_site_icons[i], ui);
                     }
                 },
-                _ => {
-                    site_btn.set(state.ids.mmap_site_icons[i], ui);
+                SiteKind::Tree => {
+                    if show_trees {
+                        site_btn.set(state.ids.mmap_site_icons[i], ui);
+                    }
                 },
             }
 

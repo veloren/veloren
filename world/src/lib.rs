@@ -1,6 +1,10 @@
 #![deny(unsafe_code)]
 #![allow(incomplete_features)]
-#![allow(clippy::option_map_unit_fn)]
+#![allow(
+    clippy::option_map_unit_fn,
+    clippy::blocks_in_if_conditions,
+    clippy::too_many_arguments
+)]
 #![deny(clippy::clone_on_ref_ptr)]
 #![feature(
     arbitrary_enum_discriminant,

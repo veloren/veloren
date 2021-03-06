@@ -1,4 +1,5 @@
-use criterion::{black_box, criterion_group, criterion_main, BatchSize, Benchmark, Criterion};
+use criterion::{black_box, criterion_group, criterion_main, BatchSize, Criterion};
+use rand::prelude::*;
 use veloren_world::layer::tree::{ProceduralTree, TreeConfig};
 
 fn tree(c: &mut Criterion) {
@@ -6,7 +7,10 @@ fn tree(c: &mut Criterion) {
         let mut i = 0;
         b.iter(|| {
             i += 1;
-            black_box(ProceduralTree::generate(TreeConfig::OAK, i));
+            black_box(ProceduralTree::generate(
+                TreeConfig::oak(&mut thread_rng(), 1.0),
+                &mut thread_rng(),
+            ));
         });
     });
 
@@ -15,7 +19,7 @@ fn tree(c: &mut Criterion) {
         b.iter_batched(
             || {
                 i += 1;
-                ProceduralTree::generate(TreeConfig::OAK, i)
+                ProceduralTree::generate(TreeConfig::oak(&mut thread_rng(), 1.0), &mut thread_rng())
             },
             |tree| {
                 let bounds = tree.get_bounds();

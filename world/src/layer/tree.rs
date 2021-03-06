@@ -333,7 +333,7 @@ impl TreeConfig {
         }
     }
 
-    pub fn giant(rng: &mut impl Rng, scale: f32, inhabited: bool) -> Self {
+    pub fn giant(_rng: &mut impl Rng, scale: f32, inhabited: bool) -> Self {
         let log_scale = 1.0 + scale.log2().max(0.0);
 
         Self {
@@ -380,7 +380,6 @@ impl ProceduralTree {
             0,
             None,
             rng,
-            true,
         );
         this.trunk_idx = trunk_idx;
 
@@ -391,6 +390,7 @@ impl ProceduralTree {
     // returning the index and AABB of the branch. This AABB gets propagated
     // down to the parent and is used later during sampling to cull the branches to
     // be sampled.
+    #[allow(clippy::too_many_arguments)]
     fn add_branch(
         &mut self,
         config: &TreeConfig,
@@ -401,7 +401,6 @@ impl ProceduralTree {
         depth: usize,
         sibling_idx: Option<usize>,
         rng: &mut impl Rng,
-        has_stairs: bool,
     ) -> (usize, Aabb<f32>) {
         let end = start + dir * branch_len;
         let line = LineSegment3 { start, end };
@@ -412,7 +411,10 @@ impl ProceduralTree {
             0.0
         };
 
-        let has_stairs = /*has_stairs &&*/ config.inhabited && depth < config.max_depth && branch_radius > 6.5 && start.xy().distance(end.xy()) < (start.z - end.z).abs() * 1.5;
+        let has_stairs = config.inhabited
+            && depth < config.max_depth
+            && branch_radius > 6.5
+            && start.xy().distance(end.xy()) < (start.z - end.z).abs() * 1.5;
         let bark_radius = if has_stairs { 5.0 } else { 0.0 } + wood_radius * 0.25;
 
         // The AABB that covers this branch, along with wood and leaves that eminate
@@ -477,7 +479,6 @@ impl ProceduralTree {
                     depth + 1,
                     child_idx,
                     rng,
-                    has_stairs,
                 );
                 child_idx = Some(branch_idx);
                 // Parent branches AABBs include the AABBs of child branches to allow for
@@ -523,7 +524,7 @@ impl ProceduralTree {
         // within its AABB
         if branch.aabb.contains_point(pos) {
             // Probe this branch
-            let (this, d2) = branch.is_branch_or_leaves_at(pos, parent);
+            let (this, _d2) = branch.is_branch_or_leaves_at(pos, parent);
 
             let siblings = branch_or_leaves | Vec4::from(this);
 

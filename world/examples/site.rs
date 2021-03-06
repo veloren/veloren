@@ -1,4 +1,3 @@
-use structopt::StructOpt;
 use svg_fmt::*;
 use veloren_world::site2::test_site;
 

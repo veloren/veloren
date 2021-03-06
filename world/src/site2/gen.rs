@@ -129,7 +129,7 @@ pub trait Structure {
     fn render_collect(&self, site: &Site) -> (Store<Primitive>, Vec<(Id<Primitive>, Fill)>) {
         let mut tree = Store::default();
         let mut fills = Vec::new();
-        let root = self.render(site, |p| tree.insert(p), |p, f| fills.push((p, f)));
+        self.render(site, |p| tree.insert(p), |p, f| fills.push((p, f)));
         (tree, fills)
     }
 }

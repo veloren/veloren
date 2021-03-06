@@ -1,7 +1,7 @@
 use crate::{
     layer::tree::{ProceduralTree, TreeConfig},
-    util::{FastNoise, Sampler},
     site::SpawnRules,
+    util::{FastNoise, Sampler},
     Canvas, Land,
 };
 use common::terrain::{Block, BlockKind};
@@ -38,7 +38,7 @@ impl Tree {
         }
     }
 
-    pub fn render(&self, canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
+    pub fn render(&self, canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
         let nz = FastNoise::new(self.seed);
 
         canvas.foreach_col(|canvas, wpos2d, col| {
@@ -50,18 +50,38 @@ impl Tree {
                 return;
             }
 
+            let mut above = true;
             for z in (bounds.min.z..bounds.max.z + 1).rev() {
                 let wpos = wpos2d.with_z(self.alt + z);
                 let rposf = (wpos - self.origin.with_z(self.alt)).map(|e| e as f32 + 0.5);
 
                 let (branch, leaves, _, _) = self.tree.is_branch_or_leaves_at(rposf);
-                if leaves {
-                    let dark = Rgb::new(10, 70, 50).map(|e| e as f32);
-                    let light = Rgb::new(80, 140, 10).map(|e| e as f32);
-                    let leaf_col = Lerp::lerp(dark, light, nz.get(rposf.map(|e| e as f64) * 0.05) * 0.5 + 0.5);
-                    canvas.set(wpos, Block::new(BlockKind::Leaves, leaf_col.map(|e| e as u8)));
-                } else if branch {
-                    canvas.set(wpos, Block::new(BlockKind::Wood, Rgb::new(80, 32, 0)));
+
+                if branch || leaves {
+                    if above && col.snow_cover {
+                        canvas.set(
+                            wpos + Vec3::unit_z(),
+                            Block::new(BlockKind::Snow, Rgb::new(255, 255, 255)),
+                        );
+                    }
+
+                    if leaves {
+                        let dark = Rgb::new(10, 70, 50).map(|e| e as f32);
+                        let light = Rgb::new(80, 140, 10).map(|e| e as f32);
+                        let leaf_col = Lerp::lerp(
+                            dark,
+                            light,
+                            nz.get(rposf.map(|e| e as f64) * 0.05) * 0.5 + 0.5,
+                        );
+                        canvas.set(
+                            wpos,
+                            Block::new(BlockKind::Leaves, leaf_col.map(|e| e as u8)),
+                        );
+                    } else if branch {
+                        canvas.set(wpos, Block::new(BlockKind::Wood, Rgb::new(80, 32, 0)));
+                    }
+
+                    above = true;
                 }
             }
         });

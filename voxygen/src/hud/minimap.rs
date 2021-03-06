@@ -304,7 +304,6 @@ impl<'a> Widget for MiniMap<'a> {
                     SiteKind::Castle => self.imgs.mmap_site_castle_bg,
                     SiteKind::Cave => self.imgs.mmap_site_cave_bg,
                     SiteKind::Tree => self.imgs.mmap_site_tree,
-                    _ => self.imgs.mmap_site_excl,
                 })
                 .x_y_position_relative_to(
                     state.ids.grid,
@@ -335,7 +334,6 @@ impl<'a> Widget for MiniMap<'a> {
                     SiteKind::Castle => self.imgs.mmap_site_castle,
                     SiteKind::Cave => self.imgs.mmap_site_cave,
                     SiteKind::Tree => self.imgs.mmap_site_tree,
-                    _ => self.imgs.mmap_site_excl,
                 })
                 .middle_of(state.ids.mmap_site_icons_bgs[i])
                 .w_h(20.0, 20.0)

@@ -515,7 +515,7 @@ impl<V: RectRasterableVol> Terrain<V> {
 
         const AMBIANCE: f32 = 0.15; // 0-1, the proportion of light that should illuminate the rear of an object
 
-        let (bias, total, max) = Spiral2d::new()
+        let (bias, total) = Spiral2d::new()
             .take(9)
             .map(|rpos| {
                 let chunk_pos = wpos_chunk + rpos;
@@ -535,14 +535,13 @@ impl<V: RectRasterableVol> Terrain<V> {
             })
             .flatten()
             .fold(
-                (Vec3::broadcast(0.001), 0.0, 0.0f32),
-                |(bias, total, max), (lpos, level)| {
+                (Vec3::broadcast(0.001), 0.0),
+                |(bias, total), (lpos, level)| {
                     let rpos = lpos.map(|e| e as f32 + 0.5) - wpos;
                     let level = (*level as f32 - rpos.magnitude()).max(0.0) / SUNLIGHT as f32;
                     (
                         bias + rpos.try_normalized().unwrap_or_else(Vec3::zero) * level,
                         total + level,
-                        max.max(level),
                     )
                 },
             );
@@ -643,7 +642,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         // be meshed
         span!(guard, "Add chunks with modified blocks to mesh todo list");
         // TODO: would be useful if modified blocks were grouped by chunk
-        for (&pos, &block) in scene_data.state.terrain_changes().modified_blocks.iter() {
+        for (&pos, &_block) in scene_data.state.terrain_changes().modified_blocks.iter() {
             // TODO: Be cleverer about this to avoid remeshing all neighbours. There are a
             // few things that can create an 'effect at a distance'. These are
             // as follows:

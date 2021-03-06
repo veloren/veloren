@@ -1,28 +1,28 @@
 use super::*;
-use crate::{util::SQUARE_4, Land};
-use common::terrain::{Block, BlockKind, SpriteKind};
+use crate::Land;
+use common::terrain::{Block, BlockKind};
 use rand::prelude::*;
 use vek::*;
 
 pub struct Castle {
-    entrance_tile: Vec2<i32>,
+    _entrance_tile: Vec2<i32>,
     tile_aabr: Aabr<i32>,
-    bounds: Aabr<i32>,
+    _bounds: Aabr<i32>,
     alt: i32,
 }
 
 impl Castle {
     pub fn generate(
         land: &Land,
-        rng: &mut impl Rng,
+        _rng: &mut impl Rng,
         site: &Site,
         entrance_tile: Vec2<i32>,
         tile_aabr: Aabr<i32>,
     ) -> Self {
         Self {
-            entrance_tile,
+            _entrance_tile: entrance_tile,
             tile_aabr,
-            bounds: Aabr {
+            _bounds: Aabr {
                 min: site.tile_wpos(tile_aabr.min),
                 max: site.tile_wpos(tile_aabr.max),
             },
@@ -39,20 +39,20 @@ impl Structure for Castle {
         mut fill: G,
     ) {
         let wall_height = 24;
-        let thickness = 12;
+        let _thickness = 12;
         let parapet_height = 2;
         let parapet_width = 1;
-        let downwards = 40;
+        let _downwards = 40;
 
         let tower_height = 12;
 
         let keep_levels = 3;
         let keep_level_height = 8;
-        let keep_height = wall_height + keep_levels * keep_level_height + 1;
+        let _keep_height = wall_height + keep_levels * keep_level_height + 1;
         for x in 0..self.tile_aabr.size().w {
             for y in 0..self.tile_aabr.size().h {
                 let tile_pos = self.tile_aabr.min + Vec2::new(x, y);
-                let wpos_center = site.tile_center_wpos(tile_pos);
+                let _wpos_center = site.tile_center_wpos(tile_pos);
                 let wpos = site.tile_wpos(tile_pos);
                 let ori = if x == 0 || x == self.tile_aabr.size().w - 1 {
                     Vec2::new(1, 0)
@@ -71,7 +71,7 @@ impl Structure for Castle {
                 };
                 let ori_tower = ori_tower_x + ori_tower_y;
                 match site.tiles.get(tile_pos).kind.clone() {
-                    TileKind::Wall(orientation) => {
+                    TileKind::Wall(_ori) => {
                         let wall = prim(Primitive::Aabb(Aabb {
                             min: wpos.with_z(self.alt),
                             max: (wpos + 6).with_z(self.alt + wall_height + parapet_height),
@@ -115,7 +115,7 @@ impl Structure for Castle {
                         }));
                         let tower_lower_inner_x = prim(Primitive::Aabb(Aabb {
                             min: Vec3::new(
-                                wpos.x + 1 * ori_tower.x,
+                                wpos.x + ori_tower.x,
                                 wpos.y + parapet_width,
                                 self.alt + wall_height,
                             ),
@@ -128,7 +128,7 @@ impl Structure for Castle {
                         let tower_lower_inner_y = prim(Primitive::Aabb(Aabb {
                             min: Vec3::new(
                                 wpos.x + parapet_width,
-                                wpos.y + 1 * ori_tower.y,
+                                wpos.y + ori_tower.y,
                                 self.alt + wall_height,
                             ),
                             max: Vec3::new(
@@ -147,19 +147,19 @@ impl Structure for Castle {
                             min: Vec3::new(
                                 wpos.x - 1,
                                 wpos.y - 1,
-                                self.alt + wall_height + tower_height - 3 as i32,
+                                self.alt + wall_height + tower_height - 3i32,
                             ),
                             max: Vec3::new(
                                 wpos.x + 7,
                                 wpos.y + 7,
-                                self.alt + wall_height + tower_height - 1 as i32,
+                                self.alt + wall_height + tower_height - 1i32,
                             ),
                         }));
                         let tower_upper2 = prim(Primitive::Aabb(Aabb {
                             min: Vec3::new(
                                 wpos.x - 2,
                                 wpos.y - 2,
-                                self.alt + wall_height + tower_height - 1 as i32,
+                                self.alt + wall_height + tower_height - 1i32,
                             ),
                             max: Vec3::new(
                                 wpos.x + 8,
@@ -209,11 +209,11 @@ impl Structure for Castle {
                                 }
                             },
                             tile::KeepKind::Corner => {},
-                            tile::KeepKind::Wall(orientation) => {
+                            tile::KeepKind::Wall(_ori) => {
                                 for i in 0..keep_levels + 1 {
-                                    let height = keep_level_height * i;
+                                    let _height = keep_level_height * i;
                                     // TODO clamp value in case of big heights
-                                    let window_height = keep_level_height - 3;
+                                    let _window_height = keep_level_height - 3;
                                 }
                             },
                         }

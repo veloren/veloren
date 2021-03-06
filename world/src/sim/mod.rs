@@ -29,8 +29,8 @@ use crate::{
     column::ColumnGen,
     site::Site,
     util::{
-        seed_expan, DHashSet, FastNoise, FastNoise2d, RandomField, RandomPerm, Sampler,
-        StructureGen2d, CARDINALS, LOCALITY, NEIGHBORS,
+        seed_expan, DHashSet, FastNoise, FastNoise2d, RandomField, Sampler, StructureGen2d,
+        CARDINALS, LOCALITY, NEIGHBORS,
     },
     IndexRef, CONFIG,
 };
@@ -1570,15 +1570,14 @@ impl WorldSim {
             // Vec2::new(rng.gen_range(-16..17), rng.gen_range(-16..17)); }
 
             for cliff in cliffs {
-                let alt = self.get(cliff).map_or(0.0, |c| c.alt);
                 Spiral2d::new()
                     .take((4usize * 2 + 1).pow(2))
                     .for_each(|rpos| {
                         let dist = rpos.map(|e| e as f32).magnitude();
                         if let Some(c) = self.get_mut(cliff + rpos) {
                             let warp = 1.0 / (1.0 + dist);
-                            c.tree_density *= (1.0 - warp);
-                            c.cliff_height = Lerp::lerp(44.0, 0.0, (-1.0 + dist / 3.5));
+                            c.tree_density *= 1.0 - warp;
+                            c.cliff_height = Lerp::lerp(44.0, 0.0, -1.0 + dist / 3.5);
                         }
                     });
             }

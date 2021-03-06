@@ -7,6 +7,7 @@ pub const TILE_SIZE: u32 = 6;
 pub const ZONE_SIZE: u32 = 16;
 pub const ZONE_RADIUS: u32 = 16;
 pub const TILE_RADIUS: u32 = ZONE_SIZE * ZONE_RADIUS;
+#[allow(dead_code)]
 pub const MAX_BLOCK_RADIUS: u32 = TILE_SIZE * TILE_RADIUS;
 
 pub struct TileGrid {
@@ -48,7 +49,7 @@ impl TileGrid {
                     Grid::populate_from(Vec2::broadcast(ZONE_SIZE as i32), |_| None)
                 })
                 .get_mut(tpos.map(|e| e.rem_euclid(ZONE_SIZE as i32)))
-                .map(|tile| tile.get_or_insert_with(|| Tile::empty()))
+                .map(|tile| tile.get_or_insert_with(Tile::empty))
             })
     }
 
@@ -87,15 +88,14 @@ impl TileGrid {
 
         let mut last_growth = 0;
         for i in 0..32 {
-            if i - last_growth >= 4 {
-                break;
-            } else if aabr.size().product()
-                + if i % 2 == 0 {
-                    aabr.size().h
-                } else {
-                    aabr.size().w
-                }
-                > area_range.end as i32
+            if i - last_growth >= 4
+                || aabr.size().product()
+                    + if i % 2 == 0 {
+                        aabr.size().h
+                    } else {
+                        aabr.size().w
+                    }
+                    > area_range.end as i32
             {
                 break;
             } else {
@@ -239,5 +239,5 @@ pub enum Ori {
 }
 
 impl Ori {
-    pub fn dir(self) -> Vec2<i32> {CARDINALS[self as u8 as usize]}
+    pub fn dir(self) -> Vec2<i32> { CARDINALS[self as u8 as usize] }
 }

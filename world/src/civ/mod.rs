@@ -108,7 +108,7 @@ impl Civs {
             attempt(5, || {
                 let (kind, size) = match ctx.rng.gen_range(0..64) {
                     0..=4 => (SiteKind::Castle, 3),
-                    5..=28 => (SiteKind::Refactor, 6),
+                    // 5..=28 => (SiteKind::Refactor, 6),
                     29..=31 => (SiteKind::Tree, 4),
                     _ => (SiteKind::Dungeon, 0),
                 };

@@ -26,7 +26,6 @@ impl Plot {
 }
 
 pub enum PlotKind {
-    Field,
     House(House),
     Plaza,
     Castle(Castle),

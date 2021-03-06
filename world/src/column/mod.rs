@@ -69,10 +69,10 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
 
         let sim = &self.sim;
 
-        let turb = Vec2::new(
-            sim.gen_ctx.turb_x_nz.get((wposf.div(48.0)).into_array()) as f32,
-            sim.gen_ctx.turb_y_nz.get((wposf.div(48.0)).into_array()) as f32,
-        ) * 12.0;
+        // let turb = Vec2::new(
+        //     sim.gen_ctx.turb_x_nz.get((wposf.div(48.0)).into_array()) as f32,
+        //     sim.gen_ctx.turb_y_nz.get((wposf.div(48.0)).into_array()) as f32,
+        // ) * 12.0;
         let wposf_turb = wposf; // + turb.map(|e| e as f64);
 
         let chaos = sim.get_interpolated(wpos, |chunk| chunk.chaos)?;

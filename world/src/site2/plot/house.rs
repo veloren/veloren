@@ -1,11 +1,11 @@
 use super::*;
-use crate::{util::SQUARE_4, Land};
+use crate::Land;
 use common::terrain::{Block, BlockKind, SpriteKind};
 use rand::prelude::*;
 use vek::*;
 
 pub struct House {
-    door_tile: Vec2<i32>,
+    _door_tile: Vec2<i32>,
     tile_aabr: Aabr<i32>,
     bounds: Aabr<i32>,
     alt: i32,
@@ -22,7 +22,7 @@ impl House {
         tile_aabr: Aabr<i32>,
     ) -> Self {
         Self {
-            door_tile,
+            _door_tile: door_tile,
             tile_aabr,
             bounds: Aabr {
                 min: site.tile_wpos(tile_aabr.min),

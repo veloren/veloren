@@ -68,7 +68,7 @@ impl<'a> Canvas<'a> {
             .get(pos - self.wpos())
             .ok()
             .copied()
-            .unwrap_or(Block::empty())
+            .unwrap_or_else(Block::empty)
     }
 
     pub fn set(&mut self, pos: Vec3<i32>, block: Block) {
