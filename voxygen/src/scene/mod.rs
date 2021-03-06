@@ -423,6 +423,7 @@ impl Scene {
                                 Rgb::new(1.0, 0.0, 0.0)
                             }
                         },
+                        Some(Reagent::White) => Rgb::new(1.0, 1.0, 1.0),
                         Some(Reagent::Yellow) => Rgb::new(1.0, 1.0, 0.0),
                         None => Rgb::new(1.0, 0.5, 0.0),
                     },

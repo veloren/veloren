@@ -644,7 +644,18 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
         let mut new_entity = state
             .create_object(Default::default(), match kind {
                 item::Throwable::Bomb => comp::object::Body::Bomb,
+<<<<<<< HEAD
                 item::Throwable::Firework(reagent) => comp::object::Body::for_firework(reagent),
+=======
+                item::Throwable::Firework(reagent) => match reagent {
+                    item::Reagent::Blue => comp::object::Body::FireworkBlue,
+                    item::Reagent::Green => comp::object::Body::FireworkGreen,
+                    item::Reagent::Purple => comp::object::Body::FireworkPurple,
+                    item::Reagent::Red => comp::object::Body::FireworkRed,
+                    item::Reagent::White => comp::object::Body::FireworkWhite,
+                    item::Reagent::Yellow => comp::object::Body::FireworkYellow,
+                },
+>>>>>>> added a white firework
                 item::Throwable::TrainingDummy => comp::object::Body::TrainingDummy,
             })
             .with(comp::Pos(pos.0 + Vec3::unit_z() * 0.25))

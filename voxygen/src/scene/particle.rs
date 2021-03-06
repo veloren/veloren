@@ -128,6 +128,7 @@ impl ParticleMgr {
                                     Some(Reagent::Green) => ParticleMode::FireworkGreen,
                                     Some(Reagent::Purple) => ParticleMode::FireworkPurple,
                                     Some(Reagent::Red) => ParticleMode::FireworkRed,
+                                    Some(Reagent::White) => ParticleMode::FireworkWhite,
                                     Some(Reagent::Yellow) => ParticleMode::FireworkYellow,
                                     None => ParticleMode::Shrapnel,
                                 },
@@ -217,6 +218,7 @@ impl ParticleMgr {
                     | object::Body::FireworkGreen
                     | object::Body::FireworkPurple
                     | object::Body::FireworkRed
+                    | object::Body::FireworkWhite
                     | object::Body::FireworkYellow,
                 ) => self.maintain_bomb_particles(scene_data, pos),
                 _ => {},

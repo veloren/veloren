@@ -59,6 +59,16 @@
             central: ("armor.empty"),
         )
     ),
+    FireworkWhite: (
+        bone0: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("weapon.projectile.fireworks_white-0"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
     FireworkYellow: (
         bone0: (
             offset: (0.0, 0.0, 0.0),
