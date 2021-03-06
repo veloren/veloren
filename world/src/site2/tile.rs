@@ -182,7 +182,9 @@ pub enum TileKind {
     Road { a: u16, b: u16, w: u16 },
     Building,
     Castle,
-    Wall,
+    Wall(Ori),
+    Tower,
+    Keep(KeepKind),
 }
 
 #[derive(Clone, PartialEq)]
@@ -209,7 +211,7 @@ impl Tile {
     pub fn is_obstacle(&self) -> bool {
         matches!(
             self.kind,
-            TileKind::Hazard(_) | TileKind::Building | TileKind::Castle | TileKind::Wall
+            TileKind::Hazard(_) | TileKind::Building | TileKind::Castle | TileKind::Wall(_)
         )
     }
 }
@@ -218,4 +220,24 @@ impl Tile {
 pub enum HazardKind {
     Water,
     Hill { gradient: f32 },
+}
+
+#[derive(Copy, Clone, PartialEq)]
+pub enum KeepKind {
+    Middle,
+    Corner,
+    Wall(Ori),
+}
+
+#[repr(u8)]
+#[derive(Copy, Clone, PartialEq)]
+pub enum Ori {
+    North = 0,
+    East = 1,
+    South = 2,
+    West = 3,
+}
+
+impl Ori {
+    pub fn dir(self) -> Vec2<i32> {CARDINALS[self as u8 as usize]}
 }

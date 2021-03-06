@@ -5,7 +5,7 @@ mod tile;
 use self::{
     gen::{Fill, Primitive, Structure},
     plot::{Plot, PlotKind},
-    tile::{HazardKind, Tile, TileGrid, TileKind, TILE_SIZE},
+    tile::{HazardKind, Tile, TileGrid, TileKind, KeepKind, Ori, TILE_SIZE},
 };
 use crate::{
     site::SpawnRules,
@@ -16,8 +16,7 @@ use common::{
     astar::Astar,
     lottery::Lottery,
     spiral::Spiral2d,
-    store::{Id, Store},
-    terrain::{Block, BlockKind, SpriteKind, TerrainChunkSize},
+    store::{Id, Store}, terrain::{Block, BlockKind, SpriteKind, TerrainChunkSize},
     vol::RectVolSize,
 };
 use hashbrown::hash_map::DefaultHashBuilder;
@@ -405,12 +404,12 @@ impl Site {
 
                         // Walls
                         site.blit_aabr(aabr, Tile {
-                            kind: TileKind::Wall,
+                            kind: TileKind::Wall(Ori::North),
                             plot: Some(plot),
                         });
 
                         let tower = Tile {
-                            kind: TileKind::Castle,
+                            kind: TileKind::Tower,
                             plot: Some(plot),
                         };
                         site.tiles
@@ -441,10 +440,25 @@ impl Site {
                                 max: aabr.center() + 3,
                             },
                             Tile {
-                                kind: TileKind::Castle,
+                                kind: TileKind::Wall(Ori::North),
                                 plot: Some(plot),
                             },
                         );
+                        site.tiles.set(Vec2::new(aabr.center().x + 2, aabr.center().y + 2), tower.clone());
+                        site.tiles.set(Vec2::new(aabr.center().x + 2, aabr.center().y - 3), tower.clone());
+                        site.tiles.set(Vec2::new(aabr.center().x - 3, aabr.center().y + 2), tower.clone());
+                        site.tiles.set(Vec2::new(aabr.center().x - 3, aabr.center().y - 3), tower.clone());
+
+                        site.blit_aabr(
+                                Aabr {
+                                    min: aabr.center() - 2,
+                                    max: aabr.center() + 2,
+                                },
+                                Tile {
+                                    kind: TileKind::Keep(tile::KeepKind::Middle),
+                                    plot: Some(plot),
+                                },
+                            );
 
                         castles += 1;
                     }
