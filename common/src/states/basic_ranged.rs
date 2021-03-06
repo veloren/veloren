@@ -95,6 +95,7 @@ impl CharacterBehavior for Data {
                         light: self.static_data.projectile_light,
                         gravity: self.static_data.projectile_gravity,
                         speed: self.static_data.projectile_speed,
+                        object: None,
                     });
 
                     update.character = CharacterState::BasicRanged(Data {

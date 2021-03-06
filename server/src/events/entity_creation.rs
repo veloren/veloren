@@ -10,7 +10,7 @@ use common::{
         group,
         inventory::loadout::Loadout,
         shockwave, Agent, Alignment, Body, Gravity, Health, HomeChunk, Inventory, Item, ItemDrop,
-        LightEmitter, Ori, Poise, Pos, Projectile, Scale, Stats, Vel, WaypointArea,
+        LightEmitter, Object, Ori, Poise, Pos, Projectile, Scale, Stats, Vel, WaypointArea,
     },
     outcome::Outcome,
     rtsim::RtSimEntity,
@@ -120,6 +120,7 @@ pub fn handle_shoot(
     projectile: Projectile,
     gravity: Option<Gravity>,
     speed: f32,
+    object: Option<Object>,
 ) {
     let state = server.state_mut();
 
@@ -151,6 +152,9 @@ pub fn handle_shoot(
     }
     if let Some(gravity) = gravity {
         builder = builder.with(gravity)
+    }
+    if let Some(object) = object {
+        builder = builder.with(object)
     }
 
     builder.build();

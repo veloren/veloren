@@ -1,4 +1,4 @@
-use crate::make_case_elim;
+use crate::{comp::item::Reagent, make_case_elim};
 use rand::{seq::SliceRandom, thread_rng};
 use serde::{Deserialize, Serialize};
 
@@ -225,6 +225,16 @@ impl Body {
             Body::Crossbow => "crossbow",
             Body::ArrowTurret => "arrow_turret",
             Body::Coins => "coins",
+        }
+    }
+
+    pub fn for_firework(reagent: Reagent) -> Body {
+        match reagent {
+            Reagent::Blue => Body::FireworkBlue,
+            Reagent::Green => Body::FireworkGreen,
+            Reagent::Purple => Body::FireworkPurple,
+            Reagent::Red => Body::FireworkRed,
+            Reagent::Yellow => Body::FireworkYellow,
         }
     }
 }

@@ -74,7 +74,10 @@ impl Server {
                     projectile,
                     gravity,
                     speed,
-                } => handle_shoot(self, entity, dir, body, light, projectile, gravity, speed),
+                    object,
+                } => handle_shoot(
+                    self, entity, dir, body, light, projectile, gravity, speed, object,
+                ),
                 ServerEvent::Shockwave {
                     properties,
                     pos,
