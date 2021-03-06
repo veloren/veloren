@@ -528,6 +528,7 @@ impl<'a> Widget for Map<'a> {
                 SiteKind::Dungeon { .. } => self.imgs.mmap_site_dungeon,
                 SiteKind::Castle => self.imgs.mmap_site_castle,
                 SiteKind::Cave => self.imgs.mmap_site_cave,
+                SiteKind::Tree => self.imgs.mmap_site_tree,
                 _ => self.imgs.mmap_site_excl,
             })
             .x_y_position_relative_to(
@@ -541,6 +542,7 @@ impl<'a> Widget for Map<'a> {
                 SiteKind::Dungeon { .. } => self.imgs.mmap_site_dungeon_hover,
                 SiteKind::Castle => self.imgs.mmap_site_castle_hover,
                 SiteKind::Cave => self.imgs.mmap_site_cave_hover,
+                SiteKind::Tree => self.imgs.mmap_site_tree_hover,
                 _ => self.imgs.mmap_site_excl,
             })
             .image_color(UI_HIGHLIGHT_0)
