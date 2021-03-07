@@ -237,6 +237,7 @@ impl Body {
             Reagent::Green => Body::FireworkGreen,
             Reagent::Purple => Body::FireworkPurple,
             Reagent::Red => Body::FireworkRed,
+            Reagent::White => Body::FireworkWhite,
             Reagent::Yellow => Body::FireworkYellow,
         }
     }
