@@ -1,14 +1,27 @@
 use std::sync::atomic::{AtomicPtr, AtomicU32, AtomicU64, Ordering};
 
 use serde::{de::DeserializeOwned, Serialize};
-use specs::World;
+use specs::{shred::Fetch, Entities, ReadStorage};
 use wasmer::{Function, Memory, Value};
+
+use common::{
+    comp::Health,
+    uid::{Uid, UidAllocator},
+};
 
 use super::errors::{MemoryAllocationError, PluginModuleError};
 
+pub struct EcsWorld<'a> {
+    pub entities: Entities<'a>,
+    pub health: ReadStorage<'a, Health>,
+    pub uid: ReadStorage<'a, Uid>,
+    //pub player: ReadStorage<'a, Player>,
+    pub uid_allocator: Fetch<'a, UidAllocator>,
+}
+
 /// This structure wraps the ECS pointer to ensure safety
 pub struct EcsAccessManager {
-    ecs_pointer: AtomicPtr<World>,
+    ecs_pointer: AtomicPtr<EcsWorld<'static>>,
 }
 
 impl Default for EcsAccessManager {
@@ -22,7 +35,7 @@ impl Default for EcsAccessManager {
 impl EcsAccessManager {
     // This function take a World reference and a function to execute ensuring the
     // pointer will never be corrupted during the execution of the function!
-    pub fn execute_with<T>(&self, world: &World, func: impl FnOnce() -> T) -> T {
+    pub fn execute_with<T>(&self, world: &EcsWorld, func: impl FnOnce() -> T) -> T {
         let _guard = scopeguard::guard((), |_| {
             // ensure the pointer is cleared in any case
             self.ecs_pointer
@@ -45,7 +58,7 @@ impl EcsAccessManager {
     ///    reference somewhere else
     ///  - All that ensure that the reference doesn't exceed the execute_with
     ///    function scope
-    pub unsafe fn get(&self) -> Option<&World> {
+    pub unsafe fn get(&self) -> Option<&EcsWorld> {
         // ptr::as_ref will automatically check for null
         self.ecs_pointer.load(Ordering::Relaxed).as_ref()
     }

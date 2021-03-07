@@ -4,6 +4,7 @@ use common_net::msg::{
     ServerRegisterAnswer,
 };
 
+use common_sys::plugin::memory_manager::EcsWorld;
 #[cfg(feature = "plugins")]
 use common_sys::plugin::PluginMgr;
 use hashbrown::HashMap;
@@ -33,9 +34,15 @@ pub(crate) fn handle_register_msg(
 ) -> Result<(), crate::error::Error> {
     #[cfg(feature = "plugins")]
     let plugin_mgr = world.read_resource::<PluginMgr>();
+    let ecs_world = EcsWorld {
+        entities: world.entities(),
+        health: world.read_component(),
+        uid: world.read_component(),
+        uid_allocator: world.read_resource(),
+    };
     let (username, uuid) = match login_provider.try_login(
         &msg.token_or_username,
-        world,
+        &ecs_world,
         #[cfg(feature = "plugins")]
         &plugin_mgr,
         &*editable_settings.admins,
