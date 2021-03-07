@@ -6,7 +6,7 @@ pub use self::{scatter::apply_scatter_to, tree::apply_trees_to};
 
 use crate::{
     column::ColumnSample,
-    util::{RandomField, Sampler},
+    util::{FastNoise, RandomField, Sampler},
     Canvas, IndexRef,
 };
 use common::{
@@ -22,7 +22,7 @@ use rand::prelude::*;
 use serde::Deserialize;
 use std::{
     f32,
-    ops::{Mul, Sub},
+    ops::{Mul, Range, Sub},
 };
 use vek::*;
 
@@ -99,7 +99,7 @@ pub fn apply_paths_to(canvas: &mut Canvas) {
             let head_space = path.head_space(path_dist);
             for z in inset..inset + head_space {
                 let pos = Vec3::new(wpos2d.x, wpos2d.y, surface_z + z);
-                if canvas.get(pos).unwrap().kind() != BlockKind::Water {
+                if canvas.get(pos).kind() != BlockKind::Water {
                     let _ = canvas.set(pos, EMPTY_AIR);
                 }
             }
@@ -110,7 +110,7 @@ pub fn apply_paths_to(canvas: &mut Canvas) {
 pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
     let info = canvas.info();
     canvas.foreach_col(|canvas, wpos2d, col| {
-        let surface_z = col.riverless_alt.floor() as i32;
+        let surface_z = col.alt.floor() as i32;
 
         if let Some((cave_dist, _, cave, _)) =
             col.cave.filter(|(dist, _, cave, _)| *dist < cave.width)
@@ -135,11 +135,7 @@ pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 {
                     // If the block a little above is liquid, we should stop carving out the cave in
                     // order to leave a ceiling, and not floating water
-                    if canvas
-                        .get(Vec3::new(wpos2d.x, wpos2d.y, z + 2))
-                        .map(|b| b.is_liquid())
-                        .unwrap_or(false)
-                    {
+                    if canvas.get(Vec3::new(wpos2d.x, wpos2d.y, z + 2)).is_liquid() {
                         break;
                     }
 
@@ -164,14 +160,20 @@ pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 )
                 .mul(45.0) as i32;
 
-            for z in cave_roof - stalagtites..cave_roof {
-                canvas.set(
-                    Vec3::new(wpos2d.x, wpos2d.y, z),
-                    Block::new(
-                        BlockKind::WeakRock,
-                        info.index().colors.layer.stalagtite.into(),
-                    ),
-                );
+            // Generate stalagtites if there's something for them to hold on to
+            if canvas
+                .get(Vec3::new(wpos2d.x, wpos2d.y, cave_roof))
+                .is_filled()
+            {
+                for z in cave_roof - stalagtites..cave_roof {
+                    canvas.set(
+                        Vec3::new(wpos2d.x, wpos2d.y, z),
+                        Block::new(
+                            BlockKind::WeakRock,
+                            info.index().colors.layer.stalagtite.into(),
+                        ),
+                    );
+                }
             }
 
             let cave_depth = (col.alt - cave.alt).max(0.0);
@@ -301,4 +303,79 @@ pub fn apply_caves_supplement<'a>(
             }
         }
     }
+}
+
+#[allow(dead_code)]
+pub fn apply_coral_to(canvas: &mut Canvas) {
+    let info = canvas.info();
+
+    if !info.chunk.river.near_water() {
+        return; // Don't bother with coral for a chunk nowhere near water
+    }
+
+    canvas.foreach_col(|canvas, wpos2d, col| {
+        const CORAL_DEPTH: Range<f32> = 14.0..32.0;
+        const CORAL_HEIGHT: f32 = 14.0;
+        const CORAL_DEPTH_FADEOUT: f32 = 5.0;
+        const CORAL_SCALE: f32 = 10.0;
+
+        let water_depth = col.water_level - col.alt;
+
+        if !CORAL_DEPTH.contains(&water_depth) {
+            return; // Avoid coral entirely for this column if we're outside coral depths
+        }
+
+        for z in col.alt.floor() as i32..(col.alt + CORAL_HEIGHT) as i32 {
+            let wpos = Vec3::new(wpos2d.x, wpos2d.y, z);
+
+            let coral_factor = Lerp::lerp(
+                1.0,
+                0.0,
+                // Fade coral out due to incorrect depth
+                ((water_depth.clamped(CORAL_DEPTH.start, CORAL_DEPTH.end) - water_depth).abs()
+                    / CORAL_DEPTH_FADEOUT)
+                    .min(1.0),
+            ) * Lerp::lerp(
+                1.0,
+                0.0,
+                // Fade coral out due to incorrect altitude above the seabed
+                ((z as f32 - col.alt) / CORAL_HEIGHT).powi(2),
+            ) * FastNoise::new(info.index.seed + 7)
+                .get(wpos.map(|e| e as f64) / 32.0)
+                .sub(0.2)
+                .mul(100.0)
+                .clamped(0.0, 1.0);
+
+            let nz = Vec3::iota().map(|e: u32| FastNoise::new(info.index.seed + e * 177));
+
+            let wpos_warped = wpos.map(|e| e as f32)
+                + nz.map(|nz| {
+                    nz.get(wpos.map(|e| e as f64) / CORAL_SCALE as f64) * CORAL_SCALE * 0.3
+                });
+
+            // let is_coral = FastNoise2d::new(info.index.seed + 17)
+            //     .get(wpos_warped.xy().map(|e| e as f64) / CORAL_SCALE)
+            //     .sub(1.0 - coral_factor)
+            //     .max(0.0)
+            //     .div(coral_factor) > 0.5;
+
+            let is_coral = [
+                FastNoise::new(info.index.seed),
+                FastNoise::new(info.index.seed + 177),
+            ]
+            .iter()
+            .all(|nz| {
+                nz.get(wpos_warped.map(|e| e as f64) / CORAL_SCALE as f64)
+                    .abs()
+                    < coral_factor * 0.3
+            });
+
+            if is_coral {
+                let _ = canvas.set(
+                    wpos,
+                    Block::new(BlockKind::WeakRock, Rgb::new(170, 220, 210)),
+                );
+            }
+        }
+    });
 }

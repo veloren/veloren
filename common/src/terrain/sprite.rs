@@ -142,6 +142,7 @@ make_case_elim!(
         Seagrass = 0x73,
         RedAlgae = 0x74,
         UnderwaterVent = 0x75,
+        Lantern = 0x76,
     }
 );
 
@@ -201,6 +202,7 @@ impl SpriteKind {
             | SpriteKind::DropGate => 1.0,
             // TODO: Figure out if this should be solid or not.
             SpriteKind::Shelf => 1.0,
+            SpriteKind::Lantern => 0.9,
             _ => return None,
         })
     }
@@ -289,6 +291,7 @@ impl SpriteKind {
                 | SpriteKind::Bowl
                 | SpriteKind::VialEmpty
                 | SpriteKind::FireBowlGround
+                | SpriteKind::Lantern
         )
     }
 }

@@ -640,7 +640,7 @@ void main() {
     // f_col = f_col + (hash(vec4(floor(vec3(focus_pos.xy + splay(v_pos_orig), f_pos.z)) * 3.0 - round(f_norm) * 0.5, 0)) - 0.5) * 0.05; // Small-scale noise
     vec3 surf_color;
     #if (FLUID_MODE == FLUID_MODE_SHINY)
-        if (f_col_raw.b > max(f_col_raw.r, f_col_raw.g) * 2.0 && dot(vec3(0, 0, 1), f_norm) > 0.9) {
+        if (length(f_col_raw - vec3(0.02, 0.06, 0.22)) < 0.025 && dot(vec3(0, 0, 1), f_norm) > 0.9) {
             vec3 water_color = (1.0 - MU_WATER) * MU_SCATTER;
 
             vec3 reflect_ray = cam_to_frag * vec3(1, 1, -1);

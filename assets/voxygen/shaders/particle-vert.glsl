@@ -275,7 +275,7 @@ void main() {
                 vec3(0, 0, -2)
             ) + vec3(sin(lifetime), sin(lifetime + 0.7), sin(lifetime * 0.5)) * 2.0,
             vec3(4),
-            vec4(vec3(0.2 + rand7 * 0.2, 0.2 + (0.5 + rand6 * 0.5) * 0.6, 0), 1),
+            vec4(vec3(0.2 + rand7 * 0.2, 0.2 + (0.25 + rand6 * 0.5) * 0.3, 0) * (0.75 + rand1 * 0.5), 1),
             spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 5)
         );
     } else if (inst_mode == SNOW) {

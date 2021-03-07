@@ -2,6 +2,8 @@
 
 #include <constants.glsl>
 
+#define FIGURE_SHADER
+
 #define LIGHTING_TYPE LIGHTING_TYPE_REFLECTION
 
 #define LIGHTING_REFLECTION_KIND LIGHTING_REFLECTION_KIND_GLOSSY
@@ -28,6 +30,7 @@ uniform u_locals {
     mat4 model_mat;
     vec4 highlight_col;
     vec4 model_light;
+    vec4 model_glow;
     ivec4 atlas_offs;
     vec3 model_pos;
     // bit 0 - is player

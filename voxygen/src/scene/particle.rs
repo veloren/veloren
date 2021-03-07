@@ -571,7 +571,7 @@ impl ParticleMgr {
                 cond: |_| true,
             },
             BlockParticles {
-                blocks: |boi| &boi.reeds,
+                blocks: |boi| &boi.fireflies,
                 range: 6,
                 rate: 0.004,
                 lifetime: 40.0,

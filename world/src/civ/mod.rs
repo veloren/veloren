@@ -6,9 +6,10 @@ use self::{Occupation::*, Stock::*};
 use crate::{
     config::CONFIG,
     sim::WorldSim,
-    site::{namegen::NameGen, Castle, Dungeon, Settlement, Site as WorldSite},
+    site::{namegen::NameGen, Castle, Dungeon, Settlement, Site as WorldSite, Tree},
+    site2,
     util::{attempt, seed_expan, MapVec, CARDINALS, NEIGHBORS},
-    Index,
+    Index, Land,
 };
 use common::{
     astar::Astar,
@@ -105,8 +106,10 @@ impl Civs {
 
         for _ in 0..initial_civ_count * 3 {
             attempt(5, || {
-                let (kind, size) = match ctx.rng.gen_range(0..8) {
-                    0 => (SiteKind::Castle, 3),
+                let (kind, size) = match ctx.rng.gen_range(0..64) {
+                    0..=4 => (SiteKind::Castle, 3),
+                    // 5..=28 => (SiteKind::Refactor, 6),
+                    29..=31 => (SiteKind::Tree, 4),
                     _ => (SiteKind::Dungeon, 0),
                 };
                 let loc = find_site_loc(&mut ctx, None, size)?;
@@ -142,14 +145,14 @@ impl Civs {
 
         // Flatten ground around sites
         for site in this.sites.values() {
-            let radius = 48i32;
-
             let wpos = site.center * TerrainChunkSize::RECT_SIZE.map(|e: u32| e as i32);
 
-            let flatten_radius = match &site.kind {
-                SiteKind::Settlement => 10.0,
-                SiteKind::Dungeon => 2.0,
-                SiteKind::Castle => 5.0,
+            let (radius, flatten_radius) = match &site.kind {
+                SiteKind::Settlement => (32i32, 10.0),
+                SiteKind::Dungeon => (8i32, 2.0),
+                SiteKind::Castle => (16i32, 5.0),
+                SiteKind::Refactor => (0i32, 0.0),
+                SiteKind::Tree => (12i32, 8.0),
             };
 
             let (raise, raise_dist): (f32, i32) = match &site.kind {
@@ -187,7 +190,6 @@ impl Civs {
                             chunk.alt += diff;
                             chunk.basement += diff;
                             chunk.rockiness = 0.0;
-                            chunk.warp_factor = 0.0;
                             chunk.surface_veg *= 1.0 - factor * rng.gen_range(0.25..0.9);
                         });
                 }
@@ -214,6 +216,14 @@ impl Civs {
                 },
                 SiteKind::Castle => {
                     WorldSite::castle(Castle::generate(wpos, Some(ctx.sim), &mut rng))
+                },
+                SiteKind::Refactor => WorldSite::refactor(site2::Site::generate(
+                    &Land::from_sim(&ctx.sim),
+                    &mut rng,
+                    wpos,
+                )),
+                SiteKind::Tree => {
+                    WorldSite::tree(Tree::generate(wpos, &Land::from_sim(&ctx.sim), &mut rng))
                 },
             });
             sim_site.site_tmp = Some(site);
@@ -694,7 +704,7 @@ fn walk_in_dir(sim: &WorldSim, a: Vec2<i32>, dir: Vec2<i32>) -> Option<f32> {
 /// Return true if a position is suitable for walking on
 fn loc_suitable_for_walking(sim: &WorldSim, loc: Vec2<i32>) -> bool {
     if let Some(chunk) = sim.get(loc) {
-        !chunk.river.is_ocean() && !chunk.river.is_lake()
+        !chunk.river.is_ocean() && !chunk.river.is_lake() && !chunk.near_cliffs()
     } else {
         false
     }
@@ -893,6 +903,8 @@ pub enum SiteKind {
     Settlement,
     Dungeon,
     Castle,
+    Refactor,
+    Tree,
 }
 
 impl Site {

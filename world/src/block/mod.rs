@@ -1,6 +1,6 @@
 use crate::{
     column::{ColumnGen, ColumnSample},
-    util::{RandomField, Sampler, SmallCache},
+    util::{FastNoise, RandomField, Sampler, SmallCache},
     IndexRef,
 };
 use common::terrain::{
@@ -70,6 +70,8 @@ impl<'a> BlockGen<'a> {
             // humidity,
             stone_col,
             snow_cover,
+            cliff_offset,
+            cliff_height,
             ..
         } = sample;
 
@@ -118,7 +120,28 @@ impl<'a> BlockGen<'a> {
             .map(|e| (e * 255.0) as u8);
 
             if stone_factor >= 0.5 {
-                Some(Block::new(BlockKind::Rock, col))
+                if wposf.z as f32 > height - cliff_offset.max(0.0) {
+                    if cliff_offset.max(0.0)
+                        > cliff_height
+                            - (FastNoise::new(37).get(wposf / Vec3::new(6.0, 6.0, 10.0)) * 0.5
+                                + 0.5)
+                                * (height - grass_depth - wposf.z as f32)
+                                    .mul(0.25)
+                                    .clamped(0.0, 8.0)
+                    {
+                        Some(Block::empty())
+                    } else {
+                        let col = Lerp::lerp(
+                            col.map(|e| e as f32),
+                            col.map(|e| e as f32) * 0.7,
+                            (wposf.z as f32 - basement * 0.3).div(2.0).sin() * 0.5 + 0.5,
+                        )
+                        .map(|e| e as u8);
+                        Some(Block::new(BlockKind::Rock, col))
+                    }
+                } else {
+                    Some(Block::new(BlockKind::Rock, col))
+                }
             } else {
                 Some(Block::new(BlockKind::Earth, col))
             }
@@ -183,7 +206,9 @@ pub struct ZCache<'a> {
 
 impl<'a> ZCache<'a> {
     pub fn get_z_limits(&self) -> (f32, f32) {
-        let min = self.sample.alt - (self.sample.chaos.min(1.0) * 16.0);
+        let min = self.sample.alt
+            - (self.sample.chaos.min(1.0) * 16.0)
+            - self.sample.cliff_offset.max(0.0);
         let min = min - 4.0;
 
         let rocks = if self.sample.rock > 0.0 { 12.0 } else { 0.0 };
@@ -220,6 +245,7 @@ pub fn block_from_structure(
             sample.surface_color.map(|e| (e * 255.0) as u8),
         )),
         StructureBlock::Normal(color) => Some(Block::new(BlockKind::Misc, color)),
+        StructureBlock::Block(kind, color) => Some(Block::new(kind, color)),
         StructureBlock::Water => Some(Block::water(SpriteKind::Empty)),
         // TODO: If/when liquid supports other colors again, revisit this.
         StructureBlock::GreenSludge => Some(Block::water(SpriteKind::Empty)),
@@ -249,6 +275,7 @@ pub fn block_from_structure(
                 Some(with_sprite(SpriteKind::Chest))
             }
         },
+        StructureBlock::Log => Some(Block::new(BlockKind::Wood, Rgb::new(60, 30, 0))),
         // We interpolate all these BlockKinds as needed.
         StructureBlock::TemperateLeaves
         | StructureBlock::PineLeaves

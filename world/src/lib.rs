@@ -1,6 +1,10 @@
 #![deny(unsafe_code)]
 #![allow(incomplete_features)]
-#![allow(clippy::option_map_unit_fn)]
+#![allow(
+    clippy::option_map_unit_fn,
+    clippy::blocks_in_if_conditions,
+    clippy::too_many_arguments
+)]
 #![deny(clippy::clone_on_ref_ptr)]
 #![feature(
     arbitrary_enum_discriminant,
@@ -9,7 +13,8 @@
     const_panic,
     label_break_value,
     or_patterns,
-    array_value_iter
+    array_value_iter,
+    array_map
 )]
 
 mod all;
@@ -19,17 +24,20 @@ pub mod civ;
 mod column;
 pub mod config;
 pub mod index;
+pub mod land;
 pub mod layer;
 pub mod pathfinding;
 pub mod sim;
 pub mod sim2;
 pub mod site;
+pub mod site2;
 pub mod util;
 
 // Reexports
 pub use crate::{
     canvas::{Canvas, CanvasInfo},
     config::CONFIG,
+    land::Land,
 };
 pub use block::BlockGen;
 pub use column::ColumnSample;
@@ -117,6 +125,8 @@ impl World {
                                 },
                             },
                             civ::SiteKind::Castle => world_msg::SiteKind::Castle,
+                            civ::SiteKind::Refactor => world_msg::SiteKind::Town,
+                            civ::SiteKind::Tree => world_msg::SiteKind::Tree,
                         },
                         wpos: site.center * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
                     }
@@ -278,22 +288,24 @@ impl World {
                 wpos: chunk_pos * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
                 column_grid: &zcache_grid,
                 column_grid_border: grid_border,
-                land: &self.sim,
+                chunks: &self.sim,
                 index,
                 chunk: sim_chunk,
             },
             chunk: &mut chunk,
         };
 
-        layer::apply_trees_to(&mut canvas);
-        layer::apply_scatter_to(&mut canvas, &mut dynamic_rng);
         layer::apply_caves_to(&mut canvas, &mut dynamic_rng);
+        layer::apply_trees_to(&mut canvas, &mut dynamic_rng);
+        layer::apply_scatter_to(&mut canvas, &mut dynamic_rng);
         layer::apply_paths_to(&mut canvas);
+        // layer::apply_coral_to(&mut canvas);
 
         // Apply site generation
-        sim_chunk.sites.iter().for_each(|site| {
-            index.sites[*site].apply_to(index, chunk_wpos2d, sample_get, &mut chunk)
-        });
+        sim_chunk
+            .sites
+            .iter()
+            .for_each(|site| index.sites[*site].apply_to(&mut canvas, &mut dynamic_rng));
 
         let gen_entity_pos = |dynamic_rng: &mut rand::rngs::ThreadRng| {
             let lpos2d = TerrainChunkSize::RECT_SIZE

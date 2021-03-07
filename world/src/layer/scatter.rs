@@ -579,15 +579,13 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 .find(|z| {
                     canvas
                         .get(Vec3::new(wpos2d.x, wpos2d.y, alt + z))
-                        .map(|b| b.is_solid())
-                        .unwrap_or(false)
+                        .is_solid()
                 })
                 .and_then(|solid_start| {
                     (1..8).map(|z| solid_start + z).find(|z| {
-                        canvas
+                        !canvas
                             .get(Vec3::new(wpos2d.x, wpos2d.y, alt + z))
-                            .map(|b| !b.is_solid())
-                            .unwrap_or(true)
+                            .is_solid()
                     })
                 })
             {

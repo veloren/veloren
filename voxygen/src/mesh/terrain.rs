@@ -30,8 +30,8 @@ enum FaceKind {
     Fluid,
 }
 
-const SUNLIGHT: u8 = 24;
-const MAX_LIGHT_DIST: i32 = SUNLIGHT as i32;
+pub const SUNLIGHT: u8 = 24;
+pub const MAX_LIGHT_DIST: i32 = SUNLIGHT as i32;
 
 fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
     is_sunlight: bool,
@@ -69,25 +69,24 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
     if is_sunlight {
         for x in 0..outer.size().w {
             for y in 0..outer.size().h {
-                let z = outer.size().d - 1;
-                let is_air = vol_cached
-                    .get(outer.min + Vec3::new(x, y, z))
-                    .ok()
-                    .map_or(false, |b| b.is_air());
+                let mut light = SUNLIGHT;
+                for z in (0..outer.size().d).rev() {
+                    let (min_light, attenuation) = vol_cached
+                        .get(outer.min + Vec3::new(x, y, z))
+                        .map_or((0, 0), |b| b.get_max_sunlight());
 
-                light_map[lm_idx(x, y, z)] = if is_air {
-                    if vol_cached
-                        .get(outer.min + Vec3::new(x, y, z - 1))
-                        .ok()
-                        .map_or(false, |b| b.is_air())
-                    {
-                        light_map[lm_idx(x, y, z - 1)] = SUNLIGHT;
+                    if light > min_light {
+                        light = light.saturating_sub(attenuation).max(min_light);
+                    }
+
+                    light_map[lm_idx(x, y, z)] = light;
+
+                    if light == 0 {
+                        break;
+                    } else {
                         prop_que.push_back((x as u8, y as u8, z as u16));
                     }
-                    SUNLIGHT
-                } else {
-                    OPAQUE
-                };
+                }
             }
         }
     }
@@ -128,46 +127,26 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
         let pos = Vec3::new(pos.0 as i32, pos.1 as i32, pos.2 as i32);
         let light = light_map[lm_idx(pos.x, pos.y, pos.z)];
 
-        // If ray propagate downwards at full strength
-        if is_sunlight && light == SUNLIGHT {
-            // Down is special cased and we know up is a ray
-            // Special cased ray propagation
-            let pos = Vec3::new(pos.x, pos.y, pos.z - 1);
-            let (is_air, is_liquid) = vol_cached
-                .get(outer.min + pos)
-                .ok()
-                .map_or((false, false), |b| (b.is_air(), b.is_liquid()));
-            light_map[lm_idx(pos.x, pos.y, pos.z)] = if is_air {
-                prop_que.push_back((pos.x as u8, pos.y as u8, pos.z as u16));
-                SUNLIGHT
-            } else if is_liquid {
-                prop_que.push_back((pos.x as u8, pos.y as u8, pos.z as u16));
-                SUNLIGHT - 1
-            } else {
-                OPAQUE
-            }
-        } else {
-            // Up
-            // Bounds checking
-            if pos.z + 1 < outer.size().d {
-                propagate(
-                    light,
-                    light_map.get_mut(lm_idx(pos.x, pos.y, pos.z + 1)).unwrap(),
-                    Vec3::new(pos.x, pos.y, pos.z + 1),
-                    &mut prop_que,
-                    &mut vol_cached,
-                )
-            }
-            // Down
-            if pos.z > 0 {
-                propagate(
-                    light,
-                    light_map.get_mut(lm_idx(pos.x, pos.y, pos.z - 1)).unwrap(),
-                    Vec3::new(pos.x, pos.y, pos.z - 1),
-                    &mut prop_que,
-                    &mut vol_cached,
-                )
-            }
+        // Up
+        // Bounds checking
+        if pos.z + 1 < outer.size().d {
+            propagate(
+                light,
+                light_map.get_mut(lm_idx(pos.x, pos.y, pos.z + 1)).unwrap(),
+                Vec3::new(pos.x, pos.y, pos.z + 1),
+                &mut prop_que,
+                &mut vol_cached,
+            )
+        }
+        // Down
+        if pos.z > 0 {
+            propagate(
+                light,
+                light_map.get_mut(lm_idx(pos.x, pos.y, pos.z - 1)).unwrap(),
+                Vec3::new(pos.x, pos.y, pos.z - 1),
+                &mut prop_que,
+                &mut vol_cached,
+            )
         }
         // The XY directions
         if pos.y + 1 < outer.size().h {
@@ -401,7 +380,13 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug + 'static>
         let greedy_size_cross = Vec3::new(greedy_size.x - 1, greedy_size.y - 1, greedy_size.z);
         let draw_delta = Vec3::new(1, 1, z_start);
 
-        let get_light = |_: &mut (), pos: Vec3<i32>| light(pos + range.min);
+        let get_light = |_: &mut (), pos: Vec3<i32>| {
+            if flat_get(pos).is_opaque() {
+                0.0
+            } else {
+                light(pos + range.min)
+            }
+        };
         let get_glow = |_: &mut (), pos: Vec3<i32>| glow(pos + range.min);
         let get_color =
             |_: &mut (), pos: Vec3<i32>| flat_get(pos).get_color().unwrap_or(Rgb::zero());

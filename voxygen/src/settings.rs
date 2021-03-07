@@ -463,6 +463,7 @@ pub struct GameplaySettings {
     pub map_show_castles: bool,
     pub loading_tips: bool,
     pub map_show_caves: bool,
+    pub map_show_trees: bool,
     pub minimap_show: bool,
     pub minimap_face_north: bool,
 }
@@ -502,6 +503,7 @@ impl Default for GameplaySettings {
             map_show_castles: true,
             loading_tips: true,
             map_show_caves: true,
+            map_show_trees: true,
             minimap_show: true,
             minimap_face_north: false,
         }

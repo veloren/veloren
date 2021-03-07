@@ -1,6 +1,8 @@
 #version 330 core
 // #extension ARB_texture_storage : enable
 
+#define FIGURE_SHADER
+
 #include <constants.glsl>
 
 #define LIGHTING_TYPE LIGHTING_TYPE_REFLECTION
@@ -40,6 +42,7 @@ uniform u_locals {
     mat4 model_mat;
     vec4 highlight_col;
     vec4 model_light;
+    vec4 model_glow;
     ivec4 atlas_offs;
     vec3 model_pos;
     // bit 0 - is player

@@ -139,6 +139,10 @@ float lights_at(vec3 wpos, vec3 wnorm, vec3 /*cam_to_frag*/view_dir, vec3 mu, ve
         vec3 difference = light_pos - wpos;
         float distance_2 = dot(difference, difference);
 
+        if (distance_2 > 10000.0) {
+            continue;
+        }
+
         // float strength = attenuation_strength(difference);// pow(attenuation_strength(difference), 0.6);
         // NOTE: This normalizes strength to 0.25 at the center of the point source.
         float strength = 1.0 / (4 + distance_2);
@@ -183,7 +187,12 @@ float lights_at(vec3 wpos, vec3 wnorm, vec3 /*cam_to_frag*/view_dir, vec3 mu, ve
         vec3 direct_light = PI * color * strength * square_factor * light_reflection_factor(/*direct_norm_dir*/wnorm, /*cam_to_frag*/view_dir, direct_light_dir, k_d, k_s, alpha, voxel_norm, voxel_lighting);
         float computed_shadow = ShadowCalculationPoint(i, -difference, wnorm, wpos/*, light_distance*/);
         // directed_light += is_direct ? max(computed_shadow, /*LIGHT_AMBIANCE*/0.0) * direct_light * square_factor : vec3(0.0);
-        directed_light += is_direct ? mix(LIGHT_AMBIANCE, 1.0, computed_shadow) * direct_light * square_factor : vec3(0.0);
+        #ifdef FIGURE_SHADER
+            vec3 ambiance = color * 0.5 / distance_2; // Non-physical hack, but it's pretty subtle and *damn* does it make shadows on characters look better
+        #else
+            vec3 ambiance = vec3(0.0);
+        #endif
+        directed_light += (is_direct ? mix(LIGHT_AMBIANCE, 1.0, computed_shadow) * direct_light * square_factor : vec3(0.0)) + ambiance;
         // directed_light += (is_direct ? 1.0 : LIGHT_AMBIANCE) * max(computed_shadow, /*LIGHT_AMBIANCE*/0.0) * direct_light * square_factor;// : vec3(0.0);
         // directed_light += mix(LIGHT_AMBIANCE, 1.0, computed_shadow) * direct_light * square_factor;
         // ambient_light += is_direct ? vec3(0.0) : vec3(0.0); // direct_light * square_factor * LIGHT_AMBIANCE;

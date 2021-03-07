@@ -30,11 +30,15 @@ make_case_elim!(
         Hollow = 13,
         Liana = 14,
         Normal(color: Rgb<u8>) = 15,
+        Log = 16,
+        Block(kind: BlockKind, color: Rgb<u8>) = 17,
     }
 );
 
 #[derive(Debug)]
-pub enum StructureError {}
+pub enum StructureError {
+    OutOfBounds,
+}
 
 #[derive(Clone)]
 pub struct Structure {
@@ -44,7 +48,6 @@ pub struct Structure {
 
 struct BaseStructure {
     vol: Dyna<StructureBlock, ()>,
-    empty: StructureBlock,
     default_kind: BlockKind,
 }
 
@@ -109,7 +112,7 @@ impl ReadVol for Structure {
     fn get(&self, pos: Vec3<i32>) -> Result<&Self::Vox, StructureError> {
         match self.base.vol.get(pos + self.center) {
             Ok(block) => Ok(block),
-            Err(DynaError::OutOfBounds) => Ok(&self.base.empty),
+            Err(DynaError::OutOfBounds) => Err(StructureError::OutOfBounds),
         }
     }
 }
@@ -165,13 +168,11 @@ impl assets::Compound for BaseStructure {
 
             Ok(BaseStructure {
                 vol,
-                empty: StructureBlock::None,
                 default_kind: BlockKind::Misc,
             })
         } else {
             Ok(BaseStructure {
                 vol: Dyna::filled(Vec3::zero(), StructureBlock::None, ()),
-                empty: StructureBlock::None,
                 default_kind: BlockKind::Misc,
             })
         }

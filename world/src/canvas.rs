@@ -2,7 +2,8 @@ use crate::{
     block::ZCache,
     column::ColumnSample,
     index::IndexRef,
-    sim::{SimChunk, WorldSim as Land},
+    land::Land,
+    sim::{SimChunk, WorldSim},
     util::Grid,
 };
 use common::{
@@ -17,7 +18,7 @@ pub struct CanvasInfo<'a> {
     pub(crate) wpos: Vec2<i32>,
     pub(crate) column_grid: &'a Grid<Option<ZCache<'a>>>,
     pub(crate) column_grid_border: i32,
-    pub(crate) land: &'a Land,
+    pub(crate) chunks: &'a WorldSim,
     pub(crate) index: IndexRef<'a>,
     pub(crate) chunk: &'a SimChunk,
 }
@@ -45,7 +46,9 @@ impl<'a> CanvasInfo<'a> {
 
     pub fn chunk(&self) -> &'a SimChunk { self.chunk }
 
-    pub fn land(&self) -> &'a Land { self.land }
+    pub fn chunks(&self) -> &'a WorldSim { self.chunks }
+
+    pub fn land(&self) -> Land<'_> { Land::from_sim(self.chunks) }
 }
 
 pub struct Canvas<'a> {
@@ -60,8 +63,12 @@ impl<'a> Canvas<'a> {
     /// inner `CanvasInfo` such that it may be used independently.
     pub fn info(&mut self) -> CanvasInfo<'a> { self.info }
 
-    pub fn get(&mut self, pos: Vec3<i32>) -> Option<Block> {
-        self.chunk.get(pos - self.wpos()).ok().copied()
+    pub fn get(&mut self, pos: Vec3<i32>) -> Block {
+        self.chunk
+            .get(pos - self.wpos())
+            .ok()
+            .copied()
+            .unwrap_or_else(Block::empty)
     }
 
     pub fn set(&mut self, pos: Vec3<i32>, block: Block) {

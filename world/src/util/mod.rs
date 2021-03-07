@@ -1,5 +1,6 @@
 pub mod fast_noise;
 pub mod map_vec;
+pub mod math;
 pub mod random;
 pub mod sampler;
 pub mod seed_expan;
@@ -9,7 +10,7 @@ pub mod unit_chooser;
 
 // Reexports
 pub use self::{
-    fast_noise::FastNoise,
+    fast_noise::{FastNoise, FastNoise2d},
     map_vec::MapVec,
     random::{RandomField, RandomPerm},
     sampler::{Sampler, SamplerMut},
@@ -80,4 +81,23 @@ pub const CARDINAL_LOCALITY: [Vec2<i32>; 5] = [
     Vec2::new(1, 0),
     Vec2::new(0, -1),
     Vec2::new(-1, 0),
+];
+
+pub const SQUARE_4: [Vec2<i32>; 4] = [
+    Vec2::new(0, 0),
+    Vec2::new(1, 0),
+    Vec2::new(0, 1),
+    Vec2::new(1, 1),
+];
+
+pub const SQUARE_9: [Vec2<i32>; 9] = [
+    Vec2::new(-1, -1),
+    Vec2::new(0, -1),
+    Vec2::new(1, -1),
+    Vec2::new(-1, 0),
+    Vec2::new(0, 0),
+    Vec2::new(1, 0),
+    Vec2::new(-1, 1),
+    Vec2::new(0, 1),
+    Vec2::new(1, 1),
 ];

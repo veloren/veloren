@@ -32,6 +32,13 @@ impl<T> FromIterator<T> for Path<T> {
     }
 }
 
+impl<T> IntoIterator for Path<T> {
+    type IntoIter = std::vec::IntoIter<T>;
+    type Item = T;
+
+    fn into_iter(self) -> Self::IntoIter { self.nodes.into_iter() }
+}
+
 impl<T> Path<T> {
     pub fn is_empty(&self) -> bool { self.nodes.is_empty() }
 

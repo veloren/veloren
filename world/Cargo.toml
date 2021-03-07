@@ -14,6 +14,7 @@ common = { package = "veloren-common", path = "../common" }
 common-net = { package = "veloren-common-net", path = "../common/net" }
 bincode = "1.3.1"
 bitvec = "0.21.0"
+enum-iterator = "0.6"
 fxhash = "0.2.1"
 image = { version = "0.23.12", default-features = false, features = ["png"] }
 itertools = "0.10"
@@ -36,3 +37,9 @@ ron = { version = "0.6", default-features = false }
 criterion = "0.3"
 tracing-subscriber = { version = "0.2.3", default-features = false, features = ["fmt", "chrono", "ansi", "smallvec"] }
 minifb = "0.19.1"
+svg_fmt = "0.4"
+structopt = "0.3"
+
+[[bench]]
+harness = false
+name = "tree"

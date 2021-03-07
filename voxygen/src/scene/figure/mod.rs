@@ -4602,7 +4602,7 @@ pub struct FigureStateMeta {
     last_pos: Option<anim::vek::Vec3<f32>>,
     avg_vel: anim::vek::Vec3<f32>,
     last_light: f32,
-    last_glow: f32,
+    last_glow: (Vec3<f32>, f32),
     acc_vel: f32,
 }
 
@@ -4649,7 +4649,7 @@ impl<S: Skeleton> FigureState<S> {
                 last_pos: None,
                 avg_vel: anim::vek::Vec3::zero(),
                 last_light: 1.0,
-                last_glow: 0.0,
+                last_glow: (Vec3::zero(), 0.0),
                 acc_vel: 0.0,
             },
             skeleton,
@@ -4743,14 +4743,15 @@ impl<S: Skeleton> FigureState<S> {
                 let s = Lerp::lerp(s_10, s_11, (wpos.x.fract() - 0.5).abs() * 2.0);
                 */
 
-                Vec2::new(t.light_at_wpos(wposi), t.glow_at_wpos(wposi)).into_tuple()
+                (t.light_at_wpos(wposi), t.glow_normal_at_wpos(wpos))
             })
-            .unwrap_or((1.0, 0.0));
+            .unwrap_or((1.0, (Vec3::zero(), 0.0)));
         // Fade between light and glow levels
         // TODO: Making this temporal rather than spatial is a bit dumb but it's a very
         // subtle difference
         self.last_light = vek::Lerp::lerp(self.last_light, light, 16.0 * dt);
-        self.last_glow = vek::Lerp::lerp(self.last_glow, glow, 16.0 * dt);
+        self.last_glow.0 = vek::Lerp::lerp(self.last_glow.0, glow.0, 16.0 * dt);
+        self.last_glow.1 = vek::Lerp::lerp(self.last_glow.1, glow.1, 16.0 * dt);
 
         let locals = FigureLocals::new(
             mat,

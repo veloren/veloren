@@ -69,10 +69,10 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
 
         let sim = &self.sim;
 
-        let _turb = Vec2::new(
-            sim.gen_ctx.turb_x_nz.get((wposf.div(48.0)).into_array()) as f32,
-            sim.gen_ctx.turb_y_nz.get((wposf.div(48.0)).into_array()) as f32,
-        ) * 12.0;
+        // let turb = Vec2::new(
+        //     sim.gen_ctx.turb_x_nz.get((wposf.div(48.0)).into_array()) as f32,
+        //     sim.gen_ctx.turb_y_nz.get((wposf.div(48.0)).into_array()) as f32,
+        // ) * 12.0;
         let wposf_turb = wposf; // + turb.map(|e| e as f64);
 
         let chaos = sim.get_interpolated(wpos, |chunk| chunk.chaos)?;
@@ -81,9 +81,13 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         let rockiness = sim.get_interpolated(wpos, |chunk| chunk.rockiness)?;
         let tree_density = sim.get_interpolated(wpos, |chunk| chunk.tree_density)?;
         let spawn_rate = sim.get_interpolated(wpos, |chunk| chunk.spawn_rate)?;
+        let near_water =
+            sim.get_interpolated(
+                wpos,
+                |chunk| if chunk.river.near_water() { 1.0 } else { 0.0 },
+            )?;
         let alt = sim.get_interpolated_monotone(wpos, |chunk| chunk.alt)?;
         let surface_veg = sim.get_interpolated_monotone(wpos, |chunk| chunk.surface_veg)?;
-        let chunk_warp_factor = sim.get_interpolated_monotone(wpos, |chunk| chunk.warp_factor)?;
         let sim_chunk = sim.get(chunk_pos)?;
         let neighbor_coef = TerrainChunkSize::RECT_SIZE.map(|e| e as f64);
         let my_chunk_idx = vec2_as_uniform_idx(self.sim.map_size_lg(), chunk_pos);
@@ -261,6 +265,27 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             )
         });
 
+        // Cliffs
+        let cliff_factor = (alt
+            + self.sim.gen_ctx.hill_nz.get(wposf.div(64.0).into_array()) as f32 * 8.0
+            + self.sim.gen_ctx.hill_nz.get(wposf.div(350.0).into_array()) as f32 * 128.0)
+            .rem_euclid(200.0)
+            / 64.0
+            - 1.0;
+        let cliff_scale =
+            ((self.sim.gen_ctx.hill_nz.get(wposf.div(128.0).into_array()) as f32 * 1.5 + 0.75)
+                + self.sim.gen_ctx.hill_nz.get(wposf.div(48.0).into_array()) as f32 * 0.1)
+                .clamped(0.0, 1.0)
+                .powf(2.0);
+        let cliff_height = sim.get_interpolated(wpos, |chunk| chunk.cliff_height)? * cliff_scale;
+        let cliff = if cliff_factor < 0.0 {
+            cliff_factor.abs().powf(1.5)
+        } else {
+            0.0
+        } * (1.0 - near_water * 3.0).max(0.0).powi(2);
+        let cliff_offset = cliff * cliff_height;
+        let alt = alt + (cliff - 0.5) * cliff_height;
+
         // Find the average distance to each neighboring body of water.
         let mut river_count = 0.0f64;
         let mut overlap_count = 0.0f64;
@@ -436,7 +461,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             .unwrap_or(CONFIG.sea_level);
 
         let river_gouge = 0.5;
-        let (_in_water, water_dist, alt_, water_level, riverless_alt, warp_factor) = if let Some(
+        let (_in_water, water_dist, alt_, water_level, _riverless_alt, warp_factor) = if let Some(
             (max_border_river_pos, river_chunk, max_border_river, max_border_river_dist),
         ) =
             max_river
@@ -701,13 +726,12 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 1.0,
             )
         };
-        let warp_factor = warp_factor * chunk_warp_factor;
         // NOTE: To disable warp, uncomment this line.
         // let warp_factor = 0.0;
 
         let riverless_alt_delta = Lerp::lerp(0.0, riverless_alt_delta, warp_factor);
+        let riverless_alt = alt + riverless_alt_delta; //riverless_alt + riverless_alt_delta;
         let alt = alt_ + riverless_alt_delta;
-        let riverless_alt = riverless_alt + riverless_alt_delta;
         let basement =
             alt + sim.get_interpolated_monotone(wpos, |chunk| chunk.basement.sub(chunk.alt))?;
 
@@ -982,6 +1006,10 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             .map(|wd| Lerp::lerp(sub_surface_color, ground, (wd / 3.0).clamped(0.0, 1.0)))
             .unwrap_or(ground);
 
+        // Ground under thick trees should be receive less sunlight and so often become
+        // dirt
+        let ground = Lerp::lerp(ground, sub_surface_color, marble_mid * tree_density);
+
         let near_ocean = max_river.and_then(|(_, _, river_data, _)| {
             if (river_data.is_lake() || river_data.river_kind == Some(RiverKind::Ocean))
                 && alt <= water_level.max(CONFIG.sea_level + 5.0)
@@ -1047,6 +1075,8 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             path,
             cave,
             snow_cover,
+            cliff_offset,
+            cliff_height,
 
             chunk: sim_chunk,
         })
@@ -1077,6 +1107,8 @@ pub struct ColumnSample<'a> {
     pub path: Option<(f32, Vec2<f32>, Path, Vec2<f32>)>,
     pub cave: Option<(f32, Vec2<f32>, Cave, Vec2<f32>)>,
     pub snow_cover: bool,
+    pub cliff_offset: f32,
+    pub cliff_height: f32,
 
     pub chunk: &'a SimChunk,
 }

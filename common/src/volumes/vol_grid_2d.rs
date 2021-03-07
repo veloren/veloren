@@ -26,7 +26,7 @@ impl<V: RectRasterableVol> VolGrid2d<V> {
     #[inline(always)]
     pub fn chunk_key<P: Into<Vec2<i32>>>(pos: P) -> Vec2<i32> {
         pos.into()
-            .map2(V::RECT_SIZE, |e, sz: u32| e >> (sz - 1).count_ones())
+            .map2(V::RECT_SIZE, |e, sz: u32| e.div_euclid(sz as i32))
     }
 
     #[inline(always)]

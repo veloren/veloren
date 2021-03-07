@@ -189,7 +189,21 @@ impl Block {
             | SpriteKind::RubySmall
             | SpriteKind::EmeraldSmall
             | SpriteKind::SapphireSmall => Some(3),
+            SpriteKind::Lantern => Some(24),
             _ => None,
+        }
+    }
+
+    // minimum block, attenuation
+    #[inline]
+    pub fn get_max_sunlight(&self) -> (u8, u8) {
+        match self.kind() {
+            BlockKind::Water => (1, 1),
+            BlockKind::Leaves => (9, 255),
+            BlockKind::Wood => (6, 2),
+            BlockKind::Snow => (6, 2),
+            _ if self.is_opaque() => (0, 255),
+            _ => (0, 0),
         }
     }
 
