@@ -32,7 +32,7 @@ float hash_fast(uvec3 q)
 
 // 2D, but using shifted 2D textures
 float noise_2d(vec2 pos) {
-    return texture(t_noise, pos).x;
+    return texture(sampler2D(t_noise, s_noise), pos).x;
 }
 
 // 3D, but using shifted 2D textures
