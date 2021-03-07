@@ -1796,6 +1796,10 @@
         "voxel.weapon.projectile.fireworks_red-0",
         (0.0, 0.5, 0.0), (-50.0, 40.0, 20.0), 0.8,
     ),
+    Throwable(Firework(White)): VoxTrans(
+        "voxel.weapon.projectile.fireworks_white-0",
+        (0.0, 0.5, 0.0), (-50.0, 40.0, 20.0), 0.8,
+    ),
     Throwable(Firework(Yellow)): VoxTrans(
         "voxel.weapon.projectile.fireworks_yellow-0",
         (0.0, 0.5, 0.0), (-50.0, 40.0, 20.0), 0.8,

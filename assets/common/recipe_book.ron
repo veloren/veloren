@@ -100,6 +100,16 @@
             (Item("common.items.crafting_tools.mortar_pestle"), 0),
         ],
     ),
+    "firework_white": (
+        ("common.items.utility.firework_white", 1),
+        [
+            (Item("common.items.crafting_ing.twigs"), 1),
+            (Item("common.items.crafting_ing.stones"), 1),
+            (Item("common.items.food.coconut"), 1),
+            (Item("common.items.ore.veloritefrag"), 1),
+            (Item("common.items.crafting_tools.mortar_pestle"), 0),
+        ],
+    ),
     "firework_yellow": (
         ("common.items.utility.firework_yellow", 1),
         [

@@ -42,6 +42,7 @@ pub enum Reagent {
     Green,
     Purple,
     Red,
+    White,
     Yellow,
 }
 

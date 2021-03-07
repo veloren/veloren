@@ -1,0 +1,9 @@
+ItemDef(
+    name: "Firework White",
+    description: "Twinkles like the stars",
+    kind: Throwable(
+        kind: Firework(White),
+    ),
+    quality: Moderate,
+    tags: [],
+)

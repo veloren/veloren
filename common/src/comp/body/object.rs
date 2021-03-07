@@ -65,14 +65,15 @@ make_case_elim!(
         FireworkGreen = 55,
         FireworkPurple = 56,
         FireworkRed = 57,
-        FireworkYellow = 58,
-        MultiArrow = 59,
-        BoltNature = 60,
-        MeatDrop = 61,
-        Steak = 62,
-        Crossbow = 63,
-        ArrowTurret = 64,
-        Coins = 65,
+        FireworkWhite = 58,
+        FireworkYellow = 59,
+        MultiArrow = 60,
+        BoltNature = 61,
+        MeatDrop = 62,
+        Steak = 63,
+        Crossbow = 64,
+        ArrowTurret = 65,
+        Coins = 66,
     }
 );
 
@@ -83,7 +84,7 @@ impl Body {
     }
 }
 
-pub const ALL_OBJECTS: [Body; 66] = [
+pub const ALL_OBJECTS: [Body; 67] = [
     Body::Arrow,
     Body::Bomb,
     Body::Scarecrow,
@@ -142,6 +143,7 @@ pub const ALL_OBJECTS: [Body; 66] = [
     Body::FireworkGreen,
     Body::FireworkPurple,
     Body::FireworkRed,
+    Body::FireworkWhite,
     Body::FireworkYellow,
     Body::MultiArrow,
     Body::BoltNature,
@@ -217,6 +219,7 @@ impl Body {
             Body::FireworkGreen => "firework_green",
             Body::FireworkPurple => "firework_purple",
             Body::FireworkRed => "firework_red",
+            Body::FireworkWhite => "firework_white",
             Body::FireworkYellow => "firework_yellow",
             Body::MultiArrow => "multi_arrow",
             Body::BoltNature => "bolt_nature",
@@ -234,6 +237,7 @@ impl Body {
             Reagent::Green => Body::FireworkGreen,
             Reagent::Purple => Body::FireworkPurple,
             Reagent::Red => Body::FireworkRed,
+            Reagent::White => Body::FireworkWhite,
             Reagent::Yellow => Body::FireworkYellow,
         }
     }

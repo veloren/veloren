@@ -46,19 +46,20 @@ const int FIREWORK_BLUE = 4;
 const int FIREWORK_GREEN = 5;
 const int FIREWORK_PURPLE = 6;
 const int FIREWORK_RED = 7;
-const int FIREWORK_YELLOW = 8;
-const int LEAF = 9;
-const int FIREFLY = 10;
-const int BEE = 11;
-const int GROUND_SHOCKWAVE = 12;
-const int HEALING_BEAM = 13;
-const int ENERGY_NATURE = 14;
-const int FLAMETHROWER = 15;
-const int FIRE_SHOCKWAVE = 16;
-const int FIRE_BOWL = 17;
-const int SNOW = 18;
-const int EXPLOSION = 19;
-const int ICE = 20;
+const int FIREWORK_WHITE = 8;
+const int FIREWORK_YELLOW = 9;
+const int LEAF = 10;
+const int FIREFLY = 11;
+const int BEE = 12;
+const int GROUND_SHOCKWAVE = 13;
+const int HEALING_BEAM = 14;
+const int ENERGY_NATURE = 15;
+const int FLAMETHROWER = 16;
+const int FIRE_SHOCKWAVE = 17;
+const int FIRE_BOWL = 18;
+const int SNOW = 19;
+const int EXPLOSION = 20;
+const int ICE = 21;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -257,6 +258,17 @@ void main() {
             vec4(vec3(2, 0, 0), 1),
             identity()
         );
+        } else if (inst_mode == FIREWORK_WHITE) {
+            f_reflect = 0.0; // Fire doesn't reflect light, it emits it
+            attr = Attr(
+                linear_motion(
+                    vec3(0),
+                    normalize(vec3(rand1, rand2, rand3)) * 40.0 + grav_vel(earth_gravity)
+                ),
+                vec3(3.0 + rand0),
+                vec4(vec3(2, 2, 2), 1),
+                identity()
+            );
     } else if (inst_mode == FIREWORK_YELLOW) {
         f_reflect = 0.0; // Fire doesn't reflect light, it emits it
         attr = Attr(
