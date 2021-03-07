@@ -1,11 +1,11 @@
 use crate::settings::BanRecord;
 use authc::{AuthClient, AuthClientError, AuthToken, Uuid};
 use common_net::msg::RegisterError;
+use common_sys::plugin::memory_manager::EcsWorld;
 #[cfg(feature = "plugins")]
 use common_sys::plugin::PluginMgr;
 use hashbrown::{HashMap, HashSet};
 use plugin_api::event::{PlayerJoinEvent, PlayerJoinResult};
-use specs::World;
 use std::str::FromStr;
 use tracing::{error, info};
 
@@ -57,7 +57,7 @@ impl LoginProvider {
     pub fn try_login(
         &mut self,
         username_or_token: &str,
-        world: &World,
+        world: &EcsWorld,
         #[cfg(feature = "plugins")] plugin_manager: &PluginMgr,
         admins: &HashSet<Uuid>,
         whitelist: &HashSet<Uuid>,
@@ -80,21 +80,23 @@ impl LoginProvider {
                     return Err(RegisterError::NotOnWhitelist);
                 }
                 #[cfg(feature = "plugins")]
-                match plugin_manager.execute_event(&world, &PlayerJoinEvent {
-                    player_name: username.clone(),
-                    player_id: *uuid.as_bytes(),
-                }) {
-                    Ok(e) => {
-                        for i in e.into_iter() {
-                            if let PlayerJoinResult::Kick(a) = i {
-                                return Err(RegisterError::Kicked(a));
+                {
+                    match plugin_manager.execute_event(&world, &PlayerJoinEvent {
+                        player_name: username.clone(),
+                        player_id: *uuid.as_bytes(),
+                    }) {
+                        Ok(e) => {
+                            for i in e.into_iter() {
+                                if let PlayerJoinResult::Kick(a) = i {
+                                    return Err(RegisterError::Kicked(a));
+                                }
                             }
-                        }
-                    },
-                    Err(e) => {
-                        error!("Error occured while executing `on_join`: {:?}",e);
-                    },
-                };
+                        },
+                        Err(e) => {
+                            error!("Error occured while executing `on_join`: {:?}",e);
+                        },
+                    };
+                }
 
                 // add the user to self.accounts
                 self.login(uuid, username.clone())?;

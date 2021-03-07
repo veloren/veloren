@@ -1,4 +1,6 @@
 #[cfg(feature = "plugins")]
+use crate::plugin::memory_manager::EcsWorld;
+#[cfg(feature = "plugins")]
 use crate::plugin::PluginMgr;
 use common::{
     comp,
@@ -209,8 +211,17 @@ impl State {
         #[cfg(feature = "plugins")]
         ecs.insert(match PluginMgr::from_assets() {
             Ok(plugin_mgr) => {
+                let ecs_world = EcsWorld {
+                    entities: ecs.entities(),
+                    health: ecs.read_component(),
+                    uid: ecs.read_component(),
+                    uid_allocator: ecs.read_resource(),
+                    //player: Either::First(ecs.read_component()),
+                };
                 if let Err(e) = plugin_mgr
-                    .execute_event(&ecs, &plugin_api::event::PluginLoadEvent { game_mode })
+                    .execute_event(&ecs_world, &plugin_api::event::PluginLoadEvent {
+                        game_mode,
+                    })
                 {
                     tracing::error!(?e, "Failed to run plugin init");
                     tracing::info!(
@@ -221,7 +232,8 @@ impl State {
                     plugin_mgr
                 }
             },
-            Err(_) => {
+            Err(e) => {
+                tracing::error!(?e, "Failed to read plugins from assets");
                 tracing::info!(
                     "Error occurred when loading plugins. Running without plugins instead."
                 );

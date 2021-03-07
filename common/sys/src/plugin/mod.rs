@@ -5,7 +5,6 @@ pub mod wasm_env;
 
 use common::assets::ASSETS_PATH;
 use serde::{Deserialize, Serialize};
-use specs::World;
 use std::{
     collections::{HashMap, HashSet},
     fs,
@@ -18,6 +17,7 @@ use plugin_api::Event;
 
 use self::{
     errors::PluginError,
+    memory_manager::EcsWorld,
     module::{PluginModule, PreparedEventQuery},
 };
 
@@ -83,7 +83,7 @@ impl Plugin {
 
     pub fn execute_prepared<T>(
         &self,
-        ecs: &World,
+        ecs: &EcsWorld,
         event: &PreparedEventQuery<T>,
     ) -> Result<Vec<T::Response>, PluginError>
     where
@@ -121,7 +121,7 @@ impl PluginMgr {
 
     pub fn execute_prepared<T>(
         &self,
-        ecs: &World,
+        ecs: &EcsWorld,
         event: &PreparedEventQuery<T>,
     ) -> Result<Vec<T::Response>, PluginError>
     where
@@ -137,7 +137,11 @@ impl PluginMgr {
             .collect())
     }
 
-    pub fn execute_event<T>(&self, ecs: &World, event: &T) -> Result<Vec<T::Response>, PluginError>
+    pub fn execute_event<T>(
+        &self,
+        ecs: &EcsWorld,
+        event: &T,
+    ) -> Result<Vec<T::Response>, PluginError>
     where
         T: Event,
     {

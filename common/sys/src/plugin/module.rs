@@ -5,16 +5,12 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use common::{
-    comp::{Health, Player},
-    uid::UidAllocator,
-};
-use specs::{saveload::MarkerAllocator, World, WorldExt};
+use specs::saveload::MarkerAllocator;
 use wasmer::{imports, Cranelift, Function, Instance, Memory, Module, Store, Value, JIT};
 
 use super::{
     errors::{PluginError, PluginModuleError},
-    memory_manager::{self, EcsAccessManager, MemoryManager},
+    memory_manager::{self, EcsAccessManager, EcsWorld, MemoryManager},
     wasm_env::HostFunctionEnvironement,
 };
 
@@ -110,7 +106,7 @@ impl PluginModule {
     /// return None if the event doesn't exists
     pub fn try_execute<T>(
         &self,
-        ecs: &World,
+        ecs: &EcsWorld,
         request: &PreparedEventQuery<T>,
     ) -> Option<Result<T::Response, PluginModuleError>>
     where
@@ -236,31 +232,29 @@ fn retrieve_action(
     action: Retrieve,
 ) -> Result<RetrieveResult, RetrieveError> {
     match action {
-        Retrieve::GetPlayerName(e) => {
+        Retrieve::GetPlayerName(_e) => {
             // Safety: No reference is leaked out the function so it is safe.
-            let world = unsafe {
-                ecs.get().ok_or(RetrieveError::EcsAccessError(
-                    EcsAccessError::EcsPointerNotAvailable,
-                ))?
-            };
-            let player = world
-                .read_resource::<UidAllocator>()
-                .retrieve_entity_internal(e.0)
-                .ok_or(RetrieveError::EcsAccessError(
-                    EcsAccessError::EcsEntityNotFound(e),
-                ))?;
+            // let world = unsafe {
+            //     ecs.get().ok_or(RetrieveError::EcsAccessError(
+            //         EcsAccessError::EcsPointerNotAvailable,
+            //     ))?
+            // };
+            // let player = world.uid_allocator.retrieve_entity_internal(e.0).ok_or(
+            //     RetrieveError::EcsAccessError(EcsAccessError::EcsEntityNotFound(e)),
+            // )?;
+
             Ok(RetrieveResult::GetPlayerName(
-                world
-                    .read_component::<Player>()
-                    .get(player)
-                    .ok_or_else(|| {
-                        RetrieveError::EcsAccessError(EcsAccessError::EcsComponentNotFound(
-                            e,
-                            "Player".to_owned(),
-                        ))
-                    })?
-                    .alias
-                    .to_owned(),
+                "<TODO>".to_owned(), /* world
+                                      *     .player.get(player).ok_or_else(|| {
+                                      *
+                                      * RetrieveError::EcsAccessError(EcsAccessError::
+                                      * EcsComponentNotFound(
+                                      *                 e,
+                                      *                 "Player".to_owned(),
+                                      *             ))
+                                      *         })?
+                                      *         .alias
+                                      *         .to_owned() */
             ))
         },
         Retrieve::GetEntityHealth(e) => {
@@ -270,22 +264,16 @@ fn retrieve_action(
                     EcsAccessError::EcsPointerNotAvailable,
                 ))?
             };
-            let player = world
-                .read_resource::<UidAllocator>()
-                .retrieve_entity_internal(e.0)
-                .ok_or(RetrieveError::EcsAccessError(
-                    EcsAccessError::EcsEntityNotFound(e),
-                ))?;
+            let player = world.uid_allocator.retrieve_entity_internal(e.0).ok_or(
+                RetrieveError::EcsAccessError(EcsAccessError::EcsEntityNotFound(e)),
+            )?;
             Ok(RetrieveResult::GetEntityHealth(
-                *world
-                    .read_component::<Health>()
-                    .get(player)
-                    .ok_or_else(|| {
-                        RetrieveError::EcsAccessError(EcsAccessError::EcsComponentNotFound(
-                            e,
-                            "Health".to_owned(),
-                        ))
-                    })?,
+                *world.health.get(player).ok_or_else(|| {
+                    RetrieveError::EcsAccessError(EcsAccessError::EcsComponentNotFound(
+                        e,
+                        "Health".to_owned(),
+                    ))
+                })?,
             ))
         },
     }

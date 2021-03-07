@@ -76,7 +76,7 @@ use common_net::{
 };
 #[cfg(feature = "plugins")]
 use common_sys::plugin::PluginMgr;
-use common_sys::state::State;
+use common_sys::{plugin::memory_manager::EcsWorld, state::State};
 use hashbrown::HashMap;
 use metrics::{PhysicsMetrics, PlayerMetrics, StateTickMetrics, TickMetrics};
 use network::{Network, Pid, ProtocolAddr};
@@ -1106,8 +1106,14 @@ impl Server {
             #[cfg(feature = "plugins")]
             {
                 let plugin_manager = self.state.ecs().read_resource::<PluginMgr>();
+                let ecs_world = EcsWorld {
+                    entities: self.state.ecs().entities(),
+                    health: self.state.ecs().read_component(),
+                    uid: self.state.ecs().read_component(),
+                    uid_allocator: self.state.ecs().read_resource(),
+                };
                 let rs = plugin_manager.execute_event(
-                    self.state.ecs(),
+                    &ecs_world,
                     &plugin_api::event::ChatCommandEvent {
                         command: kwd.clone(),
                         command_args: args.split(' ').map(|x| x.to_owned()).collect(),
