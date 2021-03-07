@@ -135,19 +135,20 @@ widget_ids! {
         skill_staff_shockwave_3,
         skill_staff_shockwave_4,
         sceptre_render,
-        skill_sceptre_beam_0,
-        skill_sceptre_beam_1,
-        skill_sceptre_beam_2,
-        skill_sceptre_beam_3,
-        skill_sceptre_beam_4,
-        skill_sceptre_beam_5,
-        skill_sceptre_beam_6,
-        skill_sceptre_bomb_0,
-        skill_sceptre_bomb_1,
-        skill_sceptre_bomb_2,
-        skill_sceptre_bomb_3,
-        skill_sceptre_bomb_4,
-        skill_sceptre_bomb_5,
+        skill_sceptre_lifesteal_0,
+        skill_sceptre_lifesteal_1,
+        skill_sceptre_lifesteal_2,
+        skill_sceptre_lifesteal_3,
+        skill_sceptre_lifesteal_4,
+        skill_sceptre_heal_0,
+        skill_sceptre_heal_1,
+        skill_sceptre_heal_2,
+        skill_sceptre_heal_3,
+        skill_sceptre_aura_0,
+        skill_sceptre_aura_1,
+        skill_sceptre_aura_2,
+        skill_sceptre_aura_3,
+        skill_sceptre_aura_4,
         general_combat_render_0,
         general_combat_render_1,
         skill_general_stat_0,
@@ -535,7 +536,7 @@ impl<'a> Widget for Diary<'a> {
             SelectedSkillTree::Weapon(ToolKind::Hammer) => 5,
             SelectedSkillTree::Weapon(ToolKind::Bow) => 3,
             SelectedSkillTree::Weapon(ToolKind::Staff) => 5,
-            SelectedSkillTree::Weapon(ToolKind::Sceptre) => 7,
+            SelectedSkillTree::Weapon(ToolKind::Sceptre) => 5,
             _ => 0,
         };
         let skills_top_r = match sel_tab {
@@ -545,7 +546,7 @@ impl<'a> Widget for Diary<'a> {
             SelectedSkillTree::Weapon(ToolKind::Hammer) => 5,
             SelectedSkillTree::Weapon(ToolKind::Bow) => 7,
             SelectedSkillTree::Weapon(ToolKind::Staff) => 5,
-            SelectedSkillTree::Weapon(ToolKind::Sceptre) => 6,
+            SelectedSkillTree::Weapon(ToolKind::Sceptre) => 4,
             _ => 0,
         };
         let skills_bot_l = match sel_tab {
@@ -555,6 +556,7 @@ impl<'a> Widget for Diary<'a> {
             SelectedSkillTree::Weapon(ToolKind::Hammer) => 6,
             SelectedSkillTree::Weapon(ToolKind::Bow) => 5,
             SelectedSkillTree::Weapon(ToolKind::Staff) => 5,
+            SelectedSkillTree::Weapon(ToolKind::Sceptre) => 5,
             _ => 0,
         };
         let skills_bot_r = match sel_tab {
@@ -3249,20 +3251,20 @@ impl<'a> Widget for Diary<'a> {
                 //        5 1 6
                 //        3 0 4
                 //        8 2 7
-                Button::image(self.imgs.skill_sceptre_heal)
+                Button::image(self.imgs.skill_sceptre_lifesteal)
                     .w_h(74.0, 74.0)
                     .mid_top_with_margin_on(state.skills_top_l[0], 3.0)
                     .with_tooltip(
                         self.tooltip_manager,
-                        &self.localized_strings.get("hud.skill.sc_beam_title"),
-                        &self.localized_strings.get("hud.skill.sc_beam"),
+                        &self.localized_strings.get("hud.skill.sc_lifesteal_title"),
+                        &self.localized_strings.get("hud.skill.sc_lifesteal"),
                         &diary_tooltip,
                         TEXT_COLOR,
                     )
-                    .set(state.skill_sceptre_beam_0, ui);
-                let skill = Skill::Sceptre(BHeal);
+                    .set(state.skill_sceptre_lifesteal_0, ui);
+                let skill = Skill::Sceptre(LDamage);
                 if create_skill_button(
-                    self.imgs.heal_heal_skill,
+                    self.imgs.skill_sceptre_lifesteal,
                     state.skills_top_l[1],
                     &self.stats.skill_set,
                     skill,
@@ -3271,9 +3273,11 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    &self.localized_strings.get("hud.skill.sc_beam_heal_title"),
+                    &self
+                        .localized_strings
+                        .get("hud.skill.sc_lifesteal_damage_title"),
                     &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.sc_beam_heal"),
+                        &self.localized_strings.get("hud.skill.sc_lifesteal_damage"),
                         skill,
                         &self.stats.skill_set,
                         &self.localized_strings,
@@ -3281,14 +3285,14 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_sceptre_beam_1, ui)
+                .set(state.skill_sceptre_lifesteal_1, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
-                let skill = Skill::Sceptre(BDamage);
+                let skill = Skill::Sceptre(LRange);
                 if create_skill_button(
-                    self.imgs.heal_damage_skill,
+                    self.imgs.skill_sceptre_lifesteal,
                     state.skills_top_l[2],
                     &self.stats.skill_set,
                     skill,
@@ -3297,9 +3301,11 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    &self.localized_strings.get("hud.skill.sc_beam_damage_title"),
+                    &self
+                        .localized_strings
+                        .get("hud.skill.sc_lifesteal_range_title"),
                     &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.sc_beam_damage"),
+                        &self.localized_strings.get("hud.skill.sc_lifesteal_range"),
                         skill,
                         &self.stats.skill_set,
                         &self.localized_strings,
@@ -3307,14 +3313,14 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_sceptre_beam_2, ui)
+                .set(state.skill_sceptre_lifesteal_2, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
-                let skill = Skill::Sceptre(BRegen);
+                let skill = Skill::Sceptre(LLifesteal);
                 if create_skill_button(
-                    self.imgs.heal_energy_regen_skill,
+                    self.imgs.skill_sceptre_lifesteal,
                     state.skills_top_l[3],
                     &self.stats.skill_set,
                     skill,
@@ -3325,9 +3331,11 @@ impl<'a> Widget for Diary<'a> {
                     self.tooltip_manager,
                     &self
                         .localized_strings
-                        .get("hud.skill.sc_energy_regen_title"),
+                        .get("hud.skill.sc_lifesteal_lifesteal_title"),
                     &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.sc_energy_regen"),
+                        &self
+                            .localized_strings
+                            .get("hud.skill.sc_lifesteal_lifesteal"),
                         skill,
                         &self.stats.skill_set,
                         &self.localized_strings,
@@ -3335,41 +3343,15 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_sceptre_beam_3, ui)
+                .set(state.skill_sceptre_lifesteal_3, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
-                let skill = Skill::Sceptre(BRange);
+                let skill = Skill::Sceptre(LRegen);
                 if create_skill_button(
-                    self.imgs.heal_radius_skill,
+                    self.imgs.skill_sceptre_lifesteal,
                     state.skills_top_l[4],
-                    &self.stats.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self.localized_strings.get("hud.skill.sc_range_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.sc_range"),
-                        skill,
-                        &self.stats.skill_set,
-                        &self.localized_strings,
-                    ),
-                    &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_sceptre_beam_4, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Sceptre(BLifesteal);
-                if create_skill_button(
-                    self.imgs.heal_lifesteal_skill,
-                    state.skills_top_l[5],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -3379,11 +3361,9 @@ impl<'a> Widget for Diary<'a> {
                     self.tooltip_manager,
                     &self
                         .localized_strings
-                        .get("hud.skill.sc_lifesteal_efficiency_title"),
+                        .get("hud.skill.sc_lifesteal_regen_title"),
                     &add_sp_cost_tooltip(
-                        &self
-                            .localized_strings
-                            .get("hud.skill.sc_lifesteal_efficiency"),
+                        &self.localized_strings.get("hud.skill.sc_lifesteal_regen"),
                         skill,
                         &self.stats.skill_set,
                         &self.localized_strings,
@@ -3391,15 +3371,53 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_sceptre_beam_5, ui)
+                .set(state.skill_sceptre_lifesteal_4, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
-                let skill = Skill::Sceptre(BCost);
+                // Top right skills
+                Button::image(self.imgs.skill_sceptre_heal)
+                    .w_h(74.0, 74.0)
+                    .mid_top_with_margin_on(state.skills_top_r[0], 3.0)
+                    .with_tooltip(
+                        self.tooltip_manager,
+                        &self.localized_strings.get("hud.skill.sc_heal_title"),
+                        &self.localized_strings.get("hud.skill.sc_heal"),
+                        &diary_tooltip,
+                        TEXT_COLOR,
+                    )
+                    .set(state.skill_sceptre_heal_0, ui);
+                let skill = Skill::Sceptre(HHeal);
                 if create_skill_button(
-                    self.imgs.heal_cost_skill,
-                    state.skills_top_l[6],
+                    self.imgs.skill_sceptre_heal,
+                    state.skills_top_r[1],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    &self.localized_strings.get("hud.skill.sc_heal_heal_title"),
+                    &add_sp_cost_tooltip(
+                        &self.localized_strings.get("hud.skill.sc_heal_heal"),
+                        skill,
+                        &self.stats.skill_set,
+                        &self.localized_strings,
+                    ),
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_sceptre_heal_1, ui)
+                .was_clicked()
+                {
+                    events.push(Event::UnlockSkill(skill));
+                };
+                let skill = Skill::Sceptre(HCost);
+                if create_skill_button(
+                    self.imgs.skill_sceptre_heal,
+                    state.skills_top_r[2],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -3417,78 +3435,14 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_sceptre_beam_6, ui)
+                .set(state.skill_sceptre_heal_2, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
-                Button::image(self.imgs.skill_sceptre_heal)
-                    .w_h(74.0, 74.0)
-                    .mid_top_with_margin_on(state.skills_top_r[0], 3.0)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        &self.localized_strings.get("hud.skill.sc_healbomb_title"),
-                        &self.localized_strings.get("hud.skill.sc_healbomb"),
-                        &diary_tooltip,
-                        TEXT_COLOR,
-                    )
-                    .set(state.skill_sceptre_bomb_0, ui);
-                // Top right skills
-                let skill = Skill::Sceptre(PHeal);
+                let skill = Skill::Sceptre(HRange);
                 if create_skill_button(
-                    self.imgs.heal_heal_skill,
-                    state.skills_top_r[1],
-                    &self.stats.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self.localized_strings.get("hud.skill.sc_heal_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.sc_heal"),
-                        skill,
-                        &self.stats.skill_set,
-                        &self.localized_strings,
-                    ),
-                    &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_sceptre_bomb_1, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Sceptre(PDamage);
-                if create_skill_button(
-                    self.imgs.heal_damage_skill,
-                    state.skills_top_r[2],
-                    &self.stats.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self.localized_strings.get("hud.skill.sc_damage_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.sc_damage"),
-                        skill,
-                        &self.stats.skill_set,
-                        &self.localized_strings,
-                    ),
-                    &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_sceptre_bomb_2, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Sceptre(PRadius);
-                if create_skill_button(
-                    self.imgs.heal_radius_skill,
+                    self.imgs.skill_sceptre_heal,
                     state.skills_top_r[3],
                     &self.stats.skill_set,
                     skill,
@@ -3497,9 +3451,9 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    &self.localized_strings.get("hud.skill.sc_radius_title"),
+                    &self.localized_strings.get("hud.skill.sc_heal_range_title"),
                     &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.sc_radius"),
+                        &self.localized_strings.get("hud.skill.sc_heal_range"),
                         skill,
                         &self.stats.skill_set,
                         &self.localized_strings,
@@ -3507,41 +3461,16 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_sceptre_bomb_3, ui)
+                .set(state.skill_sceptre_heal_3, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
                 };
-                let skill = Skill::Sceptre(PCost);
+                // Bottom left skills
+                let skill = Skill::Sceptre(UnlockAura);
                 if create_skill_button(
-                    self.imgs.heal_cost_skill,
-                    state.skills_top_r[4],
-                    &self.stats.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self.localized_strings.get("hud.skill.sc_energy_cost_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.sc_energy_cost"),
-                        skill,
-                        &self.stats.skill_set,
-                        &self.localized_strings,
-                    ),
-                    &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_sceptre_bomb_4, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
-                let skill = Skill::Sceptre(PProjSpeed);
-                if create_skill_button(
-                    self.imgs.heal_projectile_speed_skill,
-                    state.skills_top_r[5],
+                    self.imgs.skill_sceptre_aura,
+                    state.skills_bot_l[0],
                     &self.stats.skill_set,
                     skill,
                     self.fonts,
@@ -3551,9 +3480,9 @@ impl<'a> Widget for Diary<'a> {
                     self.tooltip_manager,
                     &self
                         .localized_strings
-                        .get("hud.skill.sc_projectile_speed_title"),
+                        .get("hud.skill.sc_wardaura_unlock_title"),
                     &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.sc_projectile_speed"),
+                        &self.localized_strings.get("hud.skill.sc_wardaura_unlock"),
                         skill,
                         &self.stats.skill_set,
                         &self.localized_strings,
@@ -3561,7 +3490,119 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_sceptre_bomb_5, ui)
+                .set(state.skill_sceptre_aura_0, ui)
+                .was_clicked()
+                {
+                    events.push(Event::UnlockSkill(skill));
+                };
+                let skill = Skill::Sceptre(AStrength);
+                if create_skill_button(
+                    self.imgs.skill_sceptre_aura,
+                    state.skills_bot_l[1],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    &self
+                        .localized_strings
+                        .get("hud.skill.sc_wardaura_strength_title"),
+                    &add_sp_cost_tooltip(
+                        &self.localized_strings.get("hud.skill.sc_wardaura_strength"),
+                        skill,
+                        &self.stats.skill_set,
+                        &self.localized_strings,
+                    ),
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_sceptre_aura_1, ui)
+                .was_clicked()
+                {
+                    events.push(Event::UnlockSkill(skill));
+                };
+                let skill = Skill::Sceptre(ADuration);
+                if create_skill_button(
+                    self.imgs.skill_sceptre_aura,
+                    state.skills_bot_l[2],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    &self
+                        .localized_strings
+                        .get("hud.skill.sc_wardaura_duration_title"),
+                    &add_sp_cost_tooltip(
+                        &self.localized_strings.get("hud.skill.sc_wardaura_duration"),
+                        skill,
+                        &self.stats.skill_set,
+                        &self.localized_strings,
+                    ),
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_sceptre_aura_2, ui)
+                .was_clicked()
+                {
+                    events.push(Event::UnlockSkill(skill));
+                };
+                let skill = Skill::Sceptre(ARange);
+                if create_skill_button(
+                    self.imgs.skill_sceptre_aura,
+                    state.skills_bot_l[3],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    &self
+                        .localized_strings
+                        .get("hud.skill.sc_wardaura_range_title"),
+                    &add_sp_cost_tooltip(
+                        &self.localized_strings.get("hud.skill.sc_wardaura_range"),
+                        skill,
+                        &self.stats.skill_set,
+                        &self.localized_strings,
+                    ),
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_sceptre_aura_3, ui)
+                .was_clicked()
+                {
+                    events.push(Event::UnlockSkill(skill));
+                };
+                let skill = Skill::Sceptre(ACost);
+                if create_skill_button(
+                    self.imgs.skill_sceptre_aura,
+                    state.skills_bot_l[4],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    &self
+                        .localized_strings
+                        .get("hud.skill.sc_wardaura_cost_title"),
+                    &add_sp_cost_tooltip(
+                        &self.localized_strings.get("hud.skill.sc_wardaura_cost"),
+                        skill,
+                        &self.stats.skill_set,
+                        &self.localized_strings,
+                    ),
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_sceptre_aura_4, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));

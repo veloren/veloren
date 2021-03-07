@@ -73,7 +73,7 @@
         primary: "common.abilities.sceptre.lifestealbeam",
         secondary: "common.abilities.sceptre.healingbeam",
         abilities: [
-            (None, "common.abilities.sceptre.wardingaura"),
+            (Some(Sceptre(UnlockAura)), "common.abilities.sceptre.wardingaura"),
         ],
     ),
     Dagger: (

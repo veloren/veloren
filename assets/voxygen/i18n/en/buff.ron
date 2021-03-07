@@ -18,7 +18,7 @@
         "buff.title.invulnerability": "Invulnerability",
         "buff.desc.invulnerability": "You cannot be damaged by any attack.",
         "buff.title.protectingward": "Protecting Ward",
-        "buff.desc.protectingward": "You are protected, somewhat, from attacks."
+        "buff.desc.protectingward": "You are protected, somewhat, from attacks.",
         // Debuffs
         "buff.title.bleed": "Bleeding",
         "buff.desc.bleed": "Inflicts regular damage.",

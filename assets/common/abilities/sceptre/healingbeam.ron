@@ -6,7 +6,6 @@ HealingBeam(
     tick_rate: 2.0,
     range: 25.0,
     max_angle: 1.0,
-    lifesteal_eff: 0.0,
-    energy_cost: 50,
+    energy_cost: 75,
     specifier: HealingBeam,
 )

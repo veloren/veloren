@@ -452,6 +452,7 @@ image_ids! {
         hammerleap: "voxygen.element.icons.skill_hammerleap",
         skill_axe_leap_slash: "voxygen.element.icons.skill_axe_leap_slash",
         skill_bow_jump_burst: "voxygen.element.icons.skill_bow_jump_burst",
+        // Do not merge until icon for this
         skill_sceptre_aura: "voxygen.element.icons.heal_bomb",
         missing_icon: "voxygen.element.icons.missing_icon_grey",
 
