@@ -23,7 +23,7 @@ pub use self::{
 };
 
 use crate::{
-    all::*,
+    all::{Environment, ForestKind, TreeAttr},
     block::BlockGen,
     civ::Place,
     column::ColumnGen,

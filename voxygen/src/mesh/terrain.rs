@@ -381,13 +381,11 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug + 'static>
         let draw_delta = Vec3::new(1, 1, z_start);
 
         let get_light = |_: &mut (), pos: Vec3<i32>| {
-            volume.get(range.min + pos).map_or(1.0, |b| {
-                if b.is_opaque() {
-                    0.0
-                } else {
-                    light(pos + range.min)
-                }
-            })
+            if flat_get(pos).is_opaque() {
+                0.0
+            } else {
+                light(pos + range.min)
+            }
         };
         let get_glow = |_: &mut (), pos: Vec3<i32>| glow(pos + range.min);
         let get_color =

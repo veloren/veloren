@@ -44,9 +44,12 @@ const float UNDERWATER_MIST_DIST = 100.0;
 
 const float PERSISTENT_AMBIANCE = 1.0 / 32.0;// 1.0 / 80; // 1.0 / 512; // 0.00125 // 0.1;// 0.025; // 0.1;
 
+// Glow from static light sources
 // Allowed to be > 1 due to HDR
 const vec3 GLOW_COLOR = vec3(3.0, 0.9, 0.05);
 
+// Calculate glow from static light sources, + some noise for flickering.
+// TODO: Optionally disable the flickering for performance?
 vec3 glow_light(vec3 pos) {
     return GLOW_COLOR * (1.0 + (noise_3d(vec3(pos.xy * 0.005, tick.x * 0.5)) - 0.5) * 1.0);
 }
