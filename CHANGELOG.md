@@ -41,6 +41,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New enemies in 5 lower dungeons
 - Added on join event in plugins
 - Item stacking and splitting
+- Procedural trees (currently only oaks and pines are procedural)
+- Cliffs on steep slopes
+- Giant tree sites
 
 ### Changed
 
@@ -63,6 +66,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Items can be requested from the counterparty's inventory during trade.
 - Savanna grasses restricted to savanna, cacti to desert.
 - Fireworks recursively shoot more fireworks.
+- Improved static light rendering and illumination
+- Improved the tree spawning model to allow for overlapping forests
+- Changed sunlight (and, in general, static light) propagation through blocks to allow for more material properties
 
 ### Removed
 
