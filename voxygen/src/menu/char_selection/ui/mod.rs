@@ -1118,9 +1118,14 @@ impl Controls {
                     Image::new(imgs.name_input)
                         .height(Length::Units(40))
                         .fix_aspect_ratio(),
-                    TextInput::new(name_input, "Character Name", &name, Message::Name)
-                        .size(25)
-                        .on_submit(Message::CreateCharacter),
+                    TextInput::new(
+                        name_input,
+                        i18n.get("character_window.character_name"),
+                        &name,
+                        Message::Name,
+                    )
+                    .size(25)
+                    .on_submit(Message::CreateCharacter),
                 )
                 .padding(Padding::new().horizontal(7).top(5));
 
