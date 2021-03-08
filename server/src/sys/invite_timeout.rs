@@ -1,35 +1,34 @@
-use super::SysTimer;
 use crate::client::Client;
 use common::{
     comp::invite::{Invite, PendingInvites},
-    span,
+    system::{Job, Origin, Phase, System},
     uid::Uid,
 };
 use common_net::msg::{InviteAnswer, ServerGeneral};
-use specs::{Entities, Join, ReadStorage, System, Write, WriteStorage};
+use specs::{Entities, Join, ReadStorage, WriteStorage};
 
 /// This system removes timed out invites
+#[derive(Default)]
 pub struct Sys;
 impl<'a> System<'a> for Sys {
-    #[allow(clippy::type_complexity)] // TODO: Pending review in #587
+    #[allow(clippy::type_complexity)]
     type SystemData = (
         Entities<'a>,
         WriteStorage<'a, Invite>,
         WriteStorage<'a, PendingInvites>,
         ReadStorage<'a, Client>,
         ReadStorage<'a, Uid>,
-        Write<'a, SysTimer<Self>>,
     );
 
+    const NAME: &'static str = "invite_timeout";
+    const ORIGIN: Origin = Origin::Server;
+    const PHASE: Phase = Phase::Create;
+
     fn run(
-        &mut self,
-        (entities, mut invites, mut pending_invites, clients, uids, mut timer): Self::SystemData,
+        _job: &mut Job<Self>,
+        (entities, mut invites, mut pending_invites, clients, uids): Self::SystemData,
     ) {
-        span!(_guard, "run", "invite_timeout::Sys::run");
-        timer.start();
-
         let now = std::time::Instant::now();
-
         let timed_out_invites = (&entities, &invites)
             .join()
             .filter_map(|(invitee, Invite { inviter, kind })| {
@@ -68,7 +67,5 @@ impl<'a> System<'a> for Sys {
         for entity in timed_out_invites {
             invites.remove(entity);
         }
-
-        timer.end();
     }
 }

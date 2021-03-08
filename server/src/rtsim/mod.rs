@@ -10,6 +10,7 @@ use self::{chunks::Chunks, entity::Entity};
 use common::{
     comp,
     rtsim::{RtSimController, RtSimEntity, RtSimId},
+    system::{dispatch, System},
     terrain::TerrainChunk,
     vol::RectRasterableVol,
 };
@@ -72,14 +73,13 @@ impl RtSim {
     }
 }
 
-const LOAD_CHUNK_SYS: &str = "rtsim_load_chunk_sys";
-const UNLOAD_CHUNK_SYS: &str = "rtsim_unload_chunk_sys";
-const TICK_SYS: &str = "rtsim_tick_sys";
-
 pub fn add_server_systems(dispatch_builder: &mut DispatcherBuilder) {
-    dispatch_builder.add(unload_chunks::Sys, UNLOAD_CHUNK_SYS, &[]);
-    dispatch_builder.add(load_chunks::Sys, LOAD_CHUNK_SYS, &[UNLOAD_CHUNK_SYS]);
-    dispatch_builder.add(tick::Sys, TICK_SYS, &[LOAD_CHUNK_SYS, UNLOAD_CHUNK_SYS]);
+    dispatch::<unload_chunks::Sys>(dispatch_builder, &[]);
+    dispatch::<load_chunks::Sys>(dispatch_builder, &[&unload_chunks::Sys::sys_name()]);
+    dispatch::<tick::Sys>(dispatch_builder, &[
+        &load_chunks::Sys::sys_name(),
+        &unload_chunks::Sys::sys_name(),
+    ]);
 }
 
 pub fn init(state: &mut State, #[cfg(feature = "worldgen")] world: &world::World) {

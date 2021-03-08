@@ -1,15 +1,14 @@
-use super::super::SysTimer;
 use crate::{client::Client, metrics::NetworkRequestMetrics, presence::Presence, Settings};
 use common::{
     comp::{CanBuild, ControlEvent, Controller, ForceUpdate, Health, Ori, Pos, Stats, Vel},
     event::{EventBus, ServerEvent},
-    span,
+    system::{Job, Origin, Phase, System},
     terrain::{TerrainChunkSize, TerrainGrid},
     vol::{ReadVol, RectVolSize},
 };
 use common_net::msg::{ClientGeneral, PresenceKind, ServerGeneral};
 use common_sys::state::BlockChange;
-use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, Write, WriteStorage};
+use specs::{Entities, Join, Read, ReadExpect, ReadStorage, Write, WriteStorage};
 use tracing::{debug, trace};
 
 impl Sys {
@@ -165,6 +164,7 @@ impl Sys {
 }
 
 /// This system will handle new messages from clients
+#[derive(Default)]
 pub struct Sys;
 impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
@@ -173,7 +173,6 @@ impl<'a> System<'a> for Sys {
         Read<'a, EventBus<ServerEvent>>,
         ReadExpect<'a, TerrainGrid>,
         ReadExpect<'a, NetworkRequestMetrics>,
-        Write<'a, SysTimer<Self>>,
         ReadStorage<'a, CanBuild>,
         ReadStorage<'a, ForceUpdate>,
         WriteStorage<'a, Stats>,
@@ -188,14 +187,17 @@ impl<'a> System<'a> for Sys {
         Read<'a, Settings>,
     );
 
+    const NAME: &'static str = "msg::in_game";
+    const ORIGIN: Origin = Origin::Server;
+    const PHASE: Phase = Phase::Create;
+
     fn run(
-        &mut self,
+        _job: &mut Job<Self>,
         (
             entities,
             server_event_bus,
             terrain,
             network_metrics,
-            mut timer,
             can_build,
             force_updates,
             mut stats,
@@ -210,9 +212,6 @@ impl<'a> System<'a> for Sys {
             settings,
         ): Self::SystemData,
     ) {
-        span!(_guard, "run", "msg::in_game::Sys::run");
-        timer.start();
-
         let mut server_emitter = server_event_bus.emitter();
 
         for (entity, client, mut maybe_presence) in
@@ -240,7 +239,5 @@ impl<'a> System<'a> for Sys {
                 )
             });
         }
-
-        timer.end()
     }
 }

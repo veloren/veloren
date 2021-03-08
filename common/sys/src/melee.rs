@@ -2,15 +2,13 @@ use common::{
     combat::{AttackerInfo, TargetInfo},
     comp::{Body, CharacterState, Energy, Group, Health, Inventory, Melee, Ori, Pos, Scale, Stats},
     event::{EventBus, ServerEvent},
-    metrics::SysMetrics,
-    span,
+    system::{Job, Origin, Phase, System},
     uid::Uid,
     util::Dir,
     GroupTarget,
 };
 use specs::{
-    shred::ResourceId, Entities, Join, Read, ReadExpect, ReadStorage, System, SystemData, World,
-    WriteStorage,
+    shred::ResourceId, Entities, Join, Read, ReadStorage, SystemData, World, WriteStorage,
 };
 use vek::*;
 
@@ -28,20 +26,22 @@ pub struct ReadData<'a> {
     groups: ReadStorage<'a, Group>,
     char_states: ReadStorage<'a, CharacterState>,
     server_bus: Read<'a, EventBus<ServerEvent>>,
-    metrics: ReadExpect<'a, SysMetrics>,
     stats: ReadStorage<'a, Stats>,
 }
 
 /// This system is responsible for handling accepted inputs like moving or
 /// attacking
+#[derive(Default)]
 pub struct Sys;
 
 impl<'a> System<'a> for Sys {
     type SystemData = (ReadData<'a>, WriteStorage<'a, Melee>);
 
-    fn run(&mut self, (read_data, mut melee_attacks): Self::SystemData) {
-        let start_time = std::time::Instant::now();
-        span!(_guard, "run", "melee::Sys::run");
+    const NAME: &'static str = "melee";
+    const ORIGIN: Origin = Origin::Common;
+    const PHASE: Phase = Phase::Create;
+
+    fn run(_job: &mut Job<Self>, (read_data, mut melee_attacks): Self::SystemData) {
         let mut server_emitter = read_data.server_bus.emitter();
         // Attacks
         for (attacker, uid, pos, ori, melee_attack, body) in (
@@ -135,9 +135,5 @@ impl<'a> System<'a> for Sys {
                 }
             }
         }
-        read_data.metrics.melee_ns.store(
-            start_time.elapsed().as_nanos() as u64,
-            std::sync::atomic::Ordering::Relaxed,
-        );
     }
 }

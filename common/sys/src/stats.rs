@@ -5,16 +5,14 @@ use common::{
         PoiseChange, PoiseSource, Pos, Stats,
     },
     event::{EventBus, ServerEvent},
-    metrics::SysMetrics,
     outcome::Outcome,
     resources::{DeltaTime, Time},
-    span,
+    system::{Job, Origin, Phase, System},
     uid::Uid,
 };
 use hashbrown::HashSet;
 use specs::{
-    shred::ResourceId, Entities, Join, Read, ReadExpect, ReadStorage, System, SystemData, World,
-    Write, WriteStorage,
+    shred::ResourceId, Entities, Join, Read, ReadStorage, SystemData, World, Write, WriteStorage,
 };
 use vek::Vec3;
 
@@ -28,7 +26,6 @@ pub struct ReadData<'a> {
     dt: Read<'a, DeltaTime>,
     time: Read<'a, Time>,
     server_bus: Read<'a, EventBus<ServerEvent>>,
-    metrics: ReadExpect<'a, SysMetrics>,
     positions: ReadStorage<'a, Pos>,
     uids: ReadStorage<'a, Uid>,
     bodies: ReadStorage<'a, Body>,
@@ -36,6 +33,7 @@ pub struct ReadData<'a> {
 }
 
 /// This system kills players, levels them up, and regenerates energy.
+#[derive(Default)]
 pub struct Sys;
 impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
@@ -49,8 +47,12 @@ impl<'a> System<'a> for Sys {
         Write<'a, Vec<Outcome>>,
     );
 
+    const NAME: &'static str = "stats";
+    const ORIGIN: Origin = Origin::Common;
+    const PHASE: Phase = Phase::Create;
+
     fn run(
-        &mut self,
+        _job: &mut Job<Self>,
         (
             read_data,
             mut stats,
@@ -61,8 +63,6 @@ impl<'a> System<'a> for Sys {
             mut outcomes,
         ): Self::SystemData,
     ) {
-        let start_time = std::time::Instant::now();
-        span!(_guard, "run", "stats::Sys::run");
         let mut server_event_emitter = read_data.server_bus.emitter();
         let dt = read_data.dt.0;
 
@@ -266,10 +266,5 @@ impl<'a> System<'a> for Sys {
                 combo.reset();
             }
         }
-
-        read_data.metrics.stats_ns.store(
-            start_time.elapsed().as_nanos() as u64,
-            std::sync::atomic::Ordering::Relaxed,
-        );
     }
 }

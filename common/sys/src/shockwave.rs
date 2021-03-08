@@ -6,13 +6,14 @@ use common::{
     },
     event::{EventBus, ServerEvent},
     resources::{DeltaTime, Time},
+    system::{Job, Origin, Phase, System},
     uid::{Uid, UidAllocator},
     util::Dir,
     GroupTarget,
 };
 use specs::{
-    saveload::MarkerAllocator, shred::ResourceId, Entities, Join, Read, ReadStorage, System,
-    SystemData, World, WriteStorage,
+    saveload::MarkerAllocator, shred::ResourceId, Entities, Join, Read, ReadStorage, SystemData,
+    World, WriteStorage,
 };
 use vek::*;
 
@@ -39,6 +40,7 @@ pub struct ReadData<'a> {
 
 /// This system is responsible for handling accepted inputs like moving or
 /// attacking
+#[derive(Default)]
 pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
@@ -47,7 +49,14 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, ShockwaveHitEntities>,
     );
 
-    fn run(&mut self, (read_data, mut shockwaves, mut shockwave_hit_lists): Self::SystemData) {
+    const NAME: &'static str = "shockwave";
+    const ORIGIN: Origin = Origin::Common;
+    const PHASE: Phase = Phase::Create;
+
+    fn run(
+        _job: &mut Job<Self>,
+        (read_data, mut shockwaves, mut shockwave_hit_lists): Self::SystemData,
+    ) {
         let mut server_emitter = read_data.server_bus.emitter();
 
         let time = read_data.time.0;

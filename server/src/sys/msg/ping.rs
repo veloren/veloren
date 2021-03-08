@@ -1,12 +1,11 @@
-use super::super::SysTimer;
 use crate::{client::Client, metrics::PlayerMetrics, Settings};
 use common::{
     event::{EventBus, ServerEvent},
     resources::Time,
-    span,
+    system::{Job, Origin, Phase, System},
 };
 use common_net::msg::PingMsg;
-use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, Write};
+use specs::{Entities, Join, Read, ReadExpect, ReadStorage};
 use std::sync::atomic::Ordering;
 use tracing::{debug, info};
 
@@ -21,6 +20,7 @@ impl Sys {
 }
 
 /// This system will handle new messages from clients
+#[derive(Default)]
 pub struct Sys;
 impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
@@ -29,26 +29,18 @@ impl<'a> System<'a> for Sys {
         Read<'a, EventBus<ServerEvent>>,
         Read<'a, Time>,
         ReadExpect<'a, PlayerMetrics>,
-        Write<'a, SysTimer<Self>>,
         ReadStorage<'a, Client>,
         Read<'a, Settings>,
     );
 
-    fn run(
-        &mut self,
-        (
-            entities,
-            server_event_bus,
-            time,
-            player_metrics,
-            mut timer,
-            clients,
-            settings,
-        ): Self::SystemData,
-    ) {
-        span!(_guard, "run", "msg::ping::Sys::run");
-        timer.start();
+    const NAME: &'static str = "msg::ping";
+    const ORIGIN: Origin = Origin::Server;
+    const PHASE: Phase = Phase::Create;
 
+    fn run(
+        _job: &mut Job<Self>,
+        (entities, server_event_bus, time, player_metrics, clients, settings): Self::SystemData,
+    ) {
         let mut server_emitter = server_event_bus.emitter();
 
         for (entity, client) in (&entities, &clients).join() {
@@ -89,7 +81,5 @@ impl<'a> System<'a> for Sys {
                 },
             }
         }
-
-        timer.end()
     }
 }

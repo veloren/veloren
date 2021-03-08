@@ -1,19 +1,16 @@
-use crate::{
-    persistence::character_updater,
-    presence::Presence,
-    sys::{SysScheduler, SysTimer},
-};
+use crate::{persistence::character_updater, presence::Presence, sys::SysScheduler};
 use common::{
     comp::{Inventory, Stats, Waypoint},
-    span,
+    system::{Job, Origin, Phase, System},
 };
 use common_net::msg::PresenceKind;
-use specs::{Join, ReadExpect, ReadStorage, System, Write};
+use specs::{Join, ReadExpect, ReadStorage, Write};
 
+#[derive(Default)]
 pub struct Sys;
 
 impl<'a> System<'a> for Sys {
-    #[allow(clippy::type_complexity)] // TODO: Pending review in #587
+    #[allow(clippy::type_complexity)]
     type SystemData = (
         ReadStorage<'a, Presence>,
         ReadStorage<'a, Stats>,
@@ -21,11 +18,14 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Waypoint>,
         ReadExpect<'a, character_updater::CharacterUpdater>,
         Write<'a, SysScheduler<Self>>,
-        Write<'a, SysTimer<Self>>,
     );
 
+    const NAME: &'static str = "persistence";
+    const ORIGIN: Origin = Origin::Server;
+    const PHASE: Phase = Phase::Create;
+
     fn run(
-        &mut self,
+        _job: &mut Job<Self>,
         (
             presences,
             player_stats,
@@ -33,12 +33,9 @@ impl<'a> System<'a> for Sys {
             player_waypoint,
             updater,
             mut scheduler,
-            mut timer,
         ): Self::SystemData,
     ) {
-        span!(_guard, "run", "persistence::Sys::run");
         if scheduler.should_run() {
-            timer.start();
             updater.batch_update(
                 (
                     &presences,
@@ -54,7 +51,6 @@ impl<'a> System<'a> for Sys {
                         },
                     ),
             );
-            timer.end();
         }
     }
 }

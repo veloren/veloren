@@ -1,4 +1,3 @@
-use super::super::SysTimer;
 use crate::{
     alias_validator::AliasValidator, character_creator, client::Client,
     persistence::character_loader::CharacterLoader, presence::Presence, EditableSettings,
@@ -6,11 +5,11 @@ use crate::{
 use common::{
     comp::{ChatType, Player, UnresolvedChatMsg},
     event::{EventBus, ServerEvent},
-    span,
+    system::{Job, Origin, Phase, System},
     uid::Uid,
 };
 use common_net::msg::{ClientGeneral, ServerGeneral};
-use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, Write};
+use specs::{Entities, Join, Read, ReadExpect, ReadStorage};
 use std::sync::atomic::Ordering;
 use tracing::{debug, warn};
 
@@ -121,6 +120,7 @@ impl Sys {
 }
 
 /// This system will handle new messages from clients
+#[derive(Default)]
 pub struct Sys;
 impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
@@ -128,7 +128,6 @@ impl<'a> System<'a> for Sys {
         Entities<'a>,
         Read<'a, EventBus<ServerEvent>>,
         ReadExpect<'a, CharacterLoader>,
-        Write<'a, SysTimer<Self>>,
         ReadStorage<'a, Uid>,
         ReadStorage<'a, Client>,
         ReadStorage<'a, Player>,
@@ -137,13 +136,16 @@ impl<'a> System<'a> for Sys {
         ReadExpect<'a, AliasValidator>,
     );
 
+    const NAME: &'static str = "msg::character_screen";
+    const ORIGIN: Origin = Origin::Server;
+    const PHASE: Phase = Phase::Create;
+
     fn run(
-        &mut self,
+        _job: &mut Job<Self>,
         (
             entities,
             server_event_bus,
             character_loader,
-            mut timer,
             uids,
             clients,
             players,
@@ -152,9 +154,6 @@ impl<'a> System<'a> for Sys {
             alias_validator,
         ): Self::SystemData,
     ) {
-        span!(_guard, "run", "msg::character_screen::Sys::run");
-        timer.start();
-
         let mut server_emitter = server_event_bus.emitter();
         let mut new_chat_msgs = Vec::new();
 
@@ -189,7 +188,5 @@ impl<'a> System<'a> for Sys {
                 server_emitter.emit(ServerEvent::Chat(msg));
             }
         }
-
-        timer.end()
     }
 }

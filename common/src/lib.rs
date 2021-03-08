@@ -61,6 +61,7 @@ pub mod spiral;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod states;
 #[cfg(not(target_arch = "wasm32"))] pub mod store;
+pub mod system;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod terrain;
 #[cfg(not(target_arch = "wasm32"))] pub mod time;

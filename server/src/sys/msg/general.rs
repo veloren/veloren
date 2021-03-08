@@ -1,16 +1,15 @@
-use super::super::SysTimer;
 use crate::{client::Client, metrics::PlayerMetrics};
 use common::{
     comp::{ChatMode, Player, UnresolvedChatMsg},
     event::{EventBus, ServerEvent},
     resources::Time,
-    span,
+    system::{Job, Origin, Phase, System},
     uid::Uid,
 };
 use common_net::msg::{
     validate_chat_msg, ChatMsgValidationError, ClientGeneral, MAX_BYTES_CHAT_MSG,
 };
-use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, Write};
+use specs::{Entities, Join, Read, ReadExpect, ReadStorage};
 use std::sync::atomic::Ordering;
 use tracing::{debug, error, warn};
 
@@ -65,6 +64,7 @@ impl Sys {
 }
 
 /// This system will handle new messages from clients
+#[derive(Default)]
 pub struct Sys;
 impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
@@ -73,30 +73,29 @@ impl<'a> System<'a> for Sys {
         Read<'a, EventBus<ServerEvent>>,
         Read<'a, Time>,
         ReadExpect<'a, PlayerMetrics>,
-        Write<'a, SysTimer<Self>>,
         ReadStorage<'a, Uid>,
         ReadStorage<'a, ChatMode>,
         ReadStorage<'a, Player>,
         ReadStorage<'a, Client>,
     );
 
+    const NAME: &'static str = "msg::general";
+    const ORIGIN: Origin = Origin::Server;
+    const PHASE: Phase = Phase::Create;
+
     fn run(
-        &mut self,
+        _job: &mut Job<Self>,
         (
             entities,
             server_event_bus,
             time,
             player_metrics,
-            mut timer,
             uids,
             chat_modes,
             players,
             clients,
         ): Self::SystemData,
     ) {
-        span!(_guard, "run", "msg::general::Sys::run");
-        timer.start();
-
         let mut server_emitter = server_event_bus.emitter();
         let mut new_chat_msgs = Vec::new();
 
@@ -134,7 +133,5 @@ impl<'a> System<'a> for Sys {
                 server_emitter.emit(ServerEvent::Chat(msg));
             }
         }
-
-        timer.end()
     }
 }

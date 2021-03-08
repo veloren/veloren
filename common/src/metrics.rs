@@ -1,15 +1,9 @@
-use std::sync::atomic::AtomicU64;
+use crate::system::CpuTimeline;
+use std::{collections::HashMap, sync::Mutex};
 
 #[derive(Default)]
 pub struct SysMetrics {
-    pub agent_ns: AtomicU64,
-    pub mount_ns: AtomicU64,
-    pub controller_ns: AtomicU64,
-    pub character_behavior_ns: AtomicU64,
-    pub stats_ns: AtomicU64,
-    pub phys_ns: AtomicU64,
-    pub projectile_ns: AtomicU64,
-    pub melee_ns: AtomicU64,
+    pub stats: Mutex<HashMap<String, CpuTimeline>>,
 }
 
 #[derive(Default)]

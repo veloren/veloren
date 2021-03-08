@@ -1,7 +1,4 @@
-use super::{
-    sentinel::{DeletedEntities, ReadTrackers, TrackedComps},
-    SysTimer,
-};
+use super::sentinel::{DeletedEntities, ReadTrackers, TrackedComps};
 use crate::{
     client::Client,
     presence::{Presence, RegionSubscription},
@@ -12,27 +9,27 @@ use common::{
     outcome::Outcome,
     region::{Event as RegionEvent, RegionMap},
     resources::TimeOfDay,
-    span,
+    system::{Job, Origin, Phase, System},
     terrain::TerrainChunkSize,
     uid::Uid,
     vol::RectVolSize,
 };
 use common_net::{msg::ServerGeneral, sync::CompSyncPackage};
 use specs::{
-    Entities, Entity as EcsEntity, Join, Read, ReadExpect, ReadStorage, System, Write, WriteStorage,
+    Entities, Entity as EcsEntity, Join, Read, ReadExpect, ReadStorage, Write, WriteStorage,
 };
 use vek::*;
 
 /// This system will send physics updates to the client
+#[derive(Default)]
 pub struct Sys;
 impl<'a> System<'a> for Sys {
-    #[allow(clippy::type_complexity)] // TODO: Pending review in #587
+    #[allow(clippy::type_complexity)]
     type SystemData = (
         Entities<'a>,
         Read<'a, Tick>,
         ReadExpect<'a, TimeOfDay>,
         ReadExpect<'a, RegionMap>,
-        Write<'a, SysTimer<Self>>,
         ReadStorage<'a, Uid>,
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Vel>,
@@ -52,14 +49,17 @@ impl<'a> System<'a> for Sys {
         ReadTrackers<'a>,
     );
 
+    const NAME: &'static str = "entity_sync";
+    const ORIGIN: Origin = Origin::Server;
+    const PHASE: Phase = Phase::Create;
+
     fn run(
-        &mut self,
+        _job: &mut Job<Self>,
         (
             entities,
             tick,
             time_of_day,
             region_map,
-            mut timer,
             uids,
             positions,
             velocities,
@@ -79,9 +79,6 @@ impl<'a> System<'a> for Sys {
             trackers,
         ): Self::SystemData,
     ) {
-        span!(_guard, "run", "entity_sync::Sys::run");
-        timer.start();
-
         let tick = tick.0;
         // To send entity updates
         // 1. Iterate through regions
@@ -381,7 +378,5 @@ impl<'a> System<'a> for Sys {
             }
             tof_lazymsg.as_ref().map(|msg| client.send_prepared(&msg));
         }
-
-        timer.end();
     }
 }

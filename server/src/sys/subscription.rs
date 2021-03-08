@@ -1,7 +1,4 @@
-use super::{
-    sentinel::{DeletedEntities, TrackedComps},
-    SysTimer,
-};
+use super::sentinel::{DeletedEntities, TrackedComps};
 use crate::{
     client::Client,
     presence::{self, Presence, RegionSubscription},
@@ -9,27 +6,26 @@ use crate::{
 use common::{
     comp::{Ori, Pos, Vel},
     region::{region_in_vd, regions_in_vd, Event as RegionEvent, RegionMap},
-    span,
+    system::{Job, Origin, Phase, System},
     terrain::TerrainChunkSize,
     uid::Uid,
     vol::RectVolSize,
 };
 use common_net::msg::ServerGeneral;
 use specs::{
-    Entities, Join, ReadExpect, ReadStorage, System, SystemData, World, WorldExt, Write,
-    WriteStorage,
+    Entities, Join, ReadExpect, ReadStorage, SystemData, World, WorldExt, Write, WriteStorage,
 };
 use tracing::{debug, error};
 use vek::*;
 
 /// This system will update region subscriptions based on client positions
+#[derive(Default)]
 pub struct Sys;
 impl<'a> System<'a> for Sys {
-    #[allow(clippy::type_complexity)] // TODO: Pending review in #587
+    #[allow(clippy::type_complexity)]
     type SystemData = (
         Entities<'a>,
         ReadExpect<'a, RegionMap>,
-        Write<'a, SysTimer<Self>>,
         ReadStorage<'a, Uid>,
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Vel>,
@@ -41,13 +37,16 @@ impl<'a> System<'a> for Sys {
         TrackedComps<'a>,
     );
 
+    const NAME: &'static str = "subscription";
+    const ORIGIN: Origin = Origin::Server;
+    const PHASE: Phase = Phase::Create;
+
     #[allow(clippy::blocks_in_if_conditions)] // TODO: Pending review in #587
     fn run(
-        &mut self,
+        _job: &mut Job<Self>,
         (
             entities,
             region_map,
-            mut timer,
             uids,
             positions,
             velocities,
@@ -59,9 +58,6 @@ impl<'a> System<'a> for Sys {
             tracked_comps,
         ): Self::SystemData,
     ) {
-        span!(_guard, "run", "subscription::Sys::run");
-        timer.start();
-
         // To update subscriptions
         // 1. Iterate through clients
         // 2. Calculate current chunk position
@@ -209,8 +205,6 @@ impl<'a> System<'a> for Sys {
                 }
             }
         }
-
-        timer.end();
     }
 }
 

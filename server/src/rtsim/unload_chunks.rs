@@ -2,10 +2,12 @@ use super::*;
 use common::{
     comp::Pos,
     event::{EventBus, ServerEvent},
+    system::{Job, Origin, Phase, System},
     terrain::TerrainGrid,
 };
-use specs::{Entities, Read, ReadExpect, ReadStorage, System, WriteExpect};
+use specs::{Entities, Read, ReadExpect, ReadStorage, WriteExpect};
 
+#[derive(Default)]
 pub struct Sys;
 impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
@@ -18,8 +20,12 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Pos>,
     );
 
+    const NAME: &'static str = "rtsim::unload_chunks";
+    const ORIGIN: Origin = Origin::Server;
+    const PHASE: Phase = Phase::Create;
+
     fn run(
-        &mut self,
+        _job: &mut Job<Self>,
         (
             _server_event_bus,
             mut rtsim,

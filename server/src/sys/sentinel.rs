@@ -1,11 +1,10 @@
-use super::SysTimer;
 use common::{
     comp::{
         Auras, BeamSegment, Body, Buffs, CanBuild, CharacterState, Collider, Combo, Energy,
         Gravity, Group, Health, Inventory, Item, LightEmitter, Mass, MountState, Mounting, Ori,
         Player, Poise, Pos, Scale, Shockwave, Stats, Sticky, Vel,
     },
-    span,
+    system::{Job, Origin, Phase, System},
     uid::Uid,
 };
 use common_net::{
@@ -14,29 +13,25 @@ use common_net::{
 };
 use hashbrown::HashMap;
 use specs::{
-    shred::ResourceId, Entity as EcsEntity, Join, ReadExpect, ReadStorage, System, SystemData,
-    World, Write, WriteExpect,
+    shred::ResourceId, Entity as EcsEntity, Join, ReadExpect, ReadStorage, SystemData, World,
+    WriteExpect,
 };
 use vek::*;
 
 /// Always watching
 /// This system will monitor specific components for insertion, removal, and
 /// modification
+#[derive(Default)]
 pub struct Sys;
 impl<'a> System<'a> for Sys {
-    type SystemData = (
-        Write<'a, SysTimer<Self>>,
-        TrackedComps<'a>,
-        WriteTrackers<'a>,
-    );
+    type SystemData = (TrackedComps<'a>, WriteTrackers<'a>);
 
-    fn run(&mut self, (mut timer, comps, mut trackers): Self::SystemData) {
-        span!(_guard, "run", "sentinel::Sys::run");
-        timer.start();
+    const NAME: &'static str = "sentinel";
+    const ORIGIN: Origin = Origin::Server;
+    const PHASE: Phase = Phase::Create;
 
+    fn run(_job: &mut Job<Self>, (comps, mut trackers): Self::SystemData) {
         record_changes(&comps, &mut trackers);
-
-        timer.end();
     }
 }
 

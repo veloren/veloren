@@ -1,4 +1,3 @@
-use super::SysTimer;
 use common::{
     comp::{
         self,
@@ -16,10 +15,9 @@ use common::{
         UnresolvedChatMsg, Vel,
     },
     event::{Emitter, EventBus, ServerEvent},
-    metrics::SysMetrics,
     path::TraversalConfig,
     resources::{DeltaTime, TimeOfDay},
-    span,
+    system::{Job, Origin, Phase, System},
     terrain::{Block, TerrainGrid},
     time::DayPeriod,
     uid::{Uid, UidAllocator},
@@ -31,8 +29,8 @@ use rayon::iter::ParallelIterator;
 use specs::{
     saveload::{Marker, MarkerAllocator},
     shred::ResourceId,
-    Entities, Entity as EcsEntity, Join, ParJoin, Read, ReadExpect, ReadStorage, System,
-    SystemData, World, Write, WriteStorage,
+    Entities, Entity as EcsEntity, Join, ParJoin, Read, ReadExpect, ReadStorage, SystemData, World,
+    Write, WriteStorage,
 };
 use std::f32::consts::PI;
 use vek::*;
@@ -64,7 +62,6 @@ pub struct ReadData<'a> {
     uid_allocator: Read<'a, UidAllocator>,
     dt: Read<'a, DeltaTime>,
     group_manager: Read<'a, group::GroupManager>,
-    sys_metrics: ReadExpect<'a, SysMetrics>,
     energies: ReadStorage<'a, Energy>,
     positions: ReadStorage<'a, Pos>,
     velocities: ReadStorage<'a, Vel>,
@@ -99,26 +96,26 @@ const SNEAK_COEFFICIENT: f32 = 0.25;
 const AVG_FOLLOW_DIST: f32 = 6.0;
 
 /// This system will allow NPCs to modify their controller
+#[derive(Default)]
 pub struct Sys;
 impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
         ReadData<'a>,
-        Write<'a, SysTimer<Self>>,
         Write<'a, EventBus<ServerEvent>>,
         WriteStorage<'a, Agent>,
         WriteStorage<'a, Controller>,
     );
 
+    const NAME: &'static str = "agent";
+    const ORIGIN: Origin = Origin::Server;
+    const PHASE: Phase = Phase::Create;
+
     #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     fn run(
-        &mut self,
-        (read_data, mut sys_timer, event_bus, mut agents, mut controllers): Self::SystemData,
+        _job: &mut Job<Self>,
+        (read_data, event_bus, mut agents, mut controllers): Self::SystemData,
     ) {
-        let start_time = std::time::Instant::now();
-        span!(_guard, "run", "agent::Sys::run");
-        sys_timer.start();
-
         (
             &read_data.entities,
             (&read_data.energies, &read_data.healths),
@@ -423,13 +420,6 @@ impl<'a> System<'a> for Sys {
                     debug_assert!(controller.inputs.look_dir.map(|e| !e.is_nan()).reduce_and());
                 },
             );
-
-        read_data.sys_metrics.agent_ns.store(
-            start_time.elapsed().as_nanos() as u64,
-            std::sync::atomic::Ordering::Relaxed,
-        );
-
-        sys_timer.end();
     }
 }
 

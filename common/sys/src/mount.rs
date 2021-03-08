@@ -1,22 +1,21 @@
 use common::{
     comp::{Controller, MountState, Mounting, Ori, Pos, Vel},
-    metrics::SysMetrics,
-    span,
+    system::{Job, Origin, Phase, System},
     uid::UidAllocator,
 };
 use specs::{
     saveload::{Marker, MarkerAllocator},
-    Entities, Join, Read, ReadExpect, System, WriteStorage,
+    Entities, Join, Read, WriteStorage,
 };
 use vek::*;
 
 /// This system is responsible for controlling mounts
+#[derive(Default)]
 pub struct Sys;
 impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
         Read<'a, UidAllocator>,
-        ReadExpect<'a, SysMetrics>,
         Entities<'a>,
         WriteStorage<'a, Controller>,
         WriteStorage<'a, MountState>,
@@ -26,11 +25,14 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Ori>,
     );
 
+    const NAME: &'static str = "mount";
+    const ORIGIN: Origin = Origin::Common;
+    const PHASE: Phase = Phase::Create;
+
     fn run(
-        &mut self,
+        _job: &mut Job<Self>,
         (
             uid_allocator,
-            sys_metrics,
             entities,
             mut controllers,
             mut mount_state,
@@ -40,8 +42,6 @@ impl<'a> System<'a> for Sys {
             mut orientations,
         ): Self::SystemData,
     ) {
-        let start_time = std::time::Instant::now();
-        span!(_guard, "run", "mount::Sys::run");
         // Mounted entities.
         for (entity, mut mount_states) in (&entities, &mut mount_state.restrict_mut()).join() {
             match mount_states.get_unchecked() {
@@ -92,9 +92,5 @@ impl<'a> System<'a> for Sys {
         for entity in to_unmount {
             mountings.remove(entity);
         }
-        sys_metrics.mount_ns.store(
-            start_time.elapsed().as_nanos() as u64,
-            std::sync::atomic::Ordering::Relaxed,
-        );
     }
 }

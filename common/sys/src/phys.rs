@@ -5,17 +5,16 @@ use common::{
     },
     consts::{FRIC_GROUND, GRAVITY},
     event::{EventBus, ServerEvent},
-    metrics::{PhysicsMetrics, SysMetrics},
+    metrics::PhysicsMetrics,
     resources::DeltaTime,
     span,
+    system::{Job, Origin, ParMode, Phase, System},
     terrain::{Block, TerrainGrid},
     uid::Uid,
     vol::ReadVol,
 };
 use rayon::iter::ParallelIterator;
-use specs::{
-    Entities, Join, ParJoin, Read, ReadExpect, ReadStorage, System, WriteExpect, WriteStorage,
-};
+use specs::{Entities, Join, ParJoin, Read, ReadExpect, ReadStorage, WriteExpect, WriteStorage};
 use std::ops::Range;
 use vek::*;
 
@@ -61,6 +60,7 @@ fn calc_z_limit(
 }
 
 /// This system applies forces and calculates new positions and velocities.
+#[derive(Default)]
 pub struct Sys;
 
 impl<'a> System<'a> for Sys {
@@ -70,7 +70,6 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Uid>,
         ReadExpect<'a, TerrainGrid>,
         Read<'a, DeltaTime>,
-        ReadExpect<'a, SysMetrics>,
         WriteExpect<'a, PhysicsMetrics>,
         Read<'a, EventBus<ServerEvent>>,
         ReadStorage<'a, Scale>,
@@ -90,16 +89,19 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, CharacterState>,
     );
 
+    const NAME: &'static str = "phys";
+    const ORIGIN: Origin = Origin::Common;
+    const PHASE: Phase = Phase::Create;
+
     #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     #[allow(clippy::blocks_in_if_conditions)] // TODO: Pending review in #587
     fn run(
-        &mut self,
+        job: &mut Job<Self>,
         (
             entities,
             uids,
             terrain,
             dt,
-            sys_metrics,
             mut physics_metrics,
             event_bus,
             scales,
@@ -119,8 +121,6 @@ impl<'a> System<'a> for Sys {
             char_states,
         ): Self::SystemData,
     ) {
-        let start_time = std::time::Instant::now();
-        span!(_guard, "run", "phys::Sys::run");
         let mut event_emitter = event_bus.emitter();
 
         // Add/reset physics state components
@@ -212,6 +212,7 @@ impl<'a> System<'a> for Sys {
         drop(guard);
 
         span!(guard, "Apply pushback");
+        job.cpu_stats.measure(ParMode::Rayon);
         let metrics = (
             &entities,
             &positions,
@@ -776,13 +777,10 @@ impl<'a> System<'a> for Sys {
             land_on_grounds_a
         });
         drop(guard);
+        job.cpu_stats.measure(ParMode::Single);
 
         land_on_grounds.into_iter().for_each(|(entity, vel)| {
             event_emitter.emit(ServerEvent::LandOnGround { entity, vel: vel.0 });
         });
-        sys_metrics.phys_ns.store(
-            start_time.elapsed().as_nanos() as u64,
-            std::sync::atomic::Ordering::Relaxed,
-        );
     }
 }
