@@ -85,6 +85,7 @@
         "hud.settings.shadow_rendering_mode.map.resolution": "Resolution",
         "hud.settings.lod_detail": "LoD Detail",
         "hud.settings.save_window_size": "Save window size",
+        "hud.settings.reset_graphics": "Reset to Defaults",
 
 
         "hud.settings.music_volume": "Music Volume",
