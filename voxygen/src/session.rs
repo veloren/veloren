@@ -38,7 +38,7 @@ use crate::{
     menu::char_selection::CharSelectionState,
     render::Renderer,
     scene::{camera, CameraMode, Scene, SceneData},
-    settings::{ControlSettings, Settings},
+    settings::{ControlSettings, GraphicsSettings, Settings},
     window::{AnalogGameInput, Event, GameInput},
     Direction, Error, GlobalState, PlayState, PlayStateResult,
 };
@@ -1361,6 +1361,32 @@ impl PlayState for SessionState {
                     HudEvent::MinimapFaceNorth(state) => {
                         global_state.settings.gameplay.minimap_face_north = state;
                         global_state.settings.save_to_file_warn();
+                    },
+                    HudEvent::ResetGraphics => {
+                        global_state.settings.graphics = GraphicsSettings::default();
+                        global_state.settings.save_to_file_warn();
+                        let graphics = &global_state.settings.graphics;
+                        // View distance
+                        self.client
+                            .borrow_mut()
+                            .set_view_distance(graphics.view_distance);
+                        // FOV
+                        self.scene.camera_mut().set_fov_deg(graphics.fov);
+                        self.scene
+                            .camera_mut()
+                            .compute_dependents(&*self.client.borrow().state().terrain());
+                        // LoD
+                        self.scene.lod.set_detail(graphics.lod_detail);
+                        // Render mode
+                        global_state
+                            .window
+                            .renderer_mut()
+                            .set_render_mode(graphics.render_mode.clone())
+                            .unwrap();
+                        // Fullscreen mode
+                        global_state.window.set_fullscreen_mode(graphics.fullscreen);
+                        // Window size
+                        global_state.window.set_size(graphics.window_size.into());
                     },
                 }
             }

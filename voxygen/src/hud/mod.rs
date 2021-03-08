@@ -408,6 +408,7 @@ pub enum Event {
     ChangeLanguage(Box<LanguageMetadata>),
     ChangeBinding(GameInput),
     ResetBindings,
+    ResetGraphics,
     ChangeFreeLookBehavior(PressBehavior),
     ChangeRenderMode(Box<RenderMode>),
     ChangeAutoWalkBehavior(PressBehavior),
@@ -2526,6 +2527,9 @@ impl Hud {
                     },
                     settings_window::Event::ChangeStopAutoWalkOnInput(state) => {
                         events.push(Event::ChangeStopAutoWalkOnInput(state));
+                    },
+                    settings_window::Event::ResetGraphics => {
+                        events.push(Event::ResetGraphics);
                     },
                 }
             }

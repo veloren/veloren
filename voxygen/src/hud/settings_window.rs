@@ -60,6 +60,7 @@ widget_ids! {
         controls_texts[],
         controls_buttons[],
         reset_controls_button,
+        reset_graphics_button,
         controls_alignment_rectangle,
         button_help,
         button_help2,
@@ -329,6 +330,7 @@ pub enum Event {
     ChangeLanguage(Box<LanguageMetadata>),
     ChangeBinding(GameInput),
     ResetBindings,
+    ResetGraphics,
     ChangeFreeLookBehavior(PressBehavior),
     ChangeAutoWalkBehavior(PressBehavior),
     ChangeStopAutoWalkOnInput(bool),
@@ -2708,6 +2710,23 @@ impl<'a> Widget for SettingsWindow<'a> {
                         .map(|e| e as u16)
                         .into_array(),
                 ));
+            }
+
+            // Save current screen size
+            if Button::image(self.imgs.button)
+                .w_h(31.0 * 5.0, 12.0 * 2.0)
+                .hover_image(self.imgs.button_hover)
+                .press_image(self.imgs.button_press)
+                .down_from(state.ids.save_window_size_button, 12.0)
+                .label(&self.localized_strings.get("hud.settings.reset_graphics"))
+                .label_font_size(self.fonts.cyri.scale(14))
+                .label_color(TEXT_COLOR)
+                .label_font_id(self.fonts.cyri.conrod_id)
+                .label_y(Relative::Scalar(2.0))
+                .set(state.ids.reset_graphics_button, ui)
+                .was_clicked()
+            {
+                events.push(Event::ResetGraphics);
             }
         }
 

@@ -44,6 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Procedural trees (currently only oaks and pines are procedural)
 - Cliffs on steep slopes
 - Giant tree sites
+- Reset button for graphics settings
 
 ### Changed
 
