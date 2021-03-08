@@ -9,7 +9,8 @@ use crate::{
     Direction, GlobalState, PlayState, PlayStateResult,
 };
 use client::{self, Client};
-use common::{comp, resources::DeltaTime, span};
+use common::{comp, resources::DeltaTime};
+use common_base::span;
 use specs::WorldExt;
 use std::{cell::RefCell, mem, rc::Rc};
 use tracing::error;

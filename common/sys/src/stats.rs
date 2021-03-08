@@ -7,9 +7,9 @@ use common::{
     event::{EventBus, ServerEvent},
     outcome::Outcome,
     resources::{DeltaTime, Time},
-    system::{Job, Origin, Phase, System},
     uid::Uid,
 };
+use common_ecs::{Job, Origin, Phase, System};
 use hashbrown::HashSet;
 use specs::{
     shred::ResourceId, Entities, Join, Read, ReadStorage, SystemData, World, Write, WriteStorage,

@@ -1,4 +1,5 @@
-use common::{span, terrain::TerrainGrid, vol::ReadVol};
+use common::{terrain::TerrainGrid, vol::ReadVol};
+use common_base::span;
 use std::f32::consts::PI;
 use treeculler::Frustum;
 use vek::*;

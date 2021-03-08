@@ -1,9 +1,6 @@
 use crate::{client::Client, presence::Presence};
-use common::{
-    comp::Pos,
-    system::{Job, Origin, Phase, System},
-    terrain::TerrainGrid,
-};
+use common::{comp::Pos, terrain::TerrainGrid};
+use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::ServerGeneral;
 use common_sys::state::TerrainChanges;
 use specs::{Join, Read, ReadExpect, ReadStorage};

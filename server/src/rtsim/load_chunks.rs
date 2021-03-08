@@ -1,8 +1,6 @@
 use super::*;
-use common::{
-    event::{EventBus, ServerEvent},
-    system::{Job, Origin, Phase, System},
-};
+use common::event::{EventBus, ServerEvent};
+use common_ecs::{Job, Origin, Phase, System};
 use specs::{Read, WriteExpect};
 
 #[derive(Default)]

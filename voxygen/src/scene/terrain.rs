@@ -15,12 +15,12 @@ use super::{math, LodData, SceneData};
 use common::{
     assets::{self, AssetExt, DotVoxAsset},
     figure::Segment,
-    span,
     spiral::Spiral2d,
     terrain::{sprite, Block, SpriteKind, TerrainChunk},
     vol::{BaseVol, ReadVol, RectRasterableVol, SampleVol},
     volumes::vol_grid_2d::{VolGrid2d, VolGrid2dError},
 };
+use common_base::span;
 use core::{f32, fmt::Debug, i32, marker::PhantomData, time::Duration};
 use crossbeam::channel;
 use enum_iterator::IntoEnumIterator;

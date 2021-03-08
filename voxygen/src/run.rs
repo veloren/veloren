@@ -5,7 +5,7 @@ use crate::{
     window::{Event, EventLoop},
     Direction, GlobalState, PlayState, PlayStateResult,
 };
-use common::{no_guard_span, span, util::GuardlessSpan};
+use common_base::{no_guard_span, span, GuardlessSpan};
 use std::{mem, time::Duration};
 use tracing::debug;
 

@@ -64,10 +64,10 @@ use common::{
     recipe::default_recipe_book,
     resources::TimeOfDay,
     rtsim::RtSimEntity,
-    system::run_now,
     terrain::TerrainChunkSize,
     vol::{ReadVol, RectVolSize},
 };
+use common_ecs::run_now;
 use common_net::{
     msg::{
         CharacterInfo, ClientType, DisconnectReason, PlayerInfo, PlayerListUpdate, ServerGeneral,

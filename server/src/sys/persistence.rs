@@ -1,8 +1,6 @@
 use crate::{persistence::character_updater, presence::Presence, sys::SysScheduler};
-use common::{
-    comp::{Inventory, Stats, Waypoint},
-    system::{Job, Origin, Phase, System},
-};
+use common::comp::{Inventory, Stats, Waypoint};
+use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::PresenceKind;
 use specs::{Join, ReadExpect, ReadStorage, Write};
 

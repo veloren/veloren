@@ -13,6 +13,7 @@ plugins = ["server/plugins"]
 [dependencies]
 server = { package = "veloren-server", path = "../server", default-features = false }
 common = { package = "veloren-common", path = "../common" }
+common-base = { package = "veloren-common-base", path = "../common/base" }
 common-net = { package = "veloren-common-net", path = "../common/net" }
 
 tokio = { version = "1", default-features = false, features = ["rt-multi-thread"] }

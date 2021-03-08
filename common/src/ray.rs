@@ -1,4 +1,5 @@
-use crate::{span, vol::ReadVol};
+use crate::vol::ReadVol;
+use common_base::span;
 use vek::*;
 
 pub trait RayForEach<V> = FnMut(&V, Vec3<i32>);

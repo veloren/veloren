@@ -40,7 +40,8 @@ use crate::{
     settings::Settings,
     window::{Event, Window},
 };
-use common::{assets::AssetHandle, clock::Clock, span};
+use common::{assets::AssetHandle, clock::Clock};
+use common_base::span;
 
 /// A type used to store state that is shared between all play states.
 pub struct GlobalState {

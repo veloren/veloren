@@ -14,7 +14,8 @@ use crate::{
     tui_runner::{Message, Tui},
 };
 use clap::{App, Arg, SubCommand};
-use common::{clock::Clock, span};
+use common::clock::Clock;
+use common_base::span;
 use server::{Event, Input, Server};
 use std::{
     io,
@@ -85,7 +86,7 @@ fn main() -> io::Result<()> {
 
     // Determine folder to save server data in
     let server_data_dir = {
-        let mut path = common::userdata_dir_workspace!();
+        let mut path = common_base::userdata_dir_workspace!();
         info!("Using userdata folder at {}", path.display());
         path.push(server::DEFAULT_DATA_DIR_NAME);
         path
@@ -207,7 +208,7 @@ fn main() -> io::Result<()> {
         // Wait for the next tick.
         clock.tick();
         #[cfg(feature = "tracy")]
-        common::util::tracy_client::finish_continuous_frame!();
+        common_base::finish_continuous_frame!();
     }
 
     Ok(())

@@ -1,8 +1,6 @@
 use crate::{state_ext::StateExt, Server};
-use common::{
-    event::{EventBus, ServerEvent},
-    span,
-};
+use common::event::{EventBus, ServerEvent};
+use common_base::span;
 use entity_creation::{
     handle_beam, handle_create_npc, handle_create_waypoint, handle_initialize_character,
     handle_loaded_character_data, handle_shockwave, handle_shoot,

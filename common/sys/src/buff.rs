@@ -5,9 +5,9 @@ use common::{
     },
     event::{EventBus, ServerEvent},
     resources::DeltaTime,
-    system::{Job, Origin, Phase, System},
     Damage, DamageSource,
 };
+use common_ecs::{Job, Origin, Phase, System};
 use specs::{
     shred::ResourceId, Entities, Join, Read, ReadStorage, SystemData, World, WriteStorage,
 };

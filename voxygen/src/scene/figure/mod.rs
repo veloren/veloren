@@ -33,12 +33,12 @@ use common::{
         LightEmitter, Ori, PhysicsState, PoiseState, Pos, Scale, Vel,
     },
     resources::DeltaTime,
-    span,
     states::utils::StageSection,
     terrain::TerrainChunk,
     util::Dir,
     vol::RectRasterableVol,
 };
+use common_base::span;
 use common_sys::state::State;
 use core::{
     borrow::Borrow,

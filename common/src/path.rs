@@ -1,9 +1,9 @@
 use crate::{
     astar::{Astar, PathResult},
-    span,
     terrain::Block,
     vol::{BaseVol, ReadVol},
 };
+use common_base::span;
 use hashbrown::hash_map::DefaultHashBuilder;
 use rand::prelude::*;
 use std::iter::FromIterator;

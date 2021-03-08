@@ -14,6 +14,8 @@ default = ["simd"]
 [dependencies]
 common = { package = "veloren-common", path = ".." }
 common-net = { package = "veloren-common-net", path = "../net" }
+common-ecs = { package = "veloren-common-ecs", path = "../ecs" }
+common-base = { package = "veloren-common-base", path = "../base" }
 
 rand = "0.8"
 rayon = "1.5"

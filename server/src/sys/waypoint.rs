@@ -2,8 +2,8 @@ use crate::client::Client;
 use common::{
     comp::{Player, Pos, Waypoint, WaypointArea},
     resources::Time,
-    system::{Job, Origin, Phase, System},
 };
+use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::{Notification, ServerGeneral};
 use specs::{Entities, Join, Read, ReadStorage, WriteStorage};
 

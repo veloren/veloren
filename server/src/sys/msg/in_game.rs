@@ -2,10 +2,10 @@ use crate::{client::Client, metrics::NetworkRequestMetrics, presence::Presence, 
 use common::{
     comp::{CanBuild, ControlEvent, Controller, ForceUpdate, Health, Ori, Pos, Stats, Vel},
     event::{EventBus, ServerEvent},
-    system::{Job, Origin, Phase, System},
     terrain::{TerrainChunkSize, TerrainGrid},
     vol::{ReadVol, RectVolSize},
 };
+use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::{ClientGeneral, PresenceKind, ServerGeneral};
 use common_sys::state::BlockChange;
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, Write, WriteStorage};

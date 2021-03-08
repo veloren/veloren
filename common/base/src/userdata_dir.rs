@@ -63,7 +63,7 @@ pub fn userdata_dir(workspace: bool, strategy: Option<&str>, manifest_dir: &str)
 #[macro_export]
 macro_rules! userdata_dir_workspace {
     () => {
-        $crate::util::userdata_dir::userdata_dir(
+        $crate::userdata_dir::userdata_dir(
             true,
             option_env!("VELOREN_USERDATA_STRATEGY"),
             env!("CARGO_MANIFEST_DIR"),
@@ -74,7 +74,7 @@ macro_rules! userdata_dir_workspace {
 #[macro_export]
 macro_rules! userdata_dir_no_workspace {
     () => {
-        $crate::util::userdata_dir::userdata_dir(
+        $crate::userdata_dir::userdata_dir(
             false,
             option_env!("VELOREN_USERDATA_STRATEGY"),
             env!("CARGO_MANIFEST_DIR"),

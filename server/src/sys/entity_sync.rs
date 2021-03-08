@@ -9,11 +9,11 @@ use common::{
     outcome::Outcome,
     region::{Event as RegionEvent, RegionMap},
     resources::TimeOfDay,
-    system::{Job, Origin, Phase, System},
     terrain::TerrainChunkSize,
     uid::Uid,
     vol::RectVolSize,
 };
+use common_ecs::{Job, Origin, Phase, System};
 use common_net::{msg::ServerGeneral, sync::CompSyncPackage};
 use specs::{
     Entities, Entity as EcsEntity, Join, Read, ReadExpect, ReadStorage, Write, WriteStorage,

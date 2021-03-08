@@ -6,9 +6,9 @@ use crate::{
 use common::{
     comp,
     comp::{group, Player},
-    span,
     uid::{Uid, UidAllocator},
 };
+use common_base::span;
 use common_net::msg::{PlayerListUpdate, PresenceKind, ServerGeneral};
 use common_sys::state::State;
 use specs::{saveload::MarkerAllocator, Builder, Entity as EcsEntity, WorldExt};

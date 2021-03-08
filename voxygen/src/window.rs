@@ -4,7 +4,7 @@ use crate::{
     settings::{ControlSettings, Settings},
     ui, Error,
 };
-use common::span;
+use common_base::span;
 use crossbeam::channel;
 use gilrs::{EventType, Gilrs};
 use hashbrown::HashMap;

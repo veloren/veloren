@@ -33,12 +33,12 @@ use common::{
     grid::Grid,
     outcome::Outcome,
     recipe::RecipeBook,
-    span,
     terrain::{block::Block, neighbors, BiomeKind, SitesKind, TerrainChunk, TerrainChunkSize},
     trade::{PendingTrade, TradeAction, TradeId, TradeResult},
     uid::{Uid, UidAllocator},
     vol::RectVolSize,
 };
+use common_base::span;
 use common_net::{
     msg::{
         self, validate_chat_msg, world_msg::SiteInfo, ChatMsgValidationError, ClientGeneral,

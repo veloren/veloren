@@ -2,8 +2,8 @@ use crate::ecs::comp::Interpolated;
 use common::{
     comp::{object, Body, Ori, Pos, Vel},
     resources::DeltaTime,
-    system::{Job, Origin, Phase, System},
 };
+use common_ecs::{Job, Origin, Phase, System};
 use specs::{Entities, Join, Read, ReadStorage, WriteStorage};
 use tracing::warn;
 use vek::*;

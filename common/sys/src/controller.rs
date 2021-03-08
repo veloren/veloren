@@ -1,9 +1,9 @@
 use common::{
     comp::{BuffChange, ControlEvent, Controller},
     event::{EventBus, ServerEvent},
-    system::{Job, Origin, Phase, System},
     uid::UidAllocator,
 };
+use common_ecs::{Job, Origin, Phase, System};
 use specs::{
     saveload::{Marker, MarkerAllocator},
     shred::ResourceId,

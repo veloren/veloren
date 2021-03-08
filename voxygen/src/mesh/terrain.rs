@@ -7,12 +7,12 @@ use crate::{
     scene::terrain::BlocksOfInterest,
 };
 use common::{
-    span,
     terrain::Block,
     util::either_with,
     vol::{ReadVol, RectRasterableVol},
     volumes::vol_grid_2d::{CachedVolGrid2d, VolGrid2d},
 };
+use common_base::span;
 use std::{collections::VecDeque, fmt::Debug};
 use tracing::error;
 use vek::*;

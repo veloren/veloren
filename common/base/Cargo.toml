@@ -1,0 +1,16 @@
+[package]
+authors = ["Marcel Märtens <marcel.cochem@googlemail.com>"]
+edition = "2018"
+name = "veloren-common-base"
+description = "minimal dependency for crates to now depend on whole common"
+version = "0.8.0"
+
+[features]
+tracy = ["tracy-client"]
+
+[dependencies]
+tracing = { version = "0.1", default-features = false }
+directories-next = "2.0"
+
+# Tracy
+tracy-client = { version = "0.10.0", optional = true }

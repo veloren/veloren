@@ -21,6 +21,8 @@ default = ["gl", "singleplayer", "native-dialog", "plugins", "simd"]
 [dependencies]
 client = {package = "veloren-client", path = "../client"}
 common = {package = "veloren-common", path = "../common"}
+common-base = {package = "veloren-common-base", path = "../common/base"}
+common-ecs = {package = "veloren-common-ecs", path = "../common/ecs"}
 common-net = {package = "veloren-common-net", path = "../common/net"}
 common-sys = {package = "veloren-common-sys", path = "../common/sys"}
 

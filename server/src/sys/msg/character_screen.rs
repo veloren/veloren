@@ -5,9 +5,9 @@ use crate::{
 use common::{
     comp::{ChatType, Player, UnresolvedChatMsg},
     event::{EventBus, ServerEvent},
-    system::{Job, Origin, Phase, System},
     uid::Uid,
 };
+use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::{ClientGeneral, ServerGeneral};
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage};
 use std::sync::atomic::Ordering;

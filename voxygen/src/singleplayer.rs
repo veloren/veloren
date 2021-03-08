@@ -33,7 +33,7 @@ impl Singleplayer {
 
         // Determine folder to save server data in
         let server_data_dir = {
-            let mut path = common::userdata_dir_workspace!();
+            let mut path = common_base::userdata_dir_workspace!();
             path.push("singleplayer");
             path
         };

@@ -1,7 +1,5 @@
-use common::{
-    span,
-    util::{linear_to_srgba, srgba_to_linear},
-};
+use common::util::{linear_to_srgba, srgba_to_linear};
+use common_base::span;
 /// Pixel art scaling
 /// Note: The current ui is locked to the pixel grid with little animation, if
 /// we want smoothly moving pixel art this should be done in the shaders

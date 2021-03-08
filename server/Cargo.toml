@@ -13,6 +13,8 @@ default = ["worldgen", "plugins", "simd"]
 
 [dependencies]
 common = { package = "veloren-common", path = "../common" }
+common-base = { package = "veloren-common-base", path = "../common/base" }
+common-ecs = { package = "veloren-common-ecs", path = "../common/ecs" }
 common-sys = { package = "veloren-common-sys", path = "../common/sys" }
 common-net = { package = "veloren-common-net", path = "../common/net" }
 world = { package = "veloren-world", path = "../world" }
@@ -21,6 +23,7 @@ network = { package = "veloren-network", path = "../network", features = ["metri
 specs = { git = "https://github.com/amethyst/specs.git", features = ["shred-derive"], rev = "d4435bdf496cf322c74886ca09dd8795984919b4" }
 specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git", rev = "9fab7b396acd6454585486e50ae4bfe2069858a9" }
 
+num_cpus = "1.0"
 tracing = "0.1"
 vek = { version = "0.14.1", features = ["serde"] }
 futures-util = "0.3.7"

@@ -42,8 +42,8 @@ pub mod generation;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod lottery;
 #[cfg(not(target_arch = "wasm32"))]
-pub mod metrics;
-#[cfg(not(target_arch = "wasm32"))] pub mod npc;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod npc;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod outcome;
 #[cfg(not(target_arch = "wasm32"))] pub mod path;
@@ -61,7 +61,6 @@ pub mod spiral;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod states;
 #[cfg(not(target_arch = "wasm32"))] pub mod store;
-pub mod system;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod terrain;
 #[cfg(not(target_arch = "wasm32"))] pub mod time;

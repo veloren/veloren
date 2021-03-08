@@ -7,9 +7,9 @@ use common::{
     },
     event::{EventBus, ServerEvent},
     resources::DeltaTime,
-    system::{Job, Origin, Phase, System},
     uid::UidAllocator,
 };
+use common_ecs::{Job, Origin, Phase, System};
 use specs::{
     saveload::MarkerAllocator, shred::ResourceId, Entities, Join, Read, ReadStorage, SystemData,
     World, WriteStorage,
