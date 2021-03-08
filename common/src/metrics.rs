@@ -1,4 +1,4 @@
-use crate::vsystem::CpuTimeline;
+use crate::system::CpuTimeline;
 use std::{collections::HashMap, sync::Mutex};
 
 #[derive(Default)]

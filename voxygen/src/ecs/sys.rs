@@ -1,7 +1,7 @@
 pub mod floater;
 mod interpolation;
 
-use common::vsystem::{dispatch, VSystem};
+use common::system::{dispatch, System};
 use specs::DispatcherBuilder;
 
 pub fn add_local_systems(dispatch_builder: &mut DispatcherBuilder) {

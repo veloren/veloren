@@ -8,10 +8,10 @@ use common::{
     metrics::PhysicsMetrics,
     resources::DeltaTime,
     span,
+    system::{Job, Origin, ParMode, Phase, System},
     terrain::{Block, TerrainGrid},
     uid::Uid,
     vol::ReadVol,
-    vsystem::{Origin, ParMode, Phase, VJob, VSystem},
 };
 use rayon::iter::ParallelIterator;
 use specs::{Entities, Join, ParJoin, Read, ReadExpect, ReadStorage, WriteExpect, WriteStorage};
@@ -63,7 +63,7 @@ fn calc_z_limit(
 #[derive(Default)]
 pub struct Sys;
 
-impl<'a> VSystem<'a> for Sys {
+impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
         Entities<'a>,
@@ -96,7 +96,7 @@ impl<'a> VSystem<'a> for Sys {
     #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     #[allow(clippy::blocks_in_if_conditions)] // TODO: Pending review in #587
     fn run(
-        job: &mut VJob<Self>,
+        job: &mut Job<Self>,
         (
             entities,
             uids,

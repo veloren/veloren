@@ -1,5 +1,5 @@
 use crate::metrics::SysMetrics;
-use specs::{ReadExpect, RunNow, System};
+use specs::{ReadExpect, RunNow};
 use std::{collections::HashMap, time::Instant};
 
 /// measuring the level of threads a unit of code ran on. Use Rayon when it ran
@@ -32,7 +32,7 @@ pub enum Origin {
 
 #[derive(Default, Debug, Clone)]
 pub struct CpuTimeline {
-    /// 
+    /// measurements for a System
     /// - The first entry will always be ParMode::Single, as when the
     ///   System::run is executed, we run
     /// single threaded until we start a Rayon::ParIter or similar
@@ -71,7 +71,7 @@ impl CpuTimeline {
     }
 
     /// Start a new measurement. par will be covering the parallelisation AFTER
-    /// this statement, till the next / end of the VSystem.
+    /// this statement, till the next / end of the System.
     pub fn measure(&mut self, par: ParMode) { self.measures.push((Instant::now(), par)); }
 
     fn end(&mut self) { self.measures.push((Instant::now(), ParMode::None)); }
@@ -191,17 +191,17 @@ pub fn gen_stats(
 ///
 /// ```
 /// use specs::Read;
-/// pub use veloren_common::vsystem::{Origin, ParMode, Phase, VJob, VSystem};
+/// pub use veloren_common::system::{Job, Origin, ParMode, Phase, System};
 /// # use std::time::Duration;
 /// pub struct Sys;
-/// impl<'a> VSystem<'a> for Sys {
+/// impl<'a> System<'a> for Sys {
 ///     type SystemData = (Read<'a, ()>, Read<'a, ()>);
 ///
 ///     const NAME: &'static str = "example";
 ///     const ORIGIN: Origin = Origin::Frontend("voxygen");
 ///     const PHASE: Phase = Phase::Create;
 ///
-///     fn run(job: &mut VJob<Self>, (_read, _read2): Self::SystemData) {
+///     fn run(job: &mut Job<Self>, (_read, _read2): Self::SystemData) {
 ///         std::thread::sleep(Duration::from_millis(100));
 ///         job.cpu_stats.measure(ParMode::Rayon);
 ///         std::thread::sleep(Duration::from_millis(500));
@@ -210,33 +210,33 @@ pub fn gen_stats(
 ///     }
 /// }
 /// ```
-pub trait VSystem<'a> {
+pub trait System<'a> {
     const NAME: &'static str;
     const PHASE: Phase;
     const ORIGIN: Origin;
 
     type SystemData: specs::SystemData<'a>;
-    fn run(job: &mut VJob<Self>, data: Self::SystemData);
+    fn run(job: &mut Job<Self>, data: Self::SystemData);
     fn sys_name() -> String { format!("{}_sys", Self::NAME) }
 }
 
 pub fn dispatch<'a, 'b, T>(builder: &mut specs::DispatcherBuilder<'a, 'b>, dep: &[&str])
 where
-    T: for<'c> VSystem<'c> + Send + 'a + Default,
+    T: for<'c> System<'c> + Send + 'a + Default,
 {
-    builder.add(VJob::<T>::default(), &T::sys_name(), dep);
+    builder.add(Job::<T>::default(), &T::sys_name(), dep);
 }
 
 pub fn run_now<'a, 'b, T>(world: &'a specs::World)
 where
-    T: for<'c> VSystem<'c> + Send + 'a + Default,
+    T: for<'c> System<'c> + Send + 'a + Default,
 {
-    VJob::<T>::default().run_now(world);
+    Job::<T>::default().run_now(world);
 }
 
 /// This Struct will wrap the System in order to avoid the can only impl trait
 /// for local defined structs error It also contains the cpu measurements
-pub struct VJob<T>
+pub struct Job<T>
 where
     T: ?Sized,
 {
@@ -244,9 +244,9 @@ where
     pub cpu_stats: CpuTimeline,
 }
 
-impl<'a, T> System<'a> for VJob<T>
+impl<'a, T> specs::System<'a> for Job<T>
 where
-    T: VSystem<'a>,
+    T: System<'a>,
 {
     type SystemData = (T::SystemData, ReadExpect<'a, SysMetrics>);
 
@@ -263,9 +263,9 @@ where
     }
 }
 
-impl<'a, T> Default for VJob<T>
+impl<'a, T> Default for Job<T>
 where
-    T: VSystem<'a> + Default,
+    T: System<'a> + Default,
 {
     fn default() -> Self {
         Self {

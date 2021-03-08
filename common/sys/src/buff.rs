@@ -5,7 +5,7 @@ use common::{
     },
     event::{EventBus, ServerEvent},
     resources::DeltaTime,
-    vsystem::{Origin, Phase, VJob, VSystem},
+    system::{Job, Origin, Phase, System},
     Damage, DamageSource,
 };
 use specs::{
@@ -23,7 +23,7 @@ pub struct ReadData<'a> {
 
 #[derive(Default)]
 pub struct Sys;
-impl<'a> VSystem<'a> for Sys {
+impl<'a> System<'a> for Sys {
     type SystemData = (
         ReadData<'a>,
         WriteStorage<'a, Health>,
@@ -37,7 +37,7 @@ impl<'a> VSystem<'a> for Sys {
     const PHASE: Phase = Phase::Create;
 
     fn run(
-        _job: &mut VJob<Self>,
+        _job: &mut Job<Self>,
         (read_data, mut healths, mut energies, mut buffs, mut stats): Self::SystemData,
     ) {
         let mut server_emitter = read_data.server_bus.emitter();

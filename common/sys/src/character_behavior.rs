@@ -18,8 +18,8 @@ use common::{
         self,
         behavior::{CharacterBehavior, JoinData, JoinStruct},
     },
+    system::{Job, Origin, Phase, System},
     uid::Uid,
-    vsystem::{Origin, Phase, VJob, VSystem},
 };
 use std::time::Duration;
 
@@ -73,7 +73,7 @@ pub struct ReadData<'a> {
 #[derive(Default)]
 pub struct Sys;
 
-impl<'a> VSystem<'a> for Sys {
+impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
         ReadData<'a>,
@@ -93,7 +93,7 @@ impl<'a> VSystem<'a> for Sys {
 
     #[allow(clippy::while_let_on_iterator)] // TODO: Pending review in #587
     fn run(
-        _job: &mut VJob<Self>,
+        _job: &mut Job<Self>,
         (
             read_data,
             mut character_states,

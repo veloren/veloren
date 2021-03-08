@@ -5,8 +5,8 @@ use crate::ecs::{
 use common::{
     comp::{Health, HealthSource, Pos},
     resources::DeltaTime,
+    system::{Job, Origin, Phase, System},
     uid::Uid,
-    vsystem::{Origin, Phase, VJob, VSystem},
 };
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, WriteStorage};
 
@@ -17,7 +17,7 @@ pub const HP_ACCUMULATETIME: f32 = 1.0;
 
 #[derive(Default)]
 pub struct Sys;
-impl<'a> VSystem<'a> for Sys {
+impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
         Entities<'a>,
@@ -35,7 +35,7 @@ impl<'a> VSystem<'a> for Sys {
 
     #[allow(clippy::blocks_in_if_conditions)] // TODO: Pending review in #587
     fn run(
-        _job: &mut VJob<Self>,
+        _job: &mut Job<Self>,
         (entities, my_entity, dt, uids, pos, healths, mut hp_floater_lists): Self::SystemData,
     ) {
         // Add hp floater lists to all entities with health and a position

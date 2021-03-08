@@ -1,8 +1,8 @@
 use crate::{client::Client, presence::Presence};
 use common::{
     comp::Pos,
+    system::{Job, Origin, Phase, System},
     terrain::TerrainGrid,
-    vsystem::{Origin, Phase, VJob, VSystem},
 };
 use common_net::msg::ServerGeneral;
 use common_sys::state::TerrainChanges;
@@ -12,7 +12,7 @@ use specs::{Join, Read, ReadExpect, ReadStorage};
 /// chunks
 #[derive(Default)]
 pub struct Sys;
-impl<'a> VSystem<'a> for Sys {
+impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
         ReadExpect<'a, TerrainGrid>,
@@ -27,7 +27,7 @@ impl<'a> VSystem<'a> for Sys {
     const PHASE: Phase = Phase::Create;
 
     fn run(
-        _job: &mut VJob<Self>,
+        _job: &mut Job<Self>,
         (terrain, terrain_changes, positions, presences, clients): Self::SystemData,
     ) {
         // Sync changed chunks

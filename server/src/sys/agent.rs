@@ -17,12 +17,12 @@ use common::{
     event::{Emitter, EventBus, ServerEvent},
     path::TraversalConfig,
     resources::{DeltaTime, TimeOfDay},
+    system::{Job, Origin, Phase, System},
     terrain::{Block, TerrainGrid},
     time::DayPeriod,
     uid::{Uid, UidAllocator},
     util::Dir,
     vol::ReadVol,
-    vsystem::{Origin, Phase, VJob, VSystem},
 };
 use rand::{thread_rng, Rng};
 use rayon::iter::ParallelIterator;
@@ -98,7 +98,7 @@ const AVG_FOLLOW_DIST: f32 = 6.0;
 /// This system will allow NPCs to modify their controller
 #[derive(Default)]
 pub struct Sys;
-impl<'a> VSystem<'a> for Sys {
+impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
         ReadData<'a>,
@@ -113,7 +113,7 @@ impl<'a> VSystem<'a> for Sys {
 
     #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     fn run(
-        _job: &mut VJob<Self>,
+        _job: &mut Job<Self>,
         (read_data, event_bus, mut agents, mut controllers): Self::SystemData,
     ) {
         (

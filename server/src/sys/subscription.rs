@@ -6,10 +6,10 @@ use crate::{
 use common::{
     comp::{Ori, Pos, Vel},
     region::{region_in_vd, regions_in_vd, Event as RegionEvent, RegionMap},
+    system::{Job, Origin, Phase, System},
     terrain::TerrainChunkSize,
     uid::Uid,
     vol::RectVolSize,
-    vsystem::{Origin, Phase, VJob, VSystem},
 };
 use common_net::msg::ServerGeneral;
 use specs::{
@@ -21,7 +21,7 @@ use vek::*;
 /// This system will update region subscriptions based on client positions
 #[derive(Default)]
 pub struct Sys;
-impl<'a> VSystem<'a> for Sys {
+impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
         Entities<'a>,
@@ -43,7 +43,7 @@ impl<'a> VSystem<'a> for Sys {
 
     #[allow(clippy::blocks_in_if_conditions)] // TODO: Pending review in #587
     fn run(
-        _job: &mut VJob<Self>,
+        _job: &mut Job<Self>,
         (
             entities,
             region_map,

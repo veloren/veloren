@@ -2,9 +2,9 @@ use common::{
     combat::{AttackerInfo, TargetInfo},
     comp::{Body, CharacterState, Energy, Group, Health, Inventory, Melee, Ori, Pos, Scale, Stats},
     event::{EventBus, ServerEvent},
+    system::{Job, Origin, Phase, System},
     uid::Uid,
     util::Dir,
-    vsystem::{Origin, Phase, VJob, VSystem},
     GroupTarget,
 };
 use specs::{
@@ -34,14 +34,14 @@ pub struct ReadData<'a> {
 #[derive(Default)]
 pub struct Sys;
 
-impl<'a> VSystem<'a> for Sys {
+impl<'a> System<'a> for Sys {
     type SystemData = (ReadData<'a>, WriteStorage<'a, Melee>);
 
     const NAME: &'static str = "melee";
     const ORIGIN: Origin = Origin::Common;
     const PHASE: Phase = Phase::Create;
 
-    fn run(_job: &mut VJob<Self>, (read_data, mut melee_attacks): Self::SystemData) {
+    fn run(_job: &mut Job<Self>, (read_data, mut melee_attacks): Self::SystemData) {
         let mut server_emitter = read_data.server_bus.emitter();
         // Attacks
         for (attacker, uid, pos, ori, melee_attack, body) in (

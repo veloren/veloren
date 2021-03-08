@@ -5,8 +5,8 @@ use crate::{
 use common::{
     metrics::SysMetrics,
     resources::TimeOfDay,
+    system::{Job, Origin, Phase, System},
     terrain::TerrainGrid,
-    vsystem::{Origin, Phase, VJob, VSystem},
 };
 use specs::{Entities, Join, Read, ReadExpect};
 use std::time::Instant;
@@ -14,7 +14,7 @@ use std::time::Instant;
 /// This system exports metrics
 #[derive(Default)]
 pub struct Sys;
-impl<'a> VSystem<'a> for Sys {
+impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
         Option<Entities<'a>>,
@@ -34,7 +34,7 @@ impl<'a> VSystem<'a> for Sys {
     const PHASE: Phase = Phase::Apply;
 
     fn run(
-        _job: &mut VJob<Self>,
+        _job: &mut Job<Self>,
         (
             entities,
             tick,
@@ -56,7 +56,7 @@ impl<'a> VSystem<'a> for Sys {
         //this system hasn't run yet
         state.remove(Self::NAME);
 
-        for (name, stat) in common::vsystem::gen_stats(&state, tick_start.0, 8, 8) {
+        for (name, stat) in common::system::gen_stats(&state, tick_start.0, 8, 8) {
             export_ecs
                 .system_start_time
                 .with_label_values(&[&name])

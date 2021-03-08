@@ -1,7 +1,7 @@
 use crate::{persistence::character_updater, presence::Presence, sys::SysScheduler};
 use common::{
     comp::{Inventory, Stats, Waypoint},
-    vsystem::{Origin, Phase, VJob, VSystem},
+    system::{Job, Origin, Phase, System},
 };
 use common_net::msg::PresenceKind;
 use specs::{Join, ReadExpect, ReadStorage, Write};
@@ -9,7 +9,7 @@ use specs::{Join, ReadExpect, ReadStorage, Write};
 #[derive(Default)]
 pub struct Sys;
 
-impl<'a> VSystem<'a> for Sys {
+impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
         ReadStorage<'a, Presence>,
@@ -25,7 +25,7 @@ impl<'a> VSystem<'a> for Sys {
     const PHASE: Phase = Phase::Create;
 
     fn run(
-        _job: &mut VJob<Self>,
+        _job: &mut Job<Self>,
         (
             presences,
             player_stats,

@@ -7,8 +7,8 @@ use common::{
     event::{EventBus, ServerEvent},
     outcome::Outcome,
     resources::{DeltaTime, Time},
+    system::{Job, Origin, Phase, System},
     uid::Uid,
-    vsystem::{Origin, Phase, VJob, VSystem},
 };
 use hashbrown::HashSet;
 use specs::{
@@ -35,7 +35,7 @@ pub struct ReadData<'a> {
 /// This system kills players, levels them up, and regenerates energy.
 #[derive(Default)]
 pub struct Sys;
-impl<'a> VSystem<'a> for Sys {
+impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
         ReadData<'a>,
@@ -52,7 +52,7 @@ impl<'a> VSystem<'a> for Sys {
     const PHASE: Phase = Phase::Create;
 
     fn run(
-        _job: &mut VJob<Self>,
+        _job: &mut Job<Self>,
         (
             read_data,
             mut stats,

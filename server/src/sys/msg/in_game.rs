@@ -2,9 +2,9 @@ use crate::{client::Client, metrics::NetworkRequestMetrics, presence::Presence, 
 use common::{
     comp::{CanBuild, ControlEvent, Controller, ForceUpdate, Health, Ori, Pos, Stats, Vel},
     event::{EventBus, ServerEvent},
+    system::{Job, Origin, Phase, System},
     terrain::{TerrainChunkSize, TerrainGrid},
     vol::{ReadVol, RectVolSize},
-    vsystem::{Origin, Phase, VJob, VSystem},
 };
 use common_net::msg::{ClientGeneral, PresenceKind, ServerGeneral};
 use common_sys::state::BlockChange;
@@ -166,7 +166,7 @@ impl Sys {
 /// This system will handle new messages from clients
 #[derive(Default)]
 pub struct Sys;
-impl<'a> VSystem<'a> for Sys {
+impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
         Entities<'a>,
@@ -192,7 +192,7 @@ impl<'a> VSystem<'a> for Sys {
     const PHASE: Phase = Phase::Create;
 
     fn run(
-        _job: &mut VJob<Self>,
+        _job: &mut Job<Self>,
         (
             entities,
             server_event_bus,

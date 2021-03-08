@@ -9,10 +9,10 @@ use common::{
     outcome::Outcome,
     region::{Event as RegionEvent, RegionMap},
     resources::TimeOfDay,
+    system::{Job, Origin, Phase, System},
     terrain::TerrainChunkSize,
     uid::Uid,
     vol::RectVolSize,
-    vsystem::{Origin, Phase, VJob, VSystem},
 };
 use common_net::{msg::ServerGeneral, sync::CompSyncPackage};
 use specs::{
@@ -23,7 +23,7 @@ use vek::*;
 /// This system will send physics updates to the client
 #[derive(Default)]
 pub struct Sys;
-impl<'a> VSystem<'a> for Sys {
+impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
         Entities<'a>,
@@ -54,7 +54,7 @@ impl<'a> VSystem<'a> for Sys {
     const PHASE: Phase = Phase::Create;
 
     fn run(
-        _job: &mut VJob<Self>,
+        _job: &mut Job<Self>,
         (
             entities,
             tick,

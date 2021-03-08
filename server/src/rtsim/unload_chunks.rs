@@ -2,14 +2,14 @@ use super::*;
 use common::{
     comp::Pos,
     event::{EventBus, ServerEvent},
+    system::{Job, Origin, Phase, System},
     terrain::TerrainGrid,
-    vsystem::{Origin, Phase, VJob, VSystem},
 };
 use specs::{Entities, Read, ReadExpect, ReadStorage, WriteExpect};
 
 #[derive(Default)]
 pub struct Sys;
-impl<'a> VSystem<'a> for Sys {
+impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
         Read<'a, EventBus<ServerEvent>>,
@@ -25,7 +25,7 @@ impl<'a> VSystem<'a> for Sys {
     const PHASE: Phase = Phase::Create;
 
     fn run(
-        _job: &mut VJob<Self>,
+        _job: &mut Job<Self>,
         (
             _server_event_bus,
             mut rtsim,

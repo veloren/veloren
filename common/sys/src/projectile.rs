@@ -6,9 +6,9 @@ use common::{
     },
     event::{EventBus, ServerEvent},
     resources::DeltaTime,
+    system::{Job, Origin, Phase, System},
     uid::UidAllocator,
     util::Dir,
-    vsystem::{Origin, Phase, VJob, VSystem},
     GroupTarget,
 };
 use specs::{
@@ -35,7 +35,7 @@ pub struct ReadData<'a> {
 /// This system is responsible for handling projectile effect triggers
 #[derive(Default)]
 pub struct Sys;
-impl<'a> VSystem<'a> for Sys {
+impl<'a> System<'a> for Sys {
     type SystemData = (
         ReadData<'a>,
         WriteStorage<'a, Ori>,
@@ -46,10 +46,7 @@ impl<'a> VSystem<'a> for Sys {
     const ORIGIN: Origin = Origin::Common;
     const PHASE: Phase = Phase::Create;
 
-    fn run(
-        _job: &mut VJob<Self>,
-        (read_data, mut orientations, mut projectiles): Self::SystemData,
-    ) {
+    fn run(_job: &mut Job<Self>, (read_data, mut orientations, mut projectiles): Self::SystemData) {
         let mut server_emitter = read_data.server_bus.emitter();
 
         // Attacks

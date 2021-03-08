@@ -3,8 +3,8 @@ use common::{
     comp::{ChatMode, Player, UnresolvedChatMsg},
     event::{EventBus, ServerEvent},
     resources::Time,
+    system::{Job, Origin, Phase, System},
     uid::Uid,
-    vsystem::{Origin, Phase, VJob, VSystem},
 };
 use common_net::msg::{
     validate_chat_msg, ChatMsgValidationError, ClientGeneral, MAX_BYTES_CHAT_MSG,
@@ -66,7 +66,7 @@ impl Sys {
 /// This system will handle new messages from clients
 #[derive(Default)]
 pub struct Sys;
-impl<'a> VSystem<'a> for Sys {
+impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
         Entities<'a>,
@@ -84,7 +84,7 @@ impl<'a> VSystem<'a> for Sys {
     const PHASE: Phase = Phase::Create;
 
     fn run(
-        _job: &mut VJob<Self>,
+        _job: &mut Job<Self>,
         (
             entities,
             server_event_bus,

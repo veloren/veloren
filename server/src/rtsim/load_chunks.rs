@@ -1,13 +1,13 @@
 use super::*;
 use common::{
     event::{EventBus, ServerEvent},
-    vsystem::{Origin, Phase, VJob, VSystem},
+    system::{Job, Origin, Phase, System},
 };
 use specs::{Read, WriteExpect};
 
 #[derive(Default)]
 pub struct Sys;
-impl<'a> VSystem<'a> for Sys {
+impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (Read<'a, EventBus<ServerEvent>>, WriteExpect<'a, RtSim>);
 
@@ -15,7 +15,7 @@ impl<'a> VSystem<'a> for Sys {
     const ORIGIN: Origin = Origin::Server;
     const PHASE: Phase = Phase::Create;
 
-    fn run(_job: &mut VJob<Self>, (_server_event_bus, mut rtsim): Self::SystemData) {
+    fn run(_job: &mut Job<Self>, (_server_event_bus, mut rtsim): Self::SystemData) {
         for _chunk in std::mem::take(&mut rtsim.chunks.chunks_to_load) {
             // TODO
         }

@@ -11,7 +11,7 @@ pub mod terrain;
 pub mod terrain_sync;
 pub mod waypoint;
 
-use common::vsystem::{dispatch, run_now};
+use common::system::{dispatch, run_now};
 use specs::DispatcherBuilder;
 use std::{
     marker::PhantomData,

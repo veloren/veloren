@@ -2,7 +2,7 @@ use crate::client::Client;
 use common::{
     comp::{Player, Pos, Waypoint, WaypointArea},
     resources::Time,
-    vsystem::{Origin, Phase, VJob, VSystem},
+    system::{Job, Origin, Phase, System},
 };
 use common_net::msg::{Notification, ServerGeneral};
 use specs::{Entities, Join, Read, ReadStorage, WriteStorage};
@@ -14,7 +14,7 @@ const NOTIFY_TIME: f64 = 10.0;
 /// TODO: Make this faster by only considering local waypoints
 #[derive(Default)]
 pub struct Sys;
-impl<'a> VSystem<'a> for Sys {
+impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
         Entities<'a>,
@@ -31,7 +31,7 @@ impl<'a> VSystem<'a> for Sys {
     const PHASE: Phase = Phase::Create;
 
     fn run(
-        _job: &mut VJob<Self>,
+        _job: &mut Job<Self>,
         (
             entities,
             positions,

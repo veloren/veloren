@@ -4,8 +4,8 @@ use common::{
         Gravity, Group, Health, Inventory, Item, LightEmitter, Mass, MountState, Mounting, Ori,
         Player, Poise, Pos, Scale, Shockwave, Stats, Sticky, Vel,
     },
+    system::{Job, Origin, Phase, System},
     uid::Uid,
-    vsystem::{Origin, Phase, VJob, VSystem},
 };
 use common_net::{
     msg::EcsCompPacket,
@@ -23,14 +23,14 @@ use vek::*;
 /// modification
 #[derive(Default)]
 pub struct Sys;
-impl<'a> VSystem<'a> for Sys {
+impl<'a> System<'a> for Sys {
     type SystemData = (TrackedComps<'a>, WriteTrackers<'a>);
 
     const NAME: &'static str = "sentinel";
     const ORIGIN: Origin = Origin::Server;
     const PHASE: Phase = Phase::Create;
 
-    fn run(_job: &mut VJob<Self>, (comps, mut trackers): Self::SystemData) {
+    fn run(_job: &mut Job<Self>, (comps, mut trackers): Self::SystemData) {
         record_changes(&comps, &mut trackers);
     }
 }

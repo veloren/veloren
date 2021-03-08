@@ -6,8 +6,8 @@ use common::{
     event::{EventBus, ServerEvent},
     generation::get_npc_name,
     npc::NPC_NAMES,
+    system::{Job, Origin, Phase, System},
     terrain::TerrainGrid,
-    vsystem::{Origin, Phase, VJob, VSystem},
     LoadoutBuilder, SkillSetBuilder,
 };
 use common_net::msg::ServerGeneral;
@@ -24,7 +24,7 @@ use vek::*;
 ///     4. Removes chunks outside the range of players
 #[derive(Default)]
 pub struct Sys;
-impl<'a> VSystem<'a> for Sys {
+impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)] // TODO: Pending review in #587
     type SystemData = (
         Read<'a, EventBus<ServerEvent>>,
@@ -43,7 +43,7 @@ impl<'a> VSystem<'a> for Sys {
     const PHASE: Phase = Phase::Create;
 
     fn run(
-        _job: &mut VJob<Self>,
+        _job: &mut Job<Self>,
         (
             server_event_bus,
             tick,

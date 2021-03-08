@@ -2,7 +2,7 @@ use crate::{client::Client, metrics::PlayerMetrics, Settings};
 use common::{
     event::{EventBus, ServerEvent},
     resources::Time,
-    vsystem::{Origin, Phase, VJob, VSystem},
+    system::{Job, Origin, Phase, System},
 };
 use common_net::msg::PingMsg;
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage};
@@ -22,7 +22,7 @@ impl Sys {
 /// This system will handle new messages from clients
 #[derive(Default)]
 pub struct Sys;
-impl<'a> VSystem<'a> for Sys {
+impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
         Entities<'a>,
@@ -38,7 +38,7 @@ impl<'a> VSystem<'a> for Sys {
     const PHASE: Phase = Phase::Create;
 
     fn run(
-        _job: &mut VJob<Self>,
+        _job: &mut Job<Self>,
         (entities, server_event_bus, time, player_metrics, clients, settings): Self::SystemData,
     ) {
         let mut server_emitter = server_event_bus.emitter();

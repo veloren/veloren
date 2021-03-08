@@ -1,7 +1,7 @@
 use common::{
     comp::{Controller, MountState, Mounting, Ori, Pos, Vel},
+    system::{Job, Origin, Phase, System},
     uid::UidAllocator,
-    vsystem::{Origin, Phase, VJob, VSystem},
 };
 use specs::{
     saveload::{Marker, MarkerAllocator},
@@ -12,7 +12,7 @@ use vek::*;
 /// This system is responsible for controlling mounts
 #[derive(Default)]
 pub struct Sys;
-impl<'a> VSystem<'a> for Sys {
+impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
         Read<'a, UidAllocator>,
@@ -30,7 +30,7 @@ impl<'a> VSystem<'a> for Sys {
     const PHASE: Phase = Phase::Create;
 
     fn run(
-        _job: &mut VJob<Self>,
+        _job: &mut Job<Self>,
         (
             uid_allocator,
             entities,

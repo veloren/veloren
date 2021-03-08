@@ -1,8 +1,8 @@
 use crate::client::Client;
 use common::{
     comp::invite::{Invite, PendingInvites},
+    system::{Job, Origin, Phase, System},
     uid::Uid,
-    vsystem::{Origin, Phase, VJob, VSystem},
 };
 use common_net::msg::{InviteAnswer, ServerGeneral};
 use specs::{Entities, Join, ReadStorage, WriteStorage};
@@ -10,7 +10,7 @@ use specs::{Entities, Join, ReadStorage, WriteStorage};
 /// This system removes timed out invites
 #[derive(Default)]
 pub struct Sys;
-impl<'a> VSystem<'a> for Sys {
+impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
         Entities<'a>,
@@ -25,7 +25,7 @@ impl<'a> VSystem<'a> for Sys {
     const PHASE: Phase = Phase::Create;
 
     fn run(
-        _job: &mut VJob<Self>,
+        _job: &mut Job<Self>,
         (entities, mut invites, mut pending_invites, clients, uids): Self::SystemData,
     ) {
         let now = std::time::Instant::now();
