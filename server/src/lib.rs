@@ -160,14 +160,13 @@ impl Server {
             panic!("Migration error: {:?}", e);
         }
 
-        let (chunk_gen_metrics, registry_chunk) = metrics::ChunkGenMetrics::new().unwrap();
-        let (network_request_metrics, registry_network) =
-            metrics::NetworkRequestMetrics::new().unwrap();
-        let (player_metrics, registry_player) = metrics::PlayerMetrics::new().unwrap();
-        let (ecs_system_metrics, registry_state) = EcsSystemMetrics::new().unwrap();
-        let (tick_metrics, registry_tick) =
-            TickMetrics::new().expect("Failed to initialize server tick metrics submodule.");
-        let (physics_metrics, registry_physics) = PhysicsMetrics::new().unwrap();
+        let registry = Arc::new(Registry::new());
+        let chunk_gen_metrics = metrics::ChunkGenMetrics::new(&registry).unwrap();
+        let network_request_metrics = metrics::NetworkRequestMetrics::new(&registry).unwrap();
+        let player_metrics = metrics::PlayerMetrics::new(&registry).unwrap();
+        let ecs_system_metrics = EcsSystemMetrics::new(&registry).unwrap();
+        let tick_metrics = TickMetrics::new(&registry).unwrap();
+        let physics_metrics = PhysicsMetrics::new(&registry).unwrap();
 
         let mut state = State::server();
         state.ecs_mut().insert(settings.clone());
@@ -348,15 +347,6 @@ impl Server {
         sys::sentinel::register_trackers(&mut state.ecs_mut());
 
         state.ecs_mut().insert(DeletedEntities::default());
-
-        // register all metrics submodules here
-        let registry = Arc::new(Registry::new());
-        registry_chunk(&registry).expect("failed to register chunk gen metrics");
-        registry_network(&registry).expect("failed to register network request metrics");
-        registry_player(&registry).expect("failed to register player metrics");
-        registry_tick(&registry).expect("failed to register tick metrics");
-        registry_state(&registry).expect("failed to register state metrics");
-        registry_physics(&registry).expect("failed to register state metrics");
 
         let network = Network::new_with_registry(Pid::new(), &runtime, &registry);
         let metrics_shutdown = Arc::new(Notify::new());
