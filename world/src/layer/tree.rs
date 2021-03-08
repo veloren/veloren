@@ -253,17 +253,23 @@ pub fn apply_trees_to(canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
 }
 
 /// A type that specifies the generation properties of a tree.
+#[derive(Clone)]
 pub struct TreeConfig {
     /// Length of trunk, also scales other branches.
     pub trunk_len: f32,
     /// Radius of trunk, also scales other branches.
     pub trunk_radius: f32,
-    // The scale that child branch lengths should be compared to their parents.
+    /// The scale that child branch lengths should be compared to their parents.
     pub branch_child_len: f32,
-    // The scale that child branch radii should be compared to their parents.
+    /// The scale that child branch radii should be compared to their parents.
     pub branch_child_radius: f32,
+    /// Whether the child of a branch has its radius lerped to its parent.
+    pub branch_child_radius_lerp: bool,
     /// The range of radii that leaf-emitting branches might have.
     pub leaf_radius: Range<f32>,
+    /// An additional leaf radius that may be scaled with proportion along the
+    /// parent and `branch_len_bias`.
+    pub leaf_radius_scaled: f32,
     /// 0 - 1 (0 = chaotic, 1 = straight).
     pub straightness: f32,
     /// Maximum number of branch layers (not including trunk).
@@ -300,7 +306,9 @@ impl TreeConfig {
             trunk_radius: 2.0 * scale,
             branch_child_len: 0.9,
             branch_child_radius: 0.75,
+            branch_child_radius_lerp: true,
             leaf_radius: 2.5 * log_scale..3.25 * log_scale,
+            leaf_radius_scaled: 0.0,
             straightness: 0.45,
             max_depth: 4,
             splits: 2.25..3.25,
@@ -319,12 +327,14 @@ impl TreeConfig {
         Self {
             trunk_len: 32.0 * scale,
             trunk_radius: 1.25 * scale,
-            branch_child_len: 0.35 / scale,
+            branch_child_len: 0.3 / scale,
             branch_child_radius: 0.0,
-            leaf_radius: 2.5 * log_scale..2.75 * log_scale,
+            branch_child_radius_lerp: false,
+            leaf_radius: 1.9..2.1,
+            leaf_radius_scaled: 1.5 * log_scale,
             straightness: 0.0,
             max_depth: 1,
-            splits: 40.0..50.0,
+            splits: 34.0 * scale..35.0 * scale,
             split_range: 0.165..1.2,
             branch_len_bias: 0.75,
             leaf_vertical_scale: 0.3,
@@ -341,7 +351,9 @@ impl TreeConfig {
             trunk_radius: 6.0 * scale,
             branch_child_len: 0.9,
             branch_child_radius: 0.75,
+            branch_child_radius_lerp: true,
             leaf_radius: 2.5 * scale..3.75 * scale,
+            leaf_radius_scaled: 0.0,
             straightness: 0.36,
             max_depth: (7.0 + log_scale) as usize,
             splits: 1.5..2.5,
@@ -358,6 +370,7 @@ impl TreeConfig {
 pub struct ProceduralTree {
     branches: Vec<Branch>,
     trunk_idx: usize,
+    config: TreeConfig,
 }
 
 impl ProceduralTree {
@@ -366,6 +379,7 @@ impl ProceduralTree {
         let mut this = Self {
             branches: Vec::new(),
             trunk_idx: 0, // Gets replaced later
+            config: config.clone(),
         };
 
         // Add the tree trunk (and sub-branches) recursively
@@ -379,6 +393,7 @@ impl ProceduralTree {
             config.trunk_radius,
             0,
             None,
+            1.0,
             rng,
         );
         this.trunk_idx = trunk_idx;
@@ -400,6 +415,7 @@ impl ProceduralTree {
         branch_radius: f32,
         depth: usize,
         sibling_idx: Option<usize>,
+        proportion: f32,
         rng: &mut impl Rng,
     ) -> (usize, Aabb<f32>) {
         let end = start + dir * branch_len;
@@ -407,6 +423,8 @@ impl ProceduralTree {
         let wood_radius = branch_radius;
         let leaf_radius = if depth == config.max_depth {
             rng.gen_range(config.leaf_radius.clone())
+                + config.leaf_radius_scaled
+                    * Lerp::lerp(1.0, 1.0 - proportion, config.branch_len_bias.abs())
         } else {
             0.0
         };
@@ -435,11 +453,8 @@ impl ProceduralTree {
 
             let splits = rng.gen_range(config.splits.clone()).round() as usize;
             for i in 0..splits {
-                let dist = Lerp::lerp(
-                    rng.gen_range(0.0..1.0),
-                    i as f32 / (splits - 1) as f32,
-                    config.proportionality,
-                );
+                let proportion = i as f32 / (splits - 1) as f32;
+                let dist = Lerp::lerp(rng.gen_range(0.0..1.0), proportion, config.proportionality);
 
                 const PHI: f32 = 0.618;
                 const RAD_PER_BRANCH: f32 = f32::consts::TAU * PHI;
@@ -478,6 +493,7 @@ impl ProceduralTree {
                     branch_radius * config.branch_child_radius,
                     depth + 1,
                     child_idx,
+                    proportion,
                     rng,
                 );
                 child_idx = Some(branch_idx);
@@ -524,7 +540,7 @@ impl ProceduralTree {
         // within its AABB
         if branch.aabb.contains_point(pos) {
             // Probe this branch
-            let (this, _d2) = branch.is_branch_or_leaves_at(pos, parent);
+            let (this, _d2) = branch.is_branch_or_leaves_at(&self.config, pos, parent);
 
             let siblings = branch_or_leaves | Vec4::from(this);
 
@@ -575,6 +591,7 @@ impl Branch {
     /// (branch, leaves, stairs, forced_air)
     pub fn is_branch_or_leaves_at(
         &self,
+        config: &TreeConfig,
         pos: Vec3<f32>,
         parent: &Branch,
     ) -> ((bool, bool, bool, bool), f32) {
@@ -604,7 +621,11 @@ impl Branch {
         let d2 = p.distance_squared(pos);
 
         let length_factor = length_factor(self.line, pos);
-        let wood_radius = Lerp::lerp(parent.wood_radius, self.wood_radius, length_factor);
+        let wood_radius = if config.branch_child_radius_lerp {
+            Lerp::lerp(parent.wood_radius, self.wood_radius, length_factor)
+        } else {
+            self.wood_radius
+        };
 
         let mask = if d2 < wood_radius.powi(2) {
             (true, false, false, false) // Wood
