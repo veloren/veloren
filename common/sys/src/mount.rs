@@ -1,12 +1,11 @@
 use common::{
     comp::{Controller, MountState, Mounting, Ori, Pos, Vel},
-    metrics::SysMetrics,
     uid::UidAllocator,
     vsystem::{Origin, Phase, VJob, VSystem},
 };
 use specs::{
     saveload::{Marker, MarkerAllocator},
-    Entities, Join, Read, ReadExpect, WriteStorage,
+    Entities, Join, Read, WriteStorage,
 };
 use vek::*;
 
@@ -17,7 +16,6 @@ impl<'a> VSystem<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
         Read<'a, UidAllocator>,
-        ReadExpect<'a, SysMetrics>,
         Entities<'a>,
         WriteStorage<'a, Controller>,
         WriteStorage<'a, MountState>,
@@ -35,7 +33,6 @@ impl<'a> VSystem<'a> for Sys {
         _job: &mut VJob<Self>,
         (
             uid_allocator,
-            sys_metrics,
             entities,
             mut controllers,
             mut mount_state,
@@ -45,7 +42,6 @@ impl<'a> VSystem<'a> for Sys {
             mut orientations,
         ): Self::SystemData,
     ) {
-        let start_time = std::time::Instant::now();
         // Mounted entities.
         for (entity, mut mount_states) in (&entities, &mut mount_state.restrict_mut()).join() {
             match mount_states.get_unchecked() {
@@ -96,9 +92,5 @@ impl<'a> VSystem<'a> for Sys {
         for entity in to_unmount {
             mountings.remove(entity);
         }
-        sys_metrics.mount_ns.store(
-            start_time.elapsed().as_nanos() as u64,
-            std::sync::atomic::Ordering::Relaxed,
-        );
     }
 }

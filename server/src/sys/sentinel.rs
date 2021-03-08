@@ -1,4 +1,3 @@
-use super::SysTimer;
 use common::{
     comp::{
         Auras, BeamSegment, Body, Buffs, CanBuild, CharacterState, Collider, Combo, Energy,
@@ -15,7 +14,7 @@ use common_net::{
 use hashbrown::HashMap;
 use specs::{
     shred::ResourceId, Entity as EcsEntity, Join, ReadExpect, ReadStorage, SystemData, World,
-    Write, WriteExpect,
+    WriteExpect,
 };
 use vek::*;
 
@@ -25,22 +24,14 @@ use vek::*;
 #[derive(Default)]
 pub struct Sys;
 impl<'a> VSystem<'a> for Sys {
-    type SystemData = (
-        Write<'a, SysTimer<Self>>,
-        TrackedComps<'a>,
-        WriteTrackers<'a>,
-    );
+    type SystemData = (TrackedComps<'a>, WriteTrackers<'a>);
 
     const NAME: &'static str = "sentinel";
     const ORIGIN: Origin = Origin::Server;
     const PHASE: Phase = Phase::Create;
 
-    fn run(_job: &mut VJob<Self>, (mut timer, comps, mut trackers): Self::SystemData) {
-        timer.start();
-
+    fn run(_job: &mut VJob<Self>, (comps, mut trackers): Self::SystemData) {
         record_changes(&comps, &mut trackers);
-
-        timer.end();
     }
 }
 

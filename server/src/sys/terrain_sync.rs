@@ -1,4 +1,3 @@
-use super::SysTimer;
 use crate::{client::Client, presence::Presence};
 use common::{
     comp::Pos,
@@ -7,18 +6,17 @@ use common::{
 };
 use common_net::msg::ServerGeneral;
 use common_sys::state::TerrainChanges;
-use specs::{Join, Read, ReadExpect, ReadStorage, Write};
+use specs::{Join, Read, ReadExpect, ReadStorage};
 
 /// This systems sends new chunks to clients as well as changes to existing
 /// chunks
 #[derive(Default)]
 pub struct Sys;
 impl<'a> VSystem<'a> for Sys {
-    #[allow(clippy::type_complexity)] // TODO: Pending review in #587
+    #[allow(clippy::type_complexity)]
     type SystemData = (
         ReadExpect<'a, TerrainGrid>,
         Read<'a, TerrainChanges>,
-        Write<'a, SysTimer<Self>>,
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Presence>,
         ReadStorage<'a, Client>,
@@ -30,10 +28,8 @@ impl<'a> VSystem<'a> for Sys {
 
     fn run(
         _job: &mut VJob<Self>,
-        (terrain, terrain_changes, mut timer, positions, presences, clients): Self::SystemData,
+        (terrain, terrain_changes, positions, presences, clients): Self::SystemData,
     ) {
-        timer.start();
-
         // Sync changed chunks
         'chunk: for chunk_key in &terrain_changes.modified_chunks {
             let mut lazy_msg = None;
@@ -66,7 +62,5 @@ impl<'a> VSystem<'a> for Sys {
             }
             lazy_msg.as_ref().map(|ref msg| client.send_prepared(&msg));
         }
-
-        timer.end();
     }
 }

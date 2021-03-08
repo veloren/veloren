@@ -1,4 +1,3 @@
-use super::SysTimer;
 use common::{
     comp::{
         self,
@@ -16,7 +15,6 @@ use common::{
         UnresolvedChatMsg, Vel,
     },
     event::{Emitter, EventBus, ServerEvent},
-    metrics::SysMetrics,
     path::TraversalConfig,
     resources::{DeltaTime, TimeOfDay},
     terrain::{Block, TerrainGrid},
@@ -64,7 +62,6 @@ pub struct ReadData<'a> {
     uid_allocator: Read<'a, UidAllocator>,
     dt: Read<'a, DeltaTime>,
     group_manager: Read<'a, group::GroupManager>,
-    sys_metrics: ReadExpect<'a, SysMetrics>,
     energies: ReadStorage<'a, Energy>,
     positions: ReadStorage<'a, Pos>,
     velocities: ReadStorage<'a, Vel>,
@@ -105,7 +102,6 @@ impl<'a> VSystem<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
         ReadData<'a>,
-        Write<'a, SysTimer<Self>>,
         Write<'a, EventBus<ServerEvent>>,
         WriteStorage<'a, Agent>,
         WriteStorage<'a, Controller>,
@@ -118,11 +114,8 @@ impl<'a> VSystem<'a> for Sys {
     #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     fn run(
         _job: &mut VJob<Self>,
-        (read_data, mut sys_timer, event_bus, mut agents, mut controllers): Self::SystemData,
+        (read_data, event_bus, mut agents, mut controllers): Self::SystemData,
     ) {
-        let start_time = std::time::Instant::now();
-        sys_timer.start();
-
         (
             &read_data.entities,
             (&read_data.energies, &read_data.healths),
@@ -427,13 +420,6 @@ impl<'a> VSystem<'a> for Sys {
                     debug_assert!(controller.inputs.look_dir.map(|e| !e.is_nan()).reduce_and());
                 },
             );
-
-        read_data.sys_metrics.agent_ns.store(
-            start_time.elapsed().as_nanos() as u64,
-            std::sync::atomic::Ordering::Relaxed,
-        );
-
-        sys_timer.end();
     }
 }
 

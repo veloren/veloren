@@ -5,7 +5,7 @@ use common::{
     },
     consts::{FRIC_GROUND, GRAVITY},
     event::{EventBus, ServerEvent},
-    metrics::{PhysicsMetrics, SysMetrics},
+    metrics::PhysicsMetrics,
     resources::DeltaTime,
     span,
     terrain::{Block, TerrainGrid},
@@ -70,7 +70,6 @@ impl<'a> VSystem<'a> for Sys {
         ReadStorage<'a, Uid>,
         ReadExpect<'a, TerrainGrid>,
         Read<'a, DeltaTime>,
-        ReadExpect<'a, SysMetrics>,
         WriteExpect<'a, PhysicsMetrics>,
         Read<'a, EventBus<ServerEvent>>,
         ReadStorage<'a, Scale>,
@@ -103,7 +102,6 @@ impl<'a> VSystem<'a> for Sys {
             uids,
             terrain,
             dt,
-            sys_metrics,
             mut physics_metrics,
             event_bus,
             scales,
@@ -123,7 +121,6 @@ impl<'a> VSystem<'a> for Sys {
             char_states,
         ): Self::SystemData,
     ) {
-        let start_time = std::time::Instant::now();
         let mut event_emitter = event_bus.emitter();
 
         // Add/reset physics state components
@@ -785,9 +782,5 @@ impl<'a> VSystem<'a> for Sys {
         land_on_grounds.into_iter().for_each(|(entity, vel)| {
             event_emitter.emit(ServerEvent::LandOnGround { entity, vel: vel.0 });
         });
-        sys_metrics.phys_ns.store(
-            start_time.elapsed().as_nanos() as u64,
-            std::sync::atomic::Ordering::Relaxed,
-        );
     }
 }

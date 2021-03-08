@@ -5,10 +5,6 @@ use prometheus::{
 use std::{
     convert::TryInto,
     error::Error,
-    sync::{
-        atomic::{AtomicU64, Ordering},
-        Arc,
-    },
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
@@ -19,11 +15,15 @@ pub struct PhysicsMetrics {
     pub entity_entity_collisions_count: IntCounter,
 }
 
-pub struct StateTickMetrics {
-    // Counter will only give us granularity on pool speed (2s?) for actuall spike detection we
+pub struct EcsSystemMetrics {
+    // Gauges give us detailed information for random ticks
+    pub system_start_time: IntGaugeVec,
+    pub system_length_time: IntGaugeVec,
+    pub system_thread_avg: GaugeVec,
+    // Counter will only give us granularity on pool speed (2s?) for actual spike detection we
     // need the Historgram
-    pub state_tick_time_hist: HistogramVec,
-    pub state_tick_time_count: IntCounterVec,
+    pub system_length_hist: HistogramVec,
+    pub system_length_count: IntCounterVec,
 }
 
 pub struct PlayerMetrics {
@@ -54,10 +54,6 @@ pub struct TickMetrics {
     pub start_time: IntGauge,
     pub time_of_day: Gauge,
     pub light_count: IntGauge,
-    pub system_start_time: IntGaugeVec,
-    pub system_length_time: IntGaugeVec,
-    pub system_thread_avg: GaugeVec,
-    tick: Arc<AtomicU64>,
 }
 
 impl PhysicsMetrics {
@@ -91,7 +87,7 @@ impl PhysicsMetrics {
     }
 }
 
-impl StateTickMetrics {
+impl EcsSystemMetrics {
     pub fn new() -> Result<(Self, RegistryFn), prometheus::Error> {
         let bucket = vec![
             Duration::from_micros(1).as_secs_f64(),
@@ -107,7 +103,7 @@ impl StateTickMetrics {
             Duration::from_millis(50).as_secs_f64(),
             Duration::from_millis(100).as_secs_f64(),
         ];
-        let state_tick_time_hist = HistogramVec::new(
+        let system_length_hist = HistogramVec::new(
             HistogramOpts::new(
                 "state_tick_time_hist",
                 "shows the number of clients joined to the server",
@@ -115,27 +111,54 @@ impl StateTickMetrics {
             .buckets(bucket),
             &["system"],
         )?;
-        let state_tick_time_count = IntCounterVec::new(
+        let system_length_count = IntCounterVec::new(
             Opts::new(
                 "state_tick_time_count",
                 "shows the detailed time inside the `state_tick` for each system",
             ),
             &["system"],
         )?;
+        let system_start_time = IntGaugeVec::new(
+            Opts::new(
+                "system_start_time",
+                "start relative to tick start in ns required per ECS system",
+            ),
+            &["system"],
+        )?;
+        let system_length_time = IntGaugeVec::new(
+            Opts::new("system_length_time", "time in ns required per ECS system"),
+            &["system"],
+        )?;
+        let system_thread_avg = GaugeVec::new(
+            Opts::new(
+                "system_thread_avg",
+                "average threads used by the ECS system",
+            ),
+            &["system"],
+        )?;
 
-        let state_tick_time_hist_clone = state_tick_time_hist.clone();
-        let state_tick_time_count_clone = state_tick_time_count.clone();
+        let system_length_hist_clone = system_length_hist.clone();
+        let system_length_count_clone = system_length_count.clone();
+        let system_start_time_clone = system_start_time.clone();
+        let system_length_time_clone = system_length_time.clone();
+        let system_thread_avg_clone = system_thread_avg.clone();
 
         let f = |registry: &Registry| {
-            registry.register(Box::new(state_tick_time_hist_clone))?;
-            registry.register(Box::new(state_tick_time_count_clone))?;
+            registry.register(Box::new(system_length_hist_clone))?;
+            registry.register(Box::new(system_length_count_clone))?;
+            registry.register(Box::new(system_start_time_clone))?;
+            registry.register(Box::new(system_length_time_clone))?;
+            registry.register(Box::new(system_thread_avg_clone))?;
             Ok(())
         };
 
         Ok((
             Self {
-                state_tick_time_hist,
-                state_tick_time_count,
+                system_length_hist,
+                system_length_count,
+                system_start_time,
+                system_length_time,
+                system_thread_avg,
             },
             Box::new(f),
         ))
@@ -293,24 +316,6 @@ impl TickMetrics {
             Opts::new("tick_time", "time in ns required for a tick of the server"),
             &["period"],
         )?;
-        let system_start_time = IntGaugeVec::new(
-            Opts::new(
-                "system_start_time",
-                "start relative to tick start in ns required per ECS system",
-            ),
-            &["system"],
-        )?;
-        let system_length_time = IntGaugeVec::new(
-            Opts::new("system_length_time", "time in ns required per ECS system"),
-            &["system"],
-        )?;
-        let system_thread_avg = GaugeVec::new(
-            Opts::new(
-                "system_thread_avg",
-                "average threads used by the ECS system",
-            ),
-            &["system"],
-        )?;
 
         let since_the_epoch = SystemTime::now()
             .duration_since(UNIX_EPOCH)
@@ -326,10 +331,6 @@ impl TickMetrics {
         let time_of_day_clone = time_of_day.clone();
         let light_count_clone = light_count.clone();
         let tick_time_clone = tick_time.clone();
-        let tick = Arc::new(AtomicU64::new(0));
-        let system_start_time_clone = system_start_time.clone();
-        let system_length_time_clone = system_length_time.clone();
-        let system_thread_avg_clone = system_thread_avg.clone();
 
         let f = |registry: &Registry| {
             registry.register(Box::new(chonks_count_clone))?;
@@ -341,9 +342,6 @@ impl TickMetrics {
             registry.register(Box::new(time_of_day_clone))?;
             registry.register(Box::new(light_count_clone))?;
             registry.register(Box::new(tick_time_clone))?;
-            registry.register(Box::new(system_start_time_clone))?;
-            registry.register(Box::new(system_length_time_clone))?;
-            registry.register(Box::new(system_thread_avg_clone))?;
             Ok(())
         };
 
@@ -358,16 +356,8 @@ impl TickMetrics {
                 start_time,
                 time_of_day,
                 light_count,
-                system_start_time,
-                system_length_time,
-                system_thread_avg,
-                tick,
             },
             Box::new(f),
         ))
     }
-
-    pub fn tick(&self) { self.tick.fetch_add(1, Ordering::Relaxed); }
-
-    pub fn is_100th_tick(&self) -> bool { self.tick.load(Ordering::Relaxed).rem_euclid(100) == 0 }
 }

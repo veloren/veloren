@@ -5,7 +5,6 @@ use common::{
         PoiseChange, PoiseSource, Pos, Stats,
     },
     event::{EventBus, ServerEvent},
-    metrics::SysMetrics,
     outcome::Outcome,
     resources::{DeltaTime, Time},
     uid::Uid,
@@ -13,8 +12,7 @@ use common::{
 };
 use hashbrown::HashSet;
 use specs::{
-    shred::ResourceId, Entities, Join, Read, ReadExpect, ReadStorage, SystemData, World, Write,
-    WriteStorage,
+    shred::ResourceId, Entities, Join, Read, ReadStorage, SystemData, World, Write, WriteStorage,
 };
 use vek::Vec3;
 
@@ -28,7 +26,6 @@ pub struct ReadData<'a> {
     dt: Read<'a, DeltaTime>,
     time: Read<'a, Time>,
     server_bus: Read<'a, EventBus<ServerEvent>>,
-    metrics: ReadExpect<'a, SysMetrics>,
     positions: ReadStorage<'a, Pos>,
     uids: ReadStorage<'a, Uid>,
     bodies: ReadStorage<'a, Body>,
@@ -66,7 +63,6 @@ impl<'a> VSystem<'a> for Sys {
             mut outcomes,
         ): Self::SystemData,
     ) {
-        let start_time = std::time::Instant::now();
         let mut server_event_emitter = read_data.server_bus.emitter();
         let dt = read_data.dt.0;
 
@@ -270,10 +266,5 @@ impl<'a> VSystem<'a> for Sys {
                 combo.reset();
             }
         }
-
-        read_data.metrics.stats_ns.store(
-            start_time.elapsed().as_nanos() as u64,
-            std::sync::atomic::Ordering::Relaxed,
-        );
     }
 }

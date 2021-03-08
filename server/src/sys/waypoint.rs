@@ -1,4 +1,3 @@
-use super::SysTimer;
 use crate::client::Client;
 use common::{
     comp::{Player, Pos, Waypoint, WaypointArea},
@@ -6,7 +5,7 @@ use common::{
     vsystem::{Origin, Phase, VJob, VSystem},
 };
 use common_net::msg::{Notification, ServerGeneral};
-use specs::{Entities, Join, Read, ReadStorage, Write, WriteStorage};
+use specs::{Entities, Join, Read, ReadStorage, WriteStorage};
 
 /// Cooldown time (in seconds) for "Waypoint Saved" notifications
 const NOTIFY_TIME: f64 = 10.0;
@@ -16,7 +15,7 @@ const NOTIFY_TIME: f64 = 10.0;
 #[derive(Default)]
 pub struct Sys;
 impl<'a> VSystem<'a> for Sys {
-    #[allow(clippy::type_complexity)] // TODO: Pending review in #587
+    #[allow(clippy::type_complexity)]
     type SystemData = (
         Entities<'a>,
         ReadStorage<'a, Pos>,
@@ -25,7 +24,6 @@ impl<'a> VSystem<'a> for Sys {
         WriteStorage<'a, Waypoint>,
         ReadStorage<'a, Client>,
         Read<'a, Time>,
-        Write<'a, SysTimer<Self>>,
     );
 
     const NAME: &'static str = "waypoint";
@@ -42,11 +40,8 @@ impl<'a> VSystem<'a> for Sys {
             mut waypoints,
             clients,
             time,
-            mut timer,
         ): Self::SystemData,
     ) {
-        timer.start();
-
         for (entity, player_pos, _, client) in (&entities, &positions, &players, &clients).join() {
             for (waypoint_pos, waypoint_area) in (&positions, &waypoint_areas).join() {
                 if player_pos.0.distance_squared(waypoint_pos.0) < waypoint_area.radius().powi(2) {
@@ -61,7 +56,5 @@ impl<'a> VSystem<'a> for Sys {
                 }
             }
         }
-
-        timer.end();
     }
 }

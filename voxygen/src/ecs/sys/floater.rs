@@ -18,7 +18,7 @@ pub const HP_ACCUMULATETIME: f32 = 1.0;
 #[derive(Default)]
 pub struct Sys;
 impl<'a> VSystem<'a> for Sys {
-    #[allow(clippy::type_complexity)] // TODO: Pending review in #587
+    #[allow(clippy::type_complexity)]
     type SystemData = (
         Entities<'a>,
         ReadExpect<'a, MyEntity>,

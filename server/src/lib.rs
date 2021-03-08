@@ -79,7 +79,7 @@ use common_net::{
 use common_sys::plugin::PluginMgr;
 use common_sys::{plugin::memory_manager::EcsWorld, state::State};
 use hashbrown::HashMap;
-use metrics::{PhysicsMetrics, PlayerMetrics, StateTickMetrics, TickMetrics};
+use metrics::{EcsSystemMetrics, PhysicsMetrics, PlayerMetrics, TickMetrics};
 use network::{Network, Pid, ProtocolAddr};
 use persistence::{
     character_loader::{CharacterLoader, CharacterLoaderResponseKind},
@@ -118,6 +118,10 @@ struct SpawnPoint(Vec3<f32>);
 #[derive(Copy, Clone, Default)]
 pub struct Tick(u64);
 
+// Start of Tick, used for metrics
+#[derive(Copy, Clone)]
+pub struct TickStart(Instant);
+
 pub struct Server {
     state: State,
     world: Arc<World>,
@@ -129,9 +133,6 @@ pub struct Server {
     runtime: Arc<Runtime>,
 
     metrics_shutdown: Arc<Notify>,
-    tick_metrics: TickMetrics,
-    state_tick_metrics: StateTickMetrics,
-    physics_metrics: PhysicsMetrics,
 }
 
 impl Server {
@@ -163,6 +164,10 @@ impl Server {
         let (network_request_metrics, registry_network) =
             metrics::NetworkRequestMetrics::new().unwrap();
         let (player_metrics, registry_player) = metrics::PlayerMetrics::new().unwrap();
+        let (ecs_system_metrics, registry_state) = EcsSystemMetrics::new().unwrap();
+        let (tick_metrics, registry_tick) =
+            TickMetrics::new().expect("Failed to initialize server tick metrics submodule.");
+        let (physics_metrics, registry_physics) = PhysicsMetrics::new().unwrap();
 
         let mut state = State::server();
         state.ecs_mut().insert(settings.clone());
@@ -175,8 +180,12 @@ impl Server {
             .ecs_mut()
             .insert(LoginProvider::new(settings.auth_server_address.clone()));
         state.ecs_mut().insert(Tick(0));
+        state.ecs_mut().insert(TickStart(Instant::now()));
         state.ecs_mut().insert(network_request_metrics);
         state.ecs_mut().insert(player_metrics);
+        state.ecs_mut().insert(ecs_system_metrics);
+        state.ecs_mut().insert(tick_metrics);
+        state.ecs_mut().insert(physics_metrics);
         state
             .ecs_mut()
             .insert(ChunkGenerator::new(chunk_gen_metrics));
@@ -195,23 +204,6 @@ impl Server {
         state
             .ecs_mut()
             .insert(CharacterLoader::new(&persistence_db_dir)?);
-
-        // System timers for performance monitoring
-        state.ecs_mut().insert(sys::EntitySyncTimer::default());
-        state.ecs_mut().insert(sys::GeneralMsgTimer::default());
-        state.ecs_mut().insert(sys::PingMsgTimer::default());
-        state
-            .ecs_mut()
-            .insert(sys::CharacterScreenMsgTimer::default());
-        state.ecs_mut().insert(sys::InGameMsgTimer::default());
-        state.ecs_mut().insert(sys::SentinelTimer::default());
-        state.ecs_mut().insert(sys::SubscriptionTimer::default());
-        state.ecs_mut().insert(sys::TerrainSyncTimer::default());
-        state.ecs_mut().insert(sys::TerrainTimer::default());
-        state.ecs_mut().insert(sys::WaypointTimer::default());
-        state.ecs_mut().insert(sys::InviteTimeoutTimer::default());
-        state.ecs_mut().insert(sys::PersistenceTimer::default());
-        state.ecs_mut().insert(sys::AgentTimer::default());
 
         // System schedulers to control execution of systems
         state
@@ -358,11 +350,6 @@ impl Server {
         state.ecs_mut().insert(DeletedEntities::default());
 
         // register all metrics submodules here
-        let (tick_metrics, registry_tick) =
-            TickMetrics::new().expect("Failed to initialize server tick metrics submodule.");
-        let (state_tick_metrics, registry_state) = StateTickMetrics::new().unwrap();
-        let (physics_metrics, registry_physics) = PhysicsMetrics::new().unwrap();
-
         let registry = Arc::new(Registry::new());
         registry_chunk(&registry).expect("failed to register chunk gen metrics");
         registry_network(&registry).expect("failed to register network request metrics");
@@ -403,9 +390,6 @@ impl Server {
             runtime,
 
             metrics_shutdown,
-            tick_metrics,
-            state_tick_metrics,
-            physics_metrics,
         };
 
         debug!(?settings, "created veloren server with");
@@ -473,6 +457,8 @@ impl Server {
     /// the given duration.
     pub fn tick(&mut self, _input: Input, dt: Duration) -> Result<Vec<Event>, Error> {
         self.state.ecs().write_resource::<Tick>().0 += 1;
+        self.state.ecs().write_resource::<TickStart>().0 = Instant::now();
+
         // This tick function is the centre of the Veloren universe. Most server-side
         // things are managed from here, and as such it's important that it
         // stays organised. Please consult the core developers before making
@@ -705,235 +691,28 @@ impl Server {
         let end_of_server_tick = Instant::now();
 
         // 8) Update Metrics
-        // Get system timing info
+        run_now::<sys::metrics::Sys>(&self.state.ecs());
 
         {
-            let lock = self
-                .state
-                .ecs()
-                .read_resource::<common::metrics::SysMetrics>();
-            let state = lock.stats.lock().unwrap();
-            for (name, stat) in common::vsystem::gen_stats(&state, before_new_connections, 8, 8) {
-                self.tick_metrics
-                    .system_start_time
-                    .with_label_values(&[&name])
-                    .set(stat.start_ns() as i64);
-                self.tick_metrics
-                    .system_length_time
-                    .with_label_values(&[&name])
-                    .set(stat.length_ns() as i64);
-                self.tick_metrics
-                    .system_thread_avg
-                    .with_label_values(&[&name])
-                    .set(stat.avg_threads() as f64);
-            }
+            // Report timing info
+            let tick_metrics = self.state.ecs().read_resource::<metrics::TickMetrics>();
+
+            let tt = &tick_metrics.tick_time;
+            tt.with_label_values(&["new connections"])
+                .set((before_message_system - before_new_connections).as_nanos() as i64);
+            tt.with_label_values(&["handle server events"])
+                .set((before_update_terrain_and_regions - before_handle_events).as_nanos() as i64);
+            tt.with_label_values(&["update terrain and region map"])
+                .set((before_sync - before_update_terrain_and_regions).as_nanos() as i64);
+            tt.with_label_values(&["state"])
+                .set((before_handle_events - before_state_tick).as_nanos() as i64);
+            tt.with_label_values(&["world tick"])
+                .set((before_entity_cleanup - before_world_tick).as_nanos() as i64);
+            tt.with_label_values(&["entity cleanup"])
+                .set((before_persistence_updates - before_entity_cleanup).as_nanos() as i64);
+            tt.with_label_values(&["persistence_updates"])
+                .set((end_of_server_tick - before_persistence_updates).as_nanos() as i64);
         }
-
-        let agent_nanos = self.state.ecs().read_resource::<sys::AgentTimer>().nanos as i64;
-        let entity_sync_nanos = self
-            .state
-            .ecs()
-            .read_resource::<sys::EntitySyncTimer>()
-            .nanos as i64;
-        let message_nanos = {
-            let state = self.state.ecs();
-            (state.read_resource::<sys::GeneralMsgTimer>().nanos
-                + state.read_resource::<sys::PingMsgTimer>().nanos
-                + state.read_resource::<sys::CharacterScreenMsgTimer>().nanos
-                + state.read_resource::<sys::InGameMsgTimer>().nanos) as i64
-        };
-        let sentinel_nanos = self.state.ecs().read_resource::<sys::SentinelTimer>().nanos as i64;
-        let subscription_nanos = self
-            .state
-            .ecs()
-            .read_resource::<sys::SubscriptionTimer>()
-            .nanos as i64;
-        let terrain_sync_nanos = self
-            .state
-            .ecs()
-            .read_resource::<sys::TerrainSyncTimer>()
-            .nanos as i64;
-        let terrain_nanos = self.state.ecs().read_resource::<sys::TerrainTimer>().nanos as i64;
-        let waypoint_nanos = self.state.ecs().read_resource::<sys::WaypointTimer>().nanos as i64;
-        let invite_timeout_nanos = self
-            .state
-            .ecs()
-            .read_resource::<sys::InviteTimeoutTimer>()
-            .nanos as i64;
-        let stats_persistence_nanos = self
-            .state
-            .ecs()
-            .read_resource::<sys::PersistenceTimer>()
-            .nanos as i64;
-        let total_sys_ran_in_dispatcher_nanos =
-            terrain_nanos + waypoint_nanos + invite_timeout_nanos + stats_persistence_nanos;
-
-        // Report timing info
-        self.tick_metrics
-            .tick_time
-            .with_label_values(&["new connections"])
-            .set((before_message_system - before_new_connections).as_nanos() as i64);
-        self.tick_metrics
-            .tick_time
-            .with_label_values(&["state tick"])
-            .set(
-                (before_handle_events - before_state_tick).as_nanos() as i64
-                    - total_sys_ran_in_dispatcher_nanos,
-            );
-        self.tick_metrics
-            .tick_time
-            .with_label_values(&["handle server events"])
-            .set((before_update_terrain_and_regions - before_handle_events).as_nanos() as i64);
-        self.tick_metrics
-            .tick_time
-            .with_label_values(&["update terrain and region map"])
-            .set((before_sync - before_update_terrain_and_regions).as_nanos() as i64);
-        self.tick_metrics
-            .tick_time
-            .with_label_values(&["world tick"])
-            .set((before_entity_cleanup - before_world_tick).as_nanos() as i64);
-        self.tick_metrics
-            .tick_time
-            .with_label_values(&["entity cleanup"])
-            .set((before_persistence_updates - before_entity_cleanup).as_nanos() as i64);
-        self.tick_metrics
-            .tick_time
-            .with_label_values(&["persistence_updates"])
-            .set((end_of_server_tick - before_persistence_updates).as_nanos() as i64);
-        self.tick_metrics
-            .tick_time
-            .with_label_values(&["entity sync"])
-            .set(entity_sync_nanos);
-        self.tick_metrics
-            .tick_time
-            .with_label_values(&["message"])
-            .set(message_nanos);
-        self.tick_metrics
-            .tick_time
-            .with_label_values(&["sentinel"])
-            .set(sentinel_nanos);
-        self.tick_metrics
-            .tick_time
-            .with_label_values(&["subscription"])
-            .set(subscription_nanos);
-        self.tick_metrics
-            .tick_time
-            .with_label_values(&["terrain sync"])
-            .set(terrain_sync_nanos);
-        self.tick_metrics
-            .tick_time
-            .with_label_values(&["terrain"])
-            .set(terrain_nanos);
-        self.tick_metrics
-            .tick_time
-            .with_label_values(&["waypoint"])
-            .set(waypoint_nanos);
-        self.tick_metrics
-            .tick_time
-            .with_label_values(&["invite timeout"])
-            .set(invite_timeout_nanos);
-        self.tick_metrics
-            .tick_time
-            .with_label_values(&["persistence:stats"])
-            .set(stats_persistence_nanos);
-        self.tick_metrics
-            .tick_time
-            .with_label_values(&["agent"])
-            .set(agent_nanos);
-
-        //detailed state metrics
-        {
-            /*
-            let res = self
-                .state
-                .ecs()
-                .read_resource::<common::metrics::SysMetrics>();
-            let c = &self.state_tick_metrics.state_tick_time_count;
-            let agent_ns = res.agent_ns.load(Ordering::Relaxed);
-            let mount_ns = res.mount_ns.load(Ordering::Relaxed);
-            let controller_ns = res.controller_ns.load(Ordering::Relaxed);
-            let character_behavior_ns = res.character_behavior_ns.load(Ordering::Relaxed);
-            let stats_ns = res.stats_ns.load(Ordering::Relaxed);
-            let phys_ns = res.phys_ns.load(Ordering::Relaxed);
-            let projectile_ns = res.projectile_ns.load(Ordering::Relaxed);
-            let melee_ns = res.melee_ns.load(Ordering::Relaxed);
-
-            c.with_label_values(&[sys::AGENT_SYS]).inc_by(agent_ns);
-            c.with_label_values(&[common_sys::])
-                .inc_by(mount_ns);
-            c.with_label_values(&[common_sys::CONTROLLER_SYS])
-                .inc_by(controller_ns);
-            c.with_label_values(&[common_sys::CHARACTER_BEHAVIOR_SYS])
-                .inc_by(character_behavior_ns);
-            c.with_label_values(&[common_sys::STATS_SYS])
-                .inc_by(stats_ns);
-            c.with_label_values(&[common_sys::PHYS_SYS]).inc_by(phys_ns);
-            c.with_label_values(&[common_sys::PROJECTILE_SYS])
-                .inc_by(projectile_ns);
-            c.with_label_values(&[common_sys::MELEE_SYS])
-                .inc_by(melee_ns);
-
-            const NANOSEC_PER_SEC: f64 = Duration::from_secs(1).as_nanos() as f64;
-            let h = &self.state_tick_metrics.state_tick_time_hist;
-            h.with_label_values(&[sys::AGENT_SYS])
-                .observe(agent_ns as f64 / NANOSEC_PER_SEC);
-            h.with_label_values(&[common_sys::MOUNT_SYS])
-                .observe(mount_ns as f64 / NANOSEC_PER_SEC);
-            h.with_label_values(&[common_sys::CONTROLLER_SYS])
-                .observe(controller_ns as f64 / NANOSEC_PER_SEC);
-            h.with_label_values(&[common_sys::CHARACTER_BEHAVIOR_SYS])
-                .observe(character_behavior_ns as f64 / NANOSEC_PER_SEC);
-            h.with_label_values(&[common_sys::STATS_SYS])
-                .observe(stats_ns as f64 / NANOSEC_PER_SEC);
-            h.with_label_values(&[common_sys::PHYS_SYS])
-                .observe(phys_ns as f64 / NANOSEC_PER_SEC);
-            h.with_label_values(&[common_sys::PROJECTILE_SYS])
-                .observe(projectile_ns as f64 / NANOSEC_PER_SEC);
-            h.with_label_values(&[common_sys::MELEE_SYS])
-                .observe(melee_ns as f64 / NANOSEC_PER_SEC);
-             */
-        }
-
-        //detailed physics metrics
-        {
-            let res = self
-                .state
-                .ecs()
-                .read_resource::<common::metrics::PhysicsMetrics>();
-
-            self.physics_metrics
-                .entity_entity_collision_checks_count
-                .inc_by(res.entity_entity_collision_checks);
-            self.physics_metrics
-                .entity_entity_collisions_count
-                .inc_by(res.entity_entity_collisions);
-        }
-
-        // Report other info
-        self.tick_metrics
-            .time_of_day
-            .set(self.state.ecs().read_resource::<TimeOfDay>().0);
-        if self.tick_metrics.is_100th_tick() {
-            let mut chonk_cnt = 0;
-            let mut group_cnt = 0;
-            let chunk_cnt = self.state.terrain().iter().fold(0, |a, (_, c)| {
-                chonk_cnt += 1;
-                group_cnt += c.sub_chunk_groups();
-                a + c.sub_chunks_len()
-            });
-            self.tick_metrics.chonks_count.set(chonk_cnt as i64);
-            self.tick_metrics.chunks_count.set(chunk_cnt as i64);
-            self.tick_metrics.chunk_groups_count.set(group_cnt as i64);
-
-            let entity_count = self.state.ecs().entities().join().count();
-            self.tick_metrics.entity_count.set(entity_count as i64);
-        }
-        //self.metrics.entity_count.set(self.state.);
-        self.tick_metrics
-            .tick_time
-            .with_label_values(&["metrics"])
-            .set(end_of_server_tick.elapsed().as_nanos() as i64);
-        self.tick_metrics.tick();
 
         // 9) Finish the tick, pass control back to the frontend.
 

@@ -12,7 +12,7 @@ use vek::*;
 #[derive(Default)]
 pub struct Sys;
 impl<'a> VSystem<'a> for Sys {
-    #[allow(clippy::type_complexity)] // TODO: Pending review in #587
+    #[allow(clippy::type_complexity)]
     type SystemData = (
         Entities<'a>,
         Read<'a, DeltaTime>,

@@ -1,4 +1,3 @@
-use super::SysTimer;
 use crate::{
     chunk_generator::ChunkGenerator, client::Client, presence::Presence, rtsim::RtSim, Tick,
 };
@@ -30,7 +29,6 @@ impl<'a> VSystem<'a> for Sys {
     type SystemData = (
         Read<'a, EventBus<ServerEvent>>,
         Read<'a, Tick>,
-        Write<'a, SysTimer<Self>>,
         WriteExpect<'a, ChunkGenerator>,
         WriteExpect<'a, TerrainGrid>,
         Write<'a, TerrainChanges>,
@@ -49,7 +47,6 @@ impl<'a> VSystem<'a> for Sys {
         (
             server_event_bus,
             tick,
-            mut timer,
             mut chunk_generator,
             mut terrain,
             mut terrain_changes,
@@ -59,8 +56,6 @@ impl<'a> VSystem<'a> for Sys {
             clients,
         ): Self::SystemData,
     ) {
-        timer.start();
-
         let mut server_emitter = server_event_bus.emitter();
 
         // Fetch any generated `TerrainChunk`s and insert them into the terrain.
@@ -240,8 +235,6 @@ impl<'a> VSystem<'a> for Sys {
 
             chunk_generator.cancel_if_pending(key);
         }
-
-        timer.end()
     }
 }
 

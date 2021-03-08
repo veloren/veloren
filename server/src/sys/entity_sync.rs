@@ -1,7 +1,4 @@
-use super::{
-    sentinel::{DeletedEntities, ReadTrackers, TrackedComps},
-    SysTimer,
-};
+use super::sentinel::{DeletedEntities, ReadTrackers, TrackedComps};
 use crate::{
     client::Client,
     presence::{Presence, RegionSubscription},
@@ -27,13 +24,12 @@ use vek::*;
 #[derive(Default)]
 pub struct Sys;
 impl<'a> VSystem<'a> for Sys {
-    #[allow(clippy::type_complexity)] // TODO: Pending review in #587
+    #[allow(clippy::type_complexity)]
     type SystemData = (
         Entities<'a>,
         Read<'a, Tick>,
         ReadExpect<'a, TimeOfDay>,
         ReadExpect<'a, RegionMap>,
-        Write<'a, SysTimer<Self>>,
         ReadStorage<'a, Uid>,
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Vel>,
@@ -64,7 +60,6 @@ impl<'a> VSystem<'a> for Sys {
             tick,
             time_of_day,
             region_map,
-            mut timer,
             uids,
             positions,
             velocities,
@@ -84,8 +79,6 @@ impl<'a> VSystem<'a> for Sys {
             trackers,
         ): Self::SystemData,
     ) {
-        timer.start();
-
         let tick = tick.0;
         // To send entity updates
         // 1. Iterate through regions
@@ -385,7 +378,5 @@ impl<'a> VSystem<'a> for Sys {
             }
             tof_lazymsg.as_ref().map(|msg| client.send_prepared(&msg));
         }
-
-        timer.end();
     }
 }

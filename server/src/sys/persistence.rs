@@ -1,8 +1,4 @@
-use crate::{
-    persistence::character_updater,
-    presence::Presence,
-    sys::{SysScheduler, SysTimer},
-};
+use crate::{persistence::character_updater, presence::Presence, sys::SysScheduler};
 use common::{
     comp::{Inventory, Stats, Waypoint},
     vsystem::{Origin, Phase, VJob, VSystem},
@@ -14,7 +10,7 @@ use specs::{Join, ReadExpect, ReadStorage, Write};
 pub struct Sys;
 
 impl<'a> VSystem<'a> for Sys {
-    #[allow(clippy::type_complexity)] // TODO: Pending review in #587
+    #[allow(clippy::type_complexity)]
     type SystemData = (
         ReadStorage<'a, Presence>,
         ReadStorage<'a, Stats>,
@@ -22,7 +18,6 @@ impl<'a> VSystem<'a> for Sys {
         ReadStorage<'a, Waypoint>,
         ReadExpect<'a, character_updater::CharacterUpdater>,
         Write<'a, SysScheduler<Self>>,
-        Write<'a, SysTimer<Self>>,
     );
 
     const NAME: &'static str = "persistence";
@@ -38,11 +33,9 @@ impl<'a> VSystem<'a> for Sys {
             player_waypoint,
             updater,
             mut scheduler,
-            mut timer,
         ): Self::SystemData,
     ) {
         if scheduler.should_run() {
-            timer.start();
             updater.batch_update(
                 (
                     &presences,
@@ -58,7 +51,6 @@ impl<'a> VSystem<'a> for Sys {
                         },
                     ),
             );
-            timer.end();
         }
     }
 }

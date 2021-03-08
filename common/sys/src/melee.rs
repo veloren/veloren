@@ -2,15 +2,13 @@ use common::{
     combat::{AttackerInfo, TargetInfo},
     comp::{Body, CharacterState, Energy, Group, Health, Inventory, Melee, Ori, Pos, Scale, Stats},
     event::{EventBus, ServerEvent},
-    metrics::SysMetrics,
     uid::Uid,
     util::Dir,
     vsystem::{Origin, Phase, VJob, VSystem},
     GroupTarget,
 };
 use specs::{
-    shred::ResourceId, Entities, Join, Read, ReadExpect, ReadStorage, SystemData, World,
-    WriteStorage,
+    shred::ResourceId, Entities, Join, Read, ReadStorage, SystemData, World, WriteStorage,
 };
 use vek::*;
 
@@ -28,7 +26,6 @@ pub struct ReadData<'a> {
     groups: ReadStorage<'a, Group>,
     char_states: ReadStorage<'a, CharacterState>,
     server_bus: Read<'a, EventBus<ServerEvent>>,
-    metrics: ReadExpect<'a, SysMetrics>,
     stats: ReadStorage<'a, Stats>,
 }
 
@@ -45,7 +42,6 @@ impl<'a> VSystem<'a> for Sys {
     const PHASE: Phase = Phase::Create;
 
     fn run(_job: &mut VJob<Self>, (read_data, mut melee_attacks): Self::SystemData) {
-        let start_time = std::time::Instant::now();
         let mut server_emitter = read_data.server_bus.emitter();
         // Attacks
         for (attacker, uid, pos, ori, melee_attack, body) in (
@@ -139,9 +135,5 @@ impl<'a> VSystem<'a> for Sys {
                 }
             }
         }
-        read_data.metrics.melee_ns.store(
-            start_time.elapsed().as_nanos() as u64,
-            std::sync::atomic::Ordering::Relaxed,
-        );
     }
 }

@@ -1,4 +1,3 @@
-use super::SysTimer;
 use crate::client::Client;
 use common::{
     comp::invite::{Invite, PendingInvites},
@@ -6,20 +5,19 @@ use common::{
     vsystem::{Origin, Phase, VJob, VSystem},
 };
 use common_net::msg::{InviteAnswer, ServerGeneral};
-use specs::{Entities, Join, ReadStorage, Write, WriteStorage};
+use specs::{Entities, Join, ReadStorage, WriteStorage};
 
 /// This system removes timed out invites
 #[derive(Default)]
 pub struct Sys;
 impl<'a> VSystem<'a> for Sys {
-    #[allow(clippy::type_complexity)] // TODO: Pending review in #587
+    #[allow(clippy::type_complexity)]
     type SystemData = (
         Entities<'a>,
         WriteStorage<'a, Invite>,
         WriteStorage<'a, PendingInvites>,
         ReadStorage<'a, Client>,
         ReadStorage<'a, Uid>,
-        Write<'a, SysTimer<Self>>,
     );
 
     const NAME: &'static str = "invite_timeout";
@@ -28,12 +26,9 @@ impl<'a> VSystem<'a> for Sys {
 
     fn run(
         _job: &mut VJob<Self>,
-        (entities, mut invites, mut pending_invites, clients, uids, mut timer): Self::SystemData,
+        (entities, mut invites, mut pending_invites, clients, uids): Self::SystemData,
     ) {
-        timer.start();
-
         let now = std::time::Instant::now();
-
         let timed_out_invites = (&entities, &invites)
             .join()
             .filter_map(|(invitee, Invite { inviter, kind })| {
@@ -72,7 +67,5 @@ impl<'a> VSystem<'a> for Sys {
         for entity in timed_out_invites {
             invites.remove(entity);
         }
-
-        timer.end();
     }
 }

@@ -1,4 +1,3 @@
-use super::super::SysTimer;
 use crate::{client::Client, metrics::PlayerMetrics};
 use common::{
     comp::{ChatMode, Player, UnresolvedChatMsg},
@@ -10,7 +9,7 @@ use common::{
 use common_net::msg::{
     validate_chat_msg, ChatMsgValidationError, ClientGeneral, MAX_BYTES_CHAT_MSG,
 };
-use specs::{Entities, Join, Read, ReadExpect, ReadStorage, Write};
+use specs::{Entities, Join, Read, ReadExpect, ReadStorage};
 use std::sync::atomic::Ordering;
 use tracing::{debug, error, warn};
 
@@ -74,7 +73,6 @@ impl<'a> VSystem<'a> for Sys {
         Read<'a, EventBus<ServerEvent>>,
         Read<'a, Time>,
         ReadExpect<'a, PlayerMetrics>,
-        Write<'a, SysTimer<Self>>,
         ReadStorage<'a, Uid>,
         ReadStorage<'a, ChatMode>,
         ReadStorage<'a, Player>,
@@ -92,15 +90,12 @@ impl<'a> VSystem<'a> for Sys {
             server_event_bus,
             time,
             player_metrics,
-            mut timer,
             uids,
             chat_modes,
             players,
             clients,
         ): Self::SystemData,
     ) {
-        timer.start();
-
         let mut server_emitter = server_event_bus.emitter();
         let mut new_chat_msgs = Vec::new();
 
@@ -138,7 +133,5 @@ impl<'a> VSystem<'a> for Sys {
                 server_emitter.emit(ServerEvent::Chat(msg));
             }
         }
-
-        timer.end()
     }
 }

@@ -1,14 +1,13 @@
 use common::{
     comp::{BuffChange, ControlEvent, Controller},
     event::{EventBus, ServerEvent},
-    metrics::SysMetrics,
     uid::UidAllocator,
     vsystem::{Origin, Phase, VJob, VSystem},
 };
 use specs::{
     saveload::{Marker, MarkerAllocator},
     shred::ResourceId,
-    Entities, Join, Read, ReadExpect, SystemData, World, WriteStorage,
+    Entities, Join, Read, SystemData, World, WriteStorage,
 };
 use vek::*;
 
@@ -17,7 +16,6 @@ pub struct ReadData<'a> {
     entities: Entities<'a>,
     uid_allocator: Read<'a, UidAllocator>,
     server_bus: Read<'a, EventBus<ServerEvent>>,
-    metrics: ReadExpect<'a, SysMetrics>,
 }
 
 #[derive(Default)]
@@ -31,7 +29,6 @@ impl<'a> VSystem<'a> for Sys {
     const PHASE: Phase = Phase::Create;
 
     fn run(_job: &mut VJob<Self>, (read_data, mut controllers): Self::SystemData) {
-        let start_time = std::time::Instant::now();
         let mut server_emitter = read_data.server_bus.emitter();
 
         for (entity, controller) in (&read_data.entities, &mut controllers).join() {
@@ -107,9 +104,5 @@ impl<'a> VSystem<'a> for Sys {
                 }
             }
         }
-        read_data.metrics.controller_ns.store(
-            start_time.elapsed().as_nanos() as u64,
-            std::sync::atomic::Ordering::Relaxed,
-        );
     }
 }

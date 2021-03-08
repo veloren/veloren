@@ -1,7 +1,4 @@
-use super::{
-    sentinel::{DeletedEntities, TrackedComps},
-    SysTimer,
-};
+use super::sentinel::{DeletedEntities, TrackedComps};
 use crate::{
     client::Client,
     presence::{self, Presence, RegionSubscription},
@@ -25,11 +22,10 @@ use vek::*;
 #[derive(Default)]
 pub struct Sys;
 impl<'a> VSystem<'a> for Sys {
-    #[allow(clippy::type_complexity)] // TODO: Pending review in #587
+    #[allow(clippy::type_complexity)]
     type SystemData = (
         Entities<'a>,
         ReadExpect<'a, RegionMap>,
-        Write<'a, SysTimer<Self>>,
         ReadStorage<'a, Uid>,
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Vel>,
@@ -51,7 +47,6 @@ impl<'a> VSystem<'a> for Sys {
         (
             entities,
             region_map,
-            mut timer,
             uids,
             positions,
             velocities,
@@ -63,8 +58,6 @@ impl<'a> VSystem<'a> for Sys {
             tracked_comps,
         ): Self::SystemData,
     ) {
-        timer.start();
-
         // To update subscriptions
         // 1. Iterate through clients
         // 2. Calculate current chunk position
@@ -212,8 +205,6 @@ impl<'a> VSystem<'a> for Sys {
                 }
             }
         }
-
-        timer.end();
     }
 }
 

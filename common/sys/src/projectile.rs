@@ -5,7 +5,6 @@ use common::{
         Stats, Vel,
     },
     event::{EventBus, ServerEvent},
-    metrics::SysMetrics,
     resources::DeltaTime,
     uid::UidAllocator,
     util::Dir,
@@ -13,8 +12,8 @@ use common::{
     GroupTarget,
 };
 use specs::{
-    saveload::MarkerAllocator, shred::ResourceId, Entities, Join, Read, ReadExpect, ReadStorage,
-    SystemData, World, WriteStorage,
+    saveload::MarkerAllocator, shred::ResourceId, Entities, Join, Read, ReadStorage, SystemData,
+    World, WriteStorage,
 };
 use std::time::Duration;
 
@@ -24,7 +23,6 @@ pub struct ReadData<'a> {
     dt: Read<'a, DeltaTime>,
     uid_allocator: Read<'a, UidAllocator>,
     server_bus: Read<'a, EventBus<ServerEvent>>,
-    metrics: ReadExpect<'a, SysMetrics>,
     positions: ReadStorage<'a, Pos>,
     physics_states: ReadStorage<'a, PhysicsState>,
     velocities: ReadStorage<'a, Vel>,
@@ -52,7 +50,6 @@ impl<'a> VSystem<'a> for Sys {
         _job: &mut VJob<Self>,
         (read_data, mut orientations, mut projectiles): Self::SystemData,
     ) {
-        let start_time = std::time::Instant::now();
         let mut server_emitter = read_data.server_bus.emitter();
 
         // Attacks
@@ -211,9 +208,5 @@ impl<'a> VSystem<'a> for Sys {
                 .checked_sub(Duration::from_secs_f32(read_data.dt.0))
                 .unwrap_or_default();
         }
-        read_data.metrics.projectile_ns.store(
-            start_time.elapsed().as_nanos() as u64,
-            std::sync::atomic::Ordering::Relaxed,
-        );
     }
 }

@@ -1,6 +1,6 @@
 use specs::{
-    shred::ResourceId, Entities, Join, LazyUpdate, Read, ReadExpect, ReadStorage, SystemData,
-    World, WriteStorage,
+    shred::ResourceId, Entities, Join, LazyUpdate, Read, ReadStorage, SystemData, World,
+    WriteStorage,
 };
 
 use common::{
@@ -13,7 +13,6 @@ use common::{
         Ori, PhysicsState, Poise, PoiseState, Pos, StateUpdate, Stats, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
-    metrics::SysMetrics,
     resources::DeltaTime,
     states::{
         self,
@@ -56,7 +55,6 @@ pub struct ReadData<'a> {
     local_bus: Read<'a, EventBus<LocalEvent>>,
     dt: Read<'a, DeltaTime>,
     lazy_update: Read<'a, LazyUpdate>,
-    metrics: ReadExpect<'a, SysMetrics>,
     healths: ReadStorage<'a, Health>,
     bodies: ReadStorage<'a, Body>,
     physics_states: ReadStorage<'a, PhysicsState>,
@@ -108,7 +106,6 @@ impl<'a> VSystem<'a> for Sys {
             mut poises,
         ): Self::SystemData,
     ) {
-        let start_time = std::time::Instant::now();
         let mut server_emitter = read_data.server_bus.emitter();
         let mut local_emitter = read_data.local_bus.emitter();
 
@@ -351,9 +348,5 @@ impl<'a> VSystem<'a> for Sys {
             server_emitter.append(&mut state_update.server_events);
             incorporate_update(&mut join_struct, state_update);
         }
-        read_data.metrics.character_behavior_ns.store(
-            start_time.elapsed().as_nanos() as u64,
-            std::sync::atomic::Ordering::Relaxed,
-        );
     }
 }

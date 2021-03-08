@@ -1,4 +1,3 @@
-use super::super::SysTimer;
 use crate::{
     alias_validator::AliasValidator, character_creator, client::Client,
     persistence::character_loader::CharacterLoader, presence::Presence, EditableSettings,
@@ -10,7 +9,7 @@ use common::{
     vsystem::{Origin, Phase, VJob, VSystem},
 };
 use common_net::msg::{ClientGeneral, ServerGeneral};
-use specs::{Entities, Join, Read, ReadExpect, ReadStorage, Write};
+use specs::{Entities, Join, Read, ReadExpect, ReadStorage};
 use std::sync::atomic::Ordering;
 use tracing::{debug, warn};
 
@@ -129,7 +128,6 @@ impl<'a> VSystem<'a> for Sys {
         Entities<'a>,
         Read<'a, EventBus<ServerEvent>>,
         ReadExpect<'a, CharacterLoader>,
-        Write<'a, SysTimer<Self>>,
         ReadStorage<'a, Uid>,
         ReadStorage<'a, Client>,
         ReadStorage<'a, Player>,
@@ -148,7 +146,6 @@ impl<'a> VSystem<'a> for Sys {
             entities,
             server_event_bus,
             character_loader,
-            mut timer,
             uids,
             clients,
             players,
@@ -157,8 +154,6 @@ impl<'a> VSystem<'a> for Sys {
             alias_validator,
         ): Self::SystemData,
     ) {
-        timer.start();
-
         let mut server_emitter = server_event_bus.emitter();
         let mut new_chat_msgs = Vec::new();
 
@@ -193,7 +188,5 @@ impl<'a> VSystem<'a> for Sys {
                 server_emitter.emit(ServerEvent::Chat(msg));
             }
         }
-
-        timer.end()
     }
 }

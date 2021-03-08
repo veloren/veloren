@@ -1,4 +1,3 @@
-use super::super::SysTimer;
 use crate::{client::Client, metrics::PlayerMetrics, Settings};
 use common::{
     event::{EventBus, ServerEvent},
@@ -6,7 +5,7 @@ use common::{
     vsystem::{Origin, Phase, VJob, VSystem},
 };
 use common_net::msg::PingMsg;
-use specs::{Entities, Join, Read, ReadExpect, ReadStorage, Write};
+use specs::{Entities, Join, Read, ReadExpect, ReadStorage};
 use std::sync::atomic::Ordering;
 use tracing::{debug, info};
 
@@ -30,7 +29,6 @@ impl<'a> VSystem<'a> for Sys {
         Read<'a, EventBus<ServerEvent>>,
         Read<'a, Time>,
         ReadExpect<'a, PlayerMetrics>,
-        Write<'a, SysTimer<Self>>,
         ReadStorage<'a, Client>,
         Read<'a, Settings>,
     );
@@ -41,18 +39,8 @@ impl<'a> VSystem<'a> for Sys {
 
     fn run(
         _job: &mut VJob<Self>,
-        (
-            entities,
-            server_event_bus,
-            time,
-            player_metrics,
-            mut timer,
-            clients,
-            settings,
-        ): Self::SystemData,
+        (entities, server_event_bus, time, player_metrics, clients, settings): Self::SystemData,
     ) {
-        timer.start();
-
         let mut server_emitter = server_event_bus.emitter();
 
         for (entity, client) in (&entities, &clients).join() {
@@ -93,7 +81,5 @@ impl<'a> VSystem<'a> for Sys {
                 },
             }
         }
-
-        timer.end()
     }
 }
