@@ -93,16 +93,16 @@ impl EcsSystemMetrics {
         ];
         let system_length_hist = HistogramVec::new(
             HistogramOpts::new(
-                "state_tick_time_hist",
-                "shows the number of clients joined to the server",
+                "system_length_hist",
+                "shows the detailed time in ns inside each ECS system as histogram",
             )
             .buckets(bucket),
             &["system"],
         )?;
         let system_length_count = IntCounterVec::new(
             Opts::new(
-                "state_tick_time_count",
-                "shows the detailed time inside the `state_tick` for each system",
+                "system_length_count",
+                "shows the detailed time in ns inside each ECS system",
             ),
             &["system"],
         )?;
