@@ -83,7 +83,10 @@ pub enum CharacterState {
     BasicBeam(basic_beam::Data),
     /// Creates an aura that persists as long as you are actively casting
     BasicAura(basic_aura::Data),
-    /// A directed beam that heals targets in range
+    /// A directed beam that heals targets in range. This is separate from basic
+    /// beam as a large amount of functionality needed to be special cased
+    /// specifically for the healing beam. There was also functionality present
+    /// on basic beam which was unnecessary for the healing beam.
     HealingBeam(healing_beam::Data),
 }
 

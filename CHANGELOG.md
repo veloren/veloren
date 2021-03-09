@@ -71,6 +71,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved static light rendering and illumination
 - Improved the tree spawning model to allow for overlapping forests
 - Changed sunlight (and, in general, static light) propagation through blocks to allow for more material properties
+- Overhauled the sceptre
 
 ### Removed
 

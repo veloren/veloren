@@ -5,7 +5,7 @@ BasicAura(
     targets: InGroup,
     aura: (
         kind: ProtectingWard,
-        strength: 0.5,
+        strength: 0.33,
         duration: Some(10.0),
         category: Magical,
     ),

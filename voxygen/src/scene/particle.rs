@@ -498,8 +498,9 @@ impl ParticleMgr {
                             || {
                                 let rand_dist = aura.radius * (1.0 - rng.gen::<f32>().powi(100));
                                 let init_pos = Vec3::new(rand_dist, 0_f32, 0_f32);
+                                let max_dur = Duration::from_secs(1);
                                 Particle::new_directed(
-                                    aura.duration.unwrap_or_else(|| Duration::from_secs(1)),
+                                    aura.duration.map_or(max_dur, |dur| dur.min(max_dur)),
                                     time,
                                     ParticleMode::EnergyNature,
                                     pos.0,

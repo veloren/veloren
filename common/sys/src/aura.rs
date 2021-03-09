@@ -128,13 +128,16 @@ impl<'a> System<'a> for Sys {
                                 if apply_buff {
                                     // Checks that target is not already receiving a buff from an
                                     // aura, where the buff is of the same kind, and is of at least
-                                    // the same strength
+                                    // the same strength and of at least the same duration
                                     // If no such buff is present, adds the buff
                                     let emit_buff = !target_buffs.buffs.iter().any(|(_, buff)| {
                                         buff.cat_ids.iter().any(|cat_id| {
                                             matches!(cat_id, BuffCategory::FromAura(_))
                                         }) && buff.kind == kind
                                             && buff.data.strength >= data.strength
+                                            && buff.time.map_or(true, |dur| {
+                                                data.duration.map_or(false, |dur_2| dur >= dur_2)
+                                            })
                                     });
                                     if emit_buff {
                                         use buff::*;

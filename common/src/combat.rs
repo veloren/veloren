@@ -228,9 +228,9 @@ impl Attack {
             .filter(|e| e.target.map_or(true, |t| t == target_group))
             .filter(|e| !(matches!(e.target, Some(GroupTarget::OutOfGroup)) && target_dodging))
         {
-            if match &effect.requirement {
-                Some(CombatRequirement::AnyDamage) => accumulated_damage > 0.0,
-                Some(CombatRequirement::Energy(r)) => {
+            if effect.requirements.iter().all(|req| match req {
+                CombatRequirement::AnyDamage => accumulated_damage > 0.0,
+                CombatRequirement::Energy(r) => {
                     if let Some(AttackerInfo {
                         entity,
                         energy: Some(e),
@@ -253,7 +253,7 @@ impl Attack {
                         false
                     }
                 },
-                Some(CombatRequirement::Combo(r)) => {
+                CombatRequirement::Combo(r) => {
                     if let Some(AttackerInfo {
                         entity,
                         combo: Some(c),
@@ -273,8 +273,7 @@ impl Attack {
                         false
                     }
                 },
-                None => true,
-            } {
+            }) {
                 match effect.effect {
                     CombatEffect::Knockback(kb) => {
                         let impulse = kb.calculate_impulse(dir);
@@ -389,7 +388,7 @@ impl AttackDamage {
 pub struct AttackEffect {
     target: Option<GroupTarget>,
     effect: CombatEffect,
-    requirement: Option<CombatRequirement>,
+    requirements: Vec<CombatRequirement>,
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -398,12 +397,12 @@ impl AttackEffect {
         Self {
             target,
             effect,
-            requirement: None,
+            requirements: Vec::new(),
         }
     }
 
     pub fn with_requirement(mut self, requirement: CombatRequirement) -> Self {
-        self.requirement = Some(requirement);
+        self.requirements.push(requirement);
         self
     }
 

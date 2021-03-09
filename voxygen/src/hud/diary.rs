@@ -3264,7 +3264,7 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_sceptre_lifesteal_0, ui);
                 let skill = Skill::Sceptre(LDamage);
                 if create_skill_button(
-                    self.imgs.skill_sceptre_lifesteal,
+                    self.imgs.magic_damage_skill,
                     state.skills_top_l[1],
                     &self.stats.skill_set,
                     skill,
@@ -3292,7 +3292,7 @@ impl<'a> Widget for Diary<'a> {
                 };
                 let skill = Skill::Sceptre(LRange);
                 if create_skill_button(
-                    self.imgs.skill_sceptre_lifesteal,
+                    self.imgs.magic_distance_skill,
                     state.skills_top_l[2],
                     &self.stats.skill_set,
                     skill,
@@ -3320,7 +3320,7 @@ impl<'a> Widget for Diary<'a> {
                 };
                 let skill = Skill::Sceptre(LLifesteal);
                 if create_skill_button(
-                    self.imgs.skill_sceptre_lifesteal,
+                    self.imgs.magic_lifesteal_skill,
                     state.skills_top_l[3],
                     &self.stats.skill_set,
                     skill,
@@ -3350,7 +3350,7 @@ impl<'a> Widget for Diary<'a> {
                 };
                 let skill = Skill::Sceptre(LRegen);
                 if create_skill_button(
-                    self.imgs.skill_sceptre_lifesteal,
+                    self.imgs.magic_energy_regen_skill,
                     state.skills_top_l[4],
                     &self.stats.skill_set,
                     skill,
@@ -3390,7 +3390,7 @@ impl<'a> Widget for Diary<'a> {
                     .set(state.skill_sceptre_heal_0, ui);
                 let skill = Skill::Sceptre(HHeal);
                 if create_skill_button(
-                    self.imgs.skill_sceptre_heal,
+                    self.imgs.heal_heal_skill,
                     state.skills_top_r[1],
                     &self.stats.skill_set,
                     skill,
@@ -3416,7 +3416,7 @@ impl<'a> Widget for Diary<'a> {
                 };
                 let skill = Skill::Sceptre(HCost);
                 if create_skill_button(
-                    self.imgs.skill_sceptre_heal,
+                    self.imgs.heal_cost_skill,
                     state.skills_top_r[2],
                     &self.stats.skill_set,
                     skill,
@@ -3442,7 +3442,7 @@ impl<'a> Widget for Diary<'a> {
                 };
                 let skill = Skill::Sceptre(HRange);
                 if create_skill_button(
-                    self.imgs.skill_sceptre_heal,
+                    self.imgs.heal_distance_skill,
                     state.skills_top_r[3],
                     &self.stats.skill_set,
                     skill,
@@ -3497,7 +3497,7 @@ impl<'a> Widget for Diary<'a> {
                 };
                 let skill = Skill::Sceptre(AStrength);
                 if create_skill_button(
-                    self.imgs.skill_sceptre_aura,
+                    self.imgs.buff_damage_skill,
                     state.skills_bot_l[1],
                     &self.stats.skill_set,
                     skill,
@@ -3525,7 +3525,7 @@ impl<'a> Widget for Diary<'a> {
                 };
                 let skill = Skill::Sceptre(ADuration);
                 if create_skill_button(
-                    self.imgs.skill_sceptre_aura,
+                    self.imgs.buff_speed_skill,
                     state.skills_bot_l[2],
                     &self.stats.skill_set,
                     skill,
@@ -3553,7 +3553,7 @@ impl<'a> Widget for Diary<'a> {
                 };
                 let skill = Skill::Sceptre(ARange);
                 if create_skill_button(
-                    self.imgs.skill_sceptre_aura,
+                    self.imgs.buff_radius_skill,
                     state.skills_bot_l[3],
                     &self.stats.skill_set,
                     skill,
@@ -3581,7 +3581,7 @@ impl<'a> Widget for Diary<'a> {
                 };
                 let skill = Skill::Sceptre(ACost);
                 if create_skill_button(
-                    self.imgs.skill_sceptre_aura,
+                    self.imgs.buff_cost_skill,
                     state.skills_bot_l[4],
                     &self.stats.skill_set,
                     skill,
