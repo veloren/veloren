@@ -118,6 +118,12 @@ struct SpawnPoint(Vec3<f32>);
 #[derive(Copy, Clone, Default)]
 pub struct Tick(u64);
 
+#[derive(Clone)]
+pub struct HwStats {
+    hardware_threads: u32,
+    rayon_threads: u32,
+}
+
 // Start of Tick, used for metrics
 #[derive(Copy, Clone)]
 pub struct TickStart(Instant);
@@ -178,6 +184,10 @@ impl Server {
         state
             .ecs_mut()
             .insert(LoginProvider::new(settings.auth_server_address.clone()));
+        state.ecs_mut().insert(HwStats {
+            hardware_threads: num_cpus::get() as u32,
+            rayon_threads: num_cpus::get() as u32,
+        });
         state.ecs_mut().insert(Tick(0));
         state.ecs_mut().insert(TickStart(Instant::now()));
         state.ecs_mut().insert(network_request_metrics);

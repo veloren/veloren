@@ -1,6 +1,6 @@
 use crate::{
     metrics::{EcsSystemMetrics, PhysicsMetrics, TickMetrics},
-    Tick, TickStart,
+    HwStats, Tick, TickStart,
 };
 use common::{resources::TimeOfDay, terrain::TerrainGrid};
 use common_ecs::{Job, Origin, Phase, SysMetrics, System};
@@ -14,6 +14,7 @@ impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
         Option<Entities<'a>>,
+        ReadExpect<'a, HwStats>,
         ReadExpect<'a, Tick>,
         ReadExpect<'a, TimeOfDay>,
         ReadExpect<'a, TickStart>,
@@ -33,6 +34,7 @@ impl<'a> System<'a> for Sys {
         _job: &mut Job<Self>,
         (
             entities,
+            hw_stats,
             tick,
             time_of_day,
             tick_start,
@@ -52,11 +54,12 @@ impl<'a> System<'a> for Sys {
         //this system hasn't run yet
         state.remove(Self::NAME);
 
-        lazy_static::lazy_static! {
-            static ref THREADS: u16 = num_cpus::get() as u16;
-        }
-
-        for (name, stat) in common_ecs::gen_stats(&state, tick_start.0, *THREADS, *THREADS) {
+        for (name, stat) in common_ecs::gen_stats(
+            &state,
+            tick_start.0,
+            hw_stats.rayon_threads,
+            hw_stats.hardware_threads,
+        ) {
             export_ecs
                 .system_start_time
                 .with_label_values(&[&name])
