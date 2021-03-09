@@ -10,10 +10,10 @@ use self::{chunks::Chunks, entity::Entity};
 use common::{
     comp,
     rtsim::{RtSimController, RtSimEntity, RtSimId},
-    system::{dispatch, System},
     terrain::TerrainChunk,
     vol::RectRasterableVol,
 };
+use common_ecs::{dispatch, System};
 use common_sys::state::State;
 use rand::prelude::*;
 use slab::Slab;

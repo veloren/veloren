@@ -2,8 +2,8 @@ use crate::{client::Client, metrics::PlayerMetrics, Settings};
 use common::{
     event::{EventBus, ServerEvent},
     resources::Time,
-    system::{Job, Origin, Phase, System},
 };
+use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::PingMsg;
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage};
 use std::sync::atomic::Ordering;

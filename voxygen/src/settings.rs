@@ -815,7 +815,7 @@ impl Settings {
 pub fn voxygen_data_dir() -> PathBuf {
     // Note: since voxygen is technically a lib we made need to lift this up to
     // run.rs
-    let mut path = common::userdata_dir_workspace!();
+    let mut path = common_base::userdata_dir_workspace!();
     path.push("voxygen");
     path
 }

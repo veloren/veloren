@@ -1,9 +1,9 @@
 use crate::client::Client;
 use common::{
     comp::invite::{Invite, PendingInvites},
-    system::{Job, Origin, Phase, System},
     uid::Uid,
 };
+use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::{InviteAnswer, ServerGeneral};
 use specs::{Entities, Join, ReadStorage, WriteStorage};
 

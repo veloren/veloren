@@ -2,12 +2,8 @@ use crate::{
     metrics::{EcsSystemMetrics, PhysicsMetrics, TickMetrics},
     Tick, TickStart,
 };
-use common::{
-    metrics::SysMetrics,
-    resources::TimeOfDay,
-    system::{Job, Origin, Phase, System},
-    terrain::TerrainGrid,
-};
+use common::{resources::TimeOfDay, terrain::TerrainGrid};
+use common_ecs::{Job, Origin, Phase, SysMetrics, System};
 use specs::{Entities, Join, Read, ReadExpect};
 use std::time::Instant;
 
@@ -23,7 +19,7 @@ impl<'a> System<'a> for Sys {
         ReadExpect<'a, TickStart>,
         Option<Read<'a, TerrainGrid>>,
         Read<'a, SysMetrics>,
-        Read<'a, common::metrics::PhysicsMetrics>,
+        Read<'a, common_ecs::PhysicsMetrics>,
         ReadExpect<'a, EcsSystemMetrics>,
         ReadExpect<'a, TickMetrics>,
         ReadExpect<'a, PhysicsMetrics>,
@@ -56,7 +52,11 @@ impl<'a> System<'a> for Sys {
         //this system hasn't run yet
         state.remove(Self::NAME);
 
-        for (name, stat) in common::system::gen_stats(&state, tick_start.0, 8, 8) {
+        lazy_static::lazy_static! {
+            static ref THREADS: u16 = num_cpus::get() as u16;
+        }
+
+        for (name, stat) in common_ecs::gen_stats(&state, tick_start.0, *THREADS, *THREADS) {
             export_ecs
                 .system_start_time
                 .with_label_values(&[&name])
@@ -65,11 +65,15 @@ impl<'a> System<'a> for Sys {
                 .system_thread_avg
                 .with_label_values(&[&name])
                 .set(stat.avg_threads() as f64);
-            let len = stat.length_ns() as i64;
+            let len = stat.length_ns();
             export_ecs
                 .system_length_time
                 .with_label_values(&[&name])
-                .set(len);
+                .set(len as i64);
+            export_ecs
+                .system_length_count
+                .with_label_values(&[&name])
+                .inc_by(len);
             export_ecs
                 .system_length_hist
                 .with_label_values(&[&name])
@@ -115,11 +119,15 @@ impl<'a> System<'a> for Sys {
             .system_thread_avg
             .with_label_values(&["metrics"])
             .set(1.0);
-        let len = start.elapsed().as_nanos() as i64;
+        let len = start.elapsed().as_nanos() as u64;
         export_ecs
             .system_length_time
             .with_label_values(&["metrics"])
-            .set(len);
+            .set(len as i64);
+        export_ecs
+            .system_length_count
+            .with_label_values(&["metrics"])
+            .inc_by(len);
         export_ecs
             .system_length_hist
             .with_label_values(&["metrics"])

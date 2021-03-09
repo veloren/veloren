@@ -5,9 +5,9 @@ use crate::ecs::{
 use common::{
     comp::{Health, HealthSource, Pos},
     resources::DeltaTime,
-    system::{Job, Origin, Phase, System},
     uid::Uid,
 };
+use common_ecs::{Job, Origin, Phase, System};
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, WriteStorage};
 
 // How long floaters last (in seconds)

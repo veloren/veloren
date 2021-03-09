@@ -2,9 +2,9 @@ use super::*;
 use common::{
     comp::Pos,
     event::{EventBus, ServerEvent},
-    system::{Job, Origin, Phase, System},
     terrain::TerrainGrid,
 };
+use common_ecs::{Job, Origin, Phase, System};
 use specs::{Entities, Read, ReadExpect, ReadStorage, WriteExpect};
 
 #[derive(Default)]

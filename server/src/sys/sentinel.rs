@@ -4,9 +4,9 @@ use common::{
         Gravity, Group, Health, Inventory, Item, LightEmitter, Mass, MountState, Mounting, Ori,
         Player, Poise, Pos, Scale, Shockwave, Stats, Sticky, Vel,
     },
-    system::{Job, Origin, Phase, System},
     uid::Uid,
 };
+use common_ecs::{Job, Origin, Phase, System};
 use common_net::{
     msg::EcsCompPacket,
     sync::{CompSyncPackage, EntityPackage, EntitySyncPackage, UpdateTracker, WorldSyncExt},

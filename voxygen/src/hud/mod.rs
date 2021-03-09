@@ -71,13 +71,13 @@ use common::{
         BuffKind,
     },
     outcome::Outcome,
-    span,
     terrain::TerrainChunk,
     trade::TradeAction,
     uid::Uid,
     util::srgba_to_linear,
     vol::RectRasterableVol,
 };
+use common_base::span;
 use common_net::msg::{Notification, PresenceKind};
 use conrod_core::{
     text::cursor::Index,

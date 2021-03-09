@@ -6,10 +6,10 @@ use common::{
     event::{EventBus, ServerEvent},
     generation::get_npc_name,
     npc::NPC_NAMES,
-    system::{Job, Origin, Phase, System},
     terrain::TerrainGrid,
     LoadoutBuilder, SkillSetBuilder,
 };
+use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::ServerGeneral;
 use common_sys::state::TerrainChanges;
 use specs::{Join, Read, ReadStorage, Write, WriteExpect};

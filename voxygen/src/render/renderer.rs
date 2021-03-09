@@ -12,10 +12,8 @@ use super::{
     AaMode, CloudMode, FilterMethod, FluidMode, LightingMode, Pipeline, RenderError, RenderMode,
     ShadowMapMode, ShadowMode, WrapMode,
 };
-use common::{
-    assets::{self, AssetExt, AssetHandle},
-    span,
-};
+use common::assets::{self, AssetExt, AssetHandle};
+use common_base::span;
 use core::convert::TryFrom;
 use gfx::{
     self,

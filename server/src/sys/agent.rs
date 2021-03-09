@@ -17,13 +17,13 @@ use common::{
     event::{Emitter, EventBus, ServerEvent},
     path::TraversalConfig,
     resources::{DeltaTime, TimeOfDay},
-    system::{Job, Origin, Phase, System},
     terrain::{Block, TerrainGrid},
     time::DayPeriod,
     uid::{Uid, UidAllocator},
     util::Dir,
     vol::ReadVol,
 };
+use common_ecs::{Job, Origin, Phase, System};
 use rand::{thread_rng, Rng};
 use rayon::iter::ParallelIterator;
 use specs::{

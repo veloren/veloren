@@ -15,7 +15,7 @@ use super::{
     scale::{Scale, ScaleMode},
 };
 use crate::{render::Renderer, window::Window, Error};
-use common::span;
+use common_base::span;
 use iced::{mouse, Cache, Size, UserInterface};
 use iced_winit::Clipboard;
 use vek::*;

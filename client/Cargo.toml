@@ -12,6 +12,7 @@ default = ["simd"]
 
 [dependencies]
 common = { package = "veloren-common", path = "../common", features = ["no-assets"] }
+common-base = { package = "veloren-common-base", path = "../common/base" }
 common-sys = { package = "veloren-common-sys", path = "../common/sys", default-features = false }
 common-net = { package = "veloren-common-net", path = "../common/net" }
 network = { package = "veloren-network", path = "../network", features = ["compression"], default-features = false }

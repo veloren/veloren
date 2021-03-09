@@ -16,7 +16,8 @@ use client::{
     error::{InitProtocolError, NetworkConnectError, NetworkError},
 };
 use client_init::{ClientConnArgs, ClientInit, Error as InitError, Msg as InitMsg};
-use common::{assets::AssetExt, comp, span};
+use common::{assets::AssetExt, comp};
+use common_base::span;
 use std::sync::Arc;
 use tokio::runtime;
 use tracing::error;

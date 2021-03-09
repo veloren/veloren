@@ -20,7 +20,8 @@ use crate::{
     },
     Error,
 };
-use common::{span, util::srgba_to_linear};
+use common::util::srgba_to_linear;
+use common_base::span;
 use std::{convert::TryInto, ops::Range};
 use vek::*;
 

@@ -6,11 +6,11 @@ use crate::{
 use common::{
     comp::{Ori, Pos, Vel},
     region::{region_in_vd, regions_in_vd, Event as RegionEvent, RegionMap},
-    system::{Job, Origin, Phase, System},
     terrain::TerrainChunkSize,
     uid::Uid,
     vol::RectVolSize,
 };
+use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::ServerGeneral;
 use specs::{
     Entities, Join, ReadExpect, ReadStorage, SystemData, World, WorldExt, Write, WriteStorage,

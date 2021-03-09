@@ -5588,6 +5588,7 @@ dependencies = [
  "tracing-subscriber",
  "vek 0.14.1",
  "veloren-common",
+ "veloren-common-base",
  "veloren-common-net",
  "veloren-common-sys",
  "veloren-network",
@@ -5604,10 +5605,8 @@ dependencies = [
  "crossbeam-channel",
  "crossbeam-utils 0.8.1",
  "csv",
- "directories-next",
  "dot_vox",
  "enum-iterator",
- "float-cmp",
  "hashbrown 0.9.1",
  "image",
  "indexmap",
@@ -5632,6 +5631,26 @@ dependencies = [
  "tracy-client",
  "uuid",
  "vek 0.14.1",
+ "veloren-common-base",
+]
+
+[[package]]
+name = "veloren-common-base"
+version = "0.8.0"
+dependencies = [
+ "directories-next",
+ "tracing",
+ "tracy-client",
+]
+
+[[package]]
+name = "veloren-common-ecs"
+version = "0.8.0"
+dependencies = [
+ "float-cmp",
+ "specs",
+ "tracing",
+ "veloren-common-base",
 ]
 
 [[package]]
@@ -5668,6 +5687,8 @@ dependencies = [
  "tracy-client",
  "vek 0.14.1",
  "veloren-common",
+ "veloren-common-base",
+ "veloren-common-ecs",
  "veloren-common-net",
  "veloren-plugin-api",
  "wasmer",
@@ -5759,6 +5780,7 @@ dependencies = [
  "itertools 0.9.0",
  "lazy_static",
  "libsqlite3-sys",
+ "num_cpus",
  "portpicker",
  "prometheus",
  "prometheus-hyper",
@@ -5775,6 +5797,8 @@ dependencies = [
  "tracing",
  "vek 0.14.1",
  "veloren-common",
+ "veloren-common-base",
+ "veloren-common-ecs",
  "veloren-common-net",
  "veloren-common-sys",
  "veloren-network",
@@ -5800,6 +5824,7 @@ dependencies = [
  "tracing-tracy",
  "tui",
  "veloren-common",
+ "veloren-common-base",
  "veloren-common-net",
  "veloren-server",
 ]
@@ -5862,6 +5887,8 @@ dependencies = [
  "vek 0.14.1",
  "veloren-client",
  "veloren-common",
+ "veloren-common-base",
+ "veloren-common-ecs",
  "veloren-common-net",
  "veloren-common-sys",
  "veloren-server",

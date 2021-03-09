@@ -69,7 +69,7 @@ impl Settings {
 }
 
 pub fn data_dir() -> PathBuf {
-    let mut path = common::userdata_dir_workspace!();
+    let mut path = common_base::userdata_dir_workspace!();
     path.push("server-cli");
     path
 }

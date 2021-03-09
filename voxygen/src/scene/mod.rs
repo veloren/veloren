@@ -28,10 +28,10 @@ use common::{
     comp,
     outcome::Outcome,
     resources::DeltaTime,
-    span,
     terrain::{BlockKind, TerrainChunk},
     vol::ReadVol,
 };
+use common_base::span;
 use common_sys::state::State;
 use comp::item::Reagent;
 use num::traits::{Float, FloatConst};

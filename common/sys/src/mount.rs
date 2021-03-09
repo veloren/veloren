@@ -1,8 +1,8 @@
 use common::{
     comp::{Controller, MountState, Mounting, Ori, Pos, Vel},
-    system::{Job, Origin, Phase, System},
     uid::UidAllocator,
 };
+use common_ecs::{Job, Origin, Phase, System};
 use specs::{
     saveload::{Marker, MarkerAllocator},
     Entities, Join, Read, WriteStorage,

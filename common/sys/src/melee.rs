@@ -2,11 +2,11 @@ use common::{
     combat::{AttackerInfo, TargetInfo},
     comp::{Body, CharacterState, Energy, Group, Health, Inventory, Melee, Ori, Pos, Scale, Stats},
     event::{EventBus, ServerEvent},
-    system::{Job, Origin, Phase, System},
     uid::Uid,
     util::Dir,
     GroupTarget,
 };
+use common_ecs::{Job, Origin, Phase, System};
 use specs::{
     shred::ResourceId, Entities, Join, Read, ReadStorage, SystemData, World, WriteStorage,
 };

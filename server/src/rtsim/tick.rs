@@ -6,9 +6,9 @@ use common::{
     comp::inventory::loadout_builder::LoadoutBuilder,
     event::{EventBus, ServerEvent},
     resources::DeltaTime,
-    system::{Job, Origin, Phase, System},
     terrain::TerrainGrid,
 };
+use common_ecs::{Job, Origin, Phase, System};
 use specs::{Join, Read, ReadExpect, ReadStorage, WriteExpect, WriteStorage};
 use std::sync::Arc;
 

@@ -1,0 +1,19 @@
+[package]
+authors = ["Marcel Märtens <marcel.cochem@googlemail.com>"]
+edition = "2018"
+name = "veloren-common-ecs"
+version = "0.8.0"
+
+[features]
+
+[dependencies]
+
+tracing = { version = "0.1", default-features = false }
+common-base = { package = "veloren-common-base", path = "../base" }
+
+# ECS
+specs = { git = "https://github.com/amethyst/specs.git", features = ["serde", "storage-event-control"], rev = "d4435bdf496cf322c74886ca09dd8795984919b4" }
+
+[dev-dependencies]
+#bench
+float-cmp = "0.8.0"

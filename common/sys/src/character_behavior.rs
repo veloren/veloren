@@ -18,9 +18,9 @@ use common::{
         self,
         behavior::{CharacterBehavior, JoinData, JoinStruct},
     },
-    system::{Job, Origin, Phase, System},
     uid::Uid,
 };
+use common_ecs::{Job, Origin, Phase, System};
 use std::time::Duration;
 
 fn incorporate_update(join: &mut JoinStruct, state_update: StateUpdate) {

@@ -1,4 +1,4 @@
-use crate::span;
+use common_base::span;
 use ordered_float::NotNan;
 use std::{
     collections::VecDeque,

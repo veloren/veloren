@@ -191,7 +191,7 @@ pub fn gen_stats(
 ///
 /// ```
 /// use specs::Read;
-/// pub use veloren_common::system::{Job, Origin, ParMode, Phase, System};
+/// pub use veloren_common_ecs::{Job, Origin, ParMode, Phase, System};
 /// # use std::time::Duration;
 /// pub struct Sys;
 /// impl<'a> System<'a> for Sys {
@@ -251,7 +251,7 @@ where
     type SystemData = (T::SystemData, ReadExpect<'a, SysMetrics>);
 
     fn run(&mut self, data: Self::SystemData) {
-        crate::span!(_guard, "run", &format!("{}::Sys::run", T::NAME));
+        common_base::span!(_guard, "run", &format!("{}::Sys::run", T::NAME));
         self.cpu_stats.reset();
         T::run(self, data.0);
         self.cpu_stats.end();

@@ -15,7 +15,6 @@ use common::{
     },
     consts::{MAX_MOUNT_RANGE, MAX_PICKUP_RANGE},
     outcome::Outcome,
-    span,
     terrain::{Block, BlockKind},
     trade::TradeResult,
     util::{
@@ -24,6 +23,7 @@ use common::{
     },
     vol::ReadVol,
 };
+use common_base::span;
 use common_net::{
     msg::{server::InviteAnswer, PresenceKind},
     sync::WorldSyncExt,

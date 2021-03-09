@@ -3,9 +3,9 @@ use common::{
     comp::{ChatMode, Player, UnresolvedChatMsg},
     event::{EventBus, ServerEvent},
     resources::Time,
-    system::{Job, Origin, Phase, System},
     uid::Uid,
 };
+use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::{
     validate_chat_msg, ChatMsgValidationError, ClientGeneral, MAX_BYTES_CHAT_MSG,
 };

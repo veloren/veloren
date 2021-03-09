@@ -3,9 +3,9 @@ use common::{
     effect::Effect,
     event::{EventBus, ServerEvent},
     resources::DeltaTime,
-    system::{Job, Origin, Phase, System},
     Damage, DamageSource, Explosion, RadiusEffect,
 };
+use common_ecs::{Job, Origin, Phase, System};
 use specs::{Entities, Join, Read, ReadStorage, WriteStorage};
 
 /// This system is responsible for handling misc object behaviours

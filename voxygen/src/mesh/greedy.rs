@@ -1,5 +1,5 @@
 use crate::render::{self, mesh::Quad, ColLightFmt, ColLightInfo, TerrainPipeline};
-use common::span;
+use common_base::span;
 use vek::*;
 
 type TerrainVertex = <TerrainPipeline as render::Pipeline>::Vertex;

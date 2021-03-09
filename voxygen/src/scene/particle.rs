@@ -13,11 +13,11 @@ use common::{
     figure::Segment,
     outcome::Outcome,
     resources::DeltaTime,
-    span,
     spiral::Spiral2d,
     terrain::TerrainChunk,
     vol::{RectRasterableVol, SizedVol},
 };
+use common_base::span;
 use hashbrown::HashMap;
 use rand::prelude::*;
 use specs::{Join, WorldExt};

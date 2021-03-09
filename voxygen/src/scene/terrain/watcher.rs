@@ -1,8 +1,8 @@
 use common::{
-    span,
     terrain::{BlockKind, SpriteKind, TerrainChunk},
     vol::{IntoVolIterator, RectRasterableVol},
 };
+use common_base::span;
 use rand::prelude::*;
 use vek::*;
 

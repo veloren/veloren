@@ -15,7 +15,7 @@ pub mod state;
 mod stats;
 
 // External
-use common::system::{dispatch, System};
+use common_ecs::{dispatch, System};
 use specs::DispatcherBuilder;
 
 pub fn add_local_systems(dispatch_builder: &mut DispatcherBuilder) {

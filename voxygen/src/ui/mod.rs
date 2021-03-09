@@ -33,7 +33,8 @@ use crate::{
 #[rustfmt::skip]
 use ::image::GenericImageView;
 use cache::Cache;
-use common::{span, util::srgba_to_linear};
+use common::util::srgba_to_linear;
+use common_base::span;
 use conrod_core::{
     event::Input,
     graph::{self, Graph},
