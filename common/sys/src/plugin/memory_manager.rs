@@ -1,7 +1,7 @@
 use std::sync::atomic::{AtomicPtr, AtomicU32, AtomicU64, Ordering};
 
 use serde::{de::DeserializeOwned, Serialize};
-use specs::{shred::Fetch, Entities, ReadStorage};
+use specs::{Entities, Read, ReadStorage};
 use wasmer::{Function, Memory, Value};
 
 use common::{
@@ -11,17 +11,17 @@ use common::{
 
 use super::errors::{MemoryAllocationError, PluginModuleError};
 
-pub struct EcsWorld<'a> {
-    pub entities: Entities<'a>,
-    pub health: ReadStorage<'a, Health>,
-    pub uid: ReadStorage<'a, Uid>,
+pub struct EcsWorld<'a, 'b> {
+    pub entities: &'b Entities<'a>,
+    pub health: &'b ReadStorage<'a, Health>,
+    pub uid: &'b ReadStorage<'a, Uid>,
     //pub player: ReadStorage<'a, Player>,
-    pub uid_allocator: Fetch<'a, UidAllocator>,
+    pub uid_allocator: &'b Read<'a, UidAllocator>,
 }
 
 /// This structure wraps the ECS pointer to ensure safety
 pub struct EcsAccessManager {
-    ecs_pointer: AtomicPtr<EcsWorld<'static>>,
+    ecs_pointer: AtomicPtr<EcsWorld<'static, 'static>>,
 }
 
 impl Default for EcsAccessManager {

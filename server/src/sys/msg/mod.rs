@@ -2,6 +2,7 @@ pub mod character_screen;
 pub mod general;
 pub mod in_game;
 pub mod ping;
+pub mod register;
 
 use crate::client::Client;
 use serde::de::DeserializeOwned;

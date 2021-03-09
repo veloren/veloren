@@ -10,6 +10,7 @@ use common::{
     terrain::{Block, TerrainChunk, TerrainGrid},
     time::DayPeriod,
     trade::Trades,
+    uid::UidAllocator,
     vol::{ReadVol, WriteVol},
 };
 use common_base::span;
@@ -212,10 +213,10 @@ impl State {
         ecs.insert(match PluginMgr::from_assets() {
             Ok(plugin_mgr) => {
                 let ecs_world = EcsWorld {
-                    entities: ecs.entities(),
-                    health: ecs.read_component(),
-                    uid: ecs.read_component(),
-                    uid_allocator: ecs.read_resource(),
+                    entities: &ecs.entities(),
+                    health: &ecs.read_component(),
+                    uid: &ecs.read_component(),
+                    uid_allocator: &ecs.read_resource::<UidAllocator>().into(),
                     //player: Either::First(ecs.read_component()),
                 };
                 if let Err(e) = plugin_mgr

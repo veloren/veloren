@@ -24,7 +24,6 @@ pub mod login_provider;
 pub mod metrics;
 pub mod persistence;
 pub mod presence;
-mod register;
 pub mod rtsim;
 pub mod settings;
 pub mod state_ext;
@@ -59,27 +58,26 @@ use common::{
     assets::AssetExt,
     cmd::ChatCommand,
     comp,
-    comp::{item::MaterialStatManifest, Admin, CharacterAbility, Player, Stats},
+    comp::{item::MaterialStatManifest, CharacterAbility},
     event::{EventBus, ServerEvent},
     recipe::default_recipe_book,
     resources::TimeOfDay,
     rtsim::RtSimEntity,
     terrain::TerrainChunkSize,
+    uid::UidAllocator,
     vol::{ReadVol, RectVolSize},
 };
 use common_ecs::run_now;
 use common_net::{
     msg::{
-        CharacterInfo, ClientType, DisconnectReason, PlayerInfo, PlayerListUpdate, ServerGeneral,
-        ServerInfo, ServerInit, ServerMsg, WorldMapMsg,
+        ClientType, DisconnectReason, ServerGeneral, ServerInfo, ServerInit, ServerMsg, WorldMapMsg,
     },
     sync::WorldSyncExt,
 };
 #[cfg(feature = "plugins")]
 use common_sys::plugin::PluginMgr;
 use common_sys::{plugin::memory_manager::EcsWorld, state::State};
-use hashbrown::HashMap;
-use metrics::{EcsSystemMetrics, PhysicsMetrics, PlayerMetrics, TickMetrics};
+use metrics::{EcsSystemMetrics, PhysicsMetrics, TickMetrics};
 use network::{Network, Pid, ProtocolAddr};
 use persistence::{
     character_loader::{CharacterLoader, CharacterLoaderResponseKind},
@@ -498,7 +496,7 @@ impl Server {
         // (e.g. run before controller system)
         //TODO: run in parallel
         run_now::<sys::msg::general::Sys>(&self.state.ecs());
-        self.register_run();
+        run_now::<sys::msg::register::Sys>(&self.state.ecs());
         run_now::<sys::msg::character_screen::Sys>(&self.state.ecs());
         run_now::<sys::msg::in_game::Sys>(&self.state.ecs());
         run_now::<sys::msg::ping::Sys>(&self.state.ecs());
@@ -725,75 +723,6 @@ impl Server {
         self.state.cleanup();
     }
 
-    pub fn register_run(&mut self) {
-        let world = self.state_mut().ecs_mut();
-        let entities = world.entities();
-        let player_metrics = world.read_resource::<PlayerMetrics>();
-        let uids = world.read_storage::<Uid>();
-        let clients = world.read_storage::<Client>();
-        let mut players = world.write_storage::<Player>();
-        let stats = world.read_storage::<Stats>();
-        let mut login_provider = world.write_resource::<LoginProvider>();
-        let mut admins = world.write_storage::<Admin>();
-        let editable_settings = world.read_resource::<EditableSettings>();
-
-        // Player list to send new players.
-        let player_list = (&uids, &players, stats.maybe(), admins.maybe())
-            .join()
-            .map(|(uid, player, stats, admin)| {
-                (*uid, PlayerInfo {
-                    is_online: true,
-                    is_admin: admin.is_some(),
-                    player_alias: player.alias.clone(),
-                    character: stats.map(|stats| CharacterInfo {
-                        name: stats.name.clone(),
-                    }),
-                })
-            })
-            .collect::<HashMap<_, _>>();
-        // List of new players to update player lists of all clients.
-        let mut new_players = Vec::new();
-
-        for (entity, client) in (&entities, &clients).join() {
-            let _ = sys::msg::try_recv_all(client, 0, |client, msg| {
-                register::handle_register_msg(
-                    &world,
-                    &player_list,
-                    &mut new_players,
-                    entity,
-                    client,
-                    &player_metrics,
-                    &mut login_provider,
-                    &mut admins,
-                    &mut players,
-                    &editable_settings,
-                    msg,
-                )
-            });
-        }
-
-        // Handle new players.
-        // Tell all clients to add them to the player list.
-        for entity in new_players {
-            if let (Some(uid), Some(player)) = (uids.get(entity), players.get(entity)) {
-                let mut lazy_msg = None;
-                for (_, client) in (&players, &clients).join() {
-                    if lazy_msg.is_none() {
-                        lazy_msg = Some(client.prepare(ServerGeneral::PlayerListUpdate(
-                            PlayerListUpdate::Add(*uid, PlayerInfo {
-                                player_alias: player.alias.clone(),
-                                is_online: true,
-                                is_admin: admins.get(entity).is_some(),
-                                character: None, // new players will be on character select.
-                            }),
-                        )));
-                    }
-                    lazy_msg.as_ref().map(|ref msg| client.send_prepared(&msg));
-                }
-            }
-        }
-    }
-
     fn initialize_client(
         &mut self,
         client: crate::connection_handler::IncomingClient,
@@ -912,10 +841,10 @@ impl Server {
             {
                 let plugin_manager = self.state.ecs().read_resource::<PluginMgr>();
                 let ecs_world = EcsWorld {
-                    entities: self.state.ecs().entities(),
-                    health: self.state.ecs().read_component(),
-                    uid: self.state.ecs().read_component(),
-                    uid_allocator: self.state.ecs().read_resource(),
+                    entities: &self.state.ecs().entities(),
+                    health: &self.state.ecs().read_component(),
+                    uid: &self.state.ecs().read_component(),
+                    uid_allocator: &self.state.ecs().read_resource::<UidAllocator>().into(),
                 };
                 let rs = plugin_manager.execute_event(
                     &ecs_world,
