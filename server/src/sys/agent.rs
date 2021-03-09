@@ -23,7 +23,7 @@ use common::{
     util::Dir,
     vol::ReadVol,
 };
-use common_ecs::{Job, Origin, Phase, System};
+use common_ecs::{Job, Origin, ParMode, Phase, System};
 use rand::{thread_rng, Rng};
 use rayon::iter::ParallelIterator;
 use specs::{
@@ -113,9 +113,10 @@ impl<'a> System<'a> for Sys {
 
     #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     fn run(
-        _job: &mut Job<Self>,
+        job: &mut Job<Self>,
         (read_data, event_bus, mut agents, mut controllers): Self::SystemData,
     ) {
+        job.cpu_stats.measure(ParMode::Rayon);
         (
             &read_data.entities,
             (&read_data.energies, &read_data.healths),

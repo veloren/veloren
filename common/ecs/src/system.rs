@@ -10,7 +10,7 @@ pub enum ParMode {
     None, /* Job is not running at all */
     Single,
     Rayon,
-    Exact(u16),
+    Exact(u32),
 }
 
 //TODO: make use of the phase of a system for advanced scheduling and logging
@@ -54,7 +54,7 @@ pub struct CpuTimeStats {
 /// isn't running. `Single` means you are running single threaded.
 /// `Rayon` means you are running on the rayon threadpool.
 impl ParMode {
-    fn threads(&self, rayon_threads: u16) -> u16 {
+    fn threads(&self, rayon_threads: u32) -> u32 {
         match self {
             ParMode::None => 0,
             ParMode::Single => 1,
@@ -144,8 +144,8 @@ impl CpuTimeStats {
 pub fn gen_stats(
     timelines: &HashMap<String, CpuTimeline>,
     tick_work_start: Instant,
-    rayon_threads: u16,
-    physical_threads: u16,
+    rayon_threads: u32,
+    physical_threads: u32,
 ) -> HashMap<String, CpuTimeStats> {
     let mut result = HashMap::new();
     let mut all = timelines
@@ -171,7 +171,7 @@ pub fn gen_stats(
         let total = individual_cores_wanted
             .iter()
             .map(|(_, a)| a)
-            .sum::<u16>()
+            .sum::<u32>()
             .max(1) as f32;
         let total_or_max = total.max(physical_threads as f32);
         // update ALL states
@@ -309,8 +309,8 @@ mod tests {
 
     #[test]
     fn single() {
-        const RAYON_THREADS: u16 = 4;
-        const PHYSICAL_THREADS: u16 = RAYON_THREADS;
+        const RAYON_THREADS: u32 = 4;
+        const PHYSICAL_THREADS: u32 = RAYON_THREADS;
         let tick_start = Instant::now();
         let job_d = vec![(500, 1500, ParMode::Rayon)];
         let timelines = mock_timelines(tick_start, job_d);
@@ -336,8 +336,8 @@ mod tests {
 
     #[test]
     fn two_jobs() {
-        const RAYON_THREADS: u16 = 8;
-        const PHYSICAL_THREADS: u16 = RAYON_THREADS;
+        const RAYON_THREADS: u32 = 8;
+        const PHYSICAL_THREADS: u32 = RAYON_THREADS;
         let tick_start = Instant::now();
         let job_d = vec![(2000, 3000, ParMode::Single), (5000, 6500, ParMode::Single)];
         let timelines = mock_timelines(tick_start, job_d);
@@ -375,8 +375,8 @@ mod tests {
 
     #[test]
     fn generate_stats() {
-        const RAYON_THREADS: u16 = 6;
-        const PHYSICAL_THREADS: u16 = RAYON_THREADS;
+        const RAYON_THREADS: u32 = 6;
+        const PHYSICAL_THREADS: u32 = RAYON_THREADS;
         let tick_start = Instant::now();
         let job_d = vec![
             (2000, 5000, ParMode::Rayon),
