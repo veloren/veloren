@@ -20,7 +20,7 @@ image = { version = "0.23.12", default-features = false, features = ["png"] }
 itertools = "0.10"
 vek = { version = "0.14.1", features = ["serde"] }
 noise = { version = "0.7", default-features = false }
-num = "0.3.1"
+num = "0.4"
 ordered-float = "2.0.1"
 hashbrown = { version = "0.9", features = ["rayon", "serde", "nightly"] }
 lazy_static = "1.4.0"

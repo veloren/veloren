@@ -28,8 +28,8 @@ tracing = "0.1"
 vek = { version = "0.14.1", features = ["serde"] }
 futures-util = "0.3.7"
 tokio = { version = "1", default-features = false, features = ["rt"] }
-prometheus-hyper = "0.1.1"
-itertools = "0.9"
+prometheus-hyper = "0.1.2"
+itertools = "0.10"
 lazy_static = "1.4.0"
 scan_fmt = { git = "https://github.com/Imberflur/scan_fmt" }
 ron = { version = "0.6", default-features = false }
@@ -40,7 +40,7 @@ chrono = "0.4.9"
 hashbrown = { version = "0.9", features = ["rayon", "serde", "nightly"] }
 rayon = "1.5"
 crossbeam-channel = "0.5"
-prometheus = { version = "0.11", default-features = false}
+prometheus = { version = "0.12", default-features = false}
 portpicker = { git = "https://github.com/xMAC94x/portpicker-rs", rev = "df6b37872f3586ac3b21d08b56c8ec7cd92fb172" }
 authc = { git = "https://gitlab.com/veloren/auth.git", rev = "bffb5181a35c19ddfd33ee0b4aedba741aafb68d" }
 libsqlite3-sys = { version = "0.18", features = ["bundled"] }
