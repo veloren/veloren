@@ -39,7 +39,7 @@ winit = {version = "0.24.0", features = ["serde"]}
 # Ui
 conrod_core = {git = "https://gitlab.com/veloren/conrod.git", branch="copypasta_0.7"}
 conrod_winit = {git = "https://gitlab.com/veloren/conrod.git", branch="copypasta_0.7"}
-euc = "=0.5.0"
+euc = "0.5.0"
 iced = {package = "iced_native", git = "https://github.com/hecrj/iced", rev = "8d882d787e6b7fd7c2435f42f82933e2ed904edf"}
 iced_winit = {git = "https://github.com/hecrj/iced", rev = "8d882d787e6b7fd7c2435f42f82933e2ed904edf"}
 window_clipboard = "0.1.1"
