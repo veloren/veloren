@@ -9,6 +9,8 @@ ItemDef(
             power: 0.9,
             poise_strength: 1.0,
             speed: 1.1,
+            crit_chance: 0.09,
+            crit_mult: 1.9,
         )),
     )),
     quality: Common,

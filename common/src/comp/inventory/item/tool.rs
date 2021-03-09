@@ -73,6 +73,8 @@ pub struct Stats {
     pub power: f32,
     pub poise_strength: f32,
     pub speed: f32,
+    pub crit_chance: f32,
+    pub crit_mult: f32,
 }
 
 impl Stats {
@@ -82,6 +84,8 @@ impl Stats {
             power: 0.0,
             poise_strength: 0.0,
             speed: 0.0,
+            crit_chance: 0.0,
+            crit_mult: 0.0,
         }
     }
 
@@ -105,6 +109,8 @@ impl AddAssign<Stats> for Stats {
         self.power += other.power;
         self.poise_strength += other.poise_strength;
         self.speed += other.speed;
+        self.crit_chance += other.crit_chance;
+        self.crit_mult += other.crit_mult;
     }
 }
 impl MulAssign<Stats> for Stats {
@@ -113,6 +119,8 @@ impl MulAssign<Stats> for Stats {
         self.power *= other.power;
         self.poise_strength *= other.poise_strength;
         self.speed *= other.speed;
+        self.crit_chance *= other.crit_chance;
+        self.crit_mult *= other.crit_mult;
     }
 }
 impl DivAssign<usize> for Stats {
@@ -124,6 +132,8 @@ impl DivAssign<usize> for Stats {
         self.power /= scalar as f32;
         self.poise_strength /= scalar as f32;
         self.speed /= scalar as f32;
+        self.crit_chance /= scalar as f32;
+        self.crit_mult /= scalar as f32;
     }
 }
 
@@ -200,6 +210,8 @@ impl From<(&MaterialStatManifest, &[Item], &Tool)> for Stats {
             power: raw_stats.power * power,
             poise_strength: raw_stats.poise_strength,
             speed: raw_stats.speed * speed,
+            crit_chance: raw_stats.crit_chance,
+            crit_mult: raw_stats.crit_mult,
         }
     }
 }
@@ -215,6 +227,7 @@ pub struct Tool {
 impl Tool {
     // DO NOT USE UNLESS YOU KNOW WHAT YOU ARE DOING
     // Added for CSV import of stats
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         kind: ToolKind,
         hands: Hands,
@@ -222,6 +235,8 @@ impl Tool {
         power: f32,
         poise_strength: f32,
         speed: f32,
+        crit_chance: f32,
+        crit_mult: f32,
     ) -> Self {
         Self {
             kind,
@@ -231,6 +246,8 @@ impl Tool {
                 power,
                 poise_strength,
                 speed,
+                crit_chance,
+                crit_mult,
             }),
         }
     }
@@ -244,6 +261,8 @@ impl Tool {
                 power: 1.00,
                 poise_strength: 1.00,
                 speed: 1.00,
+                crit_chance: 0.1,
+                crit_mult: 2.0,
             }),
         }
     }
@@ -262,6 +281,14 @@ impl Tool {
             .resolve_stats(msm, components)
             .clamp_speed()
             .speed
+    }
+
+    pub fn base_crit_chance(&self, msm: &MaterialStatManifest, components: &[Item]) -> f32 {
+        self.stats.resolve_stats(msm, components).crit_chance
+    }
+
+    pub fn base_crit_mult(&self, msm: &MaterialStatManifest, components: &[Item]) -> f32 {
+        self.stats.resolve_stats(msm, components).crit_mult
     }
 
     pub fn equip_time(&self, msm: &MaterialStatManifest, components: &[Item]) -> Duration {

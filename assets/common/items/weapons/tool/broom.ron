@@ -1,6 +1,6 @@
 ItemDef(
     name: "Broom",
-    description: "It\'s beginning to fall apart.",
+    description: "It's beginning to fall apart.",
     kind: Tool((
         kind: Farming,
         hands: Two,
@@ -9,6 +9,8 @@ ItemDef(
             power: 1.0,
             poise_strength: 1.0,
             speed: 1.0,
+            crit_chance: 0.1,
+            crit_mult: 2.0,
         )),
     )),
     quality: Common,

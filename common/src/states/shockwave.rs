@@ -100,8 +100,11 @@ impl CharacterBehavior for Data {
                         },
                         Some(GroupTarget::OutOfGroup),
                     );
+                    let (crit_chance, crit_mult) =
+                        get_crit_data(data, self.static_data.ability_info);
                     let attack = Attack::default()
                         .with_damage(damage)
+                        .with_crit(crit_chance, crit_mult)
                         .with_effect(poise)
                         .with_effect(knockback);
                     let properties = shockwave::Properties {

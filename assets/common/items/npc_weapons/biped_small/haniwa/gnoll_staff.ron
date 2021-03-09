@@ -2,13 +2,15 @@ ItemDef(
     name: "Gnoll Staff",
     description: "eekum bokum",
     kind: Tool((
-            kind: StaffSimple,   
-            hands: Two, 
-            stats: Direct((
-                equip_time_secs: 0.0,
-                power: 1.8,
-                poise_strength: 0.8,
-                speed: 0.6
+        kind: StaffSimple,
+        hands: Two,
+        stats: Direct((
+            equip_time_secs: 0.0,
+            power: 1.8,
+            poise_strength: 0.8,
+            speed: 0.6,
+            crit_chance: 0.18,
+            crit_mult: 2.8,
         )),
     )),
     quality: Low,

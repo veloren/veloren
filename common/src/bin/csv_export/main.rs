@@ -76,21 +76,30 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
         "Power",
         "Poise Strength",
         "Speed",
-        "Equip Time (ms)",
+        "Crit Chance",
+        "Crit Mult",
+        "Equip Time (s)",
         "Description",
     ])?;
 
     let msm = MaterialStatManifest::default();
 
-    for item in comp::item::Item::new_from_asset_glob("common.items.weapons.*")
-        .expect("Failed to iterate over item folders!")
-    {
+    let mut items: Vec<comp::Item> = comp::Item::new_from_asset_glob("common.items.weapons.*")
+        .expect("Failed to iterate over item folders!");
+    items.extend(
+        comp::Item::new_from_asset_glob("common.items.npc_weapons.*")
+            .expect("Failed to iterate over npc weapons!"),
+    );
+
+    for item in items.iter() {
         match item.kind() {
             comp::item::ItemKind::Tool(tool) => {
                 let power = tool.base_power(&msm, &[]).to_string();
                 let poise_strength = tool.base_poise_strength(&msm, &[]).to_string();
                 let speed = tool.base_speed(&msm, &[]).to_string();
-                let equip_time = tool.equip_time(&msm, &[]).subsec_millis().to_string();
+                let crit_chance = tool.base_crit_chance(&msm, &[]).to_string();
+                let crit_mult = tool.base_crit_mult(&msm, &[]).to_string();
+                let equip_time = tool.equip_time(&msm, &[]).as_secs_f32().to_string();
                 let kind = get_tool_kind(&tool.kind);
                 let hands = get_tool_hands(&tool);
 
@@ -103,6 +112,8 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                     &power,
                     &poise_strength,
                     &speed,
+                    &crit_chance,
+                    &crit_mult,
                     &equip_time,
                     item.description(),
                 ])?;

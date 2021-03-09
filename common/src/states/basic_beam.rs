@@ -149,8 +149,11 @@ impl CharacterBehavior for Data {
                     .with_requirement(CombatRequirement::SufficientEnergy(
                         self.static_data.energy_cost,
                     ));
+                    let (crit_chance, crit_mult) =
+                        get_crit_data(data, self.static_data.ability_info);
                     let attack = Attack::default()
                         .with_damage(damage)
+                        .with_crit(crit_chance, crit_mult)
                         .with_effect(energy)
                         .with_effect(heal);
 
