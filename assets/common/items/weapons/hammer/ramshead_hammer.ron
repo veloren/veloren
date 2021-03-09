@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Ram\'s Head Mace",
+    name: "Ram's Head Mace",
     description: "You feel an evil presence in the hammer.",
     kind: Tool((
         kind: Hammer,
@@ -9,6 +9,8 @@ ItemDef(
             power: 1.8,
             poise_strength: 1.7,
             speed: 1.0,
+            crit_chance: 0.18,
+            crit_mult: 2.8,
         )),
     )),
     quality: High,

@@ -45,6 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Cliffs on steep slopes
 - Giant tree sites
 - Reset button for graphics settings
+- Gave weapons critical strike {chance, multiplier} stats
 
 ### Changed
 

@@ -1,6 +1,6 @@
 ItemDef(
     name: "The Root of Evil",
-    description: "\'Everything comes at a price...\'",
+    description: "'Everything comes at a price...'",
     kind: Tool((
         kind: Sceptre,
         hands: Two,
@@ -9,6 +9,8 @@ ItemDef(
             power: 4.0,
             poise_strength: 1.5,
             speed: 0.5,
+            crit_chance: 0.4,
+            crit_mult: 5.0,
         )),
     )),
     quality: Legendary,

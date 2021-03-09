@@ -67,7 +67,12 @@ pub enum ProjectileConstructor {
 }
 
 impl ProjectileConstructor {
-    pub fn create_projectile(self, owner: Option<Uid>) -> Projectile {
+    pub fn create_projectile(
+        self,
+        owner: Option<Uid>,
+        crit_chance: f32,
+        crit_mult: f32,
+    ) -> Projectile {
         use ProjectileConstructor::*;
         match self {
             Arrow {
@@ -96,7 +101,7 @@ impl ProjectileConstructor {
                 .with_effect(buff);
                 let attack = Attack::default()
                     .with_damage(damage)
-                    .with_crit(0.5, 1.2)
+                    .with_crit(crit_chance, crit_mult)
                     .with_effect(energy)
                     .with_effect(knockback);
 
@@ -122,7 +127,10 @@ impl ProjectileConstructor {
                     },
                     Some(GroupTarget::OutOfGroup),
                 );
-                let attack = Attack::default().with_damage(damage).with_effect(energy);
+                let attack = Attack::default()
+                    .with_damage(damage)
+                    .with_crit(crit_chance, crit_mult)
+                    .with_effect(energy);
                 let explosion = Explosion {
                     effects: vec![
                         RadiusEffect::Attack(attack),
@@ -147,7 +155,9 @@ impl ProjectileConstructor {
                     },
                     Some(GroupTarget::OutOfGroup),
                 );
-                let attack = Attack::default().with_damage(damage);
+                let attack = Attack::default()
+                    .with_damage(damage)
+                    .with_crit(crit_chance, crit_mult);
                 let explosion = Explosion {
                     effects: vec![RadiusEffect::Attack(attack)],
                     radius,
@@ -174,7 +184,10 @@ impl ProjectileConstructor {
                     },
                     Some(GroupTarget::OutOfGroup),
                 );
-                let attack = Attack::default().with_damage(damage).with_effect(energy);
+                let attack = Attack::default()
+                    .with_damage(damage)
+                    .with_crit(crit_chance, crit_mult)
+                    .with_effect(energy);
 
                 Projectile {
                     hit_solid: vec![Effect::Vanish],
@@ -197,7 +210,10 @@ impl ProjectileConstructor {
                     Some(GroupTarget::OutOfGroup),
                 );
                 let heal = AttackEffect::new(Some(GroupTarget::InGroup), CombatEffect::Heal(heal));
-                let attack = Attack::default().with_damage(damage).with_effect(heal);
+                let attack = Attack::default()
+                    .with_damage(damage)
+                    .with_crit(crit_chance, crit_mult)
+                    .with_effect(heal);
                 let explosion = Explosion {
                     effects: vec![RadiusEffect::Attack(attack)],
                     radius,
@@ -283,7 +299,7 @@ impl ProjectileConstructor {
         if let ProjectileConstructor::Fireball {
             damage,
             energy_regen,
-            ..
+            radius: _,
         } = self
         {
             ProjectileConstructor::Firebolt {

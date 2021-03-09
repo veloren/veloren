@@ -473,13 +473,15 @@ impl Damage {
         damage_modifier: f32,
     ) -> HealthChange {
         let mut damage = self.value * damage_modifier;
+        // Critical hit damage (to be applied post-armor for melee, and pre-armor for
+        // other damage kinds
+        let critdamage = if is_crit {
+            damage * (crit_mult - 1.0)
+        } else {
+            0.0
+        };
         match self.source {
             DamageSource::Melee => {
-                // Critical hit
-                let mut critdamage = 0.0;
-                if is_crit {
-                    critdamage = damage * (crit_mult - 1.0);
-                }
                 // Armor
                 damage *= 1.0 - damage_reduction;
 
@@ -498,9 +500,7 @@ impl Damage {
             },
             DamageSource::Projectile => {
                 // Critical hit
-                if is_crit {
-                    damage *= crit_mult;
-                }
+                damage += critdamage;
                 // Armor
                 damage *= 1.0 - damage_reduction;
 
@@ -513,6 +513,8 @@ impl Damage {
                 }
             },
             DamageSource::Explosion => {
+                // Critical hit
+                damage += critdamage;
                 // Armor
                 damage *= 1.0 - damage_reduction;
 
@@ -525,6 +527,8 @@ impl Damage {
                 }
             },
             DamageSource::Shockwave => {
+                // Critical hit
+                damage += critdamage;
                 // Armor
                 damage *= 1.0 - damage_reduction;
 
@@ -537,6 +541,8 @@ impl Damage {
                 }
             },
             DamageSource::Energy => {
+                // Critical hit
+                damage += critdamage;
                 // Armor
                 damage *= 1.0 - damage_reduction;
 

@@ -182,6 +182,16 @@ fn make_component_def(
             } else {
                 0.0
             },
+            crit_chance: if matches!(modkind, ModularComponentKind::Held) {
+                AVERAGE_STAT_VALUE[tier] * 0.1
+            } else {
+                0.0
+            },
+            crit_mult: if matches!(modkind, ModularComponentKind::Damage) {
+                1.0 + AVERAGE_STAT_VALUE[tier]
+            } else {
+                0.0
+            },
         },
     };
     let kind = ItemKind::ModularComponent(mc);

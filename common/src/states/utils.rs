@@ -575,6 +575,24 @@ pub fn unwrap_tool_data<'a>(data: &'a JoinData, equip_slot: EquipSlot) -> Option
     }
 }
 
+pub fn get_crit_data(data: &JoinData, ai: AbilityInfo) -> (f32, f32) {
+    const DEFAULT_CRIT_DATA: (f32, f32) = (0.5, 1.3);
+    use HandInfo::*;
+    let slot = match ai.hand {
+        Some(TwoHanded) | Some(MainHand) => EquipSlot::Mainhand,
+        Some(OffHand) => EquipSlot::Offhand,
+        None => return DEFAULT_CRIT_DATA,
+    };
+    if let Some(item) = data.inventory.equipped(slot) {
+        if let ItemKind::Tool(tool) = item.kind() {
+            let crit_chance = tool.base_crit_chance(data.msm, item.components());
+            let crit_mult = tool.base_crit_mult(data.msm, item.components());
+            return (crit_chance, crit_mult);
+        }
+    }
+    DEFAULT_CRIT_DATA
+}
+
 pub fn handle_interrupt(data: &JoinData, update: &mut StateUpdate, attacks_interrupt: bool) {
     if attacks_interrupt {
         handle_ability1_input(data, update);

@@ -135,10 +135,13 @@ impl CharacterBehavior for Data {
                 }
                 if self.reps_remaining > 0 {
                     // Fire
-                    let projectile = self
-                        .static_data
-                        .projectile
-                        .create_projectile(Some(*data.uid));
+                    let (crit_chance, crit_mult) =
+                        get_crit_data(data, self.static_data.ability_info);
+                    let projectile = self.static_data.projectile.create_projectile(
+                        Some(*data.uid),
+                        crit_chance,
+                        crit_mult,
+                    );
                     update.server_events.push_front(ServerEvent::Shoot {
                         entity: data.entity,
                         // Provides slight variation to projectile direction

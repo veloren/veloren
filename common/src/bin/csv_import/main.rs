@@ -1,5 +1,6 @@
 #![deny(clippy::clone_on_ref_ptr)]
 
+use hashbrown::HashMap;
 use ron::ser::{to_string_pretty, PrettyConfig};
 use serde::Serialize;
 use std::{error::Error, fs::File, io::Write};
@@ -7,7 +8,7 @@ use structopt::StructOpt;
 
 use comp::item::{
     armor::{ArmorKind, Protection},
-    ItemKind, Quality,
+    ItemDesc, ItemKind, ItemTag, Quality,
 };
 use veloren_common::{assets::ASSETS_PATH, comp};
 
@@ -23,21 +24,37 @@ struct FakeItemDef {
     description: String,
     kind: ItemKind,
     quality: Quality,
+    tags: Vec<ItemTag>,
 }
 
 impl FakeItemDef {
-    fn new(name: String, description: String, kind: ItemKind, quality: Quality) -> Self {
+    fn new(
+        name: String,
+        description: String,
+        kind: ItemKind,
+        quality: Quality,
+        tags: Vec<ItemTag>,
+    ) -> Self {
         Self {
             name,
             description,
             kind,
             quality,
+            tags,
         }
     }
 }
 
 fn armor_stats() -> Result<(), Box<dyn Error>> {
     let mut rdr = csv::Reader::from_path("armorstats.csv")?;
+
+    let headers: HashMap<String, usize> = rdr
+        .headers()
+        .expect("Failed to read CSV headers")
+        .iter()
+        .enumerate()
+        .map(|(i, x)| (x.to_string(), i))
+        .collect();
 
     for record in rdr.records() {
         for item in comp::item::Item::new_from_asset_glob("common.items.armor.*")
@@ -53,24 +70,27 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
                     }
 
                     if let Ok(ref record) = record {
-                        if item.item_definition_id() == record.get(0).expect("No file path in csv?")
+                        if item.item_definition_id()
+                            == record.get(headers["Path"]).expect("No file path in csv?")
                         {
-                            let protection = if let Some(protection_raw) = record.get(4) {
-                                if protection_raw == "Invincible" {
-                                    Protection::Invincible
+                            let protection =
+                                if let Some(protection_raw) = record.get(headers["Protection"]) {
+                                    if protection_raw == "Invincible" {
+                                        Protection::Invincible
+                                    } else {
+                                        let value: f32 = protection_raw.parse().unwrap();
+                                        Protection::Normal(value)
+                                    }
                                 } else {
-                                    let value: f32 = protection_raw.parse().unwrap();
-                                    Protection::Normal(value)
-                                }
-                            } else {
-                                eprintln!(
-                                    "Could not unwrap protection value for {:?}",
-                                    item.item_definition_id()
-                                );
-                                Protection::Normal(0.0)
-                            };
+                                    eprintln!(
+                                        "Could not unwrap protection value for {:?}",
+                                        item.item_definition_id()
+                                    );
+                                    Protection::Normal(0.0)
+                                };
 
-                            let poise_resilience = if let Some(poise_resilience_raw) = record.get(5)
+                            let poise_resilience = if let Some(poise_resilience_raw) =
+                                record.get(headers["Poise Resilience"])
                             {
                                 if poise_resilience_raw == "Invincible" {
                                     Protection::Invincible
@@ -89,7 +109,8 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
                             let kind = armor.kind.clone();
                             let armor =
                                 comp::item::armor::Armor::new(kind, protection, poise_resilience);
-                            let quality = if let Some(quality_raw) = record.get(3) {
+                            let quality = if let Some(quality_raw) = record.get(headers["Quality"])
+                            {
                                 match quality_raw {
                                     "Low" => comp::item::Quality::Low,
                                     "Common" => comp::item::Quality::Common,
@@ -115,16 +136,20 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
                                 comp::item::Quality::Debug
                             };
 
-                            let description = record.get(6).expect(&format!(
-                                "Error unwrapping description for {:?}",
-                                item.item_definition_id()
-                            ));
+                            let description = record
+                                .get(headers["Description"])
+                                .expect(&format!(
+                                    "Error unwrapping description for {:?}",
+                                    item.item_definition_id()
+                                ))
+                                .replace("\\'", "'");
 
                             let fake_item = FakeItemDef::new(
                                 item.name().to_string(),
                                 description.to_string(),
                                 ItemKind::Armor(armor),
                                 quality,
+                                item.tags().to_vec(),
                             );
 
                             let pretty_config = PrettyConfig::new()
@@ -144,7 +169,7 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
                             write!(
                                 writer,
                                 "ItemDef{}",
-                                to_string_pretty(&fake_item, pretty_config)?
+                                to_string_pretty(&fake_item, pretty_config)?.replace("\\'", "'")
                             )?;
                         }
                     }
@@ -160,18 +185,31 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
 fn weapon_stats() -> Result<(), Box<dyn Error>> {
     let mut rdr = csv::Reader::from_path("weaponstats.csv")?;
 
+    let headers: HashMap<String, usize> = rdr
+        .headers()
+        .expect("Failed to read CSV headers")
+        .iter()
+        .enumerate()
+        .map(|(i, x)| (x.to_string(), i))
+        .collect();
+
     for record in rdr.records() {
-        for item in comp::item::Item::new_from_asset_glob("common.items.weapons.*")
-            .expect("Failed to iterate over item folders!")
-        {
+        let mut items: Vec<comp::Item> = comp::Item::new_from_asset_glob("common.items.weapons.*")
+            .expect("Failed to iterate over item folders!");
+        items.extend(
+            comp::Item::new_from_asset_glob("common.items.npc_weapons.*")
+                .expect("Failed to iterate over npc weapons!"),
+        );
+        for item in items.iter() {
             match item.kind() {
                 comp::item::ItemKind::Tool(tool) => {
                     if let Ok(ref record) = record {
-                        if item.item_definition_id() == record.get(0).expect("No file path in csv?")
+                        if item.item_definition_id()
+                            == record.get(headers["Path"]).expect("No file path in csv?")
                         {
                             let kind = tool.kind;
                             let equip_time_secs: f32 = record
-                                .get(8)
+                                .get(headers["Equip Time (s)"])
                                 .expect(&format!(
                                     "Error unwrapping equip time for {:?}",
                                     item.item_definition_id()
@@ -179,7 +217,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                                 .parse()
                                 .expect(&format!("Not a u32? {:?}", item.item_definition_id()));
                             let power: f32 = record
-                                .get(5)
+                                .get(headers["Power"])
                                 .expect(&format!(
                                     "Error unwrapping power for {:?}",
                                     item.item_definition_id()
@@ -187,7 +225,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                                 .parse()
                                 .expect(&format!("Not a f32? {:?}", item.item_definition_id()));
                             let poise_strength: f32 = record
-                                .get(6)
+                                .get(headers["Poise Strength"])
                                 .expect(&format!(
                                     "Error unwrapping poise power for {:?}",
                                     item.item_definition_id()
@@ -196,7 +234,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                                 .expect(&format!("Not a f32? {:?}", item.item_definition_id()));
 
                             let speed: f32 = record
-                                .get(7)
+                                .get(headers["Speed"])
                                 .expect(&format!(
                                     "Error unwrapping speed for {:?}",
                                     item.item_definition_id()
@@ -204,7 +242,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                                 .parse()
                                 .expect(&format!("Not a f32? {:?}", item.item_definition_id()));
 
-                            let hands = if let Some(hands_raw) = record.get(3) {
+                            let hands = if let Some(hands_raw) = record.get(headers["Hands"]) {
                                 match hands_raw {
                                     "One" | "1" | "1h" => comp::item::tool::Hands::One,
                                     "Two" | "2" | "2h" => comp::item::tool::Hands::Two,
@@ -224,6 +262,24 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                                 comp::item::tool::Hands::Two
                             };
 
+                            let crit_chance: f32 = record
+                                .get(headers["Crit Chance"])
+                                .expect(&format!(
+                                    "Error unwrapping crit_chance for {:?}",
+                                    item.item_definition_id()
+                                ))
+                                .parse()
+                                .expect(&format!("Not a f32? {:?}", item.item_definition_id()));
+
+                            let crit_mult: f32 = record
+                                .get(headers["Crit Mult"])
+                                .expect(&format!(
+                                    "Error unwrapping crit_mult for {:?}",
+                                    item.item_definition_id()
+                                ))
+                                .parse()
+                                .expect(&format!("Not a f32? {:?}", item.item_definition_id()));
+
                             let tool = comp::item::tool::Tool::new(
                                 kind,
                                 hands,
@@ -231,9 +287,12 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                                 power,
                                 poise_strength,
                                 speed,
+                                crit_chance,
+                                crit_mult,
                             );
 
-                            let quality = if let Some(quality_raw) = record.get(4) {
+                            let quality = if let Some(quality_raw) = record.get(headers["Quality"])
+                            {
                                 match quality_raw {
                                     "Low" => comp::item::Quality::Low,
                                     "Common" => comp::item::Quality::Common,
@@ -259,7 +318,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                                 comp::item::Quality::Debug
                             };
 
-                            let description = record.get(9).expect(&format!(
+                            let description = record.get(headers["Description"]).expect(&format!(
                                 "Error unwrapping description for {:?}",
                                 item.item_definition_id()
                             ));
@@ -269,6 +328,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                                 description.to_string(),
                                 ItemKind::Tool(tool),
                                 quality,
+                                item.tags().to_vec(),
                             );
 
                             let pretty_config = PrettyConfig::new()
@@ -288,7 +348,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                             write!(
                                 writer,
                                 "ItemDef{}",
-                                to_string_pretty(&fake_item, pretty_config)?
+                                to_string_pretty(&fake_item, pretty_config)?.replace("\\'", "'")
                             )?;
                         }
                     }

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Brute\'s Hammer",
+    name: "Brute's Hammer",
     description: "This destructive hammer was likely wielded by a vicious killer.",
     kind: Tool((
         kind: Hammer,
@@ -9,6 +9,8 @@ ItemDef(
             power: 1.4,
             poise_strength: 1.5,
             speed: 1.0,
+            crit_chance: 0.14,
+            crit_mult: 2.4,
         )),
     )),
     quality: Moderate,

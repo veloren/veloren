@@ -1,6 +1,6 @@
 ItemDef(
     name: "Hoe",
-    description: "It\'s stained with dirt.",
+    description: "It's stained with dirt.",
     kind: Tool((
         kind: Farming,
         hands: Two,
@@ -9,6 +9,8 @@ ItemDef(
             power: 1.0,
             poise_strength: 1.5,
             speed: 1.0,
+            crit_chance: 0.1,
+            crit_mult: 2.0,
         )),
     )),
     quality: Common,

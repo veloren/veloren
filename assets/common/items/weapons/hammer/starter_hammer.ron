@@ -1,6 +1,6 @@
 ItemDef(
     name: "Sturdy Old Hammer",
-    description: "\'Property of...\' The rest is missing.",
+    description: "'Property of...' The rest is missing.",
     kind: Tool((
         kind: Hammer,
         hands: Two,
@@ -9,6 +9,8 @@ ItemDef(
             power: 0.5,
             poise_strength: 0.9,
             speed: 1.0,
+            crit_chance: 0.05,
+            crit_mult: 1.5,
         )),
     )),
     quality: Low,

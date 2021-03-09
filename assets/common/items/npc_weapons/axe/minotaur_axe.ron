@@ -1,18 +1,18 @@
 ItemDef(
     name: "Minotaur Axe",
     description: "Placeholder",
-    kind: Tool(
-        (
-            kind: AxeSimple,    
-            hands: Two,
-            stats: Direct((
-                equip_time_secs: 0.5,
-                power: 1.8,
-                poise_strength: 1.00,
-                speed: 1.0
-            )),
-        )
-    ),
+    kind: Tool((
+        kind: AxeSimple,
+        hands: Two,
+        stats: Direct((
+            equip_time_secs: 0.5,
+            power: 1.8,
+            poise_strength: 1.0,
+            speed: 1.0,
+            crit_chance: 0.18,
+            crit_mult: 2.8,
+        )),
+    )),
     quality: Low,
     tags: [],
 )
