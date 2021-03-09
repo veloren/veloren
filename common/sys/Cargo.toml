@@ -5,7 +5,7 @@ name = "veloren-common-sys"
 version = "0.8.0"
 
 [features]
-tracy = ["tracy-client"]
+tracy = ["common/tracy"]
 simd = ["vek/platform_intrinsics"]
 plugins = ["toml", "tar", "wasmer", "bincode", "plugin-api"]
 
@@ -32,9 +32,6 @@ specs = { git = "https://github.com/amethyst/specs.git", features = ["serde", "s
 
 # Serde
 serde = { version = "1.0.110", features = ["derive"] }
-
-# Tracy
-tracy-client = { version = "0.10.0", optional = true }
 
 # Plugins
 scopeguard = "1.1.0"

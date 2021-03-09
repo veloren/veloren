@@ -19,9 +19,9 @@ common-net = { package = "veloren-common-net", path = "../common/net" }
 tokio = { version = "1", default-features = false, features = ["rt-multi-thread"] }
 ansi-parser = "0.7"
 clap = "2.33"
-crossterm = "0.18"
+crossterm = "0.19"
 lazy_static = "1"
-signal-hook = "0.2.2"
+signal-hook = "0.3.6"
 termcolor = "1.1"
 tracing = { version = "0.1", default-features = false }
 tracing-subscriber = { version = "0.2.3", default-features = false, features = ["env-filter", "fmt", "chrono", "ansi", "smallvec"] }
@@ -29,7 +29,7 @@ ron = {version = "0.6", default-features = false}
 serde = {version = "1.0", features = [ "rc", "derive" ]}
 
 # Tracy
-tracing-tracy = { version = "0.4.0", optional = true }
+tracing-tracy = { version = "0.6.0", optional = true }
 
 [dependencies.tui]
 git = "https://github.com/fdehau/tui-rs.git"

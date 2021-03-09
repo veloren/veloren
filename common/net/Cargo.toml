@@ -5,7 +5,7 @@ name = "veloren-common-net"
 version = "0.8.0"
 
 [features]
-tracy = ["tracy-client"]
+tracy = ["common/tracy"]
 simd = ["vek/platform_intrinsics"]
 
 default = ["simd"]
@@ -28,6 +28,3 @@ specs = { git = "https://github.com/amethyst/specs.git", features = ["serde", "s
 
 # Serde
 serde = { version = "1.0.110", features = ["derive"] }
-
-# Tracy
-tracy-client = { version = "0.10.0", optional = true }

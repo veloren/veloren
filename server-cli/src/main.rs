@@ -77,7 +77,7 @@ fn main() -> io::Result<()> {
     let sigusr1_signal = Arc::new(AtomicBool::new(false));
 
     #[cfg(any(target_os = "linux", target_os = "macos"))]
-    let _ = signal_hook::flag::register(signal_hook::SIGUSR1, Arc::clone(&sigusr1_signal));
+    let _ = signal_hook::flag::register(signal_hook::consts::SIGUSR1, Arc::clone(&sigusr1_signal));
 
     logging::init(basic);
 
