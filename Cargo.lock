@@ -39,12 +39,6 @@ checksum = "aae1277d39aeec15cb388266ecc24b11c80469deae6067e17a1a7aa9e5c1f234"
 
 [[package]]
 name = "ahash"
-version = "0.3.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e8fd72866655d1904d6b0997d0b07ba561047d070fbe29de039031c641b61217"
-
-[[package]]
-name = "ahash"
 version = "0.4.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "739f4a8db6605981345c5654f3a85b056ce52f37a39d34da03f25bf2151ea16e"
@@ -2240,16 +2234,6 @@ dependencies = [
 
 [[package]]
 name = "hashbrown"
-version = "0.7.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "96282e96bfcd3da0d3aa9938bedf1e50df3269b6db08b4876d2da0bb1a0841cf"
-dependencies = [
- "ahash 0.3.8",
- "autocfg",
-]
-
-[[package]]
-name = "hashbrown"
 version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d7afe4a420e3fe79967a00898cc1f4db7c8a49a9333a29f8a4bd76a253d5cd04"
@@ -2519,7 +2503,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "824845a0bf897a9042383849b02c1bc219c2383772efcd5c6f9766fa4b81aef3"
 dependencies = [
  "autocfg",
- "hashbrown 0.9.1",
+ "hashbrown",
  "serde",
 ]
 
@@ -4652,12 +4636,12 @@ checksum = "7fdf1b9db47230893d76faad238fd6097fd6d6a9245cd7a4d90dbd639536bbd2"
 
 [[package]]
 name = "shred"
-version = "0.10.2"
+version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c5f08237e667ac94ad20f8878b5943d91a93ccb231428446c57c21c57779016d"
+checksum = "36fd542620fabd4f2e9f54ac1972956cfa62da6c5408ad3e40a8dae8afc65231"
 dependencies = [
  "arrayvec",
- "hashbrown 0.7.2",
+ "hashbrown",
  "mopa",
  "rayon",
  "shred-derive",
@@ -4777,10 +4761,10 @@ dependencies = [
 [[package]]
 name = "specs"
 version = "0.16.1"
-source = "git+https://github.com/amethyst/specs.git?rev=d4435bdf496cf322c74886ca09dd8795984919b4#d4435bdf496cf322c74886ca09dd8795984919b4"
+source = "git+https://github.com/amethyst/specs.git?rev=5a9b71035007be0e3574f35184acac1cd4530496#5a9b71035007be0e3574f35184acac1cd4530496"
 dependencies = [
  "crossbeam-queue",
- "hashbrown 0.9.1",
+ "hashbrown",
  "hibitset",
  "log",
  "rayon",
@@ -4794,7 +4778,7 @@ dependencies = [
 [[package]]
 name = "specs-derive"
 version = "0.4.1"
-source = "git+https://github.com/amethyst/specs.git?rev=d4435bdf496cf322c74886ca09dd8795984919b4#d4435bdf496cf322c74886ca09dd8795984919b4"
+source = "git+https://github.com/amethyst/specs.git?rev=5a9b71035007be0e3574f35184acac1cd4530496#5a9b71035007be0e3574f35184acac1cd4530496"
 dependencies = [
  "proc-macro2 1.0.24",
  "quote 1.0.9",
@@ -4804,7 +4788,7 @@ dependencies = [
 [[package]]
 name = "specs-idvs"
 version = "0.1.1"
-source = "git+https://gitlab.com/veloren/specs-idvs.git?rev=9fab7b396acd6454585486e50ae4bfe2069858a9#9fab7b396acd6454585486e50ae4bfe2069858a9"
+source = "git+https://gitlab.com/veloren/specs-idvs.git?rev=b65fb220e94f5d3c9bc30074a076149763795556#b65fb220e94f5d3c9bc30074a076149763795556"
 dependencies = [
  "specs",
 ]
@@ -5599,7 +5583,7 @@ dependencies = [
  "authc",
  "byteorder",
  "futures-util",
- "hashbrown 0.9.1",
+ "hashbrown",
  "image",
  "num 0.4.0",
  "rayon",
@@ -5628,7 +5612,7 @@ dependencies = [
  "csv",
  "dot_vox",
  "enum-iterator",
- "hashbrown 0.9.1",
+ "hashbrown",
  "image",
  "indexmap",
  "lazy_static",
@@ -5678,7 +5662,7 @@ name = "veloren-common-net"
 version = "0.8.0"
 dependencies = [
  "authc",
- "hashbrown 0.9.1",
+ "hashbrown",
  "serde",
  "specs",
  "sum_type",
@@ -5692,7 +5676,7 @@ name = "veloren-common-sys"
 version = "0.8.0"
 dependencies = [
  "bincode",
- "hashbrown 0.9.1",
+ "hashbrown",
  "indexmap",
  "rand 0.8.3",
  "rayon",
@@ -5794,7 +5778,7 @@ dependencies = [
  "diesel_migrations",
  "dotenv",
  "futures-util",
- "hashbrown 0.9.1",
+ "hashbrown",
  "itertools 0.10.0",
  "lazy_static",
  "libsqlite3-sys",
@@ -5876,7 +5860,7 @@ dependencies = [
  "glutin",
  "glyph_brush",
  "guillotiere",
- "hashbrown 0.9.1",
+ "hashbrown",
  "iced_native",
  "iced_winit",
  "image",
@@ -5941,7 +5925,7 @@ dependencies = [
  "criterion",
  "enum-iterator",
  "fxhash",
- "hashbrown 0.9.1",
+ "hashbrown",
  "image",
  "itertools 0.10.0",
  "lazy_static",

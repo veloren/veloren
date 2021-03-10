@@ -59,8 +59,8 @@ indexmap = "1.3.0"
 slab = "0.4.2"
 
 # ECS
-specs = { git = "https://github.com/amethyst/specs.git", features = ["serde", "storage-event-control", "nightly"], rev = "d4435bdf496cf322c74886ca09dd8795984919b4" }
-specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git", rev = "9fab7b396acd6454585486e50ae4bfe2069858a9" }
+specs = { git = "https://github.com/amethyst/specs.git", features = ["serde", "storage-event-control", "nightly"], rev = "5a9b71035007be0e3574f35184acac1cd4530496" }
+specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git", rev = "b65fb220e94f5d3c9bc30074a076149763795556" }
 
 [dev-dependencies]
 #bench
