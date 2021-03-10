@@ -57,7 +57,7 @@ impl LoginProvider {
     pub fn try_login(
         &mut self,
         username_or_token: &str,
-        world: &EcsWorld,
+        #[cfg(feature = "plugins")] world: &EcsWorld,
         #[cfg(feature = "plugins")] plugin_manager: &PluginMgr,
         admins: &HashSet<Uuid>,
         whitelist: &HashSet<Uuid>,
