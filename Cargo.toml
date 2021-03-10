@@ -2,22 +2,23 @@ cargo-features = ["named-profiles","profile-overrides"]
 
 [workspace]
 members = [
-	"common",
-	"common/base",
-	"common/ecs",
-	"common/net",
-	"common/sys",
-	"client",
-	"plugin/api",
-	"plugin/derive",
-	"plugin/rt",
-	"server",
-	"server-cli",
-	"voxygen",
-	"voxygen/anim",
-	"world",
-	"network",
-	"network/protocol"
+    "common",
+    "common/base",
+    "common/ecs",
+    "common/net",
+    "common/sys",
+    "client",
+    "botclient",
+    "plugin/api",
+    "plugin/derive",
+    "plugin/rt",
+    "server",
+    "server-cli",
+    "voxygen",
+    "voxygen/anim",
+    "world",
+    "network",
+    "network/protocol"
 ]
 
 # default profile for devs, fast to compile, okay enough to run, no debug information
