@@ -24,7 +24,7 @@ hashbrown = { version = "0.9", features = ["rayon", "serde", "nightly"] }
 authc = { git = "https://gitlab.com/veloren/auth.git", rev = "bffb5181a35c19ddfd33ee0b4aedba741aafb68d" }
 
 # ECS
-specs = { git = "https://github.com/amethyst/specs.git", features = ["serde", "storage-event-control"], rev = "d4435bdf496cf322c74886ca09dd8795984919b4" }
+specs = { git = "https://github.com/amethyst/specs.git", features = ["serde", "storage-event-control"], rev = "5a9b71035007be0e3574f35184acac1cd4530496" }
 
 # Serde
 serde = { version = "1.0.110", features = ["derive"] }

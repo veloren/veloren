@@ -24,7 +24,7 @@ image = { version = "0.23.12", default-features = false, features = ["png"] }
 num = "0.4"
 tracing = { version = "0.1", default-features = false }
 rayon = "1.5"
-specs = { git = "https://github.com/amethyst/specs.git", rev = "d4435bdf496cf322c74886ca09dd8795984919b4" }
+specs = { git = "https://github.com/amethyst/specs.git", rev = "5a9b71035007be0e3574f35184acac1cd4530496" }
 vek = { version = "=0.14.1", features = ["serde"] }
 hashbrown = { version = "0.9", features = ["rayon", "serde", "nightly"] }
 authc = { git = "https://gitlab.com/veloren/auth.git", rev = "bffb5181a35c19ddfd33ee0b4aedba741aafb68d" }
