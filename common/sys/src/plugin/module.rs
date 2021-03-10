@@ -232,29 +232,29 @@ fn retrieve_action(
     action: Retrieve,
 ) -> Result<RetrieveResult, RetrieveError> {
     match action {
-        Retrieve::GetPlayerName(_e) => {
+        Retrieve::GetPlayerName(e) => {
             // Safety: No reference is leaked out the function so it is safe.
-            // let world = unsafe {
-            //     ecs.get().ok_or(RetrieveError::EcsAccessError(
-            //         EcsAccessError::EcsPointerNotAvailable,
-            //     ))?
-            // };
-            // let player = world.uid_allocator.retrieve_entity_internal(e.0).ok_or(
-            //     RetrieveError::EcsAccessError(EcsAccessError::EcsEntityNotFound(e)),
-            // )?;
+            let world = unsafe {
+                ecs.get().ok_or(RetrieveError::EcsAccessError(
+                    EcsAccessError::EcsPointerNotAvailable,
+                ))?
+            };
+            let player = world.uid_allocator.retrieve_entity_internal(e.0).ok_or(
+                RetrieveError::EcsAccessError(EcsAccessError::EcsEntityNotFound(e)),
+            )?;
 
             Ok(RetrieveResult::GetPlayerName(
-                "<TODO>".to_owned(), /* world
-                                      *     .player.get(player).ok_or_else(|| {
-                                      *
-                                      * RetrieveError::EcsAccessError(EcsAccessError::
-                                      * EcsComponentNotFound(
-                                      *                 e,
-                                      *                 "Player".to_owned(),
-                                      *             ))
-                                      *         })?
-                                      *         .alias
-                                      *         .to_owned() */
+                world
+                    .player
+                    .get(player)
+                    .ok_or_else(|| {
+                        RetrieveError::EcsAccessError(EcsAccessError::EcsComponentNotFound(
+                            e,
+                            "Player".to_owned(),
+                        ))
+                    })?
+                    .alias
+                    .to_owned(),
             ))
         },
         Retrieve::GetEntityHealth(e) => {

@@ -842,9 +842,10 @@ impl Server {
                 let plugin_manager = self.state.ecs().read_resource::<PluginMgr>();
                 let ecs_world = EcsWorld {
                     entities: &self.state.ecs().entities(),
-                    health: &self.state.ecs().read_component(),
-                    uid: &self.state.ecs().read_component(),
+                    health: self.state.ecs().read_component().into(),
+                    uid: self.state.ecs().read_component().into(),
                     uid_allocator: &self.state.ecs().read_resource::<UidAllocator>().into(),
+                    player: self.state.ecs().read_component().into(),
                 };
                 let rs = plugin_manager.execute_event(
                     &ecs_world,

@@ -1,11 +1,16 @@
 use crate::settings::BanRecord;
 use authc::{AuthClient, AuthClientError, AuthToken, Uuid};
+use common::{comp::Player, uid::UidAllocator};
 use common_net::msg::RegisterError;
 use common_sys::plugin::memory_manager::EcsWorld;
 #[cfg(feature = "plugins")]
 use common_sys::plugin::PluginMgr;
 use hashbrown::{HashMap, HashSet};
-use plugin_api::event::{PlayerJoinEvent, PlayerJoinResult};
+use plugin_api::{
+    event::{PlayerJoinEvent, PlayerJoinResult},
+    Health,
+};
+use specs::{Entities, Read, ReadStorage, WriteStorage};
 use std::str::FromStr;
 use tracing::{error, info};
 
@@ -54,10 +59,14 @@ impl LoginProvider {
         };
     }
 
-    pub fn try_login(
+    pub fn try_login<'a, 'b>(
         &mut self,
         username_or_token: &str,
-        #[cfg(feature = "plugins")] world: &EcsWorld,
+        #[cfg(feature = "plugins")] entities: &Entities<'a>,
+        #[cfg(feature = "plugins")] health_comp: &ReadStorage<'a, Health>,
+        #[cfg(feature = "plugins")] uid_comp: &ReadStorage<'a, common::uid::Uid>,
+        #[cfg(feature = "plugins")] player_comp: &WriteStorage<'a, Player>,
+        #[cfg(feature = "plugins")] uids_res: &Read<'a, UidAllocator>,
         #[cfg(feature = "plugins")] plugin_manager: &PluginMgr,
         admins: &HashSet<Uuid>,
         whitelist: &HashSet<Uuid>,
@@ -81,21 +90,29 @@ impl LoginProvider {
                 }
                 #[cfg(feature = "plugins")]
                 {
-                    match plugin_manager.execute_event(&world, &PlayerJoinEvent {
-                        player_name: username.clone(),
-                        player_id: *uuid.as_bytes(),
-                    }) {
-                        Ok(e) => {
-                            for i in e.into_iter() {
-                                if let PlayerJoinResult::Kick(a) = i {
-                                    return Err(RegisterError::Kicked(a));
-                                }
-                            }
-                        },
-                        Err(e) => {
-                            error!("Error occured while executing `on_join`: {:?}",e);
-                        },
+
+                    let ecs_world = EcsWorld {
+                        entities: &entities,
+                        health: health_comp.into(),
+                        uid: uid_comp.into(),
+                        player: player_comp.into(),
+                        uid_allocator: uids_res,
                     };
+                        match plugin_manager.execute_event(&ecs_world, &PlayerJoinEvent {
+                            player_name: username.clone(),
+                            player_id: *uuid.as_bytes(),
+                        }) {
+                            Ok(e) => {
+                                for i in e.into_iter() {
+                                    if let PlayerJoinResult::Kick(a) = i {
+                                        return Err(RegisterError::Kicked(a));
+                                    }
+                                }
+                            },
+                            Err(e) => {
+                                error!("Error occured while executing `on_join`: {:?}",e);
+                            },
+                        };
                 }
 
                 // add the user to self.accounts
