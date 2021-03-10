@@ -59,7 +59,8 @@ impl LoginProvider {
         };
     }
 
-    pub fn try_login<'a, 'b>(
+    #[allow(clippy::too_many_arguments)]
+    pub fn try_login<'a>(
         &mut self,
         username_or_token: &str,
         #[cfg(feature = "plugins")] entities: &Entities<'a>,
