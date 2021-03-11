@@ -6,7 +6,18 @@ pub mod register;
 pub mod terrain;
 
 use crate::client::Client;
+use common_ecs::dispatch;
 use serde::de::DeserializeOwned;
+use specs::DispatcherBuilder;
+
+pub fn add_server_systems(dispatch_builder: &mut DispatcherBuilder) {
+    dispatch::<character_screen::Sys>(dispatch_builder, &[]);
+    dispatch::<general::Sys>(dispatch_builder, &[]);
+    dispatch::<in_game::Sys>(dispatch_builder, &[]);
+    dispatch::<ping::Sys>(dispatch_builder, &[]);
+    dispatch::<register::Sys>(dispatch_builder, &[]);
+    dispatch::<terrain::Sys>(dispatch_builder, &[]);
+}
 
 /// handles all send msg and calls a handle fn
 /// Aborts when a error occurred returns cnt of successful msg otherwise
