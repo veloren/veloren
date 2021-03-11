@@ -14,8 +14,6 @@ use hashbrown::HashMap;
 use plugin_api::Health;
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, WriteExpect, WriteStorage};
 
-use common_sys::plugin::memory_manager::EcsWorld;
-
 #[cfg(feature = "plugins")]
 use common_sys::plugin::PluginMgr;
 
@@ -77,20 +75,20 @@ impl<'a> System<'a> for Sys {
         // List of new players to update player lists of all clients.
         let mut new_players = Vec::new();
 
-        #[cfg(feature = "plugins")]
-        let ecs_world = EcsWorld {
-            entities: &entities,
-            health: &health_comp,
-            uid: &uids,
-            uid_allocator: &uid_allocator,
-        };
-
         for (entity, client) in (&entities, &clients).join() {
             let _ = super::try_recv_all(client, 0, |client, msg: ClientRegister| {
                 let (username, uuid) = match login_provider.try_login(
                     &msg.token_or_username,
                     #[cfg(feature = "plugins")]
-                    &ecs_world,
+                    &entities,
+                    #[cfg(feature = "plugins")]
+                    &health_comp,
+                    #[cfg(feature = "plugins")]
+                    &uids,
+                    #[cfg(feature = "plugins")]
+                    &players,
+                    #[cfg(feature = "plugins")]
+                    &uid_allocator,
                     #[cfg(feature = "plugins")]
                     &plugin_mgr,
                     &*editable_settings.admins,

@@ -214,10 +214,10 @@ impl State {
             Ok(plugin_mgr) => {
                 let ecs_world = EcsWorld {
                     entities: &ecs.entities(),
-                    health: &ecs.read_component(),
-                    uid: &ecs.read_component(),
+                    health: ecs.read_component().into(),
+                    uid: ecs.read_component().into(),
                     uid_allocator: &ecs.read_resource::<UidAllocator>().into(),
-                    //player: Either::First(ecs.read_component()),
+                    player: ecs.read_component().into(),
                 };
                 if let Err(e) = plugin_mgr
                     .execute_event(&ecs_world, &plugin_api::event::PluginLoadEvent {

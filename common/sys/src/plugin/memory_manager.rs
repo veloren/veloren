@@ -1,11 +1,13 @@
 use std::sync::atomic::{AtomicPtr, AtomicU32, AtomicU64, Ordering};
 
 use serde::{de::DeserializeOwned, Serialize};
-use specs::{Entities, Read, ReadStorage};
+use specs::{
+    storage::GenericReadStorage, Component, Entities, Entity, Read, ReadStorage, WriteStorage,
+};
 use wasmer::{Function, Memory, Value};
 
 use common::{
-    comp::Health,
+    comp::{Health, Player},
     uid::{Uid, UidAllocator},
 };
 
@@ -13,11 +15,49 @@ use super::errors::{MemoryAllocationError, PluginModuleError};
 
 pub struct EcsWorld<'a, 'b> {
     pub entities: &'b Entities<'a>,
-    pub health: &'b ReadStorage<'a, Health>,
-    pub uid: &'b ReadStorage<'a, Uid>,
-    //pub player: ReadStorage<'a, Player>,
+    pub health: EcsComponentAccess<'a, 'b, Health>,
+    pub uid: EcsComponentAccess<'a, 'b, Uid>,
+    pub player: EcsComponentAccess<'a, 'b, Player>,
     pub uid_allocator: &'b Read<'a, UidAllocator>,
 }
+
+pub enum EcsComponentAccess<'a, 'b, T: Component> {
+    Read(&'b ReadStorage<'a, T>),
+    ReadOwned(ReadStorage<'a, T>),
+    Write(&'b WriteStorage<'a, T>),
+    WriteOwned(WriteStorage<'a, T>),
+}
+
+impl<'a, 'b, T: Component> EcsComponentAccess<'a, 'b, T> {
+    pub fn get(&self, entity: Entity) -> Option<&T> {
+        match self {
+            EcsComponentAccess::Read(e) => e.get(entity),
+            EcsComponentAccess::Write(e) => e.get(entity),
+            EcsComponentAccess::ReadOwned(e) => e.get(entity),
+            EcsComponentAccess::WriteOwned(e) => e.get(entity),
+        }
+    }
+}
+
+impl<'a, 'b, T: Component> From<&'b ReadStorage<'a, T>> for EcsComponentAccess<'a, 'b, T> {
+    fn from(a: &'b ReadStorage<'a, T>) -> Self { Self::Read(a) }
+}
+
+impl<'a, 'b, T: Component> From<ReadStorage<'a, T>> for EcsComponentAccess<'a, 'b, T> {
+    fn from(a: ReadStorage<'a, T>) -> Self { Self::ReadOwned(a) }
+}
+
+impl<'a, 'b, T: Component> From<&'b WriteStorage<'a, T>> for EcsComponentAccess<'a, 'b, T> {
+    fn from(a: &'b WriteStorage<'a, T>) -> Self { Self::Write(a) }
+}
+
+impl<'a, 'b, T: Component> From<WriteStorage<'a, T>> for EcsComponentAccess<'a, 'b, T> {
+    fn from(a: WriteStorage<'a, T>) -> Self { Self::WriteOwned(a) }
+}
+
+// pub enum EcsResourceAccess<'a, T> {
+//     Read(Read<'a, T>),
+// }
 
 /// This structure wraps the ECS pointer to ensure safety
 pub struct EcsAccessManager {
