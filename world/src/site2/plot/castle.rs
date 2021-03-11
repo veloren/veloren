@@ -23,10 +23,10 @@ impl Castle {
     ) -> Self {
         let alt = SQUARE_4
             .iter()
-            .map(|corner| tile_aabr.min + (tile_aabr.max - tile_aabr.min) * corner)
+            .map(|corner| tile_aabr.min + (tile_aabr.max - tile_aabr.min - 1) * corner)
             .map(|pos| land.get_alt_approx(site.tile_center_wpos(pos)) as i32)
-            .map(|val| val / 4)
-            .sum();
+            .sum::<i32>()
+            / 4;
 
         Self {
             tile_aabr,
@@ -42,6 +42,7 @@ impl Castle {
 }
 
 impl Structure for Castle {
+    #[allow(clippy::identity_op)]
     fn render<F: FnMut(Primitive) -> Id<Primitive>, G: FnMut(Id<Primitive>, Fill)>(
         &self,
         site: &Site,
