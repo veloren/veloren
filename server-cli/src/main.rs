@@ -210,7 +210,7 @@ fn main() -> io::Result<()> {
         // Wait for the next tick.
         clock.tick();
         #[cfg(feature = "tracy")]
-        common_base::finish_continuous_frame!();
+        common_base::tracy_client::finish_continuous_frame!();
     }
 
     Ok(())

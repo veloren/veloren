@@ -75,8 +75,10 @@ use common_net::{
     sync::WorldSyncExt,
 };
 #[cfg(feature = "plugins")]
+use common_sys::plugin::memory_manager::EcsWorld;
+#[cfg(feature = "plugins")]
 use common_sys::plugin::PluginMgr;
-use common_sys::{plugin::memory_manager::EcsWorld, state::State};
+use common_sys::state::State;
 use metrics::{EcsSystemMetrics, PhysicsMetrics, TickMetrics};
 use network::{Network, Pid, ProtocolAddr};
 use persistence::{

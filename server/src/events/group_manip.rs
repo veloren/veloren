@@ -1,4 +1,4 @@
-use crate::{client::Client, Server, State};
+use crate::{client::Client, Server};
 use common::{
     comp::{
         self,
@@ -9,6 +9,7 @@ use common::{
     uid::Uid,
 };
 use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
+use common_sys::state::State;
 use specs::{
     world::{Entity, WorldExt},
     ReadStorage, WriteStorage,

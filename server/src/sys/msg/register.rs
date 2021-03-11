@@ -18,10 +18,16 @@ use plugin_api::Health;
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, WriteExpect, WriteStorage};
 use tracing::trace;
 
+#[cfg(feature = "plugins")]
 use common_sys::plugin::memory_manager::EcsWorld;
 
 #[cfg(feature = "plugins")]
 use common_sys::plugin::PluginMgr;
+
+#[cfg(feature = "plugins")]
+type ReadPlugin<'a> = Read<'a, PluginMgr>;
+#[cfg(not(feature = "plugins"))]
+type ReadPlugin<'a> = Option<Read<'a, ()>>;
 
 /// This system will handle new messages from clients
 #[derive(Default)]
@@ -37,7 +43,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Player>,
         WriteStorage<'a, PendingLogin>,
         Read<'a, UidAllocator>,
-        Read<'a, PluginMgr>,
+        ReadPlugin<'a>,
         ReadStorage<'a, Stats>,
         WriteExpect<'a, LoginProvider>,
         WriteStorage<'a, Admin>,
