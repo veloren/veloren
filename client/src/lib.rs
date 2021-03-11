@@ -156,6 +156,7 @@ pub struct Client {
     register_stream: Stream,
     character_screen_stream: Stream,
     in_game_stream: Stream,
+    terrain_stream: Stream,
 
     client_timeout: Duration,
     last_server_ping: f64,
@@ -215,6 +216,7 @@ impl Client {
         let mut register_stream = participant.opened().await?;
         let character_screen_stream = participant.opened().await?;
         let in_game_stream = participant.opened().await?;
+        let terrain_stream = participant.opened().await?;
 
         register_stream.send(ClientType::Game)?;
         let server_info: ServerInfo = register_stream.recv().await?;
@@ -456,6 +458,7 @@ impl Client {
             register_stream,
             character_screen_stream,
             in_game_stream,
+            terrain_stream,
 
             client_timeout,
 
@@ -550,10 +553,11 @@ impl Client {
                     | ClientGeneral::PlaceBlock(_, _)
                     | ClientGeneral::ExitInGame
                     | ClientGeneral::PlayerPhysics { .. }
-                    | ClientGeneral::TerrainChunkRequest { .. }
                     | ClientGeneral::UnlockSkill(_)
                     | ClientGeneral::RefundSkill(_)
                     | ClientGeneral::UnlockSkillGroup(_) => &mut self.in_game_stream,
+                    //Only in game, terrain
+                    ClientGeneral::TerrainChunkRequest { .. } => &mut self.terrain_stream,
                     //Always possible
                     ClientGeneral::ChatMsg(_) | ClientGeneral::Terminate => {
                         &mut self.general_stream
@@ -1555,17 +1559,6 @@ impl Client {
 
                 frontend_events.push(Event::InventoryUpdated(event));
             },
-            ServerGeneral::TerrainChunkUpdate { key, chunk } => {
-                if let Ok(chunk) = chunk {
-                    self.state.insert_chunk(key, *chunk);
-                }
-                self.pending_chunks.remove(&key);
-            },
-            ServerGeneral::TerrainBlockUpdates(mut blocks) => {
-                blocks.drain().for_each(|(pos, block)| {
-                    self.state.set_block(pos, block);
-                });
-            },
             ServerGeneral::SetViewDistance(vd) => {
                 self.view_distance = Some(vd);
                 frontend_events.push(Event::SetViewDistance(vd));
@@ -1592,6 +1585,25 @@ impl Client {
                 }
             },
             _ => unreachable!("Not a in_game message"),
+        }
+        Ok(())
+    }
+
+    #[allow(clippy::unnecessary_wraps)]
+    fn handle_server_terrain_msg(&mut self, msg: ServerGeneral) -> Result<(), Error> {
+        match msg {
+            ServerGeneral::TerrainChunkUpdate { key, chunk } => {
+                if let Ok(chunk) = chunk {
+                    self.state.insert_chunk(key, *chunk);
+                }
+                self.pending_chunks.remove(&key);
+            },
+            ServerGeneral::TerrainBlockUpdates(mut blocks) => {
+                blocks.drain().for_each(|(pos, block)| {
+                    self.state.set_block(pos, block);
+                });
+            },
+            _ => unreachable!("Not a terrain message"),
         }
         Ok(())
     }
@@ -1658,11 +1670,12 @@ impl Client {
         cnt: &mut u64,
     ) -> Result<(), Error> {
         loop {
-            let (m1, m2, m3, m4) = select!(
-                msg = self.general_stream.recv().fuse() => (Some(msg), None, None, None),
-                msg = self.ping_stream.recv().fuse() => (None, Some(msg), None, None),
-                msg = self.character_screen_stream.recv().fuse() => (None, None, Some(msg), None),
-                msg = self.in_game_stream.recv().fuse() => (None, None, None, Some(msg)),
+            let (m1, m2, m3, m4, m5) = select!(
+                msg = self.general_stream.recv().fuse() => (Some(msg), None, None, None, None),
+                msg = self.ping_stream.recv().fuse() => (None, Some(msg), None, None, None),
+                msg = self.character_screen_stream.recv().fuse() => (None, None, Some(msg), None, None),
+                msg = self.in_game_stream.recv().fuse() => (None, None, None, Some(msg), None),
+                msg = self.terrain_stream.recv().fuse() => (None, None, None, None, Some(msg)),
             );
             *cnt += 1;
             if let Some(msg) = m1 {
@@ -1676,6 +1689,9 @@ impl Client {
             }
             if let Some(msg) = m4 {
                 self.handle_server_in_game_msg(frontend_events, msg?)?;
+            }
+            if let Some(msg) = m5 {
+                self.handle_server_terrain_msg(msg?)?;
             }
         }
     }

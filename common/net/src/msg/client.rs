@@ -70,12 +70,13 @@ pub enum ClientGeneral {
         vel: comp::Vel,
         ori: comp::Ori,
     },
-    TerrainChunkRequest {
-        key: Vec2<i32>,
-    },
     UnlockSkill(Skill),
     RefundSkill(Skill),
     UnlockSkillGroup(SkillGroupKind),
+    //Only in Game, via terrain stream
+    TerrainChunkRequest {
+        key: Vec2<i32>,
+    },
     //Always possible
     ChatMsg(String),
     Terminate,

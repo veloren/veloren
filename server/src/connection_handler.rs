@@ -102,9 +102,10 @@ impl ConnectionHandler {
 
         let general_stream = participant.open(3, reliablec, 500).await?;
         let ping_stream = participant.open(2, reliable, 500).await?;
-        let mut register_stream = participant.open(3, reliablec, 0).await?;
-        let character_screen_stream = participant.open(3, reliablec, 0).await?;
-        let in_game_stream = participant.open(3, reliablec, 400_000).await?;
+        let mut register_stream = participant.open(3, reliablec, 500).await?;
+        let character_screen_stream = participant.open(3, reliablec, 500).await?;
+        let in_game_stream = participant.open(3, reliablec, 100_000).await?;
+        let terrain_stream = participant.open(4, reliablec, 20_000).await?;
 
         let server_data = receiver.recv()?;
 
@@ -131,6 +132,7 @@ impl ConnectionHandler {
             register_stream,
             character_screen_stream,
             in_game_stream,
+            terrain_stream,
         );
 
         client_sender.send(client)?;

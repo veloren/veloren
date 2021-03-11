@@ -25,6 +25,7 @@ pub struct Client {
     register_stream: Mutex<Stream>,
     character_screen_stream: Mutex<Stream>,
     in_game_stream: Mutex<Stream>,
+    terrain_stream: Mutex<Stream>,
 }
 
 pub struct PreparedMsg {
@@ -47,6 +48,7 @@ impl Client {
         register_stream: Stream,
         character_screen_stream: Stream,
         in_game_stream: Stream,
+        terrain_stream: Stream,
     ) -> Self {
         Client {
             client_type,
@@ -59,6 +61,7 @@ impl Client {
             register_stream: Mutex::new(register_stream),
             character_screen_stream: Mutex::new(character_screen_stream),
             in_game_stream: Mutex::new(in_game_stream),
+            terrain_stream: Mutex::new(terrain_stream),
         }
     }
 
@@ -84,14 +87,17 @@ impl Client {
                     | ServerGeneral::InviteComplete { .. }
                     | ServerGeneral::ExitInGameSuccess
                     | ServerGeneral::InventoryUpdate(_, _)
-                    | ServerGeneral::TerrainChunkUpdate { .. }
-                    | ServerGeneral::TerrainBlockUpdates(_)
                     | ServerGeneral::SetViewDistance(_)
                     | ServerGeneral::Outcomes(_)
                     | ServerGeneral::Knockback(_)
                     | ServerGeneral::UpdatePendingTrade(_, _)
                     | ServerGeneral::FinishedTrade(_) => {
                         self.in_game_stream.try_lock().unwrap().send(g)
+                    },
+                    //Ingame related, terrain
+                    ServerGeneral::TerrainChunkUpdate { .. }
+                    | ServerGeneral::TerrainBlockUpdates(_) => {
+                        self.terrain_stream.try_lock().unwrap().send(g)
                     },
                     // Always possible
                     ServerGeneral::PlayerListUpdate(_)
@@ -138,6 +144,11 @@ impl Client {
                 .unwrap()
                 .send_raw(&msg.message),
             4 => self.ping_stream.try_lock().unwrap().send_raw(&msg.message),
+            5 => self
+                .terrain_stream
+                .try_lock()
+                .unwrap()
+                .send_raw(&msg.message),
             _ => unreachable!("invalid stream id"),
         }
     }
@@ -164,14 +175,17 @@ impl Client {
                     | ServerGeneral::InviteComplete { .. }
                     | ServerGeneral::ExitInGameSuccess
                     | ServerGeneral::InventoryUpdate(_, _)
-                    | ServerGeneral::TerrainChunkUpdate { .. }
-                    | ServerGeneral::TerrainBlockUpdates(_)
                     | ServerGeneral::SetViewDistance(_)
                     | ServerGeneral::Outcomes(_)
                     | ServerGeneral::Knockback(_)
                     | ServerGeneral::UpdatePendingTrade(_, _)
                     | ServerGeneral::FinishedTrade(_) => {
                         PreparedMsg::new(2, &g, &self.in_game_stream)
+                    },
+                    //Ingame related, terrain
+                    ServerGeneral::TerrainChunkUpdate { .. }
+                    | ServerGeneral::TerrainBlockUpdates(_) => {
+                        PreparedMsg::new(5, &g, &self.terrain_stream)
                     },
                     // Always possible
                     ServerGeneral::PlayerListUpdate(_)
@@ -203,6 +217,7 @@ impl Client {
             2 => self.in_game_stream.try_lock().unwrap().try_recv(),
             3 => self.general_stream.try_lock().unwrap().try_recv(),
             4 => self.ping_stream.try_lock().unwrap().try_recv(),
+            5 => self.terrain_stream.try_lock().unwrap().try_recv(),
             _ => unreachable!("invalid stream id"),
         }
     }
