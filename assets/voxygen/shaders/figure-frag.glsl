@@ -163,8 +163,12 @@ void main() {
     vec3 k_d = vec3(1.0);
     vec3 k_s = vec3(R_s);
 
+    // This is a silly hack. It's not true reflectance (see below for that), but gives the desired
+    // effect without breaking the entire lighting model until we come up with a better way of doing
+    // reflectivity that accounts for physical surroundings like the ground
     if ((material & (1u << 1u)) > 0u) {
-        k_s = vec3(10.0);
+        vec3 reflect_ray_dir = reflect(cam_to_frag, f_norm);
+        surf_color *= dot(vec3(1.0) - abs(fract(reflect_ray_dir * 3.5) * 2.0 - 1.0) * 0.85, vec3(1));
     }
 
     vec3 emitted_light, reflected_light;
@@ -190,8 +194,10 @@ void main() {
 
     float ao = f_ao * sqrt(f_ao);//0.25 + f_ao * 0.75; ///*pow(f_ao, 0.5)*/f_ao * 0.85 + 0.15;
 
+    // For now, just make glowing material light be the same colour as the surface
+    // TODO: Add a way to control this better outside the shaders
     if ((material & (1u << 0u)) > 0u) {
-        emitted_light *= 1000;
+        emitted_light += 1000 * surf_color;
     }
 
     float glow_mag = length(model_glow.xyz);
@@ -217,14 +223,18 @@ void main() {
     // diffuse_light += point_light;
     // reflected_light += point_light;
     // vec3 surf_color = illuminate(srgb_to_linear(highlight_col.rgb * f_col), light, diffuse_light, ambient_light);
+
     float reflectance = 0.0;
+    // TODO: Do reflectance properly like this later
     vec3 reflect_color = vec3(0);
-    if ((material & (1u << 1u)) > 0u) {
+    /*
+    if ((material & (1u << 1u)) > 0u && false) {
         vec3 reflect_ray_dir = reflect(cam_to_frag, f_norm);
         reflect_color = get_sky_color(reflect_ray_dir, time_of_day.x, f_pos, vec3(-100000), 0.125, true);
         reflect_color = get_cloud_color(reflect_color, reflect_ray_dir, cam_pos.xyz, time_of_day.x, 100000.0, 0.25);
         reflectance = 1.0;
     }
+    */
 
     surf_color = illuminate(max_light, view_dir, mix(surf_color * emitted_light, reflect_color, reflectance), mix(surf_color * reflected_light, reflect_color, reflectance)) * highlight_col.rgb;
 

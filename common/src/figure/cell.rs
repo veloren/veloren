@@ -5,6 +5,7 @@ pub(super) const GLOWY: u8 = 1 << 0;
 pub(super) const SHINY: u8 = 1 << 1;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[repr(packed)]
 pub struct CellData {
     pub col: Rgb<u8>,
     pub attr: u8, // 0 = glowy, 1 = shiny

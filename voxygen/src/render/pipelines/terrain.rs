@@ -134,6 +134,7 @@ impl Vertex {
         ]
     }
 
+    #[allow(clippy::identity_op)]
     pub fn make_col_light_figure(
         // 0 to 31
         light: u8,

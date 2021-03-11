@@ -192,6 +192,7 @@ impl MatSegment {
         })
     }
 
+    #[allow(clippy::identity_op)]
     pub fn from_vox(dot_vox_data: &DotVoxData, flipped: bool) -> Self {
         if let Some(model) = dot_vox_data.models.get(0) {
             let palette = dot_vox_data
@@ -224,8 +225,8 @@ impl MatSegment {
                         MatCell::Normal(CellData {
                             col: color,
                             attr: 0
-                                | (13..16).contains(&index) as u8 * GLOWY
-                                | (8..13).contains(&index) as u8 * SHINY,
+                                | ((13..16).contains(&index) as u8 * GLOWY)
+                                | ((8..13).contains(&index) as u8 * SHINY),
                         })
                     },
                 };
