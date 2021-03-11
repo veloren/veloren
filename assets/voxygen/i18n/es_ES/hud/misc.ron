@@ -1,0 +1,52 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for Spanish (Spain)
+(
+    string_map: {
+        "hud.do_not_show_on_startup": "No muestres esto al inicio",
+        "hud.show_tips": "Mostrar ayuda",
+        "hud.quests": "Misiones",
+        "hud.you_died": "Has muerto",
+        "hud.waypoint_saved": "Punto de ruta guardado",
+        "hud.sp_arrow_txt": "PH",
+
+        "hud.press_key_to_show_keybindings_fmt": "Pulsa {key} para mostrar atajos de teclado",
+        "hud.press_key_to_toggle_lantern_fmt": "[{key}] Linterna",
+        "hud.press_key_to_show_debug_info_fmt": "Pulsa {key} para mostrar información de depuración",
+        "hud.press_key_to_toggle_keybindings_fmt": "Pulsa {key} para alternar los atajos de teclado",
+        "hud.press_key_to_toggle_debug_info_fmt": "Pulsa {key} para alternar la información de depuración",
+
+        // Respawn message
+        "hud.press_key_to_respawn": r#"Pulsa {key} para reaparecer en el último campamento que visitaste."#,
+
+        // Tutorial Button
+        "hud.tutorial_btn": r#"Tutorial"#,
+        "hud.tutorial_click_here": r#"Puksa [ {key} ] para liberar el cursor y haga clic en este botón!"#,
+        "hud.tutorial_elements": r#"Elaborar"#,
+
+"hud.temp_quest_headline": r#"Saludos viajero!"#,
+"hud.temp_quest_text": r#"Para comenzar tu viaje puedes empezar a buscar en esta aldea y reunir algunas provisiones.
+
+Puedes llevar todo lo que necesites en tu viaje!
+
+Mira en la parte inferior derecha de la pantalla para encontrar cosas como tu bolsa, el menú de artesanía y el mapa.
+
+El menú de elaboracion te permite crear armaduras, armas, comida y mucho más!
+
+Los animales salvajes que rodean la ciudad son una gran fuente de trozos de cuero para crear alguna protección contra los peligros del mundo.
+
+Cuando te sientas preparado, ¡intenta conseguir un equipo aún mejor en los numerosos desafíos marcados en el mapa!
+"#,
+
+        "hud.spell": "Hechizos",
+        // Diary
+        "hud.diary": "Diario",
+
+        "hud.free_look_indicator": "Vista libre activa",
+        "hud.auto_walk_indicator": "Marcha automática activa",
+    },
+
+
+    vector_map: {
+    }
+)

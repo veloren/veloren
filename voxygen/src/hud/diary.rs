@@ -494,13 +494,25 @@ impl<'a> Widget for Diary<'a> {
         })
         .set(state.available_pts_txt, ui);
         let tree_title = match sel_tab {
-            SelectedSkillTree::General => "General Combat",
-            SelectedSkillTree::Weapon(ToolKind::Sword) => "Sword",
-            SelectedSkillTree::Weapon(ToolKind::Hammer) => "Hammer",
-            SelectedSkillTree::Weapon(ToolKind::Axe) => "Axe",
-            SelectedSkillTree::Weapon(ToolKind::Sceptre) => "Healing Sceptre",
-            SelectedSkillTree::Weapon(ToolKind::Bow) => "Bow",
-            SelectedSkillTree::Weapon(ToolKind::Staff) => "Fire Staff",
+            SelectedSkillTree::General => self.localized_strings.get("common.weapons.general"),
+            SelectedSkillTree::Weapon(ToolKind::Sword) => {
+                self.localized_strings.get("common.weapons.sword")
+            },
+            SelectedSkillTree::Weapon(ToolKind::Hammer) => {
+                self.localized_strings.get("common.weapons.hammer")
+            },
+            SelectedSkillTree::Weapon(ToolKind::Axe) => {
+                self.localized_strings.get("common.weapons.axe")
+            },
+            SelectedSkillTree::Weapon(ToolKind::Sceptre) => {
+                self.localized_strings.get("common.weapons.sceptre")
+            },
+            SelectedSkillTree::Weapon(ToolKind::Bow) => {
+                self.localized_strings.get("common.weapons.bow")
+            },
+            SelectedSkillTree::Weapon(ToolKind::Staff) => {
+                self.localized_strings.get("common.weapons.staff")
+            },
             _ => "Unknown",
         };
         Text::new(&tree_title)

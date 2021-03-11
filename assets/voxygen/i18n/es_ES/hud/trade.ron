@@ -1,0 +1,24 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for Spanish (Spain)
+(
+    string_map: {
+    "hud.trade.trade_window": "Ventana de comercio",
+	"hud.trade.phase1_description": "Arrastra los artículos que quieres comerciar al área correspondiente",
+	"hud.trade.phase2_description": "El comercio está ahora bloqueado para darte tiempo a revisarlo",
+	/// Phase3 should only be visible for a few milliseconds if everything is working properly, but is included for completeness
+	"hud.trade.phase3_description": "El trato se está procesando",
+	"hud.trade.persons_offer": "Oferta de {playername}",
+	"hud.trade.has_accepted": "{playername}\nha aceptado",
+	"hud.trade.accept": "Aceptar",
+	"hud.trade.decline": "Declinar",
+	"hud.trade.invite_sent": "Solicitud de comercio enviada a {playername}",
+	"hud.trade.result.completed": "Trato completado con éxito",
+	"hud.trade.result.declined": "Trato rechazado",
+	"hud.trade.result.nospace": "No hay espacio suficiente para completar el comercio",
+    },
+
+
+    vector_map: {
+    }
+)

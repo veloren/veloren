@@ -1,0 +1,31 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for Spanish (Spain)
+(
+    string_map: {
+        "char_selection.loading_characters": "Cargando personajes...",
+        "char_selection.delete_permanently": "¿Borrar permanentemente este personaje?",
+        "char_selection.deleting_character": "Borrando personaje...",
+        "char_selection.change_server": "Cambiar de servidor",
+        "char_selection.enter_world": "Entrar al mundo",
+        "char_selection.logout": "Salir",
+        "char_selection.create_new_character": "Crear nuevo personaje",
+        "char_selection.creating_character": "Creando personaje...",
+        "char_selection.character_creation": "Creación de personaje",
+        "char_selection.human_default": "Humano Predeterminado",
+        "char_selection.level_fmt": "Nivel {level_nb}",
+        "char_selection.uncanny_valley": "Tierra salvaje",
+        "char_selection.plains_of_uncertainty": "Llanuras de la incertidumbre",
+        "char_selection.beard": "Barba",
+        "char_selection.hair_style": "Estilo de pelo",
+        "char_selection.hair_color": "Color de pelo",
+        "char_selection.eye_color": "Color de ojos",
+        "char_selection.skin": "Piel",
+        "char_selection.eyeshape": "Detalle de los ojos",
+        "char_selection.accessories": "Accesorios",
+        "char_selection.create_info_name": "¡Tu personaje necesita un nombre!",
+    },
+
+    vector_map: {
+    }
+)

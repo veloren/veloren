@@ -1,0 +1,24 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for Spanish (Spain)
+(
+    string_map: {
+        "hud.group": "Grupo",
+        "hud.group.invite_to_join": "¡{name} Te invito a su grupo!",
+        "hud.group.invite_to_trade": "[{name}] le gustaria comerciar contigo.",
+        "hud.group.invite": "Invitar",
+        "hud.group.kick": "Expulsar",
+        "hud.group.assign_leader": "Asignar lider",
+        "hud.group.leave": "Dejar el grupo",
+        "hud.group.dead" : "Muerto",
+        "hud.group.out_of_range": "Fuera de alcance",
+        "hud.group.add_friend": "Agregar a Amigos",
+        "hud.group.link_group": "Vincular grupos",
+        "hud.group.in_menu": "En el menu",
+        "hud.group.members": "Miembros del grupo",
+    },
+
+
+    vector_map: {
+    }
+)

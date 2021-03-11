@@ -1,0 +1,30 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for Spanish (Spain)
+(
+    string_map: {
+        // Buffs
+        "buff.remove": "Clic para quitar",
+        "buff.title.missing": "Sin Título",
+        "buff.desc.missing": "Sin Descripción",
+        "buff.title.heal": "Sanación",
+        "buff.desc.heal": "Restaura salud durante un tiempo",
+        "buff.title.potion": "Poción",
+        "buff.desc.potion": "Bebiendo...",
+        "buff.title.saturation": "Saturación",
+        "buff.desc.saturation": "Restaura salud durante un tiempo por consumibles.",
+        "buff.title.campfire_heal": "Fogata curativa",
+        "buff.desc.campfire_heal": "Descansar en una fogata te sana 1% por segundo.",
+        "buff.title.invulnerability": "Invulnerabilidad",
+        "buff.desc.invulnerability": "No puedes ser dañado por ningún ataque.",
+        // Debuffs
+        "buff.title.bleed": "Sangrado",
+        "buff.desc.bleed": "Inflige un daño periódico.",
+        "buff.title.cursed": "Maldito",
+        "buff.desc.cursed": "Estás maldito.",
+    },
+
+
+    vector_map: {
+    }
+)

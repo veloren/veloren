@@ -1,0 +1,29 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for Spanish (Spain)
+(
+    string_map: {
+        // Map and Questlog
+        "hud.map.map_title": "Mapa",
+        "hud.map.qlog_title": "Misiones",
+        "hud.map.difficulty": "Dificultad",
+        "hud.map.towns": "Ciudades",
+        "hud.map.castles": "Castillos",
+        "hud.map.dungeons": "Mazmorras",
+        "hud.map.caves": "Cuevas",
+        "hud.map.cave": "Cueva",
+        "hud.map.trees": "Arboles gigantes",
+        "hud.map.tree": "Arbol gigante",
+        "hud.map.town": "Ciudad",
+        "hud.map.castle": "Castillo",
+        "hud.map.dungeon": "Mazmorra",
+        "hud.map.difficulty_dungeon": "Dificultad de\n\nmazmorra: {difficulty}",
+        "hud.map.drag": "Arrastrar",
+        "hud.map.zoom": "Zoom",
+        "hud.map.recenter": "Centrar",
+    },
+
+
+    vector_map: {
+    }
+)
