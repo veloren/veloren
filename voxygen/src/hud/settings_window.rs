@@ -59,8 +59,11 @@ widget_ids! {
         settings_scrollbar,
         controls_texts[],
         controls_buttons[],
+        reset_interface_button,
+        reset_gameplay_button,
         reset_controls_button,
         reset_graphics_button,
+        reset_sound_button,
         controls_alignment_rectangle,
         button_help,
         button_help2,
@@ -329,8 +332,11 @@ pub enum Event {
     SpeechBubbleIcon(bool),
     ChangeLanguage(Box<LanguageMetadata>),
     ChangeBinding(GameInput),
-    ResetBindings,
-    ResetGraphics,
+    ResetInterfaceSettings,
+    ResetGameplaySettings,
+    ResetKeyBindings,
+    ResetGraphicsSettings,
+    ResetAudioSettings,
     ChangeFreeLookBehavior(PressBehavior),
     ChangeAutoWalkBehavior(PressBehavior),
     ChangeStopAutoWalkOnInput(bool),
@@ -1308,6 +1314,23 @@ impl<'a> Widget for SettingsWindow<'a> {
             .set(state.ids.chat_char_name_text, ui);
 
             // TODO Show account name in chat
+
+            // Reset the interface settings to the default settings
+            if Button::image(self.imgs.button)
+                .w_h(31.0 * 5.0, 12.0 * 2.0)
+                .hover_image(self.imgs.button_hover)
+                .press_image(self.imgs.button_press)
+                .down_from(state.ids.buff_pos_map_button, 12.0)
+                .label(&self.localized_strings.get("hud.settings.reset_interface"))
+                .label_font_size(self.fonts.cyri.scale(14))
+                .label_color(TEXT_COLOR)
+                .label_font_id(self.fonts.cyri.conrod_id)
+                .label_y(Relative::Scalar(2.0))
+                .set(state.ids.reset_interface_button, ui)
+                .was_clicked()
+            {
+                events.push(Event::ResetInterfaceSettings);
+            }
         }
 
         // 2) Gameplay Tab --------------------------------
@@ -1621,6 +1644,23 @@ impl<'a> Widget for SettingsWindow<'a> {
             .graphics_for(state.ids.stop_auto_walk_on_input_button)
             .color(TEXT_COLOR)
             .set(state.ids.stop_auto_walk_on_input_label, ui);
+
+            // Reset the gameplay settings to the default settings
+            if Button::image(self.imgs.button)
+                .w_h(31.0 * 5.0, 12.0 * 2.0)
+                .hover_image(self.imgs.button_hover)
+                .press_image(self.imgs.button_press)
+                .down_from(state.ids.free_look_behavior_list, 12.0)
+                .label(&self.localized_strings.get("hud.settings.reset_gameplay"))
+                .label_font_size(self.fonts.cyri.scale(14))
+                .label_color(TEXT_COLOR)
+                .label_font_id(self.fonts.cyri.conrod_id)
+                .label_y(Relative::Scalar(2.0))
+                .set(state.ids.reset_gameplay_button, ui)
+                .was_clicked()
+            {
+                events.push(Event::ResetGameplaySettings);
+            }
         }
 
         // 3) Controls Tab --------------------------------
@@ -1729,6 +1769,8 @@ impl<'a> Widget for SettingsWindow<'a> {
                 // Set the previous id to the current one for the next cycle
                 previous_element_id = Some(text_id);
             }
+
+            // Reset the KeyBindings settings to the default settings
             if let Some(prev_id) = previous_element_id {
                 let key_string = self.localized_strings.get("hud.settings.reset_keybinds");
                 let button_widget = Button::new()
@@ -1743,7 +1785,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                     .label_y(Relative::Scalar(3.0))
                     .set(state.ids.reset_controls_button, ui);
                 if button_widget.was_clicked() {
-                    events.push(Event::ResetBindings);
+                    events.push(Event::ResetKeyBindings);
                 }
                 previous_element_id = Some(state.ids.reset_controls_button)
             }
@@ -2712,7 +2754,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 ));
             }
 
-            // Save current screen size
+            // Reset the graphics settings to the default settings
             if Button::image(self.imgs.button)
                 .w_h(31.0 * 5.0, 12.0 * 2.0)
                 .hover_image(self.imgs.button_hover)
@@ -2726,7 +2768,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .set(state.ids.reset_graphics_button, ui)
                 .was_clicked()
             {
-                events.push(Event::ResetGraphics);
+                events.push(Event::ResetGraphicsSettings);
             }
         }
 
@@ -2833,6 +2875,23 @@ impl<'a> Widget for SettingsWindow<'a> {
             //    let new_val = device_list[clicked].clone();
             //    events.push(Event::ChangeAudioDevice(new_val));
             //}
+
+            // Reset the sound settings to the default settings
+            if Button::image(self.imgs.button)
+                .w_h(31.0 * 5.0, 12.0 * 2.0)
+                .hover_image(self.imgs.button_hover)
+                .press_image(self.imgs.button_press)
+                .down_from(state.ids.sfx_volume_slider, 12.0)
+                .label(&self.localized_strings.get("hud.settings.reset_sound"))
+                .label_font_size(self.fonts.cyri.scale(14))
+                .label_color(TEXT_COLOR)
+                .label_font_id(self.fonts.cyri.conrod_id)
+                .label_y(Relative::Scalar(2.0))
+                .set(state.ids.reset_sound_button, ui)
+                .was_clicked()
+            {
+                events.push(Event::ResetAudioSettings);
+            }
         }
 
         // 5) Languages Tab -----------------------------------

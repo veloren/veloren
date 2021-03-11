@@ -36,6 +36,7 @@
         "hud.settings.background_transparency": "Background Transparency",
         "hud.settings.chat_character_name": "Character Names in chat",
         "hud.settings.loading_tips": "Loading Screen Tips",
+        "hud.settings.reset_interface": "Reset to Defaults",
 
         "hud.settings.pan_sensitivity": "Pan Sensitivity",
         "hud.settings.zoom_sensitivity": "Zoom Sensitivity",
@@ -46,6 +47,7 @@
         "hud.settings.free_look_behavior": "Free look behavior",
         "hud.settings.auto_walk_behavior": "Auto walk behavior",
         "hud.settings.stop_auto_walk_on_input": "Stop auto walk on movement",
+        "hud.settings.reset_gameplay": "Reset to Defaults",
 
         "hud.settings.view_distance": "View Distance",
         "hud.settings.sprites_view_distance": "Sprites View Distance",
@@ -91,6 +93,7 @@
         "hud.settings.music_volume": "Music Volume",
         "hud.settings.sound_effect_volume": "Sound Effects Volume",
         "hud.settings.audio_device": "Audio Device",
+        "hud.settings.reset_sound": "Reset to Defaults",
 
         "hud.settings.awaitingkey": "Press a key...",
         "hud.settings.unbound": "None",
