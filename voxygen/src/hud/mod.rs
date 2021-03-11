@@ -407,8 +407,11 @@ pub enum Event {
     Quit,
     ChangeLanguage(Box<LanguageMetadata>),
     ChangeBinding(GameInput),
-    ResetBindings,
-    ResetGraphics,
+    ResetInterfaceSettings,
+    ResetGameplaySettings,
+    ResetKeyBindings,
+    ResetGraphicsSettings,
+    ResetAudioSettings,
     ChangeFreeLookBehavior(PressBehavior),
     ChangeRenderMode(Box<RenderMode>),
     ChangeAutoWalkBehavior(PressBehavior),
@@ -2516,9 +2519,6 @@ impl Hud {
                     settings_window::Event::ChangeBinding(game_input) => {
                         events.push(Event::ChangeBinding(game_input));
                     },
-                    settings_window::Event::ResetBindings => {
-                        events.push(Event::ResetBindings);
-                    },
                     settings_window::Event::ChangeFreeLookBehavior(behavior) => {
                         events.push(Event::ChangeFreeLookBehavior(behavior));
                     },
@@ -2528,8 +2528,22 @@ impl Hud {
                     settings_window::Event::ChangeStopAutoWalkOnInput(state) => {
                         events.push(Event::ChangeStopAutoWalkOnInput(state));
                     },
-                    settings_window::Event::ResetGraphics => {
-                        events.push(Event::ResetGraphics);
+                    settings_window::Event::ResetInterfaceSettings => {
+                        self.show.help = true;
+                        self.show.debug = false;
+                        events.push(Event::ResetInterfaceSettings);
+                    },
+                    settings_window::Event::ResetGameplaySettings => {
+                        events.push(Event::ResetGameplaySettings);
+                    },
+                    settings_window::Event::ResetKeyBindings => {
+                        events.push(Event::ResetKeyBindings);
+                    },
+                    settings_window::Event::ResetGraphicsSettings => {
+                        events.push(Event::ResetGraphicsSettings);
+                    },
+                    settings_window::Event::ResetAudioSettings => {
+                        events.push(Event::ResetAudioSettings);
                     },
                 }
             }
@@ -2892,6 +2906,10 @@ impl Hud {
     pub fn new_message(&mut self, msg: comp::ChatMsg) { self.new_messages.push_back(msg); }
 
     pub fn new_notification(&mut self, msg: Notification) { self.new_notifications.push_back(msg); }
+
+    pub fn set_scaling_mode(&mut self, scale_mode: ScaleMode) {
+        self.ui.set_scaling_mode(scale_mode);
+    }
 
     pub fn scale_change(&mut self, scale_change: ScaleChange) -> ScaleMode {
         let scale_mode = match scale_change {

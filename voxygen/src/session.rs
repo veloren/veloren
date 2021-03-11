@@ -38,7 +38,10 @@ use crate::{
     menu::char_selection::CharSelectionState,
     render::Renderer,
     scene::{camera, CameraMode, Scene, SceneData},
-    settings::{ControlSettings, GraphicsSettings, Settings},
+    settings::{
+        AudioSettings, ControlSettings, GamepadSettings, GameplaySettings, GraphicsSettings,
+        Settings,
+    },
     window::{AnalogGameInput, Event, GameInput},
     Direction, Error, GlobalState, PlayState, PlayStateResult,
 };
@@ -1320,10 +1323,6 @@ impl PlayState for SessionState {
                     HudEvent::ChangeBinding(game_input) => {
                         global_state.window.set_keybinding_mode(game_input);
                     },
-                    HudEvent::ResetBindings => {
-                        global_state.settings.controls = ControlSettings::default();
-                        global_state.settings.save_to_file_warn();
-                    },
                     HudEvent::ChangeFreeLookBehavior(behavior) => {
                         global_state.settings.gameplay.free_look_behavior = behavior;
                     },
@@ -1362,7 +1361,97 @@ impl PlayState for SessionState {
                         global_state.settings.gameplay.minimap_face_north = state;
                         global_state.settings.save_to_file_warn();
                     },
-                    HudEvent::ResetGraphics => {
+                    HudEvent::ResetInterfaceSettings => {
+                        // Load Defaults
+                        let default = GameplaySettings::default();
+                        // General
+                        //global_state.settings.gameplay.intro_show = default.intro_show;
+                        global_state.settings.gameplay.loading_tips = default.loading_tips;
+                        global_state.settings.gameplay.toggle_debug = default.toggle_debug;
+                        // UI-Scale
+                        global_state.settings.gameplay.ui_scale = default.ui_scale;
+                        self.hud.set_scaling_mode(default.ui_scale);
+                        // Crosshair
+                        global_state.settings.gameplay.crosshair_type = default.crosshair_type;
+                        global_state.settings.gameplay.crosshair_transp = default.crosshair_transp;
+                        //Energybar Numbers
+                        global_state.settings.gameplay.bar_numbers = default.bar_numbers;
+                        // Hotbar
+                        global_state.settings.gameplay.xp_bar = default.xp_bar;
+                        global_state.settings.gameplay.shortcut_numbers = default.shortcut_numbers;
+                        global_state.settings.gameplay.buff_position = default.buff_position;
+                        // Scrolling Combat Text
+                        global_state.settings.gameplay.sct = default.sct;
+                        global_state.settings.gameplay.sct_player_batch = default.sct_player_batch;
+                        global_state.settings.gameplay.sct_damage_batch = default.sct_damage_batch;
+                        //Speech Bubble
+                        global_state.settings.gameplay.speech_bubble_dark_mode =
+                            default.speech_bubble_dark_mode;
+                        global_state.settings.gameplay.speech_bubble_icon =
+                            default.speech_bubble_icon;
+                        // Chat
+                        global_state.settings.gameplay.chat_transp = default.chat_transp;
+                        global_state.settings.gameplay.chat_character_name =
+                            default.chat_character_name;
+                        // Map
+                        global_state.settings.gameplay.map_zoom = default.map_zoom;
+                        global_state.settings.gameplay.map_drag = default.map_drag;
+                        global_state.settings.gameplay.map_show_difficulty =
+                            default.map_show_difficulty;
+                        global_state.settings.gameplay.map_show_towns = default.map_show_towns;
+                        global_state.settings.gameplay.map_show_dungeons =
+                            default.map_show_dungeons;
+                        global_state.settings.gameplay.map_show_castles = default.map_show_castles;
+                        global_state.settings.gameplay.map_show_caves = default.map_show_caves;
+                        global_state.settings.gameplay.map_show_trees = default.map_show_trees;
+                        global_state.settings.gameplay.minimap_show = default.minimap_show;
+                        global_state.settings.gameplay.minimap_face_north =
+                            default.minimap_face_north;
+                        // Save to File
+                        global_state.settings.save_to_file_warn();
+                    },
+                    HudEvent::ResetGameplaySettings => {
+                        // Load Defaults
+                        let default = GameplaySettings::default();
+                        // Pan Sensitivity
+                        global_state.window.pan_sensitivity = default.pan_sensitivity;
+                        global_state.settings.gameplay.pan_sensitivity = default.pan_sensitivity;
+                        // Zoom Sensitivity
+                        global_state.window.zoom_sensitivity = default.zoom_sensitivity;
+                        global_state.settings.gameplay.zoom_sensitivity = default.zoom_sensitivity;
+                        // Invert Scroll Zoom
+                        global_state.window.zoom_inversion = default.zoom_inversion;
+                        global_state.settings.gameplay.zoom_inversion = default.zoom_inversion;
+                        // Invert Mouse Y Axis
+                        global_state.window.mouse_y_inversion = default.mouse_y_inversion;
+                        global_state.settings.gameplay.mouse_y_inversion =
+                            default.mouse_y_inversion;
+                        // Invert Controller Y Axis
+                        let default_gamepad = GamepadSettings::default();
+                        global_state.window.controller_settings.pan_invert_y =
+                            default_gamepad.pan_invert_y;
+                        global_state.settings.controller.pan_invert_y =
+                            default_gamepad.pan_invert_y;
+                        // Camera Smoothing
+                        global_state.settings.gameplay.smooth_pan_enable =
+                            default.smooth_pan_enable;
+                        // Free Look Behavior
+                        global_state.settings.gameplay.free_look_behavior =
+                            default.free_look_behavior;
+                        // Auto Walk Behavior
+                        global_state.settings.gameplay.auto_walk_behavior =
+                            default.auto_walk_behavior;
+                        // Stop Auto Walk on Movement
+                        global_state.settings.gameplay.stop_auto_walk_on_input =
+                            default.stop_auto_walk_on_input;
+                        // Save to File
+                        global_state.settings.save_to_file_warn();
+                    },
+                    HudEvent::ResetKeyBindings => {
+                        global_state.settings.controls = ControlSettings::default();
+                        global_state.settings.save_to_file_warn();
+                    },
+                    HudEvent::ResetGraphicsSettings => {
                         global_state.settings.graphics = GraphicsSettings::default();
                         global_state.settings.save_to_file_warn();
                         let graphics = &global_state.settings.graphics;
@@ -1387,6 +1476,13 @@ impl PlayState for SessionState {
                         global_state.window.set_fullscreen_mode(graphics.fullscreen);
                         // Window size
                         global_state.window.set_size(graphics.window_size.into());
+                    },
+                    HudEvent::ResetAudioSettings => {
+                        global_state.settings.audio = AudioSettings::default();
+                        global_state.settings.save_to_file_warn();
+                        let audio = &global_state.settings.audio;
+                        global_state.audio.set_music_volume(audio.music_volume);
+                        global_state.audio.set_sfx_volume(audio.sfx_volume);
                     },
                 }
             }
