@@ -495,19 +495,6 @@ impl Server {
         // 3) Handle inputs from clients
         self.handle_new_connections(&mut frontend_events);
 
-        let before_message_system = Instant::now();
-
-        // Run message receiving sys before the systems in common for decreased latency
-        // (e.g. run before controller system)
-        //TODO: run in parallel
-        run_now::<sys::msg::general::Sys>(&self.state.ecs());
-        run_now::<sys::msg::register::Sys>(&self.state.ecs());
-        run_now::<sys::msg::character_screen::Sys>(&self.state.ecs());
-        run_now::<sys::msg::in_game::Sys>(&self.state.ecs());
-        run_now::<sys::msg::terrain::Sys>(&self.state.ecs());
-        run_now::<sys::msg::ping::Sys>(&self.state.ecs());
-        run_now::<sys::agent::Sys>(&self.state.ecs());
-
         let before_state_tick = Instant::now();
 
         // 4) Tick the server's LocalState.
@@ -516,6 +503,7 @@ impl Server {
         self.state.tick(
             dt,
             |dispatcher_builder| {
+                sys::msg::add_server_systems(dispatcher_builder);
                 sys::add_server_systems(dispatcher_builder);
                 #[cfg(feature = "worldgen")]
                 rtsim::add_server_systems(dispatcher_builder);
@@ -703,7 +691,7 @@ impl Server {
 
             let tt = &tick_metrics.tick_time;
             tt.with_label_values(&["new connections"])
-                .set((before_message_system - before_new_connections).as_nanos() as i64);
+                .set((before_state_tick - before_new_connections).as_nanos() as i64);
             tt.with_label_values(&["handle server events"])
                 .set((before_update_terrain_and_regions - before_handle_events).as_nanos() as i64);
             tt.with_label_values(&["update terrain and region map"])

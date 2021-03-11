@@ -25,7 +25,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Client>,
     );
 
-    const NAME: &'static str = "msg::in_game";
+    const NAME: &'static str = "msg::terrain";
     const ORIGIN: Origin = Origin::Server;
     const PHASE: Phase = Phase::Create;
 

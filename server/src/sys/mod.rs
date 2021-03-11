@@ -21,6 +21,7 @@ use std::{
 pub type PersistenceScheduler = SysScheduler<persistence::Sys>;
 
 pub fn add_server_systems(dispatch_builder: &mut DispatcherBuilder) {
+    dispatch::<agent::Sys>(dispatch_builder, &[]);
     dispatch::<terrain::Sys>(dispatch_builder, &[]);
     dispatch::<waypoint::Sys>(dispatch_builder, &[]);
     dispatch::<invite_timeout::Sys>(dispatch_builder, &[]);
