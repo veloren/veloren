@@ -36,6 +36,7 @@ impl ChatCommandData {
 #[derive(Copy, Clone)]
 pub enum ChatCommand {
     Adminify,
+    Airship,
     Alias,
     Ban,
     Build,
@@ -89,6 +90,7 @@ pub enum ChatCommand {
 // Thank you for keeping this sorted alphabetically :-)
 pub static CHAT_COMMANDS: &[ChatCommand] = &[
     ChatCommand::Adminify,
+    ChatCommand::Airship,
     ChatCommand::Alias,
     ChatCommand::Ban,
     ChatCommand::Build,
@@ -222,6 +224,7 @@ impl ChatCommand {
                 "Temporarily gives a player admin permissions or removes them",
                 Admin,
             ),
+            ChatCommand::Airship => cmd(vec![], "Spawns an airship", Admin),
             ChatCommand::Alias => cmd(vec![Any("name", Required)], "Change your alias", NoAdmin),
             ChatCommand::Ban => cmd(
                 vec![Any("username", Required), Message(Optional)],
@@ -449,6 +452,7 @@ impl ChatCommand {
     pub fn keyword(&self) -> &'static str {
         match self {
             ChatCommand::Adminify => "adminify",
+            ChatCommand::Airship => "airship",
             ChatCommand::Alias => "alias",
             ChatCommand::Ban => "ban",
             ChatCommand::Build => "build",

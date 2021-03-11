@@ -1972,7 +1972,7 @@ fn create_pipelines(
         &shaders.figure_vert.read().0,
         &shaders.figure_frag.read().0,
         &include_ctx,
-        gfx::state::CullFace::Back,
+        gfx::state::CullFace::Nothing,
     )?;
 
     // Construct a pipeline for rendering terrain

@@ -13,6 +13,7 @@ use common::{
         humanoid::{self, Body, BodyType, EyeColor, Skin, Species},
         item::{ItemDef, ModularComponentKind},
         object,
+        ship::{self, figuredata::{ShipSpec, ShipCentralSubSpec}},
         quadruped_low::{self, BodyType as QLBodyType, Species as QLSpecies},
         quadruped_medium::{self, BodyType as QMBodyType, Species as QMSpecies},
         quadruped_small::{self, BodyType as QSBodyType, Species as QSSpecies},
@@ -22,7 +23,7 @@ use common::{
 };
 use hashbrown::HashMap;
 use serde::Deserialize;
-use std::sync::Arc;
+use std::{fmt, hash::Hash, sync::Arc};
 use tracing::{error, warn};
 use vek::*;
 
@@ -4102,6 +4103,17 @@ impl QuadrupedLowLateralSpec {
 #[derive(Deserialize)]
 struct ObjectCentralSpec(HashMap<object::Body, SidedObjectCentralVoxSpec>);
 
+/*
+#[derive(Deserialize)]
+struct ShipCentralSpec(HashMap<ship::Body, SidedShipCentralVoxSpec>);
+
+#[derive(Deserialize)]
+struct SidedShipCentralVoxSpec {
+    bone0: ObjectCentralSubSpec,
+    bone1: ObjectCentralSubSpec,
+    bone2: ObjectCentralSubSpec,
+}*/
+
 #[derive(Deserialize)]
 struct SidedObjectCentralVoxSpec {
     bone0: ObjectCentralSubSpec,
@@ -4169,5 +4181,101 @@ impl ObjectCentralSpec {
         let central = graceful_load_segment(&spec.bone1.central.0);
 
         (central, Vec3::from(spec.bone1.offset))
+    }
+}
+
+/*make_vox_spec!(
+    ship::Body,
+    struct ShipSpec {
+        central: ShipCentralSpec = "server.manifests.ship_manifest",
+    },
+    |FigureKey { body, .. }, spec| {
+        [
+            Some(spec.central.read().0.mesh_bone(
+                body, |spec| &spec.bone0,
+            )),
+            Some(spec.central.read().0.mesh_bone(
+                body, |spec| &spec.bone1
+            )),
+            Some(spec.central.read().0.mesh_bone(
+                body, |spec| &spec.bone2
+            )),
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+        ]
+    },
+);
+
+impl ShipCentralSpec {
+    fn mesh_bone<F: Fn(&SidedShipCentralVoxSpec) -> &ObjectCentralSubSpec>(&self, obj: &ship::Body, f: F) -> BoneMeshes {
+        let spec = match self.0.get(&obj) {
+            Some(spec) => spec,
+            None => {
+                error!("No specification exists for {:?}", obj);
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let bone = f(spec);
+        let central = graceful_load_segment(&bone.central.0);
+
+        (central, Vec3::from(bone.offset))
+    }
+}*/
+fn mesh_ship_bone<K: fmt::Debug+Eq+Hash, V, F: Fn(&V) -> &ShipCentralSubSpec>(map: &HashMap<K, V>, obj: &K, f: F) -> BoneMeshes {
+    let spec = match map.get(&obj) {
+        Some(spec) => spec,
+        None => {
+            error!("No specification exists for {:?}", obj);
+            return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+        },
+    };
+    let bone = f(spec);
+    let central = graceful_load_segment(&bone.central.0);
+
+    (central, Vec3::from(bone.offset))
+}
+
+impl BodySpec for ship::Body {
+    type Spec = ShipSpec;
+
+    #[allow(unused_variables)]
+    fn load_spec() -> Result<AssetHandle<Self::Spec>, assets::Error> {
+        Self::Spec::load("")
+    }
+
+    fn bone_meshes(
+        FigureKey { body, .. }: &FigureKey<Self>,
+        spec: &Self::Spec,
+    ) -> [Option<BoneMeshes>; anim::MAX_BONE_COUNT] {
+        let map = &(spec.central.read().0).0;
+        [
+            Some(mesh_ship_bone(map, body, |spec| &spec.bone0,)),
+            Some(mesh_ship_bone(map, body, |spec| &spec.bone1,)),
+            Some(mesh_ship_bone(map, body, |spec| &spec.bone2,)),
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+        ]
     }
 }

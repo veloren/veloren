@@ -21,7 +21,7 @@ use anim::{
     biped_large::BipedLargeSkeleton, biped_small::BipedSmallSkeleton,
     bird_medium::BirdMediumSkeleton, bird_small::BirdSmallSkeleton, character::CharacterSkeleton,
     dragon::DragonSkeleton, fish_medium::FishMediumSkeleton, fish_small::FishSmallSkeleton,
-    golem::GolemSkeleton, object::ObjectSkeleton, quadruped_low::QuadrupedLowSkeleton,
+    golem::GolemSkeleton, object::ObjectSkeleton, ship::ShipSkeleton, quadruped_low::QuadrupedLowSkeleton,
     quadruped_medium::QuadrupedMediumSkeleton, quadruped_small::QuadrupedSmallSkeleton,
     theropod::TheropodSkeleton, Animation, Skeleton,
 };
@@ -101,6 +101,7 @@ struct FigureMgrStates {
     biped_small_states: HashMap<EcsEntity, FigureState<BipedSmallSkeleton>>,
     golem_states: HashMap<EcsEntity, FigureState<GolemSkeleton>>,
     object_states: HashMap<EcsEntity, FigureState<ObjectSkeleton>>,
+    ship_states: HashMap<EcsEntity, FigureState<ShipSkeleton>>,
 }
 
 impl FigureMgrStates {
@@ -120,6 +121,7 @@ impl FigureMgrStates {
             biped_small_states: HashMap::new(),
             golem_states: HashMap::new(),
             object_states: HashMap::new(),
+            ship_states: HashMap::new(),
         }
     }
 
@@ -180,6 +182,7 @@ impl FigureMgrStates {
                 .map(DerefMut::deref_mut),
             Body::Golem(_) => self.golem_states.get_mut(&entity).map(DerefMut::deref_mut),
             Body::Object(_) => self.object_states.get_mut(&entity).map(DerefMut::deref_mut),
+            Body::Ship(_) => self.ship_states.get_mut(&entity).map(DerefMut::deref_mut),
         }
     }
 
@@ -205,6 +208,7 @@ impl FigureMgrStates {
             Body::BipedSmall(_) => self.biped_small_states.remove(&entity).map(|e| e.meta),
             Body::Golem(_) => self.golem_states.remove(&entity).map(|e| e.meta),
             Body::Object(_) => self.object_states.remove(&entity).map(|e| e.meta),
+            Body::Ship(_) => self.ship_states.remove(&entity).map(|e| e.meta),
         }
     }
 
@@ -224,6 +228,7 @@ impl FigureMgrStates {
         self.biped_small_states.retain(|k, v| f(k, &mut *v));
         self.golem_states.retain(|k, v| f(k, &mut *v));
         self.object_states.retain(|k, v| f(k, &mut *v));
+        self.ship_states.retain(|k, v| f(k, &mut *v));
     }
 
     fn count(&self) -> usize {
@@ -242,6 +247,7 @@ impl FigureMgrStates {
             + self.biped_small_states.len()
             + self.golem_states.len()
             + self.object_states.len()
+            + self.ship_states.len()
     }
 
     fn count_visible(&self) -> usize {
@@ -314,6 +320,11 @@ impl FigureMgrStates {
                 .iter()
                 .filter(|(_, c)| c.visible())
                 .count()
+            + self
+                .ship_states
+                .iter()
+                .filter(|(_, c)| c.visible())
+                .count()
     }
 }
 
@@ -332,6 +343,7 @@ pub struct FigureMgr {
     biped_large_model_cache: FigureModelCache<BipedLargeSkeleton>,
     biped_small_model_cache: FigureModelCache<BipedSmallSkeleton>,
     object_model_cache: FigureModelCache<ObjectSkeleton>,
+    ship_model_cache: FigureModelCache<ShipSkeleton>,
     golem_model_cache: FigureModelCache<GolemSkeleton>,
     states: FigureMgrStates,
 }
@@ -353,6 +365,7 @@ impl FigureMgr {
             biped_large_model_cache: FigureModelCache::new(),
             biped_small_model_cache: FigureModelCache::new(),
             object_model_cache: FigureModelCache::new(),
+            ship_model_cache: FigureModelCache::new(),
             golem_model_cache: FigureModelCache::new(),
             states: FigureMgrStates::default(),
         }
@@ -384,6 +397,7 @@ impl FigureMgr {
         self.biped_small_model_cache
             .clean(&mut self.col_lights, tick);
         self.object_model_cache.clean(&mut self.col_lights, tick);
+        self.ship_model_cache.clean(&mut self.col_lights, tick);
         self.golem_model_cache.clean(&mut self.col_lights, tick);
     }
 
@@ -4106,6 +4120,79 @@ impl FigureMgr {
                         terrain,
                     );
                 },
+                Body::Ship(body) => {
+                    let (model, skeleton_attr) = self.ship_model_cache.get_or_create_model(
+                        renderer,
+                        &mut self.col_lights,
+                        *body,
+                        inventory,
+                        tick,
+                        player_camera_mode,
+                        player_character_state,
+                        scene_data.runtime,
+                    );
+
+                    let state =
+                        self.states.ship_states.entry(entity).or_insert_with(|| {
+                            FigureState::new(renderer, ShipSkeleton::default())
+                        });
+
+                    let (character, last_character) = match (character, last_character) {
+                        (Some(c), Some(l)) => (c, l),
+                        _ => (&CharacterState::Idle, &Last {
+                            0: CharacterState::Idle,
+                        }),
+                    };
+
+                    if !character.same_variant(&last_character.0) {
+                        state.state_time = 0.0;
+                    }
+
+                    let target_base = match (
+                        physics.on_ground,
+                        vel.0.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
+                        physics.in_liquid.is_some(),                      // In water
+                    ) {
+                        // Standing
+                        (true, false, false) => anim::ship::IdleAnimation::update_skeleton(
+                            &ShipSkeleton::default(),
+                            (active_tool_kind, second_tool_kind, time),
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        ),
+                        _ => anim::ship::IdleAnimation::update_skeleton(
+                            &ShipSkeleton::default(),
+                            (active_tool_kind, second_tool_kind, time),
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        ),
+                    };
+
+                    let target_bones = match &character {
+                        // TODO!
+                        _ => target_base,
+                    };
+
+                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
+                    state.update(
+                        renderer,
+                        pos.0,
+                        ori,
+                        scale,
+                        col,
+                        dt,
+                        state_animation_rate,
+                        model,
+                        lpindex,
+                        true,
+                        is_player,
+                        camera,
+                        &mut update_buf,
+                        terrain,
+                    );
+                },
             }
         }
 
@@ -4313,6 +4400,7 @@ impl FigureMgr {
             biped_large_model_cache,
             biped_small_model_cache,
             object_model_cache,
+            ship_model_cache,
             golem_model_cache,
             states:
                 FigureMgrStates {
@@ -4330,6 +4418,7 @@ impl FigureMgr {
                     biped_small_states,
                     golem_states,
                     object_states,
+                    ship_states,
                 },
         } = self;
         let col_lights = &*col_lights_;
@@ -4563,6 +4652,23 @@ impl FigureMgr {
                         state.locals(),
                         state.bone_consts(),
                         object_model_cache.get_model(
+                            col_lights,
+                            *body,
+                            inventory,
+                            tick,
+                            player_camera_mode,
+                            character_state,
+                        ),
+                    )
+                }),
+            Body::Ship(body) => ship_states
+                .get(&entity)
+                .filter(|state| filter_state(&*state))
+                .map(move |state| {
+                    (
+                        state.locals(),
+                        state.bone_consts(),
+                        ship_model_cache.get_model(
                             col_lights,
                             *body,
                             inventory,

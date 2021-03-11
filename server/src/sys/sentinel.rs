@@ -140,7 +140,7 @@ impl<'a> TrackedComps<'a> {
         self.mass.get(entity).copied().map(|c| comps.push(c.into()));
         self.collider
             .get(entity)
-            .copied()
+            .cloned()
             .map(|c| comps.push(c.into()));
         self.sticky
             .get(entity)

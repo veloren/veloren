@@ -168,6 +168,7 @@ impl<'a> From<&'a Body> for Psyche {
                 Body::Golem(_) => 1.0,
                 Body::Theropod(_) => 1.0,
                 Body::Dragon(_) => 1.0,
+                Body::Ship(_) => 1.0,
             },
         }
     }

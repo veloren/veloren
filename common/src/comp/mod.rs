@@ -48,7 +48,7 @@ pub use self::{
     beam::{Beam, BeamSegment},
     body::{
         biped_large, biped_small, bird_medium, bird_small, dragon, fish_medium, fish_small, golem,
-        humanoid, object, quadruped_low, quadruped_medium, quadruped_small, theropod, AllBodies,
+        humanoid, object, quadruped_low, quadruped_medium, quadruped_small, theropod, ship, AllBodies,
         Body, BodyData,
     },
     buff::{

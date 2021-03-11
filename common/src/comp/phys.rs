@@ -55,9 +55,12 @@ impl Component for Mass {
     type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
 }
 
-// Mass
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+// Collider
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Collider {
+    // TODO: pass the map from ids -> voxel data to get_radius and get_z_limits to compute a
+    // bounding cylinder
+    Voxel { id: String },
     Box { radius: f32, z_min: f32, z_max: f32 },
     Point,
 }
@@ -65,6 +68,7 @@ pub enum Collider {
 impl Collider {
     pub fn get_radius(&self) -> f32 {
         match self {
+            Collider::Voxel { .. } => 0.0,
             Collider::Box { radius, .. } => *radius,
             Collider::Point => 0.0,
         }
@@ -72,6 +76,7 @@ impl Collider {
 
     pub fn get_z_limits(&self, modifier: f32) -> (f32, f32) {
         match self {
+            Collider::Voxel { .. } => (0.0, 0.0),
             Collider::Box { z_min, z_max, .. } => (*z_min * modifier, *z_max * modifier),
             Collider::Point => (0.0, 0.0),
         }

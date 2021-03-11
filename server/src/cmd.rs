@@ -77,6 +77,7 @@ type CommandHandler = fn(&mut Server, EcsEntity, EcsEntity, String, &ChatCommand
 fn get_handler(cmd: &ChatCommand) -> CommandHandler {
     match cmd {
         ChatCommand::Adminify => handle_adminify,
+        ChatCommand::Airship => handle_spawn_airship,
         ChatCommand::Alias => handle_alias,
         ChatCommand::Ban => handle_ban,
         ChatCommand::Build => handle_build,
@@ -975,6 +976,39 @@ fn handle_spawn_training_dummy(
             server.notify_client(
                 client,
                 ServerGeneral::server_msg(ChatType::CommandInfo, "Spawned a training dummy"),
+            );
+        },
+        None => server.notify_client(
+            client,
+            ServerGeneral::server_msg(ChatType::CommandError, "You have no position!"),
+        ),
+    }
+}
+
+fn handle_spawn_airship(
+    server: &mut Server,
+    client: EcsEntity,
+    target: EcsEntity,
+    _args: String,
+    _action: &ChatCommand,
+) {
+    match server.state.read_component_copied::<comp::Pos>(target) {
+        Some(pos) => {
+            server
+                .state
+                .create_ship(pos, comp::ship::Body::DefaultAirship)
+                .with(comp::Scale(50.0))
+                .with(LightEmitter {
+                    col: Rgb::new(1.0, 0.65, 0.2),
+                    strength: 2.0,
+                    flicker: 1.0,
+                    animated: true,
+                })
+                .build();
+
+            server.notify_client(
+                client,
+                ServerGeneral::server_msg(ChatType::CommandInfo, "Spawned an airship"),
             );
         },
         None => server.notify_client(

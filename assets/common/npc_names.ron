@@ -969,6 +969,15 @@
         ),
         species: ()
     ),
+    ship: (
+        body: (
+            keyword: "ship",
+            names_0: [
+                "Boaty McBoatface",
+            ],
+        ),
+        species: (),
+    ),
     biped_small: (
         body: (
             keyword: "biped_small",

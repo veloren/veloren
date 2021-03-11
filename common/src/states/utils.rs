@@ -5,7 +5,7 @@ use crate::{
         item::{Hands, ItemKind, Tool, ToolKind},
         quadruped_low, quadruped_medium, quadruped_small,
         skills::Skill,
-        theropod, Body, CharacterAbility, CharacterState, InputKind, InventoryAction, StateUpdate,
+        theropod, ship, Body, CharacterAbility, CharacterState, InputKind, InventoryAction, StateUpdate,
     },
     consts::{FRIC_GROUND, GRAVITY},
     event::{LocalEvent, ServerEvent},
@@ -117,6 +117,7 @@ impl Body {
                 quadruped_low::Species::Basilisk => 120.0,
                 quadruped_low::Species::Deadwood => 140.0,
             },
+            Body::Ship(_) => 30.0,
         }
     }
 
@@ -168,13 +169,14 @@ impl Body {
                 quadruped_low::Species::Lavadrake => 4.0,
                 _ => 6.0,
             },
+            Body::Ship(_) => 10.0,
         }
     }
 
     pub fn can_fly(&self) -> bool {
         matches!(
             self,
-            Body::BirdMedium(_) | Body::Dragon(_) | Body::BirdSmall(_)
+            Body::BirdMedium(_) | Body::Dragon(_) | Body::BirdSmall(_) | Body::Ship(ship::Body::DefaultAirship)
         )
     }
 

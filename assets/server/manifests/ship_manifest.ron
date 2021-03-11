@@ -1,0 +1,16 @@
+({
+    DefaultAirship: (
+        bone0: (
+            offset: (-20.0, -35.0, 1.0),
+            central: ("object.Human_Airship"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("propeller-l"),
+        ),
+        bone2: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("propeller-r"),
+        ),
+    ),
+})
