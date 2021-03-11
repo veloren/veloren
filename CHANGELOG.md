@@ -46,6 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Giant tree sites
 - Reset button for graphics settings
 - Gave weapons critical strike {chance, multiplier} stats
+- A system to add glow and reflection effects to figures (i.e: characters, armour, weapons, etc.)
 
 ### Changed
 
@@ -72,6 +73,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved the tree spawning model to allow for overlapping forests
 - Changed sunlight (and, in general, static light) propagation through blocks to allow for more material properties
 - Overhauled the sceptre
+- Make the /time command relative to the current day
 
 ### Removed
 

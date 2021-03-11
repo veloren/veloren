@@ -513,25 +513,54 @@ fn handle_time(
     args: String,
     action: &ChatCommand,
 ) {
+    const DAY: u64 = 86400;
+
+    let time_in_seconds = server.state.ecs_mut().read_resource::<TimeOfDay>().0;
+    let current_day = time_in_seconds as u64 / DAY;
+    let day_start = (current_day * DAY) as f64;
+
+    // Find the next occurence of the given time in the day/night cycle
+    let next_cycle = |time| {
+        let new_time = day_start + time;
+        new_time
+            + if new_time < time_in_seconds {
+                DAY as f64
+            } else {
+                0.0
+            }
+    };
+
     let time = scan_fmt_some!(&args, &action.arg_fmt(), String);
     let new_time = match time.as_deref() {
-        Some("midnight") => NaiveTime::from_hms(0, 0, 0).num_seconds_from_midnight() as f64,
-        Some("night") => NaiveTime::from_hms(20, 0, 0).num_seconds_from_midnight() as f64,
-        Some("dawn") => NaiveTime::from_hms(5, 0, 0).num_seconds_from_midnight() as f64,
-        Some("morning") => NaiveTime::from_hms(8, 0, 0).num_seconds_from_midnight() as f64,
-        Some("day") => NaiveTime::from_hms(10, 0, 0).num_seconds_from_midnight() as f64,
-        Some("noon") => NaiveTime::from_hms(12, 0, 0).num_seconds_from_midnight() as f64,
-        Some("dusk") => NaiveTime::from_hms(17, 0, 0).num_seconds_from_midnight() as f64,
+        Some("midnight") => {
+            next_cycle(NaiveTime::from_hms(0, 0, 0).num_seconds_from_midnight() as f64)
+        },
+        Some("night") => {
+            next_cycle(NaiveTime::from_hms(20, 0, 0).num_seconds_from_midnight() as f64)
+        },
+        Some("dawn") => next_cycle(NaiveTime::from_hms(5, 0, 0).num_seconds_from_midnight() as f64),
+        Some("morning") => {
+            next_cycle(NaiveTime::from_hms(8, 0, 0).num_seconds_from_midnight() as f64)
+        },
+        Some("day") => next_cycle(NaiveTime::from_hms(10, 0, 0).num_seconds_from_midnight() as f64),
+        Some("noon") => {
+            next_cycle(NaiveTime::from_hms(12, 0, 0).num_seconds_from_midnight() as f64)
+        },
+        Some("dusk") => {
+            next_cycle(NaiveTime::from_hms(17, 0, 0).num_seconds_from_midnight() as f64)
+        },
         Some(n) => match n.parse() {
             Ok(n) => n,
             Err(_) => match NaiveTime::parse_from_str(n, "%H:%M") {
-                Ok(time) => time.num_seconds_from_midnight() as f64,
+                // Relative to current day
+                Ok(time) => next_cycle(time.num_seconds_from_midnight() as f64),
                 // Accept `u12345`, seconds since midnight day 0
                 Err(_) => match n
                     .get(1..)
                     .filter(|_| n.starts_with('u'))
                     .and_then(|n| n.trim_start_matches('u').parse::<u64>().ok())
                 {
+                    // Absolute time (i.e: since in-game epoch)
                     Some(n) => n as f64,
                     None => {
                         server.notify_client(
@@ -547,8 +576,6 @@ fn handle_time(
             },
         },
         None => {
-            let time_in_seconds = server.state.ecs_mut().read_resource::<TimeOfDay>().0;
-
             // Would this ever change? Perhaps in a few hundred thousand years some
             // game archeologists of the future will resurrect the best game of all
             // time which, obviously, would be Veloren. By that time, the inescapable
@@ -588,7 +615,6 @@ fn handle_time(
             // it! Everybody was henceforth happy until the end of time.
             //
             // This one's for you, xMac ;)
-            const DAY: u64 = 86400;
             let current_time = NaiveTime::from_num_seconds_from_midnight_opt(
                 // Wraps around back to 0s if it exceeds 24 hours (24 hours = 86400s)
                 (time_in_seconds as u64 % DAY) as u32,
