@@ -62,7 +62,7 @@ fn main() {
 
     runtime
         .block_on(client.register(username, password, |provider| {
-            provider == "auth.veloren.net"
+            provider == "https:://auth.veloren.net"
         }))
         .unwrap();
 

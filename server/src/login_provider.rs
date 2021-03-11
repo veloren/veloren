@@ -44,8 +44,19 @@ pub struct LoginProvider {
 impl LoginProvider {
     pub fn new(auth_addr: Option<String>, runtime: Arc<Runtime>) -> Self {
         tracing::trace!(?auth_addr, "Starting LoginProvider");
-        let auth_server = auth_addr
-            .map(|addr| Arc::new(AuthClient::new(authc::Authority::from_str(&addr).unwrap())));
+
+        let auth_server = auth_addr.map(|addr| {
+            let (scheme, authority) = addr.split_once("://").expect("invalid auth url");
+
+            let scheme = scheme
+                .parse::<authc::Scheme>()
+                .expect("invalid auth url scheme");
+            let authority = authority
+                .parse::<authc::Authority>()
+                .expect("invalid auth url authority");
+
+            Arc::new(AuthClient::new(scheme, authority).expect("insecure auth scheme"))
+        });
 
         Self {
             runtime,

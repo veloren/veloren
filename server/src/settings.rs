@@ -49,7 +49,7 @@ impl Default for Settings {
         Self {
             gameserver_address: SocketAddr::from(([0; 4], 14004)),
             metrics_address: SocketAddr::from(([0; 4], 14005)),
-            auth_server_address: Some("auth.veloren.net".into()),
+            auth_server_address: Some("https://auth.veloren.net".into()),
             world_seed: DEFAULT_WORLD_SEED,
             server_name: "Veloren Alpha".into(),
             max_players: 100,

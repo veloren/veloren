@@ -6,7 +6,8 @@
     bool_to_option,
     drain_filter,
     option_unwrap_none,
-    option_zip
+    option_zip,
+    str_split_once
 )]
 #![cfg_attr(not(feature = "worldgen"), feature(const_panic))]
 

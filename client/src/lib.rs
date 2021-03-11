@@ -489,14 +489,25 @@ impl Client {
             Some(addr) => {
                 // Query whether this is a trusted auth server
                 if auth_trusted(&addr) {
-                    use std::str::FromStr;
-                    match authc::Authority::from_str(&addr) {
-                        Ok(addr) => Ok(authc::AuthClient::new(addr)
-                            .sign_in(&username, &password)
-                            .await?
-                            .serialize()),
-                        Err(_) => Err(Error::AuthServerUrlInvalid(addr.to_string())),
-                    }
+                    let (scheme, authority) = match addr.split_once("://") {
+                        Some((s, a)) => (s, a),
+                        None => return Err(Error::AuthServerUrlInvalid(addr.to_string())),
+                    };
+
+                    let scheme = match scheme.parse::<authc::Scheme>() {
+                        Ok(s) => s,
+                        Err(_) => return Err(Error::AuthServerUrlInvalid(addr.to_string())),
+                    };
+
+                    let authority = match authority.parse::<authc::Authority>() {
+                        Ok(a) => a,
+                        Err(_) => return Err(Error::AuthServerUrlInvalid(addr.to_string())),
+                    };
+
+                    Ok(authc::AuthClient::new(scheme, authority)?
+                        .sign_in(&username, &password)
+                        .await?
+                        .serialize())
                 } else {
                     Err(Error::AuthServerNotTrusted)
                 }

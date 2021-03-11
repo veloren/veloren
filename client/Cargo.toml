@@ -27,7 +27,7 @@ rayon = "1.5"
 specs = { git = "https://github.com/amethyst/specs.git", rev = "5a9b71035007be0e3574f35184acac1cd4530496" }
 vek = { version = "=0.14.1", features = ["serde"] }
 hashbrown = { version = "0.9", features = ["rayon", "serde", "nightly"] }
-authc = { git = "https://gitlab.com/veloren/auth.git", rev = "f3683798bc5ea656845010f9bae11b05dd671ece" }
+authc = { git = "https://gitlab.com/veloren/auth.git", rev = "fb3dcbc4962b367253f8f2f92760ef44d2679c9a" }
 
 [dev-dependencies]
 tracing-subscriber = { version = "0.2.3", default-features = false, features = ["fmt", "chrono", "ansi", "smallvec"] }

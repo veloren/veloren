@@ -197,6 +197,9 @@ impl PlayState for MainMenuState {
                                     localized_strings.get("main.login.failed_sending_request"),
                                     e
                                 ),
+                                client::AuthClientError::InsecureSchema => localized_strings
+                                    .get("main.login.insecure_auth_scheme")
+                                    .into(),
                                 client::AuthClientError::ServerError(_, e) => {
                                     String::from_utf8_lossy(&e).to_string()
                                 },
