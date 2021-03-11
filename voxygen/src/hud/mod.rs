@@ -61,7 +61,6 @@ use crate::{
     GlobalState,
 };
 use client::Client;
-
 use common::{
     combat,
     comp::{
@@ -307,6 +306,13 @@ pub struct SkillPointGain {
     pub skill_tree: SkillGroupKind,
     pub total_points: u16,
     pub timer: f32,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct ComboFloater {
+    pub owner: Uid,
+    pub combo: u32,
+    pub timer: f64,
 }
 
 pub struct DebugInfo {
@@ -732,6 +738,7 @@ pub struct Hud {
     crosshair_opacity: f32,
     exp_floaters: Vec<ExpFloater>,
     skill_point_displays: Vec<SkillPointGain>,
+    combo_floaters: VecDeque<ComboFloater>,
 }
 
 impl Hud {
@@ -840,6 +847,7 @@ impl Hud {
             crosshair_opacity: 0.0,
             exp_floaters: Vec::new(),
             skill_point_displays: Vec::new(),
+            combo_floaters: VecDeque::new(),
         }
     }
 
@@ -2158,6 +2166,19 @@ impl Hud {
         let controllers = ecs.read_storage::<comp::Controller>();
         let ability_map = ecs.fetch::<comp::item::tool::AbilityMap>();
         let bodies = ecs.read_storage::<comp::Body>();
+        // Combo floater stuffs
+        for combo_floater in self.combo_floaters.iter_mut() {
+            combo_floater.timer -= dt.as_secs_f64();
+        }
+        self.combo_floaters.retain(|f| f.timer > 0_f64);
+        let combo = if let Some(uid) = ecs.read_storage::<Uid>().get(entity) {
+            self.combo_floaters
+                .iter()
+                .find(|c| c.owner == *uid)
+                .copied()
+        } else {
+            None
+        };
 
         if let (
             Some(health),
@@ -2190,6 +2211,7 @@ impl Hud {
                 i18n,
                 &ability_map,
                 &msm,
+                combo,
             )
             .set(self.ids.skillbar, ui_widgets);
         }
@@ -3203,6 +3225,11 @@ impl Hud {
                 total_points: *total_points,
                 timer: 5.0,
             }),
+            Outcome::ComboChange { uid, combo } => self.combo_floaters.push_front(ComboFloater {
+                owner: *uid,
+                combo: *combo,
+                timer: comp::combo::COMBO_DECAY_START,
+            }),
             _ => {},
         }
     }
@@ -3278,6 +3305,7 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::IncreaseMaxEnergy { .. } => imgs.buff_energyplus_0,
         BuffKind::IncreaseMaxHealth { .. } => imgs.buff_healthplus_0,
         BuffKind::Invulnerability => imgs.buff_invincibility_0,
+        BuffKind::ProtectingWard => imgs.buff_dmg_red_0,
         //  Debuffs
         BuffKind::Bleeding { .. } => imgs.debuff_bleed_0,
         BuffKind::Cursed { .. } => imgs.debuff_skull_0,
@@ -3294,6 +3322,7 @@ pub fn get_buff_title(buff: BuffKind, localized_strings: &Localization) -> &str 
         BuffKind::IncreaseMaxHealth { .. } => localized_strings.get("buff.title.IncreaseMaxHealth"),
         BuffKind::IncreaseMaxEnergy { .. } => localized_strings.get("buff.title.staminaup"),
         BuffKind::Invulnerability => localized_strings.get("buff.title.invulnerability"),
+        BuffKind::ProtectingWard => localized_strings.get("buff.title.protectingward"),
         // Debuffs
         BuffKind::Bleeding { .. } => localized_strings.get("buff.title.bleed"),
         BuffKind::Cursed { .. } => localized_strings.get("buff.title.cursed"),
@@ -3310,6 +3339,7 @@ pub fn get_buff_desc(buff: BuffKind, localized_strings: &Localization) -> &str {
         BuffKind::IncreaseMaxHealth { .. } => localized_strings.get("buff.desc.IncreaseMaxHealth"),
         BuffKind::IncreaseMaxEnergy { .. } => localized_strings.get("buff.desc.IncreaseMaxEnergy"),
         BuffKind::Invulnerability => localized_strings.get("buff.desc.invulnerability"),
+        BuffKind::ProtectingWard => localized_strings.get("buff.desc.protectingward"),
         // Debuffs
         BuffKind::Bleeding { .. } => localized_strings.get("buff.desc.bleed"),
         BuffKind::Cursed { .. } => localized_strings.get("buff.desc.cursed"),

@@ -1,5 +1,6 @@
 use common::{
     comp::{
+        self,
         skills::{GeneralSkill, Skill},
         Body, CharacterState, Combo, Energy, EnergyChange, EnergySource, Health, Poise,
         PoiseChange, PoiseSource, Pos, Stats,
@@ -18,7 +19,6 @@ use vek::Vec3;
 
 const ENERGY_REGEN_ACCEL: f32 = 10.0;
 const POISE_REGEN_ACCEL: f32 = 2.0;
-const COMBO_DECAY_START: f64 = 5.0; // seconds
 
 #[derive(SystemData)]
 pub struct ReadData<'a> {
@@ -232,7 +232,9 @@ impl<'a> System<'a> for Sys {
                 | CharacterState::ChargedRanged { .. }
                 | CharacterState::RepeaterRanged { .. }
                 | CharacterState::Shockwave { .. }
-                | CharacterState::BasicBeam { .. } => {
+                | CharacterState::BasicBeam { .. }
+                | CharacterState::BasicAura { .. }
+                | CharacterState::HealingBeam { .. } => {
                     if energy.get_unchecked().regen_rate != 0.0 {
                         energy.get_mut_unchecked().regen_rate = 0.0
                     }
@@ -262,7 +264,9 @@ impl<'a> System<'a> for Sys {
 
         // Decay combo
         for (_, mut combo) in (&read_data.entities, &mut combos).join() {
-            if combo.counter() > 0 && read_data.time.0 - combo.last_increase() > COMBO_DECAY_START {
+            if combo.counter() > 0
+                && read_data.time.0 - combo.last_increase() > comp::combo::COMBO_DECAY_START
+            {
                 combo.reset();
             }
         }

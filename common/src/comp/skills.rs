@@ -219,19 +219,21 @@ pub enum StaffSkill {
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub enum SceptreSkill {
-    // Beam  upgrades
-    BHeal,
-    BDamage,
-    BRange,
-    BLifesteal,
-    BRegen,
-    BCost,
-    // Projectile upgrades
-    PHeal,
-    PDamage,
-    PRadius,
-    PCost,
-    PProjSpeed,
+    // Lifesteal beam upgrades
+    LDamage,
+    LRange,
+    LLifesteal,
+    LRegen,
+    // Healing beam upgrades
+    HHeal,
+    HCost,
+    HRange,
+    // Warding aura upgrades
+    UnlockAura,
+    AStrength,
+    ADuration,
+    ARange,
+    ACost,
 }
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]

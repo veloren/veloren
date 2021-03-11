@@ -70,9 +70,11 @@
         ],
     ),
     Sceptre: (
-        primary: "common.abilities.sceptre.healingbeam",
-        secondary: "common.abilities.sceptre.healingbomb",
-        abilities: [],
+        primary: "common.abilities.sceptre.lifestealbeam",
+        secondary: "common.abilities.sceptre.healingbeam",
+        abilities: [
+            (Some(Sceptre(UnlockAura)), "common.abilities.sceptre.wardingaura"),
+        ],
     ),
     Dagger: (
         primary: "common.abilities.dagger.tempbasic",

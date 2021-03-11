@@ -106,7 +106,8 @@ impl CharacterBehavior for Data {
                         .with_damage(damage)
                         .with_crit(crit_chance, crit_mult)
                         .with_effect(poise)
-                        .with_effect(knockback);
+                        .with_effect(knockback)
+                        .with_combo_increment();
                     let properties = shockwave::Properties {
                         angle: self.static_data.shockwave_angle,
                         vertical_angle: self.static_data.shockwave_vertical_angle,

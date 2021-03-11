@@ -6,6 +6,7 @@ use super::{
     STAMINA_COLOR, TEXT_COLOR, UI_HIGHLIGHT_0,
 };
 use crate::{
+    hud::ComboFloater,
     i18n::Localization,
     ui::{
         fonts::Fonts,
@@ -16,6 +17,7 @@ use crate::{
     GlobalState,
 };
 use common::comp::{
+    self,
     inventory::slot::EquipSlot,
     item::{
         tool::{AbilityMap, Tool, ToolKind},
@@ -74,6 +76,10 @@ widget_ids! {
         stamina_txt_alignment,
         stamina_txt_bg,
         stamina_txt,
+        // Combo Counter
+        combo_align,
+        combo_bg,
+        combo,
         // Slots
         m1_slot,
         m1_slot_bg,
@@ -141,6 +147,7 @@ pub struct Skillbar<'a> {
     common: widget::CommonBuilder,
     ability_map: &'a AbilityMap,
     msm: &'a MaterialStatManifest,
+    combo: Option<ComboFloater>,
 }
 
 impl<'a> Skillbar<'a> {
@@ -163,6 +170,7 @@ impl<'a> Skillbar<'a> {
         localized_strings: &'a Localization,
         ability_map: &'a AbilityMap,
         msm: &'a MaterialStatManifest,
+        combo: Option<ComboFloater>,
     ) -> Self {
         Self {
             global_state,
@@ -183,6 +191,7 @@ impl<'a> Skillbar<'a> {
             localized_strings,
             ability_map,
             msm,
+            combo,
         }
     }
 }
@@ -575,7 +584,7 @@ impl<'a> Widget for Skillbar<'a> {
                     ToolKind::Hammer => self.imgs.twohhammer_m1,
                     ToolKind::Axe => self.imgs.twohaxe_m1,
                     ToolKind::Bow => self.imgs.bow_m1,
-                    ToolKind::Sceptre => self.imgs.heal_0,
+                    ToolKind::Sceptre => self.imgs.skill_sceptre_lifesteal,
                     ToolKind::Staff => self.imgs.fireball,
                     ToolKind::Debug => self.imgs.flyingrod_m1,
                     _ => self.imgs.nothing,
@@ -622,7 +631,7 @@ impl<'a> Widget for Skillbar<'a> {
             Some(ToolKind::Hammer) => self.imgs.hammergolf,
             Some(ToolKind::Axe) => self.imgs.axespin,
             Some(ToolKind::Bow) => self.imgs.bow_m2,
-            Some(ToolKind::Sceptre) => self.imgs.heal_bomb,
+            Some(ToolKind::Sceptre) => self.imgs.skill_sceptre_heal,
             Some(ToolKind::Staff) => self.imgs.flamethrower,
             Some(ToolKind::Debug) => self.imgs.flyingrod_m2,
             _ => self.imgs.nothing,
@@ -909,6 +918,44 @@ impl<'a> Widget for Skillbar<'a> {
             .w_h(16.0, 18.0)
             .mid_bottom_with_margin_on(state.ids.m2_content, -11.0)
             .set(state.ids.m2_ico, ui);
+
+        // Combo Counter
+        if let Some(combo) = self.combo {
+            if combo.combo > 0 {
+                let combo_txt = format!("{} Combo", combo.combo);
+                let combo_cnt = combo.combo as f32;
+                let time_since_last_update = comp::combo::COMBO_DECAY_START - combo.timer;
+                let alpha = (1.0 - time_since_last_update * 0.2).min(1.0) as f32;
+                let fnt_col = Color::Rgba(
+                    // White -> Yellow -> Red text color gradient depending on count
+                    (1.0 - combo_cnt / (combo_cnt + 20.0)).max(0.79),
+                    (1.0 - combo_cnt / (combo_cnt + 80.0)).max(0.19),
+                    (1.0 - combo_cnt / (combo_cnt + 5.0)).max(0.17),
+                    alpha,
+                );
+
+                let fnt_size = ((14.0 + combo.timer as f32 * 0.8).min(30.0)) as u32
+                    + if (time_since_last_update) < 0.1 { 2 } else { 0 }; // Increase size for higher counts, "flash" on update by increasing the font size by 2
+                Rectangle::fill_with([10.0, 10.0], color::TRANSPARENT)
+                    .middle_of(ui.window)
+                    .set(state.ids.combo_align, ui);
+                Text::new(combo_txt.as_str())
+                    .mid_bottom_with_margin_on(
+                        state.ids.combo_align,
+                        -350.0 + time_since_last_update * -8.0,
+                    )
+                    .font_size(self.fonts.cyri.scale(fnt_size))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .color(Color::Rgba(0.0, 0.0, 0.0, alpha))
+                    .set(state.ids.combo_bg, ui);
+                Text::new(combo_txt.as_str())
+                    .bottom_right_with_margins_on(state.ids.combo_bg, 1.0, 1.0)
+                    .font_size(self.fonts.cyri.scale(fnt_size))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .color(fnt_col)
+                    .set(state.ids.combo, ui);
+            }
+        }
     }
 }
 
@@ -935,6 +982,10 @@ fn ability_description(tool: &ToolKind) -> Option<(&str, &str)> {
         ToolKind::Debug => Some((
             "Possessing Arrow",
             "\nShoots a poisonous arrow.\nLets you control your target.",
+        )),
+        ToolKind::Sceptre => Some((
+            "Thorn Bulwark",
+            "\nProtects you and your group with thorns\nfor a short amount of time.",
         )),
         _ => None,
     }

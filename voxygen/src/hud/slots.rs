@@ -116,6 +116,7 @@ pub enum HotbarImage {
     HammerLeap,
     AxeLeapSlash,
     BowJumpBurst,
+    SceptreAura,
 }
 
 type HotbarSource<'a> = (
@@ -239,6 +240,7 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
             HotbarImage::HammerLeap => vec![imgs.hammerleap],
             HotbarImage::AxeLeapSlash => vec![imgs.skill_axe_leap_slash],
             HotbarImage::BowJumpBurst => vec![imgs.skill_bow_jump_burst],
+            HotbarImage::SceptreAura => vec![imgs.skill_sceptre_aura],
         }
     }
 }
@@ -268,6 +270,7 @@ fn hotbar_image(tool: ToolKind) -> Option<HotbarImage> {
         ToolKind::Bow => Some(HotbarImage::BowJumpBurst),
         ToolKind::Debug => Some(HotbarImage::SnakeArrow),
         ToolKind::Sword => Some(HotbarImage::SwordWhirlwind),
+        ToolKind::Sceptre => Some(HotbarImage::SceptreAura),
         _ => None,
     }
 }

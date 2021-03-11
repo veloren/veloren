@@ -165,8 +165,8 @@ impl<'a> System<'a> for Sys {
                                     energy.set_maximum(new_max);
                                 },
                             },
-                            BuffEffect::ImmuneToAttacks => {
-                                stat.damage_reduction = 1.0;
+                            BuffEffect::DamageReduction(dr) => {
+                                stat.damage_reduction = dr.min(1.0);
                             },
                         };
                     }

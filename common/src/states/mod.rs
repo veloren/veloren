@@ -1,3 +1,4 @@
+pub mod basic_aura;
 pub mod basic_beam;
 pub mod basic_block;
 pub mod basic_melee;
@@ -13,6 +14,7 @@ pub mod dash_melee;
 pub mod equipping;
 pub mod glide;
 pub mod glide_wield;
+pub mod healing_beam;
 pub mod idle;
 pub mod leap_melee;
 pub mod repeater_ranged;

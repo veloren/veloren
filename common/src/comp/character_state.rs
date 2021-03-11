@@ -81,6 +81,13 @@ pub enum CharacterState {
     /// A continuous attack that affects all creatures in a cone originating
     /// from the source
     BasicBeam(basic_beam::Data),
+    /// Creates an aura that persists as long as you are actively casting
+    BasicAura(basic_aura::Data),
+    /// A directed beam that heals targets in range. This is separate from basic
+    /// beam as a large amount of functionality needed to be special cased
+    /// specifically for the healing beam. There was also functionality present
+    /// on basic beam which was unnecessary for the healing beam.
+    HealingBeam(healing_beam::Data),
 }
 
 impl CharacterState {
@@ -100,6 +107,8 @@ impl CharacterState {
                 | CharacterState::RepeaterRanged(_)
                 | CharacterState::Shockwave(_)
                 | CharacterState::BasicBeam(_)
+                | CharacterState::BasicAura(_)
+                | CharacterState::HealingBeam(_)
         )
     }
 
@@ -121,6 +130,8 @@ impl CharacterState {
                 | CharacterState::RepeaterRanged(_)
                 | CharacterState::Shockwave(_)
                 | CharacterState::BasicBeam(_)
+                | CharacterState::BasicAura(_)
+                | CharacterState::HealingBeam(_)
         )
     }
 
@@ -141,6 +152,7 @@ impl CharacterState {
                 | CharacterState::Stunned(_)
                 | CharacterState::Wielding
                 | CharacterState::Talk
+                | CharacterState::HealingBeam(_)
         )
     }
 

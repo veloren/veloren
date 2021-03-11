@@ -8,8 +8,10 @@ use crate::{
 };
 use common::{
     assets::{AssetExt, DotVoxAsset},
-    combat::CombatEffect,
-    comp::{item::Reagent, object, BeamSegment, Body, CharacterState, Ori, Pos, Shockwave},
+    comp::{
+        self, aura, beam, buff, item::Reagent, object, BeamSegment, Body, CharacterState, Ori, Pos,
+        Shockwave,
+    },
     figure::Segment,
     outcome::Outcome,
     resources::DeltaTime,
@@ -180,6 +182,7 @@ impl ParticleMgr {
             self.maintain_beam_particles(scene_data, lights);
             self.maintain_block_particles(scene_data, terrain);
             self.maintain_shockwave_particles(scene_data);
+            self.maintain_aura_particles(scene_data);
         } else {
             // remove all particle lifespans
             self.particles.clear();
@@ -401,104 +404,113 @@ impl ParticleMgr {
             .join()
             .filter(|(_, _, b)| b.creation.map_or(true, |c| (c + dt as f64) >= time))
         {
-            //
+            // TODO: Handle this less hackily. Done this way as beam segments are created
+            // every server tick, which is approximately 33 ms. Heartbeat scheduler used to
+            // account for clients with less than 30 fps because they start the creation
+            // time when the segments are received and could receive 2 at once
+            let beam_tick_count = 33.max(self.scheduler.heartbeats(Duration::from_millis(1)));
             let range = beam.properties.speed * beam.properties.duration.as_secs_f32();
-            if beam
-                .properties
-                .attack
-                .effects()
-                .any(|e| matches!(e.effect(), CombatEffect::Heal(h) if *h > 0.0))
-            {
-                // Emit a light when using healing
-                lights.push(Light::new(pos.0, Rgb::new(0.1, 1.0, 0.15), 1.0));
-                for i in 0..self.scheduler.heartbeats(Duration::from_millis(1)) {
-                    self.particles.push(Particle::new_directed(
-                        beam.properties.duration,
-                        time + i as f64 / 1000.0,
-                        ParticleMode::HealingBeam,
+            match beam.properties.specifier {
+                beam::FrontendSpecifier::Flamethrower => {
+                    let mut rng = thread_rng();
+                    let (from, to) = (Vec3::<f32>::unit_z(), *ori.look_dir());
+                    let m = Mat3::<f32>::rotation_from_to_3d(from, to);
+                    // Emit a light when using flames
+                    lights.push(Light::new(
                         pos.0,
-                        pos.0 + *ori.look_dir() * range,
+                        Rgb::new(1.0, 0.25, 0.05).map(|e| e * rng.gen_range(0.8..1.2)),
+                        2.0,
                     ));
-                    /*
-                                if let CharacterState::BasicBeam(b) = character_state {
-                                    if b.stage_section == StageSection::Cast {
-                                        if b.static_data.base_hps > 0.0 {//
-                                            // Emit a light when using healing
-                                            lights.push(Light::new(pos.0 + b.offset, Rgb::new(0.1, 1.0, 0.15), 1.0));
-                                            for i in 0..self.scheduler.heartbeats(Duration::from_millis(1)) {
-                                                self.particles.push(Particle::new_directed(
-                                                    b.static_data.beam_duration,
-                                                    time + i as f64 / 1000.0,
-                                                    ParticleMode::HealingBeam,
-                                                    pos.0 + particle_ori * 0.5 + b.offset,
-                                                    pos.0 + particle_ori * b.static_data.range + b.offset,
-                                                ));
-                                            }
-                                        } else {
-                                            let mut rng = thread_rng();
-                                            let (from, to) = (Vec3::<f32>::unit_z(), particle_ori);
-                                            let m = Mat3::<f32>::rotation_from_to_3d(from, to);
-                                            // Emit a light when using flames
-                                            lights.push(Light::new(
-                                                pos.0 + b.offset,
-                                                Rgb::new(1.0, 0.25, 0.05).map(|e| e * rng.gen_range(0.8..1.2)),
-                                                2.0,
-                                            ));
-                                            self.particles.resize_with(
-                                                self.particles.len()
-                                                    + 2 * usize::from(
-                                                        self.scheduler.heartbeats(Duration::from_millis(1)),
-                                                    ),
-                                                || {
-                                                    let phi: f32 =
-                                                        rng.gen_range(0.0..b.static_data.max_angle.to_radians());
-                                                    let theta: f32 = rng.gen_range(0.0..2.0 * PI);
-                                                    let offset_z = Vec3::new(
-                                                        phi.sin() * theta.cos(),
-                                                        phi.sin() * theta.sin(),
-                                                        phi.cos(),
-                                                    );
-                                                    let random_ori = offset_z * m * Vec3::new(-1.0, -1.0, 1.0);
-                                                    Particle::new_directed(
-                                                        b.static_data.beam_duration,
-                                                        time,
-                                                        ParticleMode::FlameThrower,
-                                                        pos.0 + random_ori * 0.5 + b.offset,
-                                                        pos.0 + random_ori * b.static_data.range + b.offset,
-                                                    )
-                                                },
-                                            );
-                                        }
-                    */
-                }
-            } else {
-                let mut rng = thread_rng();
-                let (from, to) = (Vec3::<f32>::unit_z(), *ori.look_dir());
-                let m = Mat3::<f32>::rotation_from_to_3d(from, to);
-                // Emit a light when using flames
-                lights.push(Light::new(
-                    pos.0,
-                    Rgb::new(1.0, 0.25, 0.05).map(|e| e * rng.gen_range(0.8..1.2)),
-                    2.0,
-                ));
-                self.particles.resize_with(
-                    self.particles.len()
-                        + 2 * usize::from(self.scheduler.heartbeats(Duration::from_millis(1))),
-                    || {
-                        let phi: f32 = rng.gen_range(0.0..beam.properties.angle);
-                        let theta: f32 = rng.gen_range(0.0..2.0 * PI);
-                        let offset_z =
-                            Vec3::new(phi.sin() * theta.cos(), phi.sin() * theta.sin(), phi.cos());
-                        let random_ori = offset_z * m * Vec3::new(-1.0, -1.0, 1.0);
-                        Particle::new_directed(
+                    self.particles.resize_with(
+                        self.particles.len() + 2 * usize::from(beam_tick_count),
+                        || {
+                            let phi: f32 = rng.gen_range(0.0..beam.properties.angle);
+                            let theta: f32 = rng.gen_range(0.0..2.0 * PI);
+                            let offset_z = Vec3::new(
+                                phi.sin() * theta.cos(),
+                                phi.sin() * theta.sin(),
+                                phi.cos(),
+                            );
+                            let random_ori = offset_z * m * Vec3::new(-1.0, -1.0, 1.0);
+                            Particle::new_directed(
+                                beam.properties.duration,
+                                time,
+                                ParticleMode::FlameThrower,
+                                pos.0,
+                                pos.0 + random_ori * range,
+                            )
+                        },
+                    );
+                },
+                beam::FrontendSpecifier::HealingBeam => {
+                    // Emit a light when using healing
+                    lights.push(Light::new(pos.0, Rgb::new(0.1, 1.0, 0.15), 1.0));
+                    for i in 0..beam_tick_count {
+                        self.particles.push(Particle::new_directed(
                             beam.properties.duration,
-                            time,
-                            ParticleMode::FlameThrower,
-                            pos.0, /* + random_ori */
-                            pos.0 + random_ori * range,
-                        )
+                            time + i as f64 / 1000.0,
+                            ParticleMode::HealingBeam,
+                            pos.0,
+                            pos.0 + *ori.look_dir() * range,
+                        ));
+                    }
+                },
+                beam::FrontendSpecifier::LifestealBeam => {
+                    // Emit a light when using lifesteal beam
+                    lights.push(Light::new(pos.0, Rgb::new(0.8, 1.0, 0.5), 1.0));
+                    for i in 0..beam_tick_count {
+                        self.particles.push(Particle::new_directed(
+                            beam.properties.duration,
+                            time + i as f64 / 1000.0,
+                            ParticleMode::LifestealBeam,
+                            pos.0,
+                            pos.0 + *ori.look_dir() * range,
+                        ));
+                    }
+                },
+            }
+        }
+    }
+
+    fn maintain_aura_particles(&mut self, scene_data: &SceneData) {
+        let state = scene_data.state;
+        let ecs = state.ecs();
+        let time = state.get_time();
+
+        for (pos, auras) in (
+            &ecs.read_storage::<Pos>(),
+            &ecs.read_storage::<comp::Auras>(),
+        )
+            .join()
+        {
+            for (_, aura) in auras.auras.iter() {
+                #[allow(clippy::single_match)]
+                match aura.aura_kind {
+                    aura::AuraKind::Buff {
+                        kind: buff::BuffKind::ProtectingWard,
+                        ..
+                    } => {
+                        let mut rng = thread_rng();
+                        let heartbeats = self.scheduler.heartbeats(Duration::from_millis(5));
+                        self.particles.resize_with(
+                            self.particles.len()
+                                + aura.radius.powi(2) as usize * usize::from(heartbeats) / 300,
+                            || {
+                                let rand_dist = aura.radius * (1.0 - rng.gen::<f32>().powi(100));
+                                let init_pos = Vec3::new(rand_dist, 0_f32, 0_f32);
+                                let max_dur = Duration::from_secs(1);
+                                Particle::new_directed(
+                                    aura.duration.map_or(max_dur, |dur| dur.min(max_dur)),
+                                    time,
+                                    ParticleMode::EnergyNature,
+                                    pos.0,
+                                    pos.0 + init_pos,
+                                )
+                            },
+                        );
                     },
-                );
+                    _ => {},
+                }
             }
         }
     }

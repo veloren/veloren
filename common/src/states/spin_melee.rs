@@ -141,7 +141,8 @@ impl CharacterBehavior for Data {
                         .with_damage(damage)
                         .with_crit(crit_chance, crit_mult)
                         .with_effect(poise)
-                        .with_effect(knockback);
+                        .with_effect(knockback)
+                        .with_combo_increment();
 
                     // Hit attempt
                     data.updater.insert(data.entity, Melee {

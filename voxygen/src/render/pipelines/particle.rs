@@ -118,6 +118,7 @@ pub enum ParticleMode {
     Snow = 19,
     Explosion = 20,
     Ice = 21,
+    LifestealBeam = 22,
 }
 
 impl ParticleMode {

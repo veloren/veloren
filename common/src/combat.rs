@@ -13,8 +13,8 @@ use crate::{
         },
         poise::PoiseChange,
         skills::{SkillGroupKind, SkillSet},
-        Body, Energy, EnergyChange, EnergySource, Health, HealthChange, HealthSource, Inventory,
-        Stats,
+        Body, Combo, Energy, EnergyChange, EnergySource, Health, HealthChange, HealthSource,
+        Inventory, Stats,
     },
     event::ServerEvent,
     uid::Uid,
@@ -45,6 +45,7 @@ pub struct AttackerInfo<'a> {
     pub entity: EcsEntity,
     pub uid: Uid,
     pub energy: Option<&'a Energy>,
+    pub combo: Option<&'a Combo>,
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -227,9 +228,9 @@ impl Attack {
             .filter(|e| e.target.map_or(true, |t| t == target_group))
             .filter(|e| !(matches!(e.target, Some(GroupTarget::OutOfGroup)) && target_dodging))
         {
-            if match &effect.requirement {
-                Some(CombatRequirement::AnyDamage) => accumulated_damage > 0.0,
-                Some(CombatRequirement::SufficientEnergy(r)) => {
+            if effect.requirements.iter().all(|req| match req {
+                CombatRequirement::AnyDamage => accumulated_damage > 0.0,
+                CombatRequirement::Energy(r) => {
                     if let Some(AttackerInfo {
                         entity,
                         energy: Some(e),
@@ -252,8 +253,27 @@ impl Attack {
                         false
                     }
                 },
-                None => true,
-            } {
+                CombatRequirement::Combo(r) => {
+                    if let Some(AttackerInfo {
+                        entity,
+                        combo: Some(c),
+                        ..
+                    }) = attacker
+                    {
+                        let sufficient_combo = c.counter() >= *r;
+                        if sufficient_combo {
+                            emit(ServerEvent::ComboChange {
+                                entity,
+                                change: -(*r as i32),
+                            });
+                        }
+
+                        sufficient_combo
+                    } else {
+                        false
+                    }
+                },
+            }) {
                 match effect.effect {
                     CombatEffect::Knockback(kb) => {
                         let impulse = kb.calculate_impulse(dir);
@@ -368,7 +388,7 @@ impl AttackDamage {
 pub struct AttackEffect {
     target: Option<GroupTarget>,
     effect: CombatEffect,
-    requirement: Option<CombatRequirement>,
+    requirements: Vec<CombatRequirement>,
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -377,12 +397,12 @@ impl AttackEffect {
         Self {
             target,
             effect,
-            requirement: None,
+            requirements: Vec::new(),
         }
     }
 
     pub fn with_requirement(mut self, requirement: CombatRequirement) -> Self {
-        self.requirement = Some(requirement);
+        self.requirements.push(requirement);
         self
     }
 
@@ -405,7 +425,8 @@ pub enum CombatEffect {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum CombatRequirement {
     AnyDamage,
-    SufficientEnergy(f32),
+    Energy(f32),
+    Combo(u32),
 }
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]

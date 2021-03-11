@@ -60,6 +60,7 @@ const int FIRE_BOWL = 18;
 const int SNOW = 19;
 const int EXPLOSION = 20;
 const int ICE = 21;
+const int LIFESTEAL_BEAM = 22;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -340,13 +341,23 @@ void main() {
             vec4(vec3(0.4, 1.6 + 0.3 * sin(tick.x * 10 - lifetime * 3 + 4), 1.0 + 0.15 * sin(tick.x * 5 - lifetime * 5)), 1 /*0.3*/),
             spin_in_axis(inst_dir, tick.z)
         );
+    } else if (inst_mode == LIFESTEAL_BEAM) {
+        f_reflect = 0.0;
+        float green_col = 0.2 + 1.4 * sin(tick.x * 5 + lifetime * 5);
+        float purple_col = 1.2 + 0.1 * sin(tick.x * 3 - lifetime * 3) - max(green_col, 1) + 1;
+        attr = Attr(
+            spiral_motion(inst_dir, 0.3 * (floor(2 * rand0 + 0.5) - 0.5) * min(linear_scale(10), 1), lifetime / inst_lifespan, 10.0, inst_time),
+            vec3((1.7 - 0.7 * abs(floor(2 * rand0 - 0.5) + 0.5)) * (1.5 + 0.5 * sin(tick.x * 10 - lifetime * 4))),
+            vec4(vec3(purple_col, green_col, 0.75 * purple_col), 1),
+            spin_in_axis(inst_dir, tick.z)
+        );
     } else if (inst_mode == ENERGY_NATURE) {
         f_reflect = 0.0;
+        float spiral_radius = start_end(1 - pow(abs(rand5), 5), 1) * length(inst_dir);
         attr = Attr(
-            inst_dir * slow_end(0.03) + spiral_motion(vec3(rand1, rand2, rand3),
-                0.2 * (rand4 + 1.3) * slow_end(0.02), percent() * 3 * (rand4 + 4.0) + rand0, 1.0, 0.0),
-            vec3(1.0),
-            vec4(vec3(0, 2.5, 1.5 + rand7 * 0.7), 1),
+            spiral_motion(vec3(0, 0, rand3 + 1), spiral_radius, lifetime, abs(rand0), rand1 * 2 * PI) + vec3(0, 0, rand2),
+            vec3(6 * abs(rand4) * (1 - slow_start(2)) * pow(spiral_radius / length(inst_dir), 0.5)),
+            vec4(vec3(0, 1.7, 1.3), 1),
             spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3)
         );
     } else if (inst_mode == FLAMETHROWER) {

@@ -1,5 +1,5 @@
 use crate::{comp, uid::Uid};
-use comp::item::Reagent;
+use comp::{beam, item::Reagent};
 use serde::{Deserialize, Serialize};
 use vek::*;
 
@@ -24,7 +24,7 @@ pub enum Outcome {
     },
     Beam {
         pos: Vec3<f32>,
-        heal: bool,
+        specifier: beam::FrontendSpecifier,
     },
     ExpChange {
         uid: Uid,
@@ -37,16 +37,20 @@ pub enum Outcome {
         // TODO: Access ECS to get position from Uid to conserve bandwidth
         pos: Vec3<f32>,
     },
+    ComboChange {
+        uid: Uid,
+        combo: u32,
+    },
 }
 
 impl Outcome {
     pub fn get_pos(&self) -> Option<Vec3<f32>> {
         match self {
-            Outcome::Explosion { pos, .. } => Some(*pos),
-            Outcome::ProjectileShot { pos, .. } => Some(*pos),
-            Outcome::Beam { pos, .. } => Some(*pos),
-            Outcome::ExpChange { .. } => None,
-            Outcome::SkillPointGain { pos, .. } => Some(*pos),
+            Outcome::Explosion { pos, .. }
+            | Outcome::ProjectileShot { pos, .. }
+            | Outcome::Beam { pos, .. }
+            | Outcome::SkillPointGain { pos, .. } => Some(*pos),
+            Outcome::ExpChange { .. } | Outcome::ComboChange { .. } => None,
         }
     }
 }

@@ -1,6 +1,9 @@
 use common::{
     combat::{AttackerInfo, TargetInfo},
-    comp::{Body, CharacterState, Energy, Group, Health, Inventory, Melee, Ori, Pos, Scale, Stats},
+    comp::{
+        Body, CharacterState, Combo, Energy, Group, Health, Inventory, Melee, Ori, Pos, Scale,
+        Stats,
+    },
     event::{EventBus, ServerEvent},
     uid::Uid,
     util::Dir,
@@ -27,6 +30,7 @@ pub struct ReadData<'a> {
     char_states: ReadStorage<'a, CharacterState>,
     server_bus: Read<'a, EventBus<ServerEvent>>,
     stats: ReadStorage<'a, Stats>,
+    combos: ReadStorage<'a, Combo>,
 }
 
 /// This system is responsible for handling accepted inputs like moving or
@@ -113,6 +117,7 @@ impl<'a> System<'a> for Sys {
                         entity: attacker,
                         uid: *uid,
                         energy: read_data.energies.get(attacker),
+                        combo: read_data.combos.get(attacker),
                     });
 
                     let target_info = TargetInfo {

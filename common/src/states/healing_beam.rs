@@ -1,9 +1,6 @@
 use crate::{
-    combat::{
-        Attack, AttackDamage, AttackEffect, CombatEffect, CombatRequirement, Damage, DamageSource,
-        GroupTarget,
-    },
-    comp::{beam, CharacterState, EnergyChange, EnergySource, Ori, Pos, StateUpdate},
+    combat::{Attack, AttackEffect, CombatEffect, CombatRequirement, GroupTarget},
+    comp::{beam, CharacterState, Ori, Pos, StateUpdate},
     event::ServerEvent,
     states::{
         behavior::{CharacterBehavior, JoinData},
@@ -24,23 +21,16 @@ pub struct StaticData {
     pub recover_duration: Duration,
     /// How long each beam segment persists for
     pub beam_duration: Duration,
-    /// Base damage per tick
-    pub damage: f32,
-    /// Ticks per second
+    /// Base healing per tick
+    pub heal: f32,
+    /// Ticks of healing per second
     pub tick_rate: f32,
     /// Max range
     pub range: f32,
     /// Max angle (45.0 will give you a 90.0 angle window)
     pub max_angle: f32,
-    /// Lifesteal efficiency (0 gives 0% conversion of damage to health, 1 gives
-    /// 100% conversion of damage to health)
-    pub lifesteal_eff: f32,
-    /// Energy regenerated per tick
-    pub energy_regen: f32,
-    /// Energy drained per second
-    pub energy_drain: f32,
-    /// Used to dictate how orientation functions in this state
-    pub orientation_behavior: MovementBehavior,
+    /// Energy consumed per second for heal ticks
+    pub energy_cost: f32,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
     /// Used to specify the beam to the frontend
@@ -62,19 +52,12 @@ impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
-        match self.static_data.orientation_behavior {
-            MovementBehavior::Normal => {},
-            MovementBehavior::Turret => {
-                update.ori = Ori::from(data.inputs.look_dir);
-            },
-        }
-
         handle_move(data, &mut update, 0.4);
         handle_jump(data, &mut update);
         if !ability_key_is_pressed(data, self.static_data.ability_info.key) {
             handle_interrupt(data, &mut update, false);
             match update.character {
-                CharacterState::BasicBeam(_) => {},
+                CharacterState::HealingBeam(_) => {},
                 _ => {
                     return update;
                 },
@@ -85,7 +68,7 @@ impl CharacterBehavior for Data {
             StageSection::Buildup => {
                 if self.timer < self.static_data.buildup_duration {
                     // Build up
-                    update.character = CharacterState::BasicBeam(Data {
+                    update.character = CharacterState::HealingBeam(Data {
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
@@ -100,7 +83,7 @@ impl CharacterBehavior for Data {
                         timer: Duration::default(),
                     });
                     // Build up
-                    update.character = CharacterState::BasicBeam(Data {
+                    update.character = CharacterState::HealingBeam(Data {
                         timer: Duration::default(),
                         stage_section: StageSection::Cast,
                         ..*self
@@ -108,34 +91,16 @@ impl CharacterBehavior for Data {
                 }
             },
             StageSection::Cast => {
-                if ability_key_is_pressed(data, self.static_data.ability_info.key)
-                    && (self.static_data.energy_drain <= f32::EPSILON
-                        || update.energy.current() > 0)
-                {
+                if ability_key_is_pressed(data, self.static_data.ability_info.key) {
                     let speed =
                         self.static_data.range / self.static_data.beam_duration.as_secs_f32();
-
-                    let energy = AttackEffect::new(
-                        None,
-                        CombatEffect::EnergyReward(self.static_data.energy_regen),
+                    let heal = AttackEffect::new(
+                        Some(GroupTarget::InGroup),
+                        CombatEffect::Heal(self.static_data.heal),
                     )
-                    .with_requirement(CombatRequirement::AnyDamage);
-                    let lifesteal = CombatEffect::Lifesteal(self.static_data.lifesteal_eff);
-                    let damage = AttackDamage::new(
-                        Damage {
-                            source: DamageSource::Energy,
-                            value: self.static_data.damage,
-                        },
-                        Some(GroupTarget::OutOfGroup),
-                    )
-                    .with_effect(lifesteal);
-                    let (crit_chance, crit_mult) =
-                        get_crit_data(data, self.static_data.ability_info);
-                    let attack = Attack::default()
-                        .with_damage(damage)
-                        .with_crit(crit_chance, crit_mult)
-                        .with_effect(energy)
-                        .with_combo_increment();
+                    .with_requirement(CombatRequirement::Energy(self.static_data.energy_cost))
+                    .with_requirement(CombatRequirement::Combo(1));
+                    let attack = Attack::default().with_effect(heal);
 
                     let properties = beam::Properties {
                         attack,
@@ -158,21 +123,15 @@ impl CharacterBehavior for Data {
                         pos,
                         ori: Ori::from(data.inputs.look_dir),
                     });
-                    update.character = CharacterState::BasicBeam(Data {
+                    update.character = CharacterState::HealingBeam(Data {
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
                         ..*self
                     });
-
-                    // Consumes energy if there's enough left and ability key is held down
-                    update.energy.change_by(EnergyChange {
-                        amount: -(self.static_data.energy_drain as f32 * data.dt.0) as i32,
-                        source: EnergySource::Ability,
-                    });
                 } else {
-                    update.character = CharacterState::BasicBeam(Data {
+                    update.character = CharacterState::HealingBeam(Data {
                         timer: Duration::default(),
                         stage_section: StageSection::Recover,
                         ..*self
@@ -181,7 +140,7 @@ impl CharacterBehavior for Data {
             },
             StageSection::Recover => {
                 if self.timer < self.static_data.recover_duration {
-                    update.character = CharacterState::BasicBeam(Data {
+                    update.character = CharacterState::HealingBeam(Data {
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
@@ -205,10 +164,4 @@ impl CharacterBehavior for Data {
 
         update
     }
-}
-
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub enum MovementBehavior {
-    Normal,
-    Turret,
 }
