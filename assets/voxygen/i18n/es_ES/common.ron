@@ -1,0 +1,74 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for Spanish (Spain)
+(
+    string_map: {
+            // Texts used in multiple locations with the same formatting
+            "common.username": "Usuario",
+            "common.singleplayer": "Solo",
+            "common.multiplayer": "Multijugador",
+            "common.servers": "Servidores",
+            "common.quit": "Salir",
+            "common.settings": "Opciones",
+            "common.languages": "Idiomas",
+            "common.interface": "Interfaz",
+            "common.gameplay": "Juego",
+            "common.controls": "Controles",
+            "common.video": "Gráficos",
+            "common.sound": "Sonido",
+            "common.resume": "Reanudar",
+            "common.characters": "Personajes",
+            "common.close": "Cerrar",
+            "common.yes": "Sí",
+            "common.no": "No",
+            "common.back": "Atrás",
+            "common.create": "Crear",
+            "common.okay": "Okay",
+            "common.add": "Añadir",
+            "common.accept": "Aceptar",
+            "common.decline": "Declinar",
+            "common.disclaimer": "Atención",
+            "common.cancel": "Cancelar",
+            "common.none": "Ninguno",
+            "common.error": "Error",
+            "common.fatal_error": "Error fatal",
+            "common.you": "Tú",
+            "common.automatic": "Auto",
+            "common.random": "Aleatorio",
+
+            // Settings Window title
+            "common.interface_settings": "Ajustes de Interfaz",
+            "common.gameplay_settings": "Ajustes del Juego",
+            "common.controls_settings": "Ajustes de Controles",
+            "common.video_settings": "Ajustes Gráficos",
+            "common.sound_settings": "Ajustes de Sonido",
+            "common.language_settings": "Ajustes de Idioma",
+
+
+            // Message when connection to the server is lost
+            "common.connection_lost": r#"¡Conexión perdida!
+    ¿Se reinició el servidor?
+    ¿Está el cliente actualizado?"#,
+
+
+            "common.species.orc": "Orco",
+            "common.species.human": "Humano",
+            "common.species.dwarf": "Enano",
+            "common.species.elf": "Elfo",
+            "common.species.undead": "No muerto",
+            "common.species.danari": "Danari",
+
+            "common.weapons.axe": "Hacha",
+            "common.weapons.sword": "Espada",
+            "common.weapons.staff": "Bastón",
+            "common.weapons.bow": "Arco",
+            "common.weapons.hammer": "Martillo",
+            "common.weapons.general": "Combate",
+            "common.weapons.sceptre": "Cetro sanador",
+            "common.rand_appearance": "Apariencia y nombre aleatorios",
+    },
+
+
+    vector_map: {
+    }
+)

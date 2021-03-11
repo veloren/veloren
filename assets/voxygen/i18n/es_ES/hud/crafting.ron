@@ -1,0 +1,16 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for Spanish (Spain)
+(
+    string_map: {
+        "hud.crafting": "Elaborar",
+        "hud.crafting.recipes": "Recetas",
+        "hud.crafting.ingredients": "Ingredientes:",
+        "hud.crafting.craft": "Elaborar",
+        "hud.crafting.tool_cata": "Requisitos:",
+    },
+
+
+    vector_map: {
+    }
+)

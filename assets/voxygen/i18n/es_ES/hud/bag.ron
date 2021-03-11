@@ -1,0 +1,33 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for Spanish (Spain)
+(
+    string_map: {
+        // Inventory
+        "hud.bag.inventory": "Inventario de {playername}",
+        "hud.bag.stats_title": "Atributos de {playername}",
+        "hud.bag.exp": "Exp",
+        "hud.bag.armor": "Armadura",
+        "hud.bag.stats": "Atributos",
+        "hud.bag.head": "Cabeza",
+        "hud.bag.neck": "Cuello",
+        "hud.bag.tabard": "Tabardo",
+        "hud.bag.shoulders": "Hombros",
+        "hud.bag.chest": "Pecho",
+        "hud.bag.hands": "Manos",
+        "hud.bag.lantern": "Linterna",
+        "hud.bag.glider": "Planeador",
+        "hud.bag.belt": "Cinturón",
+        "hud.bag.ring": "Anillo",
+        "hud.bag.back": "Espalda",
+        "hud.bag.legs": "Piernas",
+        "hud.bag.feet": "Pies",
+        "hud.bag.mainhand": "Mano principal",
+        "hud.bag.offhand": "Mano secundaria",
+        "hud.bag.bag": "Mochila",
+    },
+
+
+    vector_map: {
+    }
+)

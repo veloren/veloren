@@ -55,7 +55,7 @@
         "gameinput.select": "Select Entity",
         "gameinput.acceptgroupinvite": "Accept Group Invite",
         "gameinput.declinegroupinvite": "Decline Group Invite",
-        "gameInput::cyclecamera": "Cycle camera",
+        "gameinput.cyclecamera": "Cycle camera",
         "gameinput.crafting": "Crafting",
         "gameinput.fly": "Fly",
         "gameinput.sneak": "Sneak",
