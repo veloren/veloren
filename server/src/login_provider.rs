@@ -1,17 +1,16 @@
 use crate::settings::BanRecord;
 use authc::{AuthClient, AuthClientError, AuthToken, Uuid};
-use common::{comp::Player, uid::UidAllocator};
 use common_net::msg::RegisterError;
+#[cfg(feature = "plugins")]
 use common_sys::plugin::memory_manager::EcsWorld;
 #[cfg(feature = "plugins")]
 use common_sys::plugin::PluginMgr;
 use hashbrown::{HashMap, HashSet};
-use plugin_api::{
-    event::{PlayerJoinEvent, PlayerJoinResult},
-    Health,
-};
-use specs::{Entities, Read, ReadStorage, WriteStorage};
-use std::str::FromStr;
+use plugin_api::event::{PlayerJoinEvent, PlayerJoinResult};
+use specs::Component;
+use specs_idvs::IdvStorage;
+use std::{str::FromStr, sync::Arc};
+use tokio::{runtime::Runtime, sync::oneshot};
 use tracing::{error, info};
 
 fn derive_uuid(username: &str) -> Uuid {
@@ -25,19 +24,42 @@ fn derive_uuid(username: &str) -> Uuid {
     Uuid::from_slice(&state.to_be_bytes()).unwrap()
 }
 
+/// derive Uuid for "singleplayer" is a pub fn
+pub fn derive_singleplayer_uuid() -> Uuid { derive_uuid("singleplayer") }
+
+pub struct PendingLogin {
+    pending_r: oneshot::Receiver<Result<(String, Uuid), RegisterError>>,
+}
+
+impl Component for PendingLogin {
+    type Storage = IdvStorage<Self>;
+}
+
 pub struct LoginProvider {
+    runtime: Arc<Runtime>,
     accounts: HashMap<Uuid, String>,
-    auth_server: Option<AuthClient>,
+    auth_server: Option<Arc<AuthClient>>,
 }
 
 impl LoginProvider {
-    pub fn new(auth_addr: Option<String>) -> Self {
-        let auth_server = match auth_addr {
-            Some(addr) => Some(AuthClient::new(&addr).unwrap()),
-            None => None,
-        };
+    pub fn new(auth_addr: Option<String>, runtime: Arc<Runtime>) -> Self {
+        tracing::trace!(?auth_addr, "Starting LoginProvider");
+
+        let auth_server = auth_addr.map(|addr| {
+            let (scheme, authority) = addr.split_once("://").expect("invalid auth url");
+
+            let scheme = scheme
+                .parse::<authc::Scheme>()
+                .expect("invalid auth url scheme");
+            let authority = authority
+                .parse::<authc::Authority>()
+                .expect("invalid auth url authority");
+
+            Arc::new(AuthClient::new(scheme, authority).expect("insecure auth scheme"))
+        });
 
         Self {
+            runtime,
             accounts: HashMap::new(),
             auth_server,
         }
@@ -59,99 +81,107 @@ impl LoginProvider {
         };
     }
 
-    #[allow(clippy::too_many_arguments)]
-    pub fn try_login<'a>(
+    pub fn verify(&self, username_or_token: &str) -> PendingLogin {
+        let (pending_s, pending_r) = oneshot::channel();
+
+        match &self.auth_server {
+            // Token from auth server expected
+            Some(srv) => {
+                let srv = Arc::clone(srv);
+                let username_or_token = username_or_token.to_string();
+                self.runtime.spawn(async move {
+                    let _ = pending_s.send(Self::query(srv, &username_or_token).await);
+                });
+            },
+            // Username is expected
+            None => {
+                let username = username_or_token;
+                let uuid = derive_uuid(username);
+                let _ = pending_s.send(Ok((username.to_string(), uuid)));
+            },
+        }
+
+        PendingLogin { pending_r }
+    }
+
+    pub fn try_login(
         &mut self,
-        username_or_token: &str,
-        #[cfg(feature = "plugins")] entities: &Entities<'a>,
-        #[cfg(feature = "plugins")] health_comp: &ReadStorage<'a, Health>,
-        #[cfg(feature = "plugins")] uid_comp: &ReadStorage<'a, common::uid::Uid>,
-        #[cfg(feature = "plugins")] player_comp: &WriteStorage<'a, Player>,
-        #[cfg(feature = "plugins")] uids_res: &Read<'a, UidAllocator>,
+        pending: &mut PendingLogin,
+        #[cfg(feature = "plugins")] world: &EcsWorld,
         #[cfg(feature = "plugins")] plugin_manager: &PluginMgr,
         admins: &HashSet<Uuid>,
         whitelist: &HashSet<Uuid>,
         banlist: &HashMap<Uuid, BanRecord>,
-    ) -> Result<(String, Uuid), RegisterError> {
-        self
-            // resolve user information
-            .query(username_or_token)
-            // if found, check name against whitelist or if user is admin
-            .and_then(|(username, uuid)| {
-                // user cannot join if they are listed on the banlist
+    ) -> Option<Result<(String, Uuid), RegisterError>> {
+        match pending.pending_r.try_recv() {
+            Ok(Err(e)) => Some(Err(e)),
+            Ok(Ok((username, uuid))) => {
                 if let Some(ban_record) = banlist.get(&uuid) {
                     // Pull reason string out of ban record and send a copy of it
-                    return Err(RegisterError::Banned(ban_record.reason.clone()));
+                    return Some(Err(RegisterError::Banned(ban_record.reason.clone())));
                 }
 
                 // user can only join if he is admin, the whitelist is empty (everyone can join)
                 // or his name is in the whitelist
                 if !whitelist.is_empty() && !whitelist.contains(&uuid) && !admins.contains(&uuid) {
-                    return Err(RegisterError::NotOnWhitelist);
+                    return Some(Err(RegisterError::NotOnWhitelist));
                 }
                 #[cfg(feature = "plugins")]
                 {
-
-                    let ecs_world = EcsWorld {
-                        entities: &entities,
-                        health: health_comp.into(),
-                        uid: uid_comp.into(),
-                        player: player_comp.into(),
-                        uid_allocator: uids_res,
-                    };
-                        match plugin_manager.execute_event(&ecs_world, &PlayerJoinEvent {
-                            player_name: username.clone(),
-                            player_id: *uuid.as_bytes(),
-                        }) {
-                            Ok(e) => {
-                                for i in e.into_iter() {
-                                    if let PlayerJoinResult::Kick(a) = i {
-                                        return Err(RegisterError::Kicked(a));
-                                    }
+                    match plugin_manager.execute_event(&world, &PlayerJoinEvent {
+                        player_name: username.clone(),
+                        player_id: *uuid.as_bytes(),
+                    }) {
+                        Ok(e) => {
+                            for i in e.into_iter() {
+                                if let PlayerJoinResult::Kick(a) = i {
+                                    return Some(Err(RegisterError::Kicked(a)));
                                 }
-                            },
-                            Err(e) => {
-                                error!("Error occured while executing `on_join`: {:?}",e);
-                            },
-                        };
+                            }
+                        },
+                        Err(e) => {
+                            error!("Error occured while executing `on_join`: {:?}", e);
+                        },
+                    };
                 }
 
                 // add the user to self.accounts
-                self.login(uuid, username.clone())?;
-
-                Ok((username, uuid))
-            })
-    }
-
-    pub fn query(&mut self, username_or_token: &str) -> Result<(String, Uuid), RegisterError> {
-        // Based on whether auth server is provided or not we expect an username or
-        // token
-        match &self.auth_server {
-            // Token from auth server expected
-            Some(srv) => {
-                info!(?username_or_token, "Validating token");
-                // Parse token
-                let token = AuthToken::from_str(username_or_token)
-                    .map_err(|e| RegisterError::AuthError(e.to_string()))?;
-                // Validate token
-                let uuid = srv.validate(token)?;
-                let username = srv.uuid_to_username(uuid)?;
-                Ok((username, uuid))
+                match self.login(uuid, username.clone()) {
+                    Ok(()) => Some(Ok((username, uuid))),
+                    Err(e) => Some(Err(e)),
+                }
             },
-            // Username is expected
-            None => {
-                // Assume username was provided
-                let username = username_or_token;
-                let uuid = derive_uuid(username);
-                Ok((username.to_string(), uuid))
+            Err(tokio::sync::oneshot::error::TryRecvError::Closed) => {
+                error!("channel got closed to early, this shouldn't happen");
+                Some(Err(RegisterError::AuthError(
+                    "Internal Error verifying".to_string(),
+                )))
             },
+            Err(tokio::sync::oneshot::error::TryRecvError::Empty) => None,
         }
     }
 
+    async fn query(
+        srv: Arc<AuthClient>,
+        username_or_token: &str,
+    ) -> Result<(String, Uuid), RegisterError> {
+        info!(?username_or_token, "Validating token");
+        // Parse token
+        let token = AuthToken::from_str(username_or_token)
+            .map_err(|e| RegisterError::AuthError(e.to_string()))?;
+        // Validate token
+        let uuid = srv.validate(token).await?;
+        let username = srv.uuid_to_username(uuid).await?;
+        Ok((username, uuid))
+    }
+
     pub fn username_to_uuid(&self, username: &str) -> Result<Uuid, AuthClientError> {
-        self.auth_server.as_ref().map_or_else(
-            || Ok(derive_uuid(username)),
-            |auth| auth.username_to_uuid(&username),
-        )
+        match &self.auth_server {
+            Some(srv) => {
+                //TODO: optimize
+                self.runtime.block_on(srv.username_to_uuid(&username))
+            },
+            None => Ok(derive_uuid(username)),
+        }
     }
 }

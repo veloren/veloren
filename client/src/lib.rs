@@ -485,16 +485,35 @@ impl Client {
         mut auth_trusted: impl FnMut(&str) -> bool,
     ) -> Result<(), Error> {
         // Authentication
-        let token_or_username = self.server_info.auth_provider.as_ref().map(|addr|
+        let token_or_username = match &self.server_info.auth_provider {
+            Some(addr) => {
                 // Query whether this is a trusted auth server
                 if auth_trusted(&addr) {
-                    Ok(authc::AuthClient::new(addr)?
-                        .sign_in(&username, &password)?
+                    let (scheme, authority) = match addr.split_once("://") {
+                        Some((s, a)) => (s, a),
+                        None => return Err(Error::AuthServerUrlInvalid(addr.to_string())),
+                    };
+
+                    let scheme = match scheme.parse::<authc::Scheme>() {
+                        Ok(s) => s,
+                        Err(_) => return Err(Error::AuthServerUrlInvalid(addr.to_string())),
+                    };
+
+                    let authority = match authority.parse::<authc::Authority>() {
+                        Ok(a) => a,
+                        Err(_) => return Err(Error::AuthServerUrlInvalid(addr.to_string())),
+                    };
+
+                    Ok(authc::AuthClient::new(scheme, authority)?
+                        .sign_in(&username, &password)
+                        .await?
                         .serialize())
                 } else {
                     Err(Error::AuthServerNotTrusted)
                 }
-        ).unwrap_or(Ok(username))?;
+            },
+            None => Ok(username),
+        }?;
 
         self.send_msg_err(ClientRegister { token_or_username })?;
 

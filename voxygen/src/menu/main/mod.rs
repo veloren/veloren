@@ -186,18 +186,31 @@ impl PlayState for MainMenuState {
                                 format!("{}: {}", localized_strings.get("common.error"), e)
                             },
                             client::Error::AuthClientError(e) => match e {
-                                client::AuthClientError::InvalidUrl(e) => format!(
-                                    "{}: {}",
-                                    localized_strings.get("common.fatal_error"),
-                                    e
-                                ),
                                 // TODO: remove parentheses
                                 client::AuthClientError::RequestError(e) => format!(
                                     "{}: {}",
                                     localized_strings.get("main.login.failed_sending_request"),
                                     e
                                 ),
-                                client::AuthClientError::ServerError(_, e) => e,
+                                client::AuthClientError::JsonError(e) => format!(
+                                    "{}: {}",
+                                    localized_strings.get("main.login.failed_sending_request"),
+                                    e
+                                ),
+                                client::AuthClientError::InsecureSchema => localized_strings
+                                    .get("main.login.insecure_auth_scheme")
+                                    .into(),
+                                client::AuthClientError::ServerError(_, e) => {
+                                    String::from_utf8_lossy(&e).to_string()
+                                },
+                            },
+                            client::Error::AuthServerUrlInvalid(e) => {
+                                format!(
+                                    "{}: https://{}",
+                                    localized_strings
+                                        .get("main.login.failed_auth_server_url_invalid"),
+                                    e
+                                )
                             },
                         },
                         InitError::ClientCrashed => {

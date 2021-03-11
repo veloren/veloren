@@ -202,13 +202,7 @@ impl EditableSettings {
             server_description: ServerDescription("Who needs friends anyway?".into()),
             // TODO: Let the player choose if they want to use admin commands or not
             admins: Admins(
-                std::iter::once(
-                    // TODO: hacky
-                    crate::login_provider::LoginProvider::new(None)
-                        .username_to_uuid("singleplayer")
-                        .unwrap(),
-                )
-                .collect(),
+                std::iter::once(crate::login_provider::derive_singleplayer_uuid()).collect(),
             ),
             ..load
         }

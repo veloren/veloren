@@ -6,7 +6,8 @@
     bool_to_option,
     drain_filter,
     option_unwrap_none,
-    option_zip
+    option_zip,
+    str_split_once
 )]
 #![cfg_attr(not(feature = "worldgen"), feature(const_panic))]
 
@@ -75,8 +76,10 @@ use common_net::{
     sync::WorldSyncExt,
 };
 #[cfg(feature = "plugins")]
+use common_sys::plugin::memory_manager::EcsWorld;
+#[cfg(feature = "plugins")]
 use common_sys::plugin::PluginMgr;
-use common_sys::{plugin::memory_manager::EcsWorld, state::State};
+use common_sys::state::State;
 use metrics::{EcsSystemMetrics, PhysicsMetrics, TickMetrics};
 use network::{Network, Pid, ProtocolAddr};
 use persistence::{
@@ -179,9 +182,10 @@ impl Server {
             path: data_dir.to_owned(),
         });
         state.ecs_mut().insert(EventBus::<ServerEvent>::default());
-        state
-            .ecs_mut()
-            .insert(LoginProvider::new(settings.auth_server_address.clone()));
+        state.ecs_mut().insert(LoginProvider::new(
+            settings.auth_server_address.clone(),
+            Arc::clone(&runtime),
+        ));
         state.ecs_mut().insert(HwStats {
             hardware_threads: num_cpus::get() as u32,
             rayon_threads: num_cpus::get() as u32,
@@ -222,6 +226,7 @@ impl Server {
         state.ecs_mut().register::<Client>();
         state.ecs_mut().register::<Presence>();
         state.ecs_mut().register::<comp::HomeChunk>();
+        state.ecs_mut().register::<login_provider::PendingLogin>();
 
         //Alias validator
         let banned_words_paths = &settings.banned_words_files;

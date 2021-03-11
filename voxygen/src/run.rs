@@ -183,7 +183,7 @@ fn handle_main_events_cleared(
         global_state.clock.tick();
         drop(guard);
         #[cfg(feature = "tracy")]
-        common::util::tracy_client::finish_continuous_frame!();
+        common_base::tracy_client::finish_continuous_frame!();
 
         // Maintain global state.
         global_state.maintain(global_state.clock.dt());

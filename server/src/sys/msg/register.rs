@@ -1,5 +1,8 @@
 use crate::{
-    client::Client, login_provider::LoginProvider, metrics::PlayerMetrics, EditableSettings,
+    client::Client,
+    login_provider::{LoginProvider, PendingLogin},
+    metrics::PlayerMetrics,
+    EditableSettings,
 };
 use common::{
     comp::{Admin, Player, Stats},
@@ -13,9 +16,18 @@ use common_net::msg::{
 use hashbrown::HashMap;
 use plugin_api::Health;
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, WriteExpect, WriteStorage};
+use tracing::trace;
+
+#[cfg(feature = "plugins")]
+use common_sys::plugin::memory_manager::EcsWorld;
 
 #[cfg(feature = "plugins")]
 use common_sys::plugin::PluginMgr;
+
+#[cfg(feature = "plugins")]
+type ReadPlugin<'a> = Read<'a, PluginMgr>;
+#[cfg(not(feature = "plugins"))]
+type ReadPlugin<'a> = Option<Read<'a, ()>>;
 
 /// This system will handle new messages from clients
 #[derive(Default)]
@@ -29,8 +41,9 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Uid>,
         ReadStorage<'a, Client>,
         WriteStorage<'a, Player>,
+        WriteStorage<'a, PendingLogin>,
         Read<'a, UidAllocator>,
-        Read<'a, PluginMgr>,
+        ReadPlugin<'a>,
         ReadStorage<'a, Stats>,
         WriteExpect<'a, LoginProvider>,
         WriteStorage<'a, Admin>,
@@ -50,6 +63,7 @@ impl<'a> System<'a> for Sys {
             uids,
             clients,
             mut players,
+            mut pending_logins,
             uid_allocator,
             plugin_mgr,
             stats,
@@ -75,31 +89,50 @@ impl<'a> System<'a> for Sys {
         // List of new players to update player lists of all clients.
         let mut new_players = Vec::new();
 
+        // defer auth lockup
         for (entity, client) in (&entities, &clients).join() {
-            let _ = super::try_recv_all(client, 0, |client, msg: ClientRegister| {
+            let _ = super::try_recv_all(client, 0, |_, msg: ClientRegister| {
+                trace!(?msg.token_or_username, "defer auth lockup");
+                let pending = login_provider.verify(&msg.token_or_username);
+                let _ = pending_logins.insert(entity, pending);
+                Ok(())
+            });
+        }
+
+        let mut finished_pending = vec![];
+        for (entity, client, mut pending) in (&entities, &clients, &mut pending_logins).join() {
+            if let Err(e) = || -> std::result::Result<(), crate::error::Error> {
+                #[cfg(feature = "plugins")]
+                let ecs_world = EcsWorld {
+                    entities: &entities,
+                    health: (&health_comp).into(),
+                    uid: (&uids).into(),
+                    player: (&players).into(),
+                    uid_allocator: &uid_allocator,
+                };
+
                 let (username, uuid) = match login_provider.try_login(
-                    &msg.token_or_username,
+                    &mut pending,
                     #[cfg(feature = "plugins")]
-                    &entities,
-                    #[cfg(feature = "plugins")]
-                    &health_comp,
-                    #[cfg(feature = "plugins")]
-                    &uids,
-                    #[cfg(feature = "plugins")]
-                    &players,
-                    #[cfg(feature = "plugins")]
-                    &uid_allocator,
+                    &ecs_world,
                     #[cfg(feature = "plugins")]
                     &plugin_mgr,
                     &*editable_settings.admins,
                     &*editable_settings.whitelist,
                     &*editable_settings.banlist,
                 ) {
-                    Err(err) => {
-                        client.send(ServerRegisterAnswer::Err(err))?;
-                        return Ok(());
+                    None => return Ok(()),
+                    Some(r) => {
+                        finished_pending.push(entity);
+                        trace!(?r, "pending login returned");
+                        match r {
+                            Err(e) => {
+                                client.send(ServerRegisterAnswer::Err(e))?;
+                                return Ok(());
+                            },
+                            Ok((username, uuid)) => (username, uuid),
+                        }
                     },
-                    Ok((username, uuid)) => (username, uuid),
                 };
 
                 let player = Player::new(username, uuid);
@@ -133,9 +166,13 @@ impl<'a> System<'a> for Sys {
                     // Add to list to notify all clients of the new player
                     new_players.push(entity);
                 }
-
                 Ok(())
-            });
+            }() {
+                tracing::trace!(?e, "failed to process register")
+            };
+        }
+        for e in finished_pending {
+            pending_logins.remove(e);
         }
 
         // Handle new players.
