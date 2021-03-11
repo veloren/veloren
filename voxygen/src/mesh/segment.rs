@@ -116,6 +116,13 @@ where
                     |atlas_pos, pos, norm, &_meta| create_opaque(atlas_pos, pos, norm),
                 ));
             },
+            make_face_texel: |vol: &mut V, pos, light, _, col| {
+                let (glowy, shiny) = vol
+                    .get(pos)
+                    .map(|c| (c.is_glowy(), c.is_shiny()))
+                    .unwrap_or_default();
+                TerrainVertex::make_col_light_figure(light, glowy, shiny, col)
+            },
         });
         let bounds = math::Aabb {
             // NOTE: Casts are safe since lower_bound and upper_bound both fit in a i16.
@@ -219,6 +226,9 @@ where
                     |atlas_pos, pos, norm, &meta| create_opaque(atlas_pos, pos, norm, meta),
                 ));
             },
+            make_face_texel: |_: &mut V, _, light, glow, col| {
+                TerrainVertex::make_col_light(light, glow, col)
+            },
         });
 
         (Mesh::new(), Mesh::new(), Mesh::new(), ())
@@ -314,6 +324,9 @@ where
                     meta,
                     |atlas_pos, pos, norm, &_meta| create_opaque(atlas_pos, pos, norm),
                 ));
+            },
+            make_face_texel: |_: &mut V, _, light, glow, col| {
+                TerrainVertex::make_col_light(light, glow, col)
             },
         });
 

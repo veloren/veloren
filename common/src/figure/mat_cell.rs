@@ -1,5 +1,5 @@
+use super::cell::CellData;
 use crate::vol::Vox;
-use vek::*;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum Material {
@@ -19,7 +19,7 @@ pub enum Material {
 pub enum MatCell {
     None,
     Mat(Material),
-    Normal(Rgb<u8>),
+    Normal(CellData),
 }
 
 impl Vox for MatCell {

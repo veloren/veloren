@@ -214,6 +214,6 @@ fn graceful_load_segment_no_skin(specifier: &str) -> Arc<Segment> {
             MatCell::Mat(_) => Some(MatCell::None),
             MatCell::Normal(_) => None,
         })
-        .to_segment(|_| Rgb::broadcast(255));
+        .to_segment(|_| Default::default());
     Arc::new(seg)
 }

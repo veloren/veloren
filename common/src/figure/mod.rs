@@ -3,8 +3,12 @@ pub mod mat_cell;
 pub use mat_cell::Material;
 
 // Reexport
-pub use self::{cell::Cell, mat_cell::MatCell};
+pub use self::{
+    cell::{Cell, CellData},
+    mat_cell::MatCell,
+};
 
+use self::cell::{GLOWY, SHINY};
 use crate::{
     vol::{IntoFullPosIterator, IntoFullVolIterator, ReadVol, SizedVol, Vox, WriteVol},
     volumes::dyna::Dyna,
@@ -60,7 +64,11 @@ impl Segment {
                                 voxel.z,
                             )
                             .map(i32::from),
-                            Cell::new(color),
+                            Cell::new(
+                                color,
+                                (13..16).contains(&voxel.i), // Glowy
+                                (8..13).contains(&voxel.i),  // Shiny
+                            ),
                         )
                         .unwrap();
                 };
@@ -85,7 +93,10 @@ impl Segment {
 
     /// Transform cell colors
     pub fn map_rgb(self, transform: impl Fn(Rgb<u8>) -> Rgb<u8>) -> Self {
-        self.map(|cell| cell.get_color().map(|rgb| Cell::new(transform(rgb))))
+        self.map(|cell| {
+            cell.get_color()
+                .map(|rgb| Cell::new(transform(rgb), cell.is_glowy(), cell.is_shiny()))
+        })
     }
 }
 
@@ -146,12 +157,15 @@ impl MatSegment {
     pub fn to_segment(&self, map: impl Fn(Material) -> Rgb<u8>) -> Segment {
         let mut vol = Dyna::filled(self.size(), Cell::empty(), ());
         for (pos, vox) in self.full_vol_iter() {
-            let rgb = match vox {
+            let data = match vox {
                 MatCell::None => continue,
-                MatCell::Mat(mat) => map(*mat),
-                MatCell::Normal(rgb) => *rgb,
+                MatCell::Mat(mat) => CellData {
+                    col: map(*mat),
+                    attr: 0,
+                },
+                MatCell::Normal(data) => *data,
             };
-            vol.set(pos, Cell::new(rgb)).unwrap();
+            vol.set(pos, Cell::Filled(data)).unwrap();
         }
         vol
     }
@@ -170,11 +184,15 @@ impl MatSegment {
     /// Transform cell colors
     pub fn map_rgb(self, transform: impl Fn(Rgb<u8>) -> Rgb<u8>) -> Self {
         self.map(|cell| match cell {
-            MatCell::Normal(rgb) => Some(MatCell::Normal(transform(rgb))),
+            MatCell::Normal(data) => Some(MatCell::Normal(CellData {
+                col: transform(data.col),
+                ..data
+            })),
             _ => None,
         })
     }
 
+    #[allow(clippy::identity_op)]
     pub fn from_vox(dot_vox_data: &DotVoxData, flipped: bool) -> Self {
         if let Some(model) = dot_vox_data.models.get(0) {
             let palette = dot_vox_data
@@ -204,7 +222,12 @@ impl MatSegment {
                             .get(index as usize)
                             .copied()
                             .unwrap_or_else(|| Rgb::broadcast(0));
-                        MatCell::Normal(color)
+                        MatCell::Normal(CellData {
+                            col: color,
+                            attr: 0
+                                | ((13..16).contains(&index) as u8 * GLOWY)
+                                | ((8..13).contains(&index) as u8 * SHINY),
+                        })
                     },
                 };
 

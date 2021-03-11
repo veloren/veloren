@@ -439,6 +439,9 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug + 'static>
                     ));
                 },
             },
+            make_face_texel: |_: &mut (), _, light, glow, col| {
+                TerrainVertex::make_col_light(light, glow, col)
+            },
         });
 
         let min_bounds = mesh_delta;
