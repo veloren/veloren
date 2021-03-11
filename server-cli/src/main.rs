@@ -92,6 +92,13 @@ fn main() -> io::Result<()> {
         path
     };
 
+    let runtime = Arc::new(
+        tokio::runtime::Builder::new_multi_thread()
+            .enable_all()
+            .build()
+            .unwrap(),
+    );
+
     // Load server settings
     let mut server_settings = server::Settings::load(&server_data_dir);
     let mut editable_settings = server::EditableSettings::load(&server_data_dir);
@@ -99,6 +106,7 @@ fn main() -> io::Result<()> {
     match matches.subcommand() {
         ("admin", Some(sub_m)) => {
             admin::admin_subcommand(
+                runtime,
                 sub_m,
                 &server_settings,
                 &mut editable_settings,
@@ -130,12 +138,6 @@ fn main() -> io::Result<()> {
     let server_port = &server_settings.gameserver_address.port();
     let metrics_port = &server_settings.metrics_address.port();
     // Create server
-    let runtime = Arc::new(
-        tokio::runtime::Builder::new_multi_thread()
-            .enable_all()
-            .build()
-            .unwrap(),
-    );
     let mut server = Server::new(
         server_settings,
         editable_settings,

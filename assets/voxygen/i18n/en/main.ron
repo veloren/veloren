@@ -41,6 +41,7 @@ You can create an account over at
 https://veloren.net/account/."#,
         "main.login.server_not_found": "Server not found",
         "main.login.authentication_error": "Auth error on server",
+        "main.login.failed_auth_server_url_invalid": "Failed to connect to auth server",
         "main.login.server_full": "Server is full",
         "main.login.untrusted_auth_server": "Auth server not trusted",
         "main.login.outdated_client_or_server": "ServerWentMad: Probably versions are incompatible, check for updates.",

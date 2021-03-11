@@ -16,6 +16,7 @@ pub enum Error {
     AlreadyLoggedIn,
     AuthErr(String),
     AuthClientError(AuthClientError),
+    AuthServerUrlInvalid(String),
     AuthServerNotTrusted,
     Banned(String),
     /// Persisted character data is invalid or missing

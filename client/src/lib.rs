@@ -485,16 +485,24 @@ impl Client {
         mut auth_trusted: impl FnMut(&str) -> bool,
     ) -> Result<(), Error> {
         // Authentication
-        let token_or_username = self.server_info.auth_provider.as_ref().map(|addr|
+        let token_or_username = match &self.server_info.auth_provider {
+            Some(addr) => {
                 // Query whether this is a trusted auth server
                 if auth_trusted(&addr) {
-                    Ok(authc::AuthClient::new(addr)?
-                        .sign_in(&username, &password)?
-                        .serialize())
+                    use std::str::FromStr;
+                    match authc::Authority::from_str(&addr) {
+                        Ok(addr) => Ok(authc::AuthClient::new(addr)
+                            .sign_in(&username, &password)
+                            .await?
+                            .serialize()),
+                        Err(_) => Err(Error::AuthServerUrlInvalid(addr.to_string())),
+                    }
                 } else {
                     Err(Error::AuthServerNotTrusted)
                 }
-        ).unwrap_or(Ok(username))?;
+            },
+            None => Ok(username),
+        }?;
 
         self.send_msg_err(ClientRegister { token_or_username })?;
 

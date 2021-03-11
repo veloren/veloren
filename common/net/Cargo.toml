@@ -21,7 +21,7 @@ tracing = { version = "0.1", default-features = false }
 hashbrown = { version = "0.9", features = ["rayon", "serde", "nightly"] }
 
 # Auth
-authc = { git = "https://gitlab.com/veloren/auth.git", rev = "bffb5181a35c19ddfd33ee0b4aedba741aafb68d" }
+authc = { git = "https://gitlab.com/veloren/auth.git", rev = "f3683798bc5ea656845010f9bae11b05dd671ece" }
 
 # ECS
 specs = { git = "https://github.com/amethyst/specs.git", features = ["serde", "storage-event-control"], rev = "5a9b71035007be0e3574f35184acac1cd4530496" }

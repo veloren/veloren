@@ -179,9 +179,10 @@ impl Server {
             path: data_dir.to_owned(),
         });
         state.ecs_mut().insert(EventBus::<ServerEvent>::default());
-        state
-            .ecs_mut()
-            .insert(LoginProvider::new(settings.auth_server_address.clone()));
+        state.ecs_mut().insert(LoginProvider::new(
+            settings.auth_server_address.clone(),
+            Arc::clone(&runtime),
+        ));
         state.ecs_mut().insert(HwStats {
             hardware_threads: num_cpus::get() as u32,
             rayon_threads: num_cpus::get() as u32,
@@ -222,6 +223,7 @@ impl Server {
         state.ecs_mut().register::<Client>();
         state.ecs_mut().register::<Presence>();
         state.ecs_mut().register::<comp::HomeChunk>();
+        state.ecs_mut().register::<login_provider::PendingLogin>();
 
         //Alias validator
         let banned_words_paths = &settings.banned_words_files;

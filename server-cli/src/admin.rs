@@ -1,11 +1,17 @@
+use std::sync::Arc;
+use tokio::runtime::Runtime;
+
 pub fn admin_subcommand(
+    runtime: Arc<Runtime>,
     sub_m: &clap::ArgMatches,
     server_settings: &server::Settings,
     editable_settings: &mut server::EditableSettings,
     data_dir: &std::path::Path,
 ) {
-    let login_provider =
-        server::login_provider::LoginProvider::new(server_settings.auth_server_address.clone());
+    let login_provider = server::login_provider::LoginProvider::new(
+        server_settings.auth_server_address.clone(),
+        runtime,
+    );
 
     match sub_m.subcommand() {
         ("add", Some(sub_m)) => {
