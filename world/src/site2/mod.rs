@@ -5,7 +5,7 @@ mod tile;
 use self::{
     gen::{Fill, Primitive, Structure},
     plot::{Plot, PlotKind},
-    tile::{HazardKind, Ori, Tile, TileGrid, TileKind, TILE_SIZE},
+    tile::{HazardKind, KeepKind, Ori, RoofKind, Tile, TileGrid, TileKind, TILE_SIZE},
 };
 use crate::{
     site::SpawnRules,
@@ -326,15 +326,15 @@ impl Site {
                 },
                 // Guard tower
                 2 => {
-                    if let Some((aabr, entrance_tile)) = attempt(10, || {
+                    if let Some((_aabr, _)) = attempt(10, || {
                         site.find_roadside_aabr(&mut rng, 4..4, Extent2::new(2, 2))
                     }) {
+                        /*
                         let plot = site.create_plot(Plot {
                             kind: PlotKind::Castle(plot::Castle::generate(
                                 land,
                                 &mut rng,
                                 &site,
-                                entrance_tile,
                                 aabr,
                             )),
                             root_tile: aabr.center(),
@@ -346,6 +346,7 @@ impl Site {
                             kind: TileKind::Castle,
                             plot: Some(plot),
                         });
+                        */
                     }
                 },
                 // Field
@@ -381,40 +382,87 @@ impl Site {
                 },
                 // Castle
                 4 if castles < 1 => {
-                    if let Some((aabr, entrance_tile)) = attempt(10, || {
+                    if let Some((aabr, _entrance_tile)) = attempt(10, || {
                         site.find_roadside_aabr(&mut rng, 16 * 16..18 * 18, Extent2::new(16, 16))
                     }) {
+                        let offset = rng.gen_range(5..(aabr.size().w.min(aabr.size().h) - 4));
+                        let gate_aabr = Aabr {
+                            min: Vec2::new(aabr.min.x + offset - 1, aabr.min.y),
+                            max: Vec2::new(aabr.min.x + offset + 2, aabr.min.y + 1),
+                        };
                         let plot = site.create_plot(Plot {
                             kind: PlotKind::Castle(plot::Castle::generate(
-                                land,
-                                &mut rng,
-                                &site,
-                                entrance_tile,
-                                aabr,
+                                land, &mut rng, &site, aabr, gate_aabr,
                             )),
                             root_tile: aabr.center(),
                             tiles: aabr_tiles(aabr).collect(),
                             seed: rng.gen(),
                         });
 
-                        // Walls
-                        site.blit_aabr(aabr, Tile {
+                        let wall_north = Tile {
                             kind: TileKind::Wall(Ori::North),
                             plot: Some(plot),
-                        });
+                        };
 
-                        let tower = Tile {
-                            kind: TileKind::Tower,
+                        let wall_east = Tile {
+                            kind: TileKind::Wall(Ori::East),
                             plot: Some(plot),
                         };
+                        for x in 0..aabr.size().w {
+                            site.tiles
+                                .set(aabr.min + Vec2::new(x, 0), wall_east.clone());
+                            site.tiles.set(
+                                aabr.min + Vec2::new(x, aabr.size().h - 1),
+                                wall_east.clone(),
+                            );
+                        }
+                        for y in 0..aabr.size().h {
+                            site.tiles
+                                .set(aabr.min + Vec2::new(0, y), wall_north.clone());
+                            site.tiles.set(
+                                aabr.min + Vec2::new(aabr.size().w - 1, y),
+                                wall_north.clone(),
+                            );
+                        }
+
+                        let gate = Tile {
+                            kind: TileKind::Gate,
+                            plot: Some(plot),
+                        };
+                        let tower_parapet = Tile {
+                            kind: TileKind::Tower(RoofKind::Parapet),
+                            plot: Some(plot),
+                        };
+                        let tower_pyramid = Tile {
+                            kind: TileKind::Tower(RoofKind::Pyramid),
+                            plot: Some(plot),
+                        };
+
+                        site.tiles.set(
+                            Vec2::new(aabr.min.x + offset - 2, aabr.min.y),
+                            tower_parapet.clone(),
+                        );
                         site.tiles
-                            .set(Vec2::new(aabr.min.x, aabr.min.y), tower.clone());
+                            .set(Vec2::new(aabr.min.x + offset - 1, aabr.min.y), gate.clone());
                         site.tiles
-                            .set(Vec2::new(aabr.max.x - 1, aabr.min.y), tower.clone());
+                            .set(Vec2::new(aabr.min.x + offset, aabr.min.y), gate.clone());
                         site.tiles
-                            .set(Vec2::new(aabr.min.x, aabr.max.y - 1), tower.clone());
+                            .set(Vec2::new(aabr.min.x + offset + 1, aabr.min.y), gate.clone());
+                        site.tiles.set(
+                            Vec2::new(aabr.min.x + offset + 2, aabr.min.y),
+                            tower_parapet.clone(),
+                        );
+
                         site.tiles
-                            .set(Vec2::new(aabr.max.x - 1, aabr.max.y - 1), tower.clone());
+                            .set(Vec2::new(aabr.min.x, aabr.min.y), tower_parapet.clone());
+                        site.tiles
+                            .set(Vec2::new(aabr.max.x - 1, aabr.min.y), tower_parapet.clone());
+                        site.tiles
+                            .set(Vec2::new(aabr.min.x, aabr.max.y - 1), tower_parapet.clone());
+                        site.tiles.set(
+                            Vec2::new(aabr.max.x - 1, aabr.max.y - 1),
+                            tower_parapet.clone(),
+                        );
 
                         // Courtyard
                         site.blit_aabr(
@@ -441,19 +489,19 @@ impl Site {
                         );
                         site.tiles.set(
                             Vec2::new(aabr.center().x + 2, aabr.center().y + 2),
-                            tower.clone(),
+                            tower_pyramid.clone(),
                         );
                         site.tiles.set(
                             Vec2::new(aabr.center().x + 2, aabr.center().y - 3),
-                            tower.clone(),
+                            tower_pyramid.clone(),
                         );
                         site.tiles.set(
                             Vec2::new(aabr.center().x - 3, aabr.center().y + 2),
-                            tower.clone(),
+                            tower_pyramid.clone(),
                         );
                         site.tiles.set(
                             Vec2::new(aabr.center().x - 3, aabr.center().y - 3),
-                            tower.clone(),
+                            tower_pyramid.clone(),
                         );
 
                         site.blit_aabr(
@@ -462,7 +510,7 @@ impl Site {
                                 max: aabr.center() + 2,
                             },
                             Tile {
-                                kind: TileKind::Keep(tile::KeepKind::Middle),
+                                kind: TileKind::Keep(KeepKind::Middle),
                                 plot: Some(plot),
                             },
                         );
