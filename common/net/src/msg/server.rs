@@ -101,14 +101,15 @@ pub enum ServerGeneral {
     /// from an ingame state
     ExitInGameSuccess,
     InventoryUpdate(comp::Inventory, comp::InventoryUpdateEvent),
+    SetViewDistance(u32),
+    Outcomes(Vec<Outcome>),
+    Knockback(Vec3<f32>),
+    // Ingame related AND terrain stream
     TerrainChunkUpdate {
         key: Vec2<i32>,
         chunk: Result<Box<TerrainChunk>, ()>,
     },
     TerrainBlockUpdates(HashMap<Vec3<i32>, Block>),
-    SetViewDistance(u32),
-    Outcomes(Vec<Outcome>),
-    Knockback(Vec3<f32>),
     // Always possible
     PlayerListUpdate(PlayerListUpdate),
     /// A message to go into the client chat box. The client is responsible for

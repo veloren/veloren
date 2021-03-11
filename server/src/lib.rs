@@ -499,6 +499,7 @@ impl Server {
         run_now::<sys::msg::register::Sys>(&self.state.ecs());
         run_now::<sys::msg::character_screen::Sys>(&self.state.ecs());
         run_now::<sys::msg::in_game::Sys>(&self.state.ecs());
+        run_now::<sys::msg::terrain::Sys>(&self.state.ecs());
         run_now::<sys::msg::ping::Sys>(&self.state.ecs());
         run_now::<sys::agent::Sys>(&self.state.ecs());
 

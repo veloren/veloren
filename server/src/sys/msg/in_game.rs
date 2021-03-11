@@ -1,9 +1,9 @@
-use crate::{client::Client, metrics::NetworkRequestMetrics, presence::Presence, Settings};
+use crate::{client::Client, presence::Presence, Settings};
 use common::{
     comp::{CanBuild, ControlEvent, Controller, ForceUpdate, Health, Ori, Pos, Stats, Vel},
     event::{EventBus, ServerEvent},
-    terrain::{TerrainChunkSize, TerrainGrid},
-    vol::{ReadVol, RectVolSize},
+    terrain::TerrainGrid,
+    vol::ReadVol,
 };
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::{ClientGeneral, PresenceKind, ServerGeneral};
@@ -19,7 +19,6 @@ impl Sys {
         client: &Client,
         maybe_presence: &mut Option<&mut Presence>,
         terrain: &ReadExpect<'_, TerrainGrid>,
-        network_metrics: &ReadExpect<'_, NetworkRequestMetrics>,
         can_build: &ReadStorage<'_, CanBuild>,
         force_updates: &ReadStorage<'_, ForceUpdate>,
         stats: &mut WriteStorage<'_, Stats>,
@@ -37,9 +36,6 @@ impl Sys {
             None => {
                 debug!(?entity, "client is not in_game, ignoring msg");
                 trace!(?msg, "ignored msg content");
-                if matches!(msg, ClientGeneral::TerrainChunkRequest { .. }) {
-                    network_metrics.chunks_request_dropped.inc();
-                }
                 return Ok(());
             },
         };
@@ -115,33 +111,6 @@ impl Sys {
                     block_changes.try_set(pos, block);
                 }
             },
-            ClientGeneral::TerrainChunkRequest { key } => {
-                let in_vd = if let Some(pos) = positions.get(entity) {
-                    pos.0.xy().map(|e| e as f64).distance(
-                        key.map(|e| e as f64 + 0.5) * TerrainChunkSize::RECT_SIZE.map(|e| e as f64),
-                    ) < (presence.view_distance as f64 - 1.0 + 2.5 * 2.0_f64.sqrt())
-                        * TerrainChunkSize::RECT_SIZE.x as f64
-                } else {
-                    true
-                };
-                if in_vd {
-                    match terrain.get_key(key) {
-                        Some(chunk) => {
-                            network_metrics.chunks_served_from_memory.inc();
-                            client.send(ServerGeneral::TerrainChunkUpdate {
-                                key,
-                                chunk: Ok(Box::new(chunk.clone())),
-                            })?
-                        },
-                        None => {
-                            network_metrics.chunks_generation_triggered.inc();
-                            server_emitter.emit(ServerEvent::ChunkRequest(entity, key))
-                        },
-                    }
-                } else {
-                    network_metrics.chunks_request_dropped.inc();
-                }
-            },
             ClientGeneral::UnlockSkill(skill) => {
                 stats
                     .get_mut(entity)
@@ -157,7 +126,7 @@ impl Sys {
                     .get_mut(entity)
                     .map(|mut s| s.skill_set.unlock_skill_group(skill_group_kind));
             },
-            _ => unreachable!("not a client_in_game msg"),
+            _ => tracing::error!("not a client_in_game msg"),
         }
         Ok(())
     }
@@ -172,7 +141,6 @@ impl<'a> System<'a> for Sys {
         Entities<'a>,
         Read<'a, EventBus<ServerEvent>>,
         ReadExpect<'a, TerrainGrid>,
-        ReadExpect<'a, NetworkRequestMetrics>,
         ReadStorage<'a, CanBuild>,
         ReadStorage<'a, ForceUpdate>,
         WriteStorage<'a, Stats>,
@@ -197,7 +165,6 @@ impl<'a> System<'a> for Sys {
             entities,
             server_event_bus,
             terrain,
-            network_metrics,
             can_build,
             force_updates,
             mut stats,
@@ -224,7 +191,6 @@ impl<'a> System<'a> for Sys {
                     client,
                     &mut maybe_presence.as_deref_mut(),
                     &terrain,
-                    &network_metrics,
                     &can_build,
                     &force_updates,
                     &mut stats,
