@@ -993,11 +993,12 @@ fn handle_spawn_airship(
     _action: &ChatCommand,
 ) {
     match server.state.read_component_copied::<comp::Pos>(target) {
-        Some(pos) => {
+        Some(mut pos) => {
+            pos.0.z += 50.0;
             server
                 .state
-                .create_ship(pos, comp::ship::Body::DefaultAirship)
-                .with(comp::Scale(50.0))
+                .create_ship(pos, comp::ship::Body::DefaultAirship, 1)
+                .with(comp::Scale(11.0))
                 .with(LightEmitter {
                     col: Rgb::new(1.0, 0.65, 0.2),
                     strength: 2.0,

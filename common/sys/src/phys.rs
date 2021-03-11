@@ -1,7 +1,7 @@
 use common::{
     comp::{
         BeamSegment, CharacterState, Collider, Gravity, Mass, Mounting, Ori, PhysicsState, Pos,
-        PreviousPhysCache, Projectile, Scale, Shockwave, Sticky, Vel,
+        PreviousPhysCache, Projectile, Scale, Shockwave, Sticky, Vel, body::ship::figuredata::VOXEL_COLLIDER_MANIFEST,
     },
     consts::{FRIC_GROUND, GRAVITY},
     event::{EventBus, ServerEvent},
@@ -15,8 +15,9 @@ use common_ecs::{Job, Origin, ParMode, Phase, PhysicsMetrics, System};
 use hashbrown::HashMap;
 use rayon::iter::ParallelIterator;
 use specs::{
-    shred::{World, ResourceId},
-    Entities, Entity, Join, ParJoin, Read, ReadExpect, ReadStorage, WriteExpect, WriteStorage, SystemData,
+    shred::{ResourceId, World},
+    Entities, Entity, Join, ParJoin, Read, ReadExpect, ReadStorage, SystemData, WriteExpect,
+    WriteStorage,
 };
 use std::ops::Range;
 use vek::*;
@@ -114,7 +115,9 @@ impl<'a> PhysicsSystemData<'a> {
         )
             .join()
         {
-            let _ = self.w.physics_states
+            let _ = self
+                .w
+                .physics_states
                 .entry(entity)
                 .map(|e| e.or_insert_with(Default::default));
         }
@@ -137,13 +140,16 @@ impl<'a> PhysicsSystemData<'a> {
             .map(|(e, _, _, _, _, _, _)| e)
             .collect::<Vec<_>>()
         {
-            let _ = self.w.previous_phys_cache.insert(entity, PreviousPhysCache {
-                velocity_dt: Vec3::zero(),
-                center: Vec3::zero(),
-                collision_boundary: 0.0,
-                scale: 0.0,
-                scaled_radius: 0.0,
-            });
+            let _ = self
+                .w
+                .previous_phys_cache
+                .insert(entity, PreviousPhysCache {
+                    velocity_dt: Vec3::zero(),
+                    center: Vec3::zero(),
+                    collision_boundary: 0.0,
+                    scale: 0.0,
+                    scaled_radius: 0.0,
+                });
         }
 
         //Update PreviousPhysCache
@@ -180,10 +186,14 @@ impl<'a> PhysicsSystemData<'a> {
         }
         drop(guard);
     }
+
     fn apply_pushback(&mut self, job: &mut Job<Sys>) {
         span!(guard, "Apply pushback");
         job.cpu_stats.measure(ParMode::Rayon);
-        let PhysicsSystemData { r: ref psdr, w: ref mut psdw } = self;
+        let PhysicsSystemData {
+            r: ref psdr,
+            w: ref mut psdw,
+        } = self;
         let (positions, previous_phys_cache) = (&psdw.positions, &psdw.previous_phys_cache);
         let metrics = (
             &psdr.entities,
@@ -316,8 +326,13 @@ impl<'a> PhysicsSystemData<'a> {
                                     entity_entity_collisions += 1;
                                 }
 
-                                // Don't apply repulsive force to projectiles
-                                if diff.magnitude_squared() > 0.0 && !is_projectile {
+                                // Don't apply repulsive force to projectiles or if we're colliding
+                                // with a terrain-like entity, or if we are a terrain-like entity
+                                if diff.magnitude_squared() > 0.0
+                                    && !is_projectile
+                                    && !matches!(collider_other, Some(Collider::Voxel { .. }))
+                                    && !matches!(collider, Some(Collider::Voxel { .. }))
+                                {
                                     let force =
                                         400.0 * (collision_dist - diff.magnitude()) * mass_other
                                             / (mass + mass_other);
@@ -346,265 +361,273 @@ impl<'a> PhysicsSystemData<'a> {
                 entity_entity_collisions: old.entity_entity_collisions
                     + new.entity_entity_collisions,
             });
-        psdw.physics_metrics.entity_entity_collision_checks = metrics.entity_entity_collision_checks;
+        psdw.physics_metrics.entity_entity_collision_checks =
+            metrics.entity_entity_collision_checks;
         psdw.physics_metrics.entity_entity_collisions = metrics.entity_entity_collisions;
         drop(guard);
     }
 
     fn handle_movement_and_terrain(&mut self, job: &mut Job<Sys>) {
-        let PhysicsSystemData { r: ref psdr, w: ref mut psdw } = self;
+        let PhysicsSystemData {
+            r: ref psdr,
+            w: ref mut psdw,
+        } = self;
         // Apply movement inputs
         span!(guard, "Apply movement and terrain collision");
         let (positions, previous_phys_cache) = (&psdw.positions, &psdw.previous_phys_cache);
-        let (pos_writes, land_on_grounds) =
-            (
-                &psdr.entities,
-                psdr.scales.maybe(),
-                psdr.stickies.maybe(),
-                &psdr.colliders,
-                positions,
-                &mut psdw.velocities,
-                &psdw.orientations,
-                &mut psdw.physics_states,
-                previous_phys_cache,
-                !&psdr.mountings,
-            )
-                .par_join()
-                .fold(
-                    || (Vec::new(), Vec::new()),
-                    |(mut pos_writes, mut land_on_grounds),
-                     (
-                        entity,
-                        scale,
-                        sticky,
-                        collider,
-                        pos,
-                        mut vel,
-                        _ori,
-                        mut physics_state,
-                        previous_cache,
-                        _,
-                    )| {
-                        // defer the writes of positions to allow an inner loop over terrain-like
-                        // entities
-                        let old_pos = *pos;
-                        let mut pos = *pos;
-                        if sticky.is_some() && physics_state.on_surface().is_some() {
-                            vel.0 = Vec3::zero();
-                            return (pos_writes, land_on_grounds);
-                        }
+        let (pos_writes, land_on_grounds) = (
+            &psdr.entities,
+            psdr.scales.maybe(),
+            psdr.stickies.maybe(),
+            &psdr.colliders,
+            positions,
+            &mut psdw.velocities,
+            &psdw.orientations,
+            &mut psdw.physics_states,
+            previous_phys_cache,
+            !&psdr.mountings,
+        )
+            .par_join()
+            .fold(
+                || (Vec::new(), Vec::new()),
+                |(mut pos_writes, mut land_on_grounds),
+                 (
+                    entity,
+                    scale,
+                    sticky,
+                    collider,
+                    pos,
+                    mut vel,
+                    _ori,
+                    mut physics_state,
+                    previous_cache,
+                    _,
+                )| {
+                    // defer the writes of positions to allow an inner loop over terrain-like
+                    // entities
+                    let old_pos = *pos;
+                    let mut pos = *pos;
+                    if sticky.is_some() && physics_state.on_surface().is_some() {
+                        vel.0 = Vec3::zero();
+                        return (pos_writes, land_on_grounds);
+                    }
 
-                        let scale = if let Collider::Voxel { .. } = collider {
-                            scale.map(|s| s.0).unwrap_or(1.0)
+                    let scale = if let Collider::Voxel { .. } = collider {
+                        scale.map(|s| s.0).unwrap_or(1.0)
+                    } else {
+                        // TODO: Use scale & actual proportions when pathfinding is good
+                        // enough to manage irregular entity sizes
+                        1.0
+                    };
+
+                    let old_vel = *vel;
+                    // Integrate forces
+                    // Friction is assumed to be a constant dependent on location
+                    let friction = FRIC_AIR
+                        .max(if physics_state.on_ground {
+                            FRIC_GROUND
                         } else {
-                            // TODO: Use scale & actual proportions when pathfinding is good
-                            // enough to manage irregular entity sizes
-                            1.0
-                        };
-
-                        let old_vel = *vel;
-                        // Integrate forces
-                        // Friction is assumed to be a constant dependent on location
-                        let friction = FRIC_AIR
-                            .max(if physics_state.on_ground {
-                                FRIC_GROUND
-                            } else {
-                                0.0
-                            })
-                            .max(if physics_state.in_liquid.is_some() {
-                                FRIC_FLUID
-                            } else {
-                                0.0
-                            });
-                        let in_loaded_chunk = psdr.terrain
-                            .get_key(psdr.terrain.pos_key(pos.0.map(|e| e.floor() as i32)))
-                            .is_some();
-                        let downward_force =
-                            if !in_loaded_chunk {
-                                0.0 // No gravity in unloaded chunks
-                            } else if physics_state
-                                .in_liquid
-                                .map(|depth| depth > 0.75)
-                                .unwrap_or(false)
-                            {
-                                (1.0 - BOUYANCY) * GRAVITY
-                            } else {
-                                GRAVITY
-                            } * psdr.gravities.get(entity).map(|g| g.0).unwrap_or_default();
-                        vel.0 = integrate_forces(psdr.dt.0, vel.0, downward_force, friction);
-
-                        // Don't move if we're not in a loaded chunk
-                        let pos_delta = if in_loaded_chunk {
-                            // this is an approximation that allows most framerates to
-                            // behave in a similar manner.
-                            let dt_lerp = 0.2;
-                            (vel.0 * dt_lerp + old_vel.0 * (1.0 - dt_lerp)) * psdr.dt.0
+                            0.0
+                        })
+                        .max(if physics_state.in_liquid.is_some() {
+                            FRIC_FLUID
                         } else {
-                            Vec3::zero()
-                        };
-
-                        match &*collider {
-                            Collider::Voxel { .. } => {
-                                // for now, treat entities with voxel colliders as their bounding
-                                // cylinders for the purposes of colliding them with terrain
-                                let radius = collider.get_radius() * scale;
-                                let (z_min, z_max) = collider.get_z_limits(scale);
-
-                                let cylinder = (radius, z_min, z_max);
-                                cylinder_voxel_collision(
-                                    cylinder,
-                                    &*psdr.terrain,
-                                    entity,
-                                    &mut pos,
-                                    pos_delta,
-                                    vel,
-                                    &mut physics_state,
-                                    &mut land_on_grounds,
-                                );
-                            },
-                            Collider::Box {
-                                radius,
-                                z_min,
-                                z_max,
-                            } => {
-                                // Scale collider
-                                let radius = radius.min(0.45) * scale;
-                                let z_min = *z_min * scale;
-                                let z_max = z_max.clamped(1.2, 1.95) * scale;
-
-                                let cylinder = (radius, z_min, z_max);
-                                cylinder_voxel_collision(
-                                    cylinder,
-                                    &*psdr.terrain,
-                                    entity,
-                                    &mut pos,
-                                    pos_delta,
-                                    vel,
-                                    &mut physics_state,
-                                    &mut land_on_grounds,
-                                );
-                            },
-                            Collider::Point => {
-                                let (dist, block) = psdr.terrain
-                                    .ray(pos.0, pos.0 + pos_delta)
-                                    .until(|block: &Block| block.is_filled())
-                                    .ignore_error()
-                                    .cast();
-
-                                pos.0 += pos_delta.try_normalized().unwrap_or(Vec3::zero()) * dist;
-
-                                // Can't fail since we do ignore_error above
-                                if block.unwrap().is_some() {
-                                    let block_center = pos.0.map(|e| e.floor()) + 0.5;
-                                    let block_rpos = (pos.0 - block_center)
-                                        .try_normalized()
-                                        .unwrap_or(Vec3::zero());
-
-                                    // See whether we're on the top/bottom of a block, or the side
-                                    if block_rpos.z.abs()
-                                        > block_rpos.xy().map(|e| e.abs()).reduce_partial_max()
-                                    {
-                                        if block_rpos.z > 0.0 {
-                                            physics_state.on_ground = true;
-                                        } else {
-                                            physics_state.on_ceiling = true;
-                                        }
-                                        vel.0.z = 0.0;
-                                    } else {
-                                        physics_state.on_wall =
-                                            Some(if block_rpos.x.abs() > block_rpos.y.abs() {
-                                                vel.0.x = 0.0;
-                                                Vec3::unit_x() * -block_rpos.x.signum()
-                                            } else {
-                                                vel.0.y = 0.0;
-                                                Vec3::unit_y() * -block_rpos.y.signum()
-                                            });
-                                    }
-                                }
-
-                                physics_state.in_liquid = psdr.terrain
-                                    .get(pos.0.map(|e| e.floor() as i32))
-                                    .ok()
-                                    .and_then(|vox| vox.is_liquid().then_some(1.0));
-                            },
-                        }
-
-                        // Collide with terrain-like entities
-                        for (
-                            entity_other,
-                            other,
-                            pos_other,
-                            previous_cache_other,
-                            mass_other,
-                            collider_other,
-                            _,
-                            _,
-                            _,
-                            _,
-                            char_state_other_maybe,
-                        ) in (
-                            &psdr.entities,
-                            &psdr.uids,
-                            positions,
-                            previous_phys_cache,
-                            psdr.masses.maybe(),
-                            &psdr.colliders,
-                            !&psdr.projectiles,
-                            !&psdr.mountings,
-                            !&psdr.beams,
-                            !&psdr.shockwaves,
-                            psdr.char_states.maybe(),
-                        )
-                            .join()
+                            0.0
+                        });
+                    let in_loaded_chunk = psdr
+                        .terrain
+                        .get_key(psdr.terrain.pos_key(pos.0.map(|e| e.floor() as i32)))
+                        .is_some();
+                    let downward_force =
+                        if !in_loaded_chunk {
+                            0.0 // No gravity in unloaded chunks
+                        } else if physics_state
+                            .in_liquid
+                            .map(|depth| depth > 0.75)
+                            .unwrap_or(false)
                         {
-                            let collision_boundary = previous_cache.collision_boundary
-                                + previous_cache_other.collision_boundary;
-                            if previous_cache
-                                .center
-                                .distance_squared(previous_cache_other.center)
-                                > collision_boundary.powi(2)
-                                || entity == entity_other
-                            {
-                                continue;
+                            (1.0 - BOUYANCY) * GRAVITY
+                        } else {
+                            GRAVITY
+                        } * psdr.gravities.get(entity).map(|g| g.0).unwrap_or_default();
+                    vel.0 = integrate_forces(psdr.dt.0, vel.0, downward_force, friction);
+
+                    // Don't move if we're not in a loaded chunk
+                    let pos_delta = if in_loaded_chunk {
+                        // this is an approximation that allows most framerates to
+                        // behave in a similar manner.
+                        let dt_lerp = 0.2;
+                        (vel.0 * dt_lerp + old_vel.0 * (1.0 - dt_lerp)) * psdr.dt.0
+                    } else {
+                        Vec3::zero()
+                    };
+
+                    match &*collider {
+                        Collider::Voxel { .. } => {
+                            // for now, treat entities with voxel colliders as their bounding
+                            // cylinders for the purposes of colliding them with terrain
+                            let radius = collider.get_radius() * scale;
+                            let (z_min, z_max) = collider.get_z_limits(scale);
+
+                            let cylinder = (radius, z_min, z_max);
+                            cylinder_voxel_collision(
+                                cylinder,
+                                &*psdr.terrain,
+                                entity,
+                                &mut pos,
+                                pos_delta,
+                                vel,
+                                &mut physics_state,
+                                &mut land_on_grounds,
+                            );
+                        },
+                        Collider::Box {
+                            radius,
+                            z_min,
+                            z_max,
+                        } => {
+                            // Scale collider
+                            let radius = radius.min(0.45) * scale;
+                            let z_min = *z_min * scale;
+                            let z_max = z_max.clamped(1.2, 1.95) * scale;
+
+                            let cylinder = (radius, z_min, z_max);
+                            cylinder_voxel_collision(
+                                cylinder,
+                                &*psdr.terrain,
+                                entity,
+                                &mut pos,
+                                pos_delta,
+                                vel,
+                                &mut physics_state,
+                                &mut land_on_grounds,
+                            );
+                        },
+                        Collider::Point => {
+                            let (dist, block) = psdr
+                                .terrain
+                                .ray(pos.0, pos.0 + pos_delta)
+                                .until(|block: &Block| block.is_filled())
+                                .ignore_error()
+                                .cast();
+
+                            pos.0 += pos_delta.try_normalized().unwrap_or(Vec3::zero()) * dist;
+
+                            // Can't fail since we do ignore_error above
+                            if block.unwrap().is_some() {
+                                let block_center = pos.0.map(|e| e.floor()) + 0.5;
+                                let block_rpos = (pos.0 - block_center)
+                                    .try_normalized()
+                                    .unwrap_or(Vec3::zero());
+
+                                // See whether we're on the top/bottom of a block, or the side
+                                if block_rpos.z.abs()
+                                    > block_rpos.xy().map(|e| e.abs()).reduce_partial_max()
+                                {
+                                    if block_rpos.z > 0.0 {
+                                        physics_state.on_ground = true;
+                                    } else {
+                                        physics_state.on_ceiling = true;
+                                    }
+                                    vel.0.z = 0.0;
+                                } else {
+                                    physics_state.on_wall =
+                                        Some(if block_rpos.x.abs() > block_rpos.y.abs() {
+                                            vel.0.x = 0.0;
+                                            Vec3::unit_x() * -block_rpos.x.signum()
+                                        } else {
+                                            vel.0.y = 0.0;
+                                            Vec3::unit_y() * -block_rpos.y.signum()
+                                        });
+                                }
                             }
 
-                            if let Collider::Voxel { id } = collider_other {
-                                // use bounding cylinder regardless of our collider
-                                // TODO: extract point-terrain collision above to its own function
-                                let radius = collider.get_radius() * scale;
-                                let (z_min, z_max) = collider.get_z_limits(scale);
+                            physics_state.in_liquid = psdr
+                                .terrain
+                                .get(pos.0.map(|e| e.floor() as i32))
+                                .ok()
+                                .and_then(|vox| vox.is_liquid().then_some(1.0));
+                        },
+                    }
 
-                                let cylinder = (radius, z_min, z_max);
-                                // TODO: load .vox into a Dyna, and use it (appropriately rotated)
-                                // as the terrain
-                                /*cylinder_voxel_collision(
+                    // Collide with terrain-like entities
+                    for (
+                        entity_other,
+                        other,
+                        pos_other,
+                        previous_cache_other,
+                        mass_other,
+                        collider_other,
+                        _,
+                        _,
+                        _,
+                        _,
+                        char_state_other_maybe,
+                    ) in (
+                        &psdr.entities,
+                        &psdr.uids,
+                        positions,
+                        previous_phys_cache,
+                        psdr.masses.maybe(),
+                        &psdr.colliders,
+                        !&psdr.projectiles,
+                        !&psdr.mountings,
+                        !&psdr.beams,
+                        !&psdr.shockwaves,
+                        psdr.char_states.maybe(),
+                    )
+                        .join()
+                    {
+                        /*let collision_boundary = previous_cache.collision_boundary
+                            + previous_cache_other.collision_boundary;
+                        if previous_cache
+                            .center
+                            .distance_squared(previous_cache_other.center)
+                            > collision_boundary.powi(2)
+                            || entity == entity_other
+                        {
+                            continue;
+                        }*/
+
+                        if let Collider::Voxel { id } = collider_other {
+                            // use bounding cylinder regardless of our collider
+                            // TODO: extract point-terrain collision above to its own function
+                            let radius = collider.get_radius() * scale;
+                            let (z_min, z_max) = collider.get_z_limits(scale);
+
+                            pos.0 -= pos_other.0;
+                            let cylinder = (radius, z_min, z_max);
+                            if let Some(dyna) = VOXEL_COLLIDER_MANIFEST.voxes.get(id) {
+                                cylinder_voxel_collision(
                                     cylinder,
-                                    &*psdr.terrain,
+                                    &*dyna,
                                     entity,
                                     &mut pos,
                                     pos_delta,
                                     vel,
                                     &mut physics_state,
                                     &mut land_on_grounds,
-                                );*/
+                                );
                             }
+                            pos.0 += pos_other.0;
                         }
-                        if pos != old_pos {
-                            pos_writes.push((entity, pos));
-                        }
+                    }
+                    if pos != old_pos {
+                        pos_writes.push((entity, pos));
+                    }
 
-                        (pos_writes, land_on_grounds)
-                    },
-                )
-                .reduce(
-                    || (Vec::new(), Vec::new()),
-                    |(mut pos_writes_a, mut land_on_grounds_a),
-                     (mut pos_writes_b, mut land_on_grounds_b)| {
-                        pos_writes_a.append(&mut pos_writes_b);
-                        land_on_grounds_a.append(&mut land_on_grounds_b);
-                        (pos_writes_a, land_on_grounds_a)
-                    },
-                );
+                    (pos_writes, land_on_grounds)
+                },
+            )
+            .reduce(
+                || (Vec::new(), Vec::new()),
+                |(mut pos_writes_a, mut land_on_grounds_a),
+                 (mut pos_writes_b, mut land_on_grounds_b)| {
+                    pos_writes_a.append(&mut pos_writes_b);
+                    land_on_grounds_a.append(&mut land_on_grounds_b);
+                    (pos_writes_a, land_on_grounds_a)
+                },
+            );
         drop(guard);
         job.cpu_stats.measure(ParMode::Single);
 
@@ -631,10 +654,7 @@ impl<'a> System<'a> for Sys {
 
     #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     #[allow(clippy::blocks_in_if_conditions)] // TODO: Pending review in #587
-    fn run(
-        job: &mut Job<Self>,
-        mut psd: Self::SystemData,
-    ) {
+    fn run(job: &mut Job<Self>, mut psd: Self::SystemData) {
         psd.reset();
 
         // Apply pushback
@@ -652,7 +672,6 @@ impl<'a> System<'a> for Sys {
         // entities.
         psd.maintain_pushback_cache();
         psd.apply_pushback(job);
-
 
         psd.handle_movement_and_terrain(job);
     }

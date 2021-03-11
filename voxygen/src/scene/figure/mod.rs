@@ -4231,7 +4231,7 @@ impl FigureMgr {
             .join()
             // Don't render dead entities
             .filter(|(_, _, _, _, health, _, _)| health.map_or(true, |h| !h.is_dead))
-            .for_each(|(entity, pos, _, body, _, inventory, _)| {
+            .for_each(|(entity, pos, _, body, _, inventory, scale)| {
                 if let Some((locals, bone_consts, model, _)) = self.get_model_for_render(
                     tick,
                     camera,
@@ -4241,7 +4241,7 @@ impl FigureMgr {
                     inventory,
                     false,
                     pos.0,
-                    figure_lod_render_distance,
+                    figure_lod_render_distance * scale.map_or(1.0, |s| s.0),
                     |state| state.can_shadow_sun(),
                 ) {
                     renderer.render_figure_shadow_directed(
@@ -4273,7 +4273,7 @@ impl FigureMgr {
         let character_state_storage = state.read_storage::<common::comp::CharacterState>();
         let character_state = character_state_storage.get(player_entity);
 
-        for (entity, pos, _, body, _, inventory, _) in (
+        for (entity, pos, _, body, _, inventory, scale) in (
             &ecs.entities(),
             &ecs.read_storage::<Pos>(),
             ecs.read_storage::<Ori>().maybe(),
@@ -4298,7 +4298,7 @@ impl FigureMgr {
                     inventory,
                     false,
                     pos.0,
-                    figure_lod_render_distance,
+                    figure_lod_render_distance * scale.map_or(1.0, |s| s.0),
                     |state| state.visible(),
                 ) {
                     renderer.render_figure(model, &col_lights, global, locals, bone_consts, lod);

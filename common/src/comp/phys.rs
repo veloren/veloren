@@ -68,7 +68,7 @@ pub enum Collider {
 impl Collider {
     pub fn get_radius(&self) -> f32 {
         match self {
-            Collider::Voxel { .. } => 0.0,
+            Collider::Voxel { .. } => 1.0,
             Collider::Box { radius, .. } => *radius,
             Collider::Point => 0.0,
         }
@@ -76,7 +76,7 @@ impl Collider {
 
     pub fn get_z_limits(&self, modifier: f32) -> (f32, f32) {
         match self {
-            Collider::Voxel { .. } => (0.0, 0.0),
+            Collider::Voxel { .. } => (0.0, 1.0),
             Collider::Box { z_min, z_max, .. } => (*z_min * modifier, *z_max * modifier),
             Collider::Point => (0.0, 0.0),
         }
