@@ -455,10 +455,11 @@ impl State {
         for event in events {
             let mut velocities = self.ecs.write_storage::<comp::Vel>();
             let mut controllers = self.ecs.write_storage::<comp::Controller>();
+            let physics = self.ecs.read_storage::<comp::PhysicsState>();
             match event {
                 LocalEvent::Jump(entity) => {
                     if let Some(vel) = velocities.get_mut(entity) {
-                        vel.0.z = HUMANOID_JUMP_ACCEL;
+                        vel.0.z = HUMANOID_JUMP_ACCEL + physics.get(entity).map_or(0.0, |ps| ps.ground_vel.z);
                     }
                 },
                 LocalEvent::ApplyImpulse { entity, impulse } => {

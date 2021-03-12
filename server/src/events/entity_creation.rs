@@ -129,7 +129,7 @@ pub fn handle_shoot(
         return;
     };
 
-    let vel = *dir * speed;
+    let vel = *dir * speed + state.ecs().read_storage::<Vel>().get(entity).map_or(Vec3::zero(), |v| v.0);
 
     // Add an outcome
     state
