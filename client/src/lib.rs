@@ -1,6 +1,6 @@
 #![deny(unsafe_code)]
 #![deny(clippy::clone_on_ref_ptr)]
-#![feature(label_break_value, option_zip, str_split_once)]
+#![feature(label_break_value, option_zip)]
 
 pub mod addr;
 pub mod cmd;
@@ -1045,7 +1045,7 @@ impl Client {
     where
         C: Clone,
     {
-        Some(self.state.read_storage::<C>().get(self.entity()).cloned()?)
+        self.state.read_storage::<C>().get(self.entity()).cloned()
     }
 
     pub fn current_biome(&self) -> BiomeKind {

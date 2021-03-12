@@ -289,8 +289,8 @@ impl SpeechBubble {
         let timeout = Instant::now() + Duration::from_secs_f64(SpeechBubble::DEFAULT_DURATION);
         Self {
             message,
-            timeout,
             icon,
+            timeout,
         }
     }
 
@@ -299,8 +299,8 @@ impl SpeechBubble {
         let timeout = Instant::now() + Duration::from_secs_f64(SpeechBubble::DEFAULT_DURATION);
         Self {
             message,
-            timeout,
             icon,
+            timeout,
         }
     }
 

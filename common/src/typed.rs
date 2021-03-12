@@ -45,16 +45,16 @@ pub trait SynthTyped<Context, Target> {
 /// variable, but this way we don't have to implement variable lookup and it
 /// doesn't serialize with variables).
 #[fundamental]
-#[serde(transparent)]
 #[derive(Deserialize, Serialize)]
+#[serde(transparent)]
 pub struct WeakHead<Reduction, Type> {
     pub red: Reduction,
     #[serde(skip)]
     pub ty: PhantomData<Type>,
 }
 
-#[serde(transparent)]
 #[derive(Deserialize, Serialize)]
+#[serde(transparent)]
 pub struct Pure<T>(pub T);
 
 impl<'a, Context: SubContext<S>, T, S> Typed<Context, &'a T, S> for &'a Pure<T> {
@@ -190,15 +190,15 @@ impl<Context, Target> SynthTyped<Context, Target> for WeakHead<Pure<Target>, Tar
 /// lift at some point; struct variants are not yet supported, and neither
 /// attributes on fields.
 #[fundamental]
-#[serde(transparent)]
 #[derive(Deserialize, Serialize)]
+#[serde(transparent)]
 pub struct ElimCase<Cases> {
     pub cases: Cases,
 }
 
 #[fundamental]
-#[serde(transparent)]
 #[derive(Deserialize, Serialize)]
+#[serde(transparent)]
 pub struct ElimProj<Proj> {
     pub proj: Proj,
 }

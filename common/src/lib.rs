@@ -7,7 +7,6 @@
     arbitrary_enum_discriminant,
     associated_type_defaults,
     bool_to_option,
-    const_checked_int_methods,
     const_generics,
     fundamental,
     iter_map_while,

@@ -285,8 +285,9 @@ impl From<SerdeOri> for Ori {
         }
     }
 }
-impl Into<SerdeOri> for Ori {
-    fn into(self) -> SerdeOri { SerdeOri(self.to_quat()) }
+
+impl From<Ori> for SerdeOri {
+    fn from(other: Ori) -> SerdeOri { SerdeOri(other.to_quat()) }
 }
 
 impl Component for Ori {

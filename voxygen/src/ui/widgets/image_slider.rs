@@ -45,7 +45,9 @@ pub struct ImageSlider<T, K> {
 struct Track {
     image_id: image::Id,
     color: Option<Color>,
+    #[allow(dead_code)]
     src_rect: Option<Rect>,
+    #[allow(dead_code)]
     breadth: Option<f32>,
     // Padding on the ends of the track constraining the slider to a smaller area.
     padding: (f32, f32),
@@ -56,6 +58,7 @@ struct Slider {
     hover_image_id: Option<image::Id>,
     press_image_id: Option<image::Id>,
     color: Option<Color>,
+    #[allow(dead_code)]
     src_rect: Option<Rect>,
     length: Option<f32>,
 }

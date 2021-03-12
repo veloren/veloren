@@ -358,7 +358,8 @@ pub struct WorldSim {
     /// post-erosion warping, cliffs, and other things like that).
     pub max_height: f32,
     pub(crate) chunks: Vec<SimChunk>,
-    pub(crate) locations: Vec<Location>,
+    //TODO: remove or use this property
+    pub(crate) _locations: Vec<Location>,
 
     pub(crate) gen_ctx: GenCtx,
     pub rng: ChaChaRng,
@@ -1397,7 +1398,7 @@ impl WorldSim {
             map_size_lg,
             max_height: maxh as f32,
             chunks,
-            locations: Vec::new(),
+            _locations: Vec::new(),
             gen_ctx,
             rng,
         };
@@ -1718,7 +1719,7 @@ impl WorldSim {
         }
 
         self.rng = rng;
-        self.locations = locations;
+        self._locations = locations;
     }
 
     pub fn get(&self, chunk_pos: Vec2<i32>) -> Option<&SimChunk> {

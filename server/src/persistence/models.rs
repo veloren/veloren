@@ -18,8 +18,8 @@ pub struct NewCharacter<'a> {
 }
 
 #[derive(Identifiable, Queryable, Debug)]
-#[primary_key(character_id)]
 #[table_name = "character"]
+#[primary_key(character_id)]
 pub struct Character {
     pub character_id: i64,
     pub player_uuid: String,
@@ -27,9 +27,9 @@ pub struct Character {
     pub waypoint: Option<String>,
 }
 
-#[primary_key(item_id)]
-#[table_name = "item"]
 #[derive(Debug, Insertable, Queryable, AsChangeset)]
+#[table_name = "item"]
+#[primary_key(item_id)]
 pub struct Item {
     pub item_id: i64,
     pub parent_container_item_id: i64,

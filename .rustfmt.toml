@@ -13,6 +13,6 @@ reorder_impl_items = true
 fn_single_line = true
 inline_attribute_width = 50
 match_block_trailing_comma = true
-merge_imports = true
+imports_granularity="Crate"
 overflow_delimited_expr = true
 use_field_init_shorthand = true

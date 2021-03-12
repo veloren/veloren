@@ -272,6 +272,7 @@ pub struct Renderer {
     lod_terrain_pipeline: GfxPipeline<lod_terrain::pipe::Init<'static>>,
     clouds_pipeline: GfxPipeline<clouds::pipe::Init<'static>>,
     postprocess_pipeline: GfxPipeline<postprocess::pipe::Init<'static>>,
+    #[allow(dead_code)] //TODO: remove ?
     player_shadow_pipeline: GfxPipeline<figure::pipe::Init<'static>>,
 
     shaders: AssetHandle<Shaders>,
@@ -358,15 +359,15 @@ impl Renderer {
                 directed_sampler,
             ) = shadow_views;
             Some(ShadowMapRenderer {
+                directed_depth_stencil_view,
+                directed_res,
+                directed_sampler,
+
                 // point_encoder: factory.create_command_buffer().into(),
                 // directed_encoder: factory.create_command_buffer().into(),
                 point_depth_stencil_view,
                 point_res,
                 point_sampler,
-
-                directed_depth_stencil_view,
-                directed_res,
-                directed_sampler,
 
                 point_pipeline,
                 terrain_directed_pipeline,

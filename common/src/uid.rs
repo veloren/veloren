@@ -12,8 +12,8 @@ use std::{fmt, u64};
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
 pub struct Uid(pub u64);
 
-impl Into<u64> for Uid {
-    fn into(self) -> u64 { self.0 }
+impl From<Uid> for u64 {
+    fn from(uid: Uid) -> u64 { uid.0 }
 }
 
 impl From<u64> for Uid {

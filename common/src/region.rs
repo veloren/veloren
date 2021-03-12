@@ -235,12 +235,10 @@ impl RegionMap {
                 return Some(key);
             } else {
                 // Check neighbors
-                for o in region.neighbors.iter() {
-                    if let Some(idx) = o {
-                        let (key, region) = self.regions.get_index(*idx).unwrap();
-                        if region.entities().contains(id) {
-                            return Some(*key);
-                        }
+                for idx in region.neighbors.iter().flatten() {
+                    let (key, region) = self.regions.get_index(*idx).unwrap();
+                    if region.entities().contains(id) {
+                        return Some(*key);
                     }
                 }
             }

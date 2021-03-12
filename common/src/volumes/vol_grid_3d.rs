@@ -123,10 +123,7 @@ impl<V: RasterableVol> VolGrid3d<V> {
     }
 
     pub fn get_key(&self, key: Vec3<i32>) -> Option<&V> {
-        match self.chunks.get(&key) {
-            Some(arc_chunk) => Some(arc_chunk.as_ref()),
-            None => None,
-        }
+        self.chunks.get(&key).map(|arc_chunk| arc_chunk.as_ref())
     }
 
     pub fn get_key_arc(&self, key: Vec3<i32>) -> Option<&Arc<V>> { self.chunks.get(&key) }

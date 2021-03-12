@@ -268,22 +268,22 @@ impl From<comp::ChatMsg> for ServerGeneral {
     fn from(v: comp::ChatMsg) -> Self { ServerGeneral::ChatMsg(v) }
 }
 
-impl Into<ServerMsg> for ServerInfo {
-    fn into(self) -> ServerMsg { ServerMsg::Info(self) }
+impl From<ServerInfo> for ServerMsg {
+    fn from(o: ServerInfo) -> ServerMsg { ServerMsg::Info(o) }
 }
 
-impl Into<ServerMsg> for ServerInit {
-    fn into(self) -> ServerMsg { ServerMsg::Init(Box::new(self)) }
+impl From<ServerInit> for ServerMsg {
+    fn from(o: ServerInit) -> ServerMsg { ServerMsg::Init(Box::new(o)) }
 }
 
-impl Into<ServerMsg> for ServerRegisterAnswer {
-    fn into(self) -> ServerMsg { ServerMsg::RegisterAnswer(self) }
+impl From<ServerRegisterAnswer> for ServerMsg {
+    fn from(o: ServerRegisterAnswer) -> ServerMsg { ServerMsg::RegisterAnswer(o) }
 }
 
-impl Into<ServerMsg> for ServerGeneral {
-    fn into(self) -> ServerMsg { ServerMsg::General(self) }
+impl From<ServerGeneral> for ServerMsg {
+    fn from(o: ServerGeneral) -> ServerMsg { ServerMsg::General(o) }
 }
 
-impl Into<ServerMsg> for PingMsg {
-    fn into(self) -> ServerMsg { ServerMsg::Ping(self) }
+impl From<PingMsg> for ServerMsg {
+    fn from(o: PingMsg) -> ServerMsg { ServerMsg::Ping(o) }
 }

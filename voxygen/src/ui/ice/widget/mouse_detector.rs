@@ -22,9 +22,9 @@ pub struct MouseDetector<'a> {
 impl<'a> MouseDetector<'a> {
     pub fn new(state: &'a mut State, width: Length, height: Length) -> Self {
         Self {
-            state,
             width,
             height,
+            state,
         }
     }
 }
