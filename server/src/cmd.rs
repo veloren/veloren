@@ -1009,7 +1009,7 @@ fn handle_spawn_airship(
             server
                 .state
                 .create_ship(pos, comp::ship::Body::DefaultAirship, 1, destination)
-                .with(comp::Scale(11.0 / 0.8))
+                .with(comp::Scale(comp::ship::AIRSHIP_SCALE))
                 .with(LightEmitter {
                     col: Rgb::new(1.0, 0.65, 0.2),
                     strength: 2.0,

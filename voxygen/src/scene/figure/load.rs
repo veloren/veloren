@@ -4112,17 +4112,6 @@ impl QuadrupedLowLateralSpec {
 #[derive(Deserialize)]
 struct ObjectCentralSpec(HashMap<object::Body, SidedObjectCentralVoxSpec>);
 
-/*
-#[derive(Deserialize)]
-struct ShipCentralSpec(HashMap<ship::Body, SidedShipCentralVoxSpec>);
-
-#[derive(Deserialize)]
-struct SidedShipCentralVoxSpec {
-    bone0: ObjectCentralSubSpec,
-    bone1: ObjectCentralSubSpec,
-    bone2: ObjectCentralSubSpec,
-}*/
-
 #[derive(Deserialize)]
 struct SidedObjectCentralVoxSpec {
     bone0: ObjectCentralSubSpec,
@@ -4193,54 +4182,6 @@ impl ObjectCentralSpec {
     }
 }
 
-/*make_vox_spec!(
-    ship::Body,
-    struct ShipSpec {
-        central: ShipCentralSpec = "server.manifests.ship_manifest",
-    },
-    |FigureKey { body, .. }, spec| {
-        [
-            Some(spec.central.read().0.mesh_bone(
-                body, |spec| &spec.bone0,
-            )),
-            Some(spec.central.read().0.mesh_bone(
-                body, |spec| &spec.bone1
-            )),
-            Some(spec.central.read().0.mesh_bone(
-                body, |spec| &spec.bone2
-            )),
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-        ]
-    },
-);
-
-impl ShipCentralSpec {
-    fn mesh_bone<F: Fn(&SidedShipCentralVoxSpec) -> &ObjectCentralSubSpec>(&self, obj: &ship::Body, f: F) -> BoneMeshes {
-        let spec = match self.0.get(&obj) {
-            Some(spec) => spec,
-            None => {
-                error!("No specification exists for {:?}", obj);
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
-            },
-        };
-        let bone = f(spec);
-        let central = graceful_load_segment(&bone.central.0);
-
-        (central, Vec3::from(bone.offset))
-    }
-}*/
 fn mesh_ship_bone<K: fmt::Debug + Eq + Hash, V, F: Fn(&V) -> &ShipCentralSubSpec>(
     map: &HashMap<K, V>,
     obj: &K,

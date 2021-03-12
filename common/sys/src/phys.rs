@@ -475,7 +475,9 @@ impl<'a> PhysicsData<'a> {
                         Collider::Voxel { .. } => {
                             // for now, treat entities with voxel colliders as their bounding
                             // cylinders for the purposes of colliding them with terrain
-                            // Actually no, make them smaller to avoid lag
+
+                            // Additionally, multiply radius by 0.1 to make the cylinder smaller to
+                            // avoid lag
                             let radius = collider.get_radius() * scale * 0.1;
                             let (z_min, z_max) = collider.get_z_limits(scale);
 

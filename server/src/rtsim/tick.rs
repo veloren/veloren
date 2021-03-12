@@ -123,7 +123,7 @@ impl<'a> System<'a> for Sys {
                     _ => comp::Alignment::Wild,
                 },
                 scale: match body {
-                    comp::Body::Ship(_) => comp::Scale(11.0 / 0.8),
+                    comp::Body::Ship(_) => comp::Scale(comp::ship::AIRSHIP_SCALE),
                     _ => comp::Scale(1.0),
                 },
                 drop_item: None,

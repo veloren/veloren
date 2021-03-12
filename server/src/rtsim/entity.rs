@@ -27,7 +27,9 @@ impl Entity {
 
     pub fn get_body(&self) -> comp::Body {
         match self.rng(PERM_GENUS).gen::<f32>() {
-            //we want 5% airships, 45% birds, 50% humans
+            // we want 5% airships, 45% birds, 50% humans
+            // TODO: uncomment this to re-enable RtSim airships once physics is interpolated well
+            // in multiplayer.
             //x if x < 0.05 => comp::Body::Ship(comp::ship::Body::DefaultAirship),
             x if x < 0.50 => {
                 let species = *(&comp::bird_medium::ALL_SPECIES)

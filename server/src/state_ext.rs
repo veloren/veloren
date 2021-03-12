@@ -249,6 +249,8 @@ impl StateExt for State {
             .with(comp::Controller::default())
             .with(comp::inventory::Inventory::new_empty())
             .with(comp::CharacterState::default())
+            // TODO: some of these are required in order for the character_behavior system to
+            // recognize a possesed airship; that system should be refactored to use `.maybe()`
             .with(comp::Energy::new(ship.into(), level))
             .with(comp::Health::new(ship.into(), level))
             .with(comp::Stats::new("Airship".to_string()))
