@@ -183,8 +183,9 @@ pub enum TileKind {
     Building,
     Castle,
     Wall(Ori),
-    Tower,
+    Tower(RoofKind),
     Keep(KeepKind),
+    Gate,
 }
 
 #[derive(Clone, PartialEq)]
@@ -227,6 +228,12 @@ pub enum KeepKind {
     Middle,
     Corner,
     Wall(Ori),
+}
+
+#[derive(Copy, Clone, PartialEq)]
+pub enum RoofKind {
+    Parapet,
+    Pyramid,
 }
 
 #[repr(u8)]
