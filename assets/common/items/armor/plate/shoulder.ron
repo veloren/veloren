@@ -5,7 +5,7 @@ ItemDef(
         kind: Shoulder("Plate"),
         stats: (
             protection: Normal(12.0),
-            poise_resilience: Normal(16.0),
+            poise_resilience: Normal(1.0),
         ),
     )),
     quality: Moderate,

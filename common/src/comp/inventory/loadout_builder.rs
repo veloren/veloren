@@ -126,6 +126,13 @@ impl LoadoutBuilder {
                             "common.items.npc_weapons.unique.quadmedcharge",
                         ));
                     },
+                    quadruped_medium::Species::Highland
+                    | quadruped_medium::Species::Cattle
+                    | quadruped_medium::Species::Yak => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.unique.quadmedbasicgentle",
+                        ));
+                    },
                     _ => {
                         main_tool = Some(Item::new_from_asset_expect(
                             "common.items.npc_weapons.unique.quadmedbasic",
@@ -272,17 +279,12 @@ impl LoadoutBuilder {
                 {
                     (biped_small::Species::Gnome, _) => {
                         main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.staff.gnoll",
-                        ));
-                    },
-                    (biped_small::Species::Adlet, _) => {
-                        main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.bow.adlet",
+                            "common.items.npc_weapons.biped_small.adlet.gnoll_staff",
                         ));
                     },
                     _ => {
                         main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.spear.wooden_spear",
+                            "common.items.npc_weapons.biped_small.adlet.wooden_spear",
                         ));
                     },
                 },

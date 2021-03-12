@@ -5,7 +5,7 @@ ItemDef(
         kind: Foot("Jackalope"),
         stats: (
             protection: Normal(0.0),
-            poise_resilience: Normal(10.0),
+            poise_resilience: Normal(1.0),
         ),
     )),
     quality: High,

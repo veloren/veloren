@@ -4,8 +4,8 @@ ItemDef(
     kind: Armor((
         kind: Shoulder("Tarasque"),
         stats: (
-            protection: Normal(15.0),
-            poise_resilience: Normal(18.0),
+            protection: Normal(16.0),
+            poise_resilience: Normal(1.0),
         ),
     )),
     quality: High,

@@ -1,16 +1,16 @@
 ItemDef(
-    name: "Crude Mallet",
-    description: "Breaks bones like sticks and stones.",
+    name: "Quad Med Basic",
+    description: "testing123",
     kind: Tool((
-        kind: Hammer,
+        kind: Unique(QuadMedBasic),
         hands: Two,
         stats: Direct((
-            equip_time_secs: 0.5,
+            equip_time_secs: 0.01,
             power: 0.5,
             poise_strength: 1.0,
-            speed: 1.0,
+            speed: 1.00,
             crit_chance: 0.09375,
-            crit_mult: 2.2190475,
+            crit_mult: 2.2190476,
         )),
     )),
     quality: Low,

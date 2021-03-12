@@ -3,7 +3,7 @@ SpinMelee(
     swing_duration: 0.4,
     recover_duration: 0.5,
     base_damage: 160,
-    base_poise_damage: 0,
+    base_poise_damage: 25,
     knockback: 10.0,
     range: 3.5,
     energy_cost: 150,

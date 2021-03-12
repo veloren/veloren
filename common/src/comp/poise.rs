@@ -120,11 +120,11 @@ impl Poise {
 
     /// Defines the poise states based on fraction of maximum poise
     pub fn poise_state(&self) -> PoiseState {
-        if self.current >= 5 * self.maximum / 10 {
+        if self.current >= 7 * self.maximum / 10 {
             PoiseState::Normal
-        } else if self.current >= 4 * self.maximum / 10 {
+        } else if self.current >= 5 * self.maximum / 10 {
             PoiseState::Interrupted
-        } else if self.current >= 3 * self.maximum / 10 {
+        } else if self.current >= 4 * self.maximum / 10 {
             PoiseState::Stunned
         } else if self.current >= 2 * self.maximum / 10 {
             PoiseState::Dazed

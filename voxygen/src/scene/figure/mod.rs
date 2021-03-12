@@ -1669,21 +1669,9 @@ impl FigureMgr {
                             match s.static_data.poise_state {
                                 PoiseState::Normal
                                 | PoiseState::Interrupted
-                                | PoiseState::Stunned => {
-                                    anim::quadruped_small::StunnedAnimation::update_skeleton(
-                                        &target_base,
-                                        (
-                                            vel.0.magnitude(),
-                                            time,
-                                            Some(s.stage_section),
-                                            state.state_time,
-                                        ),
-                                        stage_progress,
-                                        &mut state_animation_rate,
-                                        skeleton_attr,
-                                    )
-                                },
-                                PoiseState::Dazed | PoiseState::KnockedDown => {
+                                | PoiseState::Stunned
+                                | PoiseState::Dazed
+                                | PoiseState::KnockedDown => {
                                     anim::quadruped_small::StunnedAnimation::update_skeleton(
                                         &target_base,
                                         (
@@ -2759,6 +2747,45 @@ impl FigureMgr {
                                 &mut state_animation_rate,
                                 skeleton_attr,
                             )
+                        },
+                        CharacterState::Stunned(s) => {
+                            let stage_time = s.timer.as_secs_f32();
+                            let wield_status = s.was_wielded;
+                            let stage_progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
+                                },
+                                StageSection::Recover => {
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
+                                },
+                                _ => 0.0,
+                            };
+                            match s.static_data.poise_state {
+                                PoiseState::Normal
+                                | PoiseState::Interrupted
+                                | PoiseState::Stunned
+                                | PoiseState::Dazed
+                                | PoiseState::KnockedDown => {
+                                    anim::biped_small::StunnedAnimation::update_skeleton(
+                                        &target_base,
+                                        (
+                                            active_tool_kind,
+                                            vel.0,
+                                            ori * anim::vek::Vec3::<f32>::unit_y(),
+                                            state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                            time,
+                                            state.avg_vel,
+                                            state.acc_vel,
+                                            wield_status,
+                                            Some(s.stage_section),
+                                            state.state_time,
+                                        ),
+                                        stage_progress,
+                                        &mut state_animation_rate,
+                                        skeleton_attr,
+                                    )
+                                },
+                            }
                         },
                         CharacterState::ChargedRanged(s) => {
                             let stage_time = s.timer.as_secs_f32();

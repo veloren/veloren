@@ -5,7 +5,7 @@ ItemDef(
         kind: Hand("TwigsLeaves"),
         stats: (
             protection: Normal(6.0),
-            poise_resilience: Normal(7.0),
+            poise_resilience: Normal(1.0),
         ),
     )),
     quality: Moderate,

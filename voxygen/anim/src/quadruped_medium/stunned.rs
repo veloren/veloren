@@ -37,11 +37,11 @@ impl Animation for StunnedAnimation {
         let movement1 = movement1base * mirror * pullback;
         let movement1abs = movement1base * pullback;
 
-        next.head.orientation = Quaternion::rotation_x(movement1abs * -0.45)
+        next.head.orientation = Quaternion::rotation_x(movement1abs * -0.55)
             * Quaternion::rotation_y(movement1 * 0.35)
             * Quaternion::rotation_z(movement1 * 0.15 + twitch * 0.3 * mirror);
 
-        next.neck.orientation = Quaternion::rotation_x(movement1abs * -0.3)
+        next.neck.orientation = Quaternion::rotation_x(movement1abs * -0.4)
             * Quaternion::rotation_y(movement1 * 0.0)
             * Quaternion::rotation_z(movement1 * 0.10 + movement1 * -0.15);
 
@@ -55,7 +55,7 @@ impl Animation for StunnedAnimation {
         ) * s_a.scaler
             / 11.0;
         next.torso_front.orientation =
-            Quaternion::rotation_y(0.0) * Quaternion::rotation_z(movement1 * 0.35);
+            Quaternion::rotation_y(0.0) * Quaternion::rotation_z(movement1 * 0.15);
 
         next.torso_back.orientation =
             Quaternion::rotation_y(movement1 * 0.18) * Quaternion::rotation_z(movement1 * -0.4);

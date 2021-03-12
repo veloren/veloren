@@ -1,10 +1,10 @@
 BasicMelee(
     energy_cost: 0,
-    buildup_duration: 0.6,
+    buildup_duration: 0.45,
     swing_duration: 0.5,
     recover_duration: 0.35,
     base_damage: 130,
-    base_poise_damage: 0,
+    base_poise_damage: 30,
     knockback: 25.0,
     range: 3.0,
     max_angle: 120.0,
