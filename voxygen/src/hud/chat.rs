@@ -178,7 +178,7 @@ impl<'a> Widget for Chat<'a> {
     #[allow(clippy::single_match)] // TODO: Pending review in #587
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { id, state, ui, .. } = args;
-        let transp = self.global_state.settings.gameplay.chat_transp;
+        let transp = self.global_state.settings.interface.chat_transp;
         // Maintain scrolling.
         if !self.new_messages.is_empty() {
             state.update(|s| s.messages.extend(self.new_messages.drain(..)));
@@ -364,7 +364,7 @@ impl<'a> Widget for Chat<'a> {
             });
         }
 
-        let show_char_name = self.global_state.settings.gameplay.chat_character_name;
+        let show_char_name = self.global_state.settings.interface.chat_character_name;
         while let Some(item) = items.next(ui) {
             // This would be easier if conrod used the v-metrics from rusttype.
             if item.i < state.messages.len() {

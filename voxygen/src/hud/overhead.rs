@@ -6,7 +6,7 @@ use super::{
 use crate::{
     hud::{get_buff_image, get_buff_info},
     i18n::Localization,
-    settings::GameplaySettings,
+    settings::InterfaceSettings,
     ui::{fonts::Fonts, Ingameable},
 };
 use common::comp::{Buffs, Energy, Health, SpeechBubble, SpeechBubbleType};
@@ -73,7 +73,7 @@ pub struct Overhead<'a> {
     info: Option<Info<'a>>,
     bubble: Option<&'a SpeechBubble>,
     in_group: bool,
-    settings: &'a GameplaySettings,
+    settings: &'a InterfaceSettings,
     pulse: f32,
     i18n: &'a Localization,
     imgs: &'a Imgs,
@@ -89,7 +89,7 @@ impl<'a> Overhead<'a> {
         info: Option<Info<'a>>,
         bubble: Option<&'a SpeechBubble>,
         in_group: bool,
-        settings: &'a GameplaySettings,
+        settings: &'a InterfaceSettings,
         pulse: f32,
         i18n: &'a Localization,
         imgs: &'a Imgs,

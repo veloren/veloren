@@ -57,7 +57,7 @@ impl PlayState for MainMenuState {
             .update_language(global_state.i18n, &global_state.settings);
         // Set scale mode in case it was change
         self.main_menu_ui
-            .set_scale_mode(global_state.settings.gameplay.ui_scale);
+            .set_scale_mode(global_state.settings.interface.ui_scale);
     }
 
     #[allow(clippy::single_match)] // TODO: remove when event match has multiple arms

@@ -225,8 +225,8 @@ impl<'a> Widget for Skillbar<'a> {
             energy_percentage = 0.0;
         };
 
-        let bar_values = self.global_state.settings.gameplay.bar_numbers;
-        let shortcuts = self.global_state.settings.gameplay.shortcut_numbers;
+        let bar_values = self.global_state.settings.interface.bar_numbers;
+        let shortcuts = self.global_state.settings.interface.shortcut_numbers;
 
         let hp_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.8; //Animation timer
         let crit_hp_color: Color = Color::Rgba(0.79, 0.19, 0.17, hp_ani);

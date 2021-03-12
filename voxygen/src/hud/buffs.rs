@@ -105,7 +105,7 @@ impl<'a> Widget for BuffsBar<'a> {
         let buff_ani = ((self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.8) + 0.5; //Animation timer
         let pulsating_col = Color::Rgba(1.0, 1.0, 1.0, buff_ani);
         let norm_col = Color::Rgba(1.0, 1.0, 1.0, 1.0);
-        let buff_position = self.global_state.settings.gameplay.buff_position;
+        let buff_position = self.global_state.settings.interface.buff_position;
         let buffs_tooltip = Tooltip::new({
             // Edge images [t, b, r, l]
             // Corner images [tr, tl, br, bl]

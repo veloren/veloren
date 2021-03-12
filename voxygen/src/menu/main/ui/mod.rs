@@ -305,7 +305,7 @@ impl Controls {
                 self.time,
                 &self.i18n.read(),
                 button_style,
-                settings.gameplay.loading_tips,
+                settings.interface.loading_tips,
             ),
         };
 
@@ -488,7 +488,7 @@ impl<'a> MainMenuUi {
         let mut ui = Ui::new(
             &mut global_state.window,
             font,
-            global_state.settings.gameplay.ui_scale,
+            global_state.settings.interface.ui_scale,
         )
         .unwrap();
 

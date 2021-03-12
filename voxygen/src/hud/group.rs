@@ -150,7 +150,7 @@ impl<'a> Widget for Group<'a> {
         let mut events = Vec::new();
         let localized_strings = self.localized_strings;
         let buff_ani = ((self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.8) + 0.5; //Animation timer
-        let debug_on = self.global_state.settings.gameplay.toggle_debug;
+        let debug_on = self.global_state.settings.interface.toggle_debug;
         let offset = if debug_on { 270.0 } else { 0.0 };
         let buffs_tooltip = Tooltip::new({
             // Edge images [t, b, r, l]
