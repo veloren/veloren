@@ -658,6 +658,7 @@ impl<'a> PhysicsSystemData<'a> {
                                     match (physics_state.in_liquid, physics_state_delta.in_liquid) {
                                         // this match computes `x <|> y <|> liftA2 max x y`
                                         (Some(x), Some(y)) => Some(x.max(y)),
+                                        (x @ Some(_), _) => x,
                                         (_, y @ Some(_)) => y,
                                         _ => None,
                                     };
