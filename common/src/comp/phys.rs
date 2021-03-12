@@ -109,6 +109,7 @@ pub struct PhysicsState {
     pub on_wall: Option<Vec3<f32>>,
     pub touch_entities: Vec<Uid>,
     pub in_liquid: Option<f32>, // Depth
+    pub ground_vel: Vec3<f32>,
 }
 
 impl PhysicsState {
@@ -118,6 +119,7 @@ impl PhysicsState {
         touch_entities.clear();
         *self = Self {
             touch_entities,
+            ground_vel: self.ground_vel, // Preserved, since it's the velocity of the last contact point
             ..Self::default()
         }
     }

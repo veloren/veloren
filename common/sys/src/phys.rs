@@ -426,11 +426,11 @@ impl<'a> PhysicsSystemData<'a> {
                     // Integrate forces
                     // Friction is assumed to be a constant dependent on location
                     let friction = FRIC_AIR
-                        .max(if physics_state.on_ground {
-                            FRIC_GROUND
-                        } else {
-                            0.0
-                        })
+                        // .max(if physics_state.on_ground {
+                        //     FRIC_GROUND
+                        // } else {
+                        //     0.0
+                        // })
                         .max(if physics_state.in_liquid.is_some() {
                             FRIC_FLUID
                         } else {
@@ -480,6 +480,9 @@ impl<'a> PhysicsSystemData<'a> {
                                 pos_delta,
                                 &mut vel,
                                 &mut physics_state,
+                                Vec3::zero(),
+                                &psdr.dt,
+                                true,
                                 |entity, vel| land_on_grounds.push((entity, vel)),
                             );
                         },
@@ -502,6 +505,9 @@ impl<'a> PhysicsSystemData<'a> {
                                 pos_delta,
                                 &mut vel,
                                 &mut physics_state,
+                                Vec3::zero(),
+                                &psdr.dt,
+                                true,
                                 |entity, vel| land_on_grounds.push((entity, vel)),
                             );
                         },
@@ -626,18 +632,20 @@ impl<'a> PhysicsSystemData<'a> {
                                     transform_to.mul_direction(pos_delta),
                                     &mut vel,
                                     &mut physics_state_delta,
+                                    transform_to.mul_direction(vel_other.0),
+                                    &psdr.dt,
+                                    false,
                                     |entity, vel| land_on_grounds.push((entity, Vel(transform_from.mul_direction(vel.0)))),
                                 );
 
                                 pos.0 = transform_from.mul_point(pos.0);
                                 vel.0 = transform_from.mul_direction(vel.0);
 
-                                if physics_state_delta.on_ground {
-                                    pos.0 += vel_other.0 * psdr.dt.0;
-                                }
-
                                 // union in the state updates, so that the state isn't just based on
                                 // the most recent terrain that collision was attempted with
+                                if physics_state_delta.on_ground {
+                                    physics_state.ground_vel = vel_other.0;
+                                }
                                 physics_state.on_ground |= physics_state_delta.on_ground;
                                 physics_state.on_ceiling |= physics_state_delta.on_ceiling;
                                 physics_state.on_wall =
@@ -737,6 +745,9 @@ fn cylinder_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
     mut pos_delta: Vec3<f32>,
     vel: &mut Vel,
     physics_state: &mut PhysicsState,
+    ground_vel: Vec3<f32>,
+    dt: &DeltaTime,
+    apply_velocity_step: bool, // Stupid hack
     mut land_on_ground: impl FnMut(Entity, Vel),
 ) {
     let (radius, z_min, z_max) = cylinder;
@@ -826,7 +837,9 @@ fn cylinder_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
     let old_pos = pos.0;
     fn block_true(_: &Block) -> bool { true }
     for _ in 0..increments as usize {
-        pos.0 += pos_delta / increments;
+        if apply_velocity_step {
+            pos.0 += pos_delta / increments;
+        }
 
         const MAX_ATTEMPTS: usize = 16;
 
@@ -966,6 +979,7 @@ fn cylinder_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
 
     if on_ground {
         physics_state.on_ground = true;
+        vel.0 = ground_vel + (vel.0 - ground_vel) * (1.0 - FRIC_GROUND.min(1.0)).powf(dt.0 * 60.0);
     // If the space below us is free, then "snap" to the ground
     } else if collision_with(
         pos.0 - Vec3::unit_z() * 1.05,

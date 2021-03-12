@@ -199,6 +199,7 @@ impl Scene {
                     &camera,
                     &mut buf,
                     None,
+                    Vec3::zero(),
                 );
                 (model, state)
             }),
@@ -378,6 +379,7 @@ impl Scene {
                 &self.camera,
                 &mut buf,
                 None,
+                Vec3::zero(),
             );
         }
     }
