@@ -7,13 +7,7 @@
             files: [
                 "voxygen.audio.sfx.ambient.fire",
             ],
-            threshold: 0.5,
-        ),
-        Embers: (
-            files: [
-                "voxygen.audio.sfx.ambient.embers",
-            ],
-            threshold: 0.5,
+            threshold: 1.688,
         ),
         Birdcall: (
             files: [

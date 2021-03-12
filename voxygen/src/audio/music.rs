@@ -80,6 +80,15 @@ pub struct SoundtrackItem {
     biomes: Vec<(BiomeKind, u8)>,
     /// Whether this track should play in a specific site
     site: Option<SitesKind>,
+    /// What the player is doing when the track is played (i.e. exploring,
+    /// combat)
+    activity: MusicActivity,
+}
+
+#[derive(Debug, Deserialize, PartialEq)]
+enum MusicActivity {
+    Explore,
+    Combat,
 }
 
 /// Allows control over when a track should play based on in-game time of day
@@ -150,7 +159,7 @@ impl MusicMgr {
         let mut rng = thread_rng();
 
         // Adds a bit of randomness between plays
-        let silence_between_tracks_seconds: f32 = rng.gen_range(45.0..120.0);
+        let silence_between_tracks_seconds: f32 = rng.gen_range(60.0..120.0);
 
         let game_time = (state.get_time_of_day() as u64 % 86400) as u32;
         let current_period_of_day = Self::get_current_day_period(game_time);
@@ -162,6 +171,7 @@ impl MusicMgr {
         let maybe_tracks = soundtrack
             .tracks
             .iter()
+            .filter(|track| track.activity == MusicActivity::Explore)
             .filter(|track| {
                 !track.title.eq(&self.last_track)
                     && match &track.timing {
