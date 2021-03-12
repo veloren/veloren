@@ -1,6 +1,6 @@
 use crate::{
     combat::{Attack, AttackDamage, AttackEffect, CombatBuff, CombatEffect, CombatRequirement},
-    comp::{CharacterState, Melee, StateUpdate},
+    comp::{CharacterState, InputKind, Melee, StateUpdate},
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
@@ -44,6 +44,8 @@ pub struct Data {
     pub stage_section: StageSection,
     /// Whether the attack can deal more damage
     pub exhausted: bool,
+    /// Whether or not the state should end
+    pub end: bool,
 }
 
 impl CharacterBehavior for Data {
@@ -162,9 +164,13 @@ impl CharacterBehavior for Data {
                     });
                 } else {
                     // Done
-                    update.character = CharacterState::Wielding;
-                    // Make sure attack component is removed
-                    data.updater.remove::<Melee>(data.entity);
+                    if self.end || self.static_data.ability_info.input.is_none() {
+                        update.character = CharacterState::Wielding;
+                        // Make sure attack component is removed
+                        data.updater.remove::<Melee>(data.entity);
+                    } else {
+                        reset_state(self, data, &mut update);
+                    }
                 }
             },
             _ => {
@@ -177,4 +183,21 @@ impl CharacterBehavior for Data {
 
         update
     }
+
+    fn cancel_input(&self, data: &JoinData, input: InputKind) -> StateUpdate {
+        let mut update = StateUpdate::from(data);
+        update.removed_inputs.push(input);
+
+        if Some(input) == self.static_data.ability_info.input {
+            if let CharacterState::BasicMelee(c) = &mut update.character {
+                c.end = true;
+            }
+        }
+
+        update
+    }
+}
+
+fn reset_state(data: &Data, join: &JoinData, update: &mut StateUpdate) {
+    handle_input(join, update, data.static_data.ability_info.input.unwrap());
 }

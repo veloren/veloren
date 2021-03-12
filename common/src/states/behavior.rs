@@ -51,9 +51,7 @@ pub trait CharacterBehavior {
             ControlAction::Sneak => self.sneak(data),
             ControlAction::Stand => self.stand(data),
             ControlAction::Talk => self.talk(data),
-            ControlAction::StartInput { ability, target } => {
-                self.handle_input(data, ability, target)
-            },
+            ControlAction::StartInput { input, target } => self.handle_input(data, input, target),
             ControlAction::CancelInput(input) => self.cancel_input(data, input),
         }
     }

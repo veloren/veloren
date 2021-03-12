@@ -26,14 +26,9 @@ impl CharacterBehavior for Data {
         update
     }
 
-    fn handle_input(
-        &self,
-        data: &JoinData,
-        ability: InputKind,
-        _target: Option<Uid>,
-    ) -> StateUpdate {
+    fn handle_input(&self, data: &JoinData, input: InputKind, _target: Option<Uid>) -> StateUpdate {
         let mut update = StateUpdate::from(data);
-        handle_input(&data, &mut update, ability);
+        handle_input(&data, &mut update, input);
 
         update
     }

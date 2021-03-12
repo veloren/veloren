@@ -52,7 +52,7 @@ impl CharacterBehavior for Data {
             if self.end || self.static_data.ability_info.input.is_none() {
                 update.character = CharacterState::Wielding;
             } else {
-                reset_state(self, &mut update);
+                reset_state(self, data, &mut update);
             }
         }
 
@@ -64,16 +64,15 @@ impl CharacterBehavior for Data {
         update.removed_inputs.push(input);
 
         if Some(input) == self.static_data.ability_info.input {
-            update.character = CharacterState::Boost(Data { end: true, ..*self });
+            if let CharacterState::Boost(c) = &mut update.character {
+                c.end = true;
+            }
         }
 
         update
     }
 }
 
-fn reset_state(data: &Data, update: &mut StateUpdate) {
-    update.character = CharacterState::Boost(Data {
-        timer: Duration::default(),
-        ..*data
-    })
+fn reset_state(data: &Data, join: &JoinData, update: &mut StateUpdate) {
+    handle_input(join, update, data.static_data.ability_info.input.unwrap());
 }

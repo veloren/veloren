@@ -112,7 +112,7 @@ pub enum ControlAction {
     Stand,
     Talk,
     StartInput {
-        ability: InputKind,
+        input: InputKind,
         target: Option<Uid>,
     },
     CancelInput(InputKind),

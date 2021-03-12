@@ -994,7 +994,7 @@ impl Client {
     pub fn handle_input(&mut self, input: InputKind, pressed: bool) {
         if pressed {
             self.control_action(ControlAction::StartInput {
-                ability: input,
+                input,
                 target: None,
             });
         } else {

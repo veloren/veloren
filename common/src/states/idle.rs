@@ -1,7 +1,8 @@
 use super::utils::*;
 use crate::{
-    comp::{InventoryAction, StateUpdate},
+    comp::{CharacterState, InputKind, InventoryAction, StateUpdate},
     states::behavior::{CharacterBehavior, JoinData},
+    uid::Uid,
 };
 
 pub struct Data;
@@ -15,6 +16,18 @@ impl CharacterBehavior for Data {
         handle_wield(data, &mut update);
         handle_climb(data, &mut update);
         handle_dodge_input(data, &mut update);
+
+        update
+    }
+
+    fn handle_input(
+        &self,
+        data: &JoinData,
+        _input: InputKind,
+        _target: Option<Uid>,
+    ) -> StateUpdate {
+        let mut update = StateUpdate::from(data);
+        update.character = CharacterState::Wielding;
 
         update
     }

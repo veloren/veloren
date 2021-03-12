@@ -1,5 +1,7 @@
 use crate::{
-    comp::{Body, CharacterState, Gravity, LightEmitter, ProjectileConstructor, StateUpdate},
+    comp::{
+        Body, CharacterState, Gravity, InputKind, LightEmitter, ProjectileConstructor, StateUpdate,
+    },
     event::ServerEvent,
     states::{
         behavior::{CharacterBehavior, JoinData},
@@ -24,8 +26,6 @@ pub struct StaticData {
     pub projectile_speed: f32,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
-    /// Whether or not the ability can auto continue
-    pub can_continue: bool,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -39,9 +39,8 @@ pub struct Data {
     pub stage_section: StageSection,
     /// Whether the attack fired already
     pub exhausted: bool,
-    /// If in buildup, whether the attack has continued form previous attack; if
-    /// in recover, whether the attack will continue to a new attack
-    pub continue_next: bool,
+    /// Whether or not the state should end
+    pub end: bool,
 }
 
 impl CharacterBehavior for Data {
@@ -103,41 +102,24 @@ impl CharacterBehavior for Data {
 
                     update.character = CharacterState::BasicRanged(Data {
                         exhausted: true,
-                        continue_next: false,
                         ..*self
                     });
                 } else if self.timer < self.static_data.recover_duration {
-                    if ability_key_is_pressed(data, self.static_data.ability_info.key) {
-                        // Recovers
-                        update.character = CharacterState::BasicRanged(Data {
-                            timer: self
-                                .timer
-                                .checked_add(Duration::from_secs_f32(data.dt.0))
-                                .unwrap_or_default(),
-                            continue_next: self.static_data.can_continue,
-                            ..*self
-                        });
-                    } else {
-                        // Recovers
-                        update.character = CharacterState::BasicRanged(Data {
-                            timer: self
-                                .timer
-                                .checked_add(Duration::from_secs_f32(data.dt.0))
-                                .unwrap_or_default(),
-                            ..*self
-                        });
-                    }
-                } else if self.continue_next {
-                    // Restarts character state
+                    // Recovers
                     update.character = CharacterState::BasicRanged(Data {
-                        timer: Duration::default(),
-                        stage_section: StageSection::Buildup,
-                        exhausted: false,
+                        timer: self
+                            .timer
+                            .checked_add(Duration::from_secs_f32(data.dt.0))
+                            .unwrap_or_default(),
                         ..*self
-                    })
+                    });
                 } else {
                     // Done
-                    update.character = CharacterState::Wielding;
+                    if self.end || self.static_data.ability_info.input.is_none() {
+                        update.character = CharacterState::Wielding;
+                    } else {
+                        reset_state(self, data, &mut update);
+                    }
                 }
             },
             _ => {
@@ -148,4 +130,21 @@ impl CharacterBehavior for Data {
 
         update
     }
+
+    fn cancel_input(&self, data: &JoinData, input: InputKind) -> StateUpdate {
+        let mut update = StateUpdate::from(data);
+        update.removed_inputs.push(input);
+
+        if Some(input) == self.static_data.ability_info.input {
+            if let CharacterState::BasicRanged(c) = &mut update.character {
+                c.end = true;
+            }
+        }
+
+        update
+    }
+}
+
+fn reset_state(data: &Data, join: &JoinData, update: &mut StateUpdate) {
+    handle_input(join, update, data.static_data.ability_info.input.unwrap());
 }

@@ -1082,7 +1082,7 @@ impl<'a> AgentData<'a> {
             Tactic::Melee => {
                 if dist_sqrd < (min_attack_dist * self.scale).powi(2) {
                     controller.actions.push(ControlAction::StartInput {
-                        ability: InputKind::Primary,
+                        input: InputKind::Primary,
                         target: None,
                     });
                     //controller.inputs.primary.set_state(true);
@@ -1134,7 +1134,7 @@ impl<'a> AgentData<'a> {
                         agent.action_timer += dt.0;
                     } else {
                         controller.actions.push(ControlAction::StartInput {
-                            ability: InputKind::Primary,
+                            input: InputKind::Primary,
                             target: None,
                         });
                         //controller.inputs.primary.set_state(true);
@@ -1186,7 +1186,7 @@ impl<'a> AgentData<'a> {
                         agent.action_timer += dt.0;
                     } else {
                         controller.actions.push(ControlAction::StartInput {
-                            ability: InputKind::Primary,
+                            input: InputKind::Primary,
                             target: None,
                         });
                         //controller.inputs.primary.set_state(true);
@@ -1250,7 +1250,7 @@ impl<'a> AgentData<'a> {
                         agent.action_timer = 0.0;
                     } else {
                         controller.actions.push(ControlAction::StartInput {
-                            ability: InputKind::Primary,
+                            input: InputKind::Primary,
                             target: None,
                         });
                         //controller.inputs.primary.set_state(true);
@@ -1335,7 +1335,7 @@ impl<'a> AgentData<'a> {
                             } else {
                                 controller.inputs.secondary.set_state(false);
                                 controller.actions.push(ControlAction::StartInput {
-                                    ability: InputKind::Primary,
+                                    input: InputKind::Primary,
                                     target: None,
                                 });
                                 //controller.inputs.primary.set_state(true);
@@ -1409,7 +1409,7 @@ impl<'a> AgentData<'a> {
                         controller.inputs.secondary.set_state(true);
                     } else {
                         controller.actions.push(ControlAction::StartInput {
-                            ability: InputKind::Primary,
+                            input: InputKind::Primary,
                             target: None,
                         });
                         //controller.inputs.primary.set_state(true);
@@ -1433,7 +1433,7 @@ impl<'a> AgentData<'a> {
                                 .unwrap_or_else(Vec2::zero)
                                 * speed;
                             controller.actions.push(ControlAction::StartInput {
-                                ability: InputKind::Primary,
+                                input: InputKind::Primary,
                                 target: None,
                             });
                             //controller.inputs.primary.set_state(true);
@@ -1476,7 +1476,7 @@ impl<'a> AgentData<'a> {
                     // large hitbox
                     controller.inputs.move_dir = Vec2::zero();
                     controller.actions.push(ControlAction::StartInput {
-                        ability: InputKind::Primary,
+                        input: InputKind::Primary,
                         target: None,
                     });
                     //controller.inputs.primary.set_state(true);
@@ -1522,7 +1522,7 @@ impl<'a> AgentData<'a> {
                 {
                     controller.inputs.move_dir = Vec2::zero();
                     controller.actions.push(ControlAction::StartInput {
-                        ability: InputKind::Primary,
+                        input: InputKind::Primary,
                         target: None,
                     });
                     //controller.inputs.primary.set_state(true);
@@ -1584,7 +1584,7 @@ impl<'a> AgentData<'a> {
                         .try_normalized()
                         .unwrap_or_else(Vec2::unit_y);
                     controller.actions.push(ControlAction::StartInput {
-                        ability: InputKind::Primary,
+                        input: InputKind::Primary,
                         target: None,
                     });
                     //controller.inputs.primary.set_state(true);
@@ -1645,7 +1645,7 @@ impl<'a> AgentData<'a> {
                         agent.action_timer = 0.0;
                     } else if agent.action_timer > 1.0 {
                         controller.actions.push(ControlAction::StartInput {
-                            ability: InputKind::Primary,
+                            input: InputKind::Primary,
                             target: None,
                         });
                         //controller.inputs.primary.set_state(true);
@@ -1687,7 +1687,7 @@ impl<'a> AgentData<'a> {
                     && dist_sqrd > (2.0 * min_attack_dist * self.scale).powi(2)
                 {
                     controller.actions.push(ControlAction::StartInput {
-                        ability: InputKind::Primary,
+                        input: InputKind::Primary,
                         target: None,
                     });
                     //controller.inputs.primary.set_state(true);
@@ -1726,7 +1726,7 @@ impl<'a> AgentData<'a> {
                         agent.action_timer += dt.0;
                     } else {
                         controller.actions.push(ControlAction::StartInput {
-                            ability: InputKind::Primary,
+                            input: InputKind::Primary,
                             target: None,
                         });
                         //controller.inputs.primary.set_state(true);
@@ -1771,7 +1771,7 @@ impl<'a> AgentData<'a> {
                     ) {
                         if can_see_tgt(&*terrain, self.pos, tgt_pos, dist_sqrd) {
                             controller.actions.push(ControlAction::StartInput {
-                                ability: InputKind::Primary,
+                                input: InputKind::Primary,
                                 target: None,
                             });
                             //controller.inputs.primary.set_state(true);
@@ -1796,7 +1796,7 @@ impl<'a> AgentData<'a> {
                         agent.action_timer += dt.0;
                     } else if agent.action_timer < 3.0 {
                         controller.actions.push(ControlAction::StartInput {
-                            ability: InputKind::Primary,
+                            input: InputKind::Primary,
                             target: None,
                         });
                         //controller.inputs.primary.set_state(true);
@@ -1836,7 +1836,7 @@ impl<'a> AgentData<'a> {
                             .try_normalized()
                             .unwrap_or_else(Vec2::unit_y);
                         controller.actions.push(ControlAction::StartInput {
-                            ability: InputKind::Primary,
+                            input: InputKind::Primary,
                             target: None,
                         });
                         //controller.inputs.primary.set_state(true);
@@ -1848,7 +1848,7 @@ impl<'a> AgentData<'a> {
                             .try_normalized()
                             .unwrap_or_else(Vec2::unit_y);
                         controller.actions.push(ControlAction::StartInput {
-                            ability: InputKind::Primary,
+                            input: InputKind::Primary,
                             target: None,
                         });
                         //controller.inputs.primary.set_state(true);
@@ -1883,7 +1883,7 @@ impl<'a> AgentData<'a> {
                 if dist_sqrd < (2.0 * min_attack_dist * self.scale).powi(2) {
                     controller.inputs.move_dir = Vec2::zero();
                     controller.actions.push(ControlAction::StartInput {
-                        ability: InputKind::Primary,
+                        input: InputKind::Primary,
                         target: None,
                     });
                     //controller.inputs.primary.set_state(true);
@@ -1910,7 +1910,7 @@ impl<'a> AgentData<'a> {
             Tactic::Turret => {
                 if can_see_tgt(&*terrain, self.pos, tgt_pos, dist_sqrd) {
                     controller.actions.push(ControlAction::StartInput {
-                        ability: InputKind::Primary,
+                        input: InputKind::Primary,
                         target: None,
                     });
                     //controller.inputs.primary.set_state(true);
@@ -1922,7 +1922,7 @@ impl<'a> AgentData<'a> {
                 controller.inputs.look_dir = self.ori.look_dir();
                 if can_see_tgt(&*terrain, self.pos, tgt_pos, dist_sqrd) {
                     controller.actions.push(ControlAction::StartInput {
-                        ability: InputKind::Primary,
+                        input: InputKind::Primary,
                         target: None,
                     });
                     //controller.inputs.primary.set_state(true);
@@ -1940,7 +1940,7 @@ impl<'a> AgentData<'a> {
                 );
                 if can_see_tgt(&*terrain, self.pos, tgt_pos, dist_sqrd) {
                     controller.actions.push(ControlAction::StartInput {
-                        ability: InputKind::Primary,
+                        input: InputKind::Primary,
                         target: None,
                     });
                     //controller.inputs.primary.set_state(true);

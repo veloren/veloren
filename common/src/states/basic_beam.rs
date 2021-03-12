@@ -3,7 +3,7 @@ use crate::{
         Attack, AttackDamage, AttackEffect, CombatEffect, CombatRequirement, Damage, DamageSource,
         GroupTarget,
     },
-    comp::{beam, CharacterState, EnergyChange, EnergySource, Ori, Pos, StateUpdate},
+    comp::{beam, CharacterState, EnergyChange, EnergySource, InputKind, Ori, Pos, StateUpdate},
     event::ServerEvent,
     states::{
         behavior::{CharacterBehavior, JoinData},
@@ -56,6 +56,8 @@ pub struct Data {
     pub timer: Duration,
     /// What section the character stage is in
     pub stage_section: StageSection,
+    /// Whether or not the state should end
+    pub end: bool,
 }
 
 impl CharacterBehavior for Data {
@@ -108,7 +110,9 @@ impl CharacterBehavior for Data {
                 }
             },
             StageSection::Cast => {
-                if ability_key_is_pressed(data, self.static_data.ability_info.key)
+                if
+                /* ability_key_is_pressed(data, self.static_data.ability_info.key) */
+                !self.end
                     && (self.static_data.energy_drain <= f32::EPSILON
                         || update.energy.current() > 0)
                 {
@@ -201,6 +205,17 @@ impl CharacterBehavior for Data {
                 // Make sure attack component is removed
                 data.updater.remove::<beam::Beam>(data.entity);
             },
+        }
+
+        update
+    }
+
+    fn cancel_input(&self, data: &JoinData, input: InputKind) -> StateUpdate {
+        let mut update = StateUpdate::from(data);
+        update.removed_inputs.push(input);
+
+        if Some(input) == self.static_data.ability_info.input {
+            update.character = CharacterState::BasicBeam(Data { end: true, ..*self });
         }
 
         update
