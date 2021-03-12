@@ -13,10 +13,13 @@ use common::{
         humanoid::{self, Body, BodyType, EyeColor, Skin, Species},
         item::{ItemDef, ModularComponentKind},
         object,
-        ship::{self, figuredata::{ShipSpec, ShipCentralSubSpec}},
         quadruped_low::{self, BodyType as QLBodyType, Species as QLSpecies},
         quadruped_medium::{self, BodyType as QMBodyType, Species as QMSpecies},
         quadruped_small::{self, BodyType as QSBodyType, Species as QSSpecies},
+        ship::{
+            self,
+            figuredata::{ShipCentralSubSpec, ShipSpec},
+        },
         theropod::{self, BodyType as TBodyType, Species as TSpecies},
     },
     figure::{DynaUnionizer, MatSegment, Material, Segment},
@@ -4238,7 +4241,11 @@ impl ShipCentralSpec {
         (central, Vec3::from(bone.offset))
     }
 }*/
-fn mesh_ship_bone<K: fmt::Debug+Eq+Hash, V, F: Fn(&V) -> &ShipCentralSubSpec>(map: &HashMap<K, V>, obj: &K, f: F) -> BoneMeshes {
+fn mesh_ship_bone<K: fmt::Debug + Eq + Hash, V, F: Fn(&V) -> &ShipCentralSubSpec>(
+    map: &HashMap<K, V>,
+    obj: &K,
+    f: F,
+) -> BoneMeshes {
     let spec = match map.get(&obj) {
         Some(spec) => spec,
         None => {
@@ -4256,9 +4263,7 @@ impl BodySpec for ship::Body {
     type Spec = ShipSpec;
 
     #[allow(unused_variables)]
-    fn load_spec() -> Result<AssetHandle<Self::Spec>, assets::Error> {
-        Self::Spec::load("")
-    }
+    fn load_spec() -> Result<AssetHandle<Self::Spec>, assets::Error> { Self::Spec::load("") }
 
     fn bone_meshes(
         FigureKey { body, .. }: &FigureKey<Self>,
@@ -4266,9 +4271,9 @@ impl BodySpec for ship::Body {
     ) -> [Option<BoneMeshes>; anim::MAX_BONE_COUNT] {
         let map = &(spec.central.read().0).0;
         [
-            Some(mesh_ship_bone(map, body, |spec| &spec.bone0,)),
-            Some(mesh_ship_bone(map, body, |spec| &spec.bone1,)),
-            Some(mesh_ship_bone(map, body, |spec| &spec.bone2,)),
+            Some(mesh_ship_bone(map, body, |spec| &spec.bone0)),
+            Some(mesh_ship_bone(map, body, |spec| &spec.bone1)),
+            Some(mesh_ship_bone(map, body, |spec| &spec.bone2)),
             None,
             None,
             None,

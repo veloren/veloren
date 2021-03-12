@@ -620,7 +620,7 @@ impl<'a> AgentData<'a> {
 
                 controller.inputs.move_z = bearing.z
                     + if self.traversal_config.can_fly {
-                        if read_data
+                        let obstacle_ahead = read_data
                             .terrain
                             .ray(
                                 self.pos.0 + Vec3::unit_z(),
@@ -631,31 +631,32 @@ impl<'a> AgentData<'a> {
                             .until(Block::is_solid)
                             .cast()
                             .1
-                            .map_or(true, |b| b.is_some())
-                            || self
-                                .body
-                                .map(|body| {
-                                    let height_approx = self.pos.0.y
-                                        - read_data
-                                            .world
-                                            .sim()
-                                            .get_alt_approx(self.pos.0.xy().map(|x: f32| x as i32))
-                                            .unwrap_or(0.0);
+                            .map_or(true, |b| b.is_some());
+                        let ground_too_close = self
+                            .body
+                            .map(|body| {
+                                let height_approx = self.pos.0.y
+                                    - read_data
+                                        .world
+                                        .sim()
+                                        .get_alt_approx(self.pos.0.xy().map(|x: f32| x as i32))
+                                        .unwrap_or(0.0);
 
-                                    height_approx < body.flying_height()
-                                        || read_data
-                                            .terrain
-                                            .ray(
-                                                self.pos.0,
-                                                self.pos.0 - body.flying_height() * Vec3::unit_z(),
-                                            )
-                                            .until(|b: &Block| b.is_solid() || b.is_liquid())
-                                            .cast()
-                                            .1
-                                            .map_or(false, |b| b.is_some())
-                                })
-                                .unwrap_or(false)
-                        {
+                                height_approx < body.flying_height()
+                                    || read_data
+                                        .terrain
+                                        .ray(
+                                            self.pos.0,
+                                            self.pos.0 - body.flying_height() * Vec3::unit_z(),
+                                        )
+                                        .until(|b: &Block| b.is_solid() || b.is_liquid())
+                                        .cast()
+                                        .1
+                                        .map_or(false, |b| b.is_some())
+                            })
+                            .unwrap_or(false);
+
+                        if obstacle_ahead || ground_too_close {
                             1.0 //fly up when approaching obstacles
                         } else {
                             -0.1

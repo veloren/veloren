@@ -539,7 +539,13 @@ impl Body {
     /// Returns a multiplier representing increased difficulty not accounted for
     /// due to AI or not using an actual weapon
     // TODO: Match on species
-    pub fn combat_multiplier(&self) -> f32 { if let Body::Object(_) | Body::Ship(_) = self { 0.0 } else { 1.0 } }
+    pub fn combat_multiplier(&self) -> f32 {
+        if let Body::Object(_) | Body::Ship(_) = self {
+            0.0
+        } else {
+            1.0
+        }
+    }
 
     pub fn base_poise(&self) -> u32 {
         match self {

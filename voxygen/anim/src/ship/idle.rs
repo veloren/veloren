@@ -31,4 +31,3 @@ impl Animation for IdleAnimation {
         next
     }
 }
-

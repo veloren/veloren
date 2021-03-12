@@ -46,7 +46,12 @@ impl<V, M, A: Access> Dyna<V, M, A> {
     }
 
     pub fn map_into<W, F: FnMut(V) -> W>(self, f: F) -> Dyna<W, M, A> {
-        let Dyna { vox, meta, sz, _phantom } = self;
+        let Dyna {
+            vox,
+            meta,
+            sz,
+            _phantom,
+        } = self;
         Dyna {
             vox: vox.into_iter().map(f).collect(),
             meta,

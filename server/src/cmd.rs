@@ -998,7 +998,14 @@ fn handle_spawn_airship(
             pos.0.z += 50.0;
             const DESTINATION_RADIUS: f32 = 2000.0;
             let angle = angle.map(|a| a * std::f32::consts::PI / 180.0);
-            let destination = angle.map(|a| pos.0 + Vec3::new(DESTINATION_RADIUS*a.cos(), DESTINATION_RADIUS*a.sin(), 200.0));
+            let destination = angle.map(|a| {
+                pos.0
+                    + Vec3::new(
+                        DESTINATION_RADIUS * a.cos(),
+                        DESTINATION_RADIUS * a.sin(),
+                        200.0,
+                    )
+            });
             server
                 .state
                 .create_ship(pos, comp::ship::Body::DefaultAirship, 1, destination)

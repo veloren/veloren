@@ -78,7 +78,8 @@ pub mod figuredata {
             cache: &assets::AssetCache<S>,
             _: &str,
         ) -> Result<Self, assets::Error> {
-            let manifest: AssetHandle<Ron<ShipCentralSpec>> = AssetExt::load("server.manifests.ship_manifest")?;
+            let manifest: AssetHandle<Ron<ShipCentralSpec>> =
+                AssetExt::load("server.manifests.ship_manifest")?;
             let mut colliders = HashMap::new();
             for (_, spec) in (manifest.read().0).0.iter() {
                 for bone in [&spec.bone0, &spec.bone1, &spec.bone2].iter() {

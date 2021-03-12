@@ -3,7 +3,7 @@ use crate::{
         biped_large, biped_small,
         inventory::slot::EquipSlot,
         item::{Hands, ItemKind, Tool, ToolKind},
-        quadruped_low, quadruped_medium, quadruped_small,
+        quadruped_low, quadruped_medium, quadruped_small, ship,
         skills::Skill,
         theropod, ship, Body, CharacterAbility, CharacterState, InputKind, InventoryAction, StateUpdate,
     },
@@ -193,7 +193,6 @@ pub fn handle_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
         && data.body.can_fly().is_some()
     {
         fly_move(data, update, efficiency * data.body.can_fly().expect("can_fly is_some right above this"));
-    } else if data.inputs.fly.is_pressed() && !data.physics.on_ground && data.body.can_fly().is_some() {
     } else {
         basic_move(data, update, efficiency);
     }

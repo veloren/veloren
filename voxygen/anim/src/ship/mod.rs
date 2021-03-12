@@ -64,8 +64,5 @@ impl Default for SkeletonAttr {
 }
 
 impl<'a> From<&'a Body> for SkeletonAttr {
-    fn from(_: &'a Body) -> Self {
-        Self::default()
-    }
+    fn from(_: &'a Body) -> Self { Self::default() }
 }
-

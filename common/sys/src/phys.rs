@@ -69,7 +69,7 @@ fn calc_z_limit(
 pub struct Sys;
 
 #[derive(SystemData)]
-pub struct PhysicsSystemDataRead<'a> {
+pub struct PhysicsRead<'a> {
     entities: Entities<'a>,
     uids: ReadStorage<'a, Uid>,
     terrain: ReadExpect<'a, TerrainGrid>,
@@ -88,7 +88,7 @@ pub struct PhysicsSystemDataRead<'a> {
 }
 
 #[derive(SystemData)]
-pub struct PhysicsSystemDataWrite<'a> {
+pub struct PhysicsWrite<'a> {
     physics_metrics: WriteExpect<'a, PhysicsMetrics>,
     physics_states: WriteStorage<'a, PhysicsState>,
     positions: WriteStorage<'a, Pos>,
@@ -98,26 +98,26 @@ pub struct PhysicsSystemDataWrite<'a> {
 }
 
 #[derive(SystemData)]
-pub struct PhysicsSystemData<'a> {
-    r: PhysicsSystemDataRead<'a>,
-    w: PhysicsSystemDataWrite<'a>,
+pub struct PhysicsData<'a> {
+    read: PhysicsRead<'a>,
+    write: PhysicsWrite<'a>,
 }
 
-impl<'a> PhysicsSystemData<'a> {
+impl<'a> PhysicsData<'a> {
     /// Add/reset physics state components
     fn reset(&mut self) {
         span!(guard, "Add/reset physics state components");
         for (entity, _, _, _, _) in (
-            &self.r.entities,
-            &self.r.colliders,
-            &self.w.positions,
-            &self.w.velocities,
-            &self.w.orientations,
+            &self.read.entities,
+            &self.read.colliders,
+            &self.write.positions,
+            &self.write.velocities,
+            &self.write.orientations,
         )
             .join()
         {
             let _ = self
-                .w
+                .write
                 .physics_states
                 .entry(entity)
                 .map(|e| e.or_insert_with(Default::default));
@@ -129,20 +129,20 @@ impl<'a> PhysicsSystemData<'a> {
         span!(guard, "Maintain pushback cache");
         //Add PreviousPhysCache for all relevant entities
         for entity in (
-            &self.r.entities,
-            &self.w.velocities,
-            &self.w.positions,
-            !&self.w.previous_phys_cache,
-            !&self.r.mountings,
-            !&self.r.beams,
-            !&self.r.shockwaves,
+            &self.read.entities,
+            &self.write.velocities,
+            &self.write.positions,
+            !&self.write.previous_phys_cache,
+            !&self.read.mountings,
+            !&self.read.beams,
+            !&self.read.shockwaves,
         )
             .join()
             .map(|(e, _, _, _, _, _, _)| e)
             .collect::<Vec<_>>()
         {
             let _ = self
-                .w
+                .write
                 .previous_phys_cache
                 .insert(entity, PreviousPhysCache {
                     velocity_dt: Vec3::zero(),
@@ -155,16 +155,16 @@ impl<'a> PhysicsSystemData<'a> {
 
         //Update PreviousPhysCache
         for (_, vel, position, mut phys_cache, collider, scale, cs, _, _, _) in (
-            &self.r.entities,
-            &self.w.velocities,
-            &self.w.positions,
-            &mut self.w.previous_phys_cache,
-            self.r.colliders.maybe(),
-            self.r.scales.maybe(),
-            self.r.char_states.maybe(),
-            !&self.r.mountings,
-            !&self.r.beams,
-            !&self.r.shockwaves,
+            &self.read.entities,
+            &self.write.velocities,
+            &self.write.positions,
+            &mut self.write.previous_phys_cache,
+            self.read.colliders.maybe(),
+            self.read.scales.maybe(),
+            self.read.char_states.maybe(),
+            !&self.read.mountings,
+            !&self.read.beams,
+            !&self.read.shockwaves,
         )
             .join()
         {
@@ -173,7 +173,7 @@ impl<'a> PhysicsSystemData<'a> {
             let z_limits = (z_limits.0 * scale, z_limits.1 * scale);
             let half_height = (z_limits.1 - z_limits.0) / 2.0;
 
-            phys_cache.velocity_dt = vel.0 * self.r.dt.0;
+            phys_cache.velocity_dt = vel.0 * self.read.dt.0;
             let entity_center = position.0 + Vec3::new(0.0, z_limits.0 + half_height, 0.0);
             let flat_radius = collider.map(|c| c.get_radius()).unwrap_or(0.5) * scale;
             let radius = (flat_radius.powi(2) + half_height.powi(2)).sqrt();
@@ -191,25 +191,25 @@ impl<'a> PhysicsSystemData<'a> {
     fn apply_pushback(&mut self, job: &mut Job<Sys>) {
         span!(guard, "Apply pushback");
         job.cpu_stats.measure(ParMode::Rayon);
-        let PhysicsSystemData {
-            r: ref psdr,
-            w: ref mut psdw,
+        let PhysicsData {
+            ref read,
+            ref mut write,
         } = self;
-        let (positions, previous_phys_cache) = (&psdw.positions, &psdw.previous_phys_cache);
+        let (positions, previous_phys_cache) = (&write.positions, &write.previous_phys_cache);
         let metrics = (
-            &psdr.entities,
+            &read.entities,
             positions,
-            &mut psdw.velocities,
+            &mut write.velocities,
             previous_phys_cache,
-            psdr.masses.maybe(),
-            psdr.colliders.maybe(),
-            !&psdr.mountings,
-            psdr.stickies.maybe(),
-            &mut psdw.physics_states,
+            read.masses.maybe(),
+            read.colliders.maybe(),
+            !&read.mountings,
+            read.stickies.maybe(),
+            &mut write.physics_states,
             // TODO: if we need to avoid collisions for other things consider moving whether it
             // should interact into the collider component or into a separate component
-            psdr.projectiles.maybe(),
-            psdr.char_states.maybe(),
+            read.projectiles.maybe(),
+            read.char_states.maybe(),
         )
             .par_join()
             .filter(|(_, _, _, _, _, _, _, sticky, physics, _, _)| {
@@ -259,17 +259,17 @@ impl<'a> PhysicsSystemData<'a> {
                         _,
                         char_state_other_maybe,
                     ) in (
-                        &psdr.entities,
-                        &psdr.uids,
+                        &read.entities,
+                        &read.uids,
                         positions,
                         previous_phys_cache,
-                        psdr.masses.maybe(),
-                        psdr.colliders.maybe(),
-                        !&psdr.projectiles,
-                        !&psdr.mountings,
-                        !&psdr.beams,
-                        !&psdr.shockwaves,
-                        psdr.char_states.maybe(),
+                        read.masses.maybe(),
+                        read.colliders.maybe(),
+                        !&read.projectiles,
+                        !&read.mountings,
+                        !&read.beams,
+                        !&read.shockwaves,
+                        read.char_states.maybe(),
                     )
                         .join()
                     {
@@ -347,7 +347,7 @@ impl<'a> PhysicsSystemData<'a> {
                     }
 
                     // Change velocity
-                    vel.0 += vel_delta * psdr.dt.0;
+                    vel.0 += vel_delta * read.dt.0;
 
                     // Metrics
                     PhysicsMetrics {
@@ -362,31 +362,36 @@ impl<'a> PhysicsSystemData<'a> {
                 entity_entity_collisions: old.entity_entity_collisions
                     + new.entity_entity_collisions,
             });
-        psdw.physics_metrics.entity_entity_collision_checks =
+        write.physics_metrics.entity_entity_collision_checks =
             metrics.entity_entity_collision_checks;
-        psdw.physics_metrics.entity_entity_collisions = metrics.entity_entity_collisions;
+        write.physics_metrics.entity_entity_collisions = metrics.entity_entity_collisions;
         drop(guard);
     }
 
     fn handle_movement_and_terrain(&mut self, job: &mut Job<Sys>) {
-        let PhysicsSystemData {
-            r: ref psdr,
-            w: ref mut psdw,
+        let PhysicsData {
+            ref read,
+            ref mut write,
         } = self;
         // Apply movement inputs
         span!(guard, "Apply movement and terrain collision");
-        let (positions, velocities, previous_phys_cache, orientations) = (&psdw.positions, &psdw.velocities, &psdw.previous_phys_cache, &psdw.orientations);
+        let (positions, velocities, previous_phys_cache, orientations) = (
+            &write.positions,
+            &write.velocities,
+            &write.previous_phys_cache,
+            &write.orientations,
+        );
         let (pos_writes, vel_writes, land_on_grounds) = (
-            &psdr.entities,
-            psdr.scales.maybe(),
-            psdr.stickies.maybe(),
-            &psdr.colliders,
+            &read.entities,
+            read.scales.maybe(),
+            read.stickies.maybe(),
+            &read.colliders,
             positions,
             velocities,
             orientations,
-            &mut psdw.physics_states,
+            &mut write.physics_states,
             previous_phys_cache,
-            !&psdr.mountings,
+            !&read.mountings,
         )
             .par_join()
             .fold(
@@ -401,7 +406,7 @@ impl<'a> PhysicsSystemData<'a> {
                     vel,
                     _ori,
                     mut physics_state,
-                    previous_cache,
+                    _previous_cache,
                     _,
                 )| {
                     // defer the writes of positions to allow an inner loop over terrain-like
@@ -436,9 +441,9 @@ impl<'a> PhysicsSystemData<'a> {
                         } else {
                             0.0
                         });
-                    let in_loaded_chunk = psdr
+                    let in_loaded_chunk = read
                         .terrain
-                        .get_key(psdr.terrain.pos_key(pos.0.map(|e| e.floor() as i32)))
+                        .get_key(read.terrain.pos_key(pos.0.map(|e| e.floor() as i32)))
                         .is_some();
                     let downward_force =
                         if !in_loaded_chunk {
@@ -451,22 +456,22 @@ impl<'a> PhysicsSystemData<'a> {
                             (1.0 - BOUYANCY) * GRAVITY
                         } else {
                             GRAVITY
-                        } * psdr.gravities.get(entity).map(|g| g.0).unwrap_or_default();
-                    vel.0 = integrate_forces(psdr.dt.0, vel.0, downward_force, friction);
+                        } * read.gravities.get(entity).map(|g| g.0).unwrap_or_default();
+                    vel.0 = integrate_forces(read.dt.0, vel.0, downward_force, friction);
 
                     // Don't move if we're not in a loaded chunk
                     let pos_delta = if in_loaded_chunk {
                         // this is an approximation that allows most framerates to
                         // behave in a similar manner.
                         let dt_lerp = 0.2;
-                        (vel.0 * dt_lerp + old_vel.0 * (1.0 - dt_lerp)) * psdr.dt.0
+                        (vel.0 * dt_lerp + old_vel.0 * (1.0 - dt_lerp)) * read.dt.0
                     } else {
                         Vec3::zero()
                     };
 
                     let was_on_ground = physics_state.on_ground;
 
-                    match &*collider {
+                    match &collider {
                         Collider::Voxel { .. } => {
                             // for now, treat entities with voxel colliders as their bounding
                             // cylinders for the purposes of colliding them with terrain
@@ -477,14 +482,14 @@ impl<'a> PhysicsSystemData<'a> {
                             let cylinder = (radius, z_min, z_max);
                             cylinder_voxel_collision(
                                 cylinder,
-                                &*psdr.terrain,
+                                &*read.terrain,
                                 entity,
                                 &mut pos,
                                 pos_delta,
                                 &mut vel,
                                 &mut physics_state,
                                 Vec3::zero(),
-                                &psdr.dt,
+                                &read.dt,
                                 true,
                                 was_on_ground,
                                 |entity, vel| land_on_grounds.push((entity, vel)),
@@ -503,35 +508,35 @@ impl<'a> PhysicsSystemData<'a> {
                             let cylinder = (radius, z_min, z_max);
                             cylinder_voxel_collision(
                                 cylinder,
-                                &*psdr.terrain,
+                                &*read.terrain,
                                 entity,
                                 &mut pos,
                                 pos_delta,
                                 &mut vel,
                                 &mut physics_state,
                                 Vec3::zero(),
-                                &psdr.dt,
+                                &read.dt,
                                 true,
                                 was_on_ground,
                                 |entity, vel| land_on_grounds.push((entity, vel)),
                             );
                         },
                         Collider::Point => {
-                            let (dist, block) = psdr
+                            let (dist, block) = read
                                 .terrain
                                 .ray(pos.0, pos.0 + pos_delta)
                                 .until(|block: &Block| block.is_filled())
                                 .ignore_error()
                                 .cast();
 
-                            pos.0 += pos_delta.try_normalized().unwrap_or(Vec3::zero()) * dist;
+                            pos.0 += pos_delta.try_normalized().unwrap_or_else(Vec3::zero) * dist;
 
                             // Can't fail since we do ignore_error above
                             if block.unwrap().is_some() {
                                 let block_center = pos.0.map(|e| e.floor()) + 0.5;
                                 let block_rpos = (pos.0 - block_center)
                                     .try_normalized()
-                                    .unwrap_or(Vec3::zero());
+                                    .unwrap_or_else(Vec3::zero);
 
                                 // See whether we're on the top/bottom of a block, or the side
                                 if block_rpos.z.abs()
@@ -555,7 +560,7 @@ impl<'a> PhysicsSystemData<'a> {
                                 }
                             }
 
-                            physics_state.in_liquid = psdr
+                            physics_state.in_liquid = read
                                 .terrain
                                 .get(pos.0.map(|e| e.floor() as i32))
                                 .ok()
@@ -566,35 +571,36 @@ impl<'a> PhysicsSystemData<'a> {
                     // Collide with terrain-like entities
                     for (
                         entity_other,
-                        other,
+                        _other,
                         pos_other,
                         vel_other,
-                        previous_cache_other,
-                        mass_other,
+                        _previous_cache_other,
+                        _mass_other,
                         collider_other,
                         ori_other,
                         _,
                         _,
                         _,
                         _,
-                        char_state_other_maybe,
+                        _char_state_other_maybe,
                     ) in (
-                        &psdr.entities,
-                        &psdr.uids,
+                        &read.entities,
+                        &read.uids,
                         positions,
                         velocities,
                         previous_phys_cache,
-                        psdr.masses.maybe(),
-                        &psdr.colliders,
+                        read.masses.maybe(),
+                        &read.colliders,
                         orientations,
-                        !&psdr.projectiles,
-                        !&psdr.mountings,
-                        !&psdr.beams,
-                        !&psdr.shockwaves,
-                        psdr.char_states.maybe(),
+                        !&read.projectiles,
+                        !&read.mountings,
+                        !&read.beams,
+                        !&read.shockwaves,
+                        read.char_states.maybe(),
                     )
                         .join()
                     {
+                        // TODO: terrain-collider-size aware broadphase
                         /*let collision_boundary = previous_cache.collision_boundary
                             + previous_cache_other.collision_boundary;
                         if previous_cache
@@ -618,7 +624,9 @@ impl<'a> PhysicsSystemData<'a> {
                             let z_min = z_min * scale;
                             let z_max = z_max.clamped(1.2, 1.95) * scale;
 
-                            if let Some(voxel_collider) = VOXEL_COLLIDER_MANIFEST.read().colliders.get(id) {
+                            if let Some(voxel_collider) =
+                                VOXEL_COLLIDER_MANIFEST.read().colliders.get(&*id)
+                            {
                                 let mut physics_state_delta = physics_state.clone();
                                 // deliberately don't use scale yet here, because the 11.0/0.8
                                 // thing is in the comp::Scale for visual reasons
@@ -638,10 +646,15 @@ impl<'a> PhysicsSystemData<'a> {
                                     &mut vel,
                                     &mut physics_state_delta,
                                     transform_to.mul_direction(vel_other.0),
-                                    &psdr.dt,
+                                    &read.dt,
                                     false,
                                     was_on_ground,
-                                    |entity, vel| land_on_grounds.push((entity, Vel(transform_from.mul_direction(vel.0)))),
+                                    |entity, vel| {
+                                        land_on_grounds.push((
+                                            entity,
+                                            Vel(transform_from.mul_direction(vel.0)),
+                                        ))
+                                    },
                                 );
 
                                 pos.0 = transform_from.mul_point(pos.0);
@@ -659,14 +672,16 @@ impl<'a> PhysicsSystemData<'a> {
                                 physics_state
                                     .touch_entities
                                     .append(&mut physics_state_delta.touch_entities);
-                                physics_state.in_liquid =
-                                    match (physics_state.in_liquid, physics_state_delta.in_liquid) {
-                                        // this match computes `x <|> y <|> liftA2 max x y`
-                                        (Some(x), Some(y)) => Some(x.max(y)),
-                                        (x @ Some(_), _) => x,
-                                        (_, y @ Some(_)) => y,
-                                        _ => None,
-                                    };
+                                physics_state.in_liquid = match (
+                                    physics_state.in_liquid,
+                                    physics_state_delta.in_liquid,
+                                ) {
+                                    // this match computes `x <|> y <|> liftA2 max x y`
+                                    (Some(x), Some(y)) => Some(x.max(y)),
+                                    (x @ Some(_), _) => x,
+                                    (_, y @ Some(_)) => y,
+                                    _ => None,
+                                };
                             }
                         }
                     }
@@ -695,7 +710,9 @@ impl<'a> PhysicsSystemData<'a> {
 
         let pos_writes: HashMap<Entity, Pos> = pos_writes.into_iter().collect();
         let vel_writes: HashMap<Entity, Vel> = vel_writes.into_iter().collect();
-        for (entity, pos, vel) in (&psdr.entities, &mut psdw.positions, &mut psdw.velocities).join() {
+        for (entity, pos, vel) in
+            (&read.entities, &mut write.positions, &mut write.velocities).join()
+        {
             if let Some(new_pos) = pos_writes.get(&entity) {
                 *pos = *new_pos;
             }
@@ -705,7 +722,7 @@ impl<'a> PhysicsSystemData<'a> {
             }
         }
 
-        let mut event_emitter = psdr.event_bus.emitter();
+        let mut event_emitter = read.event_bus.emitter();
         land_on_grounds.into_iter().for_each(|(entity, vel)| {
             event_emitter.emit(ServerEvent::LandOnGround { entity, vel: vel.0 });
         });
@@ -713,14 +730,12 @@ impl<'a> PhysicsSystemData<'a> {
 }
 
 impl<'a> System<'a> for Sys {
-    type SystemData = PhysicsSystemData<'a>;
+    type SystemData = PhysicsData<'a>;
 
     const NAME: &'static str = "phys";
     const ORIGIN: Origin = Origin::Common;
     const PHASE: Phase = Phase::Create;
 
-    #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
-    #[allow(clippy::blocks_in_if_conditions)] // TODO: Pending review in #587
     fn run(job: &mut Job<Self>, mut psd: Self::SystemData) {
         psd.reset();
 
@@ -744,6 +759,7 @@ impl<'a> System<'a> for Sys {
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn cylinder_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
     cylinder: (f32, f32, f32),
     terrain: &'a T,
@@ -919,7 +935,9 @@ fn cylinder_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
 
             // When the resolution direction is pointing upwards, we must be on the
             // ground
-            if resolve_dir.z > 0.0 /*&& vel.0.z <= 0.0*/ {
+            if resolve_dir.z > 0.0
+            /* && vel.0.z <= 0.0 */
+            {
                 on_ground = true;
 
                 if !was_on_ground {
@@ -958,12 +976,13 @@ fn cylinder_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
                 break;
             } else {
                 // Correct the velocity
-                vel.0 = vel.0.map2(
-                    resolve_dir,
-                    |e, d| {
-                        if d * e.signum() < 0.0 { if d < 0.0 { d.max(0.0) } else { d.min(0.0) } } else { e }
-                    },
-                );
+                vel.0 = vel.0.map2(resolve_dir, |e, d| {
+                    if d * e.signum() < 0.0 {
+                        if d < 0.0 { d.max(0.0) } else { d.min(0.0) }
+                    } else {
+                        e
+                    }
+                });
                 pos_delta *= resolve_dir.map(|e| if e != 0.0 { 0.0 } else { 1.0 });
             }
 
@@ -996,15 +1015,15 @@ fn cylinder_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
         z_range.clone(),
     ) && vel.0.z < 0.1
         && vel.0.z > -1.5
-        // && was_on_ground
-        // && !collision_with(
-        //     pos.0 - Vec3::unit_z() * 0.0,
-        //     &terrain,
-        //     |block| block.solid_height() >= (pos.0.z - 0.1).rem_euclid(1.0),
-        //     near_iter.clone(),
-        //     radius,
-        //     z_range.clone(),
-        // )
+    // && was_on_ground
+    // && !collision_with(
+    //     pos.0 - Vec3::unit_z() * 0.0,
+    //     &terrain,
+    //     |block| block.solid_height() >= (pos.0.z - 0.1).rem_euclid(1.0),
+    //     near_iter.clone(),
+    //     radius,
+    //     z_range.clone(),
+    // )
     {
         let snap_height = terrain
             .get(Vec3::new(pos.0.x, pos.0.y, pos.0.z - 0.1).map(|e| e.floor() as i32))
@@ -1017,7 +1036,8 @@ fn cylinder_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
     }
 
     if physics_state.on_ground {
-        vel.0 = ground_vel * 0.0 + (vel.0 - ground_vel * 0.0) * (1.0 - FRIC_GROUND.min(1.0)).powf(dt.0 * 60.0);
+        vel.0 = ground_vel * 0.0
+            + (vel.0 - ground_vel * 0.0) * (1.0 - FRIC_GROUND.min(1.0)).powf(dt.0 * 60.0);
         physics_state.ground_vel = ground_vel;
     }
 
@@ -1054,7 +1074,7 @@ fn cylinder_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
         &|block| block.is_liquid(),
         // The liquid part of a liquid block always extends 1 block high.
         &|_block| 1.0,
-        near_iter.clone(),
+        near_iter,
         radius,
         z_min..z_max,
     )
