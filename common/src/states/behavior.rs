@@ -34,7 +34,11 @@ pub trait CharacterBehavior {
         update.queued_inputs.insert(input);
         update
     }
-    fn cancel_input(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
+    fn cancel_input(&self, data: &JoinData, input: InputKind) -> StateUpdate {
+        let mut update = StateUpdate::from(data);
+        update.removed_inputs.push(input);
+        update
+    }
     fn handle_event(&self, data: &JoinData, event: ControlAction) -> StateUpdate {
         match event {
             ControlAction::SwapEquippedWeapons => self.swap_equipped_weapons(data),
@@ -50,7 +54,7 @@ pub trait CharacterBehavior {
             ControlAction::StartInput { ability, target } => {
                 self.handle_input(data, ability, target)
             },
-            ControlAction::CancelInput => self.cancel_input(data),
+            ControlAction::CancelInput(input) => self.cancel_input(data, input),
         }
     }
     // fn init(data: &JoinData) -> CharacterState;

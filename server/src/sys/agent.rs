@@ -1638,7 +1638,9 @@ impl<'a> AgentData<'a> {
             Tactic::TailSlap => {
                 if dist_sqrd < (1.5 * min_attack_dist * self.scale).powi(2) {
                     if agent.action_timer > 4.0 {
-                        controller.actions.push(ControlAction::CancelInput);
+                        controller
+                            .actions
+                            .push(ControlAction::CancelInput(InputKind::Primary));
                         //controller.inputs.primary.set_state(false);
                         agent.action_timer = 0.0;
                     } else if agent.action_timer > 1.0 {

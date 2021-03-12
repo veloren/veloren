@@ -1,5 +1,5 @@
 use crate::{
-    comp::{CharacterState, StateUpdate},
+    comp::{CharacterState, InputKind, StateUpdate},
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
@@ -13,6 +13,7 @@ use std::time::Duration;
 pub struct StaticData {
     pub movement_duration: Duration,
     pub only_up: bool,
+    pub ability_info: AbilityInfo,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -22,6 +23,8 @@ pub struct Data {
     pub static_data: StaticData,
     /// Timer for each stage
     pub timer: Duration,
+    /// Whether or not the state should end
+    pub end: bool,
 }
 
 impl CharacterBehavior for Data {
@@ -46,9 +49,31 @@ impl CharacterBehavior for Data {
             });
         } else {
             // Done
-            update.character = CharacterState::Wielding;
+            if self.end || self.static_data.ability_info.input.is_none() {
+                update.character = CharacterState::Wielding;
+            } else {
+                reset_state(self, &mut update);
+            }
         }
 
         update
     }
+
+    fn cancel_input(&self, data: &JoinData, input: InputKind) -> StateUpdate {
+        let mut update = StateUpdate::from(data);
+        update.removed_inputs.push(input);
+
+        if Some(input) == self.static_data.ability_info.input {
+            update.character = CharacterState::Boost(Data { end: true, ..*self });
+        }
+
+        update
+    }
+}
+
+fn reset_state(data: &Data, update: &mut StateUpdate) {
+    update.character = CharacterState::Boost(Data {
+        timer: Duration::default(),
+        ..*data
+    })
 }

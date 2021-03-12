@@ -18,6 +18,7 @@ pub struct StateUpdate {
     pub energy: Energy,
     pub swap_equipped_weapons: bool,
     pub queued_inputs: BTreeSet<InputKind>,
+    pub removed_inputs: Vec<InputKind>,
     pub local_events: VecDeque<LocalEvent>,
     pub server_events: VecDeque<ServerEvent>,
 }
@@ -32,6 +33,7 @@ impl From<&JoinData<'_>> for StateUpdate {
             swap_equipped_weapons: false,
             character: data.character.clone(),
             queued_inputs: BTreeSet::new(),
+            removed_inputs: Vec::new(),
             local_events: VecDeque::new(),
             server_events: VecDeque::new(),
         }

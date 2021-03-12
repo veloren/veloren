@@ -1156,8 +1156,10 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 static_data: boost::StaticData {
                     movement_duration: Duration::from_secs_f32(*movement_duration),
                     only_up: *only_up,
+                    ability_info,
                 },
                 timer: Duration::default(),
+                end: false,
             }),
             CharacterAbility::DashMelee {
                 energy_cost: _,

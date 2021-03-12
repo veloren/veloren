@@ -434,7 +434,12 @@ pub fn handle_jump(data: &JoinData, update: &mut StateUpdate) {
     }
 }
 
-fn handle_ability_pressed(data: &JoinData, update: &mut StateUpdate, ability_key: AbilityKey) {
+fn handle_ability_pressed(
+    data: &JoinData,
+    update: &mut StateUpdate,
+    ability_key: AbilityKey,
+    input: Option<InputKind>,
+) {
     let hands = |equip_slot| match data.inventory.equipped(equip_slot).map(|i| i.kind()) {
         Some(ItemKind::Tool(tool)) => Some(tool.hands),
         _ => None,
@@ -484,7 +489,12 @@ fn handle_ability_pressed(data: &JoinData, update: &mut StateUpdate, ability_key
         {
             update.character = (
                 &ability,
-                AbilityInfo::from_key(data, ability_key, matches!(equip_slot, EquipSlot::Offhand)),
+                AbilityInfo::from_key(
+                    data,
+                    ability_key,
+                    matches!(equip_slot, EquipSlot::Offhand),
+                    input,
+                ),
             )
                 .into();
         }
@@ -493,7 +503,7 @@ fn handle_ability_pressed(data: &JoinData, update: &mut StateUpdate, ability_key
 
 pub fn handle_input(data: &JoinData, update: &mut StateUpdate, input: InputKind) {
     match input {
-        InputKind::Primary => handle_ability_pressed(data, update, AbilityKey::Mouse1),
+        InputKind::Primary => handle_ability_pressed(data, update, AbilityKey::Mouse1, Some(input)),
     }
 }
 
@@ -505,19 +515,19 @@ pub fn handle_input(data: &JoinData, update: &mut StateUpdate, input: InputKind)
 
 pub fn handle_ability2_input(data: &JoinData, update: &mut StateUpdate) {
     if data.inputs.secondary.is_pressed() {
-        handle_ability_pressed(data, update, AbilityKey::Mouse2);
+        handle_ability_pressed(data, update, AbilityKey::Mouse2, None);
     }
 }
 
 pub fn handle_ability3_input(data: &JoinData, update: &mut StateUpdate) {
     if data.inputs.ability3.is_pressed() {
-        handle_ability_pressed(data, update, AbilityKey::Skill1);
+        handle_ability_pressed(data, update, AbilityKey::Skill1, None);
     }
 }
 
 pub fn handle_ability4_input(data: &JoinData, update: &mut StateUpdate) {
     if data.inputs.ability4.is_pressed() {
-        handle_ability_pressed(data, update, AbilityKey::Skill2);
+        handle_ability_pressed(data, update, AbilityKey::Skill2, None);
     }
 }
 
@@ -539,7 +549,7 @@ pub fn handle_dodge_input(data: &JoinData, update: &mut StateUpdate) {
             if let CharacterState::ComboMelee(c) = data.character {
                 update.character = (
                     &ability,
-                    AbilityInfo::from_key(data, AbilityKey::Dodge, false),
+                    AbilityInfo::from_key(data, AbilityKey::Dodge, false, None),
                 )
                     .into();
                 if let CharacterState::Roll(roll) = &mut update.character {
@@ -549,7 +559,7 @@ pub fn handle_dodge_input(data: &JoinData, update: &mut StateUpdate) {
             } else if data.character.is_wield() {
                 update.character = (
                     &ability,
-                    AbilityInfo::from_key(data, AbilityKey::Dodge, false),
+                    AbilityInfo::from_key(data, AbilityKey::Dodge, false, None),
                 )
                     .into();
                 if let CharacterState::Roll(roll) = &mut update.character {
@@ -558,7 +568,7 @@ pub fn handle_dodge_input(data: &JoinData, update: &mut StateUpdate) {
             } else if data.character.is_stealthy() {
                 update.character = (
                     &ability,
-                    AbilityInfo::from_key(data, AbilityKey::Dodge, false),
+                    AbilityInfo::from_key(data, AbilityKey::Dodge, false, None),
                 )
                     .into();
                 if let CharacterState::Roll(roll) = &mut update.character {
@@ -567,7 +577,7 @@ pub fn handle_dodge_input(data: &JoinData, update: &mut StateUpdate) {
             } else {
                 update.character = (
                     &ability,
-                    AbilityInfo::from_key(data, AbilityKey::Dodge, false),
+                    AbilityInfo::from_key(data, AbilityKey::Dodge, false, None),
                 )
                     .into();
             }
@@ -687,10 +697,16 @@ pub struct AbilityInfo {
     pub tool: Option<ToolKind>,
     pub hand: Option<HandInfo>,
     pub key: AbilityKey,
+    pub input: Option<InputKind>,
 }
 
 impl AbilityInfo {
-    pub fn from_key(data: &JoinData, key: AbilityKey, from_offhand: bool) -> Self {
+    pub fn from_key(
+        data: &JoinData,
+        key: AbilityKey,
+        from_offhand: bool,
+        input: Option<InputKind>,
+    ) -> Self {
         let tool_data = if from_offhand {
             unwrap_tool_data(data, EquipSlot::Offhand)
         } else {
@@ -705,7 +721,12 @@ impl AbilityInfo {
             )
         };
 
-        Self { tool, hand, key }
+        Self {
+            tool,
+            hand,
+            key,
+            input,
+        }
     }
 }
 

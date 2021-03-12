@@ -23,7 +23,7 @@ use common::{
 use common_ecs::{Job, Origin, Phase, System};
 use std::time::Duration;
 
-fn incorporate_update(join: &mut JoinStruct, state_update: StateUpdate) {
+fn incorporate_update(join: &mut JoinStruct, mut state_update: StateUpdate) {
     // TODO: if checking equality is expensive use optional field in StateUpdate
     if join.char_state.get_unchecked() != &state_update.character {
         *join.char_state.get_mut_unchecked() = state_update.character
@@ -35,6 +35,12 @@ fn incorporate_update(join: &mut JoinStruct, state_update: StateUpdate) {
     if join.energy.get_unchecked() != &state_update.energy {
         *join.energy.get_mut_unchecked() = state_update.energy
     };
+    join.controller
+        .queued_inputs
+        .append(&mut state_update.queued_inputs);
+    for input in state_update.removed_inputs {
+        join.controller.queued_inputs.remove(&input);
+    }
     if state_update.swap_equipped_weapons {
         let mut inventory = join.inventory.get_mut_unchecked();
         let inventory = &mut *inventory;
@@ -350,10 +356,11 @@ impl<'a> System<'a> for Sys {
 
             local_emitter.append(&mut state_update.local_events);
             server_emitter.append(&mut state_update.server_events);
-            join_struct
-                .controller
-                .queued_inputs
-                .append(&mut state_update.queued_inputs);
+            // join_struct
+            //     .controller
+            //     .queued_inputs
+            //     .append(&mut state_update.queued_inputs);
+            // join_struct.controller.queued_inputs.
             incorporate_update(&mut join_struct, state_update);
         }
     }

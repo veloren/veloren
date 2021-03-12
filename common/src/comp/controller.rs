@@ -115,7 +115,7 @@ pub enum ControlAction {
         ability: InputKind,
         target: Option<Uid>,
     },
-    CancelInput,
+    CancelInput(InputKind),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Ord, PartialOrd)]

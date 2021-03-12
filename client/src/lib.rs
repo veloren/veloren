@@ -998,7 +998,7 @@ impl Client {
                 target: None,
             });
         } else {
-            self.control_action(ControlAction::CancelInput);
+            self.control_action(ControlAction::CancelInput(input));
         }
     }
 
