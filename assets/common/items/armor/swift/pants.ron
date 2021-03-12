@@ -5,7 +5,7 @@ ItemDef(
         kind: Pants("Swift"),
         stats: (
             protection: Normal(8.0),
-            poise_resilience: Normal(4.0),
+            poise_resilience: Normal(1.0),
         ),
     )),
     quality: Common,

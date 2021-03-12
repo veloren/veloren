@@ -117,7 +117,7 @@ impl Skeleton for CharacterSkeleton {
             make_bone(control_mat * hand_l_mat * Mat4::<f32>::from(self.hold)),
         ];
         // NOTE: lantern_mat.cols.w = lantern_mat * Vec4::unit_w()
-        (lantern_mat.cols.w / 13.0).xyz()
+        Vec3::new(-0.3, 0.1, 0.8) + (lantern_mat.cols.w / 13.0).xyz()
     }
 }
 

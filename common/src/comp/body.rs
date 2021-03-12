@@ -337,10 +337,10 @@ impl Body {
                 quadruped_medium::Species::Antelope => 300,
                 quadruped_medium::Species::Kelpie => 600,
                 quadruped_medium::Species::Horse => 600,
-                quadruped_medium::Species::Barghest => 1000,
-                quadruped_medium::Species::Cattle => 600,
-                quadruped_medium::Species::Highland => 600,
-                quadruped_medium::Species::Yak => 600,
+                quadruped_medium::Species::Barghest => 1700,
+                quadruped_medium::Species::Cattle => 1000,
+                quadruped_medium::Species::Highland => 1200,
+                quadruped_medium::Species::Yak => 1000,
                 quadruped_medium::Species::Panda => 800,
                 quadruped_medium::Species::Bear => 800,
                 _ => 400,
@@ -516,7 +516,8 @@ impl Body {
     pub fn base_poise(&self) -> u32 {
         match self {
             Body::Humanoid(_) => 100,
-            Body::BipedLarge(_) => 200,
+            Body::BipedLarge(_) => 250,
+            Body::Golem(_) => 300,
             _ => 100,
         }
     }

@@ -66,7 +66,7 @@ impl Animation for AlphaAnimation {
         next.head.orientation = Quaternion::rotation_x(move1abs * 0.2 + move2abs * 0.3)
             * Quaternion::rotation_z(move1abs * -0.2 + move2abs * 0.6)
             * Quaternion::rotation_y(move1abs * 0.3 + move2abs * -0.5);
-        next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1) / 13.0;
+        next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1) / 11.0;
         next.chest.orientation = Quaternion::rotation_x(move1abs * -0.2 + move2abs * 0.3)
             * Quaternion::rotation_z(move1abs * 0.5 + move2abs * -0.6);
 

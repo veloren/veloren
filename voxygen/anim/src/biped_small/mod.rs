@@ -3,12 +3,13 @@ pub mod dash;
 pub mod idle;
 pub mod run;
 pub mod shoot;
+pub mod stunned;
 pub mod wield;
 
 // Reexports
 pub use self::{
     alpha::AlphaAnimation, dash::DashAnimation, idle::IdleAnimation, run::RunAnimation,
-    shoot::ShootAnimation, wield::WieldAnimation,
+    shoot::ShootAnimation, stunned::StunnedAnimation, wield::WieldAnimation,
 };
 
 use super::{make_bone, vek::*, FigureBoneData, Skeleton};

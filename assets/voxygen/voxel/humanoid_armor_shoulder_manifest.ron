@@ -243,11 +243,11 @@
         ),
         "Tarasque": (
             left: (
-                vox_spec: ("armor.tarsque.shoulder", (-5.0, -3.5 , 0.0)),
+                vox_spec: ("armor.tarasque.shoulder", (-5.0, -3.5 , 0.0)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.tarsque.shoulder", (-0.0, -3.5, 0.0)),
+                vox_spec: ("armor.tarasque.shoulder", (-0.0, -3.5, 0.0)),
                 color: None
             )
         ),

@@ -4,8 +4,8 @@ ItemDef(
     kind: Armor((
         kind: Foot("Tarasque"),
         stats: (
-            protection: Normal(5.0),
-            poise_resilience: Normal(9.0),
+            protection: Normal(8.0),
+            poise_resilience: Normal(1.0),
         ),
     )),
     quality: High,

@@ -50,7 +50,7 @@ impl Animation for AlphaAnimation {
             * Quaternion::rotation_y(movement1 * 0.0)
             * Quaternion::rotation_z(movement1 * 0.10 + movement1 * -0.15);
 
-        next.jaw.orientation = Quaternion::rotation_x(movement1abs * -0.7 + movement2abs * 0.7);
+        next.jaw.orientation = Quaternion::rotation_x(movement1abs * -0.4 + movement2abs * 0.4);
 
         next.tail.orientation = Quaternion::rotation_z(
             movement1 * 0.5 + movement2 * -0.8 + twitchmovement * 0.2 * mirror,
