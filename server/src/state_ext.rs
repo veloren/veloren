@@ -233,6 +233,7 @@ impl StateExt for State {
                 .with(comp::Energy::new(ship.into(), level))
                 .with(comp::Health::new(ship.into(), level))
                 .with(comp::Stats::new("Airship".to_string()))
+                .with(comp::MountState::Unmounted)
                 .with(comp::Buffs::default())
                 .with(comp::Combo::default())
                 .with(comp::Agent::with_destination())

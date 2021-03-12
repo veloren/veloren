@@ -176,7 +176,7 @@ impl Body {
     pub fn can_fly(&self) -> Option<f32> {
         match self {
             Body::BirdMedium(_) | Body::Dragon(_) | Body::BirdSmall(_) => Some(1.0),
-            Body::Ship(ship::Body::DefaultAirship) => Some(1.5),
+            Body::Ship(ship::Body::DefaultAirship) => Some(1.0),
             _ => None,
         }
     }
