@@ -30,8 +30,16 @@ impl Animation for FeedAnimation {
         let wave_slow_cos = (anim_time * 4.5).cos();
 
         let duck_head_look = Vec2::new(
-            (global_time + anim_time / 2.0).floor().mul(7331.0).sin() * 0.5,
-            (global_time + anim_time / 8.0).floor().mul(1337.0).sin() * 0.25,
+            (global_time / 2.0 + anim_time / 2.0)
+                .floor()
+                .mul(7331.0)
+                .sin()
+                * 0.5,
+            (global_time / 2.0 + anim_time / 8.0)
+                .floor()
+                .mul(1337.0)
+                .sin()
+                * 0.25,
         );
 
         next.head.position = Vec3::new(0.0, s_a.head.0 + 1.0, -2.0 + s_a.head.1);

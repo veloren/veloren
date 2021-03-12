@@ -162,7 +162,7 @@ impl Body {
                 (humanoid::Species::Danari, humanoid::BodyType::Female) => 0.75,
                 _ => 0.75,
             },
-            Body::QuadrupedSmall(_) => 0.7,
+            Body::QuadrupedSmall(_) => 0.6,
             Body::QuadrupedMedium(body) => match body.species {
                 quadruped_medium::Species::Grolgar => 2.0,
                 quadruped_medium::Species::Tarasque => 2.0,
@@ -197,6 +197,8 @@ impl Body {
                 theropod::Species::Woodraptor => 1.5,
                 theropod::Species::Archaeos => 3.5,
                 theropod::Species::Odonto => 3.5,
+                theropod::Species::Yale => 1.3,
+                theropod::Species::Ntouka => 3.0,
                 _ => 1.8,
             },
             Body::BirdMedium(_) => 1.0,
@@ -261,6 +263,7 @@ impl Body {
                 theropod::Species::Sandraptor => 2.6,
                 theropod::Species::Woodraptor => 2.6,
                 theropod::Species::Sunlizard => 2.5,
+                theropod::Species::Yale => 2.8,
                 _ => 8.0,
             },
             Body::BirdMedium(body) => match body.species {
@@ -343,6 +346,8 @@ impl Body {
                 quadruped_medium::Species::Yak => 1000,
                 quadruped_medium::Species::Panda => 800,
                 quadruped_medium::Species::Bear => 800,
+                quadruped_medium::Species::Moose => 600,
+                quadruped_medium::Species::Dreadhorn => 1100,
                 _ => 400,
             },
             Body::BirdMedium(bird_medium) => match bird_medium.species {
@@ -370,6 +375,8 @@ impl Body {
                 biped_large::Species::Yeti => 2000,
                 biped_large::Species::Minotaur => 5000,
                 biped_large::Species::Harvester => 2000,
+                biped_large::Species::Blueoni => 2300,
+                biped_large::Species::Redoni => 2300,
                 _ => 1000,
             },
             Body::BipedSmall(biped_small) => match biped_small.species {
@@ -405,7 +412,6 @@ impl Body {
                 quadruped_low::Species::Hakulaq => 400,
                 quadruped_low::Species::Lavadrake => 900,
                 quadruped_low::Species::Deadwood => 600,
-
                 _ => 200,
             },
         }
@@ -451,6 +457,8 @@ impl Body {
                 quadruped_medium::Species::Yak => 30,
                 quadruped_medium::Species::Panda => 40,
                 quadruped_medium::Species::Bear => 40,
+                quadruped_medium::Species::Moose => 30,
+                quadruped_medium::Species::Dreadhorn => 50,
                 _ => 20,
             },
             Body::BirdMedium(bird_medium) => match bird_medium.species {

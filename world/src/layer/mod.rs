@@ -286,6 +286,10 @@ pub fn apply_caves_supplement<'a>(
                                 0 => comp::biped_large::Species::Ogre,
                                 1 => comp::biped_large::Species::Cyclops,
                                 2 => comp::biped_large::Species::Wendigo,
+                                3 => match dynamic_rng.gen_range(0..2) {
+                                    0 => comp::biped_large::Species::Blueoni,
+                                    _ => comp::biped_large::Species::Redoni,
+                                    }
                                 _ => comp::biped_large::Species::Troll,
                             };
                             comp::biped_large::Body::random_with(dynamic_rng, &species).into()

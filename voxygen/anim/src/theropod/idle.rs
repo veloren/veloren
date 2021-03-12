@@ -24,8 +24,16 @@ impl Animation for IdleAnimation {
 
         let breathe = (anim_time * 0.8).sin();
         let head_look = Vec2::new(
-            (global_time + anim_time / 8.0).floor().mul(7331.0).sin() * 0.5,
-            (global_time + anim_time / 8.0).floor().mul(1337.0).sin() * 0.25,
+            (global_time / 2.0 + anim_time / 8.0)
+                .floor()
+                .mul(7331.0)
+                .sin()
+                * 0.5,
+            (global_time / 2.0 + anim_time / 8.0)
+                .floor()
+                .mul(1337.0)
+                .sin()
+                * 0.25,
         );
 
         next.head.scale = Vec3::one() * 1.02;
@@ -33,6 +41,12 @@ impl Animation for IdleAnimation {
         next.jaw.scale = Vec3::one() * 0.98;
         next.foot_l.scale = Vec3::one() * 0.96;
         next.foot_r.scale = Vec3::one() * 0.96;
+        next.leg_l.scale = Vec3::one() * 1.02;
+        next.leg_r.scale = Vec3::one() * 1.02;
+        next.hand_l.scale = Vec3::one() * 0.98;
+        next.hand_r.scale = Vec3::one() * 0.98;
+        next.tail_front.scale = Vec3::one() * 1.02;
+        next.tail_back.scale = Vec3::one() * 0.98;
         next.chest_front.scale = Vec3::one() / s_a.scaler;
 
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1 + breathe * 0.3);
@@ -40,7 +54,7 @@ impl Animation for IdleAnimation {
             * Quaternion::rotation_z(head_look.x);
 
         next.jaw.position = Vec3::new(0.0, s_a.jaw.0, s_a.jaw.1);
-        next.jaw.orientation = Quaternion::rotation_x(breathe * 0.05);
+        next.jaw.orientation = Quaternion::rotation_x(breathe * 0.05 - 0.05);
 
         next.neck.position = Vec3::new(0.0, s_a.neck.0, s_a.neck.1 + breathe * 0.2);
         next.neck.orientation = Quaternion::rotation_x(-0.1);

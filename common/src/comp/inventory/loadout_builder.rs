@@ -106,7 +106,8 @@ impl LoadoutBuilder {
                     | quadruped_medium::Species::Grolgar
                     | quadruped_medium::Species::Lion
                     | quadruped_medium::Species::Bonerattler
-                    | quadruped_medium::Species::Darkhound => {
+                    | quadruped_medium::Species::Darkhound
+                    | quadruped_medium::Species::Snowleopard => {
                         main_tool = Some(Item::new_from_asset_expect(
                             "common.items.npc_weapons.unique.quadmedquick",
                         ));
@@ -127,7 +128,10 @@ impl LoadoutBuilder {
                             "common.items.npc_weapons.unique.quadmedjump",
                         ));
                     },
-                    quadruped_medium::Species::Tuskram | quadruped_medium::Species::Roshwalr => {
+                    quadruped_medium::Species::Tuskram
+                    | quadruped_medium::Species::Roshwalr
+                    | quadruped_medium::Species::Moose
+                    | quadruped_medium::Species::Dreadhorn => {
                         main_tool = Some(Item::new_from_asset_expect(
                             "common.items.npc_weapons.unique.quadmedcharge",
                         ));
@@ -187,7 +191,8 @@ impl LoadoutBuilder {
                 Body::Theropod(theropod) => match theropod.species {
                     theropod::Species::Sandraptor
                     | theropod::Species::Snowraptor
-                    | theropod::Species::Woodraptor => {
+                    | theropod::Species::Woodraptor
+                    | theropod::Species::Yale => {
                         main_tool = Some(Item::new_from_asset_expect(
                             "common.items.npc_weapons.unique.theropodbird",
                         ));
@@ -273,6 +278,16 @@ impl LoadoutBuilder {
                     (biped_large::Species::Harvester, _) => {
                         main_tool = Some(Item::new_from_asset_expect(
                             "common.items.npc_weapons.hammer.harvester_scythe",
+                        ));
+                    },
+                    (biped_large::Species::Blueoni, _) => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.axe.oni_blue_axe",
+                        ));
+                    },
+                    (biped_large::Species::Redoni, _) => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.hammer.oni_red_hammer",
                         ));
                     },
                 },

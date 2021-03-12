@@ -28,8 +28,16 @@ impl Animation for IdleAnimation {
         let slowalt = (anim_time * 2.5 + PI / 2.0).sin();
 
         let dragon_look = Vec2::new(
-            (global_time + anim_time / 8.0).floor().mul(7331.0).sin() * 0.5,
-            (global_time + anim_time / 8.0).floor().mul(1337.0).sin() * 0.25,
+            (global_time / 2.0 + anim_time / 8.0)
+                .floor()
+                .mul(7331.0)
+                .sin()
+                * 0.5,
+            (global_time / 2.0 + anim_time / 8.0)
+                .floor()
+                .mul(1337.0)
+                .sin()
+                * 0.25,
         );
 
         next.head_upper.scale = Vec3::one() * 1.05;

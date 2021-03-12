@@ -29,8 +29,16 @@ impl Animation for FeedAnimation {
         let slow_alt = (anim_time * 3.5 + PI).sin();
 
         let head_look = Vec2::new(
-            (global_time + anim_time / 2.0).floor().mul(7331.0).sin() * 1.0,
-            (global_time + anim_time / 2.0).floor().mul(1337.0).sin() * 0.5,
+            (global_time / 2.0 + anim_time / 2.0)
+                .floor()
+                .mul(7331.0)
+                .sin()
+                * 1.0,
+            (global_time / 2.0 + anim_time / 2.0)
+                .floor()
+                .mul(1337.0)
+                .sin()
+                * 0.5,
         );
         next.chest.scale = Vec3::one() / 11.0 * s_a.scaler;
 

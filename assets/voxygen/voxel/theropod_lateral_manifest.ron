@@ -311,4 +311,108 @@
             lateral: ("npc.sunlizard.male.foot_r"),
         ),
     ),
+    (Yale, Male): (
+        hand_l: (
+            offset: (-5.0, -2.0, -9.0),
+            lateral: ("npc.yale.male.hand_r"),
+        ),
+        hand_r: (
+            offset: (0.0, -2.0, -9.0),
+            lateral: ("npc.yale.male.hand_r"),
+        ),
+        leg_l: (
+            offset: (-5.0, -4.5, -4.5),
+            lateral: ("npc.yale.male.leg_r"),
+        ),
+        leg_r: (
+            offset: (0.0, -4.5, -4.5),
+            lateral: ("npc.yale.male.leg_r"),
+        ),
+        foot_l: (
+            offset: (-2.5, -5.5, -12.0),
+            lateral: ("npc.yale.male.foot_r"),
+        ),
+        foot_r: (
+            offset: (-1.5, -5.5, -12.0),
+            lateral: ("npc.yale.male.foot_r"),
+        ),
+    ),
+    (Yale, Female): (
+        hand_l: (
+            offset: (-5.0, -2.0, -9.0),
+            lateral: ("npc.yale.male.hand_r"),
+        ),
+        hand_r: (
+            offset: (0.0, -2.0, -9.0),
+            lateral: ("npc.yale.male.hand_r"),
+        ),
+        leg_l: (
+            offset: (-5.0, -4.5, -4.5),
+            lateral: ("npc.yale.male.leg_r"),
+        ),
+        leg_r: (
+            offset: (0.0, -4.5, -4.5),
+            lateral: ("npc.yale.male.leg_r"),
+        ),
+        foot_l: (
+            offset: (-2.5, -5.5, -12.0),
+            lateral: ("npc.yale.male.foot_r"),
+        ),
+        foot_r: (
+            offset: (-1.5, -5.5, -12.0),
+            lateral: ("npc.yale.male.foot_r"),
+        ),
+    ),
+    (Ntouka, Male): (
+        hand_l: (
+            offset: (-4.0, -2.5, -8.0),
+            lateral: ("npc.ntouka.male.hand_r"),
+        ),
+        hand_r: (
+            offset: (0.0, -2.5, -8.0),
+            lateral: ("npc.ntouka.male.hand_r"),
+        ),
+        leg_l: (
+            offset: (-5.0, -4.5, -4.5),
+            lateral: ("npc.ntouka.male.leg_r"),
+        ),
+        leg_r: (
+            offset: (0.0, -4.5, -4.5),
+            lateral: ("npc.ntouka.male.leg_r"),
+        ),
+        foot_l: (
+            offset: (-6.5, -6.5, -8.0),
+            lateral: ("npc.ntouka.male.foot_r"),
+        ),
+        foot_r: (
+            offset: (-3.5, -6.5, -8.0),
+            lateral: ("npc.ntouka.male.foot_r"),
+        ),
+    ),
+    (Ntouka, Female): (
+        hand_l: (
+            offset: (-4.0, -2.5, -8.0),
+            lateral: ("npc.ntouka.male.hand_r"),
+        ),
+        hand_r: (
+            offset: (0.0, -2.5, -8.0),
+            lateral: ("npc.ntouka.male.hand_r"),
+        ),
+        leg_l: (
+            offset: (-5.0, -4.5, -4.5),
+            lateral: ("npc.ntouka.male.leg_r"),
+        ),
+        leg_r: (
+            offset: (0.0, -4.5, -4.5),
+            lateral: ("npc.ntouka.male.leg_r"),
+        ),
+        foot_l: (
+            offset: (-6.5, -6.5, -8.0),
+            lateral: ("npc.ntouka.male.foot_r"),
+        ),
+        foot_r: (
+            offset: (-3.5, -6.5, -8.0),
+            lateral: ("npc.ntouka.male.foot_r"),
+        ),
+    ),
 })

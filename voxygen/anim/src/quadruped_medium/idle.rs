@@ -27,12 +27,28 @@ impl Animation for IdleAnimation {
         let slow = (anim_time * 3.5 + PI).sin();
 
         let look = Vec2::new(
-            (global_time + anim_time / 8.0).floor().mul(7331.0).sin() * 0.5,
-            (global_time + anim_time / 8.0).floor().mul(1337.0).sin() * 0.25,
+            (global_time / 2.0 + anim_time / 8.0)
+                .floor()
+                .mul(7331.0)
+                .sin()
+                * 0.5,
+            (global_time / 2.0 + anim_time / 8.0)
+                .floor()
+                .mul(1337.0)
+                .sin()
+                * 0.25,
         );
         let tailmove = Vec2::new(
-            (global_time + anim_time / 2.0).floor().mul(7331.0).sin() * 0.25,
-            (global_time + anim_time / 2.0).floor().mul(1337.0).sin() * 0.125,
+            (global_time / 2.0 + anim_time / 2.0)
+                .floor()
+                .mul(7331.0)
+                .sin()
+                * 0.25,
+            (global_time / 2.0 + anim_time / 2.0)
+                .floor()
+                .mul(1337.0)
+                .sin()
+                * 0.125,
         );
 
         next.neck.scale = Vec3::one() * 1.02;

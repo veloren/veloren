@@ -27,7 +27,6 @@
             central: ("npc.pig.male.tail"),
         ),
     ),
-
     (Fox, Male):(
         head: (
             offset: (-4.5, 0.0, -3.5),
@@ -42,7 +41,6 @@
             central: ("npc.fox.male.tail"),
         ),
     ),
-
     (Fox, Female):(
         head: (
             offset: (-4.5, 0.0, -3.5),
@@ -57,7 +55,6 @@
             central: ("npc.fox.female.tail"),
         ),
     ),
-
     (Sheep, Male):(
         head: (
             offset: (-5.0, 0.0, -5.0),
@@ -72,7 +69,6 @@
             central: ("npc.sheep.male.tail"),
         ),
     ),
-
     (Sheep, Female):(
         head: (
             offset: (-5.0, 0.0, -3.5),
@@ -213,7 +209,6 @@
             central: ("armor.empty"),
         ),
     ),
-
     (Batfox, Female):(
         head: (
             offset: (-7.5, 0.0, -3.0),
@@ -228,7 +223,6 @@
             central: ("armor.empty"),
         ),
     ),
-
     (Raccoon, Male):(
         head: (
             offset: (-5.0, 0.0, -4.0),
@@ -243,7 +237,6 @@
             central: ("npc.raccoon.male.tail"),
         ),
     ),
-
     (Raccoon, Female):(
         head: (
             offset: (-5.0, 0.0, -4.0),
@@ -258,7 +251,6 @@
             central: ("npc.raccoon.male.tail"),
         ),
     ),
-
     (Quokka, Male):(
         head: (
             offset: (-4.5, 0.0, -3.5),
@@ -273,7 +265,6 @@
             central: ("npc.quokka.male.tail"),
         ),
     ),
-
     (Quokka, Female):(
         head: (
             offset: (-4.5, 0.0, -3.5),
@@ -288,7 +279,6 @@
             central: ("npc.quokka.male.tail"),
         ),
     ),
-
     (Dodarock, Male):(
         head: (
             offset: (-4.5, 0.0, -2.5),
@@ -303,7 +293,6 @@
             central: ("armor.empty"),
         ),
     ),
-
     (Dodarock, Female):(
         head: (
             offset: (-4.5, 0.0, -2.5),
@@ -317,7 +306,6 @@
             offset: (-1.5, -7.5, -2.5),
             central: ("armor.empty"),
         ),
-
     ),
     (Holladon, Male):(
         head: (
@@ -333,7 +321,6 @@
             central: ("armor.empty"),
         ),
     ),
-
     (Holladon, Female):(
         head: (
             offset: (-3.5, 0.0, -4.0),
@@ -348,7 +335,6 @@
             central: ("armor.empty"),
         ),
     ),
-
     (Hyena, Male):(
         head: (
             offset: (-4.0, 0.0, -4.0),
@@ -363,7 +349,6 @@
             central: ("npc.hyena.male.tail"),
         ),
     ),
-
     (Hyena, Female):(
         head: (
             offset: (-4.0, 0.0, -4.0),
@@ -740,6 +725,34 @@
         tail: (
             offset: (-1.5, -7.0, -1.0),
             central: ("npc.dog.female.tail"),
+        ),
+    ),
+    (Goat, Male):(
+        head: (
+            offset: (-6.0, 0.0, -5.5),
+            central: ("npc.goat.male.head"),
+        ),
+        chest: (
+            offset: (-4.0, -5.5, -3.5),
+            central: ("npc.goat.male.chest"),
+        ),
+        tail: (
+            offset: (-1.0, -2.0, -1.5),
+            central: ("npc.goat.male.tail"),
+        ),
+    ),
+    (Goat, Female):(
+        head: (
+            offset: (-6.0, 0.0, -5.5),
+            central: ("npc.goat.male.head"),
+        ),
+        chest: (
+            offset: (-4.0, -5.5, -3.5),
+            central: ("npc.goat.male.chest"),
+        ),
+        tail: (
+            offset: (-1.0, -2.0, -1.5),
+            central: ("npc.goat.male.tail"),
         ),
     ),
 })

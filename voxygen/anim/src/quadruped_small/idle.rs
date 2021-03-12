@@ -28,8 +28,16 @@ impl Animation for IdleAnimation {
         let slow_alt = (anim_time * 3.5 + PI / 2.0).sin();
 
         let head_look = Vec2::new(
-            (global_time + anim_time / 8.0).floor().mul(7331.0).sin() * 0.5,
-            (global_time + anim_time / 8.0).floor().mul(1337.0).sin() * 0.25,
+            (global_time / 2.0 + anim_time / 8.0)
+                .floor()
+                .mul(7331.0)
+                .sin()
+                * 0.5,
+            (global_time / 2.0 + anim_time / 8.0)
+                .floor()
+                .mul(1337.0)
+                .sin()
+                * 0.25,
         );
 
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1 + slow * 0.2);

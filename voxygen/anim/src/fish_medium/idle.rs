@@ -29,6 +29,7 @@ impl Animation for IdleAnimation {
         let slow = (anim_time * 3.5 + PI).sin();
         let slowalt = (anim_time * 3.5 + PI + 0.2).sin();
 
+        next.jaw.scale = Vec3::one() * 0.98;
         next.chest_front.scale = Vec3::one() / 11.0;
 
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
