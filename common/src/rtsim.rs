@@ -46,4 +46,10 @@ impl Default for RtSimController {
 
 impl RtSimController {
     pub fn reset(&mut self) { *self = Self::default(); }
+    pub fn zero() -> Self {
+        Self {
+            travel_to: Some((Vec3::new(0.0, 0.0, 500.0), "".to_string())),
+            speed_factor: 0.05,
+        }
+    }
 }

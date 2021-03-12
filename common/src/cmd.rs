@@ -224,7 +224,7 @@ impl ChatCommand {
                 "Temporarily gives a player admin permissions or removes them",
                 Admin,
             ),
-            ChatCommand::Airship => cmd(vec![], "Spawns an airship", Admin),
+            ChatCommand::Airship => cmd(vec![Boolean("moving", "true".to_string(), Optional)], "Spawns an airship", Admin),
             ChatCommand::Alias => cmd(vec![Any("name", Required)], "Change your alias", NoAdmin),
             ChatCommand::Ban => cmd(
                 vec![Any("username", Required), Message(Optional)],

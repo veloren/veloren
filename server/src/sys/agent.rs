@@ -624,7 +624,7 @@ impl<'a> AgentData<'a> {
                             .ray(
                                 self.pos.0 + Vec3::unit_z(),
                                 self.pos.0
-                                    + bearing.try_normalized().unwrap_or_else(Vec3::unit_y) * 60.0
+                                    + bearing.try_normalized().unwrap_or_else(Vec3::unit_y) * 80.0
                                     + Vec3::unit_z(),
                             )
                             .until(Block::is_solid)

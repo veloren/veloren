@@ -222,6 +222,15 @@ impl Agent {
         self
     }
 
+    pub fn with_destination() -> Self {
+        Self {
+            can_speak: false,
+            psyche: Psyche { aggro: 1.0 },
+            rtsim_controller: RtSimController::zero(),
+            ..Default::default()
+        }
+    }
+
     pub fn new(
         patrol_origin: Option<Vec3<f32>>,
         can_speak: bool,

@@ -989,15 +989,16 @@ fn handle_spawn_airship(
     server: &mut Server,
     client: EcsEntity,
     target: EcsEntity,
-    _args: String,
-    _action: &ChatCommand,
+    args: String,
+    action: &ChatCommand,
 ) {
+    let moving = scan_fmt_some!(&args, &action.arg_fmt(), String).unwrap_or_else(|| "false".to_string()) == "true";
     match server.state.read_component_copied::<comp::Pos>(target) {
         Some(mut pos) => {
             pos.0.z += 50.0;
             server
                 .state
-                .create_ship(pos, comp::ship::Body::DefaultAirship, 1)
+                .create_ship(pos, comp::ship::Body::DefaultAirship, 1, moving)
                 .with(comp::Scale(11.0 / 0.8))
                 .with(LightEmitter {
                     col: Rgb::new(1.0, 0.65, 0.2),
