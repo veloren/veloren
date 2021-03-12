@@ -213,7 +213,7 @@ impl<'a> System<'a> for Sys {
                         in_liquid: physics_state.in_liquid.is_some(),
                         min_tgt_dist: 1.0,
                         can_climb: body.map(|b| b.can_climb()).unwrap_or(false),
-                        can_fly: body.map(|b| b.can_fly()).unwrap_or(false),
+                        can_fly: body.map(|b| b.can_fly().is_some()).unwrap_or(false),
                     };
 
                     let flees = alignment

@@ -425,7 +425,7 @@ impl<'a> PhysicsSystemData<'a> {
                     let old_vel = vel;
                     // Integrate forces
                     // Friction is assumed to be a constant dependent on location
-                    let friction = FRIC_AIR
+                    let friction = if physics_state.on_ground { 0.0 } else { FRIC_AIR }
                         // .max(if physics_state.on_ground {
                         //     FRIC_GROUND
                         // } else {
@@ -979,7 +979,9 @@ fn cylinder_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
 
     if on_ground {
         physics_state.on_ground = true;
+
         vel.0 = ground_vel + (vel.0 - ground_vel) * (1.0 - FRIC_GROUND.min(1.0)).powf(dt.0 * 60.0);
+        physics_state.ground_vel = ground_vel;
     // If the space below us is free, then "snap" to the ground
     } else if collision_with(
         pos.0 - Vec3::unit_z() * 1.05,
