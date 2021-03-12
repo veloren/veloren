@@ -375,14 +375,14 @@ impl<'a> PhysicsSystemData<'a> {
         } = self;
         // Apply movement inputs
         span!(guard, "Apply movement and terrain collision");
-        let (positions, previous_phys_cache, orientations) = (&psdw.positions, &psdw.previous_phys_cache, &psdw.orientations);
-        let (pos_writes, land_on_grounds) = (
+        let (positions, velocities, previous_phys_cache, orientations) = (&psdw.positions, &psdw.velocities, &psdw.previous_phys_cache, &psdw.orientations);
+        let (pos_writes, vel_writes, land_on_grounds) = (
             &psdr.entities,
             psdr.scales.maybe(),
             psdr.stickies.maybe(),
             &psdr.colliders,
             positions,
-            &mut psdw.velocities,
+            velocities,
             orientations,
             &mut psdw.physics_states,
             previous_phys_cache,
@@ -390,15 +390,15 @@ impl<'a> PhysicsSystemData<'a> {
         )
             .par_join()
             .fold(
-                || (Vec::new(), Vec::new()),
-                |(mut pos_writes, mut land_on_grounds),
+                || (Vec::new(), Vec::new(), Vec::new()),
+                |(mut pos_writes, mut vel_writes, mut land_on_grounds),
                  (
                     entity,
                     scale,
                     sticky,
                     collider,
                     pos,
-                    mut vel,
+                    vel,
                     _ori,
                     mut physics_state,
                     previous_cache,
@@ -408,9 +408,10 @@ impl<'a> PhysicsSystemData<'a> {
                     // entities
                     let old_pos = *pos;
                     let mut pos = *pos;
+                    let mut vel = *vel;
                     if sticky.is_some() && physics_state.on_surface().is_some() {
                         vel.0 = Vec3::zero();
-                        return (pos_writes, land_on_grounds);
+                        return (pos_writes, vel_writes, land_on_grounds);
                     }
 
                     let scale = if let Collider::Voxel { .. } = collider {
@@ -421,7 +422,7 @@ impl<'a> PhysicsSystemData<'a> {
                         1.0
                     };
 
-                    let old_vel = *vel;
+                    let old_vel = vel;
                     // Integrate forces
                     // Friction is assumed to be a constant dependent on location
                     let friction = FRIC_AIR
@@ -477,9 +478,9 @@ impl<'a> PhysicsSystemData<'a> {
                                 entity,
                                 &mut pos,
                                 pos_delta,
-                                vel,
+                                &mut vel,
                                 &mut physics_state,
-                                &mut land_on_grounds,
+                                |entity, vel| land_on_grounds.push((entity, vel)),
                             );
                         },
                         Collider::Box {
@@ -499,9 +500,9 @@ impl<'a> PhysicsSystemData<'a> {
                                 entity,
                                 &mut pos,
                                 pos_delta,
-                                vel,
+                                &mut vel,
                                 &mut physics_state,
-                                &mut land_on_grounds,
+                                |entity, vel| land_on_grounds.push((entity, vel)),
                             );
                         },
                         Collider::Point => {
@@ -556,6 +557,7 @@ impl<'a> PhysicsSystemData<'a> {
                         entity_other,
                         other,
                         pos_other,
+                        vel_other,
                         previous_cache_other,
                         mass_other,
                         collider_other,
@@ -569,6 +571,7 @@ impl<'a> PhysicsSystemData<'a> {
                         &psdr.entities,
                         &psdr.uids,
                         positions,
+                        velocities,
                         previous_phys_cache,
                         psdr.masses.maybe(),
                         &psdr.colliders,
@@ -606,39 +609,32 @@ impl<'a> PhysicsSystemData<'a> {
 
                             if let Some(voxel_collider) = VOXEL_COLLIDER_MANIFEST.read().colliders.get(id) {
                                 let mut physics_state_delta = physics_state.clone();
-                                //let ori_2d = ori_other.look_dir().xy();
-                                //let ori_2d_quat = Quaternion::rotation_z(ori_2d.y.atan2(ori_2d.x));
-                                //let ori_2d_quat = Quaternion::from_xyzw(ori_2d.x, ori_2d.y, 0.0, 1.0).normalized();
                                 // deliberately don't use scale yet here, because the 11.0/0.8
                                 // thing is in the comp::Scale for visual reasons
-                                let t1 = Mat4::from(Transform {
-                                    position: pos_other.0 + voxel_collider.translation,
-                                    orientation: Quaternion::identity(),
-                                    scale: Vec3::broadcast(1.0),
-                                });
-                                let t2 = Mat4::from(Transform {
-                                    position: Vec3::zero(),
-                                    orientation: ori_other.0.normalized(),
-                                    scale: Vec3::broadcast(1.0),
-                                });
-                                //let transform = t2 * t1;
-                                let transform = t1;
-                                pos.0 = transform.inverted().mul_point(pos.0);
-                                //vel.0 = t2.inverted().mul_point(pos.0);
+                                let transform_from = Mat4::<f32>::translation_3d(pos_other.0)
+                                    * Mat4::from(ori_other.0)
+                                    * Mat4::<f32>::translation_3d(voxel_collider.translation);
+                                let transform_to = transform_from.inverted();
+                                pos.0 = transform_to.mul_point(pos.0);
+                                vel.0 = transform_to.mul_direction(vel.0);
                                 let cylinder = (radius, z_min, z_max);
                                 cylinder_voxel_collision(
                                     cylinder,
                                     &voxel_collider.dyna,
                                     entity,
                                     &mut pos,
-                                    pos_delta,
-                                    vel,
+                                    transform_to.mul_direction(pos_delta),
+                                    &mut vel,
                                     &mut physics_state_delta,
-                                    &mut land_on_grounds,
+                                    |entity, vel| land_on_grounds.push((entity, Vel(transform_from.mul_direction(vel.0)))),
                                 );
 
-                                pos.0 = transform.mul_point(pos.0);
-                                //vel.0 = t2.mul_point(vel.0);
+                                pos.0 = transform_from.mul_point(pos.0);
+                                vel.0 = transform_from.mul_direction(vel.0);
+
+                                if physics_state_delta.on_ground {
+                                    pos.0 += vel_other.0 * psdr.dt.0;
+                                }
 
                                 // union in the state updates, so that the state isn't just based on
                                 // the most recent terrain that collision was attempted with
@@ -662,26 +658,35 @@ impl<'a> PhysicsSystemData<'a> {
                     if pos != old_pos {
                         pos_writes.push((entity, pos));
                     }
+                    if vel != old_vel {
+                        vel_writes.push((entity, vel));
+                    }
 
-                    (pos_writes, land_on_grounds)
+                    (pos_writes, vel_writes, land_on_grounds)
                 },
             )
             .reduce(
-                || (Vec::new(), Vec::new()),
-                |(mut pos_writes_a, mut land_on_grounds_a),
-                 (mut pos_writes_b, mut land_on_grounds_b)| {
+                || (Vec::new(), Vec::new(), Vec::new()),
+                |(mut pos_writes_a, mut vel_writes_a, mut land_on_grounds_a),
+                 (mut pos_writes_b, mut vel_writes_b, mut land_on_grounds_b)| {
                     pos_writes_a.append(&mut pos_writes_b);
+                    vel_writes_a.append(&mut vel_writes_b);
                     land_on_grounds_a.append(&mut land_on_grounds_b);
-                    (pos_writes_a, land_on_grounds_a)
+                    (pos_writes_a, vel_writes_a, land_on_grounds_a)
                 },
             );
         drop(guard);
         job.cpu_stats.measure(ParMode::Single);
 
         let pos_writes: HashMap<Entity, Pos> = pos_writes.into_iter().collect();
-        for (entity, pos) in (&psdr.entities, &mut psdw.positions).join() {
+        let vel_writes: HashMap<Entity, Vel> = vel_writes.into_iter().collect();
+        for (entity, pos, vel) in (&psdr.entities, &mut psdw.positions, &mut psdw.velocities).join() {
             if let Some(new_pos) = pos_writes.get(&entity) {
                 *pos = *new_pos;
+            }
+
+            if let Some(new_vel) = vel_writes.get(&entity) {
+                *vel = *new_vel;
             }
         }
 
@@ -732,7 +737,7 @@ fn cylinder_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
     mut pos_delta: Vec3<f32>,
     vel: &mut Vel,
     physics_state: &mut PhysicsState,
-    land_on_grounds: &mut Vec<(Entity, Vel)>,
+    mut land_on_ground: impl FnMut(Entity, Vel),
 ) {
     let (radius, z_min, z_max) = cylinder;
 
@@ -898,7 +903,7 @@ fn cylinder_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
                 on_ground = true;
 
                 if !was_on_ground {
-                    land_on_grounds.push((entity, *vel));
+                    land_on_ground(entity, *vel);
                 }
             } else if resolve_dir.z < 0.0 && vel.0.z >= 0.0 {
                 on_ceiling = true;
