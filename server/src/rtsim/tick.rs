@@ -122,7 +122,10 @@ impl<'a> System<'a> for Sys {
                     comp::Body::Humanoid(_) => comp::Alignment::Npc,
                     _ => comp::Alignment::Wild,
                 },
-                scale: comp::Scale(1.0),
+                scale: match body {
+                    comp::Body::Ship(_) => comp::Scale(11.0 / 0.8),
+                    _ => comp::Scale(1.0),
+                },
                 drop_item: None,
                 home_chunk: None,
                 rtsim_entity: Some(RtSimEntity(id)),

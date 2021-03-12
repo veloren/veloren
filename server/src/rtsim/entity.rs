@@ -27,7 +27,7 @@ impl Entity {
 
     pub fn get_body(&self) -> comp::Body {
         match self.rng(PERM_GENUS).gen::<f32>() {
-            //we want 50% birds, 50% humans for now
+            //we want 5% airships, 45% birds, 50% humans
             x if x < 0.05 => {
                 comp::Body::Ship(comp::ship::Body::DefaultAirship)
             },
@@ -135,7 +135,7 @@ impl Entity {
                 .iter()
                 .filter(|s| match self.get_body() {
                     comp::Body::Humanoid(_) => s.1.is_settlement() | s.1.is_castle(),
-                    comp::Body::Ship(_) => s.1.is_castle(),
+                    comp::Body::Ship(_) => s.1.is_settlement(),
                     _ => s.1.is_dungeon(),
                 })
                 .filter(|_| thread_rng().gen_range(0i32..4) == 0)

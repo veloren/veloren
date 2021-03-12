@@ -41,7 +41,13 @@ pub trait StateExt {
     ) -> EcsEntityBuilder;
     /// Build a static object entity
     fn create_object(&mut self, pos: comp::Pos, object: comp::object::Body) -> EcsEntityBuilder;
-    fn create_ship(&mut self, pos: comp::Pos, ship: comp::ship::Body, level: u16, moving: bool) -> EcsEntityBuilder;
+    fn create_ship(
+        &mut self,
+        pos: comp::Pos,
+        ship: comp::ship::Body,
+        level: u16,
+        destination: Option<Vec3<f32>>,
+    ) -> EcsEntityBuilder;
     /// Build a projectile
     fn create_projectile(
         &mut self,
@@ -173,10 +179,15 @@ impl StateExt for State {
                 ))
                 .unwrap_or_default(),
             )
-            .with(comp::Collider::Box {
-                radius: body.radius(),
-                z_min: 0.0,
-                z_max: body.height(),
+            .with(match body {
+                comp::Body::Ship(ship) => comp::Collider::Voxel {
+                    id: ship.manifest_entry().to_string(),
+                },
+                _ => comp::Collider::Box {
+                    radius: body.radius(),
+                    z_min: 0.0,
+                    z_max: body.height(),
+                },
             })
             .with(comp::Controller::default())
             .with(body)
@@ -216,46 +227,38 @@ impl StateExt for State {
             .with(comp::Gravity(1.0))
     }
 
-    fn create_ship(&mut self, pos: comp::Pos, ship: comp::ship::Body, level: u16, moving: bool) -> EcsEntityBuilder {
-        if moving {
-            self.ecs_mut()
-                .create_entity_synced()
-                .with(pos)
-                .with(comp::Vel(Vec3::zero()))
-                .with(comp::Ori::default())
-                .with(comp::Mass(50.0))
-                .with(comp::Collider::Voxel { id: ship.manifest_entry().to_string() })
-                .with(comp::Body::Ship(ship))
-                .with(comp::Gravity(1.0))
-                .with(comp::Controller::default())
-                .with(comp::inventory::Inventory::new_empty())
-                .with(comp::CharacterState::default())
-                .with(comp::Energy::new(ship.into(), level))
-                .with(comp::Health::new(ship.into(), level))
-                .with(comp::Stats::new("Airship".to_string()))
-                .with(comp::MountState::Unmounted)
-                .with(comp::Buffs::default())
-                .with(comp::Combo::default())
-                .with(comp::Agent::with_destination())
-        } else {
-            self.ecs_mut()
-                .create_entity_synced()
-                .with(pos)
-                .with(comp::Vel(Vec3::zero()))
-                .with(comp::Ori::default())
-                .with(comp::Mass(50.0))
-                .with(comp::Collider::Voxel { id: ship.manifest_entry().to_string() })
-                .with(comp::Body::Ship(ship))
-                .with(comp::Gravity(1.0))
-                .with(comp::Controller::default())
-                .with(comp::inventory::Inventory::new_empty())
-                .with(comp::CharacterState::default())
-                .with(comp::Energy::new(ship.into(), level))
-                .with(comp::Health::new(ship.into(), level))
-                .with(comp::Stats::new("Airship".to_string()))
-                .with(comp::Buffs::default())
-                .with(comp::Combo::default())
+    fn create_ship(
+        &mut self,
+        pos: comp::Pos,
+        ship: comp::ship::Body,
+        level: u16,
+        destination: Option<Vec3<f32>>,
+    ) -> EcsEntityBuilder {
+        let mut builder = self
+            .ecs_mut()
+            .create_entity_synced()
+            .with(pos)
+            .with(comp::Vel(Vec3::zero()))
+            .with(comp::Ori::default())
+            .with(comp::Mass(50.0))
+            .with(comp::Collider::Voxel {
+                id: ship.manifest_entry().to_string(),
+            })
+            .with(comp::Body::Ship(ship))
+            .with(comp::Gravity(1.0))
+            .with(comp::Controller::default())
+            .with(comp::inventory::Inventory::new_empty())
+            .with(comp::CharacterState::default())
+            .with(comp::Energy::new(ship.into(), level))
+            .with(comp::Health::new(ship.into(), level))
+            .with(comp::Stats::new("Airship".to_string()))
+            .with(comp::Buffs::default())
+            .with(comp::MountState::Unmounted)
+            .with(comp::Combo::default());
+        if let Some(pos) = destination {
+            builder = builder.with(comp::Agent::with_destination(pos))
         }
+        builder
     }
 
     fn create_projectile(

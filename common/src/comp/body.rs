@@ -519,6 +519,16 @@ impl Body {
         }
     }
 
+    pub fn flying_height(&self) -> f32 {
+        match self {
+            Body::BirdSmall(_) => 30.0,
+            Body::BirdMedium(_) => 40.0,
+            Body::Dragon(_) => 60.0,
+            Body::Ship(ship::Body::DefaultAirship) => 60.0,
+            _ => 0.0,
+        }
+    }
+
     pub fn immune_to(&self, buff: BuffKind) -> bool {
         match buff {
             BuffKind::Bleeding => matches!(self, Body::Object(_) | Body::Golem(_) | Body::Ship(_)),

@@ -992,13 +992,16 @@ fn handle_spawn_airship(
     args: String,
     action: &ChatCommand,
 ) {
-    let moving = scan_fmt_some!(&args, &action.arg_fmt(), String).unwrap_or_else(|| "false".to_string()) == "true";
+    let angle = scan_fmt!(&args, &action.arg_fmt(), f32).ok();
     match server.state.read_component_copied::<comp::Pos>(target) {
         Some(mut pos) => {
             pos.0.z += 50.0;
+            const DESTINATION_RADIUS: f32 = 2000.0;
+            let angle = angle.map(|a| a * std::f32::consts::PI / 180.0);
+            let destination = angle.map(|a| pos.0 + Vec3::new(DESTINATION_RADIUS*a.cos(), DESTINATION_RADIUS*a.sin(), 200.0));
             server
                 .state
-                .create_ship(pos, comp::ship::Body::DefaultAirship, 1, moving)
+                .create_ship(pos, comp::ship::Body::DefaultAirship, 1, destination)
                 .with(comp::Scale(11.0 / 0.8))
                 .with(LightEmitter {
                     col: Rgb::new(1.0, 0.65, 0.2),

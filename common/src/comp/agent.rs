@@ -222,11 +222,11 @@ impl Agent {
         self
     }
 
-    pub fn with_destination() -> Self {
+    pub fn with_destination(pos: Vec3<f32>) -> Self {
         Self {
-            can_speak: false,
+            can_speak: true,
             psyche: Psyche { aggro: 1.0 },
-            rtsim_controller: RtSimController::zero(),
+            rtsim_controller: RtSimController::with_destination(pos),
             ..Default::default()
         }
     }
