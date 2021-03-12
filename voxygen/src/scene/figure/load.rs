@@ -35,6 +35,9 @@ fn load_segment(mesh_name: &str) -> Segment {
 }
 fn graceful_load_vox(mesh_name: &str) -> AssetHandle<DotVoxAsset> {
     let full_specifier: String = ["voxygen.voxel.", mesh_name].concat();
+    graceful_load_vox_fullspec(&full_specifier)
+}
+fn graceful_load_vox_fullspec(full_specifier: &str) -> AssetHandle<DotVoxAsset> {
     match DotVoxAsset::load(&full_specifier) {
         Ok(dot_vox) => dot_vox,
         Err(_) => {
@@ -45,6 +48,9 @@ fn graceful_load_vox(mesh_name: &str) -> AssetHandle<DotVoxAsset> {
 }
 fn graceful_load_segment(mesh_name: &str) -> Segment {
     Segment::from(&graceful_load_vox(mesh_name).read().0)
+}
+fn graceful_load_segment_fullspec(full_specifier: &str) -> Segment {
+    Segment::from(&graceful_load_vox_fullspec(full_specifier).read().0)
 }
 fn graceful_load_segment_flipped(mesh_name: &str, flipped: bool) -> Segment {
     Segment::from_vox(&graceful_load_vox(mesh_name).read().0, flipped)
@@ -4241,7 +4247,7 @@ fn mesh_ship_bone<K: fmt::Debug+Eq+Hash, V, F: Fn(&V) -> &ShipCentralSubSpec>(ma
         },
     };
     let bone = f(spec);
-    let central = graceful_load_segment(&bone.central.0);
+    let central = graceful_load_segment_fullspec(&["server.voxel.", &bone.central.0].concat());
 
     (central, Vec3::from(bone.offset))
 }

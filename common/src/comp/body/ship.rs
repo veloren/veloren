@@ -17,7 +17,7 @@ impl From<Body> for super::Body {
 impl Body {
     pub fn manifest_entry(&self) -> &'static str {
         match self {
-            Body::DefaultAirship => "object.Human_Airship",
+            Body::DefaultAirship => "Human_Airship",
         }
     }
 }
@@ -38,6 +38,7 @@ pub mod figuredata {
     use hashbrown::HashMap;
     use lazy_static::lazy_static;
     use serde::Deserialize;
+    use vek::Vec3;
 
     #[derive(Deserialize)]
     pub struct VoxSimple(pub String);
@@ -55,6 +56,7 @@ pub mod figuredata {
     #[derive(Deserialize)]
     pub struct ShipCentralSubSpec {
         pub offset: [f32; 3],
+        pub phys_offset: [f32; 3],
         pub central: VoxSimple,
     }
 
@@ -62,7 +64,13 @@ pub mod figuredata {
     #[derive(Clone)]
     pub struct ShipSpec {
         pub central: AssetHandle<Ron<ShipCentralSpec>>,
-        pub voxes: HashMap<String, Dyna<Block, (), ColumnAccess>>,
+        pub colliders: HashMap<String, VoxelCollider>,
+    }
+
+    #[derive(Clone)]
+    pub struct VoxelCollider {
+        pub dyna: Dyna<Block, (), ColumnAccess>,
+        pub translation: Vec3<f32>,
     }
 
     impl assets::Compound for ShipSpec {
@@ -71,26 +79,31 @@ pub mod figuredata {
             _: &str,
         ) -> Result<Self, assets::Error> {
             let manifest: AssetHandle<Ron<ShipCentralSpec>> = AssetExt::load("server.manifests.ship_manifest")?;
-            let mut voxes = HashMap::new();
+            let mut colliders = HashMap::new();
             for (_, spec) in (manifest.read().0).0.iter() {
                 for bone in [&spec.bone0, &spec.bone1, &spec.bone2].iter() {
                     // TODO: avoid the requirement for symlinks in "voxygen.voxel.object.", and load
                     // the models from "server.voxel." instead
                     let vox =
-                        cache.load::<DotVoxAsset>(&["voxygen.voxel.", &bone.central.0].concat())?;
+                        cache.load::<DotVoxAsset>(&["server.voxel.", &bone.central.0].concat())?;
                     let dyna = Dyna::<Cell, (), ColumnAccess>::from_vox(&vox.read().0, false);
-                    voxes.insert(bone.central.0.clone(), dyna.map_into(|cell| {
+                    let dyna = dyna.map_into(|cell| {
                         if let Some(rgb) = cell.get_color() {
                             Block::new(BlockKind::Misc, rgb)
                         } else {
                             Block::air(SpriteKind::Empty)
                         }
-                    }));
+                    });
+                    let collider = VoxelCollider {
+                        dyna,
+                        translation: Vec3::from(bone.offset) + Vec3::from(bone.phys_offset),
+                    };
+                    colliders.insert(bone.central.0.clone(), collider);
                 }
             }
             Ok(ShipSpec {
                 central: manifest,
-                voxes,
+                colliders,
             })
         }
     }
@@ -99,6 +112,6 @@ pub mod figuredata {
         // TODO: load this from the ECS as a resource, and maybe make it more general than ships
         // (although figuring out how to keep the figure bones in sync with the terrain offsets seems
         // like a hard problem if they're not the same manifest)
-        pub static ref VOXEL_COLLIDER_MANIFEST: ShipSpec = AssetExt::load_expect_cloned("server.manifests.ship_manifest");
+        pub static ref VOXEL_COLLIDER_MANIFEST: AssetHandle<ShipSpec> = AssetExt::load_expect("server.manifests.ship_manifest");
     }
 }

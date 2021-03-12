@@ -9,7 +9,7 @@ use vek::{Quaternion, Vec2, Vec3};
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(into = "SerdeOri")]
 #[serde(from = "SerdeOri")]
-pub struct Ori(Quaternion<f32>);
+pub struct Ori(pub Quaternion<f32>);
 
 impl Default for Ori {
     /// Returns the default orientation (no rotation; default Dir)

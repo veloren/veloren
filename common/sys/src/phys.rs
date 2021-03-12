@@ -375,7 +375,7 @@ impl<'a> PhysicsSystemData<'a> {
         } = self;
         // Apply movement inputs
         span!(guard, "Apply movement and terrain collision");
-        let (positions, previous_phys_cache) = (&psdw.positions, &psdw.previous_phys_cache);
+        let (positions, previous_phys_cache, orientations) = (&psdw.positions, &psdw.previous_phys_cache, &psdw.orientations);
         let (pos_writes, land_on_grounds) = (
             &psdr.entities,
             psdr.scales.maybe(),
@@ -383,7 +383,7 @@ impl<'a> PhysicsSystemData<'a> {
             &psdr.colliders,
             positions,
             &mut psdw.velocities,
-            &psdw.orientations,
+            orientations,
             &mut psdw.physics_states,
             previous_phys_cache,
             !&psdr.mountings,
@@ -559,6 +559,7 @@ impl<'a> PhysicsSystemData<'a> {
                         previous_cache_other,
                         mass_other,
                         collider_other,
+                        ori_other,
                         _,
                         _,
                         _,
@@ -571,6 +572,7 @@ impl<'a> PhysicsSystemData<'a> {
                         previous_phys_cache,
                         psdr.masses.maybe(),
                         &psdr.colliders,
+                        orientations,
                         !&psdr.projectiles,
                         !&psdr.mountings,
                         !&psdr.beams,
@@ -585,10 +587,12 @@ impl<'a> PhysicsSystemData<'a> {
                             .center
                             .distance_squared(previous_cache_other.center)
                             > collision_boundary.powi(2)
-                            || entity == entity_other
                         {
                             continue;
                         }*/
+                        if entity == entity_other {
+                            continue;
+                        }
 
                         if let Collider::Voxel { id } = collider_other {
                             // use bounding cylinder regardless of our collider
@@ -600,13 +604,31 @@ impl<'a> PhysicsSystemData<'a> {
                             let z_min = z_min * scale;
                             let z_max = z_max.clamped(1.2, 1.95) * scale;
 
-                            let mut physics_state_delta = physics_state.clone();
-                            pos.0 -= pos_other.0;
-                            let cylinder = (radius, z_min, z_max);
-                            if let Some(dyna) = VOXEL_COLLIDER_MANIFEST.voxes.get(id) {
+                            if let Some(voxel_collider) = VOXEL_COLLIDER_MANIFEST.read().colliders.get(id) {
+                                let mut physics_state_delta = physics_state.clone();
+                                //let ori_2d = ori_other.look_dir().xy();
+                                //let ori_2d_quat = Quaternion::rotation_z(ori_2d.y.atan2(ori_2d.x));
+                                //let ori_2d_quat = Quaternion::from_xyzw(ori_2d.x, ori_2d.y, 0.0, 1.0).normalized();
+                                // deliberately don't use scale yet here, because the 11.0/0.8
+                                // thing is in the comp::Scale for visual reasons
+                                let t1 = Mat4::from(Transform {
+                                    position: pos_other.0 + voxel_collider.translation,
+                                    orientation: Quaternion::identity(),
+                                    scale: Vec3::broadcast(1.0),
+                                });
+                                let t2 = Mat4::from(Transform {
+                                    position: Vec3::zero(),
+                                    orientation: ori_other.0.normalized(),
+                                    scale: Vec3::broadcast(1.0),
+                                });
+                                //let transform = t2 * t1;
+                                let transform = t1;
+                                pos.0 = transform.inverted().mul_point(pos.0);
+                                //vel.0 = t2.inverted().mul_point(pos.0);
+                                let cylinder = (radius, z_min, z_max);
                                 cylinder_voxel_collision(
                                     cylinder,
-                                    &*dyna,
+                                    &voxel_collider.dyna,
                                     entity,
                                     &mut pos,
                                     pos_delta,
@@ -614,24 +636,27 @@ impl<'a> PhysicsSystemData<'a> {
                                     &mut physics_state_delta,
                                     &mut land_on_grounds,
                                 );
+
+                                pos.0 = transform.mul_point(pos.0);
+                                //vel.0 = t2.mul_point(vel.0);
+
+                                // union in the state updates, so that the state isn't just based on
+                                // the most recent terrain that collision was attempted with
+                                physics_state.on_ground |= physics_state_delta.on_ground;
+                                physics_state.on_ceiling |= physics_state_delta.on_ceiling;
+                                physics_state.on_wall =
+                                    physics_state.on_wall.or(physics_state_delta.on_wall);
+                                physics_state
+                                    .touch_entities
+                                    .append(&mut physics_state_delta.touch_entities);
+                                physics_state.in_liquid =
+                                    match (physics_state.in_liquid, physics_state_delta.in_liquid) {
+                                        // this match computes `x <|> y <|> liftA2 max x y`
+                                        (Some(x), Some(y)) => Some(x.max(y)),
+                                        (_, y @ Some(_)) => y,
+                                        _ => None,
+                                    };
                             }
-                            pos.0 += pos_other.0;
-                            // union in the state updates, so that the state isn't just based on
-                            // the most recent terrain that collision was attempted with
-                            physics_state.on_ground |= physics_state_delta.on_ground;
-                            physics_state.on_ceiling |= physics_state_delta.on_ceiling;
-                            physics_state.on_wall =
-                                physics_state.on_wall.or(physics_state_delta.on_wall);
-                            physics_state
-                                .touch_entities
-                                .append(&mut physics_state_delta.touch_entities);
-                            physics_state.in_liquid =
-                                match (physics_state.in_liquid, physics_state_delta.in_liquid) {
-                                    // this match computes `x <|> y <|> liftA2 max x y`
-                                    (Some(x), Some(y)) => Some(x.max(y)),
-                                    (_, y @ Some(_)) => y,
-                                    _ => None,
-                                };
                         }
                     }
                     if pos != old_pos {
