@@ -1,7 +1,8 @@
 use common::{
     comp::{
-        BeamSegment, CharacterState, Collider, Gravity, Mass, Mounting, Ori, PhysicsState, Pos,
-        PreviousPhysCache, Projectile, Scale, Shockwave, Sticky, Vel, body::ship::figuredata::VOXEL_COLLIDER_MANIFEST,
+        body::ship::figuredata::VOXEL_COLLIDER_MANIFEST, BeamSegment, CharacterState, Collider,
+        Gravity, Mass, Mounting, Ori, PhysicsState, Pos, PreviousPhysCache, Projectile, Scale,
+        Shockwave, Sticky, Vel,
     },
     consts::{FRIC_GROUND, GRAVITY},
     event::{EventBus, ServerEvent},
@@ -592,9 +593,14 @@ impl<'a> PhysicsSystemData<'a> {
                         if let Collider::Voxel { id } = collider_other {
                             // use bounding cylinder regardless of our collider
                             // TODO: extract point-terrain collision above to its own function
-                            let radius = collider.get_radius() * scale;
-                            let (z_min, z_max) = collider.get_z_limits(scale);
+                            let radius = collider.get_radius();
+                            let (z_min, z_max) = collider.get_z_limits(1.0);
 
+                            let radius = radius.min(0.45) * scale;
+                            let z_min = z_min * scale;
+                            let z_max = z_max.clamped(1.2, 1.95) * scale;
+
+                            let mut physics_state_delta = physics_state.clone();
                             pos.0 -= pos_other.0;
                             let cylinder = (radius, z_min, z_max);
                             if let Some(dyna) = VOXEL_COLLIDER_MANIFEST.voxes.get(id) {
@@ -605,11 +611,27 @@ impl<'a> PhysicsSystemData<'a> {
                                     &mut pos,
                                     pos_delta,
                                     vel,
-                                    &mut physics_state,
+                                    &mut physics_state_delta,
                                     &mut land_on_grounds,
                                 );
                             }
                             pos.0 += pos_other.0;
+                            // union in the state updates, so that the state isn't just based on
+                            // the most recent terrain that collision was attempted with
+                            physics_state.on_ground |= physics_state_delta.on_ground;
+                            physics_state.on_ceiling |= physics_state_delta.on_ceiling;
+                            physics_state.on_wall =
+                                physics_state.on_wall.or(physics_state_delta.on_wall);
+                            physics_state
+                                .touch_entities
+                                .append(&mut physics_state_delta.touch_entities);
+                            physics_state.in_liquid =
+                                match (physics_state.in_liquid, physics_state_delta.in_liquid) {
+                                    // this match computes `x <|> y <|> liftA2 max x y`
+                                    (Some(x), Some(y)) => Some(x.max(y)),
+                                    (_, y @ Some(_)) => y,
+                                    _ => None,
+                                };
                         }
                     }
                     if pos != old_pos {

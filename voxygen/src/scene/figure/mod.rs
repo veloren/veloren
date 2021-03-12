@@ -687,6 +687,7 @@ impl FigureMgr {
             let (in_frustum, lpindex) = if let Some(mut meta) = state {
                 let (in_frustum, lpindex) = BoundingSphere::new(pos.0.into_array(), radius)
                     .coherent_test_against_frustum(frustum, meta.lpindex);
+                let in_frustum = in_frustum || matches!(body, Body::Ship(_));
                 meta.visible = in_frustum;
                 meta.lpindex = lpindex;
                 if in_frustum {
