@@ -68,6 +68,7 @@ use vek::*;
 
 const PING_ROLLING_AVERAGE_SECS: usize = 10;
 
+#[derive(Debug)]
 pub enum Event {
     Chat(comp::ChatMsg),
     InviteComplete {
@@ -177,7 +178,7 @@ pub struct Client {
 
 /// Holds data related to the current players characters, as well as some
 /// additional state to handle UI.
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct CharacterList {
     pub characters: Vec<CharacterItem>,
     pub loading: bool,

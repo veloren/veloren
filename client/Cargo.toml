@@ -7,6 +7,7 @@ edition = "2018"
 [features]
 simd = ["vek/platform_intrinsics"]
 plugins = ["common-sys/plugins"]
+bin_bot = ["common-ecs", "serde", "ron", "clap", "rustyline", "termcolor", "tracing-subscriber", "async-channel"]
 
 default = ["simd"]
 
@@ -29,8 +30,24 @@ vek = { version = "=0.14.1", features = ["serde"] }
 hashbrown = { version = "0.9", features = ["rayon", "serde", "nightly"] }
 authc = { git = "https://gitlab.com/veloren/auth.git", rev = "fb3dcbc4962b367253f8f2f92760ef44d2679c9a" }
 
+#bot only
+async-channel = { version = "1.6", optional = true }
+common-ecs = { package = "veloren-common-ecs", path = "../common/ecs", optional = true }
+serde = { version = "1.0", features = [ "rc", "derive" ], optional = true }
+ron = { version = "0.6", default-features = false, optional = true }
+clap = { version = "2.33", optional = true }
+rustyline = { version = "8.0.0", optional = true }
+## logging
+termcolor = { version = "1.1", optional = true }
+tracing-subscriber = {version = "0.2.3", default-features = false, features = ["env-filter", "fmt", "chrono", "ansi", "smallvec", "tracing-log"], optional = true }
+
 [dev-dependencies]
 tracing-subscriber = { version = "0.2.3", default-features = false, features = ["fmt", "chrono", "ansi", "smallvec"] }
 
 [[example]]
 name = "chat-cli"
+
+[[bin]]
+name = "bot"
+#authors = ["Avi Weinstock <aweinstock314@gmail.com>"]
+required-features = ["bin_bot"]
