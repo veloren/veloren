@@ -67,9 +67,9 @@ impl Client {
 
     pub(crate) fn send<M: Into<ServerMsg>>(&self, msg: M) -> Result<(), StreamError> {
         match msg.into() {
-            ServerMsg::Info(m) => self.register_stream.try_lock().unwrap().send(m),
-            ServerMsg::Init(m) => self.register_stream.try_lock().unwrap().send(m),
-            ServerMsg::RegisterAnswer(m) => self.register_stream.try_lock().unwrap().send(m),
+            ServerMsg::Info(m) => self.register_stream.lock().unwrap().send(m),
+            ServerMsg::Init(m) => self.register_stream.lock().unwrap().send(m),
+            ServerMsg::RegisterAnswer(m) => self.register_stream.lock().unwrap().send(m),
             ServerMsg::General(g) => {
                 match g {
                     //Character Screen related
@@ -78,7 +78,7 @@ impl Client {
                     | ServerGeneral::CharacterActionError(_)
                     | ServerGeneral::CharacterCreated(_)
                     | ServerGeneral::CharacterSuccess => {
-                        self.character_screen_stream.try_lock().unwrap().send(g)
+                        self.character_screen_stream.lock().unwrap().send(g)
                     },
                     //Ingame related
                     ServerGeneral::GroupUpdate(_)
@@ -92,12 +92,12 @@ impl Client {
                     | ServerGeneral::Knockback(_)
                     | ServerGeneral::UpdatePendingTrade(_, _)
                     | ServerGeneral::FinishedTrade(_) => {
-                        self.in_game_stream.try_lock().unwrap().send(g)
+                        self.in_game_stream.lock().unwrap().send(g)
                     },
                     //Ingame related, terrain
                     ServerGeneral::TerrainChunkUpdate { .. }
                     | ServerGeneral::TerrainBlockUpdates(_) => {
-                        self.terrain_stream.try_lock().unwrap().send(g)
+                        self.terrain_stream.lock().unwrap().send(g)
                     },
                     // Always possible
                     ServerGeneral::PlayerListUpdate(_)
@@ -110,12 +110,10 @@ impl Client {
                     | ServerGeneral::CreateEntity(_)
                     | ServerGeneral::DeleteEntity(_)
                     | ServerGeneral::Disconnect(_)
-                    | ServerGeneral::Notification(_) => {
-                        self.general_stream.try_lock().unwrap().send(g)
-                    },
+                    | ServerGeneral::Notification(_) => self.general_stream.lock().unwrap().send(g),
                 }
             },
-            ServerMsg::Ping(m) => self.ping_stream.try_lock().unwrap().send(m),
+            ServerMsg::Ping(m) => self.ping_stream.lock().unwrap().send(m),
         }
     }
 
@@ -123,32 +121,16 @@ impl Client {
 
     pub(crate) fn send_prepared(&self, msg: &PreparedMsg) -> Result<(), StreamError> {
         match msg.stream_id {
-            0 => self
-                .register_stream
-                .try_lock()
-                .unwrap()
-                .send_raw(&msg.message),
+            0 => self.register_stream.lock().unwrap().send_raw(&msg.message),
             1 => self
                 .character_screen_stream
-                .try_lock()
+                .lock()
                 .unwrap()
                 .send_raw(&msg.message),
-            2 => self
-                .in_game_stream
-                .try_lock()
-                .unwrap()
-                .send_raw(&msg.message),
-            3 => self
-                .general_stream
-                .try_lock()
-                .unwrap()
-                .send_raw(&msg.message),
-            4 => self.ping_stream.try_lock().unwrap().send_raw(&msg.message),
-            5 => self
-                .terrain_stream
-                .try_lock()
-                .unwrap()
-                .send_raw(&msg.message),
+            2 => self.in_game_stream.lock().unwrap().send_raw(&msg.message),
+            3 => self.general_stream.lock().unwrap().send_raw(&msg.message),
+            4 => self.ping_stream.lock().unwrap().send_raw(&msg.message),
+            5 => self.terrain_stream.lock().unwrap().send_raw(&msg.message),
             _ => unreachable!("invalid stream id"),
         }
     }
@@ -227,7 +209,7 @@ impl PreparedMsg {
     fn new<M: Serialize + ?Sized>(id: u8, msg: &M, stream: &Mutex<Stream>) -> PreparedMsg {
         Self {
             stream_id: id,
-            message: Message::serialize(&msg, &stream.try_lock().unwrap()),
+            message: Message::serialize(&msg, &stream.lock().unwrap()),
         }
     }
 }
