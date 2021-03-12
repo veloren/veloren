@@ -1,18 +1,16 @@
+#![feature(str_split_once)]
+
 #[macro_use] extern crate serde;
 
 use authc::AuthClient;
 use clap::{App, AppSettings, Arg, SubCommand};
-use client::{addr::ConnectionArgs, Client};
-use common::{
-    comp,
-    clock::Clock,
-};
+use common::{clock::Clock, comp};
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
-use std::time::Duration;
+use std::{sync::Arc, time::Duration};
 use tokio::runtime::Runtime;
 use tracing::{error, info, warn};
+use veloren_client::{addr::ConnectionArgs, Client};
 
 mod settings;
 
@@ -122,10 +120,7 @@ impl BotClient {
                     .about("Login all registered bots whose username starts with a prefix")
                     .args(&[Arg::with_name("prefix").required(true)]),
             )
-            .subcommand(
-                SubCommand::with_name("tick")
-                    .about("Handle ticks for all logged in bots")
-            )
+            .subcommand(SubCommand::with_name("tick").about("Handle ticks for all logged in bots"))
             .get_matches_from_safe(cmd.split(" "));
         use clap::ErrorKind::*;
         match matches {
@@ -164,7 +159,15 @@ impl BotClient {
         };
         info!("usernames: {:?}", usernames);
         if let Some(auth_addr) = self.menu_client.server_info().auth_provider.as_ref() {
-            let authc = AuthClient::new(&*auth_addr).expect("couldn't connect to auth_addr");
+            let (scheme, authority) = auth_addr.split_once("://").expect("invalid auth url");
+            let scheme = scheme
+                .parse::<authc::Scheme>()
+                .expect("invalid auth url scheme");
+            let authority = authority
+                .parse::<authc::Authority>()
+                .expect("invalid auth url authority");
+
+            let authc = AuthClient::new(scheme, authority).expect("couldn't connect to , insecure");
             for username in usernames.iter() {
                 if self
                     .settings
@@ -174,7 +177,7 @@ impl BotClient {
                 {
                     continue;
                 }
-                match authc.register(username, password) {
+                match self.runtime.block_on(authc.register(username, password)) {
                     Ok(()) => {
                         self.settings.bot_logins.push(BotCreds {
                             username: username.to_string(),
@@ -196,16 +199,28 @@ impl BotClient {
     pub fn client_for_bot(&mut self, username: &str) -> &mut Client {
         let runtime = Arc::clone(&self.runtime);
         let server = self.settings.server.clone();
-        self.bot_clients.entry(username.to_string()).or_insert_with(|| make_client(&runtime, &server))
+        self.bot_clients
+            .entry(username.to_string())
+            .or_insert_with(|| make_client(&runtime, &server))
     }
 
     pub fn handle_login(&mut self, prefix: &str) {
-        let creds: Vec<_> = self.settings.bot_logins.iter().filter(|x| x.username.starts_with(prefix)).cloned().collect();
+        let creds: Vec<_> = self
+            .settings
+            .bot_logins
+            .iter()
+            .filter(|x| x.username.starts_with(prefix))
+            .cloned()
+            .collect();
         for cred in creds.iter() {
             let runtime = Arc::clone(&self.runtime);
             let client = self.client_for_bot(&cred.username);
             // TODO: log the clients in in parallel instead of in series
-            if let Err(e) = runtime.block_on(client.register(cred.username.clone(), cred.password.clone(), |_| true)) {
+            if let Err(e) = runtime.block_on(client.register(
+                cred.username.clone(),
+                cred.password.clone(),
+                |_| true,
+            )) {
                 warn!("error logging in {:?}: {:?}", cred.username, e);
             }
             /*let body = comp::body::biped_large::Body {
@@ -223,8 +238,13 @@ impl BotClient {
                 skin: 0,
                 eye_color: 0,
             };
-            client.create_character(cred.username.clone(), Some("common.items.weapons.sword.starter".to_string()), body.into());
-            //client.create_character(cred.username.clone(), Some("common.items.debug.admin_stick".to_string()), body.into());
+            client.create_character(
+                cred.username.clone(),
+                Some("common.items.weapons.sword.starter".to_string()),
+                body.into(),
+            );
+            //client.create_character(cred.username.clone(),
+            // Some("common.items.debug.admin_stick".to_string()), body.into());
         }
     }
 
@@ -233,9 +253,14 @@ impl BotClient {
         self.clock.tick();
         for (username, client) in self.bot_clients.iter_mut() {
             info!("cl {:?}: {:?}", username, client.character_list());
-            let msgs: Result<Vec<client::Event>, client::Error> =
+            let msgs: Result<Vec<veloren_client::Event>, veloren_client::Error> =
                 client.tick(comp::ControllerInputs::default(), self.clock.dt(), |_| {});
-            info!("msgs {:?}: {:?} {:?}", username, msgs, client.character_list());
+            info!(
+                "msgs {:?}: {:?} {:?}",
+                username,
+                msgs,
+                client.character_list()
+            );
         }
     }
 }

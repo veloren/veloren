@@ -8,7 +8,6 @@ members = [
     "common/net",
     "common/sys",
     "client",
-    "botclient",
     "plugin/api",
     "plugin/derive",
     "plugin/rt",
