@@ -3,33 +3,19 @@
 #[macro_use] extern crate serde;
 
 use authc::AuthClient;
-use clap::{App, AppSettings, Arg, SubCommand};
 use common::{clock::Clock, comp};
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use std::{sync::Arc, time::Duration};
 use tokio::runtime::Runtime;
-use tracing::{error, info, warn};
+use tracing::{info, trace, warn};
 use veloren_client::{addr::ConnectionArgs, Client};
 
 mod settings;
+mod tui;
 
 use settings::Settings;
-
-pub fn init_logging() {
-    use termcolor::{ColorChoice, StandardStream};
-    use tracing::Level;
-    use tracing_subscriber::{filter::LevelFilter, EnvFilter, FmtSubscriber};
-    const RUST_LOG_ENV: &str = "RUST_LOG";
-    let filter = EnvFilter::from_env(RUST_LOG_ENV).add_directive(LevelFilter::INFO.into());
-    let subscriber = FmtSubscriber::builder()
-        .with_max_level(Level::ERROR)
-        .with_env_filter(filter);
-
-    subscriber
-        .with_writer(|| StandardStream::stdout(ColorChoice::Auto))
-        .init();
-}
+use tui::Cmd;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct BotCreds {
@@ -38,18 +24,28 @@ pub struct BotCreds {
 }
 
 pub fn main() {
-    init_logging();
+    tui::init_logging();
 
     let settings = Settings::load();
     info!("Settings: {:?}", settings);
 
+    let (_tui, cmds) = tui::Tui::new();
     let mut bc = BotClient::new(settings);
-    bc.repl();
+    'outer: loop {
+        loop {
+            match cmds.try_recv() {
+                Ok(cmd) => bc.cmd(cmd),
+                Err(async_channel::TryRecvError::Empty) => break,
+                Err(async_channel::TryRecvError::Closed) => break 'outer,
+            }
+        }
+        bc.tick();
+    }
+    info!("shutdown complete");
 }
 
 pub struct BotClient {
     settings: Settings,
-    readline: rustyline::Editor<()>,
     runtime: Arc<Runtime>,
     menu_client: Client,
     bot_clients: HashMap<String, Client>,
@@ -71,13 +67,11 @@ pub fn make_client(runtime: &Arc<Runtime>, server: &str) -> Client {
 
 impl BotClient {
     pub fn new(settings: Settings) -> BotClient {
-        let readline = rustyline::Editor::<()>::new();
         let runtime = Arc::new(Runtime::new().unwrap());
         let menu_client: Client = make_client(&runtime, &settings.server);
         let clock = Clock::new(Duration::from_secs_f64(1.0 / 60.0));
         BotClient {
             settings,
-            readline,
             runtime,
             menu_client,
             bot_clients: HashMap::new(),
@@ -85,75 +79,38 @@ impl BotClient {
         }
     }
 
-    pub fn repl(&mut self) {
-        loop {
-            match self.readline.readline("\n\nbotclient> ") {
-                Ok(cmd) => {
-                    let keep_going = self.process_command(&cmd);
-                    self.readline.add_history_entry(cmd);
-                    if !keep_going {
-                        break;
-                    }
-                },
-                Err(_) => break,
-            }
+    pub fn tick(&mut self) {
+        self.clock.tick();
+        for (username, client) in self.bot_clients.iter_mut() {
+            //trace!("cl {:?}: {:?}", username, client.character_list());
+            trace!(?username, "tick");
+            let msgs: Result<Vec<veloren_client::Event>, veloren_client::Error> =
+                client.tick(comp::ControllerInputs::default(), self.clock.dt(), |_| {});
+            /*trace!(
+                "msgs {:?}: {:?} {:?}",
+                username,
+                msgs,
+                client.character_list()
+            );*/
         }
     }
 
-    pub fn process_command(&mut self, cmd: &str) -> bool {
-        let matches = App::new("veloren-botclient")
-            .version(common::util::DISPLAY_VERSION_LONG.as_str())
-            .author("The veloren devs <https://gitlab.com/veloren/veloren>")
-            .about("The veloren bot client allows logging in as a horde of bots for load-testing")
-            .setting(AppSettings::NoBinaryName)
-            .subcommand(
-                SubCommand::with_name("register")
-                    .about("Register more bots with the auth server")
-                    .args(&[
-                        Arg::with_name("prefix").required(true),
-                        Arg::with_name("password").required(true),
-                        Arg::with_name("count"),
-                    ]),
-            )
-            .subcommand(
-                SubCommand::with_name("login")
-                    .about("Login all registered bots whose username starts with a prefix")
-                    .args(&[Arg::with_name("prefix").required(true)]),
-            )
-            .subcommand(SubCommand::with_name("tick").about("Handle ticks for all logged in bots"))
-            .get_matches_from_safe(cmd.split(" "));
-        use clap::ErrorKind::*;
-        match matches {
-            Ok(matches) => match matches.subcommand() {
-                ("register", Some(matches)) => self.handle_register(
-                    matches.value_of("prefix").unwrap(),
-                    matches.value_of("password").unwrap(),
-                    matches
-                        .value_of("count")
-                        .and_then(|x| x.parse::<usize>().ok()),
-                ),
-                ("login", Some(matches)) => self.handle_login(matches.value_of("prefix").unwrap()),
-                ("tick", _) => self.handle_tick(),
-                _ => {},
-            },
-            Err(e)
-                if [HelpDisplayed, MissingRequiredArgument, UnknownArgument].contains(&e.kind) =>
-            {
-                println!("{}", e.message);
-            }
-            Err(e) => {
-                error!("{:?}", e);
-                return false;
-            },
+    pub fn cmd(&mut self, cmd: Cmd) {
+        match cmd {
+            Cmd::Register {
+                prefix,
+                password,
+                count,
+            } => self.handle_register(&prefix, &password, count),
+            Cmd::Login { prefix } => self.handle_login(&prefix),
         }
-        true
     }
 
     pub fn handle_register(&mut self, prefix: &str, password: &str, count: Option<usize>) {
         let usernames = match count {
             Some(n) => (0..n)
                 .into_iter()
-                .map(|i| format!("{}{}", prefix, i))
+                .map(|i| format!("{}{:03}", prefix, i))
                 .collect::<Vec<String>>(),
             None => vec![prefix.to_string()],
         };
@@ -194,14 +151,7 @@ impl BotClient {
         } else {
             warn!("Server's auth_provider is None");
         }
-    }
-
-    pub fn client_for_bot(&mut self, username: &str) -> &mut Client {
-        let runtime = Arc::clone(&self.runtime);
-        let server = self.settings.server.clone();
-        self.bot_clients
-            .entry(username.to_string())
-            .or_insert_with(|| make_client(&runtime, &server))
+        info!("register done");
     }
 
     pub fn handle_login(&mut self, prefix: &str) {
@@ -214,7 +164,13 @@ impl BotClient {
             .collect();
         for cred in creds.iter() {
             let runtime = Arc::clone(&self.runtime);
-            let client = self.client_for_bot(&cred.username);
+
+            let server = self.settings.server.clone();
+            let client = self
+                .bot_clients
+                .entry(cred.username.clone())
+                .or_insert_with(|| make_client(&runtime, &server));
+
             // TODO: log the clients in in parallel instead of in series
             if let Err(e) = runtime.block_on(client.register(
                 cred.username.clone(),
@@ -246,21 +202,6 @@ impl BotClient {
             //client.create_character(cred.username.clone(),
             // Some("common.items.debug.admin_stick".to_string()), body.into());
         }
-    }
-
-    // TODO: maybe do this automatically in a threadpool instead of as a command
-    pub fn handle_tick(&mut self) {
-        self.clock.tick();
-        for (username, client) in self.bot_clients.iter_mut() {
-            info!("cl {:?}: {:?}", username, client.character_list());
-            let msgs: Result<Vec<veloren_client::Event>, veloren_client::Error> =
-                client.tick(comp::ControllerInputs::default(), self.clock.dt(), |_| {});
-            info!(
-                "msgs {:?}: {:?} {:?}",
-                username,
-                msgs,
-                client.character_list()
-            );
-        }
+        info!("login done");
     }
 }

@@ -5526,6 +5526,7 @@ dependencies = [
 name = "veloren-client"
 version = "0.8.0"
 dependencies = [
+ "async-channel",
  "authc",
  "byteorder",
  "clap",
@@ -5541,8 +5542,6 @@ dependencies = [
  "termcolor",
  "tokio",
  "tracing",
- "tracing-appender",
- "tracing-log",
  "tracing-subscriber",
  "vek 0.14.1",
  "veloren-common",
