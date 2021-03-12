@@ -627,7 +627,7 @@ impl<'a> PhysicsSystemData<'a> {
                                     * Mat4::<f32>::translation_3d(voxel_collider.translation);
                                 let transform_to = transform_from.inverted();
                                 pos.0 = transform_to.mul_point(pos.0);
-                                vel.0 = transform_to.mul_direction(vel.0);
+                                vel.0 = transform_to.mul_direction(vel.0 - vel_other.0);
                                 let cylinder = (radius, z_min, z_max);
                                 cylinder_voxel_collision(
                                     cylinder,
@@ -645,7 +645,7 @@ impl<'a> PhysicsSystemData<'a> {
                                 );
 
                                 pos.0 = transform_from.mul_point(pos.0);
-                                vel.0 = transform_from.mul_direction(vel.0);
+                                vel.0 = transform_from.mul_direction(vel.0) + vel_other.0;
 
                                 // union in the state updates, so that the state isn't just based on
                                 // the most recent terrain that collision was attempted with
@@ -919,7 +919,7 @@ fn cylinder_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
 
             // When the resolution direction is pointing upwards, we must be on the
             // ground
-            if resolve_dir.z > 0.0 && vel.0.z <= 0.0 {
+            if resolve_dir.z > 0.0 /*&& vel.0.z <= 0.0*/ {
                 on_ground = true;
 
                 if !was_on_ground {
@@ -986,37 +986,39 @@ fn cylinder_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
 
     if on_ground {
         physics_state.on_ground = true;
-
-        vel.0 = ground_vel + (vel.0 - ground_vel) * (1.0 - FRIC_GROUND.min(1.0)).powf(dt.0 * 60.0);
-        physics_state.ground_vel = ground_vel;
     // If the space below us is free, then "snap" to the ground
     } else if collision_with(
-        pos.0 - Vec3::unit_z() * 1.05,
+        pos.0 - Vec3::unit_z() * 1.1,
         &terrain,
         block_true,
         near_iter.clone(),
         radius,
         z_range.clone(),
-    ) && vel.0.z < 0.01
+    ) && vel.0.z < 0.1
         && vel.0.z > -1.5
-        && was_on_ground
-        && !collision_with(
-            pos.0 - Vec3::unit_z() * 0.05,
-            &terrain,
-            |block| block.solid_height() >= (pos.0.z - 0.05).rem_euclid(1.0),
-            near_iter.clone(),
-            radius,
-            z_range.clone(),
-        )
+        // && was_on_ground
+        // && !collision_with(
+        //     pos.0 - Vec3::unit_z() * 0.0,
+        //     &terrain,
+        //     |block| block.solid_height() >= (pos.0.z - 0.1).rem_euclid(1.0),
+        //     near_iter.clone(),
+        //     radius,
+        //     z_range.clone(),
+        // )
     {
         let snap_height = terrain
-            .get(Vec3::new(pos.0.x, pos.0.y, pos.0.z - 0.05).map(|e| e.floor() as i32))
+            .get(Vec3::new(pos.0.x, pos.0.y, pos.0.z - 0.1).map(|e| e.floor() as i32))
             .ok()
             .filter(|block| block.is_solid())
             .map(|block| block.solid_height())
             .unwrap_or(0.0);
-        pos.0.z = (pos.0.z - 0.05).floor() + snap_height;
+        pos.0.z = (pos.0.z - 0.1).floor() + snap_height;
         physics_state.on_ground = true;
+    }
+
+    if physics_state.on_ground {
+        vel.0 = ground_vel * 0.0 + (vel.0 - ground_vel * 0.0) * (1.0 - FRIC_GROUND.min(1.0)).powf(dt.0 * 60.0);
+        physics_state.ground_vel = ground_vel;
     }
 
     let dirs = [
