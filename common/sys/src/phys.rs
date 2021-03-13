@@ -632,12 +632,16 @@ impl<'a> PhysicsData<'a> {
                                 let mut physics_state_delta = physics_state.clone();
                                 // deliberately don't use scale yet here, because the 11.0/0.8
                                 // thing is in the comp::Scale for visual reasons
-                                let transform_from = Mat4::<f32>::translation_3d(pos_other.0)
-                                    * Mat4::from(ori_other.0)
-                                    * Mat4::<f32>::translation_3d(voxel_collider.translation);
+                                let wpos = pos.0;
+                                let transform_from =
+                                    Mat4::<f32>::translation_3d(pos_other.0 - wpos)
+                                        * Mat4::from(ori_other.0)
+                                        * Mat4::<f32>::translation_3d(voxel_collider.translation);
                                 let transform_to = transform_from.inverted();
-                                pos.0 = transform_to.mul_point(pos.0);
-                                vel.0 = transform_to.mul_direction(vel.0 - vel_other.0);
+                                let ori_to = Mat4::from(ori_other.0);
+                                let ori_from = ori_to.inverted();
+                                pos.0 = transform_to.mul_point(Vec3::zero());
+                                vel.0 = ori_to.mul_direction(vel.0 - vel_other.0);
                                 let cylinder = (radius, z_min, z_max);
                                 cylinder_voxel_collision(
                                     cylinder,
@@ -647,20 +651,18 @@ impl<'a> PhysicsData<'a> {
                                     transform_to.mul_direction(pos_delta),
                                     &mut vel,
                                     &mut physics_state_delta,
-                                    transform_to.mul_direction(vel_other.0),
+                                    ori_to.mul_direction(vel_other.0),
                                     &read.dt,
                                     false,
                                     was_on_ground,
                                     |entity, vel| {
-                                        land_on_grounds.push((
-                                            entity,
-                                            Vel(transform_from.mul_direction(vel.0)),
-                                        ))
+                                        land_on_grounds
+                                            .push((entity, Vel(ori_from.mul_direction(vel.0))))
                                     },
                                 );
 
-                                pos.0 = transform_from.mul_point(pos.0);
-                                vel.0 = transform_from.mul_direction(vel.0) + vel_other.0;
+                                pos.0 = transform_from.mul_point(pos.0) + wpos;
+                                vel.0 = ori_from.mul_direction(vel.0) + vel_other.0;
 
                                 // union in the state updates, so that the state isn't just based on
                                 // the most recent terrain that collision was attempted with
