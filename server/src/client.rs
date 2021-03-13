@@ -193,13 +193,14 @@ impl Client {
         &self,
         stream_id: u8,
     ) -> Result<Option<M>, StreamError> {
+        // TODO: are two systems using the same stream?? why is there contention here?
         match stream_id {
-            0 => self.register_stream.try_lock().unwrap().try_recv(),
-            1 => self.character_screen_stream.try_lock().unwrap().try_recv(),
-            2 => self.in_game_stream.try_lock().unwrap().try_recv(),
-            3 => self.general_stream.try_lock().unwrap().try_recv(),
-            4 => self.ping_stream.try_lock().unwrap().try_recv(),
-            5 => self.terrain_stream.try_lock().unwrap().try_recv(),
+            0 => self.register_stream.lock().unwrap().try_recv(),
+            1 => self.character_screen_stream.lock().unwrap().try_recv(),
+            2 => self.in_game_stream.lock().unwrap().try_recv(),
+            3 => self.general_stream.lock().unwrap().try_recv(),
+            4 => self.ping_stream.lock().unwrap().try_recv(),
+            5 => self.terrain_stream.lock().unwrap().try_recv(),
             _ => unreachable!("invalid stream id"),
         }
     }
