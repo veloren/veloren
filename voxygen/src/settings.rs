@@ -427,21 +427,16 @@ pub mod con_settings {
     }
 }
 
-/// `GameplaySettings` contains sensitivity and gameplay options.
+/// `InterfaceSettings` contains UI, HUD and Map options.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default)]
-pub struct GameplaySettings {
-    pub pan_sensitivity: u32,
-    pub zoom_sensitivity: u32,
-    pub zoom_inversion: bool,
+pub struct InterfaceSettings {
     pub toggle_debug: bool,
     pub sct: bool,
     pub sct_player_batch: bool,
     pub sct_damage_batch: bool,
     pub speech_bubble_dark_mode: bool,
     pub speech_bubble_icon: bool,
-    pub mouse_y_inversion: bool,
-    pub smooth_pan_enable: bool,
     pub crosshair_transp: f32,
     pub chat_transp: f32,
     pub chat_character_name: bool,
@@ -452,9 +447,6 @@ pub struct GameplaySettings {
     pub buff_position: BuffPosition,
     pub bar_numbers: BarNumbers,
     pub ui_scale: ScaleMode,
-    pub free_look_behavior: PressBehavior,
-    pub auto_walk_behavior: PressBehavior,
-    pub stop_auto_walk_on_input: bool,
     pub map_zoom: f64,
     pub map_drag: Vec2<f64>,
     pub map_show_difficulty: bool,
@@ -468,14 +460,9 @@ pub struct GameplaySettings {
     pub minimap_face_north: bool,
 }
 
-impl Default for GameplaySettings {
+impl Default for InterfaceSettings {
     fn default() -> Self {
         Self {
-            pan_sensitivity: 100,
-            zoom_sensitivity: 100,
-            zoom_inversion: false,
-            mouse_y_inversion: false,
-            smooth_pan_enable: false,
             toggle_debug: false,
             sct: true,
             sct_player_batch: false,
@@ -492,9 +479,6 @@ impl Default for GameplaySettings {
             buff_position: BuffPosition::Bar,
             bar_numbers: BarNumbers::Values,
             ui_scale: ScaleMode::RelativeToWindow([1920.0, 1080.0].into()),
-            free_look_behavior: PressBehavior::Toggle,
-            auto_walk_behavior: PressBehavior::Toggle,
-            stop_auto_walk_on_input: true,
             map_zoom: 10.0,
             map_drag: Vec2 { x: 0.0, y: 0.0 },
             map_show_difficulty: true,
@@ -506,6 +490,35 @@ impl Default for GameplaySettings {
             map_show_trees: true,
             minimap_show: true,
             minimap_face_north: false,
+        }
+    }
+}
+
+/// `GameplaySettings` contains sensitivity and gameplay options.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(default)]
+pub struct GameplaySettings {
+    pub pan_sensitivity: u32,
+    pub zoom_sensitivity: u32,
+    pub zoom_inversion: bool,
+    pub mouse_y_inversion: bool,
+    pub smooth_pan_enable: bool,
+    pub free_look_behavior: PressBehavior,
+    pub auto_walk_behavior: PressBehavior,
+    pub stop_auto_walk_on_input: bool,
+}
+
+impl Default for GameplaySettings {
+    fn default() -> Self {
+        Self {
+            pan_sensitivity: 100,
+            zoom_sensitivity: 100,
+            zoom_inversion: false,
+            mouse_y_inversion: false,
+            smooth_pan_enable: false,
+            free_look_behavior: PressBehavior::Toggle,
+            auto_walk_behavior: PressBehavior::Toggle,
+            stop_auto_walk_on_input: true,
         }
     }
 }
@@ -691,6 +704,7 @@ impl Default for LanguageSettings {
 #[serde(default)]
 pub struct Settings {
     pub controls: ControlSettings,
+    pub interface: InterfaceSettings,
     pub gameplay: GameplaySettings,
     pub networking: NetworkingSettings,
     pub log: Log,
@@ -726,6 +740,7 @@ impl Default for Settings {
 
         Settings {
             controls: ControlSettings::default(),
+            interface: InterfaceSettings::default(),
             gameplay: GameplaySettings::default(),
             networking: NetworkingSettings::default(),
             log: Log::default(),

@@ -750,7 +750,7 @@ impl Hud {
         let settings = &global_state.settings;
 
         let mut ui = Ui::new(window).unwrap();
-        ui.set_scaling_mode(settings.gameplay.ui_scale);
+        ui.set_scaling_mode(settings.interface.ui_scale);
         // Generate ids.
         let ids = Ids::new(ui.id_generator());
         // NOTE: Use a border the same color as the LOD ocean color (but with a
@@ -950,7 +950,7 @@ impl Hud {
                 if !self.show.help {
                     Image::new(
                         // TODO: Do we want to match on this every frame?
-                        match global_state.settings.gameplay.crosshair_type {
+                        match global_state.settings.interface.crosshair_type {
                             CrosshairType::Round => self.imgs.crosshair_outer_round,
                             CrosshairType::RoundEdges => self.imgs.crosshair_outer_round_edges,
                             CrosshairType::Edges => self.imgs.crosshair_outer_edges,
@@ -962,7 +962,7 @@ impl Hud {
                         1.0,
                         1.0,
                         1.0,
-                        self.crosshair_opacity * global_state.settings.gameplay.crosshair_transp,
+                        self.crosshair_opacity * global_state.settings.interface.crosshair_transp,
                     )))
                     .set(self.ids.crosshair_outer, ui_widgets);
                     Image::new(self.imgs.crosshair_inner)
@@ -985,7 +985,7 @@ impl Hud {
                 .map_or(Vec3::zero(), |pos| pos.0);
             // SCT Output values are called hp_damage and floater.hp_change
             // Numbers are currently divided by 10 and rounded
-            if global_state.settings.gameplay.sct {
+            if global_state.settings.interface.sct {
                 // Render Player SCT numbers
                 let mut player_sct_bg_id_walker = self.ids.player_sct_bgs.walk();
                 let mut player_sct_id_walker = self.ids.player_scts.walk();
@@ -995,7 +995,7 @@ impl Hud {
                         .filter(|fl| !fl.floaters.is_empty()),
                     healths.get(me),
                 ) {
-                    if global_state.settings.gameplay.sct_player_batch {
+                    if global_state.settings.interface.sct_player_batch {
                         let number_speed = 100.0; // Player Batched Numbers Speed
                         let player_sct_bg_id = player_sct_bg_id_walker.next(
                             &mut self.ids.player_sct_bgs,
@@ -1053,7 +1053,7 @@ impl Hud {
                     for floater in floaters {
                         // Healing always single numbers so just skip damage when in batch mode
 
-                        if global_state.settings.gameplay.sct_player_batch && floater.hp_change < 0
+                        if global_state.settings.interface.sct_player_batch && floater.hp_change < 0
                         {
                             continue;
                         }
@@ -1439,7 +1439,7 @@ impl Hud {
                     info,
                     bubble,
                     in_group,
-                    &global_state.settings.gameplay,
+                    &global_state.settings.interface,
                     self.pulse,
                     i18n,
                     &self.imgs,
@@ -1450,7 +1450,7 @@ impl Hud {
                 .set(overhead_id, ui_widgets);
 
                 // Enemy SCT
-                if global_state.settings.gameplay.sct && !hpfl.floaters.is_empty() {
+                if global_state.settings.interface.sct && !hpfl.floaters.is_empty() {
                     let floaters = &hpfl.floaters;
 
                     // Colors
@@ -1474,7 +1474,7 @@ impl Hud {
                         DAMAGE_COLORS[(font_size.saturating_sub(36) / 5).min(5) as usize]
                     };
 
-                    if global_state.settings.gameplay.sct_damage_batch {
+                    if global_state.settings.interface.sct_damage_batch {
                         let number_speed = 50.0; // Damage number speed
                         let sct_id = sct_walker
                             .next(&mut self.ids.scts, &mut ui_widgets.widget_id_generator());
@@ -1646,7 +1646,7 @@ impl Hud {
             .get_binding(GameInput::ToggleCursor)
         {
             if !self.show.intro {
-                match global_state.settings.gameplay.intro_show {
+                match global_state.settings.interface.intro_show {
                     Intro::Show => {
                         if Button::image(self.imgs.button)
                             .w_h(150.0, 40.0)
@@ -1699,7 +1699,7 @@ impl Hud {
         }
         // TODO: Add event/stat based tutorial system
         if self.show.intro && !self.show.esc_menu {
-            match global_state.settings.gameplay.intro_show {
+            match global_state.settings.interface.intro_show {
                 Intro::Show => {
                     if self.show.intro {
                         self.show.want_grab = false;
@@ -2690,7 +2690,7 @@ impl Hud {
             }
         } else {
             // Reset the map position when it's not showing
-            let drag = &global_state.settings.gameplay.map_drag;
+            let drag = &global_state.settings.interface.map_drag;
             if drag.x != 0.0 || drag.y != 0.0 {
                 events.push(Event::MapDrag(Vec2::zero()))
             }
@@ -3107,8 +3107,8 @@ impl Hud {
                     true
                 },
                 GameInput::ToggleDebug if state => {
-                    global_state.settings.gameplay.toggle_debug =
-                        !global_state.settings.gameplay.toggle_debug;
+                    global_state.settings.interface.toggle_debug =
+                        !global_state.settings.interface.toggle_debug;
                     true
                 },
                 GameInput::ToggleIngameUi if state => {

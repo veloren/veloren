@@ -377,10 +377,10 @@ impl<'a> Widget for SettingsWindow<'a> {
         let widget::UpdateArgs { state, ui, .. } = args;
 
         let mut events = Vec::new();
-        let bar_values = self.global_state.settings.gameplay.bar_numbers;
+        let bar_values = self.global_state.settings.interface.bar_numbers;
         let tab_font_scale = 18;
 
-        //let mut xp_bar = self.global_state.settings.gameplay.xp_bar;
+        //let mut xp_bar = self.global_state.settings.interface.xp_bar;
 
         // Frame
         Image::new(self.imgs.settings_bg)
@@ -470,10 +470,10 @@ impl<'a> Widget for SettingsWindow<'a> {
 
         // Contents Left Side
         if let SettingsTab::Interface = self.show.settings_tab {
-            let crosshair_transp = self.global_state.settings.gameplay.crosshair_transp;
-            let crosshair_type = self.global_state.settings.gameplay.crosshair_type;
-            let ui_scale = self.global_state.settings.gameplay.ui_scale;
-            let chat_transp = self.global_state.settings.gameplay.chat_transp;
+            let crosshair_transp = self.global_state.settings.interface.crosshair_transp;
+            let crosshair_type = self.global_state.settings.interface.crosshair_type;
+            let ui_scale = self.global_state.settings.interface.ui_scale;
+            let chat_transp = self.global_state.settings.interface.chat_transp;
 
             Text::new(&self.localized_strings.get("hud.settings.general"))
                 .top_left_with_margins_on(state.ids.settings_content, 5.0, 5.0)
@@ -508,7 +508,7 @@ impl<'a> Widget for SettingsWindow<'a> {
 
             // Loading Screen Tips
             let show_tips = ToggleButton::new(
-                self.global_state.settings.gameplay.loading_tips,
+                self.global_state.settings.interface.loading_tips,
                 self.imgs.checkbox,
                 self.imgs.checkbox_checked,
             )
@@ -518,9 +518,9 @@ impl<'a> Widget for SettingsWindow<'a> {
             .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
             .set(state.ids.load_tips_button, ui);
 
-            if self.global_state.settings.gameplay.loading_tips != show_tips {
+            if self.global_state.settings.interface.loading_tips != show_tips {
                 events.push(Event::ToggleTips(
-                    !self.global_state.settings.gameplay.loading_tips,
+                    !self.global_state.settings.interface.loading_tips,
                 ));
             }
 
@@ -705,7 +705,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                     1.0,
                     1.0,
                     1.0,
-                    self.global_state.settings.gameplay.crosshair_transp,
+                    self.global_state.settings.interface.crosshair_transp,
                 )))
                 .graphics_for(state.ids.ch_1_bg)
                 .set(state.ids.crosshair_outer_1, ui);
@@ -748,7 +748,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                     1.0,
                     1.0,
                     1.0,
-                    self.global_state.settings.gameplay.crosshair_transp,
+                    self.global_state.settings.interface.crosshair_transp,
                 )))
                 .graphics_for(state.ids.ch_2_bg)
                 .set(state.ids.crosshair_outer_2, ui);
@@ -791,7 +791,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                     1.0,
                     1.0,
                     1.0,
-                    self.global_state.settings.gameplay.crosshair_transp,
+                    self.global_state.settings.interface.crosshair_transp,
                 )))
                 .graphics_for(state.ids.ch_3_bg)
                 .set(state.ids.crosshair_outer_3, ui);
@@ -848,24 +848,30 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .color(TEXT_COLOR)
                 .set(state.ids.hotbar_title, ui);
             // Show Shortcut Numbers
-            if Button::image(match self.global_state.settings.gameplay.shortcut_numbers {
-                ShortcutNumbers::On => self.imgs.checkbox_checked,
-                ShortcutNumbers::Off => self.imgs.checkbox,
-            })
+            if Button::image(
+                match self.global_state.settings.interface.shortcut_numbers {
+                    ShortcutNumbers::On => self.imgs.checkbox_checked,
+                    ShortcutNumbers::Off => self.imgs.checkbox,
+                },
+            )
             .w_h(18.0, 18.0)
-            .hover_image(match self.global_state.settings.gameplay.shortcut_numbers {
-                ShortcutNumbers::On => self.imgs.checkbox_checked_mo,
-                ShortcutNumbers::Off => self.imgs.checkbox_mo,
-            })
-            .press_image(match self.global_state.settings.gameplay.shortcut_numbers {
-                ShortcutNumbers::On => self.imgs.checkbox_checked,
-                ShortcutNumbers::Off => self.imgs.checkbox_press,
-            })
+            .hover_image(
+                match self.global_state.settings.interface.shortcut_numbers {
+                    ShortcutNumbers::On => self.imgs.checkbox_checked_mo,
+                    ShortcutNumbers::Off => self.imgs.checkbox_mo,
+                },
+            )
+            .press_image(
+                match self.global_state.settings.interface.shortcut_numbers {
+                    ShortcutNumbers::On => self.imgs.checkbox_checked,
+                    ShortcutNumbers::Off => self.imgs.checkbox_press,
+                },
+            )
             .down_from(state.ids.hotbar_title, 8.0)
             .set(state.ids.show_shortcuts_button, ui)
             .was_clicked()
             {
-                match self.global_state.settings.gameplay.shortcut_numbers {
+                match self.global_state.settings.interface.shortcut_numbers {
                     ShortcutNumbers::On => {
                         events.push(Event::ToggleShortcutNumbers(ShortcutNumbers::Off))
                     },
@@ -883,16 +889,16 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .set(state.ids.show_shortcuts_text, ui);
             // Buff Position
             // Buffs above skills
-            if Button::image(match self.global_state.settings.gameplay.buff_position {
+            if Button::image(match self.global_state.settings.interface.buff_position {
                 BuffPosition::Bar => self.imgs.check_checked,
                 BuffPosition::Map => self.imgs.check,
             })
             .w_h(12.0, 12.0)
-            .hover_image(match self.global_state.settings.gameplay.buff_position {
+            .hover_image(match self.global_state.settings.interface.buff_position {
                 BuffPosition::Bar => self.imgs.check_checked_mo,
                 BuffPosition::Map => self.imgs.check_mo,
             })
-            .press_image(match self.global_state.settings.gameplay.buff_position {
+            .press_image(match self.global_state.settings.interface.buff_position {
                 BuffPosition::Bar => self.imgs.check_checked,
                 BuffPosition::Map => self.imgs.check_press,
             })
@@ -910,16 +916,16 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .color(TEXT_COLOR)
                 .set(state.ids.buff_pos_bar_text, ui);
             // Buffs left from minimap
-            if Button::image(match self.global_state.settings.gameplay.buff_position {
+            if Button::image(match self.global_state.settings.interface.buff_position {
                 BuffPosition::Map => self.imgs.check_checked,
                 BuffPosition::Bar => self.imgs.check,
             })
             .w_h(12.0, 12.0)
-            .hover_image(match self.global_state.settings.gameplay.buff_position {
+            .hover_image(match self.global_state.settings.interface.buff_position {
                 BuffPosition::Map => self.imgs.check_checked_mo,
                 BuffPosition::Bar => self.imgs.check_mo,
             })
-            .press_image(match self.global_state.settings.gameplay.buff_position {
+            .press_image(match self.global_state.settings.interface.buff_position {
                 BuffPosition::Map => self.imgs.check_checked,
                 BuffPosition::Bar => self.imgs.check_press,
             })
@@ -962,7 +968,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             .set(state.ids.sct_title, ui);
             // Generally toggle the SCT
             let show_sct = ToggleButton::new(
-                self.global_state.settings.gameplay.sct,
+                self.global_state.settings.interface.sct,
                 self.imgs.checkbox,
                 self.imgs.checkbox_checked,
             )
@@ -972,8 +978,8 @@ impl<'a> Widget for SettingsWindow<'a> {
             .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
             .set(state.ids.sct_show_radio, ui);
 
-            if self.global_state.settings.gameplay.sct != show_sct {
-                events.push(Event::Sct(!self.global_state.settings.gameplay.sct))
+            if self.global_state.settings.interface.sct != show_sct {
+                events.push(Event::Sct(!self.global_state.settings.interface.sct))
             }
             Text::new(
                 &self
@@ -986,10 +992,10 @@ impl<'a> Widget for SettingsWindow<'a> {
             .graphics_for(state.ids.sct_show_radio)
             .color(TEXT_COLOR)
             .set(state.ids.sct_show_text, ui);
-            if self.global_state.settings.gameplay.sct {
+            if self.global_state.settings.interface.sct {
                 // Toggle single damage numbers
                 let show_sct_damage_batch = !ToggleButton::new(
-                    !self.global_state.settings.gameplay.sct_damage_batch,
+                    !self.global_state.settings.interface.sct_damage_batch,
                     self.imgs.checkbox,
                     self.imgs.checkbox_checked,
                 )
@@ -1022,9 +1028,9 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
                 .set(state.ids.sct_show_batch_radio, ui);
 
-                if self.global_state.settings.gameplay.sct_damage_batch != show_sct_damage_batch {
+                if self.global_state.settings.interface.sct_damage_batch != show_sct_damage_batch {
                     events.push(Event::SctDamageBatch(
-                        !self.global_state.settings.gameplay.sct_damage_batch,
+                        !self.global_state.settings.interface.sct_damage_batch,
                     ))
                 }
                 Text::new(&self.localized_strings.get("hud.settings.cumulated_damage"))
@@ -1036,7 +1042,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                     .set(state.ids.sct_show_batch_text, ui);
                 // Toggle Incoming Damage
                 let show_sct_player_batch = !ToggleButton::new(
-                    !self.global_state.settings.gameplay.sct_player_batch,
+                    !self.global_state.settings.interface.sct_player_batch,
                     self.imgs.checkbox,
                     self.imgs.checkbox_checked,
                 )
@@ -1065,9 +1071,9 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
                 .set(state.ids.sct_batch_inc_radio, ui);
 
-                if self.global_state.settings.gameplay.sct_player_batch != show_sct_player_batch {
+                if self.global_state.settings.interface.sct_player_batch != show_sct_player_batch {
                     events.push(Event::SctPlayerBatch(
-                        !self.global_state.settings.gameplay.sct_player_batch,
+                        !self.global_state.settings.interface.sct_player_batch,
                     ))
                 }
                 Text::new(
@@ -1086,7 +1092,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             // Speech bubble dark mode
             Text::new(&self.localized_strings.get("hud.settings.speech_bubble"))
                 .down_from(
-                    if self.global_state.settings.gameplay.sct {
+                    if self.global_state.settings.interface.sct {
                         state.ids.sct_batch_inc_radio
                     } else {
                         state.ids.sct_show_radio
@@ -1100,7 +1106,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .color(TEXT_COLOR)
                 .set(state.ids.speech_bubble_text, ui);
             let speech_bubble_dark_mode = ToggleButton::new(
-                self.global_state.settings.gameplay.speech_bubble_dark_mode,
+                self.global_state.settings.interface.speech_bubble_dark_mode,
                 self.imgs.checkbox,
                 self.imgs.checkbox_checked,
             )
@@ -1109,7 +1115,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
             .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
             .set(state.ids.speech_bubble_dark_mode_button, ui);
-            if self.global_state.settings.gameplay.speech_bubble_dark_mode
+            if self.global_state.settings.interface.speech_bubble_dark_mode
                 != speech_bubble_dark_mode
             {
                 events.push(Event::SpeechBubbleDarkMode(speech_bubble_dark_mode));
@@ -1126,7 +1132,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             .set(state.ids.speech_bubble_dark_mode_text, ui);
             // Speech bubble icon
             let speech_bubble_icon = ToggleButton::new(
-                self.global_state.settings.gameplay.speech_bubble_icon,
+                self.global_state.settings.interface.speech_bubble_icon,
                 self.imgs.checkbox,
                 self.imgs.checkbox_checked,
             )
@@ -1135,7 +1141,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
             .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
             .set(state.ids.speech_bubble_icon_button, ui);
-            if self.global_state.settings.gameplay.speech_bubble_icon != speech_bubble_icon {
+            if self.global_state.settings.interface.speech_bubble_icon != speech_bubble_icon {
                 events.push(Event::SpeechBubbleIcon(speech_bubble_icon));
             }
             Text::new(
@@ -1288,7 +1294,7 @@ impl<'a> Widget for SettingsWindow<'a> {
 
             // "Show character names in chat" toggle button
             let chat_char_name = ToggleButton::new(
-                self.global_state.settings.gameplay.chat_character_name,
+                self.global_state.settings.interface.chat_character_name,
                 self.imgs.checkbox,
                 self.imgs.checkbox_checked,
             )
@@ -1297,9 +1303,9 @@ impl<'a> Widget for SettingsWindow<'a> {
             .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
             .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
             .set(state.ids.chat_char_name_button, ui);
-            if self.global_state.settings.gameplay.chat_character_name != chat_char_name {
+            if self.global_state.settings.interface.chat_character_name != chat_char_name {
                 events.push(Event::ChatCharName(
-                    !self.global_state.settings.gameplay.chat_character_name,
+                    !self.global_state.settings.interface.chat_character_name,
                 ));
             }
             Text::new(

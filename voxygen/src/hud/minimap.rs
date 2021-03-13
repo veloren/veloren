@@ -116,8 +116,8 @@ impl<'a> Widget for MiniMap<'a> {
         let widget::UpdateArgs { state, ui, .. } = args;
         let zoom = state.zoom;
         const SCALE: f64 = 1.5; // TODO Make this a setting
-        let show_minimap = self.global_state.settings.gameplay.minimap_show;
-        let is_facing_north = self.global_state.settings.gameplay.minimap_face_north;
+        let show_minimap = self.global_state.settings.interface.minimap_show;
+        let is_facing_north = self.global_state.settings.interface.minimap_face_north;
         let orientation = if is_facing_north {
             Vec3::new(0.0, 1.0, 0.0)
         } else {

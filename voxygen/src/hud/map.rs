@@ -141,13 +141,13 @@ impl<'a> Widget for Map<'a> {
     #[allow(clippy::useless_format)] // TODO: Pending review in #587
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { state, ui, .. } = args;
-        let zoom = self.global_state.settings.gameplay.map_zoom * 0.8;
-        let show_difficulty = self.global_state.settings.gameplay.map_show_difficulty;
-        let show_towns = self.global_state.settings.gameplay.map_show_towns;
-        let show_dungeons = self.global_state.settings.gameplay.map_show_dungeons;
-        let show_castles = self.global_state.settings.gameplay.map_show_castles;
-        let show_caves = self.global_state.settings.gameplay.map_show_caves;
-        let show_trees = self.global_state.settings.gameplay.map_show_trees;
+        let zoom = self.global_state.settings.interface.map_zoom * 0.8;
+        let show_difficulty = self.global_state.settings.interface.map_show_difficulty;
+        let show_towns = self.global_state.settings.interface.map_show_towns;
+        let show_dungeons = self.global_state.settings.interface.map_show_dungeons;
+        let show_castles = self.global_state.settings.interface.map_show_castles;
+        let show_caves = self.global_state.settings.interface.map_show_caves;
+        let show_trees = self.global_state.settings.interface.map_show_trees;
         let mut events = Vec::new();
         let i18n = &self.localized_strings;
         // Tooltips
@@ -254,7 +254,7 @@ impl<'a> Widget for Map<'a> {
         let w_src = max_zoom / zoom;
         let h_src = max_zoom / zoom;
         // Handle dragging
-        let drag = self.global_state.settings.gameplay.map_drag;
+        let drag = self.global_state.settings.interface.map_drag;
         let dragged: Vec2<f64> = ui
             .widget_input(state.ids.grid)
             .drags()
@@ -296,7 +296,7 @@ impl<'a> Widget for Map<'a> {
             .scrolls()
             .map(|scroll| scroll.y)
             .sum();
-        let new_zoom_lvl = (self.global_state.settings.gameplay.map_zoom
+        let new_zoom_lvl = (self.global_state.settings.interface.map_zoom
             * (scrolled * 0.05 * -1.0).exp2())
         .clamped(1.25, max_zoom / 64.0);
         events.push(Event::MapZoom(new_zoom_lvl as f64));

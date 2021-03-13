@@ -70,7 +70,7 @@ impl PlayState for CharSelectionState {
         self.char_selection_ui.update_language(global_state.i18n);
         // Set scale mode in case it was change
         self.char_selection_ui
-            .set_scale_mode(global_state.settings.gameplay.ui_scale);
+            .set_scale_mode(global_state.settings.interface.ui_scale);
     }
 
     fn tick(&mut self, global_state: &mut GlobalState, events: Vec<WinEvent>) -> PlayStateResult {
