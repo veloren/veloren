@@ -2554,7 +2554,7 @@ impl Hud {
                         events.push(Event::ChangeStopAutoWalkOnInput(state));
                     },
                     settings_window::Event::ResetInterfaceSettings => {
-                        self.show.help = true;
+                        self.show.help = false;
                         self.show.debug = false;
                         events.push(Event::ResetInterfaceSettings);
                     },

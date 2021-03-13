@@ -636,7 +636,7 @@ impl Default for GraphicsSettings {
             exposure: 1.0,
             ambiance: 10.0,
             render_mode: RenderMode::default(),
-            window_size: [1920, 1080],
+            window_size: [1280, 720],
             fullscreen: FullScreenSettings::default(),
             lod_detail: 250,
         }
