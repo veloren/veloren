@@ -241,6 +241,9 @@ widget_ids! {
     }
 }
 
+const RESET_BUTTONS_HEIGHT: f64 = 34.0;
+const RESET_BUTTONS_WIDTH: f64 = 155.0;
+
 pub enum SettingsTab {
     Interface,
     Video,
@@ -1323,7 +1326,7 @@ impl<'a> Widget for SettingsWindow<'a> {
 
             // Reset the interface settings to the default settings
             if Button::image(self.imgs.button)
-                .w_h(31.0 * 5.0, 12.0 * 2.0)
+                .w_h(RESET_BUTTONS_WIDTH, RESET_BUTTONS_HEIGHT)
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
                 .down_from(state.ids.buff_pos_map_button, 12.0)
@@ -1653,7 +1656,7 @@ impl<'a> Widget for SettingsWindow<'a> {
 
             // Reset the gameplay settings to the default settings
             if Button::image(self.imgs.button)
-                .w_h(31.0 * 5.0, 12.0 * 2.0)
+                .w_h(RESET_BUTTONS_WIDTH, RESET_BUTTONS_HEIGHT)
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
                 .down_from(state.ids.free_look_behavior_list, 12.0)
@@ -1778,23 +1781,24 @@ impl<'a> Widget for SettingsWindow<'a> {
 
             // Reset the KeyBindings settings to the default settings
             if let Some(prev_id) = previous_element_id {
-                let key_string = self.localized_strings.get("hud.settings.reset_keybinds");
-                let button_widget = Button::new()
-                    .label(&key_string)
+                if Button::image(self.imgs.button)
+                    .w_h(RESET_BUTTONS_WIDTH, RESET_BUTTONS_HEIGHT)
+                    .hover_image(self.imgs.button_hover)
+                    .press_image(self.imgs.button_press)
+                    .down_from(prev_id, 20.0)
+                    .label(&self.localized_strings.get("hud.settings.reset_keybinds"))
+                    .label_font_size(self.fonts.cyri.scale(14))
                     .label_color(TEXT_COLOR)
                     .label_font_id(self.fonts.cyri.conrod_id)
-                    .label_font_size(self.fonts.cyri.scale(18))
-                    .down_from(prev_id, 20.0)
-                    .w(200.0)
-                    .rgba(0.0, 0.0, 0.0, 0.0)
-                    .border_rgba(0.0, 0.0, 0.0, 255.0)
-                    .label_y(Relative::Scalar(3.0))
-                    .set(state.ids.reset_controls_button, ui);
-                if button_widget.was_clicked() {
+                    .label_y(Relative::Scalar(2.0))
+                    .set(state.ids.reset_controls_button, ui)
+                    .was_clicked()
+                {
                     events.push(Event::ResetKeyBindings);
                 }
                 previous_element_id = Some(state.ids.reset_controls_button)
             }
+
             // Add an empty text widget to simulate some bottom margin, because conrod sucks
             if let Some(prev_id) = previous_element_id {
                 Rectangle::fill_with([1.0, 1.0], color::TRANSPARENT)
@@ -2739,7 +2743,7 @@ impl<'a> Widget for SettingsWindow<'a> {
 
             // Save current screen size
             if Button::image(self.imgs.button)
-                .w_h(31.0 * 5.0, 12.0 * 2.0)
+                .w_h(RESET_BUTTONS_WIDTH, RESET_BUTTONS_HEIGHT)
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
                 .down_from(state.ids.fullscreen_mode_list, 12.0)
@@ -2762,10 +2766,11 @@ impl<'a> Widget for SettingsWindow<'a> {
 
             // Reset the graphics settings to the default settings
             if Button::image(self.imgs.button)
-                .w_h(31.0 * 5.0, 12.0 * 2.0)
+                .w_h(RESET_BUTTONS_WIDTH, RESET_BUTTONS_HEIGHT)
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
-                .down_from(state.ids.save_window_size_button, 12.0)
+                .down_from(state.ids.fullscreen_mode_list, 12.0)
+                .right_from(state.ids.save_window_size_button, 12.0)
                 .label(&self.localized_strings.get("hud.settings.reset_graphics"))
                 .label_font_size(self.fonts.cyri.scale(14))
                 .label_color(TEXT_COLOR)
@@ -2884,7 +2889,7 @@ impl<'a> Widget for SettingsWindow<'a> {
 
             // Reset the sound settings to the default settings
             if Button::image(self.imgs.button)
-                .w_h(31.0 * 5.0, 12.0 * 2.0)
+                .w_h(RESET_BUTTONS_WIDTH, RESET_BUTTONS_HEIGHT)
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
                 .down_from(state.ids.sfx_volume_slider, 12.0)
