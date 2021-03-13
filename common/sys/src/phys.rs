@@ -411,7 +411,6 @@ impl<'a> PhysicsData<'a> {
                 )| {
                     // defer the writes of positions to allow an inner loop over terrain-like
                     // entities
-                    let mut pos = *pos;
                     let mut vel = *vel;
                     if sticky.is_some() && physics_state.on_surface().is_some() {
                         vel.0 = physics_state.ground_vel;
@@ -494,7 +493,7 @@ impl<'a> PhysicsData<'a> {
                             let radius = collider.get_radius() * scale * 0.1;
                             let (z_min, z_max) = collider.get_z_limits(scale);
 
-                            let mut cpos = pos;
+                            let mut cpos = *pos;
                             let cylinder = (radius, z_min, z_max);
                             cylinder_voxel_collision(
                                 cylinder,
@@ -522,7 +521,7 @@ impl<'a> PhysicsData<'a> {
                             let z_max = z_max.clamped(1.2, 1.95) * scale;
 
                             let cylinder = (radius, z_min, z_max);
-                            let mut cpos = pos;
+                            let mut cpos = *pos;
                             cylinder_voxel_collision(
                                 cylinder,
                                 &*read.terrain,
@@ -539,7 +538,7 @@ impl<'a> PhysicsData<'a> {
                             tgt_pos = cpos.0;
                         },
                         Collider::Point => {
-                            let mut pos = pos;
+                            let mut pos = *pos;
 
                             let (dist, block) = read
                                 .terrain
@@ -651,7 +650,7 @@ impl<'a> PhysicsData<'a> {
                                 let mut physics_state_delta = physics_state.clone();
                                 // deliberately don't use scale yet here, because the 11.0/0.8
                                 // thing is in the comp::Scale for visual reasons
-                                let mut cpos = pos;
+                                let mut cpos = *pos;
                                 let wpos = cpos.0;
                                 let transform_from =
                                     Mat4::<f32>::translation_3d(pos_other.0 - wpos)
@@ -691,10 +690,11 @@ impl<'a> PhysicsData<'a> {
                                 }
                                 physics_state.on_ground |= physics_state_delta.on_ground;
                                 physics_state.on_ceiling |= physics_state_delta.on_ceiling;
-                                physics_state.on_wall =
-                                    physics_state.on_wall.or(physics_state_delta
+                                physics_state.on_wall = physics_state.on_wall.or_else(|| {
+                                    physics_state_delta
                                         .on_wall
-                                        .map(|dir| ori_from.mul_direction(dir)));
+                                        .map(|dir| ori_from.mul_direction(dir))
+                                });
                                 physics_state
                                     .touch_entities
                                     .append(&mut physics_state_delta.touch_entities);

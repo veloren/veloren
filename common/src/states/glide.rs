@@ -9,8 +9,7 @@ use vek::Vec2;
 
 // Gravity is 9.81 * 4, so this makes gravity equal to .15
 const GLIDE_ANTIGRAV: f32 = crate::consts::GRAVITY * 0.90;
-const GLIDE_ACCEL: f32 = 6.0;
-const GLIDE_SPEED: f32 = 16.0;
+const GLIDE_ACCEL: f32 = 5.0;
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct Data;
