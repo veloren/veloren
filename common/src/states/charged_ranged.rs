@@ -4,8 +4,8 @@ use crate::{
         DamageSource, GroupTarget, Knockback, KnockbackDir,
     },
     comp::{
-        projectile, Body, CharacterState, EnergyChange, EnergySource, Gravity, LightEmitter,
-        Projectile, StateUpdate,
+        projectile, Body, CharacterState, EnergyChange, EnergySource, Gravity, InputKind,
+        LightEmitter, Projectile, StateUpdate,
     },
     event::ServerEvent,
     states::{
@@ -60,6 +60,8 @@ pub struct Data {
     pub stage_section: StageSection,
     /// Whether the attack fired already
     pub exhausted: bool,
+    /// Whether or not the state should end
+    pub end: bool,
 }
 
 impl CharacterBehavior for Data {
@@ -99,9 +101,9 @@ impl CharacterBehavior for Data {
                 }
             },
             StageSection::Charge => {
-                if !ability_key_is_pressed(data, self.static_data.ability_info.key)
-                    && !self.exhausted
-                {
+                if
+                /* \!ability_key_is_pressed(data, self.static_data.ability_info.key) */
+                self.end && !self.exhausted {
                     let charge_frac = (self.timer.as_secs_f32()
                         / self.static_data.charge_duration.as_secs_f32())
                     .min(1.0);
@@ -162,7 +164,7 @@ impl CharacterBehavior for Data {
                         ..*self
                     });
                 } else if self.timer < self.static_data.charge_duration
-                    && ability_key_is_pressed(data, self.static_data.ability_info.key)
+                    && /*ability_key_is_pressed(data, self.static_data.ability_info.key)*/ !self.end
                 {
                     // Charges
                     update.character = CharacterState::ChargedRanged(Data {
@@ -182,7 +184,9 @@ impl CharacterBehavior for Data {
                             * self.static_data.speed) as i32,
                         source: EnergySource::Ability,
                     });
-                } else if ability_key_is_pressed(data, self.static_data.ability_info.key) {
+                } else if
+                /* ability_key_is_pressed(data, self.static_data.ability_info.key) */
+                !self.end {
                     // Holds charge
                     update.character = CharacterState::ChargedRanged(Data {
                         timer: self
@@ -223,6 +227,19 @@ impl CharacterBehavior for Data {
                 // If it somehow ends up in an incorrect stage section
                 update.character = CharacterState::Wielding;
             },
+        }
+
+        update
+    }
+
+    fn cancel_input(&self, data: &JoinData, input: InputKind) -> StateUpdate {
+        let mut update = StateUpdate::from(data);
+        update.removed_inputs.push(input);
+
+        if Some(input) == self.static_data.ability_info.input {
+            if let CharacterState::ChargedRanged(c) = &mut update.character {
+                c.end = true;
+            }
         }
 
         update

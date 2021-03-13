@@ -215,7 +215,9 @@ impl CharacterBehavior for Data {
         update.removed_inputs.push(input);
 
         if Some(input) == self.static_data.ability_info.input {
-            update.character = CharacterState::BasicBeam(Data { end: true, ..*self });
+            if let CharacterState::BasicBeam(c) = &mut update.character {
+                c.end = true;
+            }
         }
 
         update

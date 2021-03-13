@@ -372,7 +372,7 @@ impl PlayState for SessionState {
                                 }
                             },
                             GameInput::Secondary => {
-                                self.inputs.secondary.set_state(false); // To be changed later on
+                                // self.inputs.secondary.set_state(false); // To be changed later on
 
                                 let mut client = self.client.borrow_mut();
 
@@ -381,7 +381,8 @@ impl PlayState for SessionState {
                                         client.place_block(build_pos, self.selected_block);
                                     }
                                 } else {
-                                    self.inputs.secondary.set_state(state);
+                                    client.handle_input(InputKind::Secondary, state);
+                                    // self.inputs.secondary.set_state(state);
                                 }
                             },
                             GameInput::Roll => {

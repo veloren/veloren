@@ -1,6 +1,6 @@
 use crate::{
     combat::{Attack, AttackDamage, AttackEffect, CombatBuff, CombatEffect, CombatRequirement},
-    comp::{CharacterState, EnergyChange, EnergySource, Melee, StateUpdate},
+    comp::{CharacterState, EnergyChange, EnergySource, InputKind, Melee, StateUpdate},
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
@@ -55,7 +55,8 @@ pub struct Data {
     /// Struct containing data that does not change over the course of the
     /// character state
     pub static_data: StaticData,
-    /// Whether the charge should end
+    /// Whether the charge should last a default amount of time or until the
+    /// mouse is released
     pub auto_charge: bool,
     /// Timer for each stage
     pub timer: Duration,
@@ -65,6 +66,8 @@ pub struct Data {
     pub stage_section: StageSection,
     /// Whether the state should attempt attacking again
     pub exhausted: bool,
+    /// Whether or not the state should end
+    pub end: bool,
 }
 
 impl CharacterBehavior for Data {
@@ -97,10 +100,10 @@ impl CharacterBehavior for Data {
                 } else {
                     // Transitions to charge section of stage
                     update.character = CharacterState::DashMelee(Data {
-                        auto_charge: !ability_key_is_pressed(
+                        auto_charge: /*\!ability_key_is_pressed(
                             data,
                             self.static_data.ability_info.key,
-                        ),
+                        )*/self.end,
                         timer: Duration::default(),
                         stage_section: StageSection::Charge,
                         ..*self
@@ -110,7 +113,7 @@ impl CharacterBehavior for Data {
             StageSection::Charge => {
                 if (self.static_data.infinite_charge
                     || self.timer < self.static_data.charge_duration)
-                    && (ability_key_is_pressed(data, self.static_data.ability_info.key)
+                    && (/* ability_key_is_pressed(data, self.static_data.ability_info.key) */!self.end
                         || (self.auto_charge && self.timer < self.static_data.charge_duration))
                     && update.energy.current() > 0
                 {
@@ -263,6 +266,19 @@ impl CharacterBehavior for Data {
                 // Make sure attack component is removed
                 data.updater.remove::<Melee>(data.entity);
             },
+        }
+
+        update
+    }
+
+    fn cancel_input(&self, data: &JoinData, input: InputKind) -> StateUpdate {
+        let mut update = StateUpdate::from(data);
+        update.removed_inputs.push(input);
+
+        if Some(input) == self.static_data.ability_info.input {
+            if let CharacterState::DashMelee(c) = &mut update.character {
+                c.end = true;
+            }
         }
 
         update

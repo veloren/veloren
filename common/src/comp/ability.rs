@@ -1202,6 +1202,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 refresh_distance: 0.0,
                 stage_section: StageSection::Buildup,
                 exhausted: false,
+                end: false,
             }),
             CharacterAbility::BasicBlock => CharacterState::BasicBlock,
             CharacterAbility::Roll {
@@ -1319,6 +1320,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 spins_remaining: *num_spins - 1,
                 stage_section: StageSection::Buildup,
                 exhausted: false,
+                end: false,
             }),
             CharacterAbility::ChargedMelee {
                 energy_cost,
@@ -1359,6 +1361,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 timer: Duration::default(),
                 exhausted: false,
                 charge_amount: 0.0,
+                end: false,
             }),
             CharacterAbility::ChargedRanged {
                 energy_cost: _,
@@ -1399,6 +1402,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
                 exhausted: false,
+                end: false,
             }),
             CharacterAbility::RepeaterRanged {
                 energy_cost: _,
@@ -1545,6 +1549,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
+                end: false,
             }),
         }
     }

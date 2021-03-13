@@ -1,6 +1,6 @@
 use crate::{
     combat::{Attack, AttackEffect, CombatEffect, CombatRequirement, GroupTarget},
-    comp::{beam, CharacterState, Ori, Pos, StateUpdate},
+    comp::{beam, CharacterState, InputKind, Ori, Pos, StateUpdate},
     event::ServerEvent,
     states::{
         behavior::{CharacterBehavior, JoinData},
@@ -46,6 +46,8 @@ pub struct Data {
     pub timer: Duration,
     /// What section the character stage is in
     pub stage_section: StageSection,
+    /// Whether or not the state should end
+    pub end: bool,
 }
 
 impl CharacterBehavior for Data {
@@ -91,7 +93,9 @@ impl CharacterBehavior for Data {
                 }
             },
             StageSection::Cast => {
-                if ability_key_is_pressed(data, self.static_data.ability_info.key) {
+                if
+                /* ability_key_is_pressed(data, self.static_data.ability_info.key) */
+                !self.end {
                     let speed =
                         self.static_data.range / self.static_data.beam_duration.as_secs_f32();
                     let heal = AttackEffect::new(
@@ -160,6 +164,19 @@ impl CharacterBehavior for Data {
                 // Make sure attack component is removed
                 data.updater.remove::<beam::Beam>(data.entity);
             },
+        }
+
+        update
+    }
+
+    fn cancel_input(&self, data: &JoinData, input: InputKind) -> StateUpdate {
+        let mut update = StateUpdate::from(data);
+        update.removed_inputs.push(input);
+
+        if Some(input) == self.static_data.ability_info.input {
+            if let CharacterState::HealingBeam(c) = &mut update.character {
+                c.end = true;
+            }
         }
 
         update

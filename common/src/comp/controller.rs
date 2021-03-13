@@ -122,8 +122,8 @@ pub enum ControlAction {
 #[repr(u32)]
 pub enum InputKind {
     Primary = 0,
-    /* Secondary = 1,
-     * Ability(usize) = 2,
+    Secondary = 1,
+    /* Ability(usize) = 2,
      * Jump = 3,
      * Roll = 4,
      * Glide = 5,
@@ -244,7 +244,7 @@ pub enum Climb {
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct ControllerInputs {
     //pub primary: Input,
-    pub secondary: Input,
+    //pub secondary: Input,
     pub ability3: Input,
     pub ability4: Input,
     pub jump: Input,
@@ -273,7 +273,7 @@ impl ControllerInputs {
     /// Updates all inputs, accounting for delta time
     pub fn tick(&mut self, dt: Duration) {
         //self.primary.tick(dt);
-        self.secondary.tick(dt);
+        // self.secondary.tick(dt);
         self.ability3.tick(dt);
         self.ability4.tick(dt);
         self.jump.tick(dt);
@@ -286,7 +286,7 @@ impl ControllerInputs {
 
     pub fn tick_freshness(&mut self) {
         //self.primary.tick_freshness();
-        self.secondary.tick_freshness();
+        // self.secondary.tick_freshness();
         self.ability3.tick_freshness();
         self.ability4.tick_freshness();
         self.jump.tick_freshness();
@@ -300,7 +300,7 @@ impl ControllerInputs {
     /// Updates Controller inputs with new version received from the client
     pub fn update_with_new(&mut self, new: Self) {
         //self.primary.update_with_new(new.primary);
-        self.secondary.update_with_new(new.secondary);
+        // self.secondary.update_with_new(new.secondary);
         self.ability3.update_with_new(new.ability3);
         self.ability4.update_with_new(new.ability4);
         self.jump.update_with_new(new.jump);
@@ -316,8 +316,8 @@ impl ControllerInputs {
     }
 
     pub fn holding_ability_key(&self) -> bool {
-        //self.primary.is_pressed() ||
-        self.secondary.is_pressed() || self.ability3.is_pressed() || self.ability4.is_pressed()
+        //self.primary.is_pressed() || self.secondary.is_pressed() ||
+        self.ability3.is_pressed() || self.ability4.is_pressed()
     }
 }
 
