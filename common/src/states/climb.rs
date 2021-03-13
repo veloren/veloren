@@ -36,7 +36,7 @@ impl CharacterBehavior for Data {
                 // They've climbed atop something, give them a boost
                 update
                     .local_events
-                    .push_front(LocalEvent::Jump(data.entity));
+                    .push_front(LocalEvent::Jump(data.entity, BASE_JUMP_IMPULSE * 0.5));
             }
             update.character = CharacterState::Idle {};
             return update;

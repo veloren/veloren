@@ -21,6 +21,7 @@ const BASE_HUMANOID_AIR_ACCEL: f32 = 2.0;
 const BASE_FLIGHT_ACCEL: f32 = 2.0;
 const BASE_HUMANOID_WATER_ACCEL: f32 = 150.0;
 const BASE_HUMANOID_WATER_SPEED: f32 = 180.0;
+pub const BASE_JUMP_IMPULSE: f32 = 16.0;
 // const BASE_HUMANOID_CLIMB_ACCEL: f32 = 10.0;
 // const ROLL_SPEED: f32 = 17.0;
 // const CHARGE_SPEED: f32 = 20.0;
@@ -181,10 +182,10 @@ impl Body {
         }
     }
 
-    pub fn can_jump(&self) -> bool {
+    pub fn jump_impulse(&self) -> Option<f32> {
         match self {
-            Body::Object(_) | Body::Ship(_) => false,
-            _ => true,
+            Body::Object(_) | Body::Ship(_) => None,
+            _ => Some(BASE_JUMP_IMPULSE),
         }
     }
 
@@ -442,11 +443,12 @@ pub fn handle_jump(data: &JoinData, update: &mut StateUpdate) {
             .in_liquid
             .map(|depth| depth > 1.0)
             .unwrap_or(false)
-        && data.body.can_jump()
+        && data.body.jump_impulse().is_some()
     {
-        update
-            .local_events
-            .push_front(LocalEvent::Jump(data.entity));
+        update.local_events.push_front(LocalEvent::Jump(
+            data.entity,
+            data.body.jump_impulse().unwrap(),
+        ));
     }
 }
 

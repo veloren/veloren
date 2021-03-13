@@ -1,8 +1,8 @@
 use common::{
     comp::{
-        body::ship::figuredata::VOXEL_COLLIDER_MANIFEST, BeamSegment, CharacterState, Collider,
-        Gravity, Mass, Mounting, Ori, PhysicsState, Pos, PreviousPhysCache, Projectile, Scale,
-        Shockwave, Sticky, Vel,
+        body::ship::figuredata::VOXEL_COLLIDER_MANIFEST, BeamSegment, Body, CharacterState,
+        Collider, Gravity, Mass, Mounting, Ori, PhysicsState, Pos, PreviousPhysCache, Projectile,
+        Scale, Shockwave, Sticky, Vel,
     },
     consts::{FRIC_GROUND, GRAVITY},
     event::{EventBus, ServerEvent},
@@ -85,6 +85,7 @@ pub struct PhysicsRead<'a> {
     beams: ReadStorage<'a, BeamSegment>,
     shockwaves: ReadStorage<'a, Shockwave>,
     char_states: ReadStorage<'a, CharacterState>,
+    bodies: ReadStorage<'a, Body>,
 }
 
 #[derive(SystemData)]
@@ -438,6 +439,7 @@ impl<'a> PhysicsData<'a> {
             positions,
             velocities,
             orientations,
+            read.bodies.maybe(),
             &mut write.physics_states,
             previous_phys_cache,
             !&read.mountings,
@@ -454,6 +456,7 @@ impl<'a> PhysicsData<'a> {
                     pos,
                     vel,
                     _ori,
+                    body,
                     mut physics_state,
                     _previous_cache,
                     _,
@@ -502,6 +505,7 @@ impl<'a> PhysicsData<'a> {
                     let mut tgt_pos = pos.0 + pos_delta;
 
                     let was_on_ground = physics_state.on_ground;
+                    let block_snap = body.map_or(false, |body| body.jump_impulse().is_some());
 
                     match &collider {
                         Collider::Voxel { .. } => {
@@ -526,6 +530,7 @@ impl<'a> PhysicsData<'a> {
                                 Vec3::zero(),
                                 &read.dt,
                                 was_on_ground,
+                                block_snap,
                                 |entity, vel| land_on_grounds.push((entity, vel)),
                             );
                             tgt_pos = cpos.0;
@@ -553,6 +558,7 @@ impl<'a> PhysicsData<'a> {
                                 Vec3::zero(),
                                 &read.dt,
                                 was_on_ground,
+                                block_snap,
                                 |entity, vel| land_on_grounds.push((entity, vel)),
                             );
                             tgt_pos = cpos.0;
@@ -693,6 +699,7 @@ impl<'a> PhysicsData<'a> {
                                     ori_to.mul_direction(vel_other.0),
                                     &read.dt,
                                     was_on_ground,
+                                    block_snap,
                                     |entity, vel| {
                                         land_on_grounds
                                             .push((entity, Vel(ori_from.mul_direction(vel.0))))
@@ -818,6 +825,7 @@ fn cylinder_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
     ground_vel: Vec3<f32>,
     dt: &DeltaTime,
     was_on_ground: bool,
+    block_snap: bool,
     mut land_on_ground: impl FnMut(Entity, Vel),
 ) {
     let (radius, z_min, z_max) = cylinder;
@@ -1062,15 +1070,7 @@ fn cylinder_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
         z_range.clone(),
     ) && vel.0.z < 0.25
         && vel.0.z > -1.5
-    // && was_on_ground
-    // && !collision_with(
-    //     pos.0 - Vec3::unit_z() * 0.0,
-    //     &terrain,
-    //     |block| block.solid_height() >= (pos.0.z - 0.1).rem_euclid(1.0),
-    //     near_iter.clone(),
-    //     radius,
-    //     z_range.clone(),
-    // )
+        && block_snap
     {
         let snap_height = terrain
             .get(Vec3::new(pos.0.x, pos.0.y, pos.0.z - 0.1).map(|e| e.floor() as i32))

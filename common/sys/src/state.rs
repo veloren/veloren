@@ -36,7 +36,6 @@ const DAY_CYCLE_FACTOR: f64 = 24.0 * 2.0;
 /// this value, the game's physics will begin to produce time lag. Ideally, we'd
 /// avoid such a situation.
 const MAX_DELTA_TIME: f32 = 1.0;
-const HUMANOID_JUMP_ACCEL: f32 = 16.0;
 
 #[derive(Default)]
 pub struct BlockChange {
@@ -454,33 +453,16 @@ impl State {
         let events = self.ecs.read_resource::<EventBus<LocalEvent>>().recv_all();
         for event in events {
             let mut velocities = self.ecs.write_storage::<comp::Vel>();
-            let mut controllers = self.ecs.write_storage::<comp::Controller>();
             let physics = self.ecs.read_storage::<comp::PhysicsState>();
             match event {
-                LocalEvent::Jump(entity) => {
+                LocalEvent::Jump(entity, impulse) => {
                     if let Some(vel) = velocities.get_mut(entity) {
-                        vel.0.z = HUMANOID_JUMP_ACCEL
-                            + physics.get(entity).map_or(0.0, |ps| ps.ground_vel.z);
+                        vel.0.z = impulse + physics.get(entity).map_or(0.0, |ps| ps.ground_vel.z);
                     }
                 },
                 LocalEvent::ApplyImpulse { entity, impulse } => {
                     if let Some(vel) = velocities.get_mut(entity) {
                         vel.0 = impulse;
-                    }
-                },
-                LocalEvent::WallLeap { entity, wall_dir } => {
-                    if let (Some(vel), Some(_controller)) =
-                        (velocities.get_mut(entity), controllers.get_mut(entity))
-                    {
-                        let hspeed = Vec2::<f32>::from(vel.0).magnitude();
-                        if hspeed > 0.001 && hspeed < 0.5 {
-                            vel.0 += vel.0.normalized()
-                                * Vec3::new(1.0, 1.0, 0.0)
-                                * HUMANOID_JUMP_ACCEL
-                                * 1.5
-                                - wall_dir * 0.03;
-                            vel.0.z = HUMANOID_JUMP_ACCEL * 0.5;
-                        }
                     }
                 },
                 LocalEvent::Boost {
