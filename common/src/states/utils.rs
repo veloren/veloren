@@ -17,8 +17,8 @@ use std::time::Duration;
 use vek::*;
 
 pub const MOVEMENT_THRESHOLD_VEL: f32 = 3.0;
-const BASE_HUMANOID_AIR_ACCEL: f32 = 8.0;
-const BASE_FLIGHT_ACCEL: f32 = 16.0;
+const BASE_HUMANOID_AIR_ACCEL: f32 = 0.5;
+const BASE_FLIGHT_ACCEL: f32 = 3.5;
 const BASE_HUMANOID_WATER_ACCEL: f32 = 150.0;
 const BASE_HUMANOID_WATER_SPEED: f32 = 180.0;
 // const BASE_HUMANOID_CLIMB_ACCEL: f32 = 10.0;
@@ -310,7 +310,10 @@ fn swim_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32, depth: 
 fn fly_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
     // Update velocity (counteract gravity with lift)
     // TODO: Do this better
-    update.vel.0 += Vec3::unit_z() * data.dt.0 * GRAVITY
+    // A loss factor is needed to counteract the very slight deviation in gravity
+    // due to precision issues
+    const LOSS_FACTOR: f32 = 0.995;
+    update.vel.0 += Vec3::unit_z() * data.dt.0 * GRAVITY * LOSS_FACTOR
         + Vec3::new(
             data.inputs.move_dir.x,
             data.inputs.move_dir.y,

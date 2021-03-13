@@ -30,7 +30,7 @@ pub const BOUYANCY: f32 = 1.0;
 // friction is 0.01, and the speed is 1.0, then after 1/60th of a second the
 // speed will be 0.99. after 1 second the speed will be 0.54, which is 0.99 ^
 // 60.
-pub const FRIC_AIR: f32 = 0.0125;
+pub const FRIC_AIR: f32 = 0.0025;
 pub const FRIC_FLUID: f32 = 0.4;
 
 // Integrates forces, calculates the new velocity based off of the old velocity
@@ -415,7 +415,7 @@ impl<'a> PhysicsData<'a> {
                     let mut pos = *pos;
                     let mut vel = *vel;
                     if sticky.is_some() && physics_state.on_surface().is_some() {
-                        vel.0 = Vec3::zero();
+                        vel.0 = physics_state.ground_vel;
                         return (pos_writes, vel_writes, land_on_grounds);
                     }
 
@@ -977,7 +977,7 @@ fn cylinder_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
             {
                 // ...block-hop!
                 pos.0.z = (pos.0.z + 0.1).floor() + block_height;
-                vel.0.z = vel.0.z.max(0.0);
+                vel.0.z = 0.0;
                 on_ground = true;
                 break;
             } else {
@@ -1019,7 +1019,7 @@ fn cylinder_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
         near_iter.clone(),
         radius,
         z_range.clone(),
-    ) && vel.0.z < 0.1
+    ) && vel.0.z < 0.25
         && vel.0.z > -1.5
     // && was_on_ground
     // && !collision_with(
@@ -1037,13 +1037,9 @@ fn cylinder_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
             .filter(|block| block.is_solid())
             .map(|block| block.solid_height())
             .unwrap_or(0.0);
+        vel.0.z = 0.0;
         pos.0.z = (pos.0.z - 0.1).floor() + snap_height;
         physics_state.on_ground = true;
-    }
-
-    if physics_state.on_ground {
-        vel.0 *= (1.0 - FRIC_GROUND.min(1.0)).powf(dt.0 * 60.0);
-        physics_state.ground_vel = ground_vel;
     }
 
     let dirs = [
@@ -1070,6 +1066,11 @@ fn cylinder_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
         physics_state.on_wall = Some(wall_dir);
     } else {
         physics_state.on_wall = None;
+    }
+
+    if physics_state.on_ground || physics_state.on_wall.is_some() {
+        vel.0 *= (1.0 - FRIC_GROUND.min(1.0)).powf(dt.0 * 60.0);
+        physics_state.ground_vel = ground_vel;
     }
 
     // Figure out if we're in water
