@@ -988,7 +988,7 @@ fn cylinder_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
                 //     .unwrap_or(false))
                 // ...and there is a collision with a block beneath our current hitbox...
                 && collision_with(
-                    pos.0 + resolve_dir - Vec3::unit_z() * 1.05,
+                    pos.0 + resolve_dir - Vec3::unit_z() * 1.25,
                     &terrain,
                     block_true,
                     near_iter.clone(),
