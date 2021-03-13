@@ -4,7 +4,7 @@
             //offset: (3.0, 7.0, 1.0),
             //offset: (-20.75, -34.75, 1.25),
             //offset: (0.0, 0.0, 0.0),
-            offset: (-20.0, -35.0, 1.0),
+            offset: (-17.5, -35.0, 1.0),
             //phys_offset: (0.25, 0.25, 0.25),
             phys_offset: (0.0, 0.0, 0.0),
             central: ("Human_Airship"),
