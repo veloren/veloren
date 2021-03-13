@@ -540,7 +540,7 @@ impl Server {
             (
                 &self.state.ecs().entities(),
                 &self.state.ecs().read_storage::<comp::Pos>(),
-                !&self.state.ecs().read_storage::<comp::Player>(),
+                !&self.state.ecs().read_storage::<Presence>(),
                 self.state.ecs().read_storage::<comp::HomeChunk>().maybe(),
             )
                 .join()
@@ -704,8 +704,7 @@ impl Server {
 
         #[cfg(feature = "tracy")]
         {
-            use common_base::tracy_client::Plot;
-            use common_base::tracy_client::create_plot;
+            use common_base::tracy_client::{create_plot, Plot};
             let entity_count = self.state.ecs().entities().join().count();
             static ENTITY_COUNT: Plot = create_plot!("entity count");
             ENTITY_COUNT.point(entity_count as f64);
@@ -945,16 +944,19 @@ impl Server {
             &login_provider,
             &mut editable_settings,
             &data_dir.path,
-        ).and_then(|uuid| {
+        )
+        .and_then(|uuid| {
             let state = &self.state;
-            (&state.ecs().entities(), &state.read_storage::<comp::Player>())
+            (
+                &state.ecs().entities(),
+                &state.read_storage::<comp::Player>(),
+            )
                 .join()
                 .find(|(_, player)| player.uuid() == uuid)
                 .map(|(e, _)| e)
         }) {
             // Add admin component if the player is ingame
             let _ = self.state.ecs().write_storage().insert(entity, comp::Admin);
-            
         };
     }
 
@@ -967,32 +969,44 @@ impl Server {
             &login_provider,
             &mut editable_settings,
             &data_dir.path,
-        ).and_then(|uuid| {
+        )
+        .and_then(|uuid| {
             let state = &self.state;
-            (&state.ecs().entities(), &state.read_storage::<comp::Player>())
+            (
+                &state.ecs().entities(),
+                &state.read_storage::<comp::Player>(),
+            )
                 .join()
                 .find(|(_, player)| player.uuid() == uuid)
                 .map(|(e, _)| e)
         }) {
             // Remove admin component if the player is ingame
-            let _ = self.state.ecs().write_storage::<comp::Admin>().remove(entity);
+            let _ = self
+                .state
+                .ecs()
+                .write_storage::<comp::Admin>()
+                .remove(entity);
         };
     }
 
     /// Useful for testing without a client
-    /// view_distance: distance in chunks that are persisted, this acts like the player view
-    /// distance so it is actually a bit farther due to a buffer zone
+    /// view_distance: distance in chunks that are persisted, this acts like the
+    /// player view distance so it is actually a bit farther due to a buffer
+    /// zone
     pub fn create_centered_persister(&mut self, view_distance: u32) {
         let world_dims_chunks = self.world.sim().get_size();
         let world_dims_blocks = TerrainChunkSize::blocks(world_dims_chunks);
         // NOTE: origin is in the corner of the map
-        // TODO: extend this function to have picking a random position or specifiying a position
-        // as options
+        // TODO: extend this function to have picking a random position or specifiying a
+        // position as options
         //let mut rng = rand::thread_rng();
         // // Pick a random position but not to close to the edge
-        // let rand_pos = world_dims_blocks.map(|e| e as i32).map(|e| e / 2 + rng.gen_range(-e/2..e/2 + 1));
+        // let rand_pos = world_dims_blocks.map(|e| e as i32).map(|e| e / 2 +
+        // rng.gen_range(-e/2..e/2 + 1));
         let pos = comp::Pos(Vec3::from(world_dims_blocks.map(|e| e as f32 / 2.0)));
-        self.state.create_persister(pos, view_distance, &self.world, &self.index, &self.runtime).build();
+        self.state
+            .create_persister(pos, view_distance, &self.world, &self.index, &self.runtime)
+            .build();
     }
 }
 
@@ -1023,7 +1037,7 @@ pub fn add_admin(
             }
         }),
         Err(err) => {
-             error!(
+            error!(
                 ?err,
                 "Could not find uuid for this name either the user does not exist or there was an \
                  error communicating with the auth server."
@@ -1059,7 +1073,7 @@ pub fn remove_admin(
                 ?err,
                 "Could not find uuid for this name either the user does not exist or there was an \
                  error communicating with the auth server."
-            ); 
+            );
             None
         },
     }

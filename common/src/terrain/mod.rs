@@ -53,6 +53,9 @@ impl TerrainChunkSize {
     #[inline(always)]
     /// Convert dimensions in terms of chunks into dimensions in terms of blocks
     /// ```
+    /// use vek::*;
+    /// use veloren_common::terrain::TerrainChunkSize;
+    ///
     /// assert_eq!(TerrainChunkSize::blocks(Vec2::new(3, 2)), Vec2::new(96, 64));
     /// ```
     pub fn blocks(chunks: Vec2<u32>) -> Vec2<u32> { chunks * Self::RECT_SIZE }
@@ -60,6 +63,9 @@ impl TerrainChunkSize {
     /// Calculate the world position (i.e. in blocks) at the center of this
     /// chunk
     /// ```
+    /// use vek::*;
+    /// use veloren_common::terrain::TerrainChunkSize;
+    ///
     /// assert_eq!(
     ///     TerrainChunkSize::center_wpos(Vec2::new(0, 2)),
     ///     Vec2::new(16, 80)

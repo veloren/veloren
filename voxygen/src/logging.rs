@@ -72,7 +72,7 @@ pub fn init(settings: &Settings) -> Vec<impl Drop> {
     };
 
     #[cfg(feature = "tracy")]
-    let filter = base_exceptions(EnvFilter::new("")).add_directive(LevelFilter::TRACE.into());
+    let filter = base_exceptions(EnvFilter::new("")).add_directive(LevelFilter::INFO.into());
 
     // Create the terminal writer layer.
     let (non_blocking, _stdio_guard) =
