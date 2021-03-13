@@ -181,6 +181,13 @@ impl Body {
         }
     }
 
+    pub fn can_jump(&self) -> bool {
+        match self {
+            Body::Object(_) | Body::Ship(_) => false,
+            _ => true,
+        }
+    }
+
     pub fn can_climb(&self) -> bool { matches!(self, Body::Humanoid(_)) }
 }
 
@@ -435,6 +442,7 @@ pub fn handle_jump(data: &JoinData, update: &mut StateUpdate) {
             .in_liquid
             .map(|depth| depth > 1.0)
             .unwrap_or(false)
+        && data.body.can_jump()
     {
         update
             .local_events
