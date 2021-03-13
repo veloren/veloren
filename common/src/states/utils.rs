@@ -17,8 +17,8 @@ use std::time::Duration;
 use vek::*;
 
 pub const MOVEMENT_THRESHOLD_VEL: f32 = 3.0;
-const BASE_HUMANOID_AIR_ACCEL: f32 = 0.5;
-const BASE_FLIGHT_ACCEL: f32 = 3.5;
+const BASE_HUMANOID_AIR_ACCEL: f32 = 2.0;
+const BASE_FLIGHT_ACCEL: f32 = 2.0;
 const BASE_HUMANOID_WATER_ACCEL: f32 = 150.0;
 const BASE_HUMANOID_WATER_SPEED: f32 = 180.0;
 // const BASE_HUMANOID_CLIMB_ACCEL: f32 = 10.0;

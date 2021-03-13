@@ -411,7 +411,6 @@ impl<'a> PhysicsData<'a> {
                 )| {
                     // defer the writes of positions to allow an inner loop over terrain-like
                     // entities
-                    let old_pos = *pos;
                     let mut pos = *pos;
                     let mut vel = *vel;
                     if sticky.is_some() && physics_state.on_surface().is_some() {
@@ -469,6 +468,8 @@ impl<'a> PhysicsData<'a> {
                         Vec3::zero()
                     };
 
+                    let mut tgt_pos = pos.0 + pos_delta;
+
                     let was_on_ground = physics_state.on_ground;
 
                     match &collider {
@@ -481,21 +482,22 @@ impl<'a> PhysicsData<'a> {
                             let radius = collider.get_radius() * scale * 0.1;
                             let (z_min, z_max) = collider.get_z_limits(scale);
 
+                            let mut cpos = pos;
                             let cylinder = (radius, z_min, z_max);
                             cylinder_voxel_collision(
                                 cylinder,
                                 &*read.terrain,
                                 entity,
-                                &mut pos,
-                                pos_delta,
+                                &mut cpos,
+                                tgt_pos,
                                 &mut vel,
                                 &mut physics_state,
                                 Vec3::zero(),
                                 &read.dt,
-                                true,
                                 was_on_ground,
                                 |entity, vel| land_on_grounds.push((entity, vel)),
                             );
+                            tgt_pos = cpos.0;
                         },
                         Collider::Box {
                             radius,
@@ -508,20 +510,21 @@ impl<'a> PhysicsData<'a> {
                             let z_max = z_max.clamped(1.2, 1.95) * scale;
 
                             let cylinder = (radius, z_min, z_max);
+                            let mut cpos = pos;
                             cylinder_voxel_collision(
                                 cylinder,
                                 &*read.terrain,
                                 entity,
-                                &mut pos,
-                                pos_delta,
+                                &mut cpos,
+                                tgt_pos,
                                 &mut vel,
                                 &mut physics_state,
                                 Vec3::zero(),
                                 &read.dt,
-                                true,
                                 was_on_ground,
                                 |entity, vel| land_on_grounds.push((entity, vel)),
                             );
+                            tgt_pos = cpos.0;
                         },
                         Collider::Point => {
                             let (dist, block) = read
@@ -567,6 +570,8 @@ impl<'a> PhysicsData<'a> {
                                 .get(pos.0.map(|e| e.floor() as i32))
                                 .ok()
                                 .and_then(|vox| vox.is_liquid().then_some(1.0));
+
+                            tgt_pos = pos.0;
                         },
                     }
 
@@ -632,7 +637,8 @@ impl<'a> PhysicsData<'a> {
                                 let mut physics_state_delta = physics_state.clone();
                                 // deliberately don't use scale yet here, because the 11.0/0.8
                                 // thing is in the comp::Scale for visual reasons
-                                let wpos = pos.0;
+                                let mut cpos = pos;
+                                let wpos = cpos.0;
                                 let transform_from =
                                     Mat4::<f32>::translation_3d(pos_other.0 - wpos)
                                         * Mat4::from(ori_other.0)
@@ -640,20 +646,19 @@ impl<'a> PhysicsData<'a> {
                                 let transform_to = transform_from.inverted();
                                 let ori_from = Mat4::from(ori_other.0);
                                 let ori_to = ori_from.inverted();
-                                pos.0 = transform_to.mul_point(Vec3::zero());
+                                cpos.0 = transform_to.mul_point(Vec3::zero());
                                 vel.0 = ori_to.mul_direction(vel.0 - vel_other.0);
                                 let cylinder = (radius, z_min, z_max);
                                 cylinder_voxel_collision(
                                     cylinder,
                                     &voxel_collider.dyna,
                                     entity,
-                                    &mut pos,
-                                    transform_to.mul_direction(pos_delta),
+                                    &mut cpos,
+                                    transform_to.mul_point(tgt_pos - wpos),
                                     &mut vel,
                                     &mut physics_state_delta,
                                     ori_to.mul_direction(vel_other.0),
                                     &read.dt,
-                                    false,
                                     was_on_ground,
                                     |entity, vel| {
                                         land_on_grounds
@@ -661,8 +666,9 @@ impl<'a> PhysicsData<'a> {
                                     },
                                 );
 
-                                pos.0 = transform_from.mul_point(pos.0) + wpos;
+                                cpos.0 = transform_from.mul_point(cpos.0) + wpos;
                                 vel.0 = ori_from.mul_direction(vel.0) + vel_other.0;
+                                tgt_pos = cpos.0;
 
                                 // union in the state updates, so that the state isn't just based on
                                 // the most recent terrain that collision was attempted with
@@ -691,8 +697,9 @@ impl<'a> PhysicsData<'a> {
                             }
                         }
                     }
-                    if pos != old_pos {
-                        pos_writes.push((entity, pos));
+
+                    if tgt_pos != pos.0 {
+                        pos_writes.push((entity, Pos(tgt_pos)));
                     }
                     if vel != old_vel {
                         vel_writes.push((entity, vel));
@@ -771,12 +778,11 @@ fn cylinder_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
     terrain: &'a T,
     entity: Entity,
     pos: &mut Pos,
-    mut pos_delta: Vec3<f32>,
+    tgt_pos: Vec3<f32>,
     vel: &mut Vel,
     physics_state: &mut PhysicsState,
     ground_vel: Vec3<f32>,
     dt: &DeltaTime,
-    apply_velocity_step: bool, // Stupid hack
     was_on_ground: bool,
     mut land_on_ground: impl FnMut(Entity, Vel),
 ) {
@@ -859,6 +865,8 @@ fn cylinder_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
     let mut on_ceiling = false;
     let mut attempts = 0; // Don't loop infinitely here
 
+    let mut pos_delta = tgt_pos - pos.0;
+
     // Don't jump too far at once
     let increments = (pos_delta.map(|e| e.abs()).reduce_partial_max() / 0.3)
         .ceil()
@@ -866,9 +874,7 @@ fn cylinder_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
     let old_pos = pos.0;
     fn block_true(_: &Block) -> bool { true }
     for _ in 0..increments as usize {
-        if apply_velocity_step {
-            pos.0 += pos_delta / increments;
-        }
+        pos.0 += pos_delta / increments;
 
         const MAX_ATTEMPTS: usize = 16;
 
@@ -1069,7 +1075,9 @@ fn cylinder_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
     }
 
     if physics_state.on_ground || physics_state.on_wall.is_some() {
-        vel.0 *= (1.0 - FRIC_GROUND.min(1.0)).powf(dt.0 * 60.0);
+        if physics_state.on_ground {
+            vel.0 *= (1.0 - FRIC_GROUND.min(1.0)).powf(dt.0 * 60.0);
+        }
         physics_state.ground_vel = ground_vel;
     }
 
