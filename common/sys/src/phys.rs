@@ -638,8 +638,8 @@ impl<'a> PhysicsData<'a> {
                                         * Mat4::from(ori_other.0)
                                         * Mat4::<f32>::translation_3d(voxel_collider.translation);
                                 let transform_to = transform_from.inverted();
-                                let ori_to = Mat4::from(ori_other.0);
-                                let ori_from = ori_to.inverted();
+                                let ori_from = Mat4::from(ori_other.0);
+                                let ori_to = ori_from.inverted();
                                 pos.0 = transform_to.mul_point(Vec3::zero());
                                 vel.0 = ori_to.mul_direction(vel.0 - vel_other.0);
                                 let cylinder = (radius, z_min, z_max);
@@ -674,7 +674,7 @@ impl<'a> PhysicsData<'a> {
                                 physics_state.on_wall =
                                     physics_state.on_wall.or(physics_state_delta
                                         .on_wall
-                                        .map(|dir| ori_to.mul_direction(dir)));
+                                        .map(|dir| ori_from.mul_direction(dir)));
                                 physics_state
                                     .touch_entities
                                     .append(&mut physics_state_delta.touch_entities);
@@ -1042,8 +1042,7 @@ fn cylinder_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
     }
 
     if physics_state.on_ground {
-        vel.0 = ground_vel * 0.0
-            + (vel.0 - ground_vel * 0.0) * (1.0 - FRIC_GROUND.min(1.0)).powf(dt.0 * 60.0);
+        vel.0 *= (1.0 - FRIC_GROUND.min(1.0)).powf(dt.0 * 60.0);
         physics_state.ground_vel = ground_vel;
     }
 
