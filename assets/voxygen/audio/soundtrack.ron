@@ -18,6 +18,7 @@
 				(Snowland, 1),
 			],
 			site: Some(Void),
+            activity: Explore,
 			artist: "DaforLynx"
 		),
 		(
@@ -27,6 +28,7 @@
 			timing: Some(Night),
 			biomes: [],
 			site: Some(Void),
+            activity: Explore,
 			artist: "Ap1evideogame"
 		),
         (
@@ -39,6 +41,7 @@
                 (Ocean, 3),
             ],
             site: Some(Void),
+            activity: Explore,
             artist: "Eden",
         ),
         (
@@ -54,6 +57,7 @@
                 (Lake, 1),
             ],
             site: Some(Void),
+            activity: Explore,
             artist: "Eden",
         ),        
         (
@@ -65,6 +69,7 @@
                 (Forest, 1),
             ],
             site: Some(Void),
+            activity: Explore,
             artist: "Aeronic",
         ),
 		(
@@ -75,6 +80,7 @@
             timing: Some(Night),
             biomes: [],
             site: Some(Cave),
+            activity: Explore,
             artist: "Aeronic",
         ),
         (
@@ -87,6 +93,7 @@
 				(Forest, 1)
             ],
             site: Some(Void),
+            activity: Explore,
             artist: "Aeronic",
         ),
         (
@@ -96,6 +103,7 @@
             timing: Some(Night),
             biomes: [],
             site: Some(Void),
+            activity: Explore,
             artist: "Aeronic",
         ),
         (
@@ -108,6 +116,7 @@
                 (Mountain, 1),
             ],
             site: Some(Void),
+            activity: Explore,
             artist: "Aeronic",
         ),
         (
@@ -117,6 +126,7 @@
             timing: None,
             biomes: [],
             site: Some(Cave),
+            activity: Explore,
             artist: "Aeronic",
         ),
         (   //Repeat for other site
@@ -126,6 +136,7 @@
             timing: None,
             biomes: [],
             site: Some(Dungeon),
+            activity: Explore,
             artist: "Aeronic",
         ),
         (
@@ -135,6 +146,7 @@
             timing: Some(Night),
             biomes: [],
             site: Some(Void),
+            activity: Explore,
             artist: "Aeronic",
         ),
         (
@@ -147,6 +159,7 @@
 				(Forest, 1),
             ],
             site: Some(Void),
+            activity: Explore,
             artist: "Aeronic",
         ),
         //(
@@ -169,6 +182,7 @@
                 (Mountain, 1),
             ],
             site: Some(Void),
+            activity: Explore,
             artist: "badbbad",
         ),
         (
@@ -178,6 +192,7 @@
             timing: Some(Night),
             biomes: [],
             site: Some(Void),
+            activity: Explore,
             artist: "badbbad",
         ),
         (
@@ -190,6 +205,7 @@
                 (Lake, 1)
             ],
             site: Some(Void),
+            activity: Explore,
             artist: "badbbad",
         ),
         (  
@@ -199,6 +215,7 @@
             timing: None,
             biomes: [],
             site: Some(Cave),
+            activity: Explore,
             artist: "badbbad",
         ),
         (   //Repeat for other site
@@ -208,6 +225,7 @@
             timing: None,
             biomes: [],
             site: Some(Dungeon),
+            activity: Explore,
             artist: "badbbad",
         ),
         (
@@ -221,6 +239,7 @@
                 (Snowland, 1),
             ],
             site: Some(Void),
+            activity: Explore,
             artist: "badbbad",
         )
     ]

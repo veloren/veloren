@@ -152,7 +152,7 @@ impl EventMapper for BlockEventMapper {
                 blocks: |boi| &boi.beehives,
                 range: 1,
                 sfx: SfxEvent::Bees,
-                volume: 1.0,
+                volume: 0.5,
                 cond: |st| st.get_day_period().is_light(),
             },
         ];
@@ -166,7 +166,11 @@ impl EventMapper for BlockEventMapper {
                 || player_pos.0.z < (terrain_alt - 30.0)
                 || (sounds.sfx == SfxEvent::Birdcall && thread_rng().gen_bool(0.995))
                 || (sounds.sfx == SfxEvent::Owl && thread_rng().gen_bool(0.998))
-                || (sounds.sfx == SfxEvent::Frog && thread_rng().gen_bool(0.9))
+                || (sounds.sfx == SfxEvent::Frog && thread_rng().gen_bool(0.95))
+                //Crickets will not chirp below 5 Celsius
+                || (sounds.sfx == SfxEvent::Cricket1 && (temp < -0.33))
+                || (sounds.sfx == SfxEvent::Cricket2 && (temp < -0.33))
+                || (sounds.sfx == SfxEvent::Cricket3 && (temp < -0.33))
             {
                 continue;
             }
@@ -259,7 +263,6 @@ impl BlockEventMapper {
                 //In case certain sounds need modification to their threshold,
                 //use match event
                 match event {
-                    //Crickets' threshold is 0.0 by default
                     SfxEvent::Cricket1 => {
                         previous_state.time.elapsed().as_secs_f32()
                             >= cricket_interval + thread_rng().gen_range(-0.1..0.1)
@@ -277,7 +280,7 @@ impl BlockEventMapper {
                         previous_state.time.elapsed().as_secs_f32()
                             >= cricket_interval + thread_rng().gen_range(-0.1..0.1)
                     },
-                    //Adds random factor to frogs
+                    //Adds random factor to frogs (probably doesn't do anything most of the time)
                     SfxEvent::Frog => {
                         previous_state.time.elapsed().as_secs_f32()
                             >= thread_rng().gen_range(-2.0..2.0)
