@@ -2431,7 +2431,10 @@ impl Hud {
                         events.push(Event::SctDamageBatch(sct_damage_batch));
                     },
                     settings_window::Event::ToggleHelp => self.show.help = !self.show.help,
-                    settings_window::Event::ToggleDebug => self.show.debug = !self.show.debug,
+                    settings_window::Event::ToggleDebug => {
+                        self.show.debug = !self.show.debug;
+                        events.push(Event::ToggleDebug(self.show.debug));
+                    },
                     settings_window::Event::ToggleTips(loading_tips) => {
                         events.push(Event::ToggleTips(loading_tips));
                     },
