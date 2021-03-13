@@ -7,7 +7,7 @@ edition = "2018"
 [features]
 worldgen = ["server/worldgen"]
 default = ["worldgen"]
-tracy = ["common/tracy", "tracing-tracy"]
+tracy = ["common/tracy", "tracing-tracy", "server/tracy", "common-net/tracy"]
 plugins = ["server/plugins"]
 
 [dependencies]

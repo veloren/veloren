@@ -5,6 +5,7 @@ authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>"]
 edition = "2018"
 
 [features]
+tracy = ["common/tracy", "common-base/tracy", "common-sys/tracy", "common-net/tracy"]
 simd = ["vek/platform_intrinsics"]
 plugins = ["common-sys/plugins"]
 bin_bot = ["common-ecs", "serde", "ron", "clap", "rustyline", "termcolor", "tracing-subscriber", "async-channel"]

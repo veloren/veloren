@@ -26,6 +26,8 @@ impl Component for Vel {
 #[derive(Copy, Clone, Default, Debug, PartialEq)]
 pub struct PreviousPhysCache {
     pub velocity_dt: Vec3<f32>,
+    /// Center of bounding sphere that encompasses the entity along its path for
+    /// this tick
     pub center: Vec3<f32>,
     /// Calculates a Sphere over the Entity for quick boundary checking
     pub collision_boundary: f32,

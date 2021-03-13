@@ -13,7 +13,7 @@ gl = ["gfx_device_gl", "gfx_gl"]
 hot-anim = ["anim/use-dyn-lib"]
 singleplayer = ["server"]
 simd = ["vek/platform_intrinsics"]
-tracy = ["tracing-tracy", "common/tracy"]
+tracy = ["tracing-tracy", "common/tracy", "common-ecs/tracy", "common-net/tracy", "common-sys/tracy", "client/tracy"]
 plugins = ["client/plugins"]
 
 default = ["gl", "singleplayer", "native-dialog", "plugins", "simd"]

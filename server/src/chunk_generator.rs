@@ -54,6 +54,7 @@ impl ChunkGenerator {
         let chunk_tx = self.chunk_tx.clone();
         self.metrics.chunks_requested.inc();
         runtime.spawn_blocking(move || {
+            common_base::prof_span!(_guard, "generate_chunk");
             let index = index.as_index_ref();
             let payload = world
                 .generate_chunk(index, key, || cancel.load(Ordering::Relaxed))

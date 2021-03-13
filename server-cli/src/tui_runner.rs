@@ -1,4 +1,4 @@
-use crate::logging::LOG;
+use crate::{cmd, logging::LOG, Message};
 use crossterm::{
     event::{DisableMouseCapture, EnableMouseCapture},
     execute,
@@ -12,7 +12,7 @@ use std::{
     },
     time::Duration,
 };
-use tracing::{debug, error, info, warn};
+use tracing::{debug, error, warn};
 use tui::{
     backend::CrosstermBackend,
     layout::Rect,
@@ -20,89 +20,6 @@ use tui::{
     widgets::{Block, Borders, Paragraph, Wrap},
     Terminal,
 };
-
-#[derive(Debug, Clone)]
-pub enum Message {
-    AbortShutdown,
-    Shutdown { grace_period: Duration },
-    Quit,
-    AddAdmin(String),
-    RemoveAdmin(String),
-}
-
-pub struct Command<'a> {
-    pub name: &'a str,
-    pub description: &'a str,
-    // Whether or not the command splits the arguments on whitespace
-    pub split_spaces: bool,
-    pub args: usize,
-    pub cmd: fn(Vec<String>, &mut mpsc::Sender<Message>),
-}
-
-// TODO: mabye we could be using clap here?
-pub const COMMANDS: [Command; 5] = [
-    Command {
-        name: "quit",
-        description: "Closes the server",
-        split_spaces: true,
-        args: 0,
-        cmd: |_, sender| sender.send(Message::Quit).unwrap(),
-    },
-    Command {
-        name: "shutdown",
-        description: "Initiates a graceful shutdown of the server, waiting the specified number \
-                      of seconds before shutting down",
-        split_spaces: true,
-        args: 1,
-        cmd: |args, sender| {
-            if let Ok(grace_period) = args.first().unwrap().parse::<u64>() {
-                sender
-                    .send(Message::Shutdown {
-                        grace_period: Duration::from_secs(grace_period),
-                    })
-                    .unwrap()
-            } else {
-                error!("Grace period must an integer")
-            }
-        },
-    },
-    Command {
-        name: "abortshutdown",
-        description: "Aborts a shutdown if one is in progress",
-        split_spaces: false,
-        args: 0,
-        cmd: |_, sender| sender.send(Message::AbortShutdown).unwrap(),
-    },
-    Command {
-        name: "admin",
-        description: "Add or remove an admin via \'admin add/remove <username>\'",
-        split_spaces: true,
-        args: 2,
-        cmd: |args, sender| match args.get(..2) {
-            Some([op, username]) if op == "add" => {
-                sender.send(Message::AddAdmin(username.clone())).unwrap()
-            },
-            Some([op, username]) if op == "remove" => {
-                sender.send(Message::RemoveAdmin(username.clone())).unwrap()
-            },
-            Some(_) => error!("First arg must be add or remove"),
-            _ => error!("Not enough args, should be unreachable"),
-        },
-    },
-    Command {
-        name: "help",
-        description: "List all command available",
-        split_spaces: true,
-        args: 0,
-        cmd: |_, _| {
-            info!("===== Help =====");
-            for command in COMMANDS.iter() {
-                info!("{} - {}", command.name, command.description)
-            }
-            info!("================");
-        },
-    },
-];
 
 pub struct Tui {
     pub msg_r: mpsc::Receiver<Message>,
@@ -129,7 +46,7 @@ impl Tui {
                 },
                 KeyCode::Enter => {
                     debug!(?input, "tui mode: command entered");
-                    parse_command(input, msg_s);
+                    cmd::parse_command(input, msg_s);
 
                     *input = String::new();
                 },
@@ -163,7 +80,7 @@ impl Tui {
                         },
                         Ok(_) => {
                             debug!(?line, "basic mode: command entered");
-                            parse_command(&line, &mut msg_s);
+                            crate::cmd::parse_command(&line, &mut msg_s);
                         },
                     }
                 }
@@ -261,43 +178,5 @@ impl Drop for Tui {
         self.running.store(false, Ordering::Relaxed);
         self.background.take().map(|m| m.join());
         Tui::shutdown(self.basic);
-    }
-}
-
-fn parse_command(input: &str, msg_s: &mut mpsc::Sender<Message>) {
-    let mut args = input.split_whitespace();
-
-    if let Some(cmd_name) = args.next() {
-        if let Some(cmd) = COMMANDS.iter().find(|cmd| cmd.name == cmd_name) {
-            let args = args.collect::<Vec<_>>();
-
-            let (arg_len, args) = if cmd.split_spaces {
-                (
-                    args.len(),
-                    args.into_iter()
-                        .map(|s| s.to_string())
-                        .collect::<Vec<String>>(),
-                )
-            } else {
-                (0, vec![args.into_iter().collect::<String>()])
-            };
-
-            match arg_len.cmp(&cmd.args) {
-                std::cmp::Ordering::Less => error!("{} takes {} arguments", cmd_name, cmd.args),
-                std::cmp::Ordering::Greater => {
-                    warn!("{} only takes {} arguments", cmd_name, cmd.args);
-                    let cmd = cmd.cmd;
-
-                    cmd(args, msg_s)
-                },
-                std::cmp::Ordering::Equal => {
-                    let cmd = cmd.cmd;
-
-                    cmd(args, msg_s)
-                },
-            }
-        } else {
-            error!("{} not found", cmd_name);
-        }
     }
 }

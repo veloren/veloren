@@ -18,6 +18,11 @@
     trait_alias,
     type_alias_impl_trait
 )]
+
+/// Re-exported crates
+pub use uuid;
+
+// modules
 #[cfg(not(target_arch = "wasm32"))]
 pub mod assets;
 #[cfg(not(target_arch = "wasm32"))] pub mod astar;

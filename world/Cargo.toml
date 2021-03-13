@@ -5,6 +5,7 @@ authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>"]
 edition = "2018"
 
 [features]
+tracy = ["common/tracy", "common-net/tracy"]
 simd = ["vek/platform_intrinsics"]
 
 default = ["simd"]
@@ -12,6 +13,7 @@ default = ["simd"]
 [dependencies]
 common = { package = "veloren-common", path = "../common" }
 common-net = { package = "veloren-common-net", path = "../common/net" }
+
 bincode = "1.3.1"
 bitvec = "0.21.0"
 enum-iterator = "0.6"

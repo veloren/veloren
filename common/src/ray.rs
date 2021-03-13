@@ -1,5 +1,4 @@
 use crate::vol::ReadVol;
-use common_base::span;
 use vek::*;
 
 pub trait RayForEach<V> = FnMut(&V, Vec3<i32>);
@@ -62,7 +61,6 @@ impl<'a, V: ReadVol, F: FnMut(&V::Vox) -> bool, G: RayForEach<V::Vox>> Ray<'a, V
     }
 
     pub fn cast(mut self) -> (f32, Result<Option<&'a V::Vox>, V::Error>) {
-        span!(_guard, "cast", "Ray::cast");
         // TODO: Fully test this!
 
         const PLANCK: f32 = 0.001;

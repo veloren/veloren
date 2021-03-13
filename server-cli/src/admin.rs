@@ -16,12 +16,12 @@ pub fn admin_subcommand(
     match sub_m.subcommand() {
         ("add", Some(sub_m)) => {
             if let Some(username) = sub_m.value_of("username") {
-                server::add_admin(username, &login_provider, editable_settings, data_dir)
+                server::add_admin(username, &login_provider, editable_settings, data_dir);
             }
         },
         ("remove", Some(sub_m)) => {
             if let Some(username) = sub_m.value_of("username") {
-                server::remove_admin(username, &login_provider, editable_settings, data_dir)
+                server::remove_admin(username, &login_provider, editable_settings, data_dir);
             }
         },
         // TODO: can clap enforce this?

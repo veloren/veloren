@@ -5,6 +5,7 @@ name = "veloren-common-ecs"
 version = "0.8.0"
 
 [features]
+tracy = ["common-base/tracy"]
 
 [dependencies]
 

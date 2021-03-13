@@ -10,7 +10,7 @@ use common::{
     uid::Uid,
     vol::ReadVol,
 };
-use common_base::span;
+use common_base::{prof_span, span};
 use common_ecs::{Job, Origin, ParMode, Phase, PhysicsMetrics, System};
 use rayon::iter::ParallelIterator;
 use specs::{Entities, Join, ParJoin, Read, ReadExpect, ReadStorage, WriteExpect, WriteStorage};
@@ -232,9 +232,12 @@ impl<'a> System<'a> for Sys {
                 sticky.is_none() || (physics.on_wall.is_none() && !physics.on_ground)
             })
             .map(|(e, p, v, vd, m, c, _, _, ph, pr, c_s)| (e, p, v, vd, m, c, ph, pr, c_s))
-            .fold(
-                PhysicsMetrics::default,
-                |mut metrics,
+            .map_init(
+                || {
+                    prof_span!(guard, "physics e<>e rayon job");
+                    guard
+                },
+                |_guard,
                  (
                     entity,
                     pos,
@@ -255,6 +258,9 @@ impl<'a> System<'a> for Sys {
                     let is_projectile = projectile.is_some();
 
                     let mut vel_delta = Vec3::zero();
+
+                    let mut entity_entity_collision_checks = 0;
+                    let mut entity_entity_collisions = 0;
 
                     for (
                         entity_other,
@@ -307,7 +313,7 @@ impl<'a> System<'a> for Sys {
                             continue;
                         }
 
-                        metrics.entity_entity_collision_checks += 1;
+                        entity_entity_collision_checks += 1;
 
                         const MIN_COLLISION_DIST: f32 = 0.3;
                         let increments = ((previous_cache.velocity_dt
@@ -334,7 +340,7 @@ impl<'a> System<'a> for Sys {
                             {
                                 if !collided {
                                     physics.touch_entities.push(*other);
-                                    metrics.entity_entity_collisions += 1;
+                                    entity_entity_collisions += 1;
                                 }
 
                                 // Don't apply repulsive force to projectiles
@@ -353,7 +359,12 @@ impl<'a> System<'a> for Sys {
 
                     // Change velocity
                     vel.0 += vel_delta * dt.0;
-                    metrics
+
+                    // Metrics
+                    PhysicsMetrics {
+                        entity_entity_collision_checks,
+                        entity_entity_collisions,
+                    }
                 },
             )
             .reduce(PhysicsMetrics::default, |old, new| PhysicsMetrics {
@@ -380,13 +391,19 @@ impl<'a> System<'a> for Sys {
             !&mountings,
         )
         .par_join()
-        .fold(Vec::new, |
-            mut land_on_grounds,
+        .map_init(
+            || {
+                prof_span!(guard, "physics e<>t rayon job");
+                guard
+            },
+            |_guard,
             (entity, _scale, sticky, collider, mut pos, mut vel, _ori, mut physics_state, _),
         | {
+            let mut landed_on_ground = None;
+
             if sticky.is_some() && physics_state.on_surface().is_some() {
                 vel.0 = Vec3::zero();
-                return land_on_grounds;
+                return landed_on_ground;
             }
 
             // TODO: Use this
@@ -593,7 +610,7 @@ impl<'a> System<'a> for Sys {
                                 on_ground = true;
 
                                 if !was_on_ground {
-                                    land_on_grounds.push((entity, *vel));
+                                    landed_on_ground = Some((entity, *vel));
                                 }
                             } else if resolve_dir.z < 0.0 && vel.0.z >= 0.0 {
                                 on_ceiling = true;
@@ -770,7 +787,12 @@ impl<'a> System<'a> for Sys {
                 },
             }
 
-            land_on_grounds
+            landed_on_ground
+        }).fold(Vec::new, |mut lands_on_grounds, landed_on_ground| {
+            if let Some(land_on_ground) = landed_on_ground {
+                lands_on_grounds.push(land_on_ground);
+            }
+            lands_on_grounds
         }).reduce(Vec::new, |mut land_on_grounds_a, mut land_on_grounds_b| {
             land_on_grounds_a.append(&mut land_on_grounds_b);
             land_on_grounds_a

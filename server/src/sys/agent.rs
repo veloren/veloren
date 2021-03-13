@@ -23,6 +23,7 @@ use common::{
     util::Dir,
     vol::ReadVol,
 };
+use common_base::prof_span;
 use common_ecs::{Job, Origin, ParMode, Phase, System};
 use rand::{thread_rng, Rng};
 use rayon::iter::ParallelIterator;
@@ -141,8 +142,13 @@ impl<'a> System<'a> for Sys {
                     .map(|ms| *ms == MountState::Unmounted)
                     .unwrap_or(true)
             })
-            .for_each(
-                |(
+            .for_each_init(
+                || {
+                    prof_span!(guard, "agent rayon job");
+                    guard
+                },
+                |_guard,
+                 (
                     entity,
                     (energy, health),
                     pos,
