@@ -253,7 +253,10 @@ where
     fn run(&mut self, data: Self::SystemData) {
         common_base::span!(_guard, "run", &format!("{}::Sys::run", T::NAME));
         self.cpu_stats.reset();
-        T::run(self, data.0);
+        {
+            common_base::span!(_guard, "run inner", &format!("{}::Sys::run inner", T::NAME));
+            T::run(self, data.0);
+        }
         self.cpu_stats.end();
         data.1
             .stats

@@ -3,16 +3,16 @@
 #![feature(bool_to_option)]
 
 mod admin;
+/// `server-cli` interface commands not to be confused with the commands sent
+/// from the client to the server
+mod cmd;
 mod logging;
 mod settings;
 mod shutdown_coordinator;
 mod tui_runner;
 mod tuilog;
 
-use crate::{
-    shutdown_coordinator::ShutdownCoordinator,
-    tui_runner::{Message, Tui},
-};
+use crate::{cmd::Message, shutdown_coordinator::ShutdownCoordinator, tui_runner::Tui};
 use clap::{App, Arg, SubCommand};
 use common::clock::Clock;
 use common_base::span;
@@ -200,6 +200,9 @@ fn main() -> io::Result<()> {
                     },
                     Message::RemoveAdmin(username) => {
                         server.remove_admin(&username);
+                    },
+                    Message::LoadArea(view_distance) => {
+                        server.create_centered_persister(view_distance);
                     },
                 },
                 Err(mpsc::TryRecvError::Empty) | Err(mpsc::TryRecvError::Disconnected) => {},

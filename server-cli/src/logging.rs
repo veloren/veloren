@@ -1,6 +1,5 @@
 use crate::tuilog::TuiLog;
 use termcolor::{ColorChoice, StandardStream};
-use tracing::Level;
 use tracing_subscriber::{filter::LevelFilter, EnvFilter, FmtSubscriber};
 #[cfg(feature = "tracy")]
 use tracing_subscriber::{layer::SubscriberExt, prelude::*};
@@ -19,10 +18,10 @@ pub fn init(basic: bool) {
             .add_directive("hyper=info".parse().unwrap())
             .add_directive("prometheus_hyper=info".parse().unwrap())
             .add_directive("mio::pool=info".parse().unwrap())
-            .add_directive("mio::sys::windows=debug".parse().unwrap())
+            .add_directive("mio::sys::windows=info".parse().unwrap())
             .add_directive("h2=info".parse().unwrap())
             .add_directive("tokio_util=info".parse().unwrap())
-            .add_directive("rustls=debug".parse().unwrap())
+            .add_directive("rustls=info".parse().unwrap())
             .add_directive("veloren_network_protocol=info".parse().unwrap())
             .add_directive(
                 "veloren_server::persistence::character=info"
@@ -32,7 +31,6 @@ pub fn init(basic: bool) {
             .add_directive(LevelFilter::INFO.into())
     };
 
-    #[cfg(not(feature = "tracy"))]
     let filter = match std::env::var_os(RUST_LOG_ENV).map(|s| s.into_string()) {
         Some(Ok(env)) => {
             let mut filter = base_exceptions(EnvFilter::new(""));
@@ -49,6 +47,7 @@ pub fn init(basic: bool) {
 
     #[cfg(feature = "tracy")]
     tracing_subscriber::registry()
+        .with(filter)
         .with(tracing_tracy::TracyLayer::new().with_stackdepth(0))
         .init();
 
@@ -56,9 +55,7 @@ pub fn init(basic: bool) {
     // TODO: when tracing gets per Layer filters re-enable this when the tracy feature is being
     // used (and do the same in voxygen)
     {
-        let subscriber = FmtSubscriber::builder()
-            .with_max_level(Level::ERROR)
-            .with_env_filter(filter);
+        let subscriber = FmtSubscriber::builder().with_env_filter(filter);
 
         if basic {
             subscriber

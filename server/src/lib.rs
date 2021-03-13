@@ -305,14 +305,10 @@ impl Server {
                 .min_by_key(|site_pos| site_pos.distance_squared(center_chunk))
                 .unwrap_or(center_chunk);
 
-            // calculate the absolute position of the chunk in the world
-            // (we could add TerrainChunkSize::RECT_SIZE / 2 here, to spawn in the middle of
-            // the chunk)
-            let spawn_wpos = spawn_chunk.map2(TerrainChunkSize::RECT_SIZE, |e, sz| {
-                e as i32 * sz as i32 + sz as i32 / 2
-            });
+            // Calculate the middle of the chunk in the world
+            let spawn_wpos = TerrainChunkSize::center_wpos(spawn_chunk);
 
-            // unwrapping because generate_chunk only returns err when should_continue evals
+            // Unwrapping because generate_chunk only returns err when should_continue evals
             // to true
             let (tc, _cs) = world.generate_chunk(index, spawn_chunk, || false).unwrap();
             let min_z = tc.get_min_z();
@@ -345,7 +341,7 @@ impl Server {
         #[cfg(not(feature = "worldgen"))]
         let spawn_point = Vec3::new(0.0, 0.0, 256.0);
 
-        // set the spawn point we calculated above
+        // Set the spawn point we calculated above
         state.ecs_mut().insert(SpawnPoint(spawn_point));
 
         // Insert the world into the ECS (todo: Maybe not an Arc?)
@@ -931,30 +927,63 @@ impl Server {
         self.state.ecs().read_storage::<Client>().join().count() as i64
     }
 
-    // TODO: add Admin comp if ingame
     pub fn add_admin(&self, username: &str) {
         let mut editable_settings = self.editable_settings_mut();
         let login_provider = self.state.ecs().fetch::<LoginProvider>();
         let data_dir = self.data_dir();
-        add_admin(
+        if let Some(entity) = add_admin(
             username,
             &login_provider,
             &mut editable_settings,
             &data_dir.path,
-        );
+        ).and_then(|uuid| {
+            let state = &self.state;
+            (&state.ecs().entities(), &state.read_storage::<comp::Player>())
+                .join()
+                .find(|(_, player)| player.uuid() == uuid)
+                .map(|(e, _)| e)
+        }) {
+            // Add admin component if the player is ingame
+            let _ = self.state.ecs().write_storage().insert(entity, comp::Admin);
+            
+        };
     }
 
-    // TODO: remove Admin comp if ingame
     pub fn remove_admin(&self, username: &str) {
         let mut editable_settings = self.editable_settings_mut();
         let login_provider = self.state.ecs().fetch::<LoginProvider>();
         let data_dir = self.data_dir();
-        remove_admin(
+        if let Some(entity) = remove_admin(
             username,
             &login_provider,
             &mut editable_settings,
             &data_dir.path,
-        );
+        ).and_then(|uuid| {
+            let state = &self.state;
+            (&state.ecs().entities(), &state.read_storage::<comp::Player>())
+                .join()
+                .find(|(_, player)| player.uuid() == uuid)
+                .map(|(e, _)| e)
+        }) {
+            // Remove admin component if the player is ingame
+            let _ = self.state.ecs().write_storage::<comp::Admin>().remove(entity);
+        };
+    }
+
+    /// Useful for testing without a client
+    /// view_distance: distance in chunks that are persisted, this acts like the player view
+    /// distance so it is actually a bit farther due to a buffer zone
+    pub fn create_centered_persister(&mut self, view_distance: u32) {
+        let world_dims_chunks = self.world.sim().get_size();
+        let world_dims_blocks = TerrainChunkSize::blocks(world_dims_chunks);
+        // NOTE: origin is in the corner of the map
+        // TODO: extend this function to have picking a random position or specifiying a position
+        // as options
+        //let mut rng = rand::thread_rng();
+        // // Pick a random position but not to close to the edge
+        // let rand_pos = world_dims_blocks.map(|e| e as i32).map(|e| e / 2 + rng.gen_range(-e/2..e/2 + 1));
+        let pos = comp::Pos(Vec3::from(world_dims_blocks.map(|e| e as f32 / 2.0)));
+        self.state.create_persister(pos, view_distance, &self.world, &self.index, &self.runtime).build();
     }
 }
 
@@ -966,35 +995,42 @@ impl Drop for Server {
     }
 }
 
+/// If successful returns the Some(uuid) of the added admin
 pub fn add_admin(
     username: &str,
     login_provider: &LoginProvider,
     editable_settings: &mut EditableSettings,
     data_dir: &std::path::Path,
-) {
+) -> Option<common::uuid::Uuid> {
     use crate::settings::EditableSetting;
     match login_provider.username_to_uuid(username) {
         Ok(uuid) => editable_settings.admins.edit(data_dir, |admins| {
             if admins.insert(uuid) {
                 info!("Successfully added {} ({}) as an admin!", username, uuid);
+                Some(uuid)
             } else {
                 info!("{} ({}) is already an admin!", username, uuid);
+                None
             }
         }),
-        Err(err) => error!(
-            ?err,
-            "Could not find uuid for this name either the user does not exist or there was an \
-             error communicating with the auth server."
-        ),
+        Err(err) => {
+             error!(
+                ?err,
+                "Could not find uuid for this name either the user does not exist or there was an \
+                 error communicating with the auth server."
+            );
+            None
+        },
     }
 }
 
+/// If successful returns the Some(uuid) of the removed admin
 pub fn remove_admin(
     username: &str,
     login_provider: &LoginProvider,
     editable_settings: &mut EditableSettings,
     data_dir: &std::path::Path,
-) {
+) -> Option<common::uuid::Uuid> {
     use crate::settings::EditableSetting;
     match login_provider.username_to_uuid(username) {
         Ok(uuid) => editable_settings.admins.edit(data_dir, |admins| {
@@ -1003,14 +1039,19 @@ pub fn remove_admin(
                     "Successfully removed {} ({}) from the admins",
                     username, uuid
                 );
+                Some(uuid)
             } else {
                 info!("{} ({}) is not an admin!", username, uuid);
+                None
             }
         }),
-        Err(err) => error!(
-            ?err,
-            "Could not find uuid for this name either the user does not exist or there was an \
-             error communicating with the auth server."
-        ),
+        Err(err) => {
+            error!(
+                ?err,
+                "Could not find uuid for this name either the user does not exist or there was an \
+                 error communicating with the auth server."
+            ); 
+            None
+        },
     }
 }

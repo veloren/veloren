@@ -49,6 +49,27 @@ impl RectVolSize for TerrainChunkSize {
     };
 }
 
+impl TerrainChunkSize {
+    #[inline(always)]
+    /// Convert dimensions in terms of chunks into dimensions in terms of blocks
+    /// ```
+    /// assert_eq!(TerrainChunkSize::blocks(Vec2::new(3, 2)), Vec2::new(96, 64));
+    /// ```
+    pub fn blocks(chunks: Vec2<u32>) -> Vec2<u32> { chunks * Self::RECT_SIZE }
+
+    /// Calculate the world position (i.e. in blocks) at the center of this
+    /// chunk
+    /// ```
+    /// assert_eq!(
+    ///     TerrainChunkSize::center_wpos(Vec2::new(0, 2)),
+    ///     Vec2::new(16, 80)
+    /// );
+    /// ```
+    pub fn center_wpos(chunk_pos: Vec2<i32>) -> Vec2<i32> {
+        chunk_pos * Self::RECT_SIZE.as_::<i32>() + Self::RECT_SIZE.as_::<i32>() / 2
+    }
+}
+
 // TerrainChunkMeta
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

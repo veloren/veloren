@@ -43,10 +43,10 @@ pub fn init(settings: &Settings) -> Vec<impl Drop> {
         env.add_directive("dot_vox::parser=warn".parse().unwrap())
             .add_directive("gfx_device_gl=warn".parse().unwrap())
             .add_directive("prometheus_hyper=warn".parse().unwrap())
-            .add_directive("mio::sys::windows=debug".parse().unwrap())
+            .add_directive("mio::sys::windows=info".parse().unwrap())
             .add_directive("h2=info".parse().unwrap())
             .add_directive("tokio_util=info".parse().unwrap())
-            .add_directive("rustls=debug".parse().unwrap())
+            .add_directive("rustls=info".parse().unwrap())
             .add_directive("veloren_network_protocol=info".parse().unwrap())
             .add_directive(
                 "veloren_server::persistence::character=info"

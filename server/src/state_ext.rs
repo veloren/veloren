@@ -63,6 +63,18 @@ pub trait StateExt {
         pos: comp::Pos,
         ori: comp::Ori,
     ) -> EcsEntityBuilder;
+    // NOTE: currently only used for testing
+    /// Queues chunk generation in the view distance of the persister, this
+    /// entity must be built before those chunks are received (the builder
+    /// borrows the ecs world so that is kind of impossible in practice)
+    fn create_persister(
+        &mut self,
+        pos: comp::Pos,
+        view_distance: u32,
+        world: &std::sync::Arc<world::World>,
+        index: &world::IndexOwned,
+        runtime: &tokio::runtime::Runtime,
+    ) -> EcsEntityBuilder;
     /// Insert common/default components for a new character joining the server
     fn initialize_character_data(&mut self, entity: EcsEntity, character_id: CharacterId);
     /// Update the components associated with the entity's current character.
@@ -255,6 +267,50 @@ impl StateExt for State {
                 properties,
                 creation: None,
             })
+    }
+
+    // NOTE: currently only used for testing
+    /// Queues chunk generation in the view distance of the persister, this
+    /// entity must be built before those chunks are received (the builder
+    /// borrows the ecs world so that is kind of impossible in practice)
+    fn create_persister(
+        &mut self,
+        pos: comp::Pos,
+        view_distance: u32,
+        world: &std::sync::Arc<world::World>,
+        index: &world::IndexOwned,
+        runtime: &tokio::runtime::Runtime,
+    ) -> EcsEntityBuilder {
+        use common::{terrain::TerrainChunkSize, vol::RectVolSize};
+        use std::sync::Arc;
+        // Request chunks
+        {
+            let mut chunk_generator = self
+                .ecs()
+                .write_resource::<crate::chunk_generator::ChunkGenerator>();
+            let chunk_pos = self.terrain().pos_key(pos.0.map(|e| e as i32));
+            (-(view_distance as i32)..view_distance as i32 + 1)
+            .flat_map(|x| {
+                (-(view_distance as i32)..view_distance as i32 + 1).map(move |y| Vec2::new(x, y))
+            })
+            .map(|offset| offset + chunk_pos)
+            // Filter chunks outside the view distance
+            // Note: calculation from client chunk request filtering
+            .filter(|chunk_key| {
+                pos.0.xy().map(|e| e as f64).distance(
+                    chunk_key.map(|e| e as f64 + 0.5) * TerrainChunkSize::RECT_SIZE.map(|e| e as f64),
+                ) < (view_distance as f64 - 1.0 + 2.5 * 2.0_f64.sqrt())
+                    * TerrainChunkSize::RECT_SIZE.x as f64
+            })
+            .for_each(|chunk_key| {
+                chunk_generator.generate_chunk(None, chunk_key, runtime, Arc::clone(world), index.clone());
+            });
+        }
+
+        self.ecs_mut()
+            .create_entity_synced()
+            .with(pos)
+            .with(Presence::new(view_distance, PresenceKind::Spectator))
     }
 
     fn initialize_character_data(&mut self, entity: EcsEntity, character_id: CharacterId) {
