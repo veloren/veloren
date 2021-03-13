@@ -672,7 +672,9 @@ impl<'a> PhysicsData<'a> {
                                 physics_state.on_ground |= physics_state_delta.on_ground;
                                 physics_state.on_ceiling |= physics_state_delta.on_ceiling;
                                 physics_state.on_wall =
-                                    physics_state.on_wall.or(physics_state_delta.on_wall);
+                                    physics_state.on_wall.or(physics_state_delta
+                                        .on_wall
+                                        .map(|dir| ori_to.mul_direction(dir)));
                                 physics_state
                                     .touch_entities
                                     .append(&mut physics_state_delta.touch_entities);
