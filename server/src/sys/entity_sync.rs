@@ -249,9 +249,18 @@ impl<'a> System<'a> for Sys {
             {
                 let mut comp_sync_package = CompSyncPackage::new();
                 let mut throttle = true;
+
+                // extrapolation depends on receiving several frames indicating that something
+                // has stopped in order for the extrapolated value to have
+                // stopped
+                const SEND_UNCHANGED_PHYSICS_DATA: bool = true;
+
                 // TODO: An entity that stopped moving on a tick that it wasn't sent to the
                 // player will never have its position updated
-                match last_pos.get(entity).map(|&l| l.0 != pos) {
+                match last_pos
+                    .get(entity)
+                    .map(|&l| l.0 != pos || SEND_UNCHANGED_PHYSICS_DATA)
+                {
                     Some(false) => {},
                     Some(true) => {
                         let _ = last_pos.insert(entity, Last(pos));
@@ -265,7 +274,10 @@ impl<'a> System<'a> for Sys {
                 }
 
                 if let Some(&vel) = maybe_vel {
-                    match last_vel.get(entity).map(|&l| l.0 != vel) {
+                    match last_vel
+                        .get(entity)
+                        .map(|&l| l.0 != vel || SEND_UNCHANGED_PHYSICS_DATA)
+                    {
                         Some(false) => {},
                         Some(true) => {
                             let _ = last_vel.insert(entity, Last(vel));
@@ -286,7 +298,10 @@ impl<'a> System<'a> for Sys {
                 }
 
                 if let Some(&ori) = maybe_ori {
-                    match last_ori.get(entity).map(|&l| l.0 != ori) {
+                    match last_ori
+                        .get(entity)
+                        .map(|&l| l.0 != ori || SEND_UNCHANGED_PHYSICS_DATA)
+                    {
                         Some(false) => {},
                         Some(true) => {
                             let _ = last_ori.insert(entity, Last(ori));

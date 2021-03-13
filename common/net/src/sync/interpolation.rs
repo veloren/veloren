@@ -14,22 +14,31 @@ pub struct InterpBuffer<T> {
     pub i: usize,
 }
 
+impl<T> InterpBuffer<T> {
+    fn push(&mut self, time: f64, x: T) {
+        let InterpBuffer {
+            ref mut buf,
+            ref mut i,
+        } = self;
+        *i += 1;
+        *i %= buf.len();
+        buf[*i] = (time, x);
+    }
+}
+
 impl<T: 'static + Send + Sync> Component for InterpBuffer<T> {
     type Storage = IdvStorage<Self>;
 }
+
+// 0 is pure physics, 1 is pure extrapolation
+const PHYSICS_VS_EXTRAPOLATION_FACTOR: f32 = 0.2;
 
 impl InterpolatableComponent for Pos {
     type InterpData = InterpBuffer<Pos>;
     type ReadData = Vel;
 
     fn update_component(&self, interp_data: &mut Self::InterpData, time: f64) {
-        let InterpBuffer {
-            ref mut buf,
-            ref mut i,
-        } = interp_data;
-        *i += 1;
-        *i %= buf.len();
-        buf[*i] = (time, *self);
+        interp_data.push(time, *self);
     }
 
     fn interpolate(self, interp_data: &Self::InterpData, t2: f64, _vel: &Vel) -> Self {
@@ -50,7 +59,7 @@ impl InterpolatableComponent for Pos {
             out = p1.0;
         }
 
-        Pos(out)
+        Pos(Lerp::lerp(self.0, out, PHYSICS_VS_EXTRAPOLATION_FACTOR))
     }
 }
 
@@ -59,13 +68,7 @@ impl InterpolatableComponent for Vel {
     type ReadData = ();
 
     fn update_component(&self, interp_data: &mut Self::InterpData, time: f64) {
-        let InterpBuffer {
-            ref mut buf,
-            ref mut i,
-        } = interp_data;
-        *i += 1;
-        *i %= buf.len();
-        buf[*i] = (time, *self);
+        interp_data.push(time, *self);
     }
 
     fn interpolate(self, interp_data: &Self::InterpData, t2: f64, _: &()) -> Self {
@@ -85,7 +88,7 @@ impl InterpolatableComponent for Vel {
             out = p1.0;
         }
 
-        Vel(out)
+        Vel(Lerp::lerp(self.0, out, PHYSICS_VS_EXTRAPOLATION_FACTOR))
     }
 }
 
@@ -94,13 +97,7 @@ impl InterpolatableComponent for Ori {
     type ReadData = ();
 
     fn update_component(&self, interp_data: &mut Self::InterpData, time: f64) {
-        let InterpBuffer {
-            ref mut buf,
-            ref mut i,
-        } = interp_data;
-        *i += 1;
-        *i %= buf.len();
-        buf[*i] = (time, *self);
+        interp_data.push(time, *self);
     }
 
     fn interpolate(self, interp_data: &Self::InterpData, t2: f64, _: &()) -> Self {
@@ -120,6 +117,6 @@ impl InterpolatableComponent for Ori {
             out = p1.0;
         }
 
-        Ori(out.normalized())
+        Ori(Slerp::slerp(self.0, out, PHYSICS_VS_EXTRAPOLATION_FACTOR).normalized())
     }
 }
