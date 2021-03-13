@@ -6,7 +6,7 @@ use common::{
     comp,
     event::{EventBus, LocalEvent, ServerEvent},
     region::RegionMap,
-    resources::{DeltaTime, GameMode, Time, TimeOfDay},
+    resources::{DeltaTime, GameMode, PlayerEntity, Time, TimeOfDay},
     terrain::{Block, TerrainChunk, TerrainGrid},
     time::DayPeriod,
     trade::Trades,
@@ -14,8 +14,8 @@ use common::{
     vol::{ReadVol, WriteVol},
 };
 use common_base::span;
-use common_ecs::{PhysicsMetrics, SysMetrics};
-use common_net::sync::{interpolation, WorldSyncExt};
+use common_ecs::{run_now, PhysicsMetrics, SysMetrics};
+use common_net::sync::{interpolation as sync_interp, WorldSyncExt};
 use hashbrown::{HashMap, HashSet};
 use rayon::{ThreadPool, ThreadPoolBuilder};
 use specs::{
@@ -164,7 +164,9 @@ impl State {
         // Register client-local components
         // TODO: only register on the client
         ecs.register::<comp::LightAnimation>();
-        ecs.register::<interpolation::PosBuffer>();
+        ecs.register::<sync_interp::InterpBuffer<comp::Pos>>();
+        ecs.register::<sync_interp::InterpBuffer<comp::Vel>>();
+        ecs.register::<sync_interp::InterpBuffer<comp::Ori>>();
 
         // Register server-local components
         // TODO: only register on the server
@@ -194,6 +196,7 @@ impl State {
         // Register unsynced resources used by the ECS.
         ecs.insert(Time(0.0));
         ecs.insert(DeltaTime(0.0));
+        ecs.insert(PlayerEntity(None));
         ecs.insert(TerrainGrid::new().unwrap());
         ecs.insert(BlockChange::default());
         ecs.insert(TerrainChanges::default());
@@ -438,6 +441,7 @@ impl State {
         let mut dispatcher = dispatch_builder.build();
         drop(guard);
         span!(guard, "run systems");
+        run_now::<crate::interpolation::InterpolationSystem>(&self.ecs);
         dispatcher.dispatch(&self.ecs);
         drop(guard);
 

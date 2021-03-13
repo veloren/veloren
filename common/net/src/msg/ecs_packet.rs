@@ -101,8 +101,8 @@ impl sync::CompPacket for EcsCompPacket {
             EcsCompPacket::Sticky(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::CharacterState(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::Pos(comp) => sync::handle_interp_insert(comp, entity, world),
-            EcsCompPacket::Vel(comp) => sync::handle_insert(comp, entity, world),
-            EcsCompPacket::Ori(comp) => sync::handle_insert(comp, entity, world),
+            EcsCompPacket::Vel(comp) => sync::handle_interp_insert(comp, entity, world),
+            EcsCompPacket::Ori(comp) => sync::handle_interp_insert(comp, entity, world),
             EcsCompPacket::Shockwave(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::BeamSegment(comp) => sync::handle_insert(comp, entity, world),
         }
@@ -133,8 +133,8 @@ impl sync::CompPacket for EcsCompPacket {
             EcsCompPacket::Sticky(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::CharacterState(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::Pos(comp) => sync::handle_interp_modify(comp, entity, world),
-            EcsCompPacket::Vel(comp) => sync::handle_modify(comp, entity, world),
-            EcsCompPacket::Ori(comp) => sync::handle_modify(comp, entity, world),
+            EcsCompPacket::Vel(comp) => sync::handle_interp_modify(comp, entity, world),
+            EcsCompPacket::Ori(comp) => sync::handle_interp_modify(comp, entity, world),
             EcsCompPacket::Shockwave(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::BeamSegment(comp) => sync::handle_modify(comp, entity, world),
         }
@@ -169,8 +169,8 @@ impl sync::CompPacket for EcsCompPacket {
                 sync::handle_remove::<comp::CharacterState>(entity, world)
             },
             EcsCompPhantom::Pos(_) => sync::handle_interp_remove::<comp::Pos>(entity, world),
-            EcsCompPhantom::Vel(_) => sync::handle_remove::<comp::Vel>(entity, world),
-            EcsCompPhantom::Ori(_) => sync::handle_remove::<comp::Ori>(entity, world),
+            EcsCompPhantom::Vel(_) => sync::handle_interp_remove::<comp::Vel>(entity, world),
+            EcsCompPhantom::Ori(_) => sync::handle_interp_remove::<comp::Ori>(entity, world),
             EcsCompPhantom::Shockwave(_) => sync::handle_remove::<comp::Shockwave>(entity, world),
             EcsCompPhantom::BeamSegment(_) => sync::handle_remove::<comp::Ori>(entity, world),
         }

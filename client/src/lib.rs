@@ -33,6 +33,7 @@ use common::{
     grid::Grid,
     outcome::Outcome,
     recipe::RecipeBook,
+    resources::PlayerEntity,
     terrain::{block::Block, neighbors, BiomeKind, SitesKind, TerrainChunk, TerrainChunkSize},
     trade::{PendingTrade, TradeAction, TradeId, TradeResult},
     uid::{Uid, UidAllocator},
@@ -281,6 +282,7 @@ impl Client {
 
                 let entity = state.ecs_mut().apply_entity_package(entity_package);
                 *state.ecs_mut().write_resource() = time_of_day;
+                *state.ecs_mut().write_resource() = PlayerEntity(Some(entity));
                 state.ecs_mut().insert(material_stats);
                 state.ecs_mut().insert(ability_map);
 
