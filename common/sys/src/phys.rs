@@ -377,10 +377,59 @@ impl<'a> PhysicsData<'a> {
         span!(guard, "Apply movement and terrain collision");
         let (positions, velocities, previous_phys_cache, orientations) = (
             &write.positions,
-            &write.velocities,
+            &mut write.velocities,
             &write.previous_phys_cache,
             &write.orientations,
         );
+
+        // First pass: update velocity using air resistance and gravity for each entity.
+        // We do this in a first pass because it helps keep things more stable for
+        // entities that are anchored to other entities (such as airships).
+        (
+            &read.entities,
+            positions,
+            velocities,
+            &write.physics_states,
+            !&read.mountings,
+        )
+            .par_join()
+            .for_each(|(entity, pos, vel, physics_state, _)| {
+                let in_loaded_chunk = read
+                    .terrain
+                    .get_key(read.terrain.pos_key(pos.0.map(|e| e.floor() as i32)))
+                    .is_some();
+                // Integrate forces
+                // Friction is assumed to be a constant dependent on location
+                let friction = if physics_state.on_ground { 0.0 } else { FRIC_AIR }
+                        // .max(if physics_state.on_ground {
+                        //     FRIC_GROUND
+                        // } else {
+                        //     0.0
+                        // })
+                        .max(if physics_state.in_liquid.is_some() {
+                            FRIC_FLUID
+                        } else {
+                            0.0
+                        });
+                let downward_force =
+                    if !in_loaded_chunk {
+                        0.0 // No gravity in unloaded chunks
+                    } else if physics_state
+                        .in_liquid
+                        .map(|depth| depth > 0.75)
+                        .unwrap_or(false)
+                    {
+                        (1.0 - BOUYANCY) * GRAVITY
+                    } else {
+                        GRAVITY
+                    } * read.gravities.get(entity).map(|g| g.0).unwrap_or_default();
+
+                vel.0 = integrate_forces(read.dt.0, vel.0, downward_force, friction);
+            });
+
+        let velocities = &write.velocities;
+
+        // Second pass: resolve collisions
         let (pos_writes, vel_writes, land_on_grounds) = (
             &read.entities,
             read.scales.maybe(),
@@ -409,9 +458,10 @@ impl<'a> PhysicsData<'a> {
                     _previous_cache,
                     _,
                 )| {
-                    // defer the writes of positions to allow an inner loop over terrain-like
-                    // entities
+                    // defer the writes of positions and velocities to allow an inner loop over
+                    // terrain-like entities
                     let mut vel = *vel;
+                    let old_vel = vel;
                     if sticky.is_some() && physics_state.on_surface().is_some() {
                         vel.0 = physics_state.ground_vel;
                         return (pos_writes, vel_writes, land_on_grounds);
@@ -425,44 +475,14 @@ impl<'a> PhysicsData<'a> {
                         1.0
                     };
 
-                    let old_vel = vel;
-                    // Integrate forces
-                    // Friction is assumed to be a constant dependent on location
-                    let friction = if physics_state.on_ground { 0.0 } else { FRIC_AIR }
-                        // .max(if physics_state.on_ground {
-                        //     FRIC_GROUND
-                        // } else {
-                        //     0.0
-                        // })
-                        .max(if physics_state.in_liquid.is_some() {
-                            FRIC_FLUID
-                        } else {
-                            0.0
-                        });
                     let in_loaded_chunk = read
                         .terrain
                         .get_key(read.terrain.pos_key(pos.0.map(|e| e.floor() as i32)))
                         .is_some();
-                    let downward_force =
-                        if !in_loaded_chunk {
-                            0.0 // No gravity in unloaded chunks
-                        } else if physics_state
-                            .in_liquid
-                            .map(|depth| depth > 0.75)
-                            .unwrap_or(false)
-                        {
-                            (1.0 - BOUYANCY) * GRAVITY
-                        } else {
-                            GRAVITY
-                        } * read.gravities.get(entity).map(|g| g.0).unwrap_or_default();
-                    vel.0 = integrate_forces(read.dt.0, vel.0, downward_force, friction);
 
                     // Don't move if we're not in a loaded chunk
                     let pos_delta = if in_loaded_chunk {
-                        // this is an approximation that allows most framerates to
-                        // behave in a similar manner.
-                        let dt_lerp = 0.2;
-                        (vel.0 * dt_lerp + old_vel.0 * (1.0 - dt_lerp)) * read.dt.0
+                        vel.0 * read.dt.0
                     } else {
                         Vec3::zero()
                     };
