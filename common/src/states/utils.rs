@@ -170,7 +170,7 @@ impl Body {
                 quadruped_low::Species::Lavadrake => 4.0,
                 _ => 6.0,
             },
-            Body::Ship(_) => 0.5,
+            Body::Ship(_) => 0.175,
         }
     }
 
@@ -300,7 +300,11 @@ fn swim_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32, depth: 
         }
         * efficiency;
 
-    handle_orientation(data, update, if data.physics.on_ground { 9.0 } else { 2.0 });
+    handle_orientation(
+        data,
+        update,
+        data.body.base_ori_rate() * if data.physics.on_ground { 0.5 } else { 0.1 },
+    );
 
     // Swim
     update.vel.0.z = (update.vel.0.z
@@ -330,7 +334,7 @@ fn fly_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
             * BASE_FLIGHT_ACCEL
             * efficiency;
 
-    handle_orientation(data, update, 1.0);
+    handle_orientation(data, update, data.body.base_ori_rate());
 }
 
 /// Checks if an input related to an attack is held. If one is, moves entity

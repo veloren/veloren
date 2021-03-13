@@ -33,6 +33,7 @@ pub struct PreviousPhysCache {
     pub collision_boundary: f32,
     pub scale: f32,
     pub scaled_radius: f32,
+    pub ori: Quaternion<f32>,
 }
 
 impl Component for PreviousPhysCache {

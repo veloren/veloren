@@ -151,6 +151,7 @@ impl<'a> PhysicsData<'a> {
                     collision_boundary: 0.0,
                     scale: 0.0,
                     scaled_radius: 0.0,
+                    ori: Quaternion::identity(),
                 });
         }
 
@@ -620,7 +621,7 @@ impl<'a> PhysicsData<'a> {
                         _other,
                         pos_other,
                         vel_other,
-                        _previous_cache_other,
+                        previous_cache_other,
                         _mass_other,
                         collider_other,
                         ori_other,
@@ -678,6 +679,9 @@ impl<'a> PhysicsData<'a> {
                                 // thing is in the comp::Scale for visual reasons
                                 let mut cpos = *pos;
                                 let wpos = cpos.0;
+
+                                // TODO: Cache the matrices here to avoid recomputing
+
                                 let transform_from =
                                     Mat4::<f32>::translation_3d(pos_other.0 - wpos)
                                         * Mat4::from(ori_other.0)
@@ -685,8 +689,21 @@ impl<'a> PhysicsData<'a> {
                                 let transform_to = transform_from.inverted();
                                 let ori_from = Mat4::from(ori_other.0);
                                 let ori_to = ori_from.inverted();
+
+                                // The velocity of the collider, taking into account orientation.
+                                let wpos_rel = (Mat4::<f32>::translation_3d(pos_other.0)
+                                    * Mat4::from(ori_other.0)
+                                    * Mat4::<f32>::translation_3d(voxel_collider.translation))
+                                .inverted()
+                                .mul_point(wpos);
+                                let wpos_last = (Mat4::<f32>::translation_3d(pos_other.0)
+                                    * Mat4::from(previous_cache_other.ori)
+                                    * Mat4::<f32>::translation_3d(voxel_collider.translation))
+                                .mul_point(wpos_rel);
+                                let vel_other = vel_other.0 + (wpos - wpos_last) / read.dt.0;
+
                                 cpos.0 = transform_to.mul_point(Vec3::zero());
-                                vel.0 = ori_to.mul_direction(vel.0 - vel_other.0);
+                                vel.0 = ori_to.mul_direction(vel.0 - vel_other);
                                 let cylinder = (radius, z_min, z_max);
                                 cylinder_voxel_collision(
                                     cylinder,
@@ -696,7 +713,7 @@ impl<'a> PhysicsData<'a> {
                                     transform_to.mul_point(tgt_pos - wpos),
                                     &mut vel,
                                     &mut physics_state_delta,
-                                    ori_to.mul_direction(vel_other.0),
+                                    ori_to.mul_direction(vel_other),
                                     &read.dt,
                                     was_on_ground,
                                     block_snap,
@@ -707,13 +724,13 @@ impl<'a> PhysicsData<'a> {
                                 );
 
                                 cpos.0 = transform_from.mul_point(cpos.0) + wpos;
-                                vel.0 = ori_from.mul_direction(vel.0) + vel_other.0;
+                                vel.0 = ori_from.mul_direction(vel.0) + vel_other;
                                 tgt_pos = cpos.0;
 
                                 // union in the state updates, so that the state isn't just based on
                                 // the most recent terrain that collision was attempted with
                                 if physics_state_delta.on_ground {
-                                    physics_state.ground_vel = vel_other.0;
+                                    physics_state.ground_vel = vel_other;
                                 }
                                 physics_state.on_ground |= physics_state_delta.on_ground;
                                 physics_state.on_ceiling |= physics_state_delta.on_ceiling;
@@ -774,6 +791,12 @@ impl<'a> PhysicsData<'a> {
             if let Some(new_vel) = vel_writes.get(&entity) {
                 *vel = *new_vel;
             }
+        }
+
+        for (ori, previous_phys_cache) in
+            (&write.orientations, &mut write.previous_phys_cache).join()
+        {
+            previous_phys_cache.ori = ori.0;
         }
 
         let mut event_emitter = read.event_bus.emitter();
