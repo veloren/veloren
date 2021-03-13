@@ -6,6 +6,7 @@ edition = "2018"
 
 [features]
 worldgen = []
+tracy = ["common/tracy"]
 simd = ["vek/platform_intrinsics"]
 plugins = ["common-sys/plugins"]
 

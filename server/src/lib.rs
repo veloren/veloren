@@ -702,6 +702,15 @@ impl Server {
                 .set((end_of_server_tick - before_persistence_updates).as_nanos() as i64);
         }
 
+        #[cfg(feature = "tracy")]
+        {
+            use common_base::tracy_client::Plot;
+            use common_base::tracy_client::create_plot;
+            let entity_count = self.state.ecs().entities().join().count();
+            static ENTITY_COUNT: Plot = create_plot!("entity count");
+            ENTITY_COUNT.point(entity_count as f64);
+        }
+
         // 9) Finish the tick, pass control back to the frontend.
 
         Ok(frontend_events)
