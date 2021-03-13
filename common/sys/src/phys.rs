@@ -468,6 +468,18 @@ impl<'a> PhysicsData<'a> {
                         Vec3::zero()
                     };
 
+                    // What's going on here? Because collisions need to be resolved against multiple
+                    // colliders, this code takes the current position and
+                    // propagates it forward according to velocity to find a
+                    // 'target' position. This is where we'd ideally end up at the end of the tick,
+                    // assuming no collisions. Then, we refine this target by
+                    // stepping from the original position to the target for
+                    // every obstacle, refining the target position as we go. It's not perfect, but
+                    // it works pretty well in practice. Oddities can occur on
+                    // the intersection between multiple colliders, but it's not
+                    // like any game physics system resolves these sort of things well anyway. At
+                    // the very least, we don't do things that result in glitchy
+                    // velocities or entirely broken position snapping.
                     let mut tgt_pos = pos.0 + pos_delta;
 
                     let was_on_ground = physics_state.on_ground;
@@ -527,6 +539,8 @@ impl<'a> PhysicsData<'a> {
                             tgt_pos = cpos.0;
                         },
                         Collider::Point => {
+                            let mut pos = pos;
+
                             let (dist, block) = read
                                 .terrain
                                 .ray(pos.0, pos.0 + pos_delta)
@@ -966,11 +980,12 @@ fn cylinder_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
                 && resolve_dir.z == 0.0
                 // ...and the vertical resolution direction is sufficiently great...
                 && -dir.z > 0.1
-                // ...and we're falling/standing OR there is a block *directly* beneath our current origin (note: not hitbox)...
-                && (vel.0.z <= 0.0 || terrain
-                    .get((pos.0 - Vec3::unit_z() * 0.1).map(|e| e.floor() as i32))
-                    .map(|block| block.is_solid())
-                    .unwrap_or(false))
+                && was_on_ground
+                // // ...and we're falling/standing OR there is a block *directly* beneath our current origin (note: not hitbox)...
+                // && (vel.0.z <= 0.0 || terrain
+                //     .get((pos.0 - Vec3::unit_z() * 0.1).map(|e| e.floor() as i32))
+                //     .map(|block| block.is_solid())
+                //     .unwrap_or(false))
                 // ...and there is a collision with a block beneath our current hitbox...
                 && collision_with(
                     pos.0 + resolve_dir - Vec3::unit_z() * 1.05,
