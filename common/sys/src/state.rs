@@ -15,7 +15,7 @@ use common::{
 };
 use common_base::span;
 use common_ecs::{PhysicsMetrics, SysMetrics};
-use common_net::sync::WorldSyncExt;
+use common_net::sync::{interpolation, WorldSyncExt};
 use hashbrown::{HashMap, HashSet};
 use rayon::{ThreadPool, ThreadPoolBuilder};
 use specs::{
@@ -164,6 +164,7 @@ impl State {
         // Register client-local components
         // TODO: only register on the client
         ecs.register::<comp::LightAnimation>();
+        ecs.register::<interpolation::PosBuffer>();
 
         // Register server-local components
         // TODO: only register on the server

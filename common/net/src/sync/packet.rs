@@ -42,6 +42,40 @@ pub fn handle_remove<C: Component>(entity: Entity, world: &World) {
     world.write_storage::<C>().remove(entity);
 }
 
+pub trait InterpolatableComponent: Component {
+    type InterpData: Component + Default;
+
+    fn interpolate(self, data: &mut Self::InterpData, entity: Entity, world: &World) -> Self;
+}
+
+pub fn handle_interp_insert<C: InterpolatableComponent>(comp: C, entity: Entity, world: &World) {
+    let mut interp_data = C::InterpData::default();
+    let comp = comp.interpolate(&mut interp_data, entity, world);
+    handle_insert(comp, entity, world);
+    handle_insert(interp_data, entity, world);
+}
+
+pub fn handle_interp_modify<C: InterpolatableComponent + Debug>(
+    comp: C,
+    entity: Entity,
+    world: &World,
+) {
+    if let Some(mut interp_data) = world.write_storage::<C::InterpData>().get_mut(entity) {
+        let comp = comp.interpolate(&mut interp_data, entity, world);
+        handle_modify(comp, entity, world);
+    } else {
+        error!(
+            ?comp,
+            "Error modifying interpolation data for synced component, it doesn't seem to exist"
+        );
+    }
+}
+
+pub fn handle_interp_remove<C: InterpolatableComponent>(entity: Entity, world: &World) {
+    handle_remove::<C>(entity, world);
+    handle_remove::<C::InterpData>(entity, world);
+}
+
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub enum CompUpdateKind<P: CompPacket> {
     Inserted(P),
