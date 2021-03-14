@@ -197,7 +197,7 @@ pub fn handle_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
     if let Some(depth) = data.physics.in_liquid {
         swim_move(data, update, efficiency, depth);
     } else if input_is_pressed(data, InputKind::Fly)
-        && !data.physics.on_ground
+        && (!data.physics.on_ground || data.body.jump_impulse().is_none())
         && data.body.can_fly().is_some()
     {
         fly_move(data, update, efficiency * data.body.can_fly().expect("can_fly is_some right above this"));

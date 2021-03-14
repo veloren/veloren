@@ -1049,14 +1049,14 @@ fn cylinder_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
             {
                 // ...block-hop!
                 pos.0.z = (pos.0.z + 0.1).floor() + block_height;
-                vel.0.z = 0.0;
+                vel.0.z = vel.0.z.max(0.0);
                 on_ground = true;
                 break;
             } else {
                 // Correct the velocity
                 vel.0 = vel.0.map2(resolve_dir, |e, d| {
                     if d * e.signum() < 0.0 {
-                        if d < 0.0 { d.max(0.0) } else { d.min(0.0) }
+                        if d < 0.0 { d.min(0.0) } else { d.max(0.0) }
                     } else {
                         e
                     }
@@ -1093,6 +1093,7 @@ fn cylinder_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
         z_range.clone(),
     ) && vel.0.z < 0.25
         && vel.0.z > -1.5
+        && was_on_ground
         && block_snap
     {
         let snap_height = terrain
@@ -1119,8 +1120,8 @@ fn cylinder_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
             &terrain,
             block_true,
             near_iter.clone(),
-            radius,
-            z_range.clone(),
+            radius + 0.05,
+            z_range.start - 0.05..z_range.end + 0.05,
         ) {
             (a + dir, true)
         } else {
@@ -1133,9 +1134,7 @@ fn cylinder_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
     }
 
     if physics_state.on_ground || physics_state.on_wall.is_some() {
-        if physics_state.on_ground {
-            vel.0 *= (1.0 - FRIC_GROUND.min(1.0)).powf(dt.0 * 60.0);
-        }
+        vel.0 *= (1.0 - FRIC_GROUND.min(1.0)).powf(dt.0 * 60.0);
         physics_state.ground_vel = ground_vel;
     }
 
