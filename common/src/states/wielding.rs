@@ -2,10 +2,9 @@ use super::utils::*;
 use crate::{
     comp::{
         slot::{EquipSlot, Slot},
-        CharacterState, InputKind, InventoryAction, StateUpdate,
+        CharacterState, InventoryAction, StateUpdate,
     },
     states::behavior::{CharacterBehavior, JoinData},
-    uid::Uid,
 };
 
 pub struct Data;
@@ -23,12 +22,7 @@ impl CharacterBehavior for Data {
         handle_ability4_input(&data, &mut update);
         handle_dodge_input(&data, &mut update);
 
-        update
-    }
-
-    fn handle_input(&self, data: &JoinData, input: InputKind, _target: Option<Uid>) -> StateUpdate {
-        let mut update = StateUpdate::from(data);
-        handle_input(&data, &mut update, input);
+        attempt_input(&data, &mut update);
 
         update
     }

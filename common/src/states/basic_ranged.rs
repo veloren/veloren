@@ -1,7 +1,5 @@
 use crate::{
-    comp::{
-        Body, CharacterState, Gravity, InputKind, LightEmitter, ProjectileConstructor, StateUpdate,
-    },
+    comp::{Body, CharacterState, Gravity, LightEmitter, ProjectileConstructor, StateUpdate},
     event::ServerEvent,
     states::{
         behavior::{CharacterBehavior, JoinData},
@@ -39,8 +37,6 @@ pub struct Data {
     pub stage_section: StageSection,
     /// Whether the attack fired already
     pub exhausted: bool,
-    /// Whether or not the state should end
-    pub end: bool,
 }
 
 impl CharacterBehavior for Data {
@@ -115,10 +111,10 @@ impl CharacterBehavior for Data {
                     });
                 } else {
                     // Done
-                    if self.end || self.static_data.ability_info.input.is_none() {
-                        update.character = CharacterState::Wielding;
-                    } else {
+                    if input_is_pressed(data, self.static_data.ability_info) {
                         reset_state(self, data, &mut update);
+                    } else {
+                        update.character = CharacterState::Wielding;
                     }
                 }
             },
@@ -126,19 +122,6 @@ impl CharacterBehavior for Data {
                 // If it somehow ends up in an incorrect stage section
                 update.character = CharacterState::Wielding;
             },
-        }
-
-        update
-    }
-
-    fn cancel_input(&self, data: &JoinData, input: InputKind) -> StateUpdate {
-        let mut update = StateUpdate::from(data);
-        update.removed_inputs.push(input);
-
-        if Some(input) == self.static_data.ability_info.input {
-            if let CharacterState::BasicRanged(c) = &mut update.character {
-                c.end = true;
-            }
         }
 
         update

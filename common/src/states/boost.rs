@@ -1,5 +1,5 @@
 use crate::{
-    comp::{CharacterState, InputKind, StateUpdate},
+    comp::{CharacterState, StateUpdate},
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
@@ -23,8 +23,6 @@ pub struct Data {
     pub static_data: StaticData,
     /// Timer for each stage
     pub timer: Duration,
-    /// Whether or not the state should end
-    pub end: bool,
 }
 
 impl CharacterBehavior for Data {
@@ -49,23 +47,10 @@ impl CharacterBehavior for Data {
             });
         } else {
             // Done
-            if self.end || self.static_data.ability_info.input.is_none() {
-                update.character = CharacterState::Wielding;
-            } else {
+            if input_is_pressed(data, self.static_data.ability_info) {
                 reset_state(self, data, &mut update);
-            }
-        }
-
-        update
-    }
-
-    fn cancel_input(&self, data: &JoinData, input: InputKind) -> StateUpdate {
-        let mut update = StateUpdate::from(data);
-        update.removed_inputs.push(input);
-
-        if Some(input) == self.static_data.ability_info.input {
-            if let CharacterState::Boost(c) = &mut update.character {
-                c.end = true;
+            } else {
+                update.character = CharacterState::Wielding;
             }
         }
 

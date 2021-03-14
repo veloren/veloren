@@ -1,6 +1,6 @@
 use crate::{
     combat::{Attack, AttackDamage, AttackEffect, CombatBuff, CombatEffect, CombatRequirement},
-    comp::{CharacterState, EnergyChange, EnergySource, InputKind, Melee, StateUpdate},
+    comp::{CharacterState, EnergyChange, EnergySource, Melee, StateUpdate},
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::{StageSection, *},
@@ -60,8 +60,6 @@ pub struct Data {
     pub exhausted: bool,
     /// How much the attack charged by
     pub charge_amount: f32,
-    /// Whether or not the state should end
-    pub end: bool,
 }
 
 impl CharacterBehavior for Data {
@@ -84,7 +82,7 @@ impl CharacterBehavior for Data {
             StageSection::Charge => {
                 if
                 /* ability_key_is_pressed(data, self.static_data.ability_info.key) */
-                !self.end
+                input_is_pressed(data, self.static_data.ability_info)
                     && update.energy.current() as f32 >= self.static_data.energy_cost
                     && self.timer < self.static_data.charge_duration
                 {
@@ -113,7 +111,7 @@ impl CharacterBehavior for Data {
                     });
                 } else if
                 /* ability_key_is_pressed(data, self.static_data.ability_info.key) */
-                !self.end
+                input_is_pressed(data, self.static_data.ability_info)
                     && update.energy.current() as f32 >= self.static_data.energy_cost
                 {
                     // Maintains charge
@@ -244,19 +242,6 @@ impl CharacterBehavior for Data {
                 // Make sure attack component is removed
                 data.updater.remove::<Melee>(data.entity);
             },
-        }
-
-        update
-    }
-
-    fn cancel_input(&self, data: &JoinData, input: InputKind) -> StateUpdate {
-        let mut update = StateUpdate::from(data);
-        update.removed_inputs.push(input);
-
-        if Some(input) == self.static_data.ability_info.input {
-            if let CharacterState::ChargedMelee(c) = &mut update.character {
-                c.end = true;
-            }
         }
 
         update

@@ -506,6 +506,13 @@ pub fn handle_input(data: &JoinData, update: &mut StateUpdate, input: InputKind)
     }
 }
 
+pub fn attempt_input(data: &JoinData, update: &mut StateUpdate) {
+    // TODO: look into using first() when it becomes stable
+    if let Some(input) = data.controller.queued_inputs.iter().next() {
+        handle_input(data, update, *input);
+    }
+}
+
 /*pub fn handle_ability1_input(data: &JoinData, update: &mut StateUpdate) {
     if data.inputs.primary.is_pressed() {
         handle_ability_pressed(data, update, AbilityKey::Mouse1);
@@ -618,6 +625,13 @@ pub fn handle_interrupt(data: &JoinData, update: &mut StateUpdate, attacks_inter
         handle_ability4_input(data, update);
     }
     handle_dodge_input(data, update);
+}
+
+pub fn input_is_pressed(data: &JoinData, ability_info: AbilityInfo) -> bool {
+    //data.controller.queued_inputs.contains(ability_info.input)
+    ability_info
+        .input
+        .map_or(false, |i| data.controller.queued_inputs.contains(&i))
 }
 
 pub fn ability_key_is_pressed(data: &JoinData, ability_key: AbilityKey) -> bool {

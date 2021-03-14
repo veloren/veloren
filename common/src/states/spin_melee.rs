@@ -1,6 +1,6 @@
 use crate::{
     combat::{Attack, AttackDamage, AttackEffect, CombatBuff, CombatEffect, CombatRequirement},
-    comp::{CharacterState, EnergyChange, EnergySource, InputKind, Melee, StateUpdate},
+    comp::{CharacterState, EnergyChange, EnergySource, Melee, StateUpdate},
     consts::GRAVITY,
     states::{
         behavior::{CharacterBehavior, JoinData},
@@ -58,8 +58,6 @@ pub struct Data {
     pub stage_section: StageSection,
     /// Whether the state can deal damage
     pub exhausted: bool,
-    /// Whether or not the state should end
-    pub end: bool,
 }
 
 impl CharacterBehavior for Data {
@@ -181,7 +179,7 @@ impl CharacterBehavior for Data {
                 } else if update.energy.current() as f32 >= self.static_data.energy_cost
                     && (self.spins_remaining != 0
                         || (self.static_data.is_infinite
-                            && /*ability_key_is_pressed(data, self.static_data.ability_info.key)*/ !self.end))
+                            && /*ability_key_is_pressed(data, self.static_data.ability_info.key)*/ input_is_pressed(data, self.static_data.ability_info)))
                 {
                     let new_spins_remaining = if self.static_data.is_infinite {
                         self.spins_remaining
@@ -231,19 +229,6 @@ impl CharacterBehavior for Data {
                 // Make sure attack component is removed
                 data.updater.remove::<Melee>(data.entity);
             },
-        }
-
-        update
-    }
-
-    fn cancel_input(&self, data: &JoinData, input: InputKind) -> StateUpdate {
-        let mut update = StateUpdate::from(data);
-        update.removed_inputs.push(input);
-
-        if Some(input) == self.static_data.ability_info.input {
-            if let CharacterState::SpinMelee(c) = &mut update.character {
-                c.end = true;
-            }
         }
 
         update
