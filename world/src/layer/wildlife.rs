@@ -119,6 +119,43 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             is_underwater: false,
             get_density: |c, _col| close(c.temp, CONFIG.snow_temp, 0.15) * BASE_DENSITY * 0.1,
         },
+        // Tundra rock solitary ennemies
+        Entry {
+            make_entity: |pos, rng| {
+                EntityInfo::at(pos)
+                    .with_body(
+                        quadruped_low::Body::random_with(rng, &quadruped_low::Species::Rocksnapper)
+                            .into(),
+                    )
+                    .with_alignment(Alignment::Enemy)
+            },
+            group_size: 1..2,
+            is_underwater: false,
+            get_density: |c, col| {
+                close(c.temp, CONFIG.snow_temp, 0.15) * BASE_DENSITY * col.rock * 1.0
+            },
+        },
+        // Taiga rare solitary ennemies
+        Entry {
+            make_entity: |pos, rng| {
+                EntityInfo::at(pos)
+                    .with_body(match rng.gen_range(0..3) {
+                        0 => biped_large::Body::random_with(rng, &biped_large::Species::Wendigo)
+                            .into(),
+                        _ => quadruped_medium::Body::random_with(
+                            rng,
+                            &quadruped_medium::Species::Dreadhorn,
+                        )
+                        .into(),
+                    })
+                    .with_alignment(Alignment::Enemy)
+            },
+            group_size: 1..2,
+            is_underwater: false,
+            get_density: |c, col| {
+                close(c.temp, CONFIG.snow_temp + 0.2, 0.2) * col.tree_density * BASE_DENSITY * 0.2
+            },
+        },
         // Taiga pack ennemies
         Entry {
             make_entity: |pos, rng| {
@@ -166,7 +203,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
-                    .with_body(match rng.gen_range(0..6) {
+                    .with_body(match rng.gen_range(0..5) {
                         0 => {
                             bird_medium::Body::random_with(rng, &bird_medium::Species::Eagle).into()
                         },
@@ -181,11 +218,6 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                             &quadruped_medium::Species::Moose,
                         )
                         .into(),
-                        4 => quadruped_medium::Body::random_with(
-                            rng,
-                            &quadruped_medium::Species::Dreadhorn,
-                        )
-                        .into(),
                         _ => quadruped_medium::Body::random_with(
                             rng,
                             &quadruped_medium::Species::Tuskram,
@@ -197,22 +229,6 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             group_size: 1..2,
             is_underwater: false,
             get_density: |c, _col| close(c.temp, CONFIG.snow_temp + 0.2, 0.6) * BASE_DENSITY * 5.0,
-        },
-        // Tundra rock solitary ennemies
-        Entry {
-            make_entity: |pos, rng| {
-                EntityInfo::at(pos)
-                    .with_body(
-                        quadruped_low::Body::random_with(rng, &quadruped_low::Species::Rocksnapper)
-                            .into(),
-                    )
-                    .with_alignment(Alignment::Enemy)
-            },
-            group_size: 1..2,
-            is_underwater: false,
-            get_density: |c, col| {
-                close(c.temp, CONFIG.snow_temp, 0.15) * BASE_DENSITY * col.rock * 1.0
-            },
         },
         // Temperate solitary ennemies
         Entry {
@@ -247,7 +263,10 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             group_size: 1..2,
             is_underwater: false,
             get_density: |c, col| {
-                close(c.temp, CONFIG.temperate_temp, 0.35) * col.tree_density * BASE_DENSITY * 1.0
+                close(c.temp, CONFIG.temperate_temp + 0.1, 0.5)
+                    * col.tree_density
+                    * BASE_DENSITY
+                    * 1.0
             },
         },
         // Temperate pack wild
@@ -318,8 +337,8 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             group_size: 1..8,
             is_underwater: false,
             get_density: |c, _col| {
-                close(c.temp, CONFIG.temperate_temp, 0.5)
-                    * close(c.humidity, CONFIG.forest_hum, 0.4)
+                close(c.temp, CONFIG.temperate_temp + 0.1, 0.6)
+                    * close(c.humidity, CONFIG.forest_hum, 0.6)
                     //* col.tree_density
                     * BASE_DENSITY
                     * 4.0
@@ -329,7 +348,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
-                    .with_body(match rng.gen_range(0..12) {
+                    .with_body(match rng.gen_range(0..11) {
                         0 => quadruped_small::Body {
                             species: quadruped_small::Species::Fox,
                             body_type: quadruped_small::BodyType::Male,
@@ -370,12 +389,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                             &quadruped_medium::Species::Hirdrasil,
                         )
                         .into(),
-                        9 => quadruped_medium::Body::random_with(
-                            rng,
-                            &quadruped_medium::Species::Kelpie,
-                        )
-                        .into(),
-                        10 => quadruped_small::Body::random_with(
+                        9 => quadruped_small::Body::random_with(
                             rng,
                             &quadruped_small::Species::Truffler,
                         )
@@ -391,9 +405,9 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             group_size: 1..2,
             is_underwater: false,
             get_density: |c, _col| {
-                close(c.temp, CONFIG.temperate_temp, 0.5)
+                close(c.temp, CONFIG.temperate_temp + 0.1, 0.6)
                     * BASE_DENSITY
-                    * close(c.humidity, CONFIG.forest_hum, 0.4)
+                    * close(c.humidity, CONFIG.forest_hum, 0.6)
                     * 8.0
             },
         },
@@ -421,7 +435,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
-                    .with_body(match rng.gen_range(0..3) {
+                    .with_body(match rng.gen_range(0..4) {
                         0 => quadruped_small::Body::random_with(
                             rng,
                             &quadruped_small::Species::Beaver,
@@ -431,6 +445,11 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                             species: quadruped_low::Species::Salamander,
                             body_type: quadruped_low::BodyType::Female,
                         }
+                        .into(),
+                        2 => quadruped_medium::Body::random_with(
+                            rng,
+                            &quadruped_medium::Species::Kelpie,
+                        )
                         .into(),
                         _ => {
                             bird_medium::Body::random_with(rng, &bird_medium::Species::Duck).into()
@@ -499,7 +518,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                                 .into()
                         },
                         1 => quadruped_low::Body::random_with(rng, &quadruped_low::Species::Asp)
-                        .into(),
+                            .into(),
                         _ => quadruped_medium::Body::random_with(
                             rng,
                             &quadruped_medium::Species::Tiger,
@@ -511,8 +530,8 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             group_size: 1..2,
             is_underwater: false,
             get_density: |c, _col| {
-                close(c.temp, CONFIG.tropical_temp + 0.1, 0.3)
-                    * close(c.humidity, CONFIG.jungle_hum, 0.3)
+                close(c.temp, CONFIG.tropical_temp + 0.2, 0.2)
+                    * close(c.humidity, CONFIG.jungle_hum, 0.2)
                     * BASE_DENSITY
                     * 3.0
             },
@@ -539,8 +558,8 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             group_size: 1..2,
             is_underwater: false,
             get_density: |c, _col| {
-                close(c.temp, CONFIG.tropical_temp + 0.1, 0.3)
-                    * close(c.humidity, CONFIG.jungle_hum, 0.3)
+                close(c.temp, CONFIG.tropical_temp + 0.2, 0.2)
+                    * close(c.humidity, CONFIG.jungle_hum, 0.2)
                     * BASE_DENSITY
                     * 0.8
             },
@@ -573,8 +592,8 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             group_size: 1..2,
             is_underwater: false,
             get_density: |c, _col| {
-                close(c.temp, CONFIG.tropical_temp, 0.4)
-                    * close(c.humidity, CONFIG.jungle_hum, 0.3)
+                close(c.temp, CONFIG.tropical_temp + 0.2, 0.3)
+                    * close(c.humidity, CONFIG.jungle_hum, 0.2)
                     * BASE_DENSITY
                     * 8.0
             },
@@ -853,13 +872,12 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
                     .with_body(
-                        quadruped_low::Body::random_with(rng, &quadruped_low::Species::Crocodile)
-                            .into(),
+                        fish_medium::Body::random_with(rng, &fish_medium::Species::Icepike).into(),
                     )
                     .with_alignment(Alignment::Enemy)
             },
             group_size: 1..3,
-            is_underwater: false,
+            is_underwater: true,
             get_density: |c, col| {
                 close(c.temp, CONFIG.snow_temp, 0.15) * col.tree_density * BASE_DENSITY * 5.0
             },

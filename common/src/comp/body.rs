@@ -197,7 +197,7 @@ impl Body {
                 theropod::Species::Woodraptor => 1.5,
                 theropod::Species::Archaeos => 3.5,
                 theropod::Species::Odonto => 3.5,
-                theropod::Species::Yale => 1.3,
+                theropod::Species::Yale => 0.8,
                 theropod::Species::Ntouka => 3.0,
                 _ => 1.8,
             },
@@ -249,6 +249,8 @@ impl Body {
                 quadruped_medium::Species::Saber => 2.0,
                 quadruped_medium::Species::Catoblepas => 2.9,
                 quadruped_medium::Species::Barghest => 2.5,
+                quadruped_medium::Species::Dreadhorn => 2.5,
+                quadruped_medium::Species::Moose => 2.5,
                 _ => 1.6,
             },
             Body::QuadrupedLow(body) => match body.species {
@@ -263,7 +265,7 @@ impl Body {
                 theropod::Species::Sandraptor => 2.6,
                 theropod::Species::Woodraptor => 2.6,
                 theropod::Species::Sunlizard => 2.5,
-                theropod::Species::Yale => 2.8,
+                theropod::Species::Yale => 3.0,
                 _ => 8.0,
             },
             Body::BirdMedium(body) => match body.species {

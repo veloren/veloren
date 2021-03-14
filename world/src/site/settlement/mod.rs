@@ -902,12 +902,11 @@ impl Settlement {
                                 object::Body::TrainingDummy.into()
                             },
                             0 => {
-                                let species = match dynamic_rng.gen_range(0..6) {
+                                let species = match dynamic_rng.gen_range(0..5) {
                                     0 => quadruped_small::Species::Pig,
                                     1 => quadruped_small::Species::Sheep,
                                     2 => quadruped_small::Species::Goat,
                                     3 => quadruped_small::Species::Dog,
-                                    4 => quadruped_small::Species::Goat,
                                     _ => quadruped_small::Species::Cat,
                                 };
                                 is_human = false;

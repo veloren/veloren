@@ -3,7 +3,6 @@ use super::{
     SkeletonAttr, TheropodSkeleton,
 };
 use common::states::utils::StageSection;
-//use std::ops::Rem;
 
 pub struct AlphaAnimation;
 

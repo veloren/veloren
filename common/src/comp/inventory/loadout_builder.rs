@@ -191,10 +191,14 @@ impl LoadoutBuilder {
                 Body::Theropod(theropod) => match theropod.species {
                     theropod::Species::Sandraptor
                     | theropod::Species::Snowraptor
-                    | theropod::Species::Woodraptor
-                    | theropod::Species::Yale => {
+                    | theropod::Species::Woodraptor => {
                         main_tool = Some(Item::new_from_asset_expect(
                             "common.items.npc_weapons.unique.theropodbird",
+                        ));
+                    },
+                    theropod::Species::Yale => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.unique.theropodcharge",
                         ));
                     },
                     _ => {
