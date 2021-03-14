@@ -244,6 +244,7 @@ impl Client {
         ping_stream.send(PingMsg::Ping)?;
 
         // Wait for initial sync
+        let mut ping_interval = tokio::time::interval(core::time::Duration::from_secs(1));
         let (
             state,
             entity,
@@ -255,7 +256,13 @@ impl Client {
             recipe_book,
             max_group_size,
             client_timeout,
-        ) = match register_stream.recv().await? {
+        ) = match loop {
+            tokio::select! {
+                res = register_stream.recv() => break res?,
+                _ = ping_interval.tick() => ping_stream.send(PingMsg::Ping)?,
+            }
+        } {
+
             ServerInit::GameSync {
                 entity_package,
                 time_of_day,
