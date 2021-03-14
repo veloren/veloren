@@ -121,15 +121,15 @@ impl CharacterBehavior for Data {
 
         handle_orientation(data, &mut update, 1.0);
         handle_move(data, &mut update, 0.3);
-        if !ability_key_is_pressed(data, self.static_data.ability_info.key) {
-            handle_interrupt(data, &mut update, self.static_data.is_interruptible);
-            match update.character {
-                CharacterState::ComboMelee(_) => {},
-                _ => {
-                    return update;
-                },
-            }
-        }
+        // if !ability_key_is_pressed(data, self.static_data.ability_info.key) {
+        //     handle_interrupt(data, &mut update, self.static_data.is_interruptible);
+        //     match update.character {
+        //         CharacterState::ComboMelee(_) => {},
+        //         _ => {
+        //             return update;
+        //         },
+        //     }
+        // }
 
         let stage_index = (self.stage - 1) as usize;
 
@@ -269,7 +269,7 @@ impl CharacterBehavior for Data {
                     });
                 } else {
                     // Done
-                    if input_is_pressed(data, self.static_data.ability_info) {
+                    if input_is_pressed(data, self.static_data.ability_info.input) {
                         reset_state(self, data, &mut update);
                     } else {
                         update.character = CharacterState::Wielding;
@@ -289,7 +289,7 @@ impl CharacterBehavior for Data {
 }
 
 fn reset_state(data: &Data, join: &JoinData, update: &mut StateUpdate) {
-    handle_input(join, update, data.static_data.ability_info.input.unwrap());
+    handle_input(join, update, data.static_data.ability_info.input);
 
     if let CharacterState::ComboMelee(c) = &mut update.character {
         c.stage = (data.stage % data.static_data.num_stages) + 1;

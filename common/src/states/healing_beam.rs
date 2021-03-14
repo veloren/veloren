@@ -54,15 +54,15 @@ impl CharacterBehavior for Data {
 
         handle_move(data, &mut update, 0.4);
         handle_jump(data, &mut update);
-        if !ability_key_is_pressed(data, self.static_data.ability_info.key) {
-            handle_interrupt(data, &mut update, false);
-            match update.character {
-                CharacterState::HealingBeam(_) => {},
-                _ => {
-                    return update;
-                },
-            }
-        }
+        // if !ability_key_is_pressed(data, self.static_data.ability_info.key) {
+        //     handle_interrupt(data, &mut update, false);
+        //     match update.character {
+        //         CharacterState::HealingBeam(_) => {},
+        //         _ => {
+        //             return update;
+        //         },
+        //     }
+        // }
 
         match self.stage_section {
             StageSection::Buildup => {
@@ -93,7 +93,7 @@ impl CharacterBehavior for Data {
             StageSection::Cast => {
                 if
                 /* ability_key_is_pressed(data, self.static_data.ability_info.key) */
-                input_is_pressed(data, self.static_data.ability_info) {
+                input_is_pressed(data, self.static_data.ability_info.input) {
                     let speed =
                         self.static_data.range / self.static_data.beam_duration.as_secs_f32();
                     let heal = AttackEffect::new(

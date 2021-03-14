@@ -138,7 +138,6 @@ impl ControlSettings {
             GameInput::SwimDown => KeyMouse::Key(VirtualKeyCode::LShift),
             GameInput::Fly => KeyMouse::Key(VirtualKeyCode::H),
             GameInput::Sneak => KeyMouse::Key(VirtualKeyCode::LControl),
-            //GameInput::WallLeap => MIDDLE_CLICK_KEY,
             GameInput::ToggleLantern => KeyMouse::Key(VirtualKeyCode::G),
             GameInput::Mount => KeyMouse::Key(VirtualKeyCode::F),
             GameInput::Map => KeyMouse::Key(VirtualKeyCode::M),
@@ -158,7 +157,6 @@ impl ControlSettings {
             GameInput::Respawn => KeyMouse::Key(VirtualKeyCode::Space),
             GameInput::Interact => KeyMouse::Key(VirtualKeyCode::E),
             GameInput::ToggleWield => KeyMouse::Key(VirtualKeyCode::T),
-            //GameInput::Charge => KeyMouse::Key(VirtualKeyCode::Key1),
             GameInput::FreeLook => KeyMouse::Key(VirtualKeyCode::L),
             GameInput::AutoWalk => KeyMouse::Key(VirtualKeyCode::Period),
             GameInput::CycleCamera => KeyMouse::Key(VirtualKeyCode::Key0),
@@ -257,7 +255,6 @@ pub mod con_settings {
         pub swimup: Button,
         pub swimdown: Button,
         pub sneak: Button,
-        //pub wall_leap: Button,
         pub toggle_lantern: Button,
         pub mount: Button,
         pub map: Button,
@@ -349,7 +346,6 @@ pub mod con_settings {
                 swimup: Button::Simple(GilButton::South),
                 swimdown: Button::Simple(GilButton::East),
                 sneak: Button::Simple(GilButton::East),
-                //wall_leap: Button::Simple(GilButton::Unknown),
                 toggle_lantern: Button::Simple(GilButton::DPadLeft),
                 mount: Button::Simple(GilButton::North),
                 map: Button::Simple(GilButton::Select),
@@ -371,7 +367,6 @@ pub mod con_settings {
                 interact: Button::Simple(GilButton::North),
                 toggle_wield: Button::Simple(GilButton::West),
                 swap_loadout: Button::Simple(GilButton::LeftThumb),
-                //charge: Button::Simple(GilButton::Unknown),
             }
         }
     }

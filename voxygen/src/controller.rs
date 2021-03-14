@@ -117,9 +117,6 @@ impl From<&crate::settings::GamepadSettings> for ControllerSettings {
                 map.entry(settings.game_buttons.sneak)
                     .or_default()
                     .push(GameInput::Sneak);
-                /*map.entry(settings.game_buttons.wall_leap)
-                .or_default()
-                .push(GameInput::WallLeap);*/
                 map.entry(settings.game_buttons.toggle_lantern)
                     .or_default()
                     .push(GameInput::ToggleLantern);
@@ -177,9 +174,6 @@ impl From<&crate::settings::GamepadSettings> for ControllerSettings {
                 map.entry(settings.game_buttons.swap_loadout)
                     .or_default()
                     .push(GameInput::SwapLoadout);
-                /*map.entry(settings.game_buttons.charge)
-                .or_default()
-                .push(GameInput::Charge);*/
                 map
             },
             menu_button_map: {

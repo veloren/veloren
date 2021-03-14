@@ -60,15 +60,15 @@ impl CharacterBehavior for Data {
         let mut update = StateUpdate::from(data);
 
         handle_move(data, &mut update, self.static_data.move_efficiency);
-        if !ability_key_is_pressed(data, self.static_data.ability_info.key) {
-            handle_interrupt(data, &mut update, false);
-            match update.character {
-                CharacterState::Shockwave(_) => {},
-                _ => {
-                    return update;
-                },
-            }
-        }
+        // if !ability_key_is_pressed(data, self.static_data.ability_info.key) {
+        //     handle_interrupt(data, &mut update, false);
+        //     match update.character {
+        //         CharacterState::Shockwave(_) => {},
+        //         _ => {
+        //             return update;
+        //         },
+        //     }
+        // }
 
         match self.stage_section {
             StageSection::Buildup => {

@@ -71,15 +71,15 @@ impl CharacterBehavior for Data {
 
         handle_move(data, &mut update, 0.4);
         handle_jump(data, &mut update);
-        if !ability_key_is_pressed(data, self.static_data.ability_info.key) {
-            handle_interrupt(data, &mut update, false);
-            match update.character {
-                CharacterState::BasicBeam(_) => {},
-                _ => {
-                    return update;
-                },
-            }
-        }
+        // if !ability_key_is_pressed(data, self.static_data.ability_info.key) {
+        //     handle_interrupt(data, &mut update, false);
+        //     match update.character {
+        //         CharacterState::BasicBeam(_) => {},
+        //         _ => {
+        //             return update;
+        //         },
+        //     }
+        // }
 
         match self.stage_section {
             StageSection::Buildup => {
@@ -110,7 +110,7 @@ impl CharacterBehavior for Data {
             StageSection::Cast => {
                 if
                 /* ability_key_is_pressed(data, self.static_data.ability_info.key) */
-                input_is_pressed(data, self.static_data.ability_info)
+                input_is_pressed(data, self.static_data.ability_info.input)
                     && (self.static_data.energy_drain <= f32::EPSILON
                         || update.energy.current() > 0)
                 {

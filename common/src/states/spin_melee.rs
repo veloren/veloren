@@ -75,15 +75,15 @@ impl CharacterBehavior for Data {
             },
         }
 
-        if !ability_key_is_pressed(data, self.static_data.ability_info.key) {
-            handle_interrupt(data, &mut update, self.static_data.is_interruptible);
-            match update.character {
-                CharacterState::SpinMelee(_) => {},
-                _ => {
-                    return update;
-                },
-            }
-        }
+        // if !ability_key_is_pressed(data, self.static_data.ability_info.key) {
+        //     handle_interrupt(data, &mut update, self.static_data.is_interruptible);
+        //     match update.character {
+        //         CharacterState::SpinMelee(_) => {},
+        //         _ => {
+        //             return update;
+        //         },
+        //     }
+        // }
 
         match self.stage_section {
             StageSection::Buildup => {
@@ -179,7 +179,7 @@ impl CharacterBehavior for Data {
                 } else if update.energy.current() as f32 >= self.static_data.energy_cost
                     && (self.spins_remaining != 0
                         || (self.static_data.is_infinite
-                            && /*ability_key_is_pressed(data, self.static_data.ability_info.key)*/ input_is_pressed(data, self.static_data.ability_info)))
+                            && /*ability_key_is_pressed(data, self.static_data.ability_info.key)*/ input_is_pressed(data, self.static_data.ability_info.input)))
                 {
                     let new_spins_remaining = if self.static_data.is_infinite {
                         self.spins_remaining

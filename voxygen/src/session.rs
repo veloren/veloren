@@ -126,7 +126,6 @@ impl SessionState {
         outcomes: &mut Vec<Outcome>,
     ) -> Result<TickAction, Error> {
         span!(_guard, "tick", "Session::tick");
-        self.inputs.tick(dt);
 
         let mut client = self.client.borrow_mut();
         for event in client.tick(self.inputs.clone(), dt, crate::ecs::sys::add_local_systems)? {
@@ -386,7 +385,7 @@ impl PlayState for SessionState {
                                 }
                             },
                             GameInput::Roll => {
-                                let client = self.client.borrow();
+                                let mut client = self.client.borrow_mut();
                                 if can_build {
                                     if state {
                                         if let Some(block) = select_pos.and_then(|sp| {
@@ -396,7 +395,8 @@ impl PlayState for SessionState {
                                         }
                                     }
                                 } else {
-                                    self.inputs.roll.set_state(state);
+                                    client.handle_input(InputKind::Roll, state);
+                                    // self.inputs.roll.set_state(state);
                                 }
                             },
                             GameInput::Respawn => {
@@ -406,7 +406,8 @@ impl PlayState for SessionState {
                                 }
                             },
                             GameInput::Jump => {
-                                self.inputs.jump.set_state(state);
+                                let mut client = self.client.borrow_mut();
+                                client.handle_input(InputKind::Jump, state);
                             },
                             GameInput::SwimUp => {
                                 self.key_state.swim_up = state;
@@ -462,7 +463,14 @@ impl PlayState for SessionState {
                                 }
                             },
                             GameInput::Fly => {
+                                // Not sure where to put comment, but I noticed when testing flight
+                                // Syncing of inputs between mounter and mountee broke with
+                                // controller change
                                 self.key_state.fly ^= state;
+                                let mut client = self.client.borrow_mut();
+                                client.handle_input(InputKind::Fly, self.key_state.fly);
+                                // self.inputs.fly.set_state(self.key_state.
+                                // fly);
                             },
                             GameInput::Climb => {
                                 self.key_state.climb_up = state;
@@ -726,7 +734,6 @@ impl PlayState for SessionState {
             };
 
             self.inputs.climb = self.key_state.climb();
-            self.inputs.fly.set_state(self.key_state.fly);
             self.inputs.move_z =
                 self.key_state.swim_up as i32 as f32 - self.key_state.swim_down as i32 as f32;
 
@@ -1219,8 +1226,16 @@ impl PlayState for SessionState {
                         let mut client = self.client.borrow_mut();
                         client.perform_trade_action(action);
                     },
-                    HudEvent::Ability3(state) => self.inputs.ability3.set_state(state),
-                    HudEvent::Ability4(state) => self.inputs.ability4.set_state(state),
+                    HudEvent::Ability3(state) => {
+                        let mut client = self.client.borrow_mut();
+                        client.handle_input(InputKind::Ability(0), state);
+                        // self.inputs.ability3.set_state(state);
+                    },
+                    HudEvent::Ability4(state) => {
+                        let mut client = self.client.borrow_mut();
+                        client.handle_input(InputKind::Ability(1), state);
+                        // self.inputs.ability4.set_state(state);
+                    },
                     HudEvent::ChangeFOV(new_fov) => {
                         global_state.settings.graphics.fov = new_fov;
                         global_state.settings.save_to_file_warn();

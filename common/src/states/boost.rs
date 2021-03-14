@@ -47,7 +47,7 @@ impl CharacterBehavior for Data {
             });
         } else {
             // Done
-            if input_is_pressed(data, self.static_data.ability_info) {
+            if input_is_pressed(data, self.static_data.ability_info.input) {
                 reset_state(self, data, &mut update);
             } else {
                 update.character = CharacterState::Wielding;
@@ -59,5 +59,5 @@ impl CharacterBehavior for Data {
 }
 
 fn reset_state(data: &Data, join: &JoinData, update: &mut StateUpdate) {
-    handle_input(join, update, data.static_data.ability_info.input.unwrap());
+    handle_input(join, update, data.static_data.ability_info.input);
 }

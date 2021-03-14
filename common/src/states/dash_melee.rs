@@ -74,15 +74,15 @@ impl CharacterBehavior for Data {
 
         handle_orientation(data, &mut update, 1.0);
         handle_move(data, &mut update, 0.1);
-        if !ability_key_is_pressed(data, self.static_data.ability_info.key) {
-            handle_interrupt(data, &mut update, self.static_data.is_interruptible);
-            match update.character {
-                CharacterState::DashMelee(_) => {},
-                _ => {
-                    return update;
-                },
-            }
-        }
+        // if !ability_key_is_pressed(data, self.static_data.ability_info.key) {
+        //     handle_interrupt(data, &mut update, self.static_data.is_interruptible);
+        //     match update.character {
+        //         CharacterState::DashMelee(_) => {},
+        //         _ => {
+        //             return update;
+        //         },
+        //     }
+        // }
 
         match self.stage_section {
             StageSection::Buildup => {
@@ -101,7 +101,7 @@ impl CharacterBehavior for Data {
                         auto_charge: /*\!ability_key_is_pressed(
                             data,
                             self.static_data.ability_info.key,
-                        )*/input_is_pressed(data, self.static_data.ability_info),
+                        )*/input_is_pressed(data, self.static_data.ability_info.input),
                         timer: Duration::default(),
                         stage_section: StageSection::Charge,
                         ..*self
@@ -111,7 +111,7 @@ impl CharacterBehavior for Data {
             StageSection::Charge => {
                 if (self.static_data.infinite_charge
                     || self.timer < self.static_data.charge_duration)
-                    && (/* ability_key_is_pressed(data, self.static_data.ability_info.key) */input_is_pressed(data, self.static_data.ability_info)
+                    && (/* ability_key_is_pressed(data, self.static_data.ability_info.key) */input_is_pressed(data, self.static_data.ability_info.input)
                         || (self.auto_charge && self.timer < self.static_data.charge_duration))
                     && update.energy.current() > 0
                 {
