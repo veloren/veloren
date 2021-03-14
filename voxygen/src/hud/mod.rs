@@ -77,7 +77,7 @@ use common::{
     vol::RectRasterableVol,
 };
 use common_base::span;
-use common_net::msg::{Notification, PresenceKind};
+use common_net::msg::{world_msg::SiteId, Notification, PresenceKind};
 use conrod_core::{
     text::cursor::Index,
     widget::{self, Button, Image, Text},
@@ -433,6 +433,7 @@ pub enum Event {
     UnlockSkill(Skill),
     MinimapShow(bool),
     MinimapFaceNorth(bool),
+    RequestSiteInfo(SiteId),
 }
 
 // TODO: Are these the possible layouts we want?
@@ -2688,6 +2689,9 @@ impl Hud {
                     },
                     map::Event::ShowTrees(map_show_trees) => {
                         events.push(Event::MapShowTrees(map_show_trees));
+                    },
+                    map::Event::RequestSiteInfo(id) => {
+                        events.push(Event::RequestSiteInfo(id));
                     },
                 }
             }

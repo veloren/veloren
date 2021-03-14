@@ -90,6 +90,7 @@ impl TooltipManager {
         }
     }
 
+    // return true if visible
     #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     fn set_tooltip(
         &mut self,
@@ -101,7 +102,7 @@ impl TooltipManager {
         image_dims: Option<(f64, f64)>,
         src_id: widget::Id,
         ui: &mut UiCell,
-    ) {
+    ) -> bool {
         let tooltip_id = self.tooltip_id;
         let mp_h = MOUSE_PAD_Y / self.logical_scale_factor;
 
@@ -154,6 +155,7 @@ impl TooltipManager {
             },
             _ => (),
         }
+        matches!(self.state, HoverState::Hovering(Hover(id, _)) if id == src_id)
     }
 }
 
@@ -178,9 +180,9 @@ impl<'a, W: Widget> Tooltipped<'a, W> {
         self
     }
 
-    pub fn set(self, id: widget::Id, ui: &mut UiCell) -> W::Event {
+    pub fn set_ext(self, id: widget::Id, ui: &mut UiCell) -> (W::Event, bool) {
         let event = self.inner.set(id, ui);
-        self.tooltip_manager.set_tooltip(
+        let visible = self.tooltip_manager.set_tooltip(
             self.tooltip,
             self.title_text,
             self.desc_text,
@@ -190,8 +192,10 @@ impl<'a, W: Widget> Tooltipped<'a, W> {
             id,
             ui,
         );
-        event
+        (event, visible)
     }
+
+    pub fn set(self, id: widget::Id, ui: &mut UiCell) -> W::Event { self.set_ext(id, ui).0 }
 }
 
 pub trait Tooltipable {

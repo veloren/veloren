@@ -107,6 +107,9 @@ impl World {
     }
 
     pub fn get_map_data(&self, index: IndexRef) -> WorldMapMsg {
+        // we need these numbers to create unique ids for cave ends
+        let num_sites = self.civs().sites().count() as u64;
+        let num_caves = self.civs().caves.values().count() as u64;
         WorldMapMsg {
             sites: self
                 .civs()
@@ -114,6 +117,7 @@ impl World {
                 .iter()
                 .map(|(_, site)| {
                     world_msg::SiteInfo {
+                        id: site.site_tmp.map(|i| i.id()).unwrap_or_default(),
                         name: site.site_tmp.map(|id| index.sites[id].name().to_string()),
                         // TODO: Probably unify these, at some point
                         kind: match &site.kind {
@@ -135,13 +139,15 @@ impl World {
                     self.civs()
                         .caves
                         .iter()
-                        .map(|(_, info)| {
+                        .map(|(id, info)| {
                             // separate the two locations, combine with name
-                            std::iter::once((info.name.clone(), info.location.0))
-                                .chain(std::iter::once((info.name.clone(), info.location.1)))
+                            std::iter::once((id.id()+num_sites, info.name.clone(), info.location.0))
+                            // unfortunately we have to introduce a fake id (as it gets stored in a map in the client)
+                                .chain(std::iter::once((id.id()+num_sites+num_caves, info.name.clone(), info.location.1)))
                         })
                         .flatten() // unwrap inner iteration
-                        .map(|(name, pos)| world_msg::SiteInfo {
+                        .map(|(id, name, pos)| world_msg::SiteInfo {
+                            id,
                             name: Some(name),
                             kind: world_msg::SiteKind::Cave,
                             wpos: pos,
@@ -359,6 +365,7 @@ impl World {
                 chunk_wpos2d,
                 sample_get,
                 &mut supplement,
+                site.id(),
             )
         });
 

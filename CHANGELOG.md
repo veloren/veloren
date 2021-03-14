@@ -47,6 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Reset button for graphics settings
 - Gave weapons critical strike {chance, multiplier} stats
 - A system to add glow and reflection effects to figures (i.e: characters, armour, weapons, etc.)
+- Merchants will trade wares with players
 
 ### Changed
 

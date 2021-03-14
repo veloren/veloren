@@ -66,6 +66,9 @@ specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git", rev = "b65fb22
 #bench
 criterion = "0.3"
 
+#test
+tracing-subscriber = { version = "0.2.15", default-features = false, features = ["fmt", "chrono", "ansi", "smallvec", "env-filter"] }
+
 [[bench]]
 name = "chonk_benchmark"
 harness = false

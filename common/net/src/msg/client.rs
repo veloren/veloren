@@ -1,4 +1,4 @@
-use super::PingMsg;
+use super::{world_msg::SiteId, PingMsg};
 use common::{
     character::CharacterId,
     comp,
@@ -73,6 +73,7 @@ pub enum ClientGeneral {
     UnlockSkill(Skill),
     RefundSkill(Skill),
     UnlockSkillGroup(SkillGroupKind),
+    RequestSiteInfo(SiteId),
     //Only in Game, via terrain stream
     TerrainChunkRequest {
         key: Vec2<i32>,
@@ -115,6 +116,7 @@ impl ClientMsg {
                         | ClientGeneral::TerrainChunkRequest { .. }
                         | ClientGeneral::UnlockSkill(_)
                         | ClientGeneral::RefundSkill(_)
+                        | ClientGeneral::RequestSiteInfo(_)
                         | ClientGeneral::UnlockSkillGroup(_) => {
                             c_type == ClientType::Game && presence.is_some()
                         },

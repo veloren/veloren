@@ -1,7 +1,10 @@
 use crate::Server;
 use common::{
-    comp::inventory::{item::MaterialStatManifest, Inventory},
-    trade::{PendingTrade, TradeAction, TradeId, TradeResult, Trades},
+    comp::{
+        agent::{Agent, AgentEvent},
+        inventory::{item::MaterialStatManifest, Inventory},
+    },
+    trade::{PendingTrade, ReducedInventory, TradeAction, TradeId, TradeResult, Trades},
 };
 use common_net::{
     msg::ServerGeneral,
@@ -11,6 +14,42 @@ use hashbrown::hash_map::Entry;
 use specs::{world::WorldExt, Entity as EcsEntity};
 use std::cmp::Ordering;
 use tracing::{error, trace};
+use world::IndexOwned;
+
+fn notify_agent_simple(
+    mut agents: specs::WriteStorage<Agent>,
+    entity: EcsEntity,
+    event: AgentEvent,
+) {
+    if let Some(agent) = agents.get_mut(entity) {
+        agent.inbox.push_front(event);
+    }
+}
+
+fn notify_agent_prices(
+    mut agents: specs::WriteStorage<Agent>,
+    index: &IndexOwned,
+    entity: EcsEntity,
+    event: AgentEvent,
+) {
+    if let Some(agent) = agents.get_mut(entity) {
+        if let AgentEvent::UpdatePendingTrade(boxval) = event {
+            // Box<(tid, pend, _, inventories)>) = event {
+            let prices = agent
+                .trade_for_site
+                .map(|i| index.sites.recreate_id(i))
+                .flatten()
+                .map(|i| index.sites.get(i))
+                .map(|s| s.economy.get_site_prices())
+                .unwrap_or_default();
+            agent
+                .inbox
+                .push_front(AgentEvent::UpdatePendingTrade(Box::new((
+                    boxval.0, boxval.1, prices, boxval.3,
+                ))));
+        }
+    }
+}
 
 /// Invoked when the trade UI is up, handling item changes, accepts, etc
 pub fn handle_process_trade_action(
@@ -26,7 +65,12 @@ pub fn handle_process_trade_action(
             to_notify
                 .and_then(|u| server.state.ecs().entity_from_uid(u.0))
                 .map(|e| {
-                    server.notify_client(e, ServerGeneral::FinishedTrade(TradeResult::Declined))
+                    server.notify_client(e, ServerGeneral::FinishedTrade(TradeResult::Declined));
+                    notify_agent_simple(
+                        server.state.ecs().write_storage::<Agent>(),
+                        e,
+                        AgentEvent::FinishedTrade(TradeResult::Declined),
+                    );
                 });
         } else {
             {
@@ -43,20 +87,54 @@ pub fn handle_process_trade_action(
             }
             if let Entry::Occupied(entry) = trades.trades.entry(trade_id) {
                 let parties = entry.get().parties;
-                let msg = if entry.get().should_commit() {
+                if entry.get().should_commit() {
                     let result = commit_trade(server.state.ecs(), entry.get());
                     entry.remove();
-                    ServerGeneral::FinishedTrade(result)
+                    for party in parties.iter() {
+                        if let Some(e) = server.state.ecs().entity_from_uid(party.0) {
+                            server.notify_client(e, ServerGeneral::FinishedTrade(result.clone()));
+                            notify_agent_simple(
+                                server.state.ecs().write_storage::<Agent>(),
+                                e,
+                                AgentEvent::FinishedTrade(result.clone()),
+                            );
+                        }
+                    }
                 } else {
-                    ServerGeneral::UpdatePendingTrade(trade_id, entry.get().clone())
-                };
-                // send the updated state to both parties
-                for party in parties.iter() {
-                    server
-                        .state
-                        .ecs()
-                        .entity_from_uid(party.0)
-                        .map(|e| server.notify_client(e, msg.clone()));
+                    let mut entities: [Option<specs::Entity>; 2] = [None, None];
+                    let mut inventories: [Option<ReducedInventory>; 2] = [None, None];
+                    // sadly there is no map and collect on arrays
+                    for i in 0..2 {
+                        // parties.len()) {
+                        entities[i] = server.state.ecs().entity_from_uid(parties[i].0);
+                        if let Some(e) = entities[i] {
+                            inventories[i] = server
+                                .state
+                                .ecs()
+                                .read_component::<Inventory>()
+                                .get(e)
+                                .map(|i| ReducedInventory::from(i));
+                        }
+                    }
+                    for party in entities.iter() {
+                        if let Some(e) = *party {
+                            server.notify_client(
+                                e,
+                                ServerGeneral::UpdatePendingTrade(trade_id, entry.get().clone()),
+                            );
+                            notify_agent_prices(
+                                server.state.ecs().write_storage::<Agent>(),
+                                &server.index,
+                                e,
+                                AgentEvent::UpdatePendingTrade(Box::new((
+                                    trade_id,
+                                    entry.get().clone(),
+                                    Default::default(),
+                                    inventories.clone(),
+                                ))),
+                            );
+                        }
+                    }
                 }
             }
         }

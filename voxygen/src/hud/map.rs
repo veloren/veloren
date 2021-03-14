@@ -8,9 +8,9 @@ use crate::{
     ui::{fonts::Fonts, img_ids, ImageFrame, Tooltip, TooltipManager, Tooltipable},
     GlobalState,
 };
-use client::{self, Client};
-use common::{comp, comp::group::Role, terrain::TerrainChunkSize, vol::RectVolSize};
-use common_net::msg::world_msg::SiteKind;
+use client::{self, Client, SiteInfoRich};
+use common::{comp, comp::group::Role, terrain::TerrainChunkSize, trade::Good, vol::RectVolSize};
+use common_net::msg::world_msg::{SiteId, SiteKind};
 use conrod_core::{
     color, position,
     widget::{self, Button, Image, Rectangle, Text},
@@ -65,6 +65,8 @@ widget_ids! {
         zoom_ico,
     }
 }
+
+const SHOW_ECONOMY: bool = false; // turn this display off (for 0.9) until we have an improved look
 
 #[derive(WidgetCommon)]
 pub struct Map<'a> {
@@ -122,6 +124,40 @@ pub enum Event {
     ShowCaves(bool),
     ShowTrees(bool),
     Close,
+    RequestSiteInfo(SiteId),
+}
+
+fn get_site_economy(site_rich: &SiteInfoRich) -> String {
+    if SHOW_ECONOMY {
+        let site = &site_rich.site;
+        if let Some(economy) = &site_rich.economy {
+            use common::trade::Good::{Armor, Coin, Food, Ingredients, Potions, Tools};
+            let mut result = format!("\n\nPopulation {:?}", economy.population);
+            result += "\nStock";
+            for i in [Food, Potions, Ingredients, Coin, Tools, Armor].iter() {
+                result += &format!(" {:?}={:.1}", *i, *economy.stock.get(i).unwrap_or(&0.0));
+            }
+            result += "\nPrice";
+            for i in [Food, Potions, Ingredients, Coin, Tools, Armor].iter() {
+                result += &format!(" {:?}={:.1}", *i, *economy.values.get(i).unwrap_or(&0.0));
+            }
+
+            let mut trade_sorted: Vec<(&Good, &f32)> = economy.last_exports.iter().collect();
+            trade_sorted.sort_unstable_by(|a, b| a.1.partial_cmp(b.1).unwrap());
+            if trade_sorted.first().is_some() {
+                result += &format!("\nTrade {:.1} ", *(trade_sorted.first().unwrap().1));
+                for i in trade_sorted.iter().filter(|x| *x.1 != 0.0) {
+                    result += &format!("{:?} ", i.0);
+                }
+                result += &format!("{:.1}", *(trade_sorted.last().unwrap().1));
+            }
+            result
+        } else {
+            format!("\nloading economy for\n{:?}", site.id)
+        }
+    } else {
+        "".into()
+    }
 }
 
 impl<'a> Widget for Map<'a> {
@@ -527,7 +563,8 @@ impl<'a> Widget for Map<'a> {
                     .resize(self.client.sites().len(), &mut ui.widget_id_generator())
             });
         }
-        for (i, site) in self.client.sites().iter().enumerate() {
+        for (i, site_rich) in self.client.sites().values().enumerate() {
+            let site = &site_rich.site;
             // Site pos in world coordinates relative to the player
             let rwpos = site.wpos.map(|e| e as f32) - player_pos;
             // Convert to chunk coordinates
@@ -564,6 +601,7 @@ impl<'a> Widget for Map<'a> {
                 SiteKind::Cave => (0, i18n.get("hud.map.cave").to_string()),
                 SiteKind::Tree => (0, i18n.get("hud.map.tree").to_string()),
             };
+            let desc = desc + &get_site_economy(site_rich);
             let site_btn = Button::image(match &site.kind {
                 SiteKind::Town => self.imgs.mmap_site_town,
                 SiteKind::Dungeon { .. } => self.imgs.mmap_site_dungeon,
@@ -607,32 +645,19 @@ impl<'a> Widget for Map<'a> {
                 },
             );
             // Only display sites that are toggled on
-            match &site.kind {
-                SiteKind::Town => {
-                    if show_towns {
-                        site_btn.set(state.ids.mmap_site_icons[i], ui);
-                    }
-                },
-                SiteKind::Dungeon { .. } => {
-                    if show_dungeons {
-                        site_btn.set(state.ids.mmap_site_icons[i], ui);
-                    }
-                },
-                SiteKind::Castle => {
-                    if show_castles {
-                        site_btn.set(state.ids.mmap_site_icons[i], ui);
-                    }
-                },
-                SiteKind::Cave => {
-                    if show_caves {
-                        site_btn.set(state.ids.mmap_site_icons[i], ui);
-                    }
-                },
-                SiteKind::Tree => {
-                    if show_trees {
-                        site_btn.set(state.ids.mmap_site_icons[i], ui);
-                    }
-                },
+            let show_site = match &site.kind {
+                SiteKind::Town => show_towns,
+                SiteKind::Dungeon { .. } => show_dungeons,
+                SiteKind::Castle => show_castles,
+                SiteKind::Cave => show_caves,
+                SiteKind::Tree => show_trees,
+            };
+            if show_site {
+                let tooltip_visible = site_btn.set_ext(state.ids.mmap_site_icons[i], ui).1;
+
+                if SHOW_ECONOMY && tooltip_visible && site_rich.economy.is_none() {
+                    events.push(Event::RequestSiteInfo(site.id));
+                }
             }
 
             // Difficulty from 0-6

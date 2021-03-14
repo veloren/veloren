@@ -264,6 +264,9 @@ impl ItemDef {
         }
     }
 
+    // currently needed by trade_pricing
+    pub fn id(&self) -> &str { &self.item_definition_id }
+
     #[cfg(test)]
     pub fn new_test(
         item_definition_id: String,

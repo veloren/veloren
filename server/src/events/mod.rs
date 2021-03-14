@@ -11,6 +11,7 @@ use entity_manipulation::{
     handle_respawn,
 };
 use group_manip::handle_group;
+use information::handle_site_info;
 use interaction::{
     handle_lantern, handle_mount, handle_npc_interaction, handle_possess, handle_unmount,
 };
@@ -23,6 +24,7 @@ use trade::handle_process_trade_action;
 mod entity_creation;
 mod entity_manipulation;
 mod group_manip;
+mod information;
 mod interaction;
 mod inventory_manip;
 mod invite;
@@ -187,6 +189,7 @@ impl Server {
                 ServerEvent::ComboChange { entity, change } => {
                     handle_combo_change(&self, entity, change)
                 },
+                ServerEvent::RequestSiteInfo { entity, id } => handle_site_info(&self, entity, id),
             }
         }
 

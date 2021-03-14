@@ -16,6 +16,8 @@ use specs::Entity as EcsEntity;
 use std::{collections::VecDeque, ops::DerefMut, sync::Mutex};
 use vek::*;
 
+pub type SiteId = u64;
+
 pub enum LocalEvent {
     /// Applies upward force to entity's `Vel`
     Jump(EcsEntity),
@@ -147,6 +149,10 @@ pub enum ServerEvent {
     ComboChange {
         entity: EcsEntity,
         change: i32,
+    },
+    RequestSiteInfo {
+        entity: EcsEntity,
+        id: SiteId,
     },
 }
 

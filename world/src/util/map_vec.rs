@@ -1,6 +1,15 @@
 use crate::util::DHashMap;
 use std::hash::Hash;
 
+/** A static table of known values where any key always maps to a single value.
+
+It's not really intended to be a "collection" in the same way that, say, HashMap or Vec is
+Since it's not intended to have a way of expressing that a value is not present (hence the default behaviour)
+It's really quite specifically tailored to its application in the economy code where it wouldn't make sense to not have certain entries
+Store is a bit different in that it is the one to generate an index, and so it can hold as many things as you like
+Whereas with MapVec, we always know the index ahead of time.
+**/
+
 #[derive(Clone, Debug)]
 pub struct MapVec<K, T> {
     /// We use this hasher (FxHasher32) because
@@ -29,6 +38,13 @@ impl<K: Copy + Eq + Hash, T: Clone> MapVec<K, T> {
     {
         Self {
             entries: i.into_iter().cloned().collect(),
+            default,
+        }
+    }
+
+    pub fn from_iter(i: impl Iterator<Item = (K, T)>, default: T) -> Self {
+        Self {
+            entries: i.collect(),
             default,
         }
     }

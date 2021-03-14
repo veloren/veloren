@@ -34,10 +34,11 @@ packed_simd = { version = "0.3.4", package = "packed_simd_2" }
 rayon = "1.5"
 serde = { version = "1.0.110", features = ["derive"] }
 ron = { version = "0.6", default-features = false }
+assets_manager = {version = "0.4.3", features = ["ron"]}
 
 [dev-dependencies]
 criterion = "0.3"
-tracing-subscriber = { version = "0.2.3", default-features = false, features = ["fmt", "chrono", "ansi", "smallvec"] }
+tracing-subscriber = { version = "0.2.15", default-features = false, features = ["fmt", "chrono", "ansi", "smallvec", "env-filter"] }
 minifb = "0.19.1"
 svg_fmt = "0.4"
 structopt = "0.3"

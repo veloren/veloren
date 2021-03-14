@@ -1,0 +1,68 @@
+digraph economy {
+Farmland [color="green"];
+Flour [color="orange"];
+Meat [color="orange"];
+Fish [color="green"];
+Game [color="green"];
+Food [color="orange"];
+Logs [color="green"];
+Wood [color="orange"];
+Rock [color="green"];
+Stone [color="orange"];
+Tools [color="orange"];
+Armor [color="orange"];
+Ingredients [color="green"];
+Potions [color="orange"];
+ControlledArea [color="green", shape=doubleoctagon];
+
+// Professions
+Everyone [shape=doubleoctagon];
+Farmer [shape=box];
+Lumberjack [shape=box];
+Miner [shape=box];
+Fisher [shape=box];
+Hunter [shape=box];
+Cook [shape=box];
+Brewer [shape=box];
+Blacksmith [shape=box];
+Bladesmith [shape=box];
+Guard [shape=box];
+
+// Orders
+Food -> Everyone [label= "0.5", style=dashed, weight=4];
+Flour -> Cook [label="12.0", penwidth=2.0];
+Meat -> Cook [label="4.0", penwidth=1.5];
+Wood -> Cook [label="1.5"];
+Stone -> Cook [label="1.0"];
+Logs -> Lumberjack [label="0.5", style=dashed, weight=4];
+Tools -> Lumberjack [label="0.1", color="orange", style=dashed];
+Rock -> Miner [label="0.5", style=dashed, weight=4];
+Tools -> Miner [label="0.1", color="orange", style=dashed];
+Fish -> Fisher [label="4.0", penwidth=1.5, weight=4];
+Tools -> Fisher [label="0.02", color="orange", style=dotted];
+Game -> Hunter [label="1.0", weight=4];
+Tools -> Hunter [label="0.1", color="orange", style=dashed];
+Farmland -> Farmer [label="2.0", weight=4];
+Tools -> Farmer [label="0.05", color="orange", style=dotted];
+Ingredients -> Brewer [label="2.0", penwidth=1.0];
+Flour -> Brewer [label="2.0", penwidth=1.0];
+Ingredients -> Blacksmith [label="8.0", penwidth=2.0];
+Wood -> Blacksmith [label="2.0", penwidth=1.0];
+Ingredients -> Bladesmith [label="4.0", penwidth=1.5];
+Wood -> Bladesmith [label="1.0", penwidth=1.0];
+Armor -> Guard [label="0.5", style=dashed];
+Tools -> Guard [label="0.3", color="orange", style=dashed];
+Potions -> Guard [label="3.0", penwidth=1.5];
+
+// Products
+Farmer -> Flour [label="2.0"];
+Lumberjack -> Wood [label="0.5", style=dashed];
+Miner -> Stone [label="0.5", style=dashed];
+Fisher -> Meat [label="4.0", penwidth=1.5];
+Hunter -> Meat [label="1.0"];
+Cook -> Food [label="16.0", penwidth=2.0];
+Blacksmith -> Armor [label="4.0"];
+Bladesmith -> Tools [label="2.0", color="orange"];
+Brewer -> Potions [label="6.0"];
+Guard -> ControlledArea [label="50.0", penwidth=2.0];
+}

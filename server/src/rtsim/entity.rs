@@ -114,7 +114,7 @@ impl Entity {
             "common.items.armor.swift.shoulder",
         ));
 
-        LoadoutBuilder::build_loadout(self.get_body(), Some(main_tool), None)
+        LoadoutBuilder::build_loadout(self.get_body(), Some(main_tool), None, None)
             .back(back)
             .lantern(lantern)
             .chest(chest)

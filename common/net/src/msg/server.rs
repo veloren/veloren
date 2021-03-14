@@ -1,4 +1,4 @@
-use super::{ClientType, EcsCompPacket, PingMsg};
+use super::{world_msg::EconomyInfo, ClientType, EcsCompPacket, PingMsg};
 use crate::sync;
 use authc::AuthClientError;
 use common::{
@@ -127,6 +127,8 @@ pub enum ServerGeneral {
     Notification(Notification),
     UpdatePendingTrade(TradeId, PendingTrade),
     FinishedTrade(TradeResult),
+    /// Economic information about sites
+    SiteEconomy(EconomyInfo),
 }
 
 impl ServerGeneral {
@@ -235,7 +237,8 @@ impl ServerMsg {
                         | ServerGeneral::Outcomes(_)
                         | ServerGeneral::Knockback(_)
                         | ServerGeneral::UpdatePendingTrade(_, _)
-                        | ServerGeneral::FinishedTrade(_) => {
+                        | ServerGeneral::FinishedTrade(_)
+                        | ServerGeneral::SiteEconomy(_) => {
                             c_type == ClientType::Game && presence.is_some()
                         },
                         // Always possible

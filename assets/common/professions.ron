@@ -1,0 +1,110 @@
+// we use a vector to easily generate a key into all the economic data containers
+([
+    (
+        name: "Cook",
+        orders: [ (Flour, 12.0), (Meat, 4.0), (Wood, 1.5), (Stone, 1.0) ],
+        products: [ (Food, 16.0) ],
+    ),
+    (
+        name: "Lumberjack",
+        orders: [ (Territory(Forest), 0.5), (Tools, 0.1) ],
+        products: [ (Wood, 0.5)],
+    ),
+    (
+        name: "Miner",
+        orders: [ (Territory(Mountain), 0.5), (Tools, 0.1) ],
+        products: [ (Stone, 0.5) ],
+    ),
+    (
+        name: "Fisher",
+        orders: [ (Territory(Lake), 4.0), (Tools, 0.02) ],
+        products: [ (Meat, 4.0) ],
+    ),
+    (
+        name: "Hunter", // Hunter operate outside of uncontrolled areas and resemble guards
+        // due to the low number of products we tune down the Armor,Tools,Potions in comparison
+        orders: [ (Armor, 0.1), (Tools, 0.1), (Potions, 1.0), (Terrain(Forest), 4.0) ],
+        products: [ (Meat, 4.0) ],
+    ),
+    (
+        name: "Hunter2", // Hunter operate outside of uncontrolled areas and resemble guards
+        // due to the low number of products we tune down the Armor,Tools,Potions in comparison
+        orders: [ (Armor, 0.1), (Tools, 0.1), (Potions, 1.0), (Terrain(Desert), 5.0) ],
+        products: [ (Meat, 3.0) ],
+    ),
+    (
+        name: "Farmer",
+        orders: [ (Territory(Grassland), 2.0), (Tools, 0.05) ],
+        products: [ (Flour, 2.0) ],
+    ),
+    (
+        name: "Brewer",
+        orders: [ (Ingredients, 2.0), (Flour, 2.0) ],
+        products: [ (Potions, 6.0) ],
+    ),
+    (
+        name: "Bladesmith",
+        orders: [ (Ingredients, 4.0), (Wood, 1.0) ],
+        products: [ (Tools, 2.0) ],
+    ),
+    (
+        name: "Blacksmith",
+        orders: [ (Ingredients, 8.0), (Wood, 2.0) ],
+        products: [ (Armor, 4.0) ],
+    ),
+    (
+        name: "Naval Guard",
+        orders: [ (Armor, 0.3), (Tools, 0.3), (Potions, 4.0), (Terrain(Lake), 50) ],
+        products: [ (Territory(Lake), 50) ],
+    ),
+    (
+        name: "Mountain Guard",
+        orders: [ (Armor, 0.4), (Tools, 0.4), (Potions, 3.5), (Terrain(Mountain), 50) ],
+        products: [ (Territory(Mountain), 50) ],
+    ),
+    (
+        name: "Field Guard",
+        orders: [ (Armor, 0.5), (Tools, 0.3), (Potions, 3.0), (Terrain(Grassland), 50) ],
+        products: [ (Territory(Grassland), 50) ],
+    ),
+    (
+        name: "Road Patrol",
+        orders: [ (Armor, 0.5), (Tools, 0.3), (Potions, 3.0), ],
+        products: [ (RoadSecurity, 50) ],
+    ),
+    (
+        name: "Ranger",
+        orders: [ (Armor, 0.5), (Tools, 0.3), (Potions, 3.0), (Terrain(Forest), 50) ],
+        products: [ (Territory(Forest), 50) ],
+    ),
+    (
+        name: "Armed Gatherer", // similar to guards
+        orders: [ (Armor, 0.5), (Tools, 0.3), (Potions, 3.0), (Terrain(Desert), 10) ],
+        products: [ (Ingredients, 10) ],
+    ),
+    (
+        name: "Gatherer", // operates on controlled area
+        orders: [ (Territory(Grassland), 0.1) ],
+        products: [ (Ingredients, 4) ],
+    ),
+    (
+        name: "Gatherer2", // operates on controlled area
+        orders: [ (Territory(Forest), 0.1) ],
+        products: [ (Ingredients, 4) ],
+    ),
+    (
+        name: "Gatherer3", // operates on controlled area
+        orders: [ (Territory(Mountain), 0.3) ],
+        products: [ (Ingredients, 4) ],
+    ),
+    (
+        name: "Merchant",
+        orders: [ (RoadSecurity, 0.5) ],
+        products: [ (Transportation, 30.0) ],
+    ),
+    (
+        name: "_",
+        orders: [ (Food, 0.5) ],
+        products: [],
+    ),
+])

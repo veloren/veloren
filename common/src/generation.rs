@@ -2,6 +2,7 @@ use crate::{
     comp::{self, humanoid, inventory::loadout_builder::LoadoutConfig, Alignment, Body, Item},
     npc::{self, NPC_NAMES},
     skillset_builder::SkillSetConfig,
+    trade::SiteInformation,
 };
 use vek::*;
 
@@ -27,6 +28,9 @@ pub struct EntityInfo {
     pub loadout_config: Option<LoadoutConfig>,
     pub skillset_config: Option<SkillSetConfig>,
     pub pet: Option<Box<EntityInfo>>,
+    // we can't use DHashMap, do we want to move that into common?
+    pub trading_information: Option<crate::trade::SiteInformation>,
+    //Option<hashbrown::HashMap<crate::trade::Good, (f32, f32)>>, /* price and available amount */
 }
 
 impl EntityInfo {
@@ -47,6 +51,7 @@ impl EntityInfo {
             loadout_config: None,
             skillset_config: None,
             pet: None,
+            trading_information: None,
         }
     }
 
@@ -149,6 +154,12 @@ impl EntityInfo {
                 s.to_string()
             }
         });
+        self
+    }
+
+    // map contains price+amount
+    pub fn with_economy(mut self, e: &SiteInformation) -> Self {
+        self.trading_information = Some(e.clone());
         self
     }
 }

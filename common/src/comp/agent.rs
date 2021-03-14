@@ -2,6 +2,7 @@ use crate::{
     comp::{humanoid, quadruped_low, quadruped_medium, quadruped_small, Body},
     path::Chaser,
     rtsim::RtSimController,
+    trade::{PendingTrade, ReducedInventory, SiteId, SitePrices, TradeId, TradeResult},
     uid::Uid,
 };
 use specs::{Component, Entity as EcsEntity};
@@ -10,6 +11,7 @@ use std::collections::VecDeque;
 use vek::*;
 
 pub const DEFAULT_INTERACTION_TIME: f32 = 3.0;
+pub const TRADE_INTERACTION_TIME: f32 = 300.0;
 
 #[derive(Eq, PartialEq)]
 pub enum Tactic {
@@ -173,7 +175,17 @@ impl<'a> From<&'a Body> for Psyche {
 pub enum AgentEvent {
     /// Engage in conversation with entity with Uid
     Talk(Uid),
-    Trade(Uid),
+    TradeInvite(Uid),
+    FinishedTrade(TradeResult),
+    UpdatePendingTrade(
+        // this data structure is large so box it to keep AgentEvent small
+        Box<(
+            TradeId,
+            PendingTrade,
+            SitePrices,
+            [Option<ReducedInventory>; 2],
+        )>,
+    ),
     // Add others here
 }
 
@@ -192,6 +204,8 @@ pub struct Agent {
     /// Does the agent talk when e.g. hit by the player
     // TODO move speech patterns into a Behavior component
     pub can_speak: bool,
+    pub trade_for_site: Option<SiteId>,
+    pub trading: bool,
     pub psyche: Psyche,
     pub inbox: VecDeque<AgentEvent>,
     pub action_timer: f32,
@@ -207,12 +221,14 @@ impl Agent {
     pub fn new(
         patrol_origin: Option<Vec3<f32>>,
         can_speak: bool,
+        trade_for_site: Option<SiteId>,
         body: &Body,
         no_flee: bool,
     ) -> Self {
         Agent {
             patrol_origin,
             can_speak,
+            trade_for_site,
             psyche: if no_flee {
                 Psyche { aggro: 1.0 }
             } else {

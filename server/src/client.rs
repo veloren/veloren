@@ -88,6 +88,7 @@ impl Client {
                     | ServerGeneral::ExitInGameSuccess
                     | ServerGeneral::InventoryUpdate(_, _)
                     | ServerGeneral::SetViewDistance(_)
+                    | ServerGeneral::SiteEconomy(_)
                     | ServerGeneral::Outcomes(_)
                     | ServerGeneral::Knockback(_)
                     | ServerGeneral::UpdatePendingTrade(_, _)
@@ -160,6 +161,7 @@ impl Client {
                     | ServerGeneral::SetViewDistance(_)
                     | ServerGeneral::Outcomes(_)
                     | ServerGeneral::Knockback(_)
+                    | ServerGeneral::SiteEconomy(_)
                     | ServerGeneral::UpdatePendingTrade(_, _)
                     | ServerGeneral::FinishedTrade(_) => {
                         PreparedMsg::new(2, &g, &self.in_game_stream)
