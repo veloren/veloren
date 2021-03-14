@@ -40,7 +40,7 @@ impl<'a> System<'a> for InterpolationSystem {
             &data.entities,
             &mut data.pos,
             &data.pos_interpdata,
-            &data.vel,
+            &data.vel_interpdata,
         )
             .par_join()
             .filter(|(e, _, _, _)| Some(e) != player.as_ref())
