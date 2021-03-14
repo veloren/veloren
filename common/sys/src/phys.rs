@@ -86,6 +86,7 @@ pub struct PhysicsRead<'a> {
     shockwaves: ReadStorage<'a, Shockwave>,
     char_states: ReadStorage<'a, CharacterState>,
     bodies: ReadStorage<'a, Body>,
+    character_states: ReadStorage<'a, CharacterState>,
 }
 
 #[derive(SystemData)]
@@ -441,6 +442,7 @@ impl<'a> PhysicsData<'a> {
             velocities,
             orientations,
             read.bodies.maybe(),
+            read.character_states.maybe(),
             &mut write.physics_states,
             previous_phys_cache,
             !&read.mountings,
@@ -458,6 +460,7 @@ impl<'a> PhysicsData<'a> {
                     vel,
                     _ori,
                     body,
+                    character_state,
                     mut physics_state,
                     _previous_cache,
                     _,
@@ -507,6 +510,8 @@ impl<'a> PhysicsData<'a> {
 
                     let was_on_ground = physics_state.on_ground;
                     let block_snap = body.map_or(false, |body| body.jump_impulse().is_some());
+                    let climbing =
+                        character_state.map_or(false, |cs| matches!(cs, CharacterState::Climb));
 
                     match &collider {
                         Collider::Voxel { .. } => {
@@ -532,6 +537,7 @@ impl<'a> PhysicsData<'a> {
                                 &read.dt,
                                 was_on_ground,
                                 block_snap,
+                                climbing,
                                 |entity, vel| land_on_grounds.push((entity, vel)),
                             );
                             tgt_pos = cpos.0;
@@ -560,6 +566,7 @@ impl<'a> PhysicsData<'a> {
                                 &read.dt,
                                 was_on_ground,
                                 block_snap,
+                                climbing,
                                 |entity, vel| land_on_grounds.push((entity, vel)),
                             );
                             tgt_pos = cpos.0;
@@ -717,6 +724,7 @@ impl<'a> PhysicsData<'a> {
                                     &read.dt,
                                     was_on_ground,
                                     block_snap,
+                                    climbing,
                                     |entity, vel| {
                                         land_on_grounds
                                             .push((entity, Vel(ori_from.mul_direction(vel.0))))
@@ -849,6 +857,7 @@ fn cylinder_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
     dt: &DeltaTime,
     was_on_ground: bool,
     block_snap: bool,
+    climbing: bool,
     mut land_on_ground: impl FnMut(Entity, Vel),
 ) {
     let (radius, z_min, z_max) = cylinder;
@@ -1133,7 +1142,7 @@ fn cylinder_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
         physics_state.on_wall = None;
     }
 
-    if physics_state.on_ground || physics_state.on_wall.is_some() {
+    if physics_state.on_ground || (physics_state.on_wall.is_some() && climbing) {
         vel.0 *= (1.0 - FRIC_GROUND.min(1.0)).powf(dt.0 * 60.0);
         physics_state.ground_vel = ground_vel;
     }
