@@ -1,0 +1,220 @@
+[
+    (
+        name: "Credge",
+        position: (4176, 4080),
+        kind: Settlement,
+        neighbors: [
+            (2, 112),
+            (1, 146),
+            (6, 98),
+            (9, 145),
+        ],
+        resources: [
+            (
+                good: Terrain(Lake),
+                amount: 4,
+            ),
+            (
+                good: Terrain(Mountain),
+                amount: 52,
+            ),
+            (
+                good: Terrain(Grassland),
+                amount: 7073,
+            ),
+            (
+                good: Terrain(Ocean),
+                amount: 4929,
+            ),
+            (
+                good: Terrain(Forest),
+                amount: 6360,
+            ),
+        ],
+    ),
+    (
+        name: "Etodren",
+        position: (1200, 2928),
+        kind: Settlement,
+        neighbors: [
+            (2, 258),
+            (0, 146),
+            (6, 60),
+            (9, 158),
+        ],
+        resources: [
+            (
+                good: Terrain(Mountain),
+                amount: 288,
+            ),
+            (
+                good: Terrain(Grassland),
+                amount: 4129,
+            ),
+            (
+                good: Terrain(Desert),
+                amount: 230,
+            ),
+            (
+                good: Terrain(Ocean),
+                amount: 2923,
+            ),
+            (
+                good: Terrain(Forest),
+                amount: 3139,
+            ),
+        ],
+    ),
+    (
+        name: "Twige",
+        position: (2000, 7632),
+        kind: Settlement,
+        neighbors: [
+            (0, 112),
+            (1, 258),
+            (6, 109),
+            (9, 32),
+        ],
+        resources: [
+            (
+                good: Terrain(Lake),
+                amount: 1,
+            ),
+            (
+                good: Terrain(Mountain),
+                amount: 231,
+            ),
+            (
+                good: Terrain(Grassland),
+                amount: 3308,
+            ),
+            (
+                good: Terrain(Desert),
+                amount: 1695,
+            ),
+            (
+                good: Terrain(Ocean),
+                amount: 487,
+            ),
+            (
+                good: Terrain(Forest),
+                amount: 1338,
+            ),
+        ],
+    ),
+    (
+        name: "Pleed Dungeon",
+        position: (6922, 1034),
+        kind: Dungeon,
+        neighbors: [],
+        resources: [],
+    ),
+    (
+        name: "Fred Lair",
+        position: (3786, 2250),
+        kind: Dungeon,
+        neighbors: [],
+        resources: [],
+    ),
+    (
+        name: "Frer Dungeon",
+        position: (6602, 2250),
+        kind: Dungeon,
+        neighbors: [],
+        resources: [],
+    ),
+    (
+        name: "Inige Castle",
+        position: (1360, 4304),
+        kind: Castle,
+        neighbors: [
+            (0, 98),
+            (1, 60),
+            (2, 109),
+            (9, 99),
+        ],
+        resources: [
+            (
+                good: Terrain(Mountain),
+                amount: 424,
+            ),
+            (
+                good: Terrain(Grassland),
+                amount: 958,
+            ),
+            (
+                good: Terrain(Desert),
+                amount: 1285,
+            ),
+            (
+                good: Terrain(Ocean),
+                amount: 669,
+            ),
+            (
+                good: Terrain(Forest),
+                amount: 1781,
+            ),
+        ],
+    ),
+    (
+        name: "Estedock Catacombs",
+        position: (4650, 330),
+        kind: Dungeon,
+        neighbors: [],
+        resources: [],
+    ),
+    (
+        name: "Oreefey Lair",
+        position: (1578, 3754),
+        kind: Dungeon,
+        neighbors: [],
+        resources: [],
+    ),
+    (
+        name: "Lasnast Keep",
+        position: (1136, 6832),
+        kind: Castle,
+        neighbors: [
+            (0, 145),
+            (2, 32),
+            (1, 158),
+            (6, 99),
+        ],
+        resources: [
+            (
+                good: Terrain(Mountain),
+                amount: 352,
+            ),
+            (
+                good: Terrain(Grassland),
+                amount: 887,
+            ),
+            (
+                good: Terrain(Desert),
+                amount: 2606,
+            ),
+            (
+                good: Terrain(Ocean),
+                amount: 286,
+            ),
+            (
+                good: Terrain(Forest),
+                amount: 679,
+            ),
+        ],
+    ),
+    (
+        name: "Oren Lair",
+        position: (6730, 2506),
+        kind: Dungeon,
+        neighbors: [],
+        resources: [],
+    ),
+    (
+        name: "Ween Crib",
+        position: (2250, 8010),
+        kind: Dungeon,
+        neighbors: [],
+        resources: [],
+    ),
+]

@@ -5,6 +5,7 @@ use std::{
     ops::{Index, IndexMut},
 };
 
+/// Type safe index into Store
 pub struct Id<T> {
     idx: u32,
     gen: u32,
@@ -58,6 +59,8 @@ struct Entry<T> {
     item: Option<T>,
 }
 
+/// A general-purpose high performance allocator, basically Vec with type safe
+/// indices (Id)
 pub struct Store<T> {
     entries: Vec<Entry<T>>,
     len: usize,
@@ -181,6 +184,22 @@ impl<T> Store<T> {
             Some(item)
         } else {
             None
+        }
+    }
+
+    pub fn recreate_id(&self, i: u64) -> Option<Id<T>> {
+        if i as usize >= self.entries.len() {
+            None
+        } else {
+            Some(Id {
+                idx: i as u32,
+                gen: self
+                    .entries
+                    .get(i as usize)
+                    .map(|e| e.gen)
+                    .unwrap_or_default(),
+                phantom: PhantomData,
+            })
         }
     }
 }

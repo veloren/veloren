@@ -41,10 +41,12 @@ use common::{
 use common_base::span;
 use common_net::{
     msg::{
-        self, validate_chat_msg, world_msg::SiteInfo, ChatMsgValidationError, ClientGeneral,
-        ClientMsg, ClientRegister, ClientType, DisconnectReason, InviteAnswer, Notification,
-        PingMsg, PlayerInfo, PlayerListUpdate, PresenceKind, RegisterError, ServerGeneral,
-        ServerInfo, ServerInit, ServerRegisterAnswer, MAX_BYTES_CHAT_MSG,
+        self, validate_chat_msg,
+        world_msg::{EconomyInfo, SiteId, SiteInfo},
+        ChatMsgValidationError, ClientGeneral, ClientMsg, ClientRegister, ClientType,
+        DisconnectReason, InviteAnswer, Notification, PingMsg, PlayerInfo, PlayerListUpdate,
+        PresenceKind, RegisterError, ServerGeneral, ServerInfo, ServerInit, ServerRegisterAnswer,
+        MAX_BYTES_CHAT_MSG,
     },
     sync::WorldSyncExt,
 };
@@ -126,6 +128,11 @@ impl WorldData {
     pub fn max_chunk_alt(&self) -> f32 { self.map.2.y }
 }
 
+pub struct SiteInfoRich {
+    pub site: SiteInfo,
+    pub economy: Option<EconomyInfo>,
+}
+
 pub struct Client {
     registered: bool,
     presence: Option<PresenceKind>,
@@ -134,7 +141,7 @@ pub struct Client {
     world_data: WorldData,
     player_list: HashMap<Uid, PlayerInfo>,
     character_list: CharacterList,
-    sites: Vec<SiteInfo>,
+    sites: HashMap<SiteId, SiteInfoRich>,
     pub chat_mode: ChatMode,
     recipe_book: RecipeBook,
     available_recipes: HashSet<String>,
@@ -440,7 +447,15 @@ impl Client {
             },
             player_list: HashMap::new(),
             character_list: CharacterList::default(),
-            sites,
+            sites: sites
+                .iter()
+                .map(|s| {
+                    (s.id, SiteInfoRich {
+                        site: s.clone(),
+                        economy: None,
+                    })
+                })
+                .collect(),
             recipe_book,
             available_recipes: HashSet::default(),
             chat_mode: ChatMode::default(),
@@ -575,6 +590,7 @@ impl Client {
                     | ClientGeneral::PlayerPhysics { .. }
                     | ClientGeneral::UnlockSkill(_)
                     | ClientGeneral::RefundSkill(_)
+                    | ClientGeneral::RequestSiteInfo(_)
                     | ClientGeneral::UnlockSkillGroup(_) => &mut self.in_game_stream,
                     //Only in game, terrain
                     ClientGeneral::TerrainChunkRequest { .. } => &mut self.terrain_stream,
@@ -777,7 +793,9 @@ impl Client {
     }
 
     /// Unstable, likely to be removed in a future release
-    pub fn sites(&self) -> &[SiteInfo] { &self.sites }
+    pub fn sites(&self) -> &HashMap<SiteId, SiteInfoRich> { &self.sites }
+
+    pub fn sites_mut(&mut self) -> &mut HashMap<SiteId, SiteInfoRich> { &mut self.sites }
 
     pub fn enable_lantern(&mut self) {
         self.send_msg(ClientGeneral::ControlEvent(ControlEvent::EnableLantern));
@@ -1036,6 +1054,10 @@ impl Client {
         } else {
             SitesKind::Void
         }
+    }
+
+    pub fn request_site_economy(&mut self, id: SiteId) {
+        self.send_msg(ClientGeneral::RequestSiteInfo(id))
     }
 
     pub fn inventories(&self) -> ReadStorage<comp::Inventory> { self.state.read_storage() }
@@ -1602,6 +1624,11 @@ impl Client {
             ServerGeneral::FinishedTrade(result) => {
                 if let Some((_, trade)) = self.pending_trade.take() {
                     frontend_events.push(Event::TradeComplete { result, trade })
+                }
+            },
+            ServerGeneral::SiteEconomy(economy) => {
+                if let Some(rich) = self.sites_mut().get_mut(&economy.id) {
+                    rich.economy = Some(economy);
                 }
             },
             _ => unreachable!("Not a in_game message"),

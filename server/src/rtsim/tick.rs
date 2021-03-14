@@ -114,6 +114,7 @@ impl<'a> System<'a> for Sys {
                 agent: Some(comp::Agent::new(
                     None,
                     matches!(body, comp::Body::Humanoid(_)),
+                    None,
                     &body,
                     false,
                 )),

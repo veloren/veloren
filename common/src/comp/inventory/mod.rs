@@ -26,6 +26,7 @@ pub mod loadout_builder;
 pub mod slot;
 #[cfg(test)] mod test;
 #[cfg(test)] mod test_helpers;
+pub mod trade_pricing;
 
 pub type InvSlot = Option<Item>;
 const DEFAULT_INVENTORY_SLOTS: usize = 18;

@@ -2,13 +2,12 @@
 
 mod econ;
 
-use self::{Occupation::*, Stock::*};
 use crate::{
     config::CONFIG,
     sim::WorldSim,
     site::{namegen::NameGen, Castle, Dungeon, Settlement, Site as WorldSite, Tree},
     site2,
-    util::{attempt, seed_expan, MapVec, CARDINALS, NEIGHBORS},
+    util::{attempt, seed_expan, NEIGHBORS},
     Index, Land,
 };
 use common::{
@@ -16,16 +15,12 @@ use common::{
     path::Path,
     spiral::Spiral2d,
     store::{Id, Store},
-    terrain::{MapSizeLg, TerrainChunkSize},
+    terrain::{uniform_idx_as_vec2, MapSizeLg, TerrainChunkSize},
     vol::RectVolSize,
 };
-use core::{
-    fmt,
-    hash::{BuildHasherDefault, Hash},
-    ops::Range,
-};
-use fxhash::{FxHasher32, FxHasher64};
-use hashbrown::{HashMap, HashSet};
+use core::{fmt, hash::BuildHasherDefault, ops::Range};
+use fxhash::FxHasher64;
+use hashbrown::HashMap;
 use rand::prelude::*;
 use rand_chacha::ChaChaRng;
 use tracing::{debug, info, warn};
@@ -113,35 +108,17 @@ impl Civs {
                     _ => (SiteKind::Dungeon, 0),
                 };
                 let loc = find_site_loc(&mut ctx, None, size)?;
-                this.establish_site(&mut ctx.reseed(), loc, |place| Site {
+                Some(this.establish_site(&mut ctx.reseed(), loc, |place| Site {
                     kind,
                     center: loc,
                     place,
                     site_tmp: None,
-
-                    population: 0.0,
-
-                    stocks: Stocks::from_default(100.0),
-                    surplus: Stocks::from_default(0.0),
-                    values: Stocks::from_default(None),
-
-                    labors: MapVec::from_default(0.01),
-                    yields: MapVec::from_default(1.0),
-                    productivity: MapVec::from_default(1.0),
-
-                    last_exports: Stocks::from_default(0.0),
-                    export_targets: Stocks::from_default(0.0),
-                    //trade_states: Stocks::default(),
-                    coin: 1000.0,
-                })
+                }))
             });
         }
 
         // Tick
-        const SIM_YEARS: usize = 1000;
-        for _ in 0..SIM_YEARS {
-            this.tick(&mut ctx, 1.0);
-        }
+        //=== old economy is gone
 
         // Flatten ground around sites
         for site in this.sites.values() {
@@ -242,6 +219,52 @@ impl Civs {
         info!(?cnt, "all sites placed");
 
         //this.display_info();
+
+        // remember neighbor information in economy
+        for (s1, val) in this.track_map.iter() {
+            if let Some(index1) = this.sites.get(*s1).site_tmp {
+                for (s2, t) in val.iter() {
+                    if let Some(index2) = this.sites.get(*s2).site_tmp {
+                        if index.sites.get(index1).do_economic_simulation()
+                            && index.sites.get(index2).do_economic_simulation()
+                        {
+                            let cost = this.tracks.get(*t).path.len();
+                            index
+                                .sites
+                                .get_mut(index1)
+                                .economy
+                                .add_neighbor(index2, cost);
+                            index
+                                .sites
+                                .get_mut(index2)
+                                .economy
+                                .add_neighbor(index1, cost);
+                        }
+                    }
+                }
+            }
+        }
+
+        // collect natural resources
+        let sites = &mut index.sites;
+        (0..ctx.sim.map_size_lg().chunks_len())
+            .into_iter()
+            .for_each(|posi| {
+                let chpos = uniform_idx_as_vec2(ctx.sim.map_size_lg(), posi);
+                let wpos = chpos * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
+                let closest_site = (*sites)
+                    .iter_mut()
+                    .filter(|s| !matches!(s.1.kind, crate::site::SiteKind::Dungeon(_)))
+                    .min_by_key(|(_id, s)| s.get_origin().distance_squared(wpos));
+                if let Some((_id, s)) = closest_site {
+                    let distance_squared = s.get_origin().distance_squared(wpos);
+                    s.economy
+                        .add_chunk(ctx.sim.get(chpos).unwrap(), distance_squared);
+                }
+            });
+        sites
+            .iter_mut()
+            .for_each(|(_, s)| s.economy.cache_economy());
 
         this
     }
@@ -405,27 +428,16 @@ impl Civs {
     fn birth_civ(&mut self, ctx: &mut GenCtx<impl Rng>) -> Option<Id<Civ>> {
         let site = attempt(5, || {
             let loc = find_site_loc(ctx, None, 1)?;
-            self.establish_site(ctx, loc, |place| Site {
+            Some(self.establish_site(ctx, loc, |place| Site {
                 kind: SiteKind::Settlement,
                 site_tmp: None,
                 center: loc,
                 place,
-
-                population: 24.0,
-
-                stocks: Stocks::from_default(100.0),
-                surplus: Stocks::from_default(0.0),
-                values: Stocks::from_default(None),
-
-                labors: MapVec::from_default(0.01),
-                yields: MapVec::from_default(1.0),
-                productivity: MapVec::from_default(1.0),
-
-                last_exports: Stocks::from_default(0.0),
-                export_targets: Stocks::from_default(0.0),
-                //trade_states: Stocks::default(),
-                coin: 1000.0,
-            })
+                /* most economic members have moved to site/Economy */
+                /* last_exports: Stocks::from_default(0.0),
+                 * export_targets: Stocks::from_default(0.0),
+                 * //trade_states: Stocks::default(), */
+            }))
         })?;
 
         let civ = self.civs.insert(Civ {
@@ -438,60 +450,11 @@ impl Civs {
 
     fn establish_place(
         &mut self,
-        ctx: &mut GenCtx<impl Rng>,
+        _ctx: &mut GenCtx<impl Rng>,
         loc: Vec2<i32>,
-        area: Range<usize>,
-    ) -> Option<Id<Place>> {
-        // We use this hasher (FxHasher64) because
-        // (1) we don't care about DDOS attacks (ruling out SipHash);
-        // (2) we care about determinism across computers (ruling out AAHash);
-        // (3) we have 8-byte keys (for which FxHash is fastest).
-        let mut dead = HashSet::with_hasher(BuildHasherDefault::<FxHasher64>::default());
-        let mut alive = HashSet::with_hasher(BuildHasherDefault::<FxHasher64>::default());
-        alive.insert(loc);
-
-        // Fill the surrounding area
-        while let Some(cloc) = alive.iter().choose(&mut ctx.rng).copied() {
-            for dir in CARDINALS.iter() {
-                if site_in_dir(&ctx.sim, cloc, *dir) {
-                    let rloc = cloc + *dir;
-                    if !dead.contains(&rloc)
-                        && ctx
-                            .sim
-                            .get(rloc)
-                            .map(|c| c.place.is_none())
-                            .unwrap_or(false)
-                    {
-                        alive.insert(rloc);
-                    }
-                }
-            }
-            alive.remove(&cloc);
-            dead.insert(cloc);
-
-            if dead.len() + alive.len() >= area.end {
-                break;
-            }
-        }
-        // Make sure the place is large enough
-        if dead.len() + alive.len() <= area.start {
-            return None;
-        }
-
-        let place = self.places.insert(Place {
-            center: loc,
-            nat_res: NaturalResources::default(),
-        });
-
-        // Write place to map
-        for cell in dead.union(&alive) {
-            if let Some(chunk) = ctx.sim.get_mut(*cell) {
-                chunk.place = Some(place);
-                self.places.get_mut(place).nat_res.include_chunk(ctx, *cell);
-            }
-        }
-
-        Some(place)
+        _area: Range<usize>,
+    ) -> Id<Place> {
+        self.places.insert(Place { center: loc })
     }
 
     fn establish_site(
@@ -499,12 +462,12 @@ impl Civs {
         ctx: &mut GenCtx<impl Rng>,
         loc: Vec2<i32>,
         site_fn: impl FnOnce(Id<Place>) -> Site,
-    ) -> Option<Id<Site>> {
+    ) -> Id<Site> {
         const SITE_AREA: Range<usize> = 1..4; //64..256;
 
         let place = match ctx.sim.get(loc).and_then(|site| site.place) {
             Some(place) => place,
-            None => self.establish_place(ctx, loc, SITE_AREA)?,
+            None => self.establish_place(ctx, loc, SITE_AREA),
         };
 
         let site = self.sites.insert(site_fn(place));
@@ -568,76 +531,7 @@ impl Civs {
             }
         }
 
-        Some(site)
-    }
-
-    fn tick(&mut self, _ctx: &mut GenCtx<impl Rng>, years: f32) {
-        for site in self.sites.values_mut() {
-            site.simulate(years, &self.places.get(site.place).nat_res);
-        }
-
-        // Trade stocks
-        // let mut stocks = TRADE_STOCKS;
-        // stocks.shuffle(ctx.rng); // Give each stock a chance to be traded
-        // first for stock in stocks.iter().copied() {
-        //     let mut sell_orders = self.sites
-        //         .iter_ids()
-        //         .map(|(id, site)| (id, {
-        //             econ::SellOrder {
-        //                 quantity:
-        // site.export_targets[stock].max(0.0).min(site.stocks[stock]),
-        //                 price:
-        // site.trade_states[stock].sell_belief.choose_price(ctx) * 1.25, //
-        // Trade cost                 q_sold: 0.0,
-        //             }
-        //         }))
-        //         .filter(|(_, order)| order.quantity > 0.0)
-        //         .collect::<Vec<_>>();
-
-        //     let mut sites = self.sites
-        //         .ids()
-        //         .collect::<Vec<_>>();
-        //     sites.shuffle(ctx.rng); // Give all sites a chance to buy first
-        //     for site in sites {
-        //         let (max_spend, max_price, max_import) = {
-        //             let site = self.sites.get(site);
-        //             let budget = site.coin * 0.5;
-        //             let total_value = site.values.iter().map(|(_, v)|
-        // (*v).unwrap_or(0.0)).sum::<f32>();             (
-        //                 100000.0,//(site.values[stock].unwrap_or(0.1) /
-        // total_value * budget).min(budget),
-        // site.trade_states[stock].buy_belief.price,
-        // -site.export_targets[stock].min(0.0),             )
-        //         };
-        //         let (quantity, spent) = econ::buy_units(ctx, sell_orders
-        //             .iter_mut()
-        //             .filter(|(id, _)| site != *id && self.track_between(site,
-        // *id).is_some())             .map(|(_, order)| order),
-        //             max_import,
-        //             1000000.0, // Max price TODO
-        //             max_spend,
-        //         );
-        //         let mut site = self.sites.get_mut(site);
-        //         site.coin -= spent;
-        //         if quantity > 0.0 {
-        //             site.stocks[stock] += quantity;
-        //             site.last_exports[stock] = -quantity;
-        //             site.trade_states[stock].buy_belief.update_buyer(years,
-        // spent / quantity);             println!("Belief: {:?}",
-        // site.trade_states[stock].buy_belief);         }
-        //     }
-
-        //     for (site, order) in sell_orders {
-        //         let mut site = self.sites.get_mut(site);
-        //         site.coin += order.q_sold * order.price;
-        //         if order.q_sold > 0.0 {
-        //             site.stocks[stock] -= order.q_sold;
-        //             site.last_exports[stock] = order.q_sold;
-        //
-        // site.trade_states[stock].sell_belief.update_seller(order.q_sold /
-        // order.quantity);         }
-        //     }
-        // }
+        site
     }
 }
 
@@ -782,45 +676,10 @@ pub struct Civ {
 
 #[derive(Debug)]
 pub struct Place {
-    center: Vec2<i32>,
-    nat_res: NaturalResources,
-}
-
-// Productive capacity per year
-#[derive(Default, Debug)]
-pub struct NaturalResources {
-    wood: f32,
-    rock: f32,
-    river: f32,
-    farmland: f32,
-}
-
-impl NaturalResources {
-    fn include_chunk(&mut self, ctx: &mut GenCtx<impl Rng>, loc: Vec2<i32>) {
-        let chunk = if let Some(chunk) = ctx.sim.get(loc) {
-            chunk
-        } else {
-            return;
-        };
-
-        self.wood += chunk.tree_density;
-        self.rock += chunk.rockiness;
-        self.river += if chunk.river.is_river() { 5.0 } else { 0.0 };
-        self.farmland += if chunk.humidity > 0.35
-            && chunk.temp > -0.3
-            && chunk.temp < 0.75
-            && chunk.chaos < 0.5
-            && ctx
-                .sim
-                .get_gradient_approx(loc)
-                .map(|grad| grad < 0.7)
-                .unwrap_or(false)
-        {
-            1.0
-        } else {
-            0.0
-        };
-    }
+    pub center: Vec2<i32>,
+    /* act sort of like territory with sites belonging to it
+     * nat_res/NaturalResources was moved to Economy
+     *    nat_res: NaturalResources, */
 }
 
 pub struct Track {
@@ -838,61 +697,11 @@ pub struct Site {
     pub site_tmp: Option<Id<crate::site::Site>>,
     pub center: Vec2<i32>,
     pub place: Id<Place>,
-
-    population: f32,
-
-    // Total amount of each stock
-    stocks: Stocks<f32>,
-    // Surplus stock compared to demand orders
-    surplus: Stocks<f32>,
-    // For some goods, such a goods without any supply, it doesn't make sense to talk about value
-    values: Stocks<Option<f32>>,
-
-    // Proportion of individuals dedicated to an industry
-    labors: MapVec<Occupation, f32>,
-    // Per worker, per year, of their output good
-    yields: MapVec<Occupation, f32>,
-    productivity: MapVec<Occupation, f32>,
-
-    last_exports: Stocks<f32>,
-    export_targets: Stocks<f32>,
-    //trade_states: Stocks<TradeState>,
-    coin: f32,
 }
 
 impl fmt::Display for Site {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         writeln!(f, "{:?}", self.kind)?;
-        writeln!(f, "- population: {}", self.population.floor() as u32)?;
-        writeln!(f, "- coin: {}", self.coin.floor() as u32)?;
-        writeln!(f, "Stocks")?;
-        for (stock, q) in self.stocks.iter() {
-            writeln!(f, "- {:?}: {}", stock, q.floor())?;
-        }
-        writeln!(f, "Values")?;
-        for stock in TRADE_STOCKS.iter() {
-            writeln!(
-                f,
-                "- {:?}: {}",
-                stock,
-                self.values[*stock]
-                    .map(|x| x.to_string())
-                    .unwrap_or_else(|| "N/A".to_string())
-            )?;
-        }
-        writeln!(f, "Laborers")?;
-        for (labor, n) in self.labors.iter() {
-            writeln!(
-                f,
-                "- {:?}: {}",
-                labor,
-                (*n * self.population).floor() as u32
-            )?;
-        }
-        writeln!(f, "Export targets")?;
-        for (stock, n) in self.export_targets.iter() {
-            writeln!(f, "- {:?}: {}", stock, n)?;
-        }
 
         Ok(())
     }
@@ -908,236 +717,9 @@ pub enum SiteKind {
 }
 
 impl Site {
-    #[allow(clippy::let_and_return)] // TODO: Pending review in #587
-    pub fn simulate(&mut self, years: f32, nat_res: &NaturalResources) {
-        // Insert natural resources into the economy
-        if self.stocks[Fish] < nat_res.river {
-            self.stocks[Fish] = nat_res.river;
-        }
-        if self.stocks[Wheat] < nat_res.farmland {
-            self.stocks[Wheat] = nat_res.farmland;
-        }
-        if self.stocks[Logs] < nat_res.wood {
-            self.stocks[Logs] = nat_res.wood;
-        }
-        if self.stocks[Game] < nat_res.wood {
-            self.stocks[Game] = nat_res.wood;
-        }
-        if self.stocks[Rock] < nat_res.rock {
-            self.stocks[Rock] = nat_res.rock;
-        }
-
-        // We use this hasher (FxHasher32) because
-        // (1) we don't care about DDOS attacks (ruling out SipHash);
-        // (2) we care about determinism across computers (ruling out AAHash);
-        // (3) we have 1-byte keys (for which FxHash is supposedly fastest).
-        let orders = vec![
-            (None, vec![(Food, 0.5)]),
-            (Some(Cook), vec![(Flour, 16.0), (Meat, 4.0), (Wood, 3.0)]),
-            (Some(Lumberjack), vec![(Logs, 4.5)]),
-            (Some(Miner), vec![(Rock, 7.5)]),
-            (Some(Fisher), vec![(Fish, 4.0)]),
-            (Some(Hunter), vec![(Game, 4.0)]),
-            (Some(Farmer), vec![(Wheat, 4.0)]),
-        ]
-        .into_iter()
-        .collect::<HashMap<_, Vec<(Stock, f32)>, BuildHasherDefault<FxHasher32>>>();
-
-        // Per labourer, per year
-        let production = MapVec::from_list(
-            &[
-                (Farmer, (Flour, 2.0)),
-                (Lumberjack, (Wood, 1.5)),
-                (Miner, (Stone, 0.6)),
-                (Fisher, (Meat, 3.0)),
-                (Hunter, (Meat, 0.25)),
-                (Cook, (Food, 20.0)),
-            ],
-            (Rock, 0.0),
-        );
-
-        let mut demand = Stocks::from_default(0.0);
-        for (labor, orders) in &orders {
-            let scale = if let Some(labor) = labor {
-                self.labors[*labor]
-            } else {
-                1.0
-            } * self.population;
-            for (stock, amount) in orders {
-                demand[*stock] += *amount * scale;
-            }
-        }
-
-        let mut supply = Stocks::from_default(0.0);
-        for (labor, (output_stock, _)) in production.iter() {
-            supply[*output_stock] += self.yields[labor] * self.labors[labor] * self.population;
-        }
-
-        let last_exports = &self.last_exports;
-        let stocks = &self.stocks;
-        self.surplus = demand
-            .clone()
-            .map(|stock, _| supply[stock] + stocks[stock] - demand[stock] - last_exports[stock]);
-
-        // Update values according to the surplus of each stock
-        let values = &mut self.values;
-        self.surplus.iter().for_each(|(stock, surplus)| {
-            let val = 3.5f32.powf(1.0 - *surplus / demand[stock]);
-            values[stock] = if val > 0.001 && val < 1000.0 {
-                Some(val)
-            } else {
-                None
-            };
-        });
-
-        // Update export targets based on relative values
-        let value_avg = values
-            .iter()
-            .map(|(_, v)| (*v).unwrap_or(0.0))
-            .sum::<f32>()
-            .max(0.01)
-            / values.iter().filter(|(_, v)| v.is_some()).count() as f32;
-        let export_targets = &mut self.export_targets;
-        let last_exports = &self.last_exports;
-        self.values.iter().for_each(|(stock, value)| {
-            let rvalue = (*value).map(|v| v - value_avg).unwrap_or(0.0);
-            //let factor = if export_targets[stock] > 0.0 { 1.0 / rvalue } else { rvalue };
-            export_targets[stock] = last_exports[stock] - rvalue * 0.1; // + (trade_states[stock].sell_belief.price - trade_states[stock].buy_belief.price) * 0.025;
-        });
-
-        let population = self.population;
-
-        // Redistribute workforce according to relative good values
-        let labor_ratios = production.clone().map(|labor, (output_stock, _)| {
-            self.productivity[labor] * demand[output_stock] / supply[output_stock].max(0.001)
-        });
-        let labor_ratio_sum = labor_ratios.iter().map(|(_, r)| *r).sum::<f32>().max(0.01);
-        production.iter().for_each(|(labor, _)| {
-            let smooth = 0.8;
-            self.labors[labor] = smooth * self.labors[labor]
-                + (1.0 - smooth)
-                    * (labor_ratios[labor].max(labor_ratio_sum / 1000.0) / labor_ratio_sum);
-        });
-
-        // Production
-        let stocks_before = self.stocks.clone();
-        for (labor, orders) in orders.iter() {
-            let scale = if let Some(labor) = labor {
-                self.labors[*labor]
-            } else {
-                1.0
-            } * population;
-
-            // For each order, we try to find the minimum satisfaction rate - this limits
-            // how much we can produce! For example, if we need 0.25 fish and
-            // 0.75 oats to make 1 unit of food, but only 0.5 units of oats are
-            // available then we only need to consume 2/3rds
-            // of other ingredients and leave the rest in stock
-            // In effect, this is the productivity
-            let productivity = orders
-                .iter()
-                .map(|(stock, amount)| {
-                    // What quantity is this order requesting?
-                    let _quantity = *amount * scale;
-                    // What proportion of this order is the economy able to satisfy?
-                    let satisfaction = (stocks_before[*stock] / demand[*stock]).min(1.0);
-                    satisfaction
-                })
-                .min_by(|a, b| a.partial_cmp(b).unwrap())
-                .unwrap_or_else(|| {
-                    panic!("Industry {:?} requires at least one input order", labor)
-                });
-
-            for (stock, amount) in orders {
-                // What quantity is this order requesting?
-                let quantity = *amount * scale;
-                // What amount gets actually used in production?
-                let used = quantity * productivity;
-
-                // Deplete stocks accordingly
-                self.stocks[*stock] = (self.stocks[*stock] - used).max(0.0);
-            }
-
-            // Industries produce things
-            if let Some(labor) = labor {
-                let (stock, rate) = production[*labor];
-                let workers = self.labors[*labor] * population;
-                let final_rate = rate;
-                let yield_per_worker = productivity * final_rate;
-                self.yields[*labor] = yield_per_worker;
-                self.productivity[*labor] = productivity;
-                self.stocks[stock] += yield_per_worker * workers.powf(1.1);
-            }
-        }
-
-        // Denature stocks
-        self.stocks.iter_mut().for_each(|(_, v)| *v *= 0.9);
-
-        // Births/deaths
-        const NATURAL_BIRTH_RATE: f32 = 0.15;
-        const DEATH_RATE: f32 = 0.05;
-        let birth_rate = if self.surplus[Food] > 0.0 {
-            NATURAL_BIRTH_RATE
-        } else {
-            0.0
-        };
-        self.population += years * self.population * (birth_rate - DEATH_RATE);
-    }
-
     pub fn is_dungeon(&self) -> bool { matches!(self.kind, SiteKind::Dungeon) }
 
     pub fn is_settlement(&self) -> bool { matches!(self.kind, SiteKind::Settlement) }
 
     pub fn is_castle(&self) -> bool { matches!(self.kind, SiteKind::Castle) }
 }
-
-#[repr(u8)]
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-enum Occupation {
-    Farmer = 0,
-    Lumberjack = 1,
-    Miner = 2,
-    Fisher = 3,
-    Hunter = 4,
-    Cook = 5,
-}
-
-#[repr(u8)]
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-pub enum Stock {
-    Wheat = 0,
-    Flour = 1,
-    Meat = 2,
-    Fish = 3,
-    Game = 4,
-    Food = 5,
-    Logs = 6,
-    Wood = 7,
-    Rock = 8,
-    Stone = 9,
-}
-
-const TRADE_STOCKS: [Stock; 5] = [Flour, Meat, Food, Wood, Stone];
-
-#[derive(Debug, Clone)]
-struct TradeState {
-    buy_belief: econ::Belief,
-    sell_belief: econ::Belief,
-}
-
-impl Default for TradeState {
-    fn default() -> Self {
-        Self {
-            buy_belief: econ::Belief {
-                price: 1.0,
-                confidence: 0.25,
-            },
-            sell_belief: econ::Belief {
-                price: 1.0,
-                confidence: 0.25,
-            },
-        }
-    }
-}
-
-pub type Stocks<T> = MapVec<Stock, T>;

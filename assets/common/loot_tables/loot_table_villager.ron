@@ -17,7 +17,7 @@
     (1, "common.items.armor.misc.chest.worker_red_1"),
     (1, "common.items.armor.misc.chest.worker_yellow_0"),
     (1, "common.items.armor.misc.chest.worker_yellow_1"),
-    (1, "common.items.armor.misc.pants.worker_blue_0"),
+    (1, "common.items.armor.misc.pants.worker_blue"),
     // Utility
     (0.05, "common.items.utility.collar"),
     // Food

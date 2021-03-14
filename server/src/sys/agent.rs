@@ -1,9 +1,9 @@
 use common::{
     comp::{
         self,
-        agent::{AgentEvent, Tactic, Target, DEFAULT_INTERACTION_TIME},
+        agent::{AgentEvent, Tactic, Target, DEFAULT_INTERACTION_TIME, TRADE_INTERACTION_TIME},
         group,
-        inventory::slot::EquipSlot,
+        inventory::{slot::EquipSlot, trade_pricing::TradePricing},
         invite::InviteResponse,
         item::{
             tool::{ToolKind, UniqueKind},
@@ -19,6 +19,7 @@ use common::{
     resources::{DeltaTime, TimeOfDay},
     terrain::{Block, TerrainGrid},
     time::DayPeriod,
+    trade::{Good, TradeAction, TradePhase, TradeResult},
     uid::{Uid, UidAllocator},
     util::Dir,
     vol::ReadVol,
@@ -79,7 +80,6 @@ pub struct ReadData<'a> {
     alignments: ReadStorage<'a, Alignment>,
     bodies: ReadStorage<'a, Body>,
     mount_states: ReadStorage<'a, MountState>,
-    //ReadStorage<'a, Invite>,
     time_of_day: Read<'a, TimeOfDay>,
     light_emitter: ReadStorage<'a, LightEmitter>,
 }
@@ -456,7 +456,13 @@ impl<'a> AgentData<'a> {
             agent.action_timer = 0.1;
         }
         if agent.action_timer > 0.0 {
-            if agent.action_timer < DEFAULT_INTERACTION_TIME {
+            if agent.action_timer
+                < (if agent.trading {
+                    TRADE_INTERACTION_TIME
+                } else {
+                    DEFAULT_INTERACTION_TIME
+                })
+            {
                 self.interact(agent, controller, &read_data, event_emitter);
             } else {
                 agent.action_timer = 0.0;
@@ -691,71 +697,201 @@ impl<'a> AgentData<'a> {
     ) {
         // TODO: Process group invites
         // TODO: Add Group AgentEvent
-        let accept = false; // set back to "matches!(alignment, Alignment::Npc)" when we got better NPC recruitment mechanics
-        if accept {
-            // Clear agent comp
-            *agent = Agent::default();
-            controller
-                .events
-                .push(ControlEvent::InviteResponse(InviteResponse::Accept));
-        } else {
-            controller
-                .events
-                .push(ControlEvent::InviteResponse(InviteResponse::Decline));
-        }
+        // let accept = false;  // set back to "matches!(alignment, Alignment::Npc)"
+        // when we got better NPC recruitment mechanics if accept {
+        //     // Clear agent comp
+        //     //*agent = Agent::default();
+        //     controller
+        //         .events
+        //         .push(ControlEvent::InviteResponse(InviteResponse::Accept));
+        // } else {
+        //     controller
+        //         .events
+        //         .push(ControlEvent::InviteResponse(InviteResponse::Decline));
+        // }
         agent.action_timer += read_data.dt.0;
-        if agent.can_speak {
-            if let Some(AgentEvent::Talk(by)) = agent.inbox.pop_back() {
-                if let Some(target) = read_data.uid_allocator.retrieve_entity_internal(by.id()) {
-                    agent.target = Some(Target {
-                        target,
-                        hostile: false,
-                    });
-                    if let Some(tgt_pos) = read_data.positions.get(target) {
-                        let eye_offset = self.body.map_or(0.0, |b| b.eye_height());
-                        let tgt_eye_offset =
-                            read_data.bodies.get(target).map_or(0.0, |b| b.eye_height());
-                        if let Some(dir) = Dir::from_unnormalized(
-                            Vec3::new(tgt_pos.0.x, tgt_pos.0.y, tgt_pos.0.z + tgt_eye_offset)
-                                - Vec3::new(self.pos.0.x, self.pos.0.y, self.pos.0.z + eye_offset),
-                        ) {
-                            controller.inputs.look_dir = dir;
-                        }
-                        controller.actions.push(ControlAction::Stand);
-                        controller.actions.push(ControlAction::Talk);
-                        if let Some((_travel_to, destination_name)) =
-                            &agent.rtsim_controller.travel_to
-                        {
-                            let msg =
-                                format!("I'm heading to {}! Want to come along?", destination_name);
-                            event_emitter
-                                .emit(ServerEvent::Chat(UnresolvedChatMsg::npc(*self.uid, msg)));
-                        } else {
-                            let msg = "npc.speech.villager".to_string();
-                            event_emitter
-                                .emit(ServerEvent::Chat(UnresolvedChatMsg::npc(*self.uid, msg)));
+        let msg = agent.inbox.pop_back();
+        match msg {
+            Some(AgentEvent::Talk(by)) => {
+                if agent.can_speak {
+                    if let Some(target) = read_data.uid_allocator.retrieve_entity_internal(by.id())
+                    {
+                        agent.target = Some(Target {
+                            target,
+                            hostile: false,
+                        });
+                        if let Some(tgt_pos) = read_data.positions.get(target) {
+                            let eye_offset = self.body.map_or(0.0, |b| b.eye_height());
+                            let tgt_eye_offset =
+                                read_data.bodies.get(target).map_or(0.0, |b| b.eye_height());
+                            if let Some(dir) = Dir::from_unnormalized(
+                                Vec3::new(tgt_pos.0.x, tgt_pos.0.y, tgt_pos.0.z + tgt_eye_offset)
+                                    - Vec3::new(
+                                        self.pos.0.x,
+                                        self.pos.0.y,
+                                        self.pos.0.z + eye_offset,
+                                    ),
+                            ) {
+                                controller.inputs.look_dir = dir;
+                            }
+                            controller.actions.push(ControlAction::Stand);
+                            controller.actions.push(ControlAction::Talk);
+                            if let Some((_travel_to, destination_name)) =
+                                &agent.rtsim_controller.travel_to
+                            {
+                                let msg = format!(
+                                    "I'm heading to {}! Want to come along?",
+                                    destination_name
+                                );
+                                event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc(
+                                    *self.uid, msg,
+                                )));
+                            } else {
+                                let msg = "npc.speech.villager".to_string();
+                                event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc(
+                                    *self.uid, msg,
+                                )));
+                            }
                         }
                     }
                 }
-            } else if let Some(Target { target, .. }) = &agent.target {
-                if let Some(tgt_pos) = read_data.positions.get(*target) {
-                    let eye_offset = self.body.map_or(0.0, |b| b.eye_height());
-                    let tgt_eye_offset = read_data
-                        .bodies
-                        .get(*target)
-                        .map_or(0.0, |b| b.eye_height());
-                    if let Some(dir) = Dir::from_unnormalized(
-                        Vec3::new(tgt_pos.0.x, tgt_pos.0.y, tgt_pos.0.z + tgt_eye_offset)
-                            - Vec3::new(self.pos.0.x, self.pos.0.y, self.pos.0.z + eye_offset),
-                    ) {
-                        controller.inputs.look_dir = dir;
+            },
+            Some(AgentEvent::TradeInvite(_with)) => {
+                if agent.trade_for_site.is_some() && !agent.trading {
+                    // stand still and looking towards the trading player
+                    controller.actions.push(ControlAction::Stand);
+                    controller.actions.push(ControlAction::Talk);
+                    controller
+                        .events
+                        .push(ControlEvent::InviteResponse(InviteResponse::Accept));
+                    agent.trading = true;
+                } else {
+                    // TODO: Provide a hint where to find the closest merchant?
+                    controller
+                        .events
+                        .push(ControlEvent::InviteResponse(InviteResponse::Decline));
+                }
+            },
+            Some(AgentEvent::FinishedTrade(result)) => {
+                if agent.trading {
+                    match result {
+                        TradeResult::Completed => {
+                            event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc(
+                                *self.uid,
+                                "Thank you for trading with me!".to_string(),
+                            )))
+                        },
+                        _ => event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc(
+                            *self.uid,
+                            "Maybe another time, have a good day!".to_string(),
+                        ))),
+                    }
+                    agent.trading = false;
+                }
+            },
+            Some(AgentEvent::UpdatePendingTrade(boxval)) => {
+                let (tradeid, pending, prices, inventories) = *boxval;
+                if agent.trading {
+                    // I assume player is [0], agent is [1]
+                    fn trade_margin(g: Good) -> f32 {
+                        match g {
+                            Good::Tools | Good::Armor => 0.5,
+                            Good::Food | Good::Potions | Good::Ingredients => 0.75,
+                            Good::Coin => 1.0,
+                            _ => 0.0, // what is this?
+                        }
+                    }
+                    let balance0: f32 = pending.offers[0]
+                        .iter()
+                        .map(|(slot, amount)| {
+                            inventories[0]
+                                .as_ref()
+                                .map(|ri| {
+                                    ri.inventory.get(slot).map(|item| {
+                                        let (material, factor) =
+                                            TradePricing::get_material(&item.name);
+                                        prices.values.get(&material).cloned().unwrap_or_default()
+                                            * factor
+                                            * (*amount as f32)
+                                            * trade_margin(material)
+                                    })
+                                })
+                                .flatten()
+                                .unwrap_or_default()
+                        })
+                        .sum();
+                    let balance1: f32 = pending.offers[1]
+                        .iter()
+                        .map(|(slot, amount)| {
+                            inventories[1]
+                                .as_ref()
+                                .map(|ri| {
+                                    ri.inventory.get(slot).map(|item| {
+                                        let (material, factor) =
+                                            TradePricing::get_material(&item.name);
+                                        prices.values.get(&material).cloned().unwrap_or_default()
+                                            * factor
+                                            * (*amount as f32)
+                                    })
+                                })
+                                .flatten()
+                                .unwrap_or_default()
+                        })
+                        .sum();
+                    tracing::debug!("UpdatePendingTrade({}, {})", balance0, balance1);
+                    if balance0 >= balance1 {
+                        event_emitter.emit(ServerEvent::ProcessTradeAction(
+                            *self.entity,
+                            tradeid,
+                            TradeAction::Accept(pending.phase),
+                        ));
+                    } else {
+                        if balance1 > 0.0 {
+                            let msg = format!(
+                                "That only covers {:.1}% of my costs!",
+                                balance0 / balance1 * 100.0
+                            );
+                            event_emitter
+                                .emit(ServerEvent::Chat(UnresolvedChatMsg::npc(*self.uid, msg)));
+                        }
+                        if pending.phase != TradePhase::Mutate {
+                            // we got into the review phase but without balanced goods, decline
+                            event_emitter.emit(ServerEvent::ProcessTradeAction(
+                                *self.entity,
+                                tradeid,
+                                TradeAction::Decline,
+                            ));
+                        }
                     }
                 }
-            } else {
-                agent.action_timer = 0.0;
-            }
-        } else {
-            agent.inbox.clear();
+            },
+            None => {
+                if agent.can_speak {
+                    // no new events, continue looking towards the last interacting player for some
+                    // time
+                    if let Some(Target { target, .. }) = &agent.target {
+                        if let Some(tgt_pos) = read_data.positions.get(*target) {
+                            let eye_offset = self.body.map_or(0.0, |b| b.eye_height());
+                            let tgt_eye_offset = read_data
+                                .bodies
+                                .get(*target)
+                                .map_or(0.0, |b| b.eye_height());
+                            if let Some(dir) = Dir::from_unnormalized(
+                                Vec3::new(tgt_pos.0.x, tgt_pos.0.y, tgt_pos.0.z + tgt_eye_offset)
+                                    - Vec3::new(
+                                        self.pos.0.x,
+                                        self.pos.0.y,
+                                        self.pos.0.z + eye_offset,
+                                    ),
+                            ) {
+                                controller.inputs.look_dir = dir;
+                            }
+                        }
+                    } else {
+                        agent.action_timer = 0.0;
+                    }
+                }
+            },
         }
     }
 

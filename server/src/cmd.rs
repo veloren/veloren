@@ -841,7 +841,8 @@ fn handle_spawn(
 
                             let body = body();
 
-                            let loadout = LoadoutBuilder::build_loadout(body, None, None).build();
+                            let loadout =
+                                LoadoutBuilder::build_loadout(body, None, None, None).build();
 
                             let inventory = Inventory::new_with_loadout(loadout);
 

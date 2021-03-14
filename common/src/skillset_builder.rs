@@ -15,6 +15,7 @@ pub enum SkillSetConfig {
     Myrmidon,
     Guard,
     Villager,
+    Merchant,
     Outcast,
     Highwayman,
     Bandit,
@@ -255,7 +256,7 @@ impl SkillSetBuilder {
                     _ => Self::default(),
                 }
             },
-            Some(Bandit) => {
+            Some(Bandit) | Some(Merchant) => {
                 match active_item {
                     Some(ToolKind::Sword) => {
                         // Sword

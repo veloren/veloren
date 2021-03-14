@@ -1,0 +1,44 @@
+(
+loot_tables: [
+    // balance the loot tables against each other (higher= more common= smaller price)
+    // the fact that loot tables have an own probability not accessible outside of the lottery call doesn't help here
+    (0.5,"common.loot_tables.loot_table_animal_ice"),
+    (4,"common.loot_tables.loot_table_animal_parts"),
+    (1,"common.loot_tables.loot_table_armor_cloth"),
+    (0.01,"common.loot_tables.loot_table_armor_heavy"),
+    (0.1,"common.loot_tables.loot_table_armor_light"),
+    (0.1,"common.loot_tables.loot_table_armor_misc"),
+    (0.5,"common.loot_tables.loot_table_armor_nature"),
+    (0.1,"common.loot_tables.loot_table_cave_large"),
+    (0.1,"common.loot_tables.loot_table_consumables"),
+    (1,"common.loot_tables.loot_table_crafting"),
+    (0.005,"common.loot_tables.loot_table_cultists"),
+    (1,"common.loot_tables.loot_table_fish"),
+    (1,"common.loot_tables.loot_table_food"),
+    (1,"common.loot_tables.loot_table_humanoids"),
+    (1,"common.loot_tables.loot_table_maneater"),
+    (0.0001,"common.loot_tables.loot_table_mindflayer"),
+    (0.001,"common.loot_tables.loot_table_miniboss"),
+    (0.05,"common.loot_tables.loot_table_raptor"),
+    (1,"common.loot_tables.loot_table_rocks"),
+    (1,"common.loot_tables.loot_table"),
+    (0.04,"common.loot_tables.loot_table_saurok"),
+    (0.02,"common.loot_tables.loot_table_troll"),
+    (2,"common.loot_tables.loot_table_villager"),
+    (1,"common.loot_tables.loot_table_weapon_common"),
+    (0.008,"common.loot_tables.loot_table_weapon_rare"),
+    (0.01,"common.loot_tables.loot_table_weapon_uncommon"),
+    (0.01,"common.loot_tables.loot_table_wendigo"),
+    // we probably want to include all the scattered scatter information
+    //(0.5,"common.cave_scatter"),
+], 
+// this is the amount of that good the most common item represents
+// so basically this table balances the goods against each other (higher=less valuable)
+good_scaling: [
+    (Potions, 0.5), // common.items.consumable.potion_minor
+    (Food, 3.0), // common.items.food.mushroom
+    (Coin, 1.0), // common.items.utility.coins
+    (Armor, 0.3), // common.items.armor.misc.pants.worker_blue
+    (Tools, 1.0), // common.items.weapons.staff.starter_staff
+    (Ingredients, 5.0), // common.items.crafting_ing.leather_scraps
+])

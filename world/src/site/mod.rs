@@ -141,10 +141,20 @@ impl Site {
         wpos2d: Vec2<i32>,
         get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
         supplement: &mut ChunkSupplement,
+        site_id: common::trade::SiteId,
     ) {
         match &self.kind {
             SiteKind::Settlement(s) => {
-                s.apply_supplement(dynamic_rng, wpos2d, get_column, supplement)
+                let economy = common::trade::SiteInformation {
+                    id: site_id,
+                    unconsumed_stock: self
+                        .economy
+                        .unconsumed_stock
+                        .iter()
+                        .map(|(g, a)| (g, *a))
+                        .collect(),
+                };
+                s.apply_supplement(dynamic_rng, wpos2d, get_column, supplement, economy)
             },
             SiteKind::Dungeon(d) => d.apply_supplement(dynamic_rng, wpos2d, get_column, supplement),
             SiteKind::Castle(c) => c.apply_supplement(dynamic_rng, wpos2d, get_column, supplement),
@@ -152,4 +162,6 @@ impl Site {
             SiteKind::Tree(_) => {},
         }
     }
+
+    pub fn do_economic_simulation(&self) -> bool { matches!(self.kind, SiteKind::Settlement(_)) }
 }

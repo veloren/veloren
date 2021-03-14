@@ -2,7 +2,7 @@ use crate::{
     chunk_generator::ChunkGenerator, client::Client, presence::Presence, rtsim::RtSim, Tick,
 };
 use common::{
-    comp::{self, bird_medium, Alignment, Pos},
+    comp::{self, bird_medium, inventory::loadout_builder::LoadoutConfig, Alignment, Pos},
     event::{EventBus, ServerEvent},
     generation::get_npc_name,
     npc::NPC_NAMES,
@@ -143,12 +143,13 @@ impl<'a> System<'a> for Sys {
                 }
 
                 let loadout_config = entity.loadout_config;
+                let economy = entity.trading_information.as_ref();
                 let skillset_config = entity.skillset_config;
 
                 stats.skill_set =
                     SkillSetBuilder::build_skillset(&main_tool, skillset_config).build();
                 let loadout =
-                    LoadoutBuilder::build_loadout(body, main_tool, loadout_config).build();
+                    LoadoutBuilder::build_loadout(body, main_tool, loadout_config, economy).build();
 
                 let health = comp::Health::new(body, entity.level.unwrap_or(0));
                 let poise = comp::Poise::new(body);
@@ -161,6 +162,11 @@ impl<'a> System<'a> for Sys {
                         _ => false,
                     },
                     _ => false,
+                };
+                let trade_for_site = if matches!(loadout_config, Some(LoadoutConfig::Merchant)) {
+                    economy.map(|e| e.id)
+                } else {
+                    None
                 };
 
                 // TODO: This code sets an appropriate base_damage for the enemy. This doesn't
@@ -182,6 +188,7 @@ impl<'a> System<'a> for Sys {
                         Some(comp::Agent::new(
                             Some(entity.pos),
                             can_speak,
+                            trade_for_site,
                             &body,
                             matches!(
                                 loadout_config,

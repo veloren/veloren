@@ -1,11 +1,15 @@
-use crate::comp::{
-    biped_large, biped_small, golem,
-    inventory::{
-        loadout::Loadout,
-        slot::{ArmorSlot, EquipSlot},
+use crate::{
+    comp::{
+        biped_large, biped_small, golem,
+        inventory::{
+            loadout::Loadout,
+            slot::{ArmorSlot, EquipSlot},
+            trade_pricing::TradePricing,
+        },
+        item::{tool::ToolKind, Item, ItemKind},
+        object, quadruped_low, quadruped_medium, theropod, Body,
     },
-    item::{tool::ToolKind, Item, ItemKind},
-    object, quadruped_low, quadruped_medium, theropod, Body,
+    trade::{Good, SiteInformation},
 };
 use rand::Rng;
 
@@ -39,6 +43,7 @@ pub enum LoadoutConfig {
     Myrmidon,
     Guard,
     Villager,
+    Merchant,
     Outcast,
     Highwayman,
     Bandit,
@@ -78,6 +83,7 @@ impl LoadoutBuilder {
         body: Body,
         mut main_tool: Option<Item>,
         config: Option<LoadoutConfig>,
+        economy: Option<&SiteInformation>,
     ) -> Self {
         // If no main tool is passed in, checks if species has a default main tool
         if main_tool.is_none() {
@@ -502,6 +508,128 @@ impl LoadoutBuilder {
                         _ => None,
                     })
                     .build(),
+                Merchant => {
+                    let mut backpack =
+                        Item::new_from_asset_expect("common.items.armor.misc.back.backpack");
+                    let mut coins = Item::new_from_asset_expect("common.items.utility.coins");
+                    coins
+                        .set_amount(
+                            (economy
+                                .map(|e| e.unconsumed_stock.get(&Good::Coin))
+                                .flatten()
+                                .copied()
+                                .unwrap_or_default()
+                                .round() as u32)
+                                .max(1),
+                        )
+                        .expect("coins should be stackable");
+                    backpack.slots_mut()[0] = Some(coins);
+                    let armor = economy
+                        .map(|e| e.unconsumed_stock.get(&Good::Armor))
+                        .flatten()
+                        .copied()
+                        .unwrap_or_default()
+                        / 10.0;
+                    for i in 1..18 {
+                        backpack.slots_mut()[i] = Some(Item::new_from_asset_expect(
+                            &TradePricing::random_item(Good::Armor, armor),
+                        ));
+                    }
+                    let mut bag1 = Item::new_from_asset_expect(
+                        "common.items.armor.misc.bag.reliable_backpack",
+                    );
+                    let weapon = economy
+                        .map(|e| e.unconsumed_stock.get(&Good::Tools))
+                        .flatten()
+                        .copied()
+                        .unwrap_or_default()
+                        / 10.0;
+                    for i in 0..16 {
+                        bag1.slots_mut()[i] = Some(Item::new_from_asset_expect(
+                            &TradePricing::random_item(Good::Tools, weapon),
+                        ));
+                    }
+                    let mut bag2 = Item::new_from_asset_expect(
+                        "common.items.armor.misc.bag.reliable_backpack",
+                    );
+                    let ingredients = economy
+                        .map(|e| e.unconsumed_stock.get(&Good::Ingredients))
+                        .flatten()
+                        .copied()
+                        .unwrap_or_default()
+                        / 10.0;
+                    for i in 0..16 {
+                        bag2.slots_mut()[i] = Some(Item::new_from_asset_expect(
+                            &TradePricing::random_item(Good::Ingredients, ingredients),
+                        ));
+                    }
+                    let mut bag3 = Item::new_from_asset_expect(
+                        "common.items.armor.misc.bag.reliable_backpack",
+                    );
+                    let food = economy
+                        .map(|e| e.unconsumed_stock.get(&Good::Food))
+                        .flatten()
+                        .copied()
+                        .unwrap_or_default()
+                        / 10.0;
+                    for i in 0..16 {
+                        bag3.slots_mut()[i] = Some(Item::new_from_asset_expect(
+                            &TradePricing::random_item(Good::Food, food),
+                        ));
+                    }
+                    let mut bag4 = Item::new_from_asset_expect(
+                        "common.items.armor.misc.bag.reliable_backpack",
+                    );
+                    let potions = economy
+                        .map(|e| e.unconsumed_stock.get(&Good::Potions))
+                        .flatten()
+                        .copied()
+                        .unwrap_or_default()
+                        / 10.0;
+                    for i in 0..16 {
+                        bag4.slots_mut()[i] = Some(Item::new_from_asset_expect(
+                            &TradePricing::random_item(Good::Potions, potions),
+                        ));
+                    }
+                    LoadoutBuilder::new()
+                        .active_item(active_item)
+                        .shoulder(Some(Item::new_from_asset_expect(
+                            "common.items.armor.twigsflowers.shoulder",
+                        )))
+                        .chest(Some(Item::new_from_asset_expect(
+                            "common.items.armor.twigsflowers.chest",
+                        )))
+                        .belt(Some(Item::new_from_asset_expect(
+                            "common.items.armor.twigsflowers.belt",
+                        )))
+                        .hands(Some(Item::new_from_asset_expect(
+                            "common.items.armor.twigsflowers.hand",
+                        )))
+                        .pants(Some(Item::new_from_asset_expect(
+                            "common.items.armor.twigsflowers.pants",
+                        )))
+                        .feet(Some(Item::new_from_asset_expect(
+                            "common.items.armor.twigsflowers.foot",
+                        )))
+                        .lantern(Some(Item::new_from_asset_expect(
+                            "common.items.lantern.black_0",
+                        )))
+                        .back(Some(backpack))
+                        .neck(Some(Item::new_from_asset_expect(
+                            "common.items.armor.misc.neck.plain_1",
+                        )))
+                        .ring1(Some(Item::new_from_asset_expect(
+                            "common.items.armor.misc.ring.gold",
+                        )))
+                        .ring2(Some(Item::new_from_asset_expect(
+                            "common.items.armor.misc.ring.gold",
+                        )))
+                        .bag(ArmorSlot::Bag1, Some(bag1))
+                        .bag(ArmorSlot::Bag2, Some(bag2))
+                        .bag(ArmorSlot::Bag3, Some(bag3))
+                        .bag(ArmorSlot::Bag4, Some(bag4))
+                        .build()
+                },
                 Outcast => LoadoutBuilder::new()
                     .active_item(active_item)
                     .shoulder(Some(Item::new_from_asset_expect(
@@ -821,6 +949,11 @@ impl LoadoutBuilder {
 
     pub fn tabard(mut self, item: Option<Item>) -> Self {
         self.0.swap(EquipSlot::Armor(ArmorSlot::Tabard), item);
+        self
+    }
+
+    pub fn bag(mut self, which: ArmorSlot, item: Option<Item>) -> Self {
+        self.0.swap(EquipSlot::Armor(which), item);
         self
     }
 

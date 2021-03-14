@@ -5586,6 +5586,7 @@ dependencies = [
  "spin_sleep",
  "structopt",
  "tracing",
+ "tracing-subscriber",
  "uuid",
  "vek 0.14.1",
  "veloren-common-base",
@@ -5873,6 +5874,7 @@ name = "veloren-world"
 version = "0.8.0"
 dependencies = [
  "arr_macro",
+ "assets_manager",
  "bincode",
  "bitvec",
  "criterion",

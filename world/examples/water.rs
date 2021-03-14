@@ -8,7 +8,10 @@ use common::{
 use rayon::prelude::*;
 use std::{f64, io::Write, path::PathBuf, time::SystemTime};
 use tracing::{warn, Level};
-use tracing_subscriber::{filter::LevelFilter, EnvFilter, FmtSubscriber};
+use tracing_subscriber::{
+    filter::{EnvFilter, LevelFilter},
+    FmtSubscriber,
+};
 use vek::*;
 use veloren_world::{
     sim::{self, get_horizon_map, sample_pos, sample_wpos, WorldOpts},

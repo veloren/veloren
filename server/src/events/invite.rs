@@ -3,6 +3,7 @@ use crate::{client::Client, Server};
 use common::{
     comp::{
         self,
+        agent::AgentEvent,
         group::GroupManager,
         invite::{Invite, InviteKind, InviteResponse, PendingInvites},
         ChatType,
@@ -72,7 +73,7 @@ pub fn handle_invite(
         }
     }
 
-    let agents = state.ecs().read_storage::<comp::Agent>();
+    let mut agents = state.ecs().write_storage::<comp::Agent>();
     let mut invites = state.ecs().write_storage::<Invite>();
 
     if invites.contains(invitee) {
@@ -128,8 +129,13 @@ pub fn handle_invite(
                 kind,
             });
         }
-    } else if agents.contains(invitee) {
-        send_invite();
+    } else if let Some(agent) = agents.get_mut(invitee) {
+        if send_invite() {
+            if let Some(inviter) = uids.get(inviter) {
+                agent.inbox.push_front(AgentEvent::TradeInvite(*inviter));
+                invite_sent = true;
+            }
+        }
     } else if let Some(client) = clients.get(inviter) {
         client.send_fallible(ServerGeneral::server_msg(
             ChatType::Meta,

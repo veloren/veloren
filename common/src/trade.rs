@@ -1,5 +1,6 @@
 use crate::{
     comp::inventory::{slot::InvSlotId, Inventory},
+    terrain::BiomeKind,
     uid::Uid,
 };
 use hashbrown::HashMap;
@@ -289,5 +290,73 @@ impl Default for Trades {
             trades: HashMap::new(),
             entity_trades: HashMap::new(),
         }
+    }
+}
+
+// we need this declaration in common for Merchant loadout creation, it is not
+// directly related to trade between entities, but between sites (more abstract)
+// economical information
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
+pub enum Good {
+    Territory(BiomeKind),
+    Flour,
+    Meat,
+    Terrain(BiomeKind),
+    Transportation,
+    Food,
+    Wood,
+    Stone,
+    Tools, // weapons, farming tools
+    Armor,
+    Ingredients, // raw material for Armor+Tools+Potions
+    Potions,
+    Coin, // exchange material across sites
+    RoadSecurity,
+}
+
+impl Default for Good {
+    fn default() -> Self {
+        Good::Terrain(crate::terrain::BiomeKind::Void) // Arbitrary
+    }
+}
+
+// ideally this would be a real Id<Site> but that is from the world crate
+pub type SiteId = u64;
+
+#[derive(Clone, Debug)]
+pub struct SiteInformation {
+    pub id: SiteId,
+    pub unconsumed_stock: HashMap<Good, f32>,
+}
+
+#[derive(Clone, Debug, Default)]
+pub struct SitePrices {
+    pub values: HashMap<Good, f32>,
+}
+
+#[derive(Clone, Debug, Default)]
+pub struct ReducedInventoryItem {
+    pub name: String,
+    pub amount: u32,
+}
+
+#[derive(Clone, Debug, Default)]
+pub struct ReducedInventory {
+    pub inventory: HashMap<InvSlotId, ReducedInventoryItem>,
+}
+
+impl ReducedInventory {
+    pub fn from(inventory: &Inventory) -> Self {
+        let items = inventory
+            .slots_with_id()
+            .filter(|(_, it)| it.is_some())
+            .map(|(sl, it)| {
+                (sl, ReducedInventoryItem {
+                    name: it.as_ref().unwrap().item_definition_id().to_string(),
+                    amount: it.as_ref().unwrap().amount(),
+                })
+            })
+            .collect();
+        Self { inventory: items }
     }
 }

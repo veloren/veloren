@@ -1,4 +1,7 @@
-use crate::{site::Site, Colors};
+use crate::{
+    site::{economy::TradeInformation, Site},
+    Colors,
+};
 use common::{
     assets::{AssetExt, AssetHandle},
     store::Store,
@@ -14,6 +17,7 @@ pub struct Index {
     pub time: f32,
     pub noise: Noise,
     pub sites: Store<Site>,
+    pub trade: TradeInformation,
     colors: AssetHandle<Arc<Colors>>,
 }
 
@@ -59,6 +63,7 @@ impl Index {
             time: 0.0,
             noise: Noise::new(seed),
             sites: Store::default(),
+            trade: Default::default(),
             colors,
         }
     }

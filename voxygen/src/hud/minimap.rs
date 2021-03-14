@@ -277,7 +277,8 @@ impl<'a> Widget for MiniMap<'a> {
                         .resize(self.client.sites().len(), &mut ui.widget_id_generator())
                 });
             }
-            for (i, site) in self.client.sites().iter().enumerate() {
+            for (i, site_rich) in self.client.sites().values().enumerate() {
+                let site = &site_rich.site;
                 // Site pos in world coordinates relative to the player
                 let rwpos = site.wpos.map(|e| e as f32) - player_pos;
                 // Convert to chunk coordinates

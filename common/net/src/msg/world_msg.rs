@@ -1,5 +1,6 @@
-use common::grid::Grid;
+use common::{grid::Grid, trade::Good};
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use vek::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -124,8 +125,11 @@ pub struct WorldMapMsg {
     pub sites: Vec<SiteInfo>,
 }
 
+pub type SiteId = common::trade::SiteId;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SiteInfo {
+    pub id: SiteId,
     pub kind: SiteKind,
     pub wpos: Vec2<i32>,
     pub name: Option<String>,
@@ -139,4 +143,16 @@ pub enum SiteKind {
     Castle,
     Cave,
     Tree,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EconomyInfo {
+    pub id: SiteId,
+    pub population: u32,
+    pub stock: HashMap<Good, f32>,
+    pub labor_values: HashMap<Good, f32>,
+    pub values: HashMap<Good, f32>,
+    pub labors: Vec<f32>,
+    pub last_exports: HashMap<Good, f32>,
+    pub resources: HashMap<Good, f32>,
 }

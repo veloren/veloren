@@ -23,6 +23,7 @@ use common::{
     spiral::Spiral2d,
     store::{Id, Store},
     terrain::{Block, BlockKind, SpriteKind, TerrainChunkSize},
+    trade::SiteInformation,
     vol::{BaseVol, ReadVol, RectSizedVol, RectVolSize, WriteVol},
 };
 use fxhash::FxHasher64;
@@ -855,7 +856,21 @@ impl Settlement {
         wpos2d: Vec2<i32>,
         mut get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
         supplement: &mut ChunkSupplement,
+        economy: SiteInformation,
     ) {
+        // let economy: HashMap<Good, (f32, f32)> = SiteInformation::economy
+        //     .values
+        //     .iter()
+        //     .map(|(g, v)| {
+        //         (
+        //             g,
+        //             (
+        //                 v.unwrap_or(Economy::MINIMUM_PRICE),
+        //                 economy.stocks[g] + economy.surplus[g],
+        //             ),
+        //         )
+        //     })
+        //     .collect();
         for y in 0..TerrainChunkSize::RECT_SIZE.y as i32 {
             for x in 0..TerrainChunkSize::RECT_SIZE.x as i32 {
                 let offs = Vec2::new(x, y);
@@ -938,6 +953,17 @@ impl Settlement {
                                     .with_skillset_config(
                                         common::skillset_builder::SkillSetConfig::Guard,
                                     ),
+                                1 => entity
+                                    .with_main_tool(Item::new_from_asset_expect(
+                                        "common.items.weapons.bow.eldwood-0",
+                                    ))
+                                    .with_name("Merchant")
+                                    .with_level(dynamic_rng.gen_range(10..15))
+                                    .with_loadout_config(loadout_builder::LoadoutConfig::Merchant)
+                                    .with_skillset_config(
+                                        common::skillset_builder::SkillSetConfig::Merchant,
+                                    )
+                                    .with_economy(&economy),
                                 _ => entity
                                     .with_main_tool(Item::new_from_asset_expect(
                                         match dynamic_rng.gen_range(0..7) {

@@ -126,6 +126,9 @@ impl Sys {
                     .get_mut(entity)
                     .map(|mut s| s.skill_set.unlock_skill_group(skill_group_kind));
             },
+            ClientGeneral::RequestSiteInfo(id) => {
+                server_emitter.emit(ServerEvent::RequestSiteInfo { entity, id });
+            },
             _ => tracing::error!("not a client_in_game msg"),
         }
         Ok(())
