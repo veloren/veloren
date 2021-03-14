@@ -262,7 +262,6 @@ impl Client {
                 _ = ping_interval.tick() => ping_stream.send(PingMsg::Ping)?,
             }
         } {
-
             ServerInit::GameSync {
                 entity_package,
                 time_of_day,
