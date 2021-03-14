@@ -3116,6 +3116,7 @@ impl Hud {
                 GameInput::ToggleDebug if state => {
                     global_state.settings.interface.toggle_debug =
                         !global_state.settings.interface.toggle_debug;
+                    self.show.debug = global_state.settings.interface.toggle_debug;
                     true
                 },
                 GameInput::ToggleIngameUi if state => {
