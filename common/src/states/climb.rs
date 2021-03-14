@@ -32,9 +32,7 @@ impl CharacterBehavior for Data {
         ) {
             (wall_dir, climb)
         } else {
-            if
-            /* data.inputs.jump.is_pressed() */
-            input_is_pressed(data, InputKind::Jump) {
+            if input_is_pressed(data, InputKind::Jump) {
                 // They've climbed atop something, give them a boost
                 update
                     .local_events

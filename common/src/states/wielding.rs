@@ -14,14 +14,7 @@ impl CharacterBehavior for Data {
         let mut update = StateUpdate::from(data);
 
         handle_move(&data, &mut update, 1.0);
-        handle_jump(&data, &mut update);
         handle_climb(&data, &mut update);
-        //handle_ability1_input(&data, &mut update);
-        // handle_ability2_input(&data, &mut update);
-        // handle_ability3_input(&data, &mut update);
-        // handle_ability4_input(&data, &mut update);
-        handle_dodge_input(&data, &mut update);
-
         attempt_input(&data, &mut update);
 
         update

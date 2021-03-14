@@ -276,7 +276,6 @@ pub mod con_settings {
         pub interact: Button,
         pub toggle_wield: Button,
         pub swap_loadout: Button,
-        //pub charge: Button,
     }
 
     #[derive(Clone, Debug, Serialize, Deserialize)]

@@ -115,18 +115,16 @@ impl CharacterBehavior for Data {
                 } else {
                     // Done
                     if let Some((input, stage)) = self.was_combo {
-                        // if ability_key_is_pressed(data, key) {
-                        //     handle_interrupt(data, &mut update, true);
-                        //     // If other states are introduced that progress
-                        // through stages, add them
-                        //     // here
-                        //     if let CharacterState::ComboMelee(c) = &mut
-                        // update.character {
-                        //         c.stage = stage;
-                        //     }
-                        // } else {
-                        //     update.character = CharacterState::Wielding;
-                        // }
+                        if input_is_pressed(data, input) {
+                            handle_input(data, &mut update, input);
+                            // If other states are introduced that progress through stages, add them
+                            // here
+                            if let CharacterState::ComboMelee(c) = &mut update.character {
+                                c.stage = stage;
+                            }
+                        } else {
+                            update.character = CharacterState::Wielding;
+                        }
                     } else if self.was_wielded {
                         update.character = CharacterState::Wielding;
                     } else if self.was_sneak {

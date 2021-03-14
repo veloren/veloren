@@ -71,15 +71,6 @@ impl CharacterBehavior for Data {
 
         handle_move(data, &mut update, 0.4);
         handle_jump(data, &mut update);
-        // if !ability_key_is_pressed(data, self.static_data.ability_info.key) {
-        //     handle_interrupt(data, &mut update, false);
-        //     match update.character {
-        //         CharacterState::BasicBeam(_) => {},
-        //         _ => {
-        //             return update;
-        //         },
-        //     }
-        // }
 
         match self.stage_section {
             StageSection::Buildup => {
@@ -108,9 +99,7 @@ impl CharacterBehavior for Data {
                 }
             },
             StageSection::Cast => {
-                if
-                /* ability_key_is_pressed(data, self.static_data.ability_info.key) */
-                input_is_pressed(data, self.static_data.ability_info.input)
+                if input_is_pressed(data, self.static_data.ability_info.input)
                     && (self.static_data.energy_drain <= f32::EPSILON
                         || update.energy.current() > 0)
                 {
@@ -203,6 +192,11 @@ impl CharacterBehavior for Data {
                 // Make sure attack component is removed
                 data.updater.remove::<beam::Beam>(data.entity);
             },
+        }
+
+        // At end of state logic so an interrupt isn't overwritten
+        if !input_is_pressed(data, self.static_data.ability_info.input) {
+            handle_state_interrupt(data, &mut update, false);
         }
 
         update

@@ -180,9 +180,7 @@ impl Body {
 pub fn handle_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
     if let Some(depth) = data.physics.in_liquid {
         swim_move(data, update, efficiency, depth);
-    } else if
-    /* data.inputs.fly.is_pressed() */
-    input_is_pressed(data, InputKind::Fly)
+    } else if input_is_pressed(data, InputKind::Fly)
         && !data.physics.on_ground
         && data.body.can_fly()
     {
@@ -316,14 +314,12 @@ fn fly_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
     handle_orientation(data, update, 1.0);
 }
 
-/// First checks whether `primary`, `secondary`, `ability3`, or `ability4` input
-/// is pressed, then attempts to go into Equipping state, otherwise Idle
+/// Checks if an input related to an attack is held. If one is, moves entity
+/// into wielding state
 pub fn handle_wield(data: &JoinData, update: &mut StateUpdate) {
-    // if
-    // // data.inputs.primary.is_pressed() || data.inputs.secondary.is_pressed()
-    // || data.inputs.ability3.is_pressed() ||
-    // data.inputs.ability4.is_pressed() {     attempt_wield(data, update);
-    // }
+    if data.controller.queued_inputs.iter().any(|i| i.is_ability()) {
+        attempt_wield(data, update);
+    }
 }
 
 /// If a tool is equipped, goes into Equipping state, otherwise goes to Idle
@@ -421,9 +417,7 @@ pub fn attempt_glide_wield(data: &JoinData, update: &mut StateUpdate) {
 
 /// Checks that player can jump and sends jump event if so
 pub fn handle_jump(data: &JoinData, update: &mut StateUpdate) {
-    if
-    /* data.inputs.jump.is_pressed() */
-    input_is_pressed(data, InputKind::Jump)
+    if input_is_pressed(data, InputKind::Jump)
         && data.physics.on_ground
         && !data
             .physics
@@ -437,7 +431,7 @@ pub fn handle_jump(data: &JoinData, update: &mut StateUpdate) {
     }
 }
 
-fn handle_ability_pressed(data: &JoinData, update: &mut StateUpdate, input: InputKind) {
+fn handle_ability(data: &JoinData, update: &mut StateUpdate, input: InputKind) {
     let hands = |equip_slot| match data.inventory.equipped(equip_slot).map(|i| i.kind()) {
         Some(ItemKind::Tool(tool)) => Some(tool.hands),
         _ => None,
@@ -477,7 +471,7 @@ fn handle_ability_pressed(data: &JoinData, update: &mut StateUpdate, input: Inpu
                     .get(skill_index)
                     .cloned()
                     .and_then(unlocked),
-                InputKind::Roll | InputKind::Jump | InputKind::Glide | InputKind::Fly => None,
+                InputKind::Roll | InputKind::Jump | InputKind::Fly => None,
             })
             .map(|a| {
                 let tool = unwrap_tool_data(data, equip_slot).map(|t| t.kind);
@@ -494,14 +488,24 @@ fn handle_ability_pressed(data: &JoinData, update: &mut StateUpdate, input: Inpu
     }
 }
 
+pub fn handle_ability_input(data: &JoinData, update: &mut StateUpdate) {
+    if let Some(input) = data
+        .controller
+        .queued_inputs
+        .iter()
+        .find(|i| i.is_ability())
+    {
+        handle_ability(data, update, *input);
+    }
+}
+
 pub fn handle_input(data: &JoinData, update: &mut StateUpdate, input: InputKind) {
     match input {
         InputKind::Primary | InputKind::Secondary | InputKind::Ability(_) => {
-            handle_ability_pressed(data, update, input)
+            handle_ability(data, update, input)
         },
         InputKind::Roll => handle_dodge_input(data, update),
         InputKind::Jump => handle_jump(data, update),
-        InputKind::Glide => attempt_glide_wield(data, update),
         InputKind::Fly => {},
     }
 }
@@ -593,12 +597,9 @@ pub fn get_crit_data(data: &JoinData, ai: AbilityInfo) -> (f32, f32) {
     DEFAULT_CRIT_DATA
 }
 
-pub fn handle_interrupt(data: &JoinData, update: &mut StateUpdate, attacks_interrupt: bool) {
+pub fn handle_state_interrupt(data: &JoinData, update: &mut StateUpdate, attacks_interrupt: bool) {
     if attacks_interrupt {
-        //handle_ability1_input(data, update);
-        // handle_ability2_input(data, update);
-        // handle_ability3_input(data, update);
-        // handle_ability4_input(data, update);
+        handle_ability_input(data, update);
     }
     handle_dodge_input(data, update);
 }

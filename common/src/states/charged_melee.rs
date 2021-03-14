@@ -68,21 +68,10 @@ impl CharacterBehavior for Data {
 
         handle_move(data, &mut update, 0.7);
         handle_jump(data, &mut update);
-        // if !ability_key_is_pressed(data, self.static_data.ability_info.key) {
-        //     handle_interrupt(data, &mut update, false);
-        //     match update.character {
-        //         CharacterState::ChargedMelee(_) => {},
-        //         _ => {
-        //             return update;
-        //         },
-        //     }
-        // }
 
         match self.stage_section {
             StageSection::Charge => {
-                if
-                /* ability_key_is_pressed(data, self.static_data.ability_info.key) */
-                input_is_pressed(data, self.static_data.ability_info.input)
+                if input_is_pressed(data, self.static_data.ability_info.input)
                     && update.energy.current() as f32 >= self.static_data.energy_cost
                     && self.timer < self.static_data.charge_duration
                 {
@@ -109,9 +98,7 @@ impl CharacterBehavior for Data {
                             * self.static_data.speed) as i32,
                         source: EnergySource::Ability,
                     });
-                } else if
-                /* ability_key_is_pressed(data, self.static_data.ability_info.key) */
-                input_is_pressed(data, self.static_data.ability_info.input)
+                } else if input_is_pressed(data, self.static_data.ability_info.input)
                     && update.energy.current() as f32 >= self.static_data.energy_cost
                 {
                     // Maintains charge
@@ -242,6 +229,11 @@ impl CharacterBehavior for Data {
                 // Make sure attack component is removed
                 data.updater.remove::<Melee>(data.entity);
             },
+        }
+
+        // At end of state logic so an interrupt isn't overwritten
+        if !input_is_pressed(data, self.static_data.ability_info.input) {
+            handle_state_interrupt(data, &mut update, false);
         }
 
         update

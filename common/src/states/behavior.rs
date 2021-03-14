@@ -29,7 +29,7 @@ pub trait CharacterBehavior {
     fn sneak(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
     fn stand(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
     fn talk(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
-    fn handle_input(&self, data: &JoinData, input: InputKind, _target: Option<Uid>) -> StateUpdate {
+    fn start_input(&self, data: &JoinData, input: InputKind, _target: Option<Uid>) -> StateUpdate {
         let mut update = StateUpdate::from(data);
         update.queued_inputs.insert(input);
         update
@@ -51,7 +51,7 @@ pub trait CharacterBehavior {
             ControlAction::Sneak => self.sneak(data),
             ControlAction::Stand => self.stand(data),
             ControlAction::Talk => self.talk(data),
-            ControlAction::StartInput { input, target } => self.handle_input(data, input, target),
+            ControlAction::StartInput { input, target } => self.start_input(data, input, target),
             ControlAction::CancelInput(input) => self.cancel_input(data, input),
         }
     }

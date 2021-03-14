@@ -367,12 +367,9 @@ impl PlayState for SessionState {
                                     }
                                 } else {
                                     client.handle_input(InputKind::Primary, state);
-                                    //self.inputs.primary.set_state(state);
                                 }
                             },
                             GameInput::Secondary => {
-                                // self.inputs.secondary.set_state(false); // To be changed later on
-
                                 let mut client = self.client.borrow_mut();
 
                                 if state && can_build {
@@ -381,7 +378,6 @@ impl PlayState for SessionState {
                                     }
                                 } else {
                                     client.handle_input(InputKind::Secondary, state);
-                                    // self.inputs.secondary.set_state(state);
                                 }
                             },
                             GameInput::Roll => {
@@ -396,7 +392,6 @@ impl PlayState for SessionState {
                                     }
                                 } else {
                                     client.handle_input(InputKind::Roll, state);
-                                    // self.inputs.roll.set_state(state);
                                 }
                             },
                             GameInput::Respawn => {
@@ -469,8 +464,6 @@ impl PlayState for SessionState {
                                 self.key_state.fly ^= state;
                                 let mut client = self.client.borrow_mut();
                                 client.handle_input(InputKind::Fly, self.key_state.fly);
-                                // self.inputs.fly.set_state(self.key_state.
-                                // fly);
                             },
                             GameInput::Climb => {
                                 self.key_state.climb_up = state;
@@ -1229,12 +1222,10 @@ impl PlayState for SessionState {
                     HudEvent::Ability3(state) => {
                         let mut client = self.client.borrow_mut();
                         client.handle_input(InputKind::Ability(0), state);
-                        // self.inputs.ability3.set_state(state);
                     },
                     HudEvent::Ability4(state) => {
                         let mut client = self.client.borrow_mut();
                         client.handle_input(InputKind::Ability(1), state);
-                        // self.inputs.ability4.set_state(state);
                     },
                     HudEvent::ChangeFOV(new_fov) => {
                         global_state.settings.graphics.fov = new_fov;

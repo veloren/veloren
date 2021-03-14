@@ -123,8 +123,13 @@ pub enum InputKind {
     Ability(usize) = 2,
     Roll = 3,
     Jump = 4,
-    Glide = 5,
-    Fly = 6,
+    Fly = 5,
+}
+
+impl InputKind {
+    pub fn is_ability(self) -> bool {
+        matches!(self, Self::Primary | Self::Secondary | Self::Ability(_))
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]

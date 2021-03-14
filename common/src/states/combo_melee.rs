@@ -121,15 +121,6 @@ impl CharacterBehavior for Data {
 
         handle_orientation(data, &mut update, 1.0);
         handle_move(data, &mut update, 0.3);
-        // if !ability_key_is_pressed(data, self.static_data.ability_info.key) {
-        //     handle_interrupt(data, &mut update, self.static_data.is_interruptible);
-        //     match update.character {
-        //         CharacterState::ComboMelee(_) => {},
-        //         _ => {
-        //             return update;
-        //         },
-        //     }
-        // }
 
         let stage_index = (self.stage - 1) as usize;
 
@@ -282,6 +273,11 @@ impl CharacterBehavior for Data {
                 // Make sure attack component is removed
                 data.updater.remove::<Melee>(data.entity);
             },
+        }
+
+        // At end of state logic so an interrupt isn't overwritten
+        if !input_is_pressed(data, self.static_data.ability_info.input) {
+            handle_state_interrupt(data, &mut update, self.static_data.is_interruptible);
         }
 
         update
