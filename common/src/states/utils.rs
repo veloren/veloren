@@ -321,11 +321,7 @@ fn swim_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32, depth: 
 /// Updates components to move entity as if it's flying
 fn fly_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
     // Update velocity (counteract gravity with lift)
-    // TODO: Do this better
-    // A loss factor is needed to counteract the very slight deviation in gravity
-    // due to precision issues
-    const LOSS_FACTOR: f32 = 0.995;
-    update.vel.0 += Vec3::unit_z() * data.dt.0 * GRAVITY * LOSS_FACTOR
+    update.vel.0 += Vec3::unit_z() * data.dt.0 * GRAVITY
         + Vec3::new(
             data.inputs.move_dir.x,
             data.inputs.move_dir.y,
