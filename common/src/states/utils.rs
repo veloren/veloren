@@ -5,7 +5,7 @@ use crate::{
         item::{Hands, ItemKind, Tool, ToolKind},
         quadruped_low, quadruped_medium, quadruped_small, ship,
         skills::Skill,
-        theropod, ship, Body, CharacterAbility, CharacterState, InputKind, InventoryAction, StateUpdate,
+        theropod, Body, CharacterAbility, CharacterState, InputKind, InventoryAction, StateUpdate,
     },
     consts::{FRIC_GROUND, GRAVITY},
     event::{LocalEvent, ServerEvent},
@@ -201,7 +201,15 @@ pub fn handle_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
         && (!data.physics.on_ground || data.body.jump_impulse().is_none())
         && data.body.can_fly().is_some()
     {
-        fly_move(data, update, efficiency * data.body.can_fly().expect("can_fly is_some right above this"));
+        fly_move(
+            data,
+            update,
+            efficiency
+                * data
+                    .body
+                    .can_fly()
+                    .expect("can_fly is_some right above this"),
+        );
     } else {
         basic_move(data, update, efficiency);
     }
