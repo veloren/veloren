@@ -56,7 +56,7 @@ impl<'a> System<'a> for Sys {
                                 effects: vec![
                                     RadiusEffect::Entity(Effect::Damage(Damage {
                                         source: DamageSource::Explosion,
-                                        value: 500.0,
+                                        value: 400.0,
                                     })),
                                     RadiusEffect::Entity(Effect::PoiseChange(PoiseChange {
                                         source: PoiseSource::Explosion,
