@@ -32,8 +32,8 @@ impl<T: 'static + Send + Sync> Component for InterpBuffer<T> {
 
 // 0 is pure physics, 1 is pure extrapolation
 const PHYSICS_VS_EXTRAPOLATION_FACTOR: f32 = 0.2;
-const POSITION_INTERP_SANITY: f32 = 1000.0;
-const VELOCITY_INTERP_SANITY: f32 = 1000.0;
+const POSITION_INTERP_SANITY: Option<f32> = None;
+const VELOCITY_INTERP_SANITY: Option<f32> = None;
 const ENABLE_POSITION_HERMITE: bool = false;
 
 impl InterpolatableComponent for Pos {
@@ -52,7 +52,9 @@ impl InterpolatableComponent for Pos {
         if (t1 - t0).abs() < f64::EPSILON {
             return self;
         }
-        if p0.0.distance_squared(p1.0) > POSITION_INTERP_SANITY.powf(2.0) {
+        if POSITION_INTERP_SANITY
+            .map_or(false, |limit| p0.0.distance_squared(p1.0) > limit.powf(2.0))
+        {
             warn!("position delta exceeded sanity check, clamping");
             return p1;
         }
@@ -103,7 +105,9 @@ impl InterpolatableComponent for Vel {
         if (t1 - t0).abs() < f64::EPSILON {
             return self;
         }
-        if p0.0.distance_squared(p1.0) > VELOCITY_INTERP_SANITY.powf(2.0) {
+        if VELOCITY_INTERP_SANITY
+            .map_or(false, |limit| p0.0.distance_squared(p1.0) > limit.powf(2.0))
+        {
             warn!("velocity delta exceeded sanity check, clamping");
             return p1;
         }

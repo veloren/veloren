@@ -573,6 +573,13 @@ impl Body {
             Body::Humanoid(_) | Body::BipedSmall(_) | Body::BipedLarge(_)
         )
     }
+
+    pub fn mounting_offset(&self) -> Vec3<f32> {
+        match self {
+            Body::Ship(ship::Body::DefaultAirship) => Vec3::from([0.0, 0.0, 10.0]),
+            _ => Vec3::unit_z(),
+        }
+    }
 }
 
 impl Component for Body {

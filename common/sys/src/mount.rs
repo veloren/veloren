@@ -1,11 +1,11 @@
 use common::{
-    comp::{Controller, MountState, Mounting, Ori, Pos, Vel},
+    comp::{Body, Controller, MountState, Mounting, Ori, Pos, Vel},
     uid::UidAllocator,
 };
 use common_ecs::{Job, Origin, Phase, System};
 use specs::{
     saveload::{Marker, MarkerAllocator},
-    Entities, Join, Read, WriteStorage,
+    Entities, Join, Read, ReadStorage, WriteStorage,
 };
 use vek::*;
 
@@ -23,6 +23,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Pos>,
         WriteStorage<'a, Vel>,
         WriteStorage<'a, Ori>,
+        ReadStorage<'a, Body>,
     );
 
     const NAME: &'static str = "mount";
@@ -40,10 +41,13 @@ impl<'a> System<'a> for Sys {
             mut positions,
             mut velocities,
             mut orientations,
+            bodies,
         ): Self::SystemData,
     ) {
         // Mounted entities.
-        for (entity, mut mount_states) in (&entities, &mut mount_state.restrict_mut()).join() {
+        for (entity, mut mount_states, body) in
+            (&entities, &mut mount_state.restrict_mut(), bodies.maybe()).join()
+        {
             match mount_states.get_unchecked() {
                 MountState::Unmounted => {},
                 MountState::MountedBy(mounter_uid) => {
@@ -62,7 +66,9 @@ impl<'a> System<'a> for Sys {
                         let ori = orientations.get(entity).copied();
                         let vel = velocities.get(entity).copied();
                         if let (Some(pos), Some(ori), Some(vel)) = (pos, ori, vel) {
-                            let _ = positions.insert(mounter, Pos(pos.0 + Vec3::unit_z() * 1.0));
+                            let mounting_offset =
+                                body.map_or(Vec3::unit_z(), Body::mounting_offset);
+                            let _ = positions.insert(mounter, Pos(pos.0 + mounting_offset));
                             let _ = orientations.insert(mounter, ori);
                             let _ = velocities.insert(mounter, vel);
                         }

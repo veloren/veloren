@@ -15,6 +15,7 @@ default = ["simd"]
 [dependencies]
 
 common-base = { package = "veloren-common-base", path = "base" }
+#inline_tweak = "1.0.2"
 
 # Serde
 serde = { version = "1.0.110", features = ["derive", "rc"] }
