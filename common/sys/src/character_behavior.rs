@@ -153,15 +153,6 @@ impl<'a> System<'a> for Sys {
                 // Do nothing
                 continue;
             }
-            // If mounted, character state is controlled by mount
-            // TODO: Make mounting a state
-            if let Some(Mounting(_)) = read_data.mountings.get(entity) {
-                let sit_state = CharacterState::Sit {};
-                if char_state.get_unchecked() != &sit_state {
-                    *char_state.get_mut_unchecked() = sit_state;
-                }
-                continue;
-            }
 
             // Enter stunned state if poise damage is enough
             if let Some(mut poise) = poises.get_mut(entity) {
@@ -315,6 +306,17 @@ impl<'a> System<'a> for Sys {
                 local_emitter.append(&mut state_update.local_events);
                 server_emitter.append(&mut state_update.server_events);
                 incorporate_update(&mut join_struct, state_update);
+            }
+
+            // Mounted occurs after control actions have been handled
+            // If mounted, character state is controlled by mount
+            // TODO: Make mounting a state
+            if let Some(Mounting(_)) = read_data.mountings.get(entity) {
+                let sit_state = CharacterState::Sit {};
+                if join_struct.char_state.get_unchecked() != &sit_state {
+                    *join_struct.char_state.get_mut_unchecked() = sit_state;
+                }
+                continue;
             }
 
             let j = JoinData::new(

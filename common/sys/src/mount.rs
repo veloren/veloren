@@ -53,12 +53,12 @@ impl<'a> System<'a> for Sys {
                 MountState::MountedBy(mounter_uid) => {
                     // Note: currently controller events are not passed through since none of them
                     // are currently relevant to controlling the mounted entity
-                    if let Some((inputs, mounter)) = uid_allocator
+                    if let Some((inputs, queued_inputs, mounter)) = uid_allocator
                         .retrieve_entity_internal(mounter_uid.id())
                         .and_then(|mounter| {
                             controllers
                                 .get(mounter)
-                                .map(|c| (c.inputs.clone(), mounter))
+                                .map(|c| (c.inputs.clone(), c.queued_inputs.clone(), mounter))
                         })
                     {
                         // TODO: consider joining on these? (remember we can use .maybe())
@@ -75,6 +75,7 @@ impl<'a> System<'a> for Sys {
                         if let Some(controller) = controllers.get_mut(entity) {
                             *controller = Controller {
                                 inputs,
+                                queued_inputs,
                                 ..Default::default()
                             }
                         }
