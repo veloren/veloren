@@ -7,6 +7,7 @@ use common::{
     event::{EventBus, LocalEvent, ServerEvent},
     region::RegionMap,
     resources::{DeltaTime, GameMode, PlayerEntity, Time, TimeOfDay},
+    slowjob::SlowJobPool,
     terrain::{Block, TerrainChunk, TerrainGrid},
     time::DayPeriod,
     trade::Trades,
@@ -110,7 +111,7 @@ impl State {
                 .unwrap(),
         );
         Self {
-            ecs: Self::setup_ecs_world(game_mode),
+            ecs: Self::setup_ecs_world(game_mode, &thread_pool),
             thread_pool,
         }
     }
@@ -118,7 +119,7 @@ impl State {
     /// Creates ecs world and registers all the common components and resources
     // TODO: Split up registering into server and client (e.g. move
     // EventBus<ServerEvent> to the server)
-    fn setup_ecs_world(game_mode: GameMode) -> specs::World {
+    fn setup_ecs_world(game_mode: GameMode, thread_pool: &Arc<ThreadPool>) -> specs::World {
         let mut ecs = specs::World::new();
         // Uids for sync
         ecs.register_sync_marker();
@@ -206,6 +207,12 @@ impl State {
         ecs.insert(EventBus::<LocalEvent>::default());
         ecs.insert(game_mode);
         ecs.insert(Vec::<common::outcome::Outcome>::new());
+
+        let slow_limit = thread_pool.current_num_threads().max(2) as u64;
+        let slow_limit = slow_limit / 2 + slow_limit / 4;
+        tracing::trace!(?slow_limit, "Slow Thread limit");
+        ecs.insert(SlowJobPool::new(slow_limit, Arc::clone(&thread_pool)));
+
         // TODO: only register on the server
         ecs.insert(EventBus::<ServerEvent>::default());
         ecs.insert(comp::group::GroupManager::default());
@@ -316,6 +323,9 @@ impl State {
 
     /// Get a reference to this state's terrain.
     pub fn terrain(&self) -> Fetch<TerrainGrid> { self.ecs.read_resource() }
+
+    /// Get a reference to this state's terrain.
+    pub fn slow_job_pool(&self) -> Fetch<SlowJobPool> { self.ecs.read_resource() }
 
     /// Get a writable reference to this state's terrain.
     pub fn terrain_mut(&self) -> FetchMut<TerrainGrid> { self.ecs.write_resource() }

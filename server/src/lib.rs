@@ -64,6 +64,7 @@ use common::{
     recipe::default_recipe_book,
     resources::TimeOfDay,
     rtsim::RtSimEntity,
+    slowjob::SlowJobPool,
     terrain::TerrainChunkSize,
     uid::UidAllocator,
     vol::{ReadVol, RectVolSize},
@@ -197,6 +198,10 @@ impl Server {
         state.ecs_mut().insert(ecs_system_metrics);
         state.ecs_mut().insert(tick_metrics);
         state.ecs_mut().insert(physics_metrics);
+        state
+            .ecs_mut()
+            .write_resource::<SlowJobPool>()
+            .configure("CHUNK_GENERATOR", |n| n / 2 + n / 4);
         state
             .ecs_mut()
             .insert(ChunkGenerator::new(chunk_gen_metrics));
@@ -646,9 +651,9 @@ impl Server {
             // only work we do here on the fast path is perform a relaxed read on an atomic.
             // boolean.
             let index = &mut self.index;
-            let runtime = &mut self.runtime;
             let world = &mut self.world;
             let ecs = self.state.ecs_mut();
+            let slow_jobs = ecs.write_resource::<SlowJobPool>();
 
             index.reload_colors_if_changed(|index| {
                 let mut chunk_generator = ecs.write_resource::<ChunkGenerator>();
@@ -667,7 +672,7 @@ impl Server {
                         chunk_generator.generate_chunk(
                             None,
                             pos,
-                            runtime,
+                            &slow_jobs,
                             Arc::clone(&world),
                             index.clone(),
                         );
@@ -811,16 +816,15 @@ impl Server {
     pub fn notify_players(&mut self, msg: ServerGeneral) { self.state.notify_players(msg); }
 
     pub fn generate_chunk(&mut self, entity: EcsEntity, key: Vec2<i32>) {
-        self.state
-            .ecs()
-            .write_resource::<ChunkGenerator>()
-            .generate_chunk(
-                Some(entity),
-                key,
-                &self.runtime,
-                Arc::clone(&self.world),
-                self.index.clone(),
-            );
+        let ecs = self.state.ecs();
+        let slow_jobs = ecs.write_resource::<SlowJobPool>();
+        ecs.write_resource::<ChunkGenerator>().generate_chunk(
+            Some(entity),
+            key,
+            &slow_jobs,
+            Arc::clone(&self.world),
+            self.index.clone(),
+        );
     }
 
     fn process_chat_cmd(&mut self, entity: EcsEntity, cmd: String) {
@@ -1005,7 +1009,7 @@ impl Server {
         // rng.gen_range(-e/2..e/2 + 1));
         let pos = comp::Pos(Vec3::from(world_dims_blocks.map(|e| e as f32 / 2.0)));
         self.state
-            .create_persister(pos, view_distance, &self.world, &self.index, &self.runtime)
+            .create_persister(pos, view_distance, &self.world, &self.index)
             .build();
     }
 }

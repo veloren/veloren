@@ -21,13 +21,13 @@ use common::{
         CharacterState,
     },
     figure::Segment,
+    slowjob::SlowJobPool,
     vol::BaseVol,
 };
 use core::{hash::Hash, ops::Range};
 use crossbeam::atomic;
 use hashbrown::{hash_map::Entry, HashMap};
 use std::sync::Arc;
-use tokio::runtime::Runtime;
 use vek::*;
 
 /// A type produced by mesh worker threads corresponding to the information
@@ -338,7 +338,7 @@ where
         tick: u64,
         camera_mode: CameraMode,
         character_state: Option<&CharacterState>,
-        runtime: &Runtime,
+        slow_jobs: &SlowJobPool,
     ) -> (FigureModelEntryLod<'c>, &'c Skel::Attr)
     where
         for<'a> &'a Skel::Body: Into<Skel::Attr>,
@@ -404,7 +404,7 @@ where
                 let manifests = self.manifests;
                 let slot_ = Arc::clone(&slot);
 
-                runtime.spawn_blocking(move || {
+                slow_jobs.spawn("FIGURE_MESHING", move || {
                     // First, load all the base vertex data.
                     let manifests = &*manifests.read();
                     let meshes = <Skel::Body as BodySpec>::bone_meshes(&key, manifests);

@@ -61,6 +61,7 @@ pub mod resources;
 #[cfg(not(target_arch = "wasm32"))] pub mod rtsim;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod skillset_builder;
+pub mod slowjob;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod spiral;
 #[cfg(not(target_arch = "wasm32"))]
@@ -76,7 +77,6 @@ pub mod uid;
 #[cfg(not(target_arch = "wasm32"))] pub mod vol;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod volumes;
-pub mod slowjob;
 
 pub use combat::DamageSource;
 #[cfg(not(target_arch = "wasm32"))]

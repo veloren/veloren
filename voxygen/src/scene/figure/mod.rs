@@ -561,6 +561,7 @@ impl FigureMgr {
         };
         let camera_mode = camera.get_mode();
         let character_state_storage = state.read_storage::<common::comp::CharacterState>();
+        let slow_jobs = state.slow_job_pool();
         let character_state = character_state_storage.get(scene_data.player_entity);
 
         let focus_pos = anim::vek::Vec3::<f32>::from(camera.get_focus_pos());
@@ -756,7 +757,7 @@ impl FigureMgr {
                         tick,
                         player_camera_mode,
                         player_character_state,
-                        scene_data.runtime,
+                        &slow_jobs,
                     );
 
                     let state = self
@@ -1552,7 +1553,7 @@ impl FigureMgr {
                             tick,
                             player_camera_mode,
                             player_character_state,
-                            scene_data.runtime,
+                            &slow_jobs,
                         );
 
                     let state = self
@@ -1754,7 +1755,7 @@ impl FigureMgr {
                             tick,
                             player_camera_mode,
                             player_character_state,
-                            scene_data.runtime,
+                            &slow_jobs,
                         );
 
                     let state = self
@@ -2081,7 +2082,7 @@ impl FigureMgr {
                             tick,
                             player_camera_mode,
                             player_character_state,
-                            scene_data.runtime,
+                            &slow_jobs,
                         );
 
                     let state = self
@@ -2440,7 +2441,7 @@ impl FigureMgr {
                         tick,
                         player_camera_mode,
                         player_character_state,
-                        scene_data.runtime,
+                        &slow_jobs,
                     );
 
                     let state = self
@@ -2550,7 +2551,7 @@ impl FigureMgr {
                         tick,
                         player_camera_mode,
                         player_character_state,
-                        scene_data.runtime,
+                        &slow_jobs,
                     );
 
                     let state = self
@@ -2639,7 +2640,7 @@ impl FigureMgr {
                         tick,
                         player_camera_mode,
                         player_character_state,
-                        scene_data.runtime,
+                        &slow_jobs,
                     );
 
                     let state = self
@@ -2985,7 +2986,7 @@ impl FigureMgr {
                         tick,
                         player_camera_mode,
                         player_character_state,
-                        scene_data.runtime,
+                        &slow_jobs,
                     );
 
                     let state =
@@ -3079,7 +3080,7 @@ impl FigureMgr {
                         tick,
                         player_camera_mode,
                         player_character_state,
-                        scene_data.runtime,
+                        &slow_jobs,
                     );
 
                     let state = self
@@ -3266,7 +3267,7 @@ impl FigureMgr {
                         tick,
                         player_camera_mode,
                         player_character_state,
-                        scene_data.runtime,
+                        &slow_jobs,
                     );
 
                     let state = self
@@ -3357,7 +3358,7 @@ impl FigureMgr {
                         tick,
                         player_camera_mode,
                         player_character_state,
-                        scene_data.runtime,
+                        &slow_jobs,
                     );
 
                     let state = self
@@ -3446,7 +3447,7 @@ impl FigureMgr {
                         tick,
                         player_camera_mode,
                         player_character_state,
-                        scene_data.runtime,
+                        &slow_jobs,
                     );
 
                     let state = self
@@ -3882,7 +3883,7 @@ impl FigureMgr {
                         tick,
                         player_camera_mode,
                         player_character_state,
-                        scene_data.runtime,
+                        &slow_jobs,
                     );
 
                     let state =
@@ -4066,7 +4067,7 @@ impl FigureMgr {
                         tick,
                         player_camera_mode,
                         player_character_state,
-                        scene_data.runtime,
+                        &slow_jobs,
                     );
 
                     let state =
@@ -4194,7 +4195,7 @@ impl FigureMgr {
                         tick,
                         player_camera_mode,
                         player_character_state,
-                        scene_data.runtime,
+                        &slow_jobs,
                     );
 
                     let state = self

@@ -16,6 +16,7 @@ use crate::{cmd::Message, shutdown_coordinator::ShutdownCoordinator, tui_runner:
 use clap::{App, Arg, SubCommand};
 use common::clock::Clock;
 use common_base::span;
+use core::sync::atomic::{AtomicUsize, Ordering};
 use server::{Event, Input, Server};
 use std::{
     io,
@@ -95,6 +96,11 @@ fn main() -> io::Result<()> {
     let runtime = Arc::new(
         tokio::runtime::Builder::new_multi_thread()
             .enable_all()
+            .thread_name_fn(|| {
+                static ATOMIC_ID: AtomicUsize = AtomicUsize::new(0);
+                let id = ATOMIC_ID.fetch_add(1, Ordering::SeqCst);
+                format!("tokio-server-{}", id)
+            })
             .build()
             .unwrap(),
     );
