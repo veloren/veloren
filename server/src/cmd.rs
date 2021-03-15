@@ -1042,6 +1042,7 @@ fn handle_safezone(
             server
                 .state
                 .create_object(pos, comp::object::Body::BoltNature)
+                .with(comp::Mass(10_f32.powi(10)))
                 .with(comp::Auras::new(vec![Aura::new(
                     AuraKind::Buff {
                         kind: BuffKind::Invulnerability,
