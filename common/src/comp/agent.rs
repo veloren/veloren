@@ -168,6 +168,7 @@ impl<'a> From<&'a Body> for Psyche {
                 Body::Golem(_) => 1.0,
                 Body::Theropod(_) => 1.0,
                 Body::Dragon(_) => 1.0,
+                Body::Ship(_) => 1.0,
             },
         }
     }
@@ -219,6 +220,15 @@ impl Agent {
     pub fn with_patrol_origin(mut self, origin: Vec3<f32>) -> Self {
         self.patrol_origin = Some(origin);
         self
+    }
+
+    pub fn with_destination(pos: Vec3<f32>) -> Self {
+        Self {
+            can_speak: true,
+            psyche: Psyche { aggro: 1.0 },
+            rtsim_controller: RtSimController::with_destination(pos),
+            ..Default::default()
+        }
     }
 
     pub fn new(

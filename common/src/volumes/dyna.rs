@@ -44,6 +44,21 @@ impl<V, M, A: Access> Dyna<V, M, A> {
             None
         }
     }
+
+    pub fn map_into<W, F: FnMut(V) -> W>(self, f: F) -> Dyna<W, M, A> {
+        let Dyna {
+            vox,
+            meta,
+            sz,
+            _phantom,
+        } = self;
+        Dyna {
+            vox: vox.into_iter().map(f).collect(),
+            meta,
+            sz,
+            _phantom,
+        }
+    }
 }
 
 impl<V, M, A: Access> BaseVol for Dyna<V, M, A> {

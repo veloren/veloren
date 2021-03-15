@@ -48,8 +48,8 @@ pub use self::{
     beam::{Beam, BeamSegment},
     body::{
         biped_large, biped_small, bird_medium, bird_small, dragon, fish_medium, fish_small, golem,
-        humanoid, object, quadruped_low, quadruped_medium, quadruped_small, theropod, AllBodies,
-        Body, BodyData,
+        humanoid, object, quadruped_low, quadruped_medium, quadruped_small, ship, theropod,
+        AllBodies, Body, BodyData,
     },
     buff::{
         Buff, BuffCategory, BuffChange, BuffData, BuffEffect, BuffId, BuffKind, BuffSource, Buffs,

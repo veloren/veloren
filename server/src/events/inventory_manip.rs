@@ -69,7 +69,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             find_dist::Cylinder::from_components(
                 p.0,
                 scales.get(entity).copied(),
-                colliders.get(entity).copied(),
+                colliders.get(entity),
                 char_states.get(entity),
             )
         })

@@ -35,11 +35,11 @@ impl Cylinder {
     pub fn from_components(
         pos: Vec3<f32>,
         scale: Option<crate::comp::Scale>,
-        collider: Option<crate::comp::Collider>,
+        collider: Option<&crate::comp::Collider>,
         char_state: Option<&crate::comp::CharacterState>,
     ) -> Self {
         let scale = scale.map_or(1.0, |s| s.0);
-        let radius = collider.map_or(0.5, |c| c.get_radius()) * scale;
+        let radius = collider.as_ref().map_or(0.5, |c| c.get_radius()) * scale;
         let z_limit_modifier = char_state
             .filter(|char_state| char_state.is_dodge())
             .map_or(1.0, |_| 0.5)

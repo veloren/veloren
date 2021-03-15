@@ -9,8 +9,7 @@ use vek::Vec2;
 
 // Gravity is 9.81 * 4, so this makes gravity equal to .15
 const GLIDE_ANTIGRAV: f32 = crate::consts::GRAVITY * 0.90;
-const GLIDE_ACCEL: f32 = 12.0;
-const GLIDE_SPEED: f32 = 45.0;
+const GLIDE_ACCEL: f32 = 5.0;
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct Data;
@@ -40,13 +39,7 @@ impl CharacterBehavior for Data {
         handle_climb(&data, &mut update);
 
         // Move player according to movement direction vector
-        update.vel.0 += Vec2::broadcast(data.dt.0)
-            * data.inputs.move_dir
-            * if data.vel.0.magnitude_squared() < GLIDE_SPEED.powi(2) {
-                GLIDE_ACCEL
-            } else {
-                0.0
-            };
+        update.vel.0 += Vec2::broadcast(data.dt.0) * data.inputs.move_dir * GLIDE_ACCEL;
 
         // Determine orientation vector from movement direction vector
         let horiz_vel = Vec2::<f32>::from(update.vel.0);
@@ -56,7 +49,7 @@ impl CharacterBehavior for Data {
 
         // Apply Glide antigrav lift
         let horiz_speed_sq = horiz_vel.magnitude_squared();
-        if horiz_speed_sq < GLIDE_SPEED.powi(2) && update.vel.0.z < 0.0 {
+        if update.vel.0.z < 0.0 {
             let lift = (GLIDE_ANTIGRAV + update.vel.0.z.powi(2) * 0.15)
                 * (horiz_speed_sq * f32::powf(0.075, 2.0)).clamp(0.2, 1.0);
 

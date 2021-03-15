@@ -46,4 +46,11 @@ impl Default for RtSimController {
 
 impl RtSimController {
     pub fn reset(&mut self) { *self = Self::default(); }
+
+    pub fn with_destination(pos: Vec3<f32>) -> Self {
+        Self {
+            travel_to: Some((pos, format!("{:0.1?}", pos))),
+            speed_factor: 0.25,
+        }
+    }
 }

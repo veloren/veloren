@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use specs::Entity;
 
 /// A resource that stores the time of day.
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, Default)]
@@ -26,3 +27,8 @@ pub enum GameMode {
     // To be used later when we no longer start up an entirely new server for singleplayer
     Singleplayer,
 }
+
+/// A resource that stores the player's entity (on the client), and None on the
+/// server
+#[derive(Copy, Clone, Default, Debug)]
+pub struct PlayerEntity(pub Option<Entity>);

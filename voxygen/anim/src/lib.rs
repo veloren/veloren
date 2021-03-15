@@ -54,6 +54,7 @@ pub mod object;
 pub mod quadruped_low;
 pub mod quadruped_medium;
 pub mod quadruped_small;
+pub mod ship;
 pub mod theropod;
 pub mod vek;
 

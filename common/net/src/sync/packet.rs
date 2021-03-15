@@ -1,5 +1,5 @@
 use super::track::UpdateTracker;
-use common::uid::Uid;
+use common::{resources::Time, uid::Uid};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use specs::{Component, Entity, Join, ReadStorage, World, WorldExt};
 use std::{
@@ -9,6 +9,10 @@ use std::{
 };
 use tracing::error;
 
+// TODO: apply_{insert,modify,remove} all take the entity and call
+// `write_storage` once per entity per component, instead of once per update
+// batch(e.g. in a system-like memory access pattern); if sync ends up being a
+// bottleneck, try optimizing this
 /// Implemented by type that carries component data for insertion and
 /// modification The assocatied `Phantom` type only carries information about
 /// which component type is of interest and is used to transmit deletion events
@@ -40,6 +44,44 @@ pub fn handle_modify<C: Component + Debug>(comp: C, entity: Entity, world: &Worl
 /// Useful for implementing CompPacket trait
 pub fn handle_remove<C: Component>(entity: Entity, world: &World) {
     world.write_storage::<C>().remove(entity);
+}
+
+pub trait InterpolatableComponent: Component {
+    type InterpData: Component + Default;
+    type ReadData;
+
+    fn update_component(&self, data: &mut Self::InterpData, time: f64);
+    fn interpolate(self, data: &Self::InterpData, time: f64, read_data: &Self::ReadData) -> Self;
+}
+
+pub fn handle_interp_insert<C: InterpolatableComponent>(comp: C, entity: Entity, world: &World) {
+    let mut interp_data = C::InterpData::default();
+    let time = world.read_resource::<Time>().0;
+    comp.update_component(&mut interp_data, time);
+    handle_insert(comp, entity, world);
+    handle_insert(interp_data, entity, world);
+}
+
+pub fn handle_interp_modify<C: InterpolatableComponent + Debug>(
+    comp: C,
+    entity: Entity,
+    world: &World,
+) {
+    if let Some(mut interp_data) = world.write_storage::<C::InterpData>().get_mut(entity) {
+        let time = world.read_resource::<Time>().0;
+        comp.update_component(&mut interp_data, time);
+        handle_modify(comp, entity, world);
+    } else {
+        error!(
+            ?comp,
+            "Error modifying interpolation data for synced component, it doesn't seem to exist"
+        );
+    }
+}
+
+pub fn handle_interp_remove<C: InterpolatableComponent>(entity: Entity, world: &World) {
+    handle_remove::<C>(entity, world);
+    handle_remove::<C::InterpData>(entity, world);
 }
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]

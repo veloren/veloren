@@ -3,7 +3,7 @@ use crate::{
         biped_large, biped_small,
         inventory::slot::EquipSlot,
         item::{Hands, ItemKind, Tool, ToolKind},
-        quadruped_low, quadruped_medium, quadruped_small,
+        quadruped_low, quadruped_medium, quadruped_small, ship,
         skills::Skill,
         theropod, Body, CharacterAbility, CharacterState, InputKind, InventoryAction, StateUpdate,
     },
@@ -17,10 +17,11 @@ use std::time::Duration;
 use vek::*;
 
 pub const MOVEMENT_THRESHOLD_VEL: f32 = 3.0;
-const BASE_HUMANOID_AIR_ACCEL: f32 = 8.0;
-const BASE_FLIGHT_ACCEL: f32 = 16.0;
+const BASE_HUMANOID_AIR_ACCEL: f32 = 2.0;
+const BASE_FLIGHT_ACCEL: f32 = 2.0;
 const BASE_HUMANOID_WATER_ACCEL: f32 = 150.0;
 const BASE_HUMANOID_WATER_SPEED: f32 = 180.0;
+pub const BASE_JUMP_IMPULSE: f32 = 16.0;
 // const BASE_HUMANOID_CLIMB_ACCEL: f32 = 10.0;
 // const ROLL_SPEED: f32 = 17.0;
 // const CHARGE_SPEED: f32 = 20.0;
@@ -117,6 +118,7 @@ impl Body {
                 quadruped_low::Species::Basilisk => 120.0,
                 quadruped_low::Species::Deadwood => 140.0,
             },
+            Body::Ship(_) => 30.0,
         }
     }
 
@@ -168,14 +170,24 @@ impl Body {
                 quadruped_low::Species::Lavadrake => 4.0,
                 _ => 6.0,
             },
+            Body::Ship(_) => 0.175,
         }
     }
 
-    pub fn can_fly(&self) -> bool {
-        matches!(
-            self,
-            Body::BirdMedium(_) | Body::Dragon(_) | Body::BirdSmall(_)
-        )
+    /// Returns flying speed if the body type can fly, otherwise None
+    pub fn can_fly(&self) -> Option<f32> {
+        match self {
+            Body::BirdMedium(_) | Body::Dragon(_) | Body::BirdSmall(_) => Some(1.0),
+            Body::Ship(ship::Body::DefaultAirship) => Some(1.0),
+            _ => None,
+        }
+    }
+
+    pub fn jump_impulse(&self) -> Option<f32> {
+        match self {
+            Body::Object(_) | Body::Ship(_) => None,
+            _ => Some(BASE_JUMP_IMPULSE),
+        }
     }
 
     pub fn can_climb(&self) -> bool { matches!(self, Body::Humanoid(_)) }
@@ -186,10 +198,18 @@ pub fn handle_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
     if let Some(depth) = data.physics.in_liquid {
         swim_move(data, update, efficiency, depth);
     } else if input_is_pressed(data, InputKind::Fly)
-        && !data.physics.on_ground
-        && data.body.can_fly()
+        && (!data.physics.on_ground || data.body.jump_impulse().is_none())
+        && data.body.can_fly().is_some()
     {
-        fly_move(data, update, efficiency);
+        fly_move(
+            data,
+            update,
+            efficiency
+                * data
+                    .body
+                    .can_fly()
+                    .expect("can_fly is_some right above this"),
+        );
     } else {
         basic_move(data, update, efficiency);
     }
@@ -289,7 +309,11 @@ fn swim_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32, depth: 
         }
         * efficiency;
 
-    handle_orientation(data, update, if data.physics.on_ground { 9.0 } else { 2.0 });
+    handle_orientation(
+        data,
+        update,
+        data.body.base_ori_rate() * if data.physics.on_ground { 0.5 } else { 0.1 },
+    );
 
     // Swim
     update.vel.0.z = (update.vel.0.z
@@ -306,7 +330,6 @@ fn swim_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32, depth: 
 /// Updates components to move entity as if it's flying
 fn fly_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
     // Update velocity (counteract gravity with lift)
-    // TODO: Do this better
     update.vel.0 += Vec3::unit_z() * data.dt.0 * GRAVITY
         + Vec3::new(
             data.inputs.move_dir.x,
@@ -316,7 +339,7 @@ fn fly_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
             * BASE_FLIGHT_ACCEL
             * efficiency;
 
-    handle_orientation(data, update, 1.0);
+    handle_orientation(data, update, data.body.base_ori_rate());
 }
 
 /// Checks if an input related to an attack is held. If one is, moves entity
@@ -429,10 +452,12 @@ pub fn handle_jump(data: &JoinData, update: &mut StateUpdate) {
             .in_liquid
             .map(|depth| depth > 1.0)
             .unwrap_or(false)
+        && data.body.jump_impulse().is_some()
     {
-        update
-            .local_events
-            .push_front(LocalEvent::Jump(data.entity));
+        update.local_events.push_front(LocalEvent::Jump(
+            data.entity,
+            data.body.jump_impulse().unwrap(),
+        ));
     }
 }
 

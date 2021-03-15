@@ -5619,6 +5619,7 @@ dependencies = [
  "hashbrown",
  "serde",
  "specs",
+ "specs-idvs",
  "sum_type",
  "tracing",
  "vek 0.14.1",

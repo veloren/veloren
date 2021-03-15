@@ -33,6 +33,7 @@ pub struct PreviousPhysCache {
     pub collision_boundary: f32,
     pub scale: f32,
     pub scaled_radius: f32,
+    pub ori: Quaternion<f32>,
 }
 
 impl Component for PreviousPhysCache {
@@ -55,9 +56,12 @@ impl Component for Mass {
     type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
 }
 
-// Mass
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+// Collider
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Collider {
+    // TODO: pass the map from ids -> voxel data to get_radius and get_z_limits to compute a
+    // bounding cylinder
+    Voxel { id: String },
     Box { radius: f32, z_min: f32, z_max: f32 },
     Point,
 }
@@ -65,6 +69,7 @@ pub enum Collider {
 impl Collider {
     pub fn get_radius(&self) -> f32 {
         match self {
+            Collider::Voxel { .. } => 1.0,
             Collider::Box { radius, .. } => *radius,
             Collider::Point => 0.0,
         }
@@ -72,6 +77,7 @@ impl Collider {
 
     pub fn get_z_limits(&self, modifier: f32) -> (f32, f32) {
         match self {
+            Collider::Voxel { .. } => (0.0, 1.0),
             Collider::Box { z_min, z_max, .. } => (*z_min * modifier, *z_max * modifier),
             Collider::Point => (0.0, 0.0),
         }
@@ -104,6 +110,7 @@ pub struct PhysicsState {
     pub on_wall: Option<Vec3<f32>>,
     pub touch_entities: Vec<Uid>,
     pub in_liquid: Option<f32>, // Depth
+    pub ground_vel: Vec3<f32>,
 }
 
 impl PhysicsState {
@@ -113,6 +120,8 @@ impl PhysicsState {
         touch_entities.clear();
         *self = Self {
             touch_entities,
+            ground_vel: self.ground_vel, /* Preserved, since it's the velocity of the last
+                                          * contact point */
             ..Self::default()
         }
     }

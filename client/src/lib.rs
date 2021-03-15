@@ -33,6 +33,7 @@ use common::{
     grid::Grid,
     outcome::Outcome,
     recipe::RecipeBook,
+    resources::PlayerEntity,
     terrain::{block::Block, neighbors, BiomeKind, SitesKind, TerrainChunk, TerrainChunkSize},
     trade::{PendingTrade, TradeAction, TradeId, TradeResult},
     uid::{Uid, UidAllocator},
@@ -281,6 +282,7 @@ impl Client {
 
                 let entity = state.ecs_mut().apply_entity_package(entity_package);
                 *state.ecs_mut().write_resource() = time_of_day;
+                *state.ecs_mut().write_resource() = PlayerEntity(Some(entity));
                 state.ecs_mut().insert(material_stats);
                 state.ecs_mut().insert(ability_map);
 
@@ -1458,6 +1460,7 @@ impl Client {
             ServerGeneral::SetPlayerEntity(uid) => {
                 if let Some(entity) = self.state.ecs().entity_from_uid(uid.0) {
                     self.entity = entity;
+                    *self.state.ecs_mut().write_resource() = PlayerEntity(Some(entity));
                 } else {
                     return Err(Error::Other("Failed to find entity from uid.".to_owned()));
                 }

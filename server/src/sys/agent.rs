@@ -34,7 +34,7 @@ use specs::{
     Entities, Entity as EcsEntity, Join, ParJoin, Read, ReadExpect, ReadStorage, SystemData, World,
     Write, WriteStorage,
 };
-use std::f32::consts::PI;
+use std::{f32::consts::PI, sync::Arc};
 use vek::*;
 
 struct AgentData<'a> {
@@ -82,6 +82,7 @@ pub struct ReadData<'a> {
     mount_states: ReadStorage<'a, MountState>,
     time_of_day: Read<'a, TimeOfDay>,
     light_emitter: ReadStorage<'a, LightEmitter>,
+    world: ReadExpect<'a, Arc<world::World>>,
 }
 
 // This is 3.1 to last longer than the last damage timer (3.0 seconds)
@@ -213,7 +214,7 @@ impl<'a> System<'a> for Sys {
                         in_liquid: physics_state.in_liquid.is_some(),
                         min_tgt_dist: 1.0,
                         can_climb: body.map(|b| b.can_climb()).unwrap_or(false),
-                        can_fly: body.map(|b| b.can_fly()).unwrap_or(false),
+                        can_fly: body.map(|b| b.can_fly().is_some()).unwrap_or(false),
                     };
 
                     let flees = alignment
@@ -619,19 +620,43 @@ impl<'a> AgentData<'a> {
 
                 controller.inputs.move_z = bearing.z
                     + if self.traversal_config.can_fly {
-                        if read_data
+                        let obstacle_ahead = read_data
                             .terrain
                             .ray(
                                 self.pos.0 + Vec3::unit_z(),
                                 self.pos.0
-                                    + bearing.try_normalized().unwrap_or_else(Vec3::unit_y) * 60.0
+                                    + bearing.try_normalized().unwrap_or_else(Vec3::unit_y) * 80.0
                                     + Vec3::unit_z(),
                             )
                             .until(Block::is_solid)
                             .cast()
                             .1
-                            .map_or(true, |b| b.is_some())
-                        {
+                            .map_or(true, |b| b.is_some());
+                        let ground_too_close = self
+                            .body
+                            .map(|body| {
+                                let height_approx = self.pos.0.y
+                                    - read_data
+                                        .world
+                                        .sim()
+                                        .get_alt_approx(self.pos.0.xy().map(|x: f32| x as i32))
+                                        .unwrap_or(0.0);
+
+                                height_approx < body.flying_height()
+                                    || read_data
+                                        .terrain
+                                        .ray(
+                                            self.pos.0,
+                                            self.pos.0 - body.flying_height() * Vec3::unit_z(),
+                                        )
+                                        .until(|b: &Block| b.is_solid() || b.is_liquid())
+                                        .cast()
+                                        .1
+                                        .map_or(false, |b| b.is_some())
+                            })
+                            .unwrap_or(false);
+
+                        if obstacle_ahead || ground_too_close {
                             1.0 //fly up when approaching obstacles
                         } else {
                             -0.1

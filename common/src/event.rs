@@ -20,16 +20,11 @@ pub type SiteId = u64;
 
 pub enum LocalEvent {
     /// Applies upward force to entity's `Vel`
-    Jump(EcsEntity),
+    Jump(EcsEntity, f32),
     /// Applies the `impulse` to `entity`'s `Vel`
     ApplyImpulse {
         entity: EcsEntity,
         impulse: Vec3<f32>,
-    },
-    /// Applies leaping force to `entity`'s `Vel` away from `wall_dir` direction
-    WallLeap {
-        entity: EcsEntity,
-        wall_dir: Vec3<f32>,
     },
     /// Applies `vel` velocity to `entity`
     Boost { entity: EcsEntity, vel: Vec3<f32> },

@@ -77,6 +77,7 @@ type CommandHandler = fn(&mut Server, EcsEntity, EcsEntity, String, &ChatCommand
 fn get_handler(cmd: &ChatCommand) -> CommandHandler {
     match cmd {
         ChatCommand::Adminify => handle_adminify,
+        ChatCommand::Airship => handle_spawn_airship,
         ChatCommand::Alias => handle_alias,
         ChatCommand::Ban => handle_ban,
         ChatCommand::Build => handle_build,
@@ -975,6 +976,51 @@ fn handle_spawn_training_dummy(
             server.notify_client(
                 client,
                 ServerGeneral::server_msg(ChatType::CommandInfo, "Spawned a training dummy"),
+            );
+        },
+        None => server.notify_client(
+            client,
+            ServerGeneral::server_msg(ChatType::CommandError, "You have no position!"),
+        ),
+    }
+}
+
+fn handle_spawn_airship(
+    server: &mut Server,
+    client: EcsEntity,
+    target: EcsEntity,
+    args: String,
+    action: &ChatCommand,
+) {
+    let angle = scan_fmt!(&args, &action.arg_fmt(), f32).ok();
+    match server.state.read_component_copied::<comp::Pos>(target) {
+        Some(mut pos) => {
+            pos.0.z += 50.0;
+            const DESTINATION_RADIUS: f32 = 2000.0;
+            let angle = angle.map(|a| a * std::f32::consts::PI / 180.0);
+            let destination = angle.map(|a| {
+                pos.0
+                    + Vec3::new(
+                        DESTINATION_RADIUS * a.cos(),
+                        DESTINATION_RADIUS * a.sin(),
+                        200.0,
+                    )
+            });
+            server
+                .state
+                .create_ship(pos, comp::ship::Body::DefaultAirship, 1, destination)
+                .with(comp::Scale(comp::ship::AIRSHIP_SCALE))
+                .with(LightEmitter {
+                    col: Rgb::new(1.0, 0.65, 0.2),
+                    strength: 2.0,
+                    flicker: 1.0,
+                    animated: true,
+                })
+                .build();
+
+            server.notify_client(
+                client,
+                ServerGeneral::server_msg(ChatType::CommandInfo, "Spawned an airship"),
             );
         },
         None => server.notify_client(

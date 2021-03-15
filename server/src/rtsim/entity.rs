@@ -27,7 +27,10 @@ impl Entity {
 
     pub fn get_body(&self) -> comp::Body {
         match self.rng(PERM_GENUS).gen::<f32>() {
-            //we want 50% birds, 50% humans for now
+            // we want 5% airships, 45% birds, 50% humans
+            // TODO: uncomment this to re-enable RtSim airships once physics is interpolated well
+            // in multiplayer.
+            //x if x < 0.05 => comp::Body::Ship(comp::ship::Body::DefaultAirship),
             x if x < 0.50 => {
                 let species = *(&comp::bird_medium::ALL_SPECIES)
                     .choose(&mut self.rng(PERM_SPECIES))
@@ -53,6 +56,7 @@ impl Entity {
             comp::Body::BirdSmall(_) => "Warbler".to_string(),
             comp::Body::Dragon(b) => get_npc_name(&npc_names.dragon, b.species).to_string(),
             comp::Body::Humanoid(b) => get_npc_name(&npc_names.humanoid, b.species).to_string(),
+            comp::Body::Ship(_) => "Veloren Air".to_string(),
             //TODO: finish match as necessary
             _ => unimplemented!(),
         }
@@ -131,6 +135,7 @@ impl Entity {
                 .iter()
                 .filter(|s| match self.get_body() {
                     comp::Body::Humanoid(_) => s.1.is_settlement() | s.1.is_castle(),
+                    comp::Body::Ship(_) => s.1.is_settlement(),
                     _ => s.1.is_dungeon(),
                 })
                 .filter(|_| thread_rng().gen_range(0i32..4) == 0)

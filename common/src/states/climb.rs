@@ -9,12 +9,9 @@ use crate::{
     util::Dir,
 };
 use serde::{Deserialize, Serialize};
-use vek::{
-    vec::{Vec2, Vec3},
-    Lerp,
-};
+use vek::*;
 
-const HUMANOID_CLIMB_ACCEL: f32 = 5.0;
+const HUMANOID_CLIMB_ACCEL: f32 = 24.0;
 const CLIMB_SPEED: f32 = 5.0;
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
@@ -36,7 +33,7 @@ impl CharacterBehavior for Data {
                 // They've climbed atop something, give them a boost
                 update
                     .local_events
-                    .push_front(LocalEvent::Jump(data.entity));
+                    .push_front(LocalEvent::Jump(data.entity, BASE_JUMP_IMPULSE * 0.5));
             }
             update.character = CharacterState::Idle {};
             return update;
@@ -76,26 +73,10 @@ impl CharacterBehavior for Data {
         };
 
         // Apply Vertical Climbing Movement
-        if update.vel.0.z <= CLIMB_SPEED {
-            match climb {
-                Climb::Down => {
-                    update.vel.0 -=
-                        data.dt.0 * update.vel.0.map(|e| e.abs().powf(1.5) * e.signum() * 1.0);
-                },
-                Climb::Up => {
-                    update.vel.0.z = (update.vel.0.z + data.dt.0 * GRAVITY * 1.25).min(CLIMB_SPEED);
-                },
-                Climb::Hold => {
-                    // Antigrav
-                    update.vel.0.z =
-                        (update.vel.0.z + data.dt.0 * GRAVITY * 1.075).min(CLIMB_SPEED);
-                    update.vel.0 = Lerp::lerp(
-                        update.vel.0,
-                        Vec3::zero(),
-                        30.0 * data.dt.0 / (1.0 - update.vel.0.z.min(0.0) * 5.0),
-                    );
-                },
-            }
+        match climb {
+            Climb::Down => update.vel.0.z += data.dt.0 * (GRAVITY - HUMANOID_CLIMB_ACCEL),
+            Climb::Up => update.vel.0.z += data.dt.0 * (GRAVITY + HUMANOID_CLIMB_ACCEL),
+            Climb::Hold => update.vel.0.z += data.dt.0 * GRAVITY,
         }
 
         update

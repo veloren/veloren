@@ -11,6 +11,7 @@ pub mod object;
 pub mod quadruped_low;
 pub mod quadruped_medium;
 pub mod quadruped_small;
+pub mod ship;
 pub mod theropod;
 
 use crate::{
@@ -44,6 +45,7 @@ make_case_elim!(
         Golem(body: golem::Body) = 11,
         Theropod(body: theropod::Body) = 12,
         QuadrupedLow(body: quadruped_low::Body) = 13,
+        Ship(body: ship::Body) = 14,
     }
 );
 
@@ -78,6 +80,7 @@ pub struct AllBodies<BodyMeta, SpeciesMeta> {
     pub golem: BodyData<BodyMeta, golem::AllSpecies<SpeciesMeta>>,
     pub theropod: BodyData<BodyMeta, theropod::AllSpecies<SpeciesMeta>>,
     pub quadruped_low: BodyData<BodyMeta, quadruped_low::AllSpecies<SpeciesMeta>>,
+    pub ship: BodyData<BodyMeta, ()>,
 }
 
 /// Can only retrieve body metadata by direct index.
@@ -124,6 +127,7 @@ impl<'a, BodyMeta, SpeciesMeta> core::ops::Index<&'a Body> for AllBodies<BodyMet
             Body::Golem(_) => &self.golem.body,
             Body::Theropod(_) => &self.theropod.body,
             Body::QuadrupedLow(_) => &self.quadruped_low.body,
+            Body::Ship(_) => &self.ship.body,
         }
     }
 }
@@ -218,6 +222,7 @@ impl Body {
             Body::Golem(_) => 2.5,
             Body::BipedSmall(_) => 0.75,
             Body::Object(_) => 0.4,
+            Body::Ship(_) => 1.0,
         }
     }
 
@@ -294,6 +299,7 @@ impl Body {
                 object::Body::Crossbow => 1.7,
                 _ => 1.0,
             },
+            Body::Ship(_) => 1.0,
         }
     }
 
@@ -416,6 +422,7 @@ impl Body {
                 quadruped_low::Species::Deadwood => 600,
                 _ => 200,
             },
+            Body::Ship(_) => 10000,
         }
     }
 
@@ -508,12 +515,23 @@ impl Body {
                 quadruped_low::Species::Deadwood => 30,
                 _ => 20,
             },
+            Body::Ship(_) => 500,
+        }
+    }
+
+    pub fn flying_height(&self) -> f32 {
+        match self {
+            Body::BirdSmall(_) => 30.0,
+            Body::BirdMedium(_) => 40.0,
+            Body::Dragon(_) => 60.0,
+            Body::Ship(ship::Body::DefaultAirship) => 60.0,
+            _ => 0.0,
         }
     }
 
     pub fn immune_to(&self, buff: BuffKind) -> bool {
         match buff {
-            BuffKind::Bleeding => matches!(self, Body::Object(_) | Body::Golem(_)),
+            BuffKind::Bleeding => matches!(self, Body::Object(_) | Body::Golem(_) | Body::Ship(_)),
             _ => false,
         }
     }
@@ -521,7 +539,13 @@ impl Body {
     /// Returns a multiplier representing increased difficulty not accounted for
     /// due to AI or not using an actual weapon
     // TODO: Match on species
-    pub fn combat_multiplier(&self) -> f32 { if let Body::Object(_) = self { 0.0 } else { 1.0 } }
+    pub fn combat_multiplier(&self) -> f32 {
+        if let Body::Object(_) | Body::Ship(_) = self {
+            0.0
+        } else {
+            1.0
+        }
+    }
 
     pub fn base_poise(&self) -> u32 {
         match self {
@@ -548,6 +572,13 @@ impl Body {
             self,
             Body::Humanoid(_) | Body::BipedSmall(_) | Body::BipedLarge(_)
         )
+    }
+
+    pub fn mounting_offset(&self) -> Vec3<f32> {
+        match self {
+            Body::Ship(ship::Body::DefaultAirship) => Vec3::from([0.0, 0.0, 10.0]),
+            _ => Vec3::unit_z(),
+        }
     }
 }
 

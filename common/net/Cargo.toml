@@ -12,6 +12,7 @@ default = ["simd"]
 
 [dependencies]
 common = {package = "veloren-common", path = "../../common"}
+#inline_tweak = "1.0.2"
 
 sum_type = "0.2.0"
 vek = { version = "=0.14.1", features = ["serde"] }
@@ -25,6 +26,7 @@ authc = { git = "https://gitlab.com/veloren/auth.git", rev = "fb3dcbc4962b367253
 
 # ECS
 specs = { git = "https://github.com/amethyst/specs.git", features = ["serde", "storage-event-control"], rev = "5a9b71035007be0e3574f35184acac1cd4530496" }
+specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git", rev = "b65fb220e94f5d3c9bc30074a076149763795556" }
 
 # Serde
 serde = { version = "1.0.110", features = ["derive"] }
