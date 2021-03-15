@@ -3,7 +3,7 @@ use crate::audio::sfx::SfxEvent;
 use common::{
     comp::{
         inventory::loadout_builder::LoadoutBuilder, item::tool::ToolKind, CharacterAbilityType,
-        CharacterState, Item,
+        CharacterState, InputKind, Item,
     },
     states,
 };
@@ -137,7 +137,6 @@ fn matches_ability_stage() {
             stage: 1,
             timer: Duration::default(),
             stage_section: states::utils::StageSection::Swing,
-            next_stage: false,
         }),
         &PreviousEntityState {
             event: SfxEvent::Idle,
@@ -195,7 +194,6 @@ fn ignores_different_ability_stage() {
             stage: 1,
             timer: Duration::default(),
             stage_section: states::utils::StageSection::Swing,
-            next_stage: false,
         }),
         &PreviousEntityState {
             event: SfxEvent::Idle,
@@ -218,6 +216,6 @@ fn empty_ability_info() -> states::utils::AbilityInfo {
     states::utils::AbilityInfo {
         tool: None,
         hand: None,
-        key: states::utils::AbilityKey::Mouse1,
+        input: InputKind::Primary,
     }
 }

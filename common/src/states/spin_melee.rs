@@ -75,16 +75,6 @@ impl CharacterBehavior for Data {
             },
         }
 
-        if !ability_key_is_pressed(data, self.static_data.ability_info.key) {
-            handle_interrupt(data, &mut update, self.static_data.is_interruptible);
-            match update.character {
-                CharacterState::SpinMelee(_) => {},
-                _ => {
-                    return update;
-                },
-            }
-        }
-
         match self.stage_section {
             StageSection::Buildup => {
                 if self.timer < self.static_data.buildup_duration {
@@ -179,7 +169,7 @@ impl CharacterBehavior for Data {
                 } else if update.energy.current() as f32 >= self.static_data.energy_cost
                     && (self.spins_remaining != 0
                         || (self.static_data.is_infinite
-                            && ability_key_is_pressed(data, self.static_data.ability_info.key)))
+                            && input_is_pressed(data, self.static_data.ability_info.input)))
                 {
                     let new_spins_remaining = if self.static_data.is_infinite {
                         self.spins_remaining
@@ -229,6 +219,11 @@ impl CharacterBehavior for Data {
                 // Make sure attack component is removed
                 data.updater.remove::<Melee>(data.entity);
             },
+        }
+
+        // At end of state logic so an interrupt isn't overwritten
+        if !input_is_pressed(data, self.static_data.ability_info.input) {
+            handle_state_interrupt(data, &mut update, self.static_data.is_interruptible);
         }
 
         update

@@ -13,6 +13,7 @@ use std::time::Duration;
 pub struct StaticData {
     pub movement_duration: Duration,
     pub only_up: bool,
+    pub ability_info: AbilityInfo,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -46,9 +47,17 @@ impl CharacterBehavior for Data {
             });
         } else {
             // Done
-            update.character = CharacterState::Wielding;
+            if input_is_pressed(data, self.static_data.ability_info.input) {
+                reset_state(self, data, &mut update);
+            } else {
+                update.character = CharacterState::Wielding;
+            }
         }
 
         update
     }
+}
+
+fn reset_state(data: &Data, join: &JoinData, update: &mut StateUpdate) {
+    handle_input(join, update, data.static_data.ability_info.input);
 }

@@ -1,5 +1,5 @@
 use crate::{
-    comp::{CharacterState, StateUpdate},
+    comp::{CharacterState, InputKind, StateUpdate},
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
@@ -37,7 +37,7 @@ pub struct Data {
     /// Was sneaking
     pub was_sneak: bool,
     /// Was in state with combo
-    pub was_combo: Option<(AbilityKey, u32)>,
+    pub was_combo: Option<(InputKind, u32)>,
 }
 
 impl CharacterBehavior for Data {
@@ -114,9 +114,9 @@ impl CharacterBehavior for Data {
                     });
                 } else {
                     // Done
-                    if let Some((key, stage)) = self.was_combo {
-                        if ability_key_is_pressed(data, key) {
-                            handle_interrupt(data, &mut update, true);
+                    if let Some((input, stage)) = self.was_combo {
+                        if input_is_pressed(data, input) {
+                            handle_input(data, &mut update, input);
                             // If other states are introduced that progress through stages, add them
                             // here
                             if let CharacterState::ComboMelee(c) = &mut update.character {

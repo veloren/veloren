@@ -34,15 +34,6 @@ impl<'a> System<'a> for Sys {
         for (entity, controller) in (&read_data.entities, &mut controllers).join() {
             let mut inputs = &mut controller.inputs;
 
-            // Note(imbris): I avoided incrementing the duration with inputs.tick() because
-            // this is being done manually in voxygen right now so it would double up on
-            // speed of time.
-            // Perhaphs the duration aspects of inputs could be
-            // calculated exclusively on the server (since the client can't be
-            // trusted anyway). It needs to be considered if these calculations
-            // being on the client are critical for responsiveness/client-side prediction.
-            inputs.tick_freshness();
-
             // Update `inputs.move_dir`.
             inputs.move_dir = if inputs.move_dir.magnitude_squared() > 1.0 {
                 // Cap move_dir to 1

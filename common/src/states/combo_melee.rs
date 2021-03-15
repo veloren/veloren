@@ -113,8 +113,6 @@ pub struct Data {
     pub timer: Duration,
     /// Checks what section a stage is in
     pub stage_section: StageSection,
-    /// Whether the state should go onto the next stage
-    pub next_stage: bool,
 }
 
 impl CharacterBehavior for Data {
@@ -123,15 +121,6 @@ impl CharacterBehavior for Data {
 
         handle_orientation(data, &mut update, 1.0);
         handle_move(data, &mut update, 0.3);
-        if !ability_key_is_pressed(data, self.static_data.ability_info.key) {
-            handle_interrupt(data, &mut update, self.static_data.is_interruptible);
-            match update.character {
-                CharacterState::ComboMelee(_) => {},
-                _ => {
-                    return update;
-                },
-            }
-        }
 
         let stage_index = (self.stage - 1) as usize;
 
@@ -261,41 +250,21 @@ impl CharacterBehavior for Data {
             StageSection::Recover => {
                 if self.timer < self.static_data.stage_data[stage_index].base_recover_duration {
                     // Recovers
-                    if ability_key_is_pressed(data, self.static_data.ability_info.key) {
-                        // Checks if state will transition to next stage after recover
-                        update.character = CharacterState::ComboMelee(Data {
-                            static_data: self.static_data.clone(),
-                            timer: self
-                                .timer
-                                .checked_add(Duration::from_secs_f32(data.dt.0 * speed_modifer))
-                                .unwrap_or_default(),
-                            next_stage: true,
-                            ..*self
-                        });
-                    } else {
-                        update.character = CharacterState::ComboMelee(Data {
-                            static_data: self.static_data.clone(),
-                            timer: self
-                                .timer
-                                .checked_add(Duration::from_secs_f32(data.dt.0 * speed_modifer))
-                                .unwrap_or_default(),
-                            ..*self
-                        });
-                    }
-                } else if self.next_stage {
-                    // Transitions to buildup section of next stage
                     update.character = CharacterState::ComboMelee(Data {
                         static_data: self.static_data.clone(),
-                        stage: (self.stage % self.static_data.num_stages) + 1,
-                        timer: Duration::default(),
-                        stage_section: StageSection::Buildup,
-                        next_stage: false,
+                        timer: self
+                            .timer
+                            .checked_add(Duration::from_secs_f32(data.dt.0 * speed_modifer))
+                            .unwrap_or_default(),
+                        ..*self
                     });
                 } else {
                     // Done
-                    update.character = CharacterState::Wielding;
-                    // Make sure attack component is removed
-                    data.updater.remove::<Melee>(data.entity);
+                    if input_is_pressed(data, self.static_data.ability_info.input) {
+                        reset_state(self, data, &mut update);
+                    } else {
+                        update.character = CharacterState::Wielding;
+                    }
                 }
             },
             _ => {
@@ -306,20 +275,19 @@ impl CharacterBehavior for Data {
             },
         }
 
-        // Grant energy on successful hit
-        if let Some(attack) = data.melee_attack {
-            if attack.applied && attack.hit_count > 0 {
-                update.character = CharacterState::ComboMelee(Data {
-                    static_data: self.static_data.clone(),
-                    stage: self.stage,
-                    timer: self.timer,
-                    stage_section: self.stage_section,
-                    next_stage: self.next_stage,
-                });
-                data.updater.remove::<Melee>(data.entity);
-            }
+        // At end of state logic so an interrupt isn't overwritten
+        if !input_is_pressed(data, self.static_data.ability_info.input) {
+            handle_state_interrupt(data, &mut update, self.static_data.is_interruptible);
         }
 
         update
+    }
+}
+
+fn reset_state(data: &Data, join: &JoinData, update: &mut StateUpdate) {
+    handle_input(join, update, data.static_data.ability_info.input);
+
+    if let CharacterState::ComboMelee(c) = &mut update.character {
+        c.stage = (data.stage % data.static_data.num_stages) + 1;
     }
 }

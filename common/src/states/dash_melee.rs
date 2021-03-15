@@ -55,7 +55,8 @@ pub struct Data {
     /// Struct containing data that does not change over the course of the
     /// character state
     pub static_data: StaticData,
-    /// Whether the charge should end
+    /// Whether the charge should last a default amount of time or until the
+    /// mouse is released
     pub auto_charge: bool,
     /// Timer for each stage
     pub timer: Duration,
@@ -73,15 +74,6 @@ impl CharacterBehavior for Data {
 
         handle_orientation(data, &mut update, 1.0);
         handle_move(data, &mut update, 0.1);
-        if !ability_key_is_pressed(data, self.static_data.ability_info.key) {
-            handle_interrupt(data, &mut update, self.static_data.is_interruptible);
-            match update.character {
-                CharacterState::DashMelee(_) => {},
-                _ => {
-                    return update;
-                },
-            }
-        }
 
         match self.stage_section {
             StageSection::Buildup => {
@@ -97,10 +89,7 @@ impl CharacterBehavior for Data {
                 } else {
                     // Transitions to charge section of stage
                     update.character = CharacterState::DashMelee(Data {
-                        auto_charge: !ability_key_is_pressed(
-                            data,
-                            self.static_data.ability_info.key,
-                        ),
+                        auto_charge: !input_is_pressed(data, self.static_data.ability_info.input),
                         timer: Duration::default(),
                         stage_section: StageSection::Charge,
                         ..*self
@@ -110,7 +99,7 @@ impl CharacterBehavior for Data {
             StageSection::Charge => {
                 if (self.static_data.infinite_charge
                     || self.timer < self.static_data.charge_duration)
-                    && (ability_key_is_pressed(data, self.static_data.ability_info.key)
+                    && (input_is_pressed(data, self.static_data.ability_info.input)
                         || (self.auto_charge && self.timer < self.static_data.charge_duration))
                     && update.energy.current() > 0
                 {
@@ -263,6 +252,11 @@ impl CharacterBehavior for Data {
                 // Make sure attack component is removed
                 data.updater.remove::<Melee>(data.entity);
             },
+        }
+
+        // At end of state logic so an interrupt isn't overwritten
+        if !input_is_pressed(data, self.static_data.ability_info.input) {
+            handle_state_interrupt(data, &mut update, self.static_data.is_interruptible);
         }
 
         update

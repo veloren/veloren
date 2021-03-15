@@ -5,7 +5,7 @@ use crate::{
         item::{Hands, ItemKind, Tool, ToolKind},
         quadruped_low, quadruped_medium, quadruped_small,
         skills::Skill,
-        theropod, Body, CharacterAbility, CharacterState, InventoryAction, StateUpdate,
+        theropod, Body, CharacterAbility, CharacterState, InputKind, InventoryAction, StateUpdate,
     },
     consts::{FRIC_GROUND, GRAVITY},
     event::{LocalEvent, ServerEvent},
@@ -185,7 +185,10 @@ impl Body {
 pub fn handle_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
     if let Some(depth) = data.physics.in_liquid {
         swim_move(data, update, efficiency, depth);
-    } else if data.inputs.fly.is_pressed() && !data.physics.on_ground && data.body.can_fly() {
+    } else if input_is_pressed(data, InputKind::Fly)
+        && !data.physics.on_ground
+        && data.body.can_fly()
+    {
         fly_move(data, update, efficiency);
     } else {
         basic_move(data, update, efficiency);
@@ -316,14 +319,10 @@ fn fly_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
     handle_orientation(data, update, 1.0);
 }
 
-/// First checks whether `primary`, `secondary`, `ability3`, or `ability4` input
-/// is pressed, then attempts to go into Equipping state, otherwise Idle
+/// Checks if an input related to an attack is held. If one is, moves entity
+/// into wielding state
 pub fn handle_wield(data: &JoinData, update: &mut StateUpdate) {
-    if data.inputs.primary.is_pressed()
-        || data.inputs.secondary.is_pressed()
-        || data.inputs.ability3.is_pressed()
-        || data.inputs.ability4.is_pressed()
-    {
+    if data.controller.queued_inputs.iter().any(|i| i.is_ability()) {
         attempt_wield(data, update);
     }
 }
@@ -423,7 +422,7 @@ pub fn attempt_glide_wield(data: &JoinData, update: &mut StateUpdate) {
 
 /// Checks that player can jump and sends jump event if so
 pub fn handle_jump(data: &JoinData, update: &mut StateUpdate) {
-    if data.inputs.jump.is_pressed()
+    if input_is_pressed(data, InputKind::Jump)
         && data.physics.on_ground
         && !data
             .physics
@@ -437,14 +436,14 @@ pub fn handle_jump(data: &JoinData, update: &mut StateUpdate) {
     }
 }
 
-fn handle_ability_pressed(data: &JoinData, update: &mut StateUpdate, ability_key: AbilityKey) {
+fn handle_ability(data: &JoinData, update: &mut StateUpdate, input: InputKind) {
     let hands = |equip_slot| match data.inventory.equipped(equip_slot).map(|i| i.kind()) {
         Some(ItemKind::Tool(tool)) => Some(tool.hands),
         _ => None,
     };
 
     // Mouse1 and Skill1 always use the MainHand slot
-    let always_main_hand = matches!(ability_key, AbilityKey::Mouse1 | AbilityKey::Skill1);
+    let always_main_hand = matches!(input, InputKind::Primary | InputKind::Ability(0));
     // skill_index used to select ability for the AbilityKey::Skill2 input
     let (equip_slot, skill_index) = if always_main_hand {
         (Some(EquipSlot::Mainhand), 0)
@@ -468,16 +467,16 @@ fn handle_ability_pressed(data: &JoinData, update: &mut StateUpdate, ability_key
             .inventory
             .equipped(equip_slot)
             .map(|i| &i.item_config_expect().abilities)
-            .and_then(|abilities| match ability_key {
-                AbilityKey::Mouse1 => Some(abilities.primary.clone()),
-                AbilityKey::Mouse2 => Some(abilities.secondary.clone()),
-                AbilityKey::Skill1 => abilities.abilities.get(0).cloned().and_then(unlocked),
-                AbilityKey::Skill2 => abilities
+            .and_then(|abilities| match input {
+                InputKind::Primary => Some(abilities.primary.clone()),
+                InputKind::Secondary => Some(abilities.secondary.clone()),
+                InputKind::Ability(0) => abilities.abilities.get(0).cloned().and_then(unlocked),
+                InputKind::Ability(_) => abilities
                     .abilities
                     .get(skill_index)
                     .cloned()
                     .and_then(unlocked),
-                AbilityKey::Dodge => None,
+                InputKind::Roll | InputKind::Jump | InputKind::Fly => None,
             })
             .map(|a| {
                 let tool = unwrap_tool_data(data, equip_slot).map(|t| t.kind);
@@ -487,41 +486,46 @@ fn handle_ability_pressed(data: &JoinData, update: &mut StateUpdate, ability_key
         {
             update.character = (
                 &ability,
-                AbilityInfo::from_key(data, ability_key, matches!(equip_slot, EquipSlot::Offhand)),
+                AbilityInfo::from_input(data, matches!(equip_slot, EquipSlot::Offhand), input),
             )
                 .into();
         }
     }
 }
 
-pub fn handle_ability1_input(data: &JoinData, update: &mut StateUpdate) {
-    if data.inputs.primary.is_pressed() {
-        handle_ability_pressed(data, update, AbilityKey::Mouse1);
+pub fn handle_ability_input(data: &JoinData, update: &mut StateUpdate) {
+    if let Some(input) = data
+        .controller
+        .queued_inputs
+        .iter()
+        .find(|i| i.is_ability())
+    {
+        handle_ability(data, update, *input);
     }
 }
 
-pub fn handle_ability2_input(data: &JoinData, update: &mut StateUpdate) {
-    if data.inputs.secondary.is_pressed() {
-        handle_ability_pressed(data, update, AbilityKey::Mouse2);
+pub fn handle_input(data: &JoinData, update: &mut StateUpdate, input: InputKind) {
+    match input {
+        InputKind::Primary | InputKind::Secondary | InputKind::Ability(_) => {
+            handle_ability(data, update, input)
+        },
+        InputKind::Roll => handle_dodge_input(data, update),
+        InputKind::Jump => handle_jump(data, update),
+        InputKind::Fly => {},
     }
 }
 
-pub fn handle_ability3_input(data: &JoinData, update: &mut StateUpdate) {
-    if data.inputs.ability3.is_pressed() {
-        handle_ability_pressed(data, update, AbilityKey::Skill1);
-    }
-}
-
-pub fn handle_ability4_input(data: &JoinData, update: &mut StateUpdate) {
-    if data.inputs.ability4.is_pressed() {
-        handle_ability_pressed(data, update, AbilityKey::Skill2);
+pub fn attempt_input(data: &JoinData, update: &mut StateUpdate) {
+    // TODO: look into using first() when it becomes stable
+    if let Some(input) = data.controller.queued_inputs.iter().next() {
+        handle_input(data, update, *input);
     }
 }
 
 /// Checks that player can perform a dodge, then
 /// attempts to perform their dodge ability
 pub fn handle_dodge_input(data: &JoinData, update: &mut StateUpdate) {
-    if data.inputs.roll.is_pressed() && data.body.is_humanoid() {
+    if input_is_pressed(data, InputKind::Roll) && data.body.is_humanoid() {
         if let Some(ability) = data
             .inventory
             .equipped(EquipSlot::Mainhand)
@@ -536,17 +540,17 @@ pub fn handle_dodge_input(data: &JoinData, update: &mut StateUpdate) {
             if let CharacterState::ComboMelee(c) = data.character {
                 update.character = (
                     &ability,
-                    AbilityInfo::from_key(data, AbilityKey::Dodge, false),
+                    AbilityInfo::from_input(data, false, InputKind::Roll),
                 )
                     .into();
                 if let CharacterState::Roll(roll) = &mut update.character {
-                    roll.was_combo = Some((c.static_data.ability_info.key, c.stage));
+                    roll.was_combo = Some((c.static_data.ability_info.input, c.stage));
                     roll.was_wielded = true;
                 }
             } else if data.character.is_wield() {
                 update.character = (
                     &ability,
-                    AbilityInfo::from_key(data, AbilityKey::Dodge, false),
+                    AbilityInfo::from_input(data, false, InputKind::Roll),
                 )
                     .into();
                 if let CharacterState::Roll(roll) = &mut update.character {
@@ -555,7 +559,7 @@ pub fn handle_dodge_input(data: &JoinData, update: &mut StateUpdate) {
             } else if data.character.is_stealthy() {
                 update.character = (
                     &ability,
-                    AbilityInfo::from_key(data, AbilityKey::Dodge, false),
+                    AbilityInfo::from_input(data, false, InputKind::Roll),
                 )
                     .into();
                 if let CharacterState::Roll(roll) = &mut update.character {
@@ -564,7 +568,7 @@ pub fn handle_dodge_input(data: &JoinData, update: &mut StateUpdate) {
             } else {
                 update.character = (
                     &ability,
-                    AbilityInfo::from_key(data, AbilityKey::Dodge, false),
+                    AbilityInfo::from_input(data, false, InputKind::Roll),
                 )
                     .into();
             }
@@ -598,24 +602,15 @@ pub fn get_crit_data(data: &JoinData, ai: AbilityInfo) -> (f32, f32) {
     DEFAULT_CRIT_DATA
 }
 
-pub fn handle_interrupt(data: &JoinData, update: &mut StateUpdate, attacks_interrupt: bool) {
+pub fn handle_state_interrupt(data: &JoinData, update: &mut StateUpdate, attacks_interrupt: bool) {
     if attacks_interrupt {
-        handle_ability1_input(data, update);
-        handle_ability2_input(data, update);
-        handle_ability3_input(data, update);
-        handle_ability4_input(data, update);
+        handle_ability_input(data, update);
     }
     handle_dodge_input(data, update);
 }
 
-pub fn ability_key_is_pressed(data: &JoinData, ability_key: AbilityKey) -> bool {
-    match ability_key {
-        AbilityKey::Mouse1 => data.inputs.primary.is_pressed(),
-        AbilityKey::Mouse2 => data.inputs.secondary.is_pressed(),
-        AbilityKey::Skill1 => data.inputs.ability3.is_pressed(),
-        AbilityKey::Skill2 => data.inputs.ability4.is_pressed(),
-        AbilityKey::Dodge => data.inputs.roll.is_pressed(),
-    }
+pub fn input_is_pressed(data: &JoinData, input: InputKind) -> bool {
+    data.controller.queued_inputs.contains(&input)
 }
 
 /// Determines what portion a state is in. Used in all attacks (eventually). Is
@@ -630,15 +625,6 @@ pub enum StageSection {
     Cast,
     Shoot,
     Movement,
-}
-
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
-pub enum AbilityKey {
-    Mouse1,
-    Mouse2,
-    Skill1,
-    Skill2,
-    Dodge,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
@@ -679,11 +665,11 @@ impl MovementDirection {
 pub struct AbilityInfo {
     pub tool: Option<ToolKind>,
     pub hand: Option<HandInfo>,
-    pub key: AbilityKey,
+    pub input: InputKind,
 }
 
 impl AbilityInfo {
-    pub fn from_key(data: &JoinData, key: AbilityKey, from_offhand: bool) -> Self {
+    pub fn from_input(data: &JoinData, from_offhand: bool, input: InputKind) -> Self {
         let tool_data = if from_offhand {
             unwrap_tool_data(data, EquipSlot::Offhand)
         } else {
@@ -698,7 +684,7 @@ impl AbilityInfo {
             )
         };
 
-        Self { tool, hand, key }
+        Self { tool, hand, input }
     }
 }
 

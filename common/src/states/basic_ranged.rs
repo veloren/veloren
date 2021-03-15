@@ -24,8 +24,6 @@ pub struct StaticData {
     pub projectile_speed: f32,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
-    /// Whether or not the ability can auto continue
-    pub can_continue: bool,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -39,9 +37,6 @@ pub struct Data {
     pub stage_section: StageSection,
     /// Whether the attack fired already
     pub exhausted: bool,
-    /// If in buildup, whether the attack has continued form previous attack; if
-    /// in recover, whether the attack will continue to a new attack
-    pub continue_next: bool,
 }
 
 impl CharacterBehavior for Data {
@@ -50,15 +45,6 @@ impl CharacterBehavior for Data {
 
         handle_move(data, &mut update, 0.3);
         handle_jump(data, &mut update);
-        if !ability_key_is_pressed(data, self.static_data.ability_info.key) {
-            handle_interrupt(data, &mut update, false);
-            match update.character {
-                CharacterState::BasicRanged(_) => {},
-                _ => {
-                    return update;
-                },
-            }
-        }
 
         match self.stage_section {
             StageSection::Buildup => {
@@ -103,41 +89,24 @@ impl CharacterBehavior for Data {
 
                     update.character = CharacterState::BasicRanged(Data {
                         exhausted: true,
-                        continue_next: false,
                         ..*self
                     });
                 } else if self.timer < self.static_data.recover_duration {
-                    if ability_key_is_pressed(data, self.static_data.ability_info.key) {
-                        // Recovers
-                        update.character = CharacterState::BasicRanged(Data {
-                            timer: self
-                                .timer
-                                .checked_add(Duration::from_secs_f32(data.dt.0))
-                                .unwrap_or_default(),
-                            continue_next: self.static_data.can_continue,
-                            ..*self
-                        });
-                    } else {
-                        // Recovers
-                        update.character = CharacterState::BasicRanged(Data {
-                            timer: self
-                                .timer
-                                .checked_add(Duration::from_secs_f32(data.dt.0))
-                                .unwrap_or_default(),
-                            ..*self
-                        });
-                    }
-                } else if self.continue_next {
-                    // Restarts character state
+                    // Recovers
                     update.character = CharacterState::BasicRanged(Data {
-                        timer: Duration::default(),
-                        stage_section: StageSection::Buildup,
-                        exhausted: false,
+                        timer: self
+                            .timer
+                            .checked_add(Duration::from_secs_f32(data.dt.0))
+                            .unwrap_or_default(),
                         ..*self
-                    })
+                    });
                 } else {
                     // Done
-                    update.character = CharacterState::Wielding;
+                    if input_is_pressed(data, self.static_data.ability_info.input) {
+                        reset_state(self, data, &mut update);
+                    } else {
+                        update.character = CharacterState::Wielding;
+                    }
                 }
             },
             _ => {
@@ -146,6 +115,15 @@ impl CharacterBehavior for Data {
             },
         }
 
+        // At end of state logic so an interrupt isn't overwritten
+        if !input_is_pressed(data, self.static_data.ability_info.input) {
+            handle_state_interrupt(data, &mut update, false);
+        }
+
         update
     }
+}
+
+fn reset_state(data: &Data, join: &JoinData, update: &mut StateUpdate) {
+    handle_input(join, update, data.static_data.ability_info.input);
 }

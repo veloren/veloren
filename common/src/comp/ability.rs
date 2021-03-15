@@ -75,7 +75,6 @@ pub enum CharacterAbility {
         projectile_light: Option<LightEmitter>,
         projectile_gravity: Option<Gravity>,
         projectile_speed: f32,
-        can_continue: bool,
     },
     RepeaterRanged {
         energy_cost: f32,
@@ -1130,7 +1129,6 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 projectile_light,
                 projectile_gravity,
                 projectile_speed,
-                can_continue,
                 energy_cost: _,
             } => CharacterState::BasicRanged(basic_ranged::Data {
                 static_data: basic_ranged::StaticData {
@@ -1141,13 +1139,11 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                     projectile_light: *projectile_light,
                     projectile_gravity: *projectile_gravity,
                     projectile_speed: *projectile_speed,
-                    can_continue: *can_continue,
                     ability_info,
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
                 exhausted: false,
-                continue_next: false,
             }),
             CharacterAbility::Boost {
                 movement_duration,
@@ -1156,6 +1152,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 static_data: boost::StaticData {
                     movement_duration: Duration::from_secs_f32(*movement_duration),
                     only_up: *only_up,
+                    ability_info,
                 },
                 timer: Duration::default(),
             }),
@@ -1250,7 +1247,6 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 stage: 1,
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
-                next_stage: false,
             }),
             CharacterAbility::LeapMelee {
                 energy_cost: _,

@@ -1,4 +1,4 @@
-use std::{cell::RefCell, rc::Rc, time::Duration};
+use std::{cell::RefCell, collections::HashSet, rc::Rc, time::Duration};
 
 use ordered_float::OrderedFloat;
 use specs::{Join, WorldExt};
@@ -10,8 +10,8 @@ use common::{
     assets::AssetExt,
     comp,
     comp::{
-        inventory::slot::Slot, invite::InviteKind, ChatMsg, ChatType, InventoryUpdateEvent, Pos,
-        Vel,
+        inventory::slot::Slot, invite::InviteKind, ChatMsg, ChatType, InputKind,
+        InventoryUpdateEvent, Pos, Vel,
     },
     consts::{MAX_MOUNT_RANGE, MAX_PICKUP_RANGE},
     outcome::Outcome,
@@ -61,6 +61,7 @@ pub struct SessionState {
     hud: Hud,
     key_state: KeyState,
     inputs: comp::ControllerInputs,
+    inputs_state: HashSet<GameInput>,
     selected_block: Block,
     walk_forward_dir: Vec2<f32>,
     walk_right_dir: Vec2<f32>,
@@ -96,6 +97,7 @@ impl SessionState {
             client,
             key_state: KeyState::default(),
             inputs: comp::ControllerInputs::default(),
+            inputs_state: HashSet::new(),
             hud,
             selected_block: Block::new(BlockKind::Misc, Rgb::broadcast(255)),
             walk_forward_dir,
@@ -124,7 +126,6 @@ impl SessionState {
         outcomes: &mut Vec<Outcome>,
     ) -> Result<TickAction, Error> {
         span!(_guard, "tick", "Session::tick");
-        self.inputs.tick(dt);
 
         let mut client = self.client.borrow_mut();
         for event in client.tick(self.inputs.clone(), dt, crate::ecs::sys::add_local_systems)? {
@@ -349,313 +350,300 @@ impl PlayState for SessionState {
                     Event::Close => {
                         return PlayStateResult::Shutdown;
                     },
-                    Event::InputUpdate(GameInput::Primary, state) => {
-                        // If we can build, use LMB to break blocks, if not, use it to attack
-                        let mut client = self.client.borrow_mut();
-                        if state && can_build {
-                            if let Some(select_pos) = select_pos {
-                                client.remove_block(select_pos);
-                            }
-                        } else {
-                            self.inputs.primary.set_state(state);
-                        }
-                    },
-
-                    Event::InputUpdate(GameInput::Secondary, state) => {
-                        self.inputs.secondary.set_state(false); // To be changed later on
-
-                        let mut client = self.client.borrow_mut();
-
-                        if state && can_build {
-                            if let Some(build_pos) = build_pos {
-                                client.place_block(build_pos, self.selected_block);
-                            }
-                        } else {
-                            self.inputs.secondary.set_state(state);
-                        }
-                    },
-
-                    Event::InputUpdate(GameInput::Roll, state) => {
-                        let client = self.client.borrow();
-                        if can_build {
-                            if state {
-                                if let Some(block) = select_pos
-                                    .and_then(|sp| client.state().terrain().get(sp).ok().copied())
-                                {
-                                    self.selected_block = block;
-                                }
-                            }
-                        } else {
-                            self.inputs.roll.set_state(state);
-                        }
-                    },
-                    Event::InputUpdate(GameInput::Respawn, state)
-                        if state != self.key_state.respawn =>
+                    Event::InputUpdate(input, state)
+                        if state != self.inputs_state.contains(&input) =>
                     {
-                        self.stop_auto_walk();
-                        self.key_state.respawn = state;
-                        if state {
-                            self.client.borrow_mut().respawn();
+                        if !self.inputs_state.insert(input) {
+                            self.inputs_state.remove(&input);
                         }
-                    }
-                    Event::InputUpdate(GameInput::Jump, state) => {
-                        self.inputs.jump.set_state(state);
-                    },
-                    Event::InputUpdate(GameInput::SwimUp, state) => {
-                        self.key_state.swim_up = state;
-                    },
-                    Event::InputUpdate(GameInput::SwimDown, state) => {
-                        self.key_state.swim_down = state;
-                    },
-                    Event::InputUpdate(GameInput::Sit, state)
-                        if state != self.key_state.toggle_sit =>
-                    {
-                        self.key_state.toggle_sit = state;
-
-                        if state {
-                            self.stop_auto_walk();
-                            self.client.borrow_mut().toggle_sit();
-                        }
-                    }
-                    Event::InputUpdate(GameInput::Dance, state)
-                        if state != self.key_state.toggle_dance =>
-                    {
-                        self.key_state.toggle_dance = state;
-                        if state {
-                            self.stop_auto_walk();
-                            self.client.borrow_mut().toggle_dance();
-                        }
-                    }
-                    Event::InputUpdate(GameInput::Sneak, state)
-                        if state != self.key_state.toggle_sneak =>
-                    {
-                        self.key_state.toggle_sneak = state;
-                        if state {
-                            self.stop_auto_walk();
-                            self.client.borrow_mut().toggle_sneak();
-                        }
-                    }
-                    Event::InputUpdate(GameInput::MoveForward, state) => {
-                        if state && global_state.settings.gameplay.stop_auto_walk_on_input {
-                            self.stop_auto_walk();
-                        }
-                        self.key_state.up = state
-                    },
-                    Event::InputUpdate(GameInput::MoveBack, state) => {
-                        if state && global_state.settings.gameplay.stop_auto_walk_on_input {
-                            self.stop_auto_walk();
-                        }
-                        self.key_state.down = state
-                    },
-                    Event::InputUpdate(GameInput::MoveLeft, state) => {
-                        if state && global_state.settings.gameplay.stop_auto_walk_on_input {
-                            self.stop_auto_walk();
-                        }
-                        self.key_state.left = state
-                    },
-                    Event::InputUpdate(GameInput::MoveRight, state) => {
-                        if state && global_state.settings.gameplay.stop_auto_walk_on_input {
-                            self.stop_auto_walk();
-                        }
-                        self.key_state.right = state
-                    },
-                    Event::InputUpdate(GameInput::Glide, state)
-                        if state != self.key_state.toggle_glide =>
-                    {
-                        self.key_state.toggle_glide = state;
-                        if state {
-                            self.client.borrow_mut().toggle_glide();
-                        }
-                    }
-                    Event::InputUpdate(GameInput::Fly, state) => {
-                        self.key_state.fly ^= state;
-                    },
-                    Event::InputUpdate(GameInput::Climb, state) => {
-                        self.key_state.climb_up = state;
-                    },
-                    Event::InputUpdate(GameInput::ClimbDown, state) => {
-                        self.key_state.climb_down = state;
-                    },
-                    /*Event::InputUpdate(GameInput::WallLeap, state) => {
-                        self.inputs.wall_leap.set_state(state)
-                    },*/
-                    Event::InputUpdate(GameInput::ToggleWield, state)
-                        if state != self.key_state.toggle_wield =>
-                    {
-                        self.key_state.toggle_wield = state;
-                        if state {
-                            self.client.borrow_mut().toggle_wield();
-                        }
-                    }
-                    Event::InputUpdate(GameInput::SwapLoadout, state)
-                        if state != self.key_state.swap_loadout =>
-                    {
-                        self.key_state.swap_loadout = state;
-                        if state {
-                            self.client.borrow_mut().swap_loadout();
-                        }
-                    }
-                    Event::InputUpdate(GameInput::ToggleLantern, true) => {
-                        let mut client = self.client.borrow_mut();
-                        if client.is_lantern_enabled() {
-                            client.disable_lantern();
-                        } else {
-                            client.enable_lantern();
-                        }
-                    },
-                    Event::InputUpdate(GameInput::Mount, true) => {
-                        let mut client = self.client.borrow_mut();
-                        if client.is_mounted() {
-                            client.unmount();
-                        } else {
-                            let player_pos = client
-                                .state()
-                                .read_storage::<comp::Pos>()
-                                .get(client.entity())
-                                .copied();
-                            if let Some(player_pos) = player_pos {
-                                // Find closest mountable entity
-                                let closest_mountable_entity = (
-                                    &client.state().ecs().entities(),
-                                    &client.state().ecs().read_storage::<comp::Pos>(),
-                                    &client.state().ecs().read_storage::<comp::MountState>(),
-                                )
-                                    .join()
-                                    .filter(|(entity, _, mount_state)| {
-                                        *entity != client.entity()
-                                            && **mount_state == comp::MountState::Unmounted
-                                    })
-                                    .map(|(entity, pos, _)| {
-                                        (entity, player_pos.0.distance_squared(pos.0))
-                                    })
-                                    .filter(|(_, dist_sqr)| *dist_sqr < MAX_MOUNT_RANGE.powi(2))
-                                    .min_by_key(|(_, dist_sqr)| OrderedFloat(*dist_sqr));
-                                if let Some((mountee_entity, _)) = closest_mountable_entity {
-                                    client.mount(mountee_entity);
-                                }
-                            }
-                        }
-                    },
-                    Event::InputUpdate(GameInput::Interact, state)
-                        if state != self.key_state.interact =>
-                    {
-                        self.key_state.interact = state;
-
-                        if state {
-                            if let Some(interactable) = self.interactable {
+                        match input {
+                            GameInput::Primary => {
+                                // If we can build, use LMB to break blocks, if not, use it to
+                                // attack
                                 let mut client = self.client.borrow_mut();
-                                match interactable {
-                                    Interactable::Block(block, pos) => {
-                                        if block.is_collectible() {
-                                            client.collect_block(pos);
-                                        }
-                                    },
-                                    Interactable::Entity(entity) => {
-                                        if client
-                                            .state()
-                                            .ecs()
-                                            .read_storage::<comp::Item>()
-                                            .get(entity)
-                                            .is_some()
-                                        {
-                                            client.pick_up(entity);
-                                        } else {
-                                            client.npc_interact(entity);
-                                        }
-                                    },
+                                if state && can_build {
+                                    if let Some(select_pos) = select_pos {
+                                        client.remove_block(select_pos);
+                                    }
+                                } else {
+                                    client.handle_input(InputKind::Primary, state);
                                 }
-                            }
-                        }
-                    }
-                    Event::InputUpdate(GameInput::Trade, state)
-                        if state != self.key_state.trade =>
-                    {
-                        self.key_state.trade = state;
-
-                        if state {
-                            if let Some(interactable) = self.interactable {
-                                let mut client = self.client.borrow_mut();
-                                match interactable {
-                                    Interactable::Block(_, _) => {},
-                                    Interactable::Entity(entity) => {
-                                        if let Some(uid) =
-                                            client.state().ecs().uid_from_entity(entity)
-                                        {
-                                            let name = client
-                                                .player_list()
-                                                .get(&uid)
-                                                .map(|info| info.player_alias.clone())
-                                                .unwrap_or_else(|| format!("<entity {:?}>", uid));
-                                            let msg = global_state
-                                                .i18n
-                                                .read()
-                                                .get("hud.trade.invite_sent")
-                                                .replace("{playername}", &name);
-                                            self.hud.new_message(ChatType::Meta.chat_msg(msg));
-                                            client.send_invite(uid, InviteKind::Trade)
-                                        };
-                                    },
-                                }
-                            }
-                        }
-                    }
-                    /*Event::InputUpdate(GameInput::Charge, state) => {
-                        self.inputs.charge.set_state(state);
-                    },*/
-                    Event::InputUpdate(GameInput::FreeLook, state) => {
-                        match (global_state.settings.gameplay.free_look_behavior, state) {
-                            (PressBehavior::Toggle, true) => {
-                                self.free_look = !self.free_look;
-                                self.hud.free_look(self.free_look);
                             },
-                            (PressBehavior::Hold, state) => {
-                                self.free_look = state;
-                                self.hud.free_look(self.free_look);
+                            GameInput::Secondary => {
+                                let mut client = self.client.borrow_mut();
+
+                                if state && can_build {
+                                    if let Some(build_pos) = build_pos {
+                                        client.place_block(build_pos, self.selected_block);
+                                    }
+                                } else {
+                                    client.handle_input(InputKind::Secondary, state);
+                                }
+                            },
+                            GameInput::Roll => {
+                                let mut client = self.client.borrow_mut();
+                                if can_build {
+                                    if state {
+                                        if let Some(block) = select_pos.and_then(|sp| {
+                                            client.state().terrain().get(sp).ok().copied()
+                                        }) {
+                                            self.selected_block = block;
+                                        }
+                                    }
+                                } else {
+                                    client.handle_input(InputKind::Roll, state);
+                                }
+                            },
+                            GameInput::Respawn => {
+                                self.stop_auto_walk();
+                                if state {
+                                    self.client.borrow_mut().respawn();
+                                }
+                            },
+                            GameInput::Jump => {
+                                let mut client = self.client.borrow_mut();
+                                client.handle_input(InputKind::Jump, state);
+                            },
+                            GameInput::SwimUp => {
+                                self.key_state.swim_up = state;
+                            },
+                            GameInput::SwimDown => {
+                                self.key_state.swim_down = state;
+                            },
+                            GameInput::Sit => {
+                                if state {
+                                    self.stop_auto_walk();
+                                    self.client.borrow_mut().toggle_sit();
+                                }
+                            },
+                            GameInput::Dance => {
+                                if state {
+                                    self.stop_auto_walk();
+                                    self.client.borrow_mut().toggle_dance();
+                                }
+                            },
+                            GameInput::Sneak => {
+                                if state {
+                                    self.stop_auto_walk();
+                                    self.client.borrow_mut().toggle_sneak();
+                                }
+                            },
+                            GameInput::MoveForward => {
+                                if state && global_state.settings.gameplay.stop_auto_walk_on_input {
+                                    self.stop_auto_walk();
+                                }
+                                self.key_state.up = state
+                            },
+                            GameInput::MoveBack => {
+                                if state && global_state.settings.gameplay.stop_auto_walk_on_input {
+                                    self.stop_auto_walk();
+                                }
+                                self.key_state.down = state
+                            },
+                            GameInput::MoveLeft => {
+                                if state && global_state.settings.gameplay.stop_auto_walk_on_input {
+                                    self.stop_auto_walk();
+                                }
+                                self.key_state.left = state
+                            },
+                            GameInput::MoveRight => {
+                                if state && global_state.settings.gameplay.stop_auto_walk_on_input {
+                                    self.stop_auto_walk();
+                                }
+                                self.key_state.right = state
+                            },
+                            GameInput::Glide => {
+                                if state {
+                                    self.client.borrow_mut().toggle_glide();
+                                }
+                            },
+                            GameInput::Fly => {
+                                // Not sure where to put comment, but I noticed when testing flight
+                                // Syncing of inputs between mounter and mountee broke with
+                                // controller change
+                                self.key_state.fly ^= state;
+                                let mut client = self.client.borrow_mut();
+                                client.handle_input(InputKind::Fly, self.key_state.fly);
+                            },
+                            GameInput::Climb => {
+                                self.key_state.climb_up = state;
+                            },
+                            GameInput::ClimbDown => {
+                                self.key_state.climb_down = state;
+                            },
+                            GameInput::ToggleWield => {
+                                if state {
+                                    self.client.borrow_mut().toggle_wield();
+                                }
+                            },
+                            GameInput::SwapLoadout => {
+                                if state {
+                                    self.client.borrow_mut().swap_loadout();
+                                }
+                            },
+                            GameInput::ToggleLantern if state => {
+                                let mut client = self.client.borrow_mut();
+                                if client.is_lantern_enabled() {
+                                    client.disable_lantern();
+                                } else {
+                                    client.enable_lantern();
+                                }
+                            },
+                            GameInput::Mount if state => {
+                                let mut client = self.client.borrow_mut();
+                                if client.is_mounted() {
+                                    client.unmount();
+                                } else {
+                                    let player_pos = client
+                                        .state()
+                                        .read_storage::<comp::Pos>()
+                                        .get(client.entity())
+                                        .copied();
+                                    if let Some(player_pos) = player_pos {
+                                        // Find closest mountable entity
+                                        let closest_mountable_entity = (
+                                            &client.state().ecs().entities(),
+                                            &client.state().ecs().read_storage::<comp::Pos>(),
+                                            &client
+                                                .state()
+                                                .ecs()
+                                                .read_storage::<comp::MountState>(),
+                                        )
+                                            .join()
+                                            .filter(|(entity, _, mount_state)| {
+                                                *entity != client.entity()
+                                                    && **mount_state == comp::MountState::Unmounted
+                                            })
+                                            .map(|(entity, pos, _)| {
+                                                (entity, player_pos.0.distance_squared(pos.0))
+                                            })
+                                            .filter(|(_, dist_sqr)| {
+                                                *dist_sqr < MAX_MOUNT_RANGE.powi(2)
+                                            })
+                                            .min_by_key(|(_, dist_sqr)| OrderedFloat(*dist_sqr));
+                                        if let Some((mountee_entity, _)) = closest_mountable_entity
+                                        {
+                                            client.mount(mountee_entity);
+                                        }
+                                    }
+                                }
+                            },
+                            GameInput::Interact => {
+                                if state {
+                                    if let Some(interactable) = self.interactable {
+                                        let mut client = self.client.borrow_mut();
+                                        match interactable {
+                                            Interactable::Block(block, pos) => {
+                                                if block.is_collectible() {
+                                                    client.collect_block(pos);
+                                                }
+                                            },
+                                            Interactable::Entity(entity) => {
+                                                if client
+                                                    .state()
+                                                    .ecs()
+                                                    .read_storage::<comp::Item>()
+                                                    .get(entity)
+                                                    .is_some()
+                                                {
+                                                    client.pick_up(entity);
+                                                } else {
+                                                    client.npc_interact(entity);
+                                                }
+                                            },
+                                        }
+                                    }
+                                }
+                            },
+                            GameInput::Trade => {
+                                if state {
+                                    if let Some(interactable) = self.interactable {
+                                        let mut client = self.client.borrow_mut();
+                                        match interactable {
+                                            Interactable::Block(_, _) => {},
+                                            Interactable::Entity(entity) => {
+                                                if let Some(uid) =
+                                                    client.state().ecs().uid_from_entity(entity)
+                                                {
+                                                    let name = client
+                                                        .player_list()
+                                                        .get(&uid)
+                                                        .map(|info| info.player_alias.clone())
+                                                        .unwrap_or_else(|| {
+                                                            format!("<entity {:?}>", uid)
+                                                        });
+                                                    let msg = global_state
+                                                        .i18n
+                                                        .read()
+                                                        .get("hud.trade.invite_sent")
+                                                        .replace("{playername}", &name);
+                                                    self.hud
+                                                        .new_message(ChatType::Meta.chat_msg(msg));
+                                                    client.send_invite(uid, InviteKind::Trade)
+                                                };
+                                            },
+                                        }
+                                    }
+                                }
+                            },
+                            GameInput::FreeLook => {
+                                match (global_state.settings.gameplay.free_look_behavior, state) {
+                                    (PressBehavior::Toggle, true) => {
+                                        self.free_look = !self.free_look;
+                                        self.hud.free_look(self.free_look);
+                                    },
+                                    (PressBehavior::Hold, state) => {
+                                        self.free_look = state;
+                                        self.hud.free_look(self.free_look);
+                                    },
+                                    _ => {},
+                                };
+                            },
+                            GameInput::AutoWalk => {
+                                match (global_state.settings.gameplay.auto_walk_behavior, state) {
+                                    (PressBehavior::Toggle, true) => {
+                                        self.auto_walk = !self.auto_walk;
+                                        self.key_state.auto_walk = self.auto_walk;
+                                        self.hud.auto_walk(self.auto_walk);
+                                    },
+                                    (PressBehavior::Hold, state) => {
+                                        self.auto_walk = state;
+                                        self.key_state.auto_walk = self.auto_walk;
+                                        self.hud.auto_walk(self.auto_walk);
+                                    },
+                                    _ => {},
+                                }
+                            },
+                            GameInput::CycleCamera if state => {
+                                // Prevent accessing camera modes which aren't available in
+                                // multiplayer unless you are an
+                                // admin. This is an easily bypassed clientside check.
+                                // The server should do its own filtering of which entities are sent
+                                // to clients to prevent abuse.
+                                let camera = self.scene.camera_mut();
+                                camera.next_mode(self.client.borrow().is_admin());
+                            },
+                            GameInput::Select => {
+                                if !state {
+                                    self.selected_entity =
+                                        self.target_entity.map(|e| (e, std::time::Instant::now()));
+                                }
+                            },
+                            GameInput::AcceptGroupInvite if state => {
+                                let mut client = self.client.borrow_mut();
+                                if client.invite().is_some() {
+                                    client.accept_invite();
+                                }
+                            },
+                            GameInput::DeclineGroupInvite if state => {
+                                let mut client = self.client.borrow_mut();
+                                if client.invite().is_some() {
+                                    client.decline_invite();
+                                }
                             },
                             _ => {},
-                        };
-                    },
-                    Event::InputUpdate(GameInput::AutoWalk, state) => {
-                        match (global_state.settings.gameplay.auto_walk_behavior, state) {
-                            (PressBehavior::Toggle, true) => {
-                                self.auto_walk = !self.auto_walk;
-                                self.key_state.auto_walk = self.auto_walk;
-                                self.hud.auto_walk(self.auto_walk);
-                            },
-                            (PressBehavior::Hold, state) => {
-                                self.auto_walk = state;
-                                self.key_state.auto_walk = self.auto_walk;
-                                self.hud.auto_walk(self.auto_walk);
-                            },
-                            _ => {},
                         }
-                    },
-                    Event::InputUpdate(GameInput::CycleCamera, true) => {
-                        // Prevent accessing camera modes which aren't available in multiplayer
-                        // unless you are an admin. This is an easily bypassed clientside check.
-                        // The server should do its own filtering of which entities are sent to
-                        // clients to prevent abuse.
-                        let camera = self.scene.camera_mut();
-                        camera.next_mode(self.client.borrow().is_admin());
-                    },
-                    Event::InputUpdate(GameInput::Select, state) => {
-                        if !state {
-                            self.selected_entity =
-                                self.target_entity.map(|e| (e, std::time::Instant::now()));
-                        }
-                    },
-                    Event::InputUpdate(GameInput::AcceptGroupInvite, true) => {
-                        let mut client = self.client.borrow_mut();
-                        if client.invite().is_some() {
-                            client.accept_invite();
-                        }
-                    },
-                    Event::InputUpdate(GameInput::DeclineGroupInvite, true) => {
-                        let mut client = self.client.borrow_mut();
-                        if client.invite().is_some() {
-                            client.decline_invite();
-                        }
-                    },
+                    }
                     Event::AnalogGameInput(input) => match input {
                         AnalogGameInput::MovementX(v) => {
                             self.key_state.analog_matrix.x = v;
@@ -739,7 +727,6 @@ impl PlayState for SessionState {
             };
 
             self.inputs.climb = self.key_state.climb();
-            self.inputs.fly.set_state(self.key_state.fly);
             self.inputs.move_z =
                 self.key_state.swim_up as i32 as f32 - self.key_state.swim_down as i32 as f32;
 
@@ -1232,8 +1219,14 @@ impl PlayState for SessionState {
                         let mut client = self.client.borrow_mut();
                         client.perform_trade_action(action);
                     },
-                    HudEvent::Ability3(state) => self.inputs.ability3.set_state(state),
-                    HudEvent::Ability4(state) => self.inputs.ability4.set_state(state),
+                    HudEvent::Ability3(state) => {
+                        let mut client = self.client.borrow_mut();
+                        client.handle_input(InputKind::Ability(0), state);
+                    },
+                    HudEvent::Ability4(state) => {
+                        let mut client = self.client.borrow_mut();
+                        client.handle_input(InputKind::Ability(1), state);
+                    },
                     HudEvent::ChangeFOV(new_fov) => {
                         global_state.settings.graphics.fov = new_fov;
                         global_state.settings.save_to_file_warn();
