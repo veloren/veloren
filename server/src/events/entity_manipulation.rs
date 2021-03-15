@@ -34,7 +34,7 @@ use hashbrown::HashSet;
 use rand::prelude::*;
 use specs::{join::Join, saveload::MarkerAllocator, Entity as EcsEntity, WorldExt};
 use tracing::error;
-use vek::Vec3;
+use vek::{Vec2, Vec3};
 
 pub fn handle_poise(
     server: &Server,
@@ -599,6 +599,28 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
     });
     let groups = ecs.read_storage::<comp::Group>();
 
+    // Used to get strength of explosion effects as they falloff over distance
+    fn cylinder_sphere_strength(
+        sphere_pos: Vec3<f32>,
+        radius: f32,
+        cyl_pos: Vec3<f32>,
+        cyl_body: Body,
+    ) -> f32 {
+        // 2d check
+        let horiz_dist =
+            Vec2::<f32>::from(sphere_pos - cyl_pos).distance(Vec2::default()) - cyl_body.radius();
+        // z check
+        let half_body_height = cyl_body.height() / 2.0;
+        let vert_distance =
+            (sphere_pos.z - (cyl_pos.z + half_body_height)).abs() - half_body_height;
+
+        // Compare both checks, take whichever gives weaker effect, sets minimum of 0 so
+        // that explosions reach a max strength on edge of entity
+        let strength = ((horiz_dist.max(vert_distance).max(0.0) / radius).min(1.0) - 1.0).powi(2);
+        dbg!(strength);
+        strength
+    }
+
     for effect in explosion.effects {
         match effect {
             RadiusEffect::TerrainDestruction(power) => {
@@ -677,19 +699,25 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
             RadiusEffect::Attack(attack) => {
                 let energies = &ecs.read_storage::<comp::Energy>();
                 let combos = &ecs.read_storage::<comp::Combo>();
-                for (entity_b, pos_b, _health_b, inventory_b_maybe, stats_b_maybe) in (
-                    &ecs.entities(),
-                    &ecs.read_storage::<comp::Pos>(),
-                    &ecs.read_storage::<comp::Health>(),
-                    ecs.read_storage::<comp::Inventory>().maybe(),
-                    ecs.read_storage::<comp::Stats>().maybe(),
-                )
-                    .join()
-                    .filter(|(_, _, h, _, _)| !h.is_dead)
+                for (entity_b, pos_b, _health_b, inventory_b_maybe, stats_b_maybe, body_b_maybe) in
+                    (
+                        &ecs.entities(),
+                        &ecs.read_storage::<comp::Pos>(),
+                        &ecs.read_storage::<comp::Health>(),
+                        ecs.read_storage::<comp::Inventory>().maybe(),
+                        ecs.read_storage::<comp::Stats>().maybe(),
+                        ecs.read_storage::<comp::Body>().maybe(),
+                    )
+                        .join()
+                        .filter(|(_, _, h, _, _, _)| !h.is_dead)
                 {
                     // Check if it is a hit
-                    let distance_squared = pos.distance_squared(pos_b.0);
-                    let strength = 1.0 - distance_squared / explosion.radius.powi(2);
+                    let strength = if let Some(body) = body_b_maybe {
+                        cylinder_sphere_strength(pos, explosion.radius, pos_b.0, *body)
+                    } else {
+                        let distance_squared = pos.distance_squared(pos_b.0);
+                        1.0 - distance_squared / explosion.radius.powi(2)
+                    };
                     if strength > 0.0 {
                         // See if entities are in the same group
                         let same_group = owner_entity
@@ -740,10 +768,19 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                 }
             },
             RadiusEffect::Entity(mut effect) => {
-                for (entity_b, pos_b) in (&ecs.entities(), &ecs.read_storage::<comp::Pos>()).join()
+                for (entity_b, pos_b, body_b_maybe) in (
+                    &ecs.entities(),
+                    &ecs.read_storage::<comp::Pos>(),
+                    ecs.read_storage::<comp::Body>().maybe(),
+                )
+                    .join()
                 {
-                    let distance_squared = pos.distance_squared(pos_b.0);
-                    let strength = 1.0 - distance_squared / explosion.radius.powi(2);
+                    let strength = if let Some(body) = body_b_maybe {
+                        cylinder_sphere_strength(pos, explosion.radius, pos_b.0, *body)
+                    } else {
+                        let distance_squared = pos.distance_squared(pos_b.0);
+                        1.0 - distance_squared / explosion.radius.powi(2)
+                    };
 
                     if strength > 0.0 {
                         let is_alive = ecs
