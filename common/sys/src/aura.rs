@@ -47,6 +47,7 @@ impl<'a> System<'a> for Sys {
         let dt = read_data.dt.0;
 
         auras.set_event_emission(false);
+        buffs.set_event_emission(false);
 
         // Iterate through all buffs, on any buffs that are from an aura, sets the check
         // for whether the buff recently set by aura to false
@@ -184,5 +185,6 @@ impl<'a> System<'a> for Sys {
             }
         }
         auras.set_event_emission(true);
+        buffs.set_event_emission(true);
     }
 }
