@@ -1059,13 +1059,12 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
                 break;
             } else {
                 // Correct the velocity
-                vel.0 = vel.0.map2(resolve_dir, |e, d| {
-                    if d * e.signum() < 0.0 {
-                        if d < 0.0 { d.min(0.0) } else { d.max(0.0) }
-                    } else {
-                        e
-                    }
-                });
+                vel.0 = vel.0.map2(
+                    resolve_dir,
+                    |e, d| {
+                        if d * e.signum() < 0.0 { 0.0 } else { e }
+                    },
+                );
                 pos_delta *= resolve_dir.map(|e| if e != 0.0 { 0.0 } else { 1.0 });
             }
 
