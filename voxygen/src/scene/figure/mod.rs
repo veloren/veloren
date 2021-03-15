@@ -602,7 +602,9 @@ impl FigureMgr {
             .join()
             .enumerate()
         {
-            let vel = (anim::vek::Vec3::<f32>::from(vel.0),);
+            // Velocity relative to the current ground
+            let rel_vel = anim::vek::Vec3::<f32>::from(vel.0 - physics.ground_vel);
+
             let look_dir = controller
                 .map(|c| c.inputs.look_dir)
                 .unwrap_or(Dir::default());
@@ -743,9 +745,6 @@ impl FigureMgr {
                 };
 
             let hands = (active_tool_hand, second_tool_hand);
-
-            // Velocity relative to the current ground
-            let rel_vel = vel.0 - physics.ground_vel;
 
             match body {
                 Body::Humanoid(body) => {
@@ -1131,7 +1130,7 @@ impl FigureMgr {
                                     active_tool_kind,
                                     second_tool_kind,
                                     time,
-                                    vel.0.magnitude(),
+                                    rel_vel.magnitude(),
                                     Some(s.stage_section),
                                 ),
                                 stage_progress,
@@ -1310,7 +1309,7 @@ impl FigureMgr {
                                     active_tool_kind,
                                     second_tool_kind,
                                     time,
-                                    vel.0.magnitude(),
+                                    rel_vel.magnitude(),
                                     Some(s.stage_section),
                                 ),
                                 stage_progress,
@@ -2816,7 +2815,7 @@ impl FigureMgr {
                                         &target_base,
                                         (
                                             active_tool_kind,
-                                            vel.0,
+                                            rel_vel,
                                             ori * anim::vek::Vec3::<f32>::unit_y(),
                                             state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                             time,
@@ -3225,7 +3224,7 @@ impl FigureMgr {
                             anim::theropod::DashAnimation::update_skeleton(
                                 &target_base,
                                 (
-                                    vel.0.magnitude(),
+                                    rel_vel.magnitude(),
                                     time,
                                     Some(s.stage_section),
                                     state.state_time,
