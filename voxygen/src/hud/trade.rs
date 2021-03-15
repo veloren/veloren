@@ -156,21 +156,28 @@ impl<'a> Trade<'a> {
         state: &mut ConrodState<'_, State>,
         ui: &mut UiCell<'_>,
         trade: &'a PendingTrade,
-        who: usize,
+        ours: bool,
     ) -> <Self as Widget>::Event {
         let inventories = self.client.inventories();
-        let uid = trade.parties[who];
-        let entity = self.client.state().ecs().entity_from_uid(uid.0)?;
-        let ours = entity == self.client.entity();
+        let check_if_us = |who: usize| -> Option<_> {
+            let uid = trade.parties[who];
+            let entity = self.client.state().ecs().entity_from_uid(uid.0)?;
+            let is_ours = entity == self.client.entity();
+            Some(((who, uid, entity), is_ours))
+        };
+        let (who, uid, entity) = match check_if_us(0)? {
+            (x, is_ours) if ours == is_ours => x,
+            _ => check_if_us(1)?.0,
+        };
         // TODO: update in accordence with https://gitlab.com/veloren/veloren/-/issues/960
         let inventory = inventories.get(entity)?;
 
         // Alignment for Grid
         let mut alignment = Rectangle::fill_with([200.0, 340.0], color::TRANSPARENT);
-        if who % 2 == 0 {
+        if !ours {
             alignment = alignment.top_left_with_margins_on(state.ids.bg, 180.0, 46.5);
         } else {
-            alignment = alignment.right_from(state.ids.inv_alignment[0], 0.0);
+            alignment = alignment.right_from(state.ids.inv_alignment[1 - who], 0.0);
         }
         alignment
             .scroll_kids_vertically()
@@ -516,8 +523,8 @@ impl<'a> Widget for Trade<'a> {
         self.title(&mut state, ui);
         self.phase_indicator(&mut state, ui, &trade);
 
-        event = self.item_pane(&mut state, ui, &trade, 0).or(event);
-        event = self.item_pane(&mut state, ui, &trade, 1).or(event);
+        event = self.item_pane(&mut state, ui, &trade, false).or(event);
+        event = self.item_pane(&mut state, ui, &trade, true).or(event);
         event = self
             .accept_decline_buttons(&mut state, ui, &trade)
             .or(event);

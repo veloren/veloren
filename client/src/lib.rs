@@ -1629,6 +1629,7 @@ impl Client {
             },
             ServerGeneral::FinishedTrade(result) => {
                 if let Some((_, trade)) = self.pending_trade.take() {
+                    self.update_available_recipes();
                     frontend_events.push(Event::TradeComplete { result, trade })
                 }
             },
