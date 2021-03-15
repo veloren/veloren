@@ -14,6 +14,7 @@ RUN apt-get update; export DEBIAN_FRONTEND=noninteractive; \
 
 COPY ./veloren-server-cli /opt/veloren-server-cli
 COPY ./assets/common /opt/assets/common
+COPY ./assets/server /opt/assets/server
 COPY ./assets/world /opt/assets/world
 
 WORKDIR /opt
