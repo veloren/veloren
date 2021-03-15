@@ -1039,13 +1039,12 @@ fn cylinder_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
                 // ...and we're being pushed out horizontally...
                 && resolve_dir.z == 0.0
                 // ...and the vertical resolution direction is sufficiently great...
-                && -dir.z > 0.1
-                && was_on_ground
-                // // ...and we're falling/standing OR there is a block *directly* beneath our current origin (note: not hitbox)...
-                // && (vel.0.z <= 0.0 || terrain
+                && dir.z < -0.1
+                // ...and we're falling/standing OR there is a block *directly* beneath our current origin (note: not hitbox)...
+                // && terrain
                 //     .get((pos.0 - Vec3::unit_z() * 0.1).map(|e| e.floor() as i32))
                 //     .map(|block| block.is_solid())
-                //     .unwrap_or(false))
+                //     .unwrap_or(false)
                 // ...and there is a collision with a block beneath our current hitbox...
                 && collision_with(
                     pos.0 + resolve_dir - Vec3::unit_z() * 1.25,
@@ -1129,8 +1128,8 @@ fn cylinder_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
             &terrain,
             block_true,
             near_iter.clone(),
-            radius + 0.05,
-            z_range.start - 0.05..z_range.end + 0.05,
+            radius,
+            z_range.clone(),
         ) {
             (a + dir, true)
         } else {
