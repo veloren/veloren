@@ -19,4 +19,24 @@
             lateral: ("npc.marlin.male.fin_r"),
         ),
     ),
+    (Icepike, Male): (
+        fin_l: (
+            offset: (-1.0, -7.0, -3.0),
+            lateral: ("npc.icepike.male.fin_r"),
+        ),
+        fin_r: (
+            offset: (-1.0, -7.0, -3.0),
+            lateral: ("npc.icepike.male.fin_r"),
+        ),
+    ),
+    (Icepike, Female): (
+        fin_l: (
+            offset: (-1.0, -7.0, -3.0),
+            lateral: ("npc.icepike.male.fin_r"),
+        ),
+        fin_r: (
+            offset: (-1.0, -7.0, -3.0),
+            lateral: ("npc.icepike.male.fin_r"),
+        ),
+    ),
 })

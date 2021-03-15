@@ -130,6 +130,7 @@ impl<'a> From<&'a Body> for Psyche {
                     quadruped_small::Species::Truffler => 0.8,
                     quadruped_small::Species::Frog => 0.4,
                     quadruped_small::Species::Hare => 0.2,
+                    quadruped_small::Species::Goat => 0.5,
                     _ => 0.0,
                 },
                 Body::QuadrupedMedium(quadruped_medium) => match quadruped_medium.species {
@@ -146,6 +147,8 @@ impl<'a> From<&'a Body> for Psyche {
                     quadruped_medium::Species::Horse => 0.7,
                     quadruped_medium::Species::Cattle => 0.7,
                     quadruped_medium::Species::Darkhound => 0.9,
+                    quadruped_medium::Species::Dreadhorn => 0.8,
+                    quadruped_medium::Species::Snowleopard => 0.7,
                     _ => 0.5,
                 },
                 Body::QuadrupedLow(quadruped_low) => match quadruped_low.species {

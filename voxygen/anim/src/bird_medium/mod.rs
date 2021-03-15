@@ -91,7 +91,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
         Self {
             head: match (body.species, body.body_type) {
                 (Duck, _) => (4.0, 3.0),
-                (Chicken, _) => (4.0, 3.0),
+                (Chicken, Male) => (3.0, 4.5),
+                (Chicken, Female) => (3.0, 6.0),
                 (Goose, _) => (5.0, 2.5),
                 (Peacock, _) => (1.0, 1.0),
                 (Eagle, _) => (2.5, 5.0),
@@ -102,7 +103,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             },
             chest: match (body.species, body.body_type) {
                 (Duck, _) => (0.0, 5.0),
-                (Chicken, _) => (0.0, 5.0),
+                (Chicken, Male) => (0.0, 6.5),
+                (Chicken, Female) => (0.0, 6.5),
                 (Goose, _) => (0.0, 8.0),
                 (Peacock, _) => (0.0, 10.0),
                 (Eagle, _) => (0.0, 8.0),
@@ -113,7 +115,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             },
             tail: match (body.species, body.body_type) {
                 (Duck, _) => (-3.0, 1.5),
-                (Chicken, _) => (-3.0, 1.5),
+                (Chicken, Male) => (-7.5, 3.5),
+                (Chicken, Female) => (-4.5, 3.0),
                 (Goose, _) => (-5.0, 3.0),
                 (Peacock, _) => (-5.5, 2.0),
                 (Eagle, _) => (-8.0, -4.0),
@@ -124,7 +127,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             },
             wing: match (body.species, body.body_type) {
                 (Duck, _) => (2.75, 0.0, 1.0),
-                (Chicken, _) => (2.75, 0.0, 1.0),
+                (Chicken, Male) => (3.0, -1.0, 2.5),
+                (Chicken, Female) => (3.0, -1.5, 2.5),
                 (Goose, _) => (3.75, -1.0, 2.0),
                 (Peacock, _) => (3.0, 0.0, 1.0),
                 (Eagle, _) => (3.0, -8.0, 4.0),
@@ -135,7 +139,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             },
             foot: match (body.species, body.body_type) {
                 (Duck, _) => (2.0, -1.5, 4.0),
-                (Chicken, _) => (2.0, -1.5, 4.0),
+                (Chicken, Male) => (2.0, 0.0, 6.0),
+                (Chicken, Female) => (2.0, 0.0, 6.0),
                 (Goose, _) => (2.0, -1.5, 7.0),
                 (Peacock, _) => (2.0, -2.5, 8.0),
                 (Eagle, _) => (2.0, -2.0, 8.0),
@@ -145,6 +150,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Cockatrice, _) => (4.0, -3.5, 12.0),
             },
             feed: match (body.species, body.body_type) {
+                (Chicken, _) => 1.2,
                 (Goose, _) => 1.4,
                 (Peacock, _) => 1.6,
                 (Eagle, _) => 1.2,

@@ -71,7 +71,7 @@ impl LoadedLib {
         let lib_path = LoadedLib::determine_path();
 
         // Try to load the library.
-        let lib = match Library::new(lib_path.clone()) {
+        let lib = match unsafe { Library::new(lib_path.clone()) } {
             Ok(lib) => lib,
             Err(e) => panic!(
                 "Tried to load dynamic library from {:?}, but it could not be found. The first \

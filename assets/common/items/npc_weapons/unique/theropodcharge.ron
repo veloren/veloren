@@ -1,0 +1,18 @@
+ItemDef(
+    name: "Theropod Charge",
+    description: "testing123",
+    kind: Tool((
+        kind: Unique(TheropodCharge),
+        hands: Two,
+        stats: Direct((
+            equip_time_secs: 0.01,
+            power: 1.0,
+            poise_strength: 1.0,
+            speed: 1.0,
+            crit_chance: 0.1,
+            crit_mult: 2.0,
+        )),
+    )),
+    quality: Low,
+    tags: [],
+)

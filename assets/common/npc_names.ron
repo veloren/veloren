@@ -534,6 +534,18 @@
             bear: (
                 keyword: "bear",
                 generic: "Bear"
+            ),
+            dreadhorn: (
+                keyword: "dreadhorn",
+                generic: "Dreadhorn"
+            ),
+            moose: (
+                keyword: "moose",
+                generic: "Moose"
+            ),
+            snowleopard: (
+                keyword: "snowleopard",
+                generic: "Snow Leopard"
             )
         )
     ),
@@ -749,6 +761,10 @@
             dog: (
                 keyword: "dog",
                 generic: "Dog"
+            ),
+            goat: (
+                keyword: "goat",
+                generic: "Goat"
             )
         )
     ),
@@ -857,7 +873,15 @@
             harvester: (
                 keyword: "harvester",
                 generic: "Harvester"
-            )
+            ),
+            oni_blue: (
+                keyword: "oni_blue",
+                generic: "Blue Oni"
+            ),
+            oni_red: (
+                keyword: "oni_red",
+                generic: "Red Oni"
+            ),
         )
     ),
     golem: (
@@ -913,6 +937,14 @@
             sunlizard: (
                 keyword: "sunlizard",
                 generic: "Sun Lizard"
+            ),
+            yale: (
+                keyword: "yale",
+                generic: "Yale"
+            ),
+            ntouka: (
+                keyword: "ntouka",
+                generic: "Ntouka"
             )
         )
     ),
@@ -1016,6 +1048,10 @@
             marlin: (
                 keyword: "marlin",
                 generic: "Marlin"
+            ),
+            icepike: (
+                keyword: "icepike",
+                generic: "Icepike"
             )
         )
     ),

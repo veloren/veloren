@@ -28,13 +28,21 @@ impl Animation for IdleAnimation {
         let wave_slow_cos = (anim_time * 4.5).cos();
 
         let duck_head_look = Vec2::new(
-            (global_time + anim_time / 8.0).floor().mul(7331.0).sin() * 0.5,
-            (global_time + anim_time / 8.0).floor().mul(1337.0).sin() * 0.25,
+            (global_time / 2.0 + anim_time / 8.0)
+                .floor()
+                .mul(7331.0)
+                .sin()
+                * 0.5,
+            (global_time / 2.0 + anim_time / 8.0)
+                .floor()
+                .mul(1337.0)
+                .sin()
+                * 0.25,
         );
 
         next.torso.scale = Vec3::one() / 11.0;
-        next.wing_l.scale = Vec3::one() * 1.05;
-        next.wing_r.scale = Vec3::one() * 1.05;
+        next.wing_l.scale = Vec3::one() * 1.02;
+        next.wing_r.scale = Vec3::one() * 1.02;
         next.leg_l.scale = Vec3::one() / 11.0;
         next.leg_r.scale = Vec3::one() / 11.0;
 

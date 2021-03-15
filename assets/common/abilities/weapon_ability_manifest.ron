@@ -184,6 +184,11 @@
         secondary: "common.abilities.unique.theropodbird.triplestrike",
         abilities: [],
     ),
+    Unique(TheropodCharge): (
+        primary: "common.abilities.unique.theropodbird.triplestrike",
+        secondary: "common.abilities.unique.theropodbasic.dash",
+        abilities: [],
+    ),
     Unique(ObjectTurret): (
         primary: "common.abilities.unique.turret.arrows",
         secondary: "common.abilities.unique.turret.arrows",

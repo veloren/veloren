@@ -44,8 +44,16 @@ impl Animation for ClimbAnimation {
             ((5.0 / (0.6 + 4.0 * ((anim_time * constant * 1.5 + PI / 2.0).sin()).powi(2))).sqrt())
                 * ((anim_time * constant * 1.5 + PI / 2.0).sin());
         let head_look = Vec2::new(
-            (global_time + anim_time / 2.0).floor().mul(7331.0).sin() * 0.3,
-            (global_time + anim_time / 2.0).floor().mul(1337.0).sin() * 0.15,
+            (global_time / 2.0 + anim_time / 2.0)
+                .floor()
+                .mul(7331.0)
+                .sin()
+                * 0.3,
+            (global_time / 2.0 + anim_time / 2.0)
+                .floor()
+                .mul(1337.0)
+                .sin()
+                * 0.15,
         );
         let stagnant = if speed > -0.7 { 1.0 } else { 0.0 }; //sets static position when there is no movement
 

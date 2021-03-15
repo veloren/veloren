@@ -70,8 +70,16 @@ impl Animation for RunAnimation {
         //
         let shortalt = (acc_vel * lab * speedmult + PI * 3.0 + 0.7).sin();
         let look = Vec2::new(
-            (global_time + anim_time / 2.0).floor().mul(7331.0).sin() * 0.5,
-            (global_time + anim_time / 2.0).floor().mul(1337.0).sin() * 0.25,
+            (global_time / 2.0 + anim_time / 2.0)
+                .floor()
+                .mul(7331.0)
+                .sin()
+                * 0.5,
+            (global_time / 2.0 + anim_time / 2.0)
+                .floor()
+                .mul(1337.0)
+                .sin()
+                * 0.25,
         );
 
         let speedadjust = if speed < 5.0 { 0.0 } else { speed / 21.0 };

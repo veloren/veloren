@@ -46,6 +46,7 @@ impl Body {
                 quadruped_small::Species::Cat => 70.0,
                 quadruped_small::Species::Truffler => 70.0,
                 quadruped_small::Species::Fungome => 70.0,
+                quadruped_small::Species::Goat => 80.0,
                 _ => 125.0,
             },
             Body::QuadrupedMedium(quadruped_medium) => match quadruped_medium.species {
@@ -76,6 +77,9 @@ impl Body {
                 quadruped_medium::Species::Yak => 90.0,
                 quadruped_medium::Species::Panda => 90.0,
                 quadruped_medium::Species::Bear => 90.0,
+                quadruped_medium::Species::Dreadhorn => 140.0,
+                quadruped_medium::Species::Moose => 130.0,
+                quadruped_medium::Species::Snowleopard => 160.0,
             },
             Body::BipedLarge(body) => match body.species {
                 biped_large::Species::Slysaurok => 100.0,
@@ -152,6 +156,7 @@ impl Body {
             Body::Theropod(theropod) => match theropod.species {
                 theropod::Species::Archaeos => 2.5,
                 theropod::Species::Odonto => 2.5,
+                theropod::Species::Ntouka => 2.5,
                 _ => 7.0,
             },
             Body::QuadrupedLow(quadruped_low) => match quadruped_low.species {

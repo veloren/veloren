@@ -35,7 +35,6 @@
             lateral: ("npc.pig.male.foot_br"),
         ),
     ),
-
     (Fox, Male): (
         left_front: (
             offset: (-1.0, -2.0, -2.5),
@@ -72,7 +71,6 @@
             lateral: ("npc.fox.female.foot_br"),
         ),
     ),
-
     (Sheep, Male): (
         left_front: (
             offset: (-1.0, -1.5, -5.0),
@@ -91,7 +89,6 @@
             lateral: ("npc.sheep.male.foot_br"),
         ),
     ),
-
     (Sheep, Female): (
         left_front: (
             offset: (-1.0, -1.5, -5.0),
@@ -110,7 +107,6 @@
             lateral: ("npc.sheep.female.foot_br"),
         ),
     ),
-
     (Boar, Male): (
         left_front: (
             offset: (-1.5, -2.5, -4.0),
@@ -129,7 +125,6 @@
             lateral: ("npc.boar.male.foot_br"),
         ),
     ),
-
     (Boar, Female): (
         left_front: (
             offset: (-1.5, -2.5, -4.0),
@@ -166,7 +161,6 @@
             lateral: ("npc.jackalope.male.foot_br"),
         ),
     ),
-
     (Jackalope, Female): (
         left_front: (
             offset: (-1.0, -2.0, -4.0),
@@ -203,7 +197,6 @@
             lateral: ("npc.skunk.male.foot_br"),
         ),
     ),
-
     (Skunk, Female): (
         left_front: (
             offset: (-1.5, -2.0, -4.5),
@@ -241,7 +234,6 @@
             lateral: ("npc.cat.male.foot_br"),
         ),
     ),
-
     (Cat, Female): (
         left_front: (
             offset: (-1.0, -1.5, -5.0),
@@ -279,7 +271,6 @@
             lateral: ("npc.batfox.male.foot_br"),
         ),
     ),
-
     (Batfox, Female): (
         left_front: (
             offset: (-2.0, -2.5, -5.0),
@@ -297,7 +288,6 @@
             offset: (-1.5, -2.0, -5.0),
             lateral: ("npc.batfox.male.foot_br"),
         ),
-
     ),
     (Raccoon, Male): (
         left_front: (
@@ -317,7 +307,6 @@
             lateral: ("npc.raccoon.male.foot_br"),
         ),
     ),
-
     (Raccoon, Female): (
         left_front: (
             offset: (-1.5, -2.0, -5.5),
@@ -354,7 +343,6 @@
             lateral: ("npc.quokka.male.foot_br"),
         ),
     ),
-
     (Quokka, Female): (
         left_front: (
             offset: (-1.0, -1.5, -5.5),
@@ -391,7 +379,6 @@
             lateral: ("npc.dodarock.male.foot_br"),
         ),
     ),
-
     (Dodarock, Female): (
         left_front: (
             offset: (-2.0, -3.0, -6.5),
@@ -428,7 +415,6 @@
             lateral: ("npc.holladon.male.foot_br"),
         ),
     ),
-
     (Holladon, Female): (
         left_front: (
             offset: (-1.0, -2.5, -6.0),
@@ -465,7 +451,6 @@
             lateral: ("npc.hyena.male.foot_br"),
         ),
     ),
-
     (Hyena, Female): (
         left_front: (
             offset: (-1.5, -2.0, -5.0),
@@ -538,7 +523,6 @@
             lateral: ("npc.truffler.male.foot_br"),
         ),
     ),
-
     (Truffler, Female): (
         left_front: (
             offset: (-2.5, -3.0, -6.5),
@@ -951,6 +935,42 @@
         right_back: (
             offset: (-1.5, -2.0, -6.0),
             lateral: ("npc.dog.female.foot_br"),
+        ),
+    ),
+    (Goat, Male): (
+        left_front: (
+            offset: (-1.0, -2.0, -4.0),
+            lateral: ("npc.goat.male.foot_fr"),
+        ),
+        right_front: (
+            offset: (-1.0, -2.0, -4.0),
+            lateral: ("npc.goat.male.foot_fr"),
+        ),
+        left_back: (
+            offset: (-1.0, -1.5, -5.5),
+            lateral: ("npc.goat.male.foot_br"),
+        ),
+        right_back: (
+            offset: (-1.0, -1.5, -5.5),
+            lateral: ("npc.goat.male.foot_br"),
+        ),
+    ),
+    (Goat, Female): (
+        left_front: (
+            offset: (-1.0, -2.0, -4.0),
+            lateral: ("npc.goat.male.foot_fr"),
+        ),
+        right_front: (
+            offset: (-1.0, -2.0, -4.0),
+            lateral: ("npc.goat.male.foot_fr"),
+        ),
+        left_back: (
+            offset: (-1.0, -1.5, -5.5),
+            lateral: ("npc.goat.male.foot_br"),
+        ),
+        right_back: (
+            offset: (-1.0, -1.5, -5.5),
+            lateral: ("npc.goat.male.foot_br"),
         ),
     ),
 })

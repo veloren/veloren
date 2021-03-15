@@ -1,13 +1,14 @@
 pub mod alpha;
 pub mod beta;
+pub mod dash;
 pub mod idle;
 pub mod jump;
 pub mod run;
 
 // Reexports
 pub use self::{
-    alpha::AlphaAnimation, beta::BetaAnimation, idle::IdleAnimation, jump::JumpAnimation,
-    run::RunAnimation,
+    alpha::AlphaAnimation, beta::BetaAnimation, dash::DashAnimation, idle::IdleAnimation,
+    jump::JumpAnimation, run::RunAnimation,
 };
 
 use super::{make_bone, vek::*, FigureBoneData, Skeleton};
@@ -128,6 +129,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Snowraptor, _) => (8.0, 5.0),
                 (Woodraptor, _) => (8.0, 5.0),
                 (Sunlizard, _) => (6.5, 3.5),
+                (Yale, _) => (7.0, 14.0),
+                (Ntouka, _) => (2.0, 2.5),
             },
             jaw: match (body.species, body.body_type) {
                 (Archaeos, _) => (1.0, -7.0),
@@ -136,6 +139,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Snowraptor, _) => (0.0, -4.0),
                 (Woodraptor, _) => (0.0, -4.0),
                 (Sunlizard, _) => (2.0, -2.5),
+                (Yale, _) => (2.0, -9.5),
+                (Ntouka, _) => (0.0, -4.0),
             },
             neck: match (body.species, body.body_type) {
                 (Archaeos, _) => (4.5, -2.0),
@@ -144,6 +149,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Snowraptor, _) => (4.0, 2.5),
                 (Woodraptor, _) => (4.0, 2.5),
                 (Sunlizard, _) => (2.5, 1.5),
+                (Yale, _) => (2.0, 4.0),
+                (Ntouka, _) => (4.0, 0.0),
             },
             chest_front: match (body.species, body.body_type) {
                 (Archaeos, _) => (0.0, 20.0),
@@ -152,6 +159,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Snowraptor, _) => (0.0, 15.5),
                 (Woodraptor, _) => (0.0, 15.5),
                 (Sunlizard, _) => (0.0, 14.0),
+                (Yale, _) => (0.0, 19.5),
+                (Ntouka, _) => (0.0, 13.0),
             },
             chest_back: match (body.species, body.body_type) {
                 (Archaeos, _) => (-5.5, -1.0),
@@ -160,6 +169,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Snowraptor, _) => (-3.0, 0.5),
                 (Woodraptor, _) => (-3.0, 0.5),
                 (Sunlizard, _) => (-2.0, 0.0),
+                (Yale, _) => (-3.0, -1.0),
+                (Ntouka, _) => (-4.5, 1.0),
             },
             tail_front: match (body.species, body.body_type) {
                 (Archaeos, _) => (-9.0, -1.5),
@@ -168,6 +179,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Snowraptor, _) => (-9.5, -1.0),
                 (Woodraptor, _) => (-9.5, -1.0),
                 (Sunlizard, _) => (-8.5, -2.0),
+                (Yale, _) => (-9.5, -4.0),
+                (Ntouka, _) => (-9.5, -3.5),
             },
             tail_back: match (body.species, body.body_type) {
                 (Archaeos, _) => (-8.0, -0.5),
@@ -176,6 +189,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Snowraptor, _) => (-10.5, 1.0),
                 (Woodraptor, _) => (-10.5, 0.5),
                 (Sunlizard, _) => (-10.0, -0.5),
+                (Yale, _) => (-5.0, -2.5),
+                (Ntouka, _) => (-9.5, -2.0),
             },
             hand: match (body.species, body.body_type) {
                 (Archaeos, _) => (3.0, 0.0, -4.0),
@@ -184,6 +199,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Snowraptor, _) => (2.5, 3.0, 1.0),
                 (Woodraptor, _) => (2.5, 3.0, 1.0),
                 (Sunlizard, _) => (2.5, 1.5, -0.5),
+                (Yale, _) => (3.0, 2.0, -0.5),
+                (Ntouka, _) => (3.5, 3.0, -4.0),
             },
             leg: match (body.species, body.body_type) {
                 (Archaeos, _) => (2.5, -3.0, -4.0),
@@ -192,6 +209,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Snowraptor, _) => (1.5, -2.5, -3.0),
                 (Woodraptor, _) => (1.5, -2.5, -3.0),
                 (Sunlizard, _) => (2.5, -2.5, -3.0),
+                (Yale, _) => (3.0, -3.5, -4.0),
+                (Ntouka, _) => (4.5, -5.5, -4.0),
             },
             foot: match (body.species, body.body_type) {
                 (Archaeos, _) => (3.0, -0.5, -7.0),
@@ -200,6 +219,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Snowraptor, _) => (2.0, 0.0, -3.0),
                 (Woodraptor, _) => (2.0, 0.0, -3.0),
                 (Sunlizard, _) => (1.0, -0.5, -2.5),
+                (Yale, _) => (1.5, 1.0, -3.5),
+                (Ntouka, _) => (1.5, -1.0, -2.5),
             },
             scaler: match (body.species, body.body_type) {
                 (Archaeos, _) => (3.0),
@@ -208,6 +229,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Snowraptor, _) => (8.0),
                 (Woodraptor, _) => (8.0),
                 (Sunlizard, _) => (8.0),
+                (Yale, _) => (7.0),
+                (Ntouka, _) => (3.0),
             },
         }
     }

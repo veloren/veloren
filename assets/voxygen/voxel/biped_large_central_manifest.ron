@@ -728,4 +728,108 @@
             central: ("armor.empty"),
         )
     ),
+    (Blueoni, Male): (
+        head: (
+            offset: (-7.5, -1.0, -9.0),
+            central: ("npc.oni_blue.male.head"),
+        ),
+        torso_upper: (
+            offset: (-8.5, -12.0, -10.0),
+            central: ("npc.oni_blue.male.torso_upper"),
+        ),
+        torso_lower: (
+            offset: (-6.5, -5.5, -13.0),
+            central: ("npc.oni_blue.male.torso_lower"),
+        ),
+        jaw: (
+            offset: (-5.5, 0.0, -8.0),
+            central: ("npc.oni_blue.male.jaw"),
+        ),
+        tail: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
+    (Blueoni, Female): (
+        head: (
+            offset: (-7.5, -1.0, -9.0),
+            central: ("npc.oni_blue.male.head"),
+        ),
+        torso_upper: (
+            offset: (-8.5, -12.0, -10.0),
+            central: ("npc.oni_blue.male.torso_upper"),
+        ),
+        torso_lower: (
+            offset: (-6.5, -5.5, -13.0),
+            central: ("npc.oni_blue.male.torso_lower"),
+        ),
+        jaw: (
+            offset: (-5.5, 0.0, -8.0),
+            central: ("npc.oni_blue.male.jaw"),
+        ),
+        tail: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
+    (Redoni, Male): (
+        head: (
+            offset: (-7.5, -1.0, -9.0),
+            central: ("npc.oni_red.male.head"),
+        ),
+        torso_upper: (
+            offset: (-8.5, -12.0, -10.0),
+            central: ("npc.oni_red.male.torso_upper"),
+        ),
+        torso_lower: (
+            offset: (-6.5, -5.5, -13.0),
+            central: ("npc.oni_red.male.torso_lower"),
+        ),
+        jaw: (
+            offset: (-5.5, 0.0, -8.0),
+            central: ("npc.oni_red.male.jaw"),
+        ),
+        tail: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
+    (Redoni, Female): (
+        head: (
+            offset: (-7.5, -1.0, -9.0),
+            central: ("npc.oni_red.male.head"),
+        ),
+        torso_upper: (
+            offset: (-8.5, -12.0, -10.0),
+            central: ("npc.oni_red.male.torso_upper"),
+        ),
+        torso_lower: (
+            offset: (-6.5, -5.5, -13.0),
+            central: ("npc.oni_red.male.torso_lower"),
+        ),
+        jaw: (
+            offset: (-5.5, 0.0, -8.0),
+            central: ("npc.oni_red.male.jaw"),
+        ),
+        tail: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
 })

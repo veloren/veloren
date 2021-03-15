@@ -37,37 +37,37 @@
     ),
     (Chicken, Male): (
         wing_l: (
-            offset: (-0.5, -2.5, -3.0),
+            offset: (-0.5, -2.5, -4.0),
             lateral: ("npc.chicken.male.wing"),
         ),
         wing_r: (
-            offset: (-0.5, -2.5, -3.0),
+            offset: (-0.5, -2.5, -4.0),
             lateral: ("npc.chicken.male.wing"),
         ),
         foot_l: (
-            offset: (-1.0, 0.0, -4.0),
+            offset: (-1.5, -2.5, -6.0),
             lateral: ("npc.chicken.male.leg_r"),
         ),
         foot_r: (
-            offset: (-1.0, 0.0, -4.0),
+            offset: (-1.5, -2.5, -6.0),
             lateral: ("npc.chicken.male.leg_r"),
         )
     ),
     (Chicken, Female): (
         wing_l: (
-            offset: (-0.5, -2.5, -3.0),
+            offset: (-0.5, -2.5, -4.0),
             lateral: ("npc.chicken.female.wing"),
         ),
         wing_r: (
-            offset: (-0.5, -2.5, -3.0),
+            offset: (-0.5, -2.5, -4.0),
             lateral: ("npc.chicken.female.wing"),
         ),
         foot_l: (
-            offset: (-1.0, 0.0, -4.0),
+            offset: (-1.5, -2.5, -6.0),
             lateral: ("npc.chicken.female.leg_r"),
         ),
         foot_r: (
-            offset: (-1.0, 0.0, -4.0),
+            offset: (-1.5, -2.5, -6.0),
             lateral: ("npc.chicken.female.leg_r"),
         )
     ),

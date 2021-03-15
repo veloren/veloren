@@ -989,6 +989,14 @@
         vox_spec: ("weapon.hammer.2hhammer_harvester", (-1.5, -7.5, -6.0)),
         color: None
     ),
+    "common.items.npc_weapons.axe.oni_blue_axe": (
+        vox_spec: ("weapon.axe.2haxe_oni_blue", (-1.5, -2.0, -12.0)),
+        color: None
+    ),
+    "common.items.npc_weapons.hammer.oni_red_hammer": (
+        vox_spec: ("weapon.hammer.2hhammer_oni_red", (-3.0, -4.5, -12.0)),
+        color: None
+    ),
     //BIPEDSMALL
     "common.items.npc_weapons.biped_small.adlet.adlet_bow": (
         vox_spec: ("weapon.biped_small.bow.adlet", (-1.5, -3.0, -5.0)),

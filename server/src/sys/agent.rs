@@ -1008,7 +1008,11 @@ impl<'a> AgentData<'a> {
                 circle_time: 2,
             },
             Some(ToolKind::Unique(UniqueKind::QuadMedCharge)) => Tactic::CircleCharge {
-                radius: 15,
+                radius: 12,
+                circle_time: 1,
+            },
+            Some(ToolKind::Unique(UniqueKind::TheropodCharge)) => Tactic::CircleCharge {
+                radius: 6,
                 circle_time: 1,
             },
 

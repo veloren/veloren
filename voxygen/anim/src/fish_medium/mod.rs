@@ -94,27 +94,35 @@ impl<'a> From<&'a Body> for SkeletonAttr {
         Self {
             head: match (body.species, body.body_type) {
                 (Marlin, _) => (2.0, 1.5),
+                (Icepike, _) => (3.0, 1.0),
             },
             jaw: match (body.species, body.body_type) {
                 (Marlin, _) => (2.5, -3.0),
+                (Icepike, _) => (0.0, 0.0),
             },
             chest_front: match (body.species, body.body_type) {
                 (Marlin, _) => (0.0, 2.5),
+                (Icepike, _) => (0.0, 2.5),
             },
             chest_back: match (body.species, body.body_type) {
                 (Marlin, _) => (-1.0, 1.0),
+                (Icepike, _) => (-4.5, 0.0),
             },
             tail: match (body.species, body.body_type) {
                 (Marlin, _) => (-7.0, 0.0),
+                (Icepike, _) => (-0.5, 1.5),
             },
             fin: match (body.species, body.body_type) {
                 (Marlin, _) => (2.5, 1.0, 3.5),
+                (Icepike, _) => (3.5, 3.0, 0.0),
             },
             tempo: match (body.species, body.body_type) {
                 (Marlin, _) => 4.0,
+                (Icepike, _) => 4.0,
             },
             amplitude: match (body.species, body.body_type) {
                 (Marlin, _) => 4.0,
+                (Icepike, _) => 4.0,
             },
         }
     }
