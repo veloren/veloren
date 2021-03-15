@@ -174,6 +174,7 @@ impl Body {
         }
     }
 
+    /// Returns flying speed if the body type can fly, otherwise None
     pub fn can_fly(&self) -> Option<f32> {
         match self {
             Body::BirdMedium(_) | Body::Dragon(_) | Body::BirdSmall(_) => Some(1.0),

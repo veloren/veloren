@@ -35,7 +35,7 @@ impl Cylinder {
     pub fn from_components(
         pos: Vec3<f32>,
         scale: Option<crate::comp::Scale>,
-        collider: Option<crate::comp::Collider>,
+        collider: Option<&crate::comp::Collider>,
         char_state: Option<&crate::comp::CharacterState>,
     ) -> Self {
         let scale = scale.map_or(1.0, |s| s.0);

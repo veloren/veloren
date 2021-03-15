@@ -90,8 +90,9 @@ pub mod figuredata {
             let mut colliders = HashMap::new();
             for (_, spec) in (manifest.read().0).0.iter() {
                 for bone in [&spec.bone0, &spec.bone1, &spec.bone2].iter() {
-                    // TODO: avoid the requirement for symlinks in "voxygen.voxel.object.", and load
-                    // the models from "server.voxel." instead
+                    // TODO: Currently both client and server load models and manifests from
+                    // "server.voxel.". In order to support CSG procedural airships, we probably
+                    // need to load them in the server and sync them as an ECS resource.
                     let vox =
                         cache.load::<DotVoxAsset>(&["server.voxel.", &bone.central.0].concat())?;
                     let dyna = Dyna::<Cell, (), ColumnAccess>::from_vox(&vox.read().0, false);
@@ -117,7 +118,7 @@ pub mod figuredata {
     }
 
     lazy_static! {
-        // TODO: load this from the ECS as a resource, and maybe make it more general than ships
+        // TODO: Load this from the ECS as a resource, and maybe make it more general than ships
         // (although figuring out how to keep the figure bones in sync with the terrain offsets seems
         // like a hard problem if they're not the same manifest)
         pub static ref VOXEL_COLLIDER_MANIFEST: AssetHandle<ShipSpec> = AssetExt::load_expect("server.manifests.ship_manifest");

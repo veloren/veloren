@@ -250,7 +250,7 @@ impl<'a> System<'a> for Sys {
                 let mut comp_sync_package = CompSyncPackage::new();
                 let mut throttle = true;
 
-                // extrapolation depends on receiving several frames indicating that something
+                // Extrapolation depends on receiving several frames indicating that something
                 // has stopped in order for the extrapolated value to have
                 // stopped
                 const SEND_UNCHANGED_PHYSICS_DATA: bool = true;

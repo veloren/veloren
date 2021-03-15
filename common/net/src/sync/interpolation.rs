@@ -141,15 +141,15 @@ impl InterpolatableComponent for Ori {
             return self;
         }
         let lerp_factor = 1.0 + ((t2 - t1) / (t1 - t0)) as f32;
-        let mut out = Slerp::slerp_unclamped(p0.0, p1.0, lerp_factor);
+        let mut out = Slerp::slerp_unclamped(p0.to_quat(), p1.to_quat(), lerp_factor);
         if out.into_vec4().map(|x| x.is_nan()).reduce_or() {
             warn!(
                 "interpolation output is nan: {}, {}, {:?}",
                 t2, lerp_factor, buf
             );
-            out = p1.0;
+            out = p1.to_quat();
         }
 
-        Ori(Slerp::slerp(self.0, out, PHYSICS_VS_EXTRAPOLATION_FACTOR).normalized())
+        Ori::new(Slerp::slerp(self.to_quat(), out, PHYSICS_VS_EXTRAPOLATION_FACTOR).normalized())
     }
 }
