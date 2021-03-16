@@ -27,7 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Skill trees
 - Lactose tolerant golems
 - 6 different gems. (Topaz, Amethyst, Sapphire, Emerald, Ruby and Diamond)
-- Poise system (not currently accessible to players for balancing reasons)
+- Poise system
 - Snow particles
 - Basic NPC interaction
 - Lights in dungeons
@@ -97,6 +97,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed a bug where the stairs to the boss floor in dungeons would sometimes not spawn
 - Fixed waypoints being placed underwater
 - Objects and golems are not affected by bleed debuff anymore
+- Fixed RtSim entity memory loss
+- Mandated that merchants not wander away during a trade
+- Fixed the villager conception of evil by encouraging them to react violently to characters wearing cultist gear
 
 ## [0.8.0] - 2020-11-28
 

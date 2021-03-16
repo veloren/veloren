@@ -523,7 +523,18 @@ impl StateExt for State {
                     }
                 }
             },
-
+            comp::ChatType::NpcSay(uid, _r) => {
+                let entity_opt =
+                    (*ecs.read_resource::<UidAllocator>()).retrieve_entity_internal(uid.0);
+                let positions = ecs.read_storage::<comp::Pos>();
+                if let Some(speaker_pos) = entity_opt.and_then(|e| positions.get(e)) {
+                    for (client, pos) in (&ecs.read_storage::<Client>(), &positions).join() {
+                        if is_within(comp::ChatMsg::NPC_SAY_DISTANCE, pos, speaker_pos) {
+                            client.send_fallible(ServerGeneral::ChatMsg(resolved_msg.clone()));
+                        }
+                    }
+                }
+            },
             comp::ChatType::FactionMeta(s) | comp::ChatType::Faction(_, s) => {
                 for (client, faction) in (
                     &ecs.read_storage::<Client>(),

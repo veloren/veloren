@@ -1,5 +1,11 @@
 use super::*;
-use common::{comp::inventory::loadout_builder::LoadoutBuilder, store::Id, terrain::TerrainGrid};
+use common::{
+    comp::inventory::loadout_builder::LoadoutBuilder,
+    resources::Time,
+    rtsim::{Memory, MemoryItem},
+    store::Id,
+    terrain::TerrainGrid,
+};
 use world::{
     civ::{Site, Track},
     util::RandomPerm,
@@ -127,7 +133,7 @@ impl Entity {
             .build()
     }
 
-    pub fn tick(&mut self, terrain: &TerrainGrid, world: &World, index: &IndexRef) {
+    pub fn tick(&mut self, time: &Time, terrain: &TerrainGrid, world: &World, index: &IndexRef) {
         let tgt_site = self.brain.tgt.or_else(|| {
             world
                 .civs()
@@ -183,6 +189,11 @@ impl Entity {
             self.controller.travel_to = Some((travel_to, destination_name));
             self.controller.speed_factor = 0.70;
         });
+
+        // Forget old memories
+        self.brain
+            .memories
+            .retain(|memory| memory.time_to_forget > time.0);
     }
 }
 
@@ -190,4 +201,17 @@ impl Entity {
 pub struct Brain {
     tgt: Option<Id<Site>>,
     track: Option<(Track, usize)>,
+    memories: Vec<Memory>,
+}
+
+impl Brain {
+    pub fn add_memory(&mut self, memory: Memory) { self.memories.push(memory); }
+
+    pub fn remembers_character(&self, name_to_remember: &str) -> bool {
+        self.memories.iter().any(|memory| matches!(&memory.item, MemoryItem::CharacterInteraction { name, .. } if name == name_to_remember))
+    }
+
+    pub fn remembers_fight_with_character(&self, name_to_remember: &str) -> bool {
+        self.memories.iter().any(|memory| matches!(&memory.item, MemoryItem::CharacterFight { name, .. } if name == name_to_remember))
+    }
 }
