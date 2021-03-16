@@ -199,6 +199,14 @@ impl<'a> System<'a> for Sys {
                     .map(|msg| client.send_prepared(&msg));
             });
 
+            enum PhysInsert {
+                Pos(Pos),
+                Vel(Vel),
+                Ori(Ori),
+            }
+
+            let mut last_inserts = Vec::new();
+
             for (client, _, client_entity, client_pos) in &mut subscribers {
                 let mut comp_sync_package = CompSyncPackage::new();
 
@@ -246,7 +254,7 @@ impl<'a> System<'a> for Sys {
 
                     if last_pos.get(entity).is_none() {
                         comp_sync_package.comp_inserted(uid, pos);
-                        let _ = last_pos.insert(entity, Last(pos));
+                        last_inserts.push((entity, PhysInsert::Pos(pos)));
                     } else if send_now {
                         comp_sync_package.comp_modified(uid, pos);
                     }
@@ -254,7 +262,7 @@ impl<'a> System<'a> for Sys {
                     vel.map(|v| {
                         if last_vel.get(entity).is_none() {
                             comp_sync_package.comp_inserted(uid, *v);
-                            let _ = last_vel.insert(entity, Last(*v));
+                            last_inserts.push((entity, PhysInsert::Vel(*v)));
                         } else if send_now {
                             comp_sync_package.comp_modified(uid, *v);
                         }
@@ -263,7 +271,7 @@ impl<'a> System<'a> for Sys {
                     ori.map(|o| {
                         if last_ori.get(entity).is_none() {
                             comp_sync_package.comp_inserted(uid, *o);
-                            let _ = last_ori.insert(entity, Last(*o));
+                            last_inserts.push((entity, PhysInsert::Ori(*o)));
                         } else if send_now {
                             comp_sync_package.comp_modified(uid, *o);
                         }
@@ -271,6 +279,20 @@ impl<'a> System<'a> for Sys {
                 }
 
                 client.send_fallible(ServerGeneral::CompSync(comp_sync_package));
+            }
+
+            for (entity, insert) in last_inserts {
+                match insert {
+                    PhysInsert::Pos(pos) => {
+                        let _ = last_pos.insert(entity, Last(pos));
+                    },
+                    PhysInsert::Vel(vel) => {
+                        let _ = last_vel.insert(entity, Last(vel));
+                    },
+                    PhysInsert::Ori(ori) => {
+                        let _ = last_ori.insert(entity, Last(ori));
+                    },
+                }
             }
         }
 
