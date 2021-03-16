@@ -78,8 +78,8 @@ pub use self::{
     misc::Object,
     ori::Ori,
     phys::{
-        Collider, ForceUpdate, Gravity, Mass, PhysicsState, Pos, PreviousPhysCache, Scale, Sticky,
-        Vel,
+        Collider, ForceUpdate, Gravity, Mass, PhysicsState, Pos, PosVelDefer, PreviousPhysCache,
+        Scale, Sticky, Vel,
     },
     player::Player,
     poise::{Poise, PoiseChange, PoiseSource, PoiseState},

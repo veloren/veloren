@@ -1,8 +1,12 @@
+mod spatial_grid;
+
+use spatial_grid::SpatialGrid;
+
 use common::{
     comp::{
         body::ship::figuredata::VOXEL_COLLIDER_MANIFEST, BeamSegment, Body, CharacterState,
-        Collider, Gravity, Mass, Mounting, Ori, PhysicsState, Pos, PreviousPhysCache, Projectile,
-        Scale, Shockwave, Sticky, Vel,
+        Collider, Gravity, Mass, Mounting, Ori, PhysicsState, Pos, PosVelDefer, PreviousPhysCache,
+        Projectile, Scale, Shockwave, Sticky, Vel,
     },
     consts::{FRIC_GROUND, GRAVITY},
     event::{EventBus, ServerEvent},
@@ -13,7 +17,6 @@ use common::{
 };
 use common_base::{prof_span, span};
 use common_ecs::{Job, Origin, ParMode, Phase, PhysicsMetrics, System};
-use hashbrown::HashMap;
 use rayon::iter::ParallelIterator;
 use specs::{
     shred::{ResourceId, World},
@@ -95,6 +98,7 @@ pub struct PhysicsWrite<'a> {
     physics_states: WriteStorage<'a, PhysicsState>,
     positions: WriteStorage<'a, Pos>,
     velocities: WriteStorage<'a, Vel>,
+    pos_vel_defers: WriteStorage<'a, PosVelDefer>,
     orientations: WriteStorage<'a, Ori>,
     previous_phys_cache: WriteStorage<'a, PreviousPhysCache>,
 }
@@ -128,7 +132,7 @@ impl<'a> PhysicsData<'a> {
 
     fn maintain_pushback_cache(&mut self) {
         span!(_guard, "Maintain pushback cache");
-        //Add PreviousPhysCache for all relevant entities
+        // Add PreviousPhysCache for all relevant entities
         for entity in (
             &self.read.entities,
             &self.write.velocities,
@@ -155,7 +159,7 @@ impl<'a> PhysicsData<'a> {
                 });
         }
 
-        //Update PreviousPhysCache
+        // Update PreviousPhysCache
         for (_, vel, position, mut phys_cache, collider, scale, cs, _, _, _) in (
             &self.read.entities,
             &self.write.velocities,
@@ -189,7 +193,51 @@ impl<'a> PhysicsData<'a> {
         }
     }
 
-    fn apply_pushback(&mut self, job: &mut Job<Sys>) {
+    fn construct_spatial_grid(&mut self) -> SpatialGrid {
+        span!(_guard, "Construct spatial grid");
+        let PhysicsData {
+            ref read,
+            ref write,
+        } = self;
+        // NOTE: assumes that entity max radius * 2 + max velocity per tick is less than
+        // half a chunk (16 blocks)
+        // NOTE: i32 places certain constraints on how far out collision works
+        // NOTE: uses the radius of the entity and their current position rather than
+        // the radius of their bounding sphere for the current frame of movement
+        // because the nonmoving entity is what is collided against in the inner
+        // loop of the pushback collision code
+        // TODO: maintain frame to frame? (requires handling deletion)
+        // TODO: if not maintaining frame to frame consider counting entities to
+        // preallocate?
+        // TODO: assess parallelizing (overhead might dominate here? would need to merge
+        // the vecs in each hashmap)
+        let lg2_cell_size = 5;
+        let lg2_large_cell_size = 6;
+        let radius_cutoff = 8;
+        let mut spatial_grid = SpatialGrid::new(lg2_cell_size, lg2_large_cell_size, radius_cutoff);
+        for (entity, pos, phys_cache, _, _, _, _, _) in (
+            &read.entities,
+            &write.positions,
+            &write.previous_phys_cache,
+            write.velocities.mask(),
+            !&read.projectiles, // Not needed because they are skipped in the inner loop below
+            !&read.mountings,
+            !&read.beams,
+            !&read.shockwaves,
+        )
+            .join()
+        {
+            // Note: to not get too fine grained we use a 2D grid for now
+            let radius_2d = phys_cache.scaled_radius.ceil() as u32;
+            let pos_2d = pos.0.xy().map(|e| e as i32);
+            const POS_TRUNCATION_ERROR: u32 = 1;
+            spatial_grid.insert(pos_2d, radius_2d + POS_TRUNCATION_ERROR, entity);
+        }
+
+        spatial_grid
+    }
+
+    fn apply_pushback(&mut self, job: &mut Job<Sys>, spatial_grid: &SpatialGrid) {
         span!(_guard, "Apply pushback");
         job.cpu_stats.measure(ParMode::Rayon);
         let PhysicsData {
@@ -247,105 +295,136 @@ impl<'a> PhysicsData<'a> {
                     let mut entity_entity_collision_checks = 0;
                     let mut entity_entity_collisions = 0;
 
-                    for (
-                        entity_other,
-                        other,
-                        pos_other,
-                        previous_cache_other,
-                        mass_other,
-                        collider_other,
-                        _,
-                        _,
-                        _,
-                        _,
-                        char_state_other_maybe,
-                    ) in (
-                        &read.entities,
-                        &read.uids,
-                        positions,
-                        previous_phys_cache,
-                        read.masses.maybe(),
-                        read.colliders.maybe(),
-                        !&read.projectiles,
-                        !&read.mountings,
-                        !&read.beams,
-                        !&read.shockwaves,
-                        read.char_states.maybe(),
-                    )
-                        .join()
-                    {
-                        let collision_boundary = previous_cache.collision_boundary
-                            + previous_cache_other.collision_boundary;
-                        if previous_cache
-                            .center
-                            .distance_squared(previous_cache_other.center)
-                            > collision_boundary.powi(2)
-                            || entity == entity_other
-                        {
-                            continue;
+                    let aabr = {
+                        let center = previous_cache.center.xy().map(|e| e as i32);
+                        let radius = previous_cache.collision_boundary.ceil() as i32;
+                        // From conversion of center above
+                        const CENTER_TRUNCATION_ERROR: i32 = 1;
+                        let max_dist = radius + CENTER_TRUNCATION_ERROR;
+
+                        Aabr {
+                            min: center - max_dist,
+                            max: center + max_dist,
                         }
+                    };
 
-                        let collision_dist =
-                            previous_cache.scaled_radius + previous_cache_other.scaled_radius;
-                        let z_limits_other = calc_z_limit(char_state_other_maybe, collider_other);
-
-                        let mass_other = mass_other
-                            .map(|m| m.0)
-                            .unwrap_or(previous_cache_other.scale);
-                        //This check after the pos check, as we currently don't have that many
-                        // massless entites [citation needed]
-                        if mass_other == 0.0 {
-                            continue;
-                        }
-
-                        entity_entity_collision_checks += 1;
-
-                        const MIN_COLLISION_DIST: f32 = 0.3;
-                        let increments = ((previous_cache.velocity_dt
-                            - previous_cache_other.velocity_dt)
-                            .magnitude()
-                            / MIN_COLLISION_DIST)
-                            .max(1.0)
-                            .ceil() as usize;
-                        let step_delta = 1.0 / increments as f32;
-                        let mut collided = false;
-
-                        for i in 0..increments {
-                            let factor = i as f32 * step_delta;
-                            let pos = pos.0 + previous_cache.velocity_dt * factor;
-                            let pos_other = pos_other.0 + previous_cache_other.velocity_dt * factor;
-
-                            let diff = pos.xy() - pos_other.xy();
-
-                            if diff.magnitude_squared() <= collision_dist.powi(2)
-                                && pos.z + z_limits.1 * previous_cache.scale
-                                    >= pos_other.z + z_limits_other.0 * previous_cache_other.scale
-                                && pos.z + z_limits.0 * previous_cache.scale
-                                    <= pos_other.z + z_limits_other.1 * previous_cache_other.scale
-                            {
-                                if !collided {
-                                    physics.touch_entities.push(*other);
-                                    entity_entity_collisions += 1;
-                                }
-
-                                // Don't apply repulsive force to projectiles or if we're colliding
-                                // with a terrain-like entity, or if we are a terrain-like entity
-                                if diff.magnitude_squared() > 0.0
-                                    && !is_projectile
-                                    && !matches!(collider_other, Some(Collider::Voxel { .. }))
-                                    && !matches!(collider, Some(Collider::Voxel { .. }))
+                    spatial_grid
+                        .in_aabr(aabr)
+                        .filter_map(|entity| {
+                            read.uids
+                                .get(entity)
+                                .zip(positions.get(entity))
+                                .zip(previous_phys_cache.get(entity))
+                                .map(|((uid, pos), previous_cache)| {
+                                    (
+                                        entity,
+                                        uid,
+                                        pos,
+                                        previous_cache,
+                                        read.masses.get(entity),
+                                        read.colliders.get(entity),
+                                        read.char_states.get(entity),
+                                    )
+                                })
+                        })
+                        .for_each(
+                            |(
+                                entity_other,
+                                other,
+                                pos_other,
+                                previous_cache_other,
+                                mass_other,
+                                collider_other,
+                                char_state_other_maybe,
+                            )| {
+                                let collision_boundary = previous_cache.collision_boundary
+                                    + previous_cache_other.collision_boundary;
+                                if previous_cache
+                                    .center
+                                    .distance_squared(previous_cache_other.center)
+                                    > collision_boundary.powi(2)
+                                    || entity == entity_other
                                 {
-                                    let force =
-                                        400.0 * (collision_dist - diff.magnitude()) * mass_other
-                                            / (mass + mass_other);
-
-                                    vel_delta += Vec3::from(diff.normalized()) * force * step_delta;
+                                    return;
                                 }
 
-                                collided = true;
-                            }
-                        }
-                    }
+                                let collision_dist = previous_cache.scaled_radius
+                                    + previous_cache_other.scaled_radius;
+                                let z_limits_other =
+                                    calc_z_limit(char_state_other_maybe, collider_other);
+
+                                let mass_other = mass_other
+                                    .map(|m| m.0)
+                                    .unwrap_or(previous_cache_other.scale);
+                                // This check after the pos check, as we currently don't have
+                                // that many
+                                // massless entites [citation needed]
+                                if mass_other == 0.0 {
+                                    return;
+                                }
+
+                                entity_entity_collision_checks += 1;
+
+                                const MIN_COLLISION_DIST: f32 = 0.3;
+                                let increments = ((previous_cache.velocity_dt
+                                    - previous_cache_other.velocity_dt)
+                                    .magnitude()
+                                    / MIN_COLLISION_DIST)
+                                    .max(1.0)
+                                    .ceil()
+                                    as usize;
+                                let step_delta = 1.0 / increments as f32;
+                                let mut collided = false;
+
+                                for i in 0..increments {
+                                    let factor = i as f32 * step_delta;
+                                    let pos = pos.0 + previous_cache.velocity_dt * factor;
+                                    let pos_other =
+                                        pos_other.0 + previous_cache_other.velocity_dt * factor;
+
+                                    let diff = pos.xy() - pos_other.xy();
+
+                                    if diff.magnitude_squared() <= collision_dist.powi(2)
+                                        && pos.z + z_limits.1 * previous_cache.scale
+                                            >= pos_other.z
+                                                + z_limits_other.0 * previous_cache_other.scale
+                                        && pos.z + z_limits.0 * previous_cache.scale
+                                            <= pos_other.z
+                                                + z_limits_other.1 * previous_cache_other.scale
+                                    {
+                                        if !collided {
+                                            physics.touch_entities.push(*other);
+                                            entity_entity_collisions += 1;
+                                        }
+
+                                        // Don't apply repulsive force to projectiles or if
+                                        // we're
+                                        // colliding
+                                        // with a terrain-like entity, or if we are a
+                                        // terrain-like
+                                        // entity
+                                        if diff.magnitude_squared() > 0.0
+                                            && !is_projectile
+                                            && !matches!(
+                                                collider_other,
+                                                Some(Collider::Voxel { .. })
+                                            )
+                                            && !matches!(collider, Some(Collider::Voxel { .. }))
+                                        {
+                                            let force = 400.0
+                                                * (collision_dist - diff.magnitude())
+                                                * mass_other
+                                                / (mass + mass_other);
+
+                                            vel_delta +=
+                                                Vec3::from(diff.normalized()) * force * step_delta;
+                                        }
+
+                                        collided = true;
+                                    }
+                                }
+                            },
+                        );
 
                     // Change velocity
                     vel.0 += vel_delta * read.dt.0;
@@ -373,6 +452,31 @@ impl<'a> PhysicsData<'a> {
             ref read,
             ref mut write,
         } = self;
+
+        prof_span!(guard, "insert PosVelDefer");
+        // NOTE: keep in sync with join below
+        (
+            &read.entities,
+            read.colliders.mask(),
+            &write.positions,
+            &write.velocities,
+            write.orientations.mask(),
+            write.physics_states.mask(),
+            !&write.pos_vel_defers, // This is the one we are adding
+            write.previous_phys_cache.mask(),
+            !&read.mountings,
+        )
+            .join()
+            .map(|t| (t.0, *t.2, *t.3))
+            .collect::<Vec<_>>()
+            .into_iter()
+            .for_each(|(entity, pos, vel)| {
+                let _ = write
+                    .pos_vel_defers
+                    .insert(entity, PosVelDefer { pos, vel });
+            });
+        drop(guard);
+
         // Apply movement inputs
         span!(guard, "Apply movement and terrain collision");
         let (positions, velocities, previous_phys_cache, orientations) = (
@@ -393,14 +497,19 @@ impl<'a> PhysicsData<'a> {
             !&read.mountings,
         )
             .par_join()
-            .for_each(|(entity, pos, vel, physics_state, _)| {
-                let in_loaded_chunk = read
-                    .terrain
-                    .get_key(read.terrain.pos_key(pos.0.map(|e| e.floor() as i32)))
-                    .is_some();
-                // Integrate forces
-                // Friction is assumed to be a constant dependent on location
-                let friction = if physics_state.on_ground { 0.0 } else { FRIC_AIR }
+            .for_each_init(
+                || {
+                    prof_span!(guard, "velocity update rayon job");
+                    guard
+                },
+                |_guard, (entity, pos, vel, physics_state, _)| {
+                    let in_loaded_chunk = read
+                        .terrain
+                        .get_key(read.terrain.pos_key(pos.0.map(|e| e.floor() as i32)))
+                        .is_some();
+                    // Integrate forces
+                    // Friction is assumed to be a constant dependent on location
+                    let friction = if physics_state.on_ground { 0.0 } else { FRIC_AIR }
                         // .max(if physics_state.on_ground {
                         //     FRIC_GROUND
                         // } else {
@@ -411,26 +520,27 @@ impl<'a> PhysicsData<'a> {
                         } else {
                             0.0
                         });
-                let downward_force =
-                    if !in_loaded_chunk {
-                        0.0 // No gravity in unloaded chunks
-                    } else if physics_state
-                        .in_liquid
-                        .map(|depth| depth > 0.75)
-                        .unwrap_or(false)
-                    {
-                        (1.0 - BOUYANCY) * GRAVITY
-                    } else {
-                        GRAVITY
-                    } * read.gravities.get(entity).map(|g| g.0).unwrap_or_default();
+                    let downward_force =
+                        if !in_loaded_chunk {
+                            0.0 // No gravity in unloaded chunks
+                        } else if physics_state
+                            .in_liquid
+                            .map(|depth| depth > 0.75)
+                            .unwrap_or(false)
+                        {
+                            (1.0 - BOUYANCY) * GRAVITY
+                        } else {
+                            GRAVITY
+                        } * read.gravities.get(entity).map(|g| g.0).unwrap_or_default();
 
-                vel.0 = integrate_forces(read.dt.0, vel.0, downward_force, friction);
-            });
+                    vel.0 = integrate_forces(read.dt.0, vel.0, downward_force, friction);
+                },
+            );
 
         let velocities = &write.velocities;
 
         // Second pass: resolve collisions
-        let (pos_writes, vel_writes, land_on_grounds) = (
+        let land_on_grounds = (
             &read.entities,
             read.scales.maybe(),
             read.stickies.maybe(),
@@ -441,13 +551,17 @@ impl<'a> PhysicsData<'a> {
             read.bodies.maybe(),
             read.character_states.maybe(),
             &mut write.physics_states,
+            &mut write.pos_vel_defers,
             previous_phys_cache,
             !&read.mountings,
         )
             .par_join()
-            .fold(
-                || (Vec::new(), Vec::new(), Vec::new()),
-                |(mut pos_writes, mut vel_writes, mut land_on_grounds),
+            .map_init(
+                || {
+                    prof_span!(guard, "physics e<>t rayon job");
+                    guard
+                },
+                |_guard,
                  (
                     entity,
                     scale,
@@ -459,16 +573,18 @@ impl<'a> PhysicsData<'a> {
                     body,
                     character_state,
                     mut physics_state,
+                    pos_vel_defer,
                     _previous_cache,
                     _,
                 )| {
+                    let mut land_on_ground = None;
                     // Defer the writes of positions and velocities to allow an inner loop over
                     // terrain-like entities
                     let mut vel = *vel;
-                    let old_vel = vel;
+
                     if sticky.is_some() && physics_state.on_surface().is_some() {
                         vel.0 = physics_state.ground_vel;
-                        return (pos_writes, vel_writes, land_on_grounds);
+                        return land_on_ground;
                     }
 
                     let scale = if let Collider::Voxel { .. } = collider {
@@ -535,7 +651,7 @@ impl<'a> PhysicsData<'a> {
                                 was_on_ground,
                                 block_snap,
                                 climbing,
-                                |entity, vel| land_on_grounds.push((entity, vel)),
+                                |entity, vel| land_on_ground = Some((entity, vel)),
                             );
                             tgt_pos = cpos.0;
                         },
@@ -564,7 +680,7 @@ impl<'a> PhysicsData<'a> {
                                 was_on_ground,
                                 block_snap,
                                 climbing,
-                                |entity, vel| land_on_grounds.push((entity, vel)),
+                                |entity, vel| land_on_ground = Some((entity, vel)),
                             );
                             tgt_pos = cpos.0;
                         },
@@ -726,8 +842,8 @@ impl<'a> PhysicsData<'a> {
                                 block_snap,
                                 climbing,
                                 |entity, vel| {
-                                    land_on_grounds
-                                        .push((entity, Vel(ori_from.mul_direction(vel.0))))
+                                    land_on_ground =
+                                        Some((entity, Vel(ori_from.mul_direction(vel.0))));
                                 },
                             );
 
@@ -761,48 +877,46 @@ impl<'a> PhysicsData<'a> {
                         }
                     }
 
-                    if tgt_pos != pos.0 {
-                        pos_writes.push((entity, Pos(tgt_pos)));
-                    }
-                    if vel != old_vel {
-                        vel_writes.push((entity, vel));
-                    }
+                    *pos_vel_defer = PosVelDefer {
+                        pos: Pos(tgt_pos),
+                        vel,
+                    };
 
-                    (pos_writes, vel_writes, land_on_grounds)
+                    land_on_ground
                 },
             )
-            .reduce(
-                || (Vec::new(), Vec::new(), Vec::new()),
-                |(mut pos_writes_a, mut vel_writes_a, mut land_on_grounds_a),
-                 (mut pos_writes_b, mut vel_writes_b, mut land_on_grounds_b)| {
-                    pos_writes_a.append(&mut pos_writes_b);
-                    vel_writes_a.append(&mut vel_writes_b);
-                    land_on_grounds_a.append(&mut land_on_grounds_b);
-                    (pos_writes_a, vel_writes_a, land_on_grounds_a)
-                },
-            );
+            .fold(Vec::new, |mut land_on_grounds, land_on_ground| {
+                land_on_ground.map(|log| land_on_grounds.push(log));
+                land_on_grounds
+            })
+            .reduce(Vec::new, |mut land_on_grounds_a, mut land_on_grounds_b| {
+                land_on_grounds_a.append(&mut land_on_grounds_b);
+                land_on_grounds_a
+            });
         drop(guard);
         job.cpu_stats.measure(ParMode::Single);
 
-        let pos_writes: HashMap<Entity, Pos> = pos_writes.into_iter().collect();
-        let vel_writes: HashMap<Entity, Vel> = vel_writes.into_iter().collect();
-        for (entity, pos, vel) in
-            (&read.entities, &mut write.positions, &mut write.velocities).join()
+        prof_span!(guard, "write deferred pos and vel");
+        for (_, pos, vel, pos_vel_defer) in (
+            &read.entities,
+            &mut write.positions,
+            &mut write.velocities,
+            &write.pos_vel_defers,
+        )
+            .join()
         {
-            if let Some(new_pos) = pos_writes.get(&entity) {
-                *pos = *new_pos;
-            }
-
-            if let Some(new_vel) = vel_writes.get(&entity) {
-                *vel = *new_vel;
-            }
+            *pos = pos_vel_defer.pos;
+            *vel = pos_vel_defer.vel;
         }
+        drop(guard);
 
+        prof_span!(guard, "record ori into phys_cache");
         for (ori, previous_phys_cache) in
             (&write.orientations, &mut write.previous_phys_cache).join()
         {
             previous_phys_cache.ori = ori.to_quat();
         }
+        drop(guard);
 
         let mut event_emitter = read.event_bus.emitter();
         land_on_grounds.into_iter().for_each(|(entity, vel)| {
@@ -835,7 +949,9 @@ impl<'a> System<'a> for Sys {
         // it means the step needs to take into account the speeds of both
         // entities.
         psd.maintain_pushback_cache();
-        psd.apply_pushback(job);
+
+        let spatial_grid = psd.construct_spatial_grid();
+        psd.apply_pushback(job, &spatial_grid);
 
         psd.handle_movement_and_terrain(job);
     }

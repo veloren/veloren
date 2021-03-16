@@ -2,6 +2,7 @@ use common::{
     comp::{Ori, Pos, Vel},
     resources::{PlayerEntity, Time},
 };
+use common_base::prof_span;
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::sync::InterpolatableComponent;
 use specs::{
@@ -44,20 +45,38 @@ impl<'a> System<'a> for InterpolationSystem {
         )
             .par_join()
             .filter(|(e, _, _, _)| Some(e) != player.as_ref())
-            .for_each(|(_, pos, interp, vel)| {
-                *pos = pos.interpolate(interp, time, vel);
-            });
+            .for_each_init(
+                || {
+                    prof_span!(guard, "interpolate pos rayon job");
+                    guard
+                },
+                |_guard, (_, pos, interp, vel)| {
+                    *pos = pos.interpolate(interp, time, vel);
+                },
+            );
         (&data.entities, &mut data.vel, &data.vel_interpdata)
             .par_join()
             .filter(|(e, _, _)| Some(e) != player.as_ref())
-            .for_each(|(_, vel, interp)| {
-                *vel = vel.interpolate(interp, time, &());
-            });
+            .for_each_init(
+                || {
+                    prof_span!(guard, "interpolate vel rayon job");
+                    guard
+                },
+                |_guard, (_, vel, interp)| {
+                    *vel = vel.interpolate(interp, time, &());
+                },
+            );
         (&data.entities, &mut data.ori, &data.ori_interpdata)
             .par_join()
             .filter(|(e, _, _)| Some(e) != player.as_ref())
-            .for_each(|(_, ori, interp)| {
-                *ori = ori.interpolate(interp, time, &());
-            });
+            .for_each_init(
+                || {
+                    prof_span!(guard, "interpolate ori rayon job");
+                    guard
+                },
+                |_guard, (_, ori, interp)| {
+                    *ori = ori.interpolate(interp, time, &());
+                },
+            );
     }
 }

@@ -6,6 +6,23 @@ pub use userdata_dir::userdata_dir;
 
 #[cfg(feature = "tracy")] pub use tracy_client;
 
+#[macro_export]
+macro_rules! plot {
+    ($name:expr, $value:expr) => {
+        #[cfg(feature = "tracy")]
+        {
+            use $crate::tracy_client::{create_plot, Plot};
+            static PLOT: Plot = create_plot!($name);
+            PLOT.point($value);
+        }
+        #[cfg(not(feature = "tracy"))]
+        {
+            // type check
+            let _: f64 = $value;
+        }
+    };
+}
+
 // https://discordapp.com/channels/676678179678715904/676685797524766720/723358438943621151
 #[macro_export]
 macro_rules! span {
@@ -41,6 +58,8 @@ macro_rules! span {
     };
 }
 
+pub struct DummySpan;
+
 /// Like the span macro but only used when profiling and not in regular tracing
 /// operations
 #[macro_export]
@@ -56,7 +75,7 @@ macro_rules! prof_span {
             0,
         );
         #[cfg(not(feature = "tracy"))]
-        let $guard_name = ();
+        let $guard_name = $crate::DummySpan;
     };
 }
 

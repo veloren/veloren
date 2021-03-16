@@ -161,6 +161,10 @@ impl State {
         ecs.register::<comp::Ori>();
         ecs.register::<comp::Inventory>();
 
+        // Register common unsynced components
+        ecs.register::<comp::PreviousPhysCache>();
+        ecs.register::<comp::PosVelDefer>();
+
         // Register client-local components
         // TODO: only register on the client
         ecs.register::<comp::LightAnimation>();
@@ -188,7 +192,6 @@ impl State {
         ecs.register::<comp::invite::Invite>();
         ecs.register::<comp::invite::PendingInvites>();
         ecs.register::<comp::Beam>();
-        ecs.register::<comp::PreviousPhysCache>();
 
         // Register synced resources used by the ECS.
         ecs.insert(TimeOfDay(0.0));
