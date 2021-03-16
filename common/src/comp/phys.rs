@@ -4,19 +4,34 @@ use specs::{Component, DerefFlaggedStorage, NullStorage};
 use specs_idvs::IdvStorage;
 use vek::*;
 
-// Position
+/// Position
 #[derive(Copy, Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Pos(pub Vec3<f32>);
 
 impl Component for Pos {
+    // TODO: why not regular vec storage????
+    // TODO: component occupancy metrics
     type Storage = IdvStorage<Self>;
 }
 
-// Velocity
+/// Velocity
 #[derive(Copy, Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Vel(pub Vec3<f32>);
 
 impl Component for Vel {
+    // TODO: why not regular vec storage????
+    type Storage = IdvStorage<Self>;
+}
+
+/// Used to defer writes to Pos/Vel in nested join loops
+#[derive(Copy, Clone, Debug)]
+pub struct PosVelDefer {
+    pub pos: Pos,
+    pub vel: Vel,
+}
+
+impl Component for PosVelDefer {
+    // TODO: why not regular vec storage????
     type Storage = IdvStorage<Self>;
 }
 
@@ -37,6 +52,7 @@ pub struct PreviousPhysCache {
 }
 
 impl Component for PreviousPhysCache {
+    // TODO: why not regular vec storage????
     type Storage = IdvStorage<Self>;
 }
 

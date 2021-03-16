@@ -5,8 +5,8 @@ use spatial_grid::SpatialGrid;
 use common::{
     comp::{
         body::ship::figuredata::VOXEL_COLLIDER_MANIFEST, BeamSegment, Body, CharacterState,
-        Collider, Gravity, Mass, Mounting, Ori, PhysicsState, Pos, PreviousPhysCache, Projectile,
-        Scale, Shockwave, Sticky, Vel,
+        Collider, Gravity, Mass, Mounting, Ori, PhysicsState, Pos, PosVelDefer, PreviousPhysCache,
+        Projectile, Scale, Shockwave, Sticky, Vel,
     },
     consts::{FRIC_GROUND, GRAVITY},
     event::{EventBus, ServerEvent},
@@ -17,7 +17,6 @@ use common::{
 };
 use common_base::{prof_span, span};
 use common_ecs::{Job, Origin, ParMode, Phase, PhysicsMetrics, System};
-use hashbrown::HashMap;
 use rayon::iter::ParallelIterator;
 use specs::{
     shred::{ResourceId, World},
@@ -99,6 +98,7 @@ pub struct PhysicsWrite<'a> {
     physics_states: WriteStorage<'a, PhysicsState>,
     positions: WriteStorage<'a, Pos>,
     velocities: WriteStorage<'a, Vel>,
+    pos_vel_defers: WriteStorage<'a, PosVelDefer>,
     orientations: WriteStorage<'a, Ori>,
     previous_phys_cache: WriteStorage<'a, PreviousPhysCache>,
 }
@@ -238,7 +238,6 @@ impl<'a> PhysicsData<'a> {
     }
 
     fn apply_pushback(&mut self, job: &mut Job<Sys>, spatial_grid: &SpatialGrid) {
-        // TODO: make sure to check git stash show -p  to make sure nothing was missed
         span!(_guard, "Apply pushback");
         job.cpu_stats.measure(ParMode::Rayon);
         let PhysicsData {
@@ -357,7 +356,7 @@ impl<'a> PhysicsData<'a> {
                                 let mass_other = mass_other
                                     .map(|m| m.0)
                                     .unwrap_or(previous_cache_other.scale);
-                                //This check after the pos check, as we currently don't have
+                                // This check after the pos check, as we currently don't have
                                 // that many
                                 // massless entites [citation needed]
                                 if mass_other == 0.0 {
@@ -453,6 +452,31 @@ impl<'a> PhysicsData<'a> {
             ref read,
             ref mut write,
         } = self;
+
+        prof_span!(guard, "insert PosVelDefer");
+        // NOTE: keep in sync with join below
+        (
+            &read.entities,
+            read.colliders.mask(),
+            &write.positions,
+            &write.velocities,
+            write.orientations.mask(),
+            write.physics_states.mask(),
+            !&write.pos_vel_defers, // This is the one we are adding
+            write.previous_phys_cache.mask(),
+            !&read.mountings,
+        )
+            .join()
+            .map(|t| (t.0, *t.2, *t.3))
+            .collect::<Vec<_>>()
+            .into_iter()
+            .for_each(|(entity, pos, vel)| {
+                let _ = write
+                    .pos_vel_defers
+                    .insert(entity, PosVelDefer { pos, vel });
+            });
+        drop(guard);
+
         // Apply movement inputs
         span!(guard, "Apply movement and terrain collision");
         let (positions, velocities, previous_phys_cache, orientations) = (
@@ -473,14 +497,19 @@ impl<'a> PhysicsData<'a> {
             !&read.mountings,
         )
             .par_join()
-            .for_each(|(entity, pos, vel, physics_state, _)| {
-                let in_loaded_chunk = read
-                    .terrain
-                    .get_key(read.terrain.pos_key(pos.0.map(|e| e.floor() as i32)))
-                    .is_some();
-                // Integrate forces
-                // Friction is assumed to be a constant dependent on location
-                let friction = if physics_state.on_ground { 0.0 } else { FRIC_AIR }
+            .for_each_init(
+                || {
+                    prof_span!(guard, "velocity update rayon job");
+                    guard
+                },
+                |_guard, (entity, pos, vel, physics_state, _)| {
+                    let in_loaded_chunk = read
+                        .terrain
+                        .get_key(read.terrain.pos_key(pos.0.map(|e| e.floor() as i32)))
+                        .is_some();
+                    // Integrate forces
+                    // Friction is assumed to be a constant dependent on location
+                    let friction = if physics_state.on_ground { 0.0 } else { FRIC_AIR }
                         // .max(if physics_state.on_ground {
                         //     FRIC_GROUND
                         // } else {
@@ -491,26 +520,27 @@ impl<'a> PhysicsData<'a> {
                         } else {
                             0.0
                         });
-                let downward_force =
-                    if !in_loaded_chunk {
-                        0.0 // No gravity in unloaded chunks
-                    } else if physics_state
-                        .in_liquid
-                        .map(|depth| depth > 0.75)
-                        .unwrap_or(false)
-                    {
-                        (1.0 - BOUYANCY) * GRAVITY
-                    } else {
-                        GRAVITY
-                    } * read.gravities.get(entity).map(|g| g.0).unwrap_or_default();
+                    let downward_force =
+                        if !in_loaded_chunk {
+                            0.0 // No gravity in unloaded chunks
+                        } else if physics_state
+                            .in_liquid
+                            .map(|depth| depth > 0.75)
+                            .unwrap_or(false)
+                        {
+                            (1.0 - BOUYANCY) * GRAVITY
+                        } else {
+                            GRAVITY
+                        } * read.gravities.get(entity).map(|g| g.0).unwrap_or_default();
 
-                vel.0 = integrate_forces(read.dt.0, vel.0, downward_force, friction);
-            });
+                    vel.0 = integrate_forces(read.dt.0, vel.0, downward_force, friction);
+                },
+            );
 
         let velocities = &write.velocities;
 
         // Second pass: resolve collisions
-        let (pos_writes, vel_writes, land_on_grounds) = (
+        let land_on_grounds = (
             &read.entities,
             read.scales.maybe(),
             read.stickies.maybe(),
@@ -521,13 +551,17 @@ impl<'a> PhysicsData<'a> {
             read.bodies.maybe(),
             read.character_states.maybe(),
             &mut write.physics_states,
+            &mut write.pos_vel_defers,
             previous_phys_cache,
             !&read.mountings,
         )
             .par_join()
-            .fold(
-                || (Vec::new(), Vec::new(), Vec::new()),
-                |(mut pos_writes, mut vel_writes, mut land_on_grounds),
+            .map_init(
+                || {
+                    prof_span!(guard, "physics e<>t rayon job");
+                    guard
+                },
+                |_guard,
                  (
                     entity,
                     scale,
@@ -539,16 +573,18 @@ impl<'a> PhysicsData<'a> {
                     body,
                     character_state,
                     mut physics_state,
+                    pos_vel_defer,
                     _previous_cache,
                     _,
                 )| {
+                    let mut land_on_ground = None;
                     // Defer the writes of positions and velocities to allow an inner loop over
                     // terrain-like entities
                     let mut vel = *vel;
-                    let old_vel = vel;
+
                     if sticky.is_some() && physics_state.on_surface().is_some() {
                         vel.0 = physics_state.ground_vel;
-                        return (pos_writes, vel_writes, land_on_grounds);
+                        return land_on_ground;
                     }
 
                     let scale = if let Collider::Voxel { .. } = collider {
@@ -615,7 +651,7 @@ impl<'a> PhysicsData<'a> {
                                 was_on_ground,
                                 block_snap,
                                 climbing,
-                                |entity, vel| land_on_grounds.push((entity, vel)),
+                                |entity, vel| land_on_ground = Some((entity, vel)),
                             );
                             tgt_pos = cpos.0;
                         },
@@ -644,7 +680,7 @@ impl<'a> PhysicsData<'a> {
                                 was_on_ground,
                                 block_snap,
                                 climbing,
-                                |entity, vel| land_on_grounds.push((entity, vel)),
+                                |entity, vel| land_on_ground = Some((entity, vel)),
                             );
                             tgt_pos = cpos.0;
                         },
@@ -806,8 +842,8 @@ impl<'a> PhysicsData<'a> {
                                 block_snap,
                                 climbing,
                                 |entity, vel| {
-                                    land_on_grounds
-                                        .push((entity, Vel(ori_from.mul_direction(vel.0))))
+                                    land_on_ground =
+                                        Some((entity, Vel(ori_from.mul_direction(vel.0))));
                                 },
                             );
 
@@ -841,48 +877,52 @@ impl<'a> PhysicsData<'a> {
                         }
                     }
 
-                    if tgt_pos != pos.0 {
-                        pos_writes.push((entity, Pos(tgt_pos)));
-                    }
-                    if vel != old_vel {
-                        vel_writes.push((entity, vel));
-                    }
+                    *pos_vel_defer = PosVelDefer {
+                        pos: Pos(tgt_pos),
+                        vel,
+                    };
 
-                    (pos_writes, vel_writes, land_on_grounds)
+                    land_on_ground
+                },
+            )
+            .fold(
+                || Vec::new(),
+                |mut land_on_grounds, land_on_ground| {
+                    land_on_ground.map(|log| land_on_grounds.push(log));
+                    land_on_grounds
                 },
             )
             .reduce(
-                || (Vec::new(), Vec::new(), Vec::new()),
-                |(mut pos_writes_a, mut vel_writes_a, mut land_on_grounds_a),
-                 (mut pos_writes_b, mut vel_writes_b, mut land_on_grounds_b)| {
-                    pos_writes_a.append(&mut pos_writes_b);
-                    vel_writes_a.append(&mut vel_writes_b);
+                || Vec::new(),
+                |mut land_on_grounds_a, mut land_on_grounds_b| {
                     land_on_grounds_a.append(&mut land_on_grounds_b);
-                    (pos_writes_a, vel_writes_a, land_on_grounds_a)
+                    land_on_grounds_a
                 },
             );
         drop(guard);
         job.cpu_stats.measure(ParMode::Single);
 
-        let pos_writes: HashMap<Entity, Pos> = pos_writes.into_iter().collect();
-        let vel_writes: HashMap<Entity, Vel> = vel_writes.into_iter().collect();
-        for (entity, pos, vel) in
-            (&read.entities, &mut write.positions, &mut write.velocities).join()
+        prof_span!(guard, "write deferred pos and vel");
+        for (_, pos, vel, pos_vel_defer) in (
+            &read.entities,
+            &mut write.positions,
+            &mut write.velocities,
+            &write.pos_vel_defers,
+        )
+            .join()
         {
-            if let Some(new_pos) = pos_writes.get(&entity) {
-                *pos = *new_pos;
-            }
-
-            if let Some(new_vel) = vel_writes.get(&entity) {
-                *vel = *new_vel;
-            }
+            *pos = pos_vel_defer.pos;
+            *vel = pos_vel_defer.vel;
         }
+        drop(guard);
 
+        prof_span!(guard, "record ori into phys_cache");
         for (ori, previous_phys_cache) in
             (&write.orientations, &mut write.previous_phys_cache).join()
         {
             previous_phys_cache.ori = ori.to_quat();
         }
+        drop(guard);
 
         let mut event_emitter = read.event_bus.emitter();
         land_on_grounds.into_iter().for_each(|(entity, vel)| {
