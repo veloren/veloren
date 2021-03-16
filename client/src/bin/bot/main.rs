@@ -103,6 +103,7 @@ impl BotClient {
                 count,
             } => self.handle_register(&prefix, &password, count),
             Cmd::Login { prefix } => self.handle_login(&prefix),
+            Cmd::InGame { prefix } => self.handle_ingame_join(&prefix),
         }
     }
 
@@ -199,9 +200,47 @@ impl BotClient {
                 Some("common.items.weapons.sword.starter".to_string()),
                 body.into(),
             );
+            client.load_character_list();
             //client.create_character(cred.username.clone(),
             // Some("common.items.debug.admin_stick".to_string()), body.into());
         }
         info!("login done");
+    }
+
+
+    pub fn handle_ingame_join(&mut self, prefix: &str) {
+        let creds: Vec<_> = self
+            .settings
+            .bot_logins
+            .iter()
+            .filter(|x| x.username.starts_with(prefix))
+            .cloned()
+            .collect();
+        for cred in creds.iter() {
+            let runtime = Arc::clone(&self.runtime);
+
+            let server = self.settings.server.clone();
+            let client = match self
+                .bot_clients
+                .get_mut(&cred.username) {
+                Some(c) => c,
+                None => {
+                    tracing::trace!(?cred.username, "skip not logged in client");
+                    continue
+                },
+            };
+
+            let list = client.character_list();
+            if list.loading || list.characters.is_empty() {
+                tracing::trace!(?cred.username, "skip client as it has no character");
+                continue;
+            }
+
+            let c = list.characters.get(0).unwrap();
+            if let Some(id) = c.character.id {
+                client.request_character(id);
+            }
+        }
+        info!("ingame done");
     }
 }
