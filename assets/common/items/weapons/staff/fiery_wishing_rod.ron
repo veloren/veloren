@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Amethyst Staff",
-    description: "The amethyst faintly glows.",
+    name: "Fiery Wishing-Rod",
+    description: "Fulfills all your wishes from medium-rare to well-done",
     kind: Tool((
         kind: Staff,
         hands: Two,
@@ -8,9 +8,9 @@ ItemDef(
             equip_time_secs: 0.3,
             power: 1.5,
             poise_strength: 1.0,
-            speed: 1.0,
-            crit_chance: 0.125,
-            crit_mult: 1.4571428,
+            speed: 0.8,
+            crit_chance: 0.11111111,
+            crit_mult: 1.5142857,
         )),
     )),
     quality: Moderate,

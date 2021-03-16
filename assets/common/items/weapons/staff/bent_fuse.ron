@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Amethyst Staff",
-    description: "The amethyst faintly glows.",
+    name: "Bent Fuse",
+    description: "It's twitching from being charged with elemental powers",
     kind: Tool((
         kind: Staff,
         hands: Two,
@@ -8,11 +8,11 @@ ItemDef(
             equip_time_secs: 0.3,
             power: 1.5,
             poise_strength: 1.0,
-            speed: 1.0,
-            crit_chance: 0.125,
-            crit_mult: 1.4571428,
+            speed: 1.2,
+            crit_chance: 0.17045455,
+            crit_mult: 1.4469842,
         )),
     )),
-    quality: Moderate,
+    quality: Epic,
     tags: [],
 )

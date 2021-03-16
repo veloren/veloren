@@ -50,6 +50,8 @@
     (0.25, "common.items.weapons.sceptre.totem_green"),
     // staves
     (1.00, "common.items.weapons.staff.bone_staff"),
+    (0.7, "common.items.weapons.staff.heated_arm"),
+    (0.8, "common.items.weapons.staff.fiery_wishing_rod"),
     // hammers
     (0.15, "common.items.weapons.hammer.bronze_hammer-0"),
     (0.15, "common.items.weapons.hammer.bronze_hammer-1"),

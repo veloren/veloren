@@ -1,0 +1,18 @@
+ItemDef(
+    name: "Unstable Flamethrower MK II",
+    description: "Definitely-A-Flamethrower",
+    kind: Tool((
+        kind: Staff,
+        hands: Two,
+        stats: Direct((
+            equip_time_secs: 0.3,
+            power: 2.2,
+            poise_strength: 1.0,
+            speed: 0.8,
+            crit_chance: 0.113131315,
+            crit_mult: 1.4017857,
+        )),
+    )),
+    quality: High,
+    tags: [],
+)

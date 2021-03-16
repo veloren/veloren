@@ -881,6 +881,46 @@
         "voxel.weapon.staff.firestaff_cultist",
         (1.0, 0.0, 0.0), (-130., 90.0, 0.0), 1.2,
     ),
+    Tool("common.items.weapons.staff.phoenix"): VoxTrans(
+        "voxel.weapon.staff.phoenix",
+        (1.0, 0.0, 0.0), (-130., 90.0, 0.0), 1.2,
+    ),
+    Tool("common.items.weapons.staff.aurora"): VoxTrans(
+        "voxel.weapon.staff.aurora",
+        (1.0, 0.0, 0.0), (-130., 90.0, 0.0), 1.1,
+    ),
+    Tool("common.items.weapons.staff.infused_tower"): VoxTrans(
+        "voxel.weapon.staff.infused_tower",
+        (1.0, 0.0, 0.0), (-130., 90.0, 0.0), 1.2,
+    ),
+    Tool("common.items.weapons.staff.flamethrower_0"): VoxTrans(
+        "voxel.weapon.staff.unstable_thrower",
+        (1.0, 0.0, 0.0), (-130., 90.0, 0.0), 1.2,
+    ),
+    Tool("common.items.weapons.staff.ley_seeker"): VoxTrans(
+        "voxel.weapon.staff.ley_seeker",
+        (2.0, 0.0, 1.0), (-130., 90.0, 0.0), 1.1,
+    ),
+    Tool("common.items.weapons.staff.lava_rod"): VoxTrans(
+        "voxel.weapon.staff.lava_rod",
+        (1.0, 0.0, 0.0), (-130., 90.0, 0.0), 1.1,
+    ),
+    Tool("common.items.weapons.staff.fiery_wishing_rod"): VoxTrans(
+        "voxel.weapon.staff.fiery_wishing_rod",
+        (1.0, 0.0, 0.0), (-130., 90.0, 0.0), 1.1,
+    ),
+    Tool("common.items.weapons.staff.orc_iron"): VoxTrans(
+        "voxel.weapon.staff.orcish_branding_iron",
+        (1.0, 0.0, 0.0), (-130., 90.0, 0.0), 1.2,
+    ),
+    Tool("common.items.weapons.staff.bent_fuse"): VoxTrans(
+        "voxel.weapon.staff.bent_fuse",
+        (1.0, 0.0, 0.0), (-130., 90.0, 0.0), 1.2,
+    ),
+    Tool("common.items.weapons.staff.heated_arm"): VoxTrans(
+        "voxel.weapon.staff.heated_arm",
+        (1.0, 0.0, 0.0), (-130., 90.0, 0.0), 1.1,
+    ),
     // Healing Sceptres
     Tool("common.items.weapons.sceptre.starter_sceptre"): VoxTrans(
         "voxel.weapon.sceptre.wood-simple",
@@ -936,6 +976,10 @@
     Lantern("Red0"): Png(
         "element.icons.lantern_red-0",
     ),
+    Lantern("GeodePurp"): VoxTrans(
+        "voxel.lantern.geode_purp",
+        (0.0, 0.0, 0.0), (-90.0, 120.0, 0.0), 0.9,
+    ),
     // Farming Equipment
     Tool("common.items.weapons.tool.broom"): VoxTrans(
         "voxel.weapon.tool.broom-0",
@@ -990,6 +1034,14 @@
     ),
     Armor(Chest("Rugged")): VoxTrans(
         "voxel.armor.rugged.pants",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
+    ),
+    Armor(Chest("WorkerPurpBrown")): VoxTrans(
+        "voxel.armor.misc.chest.worker_purp_brown",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
+    ),
+    Armor(Pants("WorkerBrown")): VoxTrans(
+        "voxel.armor.misc.pants.worker_brown",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
     // Cultist Clothing
