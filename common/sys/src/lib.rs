@@ -1,4 +1,5 @@
 #![feature(label_break_value, bool_to_option, option_unwrap_none)]
+#![allow(clippy::option_map_unit_fn)]
 
 mod aura;
 mod beam;

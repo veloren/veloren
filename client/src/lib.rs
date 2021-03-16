@@ -244,7 +244,6 @@ impl Client {
 
         ping_stream.send(PingMsg::Ping)?;
 
-        let mut ping_interval = tokio::time::interval(core::time::Duration::from_secs(1));
         // Wait for initial sync
         let mut ping_interval = tokio::time::interval(core::time::Duration::from_secs(1));
         let (

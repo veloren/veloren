@@ -885,20 +885,14 @@ impl<'a> PhysicsData<'a> {
                     land_on_ground
                 },
             )
-            .fold(
-                || Vec::new(),
-                |mut land_on_grounds, land_on_ground| {
-                    land_on_ground.map(|log| land_on_grounds.push(log));
-                    land_on_grounds
-                },
-            )
-            .reduce(
-                || Vec::new(),
-                |mut land_on_grounds_a, mut land_on_grounds_b| {
-                    land_on_grounds_a.append(&mut land_on_grounds_b);
-                    land_on_grounds_a
-                },
-            );
+            .fold(Vec::new, |mut land_on_grounds, land_on_ground| {
+                land_on_ground.map(|log| land_on_grounds.push(log));
+                land_on_grounds
+            })
+            .reduce(Vec::new, |mut land_on_grounds_a, mut land_on_grounds_b| {
+                land_on_grounds_a.append(&mut land_on_grounds_b);
+                land_on_grounds_a
+            });
         drop(guard);
         job.cpu_stats.measure(ParMode::Single);
 

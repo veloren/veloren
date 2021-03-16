@@ -42,4 +42,4 @@ bincode = { version = "1.3.1", optional = true }
 plugin-api = { package = "veloren-plugin-api", path = "../../plugin/api", optional = true }
 
 # Tweak running code
-inline_tweak = { version = "1.0.8", features = ["release_tweak"] }
+# inline_tweak = { version = "1.0.8", features = ["release_tweak"] }

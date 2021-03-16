@@ -58,6 +58,8 @@ macro_rules! span {
     };
 }
 
+pub struct DummySpan;
+
 /// Like the span macro but only used when profiling and not in regular tracing
 /// operations
 #[macro_export]
@@ -73,7 +75,7 @@ macro_rules! prof_span {
             0,
         );
         #[cfg(not(feature = "tracy"))]
-        let $guard_name = ();
+        let $guard_name = $crate::DummySpan;
     };
 }
 
