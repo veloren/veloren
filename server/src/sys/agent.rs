@@ -3,6 +3,7 @@ use common::{
     comp::{
         self,
         agent::{AgentEvent, Tactic, Target, DEFAULT_INTERACTION_TIME, TRADE_INTERACTION_TIME},
+        buff::{BuffKind, Buffs},
         group,
         inventory::{item::ItemTag, slot::EquipSlot, trade_pricing::TradePricing},
         invite::InviteResponse,
@@ -88,6 +89,7 @@ pub struct ReadData<'a> {
     light_emitter: ReadStorage<'a, LightEmitter>,
     world: ReadExpect<'a, Arc<world::World>>,
     rtsim_entities: ReadStorage<'a, RtSimEntity>,
+    buffs: ReadStorage<'a, Buffs>,
 }
 
 // This is 3.1 to last longer than the last damage timer (3.0 seconds)
@@ -316,13 +318,13 @@ impl<'a> System<'a> for Sys {
                                                         target: attacker,
                                                         hostile: true,
                                                     });
-                                                    if let (Some(tgt_pos), Some(tgt_health)) = (
-                                                        read_data.positions.get(attacker),
-                                                        read_data.healths.get(attacker),
-                                                    ) {
-                                                        if tgt_health.is_dead
-                                                            || dist_sqrd > MAX_CHASE_DIST.powi(2)
-                                                        {
+                                                    if let Some(tgt_pos) =
+                                                        read_data.positions.get(attacker)
+                                                    {
+                                                        if should_stop_attacking(
+                                                            read_data.healths.get(attacker),
+                                                            read_data.buffs.get(attacker),
+                                                        ) {
                                                             agent.target = Some(Target {
                                                                 target,
                                                                 hostile: false,
@@ -389,12 +391,12 @@ impl<'a> System<'a> for Sys {
                                     read_data.uid_allocator.retrieve_entity_internal(by.id())
                                 {
                                     if let Some(tgt_pos) = read_data.positions.get(attacker) {
-                                        // If the target is dead, remove the target and idle.
-                                        if read_data
-                                            .healths
-                                            .get(attacker)
-                                            .map_or(true, |a| a.is_dead)
-                                        {
+                                        // If the target is dead or in a safezone, remove the target
+                                        // and idle.
+                                        if should_stop_attacking(
+                                            read_data.healths.get(attacker),
+                                            read_data.buffs.get(attacker),
+                                        ) {
                                             agent.target = None;
                                             data.idle_tree(
                                                 agent,
@@ -520,10 +522,7 @@ impl<'a> AgentData<'a> {
         event_emitter: &mut Emitter<'_, ServerEvent>,
     ) {
         if let Some(Target { target, .. }) = agent.target {
-            if let (Some(tgt_pos), Some(tgt_health)) = (
-                read_data.positions.get(target),
-                read_data.healths.get(target),
-            ) {
+            if let Some(tgt_pos) = read_data.positions.get(target) {
                 let dist_sqrd = self.pos.0.distance_squared(tgt_pos.0);
                 // Should the agent flee?
                 if 1.0 - agent.psyche.aggro > self.damage && self.flees {
@@ -549,8 +548,11 @@ impl<'a> AgentData<'a> {
                 // If not fleeing, attack the hostile
                 // entity!
                 } else {
-                    // If the hostile entity is dead, return to idle
-                    if tgt_health.is_dead {
+                    // If the hostile entity is dead or in a safezone, return to idle
+                    if should_stop_attacking(
+                        read_data.healths.get(target),
+                        read_data.buffs.get(target),
+                    ) {
                         agent.target = None;
                         if agent.can_speak {
                             let msg = "I have destroyed my enemy!".to_string();
@@ -2411,4 +2413,10 @@ fn can_see_tgt(terrain: &TerrainGrid, pos: &Pos, tgt_pos: &Pos, dist_sqrd: f32) 
         .0
         .powi(2)
         >= dist_sqrd
+}
+
+// If target is dead or has invulnerability buff, returns true
+fn should_stop_attacking(health: Option<&Health>, buffs: Option<&Buffs>) -> bool {
+    health.map_or(true, |a| a.is_dead)
+        || buffs.map_or(false, |b| b.kinds.contains_key(&BuffKind::Invulnerability))
 }

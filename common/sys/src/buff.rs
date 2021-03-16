@@ -166,7 +166,7 @@ impl<'a> System<'a> for Sys {
                                 },
                             },
                             BuffEffect::DamageReduction(dr) => {
-                                stat.damage_reduction = dr.min(1.0);
+                                stat.damage_reduction = stat.damage_reduction.max(*dr).min(1.0);
                             },
                         };
                     }
