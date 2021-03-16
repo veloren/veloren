@@ -1,3 +1,7 @@
+mod spatial_grid;
+
+use spatial_grid::SpatialGrid;
+
 use common::{
     comp::{
         body::ship::figuredata::VOXEL_COLLIDER_MANIFEST, BeamSegment, Body, CharacterState,
@@ -128,7 +132,7 @@ impl<'a> PhysicsData<'a> {
 
     fn maintain_pushback_cache(&mut self) {
         span!(_guard, "Maintain pushback cache");
-        //Add PreviousPhysCache for all relevant entities
+        // Add PreviousPhysCache for all relevant entities
         for entity in (
             &self.read.entities,
             &self.write.velocities,
@@ -155,7 +159,7 @@ impl<'a> PhysicsData<'a> {
                 });
         }
 
-        //Update PreviousPhysCache
+        // Update PreviousPhysCache
         for (_, vel, position, mut phys_cache, collider, scale, cs, _, _, _) in (
             &self.read.entities,
             &self.write.velocities,
@@ -189,8 +193,67 @@ impl<'a> PhysicsData<'a> {
         }
     }
 
-    fn apply_pushback(&mut self, job: &mut Job<Sys>) {
+    fn construct_spatial_grid(&mut self) -> SpatialGrid {
+        span!(_guard, "Construct spatial grid");
+        let PhysicsData {
+            ref read,
+            ref write,
+        } = self;
+        // NOTE: assumes that entity max radius * 2 + max velocity per tick is less than
+        // half a chunk (16 blocks)
+        // NOTE: i32 places certain constraints on how far out collision works
+        // NOTE: uses the radius of the entity and their current position rather than
+        // the radius of their bounding sphere for the current frame of movement
+        // because the nonmoving entity is what is collided against in the inner
+        // loop of the pushback collision code
+        // TODO: maintain frame to frame? (requires handling deletion)
+        // TODO: if not maintaining frame to frame consider counting entities to
+        // preallocate?
+        // TODO: assess parallelizing (overhead might dominate here? would need to merge
+        // the vecs in each hashmap)
+        let lg2_cell_size = inline_tweak::release_tweak!(5);
+        let lg2_large_cell_size = 6;
+        let radius_cutoff = 8;
+        common_base::plot!("spatial grid cell size", (1 << lg2_cell_size) as f64);
+        // let mut radius_list = Vec::new();
+        let mut spatial_grid = SpatialGrid::new(lg2_cell_size, lg2_large_cell_size, radius_cutoff);
+        for (entity, pos, phys_cache, _, _, _, _, _) in (
+            &read.entities,
+            &write.positions,
+            &write.previous_phys_cache,
+            write.velocities.mask(),
+            !&read.projectiles, // Not needed because they are skipped in the inner loop below
+            !&read.mountings,
+            !&read.beams,
+            !&read.shockwaves,
+        )
+            .join()
+        {
+            // Note: to not get too fine grained we use a 2D grid for now
+            let radius_2d = phys_cache.scaled_radius.ceil() as u32;
+            let pos_2d = pos.0.xy().map(|e| e as i32);
+            const POS_TRUNCATION_ERROR: u32 = 1;
+            spatial_grid.insert(pos_2d, radius_2d + POS_TRUNCATION_ERROR, entity);
+            // radius_list.push(phys_cache.scaled_radius.ceil() as u32);
+        }
+        /* if !radius_list.is_empty() {
+            radius_list.sort();
+            common_base::plot!("radius:min", *radius_list.first().unwrap() as f64);
+            common_base::plot!("radius:max", *radius_list.last().unwrap() as f64);
+            common_base::plot!(
+                "radius:mean",
+                radius_list.iter().sum::<u32>() as f64 / radius_list.len() as f64
+            );
+            common_base::plot!("radius:mode", radius_list[radius_list.len() / 2] as f64);
+        } */
+
+        spatial_grid
+    }
+
+    fn apply_pushback(&mut self, job: &mut Job<Sys>, spatial_grid: &SpatialGrid) {
+        // TODO: make sure to check git stash show -p  to make sure nothing was missed
         span!(_guard, "Apply pushback");
+        let use_grid = inline_tweak::release_tweak!(true);
         job.cpu_stats.measure(ParMode::Rayon);
         let PhysicsData {
             ref read,
@@ -247,102 +310,244 @@ impl<'a> PhysicsData<'a> {
                     let mut entity_entity_collision_checks = 0;
                     let mut entity_entity_collisions = 0;
 
-                    for (
-                        entity_other,
-                        other,
-                        pos_other,
-                        previous_cache_other,
-                        mass_other,
-                        collider_other,
-                        _,
-                        _,
-                        _,
-                        _,
-                        char_state_other_maybe,
-                    ) in (
-                        &read.entities,
-                        &read.uids,
-                        positions,
-                        previous_phys_cache,
-                        read.masses.maybe(),
-                        read.colliders.maybe(),
-                        !&read.projectiles,
-                        !&read.mountings,
-                        !&read.beams,
-                        !&read.shockwaves,
-                        read.char_states.maybe(),
-                    )
-                        .join()
-                    {
-                        let collision_boundary = previous_cache.collision_boundary
-                            + previous_cache_other.collision_boundary;
-                        if previous_cache
-                            .center
-                            .distance_squared(previous_cache_other.center)
-                            > collision_boundary.powi(2)
-                            || entity == entity_other
+                    if use_grid {
+                        let aabr = {
+                            let center = previous_cache.center.xy().map(|e| e as i32);
+                            let radius = previous_cache.collision_boundary.ceil() as i32;
+                            // From conversion of center above
+                            const CENTER_TRUNCATION_ERROR: i32 = 1;
+                            let max_dist = radius + CENTER_TRUNCATION_ERROR;
+
+                            Aabr {
+                                min: center - max_dist,
+                                max: center + max_dist,
+                            }
+                        };
+
+                        spatial_grid
+                            .in_aabr(aabr)
+                            .filter_map(|entity| {
+                                read.uids
+                                    .get(entity)
+                                    .zip(positions.get(entity))
+                                    .zip(previous_phys_cache.get(entity))
+                                    .map(|((uid, pos), previous_cache)| {
+                                        (
+                                            entity,
+                                            uid,
+                                            pos,
+                                            previous_cache,
+                                            read.masses.get(entity),
+                                            read.colliders.get(entity),
+                                            read.char_states.get(entity),
+                                        )
+                                    })
+                            })
+                            .for_each(
+                                |(
+                                    entity_other,
+                                    other,
+                                    pos_other,
+                                    previous_cache_other,
+                                    mass_other,
+                                    collider_other,
+                                    char_state_other_maybe,
+                                )| {
+                                    let collision_boundary = previous_cache.collision_boundary
+                                        + previous_cache_other.collision_boundary;
+                                    if previous_cache
+                                        .center
+                                        .distance_squared(previous_cache_other.center)
+                                        > collision_boundary.powi(2)
+                                        || entity == entity_other
+                                    {
+                                        return;
+                                    }
+
+                                    let collision_dist = previous_cache.scaled_radius
+                                        + previous_cache_other.scaled_radius;
+                                    let z_limits_other =
+                                        calc_z_limit(char_state_other_maybe, collider_other);
+
+                                    let mass_other = mass_other
+                                        .map(|m| m.0)
+                                        .unwrap_or(previous_cache_other.scale);
+                                    //This check after the pos check, as we currently don't have
+                                    // that many
+                                    // massless entites [citation needed]
+                                    if mass_other == 0.0 {
+                                        return;
+                                    }
+
+                                    entity_entity_collision_checks += 1;
+
+                                    const MIN_COLLISION_DIST: f32 = 0.3;
+                                    let increments = ((previous_cache.velocity_dt
+                                        - previous_cache_other.velocity_dt)
+                                        .magnitude()
+                                        / MIN_COLLISION_DIST)
+                                        .max(1.0)
+                                        .ceil()
+                                        as usize;
+                                    let step_delta = 1.0 / increments as f32;
+                                    let mut collided = false;
+
+                                    for i in 0..increments {
+                                        let factor = i as f32 * step_delta;
+                                        let pos = pos.0 + previous_cache.velocity_dt * factor;
+                                        let pos_other =
+                                            pos_other.0 + previous_cache_other.velocity_dt * factor;
+
+                                        let diff = pos.xy() - pos_other.xy();
+
+                                        if diff.magnitude_squared() <= collision_dist.powi(2)
+                                            && pos.z + z_limits.1 * previous_cache.scale
+                                                >= pos_other.z
+                                                    + z_limits_other.0 * previous_cache_other.scale
+                                            && pos.z + z_limits.0 * previous_cache.scale
+                                                <= pos_other.z
+                                                    + z_limits_other.1 * previous_cache_other.scale
+                                        {
+                                            if !collided {
+                                                physics.touch_entities.push(*other);
+                                                entity_entity_collisions += 1;
+                                            }
+
+                                            // Don't apply repulsive force to projectiles or if
+                                            // we're
+                                            // colliding
+                                            // with a terrain-like entity, or if we are a
+                                            // terrain-like
+                                            // entity
+                                            if diff.magnitude_squared() > 0.0
+                                                && !is_projectile
+                                                && !matches!(
+                                                    collider_other,
+                                                    Some(Collider::Voxel { .. })
+                                                )
+                                                && !matches!(collider, Some(Collider::Voxel { .. }))
+                                            {
+                                                let force = 400.0
+                                                    * (collision_dist - diff.magnitude())
+                                                    * mass_other
+                                                    / (mass + mass_other);
+
+                                                vel_delta += Vec3::from(diff.normalized())
+                                                    * force
+                                                    * step_delta;
+                                            }
+
+                                            collided = true;
+                                        }
+                                    }
+                                },
+                            );
+                    } else {
+                        for (
+                            entity_other,
+                            other,
+                            pos_other,
+                            previous_cache_other,
+                            mass_other,
+                            collider_other,
+                            _,
+                            _,
+                            _,
+                            _,
+                            char_state_other_maybe,
+                        ) in (
+                            &read.entities,
+                            &read.uids,
+                            positions,
+                            previous_phys_cache,
+                            read.masses.maybe(),
+                            read.colliders.maybe(),
+                            !&read.projectiles,
+                            !&read.mountings,
+                            !&read.beams,
+                            !&read.shockwaves,
+                            read.char_states.maybe(),
+                        )
+                            .join()
                         {
-                            continue;
-                        }
-
-                        let collision_dist =
-                            previous_cache.scaled_radius + previous_cache_other.scaled_radius;
-                        let z_limits_other = calc_z_limit(char_state_other_maybe, collider_other);
-
-                        let mass_other = mass_other
-                            .map(|m| m.0)
-                            .unwrap_or(previous_cache_other.scale);
-                        //This check after the pos check, as we currently don't have that many
-                        // massless entites [citation needed]
-                        if mass_other == 0.0 {
-                            continue;
-                        }
-
-                        entity_entity_collision_checks += 1;
-
-                        const MIN_COLLISION_DIST: f32 = 0.3;
-                        let increments = ((previous_cache.velocity_dt
-                            - previous_cache_other.velocity_dt)
-                            .magnitude()
-                            / MIN_COLLISION_DIST)
-                            .max(1.0)
-                            .ceil() as usize;
-                        let step_delta = 1.0 / increments as f32;
-                        let mut collided = false;
-
-                        for i in 0..increments {
-                            let factor = i as f32 * step_delta;
-                            let pos = pos.0 + previous_cache.velocity_dt * factor;
-                            let pos_other = pos_other.0 + previous_cache_other.velocity_dt * factor;
-
-                            let diff = pos.xy() - pos_other.xy();
-
-                            if diff.magnitude_squared() <= collision_dist.powi(2)
-                                && pos.z + z_limits.1 * previous_cache.scale
-                                    >= pos_other.z + z_limits_other.0 * previous_cache_other.scale
-                                && pos.z + z_limits.0 * previous_cache.scale
-                                    <= pos_other.z + z_limits_other.1 * previous_cache_other.scale
+                            let collision_boundary = previous_cache.collision_boundary
+                                + previous_cache_other.collision_boundary;
+                            if previous_cache
+                                .center
+                                .distance_squared(previous_cache_other.center)
+                                > collision_boundary.powi(2)
+                                || entity == entity_other
                             {
-                                if !collided {
-                                    physics.touch_entities.push(*other);
-                                    entity_entity_collisions += 1;
-                                }
+                                continue;
+                            }
 
-                                // Don't apply repulsive force to projectiles or if we're colliding
-                                // with a terrain-like entity, or if we are a terrain-like entity
-                                if diff.magnitude_squared() > 0.0
-                                    && !is_projectile
-                                    && !matches!(collider_other, Some(Collider::Voxel { .. }))
-                                    && !matches!(collider, Some(Collider::Voxel { .. }))
+                            let collision_dist =
+                                previous_cache.scaled_radius + previous_cache_other.scaled_radius;
+                            let z_limits_other =
+                                calc_z_limit(char_state_other_maybe, collider_other);
+
+                            let mass_other = mass_other
+                                .map(|m| m.0)
+                                .unwrap_or(previous_cache_other.scale);
+                            //This check after the pos check, as we currently don't have that many
+                            // massless entites [citation needed]
+                            if mass_other == 0.0 {
+                                continue;
+                            }
+
+                            entity_entity_collision_checks += 1;
+
+                            const MIN_COLLISION_DIST: f32 = 0.3;
+                            let increments = ((previous_cache.velocity_dt
+                                - previous_cache_other.velocity_dt)
+                                .magnitude()
+                                / MIN_COLLISION_DIST)
+                                .max(1.0)
+                                .ceil() as usize;
+                            let step_delta = 1.0 / increments as f32;
+                            let mut collided = false;
+
+                            for i in 0..increments {
+                                let factor = i as f32 * step_delta;
+                                let pos = pos.0 + previous_cache.velocity_dt * factor;
+                                let pos_other =
+                                    pos_other.0 + previous_cache_other.velocity_dt * factor;
+
+                                let diff = pos.xy() - pos_other.xy();
+
+                                if diff.magnitude_squared() <= collision_dist.powi(2)
+                                    && pos.z + z_limits.1 * previous_cache.scale
+                                        >= pos_other.z
+                                            + z_limits_other.0 * previous_cache_other.scale
+                                    && pos.z + z_limits.0 * previous_cache.scale
+                                        <= pos_other.z
+                                            + z_limits_other.1 * previous_cache_other.scale
                                 {
-                                    let force =
-                                        400.0 * (collision_dist - diff.magnitude()) * mass_other
+                                    if !collided {
+                                        physics.touch_entities.push(*other);
+                                        entity_entity_collisions += 1;
+                                    }
+
+                                    // Don't apply repulsive force to projectiles or if we're
+                                    // colliding
+                                    // with a terrain-like entity, or if we are a terrain-like
+                                    // entity
+                                    if diff.magnitude_squared() > 0.0
+                                        && !is_projectile
+                                        && !matches!(collider_other, Some(Collider::Voxel { .. }))
+                                        && !matches!(collider, Some(Collider::Voxel { .. }))
+                                    {
+                                        let force = 400.0
+                                            * (collision_dist - diff.magnitude())
+                                            * mass_other
                                             / (mass + mass_other);
 
-                                    vel_delta += Vec3::from(diff.normalized()) * force * step_delta;
-                                }
+                                        vel_delta +=
+                                            Vec3::from(diff.normalized()) * force * step_delta;
+                                    }
 
-                                collided = true;
+                                    collided = true;
+                                }
                             }
                         }
                     }
@@ -835,7 +1040,9 @@ impl<'a> System<'a> for Sys {
         // it means the step needs to take into account the speeds of both
         // entities.
         psd.maintain_pushback_cache();
-        psd.apply_pushback(job);
+
+        let spatial_grid = psd.construct_spatial_grid();
+        psd.apply_pushback(job, &spatial_grid);
 
         psd.handle_movement_and_terrain(job);
     }
