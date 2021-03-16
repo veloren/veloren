@@ -635,7 +635,7 @@ impl FigureMgr {
             // goes further and further away, we start to 'skip' update ticks.
             // TODO: Investigate passing the velocity into the shader so we can at least
             // interpolate motion
-            const MIN_PERFECT_RATE_DIST: f32 = 50.0;
+            const MIN_PERFECT_RATE_DIST: f32 = 100.0;
 
             if (i as u64 + tick)
                 % (1 + ((pos.0.distance_squared(focus_pos).powf(0.25)
