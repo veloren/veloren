@@ -19,8 +19,8 @@ use tracing::error;
 pub trait CompPacket: Clone + Debug + Send + 'static {
     type Phantom: Clone + Debug + Serialize + DeserializeOwned;
 
-    fn apply_insert(self, entity: Entity, world: &World);
-    fn apply_modify(self, entity: Entity, world: &World);
+    fn apply_insert(self, entity: Entity, world: &World, force_update: bool);
+    fn apply_modify(self, entity: Entity, world: &World, force_update: bool);
     fn apply_remove(phantom: Self::Phantom, entity: Entity, world: &World);
 }
 
@@ -50,14 +50,19 @@ pub trait InterpolatableComponent: Component {
     type InterpData: Component + Default;
     type ReadData;
 
-    fn update_component(&self, data: &mut Self::InterpData, time: f64);
+    fn update_component(&self, data: &mut Self::InterpData, time: f64, force_update: bool);
     fn interpolate(self, data: &Self::InterpData, time: f64, read_data: &Self::ReadData) -> Self;
 }
 
-pub fn handle_interp_insert<C: InterpolatableComponent>(comp: C, entity: Entity, world: &World) {
+pub fn handle_interp_insert<C: InterpolatableComponent>(
+    comp: C,
+    entity: Entity,
+    world: &World,
+    force_update: bool,
+) {
     let mut interp_data = C::InterpData::default();
     let time = world.read_resource::<Time>().0;
-    comp.update_component(&mut interp_data, time);
+    comp.update_component(&mut interp_data, time, force_update);
     handle_insert(comp, entity, world);
     handle_insert(interp_data, entity, world);
 }
@@ -66,10 +71,11 @@ pub fn handle_interp_modify<C: InterpolatableComponent + Debug>(
     comp: C,
     entity: Entity,
     world: &World,
+    force_update: bool,
 ) {
     if let Some(mut interp_data) = world.write_storage::<C::InterpData>().get_mut(entity) {
         let time = world.read_resource::<Time>().0;
-        comp.update_component(&mut interp_data, time);
+        comp.update_component(&mut interp_data, time, force_update);
         handle_modify(comp, entity, world);
     } else {
         error!(

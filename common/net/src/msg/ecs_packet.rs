@@ -76,7 +76,7 @@ sum_type! {
 impl sync::CompPacket for EcsCompPacket {
     type Phantom = EcsCompPhantom;
 
-    fn apply_insert(self, entity: specs::Entity, world: &specs::World) {
+    fn apply_insert(self, entity: specs::Entity, world: &specs::World, force_update: bool) {
         match self {
             EcsCompPacket::Body(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::Player(comp) => sync::handle_insert(comp, entity, world),
@@ -100,15 +100,21 @@ impl sync::CompPacket for EcsCompPacket {
             EcsCompPacket::Gravity(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::Sticky(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::CharacterState(comp) => sync::handle_insert(comp, entity, world),
-            EcsCompPacket::Pos(comp) => sync::handle_interp_insert(comp, entity, world),
-            EcsCompPacket::Vel(comp) => sync::handle_interp_insert(comp, entity, world),
-            EcsCompPacket::Ori(comp) => sync::handle_interp_insert(comp, entity, world),
+            EcsCompPacket::Pos(comp) => {
+                sync::handle_interp_insert(comp, entity, world, force_update)
+            },
+            EcsCompPacket::Vel(comp) => {
+                sync::handle_interp_insert(comp, entity, world, force_update)
+            },
+            EcsCompPacket::Ori(comp) => {
+                sync::handle_interp_insert(comp, entity, world, force_update)
+            },
             EcsCompPacket::Shockwave(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::BeamSegment(comp) => sync::handle_insert(comp, entity, world),
         }
     }
 
-    fn apply_modify(self, entity: specs::Entity, world: &specs::World) {
+    fn apply_modify(self, entity: specs::Entity, world: &specs::World, force_update: bool) {
         match self {
             EcsCompPacket::Body(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::Player(comp) => sync::handle_modify(comp, entity, world),
@@ -132,9 +138,15 @@ impl sync::CompPacket for EcsCompPacket {
             EcsCompPacket::Gravity(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::Sticky(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::CharacterState(comp) => sync::handle_modify(comp, entity, world),
-            EcsCompPacket::Pos(comp) => sync::handle_interp_modify(comp, entity, world),
-            EcsCompPacket::Vel(comp) => sync::handle_interp_modify(comp, entity, world),
-            EcsCompPacket::Ori(comp) => sync::handle_interp_modify(comp, entity, world),
+            EcsCompPacket::Pos(comp) => {
+                sync::handle_interp_modify(comp, entity, world, force_update)
+            },
+            EcsCompPacket::Vel(comp) => {
+                sync::handle_interp_modify(comp, entity, world, force_update)
+            },
+            EcsCompPacket::Ori(comp) => {
+                sync::handle_interp_modify(comp, entity, world, force_update)
+            },
             EcsCompPacket::Shockwave(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::BeamSegment(comp) => sync::handle_modify(comp, entity, world),
         }
