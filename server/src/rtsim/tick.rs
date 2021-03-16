@@ -5,7 +5,7 @@ use common::{
     comp,
     comp::inventory::loadout_builder::LoadoutBuilder,
     event::{EventBus, ServerEvent},
-    resources::DeltaTime,
+    resources::{DeltaTime, Time},
     terrain::TerrainGrid,
 };
 use common_ecs::{Job, Origin, Phase, System};
@@ -19,6 +19,7 @@ pub struct Sys;
 impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
+        Read<'a, Time>,
         Read<'a, DeltaTime>,
         Read<'a, EventBus<ServerEvent>>,
         WriteExpect<'a, RtSim>,
@@ -37,6 +38,7 @@ impl<'a> System<'a> for Sys {
     fn run(
         _job: &mut Job<Self>,
         (
+            time,
             dt,
             server_event_bus,
             mut rtsim,
@@ -56,7 +58,7 @@ impl<'a> System<'a> for Sys {
         let mut to_reify = Vec::new();
         for (id, entity) in rtsim.entities.iter_mut() {
             if entity.is_loaded {
-                // No load-specific behaviour yet
+                // Nothing here yet
             } else if rtsim
                 .chunks
                 .chunk_at(entity.pos.xy())
@@ -87,7 +89,7 @@ impl<'a> System<'a> for Sys {
 
             // Tick entity AI
             if entity.last_tick + ENTITY_TICK_PERIOD <= rtsim.tick {
-                entity.tick(&terrain, &world, &index.as_index_ref());
+                entity.tick(&time, &terrain, &world, &index.as_index_ref());
                 entity.last_tick = rtsim.tick;
             }
         }

@@ -6,10 +6,10 @@ mod load_chunks;
 mod tick;
 mod unload_chunks;
 
-use self::{chunks::Chunks, entity::Entity};
+use self::chunks::Chunks;
 use common::{
     comp,
-    rtsim::{RtSimController, RtSimEntity, RtSimId},
+    rtsim::{Memory, RtSimController, RtSimEntity, RtSimId},
     terrain::TerrainChunk,
     vol::RectRasterableVol,
 };
@@ -19,6 +19,8 @@ use rand::prelude::*;
 use slab::Slab;
 use specs::{DispatcherBuilder, WorldExt};
 use vek::*;
+
+pub use self::entity::Entity;
 
 pub struct RtSim {
     tick: u64,
@@ -70,6 +72,14 @@ impl RtSim {
     pub fn destroy_entity(&mut self, entity: RtSimId) {
         // tracing::info!("Destroyed rtsim entity {}", entity);
         self.entities.remove(entity);
+    }
+
+    pub fn get_entity(&self, entity: RtSimId) -> Option<&Entity> { self.entities.get(entity) }
+
+    pub fn insert_entity_memory(&mut self, entity: RtSimId, memory: Memory) {
+        self.entities
+            .get_mut(entity)
+            .map(|entity| entity.brain.add_memory(memory));
     }
 }
 

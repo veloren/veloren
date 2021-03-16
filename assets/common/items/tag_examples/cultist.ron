@@ -1,0 +1,18 @@
+ItemDef(
+    name: "Anything related to cultists",
+    description: "These items are a little creepy.",
+    kind: TagExamples(
+        item_ids: [
+            "common.items.armor.cultist.belt",
+            "common.items.armor.cultist.chest",
+            "common.items.armor.cultist.pants",
+            "common.items.armor.cultist.foot",
+            "common.items.armor.cultist.hand",
+            "common.items.armor.cultist.shoulder",
+        ],
+    ),
+    quality: Common,
+    tags: [],
+)
+
+

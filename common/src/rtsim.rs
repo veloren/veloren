@@ -16,6 +16,26 @@ impl Component for RtSimEntity {
     type Storage = IdvStorage<Self>;
 }
 
+#[derive(Clone, Debug)]
+pub enum RtSimEvent {
+    AddMemory(Memory),
+    PrintMemories,
+}
+
+#[derive(Clone, Debug)]
+pub struct Memory {
+    pub item: MemoryItem,
+    pub time_to_forget: f64,
+}
+
+#[derive(Clone, Debug)]
+pub enum MemoryItem {
+    // These are structs to allow more data beyond name to be stored
+    // such as clothing worn, weapon used, etc.
+    CharacterInteraction { name: String },
+    CharacterFight { name: String },
+}
+
 /// This type is the map route through which the rtsim (real-time simulation)
 /// aspect of the game communicates with the rest of the game. It is analagous
 /// to `comp::Controller` in that it provides a consistent interface for
@@ -33,6 +53,8 @@ pub struct RtSimController {
     pub travel_to: Option<(Vec3<f32>, String)>,
     /// Proportion of full speed to move
     pub speed_factor: f32,
+    /// Events
+    pub events: Vec<RtSimEvent>,
 }
 
 impl Default for RtSimController {
@@ -40,6 +62,7 @@ impl Default for RtSimController {
         Self {
             travel_to: None,
             speed_factor: 1.0,
+            events: Vec::new(),
         }
     }
 }
@@ -51,6 +74,7 @@ impl RtSimController {
         Self {
             travel_to: Some((pos, format!("{:0.1?}", pos))),
             speed_factor: 0.25,
+            events: Vec::new(),
         }
     }
 }

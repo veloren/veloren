@@ -106,6 +106,8 @@ pub enum ChatType<G> {
     ///
     /// The u16 field is a random number for selecting localization variants.
     Npc(Uid, u16),
+    /// From NPCs but in the chat for clients in the near vicinity
+    NpcSay(Uid, u16),
     /// Anything else
     Meta,
     // Looted items
@@ -136,11 +138,17 @@ pub type UnresolvedChatMsg = GenericChatMsg<Group>;
 
 impl<G> GenericChatMsg<G> {
     pub const NPC_DISTANCE: f32 = 100.0;
+    pub const NPC_SAY_DISTANCE: f32 = 30.0;
     pub const REGION_DISTANCE: f32 = 1000.0;
     pub const SAY_DISTANCE: f32 = 100.0;
 
     pub fn npc(uid: Uid, message: String) -> Self {
         let chat_type = ChatType::Npc(uid, rand::random());
+        Self { chat_type, message }
+    }
+
+    pub fn npc_say(uid: Uid, message: String) -> Self {
+        let chat_type = ChatType::NpcSay(uid, rand::random());
         Self { chat_type, message }
     }
 
@@ -161,6 +169,7 @@ impl<G> GenericChatMsg<G> {
             ChatType::Region(a) => ChatType::Region(a),
             ChatType::World(a) => ChatType::World(a),
             ChatType::Npc(a, b) => ChatType::Npc(a, b),
+            ChatType::NpcSay(a, b) => ChatType::NpcSay(a, b),
             ChatType::Meta => ChatType::Meta,
         };
 
@@ -172,7 +181,7 @@ impl<G> GenericChatMsg<G> {
 
     pub fn to_bubble(&self) -> Option<(SpeechBubble, Uid)> {
         let icon = self.icon();
-        if let ChatType::Npc(from, r) = self.chat_type {
+        if let ChatType::Npc(from, r) | ChatType::NpcSay(from, r) = self.chat_type {
             Some((SpeechBubble::npc_new(&self.message, r, icon), from))
         } else {
             self.uid()
@@ -197,6 +206,7 @@ impl<G> GenericChatMsg<G> {
             ChatType::Region(_u) => SpeechBubbleType::Region,
             ChatType::World(_u) => SpeechBubbleType::World,
             ChatType::Npc(_u, _r) => SpeechBubbleType::None,
+            ChatType::NpcSay(_u, _r) => SpeechBubbleType::Say,
             ChatType::Meta => SpeechBubbleType::None,
         }
     }
@@ -218,6 +228,7 @@ impl<G> GenericChatMsg<G> {
             ChatType::Region(u) => Some(*u),
             ChatType::World(u) => Some(*u),
             ChatType::Npc(u, _r) => Some(*u),
+            ChatType::NpcSay(u, _r) => Some(*u),
             ChatType::Meta => None,
         }
     }

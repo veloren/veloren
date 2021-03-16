@@ -94,6 +94,7 @@ pub enum ItemTag {
     ClothItem,
     ModularComponent(ModularComponentTag),
     MetalIngot,
+    Cultist,
 }
 
 impl TagExampleInfo for ItemTag {
@@ -102,6 +103,7 @@ impl TagExampleInfo for ItemTag {
             ItemTag::ClothItem => "cloth item",
             ItemTag::ModularComponent(kind) => kind.name(),
             ItemTag::MetalIngot => "metal ingot",
+            ItemTag::Cultist => "cultist",
         }
     }
 
@@ -110,6 +112,7 @@ impl TagExampleInfo for ItemTag {
             ItemTag::ClothItem => "common.items.tag_examples.cloth_item",
             ItemTag::ModularComponent(tag) => tag.exemplar_identifier(),
             ItemTag::MetalIngot => "common.items.tag_examples.metal_ingot",
+            ItemTag::Cultist => "common.items.tag_examples.cultist",
         }
     }
 }

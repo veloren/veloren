@@ -1,13 +1,14 @@
+use crate::rtsim::{Entity as RtSimData, RtSim};
 use common::{
     comp::{
         self,
         agent::{AgentEvent, Tactic, Target, DEFAULT_INTERACTION_TIME, TRADE_INTERACTION_TIME},
         group,
-        inventory::{slot::EquipSlot, trade_pricing::TradePricing},
+        inventory::{item::ItemTag, slot::EquipSlot, trade_pricing::TradePricing},
         invite::InviteResponse,
         item::{
             tool::{ToolKind, UniqueKind},
-            ItemKind,
+            ItemDesc, ItemKind,
         },
         skills::{AxeSkill, BowSkill, HammerSkill, Skill, StaffSkill, SwordSkill},
         Agent, Alignment, Body, CharacterState, ControlAction, ControlEvent, Controller, Energy,
@@ -16,7 +17,8 @@ use common::{
     },
     event::{Emitter, EventBus, ServerEvent},
     path::TraversalConfig,
-    resources::{DeltaTime, TimeOfDay},
+    resources::{DeltaTime, Time, TimeOfDay},
+    rtsim::{Memory, MemoryItem, RtSimEntity, RtSimEvent},
     terrain::{Block, TerrainGrid},
     time::DayPeriod,
     trade::{Good, TradeAction, TradePhase, TradeResult},
@@ -32,13 +34,14 @@ use specs::{
     saveload::{Marker, MarkerAllocator},
     shred::ResourceId,
     Entities, Entity as EcsEntity, Join, ParJoin, Read, ReadExpect, ReadStorage, SystemData, World,
-    Write, WriteStorage,
+    Write, WriteExpect, WriteStorage,
 };
 use std::{f32::consts::PI, sync::Arc};
 use vek::*;
 
 struct AgentData<'a> {
     entity: &'a EcsEntity,
+    rtsim_entity: Option<&'a RtSimData>,
     uid: &'a Uid,
     pos: &'a Pos,
     vel: &'a Vel,
@@ -63,6 +66,7 @@ pub struct ReadData<'a> {
     entities: Entities<'a>,
     uid_allocator: Read<'a, UidAllocator>,
     dt: Read<'a, DeltaTime>,
+    time: Read<'a, Time>,
     group_manager: Read<'a, group::GroupManager>,
     energies: ReadStorage<'a, Energy>,
     positions: ReadStorage<'a, Pos>,
@@ -83,6 +87,7 @@ pub struct ReadData<'a> {
     time_of_day: Read<'a, TimeOfDay>,
     light_emitter: ReadStorage<'a, LightEmitter>,
     world: ReadExpect<'a, Arc<world::World>>,
+    rtsim_entities: ReadStorage<'a, RtSimEntity>,
 }
 
 // This is 3.1 to last longer than the last damage timer (3.0 seconds)
@@ -107,6 +112,7 @@ impl<'a> System<'a> for Sys {
         Write<'a, EventBus<ServerEvent>>,
         WriteStorage<'a, Agent>,
         WriteStorage<'a, Controller>,
+        WriteExpect<'a, RtSim>,
     );
 
     const NAME: &'static str = "agent";
@@ -116,8 +122,9 @@ impl<'a> System<'a> for Sys {
     #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     fn run(
         job: &mut Job<Self>,
-        (read_data, event_bus, mut agents, mut controllers): Self::SystemData,
+        (read_data, event_bus, mut agents, mut controllers, mut rtsim): Self::SystemData,
     ) {
+        let rtsim = &mut *rtsim;
         job.cpu_stats.measure(ParMode::Rayon);
         (
             &read_data.entities,
@@ -220,12 +227,16 @@ impl<'a> System<'a> for Sys {
                     let flees = alignment
                         .map(|a| !matches!(a, Alignment::Enemy | Alignment::Owned(_)))
                         .unwrap_or(true);
-
                     let damage = health.current() as f32 / health.maximum() as f32;
+                    let rtsim_entity = read_data
+                        .rtsim_entities
+                        .get(entity)
+                        .and_then(|rtsim_ent| rtsim.get_entity(rtsim_ent.0));
 
                     // Package all this agent's data into a convenient struct
                     let data = AgentData {
                         entity: &entity,
+                        rtsim_entity,
                         uid,
                         pos,
                         vel,
@@ -404,6 +415,20 @@ impl<'a> System<'a> for Sys {
                                                 read_data.bodies.get(attacker),
                                                 &read_data.dt,
                                             );
+                                            // Remember this encounter if an RtSim entity
+                                            if let Some(tgt_stats) = read_data.stats.get(attacker) {
+                                                if data.rtsim_entity.is_some() {
+                                                    agent.rtsim_controller.events.push(
+                                                        RtSimEvent::AddMemory(Memory {
+                                                            item: MemoryItem::CharacterFight {
+                                                                name: tgt_stats.name.clone(),
+                                                            },
+                                                            time_to_forget: read_data.time.0
+                                                                + 300.0,
+                                                        }),
+                                                    );
+                                                }
+                                            }
                                         }
                                     } else {
                                         agent.target = None;
@@ -428,6 +453,15 @@ impl<'a> System<'a> for Sys {
                     debug_assert!(controller.inputs.look_dir.map(|e| !e.is_nan()).reduce_and());
                 },
             );
+        for (agent, rtsim_entity) in (&mut agents, &read_data.rtsim_entities).join() {
+            // Entity must be loaded in as it has an agent component :)
+            // React to all events in the controller
+            for event in core::mem::take(&mut agent.rtsim_controller.events) {
+                if let RtSimEvent::AddMemory(memory) = event {
+                    rtsim.insert_entity_memory(rtsim_entity.0, memory.clone());
+                }
+            }
+        }
     }
 }
 
@@ -472,7 +506,7 @@ impl<'a> AgentData<'a> {
                 self.idle(agent, controller, &read_data);
             }
         } else if thread_rng().gen::<f32>() < 0.1 {
-            self.choose_target(agent, controller, &read_data);
+            self.choose_target(agent, controller, &read_data, event_emitter);
         } else {
             self.idle(agent, controller, &read_data);
         }
@@ -775,16 +809,43 @@ impl<'a> AgentData<'a> {
                             ) {
                                 controller.inputs.look_dir = dir;
                             }
-                            controller.actions.push(ControlAction::Stand);
                             controller.actions.push(ControlAction::Talk);
-                            if let Some((_travel_to, destination_name)) =
-                                &agent.rtsim_controller.travel_to
+                            if let (Some((_travel_to, destination_name)), Some(rtsim_entity)) =
+                                (&agent.rtsim_controller.travel_to, &self.rtsim_entity)
                             {
-                                let msg = format!(
-                                    "I'm heading to {}! Want to come along?",
-                                    destination_name
-                                );
-                                event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc(
+                                let msg = if let Some(tgt_stats) = read_data.stats.get(target) {
+                                    agent.rtsim_controller.events.push(RtSimEvent::AddMemory(
+                                        Memory {
+                                            item: MemoryItem::CharacterInteraction {
+                                                name: tgt_stats.name.clone(),
+                                            },
+                                            time_to_forget: read_data.time.0 + 600.0,
+                                        },
+                                    ));
+                                    if rtsim_entity.brain.remembers_character(&tgt_stats.name) {
+                                        format!(
+                                            "Greetings fair {}! It has been far too long since \
+                                             last I saw you.",
+                                            &tgt_stats.name
+                                        )
+                                    } else {
+                                        format!(
+                                            "I'm heading to {}! Want to come along?",
+                                            destination_name
+                                        )
+                                    }
+                                } else {
+                                    format!(
+                                        "I'm heading to {}! Want to come along?",
+                                        destination_name
+                                    )
+                                };
+                                event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc_say(
+                                    *self.uid, msg,
+                                )));
+                            } else if agent.trade_for_site.is_some() {
+                                let msg = "Can I interest you in a trade?".to_string();
+                                event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc_say(
                                     *self.uid, msg,
                                 )));
                             } else {
@@ -800,7 +861,6 @@ impl<'a> AgentData<'a> {
             Some(AgentEvent::TradeInvite(_with)) => {
                 if agent.trade_for_site.is_some() && !agent.trading {
                     // stand still and looking towards the trading player
-                    controller.actions.push(ControlAction::Stand);
                     controller.actions.push(ControlAction::Talk);
                     controller
                         .events
@@ -817,12 +877,12 @@ impl<'a> AgentData<'a> {
                 if agent.trading {
                     match result {
                         TradeResult::Completed => {
-                            event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc(
+                            event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc_say(
                                 *self.uid,
                                 "Thank you for trading with me!".to_string(),
                             )))
                         },
-                        _ => event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc(
+                        _ => event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc_say(
                             *self.uid,
                             "Maybe another time, have a good day!".to_string(),
                         ))),
@@ -892,8 +952,9 @@ impl<'a> AgentData<'a> {
                                 "That only covers {:.1}% of my costs!",
                                 balance0 / balance1 * 100.0
                             );
-                            event_emitter
-                                .emit(ServerEvent::Chat(UnresolvedChatMsg::npc(*self.uid, msg)));
+                            event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc_say(
+                                *self.uid, msg,
+                            )));
                         }
                         if pending.phase != TradePhase::Mutate {
                             // we got into the review phase but without balanced goods, decline
@@ -981,14 +1042,20 @@ impl<'a> AgentData<'a> {
         agent.action_timer += dt.0;
     }
 
-    fn choose_target(&self, agent: &mut Agent, controller: &mut Controller, read_data: &ReadData) {
+    fn choose_target(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        read_data: &ReadData,
+        event_emitter: &mut Emitter<'_, ServerEvent>,
+    ) {
         agent.action_timer = 0.0;
 
         // Search for new targets (this looks expensive, but it's only run occasionally)
         // TODO: Replace this with a better system that doesn't consider *all* entities
-        let target = (&read_data.entities, &read_data.positions, &read_data.healths, read_data.alignments.maybe(), read_data.char_states.maybe())
+        let target = (&read_data.entities, &read_data.positions, &read_data.healths, &read_data.stats, &read_data.inventories, read_data.alignments.maybe(), read_data.char_states.maybe())
             .join()
-            .filter(|(e, e_pos, e_health, e_alignment, char_state)| {
+            .filter(|(e, e_pos, e_health, e_stats, e_inventory, e_alignment, char_state)| {
                 let mut search_dist = SEARCH_DIST;
                 let mut listen_dist = LISTEN_DIST;
                 if char_state.map_or(false, |c_s| c_s.is_stealthy()) {
@@ -1003,16 +1070,56 @@ impl<'a> AgentData<'a> {
                         || e_pos.0.distance_squared(self.pos.0) < listen_dist.powi(2)) // TODO implement proper sound system for agents
                     && e != self.entity
                     && !e_health.is_dead
-                    && self.alignment.and_then(|a| e_alignment.map(|b| a.hostile_towards(*b))).unwrap_or(false)
+                    && (self.alignment.and_then(|a| e_alignment.map(|b| a.hostile_towards(*b))).unwrap_or(false) || (
+                            if let Some(rtsim_entity) = &self.rtsim_entity {
+                                if rtsim_entity.brain.remembers_fight_with_character(&e_stats.name) {
+                                    agent.rtsim_controller.events.push(
+                                        RtSimEvent::AddMemory(Memory {
+                                            item: MemoryItem::CharacterFight { name: e_stats.name.clone() },
+                                            time_to_forget: read_data.time.0 + 300.0,
+                                        })
+                                    );
+                                    let msg = format!("{}! How dare you cross me again!", e_stats.name.clone());
+                                    event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc_say(*self.uid, msg)));
+                                    true
+                                } else {
+                                    false
+                                }
+                            } else {
+                                false
+                            }
+                        ) ||
+                        (
+                            self.alignment.map_or(false, |alignment| {
+                                if matches!(alignment, Alignment::Npc) && e_inventory.equipped_items().filter(|item| item.tags().contains(&ItemTag::Cultist)).count() > 2 {
+                                    if agent.can_speak {
+                                        if self.rtsim_entity.is_some() {
+                                            agent.rtsim_controller.events.push(
+                                                RtSimEvent::AddMemory(Memory {
+                                                    item: MemoryItem::CharacterFight { name: e_stats.name.clone() },
+                                                    time_to_forget: read_data.time.0 + 300.0,
+                                                })
+                                            );
+                                        }
+                                        let msg = "npc.speech.villager_cultist_alarm".to_string();
+                                        event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc(*self.uid, msg)));
+                                    }
+                                    true
+                                } else {
+                                    false
+                                }
+                            })
+                        ))
+
             })
             // Can we even see them?
-            .filter(|(_, e_pos, _, _, _)| read_data.terrain
+            .filter(|(_, e_pos, _, _, _, _, _)| read_data.terrain
                 .ray(self.pos.0 + Vec3::unit_z(), e_pos.0 + Vec3::unit_z())
                 .until(Block::is_opaque)
                 .cast()
                 .0 >= e_pos.0.distance(self.pos.0))
-            .min_by_key(|(_, e_pos, _, _, _)| (e_pos.0.distance_squared(self.pos.0) * 100.0) as i32) // TODO choose target by more than just distance
-            .map(|(e, _, _, _, _)| e);
+            .min_by_key(|(_, e_pos, _, _, _, _, _)| (e_pos.0.distance_squared(self.pos.0) * 100.0) as i32) // TODO choose target by more than just distance
+            .map(|(e, _, _, _, _, _, _)| e);
         if let Some(target) = target {
             agent.target = Some(Target {
                 target,

@@ -2124,6 +2124,7 @@ impl Client {
             // NPCs can't talk. Should be filtered by hud/mod.rs for voxygen and should be filtered
             // by server (due to not having a Pos) for chat-cli
             comp::ChatType::Npc(_uid, _r) => "".to_string(),
+            comp::ChatType::NpcSay(uid, _r) => message_format(uid, message, None),
             comp::ChatType::Meta => message.to_string(),
         }
     }

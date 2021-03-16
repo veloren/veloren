@@ -613,7 +613,8 @@ fn render_chat_line(chat_type: &ChatType<String>, imgs: &Imgs) -> (Color, conrod
         ChatType::Faction(_uid, _s) => (FACTION_COLOR, imgs.chat_faction_small),
         ChatType::Region(_uid) => (REGION_COLOR, imgs.chat_region_small),
         ChatType::World(_uid) => (WORLD_COLOR, imgs.chat_world_small),
-        ChatType::Npc(_uid, _r) => panic!("NPCs can't talk"), // Should be filtered by hud/mod.rs
+        ChatType::Npc(_uid, _r) => panic!("NPCs can't talk!"), // Should be filtered by hud/mod.rs
+        ChatType::NpcSay(_uid, _r) => (SAY_COLOR, imgs.chat_say_small),
         ChatType::Meta => (INFO_COLOR, imgs.chat_command_info_small),
     }
 }

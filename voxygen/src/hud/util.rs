@@ -186,16 +186,14 @@ fn armor_desc(armor: &Armor, desc: &str, slots: u16) -> String {
         Protection::Normal(a) => a.to_string(),
         Protection::Invincible => "Inf".to_string(),
     };
-    //let armor_poise_resilience = match armor.get_poise_resilience() {
-    //    Protection::Normal(a) => a.to_string(),
-    //    Protection::Invincible => "Inf".to_string(),
-    //};
+    let armor_poise_resilience = match armor.get_poise_resilience() {
+        Protection::Normal(a) => a.to_string(),
+        Protection::Invincible => "Inf".to_string(),
+    };
 
     let mut description = format!(
-        "{}\n\nArmor: {}",
-        //"{}\n\nArmor: {}\n\nPoise Resilience: {}",
-        kind,
-        armor_protection, /* armor_poise_resilience // Add back when we are ready for poise */
+        "{}\n\nArmor: {}\n\nPoise Resilience: {}",
+        kind, armor_protection, armor_poise_resilience
     );
 
     if !desc.is_empty() {
@@ -235,7 +233,6 @@ fn tool_desc(tool: &Tool, components: &[Item], msm: &MaterialStatManifest, desc:
     // Get tool stats
     let stats = tool.stats.resolve_stats(msm, components).clamp_speed();
 
-    //let poise_strength = tool.base_poise_strength();
     let hands = match tool.hands {
         Hands::One => "One",
         Hands::Two => "Two",
@@ -260,13 +257,9 @@ fn tool_desc(tool: &Tool, components: &[Item], msm: &MaterialStatManifest, desc:
 
 fn statblock_desc(stats: &Stats) -> String {
     format!(
-        "DPS: {:0.1}\n\nPower: {:0.1}\n\nSpeed: {:0.1}\n\n",
-        // add back when ready for poise
-        //"{}\n\nDPS: {:0.1}\n\nPower: {:0.1}\n\nPoise Strength: {:0.1}\n\nSpeed: \
-        // {:0.1}\n\n{}\n\n<Right-Click to use>",
-        stats.speed * stats.power * 10.0, // Damage per second
+        "Power: {:0.1}\n\nPoise Strength: {:0.1}\n\nSpeed: {:0.1}\n\n",
         stats.power * 10.0,
-        //stats.poise_strength * 10.0,
+        stats.poise_strength * 10.0,
         stats.speed,
     ) + &format!(
         "Critical chance: {:0.1}%\n\nCritical multiplier: {:0.1}x\n\n",
@@ -339,8 +332,9 @@ mod tests {
             ingredient_desc("mushrooms", "common.items.food.mushroom", &testmsm)
         );
         assert_eq!(
-            "Crafting Ingredient\n\nA bronze ingot.\n\nStat multipliers:\nDPS: 210.0\n\nPower: \
-             30.0\n\nSpeed: 7.0\n\nCritical chance: 50.0%\n\nCritical multiplier: 2.0x\n\n",
+            "Crafting Ingredient\n\nA bronze ingot.\n\nStat multipliers:\nPower: 30.0\n\nPoise \
+             Strength: 50.0\n\nSpeed: 7.0\n\nCritical chance: 50.0%\n\nCritical multiplier: \
+             2.0x\n\n",
             ingredient_desc(
                 "A bronze ingot.",
                 "common.items.crafting_ing.bronze_ingot",
