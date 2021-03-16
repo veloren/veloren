@@ -244,32 +244,30 @@ impl<'a> System<'a> for Sys {
                         }
                     };
 
-                    if send_now {
-                        if last_pos.get(entity).is_none() {
-                            comp_sync_package.comp_inserted(uid, pos);
-                            let _ = last_pos.insert(entity, Last(pos));
-                        } else {
-                            comp_sync_package.comp_modified(uid, pos);
-                        }
-
-                        vel.map(|v| {
-                            if last_vel.get(entity).is_none() {
-                                comp_sync_package.comp_inserted(uid, *v);
-                                let _ = last_vel.insert(entity, Last(*v));
-                            } else {
-                                comp_sync_package.comp_modified(uid, *v);
-                            }
-                        });
-
-                        ori.map(|o| {
-                            if last_ori.get(entity).is_none() {
-                                comp_sync_package.comp_inserted(uid, *o);
-                                let _ = last_ori.insert(entity, Last(*o));
-                            } else {
-                                comp_sync_package.comp_modified(uid, *o);
-                            }
-                        });
+                    if last_pos.get(entity).is_none() {
+                        comp_sync_package.comp_inserted(uid, pos);
+                        let _ = last_pos.insert(entity, Last(pos));
+                    } else if send_now {
+                        comp_sync_package.comp_modified(uid, pos);
                     }
+
+                    vel.map(|v| {
+                        if last_vel.get(entity).is_none() {
+                            comp_sync_package.comp_inserted(uid, *v);
+                            let _ = last_vel.insert(entity, Last(*v));
+                        } else if send_now {
+                            comp_sync_package.comp_modified(uid, *v);
+                        }
+                    });
+
+                    ori.map(|o| {
+                        if last_ori.get(entity).is_none() {
+                            comp_sync_package.comp_inserted(uid, *o);
+                            let _ = last_ori.insert(entity, Last(*o));
+                        } else if send_now {
+                            comp_sync_package.comp_modified(uid, *o);
+                        }
+                    });
                 }
 
                 client.send_fallible(ServerGeneral::CompSync(comp_sync_package));
