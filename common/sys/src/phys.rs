@@ -471,9 +471,10 @@ impl<'a> PhysicsData<'a> {
             .collect::<Vec<_>>()
             .into_iter()
             .for_each(|(entity, pos, vel)| {
-                let _ = write
-                    .pos_vel_defers
-                    .insert(entity, PosVelDefer { pos, vel });
+                let _ = write.pos_vel_defers.insert(entity, PosVelDefer {
+                    pos: Some(pos),
+                    vel: Some(vel),
+                });
             });
         drop(guard);
 
@@ -580,6 +581,7 @@ impl<'a> PhysicsData<'a> {
                     let mut land_on_ground = None;
                     // Defer the writes of positions and velocities to allow an inner loop over
                     // terrain-like entities
+                    let old_vel = *vel;
                     let mut vel = *vel;
 
                     if sticky.is_some() && physics_state.on_surface().is_some() {
@@ -877,10 +879,17 @@ impl<'a> PhysicsData<'a> {
                         }
                     }
 
-                    *pos_vel_defer = PosVelDefer {
-                        pos: Pos(tgt_pos),
-                        vel,
-                    };
+                    if tgt_pos != pos.0 {
+                        pos_vel_defer.pos = Some(Pos(tgt_pos));
+                    } else {
+                        pos_vel_defer.pos = None;
+                    }
+
+                    if vel != old_vel {
+                        pos_vel_defer.vel = Some(vel);
+                    } else {
+                        pos_vel_defer.vel = None;
+                    }
 
                     land_on_ground
                 },
@@ -901,12 +910,16 @@ impl<'a> PhysicsData<'a> {
             &read.entities,
             &mut write.positions,
             &mut write.velocities,
-            &write.pos_vel_defers,
+            &mut write.pos_vel_defers,
         )
             .join()
         {
-            *pos = pos_vel_defer.pos;
-            *vel = pos_vel_defer.vel;
+            if let Some(new_pos) = pos_vel_defer.pos.take() {
+                *pos = new_pos;
+            }
+            if let Some(new_vel) = pos_vel_defer.vel.take() {
+                *vel = new_vel;
+            }
         }
         drop(guard);
 
