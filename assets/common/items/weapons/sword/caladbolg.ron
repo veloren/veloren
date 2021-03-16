@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Caladborg",
+    name: "Caladbolg",
     description: "You sense an eldritch presence watching you.",
     kind: Tool((
         kind: Sword,

@@ -262,7 +262,7 @@ fn statblock_desc(stats: &Stats) -> String {
         stats.poise_strength * 10.0,
         stats.speed,
     ) + &format!(
-        "Critical chance: {:0.1}%\n\nCritical multiplier: {:0.1}x\n\n",
+        "Crit chance: {:0.1}%\n\nCrit damage: x{:0.1}\n\n",
         stats.crit_chance * 100.0,
         stats.crit_mult,
     )
@@ -333,8 +333,7 @@ mod tests {
         );
         assert_eq!(
             "Crafting Ingredient\n\nA bronze ingot.\n\nStat multipliers:\nPower: 30.0\n\nPoise \
-             Strength: 50.0\n\nSpeed: 7.0\n\nCritical chance: 50.0%\n\nCritical multiplier: \
-             2.0x\n\n",
+             Strength: 50.0\n\nSpeed: 7.0\n\nCrit chance: 50.0%\n\nCrit damage: x2.0\n\n",
             ingredient_desc(
                 "A bronze ingot.",
                 "common.items.crafting_ing.bronze_ingot",

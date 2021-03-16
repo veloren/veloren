@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Bone Staff",
-    description: "There's a red gem suspended in the bones.",
+    name: "Ley Seeker",
+    description: "Starts swinging when pointed away from water",
     kind: Tool((
         kind: Staff,
         hands: Two,

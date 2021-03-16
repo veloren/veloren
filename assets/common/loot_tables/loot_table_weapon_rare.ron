@@ -21,6 +21,10 @@
     (0.10, "common.items.weapons.sceptre.fork0"),
     // staves
     (1.00, "common.items.weapons.staff.amethyst_staff"),
+    (0.7, "common.items.weapons.staff.aurora"),
+    (0.65, "common.items.weapons.staff.lava_rod"),
+    (0.75, "common.items.weapons.staff.infused_tower"),
+    (0.5, "common.items.weapons.staff.flamethrower_0"),
     // hammers
     (0.30, "common.items.weapons.hammer.cobalt_hammer-0"),
     (0.30, "common.items.weapons.hammer.cobalt_hammer-1"),

@@ -1,0 +1,18 @@
+ItemDef(
+    name: "Phoenix",
+    description: "The ashes never stop glowing",
+    kind: Tool((
+        kind: Staff,
+        hands: Two,
+        stats: Direct((
+            equip_time_secs: 0.6,
+            power: 3.0,
+            poise_strength: 1.0,
+            speed: 0.67,
+            crit_chance: 0.1002994,
+            crit_mult: 1.3798152,
+        )),
+    )),
+    quality: Legendary,
+    tags: [],
+)

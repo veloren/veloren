@@ -1,8 +1,8 @@
 ItemDef(
-    name: "Blue Worker Pants",
+    name: "Purple Worker Shirt",
     description: "Resilient and reliable.",
     kind: Armor((
-        kind: Pants("WorkerBlue"),
+        kind: Chest("WorkerPurpBrown"),
         stats: (
             protection: Normal(0.1),
             poise_resilience: Normal(1.0),

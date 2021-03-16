@@ -1,16 +1,16 @@
 ItemDef(
-    name: "Cultist Staff",
-    description: "The fire gives off no heat.",
+    name: "Orcish Branding Iron",
+    description: "Used to mark animals and captured foes",
     kind: Tool((
         kind: Staff,
         hands: Two,
         stats: Direct((
             equip_time_secs: 0.3,
-            power: 2.0,
+            power: 0.9,
             poise_strength: 1.0,
-            speed: 1.0,
-            crit_chance: 0.140625,
-            crit_mult: 1.4063492,
+            speed: 2.0,
+            crit_chance: 0.2638889,
+            crit_mult: 1.481203,
         )),
     )),
     quality: Epic,

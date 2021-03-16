@@ -68,6 +68,10 @@
             vox_spec: ("armor.rugged.chest", (-7.0, -3.5, 2.0)),
             color: None
         ),
+        "WorkerPurpBrown": (
+            vox_spec: ("armor.misc.chest.worker_purp_brown", (-7.0, -3.5, 2.0)),
+            color: None
+        ),
         // Villagers
         "WorkerGreen0": (
             vox_spec: ("armor.misc.chest.worker_white", (-7.0, -3.5, 2.0)),

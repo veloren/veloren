@@ -20,5 +20,9 @@
           vox_spec: ("armor.misc.lantern.blue-0", (-2.0, -2.0, -7.0)),
           color: None
       ),
+      "GeodePurp": (
+          vox_spec: ("lantern.geode_purp", (-3.0, -3.0, -7.0)),
+          color: None
+      ),
     },
 ))

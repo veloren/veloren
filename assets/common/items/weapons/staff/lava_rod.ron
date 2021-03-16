@@ -1,0 +1,18 @@
+ItemDef(
+    name: "Lava Rod",
+    description: "'Property of Rob MacLava'",
+    kind: Tool((
+        kind: Staff,
+        hands: Two,
+        stats: Direct((
+            equip_time_secs: 0.3,
+            power: 2.125,
+            poise_strength: 1.0,
+            speed: 0.8,
+            crit_chance: 0.114379086,
+            crit_mult: 1.4114286,
+        )),
+    )),
+    quality: High,
+    tags: [],
+)
