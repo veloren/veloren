@@ -215,7 +215,6 @@ impl<'a> PhysicsData<'a> {
         let lg2_large_cell_size = 6;
         let radius_cutoff = 8;
         common_base::plot!("spatial grid cell size", (1 << lg2_cell_size) as f64);
-        // let mut radius_list = Vec::new();
         let mut spatial_grid = SpatialGrid::new(lg2_cell_size, lg2_large_cell_size, radius_cutoff);
         for (entity, pos, phys_cache, _, _, _, _, _) in (
             &read.entities,
@@ -234,18 +233,7 @@ impl<'a> PhysicsData<'a> {
             let pos_2d = pos.0.xy().map(|e| e as i32);
             const POS_TRUNCATION_ERROR: u32 = 1;
             spatial_grid.insert(pos_2d, radius_2d + POS_TRUNCATION_ERROR, entity);
-            // radius_list.push(phys_cache.scaled_radius.ceil() as u32);
         }
-        /* if !radius_list.is_empty() {
-            radius_list.sort();
-            common_base::plot!("radius:min", *radius_list.first().unwrap() as f64);
-            common_base::plot!("radius:max", *radius_list.last().unwrap() as f64);
-            common_base::plot!(
-                "radius:mean",
-                radius_list.iter().sum::<u32>() as f64 / radius_list.len() as f64
-            );
-            common_base::plot!("radius:mode", radius_list[radius_list.len() / 2] as f64);
-        } */
 
         spatial_grid
     }
