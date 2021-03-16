@@ -15,9 +15,7 @@ use common::{
 };
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::{msg::ServerGeneral, sync::CompSyncPackage};
-use specs::{
-    Entities, Entity as EcsEntity, Join, Read, ReadExpect, ReadStorage, Write, WriteStorage,
-};
+use specs::{Entities, Join, Read, ReadExpect, ReadStorage, Write, WriteStorage};
 use vek::*;
 
 /// This system will send physics updates to the client
@@ -201,22 +199,35 @@ impl<'a> System<'a> for Sys {
                     .map(|msg| client.send_prepared(&msg));
             });
 
-            let mut send_general = |msg: ServerGeneral,
-                                    entity: EcsEntity,
-                                    pos: Pos,
-                                    force_update: Option<&ForceUpdate>,
-                                    throttle: bool| {
-                for (client, _, client_entity, client_pos) in &mut subscribers {
-                    if if client_entity == &entity {
+            for (client, _, client_entity, client_pos) in &mut subscribers {
+                let mut comp_sync_package = CompSyncPackage::new();
+
+                for (_, entity, &uid, &pos, vel, ori, force_update, collider) in (
+                    region.entities(),
+                    &entities,
+                    &uids,
+                    &positions,
+                    velocities.maybe(),
+                    orientations.maybe(),
+                    force_updates.maybe(),
+                    colliders.maybe(),
+                )
+                    .join()
+                {
+                    // Decide how regularly to send physics updates.
+                    let send_now = if client_entity == &entity {
                         // Don't send client physics updates about itself unless force update is set
                         force_update.is_some()
-                    } else if !throttle {
-                        // Send the message if not throttling
+                    } else if matches!(collider, Some(Collider::Voxel { .. })) {
+                        // Things with a voxel collider (airships, etc.) need to have very stable
+                        // physics so we always send updated for these where
+                        // we can.
                         true
                     } else {
-                        // Throttle update rate based on distance to client
+                        // Throttle update rates for all other entities based on distance to client
                         let distance_sq = client_pos.0.distance_squared(pos.0);
                         let id_staggered_tick = tick + entity.id() as u64;
+
                         // More entities farther away so checks start there
                         if distance_sq > 350.0f32.powi(2) {
                             id_staggered_tick % 64 == 0
@@ -231,108 +242,37 @@ impl<'a> System<'a> for Sys {
                         } else {
                             id_staggered_tick % 3 == 0
                         }
-                    } {
-                        client.send_fallible(msg.clone());
+                    };
+
+                    if send_now {
+                        if last_pos.get(entity).is_none() {
+                            comp_sync_package.comp_inserted(uid, pos);
+                            let _ = last_pos.insert(entity, Last(pos));
+                        } else {
+                            comp_sync_package.comp_modified(uid, pos);
+                        }
+
+                        vel.map(|v| {
+                            if last_vel.get(entity).is_none() {
+                                comp_sync_package.comp_inserted(uid, *v);
+                                let _ = last_vel.insert(entity, Last(*v));
+                            } else {
+                                comp_sync_package.comp_modified(uid, *v);
+                            }
+                        });
+
+                        ori.map(|o| {
+                            if last_ori.get(entity).is_none() {
+                                comp_sync_package.comp_inserted(uid, *o);
+                                let _ = last_ori.insert(entity, Last(*o));
+                            } else {
+                                comp_sync_package.comp_modified(uid, *o);
+                            }
+                        });
                     }
                 }
-            };
 
-            // Sync physics components
-            for (_, entity, &uid, &pos, maybe_vel, maybe_ori, force_update, collider) in (
-                region.entities(),
-                &entities,
-                &uids,
-                &positions,
-                velocities.maybe(),
-                orientations.maybe(),
-                force_updates.maybe(),
-                colliders.maybe(),
-            )
-                .join()
-            {
-                let mut comp_sync_package = CompSyncPackage::new();
-                let mut throttle = true;
-
-                // Extrapolation depends on receiving several frames indicating that something
-                // has stopped in order for the extrapolated value to have
-                // stopped
-                const SEND_UNCHANGED_PHYSICS_DATA: bool = true;
-
-                // TODO: An entity that stopped moving on a tick that it wasn't sent to the
-                // player will never have its position updated
-                match last_pos
-                    .get(entity)
-                    .map(|&l| l.0 != pos || SEND_UNCHANGED_PHYSICS_DATA)
-                {
-                    Some(false) => {},
-                    Some(true) => {
-                        let _ = last_pos.insert(entity, Last(pos));
-                        comp_sync_package.comp_modified(uid, pos);
-                    },
-                    None => {
-                        let _ = last_pos.insert(entity, Last(pos));
-                        throttle = false;
-                        comp_sync_package.comp_inserted(uid, pos);
-                    },
-                }
-
-                if let Some(&vel) = maybe_vel {
-                    match last_vel
-                        .get(entity)
-                        .map(|&l| l.0 != vel || SEND_UNCHANGED_PHYSICS_DATA)
-                    {
-                        Some(false) => {},
-                        Some(true) => {
-                            let _ = last_vel.insert(entity, Last(vel));
-                            comp_sync_package.comp_modified(uid, vel);
-                        },
-                        None => {
-                            let _ = last_vel.insert(entity, Last(vel));
-                            throttle = false;
-                            comp_sync_package.comp_inserted(uid, vel);
-                        },
-                    }
-                } else if last_vel.remove(entity).is_some() {
-                    // Send removal message if Vel was removed
-                    // Note: we don't have to handle this for position because the entity will be
-                    // removed from the client by the region system
-                    throttle = false;
-                    comp_sync_package.comp_removed::<Vel>(uid);
-                }
-
-                if let Some(&ori) = maybe_ori {
-                    match last_ori
-                        .get(entity)
-                        .map(|&l| l.0 != ori || SEND_UNCHANGED_PHYSICS_DATA)
-                    {
-                        Some(false) => {},
-                        Some(true) => {
-                            let _ = last_ori.insert(entity, Last(ori));
-                            comp_sync_package.comp_modified(uid, ori);
-                        },
-                        None => {
-                            let _ = last_ori.insert(entity, Last(ori));
-                            throttle = false;
-                            comp_sync_package.comp_inserted(uid, ori);
-                        },
-                    }
-                } else if last_ori.remove(entity).is_some() {
-                    // Send removal message if Ori was removed
-                    throttle = false;
-                    comp_sync_package.comp_removed::<Ori>(uid);
-                }
-
-                if matches!(collider, Some(Collider::Voxel { .. })) {
-                    throttle = false;
-                }
-
-                send_general(
-                    ServerGeneral::CompSync(comp_sync_package),
-                    entity,
-                    pos,
-                    force_update,
-                    throttle,
-                );
+                client.send_fallible(ServerGeneral::CompSync(comp_sync_package));
             }
         }
 
