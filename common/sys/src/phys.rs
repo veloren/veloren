@@ -242,6 +242,7 @@ impl<'a> PhysicsData<'a> {
         // TODO: make sure to check git stash show -p  to make sure nothing was missed
         span!(_guard, "Apply pushback");
         let use_grid = inline_tweak::release_tweak!(true);
+        common_base::plot!("use grid", if use_grid { 1.0 } else { 0.0 });
         job.cpu_stats.measure(ParMode::Rayon);
         let PhysicsData {
             ref read,
