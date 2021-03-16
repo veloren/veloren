@@ -2,6 +2,8 @@
 use crate::plugin::memory_manager::EcsWorld;
 #[cfg(feature = "plugins")]
 use crate::plugin::PluginMgr;
+#[cfg(feature = "plugins")]
+use common::uid::UidAllocator;
 use common::{
     comp,
     event::{EventBus, LocalEvent, ServerEvent},
@@ -11,7 +13,6 @@ use common::{
     terrain::{Block, TerrainChunk, TerrainGrid},
     time::DayPeriod,
     trade::Trades,
-    uid::UidAllocator,
     vol::{ReadVol, WriteVol},
 };
 use common_base::span;

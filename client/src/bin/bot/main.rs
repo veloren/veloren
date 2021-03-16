@@ -207,7 +207,6 @@ impl BotClient {
         info!("login done");
     }
 
-
     pub fn handle_ingame_join(&mut self, prefix: &str) {
         let creds: Vec<_> = self
             .settings
@@ -220,13 +219,11 @@ impl BotClient {
             let runtime = Arc::clone(&self.runtime);
 
             let server = self.settings.server.clone();
-            let client = match self
-                .bot_clients
-                .get_mut(&cred.username) {
+            let client = match self.bot_clients.get_mut(&cred.username) {
                 Some(c) => c,
                 None => {
                     tracing::trace!(?cred.username, "skip not logged in client");
-                    continue
+                    continue;
                 },
             };
 

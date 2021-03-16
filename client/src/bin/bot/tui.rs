@@ -28,7 +28,7 @@ pub enum Cmd {
     },
     InGame {
         prefix: String,
-    }
+    },
 }
 
 pub struct Tui {
