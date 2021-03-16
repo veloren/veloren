@@ -78,8 +78,8 @@ impl PartialOrd for Protection {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         match (*self, *other) {
             (Protection::Invincible, Protection::Invincible) => Some(Ordering::Equal),
-            (Protection::Invincible, _) => Some(Ordering::Less),
-            (_, Protection::Invincible) => Some(Ordering::Greater),
+            (Protection::Invincible, _) => Some(Ordering::Greater),
+            (_, Protection::Invincible) => Some(Ordering::Less),
             (Protection::Normal(a), Protection::Normal(b)) => f32::partial_cmp(&a, &b),
         }
     }

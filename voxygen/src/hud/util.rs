@@ -48,9 +48,7 @@ pub fn item_text<'a>(
             item.description(),
         )),
         ItemKind::Glider(_glider) => Cow::Owned(generic_desc(item)),
-        ItemKind::Consumable { effect, .. } => {
-            Cow::Owned(consumable_desc(effect, item.description()))
-        },
+        ItemKind::Consumable { effect, .. } => Cow::Owned(consumable_desc(effect)),
         ItemKind::Throwable { .. } => Cow::Owned(generic_desc(item)),
         ItemKind::Utility { .. } => Cow::Owned(generic_desc(item)),
         ItemKind::Ingredient { .. } => Cow::Owned(ingredient_desc(
@@ -141,9 +139,8 @@ fn modular_component_desc(
     result
 }
 
-fn consumable_desc(effects: &[Effect], desc: &str) -> String {
-    // TODO: localization
-    let mut description = "Consumable".to_string();
+pub fn consumable_desc(effects: &[Effect]) -> String {
+    let mut description = "".to_string();
 
     for effect in effects {
         if let Effect::Buff(buff) = effect {
@@ -168,7 +165,7 @@ fn consumable_desc(effects: &[Effect], desc: &str) -> String {
                 | BuffKind::ProtectingWard => continue,
             };
 
-            write!(&mut description, "\n\n{}", buff_desc).unwrap();
+            write!(&mut description, "{}", buff_desc).unwrap();
 
             let dur_desc = if dur_secs.is_some() {
                 match buff.kind {
@@ -196,11 +193,6 @@ fn consumable_desc(effects: &[Effect], desc: &str) -> String {
         }
     }
 
-    if !desc.is_empty() {
-        write!(&mut description, "\n\n{}", desc).unwrap();
-    }
-
-    write!(&mut description, "\n\n<Right-Click to use>").unwrap();
     description
 }
 
@@ -342,11 +334,7 @@ pub fn tool_desc(
 
 fn statblock_desc(stats: &Stats) -> String {
     format!(
-        "DPS: {:0.1}\nPower: {:0.1}\nSpeed: {:0.1}\n",
-        // add back when ready for poise
-        //"{}\n\nDPS: {:0.1}\n\nPower: {:0.1}\n\nPoise Strength: {:0.1}\n\nSpeed: \
-        // {:0.1}\n\n{}\n\n<Right-Click to use>",
-        stats.speed * stats.power * 10.0, // Damage per second
+        "Power: {:0.1}\n\nPoise Strength: {:0.1}\n\nSpeed: {:0.1}\n\n",
         stats.power * 10.0,
         stats.poise_strength * 10.0,
         stats.speed,
@@ -358,13 +346,13 @@ fn statblock_desc(stats: &Stats) -> String {
 }
 
 // Compare two type, output a colored character to show comparison
-pub fn comparaison<T: PartialOrd>(first: T, other: T) -> (String, conrod_core::color::Color) {
+pub fn comparison<T: PartialOrd>(first: T, other: T) -> (String, conrod_core::color::Color) {
     if first == other {
-        (".".to_string(), conrod_core::color::GREY)
+        ("•".to_string(), conrod_core::color::GREY)
     } else if other < first {
-        ("^".to_string(), conrod_core::color::GREEN)
+        ("▲".to_string(), conrod_core::color::GREEN)
     } else {
-        ("v".to_string(), conrod_core::color::RED)
+        ("▼".to_string(), conrod_core::color::RED)
     }
 }
 

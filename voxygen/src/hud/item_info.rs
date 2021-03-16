@@ -244,9 +244,9 @@ impl<'a> Widget for ItemInfo<'a> {
                             .resolve_stats(self.msm, equipped_item.components())
                             .clamp_speed();
                         let diff = tool_stats - equipped_tool_stats;
-                        let diff1 = util::comparaison(tool_stats.power, equipped_tool_stats.power);
-                        let diff2 = util::comparaison(tool_stats.speed, equipped_tool_stats.speed);
-                        let diff3 = util::comparaison(
+                        let diff1 = util::comparison(tool_stats.power, equipped_tool_stats.power);
+                        let diff2 = util::comparison(tool_stats.speed, equipped_tool_stats.speed);
+                        let diff3 = util::comparison(
                             tool_stats.poise_strength,
                             equipped_tool_stats.poise_strength,
                         );
@@ -299,11 +299,11 @@ impl<'a> Widget for ItemInfo<'a> {
                 if let Some(equipped_item) = equip_slot.cloned().next() {
                     if let ItemKind::Armor(equipped_armor) = equipped_item.kind() {
                         let diff = armor.stats - equipped_armor.stats;
-                        let diff1 = util::comparaison(
+                        let diff1 = util::comparison(
                             &armor.stats.protection,
                             &equipped_armor.stats.protection,
                         );
-                        let diff2 = util::comparaison(
+                        let diff2 = util::comparison(
                             &armor.stats.poise_resilience,
                             &equipped_armor.stats.poise_resilience,
                         );
@@ -346,7 +346,7 @@ impl<'a> Widget for ItemInfo<'a> {
             .depth(3.0)
             .w(300.0)
             .set(state.ids.desc, ui);
-        
+
         /*let test = widget::Text::new(&desc).w(300.0).get_h(ui);
         dbg!(test);*/
 

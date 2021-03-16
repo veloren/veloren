@@ -16,11 +16,11 @@ pub use widgets::{
     image_frame::ImageFrame,
     image_slider::ImageSlider,
     ingame::{Ingame, Ingameable},
+    item_tooltip::{ItemTooltip, ItemTooltipManager, ItemTooltipable},
     radio_list::RadioList,
     slot,
     toggle_button::ToggleButton,
     tooltip::{Tooltip, TooltipManager, Tooltipable},
-    item_tooltip::{ItemTooltip, ItemTooltipManager, ItemTooltipable},
 };
 
 use crate::{
@@ -236,7 +236,11 @@ impl Ui {
     pub fn id_generator(&mut self) -> Generator { self.ui.widget_id_generator() }
 
     pub fn set_widgets(&mut self) -> (UiCell, &mut ItemTooltipManager, &mut TooltipManager) {
-        (self.ui.set_widgets(), &mut self.item_tooltip_manager, &mut self.tooltip_manager)
+        (
+            self.ui.set_widgets(),
+            &mut self.item_tooltip_manager,
+            &mut self.tooltip_manager,
+        )
     }
 
     pub fn set_item_widgets(&mut self) -> (UiCell, &mut ItemTooltipManager) {

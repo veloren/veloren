@@ -12,7 +12,8 @@ use crate::{
     ui::{
         fonts::Fonts,
         slot::{ContentSize, SlotMaker},
-        ImageFrame, Tooltip, TooltipManager, Tooltipable, ItemTooltip, ItemTooltipManager, ItemTooltipable,
+        ImageFrame, ItemTooltip, ItemTooltipManager, ItemTooltipable, Tooltip, TooltipManager,
+        Tooltipable,
     },
 };
 use client::Client;
@@ -71,6 +72,7 @@ pub struct InventoryScroller<'a> {
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
     tooltip_manager: &'a mut TooltipManager,
+    item_tooltip_manager: &'a mut ItemTooltipManager,
     slot_manager: &'a mut SlotManager,
     pulse: f32,
     localized_strings: &'a Localization,
@@ -79,6 +81,7 @@ pub struct InventoryScroller<'a> {
     msm: &'a MaterialStatManifest,
     on_right: bool,
     item_tooltip: &'a Tooltip<'a>,
+    item_tooltip2: &'a ItemTooltip<'a>,
     playername: String,
     is_us: bool,
     inventory: &'a Inventory,
@@ -93,6 +96,7 @@ impl<'a> InventoryScroller<'a> {
         item_imgs: &'a ItemImgs,
         fonts: &'a Fonts,
         tooltip_manager: &'a mut TooltipManager,
+        item_tooltip_manager: &'a mut ItemTooltipManager,
         slot_manager: &'a mut SlotManager,
         pulse: f32,
         localized_strings: &'a Localization,
@@ -101,6 +105,7 @@ impl<'a> InventoryScroller<'a> {
         msm: &'a MaterialStatManifest,
         on_right: bool,
         item_tooltip: &'a Tooltip<'a>,
+        item_tooltip2: &'a ItemTooltip<'a>,
         playername: String,
         is_us: bool,
         inventory: &'a Inventory,
@@ -113,6 +118,7 @@ impl<'a> InventoryScroller<'a> {
             fonts,
             common: widget::CommonBuilder::default(),
             tooltip_manager,
+            item_tooltip_manager,
             slot_manager,
             pulse,
             localized_strings,
@@ -121,6 +127,7 @@ impl<'a> InventoryScroller<'a> {
             msm,
             on_right,
             item_tooltip,
+            item_tooltip2,
             playername,
             is_us,
             inventory,
@@ -312,11 +319,17 @@ impl<'a> InventoryScroller<'a> {
 
                 slot_widget
                     .filled_slot(quality_col_img)
-                    .with_tooltip(
-                        self.tooltip_manager,
+                    .with_item_tooltip(
+                        self.item_tooltip_manager,
+                        self.client,
+                        self.imgs,
+                        self.item_imgs,
+                        self.pulse,
                         title,
                         &*desc,
-                        self.item_tooltip,
+                        Some(item.clone()),
+                        self.msm,
+                        self.item_tooltip2,
                         quality_col,
                     )
                     .set(state.ids.inv_slots[i], ui);
@@ -582,19 +595,26 @@ impl<'a> Widget for Bag<'a> {
         .desc_text_color(TEXT_COLOR);
 
         // Tooltips
-        let item_tooltip2 = ItemTooltip::new({
-            // Edge images [t, b, r, l]
-            // Corner images [tr, tl, br, bl]
-            let edge = &self.rot_imgs.tt_side;
-            let corner = &self.rot_imgs.tt_corner;
-            ImageFrame::new(
-                [edge.cw180, edge.none, edge.cw270, edge.cw90],
-                [corner.none, corner.cw270, corner.cw90, corner.cw180],
-                Color::Rgba(0.08, 0.07, 0.04, 1.0),
-                5.0,
-            )
-        })
-        .title_font_size(self.fonts.cyri.scale(15))
+        let item_tooltip2 = ItemTooltip::new(
+            {
+                // Edge images [t, b, r, l]
+                // Corner images [tr, tl, br, bl]
+                let edge = &self.rot_imgs.tt_side;
+                let corner = &self.rot_imgs.tt_corner;
+                ImageFrame::new(
+                    [edge.cw180, edge.none, edge.cw270, edge.cw90],
+                    [corner.none, corner.cw270, corner.cw90, corner.cw180],
+                    Color::Rgba(0.08, 0.07, 0.04, 1.0),
+                    5.0,
+                )
+            },
+            self.client,
+            self.imgs,
+            self.item_imgs,
+            self.pulse,
+            self.msm,
+        )
+        .title_font_size(self.fonts.cyri.scale(20))
         .parent(ui.window)
         .desc_font_size(self.fonts.cyri.scale(12))
         .font_id(self.fonts.cyri.conrod_id)
@@ -606,6 +626,7 @@ impl<'a> Widget for Bag<'a> {
             self.item_imgs,
             self.fonts,
             self.tooltip_manager,
+            self.item_tooltip_manager,
             self.slot_manager,
             self.pulse,
             self.localized_strings,
@@ -614,6 +635,7 @@ impl<'a> Widget for Bag<'a> {
             self.msm,
             true,
             &item_tooltip,
+            &item_tooltip2,
             self.stats.name.to_string(),
             true,
             &inventory,
@@ -782,23 +804,34 @@ impl<'a> Widget for Bag<'a> {
                 || (i18n.get("hud.bag.head"), ""),
                 &self.msm,
             );
+            let head_item = inventory
+                .equipped(EquipSlot::Armor(ArmorSlot::Head))
+                .map(|item| item.to_owned());
+
             let head_q_col = inventory
                 .equipped(EquipSlot::Armor(ArmorSlot::Head))
                 .map(|item| get_quality_col(item))
                 .unwrap_or(QUALITY_COMMON);
-            slot_maker
+            let slot = slot_maker
                 .fabricate(EquipSlot::Armor(ArmorSlot::Head), [45.0; 2])
                 .mid_top_with_margin_on(state.bg_ids.bg_frame, 60.0)
                 .with_icon(self.imgs.head_bg, Vec2::new(32.0, 40.0), Some(UI_MAIN))
-                .filled_slot(filled_slot)
-                .with_tooltip(
-                    self.tooltip_manager,
-                    title,
-                    &*desc,
-                    &item_tooltip,
-                    head_q_col,
-                )
-                .set(state.ids.head_slot, ui);
+                .filled_slot(filled_slot);
+            slot.with_item_tooltip(
+                self.item_tooltip_manager,
+                self.client,
+                self.imgs,
+                self.item_imgs,
+                self.pulse,
+                title,
+                &*desc,
+                head_item,
+                self.msm,
+                &item_tooltip2,
+                head_q_col,
+            )
+            .set(state.ids.head_slot, ui);
+
             //  Necklace
             let (title, desc) = loadout_slot_text(
                 inventory.equipped(EquipSlot::Armor(ArmorSlot::Neck)),
@@ -829,6 +862,10 @@ impl<'a> Widget for Bag<'a> {
                 || (i18n.get("hud.bag.chest"), ""),
                 &self.msm,
             );
+            let chest_item = inventory
+                .equipped(EquipSlot::Armor(ArmorSlot::Chest))
+                .map(|item| item.to_owned());
+
             let chest_q_col = inventory
                 .equipped(EquipSlot::Armor(ArmorSlot::Chest))
                 .map(|item| get_quality_col(item))
@@ -840,10 +877,16 @@ impl<'a> Widget for Bag<'a> {
                 .filled_slot(filled_slot)
                 .with_item_tooltip(
                     self.item_tooltip_manager,
+                    self.client,
+                    self.imgs,
+                    self.item_imgs,
+                    self.pulse,
                     title,
                     &*desc,
+                    chest_item,
+                    self.msm,
                     &item_tooltip2,
-                    chest_q_col,
+                    head_q_col,
                 )
                 .set(state.ids.chest_slot, ui);
             //  Shoulders

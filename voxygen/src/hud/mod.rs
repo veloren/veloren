@@ -7,8 +7,8 @@ mod diary;
 mod esc_menu;
 mod group;
 mod hotbar;
-mod img_ids;
-mod item_imgs;
+pub mod img_ids;
+pub mod item_imgs;
 mod item_info;
 mod map;
 mod minimap;
@@ -21,7 +21,7 @@ mod skillbar;
 mod slots;
 mod social;
 mod trade;
-mod util;
+pub mod util;
 
 pub use hotbar::{SlotContents as HotbarSlotContents, State as HotbarState};
 pub use item_imgs::animate_by_pulse;
@@ -906,9 +906,10 @@ impl Hud {
     ) -> Vec<Event> {
         span!(_guard, "update_layout", "Hud::update_layout");
         let mut events = std::mem::replace(&mut self.events, Vec::new());
-        let (ref mut ui_widgets, ref mut item_tooltip_manager, ref mut tooltip_manager) = &mut self.ui.set_widgets();
-        //let (ref mut ui_item_widgets, ref mut item_tooltip_manager) = &mut self.ui.set_item_widgets();
-        // pulse time for pulsating elements
+        let (ref mut ui_widgets, ref mut item_tooltip_manager, ref mut tooltip_manager) =
+            &mut self.ui.set_widgets();
+        //let (ref mut ui_item_widgets, ref mut item_tooltip_manager) = &mut
+        // self.ui.set_item_widgets(); pulse time for pulsating elements
         self.pulse = self.pulse + dt.as_secs_f32();
         // FPS
         let fps = global_state.clock.stats().average_tps;
@@ -2327,6 +2328,7 @@ impl Hud {
                 &self.fonts,
                 &self.rot_imgs,
                 tooltip_manager,
+                item_tooltip_manager,
                 &mut self.slot_manager,
                 i18n,
                 &msm,
