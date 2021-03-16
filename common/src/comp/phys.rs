@@ -26,8 +26,8 @@ impl Component for Vel {
 /// Used to defer writes to Pos/Vel in nested join loops
 #[derive(Copy, Clone, Debug)]
 pub struct PosVelDefer {
-    pub pos: Pos,
-    pub vel: Vel,
+    pub pos: Option<Pos>,
+    pub vel: Option<Vel>,
 }
 
 impl Component for PosVelDefer {
