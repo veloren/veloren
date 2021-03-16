@@ -842,12 +842,12 @@ impl<'a> AgentData<'a> {
                                         destination_name
                                     )
                                 };
-                                event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc_say(
+                                event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc(
                                     *self.uid, msg,
                                 )));
                             } else if agent.trade_for_site.is_some() {
                                 let msg = "Can I interest you in a trade?".to_string();
-                                event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc_say(
+                                event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc(
                                     *self.uid, msg,
                                 )));
                             } else {
@@ -860,10 +860,18 @@ impl<'a> AgentData<'a> {
                     }
                 }
             },
-            Some(AgentEvent::TradeInvite(_with)) => {
+            Some(AgentEvent::TradeInvite(with)) => {
                 if agent.trade_for_site.is_some() && !agent.trading {
                     // stand still and looking towards the trading player
                     controller.actions.push(ControlAction::Talk);
+                    if let Some(target) =
+                        read_data.uid_allocator.retrieve_entity_internal(with.id())
+                    {
+                        agent.target = Some(Target {
+                            target,
+                            hostile: false,
+                        });
+                    }
                     controller
                         .events
                         .push(ControlEvent::InviteResponse(InviteResponse::Accept));
@@ -879,12 +887,12 @@ impl<'a> AgentData<'a> {
                 if agent.trading {
                     match result {
                         TradeResult::Completed => {
-                            event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc_say(
+                            event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc(
                                 *self.uid,
                                 "Thank you for trading with me!".to_string(),
                             )))
                         },
-                        _ => event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc_say(
+                        _ => event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc(
                             *self.uid,
                             "Maybe another time, have a good day!".to_string(),
                         ))),
@@ -1082,7 +1090,7 @@ impl<'a> AgentData<'a> {
                                         })
                                     );
                                     let msg = format!("{}! How dare you cross me again!", e_stats.name.clone());
-                                    event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc_say(*self.uid, msg)));
+                                    event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc(*self.uid, msg)));
                                     true
                                 } else {
                                     false
