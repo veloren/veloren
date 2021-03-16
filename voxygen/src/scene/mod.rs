@@ -36,7 +36,6 @@ use common_sys::state::State;
 use comp::item::Reagent;
 use num::traits::{Float, FloatConst};
 use specs::{Entity as EcsEntity, Join, WorldExt};
-use tokio::runtime::Runtime;
 use vek::*;
 
 // TODO: Don't hard-code this.
@@ -115,7 +114,6 @@ pub struct SceneData<'a> {
     pub loaded_distance: f32,
     pub view_distance: u32,
     pub tick: u64,
-    pub runtime: &'a Runtime,
     pub gamma: f32,
     pub exposure: f32,
     pub ambiance: f32,

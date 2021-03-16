@@ -26,10 +26,10 @@ use common::{
         item::ItemKind,
     },
     figure::Segment,
+    slowjob::SlowJobPool,
     terrain::BlockKind,
     vol::{BaseVol, ReadVol},
 };
-use tokio::runtime::Runtime;
 use tracing::error;
 use vek::*;
 use winit::event::MouseButton;
@@ -97,7 +97,7 @@ pub struct SceneData<'a> {
     pub time: f64,
     pub delta_time: f32,
     pub tick: u64,
-    pub runtime: &'a Runtime,
+    pub slow_job_pool: &'a SlowJobPool,
     pub body: Option<humanoid::Body>,
     pub gamma: f32,
     pub exposure: f32,
@@ -357,7 +357,7 @@ impl Scene {
                     scene_data.tick,
                     CameraMode::default(),
                     None,
-                    scene_data.runtime,
+                    scene_data.slow_job_pool,
                 )
                 .0;
             let mut buf = [Default::default(); anim::MAX_BONE_COUNT];

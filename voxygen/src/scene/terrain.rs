@@ -768,21 +768,24 @@ impl<V: RectRasterableVol> Terrain<V> {
             let sprite_config = Arc::clone(&self.sprite_config);
             let cnt = Arc::clone(&self.mesh_todos_active);
             cnt.fetch_add(1, Ordering::Relaxed);
-            scene_data.runtime.spawn_blocking(move || {
-                let sprite_data = sprite_data;
-                let _ = send.send(mesh_worker(
-                    pos,
-                    (min_z as f32, max_z as f32),
-                    started_tick,
-                    volume,
-                    max_texture_size,
-                    chunk,
-                    aabb,
-                    &sprite_data,
-                    &sprite_config,
-                ));
-                cnt.fetch_sub(1, Ordering::Relaxed);
-            });
+            scene_data
+                .state
+                .slow_job_pool()
+                .spawn("TERRAIN_MESHING", move || {
+                    let sprite_data = sprite_data;
+                    let _ = send.send(mesh_worker(
+                        pos,
+                        (min_z as f32, max_z as f32),
+                        started_tick,
+                        volume,
+                        max_texture_size,
+                        chunk,
+                        aabb,
+                        &sprite_data,
+                        &sprite_config,
+                    ));
+                    cnt.fetch_sub(1, Ordering::Relaxed);
+                });
             todo.is_worker_active = true;
         }
         drop(guard);
