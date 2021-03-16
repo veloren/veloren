@@ -26,6 +26,9 @@ pub enum Cmd {
     Login {
         prefix: String,
     },
+    InGame {
+        prefix: String,
+    }
 }
 
 pub struct Tui {
@@ -76,7 +79,11 @@ impl Tui {
                     .about("Login all registered bots whose username starts with a prefix")
                     .args(&[Arg::with_name("prefix").required(true)]),
             )
-            .subcommand(SubCommand::with_name("tick").about("Handle ticks for all logged in bots"))
+            .subcommand(
+                SubCommand::with_name("ingame")
+                    .about("Join the world with some random character")
+                    .args(&[Arg::with_name("prefix").required(true)]),
+            )
             .get_matches_from_safe(cmd.split(" "));
         use clap::ErrorKind::*;
         match matches {
@@ -90,6 +97,9 @@ impl Tui {
                             .and_then(|x| x.parse::<usize>().ok()),
                     }),
                     ("login", Some(matches)) => command_s.try_send(Cmd::Login {
+                        prefix: matches.value_of("prefix").unwrap().to_string(),
+                    }),
+                    ("ingame", Some(matches)) => command_s.try_send(Cmd::InGame {
                         prefix: matches.value_of("prefix").unwrap().to_string(),
                     }),
                     _ => Ok(()),
