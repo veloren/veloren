@@ -5,7 +5,7 @@ use crate::{
     Tick,
 };
 use common::{
-    comp::{ForceUpdate, Inventory, InventoryUpdate, Last, Ori, Pos, Vel},
+    comp::{Collider, ForceUpdate, Inventory, InventoryUpdate, Last, Ori, Pos, Vel},
     outcome::Outcome,
     region::{Event as RegionEvent, RegionMap},
     resources::TimeOfDay,
@@ -37,6 +37,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Inventory>,
         ReadStorage<'a, RegionSubscription>,
         ReadStorage<'a, Presence>,
+        ReadStorage<'a, Collider>,
         WriteStorage<'a, Last<Pos>>,
         WriteStorage<'a, Last<Vel>>,
         WriteStorage<'a, Last<Ori>>,
@@ -67,6 +68,7 @@ impl<'a> System<'a> for Sys {
             inventories,
             subscriptions,
             presences,
+            colliders,
             mut last_pos,
             mut last_vel,
             mut last_ori,
@@ -216,18 +218,18 @@ impl<'a> System<'a> for Sys {
                         let distance_sq = client_pos.0.distance_squared(pos.0);
                         let id_staggered_tick = tick + entity.id() as u64;
                         // More entities farther away so checks start there
-                        if distance_sq > 300.0f32.powi(2) {
+                        if distance_sq > 350.0f32.powi(2) {
+                            id_staggered_tick % 64 == 0
+                        } else if distance_sq > 180.0f32.powi(2) {
                             id_staggered_tick % 32 == 0
-                        } else if distance_sq > 250.0f32.powi(2) {
-                            id_staggered_tick % 16 == 0
-                        } else if distance_sq > 200.0f32.powi(2) {
-                            id_staggered_tick % 8 == 0
-                        } else if distance_sq > 150.0f32.powi(2) {
-                            id_staggered_tick % 4 == 0
                         } else if distance_sq > 100.0f32.powi(2) {
-                            id_staggered_tick % 2 == 0
+                            id_staggered_tick % 16 == 0
+                        } else if distance_sq > 48.0f32.powi(2) {
+                            id_staggered_tick % 8 == 0
+                        } else if distance_sq > 24.0f32.powi(2) {
+                            id_staggered_tick % 4 == 0
                         } else {
-                            true // Closer than 100 blocks
+                            id_staggered_tick % 3 == 0
                         }
                     } {
                         client.send_fallible(msg.clone());
@@ -236,7 +238,7 @@ impl<'a> System<'a> for Sys {
             };
 
             // Sync physics components
-            for (_, entity, &uid, &pos, maybe_vel, maybe_ori, force_update) in (
+            for (_, entity, &uid, &pos, maybe_vel, maybe_ori, force_update, collider) in (
                 region.entities(),
                 &entities,
                 &uids,
@@ -244,6 +246,7 @@ impl<'a> System<'a> for Sys {
                 velocities.maybe(),
                 orientations.maybe(),
                 force_updates.maybe(),
+                colliders.maybe(),
             )
                 .join()
             {
@@ -317,6 +320,10 @@ impl<'a> System<'a> for Sys {
                     // Send removal message if Ori was removed
                     throttle = false;
                     comp_sync_package.comp_removed::<Ori>(uid);
+                }
+
+                if matches!(collider, Some(Collider::Voxel { .. })) {
+                    throttle = false;
                 }
 
                 send_general(
