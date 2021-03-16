@@ -4,7 +4,10 @@ use super::{
     },
     track::UpdateTracker,
 };
-use common::uid::{Uid, UidAllocator};
+use common::{
+    resources::PlayerEntity,
+    uid::{Uid, UidAllocator},
+};
 use specs::{
     saveload::{MarkedBuilder, MarkerAllocator},
     world::Builder,
@@ -80,7 +83,7 @@ impl WorldSyncExt for specs::World {
 
         let entity = create_entity_with_uid(self, uid);
         for packet in comps {
-            packet.apply_insert(entity, self)
+            packet.apply_insert(entity, self, true)
         }
 
         entity
@@ -129,17 +132,19 @@ impl WorldSyncExt for specs::World {
 
     fn apply_comp_sync_package<P: CompPacket>(&mut self, package: CompSyncPackage<P>) {
         // Update components
+        let player_entity = self.read_resource::<PlayerEntity>().0;
         package.comp_updates.into_iter().for_each(|(uid, update)| {
             if let Some(entity) = self
                 .read_resource::<UidAllocator>()
                 .retrieve_entity_internal(uid)
             {
+                let force_update = player_entity == Some(entity);
                 match update {
                     CompUpdateKind::Inserted(packet) => {
-                        packet.apply_insert(entity, self);
+                        packet.apply_insert(entity, self, force_update);
                     },
                     CompUpdateKind::Modified(packet) => {
-                        packet.apply_modify(entity, self);
+                        packet.apply_modify(entity, self, force_update);
                     },
                     CompUpdateKind::Removed(phantom) => {
                         P::apply_remove(phantom, entity, self);

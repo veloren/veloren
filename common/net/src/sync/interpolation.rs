@@ -14,7 +14,7 @@ pub struct InterpBuffer<T> {
     pub i: usize,
 }
 
-impl<T> InterpBuffer<T> {
+impl<T: Clone> InterpBuffer<T> {
     fn push(&mut self, time: f64, x: T) {
         let InterpBuffer {
             ref mut buf,
@@ -23,6 +23,20 @@ impl<T> InterpBuffer<T> {
         *i += 1;
         *i %= buf.len();
         buf[*i] = (time, x);
+    }
+
+    fn force_update(&mut self, time: f64, x: T) {
+        for i in 0..self.buf.len() {
+            self.buf[i] = (time, x.clone());
+        }
+    }
+
+    fn update(&mut self, time: f64, x: T, force_update: bool) {
+        if force_update {
+            self.force_update(time, x);
+        } else {
+            self.push(time, x);
+        }
     }
 }
 
@@ -40,8 +54,8 @@ impl InterpolatableComponent for Pos {
     type InterpData = InterpBuffer<Pos>;
     type ReadData = InterpBuffer<Vel>;
 
-    fn update_component(&self, interp_data: &mut Self::InterpData, time: f64) {
-        interp_data.push(time, *self);
+    fn update_component(&self, interp_data: &mut Self::InterpData, time: f64, force_update: bool) {
+        interp_data.update(time, *self, force_update);
     }
 
     fn interpolate(self, interp_data: &Self::InterpData, t2: f64, vel: &InterpBuffer<Vel>) -> Self {
@@ -94,8 +108,8 @@ impl InterpolatableComponent for Vel {
     type InterpData = InterpBuffer<Vel>;
     type ReadData = ();
 
-    fn update_component(&self, interp_data: &mut Self::InterpData, time: f64) {
-        interp_data.push(time, *self);
+    fn update_component(&self, interp_data: &mut Self::InterpData, time: f64, force_update: bool) {
+        interp_data.update(time, *self, force_update);
     }
 
     fn interpolate(self, interp_data: &Self::InterpData, t2: f64, _: &()) -> Self {
@@ -129,8 +143,8 @@ impl InterpolatableComponent for Ori {
     type InterpData = InterpBuffer<Ori>;
     type ReadData = ();
 
-    fn update_component(&self, interp_data: &mut Self::InterpData, time: f64) {
-        interp_data.push(time, *self);
+    fn update_component(&self, interp_data: &mut Self::InterpData, time: f64, force_update: bool) {
+        interp_data.update(time, *self, force_update);
     }
 
     fn interpolate(self, interp_data: &Self::InterpData, t2: f64, _: &()) -> Self {
