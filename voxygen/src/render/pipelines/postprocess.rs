@@ -137,6 +137,7 @@ impl PostProcessPipeline {
                 front_face: wgpu::FrontFace::Ccw,
                 cull_mode: None,
                 polygon_mode: wgpu::PolygonMode::Fill,
+                conservative: false,
             },
             depth_stencil: None,
             multisample: wgpu::MultisampleState {

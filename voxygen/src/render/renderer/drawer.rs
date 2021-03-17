@@ -713,11 +713,12 @@ impl<'pass_ref, 'pass: 'pass_ref> PreparedUiDrawer<'pass_ref, 'pass> {
 
     pub fn set_scissor<'data: 'pass>(&mut self, scissor: Aabr<u16>) {
         let Aabr { min, max } = scissor;
+        dbg!(&scissor);
         self.render_pass.set_scissor_rect(
             min.x as u32,
             min.y as u32,
-            (max.x - min.x) as u32,
-            (max.y - min.y) as u32,
+            dbg!((max.x - min.x) as u32),
+            dbg!((max.y - min.y) as u32),
         );
     }
 

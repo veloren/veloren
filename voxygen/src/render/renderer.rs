@@ -466,7 +466,7 @@ impl Renderer {
                 size: wgpu::Extent3d {
                     width,
                     height,
-                    depth: 1,
+                    depth_or_array_layers: 1,
                 },
                 mip_level_count: levels,
                 sample_count,
@@ -496,7 +496,7 @@ impl Renderer {
             size: wgpu::Extent3d {
                 width,
                 height,
-                depth: 1,
+                depth_or_array_layers: 1,
             },
             mip_level_count: levels,
             sample_count,
@@ -520,7 +520,7 @@ impl Renderer {
             size: wgpu::Extent3d {
                 width: size.0,
                 height: size.1,
-                depth: 1,
+                depth_or_array_layers: 1,
             },
             mip_level_count: levels,
             sample_count,
@@ -555,7 +555,7 @@ impl Renderer {
                 size: wgpu::Extent3d {
                     width: 4,
                     height: 4,
-                    depth,
+                    depth_or_array_layers: depth,
                 },
                 mip_level_count: 1,
                 sample_count: 1,
@@ -681,7 +681,7 @@ impl Renderer {
             size: wgpu::Extent3d {
                 width: diag_two_size / 4,
                 height: diag_two_size / 4,
-                depth: 6,
+                depth_or_array_layers: 6,
             },
             mip_level_count: levels,
             sample_count: 1,
@@ -707,7 +707,7 @@ impl Renderer {
             size: wgpu::Extent3d {
                 width: diag_two_size,
                 height: diag_two_size,
-                depth: 1,
+                depth_or_array_layers: 1,
             },
             mip_level_count: levels,
             sample_count: 1,

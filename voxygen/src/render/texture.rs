@@ -43,7 +43,7 @@ impl Texture {
         let size = Extent3d {
             width: image.width(),
             height: image.height(),
-            depth: 1,
+            depth_or_array_layers: 1,
         };
 
         let tex = device.create_texture(&wgpu::TextureDescriptor {
@@ -74,7 +74,7 @@ impl Texture {
             wgpu::Extent3d {
                 width: image.width(),
                 height: image.height(),
-                depth: 1,
+                depth_or_array_layers: 1,
             },
         );
 
@@ -112,7 +112,7 @@ impl Texture {
         let size = wgpu::Extent3d {
             width,
             height,
-            depth: 1,
+            depth_or_array_layers: 1,
         };
 
         let tex_info = wgpu::TextureDescriptor {
@@ -201,13 +201,17 @@ impl Texture {
             wgpu::Extent3d {
                 width: size[0],
                 height: size[1],
-                depth: 1,
+                depth_or_array_layers: 1,
             },
         );
     }
 
     /// Get dimensions of the represented image.
     pub fn get_dimensions(&self) -> vek::Vec3<u32> {
-        vek::Vec3::new(self.size.width, self.size.height, self.size.depth)
+        vek::Vec3::new(
+            self.size.width,
+            self.size.height,
+            self.size.depth_or_array_layers,
+        )
     }
 }

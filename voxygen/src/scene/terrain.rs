@@ -602,7 +602,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                 size: wgpu::Extent3d {
                     width: max_texture_size,
                     height: max_texture_size,
-                    depth: 1,
+                    depth_or_array_layers: 1,
                 },
                 mip_level_count: 1,
                 sample_count: 1,
