@@ -45,7 +45,7 @@ impl<T: 'static + Send + Sync> Component for InterpBuffer<T> {
 }
 
 // 0 is pure physics, 1 is pure extrapolation
-const PHYSICS_VS_EXTRAPOLATION_FACTOR: f32 = 0.2;
+const PHYSICS_VS_EXTRAPOLATION_FACTOR: f32 = 0.1;
 const POSITION_INTERP_SANITY: Option<f32> = None;
 const VELOCITY_INTERP_SANITY: Option<f32> = None;
 const ENABLE_POSITION_HERMITE: bool = false;
