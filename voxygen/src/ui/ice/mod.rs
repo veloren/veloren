@@ -46,7 +46,7 @@ impl IcedUi {
         let renderer = window.renderer_mut();
 
         let scaled_resolution = scale.scaled_resolution().map(|e| e as f32);
-        let physical_resolution = scale.physical_resolution();
+        let physical_resolution = renderer.resolution();
 
         // TODO: examine how much mem fonts take up and reduce clones if significant
         Ok(Self {
@@ -163,7 +163,7 @@ impl IcedUi {
             // Avoid panic in graphic cache when minimizing.
             // Somewhat inefficient for elements that won't change size after a window
             // resize
-            let physical_resolution = self.scale.physical_resolution();
+            let physical_resolution = renderer.resolution();
             if physical_resolution.map(|e| e > 0).reduce_and() {
                 self.renderer
                     .resize(scaled_resolution, physical_resolution, renderer);

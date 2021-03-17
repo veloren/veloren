@@ -116,7 +116,7 @@ vek = { git = "https://gitlab.com/veloren/vek.git", branch = "fix_intrinsics2" }
 # patch wgpu so we can use wgpu-profiler crate
 wgpu = { git = "https://github.com/gfx-rs/wgpu-rs.git", rev = "a7e03546c1584cefef5b926f923108ea2cd1c146" }
 
-# Uncomment this to use a local fork of wgpu (for testing purposes)
+# # Uncomment this to use a local fork of wgpu (for testing purposes)
 # [patch.'https://github.com/gfx-rs/wgpu']
 # wgpu-core = { path = "../wgpu/wgpu-core" }
 # wgpu-types = { path = "../wgpu/wgpu-types" }

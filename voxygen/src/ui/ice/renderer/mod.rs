@@ -118,7 +118,7 @@ impl IcedRenderer {
     pub fn new(
         renderer: &mut Renderer,
         scaled_resolution: Vec2<f32>,
-        physical_resolution: Vec2<u16>,
+        physical_resolution: Vec2<u32>,
         default_font: Font,
     ) -> Result<Self, Error> {
         let (half_res, align, p_scale) =
@@ -170,7 +170,7 @@ impl IcedRenderer {
     pub fn resize(
         &mut self,
         scaled_resolution: Vec2<f32>,
-        physical_resolution: Vec2<u16>,
+        physical_resolution: Vec2<u32>,
         renderer: &mut Renderer,
     ) {
         self.win_dims = scaled_resolution;
@@ -320,7 +320,7 @@ impl IcedRenderer {
 
     // Returns (half_res, align)
     fn calculate_resolution_dependents(
-        res: Vec2<u16>,
+        res: Vec2<u32>,
         win_dims: Vec2<f32>,
     ) -> (Vec2<f32>, Vec2<f32>, f32) {
         let half_res = res.map(|e| e as f32 / 2.0);
@@ -331,7 +331,7 @@ impl IcedRenderer {
         (half_res, align, p_scale)
     }
 
-    fn update_resolution_dependents(&mut self, res: Vec2<u16>) {
+    fn update_resolution_dependents(&mut self, res: Vec2<u32>) {
         let (half_res, align, p_scale) = Self::calculate_resolution_dependents(res, self.win_dims);
         self.half_res = half_res;
         self.align = align;
@@ -800,7 +800,7 @@ impl IcedRenderer {
 // Given the the resolution determines the offset needed to align integer
 // offsets from the center of the sceen to pixels
 #[inline(always)]
-fn align(res: Vec2<u16>) -> Vec2<f32> {
+fn align(res: Vec2<u32>) -> Vec2<f32> {
     // TODO: does this logic still apply in iced's coordinate system?
     // If the resolution is odd then the center of the screen will be within the
     // middle of a pixel so we need to offset by 0.5 pixels to be on the edge of
@@ -808,13 +808,13 @@ fn align(res: Vec2<u16>) -> Vec2<f32> {
     res.map(|e| (e & 1) as f32 * 0.5)
 }
 
-fn default_scissor(physical_resolution: Vec2<u16>) -> Aabr<u16> {
+fn default_scissor(physical_resolution: Vec2<u32>) -> Aabr<u16> {
     let (screen_w, screen_h) = physical_resolution.into_tuple();
     Aabr {
         min: Vec2 { x: 0, y: 0 },
         max: Vec2 {
-            x: screen_w,
-            y: screen_h,
+            x: screen_w as u16,
+            y: screen_h as u16,
         },
     }
 }

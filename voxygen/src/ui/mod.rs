@@ -136,9 +136,10 @@ impl Ui {
     pub fn new(window: &mut Window) -> Result<Self, Error> {
         let scale = Scale::new(window, ScaleMode::Absolute(1.0), 1.0);
         let win_dims = scale.scaled_resolution().into_array();
-        let physical_resolution = scale.physical_resolution();
 
         let renderer = window.renderer_mut();
+
+        let physical_resolution = renderer.resolution();
 
         let mut ui = UiBuilder::new(win_dims).build();
         // NOTE: Since we redraw the actual frame each time whether or not the UI needs
@@ -340,7 +341,7 @@ impl Ui {
             self.scale.window_resized(new_dims);
             let (w, h) = self.scale.scaled_resolution().into_tuple();
             self.ui.handle_event(Input::Resize(w, h));
-            self.window_scissor = default_scissor(self.scale.physical_resolution());
+            self.window_scissor = default_scissor(renderer.resolution());
 
             // Avoid panic in graphic cache when minimizing.
             // Avoid resetting cache if window size didn't change
@@ -1046,13 +1047,13 @@ impl Ui {
     }
 }
 
-fn default_scissor(physical_resolution: Vec2<u16>) -> Aabr<u16> {
+fn default_scissor(physical_resolution: Vec2<u32>) -> Aabr<u16> {
     let (screen_w, screen_h) = physical_resolution.into_tuple();
     Aabr {
         min: Vec2 { x: 0, y: 0 },
         max: Vec2 {
-            x: screen_w,
-            y: screen_h,
+            x: screen_w as u16,
+            y: screen_h as u16,
         },
     }
 }
