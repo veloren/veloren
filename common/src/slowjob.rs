@@ -151,7 +151,7 @@ impl SlowJobPool {
         F: Fn(u64) -> u64,
     {
         let cnf = Config {
-            max_local: f(self.internal.global_limit),
+            max_local: f(self.internal.global_limit).max(1),
             spawned_total: Arc::new(AtomicU64::new(0)),
         };
         let mut lock = self.internal.configs.write().unwrap();
