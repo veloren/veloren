@@ -52,12 +52,36 @@ image_ids_ice! {
         selection_hover: "voxygen.element.frames.selection_hover",
         selection_press: "voxygen.element.frames.selection_press",
 
-        // Animation
-        f1: "voxygen.element.animation.gears.1",
-        f2: "voxygen.element.animation.gears.2",
-        f3: "voxygen.element.animation.gears.3",
-        f4: "voxygen.element.animation.gears.4",
-        f5: "voxygen.element.animation.gears.5",
+        // Loader Animations
+        loader_cauldron1: "voxygen.element.animation.loaders.cauldron1",
+        loader_cauldron2: "voxygen.element.animation.loaders.cauldron2",
+        loader_cauldron3: "voxygen.element.animation.loaders.cauldron3",
+        loader_cauldron4: "voxygen.element.animation.loaders.cauldron4",
+        loader_cauldron5: "voxygen.element.animation.loaders.cauldron5",
+
+        loader_cheese1: "voxygen.element.animation.loaders.cheese1",
+        loader_cheese2: "voxygen.element.animation.loaders.cheese2",
+        loader_cheese3: "voxygen.element.animation.loaders.cheese3",
+        loader_cheese4: "voxygen.element.animation.loaders.cheese4",
+        loader_cheese5: "voxygen.element.animation.loaders.cheese5",
+
+        loader_coins1: "voxygen.element.animation.loaders.coins1",
+        loader_coins2: "voxygen.element.animation.loaders.coins2",
+        loader_coins3: "voxygen.element.animation.loaders.coins3",
+        loader_coins4: "voxygen.element.animation.loaders.coins4",
+        loader_coins5: "voxygen.element.animation.loaders.coins5",
+
+        loader_house1: "voxygen.element.animation.loaders.house1",
+        loader_house2: "voxygen.element.animation.loaders.house2",
+        loader_house3: "voxygen.element.animation.loaders.house3",
+        loader_house4: "voxygen.element.animation.loaders.house4",
+        loader_house5: "voxygen.element.animation.loaders.house5",
+
+        loader_ship1: "voxygen.element.animation.loaders.ship1",
+        loader_ship2: "voxygen.element.animation.loaders.ship2",
+        loader_ship3: "voxygen.element.animation.loaders.ship3",
+        loader_ship4: "voxygen.element.animation.loaders.ship4",
+        loader_ship5: "voxygen.element.animation.loaders.ship5",
     }
 }
 

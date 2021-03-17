@@ -8,12 +8,38 @@ use crate::{
 };
 use iced::{button, Align, Column, Container, Length, Row, Space, Text};
 
-const GEAR_ANIMATION_SPEED_FACTOR: f64 = 10.0;
+const LOADER_CAULDRON_SPEED_FACTOR: f64 = 8.0;
+const LOADER_CHEESE_SPEED_FACTOR: f64 = 6.0;
+const LOADER_COINS_SPEED_FACTOR: f64 = 6.0;
+const LOADER_HOUSE_SPEED_FACTOR: f64 = 1.0;
+const LOADER_SHIP_SPEED_FACTOR: f64 = 1.0;
+
+enum LoaderAnimation {
+    Cauldron,
+    Cheese,
+    Coins,
+    House,
+    Ship,
+}
+
+impl LoaderAnimation {
+    fn random() -> LoaderAnimation {
+        match rand::random::<u8>() % 5 {
+            0 => LoaderAnimation::Cauldron,
+            1 => LoaderAnimation::Cheese,
+            2 => LoaderAnimation::Coins,
+            3 => LoaderAnimation::House,
+            _ => LoaderAnimation::Ship,
+        }
+    }
+}
+
 /// Connecting screen for the main menu
 pub struct Screen {
     cancel_button: button::State,
     add_button: button::State,
     tip_number: u16,
+    loader_animation: LoaderAnimation,
 }
 
 impl Screen {
@@ -22,6 +48,7 @@ impl Screen {
             cancel_button: Default::default(),
             add_button: Default::default(),
             tip_number: rand::random(),
+            loader_animation: LoaderAnimation::random(),
         }
     }
 
@@ -35,14 +62,58 @@ impl Screen {
         button_style: style::button::Style,
         show_tip: bool,
     ) -> Element<Message> {
-        let gear_anim_time = time * GEAR_ANIMATION_SPEED_FACTOR;
         // TODO: add built in support for animated images
-        let gear_anim_image = match (gear_anim_time % 5.0).trunc() as u8 {
-            0 => imgs.f1,
-            1 => imgs.f2,
-            2 => imgs.f3,
-            3 => imgs.f4,
-            _ => imgs.f5,
+        let gear_anim_image = match self.loader_animation {
+            LoaderAnimation::Cauldron => {
+                let gear_anim_time = time * LOADER_CAULDRON_SPEED_FACTOR;
+                match (gear_anim_time % 5.0).trunc() as u8 {
+                    0 => imgs.loader_cauldron1,
+                    1 => imgs.loader_cauldron2,
+                    2 => imgs.loader_cauldron3,
+                    3 => imgs.loader_cauldron4,
+                    _ => imgs.loader_cauldron5,
+                }
+            },
+            LoaderAnimation::Cheese => {
+                let gear_anim_time = time * LOADER_CHEESE_SPEED_FACTOR;
+                match (gear_anim_time % 5.0).trunc() as u8 {
+                    0 => imgs.loader_cheese1,
+                    1 => imgs.loader_cheese2,
+                    2 => imgs.loader_cheese3,
+                    3 => imgs.loader_cheese4,
+                    _ => imgs.loader_cheese5,
+                }
+            },
+            LoaderAnimation::Coins => {
+                let gear_anim_time = time * LOADER_COINS_SPEED_FACTOR;
+                match (gear_anim_time % 5.0).trunc() as u8 {
+                    0 => imgs.loader_coins1,
+                    1 => imgs.loader_coins2,
+                    2 => imgs.loader_coins3,
+                    3 => imgs.loader_coins4,
+                    _ => imgs.loader_coins5,
+                }
+            },
+            LoaderAnimation::House => {
+                let gear_anim_time = time * LOADER_HOUSE_SPEED_FACTOR;
+                match (gear_anim_time % 5.0).trunc() as u8 {
+                    0 => imgs.loader_house1,
+                    1 => imgs.loader_house2,
+                    2 => imgs.loader_house3,
+                    3 => imgs.loader_house4,
+                    _ => imgs.loader_house5,
+                }
+            },
+            LoaderAnimation::Ship => {
+                let gear_anim_time = time * LOADER_SHIP_SPEED_FACTOR;
+                match (gear_anim_time % 5.0).trunc() as u8 {
+                    0 => imgs.loader_ship1,
+                    1 => imgs.loader_ship2,
+                    2 => imgs.loader_ship3,
+                    3 => imgs.loader_ship4,
+                    _ => imgs.loader_ship5,
+                }
+            },
         };
 
         let children = match connection_state {
@@ -83,8 +154,8 @@ impl Screen {
 
                 let gear = Container::new(
                     Image::new(gear_anim_image)
-                        .width(Length::Units(74))
-                        .height(Length::Units(62)),
+                        .width(Length::Units(64))
+                        .height(Length::Units(64)),
                 )
                 .width(Length::Fill)
                 .padding(10)
