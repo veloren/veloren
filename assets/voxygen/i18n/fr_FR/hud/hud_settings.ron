@@ -36,15 +36,18 @@
         "hud.settings.background_transparency": "Transparence de l'arrière-plan",
         "hud.settings.chat_character_name": "Noms des personnages dans le tchat",
         "hud.settings.loading_tips": "Astuces sur l'écran de chargement",
+        "hud.settings.reset_interface": "Restaurer par Défaut",
 
         "hud.settings.pan_sensitivity": "Sensibilité de la souris",
         "hud.settings.zoom_sensitivity": "Sensibilité du zoom",
         "hud.settings.invert_scroll_zoom": "Inverser la molette",
-        "hud.settings.invert_mouse_y_axis": "Inverser l'axe Y",
+        "hud.settings.invert_mouse_y_axis": "Inverser l'axe Y de la souris",
+        "hud.settings.invert_controller_y_axis": "Inverser l'axe Y de la manette",
         "hud.settings.enable_mouse_smoothing": "Lissage de la Caméra",
         "hud.settings.free_look_behavior": "Comportement Vue libre",
         "hud.settings.auto_walk_behavior": "Comportement Marche Automatique",
         "hud.settings.stop_auto_walk_on_input": "Arrêt marche-auto si mouvement",
+        "hud.settings.reset_gameplay": "Restaurer par Défaut",
 
         "hud.settings.view_distance": "Distance d'affichage",
         "hud.settings.sprites_view_distance": "Distance d'affichage des sprites",
@@ -84,10 +87,12 @@
         "hud.settings.shadow_rendering_mode.map.resolution": "Résolution",
         "hud.settings.lod_detail": "Détail du rendu distant",
         "hud.settings.save_window_size": "Sauvegarder la taille de fenêtre",
+        "hud.settings.reset_graphics": "Restaurer par Défaut",
 
         "hud.settings.music_volume": "Volume de la musique",
         "hud.settings.sound_effect_volume": "Volume des effets",
         "hud.settings.audio_device": "Périphérique audio",
+        "hud.settings.reset_sound": "Restaurer par Défaut",
 
         "hud.settings.awaitingkey": "Appuyez sur une touche...",
         "hud.settings.unbound": "Aucun",

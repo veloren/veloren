@@ -18,7 +18,9 @@
         "hud.chat.pvp_energy_kill_msg": "[{attacker}] a tué [{victim}] avec de la magie",
         "hud.chat.pvp_buff_kill_msg": "[{attacker}] a tué [{victim}]",
 
+        "hud.chat.nonexistent_buff_kill_msg": "[{victim}] est mort de {buff}",
 
+        "hud.chat.npc_buff_kill_msg": "[{victim}] est mort de {buff} causé par {attacker}",
         "hud.chat.npc_melee_kill_msg": "{attacker} a tué [{victim}]",
         "hud.chat.npc_ranged_kill_msg": "{attacker} a tiré sur [{victim}]",
         "hud.chat.npc_explosion_kill_msg": "{attacker} a fait exploser [{victim}]",

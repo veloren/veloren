@@ -1,0 +1,25 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for "global" English
+(
+    string_map: {
+        "hud.trade.trade_window": "Fenêtre d'échange",
+	"hud.trade.phase1_description": "Déposez les objets que vous souhaitez\n échanger dans la zone correspondante.",
+	"hud.trade.phase2_description": "L'échange est désormais bloqué pour\n vous laisser le temps de vérifier les objets.",
+	/// Phase3 should only be visible for a few milliseconds if everything is working properly, but is included for completeness
+	"hud.trade.phase3_description": "Échange en cours.",
+	"hud.trade.persons_offer": "Offre de {playername}",
+	"hud.trade.has_accepted": "{playername}\na accepté",
+	"hud.trade.accept": "Accepter",
+	"hud.trade.decline": "Décliner",
+	"hud.trade.invite_sent": "Demande d'échange envoyé à {playername}.",
+	"hud.trade.result.completed": "Échange complété avec succès.",
+	"hud.trade.result.declined": "Échange décliné.",
+	"hud.trade.result.nospace": "Pas assez d'espace libre pour compléter l'échange.",
+    },
+
+
+    vector_map: {
+    }
+)
+

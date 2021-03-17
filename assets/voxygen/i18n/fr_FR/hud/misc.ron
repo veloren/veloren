@@ -8,6 +8,7 @@
         "hud.quests": "Quêtes",
         "hud.you_died": "Vous êtes mort",
         "hud.waypoint_saved": "Point de Repère Sauvegardé",
+        "hud.sp_arrow_txt": "PC",
 
         "hud.press_key_to_show_keybindings_fmt": "[{key}] Contrôles",
         "hud.press_key_to_toggle_lantern_fmt": "[{key}] Lanterne",
@@ -18,52 +19,28 @@
                 // Respawn message
         "hud.press_key_to_respawn": r#"Appuyez sur {key} pour réapparaitre au dernier feu de camp visité"#,
 
-        /// Welcome message
-        "hud.welcome": r#"Bienvenue dans la version Alpha de Veloren !
+        // Tutorial Button
+        "hud.tutorial_btn": r#"Tutoriel"#,
+        "hud.tutorial_click_here": r#"Appuyez sur [ {key} ] pour libérer votre souris et cliquez sur ce bouton!"#,
+        "hud.tutorial_elements": r#"Artisanat"#,
 
+"hud.temp_quest_headline": r#"Salutations, Voyageur !"#,
+"hud.temp_quest_text": r#"Pour commencer votre voyage, vous pourriez commencer à chercher dans ce village et rassembler quelques provisions. 
 
-Quelques astuces avant de démarrer:
+Vous êtes invités à prendre tout ce dont vous avez besoin pour votre voyage !
 
+Regardez en bas à droite de l'écran pour trouver diverses choses comme votre sac, le menu d'artisanat et la carte.
 
-Appuyer sur F1 pour voir les commandes disponibles.
+Le menu d'artisanat vous permet de créer des armures, des armes, de la nourriture et bien plus encore !
 
-Tapez /help dans le tchat pour voir les commandes disponibles.
+Les animaux sauvages tout autour de la ville sont une excellente source de Chutes de Cuir pour créer une protection contre les dangers du monde.
 
-
-Des coffres et autres objets sont disposés aléatoirement dans le monde !
-
-Appuyez sur la touche 'E' pour les collecter.
-
-Pour utiliser ce que vous ramassez des coffres, ouvrez votre inventaire avec 'B'.
-
-Double cliquez sur les éléments de votre sac pour les utiliser ou les équiper.
-
-Jettez-les en cliquant sur un élément puis en cliquant en dehors du sac.
-
-
-Les nuits peuvent être très sombre dans Veloren.
-
-Allumez votre lanterne en appuyant sur 'G'.
-
-
-Vous souhaitez libérer votre souris pour fermer cette fenêtre? Appuyez sur TAB !
-
-
-Profitez de votre séjour dans le monde de Veloren."#,
-
-"hud.temp_quest_headline": r#"S'il vous plaît, aidez-nous voyageur !"#,
-"hud.temp_quest_text": r#"Des donjons remplis de cultistes malfaisants 
-sont apparus tout autour de nos paisibles villages !
-
-
-Trouvez des alliés, faites des provisions
-et venez à bout de leurs chefs ainsi que de leurs sbires.
-
-
-Peut être pourrez-vous même obtenir un de leurs 
-objets magiques ?"#,
+Dès que vous vous sentez prêt, essayez d'obtenir un équipement encore meilleur grâce aux nombreux défis marqués sur votre carte !
+"#,
 
         "hud.spell": "Sorts",
+        // Diary
+        "hud.diary": "Journal",
 
         "hud.free_look_indicator": "Vue libre active, Pressez {key} pour la désactiver.",
         "hud.auto_walk_indicator": "Marche automatique active",
