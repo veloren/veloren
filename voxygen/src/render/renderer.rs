@@ -130,13 +130,13 @@ impl Renderer {
         // in doing this on rerender.
         // Self::enable_seamless_cube_maps(&mut device);
 
-        let dims = window.inner_size();
-
         // TODO: fix panic on wayland with opengl?
         // TODO: fix backend defaulting to opengl on wayland.
         let instance = wgpu::Instance::new(
             wgpu::BackendBit::PRIMARY, /* | wgpu::BackendBit::SECONDARY */
         );
+
+        let dims = window.inner_size();
 
         // This is unsafe because the window handle must be valid, if you find a way to
         // have an invalid winit::Window then you have bigger issues
