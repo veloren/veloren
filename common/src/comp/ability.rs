@@ -30,6 +30,7 @@ pub enum CharacterAbilityType {
     Shockwave,
     BasicBeam,
     RepeaterRanged,
+    BasicAura,
 }
 
 impl From<&CharacterState> for CharacterAbilityType {
@@ -48,6 +49,7 @@ impl From<&CharacterState> for CharacterAbilityType {
             CharacterState::Shockwave(_) => Self::Shockwave,
             CharacterState::BasicBeam(_) => Self::BasicBeam,
             CharacterState::RepeaterRanged(_) => Self::RepeaterRanged,
+            CharacterState::BasicAura(_) => Self::BasicAura,
             _ => Self::BasicMelee,
         }
     }

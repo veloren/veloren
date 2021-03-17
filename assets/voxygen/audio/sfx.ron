@@ -426,6 +426,12 @@
             ],
             threshold: 0.5,
         ),
+        Attack(BasicAura, Sceptre): (
+            files: [
+                "voxygen.audio.sfx.abilities.sceptre_aura",
+            ],
+            threshold: 2.5,
+        ),
 
         //
         // Dagger
