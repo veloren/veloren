@@ -240,7 +240,7 @@ pub fn apply_trees_to(canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
                     last_block = block;
                 })
                 .unwrap_or_else(|| {
-                    if last_block.kind() == BlockKind::Wood && dynamic_rng.gen_range(0..512) == 0 {
+                    if last_block.kind() == BlockKind::Wood && dynamic_rng.gen_range(0..2048) == 0 {
                         canvas.set(wpos, Block::air(SpriteKind::Beehive));
                     }
 
