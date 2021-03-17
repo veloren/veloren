@@ -1,8 +1,8 @@
 use common::{
     combat::{AttackerInfo, TargetInfo},
     comp::{
-        Beam, BeamSegment, Body, Combo, Energy, Group, Health, HealthSource, Inventory, Last, Ori,
-        Pos, Scale, Stats,
+        Beam, BeamSegment, Body, Combo, Energy, Group, Health, HealthSource, Inventory, Ori, Pos,
+        Scale, Stats,
     },
     event::{EventBus, ServerEvent},
     resources::{DeltaTime, Time},
@@ -26,7 +26,6 @@ pub struct ReadData<'a> {
     uid_allocator: Read<'a, UidAllocator>,
     uids: ReadStorage<'a, Uid>,
     positions: ReadStorage<'a, Pos>,
-    last_positions: ReadStorage<'a, Last<Pos>>,
     orientations: ReadStorage<'a, Ori>,
     scales: ReadStorage<'a, Scale>,
     bodies: ReadStorage<'a, Body>,
@@ -128,7 +127,6 @@ impl<'a> System<'a> for Sys {
 
                 // Scales
                 let scale_b = read_data.scales.get(target).map_or(1.0, |s| s.0);
-                let last_pos_b_maybe = read_data.last_positions.get(target);
                 let rad_b = body_b.radius() * scale_b;
                 let height_b = body_b.height() * scale_b;
 
@@ -136,8 +134,7 @@ impl<'a> System<'a> for Sys {
                 let hit = entity != target
                     && !health_b.is_dead
                     // Collision shapes
-                    && (sphere_wedge_cylinder_collision(pos.0, frame_start_dist, frame_end_dist, *ori.look_dir(), beam_segment.angle, pos_b.0, rad_b, height_b)
-                    || last_pos_b_maybe.map_or(false, |pos_maybe| {sphere_wedge_cylinder_collision(pos.0, frame_start_dist, frame_end_dist, *ori.look_dir(), beam_segment.angle, (pos_maybe.0).0, rad_b, height_b)}));
+                    && sphere_wedge_cylinder_collision(pos.0, frame_start_dist, frame_end_dist, *ori.look_dir(), beam_segment.angle, pos_b.0, rad_b, height_b);
 
                 if hit {
                     // See if entities are in the same group
