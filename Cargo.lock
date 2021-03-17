@@ -5634,7 +5634,6 @@ dependencies = [
  "bincode",
  "hashbrown",
  "indexmap",
- "inline_tweak",
  "rand 0.8.3",
  "rayon",
  "scopeguard",
