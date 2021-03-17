@@ -12,11 +12,18 @@ pub enum Primitive {
     // Shapes
     Aabb(Aabb<i32>),
     Pyramid { aabb: Aabb<i32>, inset: i32 },
+    Cylinder(Aabb<i32>),
+    Cone(Aabb<i32>),
+    Sphere(Aabb<i32>),
+    Plane(Aabr<i32>, Vec3<i32>, Vec2<f32>),
 
     // Combinators
     And(Id<Primitive>, Id<Primitive>),
     Or(Id<Primitive>, Id<Primitive>),
     Xor(Id<Primitive>, Id<Primitive>),
+    // Not commutative
+    Diff(Id<Primitive>, Id<Primitive>),
+    // Operators
 }
 
 pub enum Fill {
@@ -51,7 +58,39 @@ impl Fill {
                         < 1.0
                             - ((pos.z - aabb.min.z) as f32 + 0.5) / (aabb.max.z - aabb.min.z) as f32
             },
-
+            Primitive::Cylinder(aabb) => {
+                aabb_contains(*aabb, pos)
+                    && (pos
+                        .xy()
+                        .as_()
+                        .distance_squared(aabb.as_().center().xy() - 0.5)
+                        as f32)
+                        < (aabb.size().w.min(aabb.size().h) as f32 / 2.0).powi(2)
+            },
+            Primitive::Cone(aabb) => {
+                aabb_contains(*aabb, pos)
+                    && pos
+                        .xy()
+                        .as_()
+                        .distance_squared(aabb.as_().center().xy() - 0.5)
+                        < (((aabb.max.z - pos.z) as f32 / aabb.size().d as f32)
+                            * (aabb.size().w.min(aabb.size().h) as f32 / 2.0))
+                            .powi(2)
+            },
+            Primitive::Sphere(aabb) => {
+                aabb_contains(*aabb, pos)
+                    && pos.as_().distance_squared(aabb.as_().center() - 0.5)
+                        < (aabb.size().w.min(aabb.size().h) as f32 / 2.0).powi(2)
+            },
+            Primitive::Plane(aabr, origin, gradient) => {
+                // Maybe <= instead of ==
+                pos.z
+                    == origin.z
+                        + ((pos.xy() - origin.xy())
+                            .map(|x| x.abs())
+                            .as_()
+                            .dot(*gradient) as i32)
+            },
             Primitive::And(a, b) => {
                 self.contains_at(tree, *a, pos) && self.contains_at(tree, *b, pos)
             },
@@ -60,6 +99,9 @@ impl Fill {
             },
             Primitive::Xor(a, b) => {
                 self.contains_at(tree, *a, pos) ^ self.contains_at(tree, *b, pos)
+            },
+            Primitive::Diff(a, b) => {
+                self.contains_at(tree, *a, pos) && !self.contains_at(tree, *b, pos)
             },
         }
     }
@@ -98,6 +140,25 @@ impl Fill {
             Primitive::Empty => return None,
             Primitive::Aabb(aabb) => *aabb,
             Primitive::Pyramid { aabb, .. } => *aabb,
+            Primitive::Cylinder(aabb) => *aabb,
+            Primitive::Cone(aabb) => *aabb,
+            Primitive::Sphere(aabb) => *aabb,
+            Primitive::Plane(aabr, origin, gradient) => {
+                let half_size = aabr.half_size().reduce_max();
+                let longest_dist = ((aabr.center() - origin.xy()).map(|x| x.abs())
+                    + half_size
+                    + aabr.size().reduce_max() % 2)
+                    .map(|x| x as f32);
+                let z = if gradient.x.signum() == gradient.y.signum() {
+                    Vec2::new(0, longest_dist.dot(*gradient) as i32)
+                } else {
+                    (longest_dist * gradient).as_()
+                };
+                Aabb {
+                    min: aabr.min.with_z(origin.z + z.reduce_min().min(0)),
+                    max: aabr.max.with_z(origin.z + z.reduce_max().max(0)),
+                }
+            },
             Primitive::And(a, b) => or_zip_with(
                 self.get_bounds_inner(tree, *a),
                 self.get_bounds_inner(tree, *b),
@@ -108,6 +169,7 @@ impl Fill {
                 self.get_bounds_inner(tree, *b),
                 |a, b| a.union(b),
             )?,
+            Primitive::Diff(a, _) => self.get_bounds_inner(tree, *a)?,
         })
     }
 
