@@ -87,6 +87,12 @@
             "I just can't understand where those Sauroks keep coming from.",
             "I wish someone would keep the wolves away from the village.",
             "I had a wonderful dream about cheese last night. What does it mean?",
+            "I left some cheese with my brother. Now I don't know if it exists or not. I call it Schrödinger's cheese.",
+            "I left some cheese with my sister. Now I don't know if it exists or not. I call it Schrödinger's cheese.",
+            "Someone should do something about those cultists. Preferably not me.",
+            "I hope it rains soon. Would be good for the crops.",
+            "I love honey! And I hate bees.",
+            "I want to see the world one day. There's got to be more to life than this village.",
         ],
 	"npc.speech.villager_cultist_alarm": [
 	    "Lookout! There is a cultist on the loose!",
@@ -101,6 +107,16 @@
 	    "The evils of this cultist are about to be over!",
 	    "This cultist is mine!",
 	    "Prepare to meet your maker, foul cultist!",
+	    "I see a cultist! Get them!",
+	    "I see a cultist! Attack!",
+	    "I see a cultist! Don't let them escape!",
+	    "Would the most honorable cultist care for some DEATH?!",
+	    "Never forgive! Never forget! Cultist, regret!",
+	    "Die, cultist!",
+	    "Your reign of terror will seize!",
+	    "Here's for all that you've done!",
+	    "We don't take kindly to your types around here.",
+	    "You should have stayed underground!",
 	],
         "npc.speech.villager_under_attack": [
             "Help, I'm under attack!",
@@ -182,6 +198,7 @@
             "Please don't do that again.",
             "Guards, throw this monster in the lake!",
             "I'll set my tarasque on you!",
+            "Why meeeeeee?",
         ],
     }
 )
