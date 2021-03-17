@@ -4,9 +4,9 @@ use spatial_grid::SpatialGrid;
 
 use common::{
     comp::{
-        body::ship::figuredata::VOXEL_COLLIDER_MANIFEST, BeamSegment, Body, CharacterState,
-        Collider, Gravity, Mass, Mounting, Ori, PhysicsState, Pos, PosVelDefer, PreviousPhysCache,
-        Projectile, Scale, Shockwave, Sticky, Vel,
+        body::ship::figuredata::{VoxelCollider, VOXEL_COLLIDER_MANIFEST},
+        BeamSegment, Body, CharacterState, Collider, Gravity, Mass, Mounting, Ori, PhysicsState,
+        Pos, PosVelDefer, PreviousPhysCache, Projectile, Scale, Shockwave, Sticky, Vel,
     },
     consts::{FRIC_GROUND, GRAVITY},
     event::{EventBus, ServerEvent},
@@ -199,8 +199,6 @@ impl<'a> PhysicsData<'a> {
             ref read,
             ref write,
         } = self;
-        // NOTE: assumes that entity max radius * 2 + max velocity per tick is less than
-        // half a chunk (16 blocks)
         // NOTE: i32 places certain constraints on how far out collision works
         // NOTE: uses the radius of the entity and their current position rather than
         // the radius of their bounding sphere for the current frame of movement
@@ -447,7 +445,55 @@ impl<'a> PhysicsData<'a> {
         write.physics_metrics.entity_entity_collisions = metrics.entity_entity_collisions;
     }
 
-    fn handle_movement_and_terrain(&mut self, job: &mut Job<Sys>) {
+    fn construct_voxel_collider_spatial_grid(&mut self) -> SpatialGrid {
+        span!(_guard, "Construct voxel collider spatial grid");
+        let PhysicsData {
+            ref read,
+            ref write,
+        } = self;
+        // NOTE: assumes that entity max radius * 2 + max velocity per tick is less than
+        // half a chunk (16 blocks)
+        // NOTE: i32 places certain constraints on how far out collision works
+        // NOTE: uses the radius of the entity and their current position rather than
+        // the radius of their bounding sphere for the current frame of movement
+        // because the nonmoving entity is what is collided against in the inner
+        // loop of the pushback collision code
+        // TODO: optimize these parameters (especially radius cutoff)
+        let lg2_cell_size = 7; // 128
+        let lg2_large_cell_size = 8; // 256
+        let radius_cutoff = 64;
+        let mut spatial_grid = SpatialGrid::new(lg2_cell_size, lg2_large_cell_size, radius_cutoff);
+        // TODO: give voxel colliders their own component type
+        for (entity, pos, collider, ori) in (
+            &read.entities,
+            &write.positions,
+            &read.colliders,
+            &write.orientations,
+        )
+            .join()
+        {
+            let voxel_id = match collider {
+                Collider::Voxel { id } => id,
+                _ => continue,
+            };
+
+            if let Some(voxel_collider) = VOXEL_COLLIDER_MANIFEST.read().colliders.get(&*voxel_id) {
+                let sphere = voxel_collider_bounding_sphere(voxel_collider, pos, ori);
+                let radius = sphere.radius.ceil() as u32;
+                let pos_2d = sphere.center.xy().map(|e| e as i32);
+                const POS_TRUNCATION_ERROR: u32 = 1;
+                spatial_grid.insert(pos_2d, radius + POS_TRUNCATION_ERROR, entity);
+            }
+        }
+
+        spatial_grid
+    }
+
+    fn handle_movement_and_terrain(
+        &mut self,
+        job: &mut Job<Sys>,
+        voxel_collider_spatial_grid: &SpatialGrid,
+    ) {
         let PhysicsData {
             ref read,
             ref mut write,
@@ -578,6 +624,7 @@ impl<'a> PhysicsData<'a> {
                     _previous_cache,
                     _,
                 )| {
+                    prof_span!(_guard, "entity");
                     let mut land_on_ground = None;
                     // Defer the writes of positions and velocities to allow an inner loop over
                     // terrain-like entities
@@ -737,145 +784,327 @@ impl<'a> PhysicsData<'a> {
                         },
                     }
 
-                    // Collide with terrain-like entities
-                    for (
-                        entity_other,
-                        _other,
-                        pos_other,
-                        vel_other,
-                        previous_cache_other,
-                        _mass_other,
-                        collider_other,
-                        ori_other,
-                        _,
-                        _,
-                        _,
-                        _,
-                        _char_state_other_maybe,
-                    ) in (
-                        &read.entities,
-                        &read.uids,
-                        positions,
-                        velocities,
-                        previous_phys_cache,
-                        read.masses.maybe(),
-                        &read.colliders,
-                        orientations,
-                        !&read.projectiles,
-                        !&read.mountings,
-                        !&read.beams,
-                        !&read.shockwaves,
-                        read.char_states.maybe(),
-                    )
-                        .join()
-                    {
-                        // TODO: terrain-collider-size aware broadphase
-                        /*let collision_boundary = previous_cache.collision_boundary
-                            + previous_cache_other.collision_boundary;
-                        if previous_cache
-                            .center
-                            .distance_squared(previous_cache_other.center)
-                            > collision_boundary.powi(2)
-                        {
-                            continue;
-                        }*/
-                        if entity == entity_other {
-                            continue;
-                        }
+                    let use_grid = inline_tweak::release_tweak!(true);
+                    common_base::plot!("use new version", if use_grid { 1.0 } else { 0.0 });
+                    if use_grid {
+                        // Compute center and radius of tick path bounding sphere for the entity
+                        // for broad checks of whether it will collide with a voxel collider
+                        let path_sphere = {
+                            // TODO: duplicated with maintain_pushback_cache, make a common function
+                            // to call to compute all this info?
+                            let z_limits = calc_z_limit(character_state, Some(collider));
+                            let z_limits = (z_limits.0 * scale, z_limits.1 * scale);
+                            let half_height = (z_limits.1 - z_limits.0) / 2.0;
 
-                        let voxel_id = if let Collider::Voxel { id } = collider_other {
-                            id
-                        } else {
-                            continue;
+                            let entity_center = pos.0 + (z_limits.0 + half_height) * Vec3::unit_z();
+                            let path_center = entity_center + pos_delta / 2.0;
+
+                            let flat_radius = collider.get_radius() * scale;
+                            let radius = (flat_radius.powi(2) + half_height.powi(2)).sqrt();
+                            let path_bounding_radius = radius + (pos_delta / 2.0).magnitude();
+
+                            Sphere {
+                                center: path_center,
+                                radius: path_bounding_radius,
+                            }
                         };
-                        // use bounding cylinder regardless of our collider
-                        // TODO: extract point-terrain collision above to its own function
-                        let radius = collider.get_radius();
-                        let (z_min, z_max) = collider.get_z_limits(1.0);
+                        // Collide with terrain-like entities
+                        let aabr = {
+                            let center = path_sphere.center.xy().map(|e| e as i32);
+                            let radius = path_sphere.radius.ceil() as i32;
+                            // From conversion of center above
+                            const CENTER_TRUNCATION_ERROR: i32 = 1;
+                            let max_dist = radius + CENTER_TRUNCATION_ERROR;
 
-                        let radius = radius.min(0.45) * scale;
-                        let z_min = z_min * scale;
-                        let z_max = z_max.clamped(1.2, 1.95) * scale;
+                            Aabr {
+                                min: center - max_dist,
+                                max: center + max_dist,
+                            }
+                        };
+                        voxel_collider_spatial_grid
+                            .in_aabr(aabr)
+                            .filter_map(|entity| {
+                                positions
+                                    .get(entity)
+                                    .zip(velocities.get(entity))
+                                    .zip(previous_phys_cache.get(entity))
+                                    .zip(read.colliders.get(entity))
+                                    .zip(orientations.get(entity))
+                                    .map(|((((pos, vel), previous_cache), collider), ori)| {
+                                        (entity, pos, vel, previous_cache, collider, ori)
+                                    })
+                            })
+                            .for_each(
+                                |(
+                                    entity_other,
+                                    pos_other,
+                                    vel_other,
+                                    previous_cache_other,
+                                    collider_other,
+                                    ori_other,
+                                )| {
+                                    if entity == entity_other {
+                                        return;
+                                    }
 
-                        if let Some(voxel_collider) =
-                            VOXEL_COLLIDER_MANIFEST.read().colliders.get(&*voxel_id)
-                        {
-                            let mut physics_state_delta = physics_state.clone();
-                            // deliberately don't use scale yet here, because the 11.0/0.8
-                            // thing is in the comp::Scale for visual reasons
-                            let mut cpos = *pos;
-                            let wpos = cpos.0;
+                                    let voxel_id = if let Collider::Voxel { id } = collider_other {
+                                        id
+                                    } else {
+                                        return;
+                                    };
 
-                            // TODO: Cache the matrices here to avoid recomputing
+                                    // use bounding cylinder regardless of our collider
+                                    // TODO: extract point-terrain collision above to its own
+                                    // function
+                                    let radius = collider.get_radius();
+                                    let (z_min, z_max) = collider.get_z_limits(1.0);
 
-                            let transform_from = Mat4::<f32>::translation_3d(pos_other.0 - wpos)
-                                * Mat4::from(ori_other.to_quat())
-                                * Mat4::<f32>::translation_3d(voxel_collider.translation);
-                            let transform_to = transform_from.inverted();
-                            let ori_from = Mat4::from(ori_other.to_quat());
-                            let ori_to = ori_from.inverted();
+                                    let radius = radius.min(0.45) * scale;
+                                    let z_min = z_min * scale;
+                                    let z_max = z_max.clamped(1.2, 1.95) * scale;
 
-                            // The velocity of the collider, taking into account orientation.
-                            let wpos_rel = (Mat4::<f32>::translation_3d(pos_other.0)
-                                * Mat4::from(ori_other.to_quat())
-                                * Mat4::<f32>::translation_3d(voxel_collider.translation))
-                            .inverted()
-                            .mul_point(wpos);
-                            let wpos_last = (Mat4::<f32>::translation_3d(pos_other.0)
-                                * Mat4::from(previous_cache_other.ori)
-                                * Mat4::<f32>::translation_3d(voxel_collider.translation))
-                            .mul_point(wpos_rel);
-                            let vel_other = vel_other.0 + (wpos - wpos_last) / read.dt.0;
+                                    if let Some(voxel_collider) =
+                                        VOXEL_COLLIDER_MANIFEST.read().colliders.get(voxel_id)
+                                    {
+                                        prof_span!(_guard, "collide with voxel");
+                                        // TODO: cache/precompute sphere?
+                                        let voxel_sphere = voxel_collider_bounding_sphere(
+                                            voxel_collider,
+                                            pos_other,
+                                            ori_other,
+                                        );
+                                        // Early check
+                                        if voxel_sphere.center.distance_squared(path_sphere.center)
+                                            > (voxel_sphere.radius + path_sphere.radius).powi(2)
+                                        {
+                                            return;
+                                        }
 
-                            cpos.0 = transform_to.mul_point(Vec3::zero());
-                            vel.0 = ori_to.mul_direction(vel.0 - vel_other);
-                            let cylinder = (radius, z_min, z_max);
-                            box_voxel_collision(
-                                cylinder,
-                                &voxel_collider.dyna,
-                                entity,
-                                &mut cpos,
-                                transform_to.mul_point(tgt_pos - wpos),
-                                &mut vel,
-                                &mut physics_state_delta,
-                                ori_to.mul_direction(vel_other),
-                                &read.dt,
-                                was_on_ground,
-                                block_snap,
-                                climbing,
-                                |entity, vel| {
-                                    land_on_ground =
-                                        Some((entity, Vel(ori_from.mul_direction(vel.0))));
+                                        let mut physics_state_delta = physics_state.clone();
+                                        // deliberately don't use scale yet here, because the
+                                        // 11.0/0.8 thing is
+                                        // in the comp::Scale for visual reasons
+                                        let mut cpos = *pos;
+                                        let wpos = cpos.0;
+
+                                        // TODO: Cache the matrices here to avoid recomputing
+
+                                        let transform_from =
+                                            Mat4::<f32>::translation_3d(pos_other.0 - wpos)
+                                                * Mat4::from(ori_other.to_quat())
+                                                * Mat4::<f32>::translation_3d(
+                                                    voxel_collider.translation,
+                                                );
+                                        let transform_to = transform_from.inverted();
+                                        let ori_from = Mat4::from(ori_other.to_quat());
+                                        let ori_to = ori_from.inverted();
+
+                                        // The velocity of the collider, taking into account
+                                        // orientation.
+                                        let wpos_rel = (Mat4::<f32>::translation_3d(pos_other.0)
+                                            * Mat4::from(ori_other.to_quat())
+                                            * Mat4::<f32>::translation_3d(
+                                                voxel_collider.translation,
+                                            ))
+                                        .inverted()
+                                        .mul_point(wpos);
+                                        let wpos_last = (Mat4::<f32>::translation_3d(pos_other.0)
+                                            * Mat4::from(previous_cache_other.ori)
+                                            * Mat4::<f32>::translation_3d(
+                                                voxel_collider.translation,
+                                            ))
+                                        .mul_point(wpos_rel);
+                                        let vel_other =
+                                            vel_other.0 + (wpos - wpos_last) / read.dt.0;
+
+                                        cpos.0 = transform_to.mul_point(Vec3::zero());
+                                        vel.0 = ori_to.mul_direction(vel.0 - vel_other);
+                                        let cylinder = (radius, z_min, z_max);
+                                        box_voxel_collision(
+                                            cylinder,
+                                            &voxel_collider.dyna,
+                                            entity,
+                                            &mut cpos,
+                                            transform_to.mul_point(tgt_pos - wpos),
+                                            &mut vel,
+                                            &mut physics_state_delta,
+                                            ori_to.mul_direction(vel_other),
+                                            &read.dt,
+                                            was_on_ground,
+                                            block_snap,
+                                            climbing,
+                                            |entity, vel| {
+                                                land_on_ground = Some((
+                                                    entity,
+                                                    Vel(ori_from.mul_direction(vel.0)),
+                                                ));
+                                            },
+                                        );
+
+                                        cpos.0 = transform_from.mul_point(cpos.0) + wpos;
+                                        vel.0 = ori_from.mul_direction(vel.0) + vel_other;
+                                        tgt_pos = cpos.0;
+
+                                        // union in the state updates, so that the state isn't just
+                                        // based on the most
+                                        // recent terrain that collision was attempted with
+                                        if physics_state_delta.on_ground {
+                                            physics_state.ground_vel = vel_other;
+                                        }
+                                        physics_state.on_ground |= physics_state_delta.on_ground;
+                                        physics_state.on_ceiling |= physics_state_delta.on_ceiling;
+                                        physics_state.on_wall =
+                                            physics_state.on_wall.or_else(|| {
+                                                physics_state_delta
+                                                    .on_wall
+                                                    .map(|dir| ori_from.mul_direction(dir))
+                                            });
+                                        physics_state
+                                            .touch_entities
+                                            .append(&mut physics_state_delta.touch_entities);
+                                        physics_state.in_liquid = match (
+                                            physics_state.in_liquid,
+                                            physics_state_delta.in_liquid,
+                                        ) {
+                                            // this match computes `x <|> y <|> liftA2 max x y`
+                                            (Some(x), Some(y)) => Some(x.max(y)),
+                                            (x @ Some(_), _) => x,
+                                            (_, y @ Some(_)) => y,
+                                            _ => None,
+                                        };
+                                    }
                                 },
                             );
-
-                            cpos.0 = transform_from.mul_point(cpos.0) + wpos;
-                            vel.0 = ori_from.mul_direction(vel.0) + vel_other;
-                            tgt_pos = cpos.0;
-
-                            // union in the state updates, so that the state isn't just based on
-                            // the most recent terrain that collision was attempted with
-                            if physics_state_delta.on_ground {
-                                physics_state.ground_vel = vel_other;
+                    } else {
+                        for (
+                            entity_other,
+                            pos_other,
+                            vel_other,
+                            previous_cache_other,
+                            collider_other,
+                            ori_other,
+                        ) in (
+                            &read.entities,
+                            positions,
+                            velocities,
+                            previous_phys_cache,
+                            &read.colliders,
+                            orientations,
+                        )
+                            .join()
+                        {
+                            // TODO: terrain-collider-size aware broadphase
+                            /*let collision_boundary = previous_cache.collision_boundary
+                                + previous_cache_other.collision_boundary;
+                            if previous_cache
+                                .center
+                                .distance_squared(previous_cache_other.center)
+                                > collision_boundary.powi(2)
+                            {
+                                continue;
+                            }*/
+                            if entity == entity_other {
+                                continue;
                             }
-                            physics_state.on_ground |= physics_state_delta.on_ground;
-                            physics_state.on_ceiling |= physics_state_delta.on_ceiling;
-                            physics_state.on_wall = physics_state.on_wall.or_else(|| {
-                                physics_state_delta
-                                    .on_wall
-                                    .map(|dir| ori_from.mul_direction(dir))
-                            });
-                            physics_state
-                                .touch_entities
-                                .append(&mut physics_state_delta.touch_entities);
-                            physics_state.in_liquid =
-                                match (physics_state.in_liquid, physics_state_delta.in_liquid) {
+
+                            let voxel_id = if let Collider::Voxel { id } = collider_other {
+                                id
+                            } else {
+                                continue;
+                            };
+
+                            // use bounding cylinder regardless of our collider
+                            // TODO: extract point-terrain collision above to its own function
+                            let radius = collider.get_radius();
+                            let (z_min, z_max) = collider.get_z_limits(1.0);
+
+                            let radius = radius.min(0.45) * scale;
+                            let z_min = z_min * scale;
+                            let z_max = z_max.clamped(1.2, 1.95) * scale;
+
+                            if let Some(voxel_collider) =
+                                VOXEL_COLLIDER_MANIFEST.read().colliders.get(voxel_id)
+                            {
+                                let mut physics_state_delta = physics_state.clone();
+                                // deliberately don't use scale yet here, because the 11.0/0.8
+                                // thing is in the comp::Scale for visual reasons
+                                let mut cpos = *pos;
+                                let wpos = cpos.0;
+
+                                // TODO: Cache the matrices here to avoid recomputing
+
+                                let transform_from =
+                                    Mat4::<f32>::translation_3d(pos_other.0 - wpos)
+                                        * Mat4::from(ori_other.to_quat())
+                                        * Mat4::<f32>::translation_3d(voxel_collider.translation);
+                                let transform_to = transform_from.inverted();
+                                let ori_from = Mat4::from(ori_other.to_quat());
+                                let ori_to = ori_from.inverted();
+
+                                // The velocity of the collider, taking into account orientation.
+                                let wpos_rel = (Mat4::<f32>::translation_3d(pos_other.0)
+                                    * Mat4::from(ori_other.to_quat())
+                                    * Mat4::<f32>::translation_3d(voxel_collider.translation))
+                                .inverted()
+                                .mul_point(wpos);
+                                let wpos_last = (Mat4::<f32>::translation_3d(pos_other.0)
+                                    * Mat4::from(previous_cache_other.ori)
+                                    * Mat4::<f32>::translation_3d(voxel_collider.translation))
+                                .mul_point(wpos_rel);
+                                let vel_other = vel_other.0 + (wpos - wpos_last) / read.dt.0;
+
+                                cpos.0 = transform_to.mul_point(Vec3::zero());
+                                vel.0 = ori_to.mul_direction(vel.0 - vel_other);
+                                let cylinder = (radius, z_min, z_max);
+                                box_voxel_collision(
+                                    cylinder,
+                                    &voxel_collider.dyna,
+                                    entity,
+                                    &mut cpos,
+                                    transform_to.mul_point(tgt_pos - wpos),
+                                    &mut vel,
+                                    &mut physics_state_delta,
+                                    ori_to.mul_direction(vel_other),
+                                    &read.dt,
+                                    was_on_ground,
+                                    block_snap,
+                                    climbing,
+                                    |entity, vel| {
+                                        land_on_ground =
+                                            Some((entity, Vel(ori_from.mul_direction(vel.0))));
+                                    },
+                                );
+
+                                cpos.0 = transform_from.mul_point(cpos.0) + wpos;
+                                vel.0 = ori_from.mul_direction(vel.0) + vel_other;
+                                tgt_pos = cpos.0;
+
+                                // union in the state updates, so that the state isn't just based on
+                                // the most recent terrain that collision was attempted with
+                                if physics_state_delta.on_ground {
+                                    physics_state.ground_vel = vel_other;
+                                }
+                                physics_state.on_ground |= physics_state_delta.on_ground;
+                                physics_state.on_ceiling |= physics_state_delta.on_ceiling;
+                                physics_state.on_wall = physics_state.on_wall.or_else(|| {
+                                    physics_state_delta
+                                        .on_wall
+                                        .map(|dir| ori_from.mul_direction(dir))
+                                });
+                                physics_state
+                                    .touch_entities
+                                    .append(&mut physics_state_delta.touch_entities);
+                                physics_state.in_liquid = match (
+                                    physics_state.in_liquid,
+                                    physics_state_delta.in_liquid,
+                                ) {
                                     // this match computes `x <|> y <|> liftA2 max x y`
                                     (Some(x), Some(y)) => Some(x.max(y)),
                                     (x @ Some(_), _) => x,
                                     (_, y @ Some(_)) => y,
                                     _ => None,
                                 };
+                            }
                         }
                     }
 
@@ -966,7 +1195,8 @@ impl<'a> System<'a> for Sys {
         let spatial_grid = psd.construct_spatial_grid();
         psd.apply_pushback(job, &spatial_grid);
 
-        psd.handle_movement_and_terrain(job);
+        let voxel_collider_spatial_grid = psd.construct_voxel_collider_spatial_grid();
+        psd.handle_movement_and_terrain(job, &voxel_collider_spatial_grid);
     }
 }
 
@@ -1284,4 +1514,34 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
     )
     .max_by_key(|block_aabb| (block_aabb.max.z * 100.0) as i32)
     .map(|block_aabb| block_aabb.max.z - pos.0.z);
+}
+
+fn voxel_collider_bounding_sphere(
+    voxel_collider: &VoxelCollider,
+    pos: &Pos,
+    ori: &Ori,
+) -> Sphere<f32, f32> {
+    let origin_offset = voxel_collider.translation;
+    use common::vol::SizedVol;
+    let lower_bound = voxel_collider.dyna.lower_bound().map(|e| e as f32);
+    let upper_bound = voxel_collider.dyna.upper_bound().map(|e| e as f32);
+    let center = (lower_bound + upper_bound) / 2.0;
+    // Compute vector from the origin (where pos value corresponds to) and the model
+    // center
+    let center_offset = center + origin_offset;
+    // Rotate
+    let oriented_center_offset = ori.local_to_global(center_offset);
+    // Add to pos to get world coordinates of the center
+    let wpos_center = oriented_center_offset + pos.0;
+
+    // Note: to not get too fine grained we use a 2D grid for now
+    const SPRITE_AND_MAYBE_OTHER_THINGS: f32 = 4.0;
+    let radius = ((upper_bound - lower_bound) / 2.0
+        + Vec3::broadcast(SPRITE_AND_MAYBE_OTHER_THINGS))
+    .magnitude();
+
+    Sphere {
+        center: wpos_center,
+        radius,
+    }
 }
