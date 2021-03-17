@@ -66,7 +66,7 @@ impl InternalSlowJobPool {
             running_jobs: RwLock::new(HashMap::new()),
             configs: RwLock::new(HashMap::new()),
             global_running_jobs: Arc::new(AtomicU64::new(0)),
-            global_limit,
+            global_limit: global_limit.max(1),
             threadpool,
         }
     }
