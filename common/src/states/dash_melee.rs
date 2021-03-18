@@ -174,16 +174,47 @@ impl CharacterBehavior for Data {
                             exhausted: true,
                             ..*self
                         })
-                    } else if self.refresh_distance < self.static_data.range * 0.5 {
-                        update.character = CharacterState::DashMelee(Data {
-                            timer: self
-                                .timer
-                                .checked_add(Duration::from_secs_f32(data.dt.0))
-                                .unwrap_or_default(),
-                            refresh_distance: self.refresh_distance
-                                + data.dt.0 * data.vel.0.magnitude(),
-                            ..*self
-                        })
+                    } else if let Some(melee) = data.melee_attack {
+                        // Creates timer ahead of time so xmac can look at line count
+                        let timer = self
+                            .timer
+                            .checked_add(Duration::from_secs_f32(data.dt.0))
+                            .unwrap_or_default();
+                        // If melee attack has not applied yet, tick both duration and dsitance
+                        if !melee.applied {
+                            update.character = CharacterState::DashMelee(Data {
+                                timer,
+                                refresh_distance: self.refresh_distance
+                                    + data.dt.0 * data.vel.0.magnitude(),
+                                ..*self
+                            })
+                        // If melee attack has applied, but hit nothing, remove
+                        // exhausted so it can attack again
+                        } else if melee.hit_count == 0 {
+                            update.character = CharacterState::DashMelee(Data {
+                                timer,
+                                refresh_distance: 0.0,
+                                exhausted: false,
+                                ..*self
+                            })
+                        // Else, melee attack applied and hit something, enter
+                        // cooldown
+                        } else if self.refresh_distance < self.static_data.range {
+                            update.character = CharacterState::DashMelee(Data {
+                                timer,
+                                refresh_distance: self.refresh_distance
+                                    + data.dt.0 * data.vel.0.magnitude(),
+                                ..*self
+                            })
+                        // Else cooldown has finished, remove exhausted
+                        } else {
+                            update.character = CharacterState::DashMelee(Data {
+                                timer,
+                                refresh_distance: 0.0,
+                                exhausted: false,
+                                ..*self
+                            })
+                        }
                     } else {
                         update.character = CharacterState::DashMelee(Data {
                             timer: self
