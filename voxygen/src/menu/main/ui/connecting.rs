@@ -19,10 +19,19 @@ impl LoadingAnimation {
     fn new(raw: &(f32, Vec<String>), ui: &mut Ui) -> Self {
         let mut frames = vec![];
         for frame_path in raw.1.iter() {
-            frames.push(ui.add_graphic(Graphic::Image(
-                assets::Image::load(frame_path).unwrap().read().to_image(),
-                None,
-            )));
+            if let Ok(image) = assets::Image::load(frame_path) {
+                frames.push(ui.add_graphic(Graphic::Image(image.read().to_image(), None)));
+            } else {
+                frames.push(
+                    ui.add_graphic(Graphic::Image(
+                        assets::Image::load("voxygen.element.not_found")
+                            .unwrap_or_else(|_| panic!("Missing asset '{}'", frame_path))
+                            .read()
+                            .to_image(),
+                        None,
+                    )),
+                )
+            }
         }
         Self {
             speed_factor: raw.0,
@@ -51,7 +60,9 @@ impl Screen {
     pub fn new(ui: &mut Ui) -> Self {
         let animations =
             LoadingAnimationManifest::load("voxygen.element.animation.loaders.manifest")
-                .unwrap()
+                .expect(
+                    "Missing loader manifest file 'voxygen/element/animation/loaders/manifest.ron'",
+                )
                 .cloned()
                 .0;
         Self {
