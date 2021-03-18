@@ -1,8 +1,8 @@
 use common::{
     combat::{AttackerInfo, TargetInfo},
     comp::{
-        Body, Combo, Energy, Group, Health, HealthSource, Inventory, Last, Ori, PhysicsState, Pos,
-        Scale, Shockwave, ShockwaveHitEntities, Stats,
+        Body, Combo, Energy, Group, Health, HealthSource, Inventory, Ori, PhysicsState, Pos, Scale,
+        Shockwave, ShockwaveHitEntities, Stats,
     },
     event::{EventBus, ServerEvent},
     resources::{DeltaTime, Time},
@@ -26,7 +26,6 @@ pub struct ReadData<'a> {
     uid_allocator: Read<'a, UidAllocator>,
     uids: ReadStorage<'a, Uid>,
     positions: ReadStorage<'a, Pos>,
-    last_positions: ReadStorage<'a, Last<Pos>>,
     orientations: ReadStorage<'a, Ori>,
     scales: ReadStorage<'a, Scale>,
     bodies: ReadStorage<'a, Body>,
@@ -140,7 +139,6 @@ impl<'a> System<'a> for Sys {
 
                 // 2D versions
                 let pos_b2 = pos_b.0.xy();
-                let last_pos_b2_maybe = read_data.last_positions.get(target).map(|p| (p.0).0.xy());
 
                 // Scales
                 let scale_b = read_data.scales.get(target).map_or(1.0, |s| s.0);
@@ -168,9 +166,7 @@ impl<'a> System<'a> for Sys {
                     && {
                         // TODO: write code to collide rect with the arc strip so that we can do
                         // more complete collision detection for rapidly moving entities
-                        arc_strip.collides_with_circle(Disk::new(pos_b2, rad_b)) || last_pos_b2_maybe.map_or(false, |pos| {
-                            arc_strip.collides_with_circle(Disk::new(pos, rad_b))
-                        })
+                        arc_strip.collides_with_circle(Disk::new(pos_b2, rad_b))
                     }
                     && (pos_b_ground - pos.0).angle_between(pos_b.0 - pos.0) < max_angle
                     && (!shockwave.requires_ground || physics_state_b.on_ground);
