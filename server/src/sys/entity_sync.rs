@@ -199,14 +199,6 @@ impl<'a> System<'a> for Sys {
                     .map(|msg| client.send_prepared(&msg));
             });
 
-            enum PhysInsert {
-                Pos(Pos),
-                Vel(Vel),
-                Ori(Ori),
-            }
-
-            let mut last_inserts = Vec::new();
-
             for (client, _, client_entity, client_pos) in &mut subscribers {
                 let mut comp_sync_package = CompSyncPackage::new();
 
@@ -237,24 +229,25 @@ impl<'a> System<'a> for Sys {
                         let id_staggered_tick = tick + entity.id() as u64;
 
                         // More entities farther away so checks start there
-                        if distance_sq > 350.0f32.powi(2) {
-                            id_staggered_tick % 64 == 0
-                        } else if distance_sq > 180.0f32.powi(2) {
+                        if distance_sq > 500.0f32.powi(2) {
                             id_staggered_tick % 32 == 0
-                        } else if distance_sq > 100.0f32.powi(2) {
+                        } else if distance_sq > 300.0f32.powi(2) {
                             id_staggered_tick % 16 == 0
-                        } else if distance_sq > 48.0f32.powi(2) {
+                        } else if distance_sq > 200.0f32.powi(2) {
                             id_staggered_tick % 8 == 0
-                        } else if distance_sq > 24.0f32.powi(2) {
-                            id_staggered_tick % 4 == 0
-                        } else {
+                        } else if distance_sq > 120.0f32.powi(2) {
+                            id_staggered_tick % 6 == 0
+                        } else if distance_sq > 64.0f32.powi(2) {
                             id_staggered_tick % 3 == 0
+                        } else if distance_sq > 24.0f32.powi(2) {
+                            id_staggered_tick % 2 == 0
+                        } else {
+                            true
                         }
                     };
 
                     if last_pos.get(entity).is_none() {
                         comp_sync_package.comp_inserted(uid, pos);
-                        last_inserts.push((entity, PhysInsert::Pos(pos)));
                     } else if send_now {
                         comp_sync_package.comp_modified(uid, pos);
                     }
@@ -262,7 +255,6 @@ impl<'a> System<'a> for Sys {
                     vel.map(|v| {
                         if last_vel.get(entity).is_none() {
                             comp_sync_package.comp_inserted(uid, *v);
-                            last_inserts.push((entity, PhysInsert::Vel(*v)));
                         } else if send_now {
                             comp_sync_package.comp_modified(uid, *v);
                         }
@@ -271,7 +263,6 @@ impl<'a> System<'a> for Sys {
                     ori.map(|o| {
                         if last_ori.get(entity).is_none() {
                             comp_sync_package.comp_inserted(uid, *o);
-                            last_inserts.push((entity, PhysInsert::Ori(*o)));
                         } else if send_now {
                             comp_sync_package.comp_modified(uid, *o);
                         }
@@ -281,18 +272,19 @@ impl<'a> System<'a> for Sys {
                 client.send_fallible(ServerGeneral::CompSync(comp_sync_package));
             }
 
-            for (entity, insert) in last_inserts {
-                match insert {
-                    PhysInsert::Pos(pos) => {
-                        let _ = last_pos.insert(entity, Last(pos));
-                    },
-                    PhysInsert::Vel(vel) => {
-                        let _ = last_vel.insert(entity, Last(vel));
-                    },
-                    PhysInsert::Ori(ori) => {
-                        let _ = last_ori.insert(entity, Last(ori));
-                    },
-                }
+            // Update the last physics components for each entity
+            for (_, entity, &pos, vel, ori) in (
+                region.entities(),
+                &entities,
+                &positions,
+                velocities.maybe(),
+                orientations.maybe(),
+            )
+                .join()
+            {
+                let _ = last_pos.insert(entity, Last(pos));
+                vel.map(|v| last_vel.insert(entity, Last(*v)));
+                ori.map(|o| last_ori.insert(entity, Last(*o)));
             }
         }
 
