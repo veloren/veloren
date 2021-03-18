@@ -622,7 +622,6 @@ impl<'a> PhysicsData<'a> {
                     _previous_cache,
                     _,
                 )| {
-                    prof_span!(_guard, "entity");
                     let mut land_on_ground = None;
                     // Defer the writes of positions and velocities to allow an inner loop over
                     // terrain-like entities
@@ -804,7 +803,6 @@ impl<'a> PhysicsData<'a> {
                         }
                     };
                     // Collide with terrain-like entities
-                    //prof_span!(guard, "terrain entity join");
                     let aabr = {
                         let center = path_sphere.center.xy().map(|e| e as i32);
                         let radius = path_sphere.radius.ceil() as i32;
@@ -962,7 +960,6 @@ impl<'a> PhysicsData<'a> {
                                 }
                             },
                         );
-                    //drop(guard);
 
                     if tgt_pos != pos.0 {
                         pos_vel_defer.pos = Some(Pos(tgt_pos));
@@ -1072,7 +1069,6 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
     climbing: bool,
     mut land_on_ground: impl FnMut(Entity, Vel),
 ) {
-    //prof_span!(_guard, "box_voxel_collision");
     let (radius, z_min, z_max) = cylinder;
 
     // Probe distances
@@ -1133,7 +1129,6 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
         radius: f32,
         z_range: Range<f32>,
     ) -> bool {
-        //prof_span!(_guard, "collision_with");
         collision_iter(
             pos,
             terrain,
@@ -1184,7 +1179,6 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
 
             // Determine the block that we are colliding with most (based on minimum
             // collision axis)
-            //prof_span!(guard, "find colliding block");
             let (_block_pos, block_aabb, block_height) = near_iter
                 .clone()
                 // Calculate the block's position in world space
@@ -1219,7 +1213,6 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
                         * 1_000_000.0) as i32
                 })
                 .expect("Collision detected, but no colliding blocks found!");
-            //drop(guard);
 
             // Find the intrusion vector of the collision
             let dir = player_aabb.collision_vector_with_aabb(block_aabb);
@@ -1337,72 +1330,18 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
         -Vec3::unit_y(),
     ];
 
-    /*if let (wall_dir, true) = dirs.iter().fold((Vec3::zero(), false), |(a, hit), dir| {
-        if collision_with(
-            pos.0 + *dir * 0.01,
-            &terrain,
-            block_true,
-            near_iter.clone(),
-            radius,
-            z_range.clone(),
-        ) {
-            (a + dir, true)
-        } else {
-            (a, hit)
-        }
-    }) {
-        physics_state.on_wall = Some(wall_dir);
-    } else {
-        physics_state.on_wall = None;
-    }
-
-    if physics_state.on_ground || (physics_state.on_wall.is_some() && climbing) {
-        vel.0 *= (1.0 - FRIC_GROUND.min(1.0)).powf(dt.0 * 60.0);
-        physics_state.ground_vel = ground_vel;
-    }
-
-    // Figure out if we're in water
-    //prof_span!(guard, "water");
-    physics_state.in_liquid = collision_iter(
-        pos.0,
-        &*terrain,
-        &|block| block.is_liquid(),
-        // The liquid part of a liquid block always extends 1 block high.
-        &|_block| 1.0,
-        near_iter,
-        radius,
-        z_range,
-    )
-    .max_by_key(|block_aabb| (block_aabb.max.z * 100.0) as i32)
-    .map(|block_aabb| block_aabb.max.z - pos.0.z);
-    //drop(guard);
-    */
-    prof_span!(guard, "compound check");
     let player_aabb = Aabb {
         min: pos.0 + Vec3::new(-radius, -radius, z_range.start),
         max: pos.0 + Vec3::new(radius, radius, z_range.end),
     };
     let player_voxel_pos = pos.0.map(|e| e.floor() as i32);
-    // TODO: use array nightly features
-    let wall_check_positions = [
-        (pos.0 + dirs[0] * 0.01),
-        (pos.0 + dirs[1] * 0.01),
-        (pos.0 + dirs[2] * 0.01),
-        (pos.0 + dirs[3] * 0.01),
-    ];
-    let p_aabb = |pos| {
-        let player_aabb = Aabb {
+    let player_wall_aabbs = dirs.map(|dir| {
+        let pos = pos.0 + dir * 0.01;
+        Aabb {
             min: pos + Vec3::new(-radius, -radius, z_range.start),
             max: pos + Vec3::new(radius, radius, z_range.end),
-        };
-        player_aabb
-    };
-    let player_wall_aabbs = [
-        p_aabb(wall_check_positions[0]),
-        p_aabb(wall_check_positions[1]),
-        p_aabb(wall_check_positions[2]),
-        p_aabb(wall_check_positions[3]),
-    ];
+        }
+    });
 
     // Find liquid immersion and wall collision all in one round of iteration
     let mut max_liquid_z = None::<f32>;
@@ -1459,7 +1398,6 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
 
     // Set in_liquid state
     physics_state.in_liquid = max_liquid_z.map(|max_z| max_z - pos.0.z);
-    //drop(guard);
 }
 
 fn voxel_collider_bounding_sphere(
