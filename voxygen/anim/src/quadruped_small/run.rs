@@ -17,25 +17,29 @@ impl Animation for RunAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (velocity, orientation, last_ori, _global_time, avg_vel, acc_vel): Self::Dependency,
-        _anim_time: f32,
+        anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        let lab: f32 = 0.8; //6
+        let lab: f32 = 0.42;
         let speed = (Vec2::<f32>::from(velocity).magnitude()).min(12.0);
         let speednorm = (speed / 12.0).powf(0.4);
 
+        // acc_vel and anim_time mix to make sure phase lenght isn't starting at
+        // +infinite
+        let mixed_vel = acc_vel + anim_time * 12.0;
+
         let speedmult = s_a.tempo;
-        let short = (acc_vel * lab * speedmult + PI * 1.0).sin() * speednorm;
-        let shortalt = (acc_vel * lab * speedmult + PI * 0.5).sin() * speednorm;
+        let short = (mixed_vel * lab * speedmult + PI * 1.0).sin() * speednorm;
+        let shortalt = (mixed_vel * lab * speedmult + PI * 0.5).sin() * speednorm;
 
-        let footvert = (acc_vel * lab * speedmult + PI * 0.0).sin() * speednorm;
-        let footvertt = (acc_vel * lab * speedmult + PI * 0.4).sin() * speednorm;
+        let footvert = (mixed_vel * lab * speedmult + PI * 0.0).sin() * speednorm;
+        let footvertt = (mixed_vel * lab * speedmult + PI * 0.4).sin() * speednorm;
 
-        let footvertf = (acc_vel * lab * speedmult + PI * 0.3).sin() * speednorm;
-        let footverttf = (acc_vel * lab * speedmult + PI * 0.7).sin() * speednorm;
+        let footvertf = (mixed_vel * lab * speedmult + PI * 0.3).sin() * speednorm;
+        let footverttf = (mixed_vel * lab * speedmult + PI * 0.7).sin() * speednorm;
 
         let ori: Vec2<f32> = Vec2::from(orientation);
         let last_ori = Vec2::from(last_ori);

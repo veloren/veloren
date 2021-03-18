@@ -161,7 +161,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Beaver, _) => (2.0, 6.0),
                 (Hare, Male) => (-2.0, 7.0),
                 (Hare, Female) => (-2.0, 6.0),
-                (Dog, _) => (-2.0, 9.5),
+                (Dog, _) => (-2.0, 8.5),
                 (Goat, _) => (2.0, 7.5),
             },
             feet_f: match (body.species, body.body_type) {

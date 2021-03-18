@@ -1033,7 +1033,7 @@
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
     Armor(Chest("Rugged")): VoxTrans(
-        "voxel.armor.rugged.pants",
+        "voxel.armor.rugged.chest",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
     ),
     Armor(Chest("WorkerPurpBrown")): VoxTrans(

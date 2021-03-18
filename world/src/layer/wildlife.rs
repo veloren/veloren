@@ -91,7 +91,9 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             },
             group_size: 1..2,
             is_underwater: false,
-            get_density: |c, _col| close(c.temp, CONFIG.snow_temp, 0.3) * BASE_DENSITY * 1.0,
+            get_density: |c, col| {
+                close(c.temp, CONFIG.snow_temp, 0.3) * col.tree_density * BASE_DENSITY * 1.4
+            },
         },
         // Tundra rare solitary ennemies
         Entry {
@@ -106,7 +108,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             is_underwater: false,
             get_density: |c, _col| close(c.temp, CONFIG.snow_temp, 0.15) * BASE_DENSITY * 0.5,
         },
-        // Tundra rare solitary ennemies
+        // Tundra rarer solitary ennemies
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
@@ -139,7 +141,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
-                    .with_body(match rng.gen_range(0..3) {
+                    .with_body(match rng.gen_range(0..2) {
                         0 => biped_large::Body::random_with(rng, &biped_large::Species::Wendigo)
                             .into(),
                         _ => quadruped_medium::Body::random_with(
@@ -153,7 +155,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             group_size: 1..2,
             is_underwater: false,
             get_density: |c, col| {
-                close(c.temp, CONFIG.snow_temp + 0.2, 0.2) * col.tree_density * BASE_DENSITY * 0.2
+                close(c.temp, CONFIG.snow_temp + 0.2, 0.2) * col.tree_density * BASE_DENSITY * 0.4
             },
         },
         // Taiga pack ennemies
@@ -203,7 +205,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
-                    .with_body(match rng.gen_range(0..5) {
+                    .with_body(match rng.gen_range(0..6) {
                         0 => {
                             bird_medium::Body::random_with(rng, &bird_medium::Species::Eagle).into()
                         },
@@ -217,6 +219,13 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                             rng,
                             &quadruped_medium::Species::Moose,
                         )
+                        .into(),
+                        4 => {
+                            quadruped_small::Body {
+                                species: quadruped_small::Species::Hare,
+                                body_type: quadruped_small::BodyType::Female,
+                            }
+                        }
                         .into(),
                         _ => quadruped_medium::Body::random_with(
                             rng,
@@ -273,7 +282,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
-                    .with_body(match rng.gen_range(0..13) {
+                    .with_body(match rng.gen_range(0..12) {
                         0 => quadruped_medium::Body::random_with(
                             rng,
                             &quadruped_medium::Species::Deer,
@@ -311,21 +320,17 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                             &quadruped_small::Species::Squirrel,
                         )
                         .into(),
-                        8 => {
-                            quadruped_small::Body::random_with(rng, &quadruped_small::Species::Hare)
-                                .into()
-                        },
-                        9 => quadruped_medium::Body::random_with(
+                        8 => quadruped_medium::Body::random_with(
                             rng,
                             &quadruped_medium::Species::Horse,
                         )
                         .into(),
-                        10 => quadruped_medium::Body::random_with(
+                        9 => quadruped_medium::Body::random_with(
                             rng,
                             &quadruped_medium::Species::Cattle,
                         )
                         .into(),
-                        11 => {
+                        10 => {
                             quadruped_small::Body::random_with(rng, &quadruped_small::Species::Goat)
                                 .into()
                         },
@@ -339,7 +344,6 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             get_density: |c, _col| {
                 close(c.temp, CONFIG.temperate_temp + 0.1, 0.6)
                     * close(c.humidity, CONFIG.forest_hum, 0.6)
-                    //* col.tree_density
                     * BASE_DENSITY
                     * 4.0
             },
@@ -463,6 +467,30 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                 close(col.temp, CONFIG.temperate_temp, 0.6)
                     * if col.water_dist.map(|d| d < 10.0).unwrap_or(false) {
                         0.001
+                    } else {
+                        0.0
+                    }
+            },
+        },
+        // Temperate rare river ennemies
+        Entry {
+            make_entity: |pos, rng| {
+                EntityInfo::at(pos)
+                    .with_body(
+                        quadruped_medium::Body::random_with(
+                            rng,
+                            &quadruped_medium::Species::Kelpie,
+                        )
+                        .into(),
+                    )
+                    .with_alignment(Alignment::Wild)
+            },
+            group_size: 1..2,
+            is_underwater: false,
+            get_density: |_c, col| {
+                close(col.temp, CONFIG.temperate_temp, 0.6)
+                    * if col.water_dist.map(|d| d < 10.0).unwrap_or(false) {
+                        0.00005
                     } else {
                         0.0
                     }
@@ -733,7 +761,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                 close(c.temp, CONFIG.desert_temp + 0.2, 0.3)
                     * close(c.humidity, CONFIG.desert_hum, 0.5)
                     * BASE_DENSITY
-                    * 1.5
+                    * 1.3
             },
         },
         // Desert rare solitary enemies
@@ -807,7 +835,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
-                    .with_body(match rng.gen_range(0..6) {
+                    .with_body(match rng.gen_range(0..7) {
                         0 => quadruped_small::Body::random_with(
                             rng,
                             &quadruped_small::Species::Holladon,
@@ -831,6 +859,11 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                             rng,
                             &quadruped_small::Species::Porcupine,
                         )
+                        .into(),
+                        5 => quadruped_small::Body {
+                            species: quadruped_small::Species::Hare,
+                            body_type: quadruped_small::BodyType::Male,
+                        }
                         .into(),
                         _ => quadruped_small::Body::random_with(
                             rng,
