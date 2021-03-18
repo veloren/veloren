@@ -3,25 +3,65 @@ use crate::{
     i18n::Localization,
     ui::{
         fonts::IcedFonts as Fonts,
-        ice::{component::neat_button, style, widget::Image, Element},
+        ice::{component::neat_button, style, widget::Image, Element, IcedUi as Ui, Id},
+        Graphic,
     },
 };
+use common::assets::{self, AssetExt};
 use iced::{button, Align, Column, Container, Length, Row, Space, Text};
+use serde::{Deserialize, Serialize};
 
-const GEAR_ANIMATION_SPEED_FACTOR: f64 = 10.0;
+struct LoadingAnimation {
+    speed_factor: f32,
+    frames: Vec<Id>,
+}
+impl LoadingAnimation {
+    fn new(raw: &(f32, Vec<String>), ui: &mut Ui) -> Self {
+        let mut frames = vec![];
+        for frame_path in raw.1.iter() {
+            frames.push(ui.add_graphic(Graphic::Image(
+                assets::Image::load(frame_path).unwrap().read().to_image(),
+                None,
+            )));
+        }
+        Self {
+            speed_factor: raw.0,
+            frames,
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+struct LoadingAnimationManifest(Vec<(f32, Vec<String>)>);
+impl assets::Asset for LoadingAnimationManifest {
+    type Loader = assets::RonLoader;
+
+    const EXTENSION: &'static str = "ron";
+}
+
 /// Connecting screen for the main menu
 pub struct Screen {
     cancel_button: button::State,
     add_button: button::State,
     tip_number: u16,
+    loading_animation: LoadingAnimation,
 }
 
 impl Screen {
-    pub fn new() -> Self {
+    pub fn new(ui: &mut Ui) -> Self {
+        let animations =
+            LoadingAnimationManifest::load("voxygen.element.animation.loaders.manifest")
+                .unwrap()
+                .cloned()
+                .0;
         Self {
             cancel_button: Default::default(),
             add_button: Default::default(),
             tip_number: rand::random(),
+            loading_animation: LoadingAnimation::new(
+                &animations[rand::random::<usize>() % animations.len()],
+                ui,
+            ),
         }
     }
 
@@ -35,15 +75,10 @@ impl Screen {
         button_style: style::button::Style,
         show_tip: bool,
     ) -> Element<Message> {
-        let gear_anim_time = time * GEAR_ANIMATION_SPEED_FACTOR;
         // TODO: add built in support for animated images
-        let gear_anim_image = match (gear_anim_time % 5.0).trunc() as u8 {
-            0 => imgs.f1,
-            1 => imgs.f2,
-            2 => imgs.f3,
-            3 => imgs.f4,
-            _ => imgs.f5,
-        };
+        let frame_index = (time * self.loading_animation.speed_factor as f64)
+            % self.loading_animation.frames.len() as f64;
+        let frame_id = self.loading_animation.frames[frame_index as usize];
 
         let children = match connection_state {
             ConnectionState::InProgress => {
@@ -82,9 +117,9 @@ impl Screen {
                     .padding(5);
 
                 let gear = Container::new(
-                    Image::new(gear_anim_image)
-                        .width(Length::Units(74))
-                        .height(Length::Units(62)),
+                    Image::new(frame_id)
+                        .width(Length::Units(64))
+                        .height(Length::Units(64)),
                 )
                 .width(Length::Fill)
                 .padding(10)

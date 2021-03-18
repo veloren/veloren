@@ -51,13 +51,6 @@ image_ids_ice! {
         selection: "voxygen.element.frames.selection",
         selection_hover: "voxygen.element.frames.selection_hover",
         selection_press: "voxygen.element.frames.selection_press",
-
-        // Animation
-        f1: "voxygen.element.animation.gears.1",
-        f2: "voxygen.element.animation.gears.2",
-        f3: "voxygen.element.animation.gears.3",
-        f4: "voxygen.element.animation.gears.4",
-        f5: "voxygen.element.animation.gears.5",
     }
 }
 
@@ -319,7 +312,13 @@ impl Controls {
         .into()
     }
 
-    fn update(&mut self, message: Message, events: &mut Vec<Event>, settings: &Settings) {
+    fn update(
+        &mut self,
+        message: Message,
+        events: &mut Vec<Event>,
+        settings: &Settings,
+        ui: &mut Ui,
+    ) {
         let servers = &settings.networking.servers;
         let mut language_metadatas = crate::i18n::list_localizations();
 
@@ -343,14 +342,14 @@ impl Controls {
             #[cfg(feature = "singleplayer")]
             Message::Singleplayer => {
                 self.screen = Screen::Connecting {
-                    screen: connecting::Screen::new(),
+                    screen: connecting::Screen::new(ui),
                     connection_state: ConnectionState::InProgress,
                 };
                 events.push(Event::StartSingleplayer);
             },
             Message::Multiplayer => {
                 self.screen = Screen::Connecting {
-                    screen: connecting::Screen::new(),
+                    screen: connecting::Screen::new(ui),
                     connection_state: ConnectionState::InProgress,
                 };
 
@@ -577,7 +576,7 @@ impl<'a> MainMenuUi {
 
         messages.into_iter().for_each(|message| {
             self.controls
-                .update(message, &mut events, &global_state.settings)
+                .update(message, &mut events, &global_state.settings, &mut self.ui)
         });
 
         events

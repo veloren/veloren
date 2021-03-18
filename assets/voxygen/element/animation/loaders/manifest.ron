@@ -1,0 +1,37 @@
+([
+    (8.0, [
+        "voxygen.element.animation.loaders.cauldron1",
+        "voxygen.element.animation.loaders.cauldron2",
+        "voxygen.element.animation.loaders.cauldron3",
+        "voxygen.element.animation.loaders.cauldron4",
+        "voxygen.element.animation.loaders.cauldron5",
+    ]),
+    (6.0, [
+        "voxygen.element.animation.loaders.cheese1",
+        "voxygen.element.animation.loaders.cheese2",
+        "voxygen.element.animation.loaders.cheese3",
+        "voxygen.element.animation.loaders.cheese4",
+        "voxygen.element.animation.loaders.cheese5",
+    ]),
+    (6.0, [
+        "voxygen.element.animation.loaders.coins1",
+        "voxygen.element.animation.loaders.coins2",
+        "voxygen.element.animation.loaders.coins3",
+        "voxygen.element.animation.loaders.coins4",
+        "voxygen.element.animation.loaders.coins5",
+    ]),
+    (1.0, [
+        "voxygen.element.animation.loaders.house1",
+        "voxygen.element.animation.loaders.house2",
+        "voxygen.element.animation.loaders.house3",
+        "voxygen.element.animation.loaders.house4",
+        "voxygen.element.animation.loaders.house5",
+    ]),
+    (1.0, [
+        "voxygen.element.animation.loaders.ship1",
+        "voxygen.element.animation.loaders.ship2",
+        "voxygen.element.animation.loaders.ship3",
+        "voxygen.element.animation.loaders.ship4",
+        "voxygen.element.animation.loaders.ship5",
+    ]),
+])
