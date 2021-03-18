@@ -31,6 +31,15 @@ pub struct PendingLogin {
     pending_r: oneshot::Receiver<Result<(String, Uuid), RegisterError>>,
 }
 
+impl PendingLogin {
+    pub(crate) fn new_success(username: String, uuid: Uuid) -> Self {
+        let (pending_s, pending_r) = oneshot::channel();
+        let _ = pending_s.send(Ok((username, uuid)));
+
+        Self { pending_r }
+    }
+}
+
 impl Component for PendingLogin {
     type Storage = IdvStorage<Self>;
 }
@@ -68,7 +77,7 @@ impl LoginProvider {
     fn login(&mut self, uuid: Uuid, username: String) -> Result<(), RegisterError> {
         // make sure that the user is not logged in already
         if self.accounts.contains_key(&uuid) {
-            return Err(RegisterError::AlreadyLoggedIn);
+            return Err(RegisterError::AlreadyLoggedIn(uuid, username));
         }
         info!(?username, "New User");
         self.accounts.insert(uuid, username);

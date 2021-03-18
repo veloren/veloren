@@ -6,12 +6,13 @@ use crate::{
 };
 use common::{
     comp::{Admin, Player, Stats},
+    event::{EventBus, ServerEvent},
     uid::{Uid, UidAllocator},
 };
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::{
-    CharacterInfo, ClientRegister, PlayerInfo, PlayerListUpdate, RegisterError, ServerGeneral,
-    ServerRegisterAnswer,
+    CharacterInfo, ClientRegister, DisconnectReason, PlayerInfo, PlayerListUpdate, RegisterError,
+    ServerGeneral, ServerRegisterAnswer,
 };
 use hashbrown::HashMap;
 use plugin_api::Health;
@@ -48,6 +49,7 @@ impl<'a> System<'a> for Sys {
         WriteExpect<'a, LoginProvider>,
         WriteStorage<'a, Admin>,
         ReadExpect<'a, EditableSettings>,
+        Read<'a, EventBus<ServerEvent>>,
     );
 
     const NAME: &'static str = "msg::register";
@@ -70,6 +72,7 @@ impl<'a> System<'a> for Sys {
             mut login_provider,
             mut admins,
             editable_settings,
+            server_event_bus,
         ): Self::SystemData,
     ) {
         // Player list to send new players.
@@ -100,6 +103,7 @@ impl<'a> System<'a> for Sys {
         }
 
         let mut finished_pending = vec![];
+        let mut retries = vec![];
         for (entity, client, mut pending) in (&entities, &clients, &mut pending_logins).join() {
             if let Err(e) = || -> std::result::Result<(), crate::error::Error> {
                 #[cfg(feature = "plugins")]
@@ -127,7 +131,38 @@ impl<'a> System<'a> for Sys {
                         trace!(?r, "pending login returned");
                         match r {
                             Err(e) => {
-                                client.send(ServerRegisterAnswer::Err(e))?;
+                                let mut retry = false;
+                                if let RegisterError::AlreadyLoggedIn(uuid, ref username) = e {
+                                    if let Some((old_entity, old_client, _)) =
+                                        (&entities, &clients, &players)
+                                            .join()
+                                            .find(|(_, _, old_player)| old_player.uuid() == uuid)
+                                    {
+                                        // Remove old client
+                                        server_event_bus
+                                            .emit_now(ServerEvent::ClientDisconnect(old_entity));
+                                        let _ = old_client.send(ServerGeneral::Disconnect(
+                                            DisconnectReason::Kicked(String::from(
+                                                "You have logged in from another location.",
+                                            )),
+                                        ));
+                                        // We can't login the new client right now as the
+                                        // removal of the old client and player occurs later in
+                                        // the tick, so we instead setup the new login to be
+                                        // processed in the next tick
+                                        // Create "fake" successful pending auth and mark it to
+                                        // be inserted into pending_logins at the end of this
+                                        // run
+                                        retries.push((
+                                            entity,
+                                            PendingLogin::new_success(username.to_string(), uuid),
+                                        ));
+                                        retry = true;
+                                    }
+                                }
+                                if !retry {
+                                    client.send(ServerRegisterAnswer::Err(e))?;
+                                }
                                 return Ok(());
                             },
                             Ok((username, uuid)) => (username, uuid),
@@ -173,6 +208,10 @@ impl<'a> System<'a> for Sys {
         }
         for e in finished_pending {
             pending_logins.remove(e);
+        }
+        // Insert retry attempts back into pending_logins to be processed next tick
+        for (entity, pending) in retries {
+            let _ = pending_logins.insert(entity, pending);
         }
 
         // Handle new players.

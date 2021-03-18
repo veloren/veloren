@@ -538,7 +538,7 @@ impl Client {
         self.send_msg_err(ClientRegister { token_or_username })?;
 
         match self.register_stream.recv::<ServerRegisterAnswer>().await? {
-            Err(RegisterError::AlreadyLoggedIn) => Err(Error::AlreadyLoggedIn),
+            Err(RegisterError::AlreadyLoggedIn(_, _)) => Err(Error::AlreadyLoggedIn),
             Err(RegisterError::AuthError(err)) => Err(Error::AuthErr(err)),
             Err(RegisterError::InvalidCharacter) => Err(Error::InvalidCharacter),
             Err(RegisterError::NotOnWhitelist) => Err(Error::NotOnWhitelist),
