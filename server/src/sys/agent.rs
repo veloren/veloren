@@ -226,6 +226,19 @@ impl<'a> System<'a> for Sys {
                         can_fly: body.map(|b| b.can_fly().is_some()).unwrap_or(false),
                     };
 
+                    if traversal_config.can_fly {
+                        // hack (kinda): Never turn off flight for entities that can fly at all,
+                        // since it results in stuttering and falling back to the ground.
+
+                        // If we need to be able to have entities (dragons maybe?) both fly and
+                        // run/jump, we probably need to refactor to avoid resetting the controller
+                        // every frame.
+                        controller.actions.push(ControlAction::StartInput {
+                            input: InputKind::Fly,
+                            target: None,
+                        });
+                    }
+
                     let flees = alignment
                         .map(|a| !matches!(a, Alignment::Enemy | Alignment::Owned(_)))
                         .unwrap_or(true);
@@ -639,18 +652,7 @@ impl<'a> AgentData<'a> {
                 controller.inputs.move_dir =
                     bearing.xy().try_normalized().unwrap_or_else(Vec2::zero)
                         * speed.min(agent.rtsim_controller.speed_factor);
-                if bearing.z > 1.5
-                    || self.traversal_config.can_fly && self.traversal_config.on_ground
-                {
-                    controller.actions.push(ControlAction::StartInput {
-                        input: InputKind::Jump,
-                        target: None,
-                    });
-                } else {
-                    controller
-                        .actions
-                        .push(ControlAction::CancelInput(InputKind::Jump))
-                }
+                self.jump_if(controller, bearing.z > 1.5 || self.traversal_config.can_fly);
                 controller.inputs.climb = Some(comp::Climb::Up);
                 //.filter(|_| bearing.z > 0.1 || self.physics_state.in_liquid.is_some());
 
@@ -1037,16 +1039,7 @@ impl<'a> AgentData<'a> {
         ) {
             controller.inputs.move_dir =
                 bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-            if bearing.z > 1.5 {
-                controller.actions.push(ControlAction::StartInput {
-                    input: InputKind::Jump,
-                    target: None,
-                });
-            } else {
-                controller
-                    .actions
-                    .push(ControlAction::CancelInput(InputKind::Jump))
-            }
+            self.jump_if(controller, bearing.z > 1.5);
             controller.inputs.move_z = bearing.z;
         }
         agent.action_timer += dt.0;
@@ -1137,6 +1130,19 @@ impl<'a> AgentData<'a> {
             })
         } else {
             agent.target = None;
+        }
+    }
+
+    fn jump_if(&self, controller: &mut Controller, condition: bool) {
+        if condition {
+            controller.actions.push(ControlAction::StartInput {
+                input: InputKind::Jump,
+                target: None,
+            });
+        } else {
+            controller
+                .actions
+                .push(ControlAction::CancelInput(InputKind::Jump))
         }
     }
 
@@ -1270,16 +1276,7 @@ impl<'a> AgentData<'a> {
                     ) {
                         controller.inputs.move_dir =
                             bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                        if bearing.z > 1.5 {
-                            controller.actions.push(ControlAction::StartInput {
-                                input: InputKind::Jump,
-                                target: None,
-                            });
-                        } else {
-                            controller
-                                .actions
-                                .push(ControlAction::CancelInput(InputKind::Jump))
-                        }
+                        self.jump_if(controller, bearing.z > 1.5);
                         controller.inputs.move_z = bearing.z;
                     }
 
@@ -1342,16 +1339,7 @@ impl<'a> AgentData<'a> {
                     ) {
                         controller.inputs.move_dir =
                             bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                        if bearing.z > 1.5 {
-                            controller.actions.push(ControlAction::StartInput {
-                                input: InputKind::Jump,
-                                target: None,
-                            });
-                        } else {
-                            controller
-                                .actions
-                                .push(ControlAction::CancelInput(InputKind::Jump))
-                        }
+                        self.jump_if(controller, bearing.z > 1.5);
                         controller.inputs.move_z = bearing.z;
                     }
                     if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
@@ -1431,16 +1419,7 @@ impl<'a> AgentData<'a> {
                         } else {
                             controller.inputs.move_dir =
                                 bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                            if bearing.z > 1.5 {
-                                controller.actions.push(ControlAction::StartInput {
-                                    input: InputKind::Jump,
-                                    target: None,
-                                });
-                            } else {
-                                controller
-                                    .actions
-                                    .push(ControlAction::CancelInput(InputKind::Jump))
-                            }
+                            self.jump_if(controller, bearing.z > 1.5);
                             controller.inputs.move_z = bearing.z;
                         }
                     }
@@ -1507,16 +1486,7 @@ impl<'a> AgentData<'a> {
                         } else {
                             controller.inputs.move_dir =
                                 bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                            if bearing.z > 1.5 {
-                                controller.actions.push(ControlAction::StartInput {
-                                    input: InputKind::Jump,
-                                    target: None,
-                                });
-                            } else {
-                                controller
-                                    .actions
-                                    .push(ControlAction::CancelInput(InputKind::Jump))
-                            }
+                            self.jump_if(controller, bearing.z > 1.5);
                             controller.inputs.move_z = bearing.z;
                         }
                     }
@@ -1598,16 +1568,7 @@ impl<'a> AgentData<'a> {
                         } else {
                             controller.inputs.move_dir =
                                 bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                            if bearing.z > 1.5 {
-                                controller.actions.push(ControlAction::StartInput {
-                                    input: InputKind::Jump,
-                                    target: None,
-                                });
-                            } else {
-                                controller
-                                    .actions
-                                    .push(ControlAction::CancelInput(InputKind::Jump))
-                            }
+                            self.jump_if(controller, bearing.z > 1.5);
                             controller.inputs.move_z = bearing.z;
                         }
                     }
@@ -1633,16 +1594,7 @@ impl<'a> AgentData<'a> {
                     ) {
                         controller.inputs.move_dir =
                             bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                        if bearing.z > 1.5 {
-                            controller.actions.push(ControlAction::StartInput {
-                                input: InputKind::Jump,
-                                target: None,
-                            });
-                        } else {
-                            controller
-                                .actions
-                                .push(ControlAction::CancelInput(InputKind::Jump))
-                        }
+                        self.jump_if(controller, bearing.z > 1.5);
                         controller.inputs.move_z = bearing.z;
                     }
                 } else {
@@ -1722,16 +1674,7 @@ impl<'a> AgentData<'a> {
                         } else {
                             controller.inputs.move_dir =
                                 bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                            if bearing.z > 1.5 {
-                                controller.actions.push(ControlAction::StartInput {
-                                    input: InputKind::Jump,
-                                    target: None,
-                                });
-                            } else {
-                                controller
-                                    .actions
-                                    .push(ControlAction::CancelInput(InputKind::Jump))
-                            }
+                            self.jump_if(controller, bearing.z > 1.5);
                             controller.inputs.move_z = bearing.z;
                         }
                     }
@@ -1757,16 +1700,7 @@ impl<'a> AgentData<'a> {
                     ) {
                         controller.inputs.move_dir =
                             bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                        if bearing.z > 1.5 {
-                            controller.actions.push(ControlAction::StartInput {
-                                input: InputKind::Jump,
-                                target: None,
-                            });
-                        } else {
-                            controller
-                                .actions
-                                .push(ControlAction::CancelInput(InputKind::Jump))
-                        }
+                        self.jump_if(controller, bearing.z > 1.5);
                         controller.inputs.move_z = bearing.z;
                     }
                 } else {
@@ -1815,16 +1749,7 @@ impl<'a> AgentData<'a> {
                         } else {
                             controller.inputs.move_dir =
                                 bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                            if bearing.z > 1.5 {
-                                controller.actions.push(ControlAction::StartInput {
-                                    input: InputKind::Jump,
-                                    target: None,
-                                });
-                            } else {
-                                controller
-                                    .actions
-                                    .push(ControlAction::CancelInput(InputKind::Jump))
-                            }
+                            self.jump_if(controller, bearing.z > 1.5);
                             controller.inputs.move_z = bearing.z;
                         }
                     }
@@ -1893,16 +1818,7 @@ impl<'a> AgentData<'a> {
                     ) {
                         controller.inputs.move_dir =
                             bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                        if bearing.z > 1.5 {
-                            controller.actions.push(ControlAction::StartInput {
-                                input: InputKind::Jump,
-                                target: None,
-                            });
-                        } else {
-                            controller
-                                .actions
-                                .push(ControlAction::CancelInput(InputKind::Jump))
-                        }
+                        self.jump_if(controller, bearing.z > 1.5);
                         controller.inputs.move_z = bearing.z;
                     }
                 } else {
@@ -1954,30 +1870,12 @@ impl<'a> AgentData<'a> {
                                 input: InputKind::Secondary,
                                 target: None,
                             });
-                            if bearing.z > 1.5 {
-                                controller.actions.push(ControlAction::StartInput {
-                                    input: InputKind::Jump,
-                                    target: None,
-                                });
-                            } else {
-                                controller
-                                    .actions
-                                    .push(ControlAction::CancelInput(InputKind::Jump))
-                            }
+                            self.jump_if(controller, bearing.z > 1.5);
                             controller.inputs.move_z = bearing.z;
                         } else {
                             controller.inputs.move_dir =
                                 bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                            if bearing.z > 1.5 {
-                                controller.actions.push(ControlAction::StartInput {
-                                    input: InputKind::Jump,
-                                    target: None,
-                                });
-                            } else {
-                                controller
-                                    .actions
-                                    .push(ControlAction::CancelInput(InputKind::Jump))
-                            }
+                            self.jump_if(controller, bearing.z > 1.5);
                             controller.inputs.move_z = bearing.z;
                         }
                     } else {
@@ -2025,16 +1923,7 @@ impl<'a> AgentData<'a> {
                     ) {
                         controller.inputs.move_dir =
                             bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                        if bearing.z > 1.5 {
-                            controller.actions.push(ControlAction::StartInput {
-                                input: InputKind::Jump,
-                                target: None,
-                            });
-                        } else {
-                            controller
-                                .actions
-                                .push(ControlAction::CancelInput(InputKind::Jump))
-                        }
+                        self.jump_if(controller, bearing.z > 1.5);
                         controller.inputs.move_z = bearing.z;
                     }
                 } else {
@@ -2073,16 +1962,7 @@ impl<'a> AgentData<'a> {
                     ) {
                         controller.inputs.move_dir =
                             bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                        if bearing.z > 1.5 {
-                            controller.actions.push(ControlAction::StartInput {
-                                input: InputKind::Jump,
-                                target: None,
-                            });
-                        } else {
-                            controller
-                                .actions
-                                .push(ControlAction::CancelInput(InputKind::Jump))
-                        }
+                        self.jump_if(controller, bearing.z > 1.5);
                         controller.inputs.move_z = bearing.z;
                     }
                 } else {
@@ -2120,16 +2000,7 @@ impl<'a> AgentData<'a> {
                     ) {
                         controller.inputs.move_dir =
                             bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                        if bearing.z > 1.5 {
-                            controller.actions.push(ControlAction::StartInput {
-                                input: InputKind::Jump,
-                                target: None,
-                            });
-                        } else {
-                            controller
-                                .actions
-                                .push(ControlAction::CancelInput(InputKind::Jump))
-                        }
+                        self.jump_if(controller, bearing.z > 1.5);
                         controller.inputs.move_z = bearing.z;
                     }
                 } else {
@@ -2169,16 +2040,7 @@ impl<'a> AgentData<'a> {
                         } else {
                             controller.inputs.move_dir =
                                 bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                            if bearing.z > 1.5 {
-                                controller.actions.push(ControlAction::StartInput {
-                                    input: InputKind::Jump,
-                                    target: None,
-                                });
-                            } else {
-                                controller
-                                    .actions
-                                    .push(ControlAction::CancelInput(InputKind::Jump))
-                            }
+                            self.jump_if(controller, bearing.z > 1.5);
                             controller.inputs.move_z = bearing.z;
                         }
                     }
@@ -2217,16 +2079,7 @@ impl<'a> AgentData<'a> {
                     ) {
                         controller.inputs.move_dir =
                             bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                        if bearing.z > 1.5 {
-                            controller.actions.push(ControlAction::StartInput {
-                                input: InputKind::Jump,
-                                target: None,
-                            });
-                        } else {
-                            controller
-                                .actions
-                                .push(ControlAction::CancelInput(InputKind::Jump))
-                        }
+                        self.jump_if(controller, bearing.z > 1.5);
                         controller.inputs.move_z = bearing.z;
                     }
                 } else {
@@ -2285,16 +2138,7 @@ impl<'a> AgentData<'a> {
                     ) {
                         controller.inputs.move_dir =
                             bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                        if bearing.z > 1.5 {
-                            controller.actions.push(ControlAction::StartInput {
-                                input: InputKind::Jump,
-                                target: None,
-                            });
-                        } else {
-                            controller
-                                .actions
-                                .push(ControlAction::CancelInput(InputKind::Jump))
-                        }
+                        self.jump_if(controller, bearing.z > 1.5);
                         controller.inputs.move_z = bearing.z;
                     }
                 } else {
@@ -2321,16 +2165,7 @@ impl<'a> AgentData<'a> {
                     ) {
                         controller.inputs.move_dir =
                             bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                        if bearing.z > 1.5 {
-                            controller.actions.push(ControlAction::StartInput {
-                                input: InputKind::Jump,
-                                target: None,
-                            });
-                        } else {
-                            controller
-                                .actions
-                                .push(ControlAction::CancelInput(InputKind::Jump))
-                        }
+                        self.jump_if(controller, bearing.z > 1.5);
                         controller.inputs.move_z = bearing.z;
                     }
                 } else {
@@ -2398,16 +2233,7 @@ impl<'a> AgentData<'a> {
             let dist_sqrd = self.pos.0.distance_squared(tgt_pos.0);
             controller.inputs.move_dir = bearing.xy().try_normalized().unwrap_or_else(Vec2::zero)
                 * speed.min(0.2 + (dist_sqrd - AVG_FOLLOW_DIST.powi(2)) / 8.0);
-            if bearing.z > 1.5 {
-                controller.actions.push(ControlAction::StartInput {
-                    input: InputKind::Jump,
-                    target: None,
-                });
-            } else {
-                controller
-                    .actions
-                    .push(ControlAction::CancelInput(InputKind::Jump))
-            }
+            self.jump_if(controller, bearing.z > 1.5);
             controller.inputs.move_z = bearing.z;
         }
     }
