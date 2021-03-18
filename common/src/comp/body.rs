@@ -416,7 +416,7 @@ impl Body {
                 quadruped_low::Species::Rocksnapper => 1000,
                 quadruped_low::Species::Pangolin => 80,
                 quadruped_low::Species::Maneater => 400,
-                quadruped_low::Species::Sandshark => 600,
+                quadruped_low::Species::Sandshark => 800,
                 quadruped_low::Species::Hakulaq => 400,
                 quadruped_low::Species::Lavadrake => 900,
                 quadruped_low::Species::Deadwood => 600,
