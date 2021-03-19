@@ -1808,7 +1808,13 @@ impl Client {
         Ok(frontend_events)
     }
 
-    pub fn entity(&self) -> EcsEntity { self.entity }
+    pub fn entity(&self) -> EcsEntity {
+        debug_assert_eq!(
+            self.state.ecs().read_resource::<PlayerEntity>().0,
+            Some(self.entity)
+        );
+        self.entity
+    }
 
     pub fn uid(&self) -> Option<Uid> { self.state.read_component_copied(self.entity) }
 
@@ -1891,6 +1897,7 @@ impl Client {
             .allocate(entity_builder.entity, Some(client_uid));
 
         self.entity = entity_builder.with(uid).build();
+        self.state.ecs().write_resource::<PlayerEntity>().0 = Some(self.entity);
     }
 
     /// Change player alias to "You" if client belongs to matching player
