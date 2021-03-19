@@ -970,6 +970,7 @@ impl<'a> AgentData<'a> {
                         }
                         if pending.phase != TradePhase::Mutate {
                             // we got into the review phase but without balanced goods, decline
+                            agent.trading = false;
                             event_emitter.emit(ServerEvent::ProcessTradeAction(
                                 *self.entity,
                                 tradeid,
