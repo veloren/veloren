@@ -77,6 +77,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Overhauled the sceptre
 - Make the /time command relative to the current day
 - Spatial partitioning via a grid for entity versus entity collisions was added which can more than halve the total tick time at higher entity counts (> ~1000)
+- Improved efficency of entity versus terrain collisions (they now take less than half the time)
 - The loading screen will now display random animations
 
 ### Removed

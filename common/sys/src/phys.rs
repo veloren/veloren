@@ -1162,57 +1162,54 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
         const MAX_ATTEMPTS: usize = 16;
 
         // While the player is colliding with the terrain...
-        while collision_with(
-            pos.0,
-            &terrain,
-            block_true,
-            near_iter.clone(),
-            radius,
-            z_range.clone(),
-        ) && attempts < MAX_ATTEMPTS
-        {
-            // Calculate the player's AABB
-            let player_aabb = Aabb {
-                min: pos.0 + Vec3::new(-radius, -radius, z_min),
-                max: pos.0 + Vec3::new(radius, radius, z_max),
-            };
+        while let Some((_block_pos, block_aabb, block_height)) =
+            (attempts < MAX_ATTEMPTS).then(|| {
+                // Calculate the player's AABB
+                let player_aabb = Aabb {
+                    min: pos.0 + Vec3::new(-radius, -radius, z_min),
+                    max: pos.0 + Vec3::new(radius, radius, z_max),
+                };
 
-            // Determine the block that we are colliding with most (based on minimum
-            // collision axis)
-            let (_block_pos, block_aabb, block_height) = near_iter
-                .clone()
-                // Calculate the block's position in world space
-                .map(|(i, j, k)| pos.0.map(|e| e.floor() as i32) + Vec3::new(i, j, k))
-                // Make sure the block is actually solid
-                .filter_map(|block_pos| {
-                    if let Some(block) = terrain
-                        .get(block_pos)
-                        .ok()
-                        .filter(|block| block.is_solid())
-                    {
-                        // Calculate block AABB
-                        Some((
+                // Determine the block that we are colliding with most (based on minimum
+                // collision axis) (if we are colliding with one)
+                near_iter
+                    .clone()
+                    // Calculate the block's position in world space
+                    .map(|(i, j, k)| pos.0.map(|e| e.floor() as i32) + Vec3::new(i, j, k))
+                    // Make sure the block is actually solid
+                    .filter_map(|block_pos| {
+                        terrain
+                            .get(block_pos)
+                            .ok()
+                            .filter(|block| block.is_solid())
+                            .map(|block| (block_pos, block))
+                    })
+                    // Calculate block AABB
+                    .map(|(block_pos, block)| {
+                        (
                             block_pos,
                             Aabb {
                                 min: block_pos.map(|e| e as f32),
                                 max: block_pos.map(|e| e as f32) + Vec3::new(1.0, 1.0, block.solid_height()),
                             },
                             block.solid_height(),
-                        ))
-                    } else {
-                        None
-                    }
-                })
-                // Determine whether the block's AABB collides with the player's AABB
-                .filter(|(_, block_aabb, _)| block_aabb.collides_with_aabb(player_aabb))
-                // Find the maximum of the minimum collision axes (this bit is weird, trust me that it works)
-                .min_by_key(|(_, block_aabb, _)| {
-                    ((block_aabb.center() - player_aabb.center() - Vec3::unit_z() * 0.5)
-                        .map(|e| e.abs())
-                        .sum()
-                        * 1_000_000.0) as i32
-                })
-                .expect("Collision detected, but no colliding blocks found!");
+                        )
+                    })
+                    // Determine whether the block's AABB collides with the player's AABB
+                    .filter(|(_, block_aabb, _)| block_aabb.collides_with_aabb(player_aabb))
+                    // Find the maximum of the minimum collision axes (this bit is weird, trust me that it works)
+                    .min_by_key(|(_, block_aabb, _)| {
+                        ordered_float::OrderedFloat((block_aabb.center() - player_aabb.center() - Vec3::unit_z() * 0.5)
+                            .map(f32::abs)
+                            .sum())
+                    })
+            }).flatten()
+        {
+            // Calculate the player's AABB
+            let player_aabb = Aabb {
+                min: pos.0 + Vec3::new(-radius, -radius, z_min),
+                max: pos.0 + Vec3::new(radius, radius, z_max),
+            };
 
             // Find the intrusion vector of the collision
             let dir = player_aabb.collision_vector_with_aabb(block_aabb);
@@ -1243,12 +1240,12 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
             }
 
             // When the resolution direction is non-vertical, we must be colliding
-            // with a wall If the space above is free...
-            if !collision_with(Vec3::new(pos.0.x, pos.0.y, (pos.0.z + 0.1).ceil()), &terrain, block_true, near_iter.clone(), radius, z_range.clone())
-                // ...and we're being pushed out horizontally...
-                && resolve_dir.z == 0.0
+            // with a wall If we're being pushed out horizontally...
+            if resolve_dir.z == 0.0
                 // ...and the vertical resolution direction is sufficiently great...
                 && dir.z < -0.1
+                // ...and the space above is free...
+                && !collision_with(Vec3::new(pos.0.x, pos.0.y, (pos.0.z + 0.1).ceil()), &terrain, block_true, near_iter.clone(), radius, z_range.clone())
                 // ...and we're falling/standing OR there is a block *directly* beneath our current origin (note: not hitbox)...
                 // && terrain
                 //     .get((pos.0 - Vec3::unit_z() * 0.1).map(|e| e.floor() as i32))
@@ -1323,18 +1320,18 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
         physics_state.on_ground = true;
     }
 
+    let player_aabb = Aabb {
+        min: pos.0 + Vec3::new(-radius, -radius, z_range.start),
+        max: pos.0 + Vec3::new(radius, radius, z_range.end),
+    };
+    let player_voxel_pos = pos.0.map(|e| e.floor() as i32);
+
     let dirs = [
         Vec3::unit_x(),
         Vec3::unit_y(),
         -Vec3::unit_x(),
         -Vec3::unit_y(),
     ];
-
-    let player_aabb = Aabb {
-        min: pos.0 + Vec3::new(-radius, -radius, z_range.start),
-        max: pos.0 + Vec3::new(radius, radius, z_range.end),
-    };
-    let player_voxel_pos = pos.0.map(|e| e.floor() as i32);
     let player_wall_aabbs = dirs.map(|dir| {
         let pos = pos.0 + dir * 0.01;
         Aabb {
