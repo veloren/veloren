@@ -5634,6 +5634,7 @@ dependencies = [
  "bincode",
  "hashbrown",
  "indexmap",
+ "ordered-float 2.1.1",
  "rand 0.8.3",
  "rayon",
  "scopeguard",
