@@ -3,10 +3,7 @@ pub mod sys;
 
 use crate::audio::sfx::SfxEventItem;
 use common::{event::EventBus, slowjob::SlowJobPool};
-use specs::{Entity, World, WorldExt};
-
-#[derive(Copy, Clone, Debug)]
-pub struct MyEntity(pub Entity);
+use specs::{World, WorldExt};
 
 pub fn init(world: &mut World) {
     world.register::<comp::HpFloaterList>();

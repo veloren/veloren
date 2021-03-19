@@ -175,7 +175,6 @@ pub struct Client {
 
     tick: u64,
     state: State,
-    entity: EcsEntity,
 
     view_distance: Option<u32>,
     // TODO: move into voxygen
@@ -248,7 +247,6 @@ impl Client {
         let mut ping_interval = tokio::time::interval(core::time::Duration::from_secs(1));
         let (
             state,
-            entity,
             lod_base,
             lod_alt,
             lod_horizon,
@@ -425,7 +423,6 @@ impl Client {
 
                 Ok((
                     state,
-                    entity,
                     lod_base,
                     lod_alt,
                     Grid::from_raw(map_size.map(|e| e as i32), lod_horizon),
@@ -493,7 +490,6 @@ impl Client {
 
             tick: 0,
             state,
-            entity,
             view_distance,
             loaded_distance: 0.0,
 
@@ -775,7 +771,7 @@ impl Client {
     pub fn can_craft_recipe(&self, recipe: &str) -> bool {
         self.recipe_book
             .get(recipe)
-            .zip(self.inventories().get(self.entity))
+            .zip(self.inventories().get(self.entity()))
             .map(|(recipe, inv)| inv.contains_ingredients(&*recipe).is_ok())
             .unwrap_or(false)
     }
@@ -883,7 +879,7 @@ impl Client {
         self.state
             .ecs()
             .read_storage::<comp::Mounting>()
-            .get(self.entity)
+            .get(self.entity())
             .is_some()
     }
 
@@ -891,7 +887,7 @@ impl Client {
         self.state
             .ecs()
             .read_storage::<comp::LightEmitter>()
-            .get(self.entity)
+            .get(self.entity())
             .is_some()
     }
 
@@ -908,7 +904,7 @@ impl Client {
             .state
             .ecs()
             .read_storage::<comp::Health>()
-            .get(self.entity)
+            .get(self.entity())
             .map_or(false, |h| h.is_dead)
         {
             self.send_msg(ClientGeneral::ControlEvent(ControlEvent::Respawn));
@@ -924,7 +920,7 @@ impl Client {
             .state
             .ecs()
             .read_storage::<comp::CharacterState>()
-            .get(self.entity)
+            .get(self.entity())
             .map(|cs| cs.is_wield());
 
         match is_wielding {
@@ -939,7 +935,7 @@ impl Client {
             .state
             .ecs()
             .read_storage::<comp::CharacterState>()
-            .get(self.entity)
+            .get(self.entity())
             .map(|cs| matches!(cs, comp::CharacterState::Sit));
 
         match is_sitting {
@@ -954,7 +950,7 @@ impl Client {
             .state
             .ecs()
             .read_storage::<comp::CharacterState>()
-            .get(self.entity)
+            .get(self.entity())
             .map(|cs| matches!(cs, comp::CharacterState::Dance));
 
         match is_dancing {
@@ -969,7 +965,7 @@ impl Client {
             .state
             .ecs()
             .read_storage::<comp::CharacterState>()
-            .get(self.entity)
+            .get(self.entity())
             .map(|cs| matches!(cs, comp::CharacterState::Sneak));
 
         match is_sneaking {
@@ -984,7 +980,7 @@ impl Client {
             .state
             .ecs()
             .read_storage::<comp::CharacterState>()
-            .get(self.entity)
+            .get(self.entity())
             .map(|cs| {
                 matches!(
                     cs,
@@ -1015,7 +1011,7 @@ impl Client {
             .state
             .ecs()
             .write_storage::<Controller>()
-            .get_mut(self.entity)
+            .get_mut(self.entity())
         {
             controller.actions.push(control_action);
         }
@@ -1030,7 +1026,7 @@ impl Client {
         let chunk_pos = Vec2::from(
             self.state
                 .read_storage::<comp::Pos>()
-                .get(self.entity)
+                .get(self.entity())
                 .cloned()?
                 .0,
         )
@@ -1045,7 +1041,7 @@ impl Client {
     where
         C: Clone,
     {
-        Some(self.state.read_storage::<C>().get(self.entity).cloned()?)
+        Some(self.state.read_storage::<C>().get(self.entity()).cloned()?)
     }
 
     pub fn current_biome(&self) -> BiomeKind {
@@ -1147,7 +1143,7 @@ impl Client {
                 .state
                 .ecs()
                 .write_storage::<Controller>()
-                .entry(self.entity)
+                .entry(self.entity())
                 .map(|entry| {
                     entry
                         .or_insert_with(|| Controller {
@@ -1159,7 +1155,7 @@ impl Client {
                         .inputs = inputs.clone();
                 })
             {
-                let entry = self.entity;
+                let entry = self.entity();
                 error!(
                     ?e,
                     ?entry,
@@ -1217,7 +1213,7 @@ impl Client {
         let pos = self
             .state
             .read_storage::<comp::Pos>()
-            .get(self.entity)
+            .get(self.entity())
             .cloned();
         if let (Some(pos), Some(view_distance)) = (pos, self.view_distance) {
             let chunk_pos = self.state.terrain().pos_key(pos.0.map(|e| e as i32));
@@ -1316,9 +1312,9 @@ impl Client {
         // 6) Update the server about the player's physics attributes.
         if self.presence.is_some() {
             if let (Some(pos), Some(vel), Some(ori)) = (
-                self.state.read_storage().get(self.entity).cloned(),
-                self.state.read_storage().get(self.entity).cloned(),
-                self.state.read_storage().get(self.entity).cloned(),
+                self.state.read_storage().get(self.entity()).cloned(),
+                self.state.read_storage().get(self.entity()).cloned(),
+                self.state.read_storage().get(self.entity()).cloned(),
             ) {
                 self.in_game_stream
                     .send(ClientGeneral::PlayerPhysics { pos, vel, ori })?;
@@ -1459,7 +1455,6 @@ impl Client {
             },
             ServerGeneral::SetPlayerEntity(uid) => {
                 if let Some(entity) = self.state.ecs().entity_from_uid(uid.0) {
-                    self.entity = entity;
                     *self.state.ecs_mut().write_resource() = PlayerEntity(Some(entity));
                 } else {
                     return Err(Error::Other("Failed to find entity from uid.".to_owned()));
@@ -1614,7 +1609,7 @@ impl Client {
                     InventoryUpdateEvent::CollectFailed => {},
                     _ => {
                         // Push the updated inventory component to the client
-                        self.state.write_component(self.entity, inventory);
+                        self.state.write_component(self.entity(), inventory);
                     },
                 }
 
@@ -1634,7 +1629,7 @@ impl Client {
                     .ecs()
                     .read_resource::<EventBus<LocalEvent>>()
                     .emit_now(LocalEvent::ApplyImpulse {
-                        entity: self.entity,
+                        entity: self.entity(),
                         impulse,
                     });
             },
@@ -1809,14 +1804,14 @@ impl Client {
     }
 
     pub fn entity(&self) -> EcsEntity {
-        debug_assert_eq!(
-            self.state.ecs().read_resource::<PlayerEntity>().0,
-            Some(self.entity)
-        );
-        self.entity
+        self.state
+            .ecs()
+            .read_resource::<PlayerEntity>()
+            .0
+            .expect("Client::entity should always have PlayerEntity be Some")
     }
 
-    pub fn uid(&self) -> Option<Uid> { self.state.read_component_copied(self.entity) }
+    pub fn uid(&self) -> Option<Uid> { self.state.read_component_copied(self.entity()) }
 
     pub fn presence(&self) -> Option<PresenceKind> { self.presence }
 
@@ -1869,7 +1864,7 @@ impl Client {
     pub fn is_admin(&self) -> bool {
         let client_uid = self
             .state
-            .read_component_copied::<Uid>(self.entity)
+            .read_component_copied::<Uid>(self.entity())
             .expect("Client doesn't have a Uid!!!");
 
         self.player_list
@@ -1896,8 +1891,8 @@ impl Client {
             .write_resource::<UidAllocator>()
             .allocate(entity_builder.entity, Some(client_uid));
 
-        self.entity = entity_builder.with(uid).build();
-        self.state.ecs().write_resource::<PlayerEntity>().0 = Some(self.entity);
+        let entity = entity_builder.with(uid).build();
+        self.state.ecs().write_resource::<PlayerEntity>().0 = Some(entity);
     }
 
     /// Change player alias to "You" if client belongs to matching player

@@ -1,14 +1,11 @@
-use crate::ecs::{
-    comp::{HpFloater, HpFloaterList},
-    MyEntity,
-};
+use crate::ecs::comp::{HpFloater, HpFloaterList};
 use common::{
     comp::{Health, HealthSource, Pos},
-    resources::DeltaTime,
+    resources::{DeltaTime, PlayerEntity},
     uid::Uid,
 };
 use common_ecs::{Job, Origin, Phase, System};
-use specs::{Entities, Join, Read, ReadExpect, ReadStorage, WriteStorage};
+use specs::{Entities, Join, Read, ReadStorage, WriteStorage};
 
 // How long floaters last (in seconds)
 pub const HP_SHOWTIME: f32 = 3.0;
@@ -21,7 +18,7 @@ impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
         Entities<'a>,
-        ReadExpect<'a, MyEntity>,
+        Read<'a, PlayerEntity>,
         Read<'a, DeltaTime>,
         ReadStorage<'a, Uid>,
         ReadStorage<'a, Pos>,
@@ -53,7 +50,7 @@ impl<'a> System<'a> for Sys {
         }
 
         // Add hp floaters to all entities that have been damaged
-        let my_uid = uids.get(my_entity.0);
+        let my_uid = my_entity.0.and_then(|entity| uids.get(entity));
         for (entity, health, hp_floater_list) in (&entities, &healths, &mut hp_floater_lists).join()
         {
             // Increment timer for time since last damaged by me
@@ -82,11 +79,11 @@ impl<'a> System<'a> for Sys {
                         if by_me {
                             hp_floater_list.time_since_last_dmg_by_me = Some(0.0);
                         }
-                        my_entity.0 == entity || by_me
+                        my_entity.0 == Some(entity) || by_me
                     },
-                    HealthSource::Suicide => my_entity.0 == entity,
-                    HealthSource::World => my_entity.0 == entity,
-                    HealthSource::LevelUp => my_entity.0 == entity,
+                    HealthSource::Suicide => my_entity.0 == Some(entity),
+                    HealthSource::World => my_entity.0 == Some(entity),
+                    HealthSource::LevelUp => my_entity.0 == Some(entity),
                     HealthSource::Command => true,
                     HealthSource::Item => true,
                     _ => false,
@@ -142,7 +139,7 @@ impl<'a> System<'a> for Sys {
             // Clear floaters if newest floater is past show time or health runs out
             if floaters.last().map_or(false, |f| {
                 f.timer
-                    > if entity != my_entity.0 {
+                    > if Some(entity) != my_entity.0 {
                         HP_SHOWTIME
                     } else {
                         MY_HP_SHOWTIME
