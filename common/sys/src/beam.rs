@@ -9,10 +9,11 @@ use common::{
     uid::{Uid, UidAllocator},
     GroupTarget,
 };
-use common_ecs::{Job, Origin, Phase, System};
+use common_ecs::{Job, Origin, ParMode, Phase, System};
+use rayon::iter::ParallelIterator;
 use specs::{
-    saveload::MarkerAllocator, shred::ResourceId, Entities, Join, Read, ReadStorage, SystemData,
-    World, WriteStorage,
+    saveload::MarkerAllocator, shred::ResourceId, Entities, Join, ParJoin, Read, ReadStorage,
+    SystemData, World, WriteStorage,
 };
 use std::time::Duration;
 use vek::*;
@@ -51,34 +52,36 @@ impl<'a> System<'a> for Sys {
     const ORIGIN: Origin = Origin::Common;
     const PHASE: Phase = Phase::Create;
 
-    fn run(_job: &mut Job<Self>, (read_data, mut beam_segments, mut beams): Self::SystemData) {
+    fn run(job: &mut Job<Self>, (read_data, mut beam_segments, mut beams): Self::SystemData) {
         let mut server_emitter = read_data.server_bus.emitter();
 
         let time = read_data.time.0;
         let dt = read_data.dt.0;
 
+        job.cpu_stats.measure(ParMode::Rayon);
+
         // Beams
-        for (entity, pos, ori, beam_segment) in (
+        let (server_events, add_hit_entities) = (
             &read_data.entities,
             &read_data.positions,
             &read_data.orientations,
             &beam_segments,
         )
-            .join()
+            .par_join()
+            .fold(|| (Vec::new(), Vec::new()), |(mut server_events, mut add_hit_entities), (entity, pos, ori, beam_segment)|
         {
             let creation_time = match beam_segment.creation {
                 Some(time) => time,
                 // Skip newly created beam segments
-                None => continue,
+                None => return (server_events, add_hit_entities),
             };
-
             let end_time = creation_time + beam_segment.duration.as_secs_f64();
 
             // If beam segment is out of time emit destroy event but still continue since it
             // may have traveled and produced effects a bit before reaching it's
             // end point
             if end_time < time {
-                server_emitter.emit(ServerEvent::Destroy {
+                server_events.push(ServerEvent::Destroy {
                     entity,
                     cause: HealthSource::World,
                 });
@@ -87,9 +90,8 @@ impl<'a> System<'a> for Sys {
             // Determine area that was covered by the beam in the last tick
             let frame_time = dt.min((end_time - time) as f32);
             if frame_time <= 0.0 {
-                continue;
+                return (server_events, add_hit_entities);
             }
-
             // Note: min() probably uneeded
             let time_since_creation = (time - creation_time) as f32;
             let frame_start_dist =
@@ -104,10 +106,10 @@ impl<'a> System<'a> for Sys {
             // Might make this more nuanced if beams are used for non damage effects
             let group = beam_owner.and_then(|e| read_data.groups.get(e));
 
-            let hit_entities = if let Some(beam) = beam_owner.and_then(|e| beams.get_mut(e)) {
-                &mut beam.hit_entities
+            let hit_entities = if let Some(beam) = beam_owner.and_then(|e| beams.get(e)) {
+                &beam.hit_entities
             } else {
-                continue;
+                return (server_events, add_hit_entities);
             };
 
             // Go through all other effectable entities
@@ -176,11 +178,28 @@ impl<'a> System<'a> for Sys {
                         ori.look_dir(),
                         false,
                         1.0,
-                        |e| server_emitter.emit(e),
+                        |e| server_events.push(e),
                     );
 
-                    hit_entities.push(*uid_b);
+                    add_hit_entities.push((beam_owner, *uid_b));
                 }
+            }
+            (server_events, add_hit_entities)
+        }).reduce(|| (Vec::new(), Vec::new()), |(mut events_a, mut hit_entities_a), (mut events_b, mut hit_entities_b)| {
+            events_a.append(&mut events_b);
+            hit_entities_a.append(&mut hit_entities_b);
+            (events_a, hit_entities_a)
+        });
+
+        job.cpu_stats.measure(ParMode::Single);
+
+        for event in server_events {
+            server_emitter.emit(event);
+        }
+
+        for (owner, hit_entity) in add_hit_entities {
+            if let Some(ref mut beam) = owner.and_then(|e| beams.get_mut(e)) {
+                beam.hit_entities.push(hit_entity);
             }
         }
 
