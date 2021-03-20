@@ -25,7 +25,7 @@ default:
       - runner_system_failure
       - stuck_or_timeout_failure
   tags:
-    - veloren-docker
+    - veloren-wgpu-docker
 
 # NOTE: overriden for the `.tmacos` template so relevant changes need to be mirrored there
 before_script:
