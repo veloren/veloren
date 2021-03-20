@@ -42,6 +42,11 @@ pub const FRIC_FLUID: f32 = 0.4;
 // damp = linear damping
 // Friction is a type of damping.
 fn integrate_forces(dt: f32, mut lv: Vec3<f32>, grav: f32, damp: f32) -> Vec3<f32> {
+    // Clamp dt to an effective 10 TPS, to prevent gravity from slamming the players
+    // into the floor when stationary if other systems cause the server to lag
+    // (as observed in the 0.9 release party).
+    let dt = dt.min(0.1);
+
     // this is not linear damping, because it is proportional to the original
     // velocity this "linear" damping in in fact, quite exponential. and thus
     // must be interpolated accordingly
