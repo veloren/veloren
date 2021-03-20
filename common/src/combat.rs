@@ -53,6 +53,7 @@ pub struct TargetInfo<'a> {
     pub entity: EcsEntity,
     pub inventory: Option<&'a Inventory>,
     pub stats: Option<&'a Stats>,
+    pub health: Option<&'a Health>,
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -229,7 +230,7 @@ impl Attack {
             .filter(|e| !(matches!(e.target, Some(GroupTarget::OutOfGroup)) && target_dodging))
         {
             if effect.requirements.iter().all(|req| match req {
-                CombatRequirement::AnyDamage => accumulated_damage > 0.0,
+                CombatRequirement::AnyDamage => accumulated_damage > 0.0 && target.health.is_some(),
                 CombatRequirement::Energy(r) => {
                     if let Some(AttackerInfo {
                         entity,

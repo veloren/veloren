@@ -1,7 +1,7 @@
 use common::{
     combat::{AttackerInfo, TargetInfo},
     comp::{
-        projectile, Combo, Energy, Group, HealthSource, Inventory, Ori, PhysicsState, Pos,
+        projectile, Combo, Energy, Group, Health, HealthSource, Inventory, Ori, PhysicsState, Pos,
         Projectile, Stats, Vel,
     },
     event::{EventBus, ServerEvent},
@@ -31,6 +31,7 @@ pub struct ReadData<'a> {
     energies: ReadStorage<'a, Energy>,
     stats: ReadStorage<'a, Stats>,
     combos: ReadStorage<'a, Combo>,
+    healths: ReadStorage<'a, Health>,
 }
 
 /// This system is responsible for handling projectile effect triggers
@@ -119,6 +120,7 @@ impl<'a> System<'a> for Sys {
                                     entity: target,
                                     inventory: read_data.inventories.get(target),
                                     stats: read_data.stats.get(target),
+                                    health: read_data.healths.get(target),
                                 };
 
                                 attack.apply_attack(
