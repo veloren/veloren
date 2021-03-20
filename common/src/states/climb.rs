@@ -11,17 +11,27 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use vek::*;
 
+/// Separated out to condense update portions of character state
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct Data {
+pub struct StaticData {
     pub energy_cost: f32,
     pub movement_speed: f32,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Data {
+    /// Struct containing data that does not change over the course of the
+    /// character state
+    pub static_data: StaticData,
 }
 
 impl Default for Data {
     fn default() -> Self {
         Data {
-            energy_cost: 5.0,
-            movement_speed: 5.0,
+            static_data: StaticData {
+                energy_cost: 5.0,
+                movement_speed: 5.0,
+            },
         }
     }
 }
@@ -50,15 +60,15 @@ impl CharacterBehavior for Data {
         // Move player
         update.vel.0 += Vec2::broadcast(data.dt.0)
             * data.inputs.move_dir
-            * if update.vel.0.magnitude_squared() < self.movement_speed.powi(2) {
-                self.movement_speed.powi(2)
+            * if update.vel.0.magnitude_squared() < self.static_data.movement_speed.powi(2) {
+                self.static_data.movement_speed.powi(2)
             } else {
                 0.0
             };
 
         // Expend energy if climbing
         let energy_use = match climb {
-            Climb::Up => self.energy_cost as i32,
+            Climb::Up => self.static_data.energy_cost as i32,
             Climb::Down => 1,
             Climb::Hold => 1,
         };
@@ -82,8 +92,12 @@ impl CharacterBehavior for Data {
 
         // Apply Vertical Climbing Movement
         match climb {
-            Climb::Down => update.vel.0.z += data.dt.0 * (GRAVITY - self.movement_speed.powi(2)),
-            Climb::Up => update.vel.0.z += data.dt.0 * (GRAVITY + self.movement_speed.powi(2)),
+            Climb::Down => {
+                update.vel.0.z += data.dt.0 * (GRAVITY - self.static_data.movement_speed.powi(2))
+            },
+            Climb::Up => {
+                update.vel.0.z += data.dt.0 * (GRAVITY + self.static_data.movement_speed.powi(2))
+            },
             Climb::Hold => update.vel.0.z += data.dt.0 * GRAVITY,
         }
 

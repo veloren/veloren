@@ -1072,46 +1072,39 @@ impl CharacterAbility {
                     _ => {},
                 }
             },
-            None => {
-                use skills::{
-                    ClimbSkill::{self, *},
-                    RollSkill::{self, *},
-                };
-                match self {
-                    CharacterAbility::Roll {
-                        ref mut immune_melee,
-                        ref mut energy_cost,
-                        ref mut roll_strength,
-                        ref mut movement_duration,
-                        ..
-                    } => {
-                        *immune_melee = skillset.has_skill(Skill::Roll(ImmuneMelee));
-                        if let Ok(Some(level)) = skillset.skill_level(Skill::Roll(RollSkill::Cost))
-                        {
-                            *energy_cost *= 0.8_f32.powi(level.into());
-                        }
-                        if let Ok(Some(level)) = skillset.skill_level(Skill::Roll(Strength)) {
-                            *roll_strength *= 1.2_f32.powi(level.into());
-                        }
-                        if let Ok(Some(level)) = skillset.skill_level(Skill::Roll(Duration)) {
-                            *movement_duration *= 1.2_f32.powi(level.into());
-                        }
-                    },
-                    CharacterAbility::Climb {
-                        ref mut energy_cost,
-                        ref mut movement_speed,
-                    } => {
-                        if let Ok(Some(level)) =
-                            skillset.skill_level(Skill::Climb(ClimbSkill::Cost))
-                        {
-                            *energy_cost *= 0.8_f32.powi(level.into());
-                        }
-                        if let Ok(Some(level)) = skillset.skill_level(Skill::Climb(Speed)) {
-                            *movement_speed *= 1.2_f32.powi(level.into());
-                        }
-                    },
-                    _ => {},
-                }
+            None => match self {
+                CharacterAbility::Roll {
+                    ref mut immune_melee,
+                    ref mut energy_cost,
+                    ref mut roll_strength,
+                    ref mut movement_duration,
+                    ..
+                } => {
+                    use skills::RollSkill::*;
+                    *immune_melee = skillset.has_skill(Skill::Roll(ImmuneMelee));
+                    if let Ok(Some(level)) = skillset.skill_level(Skill::Roll(Cost)) {
+                        *energy_cost *= 0.8_f32.powi(level.into());
+                    }
+                    if let Ok(Some(level)) = skillset.skill_level(Skill::Roll(Strength)) {
+                        *roll_strength *= 1.2_f32.powi(level.into());
+                    }
+                    if let Ok(Some(level)) = skillset.skill_level(Skill::Roll(Duration)) {
+                        *movement_duration *= 1.2_f32.powi(level.into());
+                    }
+                },
+                CharacterAbility::Climb {
+                    ref mut energy_cost,
+                    ref mut movement_speed,
+                } => {
+                    use skills::ClimbSkill::*;
+                    if let Ok(Some(level)) = skillset.skill_level(Skill::Climb(Cost)) {
+                        *energy_cost *= 0.8_f32.powi(level.into());
+                    }
+                    if let Ok(Some(level)) = skillset.skill_level(Skill::Climb(Speed)) {
+                        *movement_speed *= 1.2_f32.powi(level.into());
+                    }
+                },
+                _ => {},
             },
             Some(_) => {},
         }
@@ -1253,8 +1246,10 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 energy_cost,
                 movement_speed,
             } => CharacterState::Climb(climb::Data {
-                energy_cost: *energy_cost,
-                movement_speed: *movement_speed,
+                static_data: climb::StaticData {
+                    energy_cost: *energy_cost,
+                    movement_speed: *movement_speed,
+                },
             }),
             CharacterAbility::ComboMelee {
                 stage_data,
