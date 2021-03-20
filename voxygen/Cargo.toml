@@ -3,7 +3,7 @@ authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>", "Imbris <imbrisf@gma
 default-run = "veloren-voxygen"
 edition = "2018"
 name = "veloren-voxygen"
-version = "0.8.0"
+version = "0.9.0"
 # Cargo thinks it should build the voxygen binary even when a specific bench is specified for building
 # Uncomment below and comment out default-run if you want to avoid this
 # autobins = false
