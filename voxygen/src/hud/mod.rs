@@ -9,7 +9,6 @@ mod group;
 mod hotbar;
 pub mod img_ids;
 pub mod item_imgs;
-mod item_info;
 mod map;
 mod minimap;
 mod overhead;
@@ -38,7 +37,6 @@ use esc_menu::EscMenu;
 use group::Group;
 use img_ids::Imgs;
 use item_imgs::ItemImgs;
-use item_info::ItemInfo;
 use map::Map;
 use minimap::MiniMap;
 use popup::Popup;
@@ -1344,11 +1342,6 @@ impl Hud {
                     &mut ui_widgets.widget_id_generator(),
                 );
 
-                let overitem_id2 = overitem_walker.next(
-                    &mut self.ids.overitems,
-                    &mut ui_widgets.widget_id_generator(),
-                );
-
                 let ingame_pos = pos.0 + Vec3::unit_z() * 1.2;
 
                 let text = if item.amount() > 1 {
@@ -1370,19 +1363,6 @@ impl Hud {
                 .x_y(0.0, 100.0)
                 .position_ingame(ingame_pos)
                 .set(overitem_id, ui_widgets);
-
-                item_info::ItemInfo::new(
-                    client,
-                    &self.imgs,
-                    &self.item_imgs,
-                    &self.fonts,
-                    self.pulse,
-                    i18n,
-                    item,
-                    &msm,
-                )
-                .x_y(0.0, 100.0)
-                .set(overitem_id2, ui_widgets);
             }
 
             let speech_bubbles = &self.speech_bubbles;

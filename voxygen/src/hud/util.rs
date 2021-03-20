@@ -359,7 +359,7 @@ pub fn comparison<T: PartialOrd>(first: T, other: T) -> (String, conrod_core::co
 pub fn protec2string(stat: Protection) -> String {
     match stat {
         Protection::Normal(a) => format!("{:.1}", a),
-        Protection::Invincible => "Infinite".to_string(),
+        Protection::Invincible => "Inf".to_string(),
     }
 }
 
