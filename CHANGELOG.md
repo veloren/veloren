@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Removed
+
+### Fixed
+
+## [0.9.0] - 2021-03-20
+
+### Added
+
 - Plugin can now retrieve data from ECS
 - Added chat commands for inviting, kicking, leaving, and promoting in groups
 - Aura system
@@ -564,7 +574,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _0.1.0 was part of the legacy engine_
 
-[unreleased]: https://gitlab.com/veloren/veloren/compare?from=v0.8.0&to=master
+[unreleased]: https://gitlab.com/veloren/veloren/compare?from=v0.9.0&to=master
+[0.9.0]: https://gitlab.com/veloren/veloren/compare?from=v0.8.0&to=v0.9.0
 [0.8.0]: https://gitlab.com/veloren/veloren/compare?from=v0.7.0&to=v0.8.0
 [0.7.0]: https://gitlab.com/veloren/veloren/compare?from=v0.6.0&to=v0.7.0
 [0.6.0]: https://gitlab.com/veloren/veloren/compare?from=v0.5.0&to=v0.6.0

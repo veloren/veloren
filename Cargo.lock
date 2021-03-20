@@ -5525,7 +5525,7 @@ dependencies = [
 
 [[package]]
 name = "veloren-client"
-version = "0.8.0"
+version = "0.9.0"
 dependencies = [
  "async-channel",
  "authc",
@@ -5555,7 +5555,7 @@ dependencies = [
 
 [[package]]
 name = "veloren-common"
-version = "0.8.0"
+version = "0.9.0"
 dependencies = [
  "approx 0.4.0",
  "arraygen",
@@ -5595,7 +5595,7 @@ dependencies = [
 
 [[package]]
 name = "veloren-common-base"
-version = "0.8.0"
+version = "0.9.0"
 dependencies = [
  "directories-next",
  "tracing",
@@ -5604,7 +5604,7 @@ dependencies = [
 
 [[package]]
 name = "veloren-common-ecs"
-version = "0.8.0"
+version = "0.9.0"
 dependencies = [
  "float-cmp",
  "specs",
@@ -5614,7 +5614,7 @@ dependencies = [
 
 [[package]]
 name = "veloren-common-net"
-version = "0.8.0"
+version = "0.9.0"
 dependencies = [
  "authc",
  "hashbrown",
@@ -5629,7 +5629,7 @@ dependencies = [
 
 [[package]]
 name = "veloren-common-sys"
-version = "0.8.0"
+version = "0.9.0"
 dependencies = [
  "bincode",
  "hashbrown",
@@ -5726,7 +5726,7 @@ dependencies = [
 
 [[package]]
 name = "veloren-server"
-version = "0.8.0"
+version = "0.9.0"
 dependencies = [
  "authc",
  "chrono",
@@ -5767,7 +5767,7 @@ dependencies = [
 
 [[package]]
 name = "veloren-server-cli"
-version = "0.8.0"
+version = "0.9.0"
 dependencies = [
  "ansi-parser",
  "clap",
@@ -5790,7 +5790,7 @@ dependencies = [
 
 [[package]]
 name = "veloren-voxygen"
-version = "0.8.0"
+version = "0.9.0"
 dependencies = [
  "backtrace",
  "bincode",
@@ -5860,7 +5860,7 @@ dependencies = [
 
 [[package]]
 name = "veloren-voxygen-anim"
-version = "0.8.0"
+version = "0.9.0"
 dependencies = [
  "find_folder",
  "inline_tweak",
@@ -5874,7 +5874,7 @@ dependencies = [
 
 [[package]]
 name = "veloren-world"
-version = "0.8.0"
+version = "0.9.0"
 dependencies = [
  "arr_macro",
  "assets_manager",
