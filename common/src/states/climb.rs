@@ -1,5 +1,8 @@
 use crate::{
-    comp::{CharacterState, Climb, EnergySource, InputKind, Ori, StateUpdate},
+    comp::{
+        skills::{ClimbSkill::*, Skill},
+        CharacterState, Climb, EnergySource, InputKind, Ori, StateUpdate,
+    },
     consts::GRAVITY,
     event::LocalEvent,
     states::{
@@ -23,6 +26,19 @@ pub struct Data {
     /// Struct containing data that does not change over the course of the
     /// character state
     pub static_data: StaticData,
+}
+
+impl Data {
+    pub fn create_adjusted_by_skills(join_data: &JoinData) -> Self {
+        let mut data = Data::default();
+        if let Ok(Some(level)) = join_data.stats.skill_set.skill_level(Skill::Climb(Cost)) {
+            data.static_data.energy_cost *= 0.8_f32.powi(level.into());
+        }
+        if let Ok(Some(level)) = join_data.stats.skill_set.skill_level(Skill::Climb(Speed)) {
+            data.static_data.movement_speed *= 1.2_f32.powi(level.into());
+        }
+        data
+    }
 }
 
 impl Default for Data {
