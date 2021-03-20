@@ -238,6 +238,7 @@ widget_ids! {
         num_lights,
         num_figures,
         num_particles,
+        gpu_timings[],
 
         // Game Version
         version,
@@ -2195,6 +2196,33 @@ impl Hud {
             .font_size(self.fonts.cyri.scale(14))
             .set(self.ids.num_particles, ui_widgets);
 
+            // GPU timing for different pipelines
+            let gpu_timings = global_state.window.renderer().timings();
+            if !gpu_timings.is_empty() {
+                let num_timings = gpu_timings.len();
+                // Make sure we have enoung ids
+                if self.ids.gpu_timings.len() < num_timings {
+                    self.ids
+                        .gpu_timings
+                        .resize(num_timings, &mut ui_widgets.widget_id_generator());
+                }
+                for (i, timing) in gpu_timings.iter().enumerate() {
+                    Text::new(&format!(
+                        "{:16}{:.3} ms",
+                        &format!("{}:", timing.1),
+                        timing.2 * 1000.0,
+                    ))
+                    .color(TEXT_COLOR)
+                    .down(5.0)
+                    .x_place_on(
+                        ui_widgets.window,
+                        conrod_core::position::Place::Start(Some(5.0 + 10.0 * timing.0 as f64)),
+                    )
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .font_size(self.fonts.cyri.scale(14))
+                    .set(self.ids.gpu_timings[i], ui_widgets);
+                }
+            }
             // Help Window
             if let Some(help_key) = global_state.settings.controls.get_binding(GameInput::Help) {
                 Text::new(
@@ -2203,7 +2231,7 @@ impl Hud {
                         .replace("{key}", help_key.display_string(key_layout).as_str()),
                 )
                 .color(TEXT_COLOR)
-                .down_from(self.ids.num_particles, 5.0)
+                .down(5.0)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(14))
                 .set(self.ids.help_info, ui_widgets);

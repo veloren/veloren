@@ -118,6 +118,7 @@ pub struct Renderer {
     resolution: Vec2<u32>,
 
     profiler: wgpu_profiler::GpuProfiler,
+    profile_times: Vec<wgpu_profiler::GpuTimerScopeResult>,
 }
 
 impl Renderer {
@@ -341,7 +342,7 @@ impl Renderer {
             create_quad_index_buffer_u16(&device, QUAD_INDEX_BUFFER_U16_START_VERT_LEN as usize);
         let quad_index_buffer_u32 =
             create_quad_index_buffer_u32(&device, QUAD_INDEX_BUFFER_U32_START_VERT_LEN as usize);
-        let mut profiler = wgpu_profiler::GpuProfiler::new(1, queue.get_timestamp_period());
+        let mut profiler = wgpu_profiler::GpuProfiler::new(4, queue.get_timestamp_period());
         profiler.enable_timer = mode.profiler_enabled;
         profiler.enable_debug_marker = mode.profiler_enabled;
 
@@ -371,6 +372,7 @@ impl Renderer {
             resolution: Vec2::new(dims.width, dims.height),
 
             profiler,
+            profile_times: Vec::new(),
         })
     }
 
@@ -380,6 +382,10 @@ impl Renderer {
         self.sc_desc.present_mode = self.mode.present_mode.into();
 
         // Enable/disable profiler
+        if !self.mode.profiler_enabled {
+            // Clear the times if disabled
+            core::mem::take(&mut self.profile_times);
+        }
         self.profiler.enable_timer = self.mode.profiler_enabled;
         self.profiler.enable_debug_marker = self.mode.profiler_enabled;
 
@@ -394,6 +400,33 @@ impl Renderer {
 
     /// Get the render mode.
     pub fn render_mode(&self) -> &RenderMode { &self.mode }
+
+    /// Get the current profiling times
+    /// Nested timings immediately follow their parent
+    /// Returns Vec<(how nested this timing is, label, length in seconds)>
+    pub fn timings(&self) -> Vec<(u8, &str, f64)> {
+        use wgpu_profiler::GpuTimerScopeResult;
+        fn recursive_collect<'a>(
+            vec: &mut Vec<(u8, &'a str, f64)>,
+            result: &'a GpuTimerScopeResult,
+            nest_level: u8,
+        ) {
+            vec.push((
+                nest_level,
+                &result.label,
+                result.time.end - result.time.start,
+            ));
+            result
+                .nested_scopes
+                .iter()
+                .for_each(|child| recursive_collect(vec, child, nest_level + 1));
+        }
+        let mut vec = Vec::new();
+        self.profile_times
+            .iter()
+            .for_each(|child| recursive_collect(&mut vec, child, 0));
+        vec
+    }
 
     /// Resize internal render targets to match window render target dimensions.
     pub fn on_resize(&mut self, dims: Vec2<u32>) -> Result<(), RenderError> {
@@ -823,6 +856,13 @@ impl Renderer {
             "start_recording_frame",
             "Renderer::start_recording_frame"
         );
+        // Try to get the latest profiling results
+        if self.mode.profiler_enabled {
+            // Note: this lags a few frames behind
+            if let Some(profile_times) = self.profiler.process_finished_frame() {
+                self.profile_times = profile_times;
+            }
+        }
 
         // TODO: does this make sense here?
         self.device.poll(wgpu::Maintain::Poll);
@@ -1098,32 +1138,26 @@ impl Renderer {
     //pub fn create_screenshot(&mut self) -> Result<image::DynamicImage,
     // RenderError> {
     pub fn create_screenshot(&mut self) {
-        // TODO: check if profiler enabled
         // TODO: save alongside a screenshot
-        // Ensure timestamp query data buffers are mapped
-        self.device.poll(wgpu::Maintain::Wait);
         // Take profiler snapshot
-        let profiling_data = if let Some(data) = self.profiler.process_finished_frame() {
-            data
-        } else {
-            error!("Failed to retrieve profiling data");
-            return;
-        };
+        if self.mode.profiler_enabled {
+            let file_name = format!(
+                "frame-trace_{}.json",
+                std::time::SystemTime::now()
+                    .duration_since(std::time::SystemTime::UNIX_EPOCH)
+                    .map(|d| d.as_millis())
+                    .unwrap_or(0)
+            );
 
-        let file_name = format!(
-            "frame-trace_{}.json",
-            std::time::SystemTime::now()
-                .duration_since(std::time::SystemTime::UNIX_EPOCH)
-                .map(|d| d.as_millis())
-                .unwrap_or(0)
-        );
-
-        wgpu_profiler::chrometrace::write_chrometrace(
-            std::path::Path::new(&file_name),
-            &profiling_data,
-        );
-
-        println!("{}", file_name);
+            if let Err(err) = wgpu_profiler::chrometrace::write_chrometrace(
+                std::path::Path::new(&file_name),
+                &self.profile_times,
+            ) {
+                error!("Failed to save GPU timing snapshot");
+            } else {
+                info!("Saved GPU timing snapshot as: {}", file_name);
+            }
+        }
         //todo!()
         // let (width, height) = self.get_resolution().into_tuple();
 
