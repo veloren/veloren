@@ -426,4 +426,5 @@ pub enum UniqueKind {
     TheropodCharge,
     ObjectTurret,
     WoodenSpear,
+    MindflayerStaff,
 }

@@ -194,6 +194,7 @@ impl ParticleMgr {
             self.maintain_block_particles(scene_data, terrain);
             self.maintain_shockwave_particles(scene_data);
             self.maintain_aura_particles(scene_data);
+            self.maintain_buff_particles(scene_data);
         } else {
             // remove all particle lifespans
             self.particles.clear();
@@ -477,7 +478,7 @@ impl ParticleMgr {
                         2.0,
                     ));
                     self.particles.resize_with(
-                        self.particles.len() + 2 * usize::from(beam_tick_count),
+                        self.particles.len() + usize::from(beam_tick_count) / 2,
                         || {
                             let phi: f32 = rng.gen_range(0.0..beam.properties.angle);
                             let theta: f32 = rng.gen_range(0.0..2.0 * PI);
@@ -491,6 +492,37 @@ impl ParticleMgr {
                                 beam.properties.duration,
                                 time,
                                 ParticleMode::FlameThrower,
+                                pos.0,
+                                pos.0 + random_ori * range,
+                            )
+                        },
+                    );
+                },
+                beam::FrontendSpecifier::Cultist => {
+                    let mut rng = thread_rng();
+                    let (from, to) = (Vec3::<f32>::unit_z(), *ori.look_dir());
+                    let m = Mat3::<f32>::rotation_from_to_3d(from, to);
+                    // Emit a light when using flames
+                    lights.push(Light::new(
+                        pos.0,
+                        Rgb::new(1.0, 0.0, 1.0).map(|e| e * rng.gen_range(0.5..1.0)),
+                        2.0,
+                    ));
+                    self.particles.resize_with(
+                        self.particles.len() + usize::from(beam_tick_count) / 2,
+                        || {
+                            let phi: f32 = rng.gen_range(0.0..beam.properties.angle);
+                            let theta: f32 = rng.gen_range(0.0..2.0 * PI);
+                            let offset_z = Vec3::new(
+                                phi.sin() * theta.cos(),
+                                phi.sin() * theta.sin(),
+                                phi.cos(),
+                            );
+                            let random_ori = offset_z * m * Vec3::new(-1.0, -1.0, 1.0);
+                            Particle::new_directed(
+                                beam.properties.duration,
+                                time,
+                                ParticleMode::CultistFlame,
                                 pos.0,
                                 pos.0 + random_ori * range,
                             )
@@ -560,6 +592,54 @@ impl ParticleMgr {
                                     ParticleMode::EnergyNature,
                                     pos.0,
                                     pos.0 + init_pos,
+                                )
+                            },
+                        );
+                    },
+                    _ => {},
+                }
+            }
+        }
+    }
+
+    fn maintain_buff_particles(&mut self, scene_data: &SceneData) {
+        let state = scene_data.state;
+        let ecs = state.ecs();
+        let time = state.get_time();
+        let mut rng = rand::thread_rng();
+
+        for (pos, buffs, body) in (
+            &ecs.read_storage::<Pos>(),
+            &ecs.read_storage::<comp::Buffs>(),
+            &ecs.read_storage::<comp::Body>(),
+        )
+            .join()
+        {
+            for (buff_kind, _) in buffs.kinds.iter() {
+                #[allow(clippy::single_match)]
+                match buff_kind {
+                    buff::BuffKind::Cursed => {
+                        self.particles.resize_with(
+                            self.particles.len()
+                                + usize::from(self.scheduler.heartbeats(Duration::from_millis(15))),
+                            || {
+                                let start_pos = pos.0
+                                    + Vec3::unit_z() * body.height() * 0.25
+                                    + Vec3::<f32>::zero()
+                                        .map(|_| rng.gen_range(-1.0..1.0))
+                                        .normalized()
+                                        * 0.25;
+                                let end_pos = start_pos
+                                    + Vec3::unit_z() * body.height()
+                                    + Vec3::<f32>::zero()
+                                        .map(|_| rng.gen_range(-1.0..1.0))
+                                        .normalized();
+                                Particle::new_directed(
+                                    Duration::from_secs(1),
+                                    time,
+                                    ParticleMode::CultistFlame,
+                                    start_pos,
+                                    end_pos,
                                 )
                             },
                         );

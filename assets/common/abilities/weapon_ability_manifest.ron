@@ -166,7 +166,7 @@
         primary: "common.abilities.unique.quadlowbeam.healingbeam",
         secondary: "common.abilities.unique.quadlowbreathe.triplestrike",
         abilities: [
-    (None, "common.abilities.unique.quadlowbreathe.dash"),
+            (None, "common.abilities.unique.quadlowbreathe.dash"),
         ],
     ),
     Unique(QuadSmallBasic): (
@@ -193,6 +193,14 @@
         primary: "common.abilities.unique.turret.arrows",
         secondary: "common.abilities.unique.turret.arrows",
         abilities: [],
+    ),
+    Unique(MindflayerStaff): (
+        primary: "common.abilities.unique.mindflayer.cursedflames",
+        secondary: "common.abilities.unique.mindflayer.necroticvortex",
+        abilities: [
+            (None, "common.abilities.unique.mindflayer.dimensionaldoor"),
+            (None, "common.abilities.unique.mindflayer.raiseundead"),
+        ],
     ),
     Debug: (
         primary: "common.abilities.debug.forwardboost",

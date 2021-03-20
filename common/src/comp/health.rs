@@ -36,10 +36,9 @@ pub enum HealthSource {
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct Health {
-    base_max: u32,
     current: u32,
+    base_max: u32,
     maximum: u32,
-    last_max: u32,
     pub last_change: (f64, HealthChange),
     pub is_dead: bool,
 }
@@ -58,9 +57,8 @@ impl Health {
     pub fn empty() -> Self {
         Health {
             current: 0,
-            maximum: 0,
             base_max: 0,
-            last_max: 0,
+            maximum: 0,
             last_change: (0.0, HealthChange {
                 amount: 0,
                 cause: HealthSource::Revive,
@@ -72,6 +70,8 @@ impl Health {
     pub fn current(&self) -> u32 { self.current }
 
     pub fn maximum(&self) -> u32 { self.maximum }
+
+    pub fn base_max(&self) -> u32 { self.base_max }
 
     #[cfg(not(target_arch = "wasm32"))]
     pub fn set_to(&mut self, amount: u32, cause: HealthSource) {
@@ -95,6 +95,12 @@ impl Health {
     pub fn set_maximum(&mut self, amount: u32) {
         self.maximum = amount;
         self.current = self.current.min(self.maximum);
+    }
+
+    // Scales the temporary max health by a modifier.
+    pub fn scale_maximum(&mut self, scaled: f32) {
+        let scaled_max = (self.base_max as f32 * scaled) as u32;
+        self.set_maximum(scaled_max);
     }
 
     // This is private because max hp is based on the level
@@ -122,26 +128,6 @@ impl Health {
                 amount: body.base_health_increase() as i32,
                 cause: HealthSource::LevelUp,
             });
-        }
-    }
-
-    #[cfg(not(target_arch = "wasm32"))]
-    pub fn with_max_health(mut self, amount: u32) -> Self {
-        self.maximum = amount;
-        self.current = amount;
-        self
-    }
-
-    #[cfg(not(target_arch = "wasm32"))]
-    pub fn last_set(&mut self) { self.last_max = self.maximum }
-
-    #[cfg(not(target_arch = "wasm32"))]
-    pub fn reset_max(&mut self) {
-        self.maximum = self.base_max;
-        if self.current > self.last_max {
-            self.current = self.last_max;
-
-            self.last_max = self.base_max;
         }
     }
 }

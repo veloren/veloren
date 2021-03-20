@@ -359,7 +359,7 @@ impl SfxMgr {
                     let file_ref = "voxygen.audio.sfx.abilities.staff_channeling";
                     audio.play_sfx(file_ref, *pos, None);
                 },
-                beam::FrontendSpecifier::Flamethrower => {
+                beam::FrontendSpecifier::Flamethrower | beam::FrontendSpecifier::Cultist => {
                     let file_ref = "voxygen.audio.sfx.abilities.flame_thrower";
                     audio.play_sfx(file_ref, *pos, None);
                 },

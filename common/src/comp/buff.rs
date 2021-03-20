@@ -20,8 +20,7 @@ pub enum BuffKind {
     Saturation,
     /// Lowers health over time for some duration
     Bleeding,
-    /// Lower a creature's max health
-    /// Currently placeholder buff to show other stuff is possible
+    /// Lower a creature's max health over time
     Cursed,
     /// Applied when drinking a potion
     Potion,
@@ -109,6 +108,13 @@ pub enum BuffEffect {
     MaxEnergyModifier { value: f32, kind: ModifierKind },
     /// Reduces damage after armor is accounted for by this fraction
     DamageReduction(f32),
+    /// Gradually changes an entities max health over time
+    MaxHealthChangeOverTime {
+        rate: f32,
+        accumulated: f32,
+        kind: ModifierKind,
+        target_fraction: f32,
+    },
 }
 
 /// Actual de/buff.
@@ -191,10 +197,19 @@ impl Buff {
                 data.duration,
             ),
             BuffKind::Cursed => (
-                vec![BuffEffect::MaxHealthModifier {
-                    value: -100. * data.strength,
-                    kind: ModifierKind::Additive,
-                }],
+                vec![
+                    BuffEffect::MaxHealthChangeOverTime {
+                        rate: -10.0,
+                        accumulated: 0.0,
+                        kind: ModifierKind::Additive,
+                        target_fraction: 1.0 - data.strength,
+                    },
+                    BuffEffect::HealthChangeOverTime {
+                        rate: -10.0,
+                        accumulated: 0.0,
+                        kind: ModifierKind::Additive,
+                    },
+                ],
                 data.duration,
             ),
             BuffKind::IncreaseMaxEnergy => (

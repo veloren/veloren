@@ -19,6 +19,7 @@ pub struct ReadData<'a> {
     dt: Read<'a, DeltaTime>,
     server_bus: Read<'a, EventBus<ServerEvent>>,
     inventories: ReadStorage<'a, Inventory>,
+    healths: ReadStorage<'a, Health>,
 }
 
 #[derive(Default)]
@@ -26,7 +27,6 @@ pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
         ReadData<'a>,
-        WriteStorage<'a, Health>,
         WriteStorage<'a, Energy>,
         WriteStorage<'a, Buffs>,
         WriteStorage<'a, Stats>,
@@ -38,22 +38,20 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         _job: &mut Job<Self>,
-        (read_data, mut healths, mut energies, mut buffs, mut stats): Self::SystemData,
+        (read_data, mut energies, mut buffs, mut stats): Self::SystemData,
     ) {
         let mut server_emitter = read_data.server_bus.emitter();
         let dt = read_data.dt.0;
         // Set to false to avoid spamming server
         buffs.set_event_emission(false);
-        healths.set_event_emission(false);
         energies.set_event_emission(false);
-        healths.set_event_emission(false);
         stats.set_event_emission(false);
-        for (entity, mut buff_comp, mut health, mut energy, mut stat) in (
+        for (entity, mut buff_comp, mut energy, mut stat, health) in (
             &read_data.entities,
             &mut buffs,
-            &mut healths,
             &mut energies,
             &mut stats,
+            &read_data.healths,
         )
             .join()
         {
@@ -89,12 +87,10 @@ impl<'a> System<'a> for Sys {
                 }
             }
 
-            // Call to reset health and energy to base values
-            health.last_set();
+            // Call to reset energy and stats to base values
             energy.last_set();
-            health.reset_max();
             energy.reset_max();
-            stat.damage_reduction = 0.0;
+            stat.reset_temp_modifiers();
 
             // Iterator over the lists of buffs by kind
             let buff_comp = &mut *buff_comp;
@@ -117,9 +113,9 @@ impl<'a> System<'a> for Sys {
                                 kind,
                             } => {
                                 *accumulated += *rate * dt;
-                                // Apply health change only once a second or
+                                // Apply health change only once per second, per health, or
                                 // when a buff is removed
-                                if accumulated.abs() > rate.abs()
+                                if accumulated.abs() > rate.abs().min(10.0)
                                     || buff.time.map_or(false, |dur| dur == Duration::default())
                                 {
                                     let cause = if *accumulated > 0.0 {
@@ -145,14 +141,10 @@ impl<'a> System<'a> for Sys {
                             },
                             BuffEffect::MaxHealthModifier { value, kind } => match kind {
                                 ModifierKind::Additive => {
-                                    let health = &mut *health;
-                                    let buffed_health_max =
-                                        (health.maximum() as f32 + *value) as u32;
-                                    health.set_maximum(buffed_health_max);
+                                    stat.max_health_modifier += *value / (health.maximum() as f32);
                                 },
                                 ModifierKind::Fractional => {
-                                    let health = &mut *health;
-                                    health.set_maximum((health.maximum() as f32 * *value) as u32);
+                                    stat.max_health_modifier *= *value;
                                 },
                             },
                             BuffEffect::MaxEnergyModifier { value, kind } => match kind {
@@ -167,6 +159,35 @@ impl<'a> System<'a> for Sys {
                             },
                             BuffEffect::DamageReduction(dr) => {
                                 stat.damage_reduction = stat.damage_reduction.max(*dr).min(1.0);
+                            },
+                            BuffEffect::MaxHealthChangeOverTime {
+                                rate,
+                                accumulated,
+                                kind,
+                                target_fraction,
+                            } => {
+                                *accumulated += *rate * dt;
+                                let current_fraction = health.maximum() as f32
+                                    / (health.base_max() as f32 * stat.max_health_modifier);
+                                let progress = (1.0 - current_fraction) / (1.0 - *target_fraction);
+                                if progress > 1.0 {
+                                    stat.max_health_modifier *= *target_fraction;
+                                } else if accumulated.abs() > rate.abs() {
+                                    match kind {
+                                        ModifierKind::Additive => {
+                                            stat.max_health_modifier = stat.max_health_modifier
+                                                * current_fraction
+                                                + *accumulated / health.maximum() as f32;
+                                        },
+                                        ModifierKind::Fractional => {
+                                            stat.max_health_modifier *=
+                                                current_fraction * (1.0 - *accumulated);
+                                        },
+                                    }
+                                    *accumulated = 0.0;
+                                } else {
+                                    stat.max_health_modifier *= current_fraction;
+                                }
                             },
                         };
                     }
@@ -195,7 +216,6 @@ impl<'a> System<'a> for Sys {
         }
         // Turned back to true
         buffs.set_event_emission(true);
-        healths.set_event_emission(true);
         energies.set_event_emission(true);
         stats.set_event_emission(true);
     }

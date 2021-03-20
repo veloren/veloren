@@ -104,6 +104,18 @@ impl<'a> System<'a> for Sys {
             }
 
             let stat = stats.get_unchecked();
+
+            let update_max_hp = {
+                let health = health.get_unchecked();
+                (stat.max_health_modifier - 1.0).abs() > f32::EPSILON
+                    || health.base_max() != health.maximum()
+            };
+
+            if update_max_hp {
+                let mut health = health.get_mut_unchecked();
+                health.scale_maximum(stat.max_health_modifier);
+            }
+
             let skills_to_level = stat
                 .skill_set
                 .skill_groups

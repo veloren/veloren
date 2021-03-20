@@ -1,6 +1,6 @@
 use crate::{
     assets::{self, Asset},
-    combat,
+    combat::{self, CombatEffect},
     comp::{
         aura, beam, inventory::item::tool::ToolKind, projectile::ProjectileConstructor, skills,
         Body, CharacterState, EnergySource, Gravity, LightEmitter, StateUpdate,
@@ -223,7 +223,7 @@ pub enum CharacterAbility {
         tick_rate: f32,
         range: f32,
         max_angle: f32,
-        lifesteal_eff: f32,
+        damage_effect: Option<CombatEffect>,
         energy_regen: f32,
         energy_drain: f32,
         orientation_behavior: basic_beam::MovementBehavior,
@@ -1008,7 +1008,7 @@ impl CharacterAbility {
                         ref mut damage,
                         ref mut range,
                         ref mut beam_duration,
-                        ref mut lifesteal_eff,
+                        ref mut damage_effect,
                         ref mut energy_regen,
                         ..
                     } => {
@@ -1024,8 +1024,10 @@ impl CharacterAbility {
                         if let Ok(Some(level)) = skillset.skill_level(Sceptre(LRegen)) {
                             *energy_regen *= 1.25_f32.powi(level.into());
                         }
-                        if let Ok(Some(level)) = skillset.skill_level(Sceptre(LLifesteal)) {
-                            *lifesteal_eff *= 1.3_f32.powi(level.into());
+                        if let (Ok(Some(level)), Some(CombatEffect::Lifesteal(ref mut lifesteal))) =
+                            (skillset.skill_level(Sceptre(LLifesteal)), damage_effect)
+                        {
+                            *lifesteal *= 1.3_f32.powi(level.into());
                         }
                     },
                     HealingBeam {
@@ -1479,7 +1481,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 tick_rate,
                 range,
                 max_angle,
-                lifesteal_eff,
+                damage_effect,
                 energy_regen,
                 energy_drain,
                 orientation_behavior,
@@ -1493,7 +1495,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                     tick_rate: *tick_rate,
                     range: *range,
                     max_angle: *max_angle,
-                    lifesteal_eff: *lifesteal_eff,
+                    damage_effect: *damage_effect,
                     energy_regen: *energy_regen,
                     energy_drain: *energy_drain,
                     ability_info,

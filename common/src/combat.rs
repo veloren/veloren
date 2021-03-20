@@ -411,7 +411,7 @@ impl AttackEffect {
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq)]
 pub enum CombatEffect {
     Heal(f32),
     Buff(CombatBuff),
@@ -647,7 +647,7 @@ impl Knockback {
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq)]
 pub struct CombatBuff {
     pub kind: BuffKind,
     pub dur_secs: f32,
@@ -656,7 +656,7 @@ pub struct CombatBuff {
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq)]
 pub enum CombatBuffStrength {
     DamageFraction(f32),
     Value(f32),

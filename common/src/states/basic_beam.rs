@@ -32,9 +32,8 @@ pub struct StaticData {
     pub range: f32,
     /// Max angle (45.0 will give you a 90.0 angle window)
     pub max_angle: f32,
-    /// Lifesteal efficiency (0 gives 0% conversion of damage to health, 1 gives
-    /// 100% conversion of damage to health)
-    pub lifesteal_eff: f32,
+    /// Adds an effect onto the main damage of the attack
+    pub damage_effect: Option<CombatEffect>,
     /// Energy regenerated per tick
     pub energy_regen: f32,
     /// Energy drained per second
@@ -111,15 +110,16 @@ impl CharacterBehavior for Data {
                         CombatEffect::EnergyReward(self.static_data.energy_regen),
                     )
                     .with_requirement(CombatRequirement::AnyDamage);
-                    let lifesteal = CombatEffect::Lifesteal(self.static_data.lifesteal_eff);
-                    let damage = AttackDamage::new(
+                    let mut damage = AttackDamage::new(
                         Damage {
                             source: DamageSource::Energy,
                             value: self.static_data.damage,
                         },
                         Some(GroupTarget::OutOfGroup),
-                    )
-                    .with_effect(lifesteal);
+                    );
+                    if let Some(effect) = self.static_data.damage_effect {
+                        damage = damage.with_effect(effect);
+                    }
                     let (crit_chance, crit_mult) =
                         get_crit_data(data, self.static_data.ability_info);
                     let attack = Attack::default()
@@ -138,8 +138,8 @@ impl CharacterBehavior for Data {
                     };
                     // Gets offsets
                     let body_offsets = Vec3::new(
-                        (data.body.radius() + 1.0) * data.inputs.look_dir.x,
-                        (data.body.radius() + 1.0) * data.inputs.look_dir.y,
+                        (data.body.radius() + 0.2) * data.inputs.look_dir.x,
+                        (data.body.radius() + 0.2) * data.inputs.look_dir.y,
                         data.body.eye_height() * 0.6,
                     );
                     let pos = Pos(data.pos.0 + body_offsets);

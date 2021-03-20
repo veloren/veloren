@@ -51,4 +51,5 @@ pub enum FrontendSpecifier {
     Flamethrower,
     LifestealBeam,
     HealingBeam,
+    Cultist,
 }
