@@ -8,7 +8,6 @@ pub mod mesh;
 pub mod model;
 pub mod pipelines;
 pub mod renderer;
-mod scope;
 pub mod texture;
 
 // Reexports

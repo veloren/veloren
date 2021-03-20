@@ -8,13 +8,13 @@ use super::{
             clouds, figure, fluid, lod_terrain, particle, postprocess, shadow, skybox, sprite,
             terrain, ui, ColLights, GlobalsBindGroup, Light, Shadow,
         },
-        scope::{ManualOwningScope, OwningScope, Scope},
     },
     Renderer, ShadowMap, ShadowMapRenderer,
 };
 use core::{num::NonZeroU32, ops::Range};
 use std::sync::Arc;
 use vek::Aabr;
+use wgpu_profiler::scope::{ManualOwningScope, OwningScope, Scope};
 
 // Borrow the fields we need from the renderer so that the GpuProfiler can be
 // dijointly borrowed mutably
@@ -57,7 +57,7 @@ impl<'frame> Drawer<'frame> {
         };
 
         let mut encoder =
-            ManualOwningScope::start(&mut renderer.profiler, encoder, borrow.device, "frame");
+            ManualOwningScope::start("frame", &mut renderer.profiler, encoder, borrow.device);
 
         Self {
             encoder: Some(encoder),
@@ -75,7 +75,7 @@ impl<'frame> Drawer<'frame> {
             let encoder = self.encoder.as_mut().unwrap();
             let device = self.borrow.device;
             let mut render_pass =
-                encoder.scoped_render_pass(device, "shadow_pass", &wgpu::RenderPassDescriptor {
+                encoder.scoped_render_pass("shadow_pass", device, &wgpu::RenderPassDescriptor {
                     label: Some("shadow pass"),
                     color_attachments: &[],
                     depth_stencil_attachment: Some(
@@ -106,7 +106,7 @@ impl<'frame> Drawer<'frame> {
         let encoder = self.encoder.as_mut().unwrap();
         let device = self.borrow.device;
         let mut render_pass =
-            encoder.scoped_render_pass(device, "first_pass", &wgpu::RenderPassDescriptor {
+            encoder.scoped_render_pass("first_pass", device, &wgpu::RenderPassDescriptor {
                 label: Some("first pass"),
                 color_attachments: &[wgpu::RenderPassColorAttachmentDescriptor {
                     attachment: &self.borrow.views.tgt_color,
@@ -140,7 +140,7 @@ impl<'frame> Drawer<'frame> {
         let encoder = self.encoder.as_mut().unwrap();
         let device = self.borrow.device;
         let mut render_pass =
-            encoder.scoped_render_pass(device, "second_pass", &wgpu::RenderPassDescriptor {
+            encoder.scoped_render_pass("second_pass", device, &wgpu::RenderPassDescriptor {
                 label: Some("second pass (clouds)"),
                 color_attachments: &[wgpu::RenderPassColorAttachmentDescriptor {
                     attachment: &self.borrow.views.tgt_color_pp,
@@ -166,7 +166,7 @@ impl<'frame> Drawer<'frame> {
         let encoder = self.encoder.as_mut().unwrap();
         let device = self.borrow.device;
         let mut render_pass =
-            encoder.scoped_render_pass(device, "third_pass", &wgpu::RenderPassDescriptor {
+            encoder.scoped_render_pass("third_pass", device, &wgpu::RenderPassDescriptor {
                 label: Some("third pass (postprocess + ui)"),
                 color_attachments: &[wgpu::RenderPassColorAttachmentDescriptor {
                     attachment: &self.swap_tex.view,
@@ -199,7 +199,7 @@ impl<'frame> Drawer<'frame> {
                 .encoder
                 .as_mut()
                 .unwrap()
-                .scope(device, "point shadows");
+                .scope("point shadows", device);
             const STRIDE: usize = std::mem::size_of::<shadow::PointLightMatrix>();
             let data = bytemuck::cast_slice(matrices);
 
@@ -222,7 +222,7 @@ impl<'frame> Drawer<'frame> {
 
                 let label = format!("point shadow face-{} pass", face);
                 let mut render_pass =
-                    encoder.scoped_render_pass(device, &label, &wgpu::RenderPassDescriptor {
+                    encoder.scoped_render_pass(&label, device, &wgpu::RenderPassDescriptor {
                         label: Some(&label),
                         color_attachments: &[],
                         depth_stencil_attachment: Some(
@@ -269,9 +269,9 @@ impl<'frame> Drawer<'frame> {
         if let ShadowMap::Enabled(ref shadow_renderer) = self.borrow.shadow.map {
             let device = self.borrow.device;
             let encoder = self.encoder.as_mut().unwrap();
-            encoder.scoped_render_pass(
-                device,
+            let _ = encoder.scoped_render_pass(
                 "clear_directed_shadow",
+                device,
                 &wgpu::RenderPassDescriptor {
                     label: Some("clear directed shadow pass"),
                     color_attachments: &[],
@@ -306,7 +306,7 @@ impl<'frame> Drawer<'frame> {
                         });
 
                 let label = format!("clear point shadow face-{} pass", face);
-                encoder.scoped_render_pass(device, &label, &wgpu::RenderPassDescriptor {
+                let _ = encoder.scoped_render_pass(&label, device, &wgpu::RenderPassDescriptor {
                     label: Some(&label),
                     color_attachments: &[],
                     depth_stencil_attachment: Some(
@@ -349,7 +349,7 @@ impl<'pass> ShadowPassDrawer<'pass> {
     pub fn draw_figure_shadows(&mut self) -> FigureShadowDrawer<'_, 'pass> {
         let mut render_pass = self
             .render_pass
-            .scope(self.borrow.device, "direcred_figure_shadows");
+            .scope("direcred_figure_shadows", self.borrow.device);
 
         render_pass.set_pipeline(&self.shadow_renderer.figure_directed_pipeline.pipeline);
         set_quad_index_buffer::<terrain::Vertex>(&mut render_pass, &self.borrow);
@@ -360,7 +360,7 @@ impl<'pass> ShadowPassDrawer<'pass> {
     pub fn draw_terrain_shadows(&mut self) -> TerrainShadowDrawer<'_, 'pass> {
         let mut render_pass = self
             .render_pass
-            .scope(self.borrow.device, "direcred_terrain_shadows");
+            .scope("direcred_terrain_shadows", self.borrow.device);
 
         render_pass.set_pipeline(&self.shadow_renderer.terrain_directed_pipeline.pipeline);
         set_quad_index_buffer::<terrain::Vertex>(&mut render_pass, &self.borrow);
@@ -412,7 +412,7 @@ pub struct FirstPassDrawer<'pass> {
 
 impl<'pass> FirstPassDrawer<'pass> {
     pub fn draw_skybox<'data: 'pass>(&mut self, model: &'data Model<skybox::Vertex>) {
-        let mut render_pass = self.render_pass.scope(self.borrow.device, "skybox");
+        let mut render_pass = self.render_pass.scope("skybox", self.borrow.device);
 
         render_pass.set_pipeline(&self.borrow.pipelines.skybox.pipeline);
         set_quad_index_buffer::<skybox::Vertex>(&mut render_pass, &self.borrow);
@@ -421,7 +421,7 @@ impl<'pass> FirstPassDrawer<'pass> {
     }
 
     pub fn draw_lod_terrain<'data: 'pass>(&mut self, model: &'data Model<lod_terrain::Vertex>) {
-        let mut render_pass = self.render_pass.scope(self.borrow.device, "lod_terrain");
+        let mut render_pass = self.render_pass.scope("lod_terrain", self.borrow.device);
 
         render_pass.set_pipeline(&self.borrow.pipelines.lod_terrain.pipeline);
         set_quad_index_buffer::<lod_terrain::Vertex>(&mut render_pass, &self.borrow);
@@ -430,7 +430,7 @@ impl<'pass> FirstPassDrawer<'pass> {
     }
 
     pub fn draw_figures(&mut self) -> FigureDrawer<'_, 'pass> {
-        let mut render_pass = self.render_pass.scope(self.borrow.device, "figures");
+        let mut render_pass = self.render_pass.scope("figures", self.borrow.device);
 
         render_pass.set_pipeline(&self.borrow.pipelines.figure.pipeline);
         set_quad_index_buffer::<terrain::Vertex>(&mut render_pass, &self.borrow);
@@ -439,7 +439,7 @@ impl<'pass> FirstPassDrawer<'pass> {
     }
 
     pub fn draw_terrain<'data: 'pass>(&mut self) -> TerrainDrawer<'_, 'pass> {
-        let mut render_pass = self.render_pass.scope(self.borrow.device, "terrain");
+        let mut render_pass = self.render_pass.scope("terrain", self.borrow.device);
 
         render_pass.set_pipeline(&self.borrow.pipelines.terrain.pipeline);
         set_quad_index_buffer::<terrain::Vertex>(&mut render_pass, &self.borrow);
@@ -451,7 +451,7 @@ impl<'pass> FirstPassDrawer<'pass> {
     }
 
     pub fn draw_particles(&mut self) -> ParticleDrawer<'_, 'pass> {
-        let mut render_pass = self.render_pass.scope(self.borrow.device, "particles");
+        let mut render_pass = self.render_pass.scope("particles", self.borrow.device);
 
         render_pass.set_pipeline(&self.borrow.pipelines.particle.pipeline);
         set_quad_index_buffer::<particle::Vertex>(&mut render_pass, &self.borrow);
@@ -464,7 +464,7 @@ impl<'pass> FirstPassDrawer<'pass> {
         globals: &'data sprite::SpriteGlobalsBindGroup,
         col_lights: &'data ColLights<sprite::Locals>,
     ) -> SpriteDrawer<'_, 'pass> {
-        let mut render_pass = self.render_pass.scope(self.borrow.device, "sprites");
+        let mut render_pass = self.render_pass.scope("sprites", self.borrow.device);
 
         render_pass.set_pipeline(&self.borrow.pipelines.sprite.pipeline);
         set_quad_index_buffer::<particle::Vertex>(&mut render_pass, &self.borrow);
@@ -481,7 +481,7 @@ impl<'pass> FirstPassDrawer<'pass> {
         &mut self,
         waves: &'data fluid::BindGroup,
     ) -> FluidDrawer<'_, 'pass> {
-        let mut render_pass = self.render_pass.scope(self.borrow.device, "fluid");
+        let mut render_pass = self.render_pass.scope("fluid", self.borrow.device);
 
         render_pass.set_pipeline(&self.borrow.pipelines.fluid.pipeline);
         set_quad_index_buffer::<fluid::Vertex>(&mut render_pass, &self.borrow);
@@ -643,14 +643,14 @@ pub struct ThirdPassDrawer<'pass> {
 
 impl<'pass> ThirdPassDrawer<'pass> {
     pub fn draw_post_process(&mut self) {
-        let mut render_pass = self.render_pass.scope(self.borrow.device, "postprocess");
+        let mut render_pass = self.render_pass.scope("postprocess", self.borrow.device);
         render_pass.set_pipeline(&self.borrow.pipelines.postprocess.pipeline);
         render_pass.set_bind_group(1, &self.borrow.locals.postprocess_bind.bind_group, &[]);
         render_pass.draw(0..3, 0..1);
     }
 
     pub fn draw_ui(&mut self) -> UiDrawer<'_, 'pass> {
-        let mut render_pass = self.render_pass.scope(self.borrow.device, "ui");
+        let mut render_pass = self.render_pass.scope("ui", self.borrow.device);
         render_pass.set_pipeline(&self.borrow.pipelines.ui.pipeline);
         set_quad_index_buffer::<ui::Vertex>(&mut render_pass, &self.borrow);
 
