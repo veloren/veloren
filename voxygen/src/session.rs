@@ -32,7 +32,6 @@ use common_net::{
 use crate::{
     audio::sfx::SfxEvent,
     controller::ControllerSettings,
-    ecs::MyEntity,
     hud::{DebugInfo, Event as HudEvent, Hud, HudInfo, PressBehavior, PromptDialogSettings},
     i18n::{i18n_asset_key, Localization},
     key_state::KeyState,
@@ -266,17 +265,6 @@ impl PlayState for SessionState {
             (client.presence(), client.registered())
         };
         if client_presence.is_some() {
-            // Update MyEntity
-            // Note: Alternatively, the client could emit an event when the entity changes
-            // which may or may not be more elegant
-            {
-                let my_entity = self.client.borrow().entity();
-                self.client
-                    .borrow_mut()
-                    .state_mut()
-                    .ecs_mut()
-                    .insert(MyEntity(my_entity));
-            }
             // Compute camera data
             self.scene
                 .camera_mut()
