@@ -1345,44 +1345,34 @@ impl Window {
     pub fn send_event(&mut self, event: Event) { self.events.push(event) }
 
     pub fn take_screenshot(&mut self, settings: &Settings) {
-        let _ = self.renderer.create_screenshot();
-        // TODO
-        /*match self.renderer.create_screenshot() {
-            Ok(img) => {
-                let mut path = settings.screenshots_path.clone();
-                let sender = self.message_sender.clone();
-
-                let builder = std::thread::Builder::new().name("screenshot".into());
-                builder
-                    .spawn(move || {
-                        use std::time::SystemTime;
-                        // Check if folder exists and create it if it does not
-                        if !path.exists() {
-                            if let Err(e) = std::fs::create_dir_all(&path) {
-                                warn!(?e, "Couldn't create folder for screenshot");
-                                let _result = sender
-                                    .send(String::from("Couldn't create folder for screenshot"));
-                            }
-                        }
-                        path.push(format!(
-                            "screenshot_{}.png",
-                            SystemTime::now()
-                                .duration_since(SystemTime::UNIX_EPOCH)
-                                .map(|d| d.as_millis())
-                                .unwrap_or(0)
-                        ));
-                        if let Err(e) = img.save(&path) {
-                            warn!(?e, "Couldn't save screenshot");
-                            let _result = sender.send(String::from("Couldn't save screenshot"));
-                        } else {
-                            let _result = sender
-                                .send(format!("Screenshot saved to {}", path.to_string_lossy()));
-                        }
-                    })
-                    .unwrap();
-            },
-            Err(e) => error!(?e, "Couldn't create screenshot due to renderer error"),
-        }*/
+        let sender = self.message_sender.clone();
+        let mut path = settings.screenshots_path.clone();
+        self.renderer.create_screenshot(move |image| {
+            use std::time::SystemTime;
+            // Check if folder exists and create it if it does not
+            if !path.exists() {
+                if let Err(e) = std::fs::create_dir_all(&path) {
+                    warn!(?e, "Couldn't create folder for screenshot");
+                    let _result =
+                        sender.send(String::from("Couldn't create folder for screenshot"));
+                }
+            }
+            path.push(format!(
+                "screenshot_{}.png",
+                SystemTime::now()
+                    .duration_since(SystemTime::UNIX_EPOCH)
+                    .map(|d| d.as_millis())
+                    .unwrap_or(0)
+            ));
+            // Try to save the image
+            if let Err(e) = image.into_rgba8().save(&path) {
+                warn!(?e, "Couldn't save screenshot");
+                let _result = sender.send(String::from("Couldn't save screenshot"));
+            } else {
+                let _result =
+                    sender.send(format!("Screenshot saved to {}", path.to_string_lossy()));
+            }
+        });
     }
 
     fn is_pressed(

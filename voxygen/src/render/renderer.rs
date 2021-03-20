@@ -2,6 +2,7 @@ mod binding;
 pub(super) mod drawer;
 // Consts and bind groups for post-process and clouds
 mod locals;
+mod screenshot;
 mod shaders;
 mod shadow_map;
 
@@ -16,8 +17,8 @@ use super::{
     mesh::Mesh,
     model::{DynamicModel, Model},
     pipelines::{
-        clouds, figure, fluid, lod_terrain, particle, postprocess, shadow, skybox, sprite, terrain,
-        ui, GlobalsBindGroup, GlobalsLayouts, ShadowTexturesBindGroup,
+        blit, clouds, figure, fluid, lod_terrain, particle, postprocess, shadow, skybox, sprite,
+        terrain, ui, GlobalsBindGroup, GlobalsLayouts, ShadowTexturesBindGroup,
     },
     texture::Texture,
     AaMode, AddressMode, CloudMode, FilterMode, FluidMode, LightingMode, RenderError, RenderMode,
@@ -50,6 +51,7 @@ struct Layouts {
     sprite: sprite::SpriteLayout,
     terrain: terrain::TerrainLayout,
     ui: ui::UiLayout,
+    blit: blit::BlitLayout,
 }
 
 /// A type that stores all the pipelines associated with this renderer.
@@ -66,6 +68,7 @@ struct Pipelines {
     sprite: sprite::SpritePipeline,
     terrain: terrain::TerrainPipeline,
     ui: ui::UiPipeline,
+    blit: blit::BlitPipeline,
 }
 
 /// Render target views
@@ -116,6 +119,9 @@ pub struct Renderer {
 
     mode: RenderMode,
     resolution: Vec2<u32>,
+
+    // If this is Some then a screenshot will be taken and passed to the handler here
+    take_screenshot: Option<screenshot::ScreenshotFn>,
 
     profiler: wgpu_profiler::GpuProfiler,
     profile_times: Vec<wgpu_profiler::GpuTimerScopeResult>,
@@ -217,6 +223,7 @@ impl Renderer {
             let sprite = sprite::SpriteLayout::new(&device);
             let terrain = terrain::TerrainLayout::new(&device);
             let ui = ui::UiLayout::new(&device);
+            let blit = blit::BlitLayout::new(&device);
 
             Layouts {
                 global,
@@ -229,6 +236,7 @@ impl Renderer {
                 sprite,
                 terrain,
                 ui,
+                blit,
             }
         };
 
@@ -370,6 +378,8 @@ impl Renderer {
 
             mode,
             resolution: Vec2::new(dims.width, dims.height),
+
+            take_screenshot: None,
 
             profiler,
             profile_times: Vec::new(),
@@ -882,7 +892,7 @@ impl Renderer {
             Err(wgpu::SwapChainError::Timeout) => {
                 // This will probably be resolved on the next frame
                 // NOTE: we don't log this because it happens very frequently with
-                // PresentMode::Fifo on certain machines
+                // PresentMode::Fifo and unlimited FPS on certain machines
                 return Ok(None);
             },
             Err(err @ wgpu::SwapChainError::Outdated) => {
@@ -1133,12 +1143,13 @@ impl Renderer {
         )
     }
 
-    /// Creates a download buffer, downloads the win_color_view, and converts to
-    /// a image::DynamicImage.
-    //pub fn create_screenshot(&mut self) -> Result<image::DynamicImage,
-    // RenderError> {
-    pub fn create_screenshot(&mut self) {
-        // TODO: save alongside a screenshot
+    /// Queue to obtain a screenshot on the next frame render
+    pub fn create_screenshot(
+        &mut self,
+        screenshot_handler: impl FnOnce(image::DynamicImage) + Send + 'static,
+    ) {
+        // Queue screenshot
+        self.take_screenshot = Some(Box::new(screenshot_handler));
         // Take profiler snapshot
         if self.mode.profiler_enabled {
             let file_name = format!(
@@ -1158,58 +1169,6 @@ impl Renderer {
                 info!("Saved GPU timing snapshot as: {}", file_name);
             }
         }
-        //todo!()
-        // let (width, height) = self.get_resolution().into_tuple();
-
-        // let download_buf = self
-        //     .device
-        //     .create_buffer(&wgpu::BufferDescriptor {
-        //         label: None,
-        //         size: width * height * 4,
-        //         usage : wgpu::BufferUsage::COPY_DST,
-        //         mapped_at_creation: true
-        //     });
-
-        // let encoder =
-        // self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor
-        // {label: None});
-
-        //     encoder.copy_texture_to_buffer(&wgpu::TextureCopyViewBase {
-        //         origin: &self.wi
-        //     }, destination, copy_size)
-
-        // self.encoder.copy_texture_to_buffer_raw(
-        //     self.win_color_view.raw().get_texture(),
-        //     None,
-        //     gfx::texture::RawImageInfo {
-        //         xoffset: 0,
-        //         yoffset: 0,
-        //         zoffset: 0,
-        //         width,
-        //         height,
-        //         depth: 0,
-        //         format: WinColorFmt::get_format(),
-        //         mipmap: 0,
-        //     },
-        //     download.raw(),
-        //     0,
-        // )?;
-        // self.flush();
-
-        // // Assumes that the format is Rgba8.
-        // let raw_data = self
-        //     .factory
-        //     .read_mapping(&download)?
-        //     .chunks_exact(width as usize)
-        //     .rev()
-        //     .flatten()
-        //     .flatten()
-        //     .map(|&e| e)
-        //     .collect::<Vec<_>>();
-        // Ok(image::DynamicImage::ImageRgba8(
-        //     // Should not fail if the dimensions are correct.
-        //     image::ImageBuffer::from_raw(width as u32, height as u32,
-        // raw_data).unwrap(), ))
     }
 
     // /// Queue the rendering of the provided skybox model in the upcoming frame.
@@ -2167,6 +2126,15 @@ fn create_pipelines(
         &layouts.postprocess,
     );
 
+    // Construct a pipeline for blitting, used during screenshotting
+    let blit_pipeline = blit::BlitPipeline::new(
+        device,
+        &create_shader("blit-vert", ShaderKind::Vertex)?,
+        &create_shader("blit-frag", ShaderKind::Fragment)?,
+        sc_desc,
+        &layouts.blit,
+    );
+
     // Consider reenabling at some time in the future
     //
     // // Construct a pipeline for rendering the player silhouette
@@ -2233,6 +2201,7 @@ fn create_pipelines(
             lod_terrain: lod_terrain_pipeline,
             clouds: clouds_pipeline,
             postprocess: postprocess_pipeline,
+            blit: blit_pipeline,
         },
         // player_shadow_pipeline,
         Some(point_shadow_pipeline),

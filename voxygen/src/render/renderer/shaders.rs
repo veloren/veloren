@@ -66,6 +66,8 @@ impl assets::Compound for Shaders {
             "clouds-frag",
             "postprocess-vert",
             "postprocess-frag",
+            "blit-vert",
+            "blit-frag",
             "player-shadow-frag",
             "light-shadows-geom",
             "light-shadows-frag",

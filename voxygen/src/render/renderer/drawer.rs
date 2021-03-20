@@ -5,8 +5,8 @@ use super::{
         instances::Instances,
         model::{DynamicModel, Model, SubModel},
         pipelines::{
-            clouds, figure, fluid, lod_terrain, particle, postprocess, shadow, skybox, sprite,
-            terrain, ui, ColLights, GlobalsBindGroup, Light, Shadow,
+            blit, clouds, figure, fluid, lod_terrain, particle, postprocess, shadow, skybox,
+            sprite, terrain, ui, ColLights, GlobalsBindGroup, Light, Shadow,
         },
     },
     Renderer, ShadowMap, ShadowMapRenderer,
@@ -35,6 +35,9 @@ pub struct Drawer<'frame> {
     borrow: RendererBorrow<'frame>,
     swap_tex: wgpu::SwapChainTexture,
     globals: &'frame GlobalsBindGroup,
+    // Texture and other info for taking a screenshot
+    // Writes to this instead in the third pass if it is present
+    taking_screenshot: Option<super::screenshot::TakeScreenshot>,
 }
 
 impl<'frame> Drawer<'frame> {
@@ -44,6 +47,16 @@ impl<'frame> Drawer<'frame> {
         swap_tex: wgpu::SwapChainTexture,
         globals: &'frame GlobalsBindGroup,
     ) -> Self {
+        let taking_screenshot = renderer.take_screenshot.take().map(|screenshot_fn| {
+            super::screenshot::TakeScreenshot::new(
+                &renderer.device,
+                &renderer.layouts.blit,
+                &renderer.sampler,
+                &renderer.sc_desc,
+                screenshot_fn,
+            )
+        });
+
         let borrow = RendererBorrow {
             queue: &renderer.queue,
             device: &renderer.device,
@@ -64,6 +77,7 @@ impl<'frame> Drawer<'frame> {
             borrow,
             swap_tex,
             globals,
+            taking_screenshot,
         }
     }
 
@@ -169,7 +183,12 @@ impl<'frame> Drawer<'frame> {
             encoder.scoped_render_pass("third_pass", device, &wgpu::RenderPassDescriptor {
                 label: Some("third pass (postprocess + ui)"),
                 color_attachments: &[wgpu::RenderPassColorAttachmentDescriptor {
-                    attachment: &self.swap_tex.view,
+                    // If a screenshot was requested render to that as an intermediate texture
+                    // instead
+                    attachment: self
+                        .taking_screenshot
+                        .as_ref()
+                        .map_or(&self.swap_tex.view, |s| s.texture_view()),
                     resolve_target: None,
                     ops: wgpu::Operations {
                         load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
@@ -329,9 +348,41 @@ impl<'frame> Drop for Drawer<'frame> {
     fn drop(&mut self) {
         // TODO: submitting things to the queue can let the gpu start on them sooner
         // maybe we should submit each render pass to the queue as they are produced?
-        let (mut encoder, profiler) = self.encoder.take().unwrap().end_scope();
+        let mut encoder = self.encoder.take().unwrap();
+
+        // If taking a screenshot
+        if let Some(screenshot) = self.taking_screenshot.take() {
+            // Image needs to be copied from the screenshot texture to the swapchain texture
+            let mut render_pass = encoder.scoped_render_pass(
+                "screenshot blit",
+                self.borrow.device,
+                &wgpu::RenderPassDescriptor {
+                    label: Some("Blit screenshot pass"),
+                    color_attachments: &[wgpu::RenderPassColorAttachmentDescriptor {
+                        attachment: &self.swap_tex.view,
+                        resolve_target: None,
+                        ops: wgpu::Operations {
+                            load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
+                            store: true,
+                        },
+                    }],
+                    depth_stencil_attachment: None,
+                },
+            );
+            render_pass.set_pipeline(&self.borrow.pipelines.blit.pipeline);
+            render_pass.set_bind_group(0, &screenshot.bind_group(), &[]);
+            render_pass.draw(0..3, 0..1);
+            drop(render_pass);
+            // Issues a command to copy from the texture to a buffer and then sends the
+            // buffer off to another thread to be mapped and processed
+            screenshot.download_and_handle(&mut encoder);
+        }
+
+        let (mut encoder, profiler) = encoder.end_scope();
         profiler.resolve_queries(&mut encoder);
+
         self.borrow.queue.submit(std::iter::once(encoder.finish()));
+
         profiler
             .end_frame()
             .expect("Gpu profiler error! Maybe there was an unclosed scope?");

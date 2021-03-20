@@ -1,3 +1,4 @@
+pub mod blit;
 pub mod clouds;
 pub mod figure;
 pub mod fluid;
