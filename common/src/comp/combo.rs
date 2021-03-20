@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
 
-pub const COMBO_DECAY_START: f64 = 5.0; // seconds
+pub const COMBO_DECAY_START: f64 = 7.5; // seconds
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Combo {
