@@ -125,12 +125,13 @@ pub struct Renderer {
 
     profiler: wgpu_profiler::GpuProfiler,
     profile_times: Vec<wgpu_profiler::GpuTimerScopeResult>,
+    profiler_features_enabled: bool,
 }
 
 impl Renderer {
     /// Create a new `Renderer` from a variety of backend-specific components
     /// and the window targets.
-    pub fn new(window: &winit::window::Window, mode: RenderMode) -> Result<Self, RenderError> {
+    pub fn new(window: &winit::window::Window, mut mode: RenderMode) -> Result<Self, RenderError> {
         // Enable seamless cubemaps globally, where available--they are essentially a
         // strict improvement on regular cube maps.
         //
@@ -140,9 +141,16 @@ impl Renderer {
 
         // TODO: fix panic on wayland with opengl?
         // TODO: fix backend defaulting to opengl on wayland.
-        let instance = wgpu::Instance::new(
-            wgpu::BackendBit::PRIMARY, /* | wgpu::BackendBit::SECONDARY */
-        );
+        let only_vulkan = std::env::var("ONLY_VULKAN")
+            .ok()
+            .map_or(false, |s| &s == "1" || &s == "true");
+        let backend_bit = if only_vulkan {
+            info!("Only requesting Vulkan backend due to ONLY_VULKAN env var being set");
+            wgpu::BackendBit::VULKAN
+        } else {
+            wgpu::BackendBit::PRIMARY /* | wgpu::BackendBit::SECONDARY */
+        };
+        let instance = wgpu::Instance::new(backend_bit);
 
         let dims = window.inner_size();
 
@@ -174,11 +182,21 @@ impl Renderer {
                     // TODO: make optional based on enabling profiling
                     // NOTE: requires recreating the device/queue is this setting changes
                     // alternatively it could be a compile time feature toggle
-                    | wgpu_profiler::GpuProfiler::REQUIRED_WGPU_FEATURES,
+                    | (adapter.features() & wgpu_profiler::GpuProfiler::REQUIRED_WGPU_FEATURES),
                 limits,
             },
             None,
         ))?;
+
+        let profiler_features_enabled = device
+            .features()
+            .contains(wgpu_profiler::GpuProfiler::REQUIRED_WGPU_FEATURES);
+        if !profiler_features_enabled {
+            info!(
+                "The features for GPU profiling (timestamp queries) are not available on this \
+                 adapter"
+            );
+        }
 
         let info = adapter.get_info();
         info!(
@@ -351,6 +369,7 @@ impl Renderer {
         let quad_index_buffer_u32 =
             create_quad_index_buffer_u32(&device, QUAD_INDEX_BUFFER_U32_START_VERT_LEN as usize);
         let mut profiler = wgpu_profiler::GpuProfiler::new(4, queue.get_timestamp_period());
+        mode.profiler_enabled &= profiler_features_enabled;
         profiler.enable_timer = mode.profiler_enabled;
         profiler.enable_debug_marker = mode.profiler_enabled;
 
@@ -383,6 +402,7 @@ impl Renderer {
 
             profiler,
             profile_times: Vec::new(),
+            profiler_features_enabled,
         })
     }
 
@@ -391,6 +411,8 @@ impl Renderer {
         self.mode = mode;
         self.sc_desc.present_mode = self.mode.present_mode.into();
 
+        // Only enable profiling if the wgpu features are enabled
+        self.mode.profiler_enabled &= self.profiler_features_enabled;
         // Enable/disable profiler
         if !self.mode.profiler_enabled {
             // Clear the times if disabled
