@@ -12,7 +12,7 @@ variables:
   # Note: this is deprecated!
   # ttps://docs.gitlab.com/ee/ci/yaml/#shallow-cloning
   GIT_DEPTH: 3
-  GIT_CLEAN_FLAGS: -f
+  GIT_CLEAN_FLAGS: -n
   CACHE_IMAGE_TAG: 7ea40612
 
 default:
@@ -36,8 +36,8 @@ before_script:
   - export DISABLE_GIT_LFS_CHECK=true
   - export VELOREN_ASSETS="$(pwd)/assets"
   - echo "VELOREN_ASSETS=$VELOREN_ASSETS"
-  - export RUSTFLAGS="-D warnings"
-  - rm -rf target || echo "it seems that sometimes OLD data is left over"
+    #- export RUSTFLAGS="-D warnings"
+    #- rm -rf target || echo "it seems that sometimes OLD data is left over"
 
 # 8866215 is the user that is used to sync data to the collaboration repos
 workflow:
