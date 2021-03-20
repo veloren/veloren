@@ -11,11 +11,20 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use vek::*;
 
-const HUMANOID_CLIMB_ACCEL: f32 = 24.0;
-const CLIMB_SPEED: f32 = 5.0;
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Data {
+    pub energy_cost: f32,
+    pub movement_speed: f32,
+}
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
-pub struct Data;
+impl Default for Data {
+    fn default() -> Self {
+        Data {
+            energy_cost: 5.0,
+            movement_speed: 5.0,
+        }
+    }
+}
 
 impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
@@ -38,19 +47,18 @@ impl CharacterBehavior for Data {
             update.character = CharacterState::Idle {};
             return update;
         };
-
         // Move player
         update.vel.0 += Vec2::broadcast(data.dt.0)
             * data.inputs.move_dir
-            * if update.vel.0.magnitude_squared() < CLIMB_SPEED.powi(2) {
-                HUMANOID_CLIMB_ACCEL
+            * if update.vel.0.magnitude_squared() < self.movement_speed.powi(2) {
+                self.movement_speed.powi(2)
             } else {
                 0.0
             };
 
         // Expend energy if climbing
         let energy_use = match climb {
-            Climb::Up => 5,
+            Climb::Up => self.energy_cost as i32,
             Climb::Down => 1,
             Climb::Hold => 1,
         };
@@ -74,8 +82,8 @@ impl CharacterBehavior for Data {
 
         // Apply Vertical Climbing Movement
         match climb {
-            Climb::Down => update.vel.0.z += data.dt.0 * (GRAVITY - HUMANOID_CLIMB_ACCEL),
-            Climb::Up => update.vel.0.z += data.dt.0 * (GRAVITY + HUMANOID_CLIMB_ACCEL),
+            Climb::Down => update.vel.0.z += data.dt.0 * (GRAVITY - self.movement_speed.powi(2)),
+            Climb::Up => update.vel.0.z += data.dt.0 * (GRAVITY + self.movement_speed.powi(2)),
             Climb::Hold => update.vel.0.z += data.dt.0 * GRAVITY,
         }
 

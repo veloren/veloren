@@ -40,8 +40,8 @@ pub fn skill_to_db_string(skill: comp::skills::Skill) -> String {
     use comp::{
         item::tool::ToolKind,
         skills::{
-            AxeSkill, BowSkill, GeneralSkill, HammerSkill, RollSkill, SceptreSkill, Skill::*,
-            SkillGroupKind, StaffSkill, SwordSkill,
+            AxeSkill, BowSkill, ClimbSkill, GeneralSkill, HammerSkill, RollSkill, SceptreSkill,
+            Skill::*, SkillGroupKind, StaffSkill, SwordSkill,
         },
     };
     let skill_string = match skill {
@@ -134,6 +134,8 @@ pub fn skill_to_db_string(skill: comp::skills::Skill) -> String {
         Roll(RollSkill::Cost) => "Roll Cost",
         Roll(RollSkill::Strength) => "Roll Strength",
         Roll(RollSkill::Duration) => "Roll Duration",
+        Climb(ClimbSkill::Cost) => "Climbing Cost",
+        Climb(ClimbSkill::Speed) => "Climbing Speed",
         UnlockGroup(SkillGroupKind::Weapon(ToolKind::Sword)) => "Unlock Weapon Sword",
         UnlockGroup(SkillGroupKind::Weapon(ToolKind::Axe)) => "Unlock Weapon Axe",
         UnlockGroup(SkillGroupKind::Weapon(ToolKind::Hammer)) => "Unlock Weapon Hammer",
@@ -163,8 +165,8 @@ pub fn db_string_to_skill(skill_string: &str) -> comp::skills::Skill {
     use comp::{
         item::tool::ToolKind,
         skills::{
-            AxeSkill, BowSkill, GeneralSkill, HammerSkill, RollSkill, SceptreSkill, Skill::*,
-            SkillGroupKind, StaffSkill, SwordSkill,
+            AxeSkill, BowSkill, ClimbSkill, GeneralSkill, HammerSkill, RollSkill, SceptreSkill,
+            Skill::*, SkillGroupKind, StaffSkill, SwordSkill,
         },
     };
     match skill_string {
@@ -257,6 +259,8 @@ pub fn db_string_to_skill(skill_string: &str) -> comp::skills::Skill {
         "Roll Cost" => Roll(RollSkill::Cost),
         "Roll Strength" => Roll(RollSkill::Strength),
         "Roll Duration" => Roll(RollSkill::Duration),
+        "Climbing Cost" => Climb(ClimbSkill::Cost),
+        "Climbing Speed" => Climb(ClimbSkill::Speed),
         "Unlock Weapon Sword" => UnlockGroup(SkillGroupKind::Weapon(ToolKind::Sword)),
         "Unlock Weapon Axe" => UnlockGroup(SkillGroupKind::Weapon(ToolKind::Axe)),
         "Unlock Weapon Hammer" => UnlockGroup(SkillGroupKind::Weapon(ToolKind::Hammer)),

@@ -42,7 +42,7 @@ impl From<&JoinData<'_>> for StateUpdate {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum CharacterState {
     Idle,
-    Climb,
+    Climb(climb::Data),
     Sit,
     Dance,
     Talk,

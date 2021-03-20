@@ -407,7 +407,13 @@ pub fn handle_climb(data: &JoinData, update: &mut StateUpdate) {
         && data.body.can_climb()
         && update.energy.current() > 100
     {
-        update.character = CharacterState::Climb;
+        let ability = CharacterAbility::Climb {
+            energy_cost: 5.0,
+            movement_speed: 5.0,
+        }
+        .adjusted_by_skills(&data.stats.skill_set, None);
+        let ability_info = AbilityInfo::from_input(data, false, InputKind::Roll);
+        update.character = CharacterState::from((&ability, ability_info));
     }
 }
 

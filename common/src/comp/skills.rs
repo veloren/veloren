@@ -103,6 +103,7 @@ pub enum Skill {
     Sceptre(SceptreSkill),
     UnlockGroup(SkillGroupKind),
     Roll(RollSkill),
+    Climb(ClimbSkill),
 }
 
 pub enum SkillError {
@@ -248,6 +249,12 @@ pub enum RollSkill {
     Cost,
     Strength,
     Duration,
+}
+
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
+pub enum ClimbSkill {
+    Cost,
+    Speed,
 }
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]

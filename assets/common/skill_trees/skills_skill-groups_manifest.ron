@@ -12,6 +12,8 @@
         Roll(Cost),
         Roll(Strength),
         Roll(Duration),
+        Climb(Cost),
+        Climb(Speed)
     ],
     Weapon(Sword): [
         Sword(InterruptingAttacks),
