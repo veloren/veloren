@@ -23,7 +23,7 @@ use std::{
     sync::{atomic::AtomicBool, mpsc, Arc},
     time::Duration,
 };
-use tracing::info;
+use tracing::{info, trace};
 
 const TPS: u64 = 30;
 
@@ -164,7 +164,9 @@ fn main() -> io::Result<()> {
     let mut clock = Clock::new(Duration::from_secs_f64(1.0 / TPS as f64));
     // Wait for a tick so we don't start with a zero dt
 
+    let mut tick_no = 0u64;
     loop {
+        tick_no += 1;
         span!(guard, "work");
         // Terminate the server if instructed to do so by the shutdown coordinator
         if shutdown_coordinator.check(&mut server, &settings) {
@@ -185,6 +187,10 @@ fn main() -> io::Result<()> {
 
         // Clean up the server after a tick.
         server.cleanup();
+
+        if tick_no.rem_euclid(1000) == 0 {
+            trace!(?tick_no, "keepalive")
+        }
 
         if let Some(tui) = tui.as_ref() {
             match tui.msg_r.try_recv() {
