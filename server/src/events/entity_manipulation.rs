@@ -509,7 +509,7 @@ pub fn handle_delete(server: &mut Server, entity: EcsEntity) {
 pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>) {
     let state = &server.state;
     if vel.z <= -30.0 {
-        let falldmg = (vel.z.powi(2) / 20.0 - 40.0) * 10.0;
+        let falldmg = (vel.z.powi(2) / 20.0 - 40.0) * 7.5;
         let inventories = state.ecs().read_storage::<Inventory>();
         let stats = state.ecs().read_storage::<Stats>();
         // Handle health change
