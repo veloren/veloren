@@ -1,1 +1,17 @@
-BasicBlock
+SpinMelee(
+    buildup_duration: 0.6,
+    swing_duration: 0.2,
+    recover_duration: 0.6,
+    base_damage: 70.0,
+    base_poise_damage: 0.0,
+    knockback: ( strength: 8.0, direction: Towards),
+    range: 15.0,
+    damage_effect: Some(Lifesteal(1.0)),
+    energy_cost: 0.0,
+    is_infinite: true,
+    movement_behavior: Stationary,
+    is_interruptible: false,
+    forward_speed: 0.0,
+    num_spins: 1,
+    specifier: Some(CultistVortex),
+)

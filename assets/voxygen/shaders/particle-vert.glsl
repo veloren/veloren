@@ -395,10 +395,10 @@ void main() {
         );
     } else if (inst_mode == CULTIST_FLAME) {
         f_reflect = 0.0; // Fire doesn't reflect light, it emits it
-        float purp_color = 0.8 + 0.5 * rand3;
+        float purp_color = 0.9 + 0.3 * rand3;
         attr = Attr(
             (inst_dir * slow_end(1.5)) + vec3(rand0, rand1, rand2) * (percent() + 2) * 0.1,
-            vec3((2.5 * (1 - slow_start(0.2)))),
+            vec3((3.5 * (1 - slow_start(0.2)))),
             vec4(purp_color, 0.0, purp_color, 1),
             spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
         );

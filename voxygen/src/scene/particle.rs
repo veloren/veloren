@@ -16,6 +16,7 @@ use common::{
     outcome::Outcome,
     resources::DeltaTime,
     spiral::Spiral2d,
+    states,
     terrain::TerrainChunk,
     vol::{RectRasterableVol, SizedVol},
 };
@@ -195,6 +196,7 @@ impl ParticleMgr {
             self.maintain_shockwave_particles(scene_data);
             self.maintain_aura_particles(scene_data);
             self.maintain_buff_particles(scene_data);
+            self.maintain_spin_melee_particles(scene_data);
         } else {
             // remove all particle lifespans
             self.particles.clear();
@@ -563,6 +565,7 @@ impl ParticleMgr {
         let state = scene_data.state;
         let ecs = state.ecs();
         let time = state.get_time();
+        let mut rng = thread_rng();
 
         for (pos, auras) in (
             &ecs.read_storage::<Pos>(),
@@ -577,7 +580,6 @@ impl ParticleMgr {
                         kind: buff::BuffKind::ProtectingWard,
                         ..
                     } => {
-                        let mut rng = thread_rng();
                         let heartbeats = self.scheduler.heartbeats(Duration::from_millis(5));
                         self.particles.resize_with(
                             self.particles.len()
@@ -792,14 +794,13 @@ impl ParticleMgr {
         let ecs = state.ecs();
         let time = state.get_time();
 
-        for (_i, (_entity, pos, ori, shockwave)) in (
+        for (_entity, pos, ori, shockwave) in (
             &ecs.entities(),
             &ecs.read_storage::<Pos>(),
             &ecs.read_storage::<Ori>(),
             &ecs.read_storage::<Shockwave>(),
         )
             .join()
-            .enumerate()
         {
             let elapsed = time - shockwave.creation.unwrap_or_default();
 
@@ -856,6 +857,56 @@ impl ParticleMgr {
                             ParticleMode::FireShockwave,
                             position,
                         ));
+                    }
+                }
+            }
+        }
+    }
+
+    fn maintain_spin_melee_particles(&mut self, scene_data: &SceneData) {
+        let state = scene_data.state;
+        let ecs = state.ecs();
+        let time = state.get_time();
+        let mut rng = thread_rng();
+
+        for (pos, character_state) in (
+            &ecs.read_storage::<Pos>(),
+            &ecs.read_storage::<CharacterState>(),
+        )
+            .join()
+        {
+            if let CharacterState::SpinMelee(c) = character_state {
+                if let Some(specifier) = c.static_data.specifier {
+                    match specifier {
+                        states::spin_melee::FrontendSpecifier::CultistVortex => {
+                            let heartbeats = self.scheduler.heartbeats(Duration::from_millis(3));
+                            self.particles.resize_with(
+                                self.particles.len()
+                                    + c.static_data.range.powi(2) as usize
+                                        * usize::from(heartbeats)
+                                        / 150,
+                                || {
+                                    let rand_dist =
+                                        c.static_data.range * (1.0 - rng.gen::<f32>().powi(10));
+                                    let init_pos = Vec3::new(
+                                        2.0 * rng.gen::<f32>() - 1.0,
+                                        2.0 * rng.gen::<f32>() - 1.0,
+                                        0.0,
+                                    )
+                                    .normalized()
+                                        * rand_dist
+                                        + pos.0
+                                        + Vec3::unit_z() * 0.05;
+                                    Particle::new_directed(
+                                        Duration::from_millis(900),
+                                        time,
+                                        ParticleMode::CultistFlame,
+                                        init_pos,
+                                        pos.0,
+                                    )
+                                },
+                            );
+                        },
                     }
                 }
             }
