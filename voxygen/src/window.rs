@@ -928,10 +928,12 @@ impl Window {
 
         match event {
             WindowEvent::CloseRequested => self.events.push(Event::Close),
-            WindowEvent::Resized(physical) => {
-                // let (mut color_view, mut depth_view) = self.renderer.win_views_mut();
-                // self.window.resize(physical);
-                // self.window.update_gfx(&mut color_view, &mut depth_view);
+            WindowEvent::Resized(_) => {
+                // We don't use the event provided size because since this event
+                // more could have happened making the value wrong so we query
+                // directly from the window, this prevents some errors
+                let physical = self.window.inner_size();
+
                 self.renderer
                     .on_resize(Vec2::new(physical.width, physical.height))
                     .unwrap();
@@ -940,9 +942,6 @@ impl Window {
                 let winit::dpi::PhysicalSize { width, height } = physical;
                 self.events
                     .push(Event::Resize(Vec2::new(width as u32, height as u32)));
-                // TODO: can get invalid scissor rect
-                // panic with this + resize several times
-                // std::thread::sleep_ms(500);
             },
             WindowEvent::ScaleFactorChanged { scale_factor, .. } => {
                 // TODO: is window resized event emitted? or do we need to handle that here?
