@@ -880,7 +880,20 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
-                        CharacterState::BasicMelee(_) => {
+                        CharacterState::BasicMelee(s) => {
+                            let stage_time = s.timer.as_secs_f32();
+                            let stage_progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
+                                },
+                                StageSection::Swing => {
+                                    stage_time / s.static_data.swing_duration.as_secs_f32()
+                                },
+                                StageSection::Recover => {
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
+                                },
+                                _ => 0.0,
+                            };
                             anim::character::AlphaAnimation::update_skeleton(
                                 &target_base,
                                 (
@@ -888,9 +901,9 @@ impl FigureMgr {
                                     second_tool_kind,
                                     rel_vel.magnitude(),
                                     time,
-                                    None,
+                                    Some(s.stage_section),
                                 ),
-                                state.state_time,
+                                stage_progress,
                                 &mut state_animation_rate,
                                 skeleton_attr,
                             )
