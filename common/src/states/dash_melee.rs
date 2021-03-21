@@ -164,12 +164,17 @@ impl CharacterBehavior for Data {
                                 max_angle: self.static_data.angle.to_radians(),
                                 applied: false,
                                 hit_count: 0,
-                                break_block: update
+                                break_block: self
+                                    .static_data
+                                    .ability_info
                                     .select_pos
-                                    .filter(|_| {
-                                        self.static_data.ability_info.tool == Some(ToolKind::Pick)
+                                    .map(|p| {
+                                        (
+                                            p.map(|e| e.floor() as i32),
+                                            self.static_data.ability_info.tool,
+                                        )
                                     })
-                                    .map(|p| p.map(|e| e.floor() as i32)),
+                                    .filter(|(_, tool)| tool == &Some(ToolKind::Pick)),
                             });
                         }
                         update.character = CharacterState::DashMelee(Data {

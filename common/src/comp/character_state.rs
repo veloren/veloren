@@ -1,6 +1,6 @@
 use crate::{
     combat::Attack,
-    comp::{Energy, InputKind, Ori, Pos, Vel},
+    comp::{tool::ToolKind, Energy, InputAttr, InputKind, Ori, Pos, Vel},
     event::{LocalEvent, ServerEvent},
     states::{behavior::JoinData, *},
 };
@@ -9,11 +9,6 @@ use specs::{Component, DerefFlaggedStorage, VecStorage};
 use specs_idvs::IdvStorage;
 use std::collections::{BTreeMap, VecDeque};
 use vek::*;
-
-#[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
-pub struct InputAttr {
-    pub select_pos: Option<Vec3<f32>>,
-}
 
 /// Data returned from character behavior fn's to Character Behavior System.
 pub struct StateUpdate {
@@ -200,7 +195,7 @@ pub struct Melee {
     pub max_angle: f32,
     pub applied: bool,
     pub hit_count: u32,
-    pub break_block: Option<Vec3<i32>>,
+    pub break_block: Option<(Vec3<i32>, Option<ToolKind>)>,
 }
 
 impl Component for Melee {

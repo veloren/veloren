@@ -55,14 +55,14 @@ pub use self::{
         Buff, BuffCategory, BuffChange, BuffData, BuffEffect, BuffId, BuffKind, BuffSource, Buffs,
         ModifierKind,
     },
-    character_state::{CharacterState, InputAttr, Melee, StateUpdate},
+    character_state::{CharacterState, Melee, StateUpdate},
     chat::{
         ChatMode, ChatMsg, ChatType, Faction, SpeechBubble, SpeechBubbleType, UnresolvedChatMsg,
     },
     combo::Combo,
     controller::{
-        Climb, ControlAction, ControlEvent, Controller, ControllerInputs, GroupManip, InputKind,
-        InventoryAction, InventoryEvent, InventoryManip, MountState, Mounting,
+        Climb, ControlAction, ControlEvent, Controller, ControllerInputs, GroupManip, InputAttr,
+        InputKind, InventoryAction, InventoryEvent, InventoryManip, MountState, Mounting,
     },
     energy::{Energy, EnergyChange, EnergySource},
     group::Group,

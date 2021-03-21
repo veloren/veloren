@@ -217,8 +217,13 @@ impl CharacterBehavior for Data {
                             .static_data
                             .ability_info
                             .select_pos
-                            .filter(|_| self.static_data.ability_info.tool == Some(ToolKind::Pick))
-                            .map(|p| p.map(|e| e.floor() as i32)),
+                            .map(|p| {
+                                (
+                                    p.map(|e| e.floor() as i32),
+                                    self.static_data.ability_info.tool,
+                                )
+                            })
+                            .filter(|(_, tool)| tool == &Some(ToolKind::Pick)),
                     });
                 }
             },

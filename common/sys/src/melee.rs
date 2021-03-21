@@ -69,12 +69,15 @@ impl<'a> System<'a> for Sys {
             let rad = body.radius() * scale;
 
             // Mine blocks broken by the attack
-            if let Some(block_pos) = melee_attack.break_block {
+            if let Some((block_pos, tool)) = melee_attack.break_block {
                 // Check distance to block
                 if eye_pos.distance_squared(block_pos.map(|e| e as f32 + 0.5))
                     < (rad + scale * melee_attack.range).powi(2)
                 {
-                    server_emitter.emit(ServerEvent::MineBlock { pos: block_pos });
+                    server_emitter.emit(ServerEvent::MineBlock {
+                        pos: block_pos,
+                        tool,
+                    });
                 }
             }
 

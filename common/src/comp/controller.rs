@@ -2,7 +2,7 @@ use crate::{
     comp::{
         inventory::slot::{EquipSlot, InvSlotId, Slot},
         invite::{InviteKind, InviteResponse},
-        BuffKind, InputAttr,
+        BuffKind,
     },
     trade::{TradeAction, TradeId},
     uid::Uid,
@@ -118,7 +118,7 @@ pub enum ControlAction {
 }
 
 impl ControlAction {
-    pub fn basic_start(input: InputKind) -> Self {
+    pub fn basic_input(input: InputKind) -> Self {
         ControlAction::StartInput {
             input,
             target: None,
@@ -142,6 +142,11 @@ impl InputKind {
     pub fn is_ability(self) -> bool {
         matches!(self, Self::Primary | Self::Secondary | Self::Ability(_))
     }
+}
+
+#[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+pub struct InputAttr {
+    pub select_pos: Option<Vec3<f32>>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
