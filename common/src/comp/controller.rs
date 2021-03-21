@@ -163,6 +163,7 @@ pub struct ControllerInputs {
     pub move_z: f32, /* z axis (not combined with move_dir because they may have independent
                       * limits) */
     pub look_dir: Dir,
+    pub select_pos: Option<Vec3<f32>>,
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
@@ -181,6 +182,7 @@ impl ControllerInputs {
         self.move_dir = new.move_dir;
         self.move_z = new.move_z;
         self.look_dir = new.look_dir;
+        self.select_pos = new.select_pos;
     }
 }
 

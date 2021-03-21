@@ -328,6 +328,7 @@ impl PlayState for SessionState {
                             b.is_collectible()
                         }
                 });
+            self.inputs.select_pos = select_pos;
             // Throw out distance info, it will be useful in the future
             self.target_entity = target_entity.map(|x| x.0);
 

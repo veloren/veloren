@@ -38,7 +38,6 @@ pub trait CharacterBehavior {
         select_pos: Option<Vec3<f32>>,
     ) -> StateUpdate {
         let mut update = StateUpdate::from(data);
-        update.select_pos = select_pos;
         update.queued_inputs.insert(input, InputAttr { select_pos });
         update
     }

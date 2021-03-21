@@ -375,6 +375,15 @@
             (Item("common.items.crafting_tools.sewing_set"), 0),
         ],
     ),
+    "pickaxe": (
+        ("common.items.tool.pick", 1),
+        [
+            (Item("common.items.crafting_ing.wool"), 1), // TODO: Replace with plant fiber when obtainable
+            (Item("common.items.crafting_ing.stones"), 5), // TODO: Replace with iron ingots when obtainable
+            (Item("common.items.crafting_ing.twigs"), 4),
+            (Item("common.items.crafting_tools.craftsman_hammer"), 0),
+        ],
+    ),
     "cloth_scraps": (
         ("common.items.crafting_ing.cloth_scraps", 1),
         [

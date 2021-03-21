@@ -5,8 +5,7 @@ use crate::{
         item::{Hands, ItemKind, Tool, ToolKind},
         quadruped_low, quadruped_medium, quadruped_small, ship,
         skills::Skill,
-        theropod, Body, CharacterAbility, CharacterState, InputAttr, InputKind, InventoryAction,
-        StateUpdate,
+        theropod, Body, CharacterAbility, CharacterState, InputKind, InventoryAction, StateUpdate,
     },
     consts::{FRIC_GROUND, GRAVITY},
     event::{LocalEvent, ServerEvent},
@@ -512,16 +511,7 @@ fn handle_ability(data: &JoinData, update: &mut StateUpdate, input: InputKind) {
         {
             update.character = (
                 &ability,
-                AbilityInfo::from_input(
-                    data,
-                    matches!(equip_slot, EquipSlot::Offhand),
-                    input,
-                    data.controller
-                        .queued_inputs
-                        .get(&input)
-                        .cloned()
-                        .unwrap_or_default(),
-                ),
+                AbilityInfo::from_input(data, matches!(equip_slot, EquipSlot::Offhand), input),
             )
                 .into();
         }
@@ -575,7 +565,7 @@ pub fn handle_dodge_input(data: &JoinData, update: &mut StateUpdate) {
             if let CharacterState::ComboMelee(c) = data.character {
                 update.character = (
                     &ability,
-                    AbilityInfo::from_input(data, false, InputKind::Roll, InputAttr::default()),
+                    AbilityInfo::from_input(data, false, InputKind::Roll),
                 )
                     .into();
                 if let CharacterState::Roll(roll) = &mut update.character {
@@ -585,7 +575,7 @@ pub fn handle_dodge_input(data: &JoinData, update: &mut StateUpdate) {
             } else if data.character.is_wield() {
                 update.character = (
                     &ability,
-                    AbilityInfo::from_input(data, false, InputKind::Roll, InputAttr::default()),
+                    AbilityInfo::from_input(data, false, InputKind::Roll),
                 )
                     .into();
                 if let CharacterState::Roll(roll) = &mut update.character {
@@ -594,7 +584,7 @@ pub fn handle_dodge_input(data: &JoinData, update: &mut StateUpdate) {
             } else if data.character.is_stealthy() {
                 update.character = (
                     &ability,
-                    AbilityInfo::from_input(data, false, InputKind::Roll, InputAttr::default()),
+                    AbilityInfo::from_input(data, false, InputKind::Roll),
                 )
                     .into();
                 if let CharacterState::Roll(roll) = &mut update.character {
@@ -603,7 +593,7 @@ pub fn handle_dodge_input(data: &JoinData, update: &mut StateUpdate) {
             } else {
                 update.character = (
                     &ability,
-                    AbilityInfo::from_input(data, false, InputKind::Roll, InputAttr::default()),
+                    AbilityInfo::from_input(data, false, InputKind::Roll),
                 )
                     .into();
             }
@@ -705,12 +695,7 @@ pub struct AbilityInfo {
 }
 
 impl AbilityInfo {
-    pub fn from_input(
-        data: &JoinData,
-        from_offhand: bool,
-        input: InputKind,
-        input_attr: InputAttr,
-    ) -> Self {
+    pub fn from_input(data: &JoinData, from_offhand: bool, input: InputKind) -> Self {
         let tool_data = if from_offhand {
             unwrap_tool_data(data, EquipSlot::Offhand)
         } else {
@@ -729,7 +714,13 @@ impl AbilityInfo {
             tool,
             hand,
             input,
-            select_pos: input_attr.select_pos,
+            select_pos: data
+                .controller
+                .queued_inputs
+                .get(&input)
+                .cloned()
+                .unwrap_or_default()
+                .select_pos,
         }
     }
 }

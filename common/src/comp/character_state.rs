@@ -22,7 +22,6 @@ pub struct StateUpdate {
     pub removed_inputs: Vec<InputKind>,
     pub local_events: VecDeque<LocalEvent>,
     pub server_events: VecDeque<ServerEvent>,
-    pub select_pos: Option<Vec3<f32>>,
 }
 
 impl From<&JoinData<'_>> for StateUpdate {
@@ -38,7 +37,6 @@ impl From<&JoinData<'_>> for StateUpdate {
             removed_inputs: Vec::new(),
             local_events: VecDeque::new(),
             server_events: VecDeque::new(),
-            select_pos: None,
         }
     }
 }

@@ -8,6 +8,7 @@ use common::{
         Inventory, Pos,
     },
     consts::MAX_MOUNT_RANGE,
+    outcome::Outcome,
     uid::Uid,
     vol::ReadVol,
 };
@@ -265,6 +266,7 @@ pub fn handle_mine_block(server: &mut Server, pos: Vec3<i32>, tool: Option<ToolK
     if state.can_set_block(pos) {
         let block = state.terrain().get(pos).ok().copied();
         if let Some(block) = block.filter(|b| b.mine_tool().map_or(true, |t| Some(t) == tool)) {
+            // Drop item if one is recoverable from the block
             if let Some(item) = comp::Item::try_reclaim_from_block(block) {
                 state
                     .create_object(Default::default(), comp::object::Body::Pouch)
@@ -274,6 +276,13 @@ pub fn handle_mine_block(server: &mut Server, pos: Vec3<i32>, tool: Option<ToolK
             }
 
             state.set_block(pos, block.into_vacant());
+            state
+                .ecs()
+                .write_resource::<Vec<Outcome>>()
+                .push(Outcome::BreakBlock {
+                    pos,
+                    color: block.get_color(),
+                });
         }
     }
 }

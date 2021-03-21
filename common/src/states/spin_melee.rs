@@ -141,9 +141,8 @@ impl CharacterBehavior for Data {
                         max_angle: 180_f32.to_radians(),
                         applied: false,
                         hit_count: 0,
-                        break_block: self
-                            .static_data
-                            .ability_info
+                        break_block: data
+                            .inputs
                             .select_pos
                             .map(|p| {
                                 (

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Stone Pickaxe",
+    name: "Iron Pickaxe",
     description: "Strike the earth!",
     kind: Tool((
         kind: Pick,
