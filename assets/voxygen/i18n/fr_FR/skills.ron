@@ -37,8 +37,12 @@
         "hud.skill.climbing": "Sauter encore plus haut",
         "hud.skill.climbing_cost_title": "Coût d'endurance de l'Escalade",
         "hud.skill.climbing_cost": "Escalader coûte 20% moins d'endurance{SP}",
-        "hud.skill.climbing_speed_title": "Climbing Speed",
+        "hud.skill.climbing_speed_title": "Vitesse d'Escalade",
         "hud.skill.climbing_speed": "Escalader 20% plus vite{SP}",
+        "hud.skill.swim_title": "Nage",
+        "hud.skill.swim": "Déplacement en environnement humide",
+        "hud.skill.swim_speed_title": "Vitesse de nage",
+        "hud.skill.swim_speed": "Nager 40% plus vite{SP}",
         // Sceptre
         "hud.skill.sc_lifesteal_title": "Rayon de Vol-Vie",
         "hud.skill.sc_lifesteal": "Draine la vie de vos ennemis",

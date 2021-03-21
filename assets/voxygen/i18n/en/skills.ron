@@ -39,6 +39,10 @@
         "hud.skill.climbing_cost": "Climbing uses 20% less stamina{SP}",
         "hud.skill.climbing_speed_title": "Climbing Speed",
         "hud.skill.climbing_speed": "Climb 20% faster{SP}",
+        "hud.skill.swim_title": "Swimming",
+        "hud.skill.swim": "Moving in wet environment",
+        "hud.skill.swim_speed_title": "Swimming Speed",
+        "hud.skill.swim_speed": "Swim 40% faster{SP}",
         // Sceptre
         "hud.skill.sc_lifesteal_title": "Lifesteal Beam",
         "hud.skill.sc_lifesteal": "Drain the life from your enemies",

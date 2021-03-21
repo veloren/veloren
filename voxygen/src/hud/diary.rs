@@ -166,6 +166,8 @@ widget_ids! {
         skill_general_climb_0,
         skill_general_climb_1,
         skill_general_climb_2,
+        skill_general_swim_0,
+        skill_general_swim_1,
     }
 }
 
@@ -575,7 +577,7 @@ impl<'a> Widget for Diary<'a> {
             _ => 0,
         };
         let skills_bot_r = match sel_tab {
-            SelectedSkillTree::General => 3,
+            SelectedSkillTree::General => 5,
             SelectedSkillTree::Weapon(ToolKind::Sword) => 1,
             SelectedSkillTree::Weapon(ToolKind::Bow) => 1,
             _ => 0,
@@ -706,10 +708,11 @@ impl<'a> Widget for Diary<'a> {
         match sel_tab {
             SelectedSkillTree::General => {
                 use skills::{
-                    ClimbSkill::{self},
+                    ClimbSkill,
                     GeneralSkill::*,
                     RollSkill::{self, *},
                     SkillGroupKind::*,
+                    SwimSkill,
                 };
                 use ToolKind::*;
                 // General Combat
@@ -1111,6 +1114,44 @@ impl<'a> Widget for Diary<'a> {
                     TEXT_COLOR,
                 )
                 .set(state.skill_general_climb_2, ui)
+                .was_clicked()
+                {
+                    events.push(Event::UnlockSkill(skill));
+                };
+
+                Button::image(self.imgs.skill_swim_skill)
+                    .w_h(74.0, 74.0)
+                    .mid_top_with_margin_on(state.skills_bot_r[3], 3.0)
+                    .with_tooltip(
+                        self.tooltip_manager,
+                        &self.localized_strings.get("hud.skill.swim_title"),
+                        &self.localized_strings.get("hud.skill.swim"),
+                        &diary_tooltip,
+                        TEXT_COLOR,
+                    )
+                    .set(state.skill_general_swim_0, ui);
+                let skill = Skill::Swim(SwimSkill::Speed);
+                if create_skill_button(
+                    self.imgs.utility_speed_skill,
+                    state.skills_bot_r[4],
+                    &self.stats.skill_set,
+                    skill,
+                    self.fonts,
+                    &get_skill_label(skill, &self.stats.skill_set),
+                )
+                .with_tooltip(
+                    self.tooltip_manager,
+                    &self.localized_strings.get("hud.skill.swim_speed_title"),
+                    &add_sp_cost_tooltip(
+                        &self.localized_strings.get("hud.skill.swim_speed"),
+                        skill,
+                        &self.stats.skill_set,
+                        &self.localized_strings,
+                    ),
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.skill_general_swim_1, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));

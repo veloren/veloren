@@ -182,6 +182,7 @@ image_ids! {
         unlock_sword_skill: "voxygen.element.icons.skilltree.unlock_sword",
         skill_dodge_skill: "voxygen.element.icons.skilltree.skill_dodge",
         skill_climbing_skill: "voxygen.element.icons.skilltree.skill_climbing",
+        skill_swim_skill: "voxygen.element.icons.skilltree.skill_swim",
 
         buff_amount_skill: "voxygen.element.icons.skilltree.buff_amount",
         buff_combo_skill: "voxygen.element.icons.skilltree.buff_combo",

@@ -13,7 +13,8 @@
         Roll(Strength),
         Roll(Duration),
         Climb(Cost),
-        Climb(Speed)
+        Climb(Speed),
+        Swim(Speed),
     ],
     Weapon(Sword): [
         Sword(InterruptingAttacks),

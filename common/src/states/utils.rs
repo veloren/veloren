@@ -4,7 +4,7 @@ use crate::{
         inventory::slot::EquipSlot,
         item::{Hands, ItemKind, Tool, ToolKind},
         quadruped_low, quadruped_medium, quadruped_small, ship,
-        skills::Skill,
+        skills::{Skill, SwimSkill},
         theropod, Body, CharacterAbility, CharacterState, InputKind, InventoryAction, StateUpdate,
     },
     consts::{FRIC_GROUND, GRAVITY},
@@ -299,11 +299,22 @@ pub fn handle_orientation(data: &JoinData, update: &mut StateUpdate, rate: f32) 
 
 /// Updates components to move player as if theyre swimming
 fn swim_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32, depth: f32) {
+    let mut water_accel = BASE_HUMANOID_WATER_ACCEL;
+    let mut water_speed = BASE_HUMANOID_WATER_SPEED;
+    if let Ok(Some(level)) = data
+        .stats
+        .skill_set
+        .skill_level(Skill::Swim(SwimSkill::Speed))
+    {
+        water_speed *= 1.4_f32.powi(level.into());
+        water_accel *= 1.4_f32.powi(level.into());
+    }
+
     // Update velocity
     update.vel.0 += Vec2::broadcast(data.dt.0)
         * data.inputs.move_dir
-        * if update.vel.0.magnitude_squared() < BASE_HUMANOID_WATER_SPEED.powi(2) {
-            BASE_HUMANOID_WATER_ACCEL
+        * if update.vel.0.magnitude_squared() < water_speed.powi(2) {
+            water_accel
         } else {
             0.0
         }
@@ -324,7 +335,7 @@ fn swim_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32, depth: 
                 .inputs
                 .move_z
                 .clamped(-1.0, depth.clamped(0.0, 1.0).powi(3)))
-    .min(BASE_HUMANOID_WATER_SPEED);
+    .min(water_speed);
 }
 
 /// Updates components to move entity as if it's flying
