@@ -40,12 +40,14 @@
 
         "hud.settings.pan_sensitivity": "Pan Sensitivity",
         "hud.settings.zoom_sensitivity": "Zoom Sensitivity",
+        "hud.settings.camera_clamp_angle": "Angle for vertical camera clamp mode",
         "hud.settings.invert_scroll_zoom": "Invert Scroll Zoom",
         "hud.settings.invert_mouse_y_axis": "Invert Mouse Y Axis",
         "hud.settings.invert_controller_y_axis": "Invert Controller Y Axis",
         "hud.settings.enable_mouse_smoothing": "Camera Smoothing",
         "hud.settings.free_look_behavior": "Free look behavior",
         "hud.settings.auto_walk_behavior": "Auto walk behavior",
+        "hud.settings.camera_clamp_behavior": "Camera clamp behavior",
         "hud.settings.stop_auto_walk_on_input": "Stop auto walk on movement",
         "hud.settings.reset_gameplay": "Reset to Defaults",
 
