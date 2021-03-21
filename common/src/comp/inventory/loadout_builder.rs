@@ -12,6 +12,7 @@ use crate::{
     trade::{Good, SiteInformation},
 };
 use rand::Rng;
+use serde::{Deserialize, Serialize};
 
 /// Builder for character Loadouts, containing weapon and armour items belonging
 /// to a character, along with some helper methods for loading Items and
@@ -34,7 +35,7 @@ use rand::Rng;
 #[derive(Clone)]
 pub struct LoadoutBuilder(Loadout);
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq, Serialize, Deserialize, Debug)]
 pub enum LoadoutConfig {
     Adlet,
     Gnarling,

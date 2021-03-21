@@ -247,7 +247,8 @@ impl<'a> System<'a> for Sys {
                 | CharacterState::BasicBeam { .. }
                 | CharacterState::BasicAura { .. }
                 | CharacterState::HealingBeam { .. }
-                | CharacterState::Blink { .. } => {
+                | CharacterState::Blink { .. }
+                | CharacterState::BasicSummon { .. } => {
                     if energy.get_unchecked().regen_rate != 0.0 {
                         energy.get_mut_unchecked().regen_rate = 0.0
                     }

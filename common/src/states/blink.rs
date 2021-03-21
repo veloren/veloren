@@ -12,9 +12,13 @@ use std::time::Duration;
 /// Separated out to condense update portions of character state
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct StaticData {
+    /// How long the state builds up for
     pub buildup_duration: Duration,
+    /// How long the state recovers for
     pub recover_duration: Duration,
+    /// What the max range of the teleport is
     pub max_range: f32,
+    /// Miscellaneous information about the ability
     pub ability_info: AbilityInfo,
 }
 

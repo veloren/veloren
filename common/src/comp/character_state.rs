@@ -95,6 +95,8 @@ pub enum CharacterState {
     HealingBeam(healing_beam::Data),
     /// A short teleport that targets either a position or entity
     Blink(blink::Data),
+    /// Summons creatures that fight for the caster
+    BasicSummon(basic_summon::Data),
 }
 
 impl CharacterState {

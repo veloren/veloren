@@ -256,6 +256,13 @@ pub enum CharacterAbility {
         recover_duration: f32,
         max_range: f32,
     },
+    BasicSummon {
+        buildup_duration: f32,
+        cast_duration: f32,
+        recover_duration: f32,
+        summon_amount: u32,
+        summon_info: basic_summon::SummonInfo,
+    },
 }
 
 impl Default for CharacterAbility {
@@ -544,6 +551,17 @@ impl CharacterAbility {
                 *buildup_duration /= speed;
                 *recover_duration /= speed;
             },
+            BasicSummon {
+                ref mut buildup_duration,
+                ref mut cast_duration,
+                ref mut recover_duration,
+                ..
+            } => {
+                // TODO: Figure out how/if power should affect this
+                *buildup_duration /= speed;
+                *cast_duration /= speed;
+                *recover_duration /= speed;
+            },
         }
         self
     }
@@ -570,7 +588,7 @@ impl CharacterAbility {
                     0
                 }
             },
-            BasicBlock | Boost { .. } | ComboMelee { .. } | Blink { .. } => 0,
+            BasicBlock | Boost { .. } | ComboMelee { .. } | Blink { .. } | BasicSummon { .. } => 0,
         }
     }
 
@@ -1583,6 +1601,25 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                     max_range: *max_range,
                     ability_info,
                 },
+                timer: Duration::default(),
+                stage_section: StageSection::Buildup,
+            }),
+            CharacterAbility::BasicSummon {
+                buildup_duration,
+                cast_duration,
+                recover_duration,
+                summon_amount,
+                summon_info,
+            } => CharacterState::BasicSummon(basic_summon::Data {
+                static_data: basic_summon::StaticData {
+                    buildup_duration: Duration::from_secs_f32(*buildup_duration),
+                    cast_duration: Duration::from_secs_f32(*cast_duration),
+                    recover_duration: Duration::from_secs_f32(*recover_duration),
+                    summon_amount: *summon_amount,
+                    summon_info: *summon_info,
+                    ability_info,
+                },
+                summon_count: 0,
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
             }),

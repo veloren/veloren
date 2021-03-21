@@ -47,7 +47,7 @@ pub struct StaticData {
     pub num_spins: u32,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
-    /// Used to specify the beam to the frontend
+    /// Used to specify the melee attack to the frontend
     pub specifier: Option<FrontendSpecifier>,
 }
 

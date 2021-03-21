@@ -1,0 +1,16 @@
+BasicSummon(
+    buildup_duration: 0.5,
+    cast_duration: 1.0,
+    recover_duration: 0.5,
+    summon_amount: 4,
+    summon_info: (
+        body: QuadrupedMedium((
+            species: Darkhound,
+            body_type: Male,
+        )),
+        scale: None,
+        health_scaling: 0,
+        loadout_config: None,
+        skillset_config: None,
+    ),
+)

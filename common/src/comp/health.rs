@@ -34,7 +34,7 @@ pub enum HealthSource {
     Unknown,
 }
 
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Health {
     current: u32,
     base_max: u32,

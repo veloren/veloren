@@ -199,7 +199,7 @@
         secondary: "common.abilities.unique.mindflayer.necroticvortex",
         abilities: [
             (None, "common.abilities.unique.mindflayer.dimensionaldoor"),
-            (None, "common.abilities.unique.mindflayer.raiseundead"),
+            (None, "common.abilities.unique.mindflayer.summonminions"),
         ],
     ),
     Debug: (
