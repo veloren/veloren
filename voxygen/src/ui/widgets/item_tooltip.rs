@@ -105,8 +105,6 @@ impl ItemTooltipManager {
     fn set_tooltip(
         &mut self,
         tooltip: &ItemTooltip,
-        title_text: &str,
-        desc_text: &str,
         item: Option<Item>,
         title_col: Color,
         img_id: Option<image::Id>,
@@ -122,8 +120,6 @@ impl ItemTooltipManager {
             // spacing
             let tooltip = tooltip
                 .clone()
-                .title(title_text)
-                .desc(desc_text)
                 .item(item)
                 .title_col(title_col)
                 .image(img_id)
@@ -177,8 +173,6 @@ pub struct ItemTooltipped<'a, W> {
     imgs: &'a Imgs,
     item_imgs: &'a ItemImgs,
     pulse: f32,
-    title_text: &'a str,
-    desc_text: &'a str,
     item: Option<Item>,
     msm: &'a MaterialStatManifest,
     img_id: Option<image::Id>,
@@ -201,8 +195,6 @@ impl<'a, W: Widget> ItemTooltipped<'a, W> {
         let event = self.inner.set(id, ui);
         self.tooltip_manager.set_tooltip(
             self.tooltip,
-            self.title_text,
-            self.desc_text,
             self.item,
             self.title_col,
             self.img_id,
@@ -223,8 +215,6 @@ pub trait ItemTooltipable {
         imgs: &'a Imgs,
         item_imgs: &'a ItemImgs,
         pulse: f32,
-        title_text: &'a str,
-        desc_text: &'a str,
         item: Option<Item>,
         msm: &'a MaterialStatManifest,
         tooltip: &'a ItemTooltip<'a>,
@@ -241,8 +231,6 @@ impl<W: Widget> ItemTooltipable for W {
         imgs: &'a Imgs,
         item_imgs: &'a ItemImgs,
         pulse: f32,
-        title_text: &'a str,
-        desc_text: &'a str,
         item: Option<Item>,
         msm: &'a MaterialStatManifest,
         tooltip: &'a ItemTooltip<'a>,
@@ -255,8 +243,6 @@ impl<W: Widget> ItemTooltipable for W {
             imgs,
             item_imgs,
             pulse,
-            title_text,
-            desc_text,
             item,
             msm,
             img_id: None,
@@ -271,6 +257,8 @@ impl<W: Widget> ItemTooltipable for W {
 const V_PAD: f64 = 10.0;
 /// Horizontal spacing between elements of the tooltip
 const H_PAD: f64 = 10.0;
+/// Vertical spacing between stats
+const V_PAD_STATS: f64 = 6.0;
 /// Default portion of inner width that goes to an image
 const IMAGE_W_FRAC: f64 = 0.3;
 /// Default width multiplied by the description font size
@@ -285,8 +273,6 @@ const ICON_SIZE: [f64; 2] = [64.0, 64.0];
 pub struct ItemTooltip<'a> {
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
-    title_text: &'a str,
-    desc_text: &'a str,
     item: Option<Item>,
     msm: &'a MaterialStatManifest,
     title_col: Color,
@@ -340,8 +326,6 @@ impl<'a> ItemTooltip<'a> {
         pub title_justify { style.title.justify = Some(text::Justify) }
         pub desc_justify { style.desc.justify = Some(text::Justify) }
         image { image = Option<image::Id> }
-        title { title_text = &'a str }
-        desc { desc_text = &'a str }
         item { item = Option<Item> }
         msm { msm = &'a MaterialStatManifest }
         image_dims { image_dims = Option<(f64, f64)> }
@@ -360,8 +344,6 @@ impl<'a> ItemTooltip<'a> {
         ItemTooltip {
             common: widget::CommonBuilder::default(),
             style: Style::default(),
-            title_text: "",
-            desc_text: "",
             item: None,
             msm,
             transparency: 1.0,
@@ -445,18 +427,20 @@ impl<'a> Widget for ItemTooltip<'a> {
             ..
         } = args;
 
-        fn stats_count(kind: &ItemKind) -> usize {
-            match kind {
-                ItemKind::Armor(_) => 2,
+        fn stats_count(item: &Item) -> usize {
+            let mut count = match item.kind() {
+                ItemKind::Armor(_) => 1,
                 ItemKind::Tool(_) => 5,
                 ItemKind::Consumable { .. } => 1,
                 _ => 0,
+            };
+            if item.num_slots() != 0 {
+                count += 1
             }
+            count as usize
         }
 
         if let Some(ref item) = self.item {
-            let item = item;
-
             let inventories = self.client.inventories();
             let inventory = match inventories.get(self.client.entity()) {
                 Some(l) => l,
@@ -497,13 +481,13 @@ impl<'a> Widget for ItemTooltip<'a> {
             state.update(|s| {
                 s.ids
                     .stats
-                    .resize(stats_count(item.kind()), &mut ui.widget_id_generator())
+                    .resize(stats_count(item), &mut ui.widget_id_generator())
             });
 
             state.update(|s| {
                 s.ids
                     .diffs
-                    .resize(stats_count(item.kind()), &mut ui.widget_id_generator())
+                    .resize(stats_count(item), &mut ui.widget_id_generator())
             });
 
             // Background image frame
@@ -584,7 +568,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                         .color(text_color)
                         .font_size(35)
                         .align_middle_y_of(state.ids.item_frame)
-                        .right_from(state.ids.item_frame, H_PAD)
+                        .right_from(state.ids.item_frame, V_PAD)
                         .set(state.ids.main_stat, ui);
 
                     widget::Text::new(&"DPS".to_string())
@@ -593,7 +577,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                         .with_style(self.style.desc)
                         .color(text_color)
                         .align_bottom_of(state.ids.main_stat)
-                        .right_from(state.ids.main_stat, H_PAD)
+                        .right_from(state.ids.main_stat, V_PAD)
                         .set(state.ids.main_stat_text, ui);
 
                     // Power
@@ -603,8 +587,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                         .parent(id)
                         .with_style(self.style.desc)
                         .color(text_color)
-                        .h(2.0)
-                        .down_from(state.ids.item_frame, H_PAD)
+                        .down_from(state.ids.item_frame, V_PAD_STATS )
                         .set(state.ids.stats[0], ui);
 
                     // Speed
@@ -613,7 +596,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                         .parent(id)
                         .with_style(self.style.desc)
                         .color(text_color)
-                        .h(2.0)
+                        .down_from(state.ids.stats[0], V_PAD_STATS )
                         .set(state.ids.stats[1], ui);
 
                     // Poise
@@ -622,7 +605,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                         .parent(id)
                         .with_style(self.style.desc)
                         .color(text_color)
-                        .h(2.0)
+                        .down_from(state.ids.stats[1], V_PAD_STATS )
                         .set(state.ids.stats[2], ui);
 
                     // Crit chance
@@ -631,7 +614,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                         .parent(id)
                         .with_style(self.style.desc)
                         .color(text_color)
-                        .h(2.0)
+                        .down_from(state.ids.stats[2], V_PAD_STATS )
                         .set(state.ids.stats[3], ui);
 
                     // Crit mult
@@ -640,7 +623,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                         .parent(id)
                         .with_style(self.style.desc)
                         .color(text_color)
-                        .h(2.0)
+                        .down_from(state.ids.stats[3], V_PAD_STATS )
                         .set(state.ids.stats[4], ui);
                     if let Some(equipped_item) = equip_slot.cloned().next() {
                         if let ItemKind::Tool(equipped_tool) = equipped_item.kind() {
@@ -680,7 +663,6 @@ impl<'a> Widget for ItemTooltip<'a> {
                                     .parent(id)
                                     .with_style(self.style.desc)
                                     .color(diff_main_stat.1)
-                                    .h(2.0)
                                     .set(state.ids.diff_main_stat, ui);
                             }
 
@@ -696,7 +678,6 @@ impl<'a> Widget for ItemTooltip<'a> {
                                 .parent(id)
                                 .with_style(self.style.desc)
                                 .color(power_diff.1)
-                                .h(2.0)
                                 .set(state.ids.diffs[0], ui);
                             }
                             if diff.speed != 0.0 {
@@ -707,7 +688,6 @@ impl<'a> Widget for ItemTooltip<'a> {
                                     .parent(id)
                                     .with_style(self.style.desc)
                                     .color(speed_diff.1)
-                                    .h(2.0)
                                     .set(state.ids.diffs[1], ui);
                             }
                             if diff.poise_strength != 0.0 {
@@ -722,7 +702,6 @@ impl<'a> Widget for ItemTooltip<'a> {
                                 .parent(id)
                                 .with_style(self.style.desc)
                                 .color(poise_strength_diff.1)
-                                .h(2.0)
                                 .set(state.ids.diffs[2], ui);
                             }
                             if diff.crit_chance != 0.0 {
@@ -737,7 +716,6 @@ impl<'a> Widget for ItemTooltip<'a> {
                                 .parent(id)
                                 .with_style(self.style.desc)
                                 .color(crit_chance_diff.1)
-                                .h(2.0)
                                 .set(state.ids.diffs[3], ui);
                             }
                             if diff.crit_mult != 0.0 {
@@ -751,7 +729,6 @@ impl<'a> Widget for ItemTooltip<'a> {
                                 .parent(id)
                                 .with_style(self.style.desc)
                                 .color(crit_mult_diff.1)
-                                .h(2.0)
                                 .set(state.ids.diffs[4], ui);
                             }
                         }
@@ -768,8 +745,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                         .parent(id)
                         .with_style(self.style.desc)
                         .color(text_color)
-                        .h(2.0)
-                        .down_from(state.ids.item_frame, H_PAD)
+                        .down_from(state.ids.item_frame, V_PAD)
                         .set(state.ids.stat1, ui);*/
 
                     // Armour
@@ -780,7 +756,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                         .color(text_color)
                         .font_size(35)
                         .align_middle_y_of(state.ids.item_frame)
-                        .right_from(state.ids.item_frame, H_PAD)
+                        .right_from(state.ids.item_frame, V_PAD)
                         .set(state.ids.main_stat, ui);
 
                     widget::Text::new(&"Armor".to_string())
@@ -789,7 +765,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                         .with_style(self.style.desc)
                         .color(text_color)
                         .align_bottom_of(state.ids.main_stat)
-                        .right_from(state.ids.main_stat, H_PAD)
+                        .right_from(state.ids.main_stat, V_PAD)
                         .set(state.ids.main_stat_text, ui);
 
                     // Poise res
@@ -798,7 +774,6 @@ impl<'a> Widget for ItemTooltip<'a> {
                         .parent(id)
                         .with_style(self.style.desc)
                         .color(text_color)
-                        .h(2.0)
                         .x_align_to(state.ids.item_frame, conrod_core::position::Align::Start)
                         .set(state.ids.stats[0], ui);
 
@@ -809,8 +784,8 @@ impl<'a> Widget for ItemTooltip<'a> {
                             .parent(id)
                             .with_style(self.style.desc)
                             .color(text_color)
-                            .h(2.0)
                             .x_align_to(state.ids.item_frame, conrod_core::position::Align::Start)
+                            .down_from(state.ids.stats[0], V_PAD_STATS )
                             .set(state.ids.stats[1], ui);
                     }
 
@@ -833,7 +808,6 @@ impl<'a> Widget for ItemTooltip<'a> {
                                     .parent(id)
                                     .with_style(self.style.desc)
                                     .color(protection_diff.1)
-                                    .h(2.0)
                                     .set(state.ids.diff_main_stat, ui);
                             }
 
@@ -849,14 +823,10 @@ impl<'a> Widget for ItemTooltip<'a> {
                                 .parent(id)
                                 .with_style(self.style.desc)
                                 .color(diff1.1)
-                                .h(2.0)
                                 .set(state.ids.diff1, ui);
                             }*/
 
                             if diff.poise_resilience != Protection::Normal(0.0) {
-                                dbg!(&poise_res_diff.0);
-                                dbg!(util::protec2string(diff.poise_resilience));
-
                                 widget::Text::new(&format!(
                                     "{} {}",
                                     &poise_res_diff.0,
@@ -868,7 +838,6 @@ impl<'a> Widget for ItemTooltip<'a> {
                                 .parent(id)
                                 .with_style(self.style.desc)
                                 .color(poise_res_diff.1)
-                                .h(2.0)
                                 .set(state.ids.diffs[0], ui);
                             }
                         }
@@ -881,52 +850,97 @@ impl<'a> Widget for ItemTooltip<'a> {
                         .parent(id)
                         .with_style(self.style.desc)
                         .color(text_color)
-                        .h(2.0)
-                        .down_from(state.ids.item_frame, H_PAD)
+                        .down_from(state.ids.item_frame, V_PAD)
                         .set(state.ids.stats[0], ui);
                 },
                 _ => (),
             }
 
-            widget::Text::new(&desc)
-                .w(text_w)
-                .x_align_to(state.ids.item_frame, conrod_core::position::Align::Start)
-                .graphics_for(id)
-                .parent(id)
-                .with_style(self.style.desc)
-                .color(conrod_core::color::GREY)
-                .w(text_w)
-                .set(state.ids.desc, ui);
+            if !desc.is_empty() {
+                widget::Text::new(&desc)
+                    .x_align_to(state.ids.item_frame, conrod_core::position::Align::Start)
+                    .graphics_for(id)
+                    .parent(id)
+                    .with_style(self.style.desc)
+                    .color(conrod_core::color::GREY)
+                    .down_from(
+                        if stats_count(item) > 0 {
+                            state.ids.stats[state.ids.stats.len() - 1]
+                        } else {
+                            (state.ids.item_frame)
+                        },
+                        V_PAD,
+                    )
+                    .w(text_w)
+                    .set(state.ids.desc, ui);
+            }
         }
     }
 
     /// Default width is based on the description font size unless the text is
     /// small enough to fit on a single line
-    fn default_x_dimension(&self, ui: &Ui) -> Dimension { Dimension::Absolute(300.0) }
+    fn default_x_dimension(&self, ui: &Ui) -> Dimension { Dimension::Absolute(280.0) }
 
     fn default_y_dimension(&self, ui: &Ui) -> Dimension {
-        let (text_w, image_w) = self.text_image_width(self.get_w(ui).unwrap_or(0.0));
+        fn stats_count(item: &Item) -> usize {
+            let mut count = match item.kind() {
+                ItemKind::Armor(_) => 2,
+                ItemKind::Tool(_) => 5,
+                ItemKind::Consumable { .. } => 1,
+                _ => 0,
+            };
+            if item.num_slots() != 0 {
+                count += 1
+            }
+            count as usize
+        }
 
-        let icone_h = widget::Image::new(self.imgs.inv_slot_grey)
-            .wh(ICON_SIZE)
-            .get_h(ui)
-            .unwrap_or(0.0);
+        if let Some(ref item) = self.item {
+            let (title, desc) = (item.name().to_string(), item.description().to_string());
 
-        let desc_h = if self.desc_text.is_empty() {
-            0.0
-        } else {
-            widget::Text::new(self.desc_text)
-                .with_style(self.style.desc)
+            let (text_w, image_w) = self.text_image_width(280.0);
+            // Title
+            let title_h = widget::Text::new(&title)
                 .w(text_w)
+                .with_style(self.style.title)
                 .get_h(ui)
-                .unwrap_or(0.0)
-                + self.style.desc.font_size(&ui.theme) as f64 * TEXT_SPACE_FACTOR
-        };
-        // Image defaults to square shape
-        let image_h = self.image_dims.map_or(image_w, |(_, h)| h);
-        // Title height + desc height + padding/spacing
-        let height = (icone_h + desc_h).max(image_h) + 2.0 * V_PAD;
-        Dimension::Absolute(height)
+                .unwrap_or(0.0);
+
+            // Item frame
+            let frame_h = ICON_SIZE[1];
+
+            // Stat
+            let stat_h = widget::Text::new(&"placeholder".to_string())
+                .with_style(self.style.desc)
+                .get_h(ui)
+                .unwrap_or(0.0);
+
+            // Description
+
+            let desc_h: f64 = if !desc.is_empty() {
+                widget::Text::new(&desc)
+                    .with_style(self.style.desc)
+                    .color(conrod_core::color::GREY)
+                    .w(text_w)
+                    .get_h(ui)
+                    .unwrap_or(0.0)
+            } else {
+                0.0
+            };
+
+            dbg!(title_h);
+            dbg!(frame_h);
+            dbg!(stat_h * stats_count(item) as f64);
+            dbg!(desc_h);
+            let height = title_h
+                + frame_h
+                + stat_h * stats_count(item) as f64
+                + desc_h
+                + V_PAD * 5.0 + V_PAD_STATS * stats_count(item) as f64;
+            Dimension::Absolute(height)
+        } else {
+            Dimension::Absolute(10.0)
+        }
     }
 }
 
