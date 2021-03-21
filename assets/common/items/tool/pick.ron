@@ -6,9 +6,9 @@ ItemDef(
         hands: Two,
         stats: Direct((
             equip_time_secs: 0.25,
-            power: 0.25,
+            power: 0.75,
             poise_strength: 0.25,
-            speed: 0.5,
+            speed: 0.75,
             crit_chance: 0.0,
             crit_mult: 1.0,
         )),
