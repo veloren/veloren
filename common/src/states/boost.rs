@@ -1,5 +1,5 @@
 use crate::{
-    comp::{CharacterState, InputAttr, StateUpdate},
+    comp::{CharacterState, StateUpdate},
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
@@ -59,10 +59,5 @@ impl CharacterBehavior for Data {
 }
 
 fn reset_state(data: &Data, join: &JoinData, update: &mut StateUpdate) {
-    handle_input(
-        join,
-        update,
-        data.static_data.ability_info.input,
-        InputAttr::default(),
-    );
+    handle_input(join, update, data.static_data.ability_info.input);
 }

@@ -1,6 +1,6 @@
 use crate::{
     combat::{Attack, AttackDamage, AttackEffect, CombatBuff, CombatEffect, CombatRequirement},
-    comp::{tool::ToolKind, CharacterState, InputAttr, Melee, StateUpdate},
+    comp::{tool::ToolKind, CharacterState, Melee, StateUpdate},
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
@@ -189,10 +189,5 @@ impl CharacterBehavior for Data {
 }
 
 fn reset_state(data: &Data, join: &JoinData, update: &mut StateUpdate) {
-    handle_input(
-        join,
-        update,
-        data.static_data.ability_info.input,
-        InputAttr::default(),
-    );
+    handle_input(join, update, data.static_data.ability_info.input);
 }

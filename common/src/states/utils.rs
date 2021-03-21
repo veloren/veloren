@@ -462,12 +462,7 @@ pub fn handle_jump(data: &JoinData, update: &mut StateUpdate) {
     }
 }
 
-fn handle_ability(
-    data: &JoinData,
-    update: &mut StateUpdate,
-    input: InputKind,
-    input_attr: InputAttr,
-) {
+fn handle_ability(data: &JoinData, update: &mut StateUpdate, input: InputKind) {
     let hands = |equip_slot| match data.inventory.equipped(equip_slot).map(|i| i.kind()) {
         Some(ItemKind::Tool(tool)) => Some(tool.hands),
         _ => None,
@@ -521,7 +516,11 @@ fn handle_ability(
                     data,
                     matches!(equip_slot, EquipSlot::Offhand),
                     input,
-                    input_attr,
+                    data.controller
+                        .queued_inputs
+                        .get(&input)
+                        .cloned()
+                        .unwrap_or_default(),
                 ),
             )
                 .into();
@@ -530,25 +529,20 @@ fn handle_ability(
 }
 
 pub fn handle_ability_input(data: &JoinData, update: &mut StateUpdate) {
-    if let Some((input, input_attr)) = data
+    if let Some(input) = data
         .controller
         .queued_inputs
-        .iter()
-        .find(|(i, _)| i.is_ability())
+        .keys()
+        .find(|i| i.is_ability())
     {
-        handle_ability(data, update, *input, input_attr.clone());
+        handle_ability(data, update, *input);
     }
 }
 
-pub fn handle_input(
-    data: &JoinData,
-    update: &mut StateUpdate,
-    input: InputKind,
-    input_attr: InputAttr,
-) {
+pub fn handle_input(data: &JoinData, update: &mut StateUpdate, input: InputKind) {
     match input {
         InputKind::Primary | InputKind::Secondary | InputKind::Ability(_) => {
-            handle_ability(data, update, input, input_attr)
+            handle_ability(data, update, input)
         },
         InputKind::Roll => handle_dodge_input(data, update),
         InputKind::Jump => handle_jump(data, update),
@@ -558,8 +552,8 @@ pub fn handle_input(
 
 pub fn attempt_input(data: &JoinData, update: &mut StateUpdate) {
     // TODO: look into using first() when it becomes stable
-    if let Some((input, input_attr)) = data.controller.queued_inputs.iter().next() {
-        handle_input(data, update, *input, input_attr.clone());
+    if let Some(input) = data.controller.queued_inputs.keys().next() {
+        handle_input(data, update, *input);
     }
 }
 
