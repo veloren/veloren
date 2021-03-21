@@ -10,7 +10,7 @@ use common::{
     assets::{AssetExt, DotVoxAsset},
     comp::{
         self, aura, beam, buff, item::Reagent, object, BeamSegment, Body, CharacterState, Ori, Pos,
-        Shockwave,
+        Shockwave, Vel,
     },
     figure::Segment,
     outcome::Outcome,
@@ -212,19 +212,25 @@ impl ParticleMgr {
             "ParticleMgr::maintain_body_particles"
         );
         let ecs = scene_data.state.ecs();
-        for (body, pos) in (&ecs.read_storage::<Body>(), &ecs.read_storage::<Pos>()).join() {
+        for (body, pos, vel) in (
+            &ecs.read_storage::<Body>(),
+            &ecs.read_storage::<Pos>(),
+            ecs.read_storage::<Vel>().maybe(),
+        )
+            .join()
+        {
             match body {
                 Body::Object(object::Body::CampfireLit) => {
-                    self.maintain_campfirelit_particles(scene_data, pos)
+                    self.maintain_campfirelit_particles(scene_data, pos, vel)
                 },
                 Body::Object(object::Body::BoltFire) => {
-                    self.maintain_boltfire_particles(scene_data, pos)
+                    self.maintain_boltfire_particles(scene_data, pos, vel)
                 },
                 Body::Object(object::Body::BoltFireBig) => {
-                    self.maintain_boltfirebig_particles(scene_data, pos)
+                    self.maintain_boltfirebig_particles(scene_data, pos, vel)
                 },
                 Body::Object(object::Body::BoltNature) => {
-                    self.maintain_boltnature_particles(scene_data, pos)
+                    self.maintain_boltnature_particles(scene_data, pos, vel)
                 },
                 Body::Object(
                     object::Body::Bomb
@@ -234,21 +240,28 @@ impl ParticleMgr {
                     | object::Body::FireworkRed
                     | object::Body::FireworkWhite
                     | object::Body::FireworkYellow,
-                ) => self.maintain_bomb_particles(scene_data, pos),
+                ) => self.maintain_bomb_particles(scene_data, pos, vel),
                 _ => {},
             }
         }
     }
 
-    fn maintain_campfirelit_particles(&mut self, scene_data: &SceneData, pos: &Pos) {
+    fn maintain_campfirelit_particles(
+        &mut self,
+        scene_data: &SceneData,
+        pos: &Pos,
+        vel: Option<&Vel>,
+    ) {
         span!(
             _guard,
             "campfirelit_particles",
             "ParticleMgr::maintain_campfirelit_particles"
         );
         let time = scene_data.state.get_time();
+        let dt = scene_data.state.get_delta_time();
+        let mut rng = thread_rng();
 
-        for _ in 0..self.scheduler.heartbeats(Duration::from_millis(10)) {
+        for _ in 0..self.scheduler.heartbeats(Duration::from_millis(50)) {
             self.particles.push(Particle::new(
                 Duration::from_millis(250),
                 time,
@@ -260,22 +273,30 @@ impl ParticleMgr {
                 Duration::from_secs(10),
                 time,
                 ParticleMode::CampfireSmoke,
-                pos.0.map(|e| e + thread_rng().gen_range(-0.25..0.25)),
+                pos.0.map(|e| e + thread_rng().gen_range(-0.25..0.25))
+                    + vel.map_or(Vec3::zero(), |v| -v.0 * dt * rng.gen::<f32>()),
             ));
         }
     }
 
-    fn maintain_boltfire_particles(&mut self, scene_data: &SceneData, pos: &Pos) {
+    fn maintain_boltfire_particles(
+        &mut self,
+        scene_data: &SceneData,
+        pos: &Pos,
+        vel: Option<&Vel>,
+    ) {
         span!(
             _guard,
             "boltfire_particles",
             "ParticleMgr::maintain_boltfire_particles"
         );
         let time = scene_data.state.get_time();
+        let dt = scene_data.state.get_delta_time();
+        let mut rng = thread_rng();
 
-        for _ in 0..self.scheduler.heartbeats(Duration::from_millis(10)) {
+        for _ in 0..self.scheduler.heartbeats(Duration::from_millis(4)) {
             self.particles.push(Particle::new(
-                Duration::from_millis(250),
+                Duration::from_millis(500),
                 time,
                 ParticleMode::CampfireFire,
                 pos.0,
@@ -284,28 +305,37 @@ impl ParticleMgr {
                 Duration::from_secs(1),
                 time,
                 ParticleMode::CampfireSmoke,
-                pos.0,
+                pos.0.map(|e| e + rng.gen_range(-0.25..0.25))
+                    + vel.map_or(Vec3::zero(), |v| -v.0 * dt * rng.gen::<f32>()),
             ));
         }
     }
 
-    fn maintain_boltfirebig_particles(&mut self, scene_data: &SceneData, pos: &Pos) {
+    fn maintain_boltfirebig_particles(
+        &mut self,
+        scene_data: &SceneData,
+        pos: &Pos,
+        vel: Option<&Vel>,
+    ) {
         span!(
             _guard,
             "boltfirebig_particles",
             "ParticleMgr::maintain_boltfirebig_particles"
         );
         let time = scene_data.state.get_time();
+        let dt = scene_data.state.get_delta_time();
+        let mut rng = thread_rng();
 
         // fire
         self.particles.resize_with(
-            self.particles.len() + usize::from(self.scheduler.heartbeats(Duration::from_millis(3))),
+            self.particles.len() + usize::from(self.scheduler.heartbeats(Duration::from_millis(2))),
             || {
                 Particle::new(
-                    Duration::from_millis(250),
+                    Duration::from_millis(500),
                     time,
                     ParticleMode::CampfireFire,
-                    pos.0,
+                    pos.0.map(|e| e + rng.gen_range(-0.25..0.25))
+                        + vel.map_or(Vec3::zero(), |v| -v.0 * dt * rng.gen::<f32>()),
                 )
             },
         );
@@ -318,36 +348,47 @@ impl ParticleMgr {
                     Duration::from_secs(2),
                     time,
                     ParticleMode::CampfireSmoke,
-                    pos.0,
+                    pos.0.map(|e| e + rng.gen_range(-0.25..0.25))
+                        + vel.map_or(Vec3::zero(), |v| -v.0 * dt),
                 )
             },
         );
     }
 
-    fn maintain_boltnature_particles(&mut self, scene_data: &SceneData, pos: &Pos) {
+    fn maintain_boltnature_particles(
+        &mut self,
+        scene_data: &SceneData,
+        pos: &Pos,
+        vel: Option<&Vel>,
+    ) {
         let time = scene_data.state.get_time();
+        let dt = scene_data.state.get_delta_time();
+        let mut rng = thread_rng();
 
         // nature
         self.particles.resize_with(
-            self.particles.len() + usize::from(self.scheduler.heartbeats(Duration::from_millis(3))),
+            self.particles.len() + usize::from(self.scheduler.heartbeats(Duration::from_millis(2))),
             || {
                 Particle::new(
-                    Duration::from_millis(250),
+                    Duration::from_millis(500),
                     time,
                     ParticleMode::CampfireSmoke,
-                    pos.0,
+                    pos.0.map(|e| e + rng.gen_range(-0.25..0.25))
+                        + vel.map_or(Vec3::zero(), |v| -v.0 * dt * rng.gen::<f32>()),
                 )
             },
         );
     }
 
-    fn maintain_bomb_particles(&mut self, scene_data: &SceneData, pos: &Pos) {
+    fn maintain_bomb_particles(&mut self, scene_data: &SceneData, pos: &Pos, vel: Option<&Vel>) {
         span!(
             _guard,
             "bomb_particles",
             "ParticleMgr::maintain_bomb_particles"
         );
         let time = scene_data.state.get_time();
+        let dt = scene_data.state.get_delta_time();
+        let mut rng = thread_rng();
 
         for _ in 0..self.scheduler.heartbeats(Duration::from_millis(10)) {
             // sparks
@@ -363,7 +404,7 @@ impl ParticleMgr {
                 Duration::from_secs(2),
                 time,
                 ParticleMode::CampfireSmoke,
-                pos.0,
+                pos.0 + vel.map_or(Vec3::zero(), |v| -v.0 * dt * rng.gen::<f32>()),
             ));
         }
     }
@@ -377,9 +418,12 @@ impl ParticleMgr {
         let state = scene_data.state;
         let ecs = state.ecs();
         let time = state.get_time();
+        let dt = scene_data.state.get_delta_time();
+        let mut rng = thread_rng();
 
-        for (pos, character_state) in (
+        for (pos, vel, character_state) in (
             &ecs.read_storage::<Pos>(),
+            ecs.read_storage::<Vel>().maybe(),
             &ecs.read_storage::<CharacterState>(),
         )
             .join()
@@ -393,7 +437,7 @@ impl ParticleMgr {
                             Duration::from_secs(15),
                             time,
                             ParticleMode::CampfireSmoke,
-                            pos.0,
+                            pos.0 + vel.map_or(Vec3::zero(), |v| -v.0 * dt * rng.gen::<f32>()),
                         )
                     },
                 );
