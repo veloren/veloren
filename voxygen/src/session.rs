@@ -298,12 +298,6 @@ impl PlayState for SessionState {
             };
             self.is_aiming = is_aiming;
 
-            // Check to see whether we're aiming at anything
-            let (build_pos, select_pos, target_entity) =
-                under_cursor(&self.client.borrow(), cam_pos, cam_dir);
-            // Throw out distance info, it will be useful in the future
-            self.target_entity = target_entity.map(|x| x.0);
-
             let player_entity = self.client.borrow().entity();
 
             let can_build = self
@@ -324,11 +318,25 @@ impl PlayState for SessionState {
                 .map_or(false, |tool| tool.kind == ToolKind::Pick)
                 && self.client.borrow().is_wielding() == Some(true);
 
+            // Check to see whether we're aiming at anything
+            let (build_pos, select_pos, target_entity) =
+                under_cursor(&self.client.borrow(), cam_pos, cam_dir, |b| {
+                    b.is_filled()
+                        || if is_mining {
+                            b.mine_tool().is_some()
+                        } else {
+                            b.is_collectible()
+                        }
+                });
+            // Throw out distance info, it will be useful in the future
+            self.target_entity = target_entity.map(|x| x.0);
+
             self.interactable = select_interactable(
                 &self.client.borrow(),
                 target_entity,
                 select_pos.map(|sp| sp.map(|e| e.floor() as i32)),
                 &self.scene,
+                |b| b.is_collectible() || (is_mining && b.mine_tool().is_some()),
             );
 
             // Only highlight interactables
@@ -1551,6 +1559,7 @@ fn under_cursor(
     client: &Client,
     cam_pos: Vec3<f32>,
     cam_dir: Vec3<f32>,
+    mut hit: impl FnMut(Block) -> bool,
 ) -> (
     Option<Vec3<f32>>,
     Option<Vec3<f32>>,
@@ -1579,7 +1588,7 @@ fn under_cursor(
 
     let cam_ray = terrain
         .ray(cam_pos, cam_pos + cam_dir * 100.0)
-        .until(|block| block.is_filled() || block.is_collectible() || block.mine_tool().is_some())
+        .until(|block| hit(*block))
         .cast();
 
     let cam_dist = cam_ray.0;
@@ -1691,6 +1700,7 @@ fn select_interactable(
     target_entity: Option<(specs::Entity, f32)>,
     selected_pos: Option<Vec3<i32>>,
     scene: &Scene,
+    mut hit: impl FnMut(Block) -> bool,
 ) -> Option<Interactable> {
     span!(_guard, "select_interactable");
     // TODO: once there are multiple distances for different types of interactions
@@ -1701,7 +1711,7 @@ fn select_interactable(
         .and_then(|(e, dist_to_player)| (dist_to_player < MAX_PICKUP_RANGE).then_some(Interactable::Entity(e)))
         .or_else(|| selected_pos.and_then(|sp|
                 client.state().terrain().get(sp).ok().copied()
-                    .filter(|b| b.is_collectible() || b.mine_tool().is_some())
+                    .filter(|b| hit(*b))
                     .map(|b| Interactable::Block(b, sp))
         ))
         .or_else(|| {
