@@ -14,6 +14,7 @@ use conrod_core::{
     widget::{self, Button, Image, Rectangle, Scrollbar, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
+use itertools::Itertools;
 use std::time::Instant;
 
 widget_ids! {
@@ -378,9 +379,17 @@ impl<'a> Widget for Social<'a> {
             // Create a name, level and zone row for every player in the list
             // Filter out yourself from the online list
             let my_uid = self.client.uid();
-            for (i, (&uid, player_info)) in
-                players.filter(|(uid, _)| Some(**uid) != my_uid).enumerate()
-            {
+            let mut player_list = players
+                .filter(|(uid, _)| Some(**uid) != my_uid)
+                .collect_vec();
+            player_list.sort_by_key(|(_, player)| {
+                player
+                    .character
+                    .as_ref()
+                    .map(|character| &character.name)
+                    .unwrap_or(&player.player_alias)
+            });
+            for (i, (&uid, player_info)) in player_list.into_iter().enumerate() {
                 let hide_username = true;
                 let zone = ""; // TODO Add real zone
                 let selected = state.selected_uid.map_or(false, |u| u.0 == uid);
