@@ -366,6 +366,11 @@ impl Drop for ProtocolMetricCache {
             let _ = m.rmsg_ob.remove_label_values(&[&cid, &s, &finished]);
             let _ = m.rmsg_ob.remove_label_values(&[&cid, &s, &dropped]);
         }
+        let _ = m.ping.remove_label_values(&[&cid]);
+        let _ = m.sdata_frames_t.remove_label_values(&[&cid]);
+        let _ = m.sdata_frames_b.remove_label_values(&[&cid]);
+        let _ = m.rdata_frames_t.remove_label_values(&[&cid]);
+        let _ = m.rdata_frames_b.remove_label_values(&[&cid]);
     }
 }
 
