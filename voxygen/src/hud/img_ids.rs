@@ -181,6 +181,8 @@ image_ids! {
         unlock_staff_skill0: "voxygen.element.icons.skilltree.unlock_staff-0",
         unlock_sword_skill: "voxygen.element.icons.skilltree.unlock_sword",
         skill_dodge_skill: "voxygen.element.icons.skilltree.skill_dodge",
+        skill_climbing_skill: "voxygen.element.icons.skilltree.skill_climbing",
+        skill_swim_skill: "voxygen.element.icons.skilltree.skill_swim",
 
         buff_amount_skill: "voxygen.element.icons.skilltree.buff_amount",
         buff_combo_skill: "voxygen.element.icons.skilltree.buff_combo",
@@ -198,6 +200,7 @@ image_ids! {
         buff_projectile_speed_skill: "voxygen.element.icons.skilltree.buff_projectile_speed",
         buff_radius_skill: "voxygen.element.icons.skilltree.buff_radius",
         buff_speed_skill: "voxygen.element.icons.skilltree.buff_speed",
+        buff_duration_skill: "voxygen.element.icons.skilltree.buff_duration",
 
         debuff_amount_skill: "voxygen.element.icons.skilltree.debuff_amount",
         debuff_combo_skill: "voxygen.element.icons.skilltree.debuff_combo",
@@ -215,6 +218,7 @@ image_ids! {
         debuff_projectile_speed_skill: "voxygen.element.icons.skilltree.debuff_projectile_speed",
         debuff_radius_skill: "voxygen.element.icons.skilltree.debuff_radius",
         debuff_speed_skill: "voxygen.element.icons.skilltree.debuff_speed",
+        debuff_duration_skill: "voxygen.element.icons.skilltree.debuff_duration",
 
         heal_amount_skill: "voxygen.element.icons.skilltree.heal_amount",
         heal_combo_skill: "voxygen.element.icons.skilltree.heal_combo",
@@ -232,6 +236,7 @@ image_ids! {
         heal_projectile_speed_skill: "voxygen.element.icons.skilltree.heal_projectile_speed",
         heal_radius_skill: "voxygen.element.icons.skilltree.heal_radius",
         heal_speed_skill: "voxygen.element.icons.skilltree.heal_speed",
+        heal_duration_skill: "voxygen.element.icons.skilltree.heal_duration",
 
         magic_amount_skill: "voxygen.element.icons.skilltree.magic_amount",
         magic_combo_skill: "voxygen.element.icons.skilltree.magic_combo",
@@ -249,6 +254,7 @@ image_ids! {
         magic_projectile_speed_skill: "voxygen.element.icons.skilltree.magic_projectile_speed",
         magic_radius_skill: "voxygen.element.icons.skilltree.magic_radius",
         magic_speed_skill: "voxygen.element.icons.skilltree.magic_speed",
+        magic_duration_skill: "voxygen.element.icons.skilltree.magic_duration",
 
         physical_amount_skill: "voxygen.element.icons.skilltree.physical_amount",
         physical_combo_skill: "voxygen.element.icons.skilltree.physical_combo",
@@ -266,6 +272,7 @@ image_ids! {
         physical_projectile_speed_skill: "voxygen.element.icons.skilltree.physical_projectile_speed",
         physical_radius_skill: "voxygen.element.icons.skilltree.physical_radius",
         physical_speed_skill: "voxygen.element.icons.skilltree.physical_speed",
+        physical_duration_skill: "voxygen.element.icons.skilltree.physical_duration",
 
         utility_amount_skill: "voxygen.element.icons.skilltree.utility_amount",
         utility_combo_skill: "voxygen.element.icons.skilltree.utility_combo",
@@ -283,6 +290,7 @@ image_ids! {
         utility_projectile_speed_skill: "voxygen.element.icons.skilltree.utility_projectile_speed",
         utility_radius_skill: "voxygen.element.icons.skilltree.utility_radius",
         utility_speed_skill: "voxygen.element.icons.skilltree.utility_speed",
+        utility_duration_skill: "voxygen.element.icons.skilltree.utility_duration",
 
         // Skillbar
         level_up: "voxygen.element.misc_bg.level_up",

@@ -72,4 +72,7 @@
     Roll(Cost): Some(2),
     Roll(Strength): Some(2),
     Roll(Duration): Some(2),
+    Climb(Cost): Some(2),
+    Climb(Speed): Some(2),
+    Swim(Speed): Some(2),
 })

@@ -1067,7 +1067,6 @@ impl CharacterAbility {
                 }
             },
             None => {
-                use skills::RollSkill::*;
                 if let CharacterAbility::Roll {
                     ref mut immune_melee,
                     ref mut energy_cost,
@@ -1076,6 +1075,7 @@ impl CharacterAbility {
                     ..
                 } = self
                 {
+                    use skills::RollSkill::*;
                     *immune_melee = skillset.has_skill(Skill::Roll(ImmuneMelee));
                     if let Ok(Some(level)) = skillset.skill_level(Skill::Roll(Cost)) {
                         *energy_cost *= 0.8_f32.powi(level.into());

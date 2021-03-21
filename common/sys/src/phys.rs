@@ -675,7 +675,7 @@ impl<'a> PhysicsData<'a> {
                     let was_on_ground = physics_state.on_ground;
                     let block_snap = body.map_or(false, |body| body.jump_impulse().is_some());
                     let climbing =
-                        character_state.map_or(false, |cs| matches!(cs, CharacterState::Climb));
+                        character_state.map_or(false, |cs| matches!(cs, CharacterState::Climb(_)));
 
                     match &collider {
                         Collider::Voxel { .. } => {

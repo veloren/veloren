@@ -40,8 +40,8 @@ pub fn skill_to_db_string(skill: comp::skills::Skill) -> String {
     use comp::{
         item::tool::ToolKind,
         skills::{
-            AxeSkill, BowSkill, GeneralSkill, HammerSkill, RollSkill, SceptreSkill, Skill::*,
-            SkillGroupKind, StaffSkill, SwordSkill,
+            AxeSkill, BowSkill, ClimbSkill, GeneralSkill, HammerSkill, RollSkill, SceptreSkill,
+            Skill::*, SkillGroupKind, StaffSkill, SwimSkill, SwordSkill,
         },
     };
     let skill_string = match skill {
@@ -134,6 +134,9 @@ pub fn skill_to_db_string(skill: comp::skills::Skill) -> String {
         Roll(RollSkill::Cost) => "Roll Cost",
         Roll(RollSkill::Strength) => "Roll Strength",
         Roll(RollSkill::Duration) => "Roll Duration",
+        Climb(ClimbSkill::Cost) => "Climb Cost",
+        Climb(ClimbSkill::Speed) => "Climb Speed",
+        Swim(SwimSkill::Speed) => "Swim Speed",
         UnlockGroup(SkillGroupKind::Weapon(ToolKind::Sword)) => "Unlock Weapon Sword",
         UnlockGroup(SkillGroupKind::Weapon(ToolKind::Axe)) => "Unlock Weapon Axe",
         UnlockGroup(SkillGroupKind::Weapon(ToolKind::Hammer)) => "Unlock Weapon Hammer",
@@ -163,8 +166,8 @@ pub fn db_string_to_skill(skill_string: &str) -> comp::skills::Skill {
     use comp::{
         item::tool::ToolKind,
         skills::{
-            AxeSkill, BowSkill, GeneralSkill, HammerSkill, RollSkill, SceptreSkill, Skill::*,
-            SkillGroupKind, StaffSkill, SwordSkill,
+            AxeSkill, BowSkill, ClimbSkill, GeneralSkill, HammerSkill, RollSkill, SceptreSkill,
+            Skill::*, SkillGroupKind, StaffSkill, SwimSkill, SwordSkill,
         },
     };
     match skill_string {
@@ -257,6 +260,9 @@ pub fn db_string_to_skill(skill_string: &str) -> comp::skills::Skill {
         "Roll Cost" => Roll(RollSkill::Cost),
         "Roll Strength" => Roll(RollSkill::Strength),
         "Roll Duration" => Roll(RollSkill::Duration),
+        "Climb Cost" => Climb(ClimbSkill::Cost),
+        "Climb Speed" => Climb(ClimbSkill::Speed),
+        "Swim Speed" => Swim(SwimSkill::Speed),
         "Unlock Weapon Sword" => UnlockGroup(SkillGroupKind::Weapon(ToolKind::Sword)),
         "Unlock Weapon Axe" => UnlockGroup(SkillGroupKind::Weapon(ToolKind::Axe)),
         "Unlock Weapon Hammer" => UnlockGroup(SkillGroupKind::Weapon(ToolKind::Hammer)),
