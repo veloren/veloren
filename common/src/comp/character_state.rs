@@ -7,7 +7,13 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage, VecStorage};
 use specs_idvs::IdvStorage;
-use std::collections::{BTreeSet, VecDeque};
+use std::collections::{BTreeMap, VecDeque};
+use vek::*;
+
+#[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+pub struct InputAttr {
+    pub select_pos: Option<Vec3<f32>>,
+}
 
 /// Data returned from character behavior fn's to Character Behavior System.
 pub struct StateUpdate {
@@ -17,10 +23,11 @@ pub struct StateUpdate {
     pub ori: Ori,
     pub energy: Energy,
     pub swap_equipped_weapons: bool,
-    pub queued_inputs: BTreeSet<InputKind>,
+    pub queued_inputs: BTreeMap<InputKind, InputAttr>,
     pub removed_inputs: Vec<InputKind>,
     pub local_events: VecDeque<LocalEvent>,
     pub server_events: VecDeque<ServerEvent>,
+    pub select_pos: Option<Vec3<f32>>,
 }
 
 impl From<&JoinData<'_>> for StateUpdate {
@@ -32,10 +39,11 @@ impl From<&JoinData<'_>> for StateUpdate {
             energy: *data.energy,
             swap_equipped_weapons: false,
             character: data.character.clone(),
-            queued_inputs: BTreeSet::new(),
+            queued_inputs: BTreeMap::new(),
             removed_inputs: Vec::new(),
             local_events: VecDeque::new(),
             server_events: VecDeque::new(),
+            select_pos: None,
         }
     }
 }
@@ -192,6 +200,7 @@ pub struct Melee {
     pub max_angle: f32,
     pub applied: bool,
     pub hit_count: u32,
+    pub break_block: Option<Vec3<i32>>,
 }
 
 impl Component for Melee {

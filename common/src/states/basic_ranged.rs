@@ -1,5 +1,7 @@
 use crate::{
-    comp::{Body, CharacterState, Gravity, LightEmitter, ProjectileConstructor, StateUpdate},
+    comp::{
+        Body, CharacterState, Gravity, InputAttr, LightEmitter, ProjectileConstructor, StateUpdate,
+    },
     event::ServerEvent,
     states::{
         behavior::{CharacterBehavior, JoinData},
@@ -125,5 +127,10 @@ impl CharacterBehavior for Data {
 }
 
 fn reset_state(data: &Data, join: &JoinData, update: &mut StateUpdate) {
-    handle_input(join, update, data.static_data.ability_info.input);
+    handle_input(
+        join,
+        update,
+        data.static_data.ability_info.input,
+        InputAttr::default(),
+    );
 }

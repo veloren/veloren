@@ -1,6 +1,6 @@
 use crate::{
     combat::{Attack, AttackDamage, AttackEffect, CombatBuff, CombatEffect, CombatRequirement},
-    comp::{CharacterState, EnergyChange, EnergySource, Melee, StateUpdate},
+    comp::{tool::ToolKind, CharacterState, EnergyChange, EnergySource, Melee, StateUpdate},
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
@@ -164,6 +164,12 @@ impl CharacterBehavior for Data {
                                 max_angle: self.static_data.angle.to_radians(),
                                 applied: false,
                                 hit_count: 0,
+                                break_block: update
+                                    .select_pos
+                                    .filter(|_| {
+                                        self.static_data.ability_info.tool == Some(ToolKind::Pick)
+                                    })
+                                    .map(|p| p.map(|e| e.floor() as i32)),
                             });
                         }
                         update.character = CharacterState::DashMelee(Data {

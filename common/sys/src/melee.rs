@@ -63,6 +63,21 @@ impl<'a> System<'a> for Sys {
             }
             melee_attack.applied = true;
 
+            // Scales
+            let eye_pos = pos.0 + Vec3::unit_z() * body.eye_height();
+            let scale = read_data.scales.get(attacker).map_or(1.0, |s| s.0);
+            let rad = body.radius() * scale;
+
+            // Mine blocks broken by the attack
+            if let Some(block_pos) = melee_attack.break_block {
+                // Check distance to block
+                if eye_pos.distance_squared(block_pos.map(|e| e as f32 + 0.5))
+                    < (rad + scale * melee_attack.range).powi(2)
+                {
+                    server_emitter.emit(ServerEvent::MineBlock { pos: block_pos });
+                }
+            }
+
             // Go through all other entities
             for (target, pos_b, health_b, body_b) in (
                 &read_data.entities,
@@ -80,9 +95,7 @@ impl<'a> System<'a> for Sys {
                 let ori2 = Vec2::from(look_dir);
 
                 // Scales
-                let scale = read_data.scales.get(attacker).map_or(1.0, |s| s.0);
                 let scale_b = read_data.scales.get(target).map_or(1.0, |s| s.0);
-                let rad = body.radius() * scale;
                 let rad_b = body_b.radius() * scale_b;
 
                 // Check if entity is dodging

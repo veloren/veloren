@@ -1,5 +1,5 @@
 use crate::{
-    comp::{CharacterState, InputKind, StateUpdate},
+    comp::{CharacterState, InputAttr, InputKind, StateUpdate},
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
@@ -116,7 +116,7 @@ impl CharacterBehavior for Data {
                     // Done
                     if let Some((input, stage)) = self.was_combo {
                         if input_is_pressed(data, input) {
-                            handle_input(data, &mut update, input);
+                            handle_input(data, &mut update, input, InputAttr::default());
                             // If other states are introduced that progress through stages, add them
                             // here
                             if let CharacterState::ComboMelee(c) = &mut update.character {

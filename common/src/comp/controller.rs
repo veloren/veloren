@@ -2,7 +2,7 @@ use crate::{
     comp::{
         inventory::slot::{EquipSlot, InvSlotId, Slot},
         invite::{InviteKind, InviteResponse},
-        BuffKind,
+        BuffKind, InputAttr,
     },
     trade::{TradeAction, TradeId},
     uid::Uid,
@@ -11,7 +11,7 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
-use std::collections::BTreeSet;
+use std::collections::BTreeMap;
 use vek::*;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -111,8 +111,20 @@ pub enum ControlAction {
     StartInput {
         input: InputKind,
         target: Option<Uid>,
+        // Some inputs need a selected position, such as mining
+        select_pos: Option<Vec3<f32>>,
     },
     CancelInput(InputKind),
+}
+
+impl ControlAction {
+    pub fn basic_start(input: InputKind) -> Self {
+        ControlAction::StartInput {
+            input,
+            target: None,
+            select_pos: None,
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Ord, PartialOrd)]
@@ -151,7 +163,7 @@ pub struct ControllerInputs {
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct Controller {
     pub inputs: ControllerInputs,
-    pub queued_inputs: BTreeSet<InputKind>,
+    pub queued_inputs: BTreeMap<InputKind, InputAttr>,
     // TODO: consider SmallVec
     pub events: Vec<ControlEvent>,
     pub actions: Vec<ControlAction>,

@@ -1,8 +1,8 @@
 use crate::{
     comp::{
         item::MaterialStatManifest, Beam, Body, CharacterState, Combo, ControlAction, Controller,
-        ControllerInputs, Energy, Health, InputKind, Inventory, InventoryAction, Melee, Ori,
-        PhysicsState, Pos, StateUpdate, Stats, Vel,
+        ControllerInputs, Energy, Health, InputAttr, InputKind, Inventory, InventoryAction, Melee,
+        Ori, PhysicsState, Pos, StateUpdate, Stats, Vel,
     },
     resources::DeltaTime,
     uid::Uid,
@@ -13,6 +13,7 @@ use specs::{
     DerefFlaggedStorage, Entity, LazyUpdate,
 };
 use specs_idvs::IdvStorage;
+use vek::*;
 
 pub trait CharacterBehavior {
     fn behavior(&self, data: &JoinData) -> StateUpdate;
@@ -29,9 +30,16 @@ pub trait CharacterBehavior {
     fn sneak(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
     fn stand(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
     fn talk(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
-    fn start_input(&self, data: &JoinData, input: InputKind, _target: Option<Uid>) -> StateUpdate {
+    fn start_input(
+        &self,
+        data: &JoinData,
+        input: InputKind,
+        _target: Option<Uid>,
+        select_pos: Option<Vec3<f32>>,
+    ) -> StateUpdate {
         let mut update = StateUpdate::from(data);
-        update.queued_inputs.insert(input);
+        update.select_pos = select_pos;
+        update.queued_inputs.insert(input, InputAttr { select_pos });
         update
     }
     fn cancel_input(&self, data: &JoinData, input: InputKind) -> StateUpdate {
@@ -51,7 +59,11 @@ pub trait CharacterBehavior {
             ControlAction::Sneak => self.sneak(data),
             ControlAction::Stand => self.stand(data),
             ControlAction::Talk => self.talk(data),
-            ControlAction::StartInput { input, target } => self.start_input(data, input, target),
+            ControlAction::StartInput {
+                input,
+                target,
+                select_pos,
+            } => self.start_input(data, input, target, select_pos),
             ControlAction::CancelInput(input) => self.cancel_input(data, input),
         }
     }

@@ -61,7 +61,7 @@ use num::traits::FloatConst;
 use rayon::prelude::*;
 use specs::Component;
 use std::{
-    collections::{BTreeSet, VecDeque},
+    collections::{BTreeMap, VecDeque},
     sync::Arc,
     time::{Duration, Instant},
 };
@@ -915,15 +915,18 @@ impl Client {
     /// and sends the `ControlAction` event that signals to do the swap.
     pub fn swap_loadout(&mut self) { self.control_action(ControlAction::SwapEquippedWeapons) }
 
-    pub fn toggle_wield(&mut self) {
-        let is_wielding = self
-            .state
+    /// Determine whether the player is wielding, if they're even capable of
+    /// being in a wield state.
+    pub fn is_wielding(&self) -> Option<bool> {
+        self.state
             .ecs()
             .read_storage::<comp::CharacterState>()
             .get(self.entity())
-            .map(|cs| cs.is_wield());
+            .map(|cs| cs.is_wield())
+    }
 
-        match is_wielding {
+    pub fn toggle_wield(&mut self) {
+        match self.is_wielding() {
             Some(true) => self.control_action(ControlAction::Unwield),
             Some(false) => self.control_action(ControlAction::Wield),
             None => warn!("Can't toggle wield, client entity doesn't have a `CharacterState`"),
@@ -995,11 +998,12 @@ impl Client {
         }
     }
 
-    pub fn handle_input(&mut self, input: InputKind, pressed: bool) {
+    pub fn handle_input(&mut self, input: InputKind, pressed: bool, select_pos: Option<Vec3<f32>>) {
         if pressed {
             self.control_action(ControlAction::StartInput {
                 input,
                 target: None,
+                select_pos,
             });
         } else {
             self.control_action(ControlAction::CancelInput(input));
@@ -1148,7 +1152,7 @@ impl Client {
                     entry
                         .or_insert_with(|| Controller {
                             inputs: inputs.clone(),
-                            queued_inputs: BTreeSet::new(),
+                            queued_inputs: BTreeMap::new(),
                             events: Vec::new(),
                             actions: Vec::new(),
                         })

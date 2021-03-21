@@ -227,6 +227,7 @@ fn tool_desc(tool: &Tool, components: &[Item], msm: &MaterialStatManifest, desc:
         ToolKind::Unique(_) => "Unique",
         ToolKind::Debug => "Debug",
         ToolKind::Farming => "Farming Tool",
+        ToolKind::Pick => "Pickaxe",
         ToolKind::Empty => "Empty",
     };
 

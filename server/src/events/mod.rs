@@ -13,7 +13,8 @@ use entity_manipulation::{
 use group_manip::handle_group;
 use information::handle_site_info;
 use interaction::{
-    handle_lantern, handle_mount, handle_npc_interaction, handle_possess, handle_unmount,
+    handle_lantern, handle_mine_block, handle_mount, handle_npc_interaction, handle_possess,
+    handle_unmount,
 };
 use inventory_manip::handle_inventory;
 use invite::{handle_invite, handle_invite_response};
@@ -190,6 +191,7 @@ impl Server {
                     handle_combo_change(&self, entity, change)
                 },
                 ServerEvent::RequestSiteInfo { entity, id } => handle_site_info(&self, entity, id),
+                ServerEvent::MineBlock { pos } => handle_mine_block(self, pos),
             }
         }
 

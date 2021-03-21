@@ -149,6 +149,10 @@ pub enum ServerEvent {
         entity: EcsEntity,
         id: SiteId,
     },
+    // Attempt to mine a block, turning it into an item
+    MineBlock {
+        pos: Vec3<i32>,
+    },
 }
 
 pub struct EventBus<E> {

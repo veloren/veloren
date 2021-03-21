@@ -52,7 +52,7 @@ impl Animation for ChargeswingAnimation {
         let slowrise = test * (1.0 - move3);
 
         let move2 = move2base * (1.0 - move3);
-        if let Some(ToolKind::Hammer) = active_tool_kind {
+        if let Some(ToolKind::Hammer | ToolKind::Pick) = active_tool_kind {
             next.main.position = Vec3::new(0.0, 0.0, 0.0);
             next.main.orientation = Quaternion::rotation_x(0.0);
             next.hand_l.position = Vec3::new(s_a.hhl.0, s_a.hhl.1, s_a.hhl.2 + (move2 * -8.0));

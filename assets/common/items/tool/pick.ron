@@ -1,0 +1,18 @@
+ItemDef(
+    name: "Stone Pickaxe",
+    description: "Strike the earth!",
+    kind: Tool((
+        kind: Pick,
+        hands: Two,
+        stats: Direct((
+            equip_time_secs: 0.25,
+            power: 0.25,
+            poise_strength: 0.25,
+            speed: 0.5,
+            crit_chance: 0.09375,
+            crit_mult: 2.2190475,
+        )),
+    )),
+    quality: Low,
+    tags: [],
+)

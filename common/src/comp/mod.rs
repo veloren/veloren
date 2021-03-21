@@ -55,7 +55,7 @@ pub use self::{
         Buff, BuffCategory, BuffChange, BuffData, BuffEffect, BuffId, BuffKind, BuffSource, Buffs,
         ModifierKind,
     },
-    character_state::{CharacterState, Melee, StateUpdate},
+    character_state::{CharacterState, InputAttr, Melee, StateUpdate},
     chat::{
         ChatMode, ChatMsg, ChatType, Faction, SpeechBubble, SpeechBubbleType, UnresolvedChatMsg,
     },
@@ -69,8 +69,7 @@ pub use self::{
     home_chunk::HomeChunk,
     inputs::CanBuild,
     inventory::{
-        item,
-        item::{Item, ItemConfig, ItemDrop},
+        item::{self, tool, Item, ItemConfig, ItemDrop},
         slot, Inventory, InventoryUpdate, InventoryUpdateEvent,
     },
     last::Last,

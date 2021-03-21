@@ -1013,7 +1013,11 @@
         "voxel.weapon.tool.shovel_gold",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
     ),
-
+	// Picks
+    Tool("common.items.tool.pick"): VoxTrans(
+        "voxel.weapon.tool.pickaxe_green-0",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
     // Other
     Utility(Coins): VoxTrans(
         "voxel.object.coins",
@@ -1709,7 +1713,7 @@
         "voxel.armor.misc.head.assa_mask-0",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
     ),
-    // Bags    
+    // Bags
     Armor(Bag("RedFace")): Png (
         "element.icons.item_bag_red_face",
     ),

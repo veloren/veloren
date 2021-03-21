@@ -1,4 +1,4 @@
-use crate::make_case_elim;
+use crate::{comp::tool::ToolKind, make_case_elim};
 use enum_iterator::IntoEnumIterator;
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
@@ -222,8 +222,8 @@ impl SpriteKind {
             SpriteKind::Apple => true,
             SpriteKind::Mushroom => true,
             SpriteKind::CaveMushroom => true,
-            SpriteKind::Velorite => true,
-            SpriteKind::VeloriteFrag => true,
+            // SpriteKind::Velorite => true,
+            // SpriteKind::VeloriteFrag => true,
             SpriteKind::Chest => true,
             SpriteKind::Coconut => true,
             SpriteKind::Stones => true,
@@ -235,20 +235,41 @@ impl SpriteKind {
             SpriteKind::Bowl => true,
             SpriteKind::ChestBurried => true,
             SpriteKind::Mud => true,
-            SpriteKind::Amethyst => true,
-            SpriteKind::Ruby => true,
-            SpriteKind::Diamond => true,
-            SpriteKind::Sapphire => true,
-            SpriteKind::Emerald => true,
-            SpriteKind::Topaz => true,
-            SpriteKind::AmethystSmall => true,
-            SpriteKind::TopazSmall => true,
-            SpriteKind::DiamondSmall => true,
-            SpriteKind::RubySmall => true,
-            SpriteKind::EmeraldSmall => true,
-            SpriteKind::SapphireSmall => true,
+            // SpriteKind::Amethyst => true,
+            // SpriteKind::Ruby => true,
+            // SpriteKind::Diamond => true,
+            // SpriteKind::Sapphire => true,
+            // SpriteKind::Emerald => true,
+            // SpriteKind::Topaz => true,
+            // SpriteKind::AmethystSmall => true,
+            // SpriteKind::TopazSmall => true,
+            // SpriteKind::DiamondSmall => true,
+            // SpriteKind::RubySmall => true,
+            // SpriteKind::EmeraldSmall => true,
+            // SpriteKind::SapphireSmall => true,
             SpriteKind::Seashells => true,
             _ => false,
+        }
+    }
+
+    pub fn mine_tool(&self) -> Option<ToolKind> {
+        match self {
+            SpriteKind::Velorite
+            | SpriteKind::VeloriteFrag
+            // Gems
+            | SpriteKind::Amethyst
+            | SpriteKind::Ruby
+            | SpriteKind::Diamond
+            | SpriteKind::Sapphire
+            | SpriteKind::Emerald
+            | SpriteKind::Topaz
+            | SpriteKind::AmethystSmall
+            | SpriteKind::TopazSmall
+            | SpriteKind::DiamondSmall
+            | SpriteKind::RubySmall
+            | SpriteKind::EmeraldSmall
+            | SpriteKind::SapphireSmall => Some(ToolKind::Pick),
+            _ => None,
         }
     }
 

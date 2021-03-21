@@ -1,6 +1,6 @@
 use crate::{
     combat::{Attack, AttackDamage, AttackEffect, CombatBuff, CombatEffect, CombatRequirement},
-    comp::{CharacterState, Melee, StateUpdate},
+    comp::{tool::ToolKind, CharacterState, InputAttr, Melee, StateUpdate},
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
@@ -213,6 +213,12 @@ impl CharacterBehavior for Data {
                         max_angle: self.static_data.stage_data[stage_index].angle.to_radians(),
                         applied: false,
                         hit_count: 0,
+                        break_block: self
+                            .static_data
+                            .ability_info
+                            .select_pos
+                            .filter(|_| self.static_data.ability_info.tool == Some(ToolKind::Pick))
+                            .map(|p| p.map(|e| e.floor() as i32)),
                     });
                 }
             },
@@ -285,7 +291,12 @@ impl CharacterBehavior for Data {
 }
 
 fn reset_state(data: &Data, join: &JoinData, update: &mut StateUpdate) {
-    handle_input(join, update, data.static_data.ability_info.input);
+    handle_input(
+        join,
+        update,
+        data.static_data.ability_info.input,
+        InputAttr::default(),
+    );
 
     if let CharacterState::ComboMelee(c) = &mut update.character {
         c.stage = (data.stage % data.static_data.num_stages) + 1;

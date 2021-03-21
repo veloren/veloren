@@ -1,5 +1,5 @@
 use super::SpriteKind;
-use crate::make_case_elim;
+use crate::{comp::tool::ToolKind, make_case_elim};
 use enum_iterator::IntoEnumIterator;
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
@@ -236,6 +236,16 @@ impl Block {
         self.get_sprite()
             .map(|s| s.is_collectible())
             .unwrap_or(false)
+    }
+
+    /// The tool required to mine this block. For blocks that cannot be mined,
+    /// `None` is returned.
+    #[inline]
+    pub fn mine_tool(&self) -> Option<ToolKind> {
+        match self.kind() {
+            BlockKind::WeakRock => Some(ToolKind::Pick),
+            _ => self.get_sprite().and_then(|s| s.mine_tool()),
+        }
     }
 
     #[inline]

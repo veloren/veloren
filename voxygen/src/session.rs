@@ -10,8 +10,10 @@ use common::{
     assets::AssetExt,
     comp,
     comp::{
-        inventory::slot::Slot, invite::InviteKind, ChatMsg, ChatType, InputKind,
-        InventoryUpdateEvent, Pos, Vel,
+        inventory::slot::{EquipSlot, Slot},
+        invite::InviteKind,
+        item::{tool::ToolKind, ItemDesc},
+        ChatMsg, ChatType, InputKind, InventoryUpdateEvent, Pos, Vel,
     },
     consts::{MAX_MOUNT_RANGE, MAX_PICKUP_RANGE},
     outcome::Outcome,
@@ -302,30 +304,44 @@ impl PlayState for SessionState {
             // Throw out distance info, it will be useful in the future
             self.target_entity = target_entity.map(|x| x.0);
 
+            let player_entity = self.client.borrow().entity();
+
             let can_build = self
                 .client
                 .borrow()
                 .state()
                 .read_storage::<comp::CanBuild>()
-                .get(self.client.borrow().entity())
+                .get(player_entity)
                 .is_some();
+
+            let is_mining = self
+                .client
+                .borrow()
+                .inventories()
+                .get(player_entity)
+                .and_then(|inv| inv.equipped(EquipSlot::Mainhand))
+                .and_then(|item| item.tool())
+                .map_or(false, |tool| tool.kind == ToolKind::Pick)
+                && self.client.borrow().is_wielding() == Some(true);
 
             self.interactable = select_interactable(
                 &self.client.borrow(),
                 target_entity,
-                select_pos,
+                select_pos.map(|sp| sp.map(|e| e.floor() as i32)),
                 &self.scene,
             );
 
             // Only highlight interactables
             // unless in build mode where select_pos highlighted
-            self.scene
-                .set_select_pos(select_pos.filter(|_| can_build).or_else(
-                    || match self.interactable {
+            self.scene.set_select_pos(
+                select_pos
+                    .map(|sp| sp.map(|e| e.floor() as i32))
+                    .filter(|_| can_build || is_mining)
+                    .or_else(|| match self.interactable {
                         Some(Interactable::Block(_, block_pos)) => Some(block_pos),
                         _ => None,
-                    },
-                ));
+                    }),
+            );
 
             // Handle window events.
             for event in events {
@@ -351,10 +367,10 @@ impl PlayState for SessionState {
                                 let mut client = self.client.borrow_mut();
                                 if state && can_build {
                                     if let Some(select_pos) = select_pos {
-                                        client.remove_block(select_pos);
+                                        client.remove_block(select_pos.map(|e| e.floor() as i32));
                                     }
                                 } else {
-                                    client.handle_input(InputKind::Primary, state);
+                                    client.handle_input(InputKind::Primary, state, select_pos);
                                 }
                             },
                             GameInput::Secondary => {
@@ -362,10 +378,13 @@ impl PlayState for SessionState {
 
                                 if state && can_build {
                                     if let Some(build_pos) = build_pos {
-                                        client.place_block(build_pos, self.selected_block);
+                                        client.place_block(
+                                            build_pos.map(|e| e.floor() as i32),
+                                            self.selected_block,
+                                        );
                                     }
                                 } else {
-                                    client.handle_input(InputKind::Secondary, state);
+                                    client.handle_input(InputKind::Secondary, state, select_pos);
                                 }
                             },
                             GameInput::Roll => {
@@ -373,13 +392,18 @@ impl PlayState for SessionState {
                                 if can_build {
                                     if state {
                                         if let Some(block) = select_pos.and_then(|sp| {
-                                            client.state().terrain().get(sp).ok().copied()
+                                            client
+                                                .state()
+                                                .terrain()
+                                                .get(sp.map(|e| e.floor() as i32))
+                                                .ok()
+                                                .copied()
                                         }) {
                                             self.selected_block = block;
                                         }
                                     }
                                 } else {
-                                    client.handle_input(InputKind::Roll, state);
+                                    client.handle_input(InputKind::Roll, state, select_pos);
                                 }
                             },
                             GameInput::Respawn => {
@@ -390,7 +414,7 @@ impl PlayState for SessionState {
                             },
                             GameInput::Jump => {
                                 let mut client = self.client.borrow_mut();
-                                client.handle_input(InputKind::Jump, state);
+                                client.handle_input(InputKind::Jump, state, select_pos);
                             },
                             GameInput::SwimUp => {
                                 self.key_state.swim_up = state;
@@ -451,7 +475,7 @@ impl PlayState for SessionState {
                                 // controller change
                                 self.key_state.fly ^= state;
                                 let mut client = self.client.borrow_mut();
-                                client.handle_input(InputKind::Fly, self.key_state.fly);
+                                client.handle_input(InputKind::Fly, self.key_state.fly, select_pos);
                             },
                             GameInput::Climb => {
                                 self.key_state.climb_up = state;
@@ -1209,11 +1233,11 @@ impl PlayState for SessionState {
                     },
                     HudEvent::Ability3(state) => {
                         let mut client = self.client.borrow_mut();
-                        client.handle_input(InputKind::Ability(0), state);
+                        client.handle_input(InputKind::Ability(0), state, select_pos);
                     },
                     HudEvent::Ability4(state) => {
                         let mut client = self.client.borrow_mut();
-                        client.handle_input(InputKind::Ability(1), state);
+                        client.handle_input(InputKind::Ability(1), state, select_pos);
                     },
                     HudEvent::ChangeFOV(new_fov) => {
                         global_state.settings.graphics.fov = new_fov;
@@ -1528,8 +1552,8 @@ fn under_cursor(
     cam_pos: Vec3<f32>,
     cam_dir: Vec3<f32>,
 ) -> (
-    Option<Vec3<i32>>,
-    Option<Vec3<i32>>,
+    Option<Vec3<f32>>,
+    Option<Vec3<f32>>,
     Option<(specs::Entity, f32)>,
 ) {
     span!(_guard, "under_cursor");
@@ -1555,7 +1579,7 @@ fn under_cursor(
 
     let cam_ray = terrain
         .ray(cam_pos, cam_pos + cam_dir * 100.0)
-        .until(|block| block.is_filled() || block.is_collectible())
+        .until(|block| block.is_filled() || block.is_collectible() || block.mine_tool().is_some())
         .cast();
 
     let cam_dist = cam_ray.0;
@@ -1566,8 +1590,8 @@ fn under_cursor(
         <= MAX_PICKUP_RANGE)
     {
         (
-            Some((cam_pos + cam_dir * (cam_dist - 0.01)).map(|e| e.floor() as i32)),
-            Some((cam_pos + cam_dir * (cam_dist + 0.01)).map(|e| e.floor() as i32)),
+            Some(cam_pos + cam_dir * (cam_dist - 0.01)),
+            Some(cam_pos + cam_dir * (cam_dist + 0.01)),
         )
     } else {
         (None, None)
@@ -1677,7 +1701,8 @@ fn select_interactable(
         .and_then(|(e, dist_to_player)| (dist_to_player < MAX_PICKUP_RANGE).then_some(Interactable::Entity(e)))
         .or_else(|| selected_pos.and_then(|sp|
                 client.state().terrain().get(sp).ok().copied()
-                    .filter(Block::is_collectible).map(|b| Interactable::Block(b, sp))
+                    .filter(|b| b.is_collectible() || b.mine_tool().is_some())
+                    .map(|b| Interactable::Block(b, sp))
         ))
         .or_else(|| {
             let ecs = client.state().ecs();

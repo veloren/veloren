@@ -5,7 +5,8 @@ use crate::{
         item::{Hands, ItemKind, Tool, ToolKind},
         quadruped_low, quadruped_medium, quadruped_small, ship,
         skills::Skill,
-        theropod, Body, CharacterAbility, CharacterState, InputKind, InventoryAction, StateUpdate,
+        theropod, Body, CharacterAbility, CharacterState, InputAttr, InputKind, InventoryAction,
+        StateUpdate,
     },
     consts::{FRIC_GROUND, GRAVITY},
     event::{LocalEvent, ServerEvent},
@@ -345,7 +346,7 @@ fn fly_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
 /// Checks if an input related to an attack is held. If one is, moves entity
 /// into wielding state
 pub fn handle_wield(data: &JoinData, update: &mut StateUpdate) {
-    if data.controller.queued_inputs.iter().any(|i| i.is_ability()) {
+    if data.controller.queued_inputs.keys().any(|i| i.is_ability()) {
         attempt_wield(data, update);
     }
 }
@@ -461,7 +462,12 @@ pub fn handle_jump(data: &JoinData, update: &mut StateUpdate) {
     }
 }
 
-fn handle_ability(data: &JoinData, update: &mut StateUpdate, input: InputKind) {
+fn handle_ability(
+    data: &JoinData,
+    update: &mut StateUpdate,
+    input: InputKind,
+    input_attr: InputAttr,
+) {
     let hands = |equip_slot| match data.inventory.equipped(equip_slot).map(|i| i.kind()) {
         Some(ItemKind::Tool(tool)) => Some(tool.hands),
         _ => None,
@@ -511,7 +517,12 @@ fn handle_ability(data: &JoinData, update: &mut StateUpdate, input: InputKind) {
         {
             update.character = (
                 &ability,
-                AbilityInfo::from_input(data, matches!(equip_slot, EquipSlot::Offhand), input),
+                AbilityInfo::from_input(
+                    data,
+                    matches!(equip_slot, EquipSlot::Offhand),
+                    input,
+                    input_attr,
+                ),
             )
                 .into();
         }
@@ -519,20 +530,25 @@ fn handle_ability(data: &JoinData, update: &mut StateUpdate, input: InputKind) {
 }
 
 pub fn handle_ability_input(data: &JoinData, update: &mut StateUpdate) {
-    if let Some(input) = data
+    if let Some((input, input_attr)) = data
         .controller
         .queued_inputs
         .iter()
-        .find(|i| i.is_ability())
+        .find(|(i, _)| i.is_ability())
     {
-        handle_ability(data, update, *input);
+        handle_ability(data, update, *input, input_attr.clone());
     }
 }
 
-pub fn handle_input(data: &JoinData, update: &mut StateUpdate, input: InputKind) {
+pub fn handle_input(
+    data: &JoinData,
+    update: &mut StateUpdate,
+    input: InputKind,
+    input_attr: InputAttr,
+) {
     match input {
         InputKind::Primary | InputKind::Secondary | InputKind::Ability(_) => {
-            handle_ability(data, update, input)
+            handle_ability(data, update, input, input_attr)
         },
         InputKind::Roll => handle_dodge_input(data, update),
         InputKind::Jump => handle_jump(data, update),
@@ -542,8 +558,8 @@ pub fn handle_input(data: &JoinData, update: &mut StateUpdate, input: InputKind)
 
 pub fn attempt_input(data: &JoinData, update: &mut StateUpdate) {
     // TODO: look into using first() when it becomes stable
-    if let Some(input) = data.controller.queued_inputs.iter().next() {
-        handle_input(data, update, *input);
+    if let Some((input, input_attr)) = data.controller.queued_inputs.iter().next() {
+        handle_input(data, update, *input, input_attr.clone());
     }
 }
 
@@ -565,7 +581,7 @@ pub fn handle_dodge_input(data: &JoinData, update: &mut StateUpdate) {
             if let CharacterState::ComboMelee(c) = data.character {
                 update.character = (
                     &ability,
-                    AbilityInfo::from_input(data, false, InputKind::Roll),
+                    AbilityInfo::from_input(data, false, InputKind::Roll, InputAttr::default()),
                 )
                     .into();
                 if let CharacterState::Roll(roll) = &mut update.character {
@@ -575,7 +591,7 @@ pub fn handle_dodge_input(data: &JoinData, update: &mut StateUpdate) {
             } else if data.character.is_wield() {
                 update.character = (
                     &ability,
-                    AbilityInfo::from_input(data, false, InputKind::Roll),
+                    AbilityInfo::from_input(data, false, InputKind::Roll, InputAttr::default()),
                 )
                     .into();
                 if let CharacterState::Roll(roll) = &mut update.character {
@@ -584,7 +600,7 @@ pub fn handle_dodge_input(data: &JoinData, update: &mut StateUpdate) {
             } else if data.character.is_stealthy() {
                 update.character = (
                     &ability,
-                    AbilityInfo::from_input(data, false, InputKind::Roll),
+                    AbilityInfo::from_input(data, false, InputKind::Roll, InputAttr::default()),
                 )
                     .into();
                 if let CharacterState::Roll(roll) = &mut update.character {
@@ -593,7 +609,7 @@ pub fn handle_dodge_input(data: &JoinData, update: &mut StateUpdate) {
             } else {
                 update.character = (
                     &ability,
-                    AbilityInfo::from_input(data, false, InputKind::Roll),
+                    AbilityInfo::from_input(data, false, InputKind::Roll, InputAttr::default()),
                 )
                     .into();
             }
@@ -635,7 +651,7 @@ pub fn handle_state_interrupt(data: &JoinData, update: &mut StateUpdate, attacks
 }
 
 pub fn input_is_pressed(data: &JoinData, input: InputKind) -> bool {
-    data.controller.queued_inputs.contains(&input)
+    data.controller.queued_inputs.contains_key(&input)
 }
 
 /// Determines what portion a state is in. Used in all attacks (eventually). Is
@@ -691,10 +707,16 @@ pub struct AbilityInfo {
     pub tool: Option<ToolKind>,
     pub hand: Option<HandInfo>,
     pub input: InputKind,
+    pub select_pos: Option<Vec3<f32>>,
 }
 
 impl AbilityInfo {
-    pub fn from_input(data: &JoinData, from_offhand: bool, input: InputKind) -> Self {
+    pub fn from_input(
+        data: &JoinData,
+        from_offhand: bool,
+        input: InputKind,
+        input_attr: InputAttr,
+    ) -> Self {
         let tool_data = if from_offhand {
             unwrap_tool_data(data, EquipSlot::Offhand)
         } else {
@@ -709,7 +731,12 @@ impl AbilityInfo {
             )
         };
 
-        Self { tool, hand, input }
+        Self {
+            tool,
+            hand,
+            input,
+            select_pos: input_attr.select_pos,
+        }
     }
 }
 

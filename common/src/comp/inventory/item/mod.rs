@@ -25,6 +25,7 @@ use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
 use std::{
     num::{NonZeroU32, NonZeroU64},
+    ops::Deref,
     sync::Arc,
 };
 use vek::Rgb;
@@ -298,6 +299,12 @@ impl PartialEq for Item {
     }
 }
 
+impl Deref for Item {
+    type Target = ItemDef;
+
+    fn deref(&self) -> &Self::Target { &self.item_def }
+}
+
 impl assets::Compound for ItemDef {
     fn load<S: assets_manager::source::Source>(
         cache: &assets_manager::AssetCache<S>,
@@ -536,10 +543,6 @@ impl Item {
         }
     }
 
-    pub fn is_stackable(&self) -> bool { self.item_def.is_stackable() }
-
-    pub fn is_modular(&self) -> bool { self.item_def.is_modular() }
-
     pub fn name(&self) -> &str { &self.item_def.name }
 
     pub fn description(&self) -> &str { &self.item_def.description }
@@ -666,6 +669,14 @@ pub trait ItemDesc {
     fn item_definition_id(&self) -> &str;
     fn components(&self) -> &[Item];
     fn tags(&self) -> &[ItemTag];
+
+    fn tool(&self) -> Option<&Tool> {
+        if let ItemKind::Tool(tool) = self.kind() {
+            Some(tool)
+        } else {
+            None
+        }
+    }
 }
 
 impl ItemDesc for Item {

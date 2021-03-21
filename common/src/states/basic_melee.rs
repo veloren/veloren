@@ -1,6 +1,6 @@
 use crate::{
     combat::{Attack, AttackDamage, AttackEffect, CombatBuff, CombatEffect, CombatRequirement},
-    comp::{CharacterState, Melee, StateUpdate},
+    comp::{tool::ToolKind, CharacterState, InputAttr, Melee, StateUpdate},
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
@@ -122,6 +122,10 @@ impl CharacterBehavior for Data {
                         max_angle: self.static_data.max_angle,
                         applied: false,
                         hit_count: 0,
+                        break_block: update
+                            .select_pos
+                            .filter(|_| self.static_data.ability_info.tool == Some(ToolKind::Pick))
+                            .map(|p| p.map(|e| e.floor() as i32)),
                     });
                 } else if self.timer < self.static_data.swing_duration {
                     // Swings
@@ -178,5 +182,10 @@ impl CharacterBehavior for Data {
 }
 
 fn reset_state(data: &Data, join: &JoinData, update: &mut StateUpdate) {
-    handle_input(join, update, data.static_data.ability_info.input);
+    handle_input(
+        join,
+        update,
+        data.static_data.ability_info.input,
+        InputAttr::default(),
+    );
 }
