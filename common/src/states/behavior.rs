@@ -1,8 +1,8 @@
 use crate::{
     comp::{
-        item::MaterialStatManifest, Beam, Body, CharacterState, Combo, ControlAction, Controller,
-        ControllerInputs, Energy, Health, InputAttr, InputKind, Inventory, InventoryAction, Melee,
-        Ori, PhysicsState, Pos, StateUpdate, Stats, Vel,
+        self, item::MaterialStatManifest, Beam, Body, CharacterState, Combo, ControlAction,
+        Controller, ControllerInputs, Energy, Health, InputAttr, InputKind, Inventory,
+        InventoryAction, Melee, Ori, PhysicsState, Pos, StateUpdate, Stats, Vel,
     },
     resources::DeltaTime,
     uid::Uid,
@@ -93,6 +93,7 @@ pub struct JoinData<'a> {
     pub stats: &'a Stats,
     pub msm: &'a MaterialStatManifest,
     pub combo: &'a Combo,
+    pub alignment: Option<&'a comp::Alignment>,
 }
 
 type RestrictedMut<'a, C> = PairedStorage<
@@ -121,6 +122,7 @@ pub struct JoinStruct<'a> {
     pub beam: Option<&'a Beam>,
     pub stat: &'a Stats,
     pub combo: &'a Combo,
+    pub alignment: Option<&'a comp::Alignment>,
 }
 
 impl<'a> JoinData<'a> {
@@ -150,6 +152,7 @@ impl<'a> JoinData<'a> {
             dt,
             msm,
             combo: j.combo,
+            alignment: j.alignment,
         }
     }
 }

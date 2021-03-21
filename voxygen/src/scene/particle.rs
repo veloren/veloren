@@ -190,13 +190,12 @@ impl ParticleMgr {
 
             // add new Particle
             self.maintain_body_particles(scene_data);
-            self.maintain_boost_particles(scene_data);
+            self.maintain_char_state_particles(scene_data);
             self.maintain_beam_particles(scene_data, lights);
             self.maintain_block_particles(scene_data, terrain);
             self.maintain_shockwave_particles(scene_data);
             self.maintain_aura_particles(scene_data);
             self.maintain_buff_particles(scene_data);
-            self.maintain_spin_melee_particles(scene_data);
         } else {
             // remove all particle lifespans
             self.particles.clear();
@@ -412,11 +411,11 @@ impl ParticleMgr {
         }
     }
 
-    fn maintain_boost_particles(&mut self, scene_data: &SceneData) {
+    fn maintain_char_state_particles(&mut self, scene_data: &SceneData) {
         span!(
             _guard,
-            "boost_particles",
-            "ParticleMgr::maintain_boost_particles"
+            "char_state_particles",
+            "ParticleMgr::maintain_char_state_particles"
         );
         let state = scene_data.state;
         let ecs = state.ecs();
@@ -431,19 +430,61 @@ impl ParticleMgr {
         )
             .join()
         {
-            if let CharacterState::Boost(_) = character_state {
-                self.particles.resize_with(
-                    self.particles.len()
-                        + usize::from(self.scheduler.heartbeats(Duration::from_millis(10))),
-                    || {
-                        Particle::new(
-                            Duration::from_secs(15),
-                            time,
-                            ParticleMode::CampfireSmoke,
-                            pos.0 + vel.map_or(Vec3::zero(), |v| -v.0 * dt * rng.gen::<f32>()),
-                        )
-                    },
-                );
+            match character_state {
+                CharacterState::Boost(_) => {
+                    self.particles.resize_with(
+                        self.particles.len()
+                            + usize::from(self.scheduler.heartbeats(Duration::from_millis(10))),
+                        || {
+                            Particle::new(
+                                Duration::from_secs(15),
+                                time,
+                                ParticleMode::CampfireSmoke,
+                                pos.0 + vel.map_or(Vec3::zero(), |v| -v.0 * dt * rng.gen::<f32>()),
+                            )
+                        },
+                    );
+                },
+                CharacterState::SpinMelee(spin) => {
+                    if let Some(specifier) = spin.static_data.specifier {
+                        match specifier {
+                            states::spin_melee::FrontendSpecifier::CultistVortex => {
+                                if matches!(spin.stage_section, states::utils::StageSection::Swing)
+                                {
+                                    let heartbeats =
+                                        self.scheduler.heartbeats(Duration::from_millis(3));
+                                    self.particles.resize_with(
+                                        self.particles.len()
+                                            + spin.static_data.range.powi(2) as usize
+                                                * usize::from(heartbeats)
+                                                / 150,
+                                        || {
+                                            let rand_dist = spin.static_data.range
+                                                * (1.0 - rng.gen::<f32>().powi(10));
+                                            let init_pos = Vec3::new(
+                                                2.0 * rng.gen::<f32>() - 1.0,
+                                                2.0 * rng.gen::<f32>() - 1.0,
+                                                0.0,
+                                            )
+                                            .normalized()
+                                                * rand_dist
+                                                + pos.0
+                                                + Vec3::unit_z() * 0.05;
+                                            Particle::new_directed(
+                                                Duration::from_millis(900),
+                                                time,
+                                                ParticleMode::CultistFlame,
+                                                init_pos,
+                                                pos.0,
+                                            )
+                                        },
+                                    );
+                                }
+                            },
+                        }
+                    }
+                },
+                _ => {},
             }
         }
     }
@@ -857,56 +898,6 @@ impl ParticleMgr {
                             ParticleMode::FireShockwave,
                             position,
                         ));
-                    }
-                }
-            }
-        }
-    }
-
-    fn maintain_spin_melee_particles(&mut self, scene_data: &SceneData) {
-        let state = scene_data.state;
-        let ecs = state.ecs();
-        let time = state.get_time();
-        let mut rng = thread_rng();
-
-        for (pos, character_state) in (
-            &ecs.read_storage::<Pos>(),
-            &ecs.read_storage::<CharacterState>(),
-        )
-            .join()
-        {
-            if let CharacterState::SpinMelee(c) = character_state {
-                if let Some(specifier) = c.static_data.specifier {
-                    match specifier {
-                        states::spin_melee::FrontendSpecifier::CultistVortex => {
-                            let heartbeats = self.scheduler.heartbeats(Duration::from_millis(3));
-                            self.particles.resize_with(
-                                self.particles.len()
-                                    + c.static_data.range.powi(2) as usize
-                                        * usize::from(heartbeats)
-                                        / 150,
-                                || {
-                                    let rand_dist =
-                                        c.static_data.range * (1.0 - rng.gen::<f32>().powi(10));
-                                    let init_pos = Vec3::new(
-                                        2.0 * rng.gen::<f32>() - 1.0,
-                                        2.0 * rng.gen::<f32>() - 1.0,
-                                        0.0,
-                                    )
-                                    .normalized()
-                                        * rand_dist
-                                        + pos.0
-                                        + Vec3::unit_z() * 0.05;
-                                    Particle::new_directed(
-                                        Duration::from_millis(900),
-                                        time,
-                                        ParticleMode::CultistFlame,
-                                        init_pos,
-                                        pos.0,
-                                    )
-                                },
-                            );
-                        },
                     }
                 }
             }

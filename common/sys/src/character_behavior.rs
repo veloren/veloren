@@ -5,6 +5,7 @@ use specs::{
 
 use common::{
     comp::{
+        self,
         inventory::{
             item::MaterialStatManifest,
             slot::{EquipSlot, Slot},
@@ -71,6 +72,7 @@ pub struct ReadData<'a> {
     stats: ReadStorage<'a, Stats>,
     msm: Read<'a, MaterialStatManifest>,
     combos: ReadStorage<'a, Combo>,
+    alignments: ReadStorage<'a, comp::Alignment>,
 }
 
 /// ## Character Behavior System
@@ -255,6 +257,7 @@ impl<'a> System<'a> for Sys {
                 beam: read_data.beams.get(entity),
                 stat: &stat,
                 combo: &combo,
+                alignment: read_data.alignments.get(entity),
             };
 
             for action in actions {

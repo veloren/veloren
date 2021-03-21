@@ -35,6 +35,7 @@ pub enum Tactic {
     Turret,
     FixedTurret,
     RotatingTurret,
+    Mindflayer,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]

@@ -60,6 +60,8 @@ struct AgentData<'a> {
     light_emitter: Option<&'a LightEmitter>,
     glider_equipped: bool,
     is_gliding: bool,
+    health: &'a Health,
+    char_state: &'a CharacterState,
 }
 
 #[derive(SystemData)]
@@ -145,14 +147,17 @@ impl<'a> System<'a> for Sys {
             read_data.light_emitter.maybe(),
             read_data.groups.maybe(),
             read_data.mount_states.maybe(),
+            &read_data.char_states,
         )
             .par_join()
-            .filter(|(_, _, _, _, _, _, _, _, _, _, _, _, _, _, mount_state)| {
-                // Skip mounted entities
-                mount_state
-                    .map(|ms| *ms == MountState::Unmounted)
-                    .unwrap_or(true)
-            })
+            .filter(
+                |(_, _, _, _, _, _, _, _, _, _, _, _, _, _, mount_state, _)| {
+                    // Skip mounted entities
+                    mount_state
+                        .map(|ms| *ms == MountState::Unmounted)
+                        .unwrap_or(true)
+                },
+            )
             .for_each_init(
                 || {
                     prof_span!(guard, "agent rayon job");
@@ -175,6 +180,7 @@ impl<'a> System<'a> for Sys {
                     light_emitter,
                     groups,
                     _,
+                    char_state,
                 )| {
                     //// Hack, replace with better system when groups are more sophisticated
                     //// Override alignment if in a group unless entity is owned already
@@ -269,6 +275,8 @@ impl<'a> System<'a> for Sys {
                         light_emitter,
                         glider_equipped,
                         is_gliding,
+                        health,
+                        char_state,
                     };
 
                     ///////////////////////////////////////////////////////////
@@ -1189,7 +1197,7 @@ impl<'a> AgentData<'a> {
         tgt_pos: &Pos,
         tgt_body: Option<&Body>,
         dt: &DeltaTime,
-        _read_data: &ReadData,
+        read_data: &ReadData,
     ) {
         let min_attack_dist = self.body.map_or(3.0, |b| b.radius() * self.scale + 2.0);
         let tactic = match self
@@ -1236,6 +1244,7 @@ impl<'a> AgentData<'a> {
             Some(ToolKind::Unique(UniqueKind::TheropodBasic)) => Tactic::Theropod,
             Some(ToolKind::Unique(UniqueKind::TheropodBird)) => Tactic::Theropod,
             Some(ToolKind::Unique(UniqueKind::ObjectTurret)) => Tactic::Turret,
+            Some(ToolKind::Unique(UniqueKind::MindflayerStaff)) => Tactic::Mindflayer,
             _ => Tactic::Melee,
         };
 
@@ -2191,6 +2200,37 @@ impl<'a> AgentData<'a> {
                         .push(ControlAction::basic_input(InputKind::Primary));
                 } else {
                     agent.target = None;
+                }
+            },
+            Tactic::Mindflayer => {
+                agent.action_timer += dt.0;
+                const MINDFLAYER_ATTACK_DIST: f32 = 15.0;
+                let mindflayer_is_far = dist_sqrd > MINDFLAYER_ATTACK_DIST.powi(2);
+                if mindflayer_is_far && agent.action_timer / self.health.fraction() > 5.0 {
+                    if !self.char_state.is_attack() {
+                        controller
+                            .actions
+                            .push(ControlAction::basic_input(InputKind::Ability(1)));
+                        agent.action_timer = 0.0;
+                    }
+                } else if mindflayer_is_far {
+                    controller.actions.push(ControlAction::StartInput {
+                        input: InputKind::Ability(0),
+                        target_entity: agent
+                            .target
+                            .as_ref()
+                            .and_then(|t| read_data.uids.get(t.target))
+                            .copied(),
+                        select_pos: None,
+                    });
+                } else if self.health.fraction() < 0.5 {
+                    controller
+                        .actions
+                        .push(ControlAction::basic_input(InputKind::Secondary));
+                } else {
+                    controller
+                        .actions
+                        .push(ControlAction::basic_input(InputKind::Primary));
                 }
             },
         }
