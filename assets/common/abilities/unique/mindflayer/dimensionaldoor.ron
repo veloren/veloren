@@ -1,1 +1,5 @@
-BasicBlock
+Blink(
+    buildup_duration: 0.5,
+    recover_duration: 0.25,
+    max_range: 100.0,
+)

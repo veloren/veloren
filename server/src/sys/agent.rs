@@ -363,6 +363,7 @@ impl<'a> System<'a> for Sys {
                                                                 tgt_pos,
                                                                 read_data.bodies.get(attacker),
                                                                 &read_data.dt,
+                                                                &read_data,
                                                             );
                                                         }
                                                     }
@@ -443,6 +444,7 @@ impl<'a> System<'a> for Sys {
                                                     tgt_pos,
                                                     read_data.bodies.get(attacker),
                                                     &read_data.dt,
+                                                    &read_data,
                                                 );
                                                 // Remember this encounter if an RtSim entity
                                                 if let Some(tgt_stats) =
@@ -604,6 +606,7 @@ impl<'a> AgentData<'a> {
                             tgt_pos,
                             read_data.bodies.get(target),
                             &read_data.dt,
+                            &read_data,
                         );
                     } else {
                         agent.target = None;
@@ -1177,6 +1180,7 @@ impl<'a> AgentData<'a> {
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn attack(
         &self,
         agent: &mut Agent,
@@ -1185,6 +1189,7 @@ impl<'a> AgentData<'a> {
         tgt_pos: &Pos,
         tgt_body: Option<&Body>,
         dt: &DeltaTime,
+        _read_data: &ReadData,
     ) {
         let min_attack_dist = self.body.map_or(3.0, |b| b.radius() * self.scale + 2.0);
         let tactic = match self

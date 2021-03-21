@@ -110,6 +110,7 @@ impl Client {
                     | ServerGeneral::SiteEconomy(_)
                     | ServerGeneral::Outcomes(_)
                     | ServerGeneral::Knockback(_)
+                    | ServerGeneral::PositionUpdate(_)
                     | ServerGeneral::UpdatePendingTrade(_, _, _)
                     | ServerGeneral::FinishedTrade(_) => {
                         self.in_game_stream.lock().unwrap().send(g)
@@ -180,6 +181,7 @@ impl Client {
                     | ServerGeneral::SetViewDistance(_)
                     | ServerGeneral::Outcomes(_)
                     | ServerGeneral::Knockback(_)
+                    | ServerGeneral::PositionUpdate(_)
                     | ServerGeneral::SiteEconomy(_)
                     | ServerGeneral::UpdatePendingTrade(_, _, _)
                     | ServerGeneral::FinishedTrade(_) => {

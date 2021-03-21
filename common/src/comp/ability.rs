@@ -1,6 +1,6 @@
 use crate::{
     assets::{self, Asset},
-    combat::{self, CombatEffect},
+    combat::{self, CombatEffect, Knockback},
     comp::{
         aura, beam, inventory::item::tool::ToolKind, projectile::ProjectileConstructor, skills,
         Body, CharacterState, EnergySource, Gravity, LightEmitter, StateUpdate,
@@ -10,7 +10,6 @@ use crate::{
         utils::{AbilityInfo, StageSection},
         *,
     },
-    Knockback,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -251,6 +250,11 @@ pub enum CharacterAbility {
         max_angle: f32,
         energy_cost: f32,
         specifier: beam::FrontendSpecifier,
+    },
+    Blink {
+        buildup_duration: f32,
+        recover_duration: f32,
+        max_range: f32,
     },
 }
 
@@ -532,6 +536,14 @@ impl CharacterAbility {
                 *heal *= power;
                 *tick_rate *= speed;
             },
+            Blink {
+                ref mut buildup_duration,
+                ref mut recover_duration,
+                ..
+            } => {
+                *buildup_duration /= speed;
+                *recover_duration /= speed;
+            },
         }
         self
     }
@@ -558,7 +570,7 @@ impl CharacterAbility {
                     0
                 }
             },
-            BasicBlock | Boost { .. } | ComboMelee { .. } => 0,
+            BasicBlock | Boost { .. } | ComboMelee { .. } | Blink { .. } => 0,
         }
     }
 
@@ -1556,6 +1568,20 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                     energy_cost: *energy_cost,
                     ability_info,
                     specifier: *specifier,
+                },
+                timer: Duration::default(),
+                stage_section: StageSection::Buildup,
+            }),
+            CharacterAbility::Blink {
+                buildup_duration,
+                recover_duration,
+                max_range,
+            } => CharacterState::Blink(blink::Data {
+                static_data: blink::StaticData {
+                    buildup_duration: Duration::from_secs_f32(*buildup_duration),
+                    recover_duration: Duration::from_secs_f32(*recover_duration),
+                    max_range: *max_range,
+                    ability_info,
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,

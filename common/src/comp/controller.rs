@@ -110,7 +110,7 @@ pub enum ControlAction {
     Talk,
     StartInput {
         input: InputKind,
-        target: Option<Uid>,
+        target_entity: Option<Uid>,
         // Some inputs need a selected position, such as mining
         select_pos: Option<Vec3<f32>>,
     },
@@ -121,7 +121,7 @@ impl ControlAction {
     pub fn basic_input(input: InputKind) -> Self {
         ControlAction::StartInput {
             input,
-            target: None,
+            target_entity: None,
             select_pos: None,
         }
     }
@@ -144,9 +144,10 @@ impl InputKind {
     }
 }
 
-#[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct InputAttr {
     pub select_pos: Option<Vec3<f32>>,
+    pub target_entity: Option<Uid>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]

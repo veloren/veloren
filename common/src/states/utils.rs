@@ -5,7 +5,8 @@ use crate::{
         item::{Hands, ItemKind, Tool, ToolKind},
         quadruped_low, quadruped_medium, quadruped_small, ship,
         skills::{Skill, SwimSkill},
-        theropod, Body, CharacterAbility, CharacterState, InputKind, InventoryAction, StateUpdate,
+        theropod, Body, CharacterAbility, CharacterState, InputAttr, InputKind, InventoryAction,
+        StateUpdate,
     },
     consts::{FRIC_GROUND, GRAVITY},
     event::{LocalEvent, ServerEvent},
@@ -523,11 +524,10 @@ fn handle_ability(data: &JoinData, update: &mut StateUpdate, input: InputKind) {
             })
             .filter(|ability| ability.requirements_paid(data, update))
         {
-            update.character = (
+            update.character = CharacterState::from((
                 &ability,
                 AbilityInfo::from_input(data, matches!(equip_slot, EquipSlot::Offhand), input),
-            )
-                .into();
+            ));
         }
     }
 }
@@ -578,40 +578,23 @@ pub fn handle_dodge_input(data: &JoinData, update: &mut StateUpdate) {
             })
             .filter(|ability| ability.requirements_paid(data, update))
         {
+            update.character = CharacterState::from((
+                &ability,
+                AbilityInfo::from_input(data, false, InputKind::Roll),
+            ));
             if let CharacterState::ComboMelee(c) = data.character {
-                update.character = (
-                    &ability,
-                    AbilityInfo::from_input(data, false, InputKind::Roll),
-                )
-                    .into();
                 if let CharacterState::Roll(roll) = &mut update.character {
                     roll.was_combo = Some((c.static_data.ability_info.input, c.stage));
                     roll.was_wielded = true;
                 }
             } else if data.character.is_wield() {
-                update.character = (
-                    &ability,
-                    AbilityInfo::from_input(data, false, InputKind::Roll),
-                )
-                    .into();
                 if let CharacterState::Roll(roll) = &mut update.character {
                     roll.was_wielded = true;
                 }
             } else if data.character.is_stealthy() {
-                update.character = (
-                    &ability,
-                    AbilityInfo::from_input(data, false, InputKind::Roll),
-                )
-                    .into();
                 if let CharacterState::Roll(roll) = &mut update.character {
                     roll.was_sneak = true;
                 }
-            } else {
-                update.character = (
-                    &ability,
-                    AbilityInfo::from_input(data, false, InputKind::Roll),
-                )
-                    .into();
             }
         }
     }
@@ -707,7 +690,7 @@ pub struct AbilityInfo {
     pub tool: Option<ToolKind>,
     pub hand: Option<HandInfo>,
     pub input: InputKind,
-    pub select_pos: Option<Vec3<f32>>,
+    pub input_attr: Option<InputAttr>,
 }
 
 impl AbilityInfo {
@@ -730,13 +713,7 @@ impl AbilityInfo {
             tool,
             hand,
             input,
-            select_pos: data
-                .controller
-                .queued_inputs
-                .get(&input)
-                .cloned()
-                .unwrap_or_default()
-                .select_pos,
+            input_attr: data.controller.queued_inputs.get(&input).copied(),
         }
     }
 }

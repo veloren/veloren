@@ -28,6 +28,8 @@ pub enum LocalEvent {
     },
     /// Applies `vel` velocity to `entity`
     Boost { entity: EcsEntity, vel: Vec3<f32> },
+    /// Updates the position of the entity
+    PositionUpdate { entity: EcsEntity, pos: Pos },
 }
 
 #[allow(clippy::large_enum_variant)] // TODO: Pending review in #587
@@ -160,6 +162,11 @@ pub enum ServerEvent {
     MineBlock {
         pos: Vec3<i32>,
         tool: Option<comp::tool::ToolKind>,
+    },
+    TeleportTo {
+        entity: EcsEntity,
+        target: Uid,
+        max_range: Option<f32>,
     },
 }
 

@@ -34,11 +34,14 @@ pub trait CharacterBehavior {
         &self,
         data: &JoinData,
         input: InputKind,
-        _target: Option<Uid>,
+        target_entity: Option<Uid>,
         select_pos: Option<Vec3<f32>>,
     ) -> StateUpdate {
         let mut update = StateUpdate::from(data);
-        update.queued_inputs.insert(input, InputAttr { select_pos });
+        update.queued_inputs.insert(input, InputAttr {
+            select_pos,
+            target_entity,
+        });
         update
     }
     fn cancel_input(&self, data: &JoinData, input: InputKind) -> StateUpdate {
@@ -60,9 +63,9 @@ pub trait CharacterBehavior {
             ControlAction::Talk => self.talk(data),
             ControlAction::StartInput {
                 input,
-                target,
+                target_entity,
                 select_pos,
-            } => self.start_input(data, input, target, select_pos),
+            } => self.start_input(data, input, target_entity, select_pos),
             ControlAction::CancelInput(input) => self.cancel_input(data, input),
         }
     }

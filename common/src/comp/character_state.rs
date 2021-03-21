@@ -93,6 +93,8 @@ pub enum CharacterState {
     /// specifically for the healing beam. There was also functionality present
     /// on basic beam which was unnecessary for the healing beam.
     HealingBeam(healing_beam::Data),
+    /// A short teleport that targets either a position or entity
+    Blink(blink::Data),
 }
 
 impl CharacterState {
