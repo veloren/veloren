@@ -74,7 +74,11 @@ impl CpuTimeline {
     /// this statement, till the next / end of the System.
     pub fn measure(&mut self, par: ParMode) { self.measures.push((Instant::now(), par)); }
 
-    fn end(&mut self) { self.measures.push((Instant::now(), ParMode::None)); }
+    fn end(&mut self) -> std::time::Duration {
+        let end = Instant::now();
+        self.measures.push((end, ParMode::None));
+        end.duration_since(self.measures.first().unwrap().0)
+    }
 
     fn get(&self, time: Instant) -> ParMode {
         match self.measures.binary_search_by_key(&time, |&(a, _)| a) {
@@ -254,7 +258,11 @@ where
         common_base::span!(_guard, "run", &format!("{}::Sys::run", T::NAME));
         self.cpu_stats.reset();
         T::run(self, data.0);
-        self.cpu_stats.end();
+        let millis = self.cpu_stats.end().as_millis();
+        let name = T::NAME;
+        if millis > 500 {
+            tracing::warn!(?millis, ?name, "slow system execution");
+        }
         data.1
             .stats
             .lock()
