@@ -32,6 +32,7 @@ pub enum ToolKind {
     Unique(UniqueKind),
     Debug,
     Farming,
+    Pick,
     /// This is an placeholder item, it is used by non-humanoid npcs to attack
     Empty,
 }
@@ -56,6 +57,7 @@ impl ToolKind {
             ToolKind::Unique(_) => "unique",
             ToolKind::Debug => "debug",
             ToolKind::Farming => "farming",
+            ToolKind::Pick => "pickaxe",
             ToolKind::Empty => "empty",
         }
     }

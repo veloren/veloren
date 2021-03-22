@@ -168,7 +168,7 @@ void main() {
     // reflectivity that accounts for physical surroundings like the ground
     if ((material & (1u << 1u)) > 0u) {
         vec3 reflect_ray_dir = reflect(cam_to_frag, f_norm);
-        surf_color *= dot(vec3(1.0) - abs(fract(reflect_ray_dir * 3.5) * 2.0 - 1.0) * 0.85, vec3(1));
+        surf_color *= dot(vec3(1.0) - abs(fract(reflect_ray_dir * 1.5) * 2.0 - 1.0) * 0.85, vec3(1));
     }
 
     vec3 emitted_light, reflected_light;

@@ -40,7 +40,7 @@ impl Animation for EquipAnimation {
                 next.hand_l.position = Vec3::new(-7.0, -5.0, 17.0);
                 next.hand_r.position = Vec3::new(-5.0, -4.5, 14.0);
             },
-            Some(ToolKind::Hammer) => {
+            Some(ToolKind::Hammer | ToolKind::Pick) => {
                 next.hand_l.position = Vec3::new(-5.0, -5.0, 13.0);
                 next.hand_r.position = Vec3::new(-3.0, -4.5, 10.0);
             },

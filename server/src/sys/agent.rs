@@ -233,10 +233,9 @@ impl<'a> System<'a> for Sys {
                         // If we need to be able to have entities (dragons maybe?) both fly and
                         // run/jump, we probably need to refactor to avoid resetting the controller
                         // every frame.
-                        controller.actions.push(ControlAction::StartInput {
-                            input: InputKind::Fly,
-                            target: None,
-                        });
+                        controller
+                            .actions
+                            .push(ControlAction::basic_input(InputKind::Fly));
                     }
 
                     let flees = alignment
@@ -630,10 +629,9 @@ impl<'a> AgentData<'a> {
                     .1
                     .map_or(true, |b| b.is_some())
             {
-                controller.actions.push(ControlAction::StartInput {
-                    input: InputKind::Fly,
-                    target: None,
-                });
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Fly));
             } else {
                 controller
                     .actions
@@ -1136,10 +1134,9 @@ impl<'a> AgentData<'a> {
 
     fn jump_if(&self, controller: &mut Controller, condition: bool) {
         if condition {
-            controller.actions.push(ControlAction::StartInput {
-                input: InputKind::Jump,
-                target: None,
-            });
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Jump));
         } else {
             controller
                 .actions
@@ -1259,10 +1256,9 @@ impl<'a> AgentData<'a> {
         match tactic {
             Tactic::Melee => {
                 if dist_sqrd < (min_attack_dist * self.scale).powi(2) {
-                    controller.actions.push(ControlAction::StartInput {
-                        input: InputKind::Primary,
-                        target: None,
-                    });
+                    controller
+                        .actions
+                        .push(ControlAction::basic_input(InputKind::Primary));
                     controller.inputs.move_dir = Vec2::zero();
                 } else if dist_sqrd < MAX_CHASE_DIST.powi(2) {
                     if let Some((bearing, speed)) = agent.chaser.chase(
@@ -1285,10 +1281,9 @@ impl<'a> AgentData<'a> {
                         && dist_sqrd < 16.0f32.powi(2)
                         && thread_rng().gen::<f32>() < 0.02
                     {
-                        controller.actions.push(ControlAction::StartInput {
-                            input: InputKind::Roll,
-                            target: None,
-                        });
+                        controller
+                            .actions
+                            .push(ControlAction::basic_input(InputKind::Roll));
                     }
                 } else {
                     agent.target = None;
@@ -1303,10 +1298,9 @@ impl<'a> AgentData<'a> {
                             .push(ControlAction::CancelInput(InputKind::Secondary));
                         agent.action_timer = 0.0;
                     } else if agent.action_timer > 4.0 && self.energy.current() > 10 {
-                        controller.actions.push(ControlAction::StartInput {
-                            input: InputKind::Secondary,
-                            target: None,
-                        });
+                        controller
+                            .actions
+                            .push(ControlAction::basic_input(InputKind::Secondary));
                         agent.action_timer += dt.0;
                     } else if self
                         .stats
@@ -1315,16 +1309,14 @@ impl<'a> AgentData<'a> {
                         && self.energy.current() > 800
                         && thread_rng().gen_bool(0.5)
                     {
-                        controller.actions.push(ControlAction::StartInput {
-                            input: InputKind::Ability(0),
-                            target: None,
-                        });
+                        controller
+                            .actions
+                            .push(ControlAction::basic_input(InputKind::Ability(0)));
                         agent.action_timer += dt.0;
                     } else {
-                        controller.actions.push(ControlAction::StartInput {
-                            input: InputKind::Primary,
-                            target: None,
-                        });
+                        controller
+                            .actions
+                            .push(ControlAction::basic_input(InputKind::Primary));
                         agent.action_timer += dt.0;
                     }
                 } else if dist_sqrd < MAX_CHASE_DIST.powi(2) {
@@ -1347,10 +1339,9 @@ impl<'a> AgentData<'a> {
                         && dist_sqrd < 16.0f32.powi(2)
                         && thread_rng().gen::<f32>() < 0.02
                     {
-                        controller.actions.push(ControlAction::StartInput {
-                            input: InputKind::Roll,
-                            target: None,
-                        });
+                        controller
+                            .actions
+                            .push(ControlAction::basic_input(InputKind::Roll));
                     }
                 } else {
                     agent.target = None;
@@ -1365,10 +1356,9 @@ impl<'a> AgentData<'a> {
                             .push(ControlAction::CancelInput(InputKind::Secondary));
                         agent.action_timer = 0.0;
                     } else if agent.action_timer > 2.0 {
-                        controller.actions.push(ControlAction::StartInput {
-                            input: InputKind::Secondary,
-                            target: None,
-                        });
+                        controller
+                            .actions
+                            .push(ControlAction::basic_input(InputKind::Secondary));
                         agent.action_timer += dt.0;
                     } else if self
                         .stats
@@ -1377,16 +1367,14 @@ impl<'a> AgentData<'a> {
                         && self.energy.current() > 700
                         && thread_rng().gen_bool(0.9)
                     {
-                        controller.actions.push(ControlAction::StartInput {
-                            input: InputKind::Ability(0),
-                            target: None,
-                        });
+                        controller
+                            .actions
+                            .push(ControlAction::basic_input(InputKind::Ability(0)));
                         agent.action_timer += dt.0;
                     } else {
-                        controller.actions.push(ControlAction::StartInput {
-                            input: InputKind::Primary,
-                            target: None,
-                        });
+                        controller
+                            .actions
+                            .push(ControlAction::basic_input(InputKind::Primary));
                         agent.action_timer += dt.0;
                     }
                 } else if dist_sqrd < MAX_CHASE_DIST.powi(2) {
@@ -1409,10 +1397,9 @@ impl<'a> AgentData<'a> {
                                 .has_skill(Skill::Hammer(HammerSkill::UnlockLeap))
                                 && agent.action_timer > 5.0
                             {
-                                controller.actions.push(ControlAction::StartInput {
-                                    input: InputKind::Ability(0),
-                                    target: None,
-                                });
+                                controller
+                                    .actions
+                                    .push(ControlAction::basic_input(InputKind::Ability(0)));
                                 agent.action_timer = 0.0;
                             } else {
                                 agent.action_timer += dt.0;
@@ -1428,10 +1415,9 @@ impl<'a> AgentData<'a> {
                         && dist_sqrd < 16.0f32.powi(2)
                         && thread_rng().gen::<f32>() < 0.02
                     {
-                        controller.actions.push(ControlAction::StartInput {
-                            input: InputKind::Roll,
-                            target: None,
-                        });
+                        controller
+                            .actions
+                            .push(ControlAction::basic_input(InputKind::Roll));
                     }
                 } else {
                     agent.target = None;
@@ -1447,18 +1433,16 @@ impl<'a> AgentData<'a> {
                         && agent.action_timer < 2.0
                         && self.energy.current() > 600
                     {
-                        controller.actions.push(ControlAction::StartInput {
-                            input: InputKind::Ability(0),
-                            target: None,
-                        });
+                        controller
+                            .actions
+                            .push(ControlAction::basic_input(InputKind::Ability(0)));
                         agent.action_timer += dt.0;
                     } else if agent.action_timer > 2.0 {
                         agent.action_timer = 0.0;
                     } else {
-                        controller.actions.push(ControlAction::StartInput {
-                            input: InputKind::Primary,
-                            target: None,
-                        });
+                        controller
+                            .actions
+                            .push(ControlAction::basic_input(InputKind::Primary));
                         agent.action_timer += dt.0;
                     }
                 } else if dist_sqrd < MAX_CHASE_DIST.powi(2) {
@@ -1476,10 +1460,9 @@ impl<'a> AgentData<'a> {
                             controller.inputs.move_dir =
                                 bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
                             if agent.action_timer > 4.0 {
-                                controller.actions.push(ControlAction::StartInput {
-                                    input: InputKind::Secondary,
-                                    target: None,
-                                });
+                                controller
+                                    .actions
+                                    .push(ControlAction::basic_input(InputKind::Secondary));
                                 agent.action_timer = 0.0;
                             } else {
                                 agent.action_timer += dt.0;
@@ -1495,10 +1478,9 @@ impl<'a> AgentData<'a> {
                         && dist_sqrd < 16.0f32.powi(2)
                         && thread_rng().gen::<f32>() < 0.02
                     {
-                        controller.actions.push(ControlAction::StartInput {
-                            input: InputKind::Roll,
-                            target: None,
-                        });
+                        controller
+                            .actions
+                            .push(ControlAction::basic_input(InputKind::Roll));
                     }
                 } else {
                     agent.target = None;
@@ -1508,10 +1490,9 @@ impl<'a> AgentData<'a> {
                 if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
                     && dist_sqrd < (2.0 * min_attack_dist * self.scale).powi(2)
                 {
-                    controller.actions.push(ControlAction::StartInput {
-                        input: InputKind::Roll,
-                        target: None,
-                    });
+                    controller
+                        .actions
+                        .push(ControlAction::basic_input(InputKind::Roll));
                 } else if dist_sqrd < MAX_CHASE_DIST.powi(2) {
                     if let Some((bearing, speed)) = agent.chaser.chase(
                         &*terrain,
@@ -1536,10 +1517,9 @@ impl<'a> AgentData<'a> {
                                     .push(ControlAction::CancelInput(InputKind::Secondary));
                                 agent.action_timer = 0.0;
                             } else if agent.action_timer > 2.0 && self.energy.current() > 300 {
-                                controller.actions.push(ControlAction::StartInput {
-                                    input: InputKind::Secondary,
-                                    target: None,
-                                });
+                                controller
+                                    .actions
+                                    .push(ControlAction::basic_input(InputKind::Secondary));
                                 agent.action_timer += dt.0;
                             } else if self
                                 .stats
@@ -1551,19 +1531,17 @@ impl<'a> AgentData<'a> {
                                 controller
                                     .actions
                                     .push(ControlAction::CancelInput(InputKind::Secondary));
-                                controller.actions.push(ControlAction::StartInput {
-                                    input: InputKind::Ability(0),
-                                    target: None,
-                                });
+                                controller
+                                    .actions
+                                    .push(ControlAction::basic_input(InputKind::Ability(0)));
                                 agent.action_timer += dt.0;
                             } else {
                                 controller
                                     .actions
                                     .push(ControlAction::CancelInput(InputKind::Secondary));
-                                controller.actions.push(ControlAction::StartInput {
-                                    input: InputKind::Primary,
-                                    target: None,
-                                });
+                                controller
+                                    .actions
+                                    .push(ControlAction::basic_input(InputKind::Primary));
                                 agent.action_timer += dt.0;
                             }
                         } else {
@@ -1577,10 +1555,9 @@ impl<'a> AgentData<'a> {
                         && dist_sqrd < 16.0f32.powi(2)
                         && thread_rng().gen::<f32>() < 0.02
                     {
-                        controller.actions.push(ControlAction::StartInput {
-                            input: InputKind::Roll,
-                            target: None,
-                        });
+                        controller
+                            .actions
+                            .push(ControlAction::basic_input(InputKind::Roll));
                     }
                 } else if can_see_tgt(&*terrain, self.pos, tgt_pos, dist_sqrd) {
                     if let Some((bearing, speed)) = agent.chaser.chase(
@@ -1606,10 +1583,9 @@ impl<'a> AgentData<'a> {
                 if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
                     && dist_sqrd < (min_attack_dist * self.scale).powi(2)
                 {
-                    controller.actions.push(ControlAction::StartInput {
-                        input: InputKind::Roll,
-                        target: None,
-                    });
+                    controller
+                        .actions
+                        .push(ControlAction::basic_input(InputKind::Roll));
                 } else if dist_sqrd < (5.0 * min_attack_dist * self.scale).powi(2) {
                     if agent.action_timer < 1.5 {
                         controller.inputs.move_dir = (tgt_pos.0 - self.pos.0)
@@ -1635,20 +1611,17 @@ impl<'a> AgentData<'a> {
                         && self.energy.current() > 800
                         && thread_rng().gen::<f32>() > 0.8
                     {
-                        controller.actions.push(ControlAction::StartInput {
-                            input: InputKind::Ability(0),
-                            target: None,
-                        });
+                        controller
+                            .actions
+                            .push(ControlAction::basic_input(InputKind::Ability(0)));
                     } else if self.energy.current() > 10 {
-                        controller.actions.push(ControlAction::StartInput {
-                            input: InputKind::Secondary,
-                            target: None,
-                        });
+                        controller
+                            .actions
+                            .push(ControlAction::basic_input(InputKind::Secondary));
                     } else {
-                        controller.actions.push(ControlAction::StartInput {
-                            input: InputKind::Primary,
-                            target: None,
-                        });
+                        controller
+                            .actions
+                            .push(ControlAction::basic_input(InputKind::Primary));
                     }
                 } else if dist_sqrd < MAX_CHASE_DIST.powi(2) {
                     if let Some((bearing, speed)) = agent.chaser.chase(
@@ -1668,10 +1641,9 @@ impl<'a> AgentData<'a> {
                                 .try_normalized()
                                 .unwrap_or_else(Vec2::zero)
                                 * speed;
-                            controller.actions.push(ControlAction::StartInput {
-                                input: InputKind::Primary,
-                                target: None,
-                            });
+                            controller
+                                .actions
+                                .push(ControlAction::basic_input(InputKind::Primary));
                         } else {
                             controller.inputs.move_dir =
                                 bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
@@ -1683,10 +1655,9 @@ impl<'a> AgentData<'a> {
                         && dist_sqrd < 16.0f32.powi(2)
                         && thread_rng().gen::<f32>() < 0.02
                     {
-                        controller.actions.push(ControlAction::StartInput {
-                            input: InputKind::Roll,
-                            target: None,
-                        });
+                        controller
+                            .actions
+                            .push(ControlAction::basic_input(InputKind::Roll));
                     }
                 } else if can_see_tgt(&*terrain, self.pos, tgt_pos, dist_sqrd) {
                     if let Some((bearing, speed)) = agent.chaser.chase(
@@ -1713,17 +1684,15 @@ impl<'a> AgentData<'a> {
                     // 2.0 is temporary correction factor to allow them to melee with their
                     // large hitbox
                     controller.inputs.move_dir = Vec2::zero();
-                    controller.actions.push(ControlAction::StartInput {
-                        input: InputKind::Primary,
-                        target: None,
-                    });
+                    controller
+                        .actions
+                        .push(ControlAction::basic_input(InputKind::Primary));
                     //controller.inputs.primary.set_state(true);
                 } else if dist_sqrd < MAX_CHASE_DIST.powi(2) {
                     if self.vel.0.is_approx_zero() {
-                        controller.actions.push(ControlAction::StartInput {
-                            input: InputKind::Ability(0),
-                            target: None,
-                        });
+                        controller
+                            .actions
+                            .push(ControlAction::basic_input(InputKind::Ability(0)));
                     }
                     if let Some((bearing, speed)) = agent.chaser.chase(
                         &*terrain,
@@ -1739,10 +1708,9 @@ impl<'a> AgentData<'a> {
                             controller.inputs.move_dir =
                                 bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
                             if agent.action_timer > 5.0 {
-                                controller.actions.push(ControlAction::StartInput {
-                                    input: InputKind::Secondary,
-                                    target: None,
-                                });
+                                controller
+                                    .actions
+                                    .push(ControlAction::basic_input(InputKind::Secondary));
                                 agent.action_timer = 0.0;
                             } else {
                                 agent.action_timer += dt.0;
@@ -1765,10 +1733,9 @@ impl<'a> AgentData<'a> {
                 if dist_sqrd < (min_attack_dist * self.scale).powi(2) && thread_rng().gen_bool(0.5)
                 {
                     controller.inputs.move_dir = Vec2::zero();
-                    controller.actions.push(ControlAction::StartInput {
-                        input: InputKind::Primary,
-                        target: None,
-                    });
+                    controller
+                        .actions
+                        .push(ControlAction::basic_input(InputKind::Primary));
                 } else if dist_sqrd < (radius as f32 * min_attack_dist * self.scale).powi(2) {
                     controller.inputs.move_dir = (self.pos.0 - tgt_pos.0)
                         .xy()
@@ -1785,10 +1752,9 @@ impl<'a> AgentData<'a> {
                             .unwrap_or_else(Vec2::unit_y);
                         agent.action_timer += dt.0;
                     } else if agent.action_timer < circle_time as f32 + 0.5 {
-                        controller.actions.push(ControlAction::StartInput {
-                            input: InputKind::Secondary,
-                            target: None,
-                        });
+                        controller
+                            .actions
+                            .push(ControlAction::basic_input(InputKind::Secondary));
                         agent.action_timer += dt.0;
                     } else if agent.action_timer < 2.0 * circle_time as f32 + 0.5 {
                         controller.inputs.move_dir = (tgt_pos.0 - self.pos.0)
@@ -1798,10 +1764,9 @@ impl<'a> AgentData<'a> {
                             .unwrap_or_else(Vec2::unit_y);
                         agent.action_timer += dt.0;
                     } else if agent.action_timer < 2.0 * circle_time as f32 + 1.0 {
-                        controller.actions.push(ControlAction::StartInput {
-                            input: InputKind::Secondary,
-                            target: None,
-                        });
+                        controller
+                            .actions
+                            .push(ControlAction::basic_input(InputKind::Secondary));
                         agent.action_timer += dt.0;
                     } else {
                         agent.action_timer = 0.0;
@@ -1832,10 +1797,9 @@ impl<'a> AgentData<'a> {
                         .xy()
                         .try_normalized()
                         .unwrap_or_else(Vec2::unit_y);
-                    controller.actions.push(ControlAction::StartInput {
-                        input: InputKind::Primary,
-                        target: None,
-                    });
+                    controller
+                        .actions
+                        .push(ControlAction::basic_input(InputKind::Primary));
                 } else if dist_sqrd < MAX_CHASE_DIST.powi(2) {
                     if let Some((bearing, speed)) = agent.chaser.chase(
                         &*terrain,
@@ -1867,10 +1831,9 @@ impl<'a> AgentData<'a> {
                                     * speed;
                                 agent.action_timer += dt.0;
                             }
-                            controller.actions.push(ControlAction::StartInput {
-                                input: InputKind::Secondary,
-                                target: None,
-                            });
+                            controller
+                                .actions
+                                .push(ControlAction::basic_input(InputKind::Secondary));
                             self.jump_if(controller, bearing.z > 1.5);
                             controller.inputs.move_z = bearing.z;
                         } else {
@@ -1894,16 +1857,14 @@ impl<'a> AgentData<'a> {
                             .push(ControlAction::CancelInput(InputKind::Primary));
                         agent.action_timer = 0.0;
                     } else if agent.action_timer > 1.0 {
-                        controller.actions.push(ControlAction::StartInput {
-                            input: InputKind::Primary,
-                            target: None,
-                        });
+                        controller
+                            .actions
+                            .push(ControlAction::basic_input(InputKind::Primary));
                         agent.action_timer += dt.0;
                     } else {
-                        controller.actions.push(ControlAction::StartInput {
-                            input: InputKind::Secondary,
-                            target: None,
-                        });
+                        controller
+                            .actions
+                            .push(ControlAction::basic_input(InputKind::Secondary));
                         agent.action_timer += dt.0;
                     }
                     controller.inputs.move_dir = (tgt_pos.0 - self.pos.0)
@@ -1934,17 +1895,15 @@ impl<'a> AgentData<'a> {
             Tactic::QuadLowQuick => {
                 if dist_sqrd < (1.5 * min_attack_dist * self.scale).powi(2) {
                     controller.inputs.move_dir = Vec2::zero();
-                    controller.actions.push(ControlAction::StartInput {
-                        input: InputKind::Secondary,
-                        target: None,
-                    });
+                    controller
+                        .actions
+                        .push(ControlAction::basic_input(InputKind::Secondary));
                 } else if dist_sqrd < (3.0 * min_attack_dist * self.scale).powi(2)
                     && dist_sqrd > (2.0 * min_attack_dist * self.scale).powi(2)
                 {
-                    controller.actions.push(ControlAction::StartInput {
-                        input: InputKind::Primary,
-                        target: None,
-                    });
+                    controller
+                        .actions
+                        .push(ControlAction::basic_input(InputKind::Primary));
                     controller.inputs.move_dir = (tgt_pos.0 - self.pos.0)
                         .xy()
                         .rotated_z(-0.47 * PI)
@@ -1976,16 +1935,14 @@ impl<'a> AgentData<'a> {
                     if agent.action_timer > 5.0 {
                         agent.action_timer = 0.0;
                     } else if agent.action_timer > 2.0 {
-                        controller.actions.push(ControlAction::StartInput {
-                            input: InputKind::Secondary,
-                            target: None,
-                        });
+                        controller
+                            .actions
+                            .push(ControlAction::basic_input(InputKind::Secondary));
                         agent.action_timer += dt.0;
                     } else {
-                        controller.actions.push(ControlAction::StartInput {
-                            input: InputKind::Primary,
-                            target: None,
-                        });
+                        controller
+                            .actions
+                            .push(ControlAction::basic_input(InputKind::Primary));
                         agent.action_timer += dt.0;
                     }
                 } else if dist_sqrd < MAX_CHASE_DIST.powi(2) {
@@ -2011,15 +1968,13 @@ impl<'a> AgentData<'a> {
             Tactic::QuadMedJump => {
                 if dist_sqrd < (1.5 * min_attack_dist * self.scale).powi(2) {
                     controller.inputs.move_dir = Vec2::zero();
-                    controller.actions.push(ControlAction::StartInput {
-                        input: InputKind::Secondary,
-                        target: None,
-                    });
+                    controller
+                        .actions
+                        .push(ControlAction::basic_input(InputKind::Secondary));
                 } else if dist_sqrd < (5.0 * min_attack_dist * self.scale).powi(2) {
-                    controller.actions.push(ControlAction::StartInput {
-                        input: InputKind::Ability(0),
-                        target: None,
-                    });
+                    controller
+                        .actions
+                        .push(ControlAction::basic_input(InputKind::Ability(0)));
                 } else if dist_sqrd < MAX_CHASE_DIST.powi(2) {
                     if let Some((bearing, speed)) = agent.chaser.chase(
                         &*terrain,
@@ -2032,10 +1987,9 @@ impl<'a> AgentData<'a> {
                         },
                     ) {
                         if can_see_tgt(&*terrain, self.pos, tgt_pos, dist_sqrd) {
-                            controller.actions.push(ControlAction::StartInput {
-                                input: InputKind::Primary,
-                                target: None,
-                            });
+                            controller
+                                .actions
+                                .push(ControlAction::basic_input(InputKind::Primary));
                             controller.inputs.move_dir =
                                 bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
                         } else {
@@ -2053,16 +2007,14 @@ impl<'a> AgentData<'a> {
                 if dist_sqrd < (min_attack_dist * self.scale).powi(2) {
                     controller.inputs.move_dir = Vec2::zero();
                     if agent.action_timer < 2.0 {
-                        controller.actions.push(ControlAction::StartInput {
-                            input: InputKind::Secondary,
-                            target: None,
-                        });
+                        controller
+                            .actions
+                            .push(ControlAction::basic_input(InputKind::Secondary));
                         agent.action_timer += dt.0;
                     } else if agent.action_timer < 3.0 {
-                        controller.actions.push(ControlAction::StartInput {
-                            input: InputKind::Primary,
-                            target: None,
-                        });
+                        controller
+                            .actions
+                            .push(ControlAction::basic_input(InputKind::Primary));
                         agent.action_timer += dt.0;
                     } else {
                         agent.action_timer = 0.0;
@@ -2090,10 +2042,9 @@ impl<'a> AgentData<'a> {
             Tactic::Lavadrake | Tactic::QuadLowBeam => {
                 if dist_sqrd < (2.5 * min_attack_dist * self.scale).powi(2) {
                     controller.inputs.move_dir = Vec2::zero();
-                    controller.actions.push(ControlAction::StartInput {
-                        input: InputKind::Secondary,
-                        target: None,
-                    });
+                    controller
+                        .actions
+                        .push(ControlAction::basic_input(InputKind::Secondary));
                 } else if dist_sqrd < (7.0 * min_attack_dist * self.scale).powi(2) {
                     if agent.action_timer < 2.0 {
                         controller.inputs.move_dir = (tgt_pos.0 - self.pos.0)
@@ -2101,10 +2052,9 @@ impl<'a> AgentData<'a> {
                             .rotated_z(0.47 * PI)
                             .try_normalized()
                             .unwrap_or_else(Vec2::unit_y);
-                        controller.actions.push(ControlAction::StartInput {
-                            input: InputKind::Primary,
-                            target: None,
-                        });
+                        controller
+                            .actions
+                            .push(ControlAction::basic_input(InputKind::Primary));
                         agent.action_timer += dt.0;
                     } else if agent.action_timer < 4.0 {
                         controller.inputs.move_dir = (tgt_pos.0 - self.pos.0)
@@ -2112,16 +2062,14 @@ impl<'a> AgentData<'a> {
                             .rotated_z(-0.47 * PI)
                             .try_normalized()
                             .unwrap_or_else(Vec2::unit_y);
-                        controller.actions.push(ControlAction::StartInput {
-                            input: InputKind::Primary,
-                            target: None,
-                        });
+                        controller
+                            .actions
+                            .push(ControlAction::basic_input(InputKind::Primary));
                         agent.action_timer += dt.0;
                     } else if agent.action_timer < 6.0 {
-                        controller.actions.push(ControlAction::StartInput {
-                            input: InputKind::Ability(0),
-                            target: None,
-                        });
+                        controller
+                            .actions
+                            .push(ControlAction::basic_input(InputKind::Ability(0)));
                         agent.action_timer += dt.0;
                     } else {
                         agent.action_timer = 0.0;
@@ -2149,10 +2097,9 @@ impl<'a> AgentData<'a> {
             Tactic::Theropod => {
                 if dist_sqrd < (2.0 * min_attack_dist * self.scale).powi(2) {
                     controller.inputs.move_dir = Vec2::zero();
-                    controller.actions.push(ControlAction::StartInput {
-                        input: InputKind::Primary,
-                        target: None,
-                    });
+                    controller
+                        .actions
+                        .push(ControlAction::basic_input(InputKind::Primary));
                 } else if dist_sqrd < MAX_CHASE_DIST.powi(2) {
                     if let Some((bearing, speed)) = agent.chaser.chase(
                         &*terrain,
@@ -2175,10 +2122,9 @@ impl<'a> AgentData<'a> {
             },
             Tactic::Turret => {
                 if can_see_tgt(&*terrain, self.pos, tgt_pos, dist_sqrd) {
-                    controller.actions.push(ControlAction::StartInput {
-                        input: InputKind::Primary,
-                        target: None,
-                    });
+                    controller
+                        .actions
+                        .push(ControlAction::basic_input(InputKind::Primary));
                 } else {
                     agent.target = None;
                 }
@@ -2186,10 +2132,9 @@ impl<'a> AgentData<'a> {
             Tactic::FixedTurret => {
                 controller.inputs.look_dir = self.ori.look_dir();
                 if can_see_tgt(&*terrain, self.pos, tgt_pos, dist_sqrd) {
-                    controller.actions.push(ControlAction::StartInput {
-                        input: InputKind::Primary,
-                        target: None,
-                    });
+                    controller
+                        .actions
+                        .push(ControlAction::basic_input(InputKind::Primary));
                 } else {
                     agent.target = None;
                 }
@@ -2203,10 +2148,9 @@ impl<'a> AgentData<'a> {
                         .unwrap_or_default(),
                 );
                 if can_see_tgt(&*terrain, self.pos, tgt_pos, dist_sqrd) {
-                    controller.actions.push(ControlAction::StartInput {
-                        input: InputKind::Primary,
-                        target: None,
-                    });
+                    controller
+                        .actions
+                        .push(ControlAction::basic_input(InputKind::Primary));
                 } else {
                     agent.target = None;
                 }

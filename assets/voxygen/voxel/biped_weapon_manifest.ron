@@ -600,7 +600,7 @@
         color: None
     ),
     "common.items.weapons.hammer.cultist_purp_2h-0": (
-        vox_spec: ("weapon.hammer.cult_purp-0", (-3.5, -4.5, -5.0)),    
+        vox_spec: ("weapon.hammer.cult_purp-0", (-3.5, -4.5, -5.0)),
         color: None
     ),
     /*"Craftsman": ( //TODO This should be a 1h hammer!
@@ -839,7 +839,7 @@
     "common.items.weapons.tool.rake": (
         vox_spec: ("weapon.tool.rake-0", (-1.0, -5.5, -4.0)),
         color: None
-    ),  
+    ),
     "common.items.weapons.tool.pickaxe": (
         vox_spec: ("weapon.tool.pickaxe_green-0", (-1.5, -7.5, -4.0)),
         color: None
@@ -876,43 +876,43 @@
     "common.items.weapons.staff.phoenix": (
         vox_spec: ("weapon.staff.phoenix", (-2.5, -3.5, -5.0)),
         color: None
-    ),    
+    ),
     "common.items.weapons.staff.heated_arm": (
         vox_spec: ("weapon.staff.heated_arm", (-2.5, -2.5, -3.0)),
         color: None
-    ),    
+    ),
     "common.items.weapons.staff.aurora": (
         vox_spec: ("weapon.staff.aurora", (-2.5, -2.5, -3.0)),
         color: None
-    ),    
+    ),
     "common.items.weapons.staff.infused_tower": (
         vox_spec: ("weapon.staff.infused_tower", (-2.5, -2.5, -3.0)),
         color: None
-    ),    
+    ),
     "common.items.weapons.staff.flamethrower_0": (
         vox_spec: ("weapon.staff.unstable_thrower", (-1.5, -2.5, -5.0)),
         color: None
-    ),    
+    ),
     "common.items.weapons.staff.ley_seeker": (
         vox_spec: ("weapon.staff.ley_seeker", (-2.5, -2.5, -3.0)),
         color: None
-    ),   
+    ),
     "common.items.weapons.staff.lava_rod": (
         vox_spec: ("weapon.staff.lava_rod", (-2.5, -2.5, -3.0)),
         color: None
-    ),    
+    ),
     "common.items.weapons.staff.fiery_wishing_rod": (
         vox_spec: ("weapon.staff.fiery_wishing_rod", (-2.5, -2.5, -3.0)),
         color: None
-    ),    
+    ),
     "common.items.weapons.staff.orc_iron": (
         vox_spec: ("weapon.staff.orcish_branding_iron", (-2.5, -2.5, -3.0)),
         color: None
-    ),    
+    ),
     "common.items.weapons.staff.bent_fuse": (
         vox_spec: ("weapon.staff.bent_fuse", (-2.0, -2.5, -5.0)),
         color: None
-    ),    
+    ),
     // Healing sceptre
     "common.items.weapons.sceptre.starter_sceptre": (
         vox_spec: ("weapon.sceptre.wood-simple", (-1.5, -2.5, -6.0)),
@@ -945,9 +945,14 @@
     "common.items.weapons.sceptre.root_evil": (
         vox_spec: ("weapon.sceptre.root_evil", (-1.5, -2.5, -6.0)),
         color: None
-    ),    
+    ),
     "common.items.weapons.sceptre.sceptre_velorite_0": (
         vox_spec: ("weapon.sceptre.ore-nature", (-2.0, -6.0, -5.0)),
+        color: None
+    ),
+	// Picks
+	"common.items.tool.pick": (
+        vox_spec: ("weapon.tool.pickaxe_green-0", (-1.5, -7.5, -4.0)),
         color: None
     ),
     // Misc

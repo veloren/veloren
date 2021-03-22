@@ -206,6 +206,11 @@
         secondary: "common.abilities.farming.basic",
         abilities: [],
     ),
+    Pick: (
+        primary: "common.abilities.pick.swing",
+        secondary: "common.abilities.pick.swing",
+        abilities: [],
+    ),
     Empty: (
         primary: "common.abilities.empty.basic",
         secondary: "common.abilities.empty.basic",

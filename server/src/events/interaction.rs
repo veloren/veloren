@@ -1,10 +1,16 @@
-use specs::{world::WorldExt, Entity as EcsEntity};
+use specs::{world::WorldExt, Builder, Entity as EcsEntity};
 use tracing::error;
+use vek::*;
 
 use common::{
-    comp::{self, agent::AgentEvent, inventory::slot::EquipSlot, item, slot::Slot, Inventory, Pos},
+    comp::{
+        self, agent::AgentEvent, inventory::slot::EquipSlot, item, slot::Slot, tool::ToolKind,
+        Inventory, Pos,
+    },
     consts::MAX_MOUNT_RANGE,
+    outcome::Outcome,
     uid::Uid,
+    vol::ReadVol,
 };
 use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
 
@@ -252,5 +258,31 @@ fn within_mounting_range(player_position: Option<&Pos>, mount_position: Option<&
     match (player_position, mount_position) {
         (Some(ppos), Some(ipos)) => ppos.0.distance_squared(ipos.0) < MAX_MOUNT_RANGE.powi(2),
         _ => false,
+    }
+}
+
+pub fn handle_mine_block(server: &mut Server, pos: Vec3<i32>, tool: Option<ToolKind>) {
+    let state = server.state_mut();
+    if state.can_set_block(pos) {
+        let block = state.terrain().get(pos).ok().copied();
+        if let Some(block) = block.filter(|b| b.mine_tool().map_or(false, |t| Some(t) == tool)) {
+            // Drop item if one is recoverable from the block
+            if let Some(item) = comp::Item::try_reclaim_from_block(block) {
+                state
+                    .create_object(Default::default(), comp::object::Body::Pouch)
+                    .with(comp::Pos(pos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0)))
+                    .with(item)
+                    .build();
+            }
+
+            state.set_block(pos, block.into_vacant());
+            state
+                .ecs()
+                .write_resource::<Vec<Outcome>>()
+                .push(Outcome::BreakBlock {
+                    pos,
+                    color: block.get_color(),
+                });
+        }
     }
 }

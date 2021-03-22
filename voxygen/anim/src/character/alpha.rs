@@ -116,7 +116,7 @@ impl Animation for AlphaAnimation {
                 next.head.orientation =
                     Quaternion::rotation_z(0.0 + move1 * -1.5 + move2 * 2.5 + move3 * -1.0);
             },
-            Some(ToolKind::Hammer) | Some(ToolKind::HammerSimple) => {
+            Some(ToolKind::Hammer) | Some(ToolKind::HammerSimple) | Some(ToolKind::Pick) => {
                 let (move1, move2, move3) = match stage_section {
                     Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
                     Some(StageSection::Swing) => (1.0, anim_time, 0.0),

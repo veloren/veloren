@@ -153,6 +153,7 @@ pub fn skill_to_db_string(skill: comp::skills::Skill) -> String {
         | UnlockGroup(SkillGroupKind::Weapon(ToolKind::SwordSimple))
         | UnlockGroup(SkillGroupKind::Weapon(ToolKind::Debug))
         | UnlockGroup(SkillGroupKind::Weapon(ToolKind::Farming))
+        | UnlockGroup(SkillGroupKind::Weapon(ToolKind::Pick))
         | UnlockGroup(SkillGroupKind::Weapon(ToolKind::Empty))
         | UnlockGroup(SkillGroupKind::Weapon(ToolKind::Unique(_)))
         | UnlockGroup(SkillGroupKind::General) => {
@@ -298,6 +299,7 @@ pub fn skill_group_to_db_string(skill_group: comp::skills::SkillGroupKind) -> St
         | Weapon(ToolKind::SwordSimple)
         | Weapon(ToolKind::Debug)
         | Weapon(ToolKind::Farming)
+        | Weapon(ToolKind::Pick)
         | Weapon(ToolKind::Empty)
         | Weapon(ToolKind::Unique(_)) => panic!(
             "Tried to add unsupported skill group to database: {:?}",

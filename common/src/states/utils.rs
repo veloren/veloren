@@ -356,7 +356,7 @@ fn fly_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) {
 /// Checks if an input related to an attack is held. If one is, moves entity
 /// into wielding state
 pub fn handle_wield(data: &JoinData, update: &mut StateUpdate) {
-    if data.controller.queued_inputs.iter().any(|i| i.is_ability()) {
+    if data.controller.queued_inputs.keys().any(|i| i.is_ability()) {
         attempt_wield(data, update);
     }
 }
@@ -533,7 +533,7 @@ pub fn handle_ability_input(data: &JoinData, update: &mut StateUpdate) {
     if let Some(input) = data
         .controller
         .queued_inputs
-        .iter()
+        .keys()
         .find(|i| i.is_ability())
     {
         handle_ability(data, update, *input);
@@ -553,7 +553,7 @@ pub fn handle_input(data: &JoinData, update: &mut StateUpdate, input: InputKind)
 
 pub fn attempt_input(data: &JoinData, update: &mut StateUpdate) {
     // TODO: look into using first() when it becomes stable
-    if let Some(input) = data.controller.queued_inputs.iter().next() {
+    if let Some(input) = data.controller.queued_inputs.keys().next() {
         handle_input(data, update, *input);
     }
 }
@@ -646,7 +646,7 @@ pub fn handle_state_interrupt(data: &JoinData, update: &mut StateUpdate, attacks
 }
 
 pub fn input_is_pressed(data: &JoinData, input: InputKind) -> bool {
-    data.controller.queued_inputs.contains(&input)
+    data.controller.queued_inputs.contains_key(&input)
 }
 
 /// Determines what portion a state is in. Used in all attacks (eventually). Is
@@ -702,6 +702,7 @@ pub struct AbilityInfo {
     pub tool: Option<ToolKind>,
     pub hand: Option<HandInfo>,
     pub input: InputKind,
+    pub select_pos: Option<Vec3<f32>>,
 }
 
 impl AbilityInfo {
@@ -720,7 +721,18 @@ impl AbilityInfo {
             )
         };
 
-        Self { tool, hand, input }
+        Self {
+            tool,
+            hand,
+            input,
+            select_pos: data
+                .controller
+                .queued_inputs
+                .get(&input)
+                .cloned()
+                .unwrap_or_default()
+                .select_pos,
+        }
     }
 }
 

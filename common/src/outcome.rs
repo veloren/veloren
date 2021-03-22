@@ -41,6 +41,10 @@ pub enum Outcome {
         uid: Uid,
         combo: u32,
     },
+    BreakBlock {
+        pos: Vec3<i32>,
+        color: Option<Rgb<u8>>,
+    },
 }
 
 impl Outcome {
@@ -50,6 +54,7 @@ impl Outcome {
             | Outcome::ProjectileShot { pos, .. }
             | Outcome::Beam { pos, .. }
             | Outcome::SkillPointGain { pos, .. } => Some(*pos),
+            Outcome::BreakBlock { pos, .. } => Some(pos.map(|e| e as f32 + 0.5)),
             Outcome::ExpChange { .. } | Outcome::ComboChange { .. } => None,
         }
     }

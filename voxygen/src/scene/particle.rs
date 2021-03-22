@@ -156,6 +156,17 @@ impl ParticleMgr {
                 }
             },
             Outcome::ProjectileShot { .. } => {},
+            Outcome::BreakBlock { pos, .. } => {
+                // TODO: Use color field when particle colors are a thing
+                self.particles.resize_with(self.particles.len() + 30, || {
+                    Particle::new(
+                        Duration::from_millis(100),
+                        time,
+                        ParticleMode::Shrapnel,
+                        pos.map(|e| e as f32 + 0.5),
+                    )
+                });
+            },
             _ => {},
         }
     }

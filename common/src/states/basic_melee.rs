@@ -1,6 +1,6 @@
 use crate::{
     combat::{Attack, AttackDamage, AttackEffect, CombatBuff, CombatEffect, CombatRequirement},
-    comp::{CharacterState, Melee, StateUpdate},
+    comp::{tool::ToolKind, CharacterState, Melee, StateUpdate},
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
@@ -122,6 +122,16 @@ impl CharacterBehavior for Data {
                         max_angle: self.static_data.max_angle,
                         applied: false,
                         hit_count: 0,
+                        break_block: data
+                            .inputs
+                            .select_pos
+                            .map(|p| {
+                                (
+                                    p.map(|e| e.floor() as i32),
+                                    self.static_data.ability_info.tool,
+                                )
+                            })
+                            .filter(|(_, tool)| tool == &Some(ToolKind::Pick)),
                     });
                 } else if self.timer < self.static_data.swing_duration {
                     // Swings

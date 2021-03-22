@@ -49,6 +49,7 @@ impl TagExampleInfo for ModularComponentTag {
                 ToolKind::Unique(_) => "unique damage component",
                 ToolKind::Debug => "debug damage component",
                 ToolKind::Farming => "farming damage component",
+                ToolKind::Pick => "pickaxe head",
                 ToolKind::Empty => "empty damage component",
             },
             ModularComponentKind::Held => match self.toolkind {
@@ -65,6 +66,7 @@ impl TagExampleInfo for ModularComponentTag {
                 ToolKind::Unique(_) => "unique held component",
                 ToolKind::Debug => "debug held component",
                 ToolKind::Farming => "farming held component",
+                ToolKind::Pick => "pickaxe handle",
                 ToolKind::Empty => "empty held component",
             },
         }
@@ -95,6 +97,7 @@ impl TagExampleInfo for ModularComponentTag {
                 ToolKind::Unique(_) => "common.items.tag_examples.modular.damage.unique",
                 ToolKind::Debug => "common.items.tag_examples.modular.damage.debug",
                 ToolKind::Farming => "common.items.tag_examples.modular.damage.farming",
+                ToolKind::Pick => "common.items.tag_examples.modular.damage.pick",
                 ToolKind::Empty => "common.items.tag_examples.modular.damage.empty",
             },
             ModularComponentKind::Held => match self.toolkind {
@@ -116,6 +119,7 @@ impl TagExampleInfo for ModularComponentTag {
                 ToolKind::Unique(_) => "common.items.tag_examples.modular.held.unique",
                 ToolKind::Debug => "common.items.tag_examples.modular.held.debug",
                 ToolKind::Farming => "common.items.tag_examples.modular.held.farming",
+                ToolKind::Pick => "common.items.tag_examples.modular.held.pick",
                 ToolKind::Empty => "common.items.tag_examples.modular.held.empty",
             },
         }

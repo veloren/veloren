@@ -11,7 +11,7 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
-use std::collections::BTreeSet;
+use std::collections::BTreeMap;
 use vek::*;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -111,8 +111,20 @@ pub enum ControlAction {
     StartInput {
         input: InputKind,
         target: Option<Uid>,
+        // Some inputs need a selected position, such as mining
+        select_pos: Option<Vec3<f32>>,
     },
     CancelInput(InputKind),
+}
+
+impl ControlAction {
+    pub fn basic_input(input: InputKind) -> Self {
+        ControlAction::StartInput {
+            input,
+            target: None,
+            select_pos: None,
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Ord, PartialOrd)]
@@ -132,6 +144,11 @@ impl InputKind {
     }
 }
 
+#[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+pub struct InputAttr {
+    pub select_pos: Option<Vec3<f32>>,
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Climb {
     Up,
@@ -146,12 +163,13 @@ pub struct ControllerInputs {
     pub move_z: f32, /* z axis (not combined with move_dir because they may have independent
                       * limits) */
     pub look_dir: Dir,
+    pub select_pos: Option<Vec3<f32>>,
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct Controller {
     pub inputs: ControllerInputs,
-    pub queued_inputs: BTreeSet<InputKind>,
+    pub queued_inputs: BTreeMap<InputKind, InputAttr>,
     // TODO: consider SmallVec
     pub events: Vec<ControlEvent>,
     pub actions: Vec<ControlAction>,
@@ -164,6 +182,7 @@ impl ControllerInputs {
         self.move_dir = new.move_dir;
         self.move_z = new.move_z;
         self.look_dir = new.look_dir;
+        self.select_pos = new.select_pos;
     }
 }
 

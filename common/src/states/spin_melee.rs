@@ -1,6 +1,6 @@
 use crate::{
     combat::{Attack, AttackDamage, AttackEffect, CombatBuff, CombatEffect, CombatRequirement},
-    comp::{CharacterState, EnergyChange, EnergySource, Melee, StateUpdate},
+    comp::{tool::ToolKind, CharacterState, EnergyChange, EnergySource, Melee, StateUpdate},
     consts::GRAVITY,
     states::{
         behavior::{CharacterBehavior, JoinData},
@@ -141,6 +141,16 @@ impl CharacterBehavior for Data {
                         max_angle: 180_f32.to_radians(),
                         applied: false,
                         hit_count: 0,
+                        break_block: data
+                            .inputs
+                            .select_pos
+                            .map(|p| {
+                                (
+                                    p.map(|e| e.floor() as i32),
+                                    self.static_data.ability_info.tool,
+                                )
+                            })
+                            .filter(|(_, tool)| tool == &Some(ToolKind::Pick)),
                     });
                 } else if self.timer < self.static_data.swing_duration {
                     if matches!(
