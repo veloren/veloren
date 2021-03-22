@@ -28,8 +28,8 @@ impl Armor {
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Stats<Protection> {
-    pub protection: Protection,
-    pub poise_resilience: Protection,
+    protection: Protection,
+    poise_resilience: Protection,
 }
 
 impl Stats<Protection> {
@@ -41,6 +41,10 @@ impl Stats<Protection> {
             poise_resilience,
         }
     }
+
+    pub fn get_protection(&self) -> Protection { self.protection }
+
+    pub fn get_poise_resilience(&self) -> Protection { self.poise_resilience }
 }
 
 impl Sub<Stats<Protection>> for Stats<Protection> {
