@@ -140,7 +140,7 @@ impl<'a> System<'a> for Sys {
             &mut energies.restrict_mut(),
             &mut inventories.restrict_mut(),
             &mut controllers,
-            &read_data.healths,
+            read_data.healths.maybe(),
             &read_data.bodies,
             &read_data.physics_states,
             &read_data.stats,
@@ -149,7 +149,7 @@ impl<'a> System<'a> for Sys {
             .join()
         {
             // Being dead overrides all other states
-            if health.is_dead {
+            if health.map_or(false, |h| h.is_dead) {
                 // Do nothing
                 continue;
             }
@@ -248,7 +248,7 @@ impl<'a> System<'a> for Sys {
                 energy,
                 inventory,
                 controller: &mut controller,
-                health: &health,
+                health,
                 body: &body,
                 physics: &physics,
                 melee_attack: read_data.melee_attacks.get(entity),

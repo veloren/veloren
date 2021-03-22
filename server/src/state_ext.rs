@@ -35,7 +35,7 @@ pub trait StateExt {
         &mut self,
         pos: comp::Pos,
         stats: comp::Stats,
-        health: comp::Health,
+        health: Option<comp::Health>,
         poise: comp::Poise,
         inventory: comp::Inventory,
         body: comp::Body,
@@ -162,12 +162,13 @@ impl StateExt for State {
         &mut self,
         pos: comp::Pos,
         stats: comp::Stats,
-        health: comp::Health,
+        health: Option<comp::Health>,
         poise: comp::Poise,
         inventory: comp::Inventory,
         body: comp::Body,
     ) -> EcsEntityBuilder {
-        self.ecs_mut()
+        let mut res = self
+            .ecs_mut()
             .create_entity_synced()
             .with(pos)
             .with(comp::Vel(Vec3::zero()))
@@ -199,9 +200,11 @@ impl StateExt for State {
                     .unwrap_or(None)
                     .unwrap_or(0),
             ))
-            .with(stats)
-            .with(health)
-            .with(poise)
+            .with(stats);
+        if let Some(health) = health {
+            res = res.with(health);
+        }
+        res.with(poise)
             .with(comp::Alignment::Npc)
             .with(comp::Gravity(1.0))
             .with(comp::CharacterState::default())

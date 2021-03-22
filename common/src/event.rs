@@ -112,7 +112,7 @@ pub enum ServerEvent {
     CreateNpc {
         pos: comp::Pos,
         stats: comp::Stats,
-        health: comp::Health,
+        health: Option<comp::Health>,
         poise: comp::Poise,
         loadout: comp::inventory::loadout::Loadout,
         body: comp::Body,

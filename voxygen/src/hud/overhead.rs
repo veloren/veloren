@@ -57,7 +57,7 @@ widget_ids! {
 #[derive(Clone, Copy)]
 pub struct Info<'a> {
     pub name: &'a str,
-    pub health: &'a Health,
+    pub health: Option<&'a Health>,
     pub buffs: &'a Buffs,
     pub energy: Option<&'a Energy>,
     pub combat_rating: f32,
@@ -140,7 +140,7 @@ impl<'a> Ingameable for Overhead<'a> {
                 } else {
                     0
                 }
-                + if should_show_healthbar(info.health) {
+                + if info.health.map_or(false, |h| should_show_healthbar(h)) {
                     5 + if info.energy.is_some() { 1 } else { 0 }
                 } else {
                     0
@@ -176,10 +176,11 @@ impl<'a> Widget for Overhead<'a> {
         }) = self.info
         {
             // Used to set healthbar colours based on hp_percentage
-            let hp_percentage = health.current() as f64 / health.maximum() as f64 * 100.0;
+            let hp_percentage =
+                health.map_or(100.0, |h| h.current() as f64 / h.maximum() as f64 * 100.0);
             // Compare levels to decide if a skull is shown
-            let health_current = (health.current() / 10) as f64;
-            let health_max = (health.maximum() / 10) as f64;
+            let health_current = health.map_or(1.0, |h| (h.current() / 10) as f64);
+            let health_max = health.map_or(1.0, |h| (h.maximum() / 10) as f64);
             let name_y = if (health_current - health_max).abs() < 1e-6 {
                 MANA_BAR_Y + 20.0
             } else {
@@ -296,116 +297,120 @@ impl<'a> Widget for Overhead<'a> {
                 .parent(id)
                 .set(state.ids.name, ui);
 
-            if should_show_healthbar(health) {
-                // Show HP Bar
-                let hp_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 1.0; //Animation timer
-                let crit_hp_color: Color = Color::Rgba(0.93, 0.59, 0.03, hp_ani);
+            match health {
+                Some(health) if should_show_healthbar(health) => {
+                    // Show HP Bar
+                    let hp_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 1.0; //Animation timer
+                    let crit_hp_color: Color = Color::Rgba(0.93, 0.59, 0.03, hp_ani);
 
-                // Background
-                Image::new(if self.in_group {self.imgs.health_bar_group_bg} else {self.imgs.enemy_health_bg})
+                    // Background
+                    Image::new(if self.in_group {self.imgs.health_bar_group_bg} else {self.imgs.enemy_health_bg})
                 .w_h(84.0 * BARSIZE, 10.0 * BARSIZE)
                 .x_y(0.0, MANA_BAR_Y + 6.5) //-25.5)
                 .color(Some(Color::Rgba(0.1, 0.1, 0.1, 0.8)))
                 .parent(id)
                 .set(state.ids.health_bar_bg, ui);
 
-                // % HP Filling
-                let size_factor = (hp_percentage / 100.0) * BARSIZE;
-                let w = if self.in_group {
-                    82.0 * size_factor
-                } else {
-                    73.0 * size_factor
-                };
-                let h = 6.0 * BARSIZE;
-                let x = if self.in_group {
-                    (0.0 + (hp_percentage / 100.0 * 41.0 - 41.0)) * BARSIZE
-                } else {
-                    (4.5 + (hp_percentage / 100.0 * 36.45 - 36.45)) * BARSIZE
-                };
-                Image::new(self.imgs.enemy_bar)
-                    .w_h(w, h)
-                    .x_y(x, MANA_BAR_Y + 8.0)
-                    .color(if self.in_group {
-                        // Different HP bar colors only for group members
-                        Some(match hp_percentage {
-                            x if (0.0..25.0).contains(&x) => crit_hp_color,
-                            x if (25.0..50.0).contains(&x) => LOW_HP_COLOR,
-                            _ => HP_COLOR,
-                        })
-                    } else {
-                        Some(ENEMY_HP_COLOR)
-                    })
-                    .parent(id)
-                    .set(state.ids.health_bar, ui);
-                let mut txt = format!("{}/{}", health_cur_txt, health_max_txt);
-                if health.is_dead {
-                    txt = self.i18n.get("hud.group.dead").to_string()
-                };
-                Text::new(&txt)
-                    .mid_top_with_margin_on(state.ids.health_bar_bg, 2.0)
-                    .font_size(10)
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .color(TEXT_COLOR)
-                    .parent(id)
-                    .set(state.ids.health_txt, ui);
-
-                // % Mana Filling
-                if let Some(energy) = energy {
-                    let energy_factor = energy.current() as f64 / energy.maximum() as f64;
-                    let size_factor = energy_factor * BARSIZE;
+                    // % HP Filling
+                    let size_factor = (hp_percentage / 100.0) * BARSIZE;
                     let w = if self.in_group {
-                        80.0 * size_factor
+                        82.0 * size_factor
                     } else {
-                        72.0 * size_factor
+                        73.0 * size_factor
                     };
+                    let h = 6.0 * BARSIZE;
                     let x = if self.in_group {
-                        ((0.0 + (energy_factor * 40.0)) - 40.0) * BARSIZE
+                        (0.0 + (hp_percentage / 100.0 * 41.0 - 41.0)) * BARSIZE
                     } else {
-                        ((3.5 + (energy_factor * 36.5)) - 36.45) * BARSIZE
+                        (4.5 + (hp_percentage / 100.0 * 36.45 - 36.45)) * BARSIZE
                     };
-                    Rectangle::fill_with([w, MANA_BAR_HEIGHT], STAMINA_COLOR)
-                        .x_y(
-                            x, MANA_BAR_Y, //-32.0,
-                        )
+                    Image::new(self.imgs.enemy_bar)
+                        .w_h(w, h)
+                        .x_y(x, MANA_BAR_Y + 8.0)
+                        .color(if self.in_group {
+                            // Different HP bar colors only for group members
+                            Some(match hp_percentage {
+                                x if (0.0..25.0).contains(&x) => crit_hp_color,
+                                x if (25.0..50.0).contains(&x) => LOW_HP_COLOR,
+                                _ => HP_COLOR,
+                            })
+                        } else {
+                            Some(ENEMY_HP_COLOR)
+                        })
                         .parent(id)
-                        .set(state.ids.mana_bar, ui);
-                }
+                        .set(state.ids.health_bar, ui);
+                    let mut txt = format!("{}/{}", health_cur_txt, health_max_txt);
+                    if health.is_dead {
+                        txt = self.i18n.get("hud.group.dead").to_string()
+                    };
+                    Text::new(&txt)
+                        .mid_top_with_margin_on(state.ids.health_bar_bg, 2.0)
+                        .font_size(10)
+                        .font_id(self.fonts.cyri.conrod_id)
+                        .color(TEXT_COLOR)
+                        .parent(id)
+                        .set(state.ids.health_txt, ui);
 
-                // Foreground
-                Image::new(if self.in_group {self.imgs.health_bar_group} else {self.imgs.enemy_health})
+                    // % Mana Filling
+                    if let Some(energy) = energy {
+                        let energy_factor = energy.current() as f64 / energy.maximum() as f64;
+                        let size_factor = energy_factor * BARSIZE;
+                        let w = if self.in_group {
+                            80.0 * size_factor
+                        } else {
+                            72.0 * size_factor
+                        };
+                        let x = if self.in_group {
+                            ((0.0 + (energy_factor * 40.0)) - 40.0) * BARSIZE
+                        } else {
+                            ((3.5 + (energy_factor * 36.5)) - 36.45) * BARSIZE
+                        };
+                        Rectangle::fill_with([w, MANA_BAR_HEIGHT], STAMINA_COLOR)
+                            .x_y(
+                                x, MANA_BAR_Y, //-32.0,
+                            )
+                            .parent(id)
+                            .set(state.ids.mana_bar, ui);
+                    }
+
+                    // Foreground
+                    Image::new(if self.in_group {self.imgs.health_bar_group} else {self.imgs.enemy_health})
                 .w_h(84.0 * BARSIZE, 10.0 * BARSIZE)
                 .x_y(0.0, MANA_BAR_Y + 6.5) //-25.5)
                 .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.99)))
                 .parent(id)
                 .set(state.ids.health_bar_fg, ui);
 
-                let indicator_col = cr_color(combat_rating);
-                let artifact_diffculty = 122.0;
+                    let indicator_col = cr_color(combat_rating);
+                    let artifact_diffculty = 122.0;
 
-                if combat_rating > artifact_diffculty && !self.in_group {
-                    let skull_ani = ((self.pulse * 0.7/* speed factor */).cos() * 0.5 + 0.5) * 10.0; //Animation timer
-                    Image::new(if skull_ani as i32 == 1 && rand::random::<f32>() < 0.9 {
-                        self.imgs.skull_2
+                    if combat_rating > artifact_diffculty && !self.in_group {
+                        let skull_ani =
+                            ((self.pulse * 0.7/* speed factor */).cos() * 0.5 + 0.5) * 10.0; //Animation timer
+                        Image::new(if skull_ani as i32 == 1 && rand::random::<f32>() < 0.9 {
+                            self.imgs.skull_2
+                        } else {
+                            self.imgs.skull
+                        })
+                        .w_h(18.0 * BARSIZE, 18.0 * BARSIZE)
+                        .x_y(-39.0 * BARSIZE, MANA_BAR_Y + 7.0)
+                        .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
+                        .parent(id)
+                        .set(state.ids.level_skull, ui);
                     } else {
-                        self.imgs.skull
-                    })
-                    .w_h(18.0 * BARSIZE, 18.0 * BARSIZE)
-                    .x_y(-39.0 * BARSIZE, MANA_BAR_Y + 7.0)
-                    .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
-                    .parent(id)
-                    .set(state.ids.level_skull, ui);
-                } else {
-                    Image::new(if self.in_group {
-                        self.imgs.nothing
-                    } else {
-                        self.imgs.combat_rating_ico
-                    })
-                    .w_h(7.0 * BARSIZE, 7.0 * BARSIZE)
-                    .x_y(-37.0 * BARSIZE, MANA_BAR_Y + 6.0)
-                    .color(Some(indicator_col))
-                    .parent(id)
-                    .set(state.ids.level, ui);
-                }
+                        Image::new(if self.in_group {
+                            self.imgs.nothing
+                        } else {
+                            self.imgs.combat_rating_ico
+                        })
+                        .w_h(7.0 * BARSIZE, 7.0 * BARSIZE)
+                        .x_y(-37.0 * BARSIZE, MANA_BAR_Y + 6.0)
+                        .color(Some(indicator_col))
+                        .parent(id)
+                        .set(state.ids.level, ui);
+                    }
+                },
+                _ => {},
             }
         }
         // Speech bubble

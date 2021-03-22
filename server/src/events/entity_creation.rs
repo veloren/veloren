@@ -48,7 +48,7 @@ pub fn handle_create_npc(
     server: &mut Server,
     pos: Pos,
     stats: Stats,
-    health: Health,
+    health: Option<Health>,
     poise: Poise,
     loadout: Loadout,
     body: Body,

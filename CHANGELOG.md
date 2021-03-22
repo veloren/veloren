@@ -64,6 +64,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A system to add glow and reflection effects to figures (i.e: characters, armour, weapons, etc.)
 - Merchants will trade wares with players
 - Airships that can be mounted and flown, and also walked on (`/airship` admin command)
+- RtSim airships that fly between towns.
 
 ### Changed
 

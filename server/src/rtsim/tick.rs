@@ -2,8 +2,7 @@
 
 use super::*;
 use common::{
-    comp,
-    comp::inventory::loadout_builder::LoadoutBuilder,
+    comp::{self, inventory::loadout_builder::LoadoutBuilder, ship},
     event::{EventBus, ServerEvent},
     resources::{DeltaTime, Time},
     terrain::TerrainGrid,
@@ -106,7 +105,10 @@ impl<'a> System<'a> for Sys {
             server_emitter.emit(ServerEvent::CreateNpc {
                 pos: comp::Pos(spawn_pos),
                 stats: comp::Stats::new(entity.get_name()),
-                health: comp::Health::new(body, 10),
+                health: match body {
+                    comp::Body::Ship(ship::Body::DefaultAirship) => None,
+                    _ => Some(comp::Health::new(body, 10)),
+                },
                 loadout: match body {
                     comp::Body::Humanoid(_) => entity.get_loadout(),
                     _ => LoadoutBuilder::new().build(),

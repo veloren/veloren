@@ -855,7 +855,7 @@ fn handle_spawn(
                                         id,
                                         npc::BodyType::from_body(body),
                                     )),
-                                    comp::Health::new(body, 1),
+                                    Some(comp::Health::new(body, 1)),
                                     comp::Poise::new(body),
                                     inventory,
                                     body,
@@ -968,7 +968,14 @@ fn handle_spawn_training_dummy(
 
             server
                 .state
-                .create_npc(pos, stats, health, poise, Inventory::new_empty(), body)
+                .create_npc(
+                    pos,
+                    stats,
+                    Some(health),
+                    poise,
+                    Inventory::new_empty(),
+                    body,
+                )
                 .with(comp::Vel(vel))
                 .with(comp::MountState::Unmounted)
                 .build();

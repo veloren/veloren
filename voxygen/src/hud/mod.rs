@@ -1339,7 +1339,7 @@ impl Hud {
                 &pos,
                 interpolated.maybe(),
                 &stats,
-                &healths,
+                healths.maybe(),
                 &buffs,
                 energy.maybe(),
                 scales.maybe(),
@@ -1352,7 +1352,7 @@ impl Hud {
                 .filter(|t| {
                     let health = t.4;
                     let entity = t.0;
-                    entity != me && !health.is_dead
+                    entity != me && !health.map_or(false, |h| h.is_dead)
                 })
                 .filter_map(
                     |(
@@ -1380,7 +1380,7 @@ impl Hud {
                         let display_overhead_info =
                             (info.target_entity.map_or(false, |e| e == entity)
                                 || info.selected_entity.map_or(false, |s| s.0 == entity)
-                                || overhead::should_show_healthbar(health)
+                                || health.map_or(true, overhead::should_show_healthbar)
                                 || in_group)
                                 && dist_sqr
                                     < (if in_group {
@@ -1400,9 +1400,9 @@ impl Hud {
                             health,
                             buffs,
                             energy,
-                            combat_rating: combat::combat_rating(
-                                inventory, health, stats, *body, &msm,
-                            ),
+                            combat_rating: health.map_or(0.0, |health| {
+                                combat::combat_rating(inventory, health, stats, *body, &msm)
+                            }),
                         });
                         let bubble = if dist_sqr < SPEECH_BUBBLE_RANGE.powi(2) {
                             speech_bubbles.get(uid)
@@ -1492,7 +1492,8 @@ impl Hud {
                         });
                         // Divide by 10 to stay in the same dimension as the HP display
                         let hp_dmg_rounded_abs = ((hp_damage + 5) / 10).abs();
-                        let max_hp_frac = hp_damage.abs() as f32 / health.maximum() as f32;
+                        let max_hp_frac =
+                            hp_damage.abs() as f32 / health.map_or(1.0, |h| h.maximum() as f32);
                         let timer = floaters
                             .last()
                             .expect("There must be at least one floater")
@@ -1563,8 +1564,8 @@ impl Hud {
                             let sct_bg_id = sct_bg_walker
                                 .next(&mut self.ids.sct_bgs, &mut ui_widgets.widget_id_generator());
                             // Calculate total change
-                            let max_hp_frac =
-                                floater.hp_change.abs() as f32 / health.maximum() as f32;
+                            let max_hp_frac = floater.hp_change.abs() as f32
+                                / health.map_or(1.0, |h| h.maximum() as f32);
                             // Increase font size based on fraction of maximum health
                             // "flashes" by having a larger size in the first 100ms
                             let font_size = 30
