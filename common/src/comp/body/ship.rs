@@ -58,6 +58,7 @@ pub mod figuredata {
         pub bone0: ShipCentralSubSpec,
         pub bone1: ShipCentralSubSpec,
         pub bone2: ShipCentralSubSpec,
+        pub bone3: ShipCentralSubSpec,
     }
 
     #[derive(Deserialize)]

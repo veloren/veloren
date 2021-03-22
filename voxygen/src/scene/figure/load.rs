@@ -4215,7 +4215,7 @@ impl BodySpec for ship::Body {
             Some(mesh_ship_bone(map, body, |spec| &spec.bone0)),
             Some(mesh_ship_bone(map, body, |spec| &spec.bone1)),
             Some(mesh_ship_bone(map, body, |spec| &spec.bone2)),
-            None,
+            Some(mesh_ship_bone(map, body, |spec| &spec.bone3)),
             None,
             None,
             None,

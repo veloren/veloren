@@ -4226,14 +4226,28 @@ impl FigureMgr {
                         // Standing
                         (true, false, false) => anim::ship::IdleAnimation::update_skeleton(
                             &ShipSkeleton::default(),
-                            (active_tool_kind, second_tool_kind, time),
+                            (
+                                active_tool_kind,
+                                second_tool_kind,
+                                time,
+                                state.acc_vel,
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                            ),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
                         ),
                         _ => anim::ship::IdleAnimation::update_skeleton(
                             &ShipSkeleton::default(),
-                            (active_tool_kind, second_tool_kind, time),
+                            (
+                                active_tool_kind,
+                                second_tool_kind,
+                                time,
+                                state.acc_vel,
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                            ),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
