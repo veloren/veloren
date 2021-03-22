@@ -146,7 +146,7 @@ pub fn init() {
     // Start reloader that watcher signals
     // "Debounces" events since I can't find the option to do this in the latest
     // `notify`
-    thread::spawn(move || {
+    std::thread::Builder::new("voxygen_anim_watcher".to_owned()).spawn(move || {
         let mut modified_paths = std::collections::HashSet::new();
         while let Ok(path) = reload_recv.recv() {
             modified_paths.insert(path);
