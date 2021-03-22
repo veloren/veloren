@@ -45,9 +45,9 @@ checksum = "739f4a8db6605981345c5654f3a85b056ce52f37a39d34da03f25bf2151ea16e"
 
 [[package]]
 name = "ahash"
-version = "0.6.3"
+version = "0.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "796540673305a66d127804eef19ad696f1f204b8c1025aaca4958c17eab32877"
+checksum = "7f200cbb1e856866d9eade941cf3aa0c5d7dd36f74311c4273b494f4ef036957"
 dependencies = [
  "getrandom 0.2.2",
  "once_cell",
@@ -215,11 +215,11 @@ dependencies = [
 
 [[package]]
 name = "assets_manager"
-version = "0.4.3"
+version = "0.4.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dac94eeee6ebd1165959e440836a452109f9f839d6cfde12974d75a5b4222406"
+checksum = "792c2eca2af86c76ffd3e72ca564c33b5a5551d5ac3f4f87dce8c0b7c6434061"
 dependencies = [
- "ahash 0.6.3",
+ "ahash 0.7.2",
  "bincode",
  "crossbeam-channel",
  "log",
