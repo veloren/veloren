@@ -676,7 +676,11 @@ impl Ui {
                 if intersection.is_valid() {
                     intersection
                 } else {
-                    Aabr::new_empty(Vec2::zero())
+                    // TODO: What should we return here
+                    // We used to return a zero sized aabr but it's invalid to
+                    // use a zero sized scissor so for now we just don't change
+                    // the scissor.
+                    current_scissor
                 }
             };
             if new_scissor != current_scissor {
