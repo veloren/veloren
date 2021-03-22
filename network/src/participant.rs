@@ -2,6 +2,7 @@ use crate::{
     api::{ParticipantError, Stream},
     channel::{Protocols, RecvProtocols, SendProtocols},
     metrics::NetworkMetrics,
+    trace::DeferredTracer,
 };
 use bytes::Bytes;
 use futures_util::{FutureExt, StreamExt};
@@ -356,6 +357,8 @@ impl BParticipant {
             recv_protocols.is_empty()
         };
 
+        let mut defered_orphan = DeferredTracer::new(tracing::Level::WARN);
+
         loop {
             let (event, addp, remp) = select!(
                 Some(n) = hacky_recv_r.recv().fuse() => (Some(n), None, None),
@@ -408,7 +411,7 @@ impl BParticipant {
                             Some(stream) => {
                                 let _ = stream.b2a_msg_recv_s.lock().await.send(data).await;
                             },
-                            None => warn!("recv a msg with orphan stream"),
+                            None => defered_orphan.log(sid),
                         };
                         retrigger(cid, p, &mut recv_protocols);
                     },
@@ -430,6 +433,12 @@ impl BParticipant {
                             break;
                         }
                     },
+                }
+            }
+
+            if let Some(table) = defered_orphan.print() {
+                for (sid, cnt) in table.iter() {
+                    warn!(?sid, ?cnt, "recv messages with orphan stream");
                 }
             }
         }
