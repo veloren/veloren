@@ -2,7 +2,7 @@ use super::image_frame::ImageFrame;
 use crate::hud::{
     get_quality_col,
     img_ids::Imgs,
-    item_imgs::{animate_by_pulse, ItemImgs},
+    item_imgs::{animate_by_pulse, ItemImgs, ItemKey},
     util,
 };
 use client::Client;
@@ -105,8 +105,7 @@ impl ItemTooltipManager {
     fn set_tooltip(
         &mut self,
         tooltip: &ItemTooltip,
-        item: Option<Item>,
-        title_col: Color,
+        item: &Item,
         img_id: Option<image::Id>,
         image_dims: Option<(f64, f64)>,
         src_id: widget::Id,
@@ -120,8 +119,7 @@ impl ItemTooltipManager {
             // spacing
             let tooltip = tooltip
                 .clone()
-                .item(item)
-                .title_col(title_col)
+                .item(item.clone())
                 .image(img_id)
                 .image_dims(image_dims);
 
@@ -173,12 +171,11 @@ pub struct ItemTooltipped<'a, W> {
     imgs: &'a Imgs,
     item_imgs: &'a ItemImgs,
     pulse: f32,
-    item: Option<Item>,
+    item: &'a Item,
     msm: &'a MaterialStatManifest,
     img_id: Option<image::Id>,
     image_dims: Option<(f64, f64)>,
     tooltip: &'a ItemTooltip<'a>,
-    title_col: Color,
 }
 impl<'a, W: Widget> ItemTooltipped<'a, W> {
     pub fn tooltip_image(mut self, img_id: image::Id) -> Self {
@@ -195,8 +192,7 @@ impl<'a, W: Widget> ItemTooltipped<'a, W> {
         let event = self.inner.set(id, ui);
         self.tooltip_manager.set_tooltip(
             self.tooltip,
-            self.item,
-            self.title_col,
+            &self.item,
             self.img_id,
             self.image_dims,
             id,
@@ -215,10 +211,9 @@ pub trait ItemTooltipable {
         imgs: &'a Imgs,
         item_imgs: &'a ItemImgs,
         pulse: f32,
-        item: Option<Item>,
+        item: &'a Item,
         msm: &'a MaterialStatManifest,
         tooltip: &'a ItemTooltip<'a>,
-        title_col: Color,
     ) -> ItemTooltipped<'a, Self>
     where
         Self: std::marker::Sized;
@@ -231,10 +226,9 @@ impl<W: Widget> ItemTooltipable for W {
         imgs: &'a Imgs,
         item_imgs: &'a ItemImgs,
         pulse: f32,
-        item: Option<Item>,
+        item: &'a Item,
         msm: &'a MaterialStatManifest,
         tooltip: &'a ItemTooltip<'a>,
-        title_col: Color,
     ) -> ItemTooltipped<'a, W> {
         ItemTooltipped {
             inner: self,
@@ -248,7 +242,6 @@ impl<W: Widget> ItemTooltipable for W {
             img_id: None,
             image_dims: None,
             tooltip,
-            title_col,
         }
     }
 }
@@ -273,9 +266,8 @@ const ICON_SIZE: [f64; 2] = [64.0, 64.0];
 pub struct ItemTooltip<'a> {
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
-    item: Option<Item>,
+    item: Item,
     msm: &'a MaterialStatManifest,
-    title_col: Color,
     image: Option<image::Id>,
     image_dims: Option<(f64, f64)>,
     style: Style,
@@ -326,11 +318,10 @@ impl<'a> ItemTooltip<'a> {
         pub title_justify { style.title.justify = Some(text::Justify) }
         pub desc_justify { style.desc.justify = Some(text::Justify) }
         image { image = Option<image::Id> }
-        item { item = Option<Item> }
+        item { item = Item }
         msm { msm = &'a MaterialStatManifest }
         image_dims { image_dims = Option<(f64, f64)> }
         transparency { transparency = f32 }
-        title_col { title_col = Color}
     }
 
     pub fn new(
@@ -344,13 +335,12 @@ impl<'a> ItemTooltip<'a> {
         ItemTooltip {
             common: widget::CommonBuilder::default(),
             style: Style::default(),
-            item: None,
+            item: Item::new_from_asset_expect("common.items.weapons.empty.empty"),
             msm,
             transparency: 1.0,
             image_frame,
             image: None,
             image_dims: None,
-            title_col: TEXT_COLOR,
             client: &client,
             imgs: &imgs,
             item_imgs: &item_imgs,
@@ -440,14 +430,15 @@ impl<'a> Widget for ItemTooltip<'a> {
             count as usize
         }
 
-        if let Some(ref item) = self.item {
             let inventories = self.client.inventories();
             let inventory = match inventories.get(self.client.entity()) {
                 Some(l) => l,
                 None => return,
             };
 
-            let quality = get_quality_col(item);
+            let item = self.item.clone();
+
+            let quality = get_quality_col(&item);
 
             let equip_slot = inventory.equipped_items_of_kind(item.kind().clone());
 
@@ -481,13 +472,13 @@ impl<'a> Widget for ItemTooltip<'a> {
             state.update(|s| {
                 s.ids
                     .stats
-                    .resize(stats_count(item), &mut ui.widget_id_generator())
+                    .resize(stats_count(&item), &mut ui.widget_id_generator())
             });
 
             state.update(|s| {
                 s.ids
                     .diffs
-                    .resize(stats_count(item), &mut ui.widget_id_generator())
+                    .resize(stats_count(&item), &mut ui.widget_id_generator())
             });
 
             // Background image frame
@@ -532,7 +523,7 @@ impl<'a> Widget for ItemTooltip<'a> {
 
             // Item render
             widget::Image::new(animate_by_pulse(
-                &self.item_imgs.img_ids_or_not_found_img(item.into()),
+                &self.item_imgs.img_ids_or_not_found_img(ItemKey::from(&item)),
                 self.pulse,
             ))
             .color(Some(conrod_core::color::WHITE))
@@ -653,10 +644,12 @@ impl<'a> Widget for ItemTooltip<'a> {
                                 equipped_tool_stats.crit_mult,
                             );
                             let equipped_dps =
-                                equipped_tool_stats.power * equipped_tool_stats.speed;
+                                equipped_tool_stats.power * equipped_tool_stats.speed * 10.0;
+                            dbg!(dps);
+                            dbg!(equipped_dps);
                             let diff_main_stat = util::comparison(dps, equipped_dps);
 
-                            if equipped_dps - dps != 0.0 {
+                            if !(equipped_dps == dps){
                                 widget::Text::new(&diff_main_stat.0)
                                     .right_from(state.ids.main_stat_text, 5.0)
                                     .graphics_for(id)
@@ -864,7 +857,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                     .with_style(self.style.desc)
                     .color(conrod_core::color::GREY)
                     .down_from(
-                        if stats_count(item) > 0 {
+                        if stats_count(&item) > 0 {
                             state.ids.stats[state.ids.stats.len() - 1]
                         } else {
                             (state.ids.item_frame)
@@ -874,7 +867,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                     .w(text_w)
                     .set(state.ids.desc, ui);
             }
-        }
+
     }
 
     /// Default width is based on the description font size unless the text is
@@ -895,8 +888,7 @@ impl<'a> Widget for ItemTooltip<'a> {
             count as usize
         }
 
-        if let Some(ref item) = self.item {
-            let (title, desc) = (item.name().to_string(), item.description().to_string());
+            let (title, desc) = (self.item.name().to_string(), self.item.description().to_string());
 
             let (text_w, image_w) = self.text_image_width(280.0);
             // Title
@@ -930,17 +922,15 @@ impl<'a> Widget for ItemTooltip<'a> {
 
             dbg!(title_h);
             dbg!(frame_h);
-            dbg!(stat_h * stats_count(item) as f64);
+            dbg!(stat_h * stats_count(&self.item) as f64);
             dbg!(desc_h);
             let height = title_h
                 + frame_h
-                + stat_h * stats_count(item) as f64
+                + stat_h * stats_count(&self.item) as f64
                 + desc_h
-                + V_PAD * 5.0 + V_PAD_STATS * stats_count(item) as f64;
+                + V_PAD * 5.0 + V_PAD_STATS * stats_count(&self.item) as f64;
             Dimension::Absolute(height)
-        } else {
-            Dimension::Absolute(10.0)
-        }
+
     }
 }
 
