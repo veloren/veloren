@@ -1,18 +1,29 @@
 #![deny(clippy::clone_on_ref_ptr)]
 
-use std::error::Error;
+use std::{
+    error::Error,
+    io::Write,
+    ops::{Div, Mul},
+};
 use structopt::StructOpt;
 
-use comp::item::{
-    armor::{ArmorKind, Protection},
-    tool::{Hands, MaterialStatManifest, Tool, ToolKind},
-    ItemKind,
+use veloren_common::{
+    assets::AssetExt,
+    comp::{
+        self,
+        item::{
+            armor::{ArmorKind, Protection},
+            tool::{Hands, MaterialStatManifest, Tool, ToolKind},
+            ItemKind,
+        },
+    },
+    lottery::Lottery,
 };
-use veloren_common::comp;
 
 #[derive(StructOpt)]
 struct Cli {
-    /// Available arguments: "armor_stats", "weapon_stats", "all_items"
+    /// Available arguments: "armor-stats", "weapon-stats", "all-items",
+    /// "loot-table"
     function: String,
 }
 
@@ -205,6 +216,32 @@ fn all_items() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+fn loot_table(loot_table: &str) -> Result<(), Box<dyn Error>> {
+    let mut wtr = csv::Writer::from_path("loot_table.csv")?;
+    wtr.write_record(&["Item", "Relative Chance"])?;
+
+    let loot_table = "common.loot_tables.".to_owned() + loot_table;
+
+    let loot_table = Lottery::<String>::load_expect(&loot_table).read();
+
+    for (i, (chance, item)) in loot_table.iter().enumerate() {
+        let chance = if let Some((next_chance, _)) = loot_table.iter().nth(i + 1) {
+            next_chance - chance
+        } else {
+            loot_table.total() - chance
+        }
+        .mul(10_f32.powi(5))
+        .round()
+        .div(10_f32.powi(5))
+        .to_string();
+
+        wtr.write_record(&[item, &chance])?;
+    }
+
+    wtr.flush()?;
+    Ok(())
+}
+
 fn main() {
     let args = Cli::from_args();
     if args.function.eq_ignore_ascii_case("armor-stats") {
@@ -219,10 +256,30 @@ fn main() {
         if let Err(e) = all_items() {
             println!("Error: {}\n", e)
         }
+    } else if args.function.eq_ignore_ascii_case("loot-table") {
+        let loot_table_name = get_input(
+            "Specify the name of the loot table to export to csv. Assumes loot table is in \
+             directory: assets.common.loot_tables.\n",
+        );
+        if let Err(e) = loot_table(&loot_table_name) {
+            println!("Error: {}\n", e)
+        }
     } else {
         println!(
             "Invalid argument, available \
-             arguments:\n\"armor-stats\"\n\"weapon-stats\"\n\"all-items\""
+             arguments:\n\"armor-stats\"\n\"weapon-stats\"\n\"all-items\"\n\"loot-table [table]\""
         )
     }
+}
+
+pub fn get_input(prompt: &str) -> String {
+    // Function to get input from the user with a prompt
+    let mut input = String::new();
+    print!("{}", prompt);
+    std::io::stdout().flush().unwrap();
+    std::io::stdin()
+        .read_line(&mut input)
+        .expect("Error reading input");
+
+    String::from(input.trim())
 }
