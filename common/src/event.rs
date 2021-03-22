@@ -112,7 +112,7 @@ pub enum ServerEvent {
     CreateNpc {
         pos: comp::Pos,
         stats: comp::Stats,
-        health: Option<comp::Health>,
+        health: comp::Health,
         poise: comp::Poise,
         loadout: comp::inventory::loadout::Loadout,
         body: comp::Body,
@@ -121,6 +121,14 @@ pub enum ServerEvent {
         scale: comp::Scale,
         home_chunk: Option<comp::HomeChunk>,
         drop_item: Option<Item>,
+        rtsim_entity: Option<RtSimEntity>,
+    },
+    CreateShip {
+        pos: comp::Pos,
+        ship: comp::ship::Body,
+        level: u16,
+        mountable: bool,
+        agent: Option<comp::Agent>,
         rtsim_entity: Option<RtSimEntity>,
     },
     CreateWaypoint(Vec3<f32>),

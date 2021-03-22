@@ -181,7 +181,7 @@ impl<'a> System<'a> for Sys {
                 server_emitter.emit(ServerEvent::CreateNpc {
                     pos: Pos(entity.pos),
                     stats,
-                    health: Some(health),
+                    health,
                     poise,
                     loadout,
                     agent: if entity.has_agency {

@@ -2,7 +2,7 @@
 
 use super::*;
 use common::{
-    comp::{self, inventory::loadout_builder::LoadoutBuilder, ship},
+    comp::{self, inventory::loadout_builder::LoadoutBuilder},
     event::{EventBus, ServerEvent},
     resources::{DeltaTime, Time},
     terrain::TerrainGrid,
@@ -102,38 +102,49 @@ impl<'a> System<'a> for Sys {
                 .map(|e| e as f32)
                 + Vec3::new(0.5, 0.5, 0.0);
             let body = entity.get_body();
-            server_emitter.emit(ServerEvent::CreateNpc {
-                pos: comp::Pos(spawn_pos),
-                stats: comp::Stats::new(entity.get_name()),
-                health: match body {
-                    comp::Body::Ship(ship::Body::DefaultAirship) => None,
-                    _ => Some(comp::Health::new(body, 10)),
+            let pos = comp::Pos(spawn_pos);
+            let agent = Some(comp::Agent::new(
+                None,
+                matches!(body, comp::Body::Humanoid(_)),
+                None,
+                &body,
+                false,
+            ));
+            let rtsim_entity = Some(RtSimEntity(id));
+            let event = match body {
+                comp::Body::Ship(ship) => ServerEvent::CreateShip {
+                    pos,
+                    ship,
+                    level: 1,
+                    mountable: false,
+                    agent,
+                    rtsim_entity,
                 },
-                loadout: match body {
-                    comp::Body::Humanoid(_) => entity.get_loadout(),
-                    _ => LoadoutBuilder::new().build(),
+                _ => ServerEvent::CreateNpc {
+                    pos: comp::Pos(spawn_pos),
+                    stats: comp::Stats::new(entity.get_name()),
+                    health: comp::Health::new(body, 10),
+                    loadout: match body {
+                        comp::Body::Humanoid(_) => entity.get_loadout(),
+                        _ => LoadoutBuilder::new().build(),
+                    },
+                    poise: comp::Poise::new(body),
+                    body,
+                    agent,
+                    alignment: match body {
+                        comp::Body::Humanoid(_) => comp::Alignment::Npc,
+                        _ => comp::Alignment::Wild,
+                    },
+                    scale: match body {
+                        comp::Body::Ship(_) => comp::Scale(comp::ship::AIRSHIP_SCALE),
+                        _ => comp::Scale(1.0),
+                    },
+                    drop_item: None,
+                    home_chunk: None,
+                    rtsim_entity,
                 },
-                poise: comp::Poise::new(body),
-                body,
-                agent: Some(comp::Agent::new(
-                    None,
-                    matches!(body, comp::Body::Humanoid(_)),
-                    None,
-                    &body,
-                    false,
-                )),
-                alignment: match body {
-                    comp::Body::Humanoid(_) => comp::Alignment::Npc,
-                    _ => comp::Alignment::Wild,
-                },
-                scale: match body {
-                    comp::Body::Ship(_) => comp::Scale(comp::ship::AIRSHIP_SCALE),
-                    _ => comp::Scale(1.0),
-                },
-                drop_item: None,
-                home_chunk: None,
-                rtsim_entity: Some(RtSimEntity(id)),
-            });
+            };
+            server_emitter.emit(event);
         }
 
         // Update rtsim with real entity data
