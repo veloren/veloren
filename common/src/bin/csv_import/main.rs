@@ -14,7 +14,7 @@ use veloren_common::{assets::ASSETS_PATH, comp};
 
 #[derive(StructOpt)]
 struct Cli {
-    /// Available arguments: "armor_stats", "weapon_stats"
+    /// Available arguments: "armor-stats", "weapon-stats", "loot-table"
     function: String,
 }
 
@@ -361,6 +361,48 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+fn loot_table(loot_table: &str) -> Result<(), Box<dyn Error>> {
+    let mut rdr = csv::Reader::from_path("loot_table.csv")?;
+
+    let headers: HashMap<String, usize> = rdr
+        .headers()
+        .expect("Failed to read CSV headers")
+        .iter()
+        .enumerate()
+        .map(|(i, x)| (x.to_string(), i))
+        .collect();
+
+    let mut items = Vec::<(f32, String)>::new();
+
+    for record in rdr.records() {
+        if let Ok(ref record) = record {
+            let item = record.get(headers["Item"]).expect("No item");
+            let chance: f32 = record
+                .get(headers["Relative Chance"])
+                .expect("No chance for item in entry")
+                .parse()
+                .expect("Not an f32 for chance in entry");
+            items.push((chance, item.to_string()));
+        }
+    }
+
+    let pretty_config = PrettyConfig::new()
+        .with_depth_limit(4)
+        .with_decimal_floats(true);
+
+    let mut path = ASSETS_PATH.clone();
+    path.push("common");
+    path.push("loot_tables");
+    path.push(loot_table);
+    path.set_extension("ron");
+
+    let path_str = path.to_str().expect("File path not unicode?!");
+    let mut writer = File::create(path_str)?;
+    write!(writer, "{}", to_string_pretty(&items, pretty_config)?)?;
+
+    Ok(())
+}
+
 fn main() {
     let args = Cli::from_args();
     if args.function.eq_ignore_ascii_case("armor-stats") {
@@ -423,8 +465,45 @@ Would you like to continue? (y/n)
                 println!("Error: {}\n", e)
             }
         }
+    } else if args.function.eq_ignore_ascii_case("loot-table") {
+        let loot_table_name = get_input(
+            "Specify the name of the loot table to import from csv. Adds loot table to the \
+             directory: assets.common.loot_tables.\n",
+        );
+        if get_input(
+            "
+-------------------------------------------------------------------------------
+|                                 DISCLAIMER                                  |
+-------------------------------------------------------------------------------
+|                                                                             |
+|   This script will wreck the RON file for a loot table if it messes up.     |
+|   You might want to save a back up of the loot table or be prepared to      |
+|   use `git checkout HEAD -- ../assets/common/loot_tables/*` if needed.      |
+|   If this script does mess up your files, please fix it. Otherwise your     |
+|   files will be yeeted away and you will get a bonk on the head.            |
+|                                                                             |
+-------------------------------------------------------------------------------
+
+In order for this script to work, you need to have first run the csv exporter.
+Once you have loot_table.csv you can make changes to item drops and their drop
+chance in your preferred editor. Save the csv file and then run this script
+to import your changes back to RON.
+
+Would you like to continue? (y/n)
+> ",
+        )
+        .to_lowercase()
+            == "y".to_string()
+        {
+            if let Err(e) = loot_table(&loot_table_name) {
+                println!("Error: {}\n", e)
+            }
+        }
     } else {
-        println!("Invalid argument, available arguments:\n\"armor-stats\"\n\"weapon-stats\"\n\"")
+        println!(
+            "Invalid argument, available \
+             arguments:\n\"armor-stats\"\n\"weapon-stats\"\n\"loot-table\"\n\""
+        )
     }
 }
 

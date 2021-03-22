@@ -68,6 +68,8 @@ impl<T> Lottery<T> {
     pub fn choose(&self) -> &T { self.choose_seeded(thread_rng().gen()) }
 
     pub fn iter(&self) -> impl Iterator<Item = &(f32, T)> { self.items.iter() }
+
+    pub fn total(&self) -> f32 { self.total }
 }
 
 #[cfg(test)]
