@@ -78,6 +78,11 @@ debug-assertions = false
 lto = true
 debug = false
 
+# used for cargo bench
+[profile.bench]
+opt-level = 2
+incremental = true
+
 # this profile is used by developers for release profiling
 [profile.releasedebuginfo]
 inherits =  'release'
