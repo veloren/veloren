@@ -2,7 +2,8 @@ use super::*;
 use crate::audio::sfx::SfxEvent;
 use common::{
     comp::{
-        bird_small, humanoid, quadruped_medium, quadruped_small, Body, CharacterState, PhysicsState,
+        bird_small, humanoid, quadruped_medium, quadruped_small, Body, CharacterState, InputKind,
+        PhysicsState,
     },
     states,
     terrain::BlockKind,
@@ -184,6 +185,7 @@ fn maps_roll() {
                 recover_duration: Duration::default(),
                 roll_strength: 0.0,
                 immune_melee: false,
+                ability_info: empty_ability_info(),
             },
             timer: Duration::default(),
             stage_section: states::utils::StageSection::Buildup,
@@ -344,4 +346,13 @@ fn determines_relative_volumes() {
     assert!(quadruped_medium < human);
     assert!(quadruped_small < quadruped_medium);
     assert!(bird_small < quadruped_small);
+}
+
+fn empty_ability_info() -> states::utils::AbilityInfo {
+    states::utils::AbilityInfo {
+        tool: None,
+        hand: None,
+        input: InputKind::Primary,
+        select_pos: None,
+    }
 }
