@@ -115,7 +115,6 @@ impl<'a> System<'a> for Sys {
                 comp::Body::Ship(ship) => ServerEvent::CreateShip {
                     pos,
                     ship,
-                    level: 1,
                     mountable: false,
                     agent,
                     rtsim_entity,

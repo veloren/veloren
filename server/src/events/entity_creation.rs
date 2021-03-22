@@ -114,12 +114,11 @@ pub fn handle_create_ship(
     server: &mut Server,
     pos: comp::Pos,
     ship: comp::ship::Body,
-    level: u16,
     mountable: bool,
     agent: Option<Agent>,
     rtsim_entity: Option<RtSimEntity>,
 ) {
-    let mut entity = server.state.create_ship(pos, ship, level, mountable);
+    let mut entity = server.state.create_ship(pos, ship, mountable);
     if let Some(agent) = agent {
         entity = entity.with(agent);
     }

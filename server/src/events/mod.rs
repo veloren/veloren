@@ -165,11 +165,10 @@ impl Server {
                 ServerEvent::CreateShip {
                     pos,
                     ship,
-                    level,
                     mountable,
                     agent,
                     rtsim_entity,
-                } => handle_create_ship(self, pos, ship, level, mountable, agent, rtsim_entity),
+                } => handle_create_ship(self, pos, ship, mountable, agent, rtsim_entity),
                 ServerEvent::CreateWaypoint(pos) => handle_create_waypoint(self, pos),
                 ServerEvent::ClientDisconnect(entity) => {
                     frontend_events.push(handle_client_disconnect(self, entity))

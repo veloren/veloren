@@ -126,7 +126,6 @@ pub enum ServerEvent {
     CreateShip {
         pos: comp::Pos,
         ship: comp::ship::Body,
-        level: u16,
         mountable: bool,
         agent: Option<comp::Agent>,
         rtsim_entity: Option<RtSimEntity>,

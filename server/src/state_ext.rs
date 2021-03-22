@@ -46,7 +46,6 @@ pub trait StateExt {
         &mut self,
         pos: comp::Pos,
         ship: comp::ship::Body,
-        level: u16,
         mountable: bool,
     ) -> EcsEntityBuilder;
     /// Build a projectile
@@ -231,7 +230,6 @@ impl StateExt for State {
         &mut self,
         pos: comp::Pos,
         ship: comp::ship::Body,
-        level: u16,
         mountable: bool,
     ) -> EcsEntityBuilder {
         let mut builder = self
@@ -252,10 +250,8 @@ impl StateExt for State {
             .with(comp::CharacterState::default())
             // TODO: some of these are required in order for the character_behavior system to
             // recognize a possesed airship; that system should be refactored to use `.maybe()`
-            .with(comp::Energy::new(ship.into(), level))
-            //.with(comp::Health::new(ship.into(), level))
+            .with(comp::Energy::new(ship.into(), 0))
             .with(comp::Stats::new("Airship".to_string()))
-            .with(comp::Buffs::default())
             .with(comp::Combo::default());
 
         if mountable {
