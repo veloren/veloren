@@ -6,14 +6,16 @@ use common::{
     },
     event::{EventBus, ServerEvent},
     resources::{DeltaTime, Time},
+    terrain::TerrainGrid,
     uid::{Uid, UidAllocator},
+    vol::ReadVol,
     GroupTarget,
 };
 use common_ecs::{Job, Origin, ParMode, Phase, System};
 use rayon::iter::ParallelIterator;
 use specs::{
-    saveload::MarkerAllocator, shred::ResourceId, Entities, Join, ParJoin, Read, ReadStorage,
-    SystemData, World, WriteStorage,
+    saveload::MarkerAllocator, shred::ResourceId, Entities, Join, ParJoin, Read, ReadExpect,
+    ReadStorage, SystemData, World, WriteStorage,
 };
 use std::time::Duration;
 use vek::*;
@@ -24,6 +26,7 @@ pub struct ReadData<'a> {
     server_bus: Read<'a, EventBus<ServerEvent>>,
     time: Read<'a, Time>,
     dt: Read<'a, DeltaTime>,
+    terrain: ReadExpect<'a, TerrainGrid>,
     uid_allocator: Read<'a, UidAllocator>,
     uids: ReadStorage<'a, Uid>,
     positions: ReadStorage<'a, Pos>,
@@ -65,10 +68,11 @@ impl<'a> System<'a> for Sys {
             &read_data.entities,
             &read_data.positions,
             &read_data.orientations,
+            read_data.bodies.maybe(),
             &beam_segments,
         )
             .par_join()
-            .fold(|| (Vec::new(), Vec::new()), |(mut server_events, mut add_hit_entities), (entity, pos, ori, beam_segment)|
+            .fold(|| (Vec::new(), Vec::new()), |(mut server_events, mut add_hit_entities), (entity, pos, ori, body, beam_segment)|
         {
             let creation_time = match beam_segment.creation {
                 Some(time) => time,
@@ -112,6 +116,8 @@ impl<'a> System<'a> for Sys {
                 return (server_events, add_hit_entities);
             };
 
+            let eye_pos = pos.0 + Vec3::unit_z() * body.map_or(0.0, |b| b.eye_height());
+
             // Go through all other effectable entities
             for (target, uid_b, pos_b, health_b, body_b) in (
                 &read_data.entities,
@@ -136,7 +142,15 @@ impl<'a> System<'a> for Sys {
                 let hit = entity != target
                     && !health_b.is_dead
                     // Collision shapes
-                    && sphere_wedge_cylinder_collision(pos.0, frame_start_dist, frame_end_dist, *ori.look_dir(), beam_segment.angle, pos_b.0, rad_b, height_b);
+                    && sphere_wedge_cylinder_collision(eye_pos, frame_start_dist, frame_end_dist, *ori.look_dir(), beam_segment.angle, pos_b.0, rad_b, height_b);
+
+                // Finally, ensure that a hit has actually occurred by performing a raycast. We do this last because
+                // it's likely to be the most expensive operation.
+                let tgt_dist = eye_pos.distance(pos_b.0);
+                let hit = hit && read_data.terrain
+                    .ray(eye_pos, eye_pos + *ori.look_dir() * (tgt_dist + 1.0))
+                    .until(|b| b.is_filled())
+                    .cast().0 >= tgt_dist;
 
                 if hit {
                     // See if entities are in the same group
