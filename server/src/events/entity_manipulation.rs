@@ -697,17 +697,16 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
             RadiusEffect::Attack(attack) => {
                 let energies = &ecs.read_storage::<comp::Energy>();
                 let combos = &ecs.read_storage::<comp::Combo>();
-                for (entity_b, pos_b, _health_b, inventory_b_maybe, stats_b_maybe, body_b_maybe) in
-                    (
-                        &ecs.entities(),
-                        &ecs.read_storage::<comp::Pos>(),
-                        &ecs.read_storage::<comp::Health>(),
-                        ecs.read_storage::<comp::Inventory>().maybe(),
-                        ecs.read_storage::<comp::Stats>().maybe(),
-                        ecs.read_storage::<comp::Body>().maybe(),
-                    )
-                        .join()
-                        .filter(|(_, _, h, _, _, _)| !h.is_dead)
+                for (entity_b, pos_b, health_b, inventory_b_maybe, stats_b_maybe, body_b_maybe) in (
+                    &ecs.entities(),
+                    &ecs.read_storage::<comp::Pos>(),
+                    &ecs.read_storage::<comp::Health>(),
+                    ecs.read_storage::<comp::Inventory>().maybe(),
+                    ecs.read_storage::<comp::Stats>().maybe(),
+                    ecs.read_storage::<comp::Body>().maybe(),
+                )
+                    .join()
+                    .filter(|(_, _, h, _, _, _)| !h.is_dead)
                 {
                     // Check if it is a hit
                     let strength = if let Some(body) = body_b_maybe {
@@ -749,6 +748,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                             entity: entity_b,
                             inventory: inventory_b_maybe,
                             stats: stats_b_maybe,
+                            health: Some(health_b),
                         };
 
                         let server_eventbus = ecs.read_resource::<EventBus<ServerEvent>>();

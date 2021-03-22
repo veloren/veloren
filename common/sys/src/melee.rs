@@ -140,6 +140,7 @@ impl<'a> System<'a> for Sys {
                         entity: target,
                         inventory: read_data.inventories.get(target),
                         stats: read_data.stats.get(target),
+                        health: read_data.healths.get(target),
                     };
 
                     melee_attack.attack.apply_attack(
