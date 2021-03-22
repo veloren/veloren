@@ -125,18 +125,18 @@ impl EcsSystemMetrics {
             &["system"],
         )?;
 
-        registry.register(Box::new(system_length_hist.clone()))?;
-        registry.register(Box::new(system_length_count.clone()))?;
         registry.register(Box::new(system_start_time.clone()))?;
         registry.register(Box::new(system_length_time.clone()))?;
         registry.register(Box::new(system_thread_avg.clone()))?;
+        registry.register(Box::new(system_length_hist.clone()))?;
+        registry.register(Box::new(system_length_count.clone()))?;
 
         Ok(Self {
-            system_length_hist,
-            system_length_count,
             system_start_time,
             system_length_time,
             system_thread_avg,
+            system_length_hist,
+            system_length_count,
         })
     }
 }

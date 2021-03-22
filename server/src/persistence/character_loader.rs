@@ -162,8 +162,8 @@ impl CharacterLoader {
             .unwrap();
 
         Ok(Self {
-            update_tx,
             update_rx,
+            update_tx,
         })
     }
 

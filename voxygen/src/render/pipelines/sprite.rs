@@ -87,7 +87,7 @@ impl fmt::Display for Vertex {
 
 impl Vertex {
     // NOTE: Limit to 16 (x) × 16 (y) × 32 (z).
-    #[allow(clippy::collapsible_if)]
+    #[allow(clippy::collapsible_else_if)]
     pub fn new(
         atlas_pos: Vec2<u16>,
         pos: Vec3<f32>,

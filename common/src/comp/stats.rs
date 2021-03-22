@@ -5,6 +5,7 @@ use specs_idvs::IdvStorage;
 use std::{error::Error, fmt};
 
 #[derive(Debug)]
+#[allow(dead_code)] // TODO: remove once trade sim hits master
 pub enum StatChangeError {
     Underflow,
     Overflow,

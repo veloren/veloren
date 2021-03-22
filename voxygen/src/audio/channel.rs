@@ -171,12 +171,12 @@ impl AmbientChannel {
     pub fn new(stream: &OutputStreamHandle, tag: AmbientChannelTag) -> Self {
         let new_sink = Sink::try_new(stream);
         match new_sink {
-            Ok(sink) => Self { sink, tag },
+            Ok(sink) => Self { tag, sink },
             Err(_) => {
                 warn!("Failed to create rodio sink. May not play wind sounds.");
                 Self {
-                    sink: Sink::new_idle().0,
                     tag,
+                    sink: Sink::new_idle().0,
                 }
             },
         }

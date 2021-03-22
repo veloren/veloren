@@ -1050,7 +1050,7 @@ where
                     f(data);
                     break;
                 },
-                Err(TryRecvError::Closed) => panic!(CHANNEL_ERR),
+                Err(TryRecvError::Closed) => panic!("{}", CHANNEL_ERR),
                 Err(TryRecvError::Empty) => {
                     trace!("activly sleeping");
                     cnt += 1;

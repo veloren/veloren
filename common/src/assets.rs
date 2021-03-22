@@ -211,19 +211,17 @@ lazy_static! {
 pub fn path_of(specifier: &str, ext: &str) -> PathBuf { ASSETS.source().path_of(specifier, ext) }
 
 fn get_dir_files(files: &mut Vec<String>, path: &Path, specifier: &str) -> io::Result<()> {
-    for entry in fs::read_dir(path)? {
-        if let Ok(entry) = entry {
-            let path = entry.path();
-            let maybe_stem = path.file_stem().and_then(|stem| stem.to_str());
+    for entry in (fs::read_dir(path)?).flatten() {
+        let path = entry.path();
+        let maybe_stem = path.file_stem().and_then(|stem| stem.to_str());
 
-            if let Some(stem) = maybe_stem {
-                let specifier = format!("{}.{}", specifier, stem);
+        if let Some(stem) = maybe_stem {
+            let specifier = format!("{}.{}", specifier, stem);
 
-                if path.is_dir() {
-                    get_dir_files(files, &path, &specifier)?;
-                } else {
-                    files.push(specifier);
-                }
+            if path.is_dir() {
+                get_dir_files(files, &path, &specifier)?;
+            } else {
+                files.push(specifier);
             }
         }
     }

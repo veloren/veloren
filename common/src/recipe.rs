@@ -140,7 +140,7 @@ impl assets::Compound for RecipeBook {
                     .map(load_recipe_input)
                     .collect::<Result<_, _>>()?;
                 let output = load_item_def(output)?;
-                Ok((name.clone(), Recipe { inputs, output }))
+                Ok((name.clone(), Recipe { output, inputs }))
             })
             .collect::<Result<_, assets::Error>>()?;
 

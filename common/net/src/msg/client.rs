@@ -133,18 +133,18 @@ impl ClientMsg {
 end of 2nd level Enums
 */
 
-impl Into<ClientMsg> for ClientType {
-    fn into(self) -> ClientMsg { ClientMsg::Type(self) }
+impl From<ClientType> for ClientMsg {
+    fn from(other: ClientType) -> ClientMsg { ClientMsg::Type(other) }
 }
 
-impl Into<ClientMsg> for ClientRegister {
-    fn into(self) -> ClientMsg { ClientMsg::Register(self) }
+impl From<ClientRegister> for ClientMsg {
+    fn from(other: ClientRegister) -> ClientMsg { ClientMsg::Register(other) }
 }
 
-impl Into<ClientMsg> for ClientGeneral {
-    fn into(self) -> ClientMsg { ClientMsg::General(self) }
+impl From<ClientGeneral> for ClientMsg {
+    fn from(other: ClientGeneral) -> ClientMsg { ClientMsg::General(other) }
 }
 
-impl Into<ClientMsg> for PingMsg {
-    fn into(self) -> ClientMsg { ClientMsg::Ping(self) }
+impl From<PingMsg> for ClientMsg {
+    fn from(other: PingMsg) -> ClientMsg { ClientMsg::Ping(other) }
 }

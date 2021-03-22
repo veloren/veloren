@@ -740,10 +740,10 @@ fn wpos_is_hazard(land: &Land, wpos: Vec2<i32>) -> Option<HazardKind> {
         .map_or(true, |c| c.river.near_water())
     {
         Some(HazardKind::Water)
-    } else if let Some(gradient) = Some(land.get_gradient_approx(wpos)).filter(|g| *g > 0.8) {
-        Some(HazardKind::Hill { gradient })
     } else {
-        None
+        Some(land.get_gradient_approx(wpos))
+            .filter(|g| *g > 0.8)
+            .map(|gradient| HazardKind::Hill { gradient })
     }
 }
 

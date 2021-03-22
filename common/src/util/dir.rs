@@ -37,8 +37,9 @@ impl From<SerdeDir> for Dir {
         }
     }
 }
-impl Into<SerdeDir> for Dir {
-    fn into(self) -> SerdeDir { SerdeDir(*self) }
+
+impl From<Dir> for SerdeDir {
+    fn from(other: Dir) -> SerdeDir { SerdeDir(*other) }
 }
 /*pub enum TryFromVec3Error {
     ContainsNans,

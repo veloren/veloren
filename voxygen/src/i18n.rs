@@ -259,15 +259,13 @@ impl assets::Compound for LocalizationList {
         let mut languages = vec![];
 
         let i18n_root = assets::path_of(specifier, "");
-        for i18n_directory in std::fs::read_dir(&i18n_root)? {
-            if let Ok(i18n_entry) = i18n_directory {
-                if let Some(i18n_key) = i18n_entry.file_name().to_str() {
-                    // load the root file of all the subdirectories
-                    if let Ok(localization) = cache.load::<RawLocalization>(
-                        &[specifier, ".", i18n_key, ".", LANG_MANIFEST_FILE].concat(),
-                    ) {
-                        languages.push(localization.read().metadata.clone());
-                    }
+        for i18n_entry in (std::fs::read_dir(&i18n_root)?).flatten() {
+            if let Some(i18n_key) = i18n_entry.file_name().to_str() {
+                // load the root file of all the subdirectories
+                if let Ok(localization) = cache.load::<RawLocalization>(
+                    &[specifier, ".", i18n_key, ".", LANG_MANIFEST_FILE].concat(),
+                ) {
+                    languages.push(localization.read().metadata.clone());
                 }
             }
         }
@@ -418,7 +416,7 @@ mod tests {
                                 {
                                     Ok(true) => Some(e.final_commit_id()),
                                     Ok(false) => Some(existing_commit),
-                                    Err(err) => panic!(err),
+                                    Err(err) => panic!("{}", err),
                                 }
                             },
                             None => Some(e.final_commit_id()),
@@ -439,28 +437,26 @@ mod tests {
         let root_dir = std::env::current_dir()
             .map(|p| p.parent().expect("").to_owned())
             .unwrap();
-        for i18n_file in root_dir.join(&dir).read_dir().unwrap() {
-            if let Ok(i18n_file) = i18n_file {
-                if let Ok(file_type) = i18n_file.file_type() {
-                    if file_type.is_file() {
-                        let full_path = i18n_file.path();
-                        let path = full_path.strip_prefix(&root_dir).unwrap();
-                        println!("-> {:?}", i18n_file.file_name());
-                        let i18n_blob = read_file_from_path(&repo, &head_ref, &path);
-                        let i18n: LocalizationFragment = match from_bytes(i18n_blob.content()) {
-                            Ok(v) => v,
-                            Err(e) => {
-                                eprintln!(
-                                    "Could not parse {} RON file, skipping: {}",
-                                    i18n_file.path().to_string_lossy(),
-                                    e
-                                );
-                                continue;
-                            },
-                        };
-                        i18n_key_versions
-                            .extend(generate_key_version(&repo, &i18n, &path, &i18n_blob));
-                    }
+        //TODO: review unwraps in this file
+        for i18n_file in root_dir.join(&dir).read_dir().unwrap().flatten() {
+            if let Ok(file_type) = i18n_file.file_type() {
+                if file_type.is_file() {
+                    let full_path = i18n_file.path();
+                    let path = full_path.strip_prefix(&root_dir).unwrap();
+                    println!("-> {:?}", i18n_file.file_name());
+                    let i18n_blob = read_file_from_path(&repo, &head_ref, &path);
+                    let i18n: LocalizationFragment = match from_bytes(i18n_blob.content()) {
+                        Ok(v) => v,
+                        Err(e) => {
+                            eprintln!(
+                                "Could not parse {} RON file, skipping: {}",
+                                i18n_file.path().to_string_lossy(),
+                                e
+                            );
+                            continue;
+                        },
+                    };
+                    i18n_key_versions.extend(generate_key_version(&repo, &i18n, &path, &i18n_blob));
                 }
             }
         }
@@ -471,29 +467,27 @@ mod tests {
             .map(|p| p.parent().expect("").to_owned())
             .unwrap();
         // Walk through each file in the directory
-        for i18n_file in root_dir.join(&directory_path).read_dir().unwrap() {
-            if let Ok(i18n_file) = i18n_file {
-                if let Ok(file_type) = i18n_file.file_type() {
-                    // Skip folders and the manifest file (which does not contain the same struct we
-                    // want to load)
-                    if file_type.is_file()
-                        && i18n_file.file_name().to_string_lossy()
-                            != (LANG_MANIFEST_FILE.to_string() + ".ron")
-                    {
-                        let full_path = i18n_file.path();
-                        println!("-> {:?}", full_path.strip_prefix(&root_dir).unwrap());
-                        let f = fs::File::open(&full_path).expect("Failed opening file");
-                        let _: LocalizationFragment = match from_reader(f) {
-                            Ok(v) => v,
-                            Err(e) => {
-                                panic!(
-                                    "Could not parse {} RON file, error: {}",
-                                    full_path.to_string_lossy(),
-                                    e
-                                );
-                            },
-                        };
-                    }
+        for i18n_file in root_dir.join(&directory_path).read_dir().unwrap().flatten() {
+            if let Ok(file_type) = i18n_file.file_type() {
+                // Skip folders and the manifest file (which does not contain the same struct we
+                // want to load)
+                if file_type.is_file()
+                    && i18n_file.file_name().to_string_lossy()
+                        != (LANG_MANIFEST_FILE.to_string() + ".ron")
+                {
+                    let full_path = i18n_file.path();
+                    println!("-> {:?}", full_path.strip_prefix(&root_dir).unwrap());
+                    let f = fs::File::open(&full_path).expect("Failed opening file");
+                    let _: LocalizationFragment = match from_reader(f) {
+                        Ok(v) => v,
+                        Err(e) => {
+                            panic!(
+                                "Could not parse {} RON file, error: {}",
+                                full_path.to_string_lossy(),
+                                e
+                            );
+                        },
+                    };
                 }
             }
         }

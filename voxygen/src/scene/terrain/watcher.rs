@@ -129,14 +129,14 @@ impl BlocksOfInterest {
             reeds,
             fireflies,
             flowers,
-            interactables,
-            lights,
             fire_bowls,
             snow,
             cricket1,
             cricket2,
             cricket3,
             frogs,
+            interactables,
+            lights,
         }
     }
 }

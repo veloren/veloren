@@ -1170,7 +1170,7 @@ impl Floor {
     }
 
     // Find orientation of a position relative to another position
-    #[allow(clippy::collapsible_if)]
+    #[allow(clippy::collapsible_else_if)]
     fn relative_ori(pos1: Vec2<i32>, pos2: Vec2<i32>) -> u8 {
         if (pos1.x - pos2.x).abs() < (pos1.y - pos2.y).abs() {
             if pos1.y > pos2.y { 4 } else { 8 }

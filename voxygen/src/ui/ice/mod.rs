@@ -184,6 +184,7 @@ impl IcedUi {
         let messages = {
             span!(_guard, "update user_interface");
             let mut messages = Vec::new();
+            #[allow(clippy::manual_map)]
             let _event_status_list = user_interface.update(
                 &self.events,
                 cursor_position,

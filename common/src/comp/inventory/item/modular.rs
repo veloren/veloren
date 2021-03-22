@@ -261,7 +261,7 @@ fn make_tagexample_def(
         modkind.identifier_name(),
         toolkind.identifier_name(),
     );
-    let tag = ModularComponentTag { modkind, toolkind };
+    let tag = ModularComponentTag { toolkind, modkind };
     // TODO: i18n
     let name = format!("Any {}", tag.name());
     let description = format!(
@@ -293,7 +293,7 @@ fn initialize_modular_assets() -> (HashMap<String, RawItemDef>, RawRecipeBook) {
         for &modkind in &MODKINDS {
             for tier in 0..=5 {
                 let (identifier, item) = make_component_def(toolkind, modkind, tier);
-                let tag = ModularComponentTag { modkind, toolkind };
+                let tag = ModularComponentTag { toolkind, modkind };
                 exemplars
                     .entry(tag)
                     .or_insert_with(Vec::new)

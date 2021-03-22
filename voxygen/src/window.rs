@@ -1391,13 +1391,9 @@ impl Window {
                 *remapping = None;
                 None
             },
-            None => {
-                if let Some(game_inputs) = controls.get_associated_game_inputs(&key_mouse) {
-                    Some(game_inputs.iter())
-                } else {
-                    None
-                }
-            },
+            None => controls
+                .get_associated_game_inputs(&key_mouse)
+                .map(|game_inputs| game_inputs.iter()),
         }
     }
 
