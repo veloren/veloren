@@ -6,6 +6,7 @@ use vek::Vec2;
 type DefaultShaderFormat = (gfx::format::R8_G8_B8_A8, gfx::format::Srgb);
 
 /// Represents an image that has been uploaded to the GPU.
+#[derive(Clone)]
 pub struct Texture<F: gfx::format::Formatted = DefaultShaderFormat>
 where
     F::Surface: gfx::format::TextureSurface,

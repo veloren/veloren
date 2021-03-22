@@ -1,5 +1,4 @@
 mod watcher;
-
 pub use self::watcher::BlocksOfInterest;
 
 use crate::{
@@ -61,7 +60,16 @@ pub struct TerrainChunkData {
     load_time: f32,
     opaque_model: Model<TerrainPipeline>,
     fluid_model: Option<Model<FluidPipeline>>,
-    col_lights: guillotiere::AllocId,
+    /// If this is `None`, this texture is not allocated in the current atlas,
+    /// and therefore there is no need to free its allocation.
+    col_lights: Option<guillotiere::AllocId>,
+    /// The actual backing texture for this chunk.  Use this for rendering
+    /// purposes.  The texture is reference-counted, so it will be
+    /// automatically freed when no chunks are left that need it (though
+    /// shadow chunks will still keep it alive; we could deal with this by
+    /// making this an `Option`, but it probably isn't worth it since they
+    /// shouldn't be that much more nonlocal than regular chunks).
+    texture: Texture<ColLightFmt>,
     light_map: Box<dyn Fn(Vec3<i32>) -> f32 + Send + Sync>,
     glow_map: Box<dyn Fn(Vec3<i32>) -> f32 + Send + Sync>,
     sprite_instances: HashMap<(SpriteKind, usize), Instances<SpriteInstance>>,
@@ -235,6 +243,19 @@ struct SpriteData {
 }
 
 pub struct Terrain<V: RectRasterableVol = TerrainChunk> {
+    /// This is always the *current* atlas into which data is being allocated.
+    /// Once an atlas is too full to allocate the next texture, we always
+    /// allocate a fresh texture and start allocating into that.  Trying to
+    /// keep more than one texture available for allocation doesn't seem
+    /// worth it, because our allocation patterns are heavily spatial (so all
+    /// data allocated around the same time should have a very similar lifetime,
+    /// even in pathological cases).  As a result, fragmentation effects
+    /// should be minimal.
+    ///
+    /// TODO: Consider "moving GC" style allocation to deal with spatial
+    /// fragmentation effects due to odd texture sizes, which in some cases
+    /// might significantly reduce the number of textures we need for
+    /// particularly difficult locations.
     atlas: AtlasAllocator,
     /// FIXME: This could possibly become an `AssetHandle<SpriteSpec>`, to get
     /// hot-reloading for free, but I am not sure if sudden changes of this
@@ -248,7 +269,9 @@ pub struct Terrain<V: RectRasterableVol = TerrainChunk> {
     /// first).
     ///
     /// Note that these chunks are not complete; for example, they are missing
-    /// texture data.
+    /// texture data (they still currently hold onto a reference to their
+    /// backing texture, but it generally can't be trusted for rendering
+    /// purposes).
     shadow_chunks: Vec<(Vec2<i32>, TerrainChunkData)>,
     /* /// Secondary index into the terrain chunk table, used to sort through chunks by z index from
     /// the top down.
@@ -267,6 +290,10 @@ pub struct Terrain<V: RectRasterableVol = TerrainChunk> {
     // GPU data
     sprite_data: Arc<HashMap<(SpriteKind, usize), Vec<SpriteData>>>,
     sprite_col_lights: Texture<ColLightFmt>,
+    /// As stated previously, this is always the very latest texture into which
+    /// we allocate.  Code cannot assume that this is the assigned texture
+    /// for any particular chunk; look at the `texture` field in
+    /// `TerrainChunkData` for that.
     col_lights: Texture<ColLightFmt>,
     waves: Texture,
 
@@ -459,7 +486,11 @@ impl<V: RectRasterableVol> Terrain<V> {
     }
 
     fn remove_chunk_meta(&mut self, _pos: Vec2<i32>, chunk: &TerrainChunkData) {
-        self.atlas.deallocate(chunk.col_lights);
+        // No need to free the allocation if the chunk is not allocated in the current
+        // atlas, since we don't bother tracking it at that point.
+        if let Some(col_lights) = chunk.col_lights {
+            self.atlas.deallocate(col_lights);
+        }
         /* let (zmin, zmax) = chunk.z_bounds;
         self.z_index_up.remove(Vec3::from(zmin, pos.x, pos.y));
         self.z_index_down.remove(Vec3::from(zmax, pos.x, pos.y)); */
@@ -809,19 +840,46 @@ impl<V: RectRasterableVol> Terrain<V> {
                     // TODO: Allocate new atlas on allocation failure.
                     let (tex, tex_size) = response.col_lights_info;
                     let atlas = &mut self.atlas;
+                    let chunks = &mut self.chunks;
+                    let col_lights = &mut self.col_lights;
                     let allocation = atlas
                         .allocate(guillotiere::Size::new(
                             i32::from(tex_size.x),
                             i32::from(tex_size.y),
                         ))
-                        .expect("Not yet implemented: allocate new atlas on allocation failure.");
+                        .unwrap_or_else(|| {
+                            // Atlas allocation failure: try allocating a new texture and atlas.
+                            let (new_atlas, new_col_lights) =
+                                Self::make_atlas(renderer).expect("Failed to create atlas texture");
+
+                            // We reset the atlas and clear allocations from existing chunks, even
+                            // though we haven't yet checked whether the new allocation can fit in
+                            // the texture.  This is reasonable because we don't have a fallback
+                            // if a single chunk can't fit in an empty atlas of maximum size.
+                            //
+                            // TODO: Consider attempting defragmentation first rather than just
+                            // always moving everything into the new chunk.
+                            chunks.iter_mut().for_each(|(_, chunk)| {
+                                chunk.col_lights = None;
+                            });
+                            *atlas = new_atlas;
+                            *col_lights = new_col_lights;
+
+                            atlas
+                                .allocate(guillotiere::Size::new(
+                                    i32::from(tex_size.x),
+                                    i32::from(tex_size.y),
+                                ))
+                                .expect("Chunk data does not fit in a texture of maximum size.")
+                        });
+
                     // NOTE: Cast is safe since the origin was a u16.
                     let atlas_offs = Vec2::new(
                         allocation.rectangle.min.x as u16,
                         allocation.rectangle.min.y as u16,
                     );
                     if let Err(err) = renderer.update_texture(
-                        &self.col_lights,
+                        col_lights,
                         atlas_offs.into_array(),
                         tex_size.into_array(),
                         &tex,
@@ -843,7 +901,8 @@ impl<V: RectRasterableVol> Terrain<V> {
                         } else {
                             None
                         },
-                        col_lights: allocation.id,
+                        col_lights: Some(allocation.id),
+                        texture: self.col_lights.clone(),
                         light_map: response.light_map,
                         glow_map: response.glow_map,
                         sprite_instances: response
@@ -1170,7 +1229,7 @@ impl<V: RectRasterableVol> Terrain<V> {
             if chunk.visible.is_visible() {
                 renderer.render_terrain_chunk(
                     &chunk.opaque_model,
-                    &self.col_lights,
+                    &chunk.texture,
                     global,
                     &chunk.locals,
                     lod,

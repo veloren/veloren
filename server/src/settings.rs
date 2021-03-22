@@ -55,7 +55,7 @@ impl Default for Settings {
             max_players: 100,
             start_time: 9.0 * 3600.0,
             map_file: None,
-            max_view_distance: Some(30),
+            max_view_distance: Some(65),
             banned_words_files: Vec::new(),
             max_player_group_size: 6,
             client_timeout: Duration::from_secs(40),
