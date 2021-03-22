@@ -13,7 +13,7 @@ impl CharacterBehavior for Data {
         let mut update = StateUpdate::from(data);
 
         handle_wield(data, &mut update);
-        handle_jump(&data, &mut update);
+        handle_jump(data, &mut update, 1.0);
 
         // Try to Fall/Stand up/Move
         if !data.physics.on_ground || data.inputs.move_dir.magnitude_squared() > 0.0 {

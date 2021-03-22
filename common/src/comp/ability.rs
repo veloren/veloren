@@ -1217,6 +1217,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                     recover_duration: Duration::from_secs_f32(*recover_duration),
                     roll_strength: *roll_strength,
                     immune_melee: *immune_melee,
+                    ability_info,
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,

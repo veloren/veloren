@@ -26,8 +26,8 @@ impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
-        handle_move(&data, &mut update, 1.0);
-        handle_jump(&data, &mut update);
+        handle_move(data, &mut update, 1.0);
+        handle_jump(data, &mut update, 1.0);
 
         if self.timer < self.static_data.buildup_duration {
             // Draw weapon

@@ -57,7 +57,7 @@ impl CharacterBehavior for Data {
         let mut update = StateUpdate::from(data);
 
         handle_move(data, &mut update, 0.3);
-        handle_jump(data, &mut update);
+        handle_jump(data, &mut update, 1.0);
 
         match self.stage_section {
             // Delay before leaping into the air
