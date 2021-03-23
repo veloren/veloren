@@ -274,9 +274,8 @@ impl PlayState for SessionState {
             // Clamp camera's vertical angle if the toggle is enabled
             if self.camera_clamp {
                 let mut cam_dir = camera.get_orientation();
-                let cam_dir_clamp = global_state.settings.gameplay.camera_clamp_angle as f32
-                    * std::f32::consts::PI
-                    / 180.0;
+                let cam_dir_clamp =
+                    (global_state.settings.gameplay.camera_clamp_angle as f32).to_radians();
                 cam_dir.y = (-cam_dir_clamp).max(cam_dir.y).min(cam_dir_clamp);
                 camera.set_orientation(cam_dir);
             }
@@ -1357,15 +1356,19 @@ impl PlayState for SessionState {
                     },
                     HudEvent::ChangeFreeLookBehavior(behavior) => {
                         global_state.settings.gameplay.free_look_behavior = behavior;
+                        global_state.settings.save_to_file_warn();
                     },
                     HudEvent::ChangeAutoWalkBehavior(behavior) => {
                         global_state.settings.gameplay.auto_walk_behavior = behavior;
+                        global_state.settings.save_to_file_warn();
                     },
                     HudEvent::ChangeCameraClampBehavior(behavior) => {
                         global_state.settings.gameplay.camera_clamp_behavior = behavior;
+                        global_state.settings.save_to_file_warn();
                     },
                     HudEvent::ChangeStopAutoWalkOnInput(state) => {
                         global_state.settings.gameplay.stop_auto_walk_on_input = state;
+                        global_state.settings.save_to_file_warn();
                     },
                     HudEvent::CraftRecipe(r) => {
                         self.client.borrow_mut().craft_recipe(&r);

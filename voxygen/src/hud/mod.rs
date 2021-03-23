@@ -272,7 +272,7 @@ widget_ids! {
         auto_walk_txt,
         auto_walk_bg,
 
-        // Auto walk indicator
+        // Camera clamp indicator
         camera_clamp_txt,
         camera_clamp_bg,
 
