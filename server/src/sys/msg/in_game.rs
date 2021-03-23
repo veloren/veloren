@@ -102,13 +102,19 @@ impl Sys {
                 }
             },
             ClientGeneral::BreakBlock(pos) => {
-                if let Some(block) = can_build.get(entity).and_then(|_| terrain.get(pos).ok()) {
-                    block_changes.set(pos, block.into_vacant());
+                if let Some(comp_can_build) = can_build.get(entity) {
+                    if comp_can_build.building_is_on {
+                        if let Some(block) = terrain.get(pos).ok() {
+                            block_changes.set(pos, block.into_vacant());
+                        }
+                    }
                 }
             },
             ClientGeneral::PlaceBlock(pos, block) => {
-                if can_build.get(entity).is_some() {
-                    block_changes.try_set(pos, block);
+                if let Some(comp_can_build) = can_build.get(entity) {
+                    if comp_can_build.building_is_on {
+                        block_changes.try_set(pos, block);
+                    }
                 }
             },
             ClientGeneral::UnlockSkill(skill) => {

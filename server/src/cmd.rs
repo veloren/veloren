@@ -109,6 +109,7 @@ fn get_handler(cmd: &ChatCommand) -> CommandHandler {
         ChatCommand::MakeSprite => handle_make_sprite,
         ChatCommand::Motd => handle_motd,
         ChatCommand::Object => handle_object,
+        ChatCommand::PermitBuild => handle_permit_build,
         ChatCommand::Players => handle_players,
         ChatCommand::Region => handle_region,
         ChatCommand::RemoveLights => handle_remove_lights,
@@ -1116,6 +1117,76 @@ fn handle_safezone(
     }
 }
 
+fn handle_permit_build(
+    server: &mut Server,
+    client: EcsEntity,
+    _target: EcsEntity,
+    args: String,
+    action: &ChatCommand,
+) {
+    if let (Some(target_alias), xlo_opt, xhi_opt, ylo_opt, yhi_opt, zlo_opt, zhi_opt) = scan_fmt_some!(
+        &args,
+        &action.arg_fmt(),
+        String,
+        i32,
+        i32,
+        i32,
+        i32,
+        i32,
+        i32
+    ) {
+        let ecs = server.state.ecs();
+        let target_player_opt = (&ecs.entities(), &ecs.read_storage::<comp::Player>())
+            .join()
+            .find(|(_, player)| player.alias == target_alias)
+            .map(|(entity, _)| entity);
+
+        if let Some(target_player) = target_player_opt {
+            if server
+                .state
+                .read_storage::<comp::CanBuild>()
+                .get(target_player)
+                .is_some()
+            {
+                ecs.write_storage::<comp::CanBuild>().remove(target_player);
+                server.notify_client(
+                    client,
+                    ServerGeneral::server_msg(
+                        ChatType::CommandInfo,
+                        format!("Removed {}'s permission to build", target_alias),
+                    ),
+                );
+            } else {
+                let _ =
+                    ecs.write_storage::<comp::CanBuild>()
+                        .insert(target_player, comp::CanBuild {
+                            building_is_on: false,
+                        });
+                server.notify_client(
+                    client,
+                    ServerGeneral::server_msg(
+                        ChatType::CommandInfo,
+                        format!("Gave {} permission to build", target_alias),
+                    ),
+                );
+            }
+        } else {
+            server.notify_client(
+                client,
+                ServerGeneral::server_msg(
+                    ChatType::CommandError,
+                    format!("Player '{}' not found!", target_alias),
+                ),
+            );
+        }
+    } else {
+        server.notify_client(
+            client,
+            ServerGeneral::server_msg(ChatType::CommandError, action.help_string()),
+        );
+    }
+}
+
 fn handle_players(
     server: &mut Server,
     client: EcsEntity,
@@ -1150,30 +1221,32 @@ fn handle_build(
     _args: String,
     _action: &ChatCommand,
 ) {
-    if server
+    if let Some(mut can_build) = server
         .state
-        .read_storage::<comp::CanBuild>()
-        .get(target)
-        .is_some()
+        .ecs()
+        .write_storage::<comp::CanBuild>()
+        .get_mut(target)
     {
-        server
-            .state
-            .ecs()
-            .write_storage::<comp::CanBuild>()
-            .remove(target);
-        server.notify_client(
-            client,
-            ServerGeneral::server_msg(ChatType::CommandInfo, "Toggled off build mode!"),
-        );
+        if can_build.building_is_on {
+            can_build.building_is_on = false;
+            server.notify_client(
+                client,
+                ServerGeneral::server_msg(ChatType::CommandInfo, "Toggled off build mode!"),
+            );
+        } else {
+            can_build.building_is_on = true;
+            server.notify_client(
+                client,
+                ServerGeneral::server_msg(ChatType::CommandInfo, "Toggled on build mode!"),
+            );
+        }
     } else {
-        let _ = server
-            .state
-            .ecs()
-            .write_storage::<comp::CanBuild>()
-            .insert(target, comp::CanBuild);
         server.notify_client(
             client,
-            ServerGeneral::server_msg(ChatType::CommandInfo, "Toggled on build mode!"),
+            ServerGeneral::server_msg(
+                ChatType::CommandInfo,
+                "You do not have permission to build.",
+            ),
         );
     }
 }
