@@ -92,12 +92,6 @@ impl CharacterBehavior for Data {
                         )
                         .build();
 
-                        let alignment = if matches!(data.alignment, Some(comp::Alignment::Enemy)) {
-                            comp::Alignment::Enemy
-                        } else {
-                            comp::Alignment::Owned(*data.uid)
-                        };
-
                         update.server_events.push_front(ServerEvent::CreateNpc {
                             pos: *data.pos,
                             stats,
@@ -109,7 +103,7 @@ impl CharacterBehavior for Data {
                             loadout,
                             body,
                             agent: Some(comp::Agent::new(None, false, None, &body, true)),
-                            alignment,
+                            alignment: comp::Alignment::Owned(*data.uid),
                             scale: self
                                 .static_data
                                 .summon_info

@@ -1115,7 +1115,7 @@ impl<'a> AgentData<'a> {
                         || e_pos.0.distance_squared(self.pos.0) < listen_dist.powi(2)) // TODO implement proper sound system for agents
                     && e != self.entity
                     && !e_health.is_dead
-                    && (self.alignment.and_then(|a| e_alignment.map(|b| a.hostile_towards(*b))).unwrap_or(false) || (
+                    && (try_owner_alignment(self.alignment, &read_data).and_then(|a| try_owner_alignment(*e_alignment, &read_data).map(|b| a.hostile_towards(*b))).unwrap_or(false) || (
                             if let Some(rtsim_entity) = &self.rtsim_entity {
                                 if rtsim_entity.brain.remembers_fight_with_character(&e_stats.name) {
                                     agent.rtsim_controller.events.push(
@@ -1302,7 +1302,7 @@ impl<'a> AgentData<'a> {
         // depending on the distance from the agent to the target
         match tactic {
             Tactic::Melee => {
-                if dist_sqrd < (min_attack_dist * self.scale).powi(2) {
+                if dist_sqrd < min_attack_dist.powi(2) {
                     controller
                         .actions
                         .push(ControlAction::basic_input(InputKind::Primary));
@@ -1337,7 +1337,7 @@ impl<'a> AgentData<'a> {
                 }
             },
             Tactic::Axe => {
-                if dist_sqrd < (min_attack_dist * self.scale).powi(2) {
+                if dist_sqrd < min_attack_dist.powi(2) {
                     controller.inputs.move_dir = Vec2::zero();
                     if agent.action_timer > 6.0 {
                         controller
@@ -1395,7 +1395,7 @@ impl<'a> AgentData<'a> {
                 }
             },
             Tactic::Hammer => {
-                if dist_sqrd < (min_attack_dist * self.scale).powi(2) {
+                if dist_sqrd < min_attack_dist.powi(2) {
                     controller.inputs.move_dir = Vec2::zero();
                     if agent.action_timer > 4.0 {
                         controller
@@ -1471,7 +1471,7 @@ impl<'a> AgentData<'a> {
                 }
             },
             Tactic::Sword => {
-                if dist_sqrd < (min_attack_dist * self.scale).powi(2) {
+                if dist_sqrd < min_attack_dist.powi(2) {
                     controller.inputs.move_dir = Vec2::zero();
                     if self
                         .stats
@@ -1535,7 +1535,7 @@ impl<'a> AgentData<'a> {
             },
             Tactic::Bow => {
                 if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
-                    && dist_sqrd < (2.0 * min_attack_dist * self.scale).powi(2)
+                    && dist_sqrd < (2.0 * min_attack_dist).powi(2)
                 {
                     controller
                         .actions
@@ -1628,12 +1628,12 @@ impl<'a> AgentData<'a> {
             },
             Tactic::Staff => {
                 if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
-                    && dist_sqrd < (min_attack_dist * self.scale).powi(2)
+                    && dist_sqrd < min_attack_dist.powi(2)
                 {
                     controller
                         .actions
                         .push(ControlAction::basic_input(InputKind::Roll));
-                } else if dist_sqrd < (5.0 * min_attack_dist * self.scale).powi(2) {
+                } else if dist_sqrd < (5.0 * min_attack_dist).powi(2) {
                     if agent.action_timer < 1.5 {
                         controller.inputs.move_dir = (tgt_pos.0 - self.pos.0)
                             .xy()
@@ -1727,7 +1727,7 @@ impl<'a> AgentData<'a> {
                 }
             },
             Tactic::StoneGolemBoss => {
-                if dist_sqrd < (min_attack_dist * self.scale).powi(2) {
+                if dist_sqrd < min_attack_dist.powi(2) {
                     // 2.0 is temporary correction factor to allow them to melee with their
                     // large hitbox
                     controller.inputs.move_dir = Vec2::zero();
@@ -1777,19 +1777,18 @@ impl<'a> AgentData<'a> {
                 radius,
                 circle_time,
             } => {
-                if dist_sqrd < (min_attack_dist * self.scale).powi(2) && thread_rng().gen_bool(0.5)
-                {
+                if dist_sqrd < min_attack_dist.powi(2) && thread_rng().gen_bool(0.5) {
                     controller.inputs.move_dir = Vec2::zero();
                     controller
                         .actions
                         .push(ControlAction::basic_input(InputKind::Primary));
-                } else if dist_sqrd < (radius as f32 * min_attack_dist * self.scale).powi(2) {
+                } else if dist_sqrd < (radius as f32 * min_attack_dist).powi(2) {
                     controller.inputs.move_dir = (self.pos.0 - tgt_pos.0)
                         .xy()
                         .try_normalized()
                         .unwrap_or_else(Vec2::unit_y);
-                } else if dist_sqrd < ((radius as f32 + 1.0) * min_attack_dist * self.scale).powi(2)
-                    && dist_sqrd > (radius as f32 * min_attack_dist * self.scale).powi(2)
+                } else if dist_sqrd < ((radius as f32 + 1.0) * min_attack_dist).powi(2)
+                    && dist_sqrd > (radius as f32 * min_attack_dist).powi(2)
                 {
                     if agent.action_timer < circle_time as f32 {
                         controller.inputs.move_dir = (tgt_pos.0 - self.pos.0)
@@ -1839,7 +1838,7 @@ impl<'a> AgentData<'a> {
                 }
             },
             Tactic::QuadLowRanged => {
-                if dist_sqrd < (3.0 * min_attack_dist * self.scale).powi(2) {
+                if dist_sqrd < (3.0 * min_attack_dist).powi(2) {
                     controller.inputs.move_dir = (tgt_pos.0 - self.pos.0)
                         .xy()
                         .try_normalized()
@@ -1897,7 +1896,7 @@ impl<'a> AgentData<'a> {
                 }
             },
             Tactic::TailSlap => {
-                if dist_sqrd < (1.5 * min_attack_dist * self.scale).powi(2) {
+                if dist_sqrd < (1.5 * min_attack_dist).powi(2) {
                     if agent.action_timer > 4.0 {
                         controller
                             .actions
@@ -1940,13 +1939,13 @@ impl<'a> AgentData<'a> {
                 }
             },
             Tactic::QuadLowQuick => {
-                if dist_sqrd < (1.5 * min_attack_dist * self.scale).powi(2) {
+                if dist_sqrd < (1.5 * min_attack_dist).powi(2) {
                     controller.inputs.move_dir = Vec2::zero();
                     controller
                         .actions
                         .push(ControlAction::basic_input(InputKind::Secondary));
-                } else if dist_sqrd < (3.0 * min_attack_dist * self.scale).powi(2)
-                    && dist_sqrd > (2.0 * min_attack_dist * self.scale).powi(2)
+                } else if dist_sqrd < (3.0 * min_attack_dist).powi(2)
+                    && dist_sqrd > (2.0 * min_attack_dist).powi(2)
                 {
                     controller
                         .actions
@@ -1977,7 +1976,7 @@ impl<'a> AgentData<'a> {
                 }
             },
             Tactic::QuadLowBasic => {
-                if dist_sqrd < (1.5 * min_attack_dist * self.scale).powi(2) {
+                if dist_sqrd < (1.5 * min_attack_dist).powi(2) {
                     controller.inputs.move_dir = Vec2::zero();
                     if agent.action_timer > 5.0 {
                         agent.action_timer = 0.0;
@@ -2013,12 +2012,12 @@ impl<'a> AgentData<'a> {
                 }
             },
             Tactic::QuadMedJump => {
-                if dist_sqrd < (1.5 * min_attack_dist * self.scale).powi(2) {
+                if dist_sqrd < (1.5 * min_attack_dist).powi(2) {
                     controller.inputs.move_dir = Vec2::zero();
                     controller
                         .actions
                         .push(ControlAction::basic_input(InputKind::Secondary));
-                } else if dist_sqrd < (5.0 * min_attack_dist * self.scale).powi(2) {
+                } else if dist_sqrd < (5.0 * min_attack_dist).powi(2) {
                     controller
                         .actions
                         .push(ControlAction::basic_input(InputKind::Ability(0)));
@@ -2051,7 +2050,7 @@ impl<'a> AgentData<'a> {
                 }
             },
             Tactic::QuadMedBasic => {
-                if dist_sqrd < (min_attack_dist * self.scale).powi(2) {
+                if dist_sqrd < min_attack_dist.powi(2) {
                     controller.inputs.move_dir = Vec2::zero();
                     if agent.action_timer < 2.0 {
                         controller
@@ -2087,12 +2086,12 @@ impl<'a> AgentData<'a> {
                 }
             },
             Tactic::Lavadrake | Tactic::QuadLowBeam => {
-                if dist_sqrd < (2.5 * min_attack_dist * self.scale).powi(2) {
+                if dist_sqrd < (2.5 * min_attack_dist).powi(2) {
                     controller.inputs.move_dir = Vec2::zero();
                     controller
                         .actions
                         .push(ControlAction::basic_input(InputKind::Secondary));
-                } else if dist_sqrd < (7.0 * min_attack_dist * self.scale).powi(2) {
+                } else if dist_sqrd < (7.0 * min_attack_dist).powi(2) {
                     if agent.action_timer < 2.0 {
                         controller.inputs.move_dir = (tgt_pos.0 - self.pos.0)
                             .xy()
@@ -2142,7 +2141,7 @@ impl<'a> AgentData<'a> {
                 }
             },
             Tactic::Theropod => {
-                if dist_sqrd < (2.0 * min_attack_dist * self.scale).powi(2) {
+                if dist_sqrd < (2.0 * min_attack_dist).powi(2) {
                     controller.inputs.move_dir = Vec2::zero();
                     controller
                         .actions
@@ -2207,7 +2206,7 @@ impl<'a> AgentData<'a> {
                 const MINDFLAYER_ATTACK_DIST: f32 = 15.0;
                 let mindflayer_is_far = dist_sqrd > MINDFLAYER_ATTACK_DIST.powi(2);
                 let health_fraction = self.health.map_or(0.5, |h| h.fraction());
-                if mindflayer_is_far && agent.action_timer / health_fraction > 10.0 {
+                if mindflayer_is_far && agent.action_timer > 5.0 / health_fraction {
                     // Summon minions if time has passed and no one is close for other attacks. Less
                     // often when at low health.
                     if !self.char_state.is_attack() {
@@ -2295,4 +2294,20 @@ fn can_see_tgt(terrain: &TerrainGrid, pos: &Pos, tgt_pos: &Pos, dist_sqrd: f32) 
 fn should_stop_attacking(health: Option<&Health>, buffs: Option<&Buffs>) -> bool {
     health.map_or(true, |a| a.is_dead)
         || buffs.map_or(false, |b| b.kinds.contains_key(&BuffKind::Invulnerability))
+}
+
+/// Attempts to get alignment of owner if entity has Owned alignment
+fn try_owner_alignment<'a>(
+    alignment: Option<&'a Alignment>,
+    read_data: &'a ReadData,
+) -> Option<&'a Alignment> {
+    if let Some(Alignment::Owned(owner_uid)) = alignment {
+        if let Some(owner) = read_data
+            .uid_allocator
+            .retrieve_entity_internal(owner_uid.id())
+        {
+            return read_data.alignments.get(owner);
+        }
+    }
+    alignment
 }

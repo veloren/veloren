@@ -8,7 +8,7 @@ BasicSummon(
             species: Darkhound,
             body_type: Male,
         )),
-        scale: None,
+        scale: Some((2.0)),
         health_scaling: 30,
         loadout_config: None,
         skillset_config: None,

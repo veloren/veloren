@@ -329,7 +329,14 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
             .insert(entity, comp::CharacterState::default());
 
         false
-    } else if state.ecs().read_storage::<comp::Agent>().contains(entity) {
+    } else if state.ecs().read_storage::<comp::Agent>().contains(entity)
+        && !matches!(
+            state.ecs().read_storage::<comp::Alignment>().get(entity),
+            Some(comp::Alignment::Owned(_))
+        )
+    {
+        // Only drop loot if entity has agency (not a player), and if it is not owned by
+        // another entity (not a pet)
         use specs::Builder;
 
         // Decide for a loot drop before turning into a lootbag
