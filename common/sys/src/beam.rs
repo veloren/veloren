@@ -6,14 +6,16 @@ use common::{
     },
     event::{EventBus, ServerEvent},
     resources::{DeltaTime, Time},
+    terrain::TerrainGrid,
     uid::{Uid, UidAllocator},
+    vol::ReadVol,
     GroupTarget,
 };
 use common_ecs::{Job, Origin, ParMode, Phase, System};
 use rayon::iter::ParallelIterator;
 use specs::{
-    saveload::MarkerAllocator, shred::ResourceId, Entities, Join, ParJoin, Read, ReadStorage,
-    SystemData, World, WriteStorage,
+    saveload::MarkerAllocator, shred::ResourceId, Entities, Join, ParJoin, Read, ReadExpect,
+    ReadStorage, SystemData, World, WriteStorage,
 };
 use std::time::Duration;
 use vek::*;
@@ -24,6 +26,7 @@ pub struct ReadData<'a> {
     server_bus: Read<'a, EventBus<ServerEvent>>,
     time: Read<'a, Time>,
     dt: Read<'a, DeltaTime>,
+    terrain: ReadExpect<'a, TerrainGrid>,
     uid_allocator: Read<'a, UidAllocator>,
     uids: ReadStorage<'a, Uid>,
     positions: ReadStorage<'a, Pos>,
@@ -137,6 +140,14 @@ impl<'a> System<'a> for Sys {
                     && !health_b.is_dead
                     // Collision shapes
                     && sphere_wedge_cylinder_collision(pos.0, frame_start_dist, frame_end_dist, *ori.look_dir(), beam_segment.angle, pos_b.0, rad_b, height_b);
+
+                // Finally, ensure that a hit has actually occurred by performing a raycast. We do this last because
+                // it's likely to be the most expensive operation.
+                let tgt_dist = pos.0.distance(pos_b.0);
+                let hit = hit && read_data.terrain
+                    .ray(pos.0, pos.0 + *ori.look_dir() * (tgt_dist + 1.0))
+                    .until(|b| b.is_filled())
+                    .cast().0 >= tgt_dist;
 
                 if hit {
                     // See if entities are in the same group
