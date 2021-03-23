@@ -103,8 +103,8 @@ impl Sys {
             },
             ClientGeneral::BreakBlock(pos) => {
                 if let Some(comp_can_build) = can_build.get(entity) {
-                    if comp_can_build.building_is_on {
-                        if let Some(block) = terrain.get(pos).ok() {
+                    if comp_can_build.building_is_on && comp_can_build.build_area.contains_point(pos) {
+                        if let Ok(block) = terrain.get(pos) {
                             block_changes.set(pos, block.into_vacant());
                         }
                     }
@@ -112,7 +112,7 @@ impl Sys {
             },
             ClientGeneral::PlaceBlock(pos, block) => {
                 if let Some(comp_can_build) = can_build.get(entity) {
-                    if comp_can_build.building_is_on {
+                    if comp_can_build.building_is_on && comp_can_build.build_area.contains_point(pos) {
                         block_changes.try_set(pos, block);
                     }
                 }

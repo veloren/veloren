@@ -1124,7 +1124,7 @@ fn handle_permit_build(
     args: String,
     action: &ChatCommand,
 ) {
-    if let (Some(target_alias), xlo_opt, xhi_opt, ylo_opt, yhi_opt, zlo_opt, zhi_opt) = scan_fmt_some!(
+    if let (Some(target_alias), Some(xlo), Some(xhi), Some(ylo), Some(yhi), Some(zlo), Some(zhi)) = scan_fmt_some!(
         &args,
         &action.arg_fmt(),
         String,
@@ -1161,6 +1161,10 @@ fn handle_permit_build(
                     ecs.write_storage::<comp::CanBuild>()
                         .insert(target_player, comp::CanBuild {
                             building_is_on: false,
+                            build_area: Aabb {
+                                min: Vec3::new(xlo, ylo, zlo),
+                                max: Vec3::new(xhi, yhi, zhi),
+                            },
                         });
                 server.notify_client(
                     client,
