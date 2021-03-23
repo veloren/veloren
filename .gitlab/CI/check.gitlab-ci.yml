@@ -4,6 +4,7 @@ code-quality:
   stage: check
   script:
     - ln -s /dockercache/cache-all target
+    - rm -r target/debug/incremental/veloren_* || echo "all good" # TMP FIX FOR 2021-03-22-nightly
     - cargo clippy --all-targets --locked -- -D warnings
     - cargo fmt --all -- --check
 
