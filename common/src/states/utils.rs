@@ -455,7 +455,7 @@ pub fn attempt_glide_wield(data: &JoinData, update: &mut StateUpdate) {
 }
 
 /// Checks that player can jump and sends jump event if so
-pub fn handle_jump(data: &JoinData, update: &mut StateUpdate) {
+pub fn handle_jump(data: &JoinData, update: &mut StateUpdate, strength: f32) -> bool {
     if input_is_pressed(data, InputKind::Jump)
         && data.physics.on_ground
         && !data
@@ -467,8 +467,11 @@ pub fn handle_jump(data: &JoinData, update: &mut StateUpdate) {
     {
         update.local_events.push_front(LocalEvent::Jump(
             data.entity,
-            data.body.jump_impulse().unwrap(),
+            data.body.jump_impulse().unwrap() * strength,
         ));
+        true
+    } else {
+        false
     }
 }
 
@@ -546,7 +549,9 @@ pub fn handle_input(data: &JoinData, update: &mut StateUpdate, input: InputKind)
             handle_ability(data, update, input)
         },
         InputKind::Roll => handle_dodge_input(data, update),
-        InputKind::Jump => handle_jump(data, update),
+        InputKind::Jump => {
+            handle_jump(data, update, 1.0);
+        },
         InputKind::Fly => {},
     }
 }
