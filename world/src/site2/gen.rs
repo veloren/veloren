@@ -24,6 +24,7 @@ pub enum Primitive {
     // Not commutative
     Diff(Id<Primitive>, Id<Primitive>),
     // Operators
+    Rotate(Id<Primitive>, [Vec3<i32>; 3]),
 }
 
 pub enum Fill {
@@ -59,7 +60,7 @@ impl Fill {
                             - ((pos.z - aabb.min.z) as f32 + 0.5) / (aabb.max.z - aabb.min.z) as f32
             },
             Primitive::Cylinder(aabb) => {
-                aabb_contains(*aabb, pos)
+                (aabb.min.z..aabb.max.z).contains(&pos.z)
                     && (pos
                         .xy()
                         .as_()
@@ -68,7 +69,7 @@ impl Fill {
                         < (aabb.size().w.min(aabb.size().h) as f32 / 2.0).powi(2)
             },
             Primitive::Cone(aabb) => {
-                aabb_contains(*aabb, pos)
+                (aabb.min.z..aabb.max.z).contains(&pos.z)
                     && pos
                         .xy()
                         .as_()
@@ -102,6 +103,14 @@ impl Fill {
             },
             Primitive::Diff(a, b) => {
                 self.contains_at(tree, *a, pos) && !self.contains_at(tree, *b, pos)
+            },
+            Primitive::Rotate(prim, [x, y, z]) => {
+                let aabb = self.get_bounds(tree, *prim);
+                let diff = pos - (aabb.min + (x+y+z).map(|x| x.min(0)));
+                let new_x = Vec3::new(x.x, y.x, z.x);
+                let new_y = Vec3::new(x.y, y.y, z.y);
+                let new_z = Vec3::new(x.z, y.z, z.z);
+                self.contains_at(tree, *prim, aabb.min + (new_x * diff.x) + (new_y * diff.y) + (new_z * diff.z))
             },
         }
     }
@@ -170,6 +179,16 @@ impl Fill {
                 |a, b| a.union(b),
             )?,
             Primitive::Diff(a, _) => self.get_bounds_inner(tree, *a)?,
+            Primitive::Rotate(prim, [x, y, z]) => {
+                let aabb = self.get_bounds_inner(tree, *prim)?;
+                let extent = (*x * aabb.size().w) + (*y * aabb.size().h) + (*z * aabb.size().d);
+                let new_min = aabb.min + extent.map(|x| x.min(0));
+                let new_aabb: Aabb<i32> = Aabb {
+                    min: new_min,
+                    max: new_min + extent.map(|x| x.abs()),
+                };
+                new_aabb
+            },
         })
     }
 
