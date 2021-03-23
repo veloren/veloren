@@ -1,5 +1,7 @@
 ## Read this first!
 
+#### You'll need at least Nix `2.4pre20210317_8a5203d`!
+
 Since this repo uses a new Nix feature called "Flakes", it is recommended to enable it.
 It massively improves the `nix` CLI UX, and adds many useful features.
 We include instructions for Nix without flakes enabled, but using flakes is the recommended way.
@@ -183,15 +185,6 @@ nix flake update --recreate-lock-file
 It is inadvised to update revisions without the use of `nix flake update` as it's both tedious and error-prone to attempt setting all fields to their correct values in both `flake.nix` and `flake.lock`, but if you need to do it for testing, `flake.lock` is where legacy nix commands get the input revisions from (through `flake-compat`), regardless of what is specified in `flake.nix` (see https://github.com/edolstra/flake-compat/issues/10). 
 
 Modify the relevant `rev` field in `flake.lock` to what you need - you can use `nix-prefetch-git` to find an up-to-date revision. Leave the `narHash` entry as is and attempt a rebuild to find out what its value should be.
-
-### Generating Cargo.nix
-
-Enter the development shell.
-
-To update `Cargo.nix` (and `crate-hashes.json`) using latest `Cargo.lock`, run:
-```shell
-crate2nix generate -f ../Cargo.toml
-```
 
 ### Rust toolchain
 

@@ -52,3 +52,4 @@ userdata
 # Nix
 nix/result*
 /result*
+/shell.nix

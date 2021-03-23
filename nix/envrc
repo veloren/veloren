@@ -2,8 +2,7 @@ watch_file flake.lock
 watch_file flake.nix
 watch_file nix/common.nix
 watch_file nix/devShell.nix
-watch_file nix/rustPkgs.nix
 watch_file nix/shell.nix
 watch_file nix/utils.nix
 
-use flake
+use flake || use nix nix/shell.nix
