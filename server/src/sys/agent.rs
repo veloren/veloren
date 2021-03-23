@@ -903,7 +903,10 @@ impl<'a> AgentData<'a> {
             Some(AgentEvent::UpdatePendingTrade(boxval)) => {
                 let (tradeid, pending, prices, inventories) = *boxval;
                 if agent.trading {
-                    // I assume player is [0], agent is [1]
+                    // For now, assume player is 0 and agent is 1.
+                    // This needs revisiting when agents can initiate trades (e.g. to offer
+                    // mercenary contracts as quests)
+                    const WHO: usize = 1;
                     fn trade_margin(g: Good) -> f32 {
                         match g {
                             Good::Tools | Good::Armor => 0.5,
@@ -912,50 +915,47 @@ impl<'a> AgentData<'a> {
                             _ => 0.0, // what is this?
                         }
                     }
-                    let balance0: f32 = pending.offers[0]
-                        .iter()
-                        .map(|(slot, amount)| {
-                            inventories[0]
-                                .as_ref()
-                                .map(|ri| {
-                                    ri.inventory.get(slot).map(|item| {
-                                        let (material, factor) =
-                                            TradePricing::get_material(&item.name);
-                                        prices.values.get(&material).cloned().unwrap_or_default()
-                                            * factor
-                                            * (*amount as f32)
-                                            * trade_margin(material)
+                    let balance = |who: usize, reduce: bool| {
+                        pending.offers[who]
+                            .iter()
+                            .map(|(slot, amount)| {
+                                inventories[who]
+                                    .as_ref()
+                                    .map(|ri| {
+                                        ri.inventory.get(slot).map(|item| {
+                                            let (material, factor) =
+                                                TradePricing::get_material(&item.name);
+                                            prices
+                                                .values
+                                                .get(&material)
+                                                .cloned()
+                                                .unwrap_or_default()
+                                                * factor
+                                                * (*amount as f32)
+                                                * if reduce { trade_margin(material) } else { 1.0 }
+                                        })
                                     })
-                                })
-                                .flatten()
-                                .unwrap_or_default()
-                        })
-                        .sum();
-                    let balance1: f32 = pending.offers[1]
-                        .iter()
-                        .map(|(slot, amount)| {
-                            inventories[1]
-                                .as_ref()
-                                .map(|ri| {
-                                    ri.inventory.get(slot).map(|item| {
-                                        let (material, factor) =
-                                            TradePricing::get_material(&item.name);
-                                        prices.values.get(&material).cloned().unwrap_or_default()
-                                            * factor
-                                            * (*amount as f32)
-                                    })
-                                })
-                                .flatten()
-                                .unwrap_or_default()
-                        })
-                        .sum();
+                                    .flatten()
+                                    .unwrap_or_default()
+                            })
+                            .sum()
+                    };
+                    let balance0: f32 = balance(1 - WHO, true);
+                    let balance1: f32 = balance(WHO, false);
                     tracing::debug!("UpdatePendingTrade({}, {})", balance0, balance1);
                     if balance0 >= balance1 {
-                        event_emitter.emit(ServerEvent::ProcessTradeAction(
-                            *self.entity,
-                            tradeid,
-                            TradeAction::Accept(pending.phase),
-                        ));
+                        // If the trade is favourable to us, only send an accept message if we're
+                        // not already accepting (since otherwise, spamclicking the accept button
+                        // results in lagging and moving to the review phase of an unfavorable trade
+                        // (although since the phase is included in the message, this shouldn't
+                        // result in fully accepting an unfavourable trade))
+                        if !pending.accept_flags[WHO] {
+                            event_emitter.emit(ServerEvent::ProcessTradeAction(
+                                *self.entity,
+                                tradeid,
+                                TradeAction::Accept(pending.phase),
+                            ));
+                        }
                     } else {
                         if balance1 > 0.0 {
                             let msg = format!(
