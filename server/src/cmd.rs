@@ -30,9 +30,10 @@ use common_net::{
     msg::{DisconnectReason, Notification, PlayerListUpdate, ServerGeneral},
     sync::WorldSyncExt,
 };
+use common_sys::state::BuildAreas;
 use rand::Rng;
 use specs::{Builder, Entity as EcsEntity, Join, WorldExt};
-use std::{convert::TryFrom, time::Duration};
+use std::{convert::TryFrom, ops::DerefMut, time::Duration};
 use vek::*;
 use world::util::Sampler;
 
@@ -1148,23 +1149,48 @@ fn handle_permit_build(
                 .get(target_player)
                 .is_some()
             {
-                ecs.write_storage::<comp::CanBuild>().remove(target_player);
+                // ecs.write_storage::<comp::CanBuild>().remove(target_player);
+                // server.notify_client(
+                //     client,
+                //     ServerGeneral::server_msg(
+                //         ChatType::CommandInfo,
+                //         format!("Removed {}'s permission to build", target_alias),
+                //     ),
+                // );
+                let bb_id = ecs
+                    .write_resource::<BuildAreas>()
+                    .deref_mut()
+                    .areas
+                    .insert(Aabb {
+                        min: Vec3::new(xlo, ylo, zlo),
+                        max: Vec3::new(xhi, yhi, zhi),
+                    });
+                if let Some(mut comp_can_build) =
+                    ecs.write_storage::<comp::CanBuild>().get_mut(target_player)
+                {
+                    comp_can_build.build_areas.push(bb_id);
+                }
                 server.notify_client(
                     client,
                     ServerGeneral::server_msg(
                         ChatType::CommandInfo,
-                        format!("Removed {}'s permission to build", target_alias),
+                        format!("Gave {} permission to build", target_alias),
                     ),
                 );
             } else {
+                let bb_id = ecs
+                    .write_resource::<BuildAreas>()
+                    .deref_mut()
+                    .areas
+                    .insert(Aabb {
+                        min: Vec3::new(xlo, ylo, zlo),
+                        max: Vec3::new(xhi, yhi, zhi),
+                    });
                 let _ =
                     ecs.write_storage::<comp::CanBuild>()
                         .insert(target_player, comp::CanBuild {
                             building_is_on: false,
-                            build_area: Aabb {
-                                min: Vec3::new(xlo, ylo, zlo),
-                                max: Vec3::new(xhi, yhi, zhi),
-                            },
+                            build_areas: vec![bb_id],
                         });
                 server.notify_client(
                     client,
