@@ -1,32 +1,15 @@
-{ nixpkgs, sources, system }:
-with import ./common.nix
-{
-  inherit
-    nixpkgs
-    sources
-    system
-    ;
-};
-with pkgs;
-let
-  getAllCratesDeps = name:
-    (lib.concatLists
-      (map (attrset: attrset."${name}") (lib.attrValues crateDeps)));
-in
+{ common }:
+with common; with pkgs;
 mkShell {
   name = "veloren-shell";
   nativeBuildInputs = [
     cachix
-    cargo
-    clippy
-    crate2nix
     git
     git-lfs
     nixpkgs-fmt
     rustc
-    rustfmt
-  ] ++ (getAllCratesDeps "nativeBuildInputs");
-  buildInputs = getAllCratesDeps "buildInputs";
+  ] ++ crateDeps.nativeBuildInputs;
+  buildInputs = crateDeps.buildInputs;
   shellHook = ''
     # Setup our cachix "substituter"
     export NIX_CONFIG="
