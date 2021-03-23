@@ -1006,17 +1006,19 @@ fn handle_spawn_airship(
                         200.0,
                     )
             });
-            server
+            let mut builder = server
                 .state
-                .create_ship(pos, comp::ship::Body::DefaultAirship, 1, destination)
-                .with(comp::Scale(comp::ship::AIRSHIP_SCALE))
+                .create_ship(pos, comp::ship::Body::DefaultAirship, true)
                 .with(LightEmitter {
                     col: Rgb::new(1.0, 0.65, 0.2),
                     strength: 2.0,
                     flicker: 1.0,
                     animated: true,
-                })
-                .build();
+                });
+            if let Some(pos) = destination {
+                builder = builder.with(comp::Agent::with_destination(pos))
+            }
+            builder.build();
 
             server.notify_client(
                 client,

@@ -130,7 +130,7 @@ impl<'a> System<'a> for Sys {
         job.cpu_stats.measure(ParMode::Rayon);
         (
             &read_data.entities,
-            (&read_data.energies, &read_data.healths),
+            (&read_data.energies, read_data.healths.maybe()),
             &read_data.positions,
             &read_data.velocities,
             &read_data.orientations,
@@ -241,7 +241,7 @@ impl<'a> System<'a> for Sys {
                     let flees = alignment
                         .map(|a| !matches!(a, Alignment::Enemy | Alignment::Owned(_)))
                         .unwrap_or(true);
-                    let damage = health.current() as f32 / health.maximum() as f32;
+                    let damage = health.map_or(1.0, |h| h.current() as f32 / h.maximum() as f32);
                     let rtsim_entity = read_data
                         .rtsim_entities
                         .get(entity)
@@ -394,21 +394,62 @@ impl<'a> System<'a> for Sys {
                             data.idle_tree(agent, controller, &read_data, &mut event_emitter);
                         }
                     } else {
-                        // Target an entity that's attacking us if the attack was recent
-                        if health.last_change.0 < DAMAGE_MEMORY_DURATION {
-                            if let comp::HealthSource::Damage { by: Some(by), .. } =
-                                health.last_change.1.cause
-                            {
-                                if let Some(attacker) =
-                                    read_data.uid_allocator.retrieve_entity_internal(by.id())
+                        // Target an entity that's attacking us if the attack was recent and we
+                        // have a health component
+                        match health {
+                            Some(health) if health.last_change.0 < DAMAGE_MEMORY_DURATION => {
+                                if let comp::HealthSource::Damage { by: Some(by), .. } =
+                                    health.last_change.1.cause
                                 {
-                                    if let Some(tgt_pos) = read_data.positions.get(attacker) {
-                                        // If the target is dead or in a safezone, remove the target
-                                        // and idle.
-                                        if should_stop_attacking(
-                                            read_data.healths.get(attacker),
-                                            read_data.buffs.get(attacker),
-                                        ) {
+                                    if let Some(attacker) =
+                                        read_data.uid_allocator.retrieve_entity_internal(by.id())
+                                    {
+                                        if let Some(tgt_pos) = read_data.positions.get(attacker) {
+                                            // If the target is dead or in a safezone, remove the
+                                            // target
+                                            // and idle.
+                                            if should_stop_attacking(
+                                                read_data.healths.get(attacker),
+                                                read_data.buffs.get(attacker),
+                                            ) {
+                                                agent.target = None;
+                                                data.idle_tree(
+                                                    agent,
+                                                    controller,
+                                                    &read_data,
+                                                    &mut event_emitter,
+                                                );
+                                            } else {
+                                                agent.target = Some(Target {
+                                                    target: attacker,
+                                                    hostile: true,
+                                                });
+                                                data.attack(
+                                                    agent,
+                                                    controller,
+                                                    &read_data.terrain,
+                                                    tgt_pos,
+                                                    read_data.bodies.get(attacker),
+                                                    &read_data.dt,
+                                                );
+                                                // Remember this encounter if an RtSim entity
+                                                if let Some(tgt_stats) =
+                                                    read_data.stats.get(attacker)
+                                                {
+                                                    if data.rtsim_entity.is_some() {
+                                                        agent.rtsim_controller.events.push(
+                                                            RtSimEvent::AddMemory(Memory {
+                                                                item: MemoryItem::CharacterFight {
+                                                                    name: tgt_stats.name.clone(),
+                                                                },
+                                                                time_to_forget: read_data.time.0
+                                                                    + 300.0,
+                                                            }),
+                                                        );
+                                                    }
+                                                }
+                                            }
+                                        } else {
                                             agent.target = None;
                                             data.idle_tree(
                                                 agent,
@@ -416,50 +457,21 @@ impl<'a> System<'a> for Sys {
                                                 &read_data,
                                                 &mut event_emitter,
                                             );
-                                        } else {
-                                            agent.target = Some(Target {
-                                                target: attacker,
-                                                hostile: true,
-                                            });
-                                            data.attack(
-                                                agent,
-                                                controller,
-                                                &read_data.terrain,
-                                                tgt_pos,
-                                                read_data.bodies.get(attacker),
-                                                &read_data.dt,
-                                            );
-                                            // Remember this encounter if an RtSim entity
-                                            if let Some(tgt_stats) = read_data.stats.get(attacker) {
-                                                if data.rtsim_entity.is_some() {
-                                                    agent.rtsim_controller.events.push(
-                                                        RtSimEvent::AddMemory(Memory {
-                                                            item: MemoryItem::CharacterFight {
-                                                                name: tgt_stats.name.clone(),
-                                                            },
-                                                            time_to_forget: read_data.time.0
-                                                                + 300.0,
-                                                        }),
-                                                    );
-                                                }
-                                            }
                                         }
-                                    } else {
-                                        agent.target = None;
-                                        data.idle_tree(
-                                            agent,
-                                            controller,
-                                            &read_data,
-                                            &mut event_emitter,
-                                        );
                                     }
+                                } else {
+                                    agent.target = None;
+                                    data.idle_tree(
+                                        agent,
+                                        controller,
+                                        &read_data,
+                                        &mut event_emitter,
+                                    );
                                 }
-                            } else {
-                                agent.target = None;
+                            },
+                            _ => {
                                 data.idle_tree(agent, controller, &read_data, &mut event_emitter);
-                            }
-                        } else {
-                            data.idle_tree(agent, controller, &read_data, &mut event_emitter);
+                            },
                         }
                     }
 

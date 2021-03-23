@@ -123,6 +123,13 @@ pub enum ServerEvent {
         drop_item: Option<Item>,
         rtsim_entity: Option<RtSimEntity>,
     },
+    CreateShip {
+        pos: comp::Pos,
+        ship: comp::ship::Body,
+        mountable: bool,
+        agent: Option<comp::Agent>,
+        rtsim_entity: Option<RtSimEntity>,
+    },
     CreateWaypoint(Vec3<f32>),
     ClientDisconnect(EcsEntity),
     ChunkRequest(EcsEntity, Vec2<i32>),

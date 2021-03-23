@@ -110,6 +110,25 @@ pub fn handle_create_npc(
 }
 
 #[allow(clippy::too_many_arguments)]
+pub fn handle_create_ship(
+    server: &mut Server,
+    pos: comp::Pos,
+    ship: comp::ship::Body,
+    mountable: bool,
+    agent: Option<Agent>,
+    rtsim_entity: Option<RtSimEntity>,
+) {
+    let mut entity = server.state.create_ship(pos, ship, mountable);
+    if let Some(agent) = agent {
+        entity = entity.with(agent);
+    }
+    if let Some(rtsim_entity) = rtsim_entity {
+        entity = entity.with(rtsim_entity);
+    }
+    entity.build();
+}
+
+#[allow(clippy::too_many_arguments)]
 pub fn handle_shoot(
     server: &mut Server,
     entity: EcsEntity,
