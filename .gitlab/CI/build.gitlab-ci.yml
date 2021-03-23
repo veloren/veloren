@@ -7,6 +7,7 @@ unittests:
     - ln -s /dockercache/cache-all target
     - rm -r target/debug/incremental/veloren_* || echo "all good" # TMP FIX FOR 2021-03-22-nightly
     - cargo test --package veloren-voxygen --lib test_all_localizations -- --nocapture --ignored
+    - rm -r target/debug/incremental* || echo "all good" # TMP FIX FOR 2021-03-22-nightly
     - cargo test
   retry:
     max: 2
