@@ -294,7 +294,7 @@ void main() {
         );
     } else if (inst_mode == SNOW) {
         float height = mix(-4, 60, pow(start_end(1, 0), 3));
-        float wind_speed = (inst_pos.z - 250) * 0.025;
+        float wind_speed = (inst_pos.z - 2000) * 0.025;
         vec3 offset = linear_motion(vec3(0), vec3(1, 1, 0) * wind_speed);
         float end_alt = alt_at(start_pos.xy + offset.xy);
         attr = Attr(

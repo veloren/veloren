@@ -648,7 +648,7 @@ void main() {
             float passthrough = dot(faceforward(f_norm, f_norm, cam_to_frag), -cam_to_frag);
 
             vec3 reflect_color = get_sky_color(reflect_ray, time_of_day.x, f_pos, vec3(-100000), 0.125, true);
-            reflect_color = get_cloud_color(reflect_color, reflect_ray, cam_pos.xyz, time_of_day.x, 100000.0, 0.25);
+            reflect_color = get_cloud_color(reflect_color, reflect_ray, cam_pos.xyz, time_of_day.x, 100000.0, 0.1);
 
             const float REFLECTANCE = 0.5;
             surf_color = illuminate(max_light, view_dir, f_col * emitted_light, reflect_color * REFLECTANCE + water_color * reflected_light);
