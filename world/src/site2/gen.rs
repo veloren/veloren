@@ -6,6 +6,7 @@ use common::{
 };
 use vek::*;
 
+#[allow(dead_code)]
 pub enum Primitive {
     Empty, // Placeholder
 
@@ -24,7 +25,7 @@ pub enum Primitive {
     // Not commutative
     Diff(Id<Primitive>, Id<Primitive>),
     // Operators
-    Rotate(Id<Primitive>, [Vec3<i32>; 3]),
+    Rotate(Id<Primitive>, Mat3<i32>),
 }
 
 pub enum Fill {
@@ -85,12 +86,14 @@ impl Fill {
             },
             Primitive::Plane(aabr, origin, gradient) => {
                 // Maybe <= instead of ==
-                pos.z
-                    == origin.z
-                        + ((pos.xy() - origin.xy())
-                            .map(|x| x.abs())
-                            .as_()
-                            .dot(*gradient) as i32)
+                (aabr.min.x..aabr.max.x).contains(&pos.x)
+                    && (aabr.min.y..aabr.max.y).contains(&pos.y)
+                    && pos.z
+                        == origin.z
+                            + ((pos.xy() - origin.xy())
+                                .map(|x| x.abs())
+                                .as_()
+                                .dot(*gradient) as i32)
             },
             Primitive::And(a, b) => {
                 self.contains_at(tree, *a, pos) && self.contains_at(tree, *b, pos)
@@ -104,13 +107,10 @@ impl Fill {
             Primitive::Diff(a, b) => {
                 self.contains_at(tree, *a, pos) && !self.contains_at(tree, *b, pos)
             },
-            Primitive::Rotate(prim, [x, y, z]) => {
+            Primitive::Rotate(prim, mat) => {
                 let aabb = self.get_bounds(tree, *prim);
-                let diff = pos - (aabb.min + (x+y+z).map(|x| x.min(0)));
-                let new_x = Vec3::new(x.x, y.x, z.x);
-                let new_y = Vec3::new(x.y, y.y, z.y);
-                let new_z = Vec3::new(x.z, y.z, z.z);
-                self.contains_at(tree, *prim, aabb.min + (new_x * diff.x) + (new_y * diff.y) + (new_z * diff.z))
+                let diff = pos - (aabb.min + mat.cols.map(|x| x.reduce_min()));
+                self.contains_at(tree, *prim, aabb.min + mat.transposed() * diff)
             },
         }
     }
@@ -163,10 +163,11 @@ impl Fill {
                 } else {
                     (longest_dist * gradient).as_()
                 };
-                Aabb {
+                let aabb = Aabb {
                     min: aabr.min.with_z(origin.z + z.reduce_min().min(0)),
                     max: aabr.max.with_z(origin.z + z.reduce_max().max(0)),
-                }
+                };
+                aabb.made_valid()
             },
             Primitive::And(a, b) => or_zip_with(
                 self.get_bounds_inner(tree, *a),
@@ -179,15 +180,14 @@ impl Fill {
                 |a, b| a.union(b),
             )?,
             Primitive::Diff(a, _) => self.get_bounds_inner(tree, *a)?,
-            Primitive::Rotate(prim, [x, y, z]) => {
+            Primitive::Rotate(prim, mat) => {
                 let aabb = self.get_bounds_inner(tree, *prim)?;
-                let extent = (*x * aabb.size().w) + (*y * aabb.size().h) + (*z * aabb.size().d);
-                let new_min = aabb.min + extent.map(|x| x.min(0));
+                let extent = *mat * Vec3::from(aabb.size());
                 let new_aabb: Aabb<i32> = Aabb {
-                    min: new_min,
-                    max: new_min + extent.map(|x| x.abs()),
+                    min: aabb.min,
+                    max: aabb.min + extent,
                 };
-                new_aabb
+                new_aabb.made_valid()
             },
         })
     }
