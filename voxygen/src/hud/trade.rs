@@ -11,7 +11,8 @@ use crate::{
     ui::{
         fonts::Fonts,
         slot::{ContentSize, SlotMaker},
-        ImageFrame, ItemTooltip, ItemTooltipManager, Tooltip, TooltipManager, Tooltipable,
+        ImageFrame, ItemTooltip, ItemTooltipManager, ItemTooltipable, Tooltip, TooltipManager,
+        Tooltipable,
     },
 };
 use client::Client;
@@ -305,7 +306,7 @@ impl<'a> Trade<'a> {
             self.pulse,
             self.msm,
         )
-        .title_font_size(self.fonts.cyri.scale(15))
+        .title_font_size(self.fonts.cyri.scale(20))
         .parent(ui.window)
         .desc_font_size(self.fonts.cyri.scale(12))
         .font_id(self.fonts.cyri.conrod_id)
@@ -401,12 +402,15 @@ impl<'a> Trade<'a> {
                 super::util::append_price_desc(&mut desc, prices, item.item_definition_id());
                 slot_widget
                     .filled_slot(quality_col_img)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        title,
-                        &*desc,
-                        &item_tooltip,
-                        quality_col,
+                    .with_item_tooltip(
+                        self.item_tooltip_manager,
+                        self.client,
+                        self.imgs,
+                        self.item_imgs,
+                        self.pulse,
+                        item,
+                        self.msm,
+                        &item_tooltip2,
                     )
                     .set(slot_id, ui);
             } else {

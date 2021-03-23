@@ -324,7 +324,7 @@ impl<'a> InventoryScroller<'a> {
                         self.imgs,
                         self.item_imgs,
                         self.pulse,
-                        &item.clone(),
+                        item,
                         self.msm,
                         self.item_tooltip2,
                     )

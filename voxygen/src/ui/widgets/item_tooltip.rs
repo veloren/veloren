@@ -14,6 +14,7 @@ use conrod_core::{
     widget, widget_ids, Color, Colorable, FontSize, Positionable, Sizeable, Ui, UiCell, Widget,
     WidgetCommon, WidgetStyle,
 };
+use lazy_static::lazy_static;
 use std::time::{Duration, Instant};
 
 #[derive(Copy, Clone)]
@@ -104,7 +105,7 @@ impl ItemTooltipManager {
     fn set_tooltip(
         &mut self,
         tooltip: &ItemTooltip,
-        item: &Item,
+        item: &dyn ItemDesc,
         img_id: Option<image::Id>,
         image_dims: Option<(f64, f64)>,
         src_id: widget::Id,
@@ -118,7 +119,7 @@ impl ItemTooltipManager {
             // spacing
             let tooltip = tooltip
                 .clone()
-                .item(item.clone())
+                .item(item)
                 .image(img_id)
                 .image_dims(image_dims);
 
@@ -170,7 +171,7 @@ pub struct ItemTooltipped<'a, W> {
     imgs: &'a Imgs,
     item_imgs: &'a ItemImgs,
     pulse: f32,
-    item: &'a Item,
+    item: &'a dyn ItemDesc,
     msm: &'a MaterialStatManifest,
     img_id: Option<image::Id>,
     image_dims: Option<(f64, f64)>,
@@ -191,7 +192,7 @@ impl<'a, W: Widget> ItemTooltipped<'a, W> {
         let event = self.inner.set(id, ui);
         self.tooltip_manager.set_tooltip(
             self.tooltip,
-            &self.item,
+            self.item,
             self.img_id,
             self.image_dims,
             id,
@@ -210,7 +211,7 @@ pub trait ItemTooltipable {
         imgs: &'a Imgs,
         item_imgs: &'a ItemImgs,
         pulse: f32,
-        item: &'a Item,
+        item: &'a dyn ItemDesc,
         msm: &'a MaterialStatManifest,
         tooltip: &'a ItemTooltip<'a>,
     ) -> ItemTooltipped<'a, Self>
@@ -225,7 +226,7 @@ impl<W: Widget> ItemTooltipable for W {
         imgs: &'a Imgs,
         item_imgs: &'a ItemImgs,
         pulse: f32,
-        item: &'a Item,
+        item: &'a dyn ItemDesc,
         msm: &'a MaterialStatManifest,
         tooltip: &'a ItemTooltip<'a>,
     ) -> ItemTooltipped<'a, W> {
@@ -265,7 +266,7 @@ const ICON_SIZE: [f64; 2] = [64.0, 64.0];
 pub struct ItemTooltip<'a> {
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
-    item: Item,
+    item: &'a dyn ItemDesc,
     msm: &'a MaterialStatManifest,
     image: Option<image::Id>,
     image_dims: Option<(f64, f64)>,
@@ -309,6 +310,10 @@ pub struct State {
     ids: Ids,
 }
 
+lazy_static! {
+    static ref EMPTY_ITEM: Item = Item::new_from_asset_expect("common.items.weapons.empty.empty");
+}
+
 impl<'a> ItemTooltip<'a> {
     builder_methods! {
         pub desc_text_color { style.desc.color = Some(Color) }
@@ -317,7 +322,7 @@ impl<'a> ItemTooltip<'a> {
         pub title_justify { style.title.justify = Some(text::Justify) }
         pub desc_justify { style.desc.justify = Some(text::Justify) }
         image { image = Option<image::Id> }
-        item { item = Item }
+        item { item = &'a dyn ItemDesc }
         msm { msm = &'a MaterialStatManifest }
         image_dims { image_dims = Option<(f64, f64)> }
         transparency { transparency = f32 }
@@ -334,7 +339,7 @@ impl<'a> ItemTooltip<'a> {
         ItemTooltip {
             common: widget::CommonBuilder::default(),
             style: Style::default(),
-            item: Item::new_from_asset_expect("common.items.weapons.empty.empty"),
+            item: &*EMPTY_ITEM,
             msm,
             transparency: 1.0,
             image_frame,
@@ -416,7 +421,7 @@ impl<'a> Widget for ItemTooltip<'a> {
             ..
         } = args;
 
-        fn stats_count(item: &Item) -> usize {
+        fn stats_count(item: &dyn ItemDesc) -> usize {
             let mut count = match item.kind() {
                 ItemKind::Armor(_) => 1,
                 ItemKind::Tool(_) => 5,
@@ -435,7 +440,7 @@ impl<'a> Widget for ItemTooltip<'a> {
             None => return,
         };
 
-        let item = &self.item;
+        let item = self.item;
 
         let quality = get_quality_col(item);
 
@@ -471,13 +476,13 @@ impl<'a> Widget for ItemTooltip<'a> {
         state.update(|s| {
             s.ids
                 .stats
-                .resize(stats_count(&item), &mut ui.widget_id_generator())
+                .resize(stats_count(item), &mut ui.widget_id_generator())
         });
 
         state.update(|s| {
             s.ids
                 .diffs
-                .resize(stats_count(&item), &mut ui.widget_id_generator())
+                .resize(stats_count(item), &mut ui.widget_id_generator())
         });
 
         // Background image frame
@@ -522,7 +527,9 @@ impl<'a> Widget for ItemTooltip<'a> {
 
         // Item render
         widget::Image::new(animate_by_pulse(
-            &self.item_imgs.img_ids_or_not_found_img(ItemKey::from(item)),
+            &self
+                .item_imgs
+                .img_ids_or_not_found_img(ItemKey::from(&item)),
             self.pulse,
         ))
         .color(Some(conrod_core::color::WHITE))
@@ -854,7 +861,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                 .with_style(self.style.desc)
                 .color(conrod_core::color::GREY)
                 .down_from(
-                    if stats_count(&item) > 0 {
+                    if stats_count(item) > 0 {
                         state.ids.stats[state.ids.stats.len() - 1]
                     } else {
                         state.ids.item_frame
@@ -871,7 +878,7 @@ impl<'a> Widget for ItemTooltip<'a> {
     fn default_x_dimension(&self, ui: &Ui) -> Dimension { Dimension::Absolute(260.0) }
 
     fn default_y_dimension(&self, ui: &Ui) -> Dimension {
-        fn stats_count(item: &Item) -> usize {
+        fn stats_count(item: &dyn ItemDesc) -> usize {
             let mut count: usize = match item.kind() {
                 ItemKind::Armor(_) => 2,
                 ItemKind::Tool(_) => 5,
@@ -920,14 +927,14 @@ impl<'a> Widget for ItemTooltip<'a> {
 
         dbg!(title_h);
         dbg!(frame_h);
-        dbg!(stat_h * stats_count(&self.item) as f64);
+        dbg!(stat_h * stats_count(self.item) as f64);
         dbg!(desc_h);
         let height = title_h
             + frame_h
-            + stat_h * stats_count(&self.item) as f64
+            + stat_h * stats_count(self.item) as f64
             + desc_h
             + V_PAD * 5.0
-            + V_PAD_STATS * stats_count(&self.item) as f64;
+            + V_PAD_STATS * stats_count(self.item) as f64;
         Dimension::Absolute(height)
     }
 }

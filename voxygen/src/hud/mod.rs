@@ -2374,6 +2374,7 @@ impl Hud {
                     self.pulse,
                     &self.rot_imgs,
                     tooltip_manager,
+                    item_tooltip_manager,
                     &self.item_imgs,
                     &inventory,
                     &msm,
@@ -3333,7 +3334,7 @@ impl Hud {
     }
 }
 // Get item qualities of equipped items and assign a tooltip title/frame color
-pub fn get_quality_col<I: ItemDesc>(item: &I) -> Color {
+pub fn get_quality_col<I: ItemDesc + ?Sized>(item: &I) -> Color {
     match item.quality() {
         Quality::Low => QUALITY_LOW,
         Quality::Common => QUALITY_COMMON,
