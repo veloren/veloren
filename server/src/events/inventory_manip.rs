@@ -1,6 +1,6 @@
 use rand::Rng;
 use specs::{join::Join, world::WorldExt, Builder, Entity as EcsEntity, WriteStorage};
-use tracing::{debug, error};
+use tracing::{debug, error, warn};
 use vek::{Rgb, Vec3};
 
 use common::{
@@ -42,10 +42,15 @@ pub fn snuff_lantern(storage: &mut WriteStorage<comp::LightEmitter>, entity: Ecs
 pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::InventoryManip) {
     let state = server.state_mut();
 
-    let uid = state
-        .ecs()
-        .uid_from_entity(entity)
-        .expect("Couldn't get uid for entity");
+    let uid = if let Some(uid) = state.ecs().uid_from_entity(entity) {
+        uid
+    } else {
+        warn!(
+            "Couldn't get uid for entity {:?} at start of handle_inventory",
+            entity
+        );
+        return;
+    };
 
     {
         let trades = state.ecs().read_resource::<Trades>();
@@ -292,9 +297,6 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                 let reinsert = if let Some(pos) =
                                     state.read_storage::<comp::Pos>().get(entity)
                                 {
-                                    let uid = state
-                                        .read_component_copied(entity)
-                                        .expect("Expected entity to have a UID");
                                     if (
                                         &state.read_storage::<comp::Alignment>(),
                                         &state.read_storage::<comp::Agent>(),
