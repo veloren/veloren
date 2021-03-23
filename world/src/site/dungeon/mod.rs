@@ -201,7 +201,7 @@ impl Dungeon {
         let pos = self.origin.map2(FLOOR_SIZE, |e, sz| e + sz as i32 / 2);
         if area.contains_point(pos - self.origin) {
             supplement.add_entity(
-                EntityInfo::at(Vec3::new(pos.x as f32, pos.y as f32, self.alt as f32) + 0.5)
+                EntityInfo::at(Vec3::new(pos.x as f32, pos.y as f32, self.alt as f32) + 2.5)
                     .into_waypoint(),
             );
         }
@@ -218,8 +218,14 @@ impl Dungeon {
 const TILE_SIZE: i32 = 13;
 
 #[derive(Clone)]
+pub enum StairsKind {
+    Spiral,
+    WallSpiral,
+}
+
+#[derive(Clone)]
 pub enum Tile {
-    UpStair(Id<Room>),
+    UpStair(Id<Room>, StairsKind),
     DownStair(Id<Room>),
     Room(Id<Room>),
     Tunnel,
@@ -230,7 +236,7 @@ impl Tile {
     fn is_passable(&self) -> bool {
         matches!(
             self,
-            Tile::UpStair(_) | Tile::DownStair(_) | Tile::Room(_) | Tile::Tunnel
+            Tile::UpStair(_, _) | Tile::DownStair(_) | Tile::Room(_) | Tile::Tunnel
         )
     }
 }
@@ -345,8 +351,16 @@ impl Floor {
                 Tile::DownStair(downstair_room),
             );
         }
-        this.tiles
-            .set(stair_tile - tile_offset, Tile::UpStair(upstair_room));
+        let stair_kind = if ctx.rng.gen::<f32>() < 0.3 {
+            StairsKind::Spiral
+        } else {
+            StairsKind::WallSpiral
+        };
+
+        this.tiles.set(
+            stair_tile - tile_offset,
+            Tile::UpStair(upstair_room, stair_kind),
+        );
 
         this.create_rooms(ctx, level, 7);
         // Create routes between all rooms
@@ -444,7 +458,7 @@ impl Floor {
         let transition = |_a: &Vec2<i32>, b: &Vec2<i32>| match self.tiles.get(*b) {
             Some(Tile::Room(_)) | Some(Tile::Tunnel) => 1.0,
             Some(Tile::Solid) => 25.0,
-            Some(Tile::UpStair(_)) | Some(Tile::DownStair(_)) => 0.0,
+            Some(Tile::UpStair(_, _)) | Some(Tile::DownStair(_)) => 0.0,
             _ => 100000.0,
         };
         let satisfied = |l: &Vec2<i32>| *l == b;
@@ -1195,24 +1209,53 @@ impl Floor {
         let colors = &index.colors.site.dungeon;
 
         let vacant = BlockMask::new(with_sprite(SpriteKind::Empty), 1);
+        let stone = BlockMask::new(Block::new(BlockKind::Rock, colors.stone.into()), 5);
 
-        let make_staircase = move |pos: Vec3<i32>, radius: f32, inner_radius: f32, stretch: f32| {
-            let stone = BlockMask::new(Block::new(BlockKind::Rock, colors.stone.into()), 5);
-
-            if (pos.xy().magnitude_squared() as f32) < inner_radius.powi(2) {
-                stone
-            } else if (pos.xy().magnitude_squared() as f32) < radius.powi(2) {
-                if ((pos.x as f32).atan2(pos.y as f32) / (f32::consts::PI * 2.0) * stretch
-                    + pos.z as f32)
-                    .rem_euclid(stretch)
-                    < 1.5
-                {
+        let make_spiral_staircase =
+            move |pos: Vec3<i32>, radius: f32, inner_radius: f32, stretch: f32| {
+                if (pos.xy().magnitude_squared() as f32) < inner_radius.powi(2) {
                     stone
+                } else if (pos.xy().magnitude_squared() as f32) < radius.powi(2) {
+                    if ((pos.x as f32).atan2(pos.y as f32) / (f32::consts::PI * 2.0) * stretch
+                        + pos.z as f32)
+                        .rem_euclid(stretch)
+                        < 1.5
+                    {
+                        stone
+                    } else {
+                        vacant
+                    }
+                } else {
+                    BlockMask::nothing()
+                }
+            };
+        let make_wall_staircase =
+            move |pos: Vec3<i32>, radius: f32, stretch: f32, height_limit: i32| {
+                if (pos.x.abs().max(pos.y.abs())) as f32 > 0.6 * radius && pos.z <= height_limit {
+                    if ((pos.x as f32).atan2(pos.y as f32) / (f32::consts::PI * 2.0) * stretch
+                        + pos.z as f32)
+                        .rem_euclid(stretch)
+                        < 1.0
+                    {
+                        stone
+                    } else {
+                        vacant
+                    }
                 } else {
                     vacant
                 }
-            } else {
-                BlockMask::nothing()
+            };
+        let make_staircase = move |kind: &StairsKind,
+                                   pos: Vec3<i32>,
+                                   radius: f32,
+                                   inner_radius: f32,
+                                   stretch: f32,
+                                   height_limit: i32| {
+            match kind {
+                StairsKind::Spiral => make_spiral_staircase(pos, radius, inner_radius, stretch),
+                StairsKind::WallSpiral => {
+                    make_wall_staircase(pos, radius, stretch * 3.0, height_limit)
+                },
             }
         };
 
@@ -1326,18 +1369,17 @@ impl Floor {
                     vacant
                 }
             },
-            Some(Tile::DownStair(_)) => {
-                make_staircase(Vec3::new(rtile_pos.x, rtile_pos.y, z), 0.0, 0.5, 9.0)
-                    .resolve_with(vacant)
-            },
-            Some(Tile::UpStair(room)) => {
+            Some(Tile::DownStair(_)) => vacant,
+            Some(Tile::UpStair(room, kind)) => {
                 let inner_radius: f32 = 0.5;
                 let stretch = 9;
                 let block = make_staircase(
+                    kind,
                     Vec3::new(rtile_pos.x, rtile_pos.y, z),
                     TILE_SIZE as f32 / 2.0,
                     inner_radius,
                     stretch as f32,
+                    self.total_depth(),
                 );
                 let furniture = SpriteKind::WallSconce;
                 let ori = Floor::relative_ori(Vec2::zero(), rtile_pos);
@@ -1347,10 +1389,12 @@ impl Floor {
                     BlockMask::new(Block::air(furniture).with_ori(ori).unwrap(), 1)
                 } else {
                     make_staircase(
+                        kind,
                         Vec3::new(rtile_pos.x, rtile_pos.y, z),
                         TILE_SIZE as f32 / 2.0,
                         inner_radius,
                         stretch as f32,
+                        self.total_depth(),
                     )
                 }
             },

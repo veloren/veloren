@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New Skills for Climbing: Climbing Speed and Climbing Cost
 - Pickaxes (can be used to collect gems and mine weak rock)
 - You can now jump out of rolls for a slight jump boost
+- Dungeons now have multiple kinds of stairs.
 
 ### Changed
 
