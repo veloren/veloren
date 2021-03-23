@@ -60,7 +60,7 @@ struct AgentData<'a> {
     light_emitter: Option<&'a LightEmitter>,
     glider_equipped: bool,
     is_gliding: bool,
-    health: &'a Health,
+    health: Option<&'a Health>,
     char_state: &'a CharacterState,
 }
 
@@ -275,7 +275,7 @@ impl<'a> System<'a> for Sys {
                         light_emitter,
                         glider_equipped,
                         is_gliding,
-                        health,
+                        health: read_data.healths.get(entity),
                         char_state,
                     };
 
@@ -2206,7 +2206,10 @@ impl<'a> AgentData<'a> {
                 agent.action_timer += dt.0;
                 const MINDFLAYER_ATTACK_DIST: f32 = 15.0;
                 let mindflayer_is_far = dist_sqrd > MINDFLAYER_ATTACK_DIST.powi(2);
-                if mindflayer_is_far && agent.action_timer / self.health.fraction() > 5.0 {
+                let health_fraction = self.health.map_or(0.5, |h| h.fraction());
+                if mindflayer_is_far && agent.action_timer / health_fraction > 10.0 {
+                    // Summon minions if time has passed and no one is close for other attacks. Less
+                    // often when at low health.
                     if !self.char_state.is_attack() {
                         controller
                             .actions
@@ -2214,6 +2217,7 @@ impl<'a> AgentData<'a> {
                         agent.action_timer = 0.0;
                     }
                 } else if mindflayer_is_far {
+                    // If too far from target, blink to them.
                     controller.actions.push(ControlAction::StartInput {
                         input: InputKind::Ability(0),
                         target_entity: agent
@@ -2223,14 +2227,29 @@ impl<'a> AgentData<'a> {
                             .copied(),
                         select_pos: None,
                     });
-                } else if self.health.fraction() < 0.5 {
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Secondary));
                 } else {
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Primary));
+                    // If close to target, use either primary or secondary ability
+                    if matches!(self.char_state, CharacterState::BasicBeam(_)) {
+                        // If already using primary, keep using primary
+                        controller
+                            .actions
+                            .push(ControlAction::basic_input(InputKind::Primary));
+                    } else if matches!(self.char_state, CharacterState::SpinMelee(_)) {
+                        // If already using secondary, keep using secondary
+                        controller
+                            .actions
+                            .push(ControlAction::basic_input(InputKind::Secondary));
+                    } else if thread_rng().gen_bool(health_fraction.into()) {
+                        // Else if at high health, use primary
+                        controller
+                            .actions
+                            .push(ControlAction::basic_input(InputKind::Primary));
+                    } else {
+                        // Else use secondary
+                        controller
+                            .actions
+                            .push(ControlAction::basic_input(InputKind::Secondary));
+                    }
                 }
             },
         }

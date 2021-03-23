@@ -8,7 +8,7 @@ BasicBeam(
     max_angle: 15.0,
     damage_effect: Some(Buff((
         kind: Cursed,
-        dur_secs: 15.0,
+        dur_secs: 30.0,
         strength: Value(0.5),
         chance: 1.0,
     ))),
