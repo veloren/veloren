@@ -478,8 +478,14 @@ pub fn handle_delete(server: &mut Server, entity: EcsEntity) {
 pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>) {
     let state = &server.state;
     if vel.z <= -30.0 {
-        let falldmg = (vel.z.powi(2) / 20.0 - 40.0) * 7.5;
+        let mass = state
+            .ecs()
+            .read_storage::<comp::Mass>()
+            .get(entity)
+            .copied()
+            .unwrap_or_default();
         let inventories = state.ecs().read_storage::<Inventory>();
+        let falldmg = mass.0 * vel.z.powi(2) / 200.0;
         let stats = state.ecs().read_storage::<Stats>();
         // Handle health change
         if let Some(mut health) = state.ecs().write_storage::<comp::Health>().get_mut(entity) {
@@ -495,7 +501,7 @@ pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>)
         // Handle poise change
         if let Some(mut poise) = state.ecs().write_storage::<comp::Poise>().get_mut(entity) {
             let poise_damage = PoiseChange {
-                amount: -(falldmg / 2.0) as i32,
+                amount: -(mass.0 * vel.magnitude_squared() / 1500.0) as i32,
                 source: PoiseSource::Falling,
             };
             let poise_change = poise_damage.modify_poise_damage(inventories.get(entity));

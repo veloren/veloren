@@ -14,6 +14,7 @@ pub mod compass;
 mod controller;
 pub mod dialogue;
 #[cfg(not(target_arch = "wasm32"))] mod energy;
+pub mod fluid_dynamics;
 #[cfg(not(target_arch = "wasm32"))] pub mod group;
 mod health;
 #[cfg(not(target_arch = "wasm32"))]
@@ -67,6 +68,7 @@ pub use self::{
         InputKind, InventoryAction, InventoryEvent, InventoryManip, MountState, Mounting,
     },
     energy::{Energy, EnergyChange, EnergySource},
+    fluid_dynamics::Fluid,
     group::Group,
     home_chunk::HomeChunk,
     inputs::CanBuild,
@@ -79,7 +81,7 @@ pub use self::{
     misc::Object,
     ori::Ori,
     phys::{
-        Collider, ForceUpdate, Gravity, Mass, PhysicsState, Pos, PosVelDefer, PreviousPhysCache,
+        Collider, Density, ForceUpdate, Mass, PhysicsState, Pos, PosVelDefer, PreviousPhysCache,
         Scale, Sticky, Vel,
     },
     player::Player,

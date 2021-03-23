@@ -1,5 +1,10 @@
-use crate::make_case_elim;
+use crate::{
+    comp::{Density, Mass},
+    consts::AIR_DENSITY,
+    make_case_elim,
+};
 use serde::{Deserialize, Serialize};
+use vek::Vec3;
 
 make_case_elim!(
     body,
@@ -20,6 +25,33 @@ impl Body {
             Body::DefaultAirship => "Human_Airship",
         }
     }
+
+    pub fn dimensions(&self) -> Vec3<f32> { Vec3::new(25.0, 50.0, 40.0) }
+
+    fn balloon_vol(&self) -> f32 {
+        let spheroid_vol = |equat_d: f32, polar_d: f32| -> f32 {
+            (std::f32::consts::PI / 6.0) * equat_d.powi(2) * polar_d
+        };
+        let dim = self.dimensions();
+        spheroid_vol(dim.z, dim.y)
+    }
+
+    fn hull_vol(&self) -> f32 {
+        // height from bottom of keel to deck
+        let deck_height = 10_f32;
+        let dim = self.dimensions();
+        (std::f32::consts::PI / 6.0) * (deck_height * 1.5).powi(2) * dim.y
+    }
+
+    pub fn hull_density(&self) -> Density {
+        let oak_density = 600_f32;
+        let ratio = 0.1;
+        Density(ratio * oak_density + (1.0 - ratio) * AIR_DENSITY)
+    }
+
+    pub fn density(&self) -> Density { Density(AIR_DENSITY) }
+
+    pub fn mass(&self) -> Mass { Mass((self.hull_vol() + self.balloon_vol()) * self.density().0) }
 }
 
 /// Terrain is 11.0 scale relative to small-scale voxels, and all figures get

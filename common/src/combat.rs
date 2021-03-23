@@ -631,7 +631,8 @@ pub enum KnockbackDir {
 #[cfg(not(target_arch = "wasm32"))]
 impl Knockback {
     pub fn calculate_impulse(self, dir: Dir) -> Vec3<f32> {
-        match self.direction {
+        // TEMP until source knockback values have been updated
+        50.0 * match self.direction {
             KnockbackDir::Away => self.strength * *Dir::slerp(dir, Dir::new(Vec3::unit_z()), 0.5),
             KnockbackDir::Towards => {
                 self.strength * *Dir::slerp(-dir, Dir::new(Vec3::unit_z()), 0.5)

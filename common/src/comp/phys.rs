@@ -1,4 +1,5 @@
-use crate::uid::Uid;
+use super::Fluid;
+use crate::{consts::WATER_DENSITY, uid::Uid};
 use hashbrown::HashSet;
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage, NullStorage};
@@ -18,6 +19,10 @@ impl Component for Pos {
 /// Velocity
 #[derive(Copy, Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Vel(pub Vec3<f32>);
+
+impl Vel {
+    pub fn zero() -> Self { Vel(Vec3::zero()) }
+}
 
 impl Component for Vel {
     // TODO: why not regular vec storage????
@@ -66,10 +71,27 @@ impl Component for Scale {
 }
 
 // Mass
-#[derive(Copy, Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Mass(pub f32);
 
+impl Default for Mass {
+    fn default() -> Mass { Mass(1.0) }
+}
+
 impl Component for Mass {
+    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
+}
+
+/// The average density (specific mass) of an entity.
+/// Units used for reference is kg/m³
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Density(pub f32);
+
+impl Default for Density {
+    fn default() -> Density { Density(WATER_DENSITY) }
+}
+
+impl Component for Density {
     type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
 }
 
@@ -92,6 +114,11 @@ impl Collider {
         }
     }
 
+    pub fn get_height(&self) -> f32 {
+        let (z_min, z_max) = self.get_z_limits(1.0);
+        z_max - z_min
+    }
+
     pub fn get_z_limits(&self, modifier: f32) -> (f32, f32) {
         match self {
             Collider::Voxel { .. } => (0.0, 1.0),
@@ -102,13 +129,6 @@ impl Collider {
 }
 
 impl Component for Collider {
-    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
-}
-
-#[derive(Copy, Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
-pub struct Gravity(pub f32);
-
-impl Component for Gravity {
     type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
 }
 
@@ -126,7 +146,7 @@ pub struct PhysicsState {
     pub on_ceiling: bool,
     pub on_wall: Option<Vec3<f32>>,
     pub touch_entities: HashSet<Uid>,
-    pub in_liquid: Option<f32>, // Depth
+    pub in_fluid: Option<Fluid>,
     pub ground_vel: Vec3<f32>,
 }
 
@@ -149,6 +169,8 @@ impl PhysicsState {
             .or_else(|| self.on_ceiling.then_some(Vec3::unit_z()))
             .or(self.on_wall)
     }
+
+    pub fn in_liquid(&self) -> Option<f32> { self.in_fluid.and_then(|fluid| fluid.depth()) }
 }
 
 impl Component for PhysicsState {

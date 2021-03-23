@@ -4,8 +4,8 @@ use crate::{
         DamageSource, GroupTarget, Knockback, KnockbackDir,
     },
     comp::{
-        projectile, Body, CharacterState, EnergyChange, EnergySource, Gravity, LightEmitter,
-        Projectile, StateUpdate,
+        projectile, Body, CharacterState, EnergyChange, EnergySource, LightEmitter, Projectile,
+        StateUpdate,
     },
     event::ServerEvent,
     states::{
@@ -40,7 +40,6 @@ pub struct StaticData {
     /// Projectile information
     pub projectile_body: Body,
     pub projectile_light: Option<LightEmitter>,
-    pub projectile_gravity: Option<Gravity>,
     pub initial_projectile_speed: f32,
     pub scaled_projectile_speed: f32,
     /// Move speed efficiency
@@ -138,7 +137,6 @@ impl CharacterBehavior for Data {
                         body: self.static_data.projectile_body,
                         projectile,
                         light: self.static_data.projectile_light,
-                        gravity: self.static_data.projectile_gravity,
                         speed: self.static_data.initial_projectile_speed
                             + charge_frac * self.static_data.scaled_projectile_speed,
                         object: None,

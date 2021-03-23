@@ -1,6 +1,6 @@
 use crate::{
     combat::Attack,
-    comp::{tool::ToolKind, Energy, InputAttr, InputKind, Ori, Pos, Vel},
+    comp::{tool::ToolKind, Density, Energy, InputAttr, InputKind, Ori, Pos, Vel},
     event::{LocalEvent, ServerEvent},
     states::{behavior::JoinData, *},
 };
@@ -16,6 +16,7 @@ pub struct StateUpdate {
     pub pos: Pos,
     pub vel: Vel,
     pub ori: Ori,
+    pub density: Density,
     pub energy: Energy,
     pub swap_equipped_weapons: bool,
     pub queued_inputs: BTreeMap<InputKind, InputAttr>,
@@ -30,6 +31,7 @@ impl From<&JoinData<'_>> for StateUpdate {
             pos: *data.pos,
             vel: *data.vel,
             ori: *data.ori,
+            density: *data.density,
             energy: *data.energy,
             swap_equipped_weapons: false,
             character: data.character.clone(),

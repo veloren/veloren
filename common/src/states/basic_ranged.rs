@@ -1,5 +1,5 @@
 use crate::{
-    comp::{Body, CharacterState, Gravity, LightEmitter, ProjectileConstructor, StateUpdate},
+    comp::{Body, CharacterState, LightEmitter, ProjectileConstructor, StateUpdate},
     event::ServerEvent,
     states::{
         behavior::{CharacterBehavior, JoinData},
@@ -20,7 +20,6 @@ pub struct StaticData {
     pub projectile: ProjectileConstructor,
     pub projectile_body: Body,
     pub projectile_light: Option<LightEmitter>,
-    pub projectile_gravity: Option<Gravity>,
     pub projectile_speed: f32,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
@@ -82,7 +81,6 @@ impl CharacterBehavior for Data {
                         body: self.static_data.projectile_body,
                         projectile,
                         light: self.static_data.projectile_light,
-                        gravity: self.static_data.projectile_gravity,
                         speed: self.static_data.projectile_speed,
                         object: None,
                     });

@@ -148,6 +148,10 @@ impl Ori {
         self.to_quat() * local
     }
 
+    pub fn to_horizontal(self) -> Option<Self> {
+        Dir::from_unnormalized(self.look_dir().xy().into()).map(|ori| ori.into())
+    }
+
     pub fn pitched_up(self, angle_radians: f32) -> Self {
         self.rotated(Quaternion::rotation_x(angle_radians))
     }
@@ -252,7 +256,7 @@ impl From<Ori> for vek::vec::repr_simd::Vec3<f32> {
 }
 
 impl From<Ori> for Vec2<f32> {
-    fn from(ori: Ori) -> Self { ori.look_vec().xy() }
+    fn from(ori: Ori) -> Self { ori.look_dir().to_horizontal().unwrap_or_default().xy() }
 }
 
 impl From<Ori> for vek::vec::repr_simd::Vec2<f32> {

@@ -112,6 +112,8 @@ impl Dir {
 
     pub fn back() -> Self { -Dir::new(Vec3::<f32>::unit_y()) }
 
+    pub fn to_horizontal(self) -> Option<Self> { Self::from_unnormalized(self.xy().into()) }
+
     pub fn vec(&self) -> &Vec3<f32> { &self.0 }
 
     pub fn to_vec(self) -> Vec3<f32> { self.0 }

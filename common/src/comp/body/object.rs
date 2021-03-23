@@ -1,6 +1,11 @@
-use crate::{comp::item::Reagent, make_case_elim};
+use crate::{
+    comp::{item::Reagent, Density, Mass},
+    consts::{IRON_DENSITY, WATER_DENSITY},
+    make_case_elim,
+};
 use rand::{seq::SliceRandom, thread_rng};
 use serde::{Deserialize, Serialize};
+use vek::Vec3;
 
 make_case_elim!(
     body,
@@ -239,6 +244,45 @@ impl Body {
             Reagent::Red => Body::FireworkRed,
             Reagent::White => Body::FireworkWhite,
             Reagent::Yellow => Body::FireworkYellow,
+        }
+    }
+
+    pub fn density(&self) -> Density {
+        let density = match self {
+            Body::Anvil | Body::Cauldron => IRON_DENSITY,
+            Body::Arrow | Body::MultiArrow => 500.0,
+            Body::Bomb => 2000.0, // I have no idea what it's supposed to be
+            Body::Crate => 300.0, // let's say it's a lot of wood and maybe some contents
+            Body::Scarecrow => 900.0,
+            Body::TrainingDummy => 2000.0,
+            // let them sink
+            _ => 1.1 * WATER_DENSITY,
+        };
+
+        Density(density)
+    }
+
+    pub fn mass(&self) -> Mass {
+        let m = match self {
+            // I think MultiArrow is one of several arrows, not several arrows combined?
+            Body::Arrow | Body::MultiArrow => 0.003,
+            Body::Bomb => {
+                0.5 * IRON_DENSITY * std::f32::consts::PI / 6.0 * self.dimensions().x.powi(3)
+            },
+            Body::Scarecrow => 50.0,
+            Body::Cauldron => 5.0,
+            Body::TrainingDummy => 60.0,
+            _ => 1.0,
+        };
+
+        Mass(m)
+    }
+
+    pub fn dimensions(&self) -> Vec3<f32> {
+        match self {
+            Body::Arrow | Body::ArrowSnake | Body::MultiArrow => Vec3::new(0.01, 0.8, 0.01),
+            Body::BoltFire => Vec3::new(0.1, 0.1, 0.1),
+            _ => Vec3::broadcast(0.2),
         }
     }
 }

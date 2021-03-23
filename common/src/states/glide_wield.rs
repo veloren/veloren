@@ -32,7 +32,7 @@ impl CharacterBehavior for Data {
         }
         if data
             .physics
-            .in_liquid
+            .in_liquid()
             .map(|depth| depth > 0.5)
             .unwrap_or(false)
         {

@@ -12,6 +12,5 @@ BasicRanged(
         col: (1.0, 0.75, 0.11).into(),
         ..Default::default()
     }),*/
-    projectile_gravity: Some(Gravity(0.3)),
     projectile_speed: 60.0,
 )
