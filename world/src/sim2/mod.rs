@@ -1126,7 +1126,7 @@ mod tests {
                 outarr.push(val);
             }
             let pretty = ron::ser::PrettyConfig::new();
-            if let Some(result) = ron::ser::to_string_pretty(&outarr, pretty) {
+            if let Ok(result) = ron::ser::to_string_pretty(&outarr, pretty) {
                 info!("RON {}", result);
             }
         } else {
