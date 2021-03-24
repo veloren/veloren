@@ -165,6 +165,7 @@ pub enum CharacterAbility {
         forward_speed: f32,
         num_spins: u32,
         specifier: Option<spin_melee::FrontendSpecifier>,
+        target: Option<combat::GroupTarget>,
     },
     ChargedMelee {
         energy_cost: f32,
@@ -1341,6 +1342,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 forward_speed,
                 num_spins,
                 specifier,
+                target,
             } => CharacterState::SpinMelee(spin_melee::Data {
                 static_data: spin_melee::StaticData {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
@@ -1357,6 +1359,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                     is_interruptible: *is_interruptible,
                     forward_speed: *forward_speed,
                     num_spins: *num_spins,
+                    target: *target,
                     ability_info,
                     specifier: *specifier,
                 },

@@ -45,6 +45,8 @@ pub struct StaticData {
     pub forward_speed: f32,
     /// Number of spins
     pub num_spins: u32,
+    /// Used to determine targeting of attack
+    pub target: Option<GroupTarget>,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
     /// Used to specify the melee attack to the frontend
@@ -110,12 +112,12 @@ impl CharacterBehavior for Data {
                     });
 
                     let poise = AttackEffect::new(
-                        Some(GroupTarget::OutOfGroup),
+                        self.static_data.target,
                         CombatEffect::Poise(self.static_data.base_poise_damage as f32),
                     )
                     .with_requirement(CombatRequirement::AnyDamage);
                     let knockback = AttackEffect::new(
-                        Some(GroupTarget::OutOfGroup),
+                        self.static_data.target,
                         CombatEffect::Knockback(self.static_data.knockback),
                     )
                     .with_requirement(CombatRequirement::AnyDamage);
@@ -124,7 +126,7 @@ impl CharacterBehavior for Data {
                             source: DamageSource::Melee,
                             value: self.static_data.base_damage as f32,
                         },
-                        Some(GroupTarget::OutOfGroup),
+                        self.static_data.target,
                     );
                     match self.static_data.damage_effect {
                         Some(effect) => damage = damage.with_effect(effect),

@@ -14,4 +14,5 @@ SpinMelee(
     forward_speed: 1.0,
     num_spins: 3,
     specifier: None,
+    target: Some(OutOfGroup),
 )
