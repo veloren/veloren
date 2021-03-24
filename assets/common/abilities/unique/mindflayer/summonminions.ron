@@ -2,7 +2,7 @@ BasicSummon(
     buildup_duration: 0.5,
     cast_duration: 1.0,
     recover_duration: 0.5,
-    summon_amount: 2,
+    summon_amount: 6,
     summon_info: (
         body: BipedSmall((
             species: Husk,

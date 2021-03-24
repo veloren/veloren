@@ -2202,18 +2202,21 @@ impl<'a> AgentData<'a> {
                 }
             },
             Tactic::Mindflayer => {
-                agent.action_timer += dt.0;
                 const MINDFLAYER_ATTACK_DIST: f32 = 15.0;
-                let mindflayer_is_far = dist_sqrd > MINDFLAYER_ATTACK_DIST.powi(2);
+                const MINION_SUMMON_THRESHOLD: f32 = 0.25;
                 let health_fraction = self.health.map_or(0.5, |h| h.fraction());
-                if mindflayer_is_far && agent.action_timer > 5.0 / health_fraction {
-                    // Summon minions if time has passed and no one is close for other attacks. Less
-                    // often when at low health.
+                // Extreme hack to set action_timer to 1 at start of combat
+                if agent.action_timer < 0.01 && health_fraction > 0.5 {
+                    agent.action_timer = 1.0 - MINION_SUMMON_THRESHOLD;
+                }
+                let mindflayer_is_far = dist_sqrd > MINDFLAYER_ATTACK_DIST.powi(2);
+                if agent.action_timer > health_fraction {
+                    // Summon minions at particular thresholds of health
                     if !self.char_state.is_attack() {
                         controller
                             .actions
                             .push(ControlAction::basic_input(InputKind::Ability(1)));
-                        agent.action_timer = 0.0;
+                        agent.action_timer -= MINION_SUMMON_THRESHOLD;
                     }
                 } else if mindflayer_is_far {
                     // If too far from target, blink to them.
