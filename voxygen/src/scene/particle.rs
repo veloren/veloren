@@ -423,7 +423,8 @@ impl ParticleMgr {
         let dt = scene_data.state.get_delta_time();
         let mut rng = thread_rng();
 
-        for (pos, vel, character_state, body) in (
+        for (entity, pos, vel, character_state, body) in (
+            &ecs.entities(),
             &ecs.read_storage::<Pos>(),
             ecs.read_storage::<Vel>().maybe(),
             &ecs.read_storage::<CharacterState>(),
@@ -451,16 +452,17 @@ impl ParticleMgr {
                         match specifier {
                             states::spin_melee::FrontendSpecifier::CultistVortex => {
                                 if matches!(spin.stage_section, StageSection::Swing) {
+                                    let range = spin.static_data.range;
+                                    // Particles for vortex
                                     let heartbeats =
                                         self.scheduler.heartbeats(Duration::from_millis(3));
                                     self.particles.resize_with(
                                         self.particles.len()
-                                            + spin.static_data.range.powi(2) as usize
-                                                * usize::from(heartbeats)
+                                            + range.powi(2) as usize * usize::from(heartbeats)
                                                 / 150,
                                         || {
-                                            let rand_dist = spin.static_data.range
-                                                * (1.0 - rng.gen::<f32>().powi(10));
+                                            let rand_dist =
+                                                range * (1.0 - rng.gen::<f32>().powi(10));
                                             let init_pos = Vec3::new(
                                                 2.0 * rng.gen::<f32>() - 1.0,
                                                 2.0 * rng.gen::<f32>() - 1.0,
@@ -479,6 +481,44 @@ impl ParticleMgr {
                                             )
                                         },
                                     );
+                                    // Particles for lifesteal effect
+                                    for (_entity_b, pos_b, body_b, _health_b) in (
+                                        &ecs.entities(),
+                                        &ecs.read_storage::<Pos>(),
+                                        &ecs.read_storage::<Body>(),
+                                        &ecs.read_storage::<comp::Health>(),
+                                    )
+                                        .join()
+                                        .filter(|(e, _, _, h)| !h.is_dead && entity != *e)
+                                    {
+                                        if pos.0.distance_squared(pos_b.0) < range.powi(2) {
+                                            let heartbeats = self
+                                                .scheduler
+                                                .heartbeats(Duration::from_millis(20));
+                                            self.particles.resize_with(
+                                                self.particles.len()
+                                                    + range.powi(2) as usize
+                                                        * usize::from(heartbeats)
+                                                        / 150,
+                                                || {
+                                                    let start_pos = pos_b.0
+                                                        + Vec3::unit_z() * body_b.height() * 0.5
+                                                        + Vec3::<f32>::zero()
+                                                            .map(|_| rng.gen_range(-1.0..1.0))
+                                                            .normalized()
+                                                            * 1.0;
+                                                    Particle::new_directed(
+                                                        Duration::from_millis(900),
+                                                        time,
+                                                        ParticleMode::CultistFlame,
+                                                        start_pos,
+                                                        pos.0
+                                                            + Vec3::unit_z() * body.height() * 0.5,
+                                                    )
+                                                },
+                                            );
+                                        }
+                                    }
                                 }
                             },
                         }

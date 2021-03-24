@@ -285,7 +285,7 @@ impl Body {
                 biped_large::Species::Slysaurok => 3.4,
                 biped_large::Species::Occultsaurok => 3.4,
                 biped_large::Species::Mightysaurok => 3.4,
-                biped_large::Species::Mindflayer => 6.3,
+                biped_large::Species::Mindflayer => 8.0,
                 biped_large::Species::Minotaur => 8.0,
                 biped_large::Species::Dullahan => 5.5,
                 biped_large::Species::Cyclops => 6.5,
