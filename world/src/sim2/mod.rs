@@ -17,6 +17,7 @@ use common::{
         Good::{Coin, Transportation},
     },
 };
+use std::cmp::Ordering::Less;
 use tracing::{debug, info};
 
 const MONTH: f32 = 30.0;
@@ -59,7 +60,7 @@ impl EconStatistics {
     }
 }
 
-pub fn csv_entry(f: &mut std::fs::File, site: &Site) {
+pub fn csv_entry(f: &mut std::fs::File, site: &Site) -> Result<(), std::io::Error> {
     use std::io::Write;
     write!(
         *f,
@@ -68,61 +69,60 @@ pub fn csv_entry(f: &mut std::fs::File, site: &Site) {
         site.get_origin().x,
         site.get_origin().y,
         site.economy.pop
-    )
-    .unwrap();
+    )?;
     for g in good_list() {
-        write!(*f, "{:?},", site.economy.values[*g].unwrap_or(-1.0)).unwrap();
+        write!(*f, "{:?},", site.economy.values[*g].unwrap_or(-1.0))?;
     }
     for g in good_list() {
-        write!(f, "{:?},", site.economy.labor_values[*g].unwrap_or(-1.0)).unwrap();
+        write!(f, "{:?},", site.economy.labor_values[*g].unwrap_or(-1.0))?;
     }
     for g in good_list() {
-        write!(f, "{:?},", site.economy.stocks[*g]).unwrap();
+        write!(f, "{:?},", site.economy.stocks[*g])?;
     }
     for g in good_list() {
-        write!(f, "{:?},", site.economy.marginal_surplus[*g]).unwrap();
+        write!(f, "{:?},", site.economy.marginal_surplus[*g])?;
     }
     for l in Labor::list() {
-        write!(f, "{:?},", site.economy.labors[l] * site.economy.pop).unwrap();
+        write!(f, "{:?},", site.economy.labors[l] * site.economy.pop)?;
     }
     for l in Labor::list() {
-        write!(f, "{:?},", site.economy.productivity[l]).unwrap();
+        write!(f, "{:?},", site.economy.productivity[l])?;
     }
     for l in Labor::list() {
-        write!(f, "{:?},", site.economy.yields[l]).unwrap();
+        write!(f, "{:?},", site.economy.yields[l])?;
     }
-    writeln!(f).unwrap();
+    writeln!(f)
 }
 
-pub fn simulate(index: &mut Index, world: &mut WorldSim) {
+fn simulate_return(index: &mut Index, world: &mut WorldSim) -> Result<(), std::io::Error> {
     use std::io::Write;
     // please not that GENERATE_CSV is off by default, so panicing is not harmful
     // here
     let mut f = if GENERATE_CSV {
-        let mut f = std::fs::File::create("economy.csv").unwrap();
-        write!(f, "Site,PosX,PosY,Population,").unwrap();
+        let mut f = std::fs::File::create("economy.csv")?;
+        write!(f, "Site,PosX,PosY,Population,")?;
         for g in good_list() {
-            write!(f, "{:?} Value,", g).unwrap();
+            write!(f, "{:?} Value,", g)?;
         }
         for g in good_list() {
-            write!(f, "{:?} LaborVal,", g).unwrap();
+            write!(f, "{:?} LaborVal,", g)?;
         }
         for g in good_list() {
-            write!(f, "{:?} Stock,", g).unwrap();
+            write!(f, "{:?} Stock,", g)?;
         }
         for g in good_list() {
-            write!(f, "{:?} Surplus,", g).unwrap();
+            write!(f, "{:?} Surplus,", g)?;
         }
         for l in Labor::list() {
-            write!(f, "{:?} Labor,", l).unwrap();
+            write!(f, "{:?} Labor,", l)?;
         }
         for l in Labor::list() {
-            write!(f, "{:?} Productivity,", l).unwrap();
+            write!(f, "{:?} Productivity,", l)?;
         }
         for l in Labor::list() {
-            write!(f, "{:?} Yields,", l).unwrap();
+            write!(f, "{:?} Yields,", l)?;
         }
-        writeln!(f).unwrap();
+        writeln!(f)?;
         Some(f)
     } else {
         None
@@ -138,27 +138,23 @@ pub fn simulate(index: &mut Index, world: &mut WorldSim) {
 
         if let Some(f) = f.as_mut() {
             if i % 5 == 0 {
-                let site = index
+                if let Some(site) = index
                     .sites
                     .values()
                     .find(|s| !matches!(s.kind, SiteKind::Dungeon(_)))
-                        //match s.kind {
-                    //     SiteKind::Dungeon(_) => false,
-                    //     _ => true,
-                    // })
-                    //.skip(3) // because first three get depopulated over time
-                    .unwrap();
-                csv_entry(f, site);
+                {
+                    csv_entry(f, site)?;
+                }
             }
         }
     }
     tracing::info!("economy simulation end");
 
     if let Some(f) = f.as_mut() {
-        writeln!(f).unwrap();
+        writeln!(f)?;
         for site in index.sites.ids() {
             let site = index.sites.get(site);
-            csv_entry(f, site);
+            csv_entry(f, site)?;
         }
     }
 
@@ -196,6 +192,12 @@ pub fn simulate(index: &mut Index, world: &mut WorldSim) {
         );
         check_money(index);
     }
+    Ok(())
+}
+
+pub fn simulate(index: &mut Index, world: &mut WorldSim) {
+    simulate_return(index, world)
+        .unwrap_or_else(|err| info!("I/O error in simulate (economy.csv not writable?): {}", err));
 }
 
 fn check_money(index: &mut Index) {
@@ -280,7 +282,7 @@ fn plan_trade_for_site(
             )
         })
         .collect();
-    missing_goods.sort_by(|a, b| b.1.0.partial_cmp(&a.1.0).unwrap());
+    missing_goods.sort_by(|a, b| b.1.0.partial_cmp(&a.1.0).unwrap_or(Less));
     let mut extra_goods: MapVec<Good, f32> = MapVec::from_iter(
         site.economy
             .surplus
@@ -314,7 +316,7 @@ fn plan_trade_for_site(
                     )
                 })
                 .collect::<Vec<_>>();
-            rel_value.sort_by(|a, b| (b.1.0.partial_cmp(&a.1.0).unwrap()));
+            rel_value.sort_by(|a, b| b.1.0.partial_cmp(&a.1.0).unwrap_or(Less));
             (n.id, rel_value)
         })
         .collect();
@@ -331,7 +333,7 @@ fn plan_trade_for_site(
                     .filter(|n| n.last_supplies[*g] > 0.0)
                     .map(|n| (n.id, (n.last_values[*g], n.last_supplies[*g])))
                     .collect();
-                neighbor_prices.sort_by(|a, b| a.1.0.partial_cmp(&b.1.0).unwrap());
+                neighbor_prices.sort_by(|a, b| a.1.0.partial_cmp(&b.1.0).unwrap_or(Less));
                 neighbor_prices
             })
         })
@@ -358,78 +360,82 @@ fn plan_trade_for_site(
     // === the actual planning is here ===
     for (g, (_, a)) in missing_goods.iter() {
         let mut amount = *a;
-        for (s, (price, supply)) in good_price.get_mut(g).unwrap().iter_mut() {
-            // how much to buy, limit by supply and transport budget
-            let mut buy_target = amount.min(*supply);
-            let effort = transportation_effort(*g);
-            let collect = buy_target * effort;
-            let mut potential_balance: f32 = 0.0;
-            if collect > collect_capacity && effort > 0.0 {
-                let transportable_amount = collect_capacity / effort;
-                let missing_trade = buy_target - transportable_amount;
-                potential_trade[*g] += missing_trade;
-                potential_balance += missing_trade * *price;
-                buy_target = transportable_amount; // (buy_target - missing_trade).max(0.0); // avoid negative buy target caused by numeric inaccuracies
-                missing_collect += collect - collect_capacity;
+        if let Some(site_price_stock) = good_price.get_mut(g) {
+            for (s, (price, supply)) in site_price_stock.iter_mut() {
+                // how much to buy, limit by supply and transport budget
+                let mut buy_target = amount.min(*supply);
+                let effort = transportation_effort(*g);
+                let collect = buy_target * effort;
+                let mut potential_balance: f32 = 0.0;
+                if collect > collect_capacity && effort > 0.0 {
+                    let transportable_amount = collect_capacity / effort;
+                    let missing_trade = buy_target - transportable_amount;
+                    potential_trade[*g] += missing_trade;
+                    potential_balance += missing_trade * *price;
+                    buy_target = transportable_amount; // (buy_target - missing_trade).max(0.0); // avoid negative buy target caused by numeric inaccuracies
+                    missing_collect += collect - collect_capacity;
+                    debug!(
+                        "missing capacity {:?}/{:?} {:?}",
+                        missing_trade, amount, potential_balance,
+                    );
+                    amount = (amount - missing_trade).max(0.0); // you won't be able to transport it from elsewhere either, so don't count multiple times
+                }
+                let mut balance: f32 = *price * buy_target;
                 debug!(
-                    "missing capacity {:?}/{:?} {:?}",
-                    missing_trade, amount, potential_balance,
+                    "buy {:?} at {:?} amount {:?} balance {:?}",
+                    *g,
+                    s.id(),
+                    buy_target,
+                    balance,
                 );
-                amount = (amount - missing_trade).max(0.0); // you won't be able to transport it from elsewhere either, so don't count multiple times
-            }
-            let mut balance: f32 = *price * buy_target;
-            debug!(
-                "buy {:?} at {:?} amount {:?} balance {:?}",
-                *g,
-                s.id(),
-                buy_target,
-                balance,
-            );
-            // find suitable goods in exchange
-            let mut acute_missing_dispatch: f32 = 0.0; // only count the highest priority (not multiple times)
-            for (g2, (_, price2)) in good_payment[s].iter() {
-                let mut amount2 = extra_goods[*g2];
-                // good available for trading?
-                if amount2 > 0.0 {
-                    amount2 = amount2.min(balance / price2); // pay until balance is even
-                    let effort2 = transportation_effort(*g2);
-                    let mut dispatch = amount2 * effort2;
-                    // limit by separate transport budget (on way back)
-                    if dispatch > dispatch_capacity && effort2 > 0.0 {
-                        let transportable_amount = dispatch_capacity / effort2;
-                        let missing_trade = amount2 - transportable_amount;
-                        amount2 = transportable_amount;
-                        if acute_missing_dispatch == 0.0 {
-                            acute_missing_dispatch = missing_trade * effort2;
-                        }
-                        debug!(
-                            "can't carry payment {:?} {:?} {:?}",
-                            g2, dispatch, dispatch_capacity
-                        );
-                        dispatch = dispatch_capacity;
-                    }
+                if let Some(neighbor_orders) = neighbor_orders.get_mut(s) {
+                    // find suitable goods in exchange
+                    let mut acute_missing_dispatch: f32 = 0.0; // only count the highest priority (not multiple times)
+                    for (g2, (_, price2)) in good_payment[s].iter() {
+                        let mut amount2 = extra_goods[*g2];
+                        // good available for trading?
+                        if amount2 > 0.0 {
+                            amount2 = amount2.min(balance / price2); // pay until balance is even
+                            let effort2 = transportation_effort(*g2);
+                            let mut dispatch = amount2 * effort2;
+                            // limit by separate transport budget (on way back)
+                            if dispatch > dispatch_capacity && effort2 > 0.0 {
+                                let transportable_amount = dispatch_capacity / effort2;
+                                let missing_trade = amount2 - transportable_amount;
+                                amount2 = transportable_amount;
+                                if acute_missing_dispatch == 0.0 {
+                                    acute_missing_dispatch = missing_trade * effort2;
+                                }
+                                debug!(
+                                    "can't carry payment {:?} {:?} {:?}",
+                                    g2, dispatch, dispatch_capacity
+                                );
+                                dispatch = dispatch_capacity;
+                            }
 
-                    extra_goods[*g2] -= amount2;
-                    debug!("pay {:?} {:?} = {:?}", g2, amount2, balance);
-                    balance -= amount2 * price2;
-                    neighbor_orders.get_mut(s).unwrap()[*g2] -= amount2;
-                    dispatch_capacity = (dispatch_capacity - dispatch).max(0.0);
-                    if balance == 0.0 {
-                        break;
+                            extra_goods[*g2] -= amount2;
+                            debug!("pay {:?} {:?} = {:?}", g2, amount2, balance);
+                            balance -= amount2 * price2;
+                            neighbor_orders[*g2] -= amount2;
+                            dispatch_capacity = (dispatch_capacity - dispatch).max(0.0);
+                            if balance == 0.0 {
+                                break;
+                            }
+                        }
                     }
+                    missing_dispatch += acute_missing_dispatch;
+                    // adjust order if we are unable to pay for it
+                    buy_target -= balance / *price;
+                    buy_target = buy_target.min(amount);
+                    collect_capacity = (collect_capacity - buy_target * effort).max(0.0);
+                    neighbor_orders[*g] += buy_target;
+                    amount -= buy_target;
+                    debug!(
+                        "deal amount {:?} end_balance {:?} price {:?} left {:?}",
+                        buy_target, balance, *price, amount
+                    );
                 }
             }
-            missing_dispatch += acute_missing_dispatch;
-            // adjust order if we are unable to pay for it
-            buy_target -= balance / *price;
-            buy_target = buy_target.min(amount);
-            collect_capacity = (collect_capacity - buy_target * effort).max(0.0);
-            neighbor_orders.get_mut(s).unwrap()[*g] += buy_target;
-            amount -= buy_target;
-            debug!(
-                "deal amount {:?} end_balance {:?} price {:?} left {:?}",
-                buy_target, balance, *price, amount
-            );
         }
     }
     // if site_id.id() == 1 {
@@ -438,23 +444,24 @@ fn plan_trade_for_site(
     // }
     // TODO: Use planned orders and calculate value, stock etc. accordingly
     for n in &site.economy.neighbors {
-        let orders = neighbor_orders.get(&n.id).unwrap();
-        for (g, a) in orders.iter() {
-            result[g] += *a;
-        }
-        let to = TradeOrder {
-            customer: *site_id,
-            amount: orders.clone(),
-        };
-        if let Some(o) = external_orders.get_mut(&n.id) {
-            // this is just to catch unbound growth (happened in development)
-            if o.len() < 100 {
-                o.push(to);
-            } else {
-                debug!("overflow {:?}", o);
+        if let Some(orders) = neighbor_orders.get(&n.id) {
+            for (g, a) in orders.iter() {
+                result[g] += *a;
             }
-        } else {
-            external_orders.insert(n.id, vec![to]);
+            let to = TradeOrder {
+                customer: *site_id,
+                amount: orders.clone(),
+            };
+            if let Some(o) = external_orders.get_mut(&n.id) {
+                // this is just to catch unbound growth (happened in development)
+                if o.len() < 100 {
+                    o.push(to);
+                } else {
+                    debug!("overflow {:?}", o);
+                }
+            } else {
+                external_orders.insert(n.id, vec![to]);
+            }
         }
     }
     // return missing transport capacity
@@ -531,14 +538,14 @@ fn trade_at_site(
             .filter(|(_, &a)| a > 0.0)
             .map(|(g, a)| (g, *a, prices[g]))
             .collect();
-        sorted_sell.sort_by(|a, b| (a.2.partial_cmp(&b.2).unwrap()));
+        sorted_sell.sort_by(|a, b| (a.2.partial_cmp(&b.2).unwrap_or(Less)));
         let mut sorted_buy: Vec<(Good, f32, f32)> = o
             .amount
             .iter()
             .filter(|(_, &a)| a < 0.0)
             .map(|(g, a)| (g, *a, prices[g]))
             .collect();
-        sorted_buy.sort_by(|a, b| (b.2.partial_cmp(&a.2).unwrap()));
+        sorted_buy.sort_by(|a, b| (b.2.partial_cmp(&a.2).unwrap_or(Less)));
         debug!(
             "with {} {:?} buy {:?}",
             o.customer.id(),
@@ -547,49 +554,48 @@ fn trade_at_site(
         );
         let mut good_delivery = MapVec::from_default(0.0);
         for (g, amount, price) in sorted_sell.iter() {
-            if order_stock_ratio[*g].is_none() {
-                continue;
-            }
-            let allocated_amount = *amount / order_stock_ratio[*g].unwrap().max(1.0);
-            let mut balance = allocated_amount * *price;
-            for (g2, avail, price2) in sorted_buy.iter_mut() {
-                let amount2 = (-*avail).min(balance / *price2);
-                assert!(amount2 >= 0.0);
-                economy.stocks[*g2] += amount2;
-                balance = (balance - amount2 * *price2).max(0.0);
-                *avail += amount2; // reduce (negative) brought stock
-                debug!("paid with {:?} {} {}", *g2, amount2, *price2);
-                if balance == 0.0 {
-                    break;
+            if let Some(order_stock_ratio) = order_stock_ratio[*g] {
+                let allocated_amount = *amount / order_stock_ratio.max(1.0);
+                let mut balance = allocated_amount * *price;
+                for (g2, avail, price2) in sorted_buy.iter_mut() {
+                    let amount2 = (-*avail).min(balance / *price2);
+                    assert!(amount2 >= 0.0);
+                    economy.stocks[*g2] += amount2;
+                    balance = (balance - amount2 * *price2).max(0.0);
+                    *avail += amount2; // reduce (negative) brought stock
+                    debug!("paid with {:?} {} {}", *g2, amount2, *price2);
+                    if balance == 0.0 {
+                        break;
+                    }
                 }
+                let paid_amount = allocated_amount - balance / *price;
+                if paid_amount / allocated_amount < 0.95 {
+                    debug!(
+                        "Client {} is broke on {:?} : {} {} severity {}",
+                        o.customer.id(),
+                        *g,
+                        paid_amount,
+                        allocated_amount,
+                        order_stock_ratio,
+                    );
+                } else {
+                    debug!("bought {:?} {} {}", *g, paid_amount, *price);
+                }
+                good_delivery[*g] += paid_amount;
+                if economy.stocks[*g] - paid_amount < 0.0 {
+                    info!(
+                        "BUG {:?} {:?} {} TO {:?} OSR {:?} ND {:?}",
+                        economy.stocks[*g],
+                        *g,
+                        paid_amount,
+                        total_orders[*g],
+                        order_stock_ratio,
+                        next_demand[*g]
+                    );
+                }
+                assert!(economy.stocks[*g] - paid_amount >= 0.0);
+                economy.stocks[*g] -= paid_amount;
             }
-            let paid_amount = allocated_amount - balance / *price;
-            if paid_amount / allocated_amount < 0.95 {
-                debug!(
-                    "Client {} is broke on {:?} : {} {} severity {}",
-                    o.customer.id(),
-                    *g,
-                    paid_amount,
-                    allocated_amount,
-                    order_stock_ratio[*g].unwrap(),
-                );
-            } else {
-                debug!("bought {:?} {} {}", *g, paid_amount, *price);
-            }
-            good_delivery[*g] += paid_amount;
-            if economy.stocks[*g] - paid_amount < 0.0 {
-                info!(
-                    "BUG {:?} {:?} {} TO {:?} OSR {:?} ND {:?}",
-                    economy.stocks[*g],
-                    *g,
-                    paid_amount,
-                    total_orders[*g],
-                    order_stock_ratio[*g].unwrap(),
-                    next_demand[*g]
-                );
-            }
-            assert!(economy.stocks[*g] - paid_amount >= 0.0);
-            economy.stocks[*g] -= paid_amount;
         }
         for (g, amount, _) in sorted_buy.drain(..) {
             if amount < 0.0 {
@@ -809,7 +815,7 @@ pub fn tick_site_economy(index: &mut Index, site_id: Id<Site>, dt: f32) {
             .map(|(g, _)| g)
             .chain(trade_boost)
             .map(|output_good| site.economy.values[*output_good].unwrap_or(0.0))
-            .max_by(|a, b| a.abs().partial_cmp(&b.abs()).unwrap())
+            .max_by(|a, b| a.abs().partial_cmp(&b.abs()).unwrap_or(Less))
             .unwrap_or(0.0)
             * site.economy.productivity[labor]
     });
@@ -861,7 +867,7 @@ pub fn tick_site_economy(index: &mut Index, site_id: Id<Site>, dt: f32) {
                 // What proportion of this order is the economy able to satisfy?
                 (stocks_before[*good] / demand[*good]).min(1.0)
             })
-            .min_by(|a, b| a.partial_cmp(b).unwrap())
+            .min_by(|a, b| a.partial_cmp(b).unwrap_or(Less))
             .unwrap_or_else(|| panic!("Industry {:?} requires at least one input order", labor));
         assert!(labor_productivity >= 0.0);
 
@@ -1120,8 +1126,9 @@ mod tests {
                 outarr.push(val);
             }
             let pretty = ron::ser::PrettyConfig::new();
-            let result = ron::ser::to_string_pretty(&outarr, pretty).unwrap();
-            info!("RON {}", result);
+            if let Ok(result) = ron::ser::to_string_pretty(&outarr, pretty) {
+                info!("RON {}", result);
+            }
         } else {
             let mut rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
             let ron_file = std::fs::File::open("economy_testinput.ron")
@@ -1161,23 +1168,26 @@ mod tests {
             // we can't add these in the first loop as neighbors will refer to later sites
             // (which aren't valid in the first loop)
             for (i, e) in econ_testinput.iter().enumerate() {
-                let id = index.sites.recreate_id(i as u64).unwrap();
-                let mut neighbors: Vec<crate::site::economy::NeighborInformation> = e
-                    .neighbors
-                    .iter()
-                    .map(|(nid, dist)| crate::site::economy::NeighborInformation {
-                        id: index.sites.recreate_id(*nid).unwrap(),
-                        travel_distance: *dist,
-                        last_values: MapVec::from_default(0.0),
-                        last_supplies: MapVec::from_default(0.0),
-                    })
-                    .collect();
-                index
-                    .sites
-                    .get_mut(id)
-                    .economy
-                    .neighbors
-                    .append(&mut neighbors);
+                if let Some(id) = index.sites.recreate_id(i as u64) {
+                    let mut neighbors: Vec<crate::site::economy::NeighborInformation> = e
+                        .neighbors
+                        .iter()
+                        .map(|(nid, dist)| index.sites.recreate_id(*nid).map(|i| (i, dist)))
+                        .flatten()
+                        .map(|(nid, dist)| crate::site::economy::NeighborInformation {
+                            id: nid,
+                            travel_distance: *dist,
+                            last_values: MapVec::from_default(0.0),
+                            last_supplies: MapVec::from_default(0.0),
+                        })
+                        .collect();
+                    index
+                        .sites
+                        .get_mut(id)
+                        .economy
+                        .neighbors
+                        .append(&mut neighbors);
+                }
             }
         }
         crate::sim2::simulate(&mut index, &mut sim);
