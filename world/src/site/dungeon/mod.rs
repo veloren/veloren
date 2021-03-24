@@ -201,7 +201,7 @@ impl Dungeon {
         let pos = self.origin.map2(FLOOR_SIZE, |e, sz| e + sz as i32 / 2);
         if area.contains_point(pos - self.origin) {
             supplement.add_entity(
-                EntityInfo::at(Vec3::new(pos.x as f32, pos.y as f32, self.alt as f32) + 2.5)
+                EntityInfo::at(Vec3::new(pos.x as f32, pos.y as f32, self.alt as f32) + 5.0)
                     .into_waypoint(),
             );
         }

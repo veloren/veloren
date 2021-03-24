@@ -680,7 +680,7 @@ impl<'a> AgentData<'a> {
                             .cast()
                             .1
                             .map_or(true, |b| b.is_some());
-                        let ground_too_close = self
+                        let mut ground_too_close = self
                             .body
                             .map(|body| {
                                 let height_approx = self.pos.0.y
@@ -691,18 +691,31 @@ impl<'a> AgentData<'a> {
                                         .unwrap_or(0.0);
 
                                 height_approx < body.flying_height()
-                                    || read_data
-                                        .terrain
-                                        .ray(
-                                            self.pos.0,
-                                            self.pos.0 - body.flying_height() * Vec3::unit_z(),
-                                        )
-                                        .until(|b: &Block| b.is_solid() || b.is_liquid())
-                                        .cast()
-                                        .1
-                                        .map_or(false, |b| b.is_some())
                             })
                             .unwrap_or(false);
+
+                        const NUM_RAYS: usize = 5;
+                        for i in 0..=NUM_RAYS {
+                            let magnitude = self.body.map_or(20.0, |b| b.flying_height());
+                            // Lerp between a line straight ahead and straight down to detect a
+                            // wedge of obstacles we might fly into (inclusive so that both vectors
+                            // are sampled)
+                            if let Some(dir) = Lerp::lerp(
+                                -Vec3::unit_z(),
+                                Vec3::new(bearing.x, bearing.y, 0.0),
+                                i as f32 / NUM_RAYS as f32,
+                            )
+                            .try_normalized()
+                            {
+                                ground_too_close |= read_data
+                                    .terrain
+                                    .ray(self.pos.0, self.pos.0 + magnitude * dir)
+                                    .until(|b: &Block| b.is_solid() || b.is_liquid())
+                                    .cast()
+                                    .1
+                                    .map_or(false, |b| b.is_some())
+                            }
+                        }
 
                         if obstacle_ahead || ground_too_close {
                             1.0 //fly up when approaching obstacles
