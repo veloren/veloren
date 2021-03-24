@@ -97,12 +97,12 @@ impl<'a> System<'a> for Sys {
         for id in to_reify {
             rtsim.reify_entity(id);
             let entity = &rtsim.entities[id];
+            let body = entity.get_body();
             let spawn_pos = terrain
                 .find_space(entity.pos.map(|e| e.floor() as i32))
                 .map(|e| e as f32)
-                + Vec3::new(0.5, 0.5, 0.0);
-            let body = entity.get_body();
-            let mut pos = comp::Pos(spawn_pos);
+                + Vec3::new(0.5, 0.5, body.flying_height());
+            let pos = comp::Pos(spawn_pos);
             let agent = Some(comp::Agent::new(
                 None,
                 matches!(body, comp::Body::Humanoid(_)),
@@ -112,15 +112,12 @@ impl<'a> System<'a> for Sys {
             ));
             let rtsim_entity = Some(RtSimEntity(id));
             let event = match body {
-                comp::Body::Ship(ship) => {
-                    pos.0 += Vec3::unit_z() * body.flying_height();
-                    ServerEvent::CreateShip {
-                        pos,
-                        ship,
-                        mountable: false,
-                        agent,
-                        rtsim_entity,
-                    }
+                comp::Body::Ship(ship) => ServerEvent::CreateShip {
+                    pos,
+                    ship,
+                    mountable: false,
+                    agent,
+                    rtsim_entity,
                 },
                 _ => ServerEvent::CreateNpc {
                     pos: comp::Pos(spawn_pos),
