@@ -36,5 +36,8 @@
         "Myrmidon": (
             vox_spec: ("npc.myrmidon.male.chest", (-5.5, -4.0, -3.0)),
         ),
+        "Husk": (
+            vox_spec: ("npc.husk.male.chest", (-6.0, -4.5, -4.0)),
+        ),
     },
 ))

@@ -88,5 +88,13 @@
                  vox_spec: ("npc.myrmidon.male.foot_r", (-1.5, -2.5, -7.0)),
             )
         ),
+        "Husk": (
+            left: (
+                vox_spec: ("npc.husk.male.foot_r", (-2.0, -3.5, -7.0)),
+            ),
+            right: (
+                 vox_spec: ("npc.husk.male.foot_r", (-2.0, -3.5, -7.0)),
+            )
+        ),
     },
 ))

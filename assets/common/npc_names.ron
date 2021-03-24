@@ -1025,6 +1025,10 @@
             myrmidon: (
                 keyword: "myrmidon",
                 generic: "Myrmidon"
+            ),
+            husk: (
+                keyword: "husk",
+                generic: "Husk"
             )
         )
     ),

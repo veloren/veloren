@@ -42,6 +42,7 @@ pub enum LoadoutConfig {
     Sahagin,
     Haniwa,
     Myrmidon,
+    Husk,
     Guard,
     Villager,
     Merchant,
@@ -501,6 +502,24 @@ impl LoadoutBuilder {
                     )))
                     .belt(Some(Item::new_from_asset_expect(
                         "common.items.npc_armor.biped_small.myrmidon.tail.myrmidon",
+                    )))
+                    .build(),
+                Husk => LoadoutBuilder::new()
+                    .active_item(active_item)
+                    .head(Some(Item::new_from_asset_expect(
+                        "common.items.npc_armor.biped_small.husk.head.husk",
+                    )))
+                    .feet(Some(Item::new_from_asset_expect(
+                        "common.items.npc_armor.biped_small.husk.foot.husk",
+                    )))
+                    .hands(Some(Item::new_from_asset_expect(
+                        "common.items.npc_armor.biped_small.husk.hand.husk",
+                    )))
+                    .chest(Some(Item::new_from_asset_expect(
+                        "common.items.npc_armor.biped_small.husk.chest.husk",
+                    )))
+                    .pants(Some(Item::new_from_asset_expect(
+                        "common.items.npc_armor.biped_small.husk.pants.husk",
                     )))
                     .build(),
                 Guard => LoadoutBuilder::new()
