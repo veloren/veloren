@@ -197,6 +197,7 @@ pub enum AgentEvent {
 pub struct Target {
     pub target: EcsEntity,
     pub hostile: bool,
+    pub selected_at: f64,
 }
 
 #[derive(Clone, Debug, Default)]
