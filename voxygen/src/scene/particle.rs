@@ -16,7 +16,7 @@ use common::{
     outcome::Outcome,
     resources::DeltaTime,
     spiral::Spiral2d,
-    states,
+    states::{self, utils::StageSection},
     terrain::TerrainChunk,
     vol::{RectRasterableVol, SizedVol},
 };
@@ -423,10 +423,11 @@ impl ParticleMgr {
         let dt = scene_data.state.get_delta_time();
         let mut rng = thread_rng();
 
-        for (pos, vel, character_state) in (
+        for (pos, vel, character_state, body) in (
             &ecs.read_storage::<Pos>(),
             ecs.read_storage::<Vel>().maybe(),
             &ecs.read_storage::<CharacterState>(),
+            &ecs.read_storage::<Body>(),
         )
             .join()
         {
@@ -449,8 +450,7 @@ impl ParticleMgr {
                     if let Some(specifier) = spin.static_data.specifier {
                         match specifier {
                             states::spin_melee::FrontendSpecifier::CultistVortex => {
-                                if matches!(spin.stage_section, states::utils::StageSection::Swing)
-                                {
+                                if matches!(spin.stage_section, StageSection::Swing) {
                                     let heartbeats =
                                         self.scheduler.heartbeats(Duration::from_millis(3));
                                     self.particles.resize_with(
@@ -483,6 +483,39 @@ impl ParticleMgr {
                             },
                         }
                     }
+                },
+                CharacterState::Blink(c) => {
+                    self.particles.resize_with(
+                        self.particles.len()
+                            + usize::from(self.scheduler.heartbeats(Duration::from_millis(10))),
+                        || {
+                            let center_pos = pos.0 + Vec3::unit_z() * body.height() / 2.0;
+                            let outer_pos = pos.0
+                                + Vec3::new(
+                                    2.0 * rng.gen::<f32>() - 1.0,
+                                    2.0 * rng.gen::<f32>() - 1.0,
+                                    0.0,
+                                )
+                                .normalized()
+                                    * (body.radius() + 2.0)
+                                + Vec3::unit_z() * body.height() * rng.gen::<f32>();
+
+                            let (start_pos, end_pos) =
+                                if matches!(c.stage_section, StageSection::Buildup) {
+                                    (outer_pos, center_pos)
+                                } else {
+                                    (center_pos, outer_pos)
+                                };
+
+                            Particle::new_directed(
+                                Duration::from_secs_f32(0.5),
+                                time,
+                                ParticleMode::CultistFlame,
+                                start_pos,
+                                end_pos,
+                            )
+                        },
+                    );
                 },
                 _ => {},
             }
