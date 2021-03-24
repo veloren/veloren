@@ -20,8 +20,8 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission) {
     // Natural attenuation of air (air naturally attenuates light that passes through it)
     // Simulate the atmosphere thinning as you get higher. Not physically accurate, but then
     // it can't be since Veloren's world is flat, not spherical.
-    float atmosphere_alt = CLOUD_AVG_ALT * 4.0;
-    float air = 0.0000025 * clamp((atmosphere_alt - pos.z) / 7000, 0, 1);
+    float atmosphere_alt = CLOUD_AVG_ALT * 8.0;
+    float air = 0.00005 * clamp((atmosphere_alt - pos.z) / 20000, 0, 1);
 
     // Mist sits close to the ground in valleys (TODO: use base_alt to put it closer to water)
     float mist_min_alt = 0.5;
@@ -68,7 +68,7 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission) {
             + 4 * (noise_3d(wind_pos / 2000.0 / cloud_scale) - 0.5)
         #endif
         #if (CLOUD_MODE >= CLOUD_MODE_LOW)
-            + 1 * (noise_3d(wind_pos / 250.0 / cloud_scale) - 0.5)
+            + 1 * (noise_3d((wind_pos + turb_offset * 0.5) / 250.0 / cloud_scale) - 0.5)
         #endif
         #if (CLOUD_MODE >= CLOUD_MODE_HIGH)
             + 1 * (noise_3d(wind_pos / 50.0 / cloud_scale) - 0.5)
@@ -86,7 +86,7 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission) {
             // More noise
             + 0.01 * (noise_3d(wind_pos / 500) / cloud_scale - 0.5)
         #endif
-        ) * 6.0 - 0.7, -0.95, 1) + 1.0);
+        ) * 4.0 - 0.7, -1, 1) + 1.0);
         // Since we're assuming the sun/moon is always above (not always correct) it's the same for the moon
         cloud_moon_access = 1.0 - cloud_sun_access;
     }
@@ -118,7 +118,7 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission) {
     //moon_access *= suppress_mist;
 
     // Prevent clouds and mist appearing underground (but fade them out gently)
-    float not_underground = clamp(1.0 - (alt_at(pos.xy - focus_off.xy) - (pos.z - focus_off.z)) / 80.0, 0, 1);
+    float not_underground = clamp(1.0 - (alt_at(pos.xy - focus_off.xy) - (pos.z - focus_off.z)) / 80.0 + dist * 0.001, 0, 1);
     air *= not_underground;
     float vapor_density = (mist + cloud) * not_underground;
 
@@ -190,11 +190,11 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of
     #endif
 
     /* const float RAYLEIGH = 0.25; */
-    const vec3 RAYLEIGH = vec3(0.001, 1.3, 5.0);
+    const vec3 RAYLEIGH = vec3(0.025, 0.1, 0.5);
 
     // Proportion of sunlight that get scattered back into the camera by clouds
-    float sun_scatter = pow(dot(-dir, sun_dir.xyz) * 0.5 + 0.5, 2) + 0.25;
-    float moon_scatter = pow(dot(-dir, moon_dir.xyz) * 0.5 + 0.5, 2) + 0.25;
+    float sun_scatter = dot(-dir, sun_dir.xyz) * 0.5 + 0.7;
+    float moon_scatter = dot(-dir, moon_dir.xyz) * 0.5 + 0.7;
     float net_light = get_sun_brightness() + get_moon_brightness();
     vec3 sky_color = RAYLEIGH * net_light;
 
@@ -219,15 +219,10 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of
         surf_color =
             // Attenuate light passing through the clouds
             surf_color * (1.0 - cloud_scatter_factor - global_scatter_factor) +
-            // This is not rayleigh scattering, but it's good enough for our purposes (only considers sun)
-            (1.0 - surf_color) * net_light * sky_color * density_integrals.y +
-            // Add the directed light light scattered into the camera by the clouds
-            get_sun_color() * sun_scatter * (sun_access * cloud_scatter_factor + global_scatter_factor) * get_sun_brightness() +
-            get_moon_color() * moon_scatter * (moon_access * cloud_scatter_factor + global_scatter_factor) * get_moon_brightness() +
-            emission * density_integrals.y +
-            // Global illumination (uniform scatter from the sky)
-            sky_color * (sun_access * cloud_scatter_factor + global_scatter_factor) * get_sun_brightness() +
-            sky_color * (moon_access * cloud_scatter_factor + global_scatter_factor) * get_moon_brightness();
+            // Add the directed light light scattered into the camera by the clouds and the atmosphere (global illumination)
+            get_sun_color() * sun_scatter * get_sun_brightness() * (sun_access * cloud_scatter_factor + sky_color * global_scatter_factor) +
+            get_moon_color() * moon_scatter * get_moon_brightness() * (moon_access * cloud_scatter_factor + sky_color * global_scatter_factor) +
+            emission * density_integrals.y;
     }
 
     return surf_color;
