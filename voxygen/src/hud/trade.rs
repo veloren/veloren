@@ -305,6 +305,7 @@ impl<'a> Trade<'a> {
             self.item_imgs,
             self.pulse,
             self.msm,
+            self.localized_strings,
         )
         .title_font_size(self.fonts.cyri.scale(20))
         .parent(ui.window)
@@ -386,7 +387,6 @@ impl<'a> Trade<'a> {
                 );
             let slot_id = state.ids.inv_slots[i + who * MAX_TRADE_SLOTS];
             if let Some(Some(item)) = slot.invslot.and_then(|slotid| inventory.slot(slotid)) {
-                let (title, desc) = super::util::item_text(item, self.msm);
                 let quality_col = get_quality_col(item);
                 let quality_col_img = match item.quality() {
                     Quality::Low => self.imgs.inv_slot_grey,

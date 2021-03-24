@@ -25,6 +25,12 @@
         "hud.bag.mainhand": "Mainhand",
         "hud.bag.offhand": "Offhand",
         "hud.bag.bag": "Bag",
+        "hud.bag.health": "Health",
+        "hud.bag.stamina": "Stamina",
+        "hud.bag.combat_rating": "Combat Rating",
+        "hud.bag.protection": "Protection",
+        "hud.bag.combat_rating_desc": "Calculated from your\nequipment and health.",
+        "hud.bag.protection": "Damage reduction through armor",
     },
 
 

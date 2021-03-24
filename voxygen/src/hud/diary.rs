@@ -462,7 +462,7 @@ impl<'a> Widget for Diary<'a> {
         Image::new(self.imgs.diary_exp_frame)
             .w_h(480.0, 76.0)
             .color(Some(UI_HIGHLIGHT_0))
-            .align_middle_x_of(state.exp_bar_bg)
+            .middle_of(state.exp_bar_bg)
             .set(state.exp_bar_frame, ui);
         // Show EXP bar text on hover
         self.hovering_exp_bar = ui

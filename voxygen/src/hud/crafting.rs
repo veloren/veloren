@@ -179,6 +179,7 @@ impl<'a> Widget for Crafting<'a> {
             self.item_imgs,
             self.pulse,
             self.msm,
+            self.localized_strings,
         )
         .title_font_size(self.fonts.cyri.scale(20))
         .parent(ui.window)
@@ -332,7 +333,6 @@ impl<'a> Widget for Crafting<'a> {
                 {
                     let output_text = format!("x{}", &recipe.output.1.to_string());
                     // Output Image
-                    let (title, desc) = super::util::item_text(&*recipe.output.0, self.msm);
                     let quality_col = get_quality_col(&*recipe.output.0);
                     Button::image(animate_by_pulse(
                         &self
@@ -526,7 +526,6 @@ impl<'a> Widget for Crafting<'a> {
                 };
                 frame.set(state.ids.ingredient_frame[i], ui);
                 //Item Image
-                let (title, desc) = super::util::item_text(&*item_def, self.msm);
                 Button::image(animate_by_pulse(
                     &self.item_imgs.img_ids_or_not_found_img((&*item_def).into()),
                     self.pulse,

@@ -25,6 +25,12 @@
         "hud.bag.mainhand": "Main Dominante",
         "hud.bag.offhand": "Main Secondaire",
         "hud.bag.bag": "Sac",
+        "hud.bag.health": "Santé",
+        "hud.bag.stamina": "Vigueur",
+        "hud.bag.combat_rating": "Niveau de Combat",
+        "hud.bag.protection": "Protection",
+        "hud.bag.combat_rating_desc": "Calculé depuis votre\néquipement et votre santé",
+        "hud.bag.protection_desc": "Réduction des dégats de votre armure",
     },
 
 

@@ -299,7 +299,8 @@ impl<'a> InventoryScroller<'a> {
             }
 
             if let Some(item) = item {
-                let (title, desc) = super::util::item_text(item, &self.msm);
+                let (title, desc) =
+                    super::util::item_text(item, &self.msm, &self.localized_strings);
                 let quality_col = get_quality_col(item);
                 let quality_col_img = match item.quality() {
                     Quality::Low => self.imgs.inv_slot_grey,
@@ -609,6 +610,7 @@ impl<'a> Widget for Bag<'a> {
             self.item_imgs,
             self.pulse,
             self.msm,
+            self.localized_strings,
         )
         .title_font_size(self.fonts.cyri.scale(20))
         .parent(ui.window)
@@ -757,18 +759,16 @@ impl<'a> Widget for Bag<'a> {
                 } else {
                     btn.down_from(state.ids.stat_icons[i.0 - 1], 7.0)
                 };
-                // TODO: Translation
                 let tooltip_head = match i.1 {
-                    "Health" => "Health",
-                    "Stamina" => "Stamina",
-                    "Combat Rating" => "Combat Rating",
-                    "Protection" => "Protection",
+                    "Health" => i18n.get("hud.bag.health"),
+                    "Stamina" => i18n.get("hud.bag.stamina"),
+                    "Combat Rating" => i18n.get("hud.bag.combat_rating"),
+                    "Protection" => i18n.get("hud.bag.protection"),
                     _ => "",
                 };
-                // TODO: Translation
                 let tooltip_txt = match i.1 {
-                    "Combat Rating" => "Calculated from your\nequipment and health.",
-                    "Protection" => "Damage reduction through armor",
+                    "Combat Rating" => i18n.get("hud.bag.combat_rating_desc"),
+                    "Protection" => i18n.get("hud.bag.protection_desc"),
                     _ => "",
                 };
                 btn.with_tooltip(

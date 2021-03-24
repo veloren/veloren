@@ -1,9 +1,12 @@
 use super::image_frame::ImageFrame;
-use crate::hud::{
-    get_quality_col,
-    img_ids::Imgs,
-    item_imgs::{animate_by_pulse, ItemImgs, ItemKey},
-    util,
+use crate::{
+    hud::{
+        get_quality_col,
+        img_ids::Imgs,
+        item_imgs::{animate_by_pulse, ItemImgs, ItemKey},
+        util,
+    },
+    i18n::Localization,
 };
 use client::Client;
 use common::comp::item::{
@@ -277,6 +280,7 @@ pub struct ItemTooltip<'a> {
     imgs: &'a Imgs,
     item_imgs: &'a ItemImgs,
     pulse: f32,
+    localized_strings: &'a Localization,
 }
 
 #[derive(Clone, Debug, Default, PartialEq, WidgetStyle)]
@@ -335,6 +339,7 @@ impl<'a> ItemTooltip<'a> {
         item_imgs: &'a ItemImgs,
         pulse: f32,
         msm: &'a MaterialStatManifest,
+        localized_strings: &'a Localization,
     ) -> Self {
         ItemTooltip {
             common: widget::CommonBuilder::default(),
@@ -349,6 +354,7 @@ impl<'a> ItemTooltip<'a> {
             imgs: &imgs,
             item_imgs: &item_imgs,
             pulse,
+            localized_strings,
         }
     }
 
@@ -434,6 +440,8 @@ impl<'a> Widget for ItemTooltip<'a> {
             count as usize
         }
 
+        let i18n = &self.localized_strings;
+
         let inventories = self.client.inventories();
         let inventory = match inventories.get(self.client.entity()) {
             Some(l) => l,
@@ -448,7 +456,7 @@ impl<'a> Widget for ItemTooltip<'a> {
 
         let (title, desc) = (item.name().to_string(), item.description().to_string());
 
-        let subtitle = util::kind_text(item.kind());
+        let subtitle = util::kind_text(item.kind(), i18n);
 
         let text_color = conrod_core::color::WHITE;
 
@@ -568,7 +576,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                     .right_from(state.ids.item_frame, V_PAD)
                     .set(state.ids.main_stat, ui);
 
-                widget::Text::new(&"DPS".to_string())
+                widget::Text::new(i18n.get("common.stats.dps"))
                     .graphics_for(id)
                     .parent(id)
                     .with_style(self.style.desc)
@@ -578,50 +586,70 @@ impl<'a> Widget for ItemTooltip<'a> {
                     .set(state.ids.main_stat_text, ui);
 
                 // Power
-                widget::Text::new(&format!("- Power : {:.1}", power))
-                    .x_align_to(state.ids.item_frame, conrod_core::position::Align::Start)
-                    .graphics_for(id)
-                    .parent(id)
-                    .with_style(self.style.desc)
-                    .color(text_color)
-                    .down_from(state.ids.item_frame, V_PAD_STATS)
-                    .set(state.ids.stats[0], ui);
+                widget::Text::new(&format!(
+                    "- {} : {:.1}",
+                    i18n.get("common.stats.power"),
+                    power
+                ))
+                .x_align_to(state.ids.item_frame, conrod_core::position::Align::Start)
+                .graphics_for(id)
+                .parent(id)
+                .with_style(self.style.desc)
+                .color(text_color)
+                .down_from(state.ids.item_frame, V_PAD_STATS)
+                .set(state.ids.stats[0], ui);
 
                 // Speed
-                widget::Text::new(&format!("- Speed : {:.1}", speed))
-                    .graphics_for(id)
-                    .parent(id)
-                    .with_style(self.style.desc)
-                    .color(text_color)
-                    .down_from(state.ids.stats[0], V_PAD_STATS)
-                    .set(state.ids.stats[1], ui);
+                widget::Text::new(&format!(
+                    "- {} : {:.1}",
+                    i18n.get("common.stats.speed"),
+                    speed
+                ))
+                .graphics_for(id)
+                .parent(id)
+                .with_style(self.style.desc)
+                .color(text_color)
+                .down_from(state.ids.stats[0], V_PAD_STATS)
+                .set(state.ids.stats[1], ui);
 
                 // Poise
-                widget::Text::new(&format!("- Poise : {:.1}", poise_str))
-                    .graphics_for(id)
-                    .parent(id)
-                    .with_style(self.style.desc)
-                    .color(text_color)
-                    .down_from(state.ids.stats[1], V_PAD_STATS)
-                    .set(state.ids.stats[2], ui);
+                widget::Text::new(&format!(
+                    "- {} : {:.1}",
+                    i18n.get("common.stats.poise"),
+                    poise_str
+                ))
+                .graphics_for(id)
+                .parent(id)
+                .with_style(self.style.desc)
+                .color(text_color)
+                .down_from(state.ids.stats[1], V_PAD_STATS)
+                .set(state.ids.stats[2], ui);
 
                 // Crit chance
-                widget::Text::new(&format!("- Crit Chance : {:.1}%", crit_chance))
-                    .graphics_for(id)
-                    .parent(id)
-                    .with_style(self.style.desc)
-                    .color(text_color)
-                    .down_from(state.ids.stats[2], V_PAD_STATS)
-                    .set(state.ids.stats[3], ui);
+                widget::Text::new(&format!(
+                    "- {} : {:.1}%",
+                    i18n.get("common.stats.crit_chance"),
+                    crit_chance
+                ))
+                .graphics_for(id)
+                .parent(id)
+                .with_style(self.style.desc)
+                .color(text_color)
+                .down_from(state.ids.stats[2], V_PAD_STATS)
+                .set(state.ids.stats[3], ui);
 
                 // Crit mult
-                widget::Text::new(&format!("- Crit Mult : x{:.1}", crit_mult))
-                    .graphics_for(id)
-                    .parent(id)
-                    .with_style(self.style.desc)
-                    .color(text_color)
-                    .down_from(state.ids.stats[3], V_PAD_STATS)
-                    .set(state.ids.stats[4], ui);
+                widget::Text::new(&format!(
+                    "- {} : x{:.1}",
+                    i18n.get("common.stats.crit_mult"),
+                    crit_mult
+                ))
+                .graphics_for(id)
+                .parent(id)
+                .with_style(self.style.desc)
+                .color(text_color)
+                .down_from(state.ids.stats[3], V_PAD_STATS)
+                .set(state.ids.stats[4], ui);
                 if let Some(equipped_item) = equip_slot.cloned().next() {
                     if let ItemKind::Tool(equipped_tool) = equipped_item.kind() {
                         let tool_stats = tool
@@ -756,7 +784,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                     .right_from(state.ids.item_frame, V_PAD)
                     .set(state.ids.main_stat, ui);
 
-                widget::Text::new(&"Armor".to_string())
+                widget::Text::new(i18n.get("common.stats.armor"))
                     .graphics_for(id)
                     .parent(id)
                     .with_style(self.style.desc)
@@ -766,24 +794,32 @@ impl<'a> Widget for ItemTooltip<'a> {
                     .set(state.ids.main_stat_text, ui);
 
                 // Poise res
-                widget::Text::new(&format!("- Poise res : {}", util::protec2string(poise_res)))
+                widget::Text::new(&format!(
+                    "- {} : {}",
+                    i18n.get("common.stats.poise_res"),
+                    util::protec2string(poise_res)
+                ))
+                .graphics_for(id)
+                .parent(id)
+                .with_style(self.style.desc)
+                .color(text_color)
+                .x_align_to(state.ids.item_frame, conrod_core::position::Align::Start)
+                .set(state.ids.stats[0], ui);
+
+                // Slots
+                if item.num_slots() > 0 {
+                    widget::Text::new(&format!(
+                        "- {} : {}",
+                        i18n.get("common.stats.slots"),
+                        item.num_slots()
+                    ))
                     .graphics_for(id)
                     .parent(id)
                     .with_style(self.style.desc)
                     .color(text_color)
                     .x_align_to(state.ids.item_frame, conrod_core::position::Align::Start)
-                    .set(state.ids.stats[0], ui);
-
-                // Slots
-                if item.num_slots() > 0 {
-                    widget::Text::new(&format!("- Slots : {}", item.num_slots()))
-                        .graphics_for(id)
-                        .parent(id)
-                        .with_style(self.style.desc)
-                        .color(text_color)
-                        .x_align_to(state.ids.item_frame, conrod_core::position::Align::Start)
-                        .down_from(state.ids.stats[0], V_PAD_STATS)
-                        .set(state.ids.stats[1], ui);
+                    .down_from(state.ids.stats[0], V_PAD_STATS)
+                    .set(state.ids.stats[1], ui);
                 }
 
                 if let Some(equipped_item) = equip_slot.cloned().next() {
@@ -841,7 +877,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                 }
             },
             ItemKind::Consumable { effect, .. } => {
-                widget::Text::new(&util::consumable_desc(effect))
+                widget::Text::new(&util::consumable_desc(effect, i18n))
                     .x_align_to(state.ids.item_frame, conrod_core::position::Align::Start)
                     .graphics_for(id)
                     .parent(id)
