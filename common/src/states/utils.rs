@@ -484,8 +484,11 @@ fn handle_ability(data: &JoinData, update: &mut StateUpdate, input: InputKind) {
 
     // Mouse1 and Skill1 always use the MainHand slot
     let always_main_hand = matches!(input, InputKind::Primary | InputKind::Ability(0));
+    let no_main_hand = hands(EquipSlot::Mainhand).is_none();
     // skill_index used to select ability for the AbilityKey::Skill2 input
-    let (equip_slot, skill_index) = if always_main_hand {
+    let (equip_slot, skill_index) = if no_main_hand {
+        (Some(EquipSlot::Offhand), 1)
+    } else if always_main_hand {
         (Some(EquipSlot::Mainhand), 0)
     } else {
         let hands = (hands(EquipSlot::Mainhand), hands(EquipSlot::Offhand));
