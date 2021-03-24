@@ -78,17 +78,17 @@ impl CharacterBehavior for Data {
                     {
                         let body = self.static_data.summon_info.body;
 
-                        let mut stats = comp::Stats::new("Summon".to_string());
-                        stats.skill_set = SkillSetBuilder::build_skillset(
-                            &None,
-                            self.static_data.summon_info.skillset_config,
-                        )
-                        .build();
                         let loadout = LoadoutBuilder::build_loadout(
                             body,
                             None,
                             self.static_data.summon_info.loadout_config,
                             None,
+                        )
+                        .build();
+                        let mut stats = comp::Stats::new("Summon".to_string());
+                        stats.skill_set = SkillSetBuilder::build_skillset(
+                            &None,
+                            self.static_data.summon_info.skillset_config,
                         )
                         .build();
 

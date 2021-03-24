@@ -4,13 +4,13 @@ BasicSummon(
     recover_duration: 0.5,
     summon_amount: 2,
     summon_info: (
-        body: QuadrupedMedium((
-            species: Darkhound,
+        body: BipedSmall((
+            species: Husk,
             body_type: Male,
         )),
-        scale: Some((2.0)),
+        scale: None,
         health_scaling: 30,
-        loadout_config: None,
+        loadout_config: Some(Husk),
         skillset_config: None,
     ),
 )

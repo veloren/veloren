@@ -309,6 +309,11 @@ impl LoadoutBuilder {
                             "common.items.npc_weapons.biped_small.adlet.gnoll_staff",
                         ));
                     },
+                    (biped_small::Species::Husk, _) => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.unique.quadmedbasic",
+                        ));
+                    },
                     _ => {
                         main_tool = Some(Item::new_from_asset_expect(
                             "common.items.npc_weapons.biped_small.adlet.wooden_spear",
