@@ -359,10 +359,10 @@ mod tests {
         info!("init");
 
         TradePricing::instance().print_sorted();
-        info!("Armor 5 {}", TradePricing::random_item(Good::Armor, 5.0));
-        info!("Armor 5 {}", TradePricing::random_item(Good::Armor, 5.0));
-        info!("Armor 5 {}", TradePricing::random_item(Good::Armor, 5.0));
-        info!("Armor 5 {}", TradePricing::random_item(Good::Armor, 5.0));
-        info!("Armor 5 {}", TradePricing::random_item(Good::Armor, 5.0));
+        for _ in 0..5 {
+            if let Some(item_id) = TradePricing::random_item(Good::Armor, 5.0) {
+                info!("Armor 5 {}", item_id);
+            }
+        }
     }
 }
