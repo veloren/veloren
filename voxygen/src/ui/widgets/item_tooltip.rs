@@ -596,7 +596,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                 .parent(id)
                 .with_style(self.style.desc)
                 .color(text_color)
-                .down_from(state.ids.item_frame, V_PAD_STATS)
+                .down_from(state.ids.item_frame, V_PAD)
                 .set(state.ids.stats[0], ui);
 
                 // Speed
@@ -677,8 +677,6 @@ impl<'a> Widget for ItemTooltip<'a> {
                             util::comparison(tool_stats.crit_mult, equipped_tool_stats.crit_mult);
                         let equipped_dps =
                             equipped_tool_stats.power * equipped_tool_stats.speed * 10.0;
-                        dbg!(dps);
-                        dbg!(equipped_dps);
                         let diff_main_stat = util::comparison(dps, equipped_dps);
 
                         if equipped_dps - dps != 0.0 {
@@ -804,6 +802,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                 .with_style(self.style.desc)
                 .color(text_color)
                 .x_align_to(state.ids.item_frame, conrod_core::position::Align::Start)
+                .down_from(state.ids.item_frame, V_PAD)
                 .set(state.ids.stats[0], ui);
 
                 // Slots
@@ -911,12 +910,12 @@ impl<'a> Widget for ItemTooltip<'a> {
 
     /// Default width is based on the description font size unless the text is
     /// small enough to fit on a single line
-    fn default_x_dimension(&self, ui: &Ui) -> Dimension { Dimension::Absolute(260.0) }
+    fn default_x_dimension(&self, _ui: &Ui) -> Dimension { Dimension::Absolute(260.0) }
 
     fn default_y_dimension(&self, ui: &Ui) -> Dimension {
         fn stats_count(item: &dyn ItemDesc) -> usize {
             let mut count: usize = match item.kind() {
-                ItemKind::Armor(_) => 2,
+                ItemKind::Armor(_) => 1,
                 ItemKind::Tool(_) => 5,
                 ItemKind::Consumable { .. } => 1,
                 _ => 0,
@@ -931,7 +930,7 @@ impl<'a> Widget for ItemTooltip<'a> {
 
         let (title, desc) = (item.name().to_string(), item.description().to_string());
 
-        let (text_w, image_w) = self.text_image_width(280.0);
+        let (text_w, _image_w) = self.text_image_width(280.0);
         // Title
         let title_h = widget::Text::new(&title)
             .w(text_w)
@@ -949,7 +948,6 @@ impl<'a> Widget for ItemTooltip<'a> {
             .unwrap_or(0.0);
 
         // Description
-
         let desc_h: f64 = if !desc.is_empty() {
             widget::Text::new(&desc)
                 .with_style(self.style.desc)
@@ -961,10 +959,6 @@ impl<'a> Widget for ItemTooltip<'a> {
             0.0
         };
 
-        dbg!(title_h);
-        dbg!(frame_h);
-        dbg!(stat_h * stats_count(self.item) as f64);
-        dbg!(desc_h);
         let height = title_h
             + frame_h
             + stat_h * stats_count(self.item) as f64

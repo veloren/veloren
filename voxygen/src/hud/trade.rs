@@ -1,5 +1,4 @@
 use super::{
-    get_quality_col,
     img_ids::{Imgs, ImgsRot},
     item_imgs::ItemImgs,
     slots::{SlotManager, TradeSlot},
@@ -12,7 +11,6 @@ use crate::{
         fonts::Fonts,
         slot::{ContentSize, SlotMaker},
         ImageFrame, ItemTooltip, ItemTooltipManager, ItemTooltipable, Tooltip, TooltipManager,
-        Tooltipable,
     },
 };
 use client::Client;
@@ -387,7 +385,6 @@ impl<'a> Trade<'a> {
                 );
             let slot_id = state.ids.inv_slots[i + who * MAX_TRADE_SLOTS];
             if let Some(Some(item)) = slot.invslot.and_then(|slotid| inventory.slot(slotid)) {
-                let quality_col = get_quality_col(item);
                 let quality_col_img = match item.quality() {
                     Quality::Low => self.imgs.inv_slot_grey,
                     Quality::Common => self.imgs.inv_slot,

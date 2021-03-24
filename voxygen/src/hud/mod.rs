@@ -2233,6 +2233,7 @@ impl Hud {
             controllers.get(entity).map(|c| &c.inputs),
         ) {
             Skillbar::new(
+                client,
                 global_state,
                 &self.imgs,
                 &self.item_imgs,

@@ -6,7 +6,6 @@ use super::{
     Show, CRITICAL_HP_COLOR, LOW_HP_COLOR, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
 };
 use crate::{
-    hud::get_quality_col,
     i18n::Localization,
     ui::{
         fonts::Fonts,
@@ -299,9 +298,6 @@ impl<'a> InventoryScroller<'a> {
             }
 
             if let Some(item) = item {
-                let (title, desc) =
-                    super::util::item_text(item, &self.msm, &self.localized_strings);
-                let quality_col = get_quality_col(item);
                 let quality_col_img = match item.quality() {
                     Quality::Low => self.imgs.inv_slot_grey,
                     Quality::Common => self.imgs.inv_slot,

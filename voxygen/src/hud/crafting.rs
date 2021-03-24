@@ -4,11 +4,10 @@ use super::{
     TEXT_COLOR, TEXT_DULL_RED_COLOR, TEXT_GRAY_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
 };
 use crate::{
-    hud::get_quality_col,
     i18n::Localization,
     ui::{
         fonts::Fonts, ImageFrame, ItemTooltip, ItemTooltipManager, ItemTooltipable, Tooltip,
-        TooltipManager, Tooltipable,
+        TooltipManager,
     },
 };
 use client::{self, Client};
@@ -333,7 +332,6 @@ impl<'a> Widget for Crafting<'a> {
                 {
                     let output_text = format!("x{}", &recipe.output.1.to_string());
                     // Output Image
-                    let quality_col = get_quality_col(&*recipe.output.0);
                     Button::image(animate_by_pulse(
                         &self
                             .item_imgs
@@ -507,7 +505,6 @@ impl<'a> Widget for Crafting<'a> {
                 } else {
                     0.0
                 };
-                let quality_col = get_quality_col(&*item_def);
                 let quality_col_img = match &item_def.quality {
                     Quality::Low => self.imgs.inv_slot_grey,
                     Quality::Common => self.imgs.inv_slot,
