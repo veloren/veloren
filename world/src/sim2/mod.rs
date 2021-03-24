@@ -17,6 +17,7 @@ use common::{
         Good::{Coin, Transportation},
     },
 };
+use std::cmp::Ordering::Less;
 use tracing::{debug, info};
 
 const MONTH: f32 = 30.0;
@@ -281,7 +282,7 @@ fn plan_trade_for_site(
             )
         })
         .collect();
-    missing_goods.sort_by(|a, b| b.1.0.partial_cmp(&a.1.0).unwrap());
+    missing_goods.sort_by(|a, b| b.1.0.partial_cmp(&a.1.0).unwrap_or(Less));
     let mut extra_goods: MapVec<Good, f32> = MapVec::from_iter(
         site.economy
             .surplus
@@ -315,7 +316,7 @@ fn plan_trade_for_site(
                     )
                 })
                 .collect::<Vec<_>>();
-            rel_value.sort_by(|a, b| (b.1.0.partial_cmp(&a.1.0).unwrap()));
+            rel_value.sort_by(|a, b| b.1.0.partial_cmp(&a.1.0).unwrap_or(Less));
             (n.id, rel_value)
         })
         .collect();
@@ -332,7 +333,7 @@ fn plan_trade_for_site(
                     .filter(|n| n.last_supplies[*g] > 0.0)
                     .map(|n| (n.id, (n.last_values[*g], n.last_supplies[*g])))
                     .collect();
-                neighbor_prices.sort_by(|a, b| a.1.0.partial_cmp(&b.1.0).unwrap());
+                neighbor_prices.sort_by(|a, b| a.1.0.partial_cmp(&b.1.0).unwrap_or(Less));
                 neighbor_prices
             })
         })
@@ -439,23 +440,24 @@ fn plan_trade_for_site(
     // }
     // TODO: Use planned orders and calculate value, stock etc. accordingly
     for n in &site.economy.neighbors {
-        let orders = neighbor_orders.get(&n.id).unwrap();
-        for (g, a) in orders.iter() {
-            result[g] += *a;
-        }
-        let to = TradeOrder {
-            customer: *site_id,
-            amount: orders.clone(),
-        };
-        if let Some(o) = external_orders.get_mut(&n.id) {
-            // this is just to catch unbound growth (happened in development)
-            if o.len() < 100 {
-                o.push(to);
-            } else {
-                debug!("overflow {:?}", o);
+        if let Some(orders) = neighbor_orders.get(&n.id) {
+            for (g, a) in orders.iter() {
+                result[g] += *a;
             }
-        } else {
-            external_orders.insert(n.id, vec![to]);
+            let to = TradeOrder {
+                customer: *site_id,
+                amount: orders.clone(),
+            };
+            if let Some(o) = external_orders.get_mut(&n.id) {
+                // this is just to catch unbound growth (happened in development)
+                if o.len() < 100 {
+                    o.push(to);
+                } else {
+                    debug!("overflow {:?}", o);
+                }
+            } else {
+                external_orders.insert(n.id, vec![to]);
+            }
         }
     }
     // return missing transport capacity
@@ -532,14 +534,14 @@ fn trade_at_site(
             .filter(|(_, &a)| a > 0.0)
             .map(|(g, a)| (g, *a, prices[g]))
             .collect();
-        sorted_sell.sort_by(|a, b| (a.2.partial_cmp(&b.2).unwrap()));
+        sorted_sell.sort_by(|a, b| (a.2.partial_cmp(&b.2).unwrap_or(Less)));
         let mut sorted_buy: Vec<(Good, f32, f32)> = o
             .amount
             .iter()
             .filter(|(_, &a)| a < 0.0)
             .map(|(g, a)| (g, *a, prices[g]))
             .collect();
-        sorted_buy.sort_by(|a, b| (b.2.partial_cmp(&a.2).unwrap()));
+        sorted_buy.sort_by(|a, b| (b.2.partial_cmp(&a.2).unwrap_or(Less)));
         debug!(
             "with {} {:?} buy {:?}",
             o.customer.id(),
@@ -810,7 +812,7 @@ pub fn tick_site_economy(index: &mut Index, site_id: Id<Site>, dt: f32) {
             .map(|(g, _)| g)
             .chain(trade_boost)
             .map(|output_good| site.economy.values[*output_good].unwrap_or(0.0))
-            .max_by(|a, b| a.abs().partial_cmp(&b.abs()).unwrap())
+            .max_by(|a, b| a.abs().partial_cmp(&b.abs()).unwrap_or(Less))
             .unwrap_or(0.0)
             * site.economy.productivity[labor]
     });
@@ -862,7 +864,7 @@ pub fn tick_site_economy(index: &mut Index, site_id: Id<Site>, dt: f32) {
                 // What proportion of this order is the economy able to satisfy?
                 (stocks_before[*good] / demand[*good]).min(1.0)
             })
-            .min_by(|a, b| a.partial_cmp(b).unwrap())
+            .min_by(|a, b| a.partial_cmp(b).unwrap_or(Less))
             .unwrap_or_else(|| panic!("Industry {:?} requires at least one input order", labor));
         assert!(labor_productivity >= 0.0);
 
@@ -1121,8 +1123,9 @@ mod tests {
                 outarr.push(val);
             }
             let pretty = ron::ser::PrettyConfig::new();
-            let result = ron::ser::to_string_pretty(&outarr, pretty).unwrap();
-            info!("RON {}", result);
+            if let Some(result) = ron::ser::to_string_pretty(&outarr, pretty) {
+                info!("RON {}", result);
+            }
         } else {
             let mut rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
             let ron_file = std::fs::File::open("economy_testinput.ron")
@@ -1162,23 +1165,26 @@ mod tests {
             // we can't add these in the first loop as neighbors will refer to later sites
             // (which aren't valid in the first loop)
             for (i, e) in econ_testinput.iter().enumerate() {
-                let id = index.sites.recreate_id(i as u64).unwrap();
-                let mut neighbors: Vec<crate::site::economy::NeighborInformation> = e
-                    .neighbors
-                    .iter()
-                    .map(|(nid, dist)| crate::site::economy::NeighborInformation {
-                        id: index.sites.recreate_id(*nid).unwrap(),
-                        travel_distance: *dist,
-                        last_values: MapVec::from_default(0.0),
-                        last_supplies: MapVec::from_default(0.0),
-                    })
-                    .collect();
-                index
-                    .sites
-                    .get_mut(id)
-                    .economy
-                    .neighbors
-                    .append(&mut neighbors);
+                if let Some(id) = index.sites.recreate_id(i as u64) {
+                    let mut neighbors: Vec<crate::site::economy::NeighborInformation> = e
+                        .neighbors
+                        .iter()
+                        .map(|(nid, dist)| index.sites.recreate_id(*nid).map(|i| (i, dist)))
+                        .flatten()
+                        .map(|(nid, dist)| crate::site::economy::NeighborInformation {
+                            id: nid,
+                            travel_distance: *dist,
+                            last_values: MapVec::from_default(0.0),
+                            last_supplies: MapVec::from_default(0.0),
+                        })
+                        .collect();
+                    index
+                        .sites
+                        .get_mut(id)
+                        .economy
+                        .neighbors
+                        .append(&mut neighbors);
+                }
             }
         }
         crate::sim2::simulate(&mut index, &mut sim);
