@@ -159,6 +159,7 @@ impl ControlSettings {
             GameInput::ToggleWield => KeyMouse::Key(VirtualKeyCode::T),
             GameInput::FreeLook => KeyMouse::Key(VirtualKeyCode::L),
             GameInput::AutoWalk => KeyMouse::Key(VirtualKeyCode::Period),
+            GameInput::CameraClamp => KeyMouse::Key(VirtualKeyCode::Apostrophe),
             GameInput::CycleCamera => KeyMouse::Key(VirtualKeyCode::Key0),
             GameInput::Slot1 => KeyMouse::Key(VirtualKeyCode::Key1),
             GameInput::Slot2 => KeyMouse::Key(VirtualKeyCode::Key2),
@@ -494,11 +495,13 @@ impl Default for InterfaceSettings {
 pub struct GameplaySettings {
     pub pan_sensitivity: u32,
     pub zoom_sensitivity: u32,
+    pub camera_clamp_angle: u32,
     pub zoom_inversion: bool,
     pub mouse_y_inversion: bool,
     pub smooth_pan_enable: bool,
     pub free_look_behavior: PressBehavior,
     pub auto_walk_behavior: PressBehavior,
+    pub camera_clamp_behavior: PressBehavior,
     pub stop_auto_walk_on_input: bool,
 }
 
@@ -507,11 +510,13 @@ impl Default for GameplaySettings {
         Self {
             pan_sensitivity: 100,
             zoom_sensitivity: 100,
+            camera_clamp_angle: 45,
             zoom_inversion: false,
             mouse_y_inversion: false,
             smooth_pan_enable: false,
             free_look_behavior: PressBehavior::Toggle,
             auto_walk_behavior: PressBehavior::Toggle,
+            camera_clamp_behavior: PressBehavior::Toggle,
             stop_auto_walk_on_input: true,
         }
     }

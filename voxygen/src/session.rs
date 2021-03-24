@@ -34,7 +34,7 @@ use common_net::{
 use crate::{
     audio::sfx::SfxEvent,
     controller::ControllerSettings,
-    hud::{DebugInfo, Event as HudEvent, Hud, HudInfo, PressBehavior, PromptDialogSettings},
+    hud::{DebugInfo, Event as HudEvent, Hud, HudInfo, PromptDialogSettings},
     i18n::{i18n_asset_key, Localization},
     key_state::KeyState,
     menu::char_selection::CharSelectionState,
@@ -69,6 +69,7 @@ pub struct SessionState {
     freefly_vel: Vec3<f32>,
     free_look: bool,
     auto_walk: bool,
+    camera_clamp: bool,
     is_aiming: bool,
     target_entity: Option<specs::Entity>,
     selected_entity: Option<(specs::Entity, std::time::Instant)>,
@@ -106,6 +107,7 @@ impl SessionState {
             freefly_vel: Vec3::zero(),
             free_look: false,
             auto_walk: false,
+            camera_clamp: false,
             is_aiming: false,
             target_entity: None,
             selected_entity: None,
@@ -267,10 +269,19 @@ impl PlayState for SessionState {
             (client.presence(), client.registered())
         };
         if client_presence.is_some() {
+            let camera = self.scene.camera_mut();
+
+            // Clamp camera's vertical angle if the toggle is enabled
+            if self.camera_clamp {
+                let mut cam_dir = camera.get_orientation();
+                let cam_dir_clamp =
+                    (global_state.settings.gameplay.camera_clamp_angle as f32).to_radians();
+                cam_dir.y = (-cam_dir_clamp).max(cam_dir.y).min(cam_dir_clamp);
+                camera.set_orientation(cam_dir);
+            }
+
             // Compute camera data
-            self.scene
-                .camera_mut()
-                .compute_dependents(&*self.client.borrow().state().terrain());
+            camera.compute_dependents(&*self.client.borrow().state().terrain());
             let camera::Dependents {
                 cam_pos, cam_dir, ..
             } = self.scene.camera().dependents();
@@ -608,32 +619,29 @@ impl PlayState for SessionState {
                                 }
                             },
                             GameInput::FreeLook => {
-                                match (global_state.settings.gameplay.free_look_behavior, state) {
-                                    (PressBehavior::Toggle, true) => {
-                                        self.free_look = !self.free_look;
-                                        self.hud.free_look(self.free_look);
-                                    },
-                                    (PressBehavior::Hold, state) => {
-                                        self.free_look = state;
-                                        self.hud.free_look(self.free_look);
-                                    },
-                                    _ => {},
-                                };
+                                let hud = &mut self.hud;
+                                global_state.settings.gameplay.free_look_behavior.update(
+                                    state,
+                                    &mut self.free_look,
+                                    |b| hud.free_look(b),
+                                );
                             },
                             GameInput::AutoWalk => {
-                                match (global_state.settings.gameplay.auto_walk_behavior, state) {
-                                    (PressBehavior::Toggle, true) => {
-                                        self.auto_walk = !self.auto_walk;
-                                        self.key_state.auto_walk = self.auto_walk;
-                                        self.hud.auto_walk(self.auto_walk);
-                                    },
-                                    (PressBehavior::Hold, state) => {
-                                        self.auto_walk = state;
-                                        self.key_state.auto_walk = self.auto_walk;
-                                        self.hud.auto_walk(self.auto_walk);
-                                    },
-                                    _ => {},
-                                }
+                                let hud = &mut self.hud;
+                                global_state.settings.gameplay.auto_walk_behavior.update(
+                                    state,
+                                    &mut self.auto_walk,
+                                    |b| hud.auto_walk(b),
+                                );
+                                self.key_state.auto_walk = self.auto_walk;
+                            },
+                            GameInput::CameraClamp => {
+                                let hud = &mut self.hud;
+                                global_state.settings.gameplay.camera_clamp_behavior.update(
+                                    state,
+                                    &mut self.camera_clamp,
+                                    |b| hud.camera_clamp(b),
+                                );
                             },
                             GameInput::CycleCamera if state => {
                                 // Prevent accessing camera modes which aren't available in
@@ -878,6 +886,10 @@ impl PlayState for SessionState {
                     HudEvent::AdjustMouseZoom(sensitivity) => {
                         global_state.window.zoom_sensitivity = sensitivity;
                         global_state.settings.gameplay.zoom_sensitivity = sensitivity;
+                        global_state.settings.save_to_file_warn();
+                    },
+                    HudEvent::AdjustCameraClamp(angle) => {
+                        global_state.settings.gameplay.camera_clamp_angle = angle;
                         global_state.settings.save_to_file_warn();
                     },
                     HudEvent::ToggleZoomInvert(zoom_inverted) => {
@@ -1344,12 +1356,19 @@ impl PlayState for SessionState {
                     },
                     HudEvent::ChangeFreeLookBehavior(behavior) => {
                         global_state.settings.gameplay.free_look_behavior = behavior;
+                        global_state.settings.save_to_file_warn();
                     },
                     HudEvent::ChangeAutoWalkBehavior(behavior) => {
                         global_state.settings.gameplay.auto_walk_behavior = behavior;
+                        global_state.settings.save_to_file_warn();
+                    },
+                    HudEvent::ChangeCameraClampBehavior(behavior) => {
+                        global_state.settings.gameplay.camera_clamp_behavior = behavior;
+                        global_state.settings.save_to_file_warn();
                     },
                     HudEvent::ChangeStopAutoWalkOnInput(state) => {
                         global_state.settings.gameplay.stop_auto_walk_on_input = state;
+                        global_state.settings.save_to_file_warn();
                     },
                     HudEvent::CraftRecipe(r) => {
                         self.client.borrow_mut().craft_recipe(&r);

@@ -272,6 +272,10 @@ widget_ids! {
         auto_walk_txt,
         auto_walk_bg,
 
+        // Camera clamp indicator
+        camera_clamp_txt,
+        camera_clamp_bg,
+
         // Tutorial
         quest_bg,
         q_headline_bg,
@@ -345,6 +349,7 @@ pub enum Event {
     SendMessage(String),
     AdjustMousePan(u32),
     AdjustMouseZoom(u32),
+    AdjustCameraClamp(u32),
     ToggleZoomInvert(bool),
     ToggleMouseYInvert(bool),
     ToggleControllerYInvert(bool),
@@ -421,6 +426,7 @@ pub enum Event {
     ChangeFreeLookBehavior(PressBehavior),
     ChangeRenderMode(Box<RenderMode>),
     ChangeAutoWalkBehavior(PressBehavior),
+    ChangeCameraClampBehavior(PressBehavior),
     ChangeStopAutoWalkOnInput(bool),
     CraftRecipe(String),
     InviteMember(Uid),
@@ -494,6 +500,25 @@ pub enum PressBehavior {
     Toggle = 0,
 }
 
+impl PressBehavior {
+    pub fn update(&self, keystate: bool, setting: &mut bool, f: impl FnOnce(bool)) {
+        match (self, keystate) {
+            // flip the state on key press in toggle mode
+            (PressBehavior::Toggle, true) => {
+                *setting ^= true;
+                f(*setting);
+            },
+            // do nothing on key release in toggle mode
+            (PressBehavior::Toggle, false) => {},
+            // set the setting to the key state in hold mode
+            (PressBehavior::Hold, state) => {
+                *setting = state;
+                f(*setting);
+            },
+        }
+    }
+}
+
 pub struct Show {
     ui: bool,
     intro: bool,
@@ -518,6 +543,7 @@ pub struct Show {
     stats: bool,
     free_look: bool,
     auto_walk: bool,
+    camera_clamp: bool,
     prompt_dialog: Option<PromptDialogSettings>,
 }
 impl Show {
@@ -835,6 +861,7 @@ impl Hud {
                 stats: false,
                 free_look: false,
                 auto_walk: false,
+                camera_clamp: false,
                 prompt_dialog: None,
             },
             to_focus: None,
@@ -2456,6 +2483,9 @@ impl Hud {
                     settings_window::Event::AdjustMouseZoom(sensitivity) => {
                         events.push(Event::AdjustMouseZoom(sensitivity));
                     },
+                    settings_window::Event::AdjustCameraClamp(sensitivity) => {
+                        events.push(Event::AdjustCameraClamp(sensitivity));
+                    },
                     settings_window::Event::ChatTransp(chat_transp) => {
                         events.push(Event::ChatTransp(chat_transp));
                     },
@@ -2551,6 +2581,9 @@ impl Hud {
                     },
                     settings_window::Event::ChangeAutoWalkBehavior(behavior) => {
                         events.push(Event::ChangeAutoWalkBehavior(behavior));
+                    },
+                    settings_window::Event::ChangeCameraClampBehavior(behavior) => {
+                        events.push(Event::ChangeCameraClampBehavior(behavior));
                     },
                     settings_window::Event::ChangeStopAutoWalkOnInput(state) => {
                         events.push(Event::ChangeStopAutoWalkOnInput(state));
@@ -2737,6 +2770,8 @@ impl Hud {
             }
         }
 
+        let mut indicator_offset = 40.0;
+
         // Free look indicator
         if let Some(freelook_key) = global_state
             .settings
@@ -2744,26 +2779,22 @@ impl Hud {
             .get_binding(GameInput::FreeLook)
         {
             if self.show.free_look {
-                Text::new(
-                    &i18n
-                        .get("hud.free_look_indicator")
-                        .replace("{key}", freelook_key.to_string().as_str()),
-                )
-                .color(TEXT_BG)
-                .mid_top_with_margin_on(ui_widgets.window, 40.0)
-                .font_id(self.fonts.cyri.conrod_id)
-                .font_size(self.fonts.cyri.scale(20))
-                .set(self.ids.free_look_bg, ui_widgets);
-                Text::new(
-                    &i18n
-                        .get("hud.free_look_indicator")
-                        .replace("{key}", freelook_key.to_string().as_str()),
-                )
-                .color(KILL_COLOR)
-                .top_left_with_margins_on(self.ids.free_look_bg, -1.0, -1.0)
-                .font_id(self.fonts.cyri.conrod_id)
-                .font_size(self.fonts.cyri.scale(20))
-                .set(self.ids.free_look_txt, ui_widgets);
+                let msg = i18n
+                    .get("hud.free_look_indicator")
+                    .replace("{key}", freelook_key.to_string().as_str());
+                Text::new(&msg)
+                    .color(TEXT_BG)
+                    .mid_top_with_margin_on(ui_widgets.window, indicator_offset)
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .font_size(self.fonts.cyri.scale(20))
+                    .set(self.ids.free_look_bg, ui_widgets);
+                indicator_offset += 30.0;
+                Text::new(&msg)
+                    .color(KILL_COLOR)
+                    .top_left_with_margins_on(self.ids.free_look_bg, -1.0, -1.0)
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .font_size(self.fonts.cyri.scale(20))
+                    .set(self.ids.free_look_txt, ui_widgets);
             }
         };
 
@@ -2771,16 +2802,42 @@ impl Hud {
         if self.show.auto_walk {
             Text::new(i18n.get("hud.auto_walk_indicator"))
                 .color(TEXT_BG)
-                .mid_top_with_margin_on(ui_widgets.window, 70.0)
+                .mid_top_with_margin_on(ui_widgets.window, indicator_offset)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(20))
                 .set(self.ids.auto_walk_bg, ui_widgets);
+            indicator_offset += 30.0;
             Text::new(i18n.get("hud.auto_walk_indicator"))
                 .color(KILL_COLOR)
                 .top_left_with_margins_on(self.ids.auto_walk_bg, -1.0, -1.0)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(20))
                 .set(self.ids.auto_walk_txt, ui_widgets);
+        }
+
+        // Camera clamp indicator
+        if let Some(cameraclamp_key) = global_state
+            .settings
+            .controls
+            .get_binding(GameInput::CameraClamp)
+        {
+            if self.show.camera_clamp {
+                let msg = i18n
+                    .get("hud.camera_clamp_indicator")
+                    .replace("{key}", cameraclamp_key.to_string().as_str());
+                Text::new(&msg)
+                    .color(TEXT_BG)
+                    .mid_top_with_margin_on(ui_widgets.window, indicator_offset)
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .font_size(self.fonts.cyri.scale(20))
+                    .set(self.ids.camera_clamp_bg, ui_widgets);
+                Text::new(&msg)
+                    .color(KILL_COLOR)
+                    .top_left_with_margins_on(self.ids.camera_clamp_bg, -1.0, -1.0)
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .font_size(self.fonts.cyri.scale(20))
+                    .set(self.ids.camera_clamp_txt, ui_widgets);
+            }
         }
 
         // Maintain slot manager
@@ -3232,6 +3289,8 @@ impl Hud {
     pub fn free_look(&mut self, free_look: bool) { self.show.free_look = free_look; }
 
     pub fn auto_walk(&mut self, auto_walk: bool) { self.show.auto_walk = auto_walk; }
+
+    pub fn camera_clamp(&mut self, camera_clamp: bool) { self.show.camera_clamp = camera_clamp; }
 
     pub fn handle_outcome(&mut self, outcome: &Outcome) {
         match outcome {

@@ -51,6 +51,7 @@
         "gameinput.interact": "Interact",
         "gameinput.freelook": "Free Look",
         "gameinput.autowalk": "Auto Walk",
+        "gameinput.cameraclamp": "Camera Clamp",
         "gameinput.dance": "Dance",
         "gameinput.select": "Select Entity",
         "gameinput.acceptgroupinvite": "Accept Group Invite",

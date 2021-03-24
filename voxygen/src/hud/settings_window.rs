@@ -97,6 +97,9 @@ widget_ids! {
         mouse_zoom_value,
         mouse_zoom_invert_button,
         mouse_zoom_invert_label,
+        camera_clamp_slider,
+        camera_clamp_label,
+        camera_clamp_value,
         mouse_y_invert_button,
         mouse_y_invert_label,
         controller_y_invert_button,
@@ -236,6 +239,8 @@ widget_ids! {
         free_look_behavior_list,
         auto_walk_behavior_text,
         auto_walk_behavior_list,
+        camera_clamp_behavior_text,
+        camera_clamp_behavior_list,
         stop_auto_walk_on_input_button,
         stop_auto_walk_on_input_label,
     }
@@ -303,6 +308,7 @@ pub enum Event {
     Close,
     AdjustMousePan(u32),
     AdjustMouseZoom(u32),
+    AdjustCameraClamp(u32),
     ToggleZoomInvert(bool),
     ToggleMouseYInvert(bool),
     ToggleControllerYInvert(bool),
@@ -342,6 +348,7 @@ pub enum Event {
     ResetAudioSettings,
     ChangeFreeLookBehavior(PressBehavior),
     ChangeAutoWalkBehavior(PressBehavior),
+    ChangeCameraClampBehavior(PressBehavior),
     ChangeStopAutoWalkOnInput(bool),
 }
 
@@ -1367,6 +1374,7 @@ impl<'a> Widget for SettingsWindow<'a> {
         if let SettingsTab::Gameplay = self.show.settings_tab {
             let display_pan = self.global_state.settings.gameplay.pan_sensitivity;
             let display_zoom = self.global_state.settings.gameplay.zoom_sensitivity;
+            let display_clamp = self.global_state.settings.gameplay.camera_clamp_angle;
 
             // Mouse Pan Sensitivity
             Text::new(&self.localized_strings.get("hud.settings.pan_sensitivity"))
@@ -1432,6 +1440,42 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .color(TEXT_COLOR)
                 .set(state.ids.mouse_zoom_value, ui);
 
+            // Camera clamp angle
+            Text::new(
+                &self
+                    .localized_strings
+                    .get("hud.settings.camera_clamp_angle"),
+            )
+            .down_from(state.ids.mouse_zoom_slider, 10.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(TEXT_COLOR)
+            .set(state.ids.camera_clamp_label, ui);
+
+            if let Some(new_val) = ImageSlider::discrete(
+                display_clamp,
+                1,
+                90,
+                self.imgs.slider_indicator,
+                self.imgs.slider,
+            )
+            .w_h(550.0, 22.0)
+            .down_from(state.ids.camera_clamp_label, 10.0)
+            .track_breadth(30.0)
+            .slider_length(10.0)
+            .pad_track((5.0, 5.0))
+            .set(state.ids.camera_clamp_slider, ui)
+            {
+                events.push(Event::AdjustCameraClamp(new_val));
+            }
+
+            Text::new(&format!("{}", display_clamp))
+                .right_from(state.ids.camera_clamp_slider, 8.0)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(TEXT_COLOR)
+                .set(state.ids.camera_clamp_value, ui);
+
             // Zoom Inversion
             let zoom_inverted = ToggleButton::new(
                 self.global_state.settings.gameplay.zoom_inversion,
@@ -1439,7 +1483,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 self.imgs.checkbox_checked,
             )
             .w_h(18.0, 18.0)
-            .down_from(state.ids.mouse_zoom_slider, 20.0)
+            .down_from(state.ids.camera_clamp_slider, 20.0)
             .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
             .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
             .set(state.ids.mouse_zoom_invert_button, ui);
@@ -1622,6 +1666,36 @@ impl<'a> Widget for SettingsWindow<'a> {
                 }
             }
 
+            // Camera clamp behavior
+            Text::new(
+                &self
+                    .localized_strings
+                    .get("hud.settings.camera_clamp_behavior"),
+            )
+            .down_from(state.ids.free_look_behavior_list, 10.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(TEXT_COLOR)
+            .set(state.ids.camera_clamp_behavior_text, ui);
+
+            let camera_clamp_selected =
+                self.global_state.settings.gameplay.camera_clamp_behavior as usize;
+
+            if let Some(clicked) = DropDownList::new(&mode_label_list, Some(camera_clamp_selected))
+                .w_h(200.0, 30.0)
+                .color(MENU_BG)
+                .label_color(TEXT_COLOR)
+                .label_font_id(self.fonts.cyri.conrod_id)
+                .down_from(state.ids.camera_clamp_behavior_text, 8.0)
+                .set(state.ids.camera_clamp_behavior_list, ui)
+            {
+                match clicked {
+                    0 => events.push(Event::ChangeCameraClampBehavior(PressBehavior::Toggle)),
+                    1 => events.push(Event::ChangeCameraClampBehavior(PressBehavior::Hold)),
+                    _ => unreachable!(),
+                }
+            }
+
             // Stop autowalk on input toggle
             let stop_auto_walk_on_input_toggle = ToggleButton::new(
                 self.global_state.settings.gameplay.stop_auto_walk_on_input,
@@ -1659,7 +1733,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .w_h(RESET_BUTTONS_WIDTH, RESET_BUTTONS_HEIGHT)
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
-                .down_from(state.ids.free_look_behavior_list, 12.0)
+                .down_from(state.ids.camera_clamp_behavior_list, 12.0)
                 .label(&self.localized_strings.get("hud.settings.reset_gameplay"))
                 .label_font_size(self.fonts.cyri.scale(14))
                 .label_color(TEXT_COLOR)
