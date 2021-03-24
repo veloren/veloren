@@ -125,15 +125,14 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission) {
     if (emission_strength <= 0.0) {
         emission = vec3(0);
     } else {
-        float z = clamp(pos.z, 0, CLOUD_AVG_ALT * 2.0 + 5000.0);
-        float emission_alt = CLOUD_AVG_ALT * 2.0 - 3000.0 + (noise_3d(vec3(wind_pos.xy * 0.0001 + cloud_tendency * 0.2, time_of_day.x * 0.0002)) - 0.5) * 6000;
+        float emission_alt = CLOUD_AVG_ALT * 2.0 + (noise_3d(vec3(wind_pos.xy * 0.0001 + cloud_tendency * 0.2, time_of_day.x * 0.0002)) - 0.5) * 6000;
         #if (CLOUD_MODE >= CLOUD_MODE_MEDIUM)
             emission_alt += (noise_3d(vec3(wind_pos.xy * 0.0005 + cloud_tendency * 0.2, emission_alt * 0.0001 + time_of_day.x * 0.001)) - 0.5) * 1000;
         #endif
-        float tail = (texture(t_noise, wind_pos.xy * 0.00005).x - 0.5) * 5 + (z - emission_alt) * 0.001;
+        float tail = (texture(t_noise, wind_pos.xy * 0.00005).x - 0.5) * 5 + (pos.z - emission_alt) * 0.001;
         vec3 emission_col = vec3(0.8 + tail * 1.5, 0.5 - tail * 0.2, 0.3 + tail * 0.2);
-        float emission_nz = max(texture(t_noise, wind_pos.xy * 0.00003).x - 0.6, 0) / (10.0 + abs(z - emission_alt) / 80);
-        emission = emission_col * emission_nz * emission_strength * max(sun_dir.z, 0) * 500000 / (1000.0 + abs(z - emission_alt));
+        float emission_nz = max(texture(t_noise, wind_pos.xy * 0.00003).x - 0.6, 0) / (10.0 + abs(pos.z - emission_alt) / 80);
+        emission = emission_col * emission_nz * emission_strength * max(sun_dir.z, 0) * 500000 / (1000.0 + abs(pos.z - emission_alt));
     }
 
     // We track vapor density and air density separately. Why? Because photons will ionize particles in air
@@ -224,11 +223,11 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of
             (1.0 - surf_color) * net_light * sky_color * density_integrals.y +
             // Add the directed light light scattered into the camera by the clouds
             get_sun_color() * sun_scatter * (sun_access * cloud_scatter_factor + global_scatter_factor) * get_sun_brightness() +
-            get_moon_color() * moon_scatter * moon_access * cloud_scatter_factor * get_moon_brightness() +
+            get_moon_color() * moon_scatter * (moon_access * cloud_scatter_factor + global_scatter_factor) * get_moon_brightness() +
             emission * density_integrals.y +
             // Global illumination (uniform scatter from the sky)
-            (sun_access * cloud_scatter_factor + sky_color * global_scatter_factor) * get_sun_brightness() +
-            (moon_access * cloud_scatter_factor + sky_color * global_scatter_factor) * get_moon_brightness();
+            sky_color * (sun_access * cloud_scatter_factor + global_scatter_factor) * get_sun_brightness() +
+            sky_color * (moon_access * cloud_scatter_factor + global_scatter_factor) * get_moon_brightness();
     }
 
     return surf_color;

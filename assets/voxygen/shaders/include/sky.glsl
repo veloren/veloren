@@ -76,7 +76,7 @@ vec3 glow_light(vec3 pos) {
 //    return normalize(-vec3(sin(moon_angle_rad), 0.0, cos(moon_angle_rad) - 0.5));
 //}
 
-float CLOUD_AVG_ALT = view_distance.z + 1.25 * view_distance.w;
+float CLOUD_AVG_ALT = mix(view_distance.z, view_distance.w, 0.75);
 
 const float wind_speed = 0.25;
 vec2 wind_offset = vec2(time_of_day.x * wind_speed);
@@ -111,7 +111,7 @@ float get_sun_brightness(/*vec3 sun_dir*/) {
 }
 
 float get_moon_brightness(/*vec3 moon_dir*/) {
-    return max(-moon_dir.z + 0.6, 0.0) * 0.01;
+    return max(-moon_dir.z + 0.6, 0.0) * 0.025;
 }
 
 vec3 get_sun_color(/*vec3 sun_dir*/) {
