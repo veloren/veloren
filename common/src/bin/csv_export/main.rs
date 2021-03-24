@@ -150,6 +150,7 @@ fn get_tool_kind(kind: &ToolKind) -> String {
         ToolKind::Spear => "Spear".to_string(),
         ToolKind::Debug => "Debug".to_string(),
         ToolKind::Farming => "Farming".to_string(),
+        ToolKind::Pick => "Pick".to_string(),
         ToolKind::Unique(_) => "Unique".to_string(),
         ToolKind::Empty => "Empty".to_string(),
     }
