@@ -283,9 +283,9 @@ impl TradePricing {
         result
     }
 
-    fn random_item_impl(&self, good: Good, amount: f32) -> String {
+    fn random_item_impl(&self, good: Good, amount: f32) -> Option<String> {
         if good == Good::Coin {
-            TradePricing::COIN_ITEM.into()
+            Some(TradePricing::COIN_ITEM.into())
         } else {
             let table = self.get_list(good);
             let upper = table.len();
@@ -297,11 +297,11 @@ impl TradePricing {
                 .unwrap_or(upper - 1);
             let index = (rand::random::<f32>() * ((upper - lower) as f32)).floor() as usize + lower;
             //.gen_range(lower..upper);
-            table.get(index).unwrap().0.clone()
+            table.get(index).map(|i| i.0.clone())
         }
     }
 
-    pub fn random_item(good: Good, amount: f32) -> String {
+    pub fn random_item(good: Good, amount: f32) -> Option<String> {
         TRADE_PRICING.random_item_impl(good, amount)
     }
 
@@ -359,10 +359,10 @@ mod tests {
         info!("init");
 
         TradePricing::instance().print_sorted();
-        info!("Armor 5 {}", TradePricing::random_item(Good::Armor, 5.0));
-        info!("Armor 5 {}", TradePricing::random_item(Good::Armor, 5.0));
-        info!("Armor 5 {}", TradePricing::random_item(Good::Armor, 5.0));
-        info!("Armor 5 {}", TradePricing::random_item(Good::Armor, 5.0));
-        info!("Armor 5 {}", TradePricing::random_item(Good::Armor, 5.0));
+        for _ in 0..5 {
+            if let Some(item_id) = TradePricing::random_item(Good::Armor, 5.0) {
+                info!("Armor 5 {}", item_id);
+            }
+        }
     }
 }

@@ -530,29 +530,31 @@ impl LoadoutBuilder {
                 Merchant => {
                     let mut backpack =
                         Item::new_from_asset_expect("common.items.armor.misc.back.backpack");
-                    let mut coins = Item::new_from_asset_expect("common.items.utility.coins");
-                    coins
-                        .set_amount(
-                            (economy
-                                .map(|e| e.unconsumed_stock.get(&Good::Coin))
-                                .flatten()
-                                .copied()
-                                .unwrap_or_default()
-                                .round() as u32)
-                                .max(1),
-                        )
-                        .expect("coins should be stackable");
-                    backpack.slots_mut()[0] = Some(coins);
+                    let mut coins = economy
+                        .map(|e| e.unconsumed_stock.get(&Good::Coin))
+                        .flatten()
+                        .copied()
+                        .unwrap_or_default()
+                        .round() as u32;
                     let armor = economy
                         .map(|e| e.unconsumed_stock.get(&Good::Armor))
                         .flatten()
                         .copied()
                         .unwrap_or_default()
                         / 10.0;
-                    for i in 1..18 {
-                        backpack.slots_mut()[i] = Some(Item::new_from_asset_expect(
-                            &TradePricing::random_item(Good::Armor, armor),
-                        ));
+                    for s in backpack.slots_mut() {
+                        if coins > 0 {
+                            let mut coin_item =
+                                Item::new_from_asset_expect("common.items.utility.coins");
+                            coin_item
+                                .set_amount(coins)
+                                .expect("coins should be stackable");
+                            *s = Some(coin_item);
+                            coins = 0;
+                        } else if let Some(item_id) = TradePricing::random_item(Good::Armor, armor)
+                        {
+                            *s = Some(Item::new_from_asset_expect(&item_id));
+                        }
                     }
                     let mut bag1 = Item::new_from_asset_expect(
                         "common.items.armor.misc.bag.reliable_backpack",
@@ -563,10 +565,10 @@ impl LoadoutBuilder {
                         .copied()
                         .unwrap_or_default()
                         / 10.0;
-                    for i in 0..16 {
-                        bag1.slots_mut()[i] = Some(Item::new_from_asset_expect(
-                            &TradePricing::random_item(Good::Tools, weapon),
-                        ));
+                    for i in bag1.slots_mut() {
+                        if let Some(item_id) = TradePricing::random_item(Good::Tools, weapon) {
+                            *i = Some(Item::new_from_asset_expect(&item_id));
+                        }
                     }
                     let mut bag2 = Item::new_from_asset_expect(
                         "common.items.armor.misc.bag.reliable_backpack",
@@ -577,10 +579,12 @@ impl LoadoutBuilder {
                         .copied()
                         .unwrap_or_default()
                         / 10.0;
-                    for i in 0..16 {
-                        bag2.slots_mut()[i] = Some(Item::new_from_asset_expect(
-                            &TradePricing::random_item(Good::Ingredients, ingredients),
-                        ));
+                    for i in bag2.slots_mut() {
+                        if let Some(item_id) =
+                            TradePricing::random_item(Good::Ingredients, ingredients)
+                        {
+                            *i = Some(Item::new_from_asset_expect(&item_id));
+                        }
                     }
                     let mut bag3 = Item::new_from_asset_expect(
                         "common.items.armor.misc.bag.reliable_backpack",
@@ -591,10 +595,10 @@ impl LoadoutBuilder {
                         .copied()
                         .unwrap_or_default()
                         / 10.0;
-                    for i in 0..16 {
-                        bag3.slots_mut()[i] = Some(Item::new_from_asset_expect(
-                            &TradePricing::random_item(Good::Food, food),
-                        ));
+                    for i in bag3.slots_mut() {
+                        if let Some(item_id) = TradePricing::random_item(Good::Food, food) {
+                            *i = Some(Item::new_from_asset_expect(&item_id));
+                        }
                     }
                     let mut bag4 = Item::new_from_asset_expect(
                         "common.items.armor.misc.bag.reliable_backpack",
@@ -605,10 +609,10 @@ impl LoadoutBuilder {
                         .copied()
                         .unwrap_or_default()
                         / 10.0;
-                    for i in 0..16 {
-                        bag4.slots_mut()[i] = Some(Item::new_from_asset_expect(
-                            &TradePricing::random_item(Good::Potions, potions),
-                        ));
+                    for i in bag4.slots_mut() {
+                        if let Some(item_id) = TradePricing::random_item(Good::Potions, potions) {
+                            *i = Some(Item::new_from_asset_expect(&item_id));
+                        }
                     }
                     LoadoutBuilder::new()
                         .active_item(active_item)
