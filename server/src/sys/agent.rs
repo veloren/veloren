@@ -103,6 +103,7 @@ const SEARCH_DIST: f32 = 48.0;
 const SIGHT_DIST: f32 = 80.0;
 const SNEAK_COEFFICIENT: f32 = 0.25;
 const AVG_FOLLOW_DIST: f32 = 6.0;
+const RETARGETING_THRESHOLD_SECONDS: f64 = 10.0;
 
 /// This system will allow NPCs to modify their controller
 #[derive(Default)]
@@ -280,7 +281,7 @@ impl<'a> System<'a> for Sys {
                         // glider fall vertical speed)
                         if vel.0.z < -26.0 {
                             controller.actions.push(ControlAction::GlideWield);
-                            if let Some(Target { target, hostile: _ }) = agent.target {
+                            if let Some(Target { target, .. }) = agent.target {
                                 if let Some(tgt_pos) = read_data.positions.get(target) {
                                     controller.inputs.move_dir = (pos.0 - tgt_pos.0)
                                         .xy()
@@ -289,7 +290,15 @@ impl<'a> System<'a> for Sys {
                                 }
                             }
                         }
-                    } else if let Some(Target { target, hostile }) = agent.target {
+                    } else if let Some(Target {
+                        target,
+                        hostile,
+                        selected_at,
+                    }) = agent.target
+                    {
+                        if read_data.time.0 - selected_at > RETARGETING_THRESHOLD_SECONDS {
+                            data.choose_target(agent, controller, &read_data, &mut event_emitter);
+                        }
                         if let Some(tgt_health) = read_data.healths.get(target) {
                             // If the target is hostile (either based on alignment or if
                             // the target just attacked
@@ -329,6 +338,7 @@ impl<'a> System<'a> for Sys {
                                                     agent.target = Some(Target {
                                                         target: attacker,
                                                         hostile: true,
+                                                        selected_at: read_data.time.0,
                                                     });
                                                     if let Some(tgt_pos) =
                                                         read_data.positions.get(attacker)
@@ -340,6 +350,7 @@ impl<'a> System<'a> for Sys {
                                                             agent.target = Some(Target {
                                                                 target,
                                                                 hostile: false,
+                                                                selected_at: read_data.time.0,
                                                             });
                                                             data.idle(
                                                                 agent, controller, &read_data,
@@ -423,6 +434,7 @@ impl<'a> System<'a> for Sys {
                                                 agent.target = Some(Target {
                                                     target: attacker,
                                                     hostile: true,
+                                                    selected_at: read_data.time.0,
                                                 });
                                                 data.attack(
                                                     agent,
@@ -508,6 +520,7 @@ impl<'a> AgentData<'a> {
                     agent.target = Some(Target {
                         target: owner,
                         hostile: false,
+                        selected_at: read_data.time.0,
                     });
                 }
             }
@@ -808,6 +821,7 @@ impl<'a> AgentData<'a> {
                         agent.target = Some(Target {
                             target,
                             hostile: false,
+                            selected_at: read_data.time.0,
                         });
                         if let Some(tgt_pos) = read_data.positions.get(target) {
                             let eye_offset = self.body.map_or(0.0, |b| b.eye_height());
@@ -882,6 +896,7 @@ impl<'a> AgentData<'a> {
                         agent.target = Some(Target {
                             target,
                             hostile: false,
+                            selected_at: read_data.time.0,
                         });
                     }
                     controller
@@ -1138,6 +1153,7 @@ impl<'a> AgentData<'a> {
             agent.target = Some(Target {
                 target,
                 hostile: true,
+                selected_at: read_data.time.0,
             })
         } else {
             agent.target = None;
