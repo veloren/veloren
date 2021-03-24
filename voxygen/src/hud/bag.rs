@@ -69,17 +69,14 @@ pub struct InventoryScroller<'a> {
     fonts: &'a Fonts,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
-    tooltip_manager: &'a mut TooltipManager,
     item_tooltip_manager: &'a mut ItemTooltipManager,
     slot_manager: &'a mut SlotManager,
     pulse: f32,
     localized_strings: &'a Localization,
     show_stats: bool,
     show_bag_inv: bool,
-    msm: &'a MaterialStatManifest,
     on_right: bool,
-    item_tooltip: &'a Tooltip<'a>,
-    item_tooltip2: &'a ItemTooltip<'a>,
+    item_tooltip: &'a ItemTooltip<'a>,
     playername: String,
     is_us: bool,
     inventory: &'a Inventory,
@@ -93,17 +90,14 @@ impl<'a> InventoryScroller<'a> {
         imgs: &'a Imgs,
         item_imgs: &'a ItemImgs,
         fonts: &'a Fonts,
-        tooltip_manager: &'a mut TooltipManager,
         item_tooltip_manager: &'a mut ItemTooltipManager,
         slot_manager: &'a mut SlotManager,
         pulse: f32,
         localized_strings: &'a Localization,
         show_stats: bool,
         show_bag_inv: bool,
-        msm: &'a MaterialStatManifest,
         on_right: bool,
-        item_tooltip: &'a Tooltip<'a>,
-        item_tooltip2: &'a ItemTooltip<'a>,
+        item_tooltip: &'a ItemTooltip<'a>,
         playername: String,
         is_us: bool,
         inventory: &'a Inventory,
@@ -115,17 +109,14 @@ impl<'a> InventoryScroller<'a> {
             item_imgs,
             fonts,
             common: widget::CommonBuilder::default(),
-            tooltip_manager,
             item_tooltip_manager,
             slot_manager,
             pulse,
             localized_strings,
             show_stats,
             show_bag_inv,
-            msm,
             on_right,
             item_tooltip,
-            item_tooltip2,
             playername,
             is_us,
             inventory,
@@ -308,22 +299,20 @@ impl<'a> InventoryScroller<'a> {
                     Quality::Artifact => self.imgs.inv_slot_orange,
                     _ => self.imgs.inv_slot_red,
                 };
-                let mut desc = desc.to_string();
+                let i18n = &self.localized_strings;
+
+                let mut prices_info: Option<String> = None;
                 if let Some((_, _, prices)) = self.client.pending_trade() {
-                    super::util::append_price_desc(&mut desc, prices, item.item_definition_id());
+                    prices_info = super::util::price_desc(prices, item.item_definition_id(), i18n);
                 }
 
                 slot_widget
                     .filled_slot(quality_col_img)
                     .with_item_tooltip(
                         self.item_tooltip_manager,
-                        self.client,
-                        self.imgs,
-                        self.item_imgs,
-                        self.pulse,
                         item,
-                        self.msm,
-                        self.item_tooltip2,
+                        prices_info,
+                        self.item_tooltip,
                     )
                     .set(state.ids.inv_slots[i], ui);
             } else {
@@ -569,7 +558,7 @@ impl<'a> Widget for Bag<'a> {
         };
 
         // Tooltips
-        let item_tooltip = Tooltip::new({
+        let tooltip = Tooltip::new({
             // Edge images [t, b, r, l]
             // Corner images [tr, tl, br, bl]
             let edge = &self.rot_imgs.tt_side;
@@ -587,8 +576,7 @@ impl<'a> Widget for Bag<'a> {
         .font_id(self.fonts.cyri.conrod_id)
         .desc_text_color(TEXT_COLOR);
 
-        // Tooltips
-        let item_tooltip2 = ItemTooltip::new(
+        let item_tooltip = ItemTooltip::new(
             {
                 // Edge images [t, b, r, l]
                 // Corner images [tr, tl, br, bl]
@@ -619,17 +607,14 @@ impl<'a> Widget for Bag<'a> {
             self.imgs,
             self.item_imgs,
             self.fonts,
-            self.tooltip_manager,
             self.item_tooltip_manager,
             self.slot_manager,
             self.pulse,
             self.localized_strings,
             self.show.stats,
             self.show.bag_inv,
-            self.msm,
             true,
             &item_tooltip,
-            &item_tooltip2,
             self.stats.name.to_string(),
             true,
             &inventory,
@@ -801,23 +786,14 @@ impl<'a> Widget for Bag<'a> {
                 .with_icon(self.imgs.head_bg, Vec2::new(32.0, 40.0), Some(UI_MAIN))
                 .filled_slot(filled_slot);
             if let Some(item) = head_item {
-                slot.with_item_tooltip(
-                    self.item_tooltip_manager,
-                    self.client,
-                    self.imgs,
-                    self.item_imgs,
-                    self.pulse,
-                    &item,
-                    self.msm,
-                    &item_tooltip2,
-                )
-                .set(state.ids.head_slot, ui)
+                slot.with_item_tooltip(self.item_tooltip_manager, &item, None, &item_tooltip)
+                    .set(state.ids.head_slot, ui)
             } else {
                 slot.with_tooltip(
                     self.tooltip_manager,
                     i18n.get("hud.bag.head"),
                     "",
-                    &item_tooltip,
+                    &tooltip,
                     color::WHITE,
                 )
                 .set(state.ids.head_slot, ui)
@@ -833,23 +809,14 @@ impl<'a> Widget for Bag<'a> {
                 .with_icon(self.imgs.necklace_bg, Vec2::new(40.0, 31.0), Some(UI_MAIN))
                 .filled_slot(filled_slot);
             if let Some(item) = neck_item {
-                slot.with_item_tooltip(
-                    self.item_tooltip_manager,
-                    self.client,
-                    self.imgs,
-                    self.item_imgs,
-                    self.pulse,
-                    &item,
-                    self.msm,
-                    &item_tooltip2,
-                )
-                .set(state.ids.neck_slot, ui)
+                slot.with_item_tooltip(self.item_tooltip_manager, &item, None, &item_tooltip)
+                    .set(state.ids.neck_slot, ui)
             } else {
                 slot.with_tooltip(
                     self.tooltip_manager,
                     i18n.get("hud.bag.neck"),
                     "",
-                    &item_tooltip,
+                    &tooltip,
                     color::WHITE,
                 )
                 .set(state.ids.neck_slot, ui)
@@ -866,23 +833,14 @@ impl<'a> Widget for Bag<'a> {
                 .with_icon(self.imgs.chest_bg, Vec2::new(64.0, 42.0), Some(UI_MAIN))
                 .filled_slot(filled_slot);
             if let Some(item) = chest_item {
-                slot.with_item_tooltip(
-                    self.item_tooltip_manager,
-                    self.client,
-                    self.imgs,
-                    self.item_imgs,
-                    self.pulse,
-                    &item,
-                    self.msm,
-                    &item_tooltip2,
-                )
-                .set(state.ids.chest_slot, ui)
+                slot.with_item_tooltip(self.item_tooltip_manager, &item, None, &item_tooltip)
+                    .set(state.ids.chest_slot, ui)
             } else {
                 slot.with_tooltip(
                     self.tooltip_manager,
                     i18n.get("hud.bag.chest"),
                     "",
-                    &item_tooltip,
+                    &tooltip,
                     color::WHITE,
                 )
                 .set(state.ids.chest_slot, ui)
@@ -898,23 +856,14 @@ impl<'a> Widget for Bag<'a> {
                 .with_icon(self.imgs.shoulders_bg, Vec2::new(60.0, 36.0), Some(UI_MAIN))
                 .filled_slot(filled_slot);
             if let Some(item) = shoulder_item {
-                slot.with_item_tooltip(
-                    self.item_tooltip_manager,
-                    self.client,
-                    self.imgs,
-                    self.item_imgs,
-                    self.pulse,
-                    &item,
-                    self.msm,
-                    &item_tooltip2,
-                )
-                .set(state.ids.shoulders_slot, ui)
+                slot.with_item_tooltip(self.item_tooltip_manager, &item, None, &item_tooltip)
+                    .set(state.ids.shoulders_slot, ui)
             } else {
                 slot.with_tooltip(
                     self.tooltip_manager,
                     i18n.get("hud.bag.shoulders"),
                     "",
-                    &item_tooltip,
+                    &tooltip,
                     color::WHITE,
                 )
                 .set(state.ids.shoulders_slot, ui)
@@ -929,23 +878,14 @@ impl<'a> Widget for Bag<'a> {
                 .with_icon(self.imgs.hands_bg, Vec2::new(55.0, 60.0), Some(UI_MAIN))
                 .filled_slot(filled_slot);
             if let Some(item) = hands_item {
-                slot.with_item_tooltip(
-                    self.item_tooltip_manager,
-                    self.client,
-                    self.imgs,
-                    self.item_imgs,
-                    self.pulse,
-                    &item,
-                    self.msm,
-                    &item_tooltip2,
-                )
-                .set(state.ids.hands_slot, ui)
+                slot.with_item_tooltip(self.item_tooltip_manager, &item, None, &item_tooltip)
+                    .set(state.ids.hands_slot, ui)
             } else {
                 slot.with_tooltip(
                     self.tooltip_manager,
                     i18n.get("hud.bag.hands"),
                     "",
-                    &item_tooltip,
+                    &tooltip,
                     color::WHITE,
                 )
                 .set(state.ids.hands_slot, ui)
@@ -960,23 +900,14 @@ impl<'a> Widget for Bag<'a> {
                 .with_icon(self.imgs.belt_bg, Vec2::new(40.0, 23.0), Some(UI_MAIN))
                 .filled_slot(filled_slot);
             if let Some(item) = belt_item {
-                slot.with_item_tooltip(
-                    self.item_tooltip_manager,
-                    self.client,
-                    self.imgs,
-                    self.item_imgs,
-                    self.pulse,
-                    &item,
-                    self.msm,
-                    &item_tooltip2,
-                )
-                .set(state.ids.belt_slot, ui)
+                slot.with_item_tooltip(self.item_tooltip_manager, &item, None, &item_tooltip)
+                    .set(state.ids.belt_slot, ui)
             } else {
                 slot.with_tooltip(
                     self.tooltip_manager,
                     i18n.get("hud.bag.belt"),
                     "",
-                    &item_tooltip,
+                    &tooltip,
                     color::WHITE,
                 )
                 .set(state.ids.belt_slot, ui)
@@ -991,23 +922,14 @@ impl<'a> Widget for Bag<'a> {
                 .with_icon(self.imgs.legs_bg, Vec2::new(48.0, 70.0), Some(UI_MAIN))
                 .filled_slot(filled_slot);
             if let Some(item) = legs_item {
-                slot.with_item_tooltip(
-                    self.item_tooltip_manager,
-                    self.client,
-                    self.imgs,
-                    self.item_imgs,
-                    self.pulse,
-                    &item,
-                    self.msm,
-                    &item_tooltip2,
-                )
-                .set(state.ids.legs_slot, ui)
+                slot.with_item_tooltip(self.item_tooltip_manager, &item, None, &item_tooltip)
+                    .set(state.ids.legs_slot, ui)
             } else {
                 slot.with_tooltip(
                     self.tooltip_manager,
                     i18n.get("hud.bag.legs"),
                     "",
-                    &item_tooltip,
+                    &tooltip,
                     color::WHITE,
                 )
                 .set(state.ids.legs_slot, ui)
@@ -1022,23 +944,14 @@ impl<'a> Widget for Bag<'a> {
                 .with_icon(self.imgs.ring_bg, Vec2::new(36.0, 40.0), Some(UI_MAIN))
                 .filled_slot(filled_slot);
             if let Some(item) = ring1_item {
-                slot.with_item_tooltip(
-                    self.item_tooltip_manager,
-                    self.client,
-                    self.imgs,
-                    self.item_imgs,
-                    self.pulse,
-                    &item,
-                    self.msm,
-                    &item_tooltip2,
-                )
-                .set(state.ids.ring1_slot, ui)
+                slot.with_item_tooltip(self.item_tooltip_manager, &item, None, &item_tooltip)
+                    .set(state.ids.ring1_slot, ui)
             } else {
                 slot.with_tooltip(
                     self.tooltip_manager,
                     i18n.get("hud.bag.ring"),
                     "",
-                    &item_tooltip,
+                    &tooltip,
                     color::WHITE,
                 )
                 .set(state.ids.ring1_slot, ui)
@@ -1053,23 +966,14 @@ impl<'a> Widget for Bag<'a> {
                 .with_icon(self.imgs.ring_bg, Vec2::new(36.0, 40.0), Some(UI_MAIN))
                 .filled_slot(filled_slot);
             if let Some(item) = ring2_item {
-                slot.with_item_tooltip(
-                    self.item_tooltip_manager,
-                    self.client,
-                    self.imgs,
-                    self.item_imgs,
-                    self.pulse,
-                    &item,
-                    self.msm,
-                    &item_tooltip2,
-                )
-                .set(state.ids.ring2_slot, ui)
+                slot.with_item_tooltip(self.item_tooltip_manager, &item, None, &item_tooltip)
+                    .set(state.ids.ring2_slot, ui)
             } else {
                 slot.with_tooltip(
                     self.tooltip_manager,
                     i18n.get("hud.bag.ring"),
                     "",
-                    &item_tooltip,
+                    &tooltip,
                     color::WHITE,
                 )
                 .set(state.ids.ring2_slot, ui)
@@ -1084,23 +988,14 @@ impl<'a> Widget for Bag<'a> {
                 .with_icon(self.imgs.back_bg, Vec2::new(33.0, 40.0), Some(UI_MAIN))
                 .filled_slot(filled_slot);
             if let Some(item) = back_item {
-                slot.with_item_tooltip(
-                    self.item_tooltip_manager,
-                    self.client,
-                    self.imgs,
-                    self.item_imgs,
-                    self.pulse,
-                    &item,
-                    self.msm,
-                    &item_tooltip2,
-                )
-                .set(state.ids.back_slot, ui)
+                slot.with_item_tooltip(self.item_tooltip_manager, &item, None, &item_tooltip)
+                    .set(state.ids.back_slot, ui)
             } else {
                 slot.with_tooltip(
                     self.tooltip_manager,
                     i18n.get("hud.bag.back"),
                     "",
-                    &item_tooltip,
+                    &tooltip,
                     color::WHITE,
                 )
                 .set(state.ids.back_slot, ui)
@@ -1115,23 +1010,14 @@ impl<'a> Widget for Bag<'a> {
                 .with_icon(self.imgs.feet_bg, Vec2::new(32.0, 40.0), Some(UI_MAIN))
                 .filled_slot(filled_slot);
             if let Some(item) = feet_item {
-                slot.with_item_tooltip(
-                    self.item_tooltip_manager,
-                    self.client,
-                    self.imgs,
-                    self.item_imgs,
-                    self.pulse,
-                    &item,
-                    self.msm,
-                    &item_tooltip2,
-                )
-                .set(state.ids.feet_slot, ui)
+                slot.with_item_tooltip(self.item_tooltip_manager, &item, None, &item_tooltip)
+                    .set(state.ids.feet_slot, ui)
             } else {
                 slot.with_tooltip(
                     self.tooltip_manager,
                     i18n.get("hud.bag.feet"),
                     "",
-                    &item_tooltip,
+                    &tooltip,
                     color::WHITE,
                 )
                 .set(state.ids.feet_slot, ui)
@@ -1146,23 +1032,14 @@ impl<'a> Widget for Bag<'a> {
                 .with_icon(self.imgs.lantern_bg, Vec2::new(24.0, 38.0), Some(UI_MAIN))
                 .filled_slot(filled_slot);
             if let Some(item) = lantern_item {
-                slot.with_item_tooltip(
-                    self.item_tooltip_manager,
-                    self.client,
-                    self.imgs,
-                    self.item_imgs,
-                    self.pulse,
-                    &item,
-                    self.msm,
-                    &item_tooltip2,
-                )
-                .set(state.ids.lantern_slot, ui)
+                slot.with_item_tooltip(self.item_tooltip_manager, &item, None, &item_tooltip)
+                    .set(state.ids.lantern_slot, ui)
             } else {
                 slot.with_tooltip(
                     self.tooltip_manager,
                     i18n.get("hud.bag.lantern"),
                     "",
-                    &item_tooltip,
+                    &tooltip,
                     color::WHITE,
                 )
                 .set(state.ids.lantern_slot, ui)
@@ -1177,23 +1054,14 @@ impl<'a> Widget for Bag<'a> {
                 .with_icon(self.imgs.glider_bg, Vec2::new(38.0, 38.0), Some(UI_MAIN))
                 .filled_slot(filled_slot);
             if let Some(item) = glider_item {
-                slot.with_item_tooltip(
-                    self.item_tooltip_manager,
-                    self.client,
-                    self.imgs,
-                    self.item_imgs,
-                    self.pulse,
-                    &item,
-                    self.msm,
-                    &item_tooltip2,
-                )
-                .set(state.ids.glider_slot, ui)
+                slot.with_item_tooltip(self.item_tooltip_manager, &item, None, &item_tooltip)
+                    .set(state.ids.glider_slot, ui)
             } else {
                 slot.with_tooltip(
                     self.tooltip_manager,
                     i18n.get("hud.bag.glider"),
                     "",
-                    &item_tooltip,
+                    &tooltip,
                     color::WHITE,
                 )
                 .set(state.ids.glider_slot, ui)
@@ -1208,23 +1076,14 @@ impl<'a> Widget for Bag<'a> {
                 .with_icon(self.imgs.tabard_bg, Vec2::new(38.0, 38.0), Some(UI_MAIN))
                 .filled_slot(filled_slot);
             if let Some(item) = tabard_item {
-                slot.with_item_tooltip(
-                    self.item_tooltip_manager,
-                    self.client,
-                    self.imgs,
-                    self.item_imgs,
-                    self.pulse,
-                    &item,
-                    self.msm,
-                    &item_tooltip2,
-                )
-                .set(state.ids.tabard_slot, ui)
+                slot.with_item_tooltip(self.item_tooltip_manager, &item, None, &item_tooltip)
+                    .set(state.ids.tabard_slot, ui)
             } else {
                 slot.with_tooltip(
                     self.tooltip_manager,
                     i18n.get("hud.bag.tabard"),
                     "",
-                    &item_tooltip,
+                    &tooltip,
                     color::WHITE,
                 )
                 .set(state.ids.tabard_slot, ui)
@@ -1240,23 +1099,14 @@ impl<'a> Widget for Bag<'a> {
                 .with_icon(self.imgs.mainhand_bg, Vec2::new(75.0, 75.0), Some(UI_MAIN))
                 .filled_slot(filled_slot);
             if let Some(item) = mainhand_item {
-                slot.with_item_tooltip(
-                    self.item_tooltip_manager,
-                    self.client,
-                    self.imgs,
-                    self.item_imgs,
-                    self.pulse,
-                    &item,
-                    self.msm,
-                    &item_tooltip2,
-                )
-                .set(state.ids.mainhand_slot, ui)
+                slot.with_item_tooltip(self.item_tooltip_manager, &item, None, &item_tooltip)
+                    .set(state.ids.mainhand_slot, ui)
             } else {
                 slot.with_tooltip(
                     self.tooltip_manager,
                     i18n.get("hud.bag.mainhand"),
                     "",
-                    &item_tooltip,
+                    &tooltip,
                     color::WHITE,
                 )
                 .set(state.ids.mainhand_slot, ui)
@@ -1271,23 +1121,14 @@ impl<'a> Widget for Bag<'a> {
                 .with_icon(self.imgs.offhand_bg, Vec2::new(75.0, 75.0), Some(UI_MAIN))
                 .filled_slot(filled_slot);
             if let Some(item) = offhand_item {
-                slot.with_item_tooltip(
-                    self.item_tooltip_manager,
-                    self.client,
-                    self.imgs,
-                    self.item_imgs,
-                    self.pulse,
-                    &item,
-                    self.msm,
-                    &item_tooltip2,
-                )
-                .set(state.ids.offhand_slot, ui)
+                slot.with_item_tooltip(self.item_tooltip_manager, &item, None, &item_tooltip)
+                    .set(state.ids.offhand_slot, ui)
             } else {
                 slot.with_tooltip(
                     self.tooltip_manager,
                     i18n.get("hud.bag.offhand"),
                     "",
-                    &item_tooltip,
+                    &tooltip,
                     color::WHITE,
                 )
                 .set(state.ids.offhand_slot, ui)
@@ -1307,23 +1148,14 @@ impl<'a> Widget for Bag<'a> {
             .with_icon(self.imgs.bag_bg, Vec2::new(28.0, 24.0), Some(UI_MAIN))
             .filled_slot(filled_slot);
         if let Some(item) = bag1_item {
-            slot.with_item_tooltip(
-                self.item_tooltip_manager,
-                self.client,
-                self.imgs,
-                self.item_imgs,
-                self.pulse,
-                &item,
-                self.msm,
-                &item_tooltip2,
-            )
-            .set(state.ids.bag1_slot, ui)
+            slot.with_item_tooltip(self.item_tooltip_manager, &item, None, &item_tooltip)
+                .set(state.ids.bag1_slot, ui)
         } else {
             slot.with_tooltip(
                 self.tooltip_manager,
                 i18n.get("hud.bag.bag"),
                 "",
-                &item_tooltip,
+                &tooltip,
                 color::WHITE,
             )
             .set(state.ids.bag1_slot, ui)
@@ -1338,23 +1170,14 @@ impl<'a> Widget for Bag<'a> {
             .with_icon(self.imgs.bag_bg, Vec2::new(28.0, 24.0), Some(UI_MAIN))
             .filled_slot(filled_slot);
         if let Some(item) = bag2_item {
-            slot.with_item_tooltip(
-                self.item_tooltip_manager,
-                self.client,
-                self.imgs,
-                self.item_imgs,
-                self.pulse,
-                &item,
-                self.msm,
-                &item_tooltip2,
-            )
-            .set(state.ids.bag2_slot, ui)
+            slot.with_item_tooltip(self.item_tooltip_manager, &item, None, &item_tooltip)
+                .set(state.ids.bag2_slot, ui)
         } else {
             slot.with_tooltip(
                 self.tooltip_manager,
                 i18n.get("hud.bag.bag"),
                 "",
-                &item_tooltip,
+                &tooltip,
                 color::WHITE,
             )
             .set(state.ids.bag2_slot, ui)
@@ -1369,23 +1192,14 @@ impl<'a> Widget for Bag<'a> {
             .with_icon(self.imgs.bag_bg, Vec2::new(28.0, 24.0), Some(UI_MAIN))
             .filled_slot(filled_slot);
         if let Some(item) = bag3_item {
-            slot.with_item_tooltip(
-                self.item_tooltip_manager,
-                self.client,
-                self.imgs,
-                self.item_imgs,
-                self.pulse,
-                &item,
-                self.msm,
-                &item_tooltip2,
-            )
-            .set(state.ids.bag3_slot, ui)
+            slot.with_item_tooltip(self.item_tooltip_manager, &item, None, &item_tooltip)
+                .set(state.ids.bag3_slot, ui)
         } else {
             slot.with_tooltip(
                 self.tooltip_manager,
                 i18n.get("hud.bag.bag"),
                 "",
-                &item_tooltip,
+                &tooltip,
                 color::WHITE,
             )
             .set(state.ids.bag3_slot, ui)
@@ -1400,23 +1214,14 @@ impl<'a> Widget for Bag<'a> {
             .with_icon(self.imgs.bag_bg, Vec2::new(28.0, 24.0), Some(UI_MAIN))
             .filled_slot(filled_slot);
         if let Some(item) = bag4_item {
-            slot.with_item_tooltip(
-                self.item_tooltip_manager,
-                self.client,
-                self.imgs,
-                self.item_imgs,
-                self.pulse,
-                &item,
-                self.msm,
-                &item_tooltip2,
-            )
-            .set(state.ids.bag4_slot, ui)
+            slot.with_item_tooltip(self.item_tooltip_manager, &item, None, &item_tooltip)
+                .set(state.ids.bag4_slot, ui)
         } else {
             slot.with_tooltip(
                 self.tooltip_manager,
                 i18n.get("hud.bag.bag"),
                 "",
-                &item_tooltip,
+                &tooltip,
                 color::WHITE,
             )
             .set(state.ids.bag4_slot, ui)

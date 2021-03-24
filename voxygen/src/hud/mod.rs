@@ -906,7 +906,6 @@ impl Hud {
         let mut events = std::mem::replace(&mut self.events, Vec::new());
         let (ref mut ui_widgets, ref mut item_tooltip_manager, ref mut tooltip_manager) =
             &mut self.ui.set_widgets();
-        //let (ref mut ui_item_widgets, ref mut item_tooltip_manager) = &mut
         // self.ui.set_item_widgets(); pulse time for pulsating elements
         self.pulse = self.pulse + dt.as_secs_f32();
         // FPS
@@ -2308,7 +2307,6 @@ impl Hud {
                 &self.item_imgs,
                 &self.fonts,
                 &self.rot_imgs,
-                tooltip_manager,
                 item_tooltip_manager,
                 &mut self.slot_manager,
                 i18n,
@@ -2374,7 +2372,6 @@ impl Hud {
                     i18n,
                     self.pulse,
                     &self.rot_imgs,
-                    tooltip_manager,
                     item_tooltip_manager,
                     &self.item_imgs,
                     &inventory,

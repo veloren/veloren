@@ -10,7 +10,7 @@ use crate::{
     ui::{
         fonts::Fonts,
         slot::{ContentSize, SlotMaker},
-        ImageFrame, ItemTooltip, ItemTooltipManager, ItemTooltipable, Tooltip, TooltipManager,
+        ImageFrame, ItemTooltip, ItemTooltipManager, ItemTooltipable,
     },
 };
 use client::Client;
@@ -62,7 +62,6 @@ pub struct Trade<'a> {
     item_imgs: &'a ItemImgs,
     fonts: &'a Fonts,
     rot_imgs: &'a ImgsRot,
-    tooltip_manager: &'a mut TooltipManager,
     item_tooltip_manager: &'a mut ItemTooltipManager,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
@@ -79,7 +78,6 @@ impl<'a> Trade<'a> {
         item_imgs: &'a ItemImgs,
         fonts: &'a Fonts,
         rot_imgs: &'a ImgsRot,
-        tooltip_manager: &'a mut TooltipManager,
         item_tooltip_manager: &'a mut ItemTooltipManager,
         slot_manager: &'a mut SlotManager,
         localized_strings: &'a Localization,
@@ -92,7 +90,6 @@ impl<'a> Trade<'a> {
             item_imgs,
             fonts,
             rot_imgs,
-            tooltip_manager,
             item_tooltip_manager,
             common: widget::CommonBuilder::default(),
             slot_manager,
@@ -266,26 +263,8 @@ impl<'a> Trade<'a> {
         prices: &'a Option<SitePrices>,
         tradeslots: &[TradeSlot],
     ) {
-        let item_tooltip = Tooltip::new({
-            // Edge images [t, b, r, l]
-            // Corner images [tr, tl, br, bl]
-            let edge = &self.rot_imgs.tt_side;
-            let corner = &self.rot_imgs.tt_corner;
-            ImageFrame::new(
-                [edge.cw180, edge.none, edge.cw270, edge.cw90],
-                [corner.none, corner.cw270, corner.cw90, corner.cw180],
-                Color::Rgba(0.08, 0.07, 0.04, 1.0),
-                5.0,
-            )
-        })
-        .title_font_size(self.fonts.cyri.scale(15))
-        .parent(ui.window)
-        .desc_font_size(self.fonts.cyri.scale(12))
-        .font_id(self.fonts.cyri.conrod_id)
-        .desc_text_color(TEXT_COLOR);
-
         // Tooltips
-        let item_tooltip2 = ItemTooltip::new(
+        let item_tooltip = ItemTooltip::new(
             {
                 // Edge images [t, b, r, l]
                 // Corner images [tr, tl, br, bl]
@@ -317,17 +296,14 @@ impl<'a> Trade<'a> {
                 self.imgs,
                 self.item_imgs,
                 self.fonts,
-                self.tooltip_manager,
                 self.item_tooltip_manager,
                 self.slot_manager,
                 self.pulse,
                 self.localized_strings,
                 false,
                 true,
-                self.msm,
                 false,
                 &item_tooltip,
-                &item_tooltip2,
                 name,
                 false,
                 &inventory,
@@ -395,20 +371,12 @@ impl<'a> Trade<'a> {
                     Quality::Artifact => self.imgs.inv_slot_orange,
                     _ => self.imgs.inv_slot_red,
                 };
-                let mut desc = desc.to_string();
-                super::util::append_price_desc(&mut desc, prices, item.item_definition_id());
+                let i18n = &self.localized_strings;
+
+                let prices_info = super::util::price_desc(prices, item.item_definition_id(), i18n);
                 slot_widget
                     .filled_slot(quality_col_img)
-                    .with_item_tooltip(
-                        self.item_tooltip_manager,
-                        self.client,
-                        self.imgs,
-                        self.item_imgs,
-                        self.pulse,
-                        item,
-                        self.msm,
-                        &item_tooltip2,
-                    )
+                    .with_item_tooltip(self.item_tooltip_manager, item, prices_info, &item_tooltip)
                     .set(slot_id, ui);
             } else {
                 slot_widget.set(slot_id, ui);

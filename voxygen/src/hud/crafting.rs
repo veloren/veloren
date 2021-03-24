@@ -5,10 +5,7 @@ use super::{
 };
 use crate::{
     i18n::Localization,
-    ui::{
-        fonts::Fonts, ImageFrame, ItemTooltip, ItemTooltipManager, ItemTooltipable, Tooltip,
-        TooltipManager,
-    },
+    ui::{fonts::Fonts, ImageFrame, ItemTooltip, ItemTooltipManager, ItemTooltipable},
 };
 use client::{self, Client};
 use common::{
@@ -67,7 +64,6 @@ pub struct Crafting<'a> {
     localized_strings: &'a Localization,
     pulse: f32,
     rot_imgs: &'a ImgsRot,
-    tooltip_manager: &'a mut TooltipManager,
     item_tooltip_manager: &'a mut ItemTooltipManager,
     item_imgs: &'a ItemImgs,
     inventory: &'a Inventory,
@@ -84,7 +80,6 @@ impl<'a> Crafting<'a> {
         localized_strings: &'a Localization,
         pulse: f32,
         rot_imgs: &'a ImgsRot,
-        tooltip_manager: &'a mut TooltipManager,
         item_tooltip_manager: &'a mut ItemTooltipManager,
         item_imgs: &'a ItemImgs,
         inventory: &'a Inventory,
@@ -97,7 +92,6 @@ impl<'a> Crafting<'a> {
             localized_strings,
             pulse,
             rot_imgs,
-            tooltip_manager,
             item_tooltip_manager,
             item_imgs,
             inventory,
@@ -143,24 +137,7 @@ impl<'a> Widget for Crafting<'a> {
         let mut events = Vec::new();
 
         // Tooltips
-        let item_tooltip = Tooltip::new({
-            let edge = &self.rot_imgs.tt_side;
-            let corner = &self.rot_imgs.tt_corner;
-            ImageFrame::new(
-                [edge.cw180, edge.none, edge.cw270, edge.cw90],
-                [corner.none, corner.cw270, corner.cw90, corner.cw180],
-                Color::Rgba(0.08, 0.07, 0.04, 1.0),
-                5.0,
-            )
-        })
-        .title_font_size(self.fonts.cyri.scale(15))
-        .parent(ui.window)
-        .desc_font_size(self.fonts.cyri.scale(12))
-        .font_id(self.fonts.cyri.conrod_id)
-        .desc_text_color(TEXT_COLOR);
-
-        // Tooltips
-        let item_tooltip2 = ItemTooltip::new(
+        let item_tooltip = ItemTooltip::new(
             {
                 // Edge images [t, b, r, l]
                 // Corner images [tr, tl, br, bl]
@@ -348,13 +325,9 @@ impl<'a> Widget for Crafting<'a> {
                     .middle_of(state.ids.output_img_frame)
                     .with_item_tooltip(
                         self.item_tooltip_manager,
-                        self.client,
-                        self.imgs,
-                        self.item_imgs,
-                        self.pulse,
                         &*recipe.output.0,
-                        self.msm,
-                        &item_tooltip2,
+                        None,
+                        &item_tooltip,
                     )
                     .set(state.ids.output_img, ui);
                 }
@@ -529,16 +502,7 @@ impl<'a> Widget for Crafting<'a> {
                 ))
                 .w_h(22.0, 22.0)
                 .middle_of(state.ids.ingredient_frame[i])
-                .with_item_tooltip(
-                    self.item_tooltip_manager,
-                    self.client,
-                    self.imgs,
-                    self.item_imgs,
-                    self.pulse,
-                    &*item_def,
-                    self.msm,
-                    &item_tooltip2,
-                )
+                .with_item_tooltip(self.item_tooltip_manager, &*item_def, None, &item_tooltip)
                 .set(state.ids.ingredient_img[i], ui);
                 // Ingredients text and amount
                 // Don't show inventory amounts above 999 to avoid the widget clipping
