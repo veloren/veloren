@@ -64,7 +64,9 @@ pub struct Info<'a> {
 }
 
 /// Determines whether to show the healthbar
-pub fn should_show_healthbar(health: &Health) -> bool { health.current() != health.maximum() }
+pub fn should_show_healthbar(health: &Health) -> bool {
+    health.current() != health.maximum() || health.current() < health.base_max()
+}
 
 /// ui widget containing everything that goes over a character's head
 /// (Speech bubble, Name, Level, HP/energy bars, etc.)

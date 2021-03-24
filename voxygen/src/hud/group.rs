@@ -51,6 +51,7 @@ widget_ids! {
         member_panels_txt_bg[],
         member_panels_txt[],
         member_health[],
+        member_health_decayed[],
         member_stam[],
         buffs[],
         buff_timers[],
@@ -284,7 +285,10 @@ impl<'a> Widget for Group<'a> {
                 state.update(|s| {
                     s.ids
                         .member_health
-                        .resize(group_size, &mut ui.widget_id_generator())
+                        .resize(group_size, &mut ui.widget_id_generator());
+                    s.ids
+                        .member_health_decayed
+                        .resize(group_size, &mut ui.widget_id_generator());
                 })
             };
             if state.ids.member_stam.len() < group_size {
@@ -364,7 +368,9 @@ impl<'a> Widget for Group<'a> {
                     let combat_rating =
                         combat::combat_rating(inventory, health, stats, *body, &self.msm);
                     let char_name = stats.name.to_string();
-                    let health_perc = health.current() as f64 / health.maximum() as f64;
+
+                    let max_hp = health.base_max().max(health.maximum());
+                    let health_perc = health.current() as f64 / max_hp as f64;
                     // change panel positions when debug info is shown
                     let x = if debug_on { i / 8 } else { i / 12 };
                     let y = if debug_on { i % 8 } else { i % 12 };
@@ -395,6 +401,21 @@ impl<'a> Widget for Group<'a> {
                         .color(Some(health_col))
                         .top_left_with_margins_on(state.ids.member_panels_bg[i], 2.0, 2.0)
                         .set(state.ids.member_health[i], ui);
+                    let decayed_health = 1.0 - health.maximum() as f64 / health.base_max() as f64;
+                    if decayed_health > 0.0 {
+                        Image::new(self.imgs.bar_content)
+                            .w_h(
+                                inline_tweak::tweak!(148.0) * decayed_health,
+                                inline_tweak::tweak!(22.0),
+                            )
+                            .color(Some(BLACK))
+                            .top_right_with_margins_on(
+                                state.ids.member_panels_bg[i],
+                                inline_tweak::tweak!(2.0),
+                                inline_tweak::tweak!(2.0),
+                            )
+                            .set(state.ids.member_health_decayed[i], ui);
+                    }
                     if health.is_dead {
                         // Death Text
                         Text::new(&self.localized_strings.get("hud.group.dead"))

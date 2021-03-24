@@ -67,6 +67,7 @@ widget_ids! {
         // HP-Bar
         hp_alignment,
         hp_filling,
+        hp_decayed,
         hp_txt_alignment,
         hp_txt_bg,
         hp_txt,
@@ -217,7 +218,9 @@ impl<'a> Widget for Skillbar<'a> {
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { state, ui, .. } = args;
 
-        let mut hp_percentage = self.health.current() as f64 / self.health.maximum() as f64 * 100.0;
+        let max_hp = self.health.base_max().max(self.health.maximum());
+
+        let mut hp_percentage = self.health.current() as f64 / max_hp as f64 * 100.0;
         let mut energy_percentage =
             self.energy.current() as f64 / self.energy.maximum() as f64 * 100.0;
         if self.health.is_dead {
@@ -306,6 +309,14 @@ impl<'a> Widget for Skillbar<'a> {
                 .color(Some(health_col))
                 .top_left_with_margins_on(state.ids.hp_alignment, 0.0, 0.0)
                 .set(state.ids.hp_filling, ui);
+            let decayed_health = 1.0 - self.health.maximum() as f64 / self.health.base_max() as f64;
+            if decayed_health > 0.0 {
+                Image::new(self.imgs.bar_content)
+                    .w_h(480.0 * decayed_health, 18.0)
+                    .color(Some(BLACK))
+                    .top_right_with_margins_on(state.ids.hp_alignment, 0.0, 0.0)
+                    .set(state.ids.hp_decayed, ui);
+            }
             Image::new(self.imgs.health_frame)
                 .w_h(484.0, 24.0)
                 .color(Some(UI_HIGHLIGHT_0))
