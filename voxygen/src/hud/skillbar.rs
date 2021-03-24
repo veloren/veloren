@@ -563,8 +563,9 @@ impl<'a> Widget for Skillbar<'a> {
 
                         let equip_slot = match (active_tool_hands, second_tool_hands) {
                             (Some(Hands::Two), _) => Some(EquipSlot::Mainhand),
-                            (_, Some(Hands::One)) => Some(EquipSlot::Offhand),
+                            (Some(_), Some(Hands::One)) => Some(EquipSlot::Offhand),
                             (Some(Hands::One), _) => Some(EquipSlot::Mainhand),
+                            (None, Some(_)) => Some(EquipSlot::Offhand),
                             (_, _) => None,
                         };
 
@@ -661,27 +662,32 @@ impl<'a> Widget for Skillbar<'a> {
             .w_h(40.0, 40.0)
             .right_from(state.ids.slot5, slot_offset)
             .set(state.ids.m1_slot_bg, ui);
-        Button::image(
-            match self
-                .inventory
-                .equipped(EquipSlot::Mainhand)
-                .map(|i| i.kind())
-            {
-                Some(ItemKind::Tool(Tool { kind, .. })) => match kind {
-                    ToolKind::Sword => self.imgs.twohsword_m1,
-                    ToolKind::Dagger => self.imgs.onehdagger_m1,
-                    ToolKind::Shield => self.imgs.onehshield_m1,
-                    ToolKind::Hammer => self.imgs.twohhammer_m1,
-                    ToolKind::Axe => self.imgs.twohaxe_m1,
-                    ToolKind::Bow => self.imgs.bow_m1,
-                    ToolKind::Sceptre => self.imgs.skill_sceptre_lifesteal,
-                    ToolKind::Staff => self.imgs.fireball,
-                    ToolKind::Debug => self.imgs.flyingrod_m1,
-                    _ => self.imgs.nothing,
-                },
-                _ => self.imgs.nothing,
-            },
-        ) // Insert Icon here
+
+        let active_tool = get_item_and_tool(self.inventory, EquipSlot::Mainhand);
+        let second_tool = get_item_and_tool(self.inventory, EquipSlot::Offhand);
+
+        let tool = match (
+            active_tool.map(|(_, x)| x.hands),
+            second_tool.map(|(_, x)| x.hands),
+        ) {
+            (Some(_), _) => active_tool,
+            (_, Some(_)) => second_tool,
+            (_, _) => None,
+        };
+        
+        
+        Button::image(match tool.map(|(_, t)| t.kind) {
+            Some(ToolKind::Sword) => self.imgs.twohsword_m1,
+            Some(ToolKind::Dagger) => self.imgs.onehdagger_m1,
+            Some(ToolKind::Shield) => self.imgs.onehshield_m1,
+            Some(ToolKind::Hammer) => self.imgs.twohhammer_m1,
+            Some(ToolKind::Axe) => self.imgs.twohaxe_m1,
+            Some(ToolKind::Bow) => self.imgs.bow_m1,
+            Some(ToolKind::Sceptre) => self.imgs.skill_sceptre_lifesteal,
+            Some(ToolKind::Staff) => self.imgs.fireball,
+            Some(ToolKind::Debug) => self.imgs.flyingrod_m1,
+            _ => self.imgs.nothing,
+        }) // Insert Icon here
         .w_h(36.0, 36.0)
         .middle_of(state.ids.m1_slot_bg)
         .set(state.ids.m1_content, ui);
@@ -709,8 +715,9 @@ impl<'a> Widget for Skillbar<'a> {
             second_tool.map(|(_, x)| x.hands),
         ) {
             (Some(Hands::Two), _) => active_tool,
-            (_, Some(Hands::One)) => second_tool,
+            (Some(_), Some(Hands::One)) => second_tool,
             (Some(Hands::One), _) => active_tool,
+            (None, Some(_)) => second_tool,
             (_, _) => None,
         };
 
