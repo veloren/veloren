@@ -10,11 +10,11 @@ use common::{
     region::RegionMap,
     resources::{DeltaTime, GameMode, PlayerEntity, Time, TimeOfDay},
     slowjob::SlowJobPool,
+    store::{Id, Store},
     terrain::{Block, TerrainChunk, TerrainGrid},
     time::DayPeriod,
     trade::Trades,
     vol::{ReadVol, WriteVol},
-    store::Store,
 };
 use common_base::span;
 use common_ecs::{run_now, PhysicsMetrics, SysMetrics};
@@ -43,12 +43,14 @@ const MAX_DELTA_TIME: f32 = 1.0;
 #[derive(Default)]
 pub struct BuildAreas {
     pub areas: Store<geom::Aabb<i32>>,
+    pub area_names: HashMap<String, Id<Aabb<i32>>>,
 }
 
 impl BuildAreas {
     pub fn new() -> Self {
         Self {
-            areas: Store::default()
+            areas: Store::default(),
+            area_names: HashMap::new(),
         }
     }
 }
