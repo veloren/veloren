@@ -59,7 +59,7 @@ impl EconStatistics {
     }
 }
 
-pub fn csv_entry(f: &mut std::fs::File, site: &Site) {
+pub fn csv_entry(f: &mut std::fs::File, site: &Site) -> Result<(), std::io::Error> {
     use std::io::Write;
     write!(
         *f,
@@ -68,61 +68,60 @@ pub fn csv_entry(f: &mut std::fs::File, site: &Site) {
         site.get_origin().x,
         site.get_origin().y,
         site.economy.pop
-    )
-    .unwrap();
+    )?;
     for g in good_list() {
-        write!(*f, "{:?},", site.economy.values[*g].unwrap_or(-1.0)).unwrap();
+        write!(*f, "{:?},", site.economy.values[*g].unwrap_or(-1.0))?;
     }
     for g in good_list() {
-        write!(f, "{:?},", site.economy.labor_values[*g].unwrap_or(-1.0)).unwrap();
+        write!(f, "{:?},", site.economy.labor_values[*g].unwrap_or(-1.0))?;
     }
     for g in good_list() {
-        write!(f, "{:?},", site.economy.stocks[*g]).unwrap();
+        write!(f, "{:?},", site.economy.stocks[*g])?;
     }
     for g in good_list() {
-        write!(f, "{:?},", site.economy.marginal_surplus[*g]).unwrap();
+        write!(f, "{:?},", site.economy.marginal_surplus[*g])?;
     }
     for l in Labor::list() {
-        write!(f, "{:?},", site.economy.labors[l] * site.economy.pop).unwrap();
+        write!(f, "{:?},", site.economy.labors[l] * site.economy.pop)?;
     }
     for l in Labor::list() {
-        write!(f, "{:?},", site.economy.productivity[l]).unwrap();
+        write!(f, "{:?},", site.economy.productivity[l])?;
     }
     for l in Labor::list() {
-        write!(f, "{:?},", site.economy.yields[l]).unwrap();
+        write!(f, "{:?},", site.economy.yields[l])?;
     }
-    writeln!(f).unwrap();
+    writeln!(f)
 }
 
-pub fn simulate(index: &mut Index, world: &mut WorldSim) {
+fn simulate_return(index: &mut Index, world: &mut WorldSim) -> Result<(), std::io::Error> {
     use std::io::Write;
     // please not that GENERATE_CSV is off by default, so panicing is not harmful
     // here
     let mut f = if GENERATE_CSV {
-        let mut f = std::fs::File::create("economy.csv").unwrap();
-        write!(f, "Site,PosX,PosY,Population,").unwrap();
+        let mut f = std::fs::File::create("economy.csv")?;
+        write!(f, "Site,PosX,PosY,Population,")?;
         for g in good_list() {
-            write!(f, "{:?} Value,", g).unwrap();
+            write!(f, "{:?} Value,", g)?;
         }
         for g in good_list() {
-            write!(f, "{:?} LaborVal,", g).unwrap();
+            write!(f, "{:?} LaborVal,", g)?;
         }
         for g in good_list() {
-            write!(f, "{:?} Stock,", g).unwrap();
+            write!(f, "{:?} Stock,", g)?;
         }
         for g in good_list() {
-            write!(f, "{:?} Surplus,", g).unwrap();
+            write!(f, "{:?} Surplus,", g)?;
         }
         for l in Labor::list() {
-            write!(f, "{:?} Labor,", l).unwrap();
+            write!(f, "{:?} Labor,", l)?;
         }
         for l in Labor::list() {
-            write!(f, "{:?} Productivity,", l).unwrap();
+            write!(f, "{:?} Productivity,", l)?;
         }
         for l in Labor::list() {
-            write!(f, "{:?} Yields,", l).unwrap();
+            write!(f, "{:?} Yields,", l)?;
         }
-        writeln!(f).unwrap();
+        writeln!(f)?;
         Some(f)
     } else {
         None
@@ -138,27 +137,23 @@ pub fn simulate(index: &mut Index, world: &mut WorldSim) {
 
         if let Some(f) = f.as_mut() {
             if i % 5 == 0 {
-                let site = index
+                if let Some(site) = index
                     .sites
                     .values()
                     .find(|s| !matches!(s.kind, SiteKind::Dungeon(_)))
-                        //match s.kind {
-                    //     SiteKind::Dungeon(_) => false,
-                    //     _ => true,
-                    // })
-                    //.skip(3) // because first three get depopulated over time
-                    .unwrap();
-                csv_entry(f, site);
+                {
+                    csv_entry(f, site)?;
+                }
             }
         }
     }
     tracing::info!("economy simulation end");
 
     if let Some(f) = f.as_mut() {
-        writeln!(f).unwrap();
+        writeln!(f)?;
         for site in index.sites.ids() {
             let site = index.sites.get(site);
-            csv_entry(f, site);
+            csv_entry(f, site)?;
         }
     }
 
@@ -196,6 +191,12 @@ pub fn simulate(index: &mut Index, world: &mut WorldSim) {
         );
         check_money(index);
     }
+    Ok(())
+}
+
+pub fn simulate(index: &mut Index, world: &mut WorldSim) {
+    simulate_return(index, world)
+        .unwrap_or_else(|err| info!("I/O error in simulate (economy.csv not writable?): {}", err));
 }
 
 fn check_money(index: &mut Index) {
