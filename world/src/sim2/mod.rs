@@ -360,78 +360,82 @@ fn plan_trade_for_site(
     // === the actual planning is here ===
     for (g, (_, a)) in missing_goods.iter() {
         let mut amount = *a;
-        for (s, (price, supply)) in good_price.get_mut(g).unwrap().iter_mut() {
-            // how much to buy, limit by supply and transport budget
-            let mut buy_target = amount.min(*supply);
-            let effort = transportation_effort(*g);
-            let collect = buy_target * effort;
-            let mut potential_balance: f32 = 0.0;
-            if collect > collect_capacity && effort > 0.0 {
-                let transportable_amount = collect_capacity / effort;
-                let missing_trade = buy_target - transportable_amount;
-                potential_trade[*g] += missing_trade;
-                potential_balance += missing_trade * *price;
-                buy_target = transportable_amount; // (buy_target - missing_trade).max(0.0); // avoid negative buy target caused by numeric inaccuracies
-                missing_collect += collect - collect_capacity;
+        if let Some(site_price_stock) = good_price.get_mut(g) {
+            for (s, (price, supply)) in site_price_stock.iter_mut() {
+                // how much to buy, limit by supply and transport budget
+                let mut buy_target = amount.min(*supply);
+                let effort = transportation_effort(*g);
+                let collect = buy_target * effort;
+                let mut potential_balance: f32 = 0.0;
+                if collect > collect_capacity && effort > 0.0 {
+                    let transportable_amount = collect_capacity / effort;
+                    let missing_trade = buy_target - transportable_amount;
+                    potential_trade[*g] += missing_trade;
+                    potential_balance += missing_trade * *price;
+                    buy_target = transportable_amount; // (buy_target - missing_trade).max(0.0); // avoid negative buy target caused by numeric inaccuracies
+                    missing_collect += collect - collect_capacity;
+                    debug!(
+                        "missing capacity {:?}/{:?} {:?}",
+                        missing_trade, amount, potential_balance,
+                    );
+                    amount = (amount - missing_trade).max(0.0); // you won't be able to transport it from elsewhere either, so don't count multiple times
+                }
+                let mut balance: f32 = *price * buy_target;
                 debug!(
-                    "missing capacity {:?}/{:?} {:?}",
-                    missing_trade, amount, potential_balance,
+                    "buy {:?} at {:?} amount {:?} balance {:?}",
+                    *g,
+                    s.id(),
+                    buy_target,
+                    balance,
                 );
-                amount = (amount - missing_trade).max(0.0); // you won't be able to transport it from elsewhere either, so don't count multiple times
-            }
-            let mut balance: f32 = *price * buy_target;
-            debug!(
-                "buy {:?} at {:?} amount {:?} balance {:?}",
-                *g,
-                s.id(),
-                buy_target,
-                balance,
-            );
-            // find suitable goods in exchange
-            let mut acute_missing_dispatch: f32 = 0.0; // only count the highest priority (not multiple times)
-            for (g2, (_, price2)) in good_payment[s].iter() {
-                let mut amount2 = extra_goods[*g2];
-                // good available for trading?
-                if amount2 > 0.0 {
-                    amount2 = amount2.min(balance / price2); // pay until balance is even
-                    let effort2 = transportation_effort(*g2);
-                    let mut dispatch = amount2 * effort2;
-                    // limit by separate transport budget (on way back)
-                    if dispatch > dispatch_capacity && effort2 > 0.0 {
-                        let transportable_amount = dispatch_capacity / effort2;
-                        let missing_trade = amount2 - transportable_amount;
-                        amount2 = transportable_amount;
-                        if acute_missing_dispatch == 0.0 {
-                            acute_missing_dispatch = missing_trade * effort2;
-                        }
-                        debug!(
-                            "can't carry payment {:?} {:?} {:?}",
-                            g2, dispatch, dispatch_capacity
-                        );
-                        dispatch = dispatch_capacity;
-                    }
+                if let Some(neighbor_orders) = neighbor_orders.get_mut(s) {
+                    // find suitable goods in exchange
+                    let mut acute_missing_dispatch: f32 = 0.0; // only count the highest priority (not multiple times)
+                    for (g2, (_, price2)) in good_payment[s].iter() {
+                        let mut amount2 = extra_goods[*g2];
+                        // good available for trading?
+                        if amount2 > 0.0 {
+                            amount2 = amount2.min(balance / price2); // pay until balance is even
+                            let effort2 = transportation_effort(*g2);
+                            let mut dispatch = amount2 * effort2;
+                            // limit by separate transport budget (on way back)
+                            if dispatch > dispatch_capacity && effort2 > 0.0 {
+                                let transportable_amount = dispatch_capacity / effort2;
+                                let missing_trade = amount2 - transportable_amount;
+                                amount2 = transportable_amount;
+                                if acute_missing_dispatch == 0.0 {
+                                    acute_missing_dispatch = missing_trade * effort2;
+                                }
+                                debug!(
+                                    "can't carry payment {:?} {:?} {:?}",
+                                    g2, dispatch, dispatch_capacity
+                                );
+                                dispatch = dispatch_capacity;
+                            }
 
-                    extra_goods[*g2] -= amount2;
-                    debug!("pay {:?} {:?} = {:?}", g2, amount2, balance);
-                    balance -= amount2 * price2;
-                    neighbor_orders.get_mut(s).unwrap()[*g2] -= amount2;
-                    dispatch_capacity = (dispatch_capacity - dispatch).max(0.0);
-                    if balance == 0.0 {
-                        break;
+                            extra_goods[*g2] -= amount2;
+                            debug!("pay {:?} {:?} = {:?}", g2, amount2, balance);
+                            balance -= amount2 * price2;
+                            neighbor_orders[*g2] -= amount2;
+                            dispatch_capacity = (dispatch_capacity - dispatch).max(0.0);
+                            if balance == 0.0 {
+                                break;
+                            }
+                        }
                     }
+                    missing_dispatch += acute_missing_dispatch;
+                    // adjust order if we are unable to pay for it
+                    buy_target -= balance / *price;
+                    buy_target = buy_target.min(amount);
+                    collect_capacity = (collect_capacity - buy_target * effort).max(0.0);
+                    neighbor_orders[*g] += buy_target;
+                    amount -= buy_target;
+                    debug!(
+                        "deal amount {:?} end_balance {:?} price {:?} left {:?}",
+                        buy_target, balance, *price, amount
+                    );
                 }
             }
-            missing_dispatch += acute_missing_dispatch;
-            // adjust order if we are unable to pay for it
-            buy_target -= balance / *price;
-            buy_target = buy_target.min(amount);
-            collect_capacity = (collect_capacity - buy_target * effort).max(0.0);
-            neighbor_orders.get_mut(s).unwrap()[*g] += buy_target;
-            amount -= buy_target;
-            debug!(
-                "deal amount {:?} end_balance {:?} price {:?} left {:?}",
-                buy_target, balance, *price, amount
-            );
         }
     }
     // if site_id.id() == 1 {
@@ -550,49 +554,48 @@ fn trade_at_site(
         );
         let mut good_delivery = MapVec::from_default(0.0);
         for (g, amount, price) in sorted_sell.iter() {
-            if order_stock_ratio[*g].is_none() {
-                continue;
-            }
-            let allocated_amount = *amount / order_stock_ratio[*g].unwrap().max(1.0);
-            let mut balance = allocated_amount * *price;
-            for (g2, avail, price2) in sorted_buy.iter_mut() {
-                let amount2 = (-*avail).min(balance / *price2);
-                assert!(amount2 >= 0.0);
-                economy.stocks[*g2] += amount2;
-                balance = (balance - amount2 * *price2).max(0.0);
-                *avail += amount2; // reduce (negative) brought stock
-                debug!("paid with {:?} {} {}", *g2, amount2, *price2);
-                if balance == 0.0 {
-                    break;
+            if let Some(order_stock_ratio) = order_stock_ratio[*g] {
+                let allocated_amount = *amount / order_stock_ratio.max(1.0);
+                let mut balance = allocated_amount * *price;
+                for (g2, avail, price2) in sorted_buy.iter_mut() {
+                    let amount2 = (-*avail).min(balance / *price2);
+                    assert!(amount2 >= 0.0);
+                    economy.stocks[*g2] += amount2;
+                    balance = (balance - amount2 * *price2).max(0.0);
+                    *avail += amount2; // reduce (negative) brought stock
+                    debug!("paid with {:?} {} {}", *g2, amount2, *price2);
+                    if balance == 0.0 {
+                        break;
+                    }
                 }
+                let paid_amount = allocated_amount - balance / *price;
+                if paid_amount / allocated_amount < 0.95 {
+                    debug!(
+                        "Client {} is broke on {:?} : {} {} severity {}",
+                        o.customer.id(),
+                        *g,
+                        paid_amount,
+                        allocated_amount,
+                        order_stock_ratio,
+                    );
+                } else {
+                    debug!("bought {:?} {} {}", *g, paid_amount, *price);
+                }
+                good_delivery[*g] += paid_amount;
+                if economy.stocks[*g] - paid_amount < 0.0 {
+                    info!(
+                        "BUG {:?} {:?} {} TO {:?} OSR {:?} ND {:?}",
+                        economy.stocks[*g],
+                        *g,
+                        paid_amount,
+                        total_orders[*g],
+                        order_stock_ratio,
+                        next_demand[*g]
+                    );
+                }
+                assert!(economy.stocks[*g] - paid_amount >= 0.0);
+                economy.stocks[*g] -= paid_amount;
             }
-            let paid_amount = allocated_amount - balance / *price;
-            if paid_amount / allocated_amount < 0.95 {
-                debug!(
-                    "Client {} is broke on {:?} : {} {} severity {}",
-                    o.customer.id(),
-                    *g,
-                    paid_amount,
-                    allocated_amount,
-                    order_stock_ratio[*g].unwrap(),
-                );
-            } else {
-                debug!("bought {:?} {} {}", *g, paid_amount, *price);
-            }
-            good_delivery[*g] += paid_amount;
-            if economy.stocks[*g] - paid_amount < 0.0 {
-                info!(
-                    "BUG {:?} {:?} {} TO {:?} OSR {:?} ND {:?}",
-                    economy.stocks[*g],
-                    *g,
-                    paid_amount,
-                    total_orders[*g],
-                    order_stock_ratio[*g].unwrap(),
-                    next_demand[*g]
-                );
-            }
-            assert!(economy.stocks[*g] - paid_amount >= 0.0);
-            economy.stocks[*g] -= paid_amount;
         }
         for (g, amount, _) in sorted_buy.drain(..) {
             if amount < 0.0 {
