@@ -570,17 +570,9 @@ pub fn attempt_input(data: &JoinData, update: &mut StateUpdate) {
 /// attempts to perform their dodge ability
 pub fn handle_dodge_input(data: &JoinData, update: &mut StateUpdate) {
     if input_is_pressed(data, InputKind::Roll) && data.body.is_humanoid() {
-        if let Some(ability) = data
-            .inventory
-            .equipped(EquipSlot::Mainhand)
-            .and_then(|i| {
-                i.item_config_expect()
-                    .dodge_ability
-                    .as_ref()
-                    .map(|a| a.clone().adjusted_by_skills(&data.stats.skill_set, None))
-            })
-            .filter(|ability| ability.requirements_paid(data, update))
-        {
+        let ability =
+            CharacterAbility::default_roll().adjusted_by_skills(&data.stats.skill_set, None);
+        if ability.requirements_paid(data, update) {
             update.character = CharacterState::from((
                 &ability,
                 AbilityInfo::from_input(data, false, InputKind::Roll),

@@ -674,8 +674,7 @@ impl<'a> Widget for Skillbar<'a> {
             (_, Some(_)) => second_tool,
             (_, _) => None,
         };
-        
-        
+
         Button::image(match tool.map(|(_, t)| t.kind) {
             Some(ToolKind::Sword) => self.imgs.twohsword_m1,
             Some(ToolKind::Dagger) => self.imgs.onehdagger_m1,

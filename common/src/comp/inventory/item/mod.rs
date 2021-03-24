@@ -246,7 +246,6 @@ impl PartialEq for ItemDef {
 pub struct ItemConfig {
     pub abilities: AbilitySet<CharacterAbility>,
     pub block_ability: Option<CharacterAbility>,
-    pub dodge_ability: Option<CharacterAbility>,
 }
 
 #[derive(Debug)]
@@ -270,6 +269,7 @@ impl TryFrom<(&ItemKind, &[Item], &AbilityMap, &MaterialStatManifest)> for ItemC
             })
         } else {
             Err(ItemConfigError::BadItemKind)
+            };
         }
     }
 }

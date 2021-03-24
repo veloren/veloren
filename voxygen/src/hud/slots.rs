@@ -158,15 +158,11 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
                     (_, _) => None,
                 };
 
-                let tool = equip_slot.and_then(|es| 
-                    match inventory
-                        .equipped(es)
-                        .map(|i| (i, i.kind()))
-                    {
+                let tool =
+                    equip_slot.and_then(|es| match inventory.equipped(es).map(|i| (i, i.kind())) {
                         Some((item, ItemKind::Tool(tool))) => Some((item, tool)),
                         _ => None,
-                    }
-                );
+                    });
 
                 tool.and_then(|(item, tool)| {
                     hotbar_image(tool.kind).map(|i| {

@@ -78,11 +78,12 @@ impl State {
         let inventory = inventories.get(client.entity());
         let stats = client.state().ecs().read_storage::<common::comp::Stats>();
         let stat = stats.get(client.entity());
-        
-        let hands = |equip_slot| match inventory.and_then(|i| i.equipped(equip_slot).map(|i| i.kind())) {
-            Some(ItemKind::Tool(tool)) => Some(tool.hands),
-            _ => None,
-        };
+
+        let hands =
+            |equip_slot| match inventory.and_then(|i| i.equipped(equip_slot).map(|i| i.kind())) {
+                Some(ItemKind::Tool(tool)) => Some(tool.hands),
+                _ => None,
+            };
 
         let equip_slot = match (hands(EquipSlot::Mainhand), hands(EquipSlot::Offhand)) {
             (Some(_), _) => Some(EquipSlot::Mainhand),
@@ -90,7 +91,9 @@ impl State {
             _ => None,
         };
 
-        let should_be_present = if let (Some(inventory), Some(stat), Some(equip_slot)) = (inventory, stat, equip_slot) {
+        let should_be_present = if let (Some(inventory), Some(stat), Some(equip_slot)) =
+            (inventory, stat, equip_slot)
+        {
             inventory.equipped(equip_slot).map_or(false, |i| {
                 i.item_config_expect()
                     .abilities
