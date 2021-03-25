@@ -112,7 +112,9 @@ where
         }
     }
 
-    async fn flush(&mut self, _: Bandwidth, _: Duration) -> Result<(), ProtocolError> { Ok(()) }
+    async fn flush(&mut self, _: Bandwidth, _: Duration) -> Result<Bandwidth, ProtocolError> {
+        Ok(0)
+    }
 }
 
 #[async_trait]

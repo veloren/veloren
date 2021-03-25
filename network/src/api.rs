@@ -22,7 +22,7 @@ use std::{
 use tokio::{
     io,
     runtime::Runtime,
-    sync::{mpsc, oneshot, Mutex},
+    sync::{mpsc, oneshot, watch, Mutex},
 };
 use tracing::*;
 
@@ -48,6 +48,7 @@ pub struct Participant {
     remote_pid: Pid,
     a2b_open_stream_s: Mutex<mpsc::UnboundedSender<A2bStreamOpen>>,
     b2a_stream_opened_r: Mutex<mpsc::UnboundedReceiver<Stream>>,
+    b2a_bandwidth_stats_r: watch::Receiver<f32>,
     a2s_disconnect_s: A2sDisconnect,
 }
 
@@ -493,6 +494,7 @@ impl Participant {
         remote_pid: Pid,
         a2b_open_stream_s: mpsc::UnboundedSender<A2bStreamOpen>,
         b2a_stream_opened_r: mpsc::UnboundedReceiver<Stream>,
+        b2a_bandwidth_stats_r: watch::Receiver<f32>,
         a2s_disconnect_s: mpsc::UnboundedSender<(Pid, S2bShutdownBparticipant)>,
     ) -> Self {
         Self {
@@ -500,6 +502,7 @@ impl Participant {
             remote_pid,
             a2b_open_stream_s: Mutex::new(a2b_open_stream_s),
             b2a_stream_opened_r: Mutex::new(b2a_stream_opened_r),
+            b2a_bandwidth_stats_r,
             a2s_disconnect_s: Arc::new(Mutex::new(Some(a2s_disconnect_s))),
         }
     }
@@ -720,6 +723,10 @@ impl Participant {
             },
         }
     }
+
+    /// Returns the current approximation on the maximum bandwidth available.
+    /// This WILL fluctuate based on the amount/size of send messages.
+    pub fn bandwidth(&self) -> f32 { *self.b2a_bandwidth_stats_r.borrow() }
 
     /// Returns the remote [`Pid`](network_protocol::Pid)
     pub fn remote_pid(&self) -> Pid { self.remote_pid }

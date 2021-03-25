@@ -19,7 +19,7 @@ use std::{
 };
 use tokio::{
     select,
-    sync::{mpsc, oneshot, Mutex, RwLock},
+    sync::{mpsc, oneshot, watch, Mutex, RwLock},
     task::JoinHandle,
 };
 use tokio_stream::wrappers::UnboundedReceiverStream;
@@ -49,6 +49,7 @@ struct ControlChannels {
     a2b_open_stream_r: mpsc::UnboundedReceiver<A2bStreamOpen>,
     b2a_stream_opened_s: mpsc::UnboundedSender<Stream>,
     s2b_create_channel_r: mpsc::UnboundedReceiver<S2bCreateChannel>,
+    b2a_bandwidth_stats_s: watch::Sender<f32>,
     s2b_shutdown_bparticipant_r: oneshot::Receiver<S2bShutdownBparticipant>, /* own */
 }
 
@@ -92,16 +93,19 @@ impl BParticipant {
         mpsc::UnboundedReceiver<Stream>,
         mpsc::UnboundedSender<S2bCreateChannel>,
         oneshot::Sender<S2bShutdownBparticipant>,
+        watch::Receiver<f32>,
     ) {
         let (a2b_open_stream_s, a2b_open_stream_r) = mpsc::unbounded_channel::<A2bStreamOpen>();
         let (b2a_stream_opened_s, b2a_stream_opened_r) = mpsc::unbounded_channel::<Stream>();
         let (s2b_shutdown_bparticipant_s, s2b_shutdown_bparticipant_r) = oneshot::channel();
         let (s2b_create_channel_s, s2b_create_channel_r) = mpsc::unbounded_channel();
+        let (b2a_bandwidth_stats_s, b2a_bandwidth_stats_r) = watch::channel::<f32>(0.0);
 
         let run_channels = Some(ControlChannels {
             a2b_open_stream_r,
             b2a_stream_opened_s,
             s2b_create_channel_r,
+            b2a_bandwidth_stats_s,
             s2b_shutdown_bparticipant_r,
         });
 
@@ -124,6 +128,7 @@ impl BParticipant {
             b2a_stream_opened_r,
             s2b_create_channel_s,
             s2b_shutdown_bparticipant_s,
+            b2a_bandwidth_stats_r,
         )
     }
 
@@ -160,6 +165,7 @@ impl BParticipant {
                 b2b_notify_send_of_recv_open_r,
                 b2b_notify_send_of_recv_close_r,
                 b2s_prio_statistic_s,
+                run_channels.b2a_bandwidth_stats_s,
             )
             .instrument(tracing::info_span!("send")),
             self.recv_mgr(
@@ -224,12 +230,14 @@ impl BParticipant {
         )>,
         b2b_notify_send_of_recv_close_r: crossbeam_channel::Receiver<(Cid, Sid)>,
         _b2s_prio_statistic_s: mpsc::UnboundedSender<B2sPrioStatistic>,
+        b2a_bandwidth_stats_s: watch::Sender<f32>,
     ) {
         let mut sorted_send_protocols = SortedVec::<Cid, SendProtocols>::default();
         let mut sorted_stream_protocols = SortedVec::<Sid, Cid>::default();
         let mut interval = tokio::time::interval(Self::TICK_TIME);
         let mut last_instant = Instant::now();
         let mut stream_ids = self.offset_sid;
+        let mut part_bandwidth = 0.0f32;
         trace!("workaround, actively wait for first protocol");
         if let Some((c, p)) = b2b_add_protocol_r.recv().await {
             sorted_send_protocols.insert(c, p)
@@ -345,9 +353,15 @@ impl BParticipant {
                 let send_time = Instant::now();
                 let diff = send_time.duration_since(last_instant);
                 last_instant = send_time;
+                let mut cnt = 0;
                 for (_, p) in sorted_send_protocols.data.iter_mut() {
-                    p.flush(1_000_000_000, diff).await?; //this actually blocks, so we cant set streams while it.
+                    cnt += p.flush(1_000_000_000, diff).await?; //this actually blocks, so we cant set streams while it.
                 }
+                let flush_time = send_time.elapsed().as_secs_f32();
+                part_bandwidth = 0.99 * part_bandwidth + 0.01 * (cnt as f32 / flush_time);
+                self.metrics
+                    .participant_bandwidth(&self.remote_pid_string, part_bandwidth);
+                let _ = b2a_bandwidth_stats_s.send(part_bandwidth);
                 let r: Result<(), network_protocol::ProtocolError> = Ok(());
                 r
             }
@@ -669,6 +683,7 @@ impl BParticipant {
 
         #[cfg(feature = "metrics")]
         self.metrics.participants_disconnected_total.inc();
+        self.metrics.cleanup_participant(&self.remote_pid_string);
         trace!("Stop participant_shutdown_mgr");
     }
 
@@ -755,6 +770,7 @@ mod tests {
         mpsc::UnboundedSender<S2bCreateChannel>,
         oneshot::Sender<S2bShutdownBparticipant>,
         mpsc::UnboundedReceiver<B2sPrioStatistic>,
+        watch::Receiver<f32>,
         JoinHandle<()>,
     ) {
         let runtime = Arc::new(tokio::runtime::Runtime::new().unwrap());
@@ -769,6 +785,7 @@ mod tests {
             b2a_stream_opened_r,
             s2b_create_channel_s,
             s2b_shutdown_bparticipant_s,
+            b2a_bandwidth_stats_r,
         ) = runtime_clone.block_on(async move {
             let local_pid = Pid::fake(0);
             let remote_pid = Pid::fake(1);
@@ -786,6 +803,7 @@ mod tests {
             s2b_create_channel_s,
             s2b_shutdown_bparticipant_s,
             b2s_prio_statistic_r,
+            b2a_bandwidth_stats_r,
             handle,
         )
     }
@@ -816,6 +834,7 @@ mod tests {
             mut s2b_create_channel_s,
             s2b_shutdown_bparticipant_s,
             b2s_prio_statistic_r,
+            _b2a_bandwidth_stats_r,
             handle,
         ) = mock_bparticipant();
 
@@ -851,6 +870,7 @@ mod tests {
             mut s2b_create_channel_s,
             s2b_shutdown_bparticipant_s,
             b2s_prio_statistic_r,
+            _b2a_bandwidth_stats_r,
             handle,
         ) = mock_bparticipant();
 
@@ -887,6 +907,7 @@ mod tests {
             mut s2b_create_channel_s,
             s2b_shutdown_bparticipant_s,
             b2s_prio_statistic_r,
+            _b2a_bandwidth_stats_r,
             handle,
         ) = mock_bparticipant();
 
@@ -941,6 +962,7 @@ mod tests {
             mut s2b_create_channel_s,
             s2b_shutdown_bparticipant_s,
             b2s_prio_statistic_r,
+            _b2a_bandwidth_stats_r,
             handle,
         ) = mock_bparticipant();
 

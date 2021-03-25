@@ -1,9 +1,9 @@
 use async_trait::async_trait;
 use bytes::BytesMut;
 use network_protocol::{
-    Cid, InitProtocolError, MpscMsg, MpscRecvProtocol, MpscSendProtocol, Pid, ProtocolError,
-    ProtocolEvent, ProtocolMetricCache, ProtocolMetrics, Sid, TcpRecvProtocol, TcpSendProtocol,
-    UnreliableDrain, UnreliableSink,
+    Bandwidth, Cid, InitProtocolError, MpscMsg, MpscRecvProtocol, MpscSendProtocol, Pid,
+    ProtocolError, ProtocolEvent, ProtocolMetricCache, ProtocolMetrics, Sid, TcpRecvProtocol,
+    TcpSendProtocol, UnreliableDrain, UnreliableSink,
 };
 use std::{sync::Arc, time::Duration};
 use tokio::{
@@ -102,7 +102,11 @@ impl network_protocol::SendProtocol for SendProtocols {
         }
     }
 
-    async fn flush(&mut self, bandwidth: u64, dt: Duration) -> Result<(), ProtocolError> {
+    async fn flush(
+        &mut self,
+        bandwidth: Bandwidth,
+        dt: Duration,
+    ) -> Result<Bandwidth, ProtocolError> {
         match self {
             SendProtocols::Tcp(s) => s.flush(bandwidth, dt).await,
             SendProtocols::Mpsc(s) => s.flush(bandwidth, dt).await,

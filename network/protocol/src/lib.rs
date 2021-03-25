@@ -117,7 +117,7 @@ pub trait SendProtocol {
         &mut self,
         bandwidth: Bandwidth,
         dt: std::time::Duration,
-    ) -> Result<(), ProtocolError>;
+    ) -> Result<Bandwidth, ProtocolError>;
 }
 
 /// Generic Network Recv Protocol. See: [`SendProtocol`]

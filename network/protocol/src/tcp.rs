@@ -167,7 +167,11 @@ where
         Ok(())
     }
 
-    async fn flush(&mut self, bandwidth: Bandwidth, dt: Duration) -> Result<(), ProtocolError> {
+    async fn flush(
+        &mut self,
+        bandwidth: Bandwidth,
+        dt: Duration,
+    ) -> Result</* actual */ Bandwidth, ProtocolError> {
         let (frames, total_bytes) = self.store.grab(bandwidth, dt);
         self.buffer.reserve(total_bytes as usize);
         let mut data_frames = 0;
@@ -216,7 +220,7 @@ where
             self.drain.send(self.buffer.split()).await?;
             self.pending_shutdown = false;
         }
-        Ok(())
+        Ok(data_bandwidth as u64)
     }
 }
 
