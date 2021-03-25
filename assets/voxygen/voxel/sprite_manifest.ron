@@ -2676,6 +2676,22 @@ Seagrass: Some((
 ],
 wind_sway: 0.7,
 )),
+// Seashells
+Seashells: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.seashells.shell-0",
+            offset: (-4.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.seashells.shell-1",
+            offset: (-4.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
 // Underwater Mud Piles
 Mud: Some((
     variations: [
