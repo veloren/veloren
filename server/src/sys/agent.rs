@@ -22,7 +22,7 @@ use common::{
     rtsim::{Memory, MemoryItem, RtSimEntity, RtSimEvent},
     terrain::{Block, TerrainGrid},
     time::DayPeriod,
-    trade::{Good, TradeAction, TradePhase, TradeResult},
+    trade::{TradeAction, TradePhase, TradeResult},
     uid::{Uid, UidAllocator},
     util::Dir,
     vol::ReadVol,
@@ -947,14 +947,6 @@ impl<'a> AgentData<'a> {
                     // This needs revisiting when agents can initiate trades (e.g. to offer
                     // mercenary contracts as quests)
                     const WHO: usize = 1;
-                    fn trade_margin(g: Good) -> f32 {
-                        match g {
-                            Good::Tools | Good::Armor => 0.5,
-                            Good::Food | Good::Potions | Good::Ingredients => 0.75,
-                            Good::Coin => 1.0,
-                            _ => 0.0, // what is this?
-                        }
-                    }
                     let balance = |who: usize, reduce: bool| {
                         pending.offers[who]
                             .iter()
@@ -972,7 +964,7 @@ impl<'a> AgentData<'a> {
                                                 .unwrap_or_default()
                                                 * factor
                                                 * (*amount as f32)
-                                                * if reduce { trade_margin(material) } else { 1.0 }
+                                                * if reduce { material.trade_margin() } else { 1.0 }
                                         })
                                     })
                                     .flatten()

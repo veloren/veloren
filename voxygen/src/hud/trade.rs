@@ -20,7 +20,7 @@ use common::{
         inventory::item::{MaterialStatManifest, Quality},
         Inventory,
     },
-    trade::{PendingTrade, TradeAction, TradePhase},
+    trade::{PendingTrade, SitePrices, TradeAction, TradePhase},
 };
 use common_net::sync::WorldSyncExt;
 use conrod_core::{
@@ -156,6 +156,7 @@ impl<'a> Trade<'a> {
         state: &mut ConrodState<'_, State>,
         ui: &mut UiCell<'_>,
         trade: &'a PendingTrade,
+        prices: &'a Option<SitePrices>,
         ours: bool,
     ) -> <Self as Widget>::Event {
         let inventories = self.client.inventories();
@@ -233,7 +234,17 @@ impl<'a> Trade<'a> {
             .collect();
 
         if matches!(trade.phase(), TradePhase::Mutate) {
-            self.phase1_itemwidget(state, ui, inventory, who, ours, entity, name, &tradeslots);
+            self.phase1_itemwidget(
+                state,
+                ui,
+                inventory,
+                who,
+                ours,
+                entity,
+                name,
+                prices,
+                &tradeslots,
+            );
         } else {
             self.phase2_itemwidget(state, ui, inventory, who, ours, entity, &tradeslots);
         }
@@ -250,6 +261,7 @@ impl<'a> Trade<'a> {
         ours: bool,
         entity: EcsEntity,
         name: String,
+        prices: &'a Option<SitePrices>,
         tradeslots: &[TradeSlot],
     ) {
         let item_tooltip = Tooltip::new({
@@ -272,6 +284,7 @@ impl<'a> Trade<'a> {
 
         if !ours {
             InventoryScroller::new(
+                self.client,
                 self.imgs,
                 self.item_imgs,
                 self.fonts,
@@ -353,6 +366,8 @@ impl<'a> Trade<'a> {
                     Quality::Artifact => self.imgs.inv_slot_orange,
                     _ => self.imgs.inv_slot_red,
                 };
+                let mut desc = desc.to_string();
+                super::util::append_price_desc(&mut desc, prices, item.item_definition_id());
                 slot_widget
                     .filled_slot(quality_col_img)
                     .with_tooltip(
@@ -496,8 +511,8 @@ impl<'a> Widget for Trade<'a> {
         let widget::UpdateArgs { mut state, ui, .. } = args;
 
         let mut event = None;
-        let trade = match self.client.pending_trade() {
-            Some((_, trade)) => trade,
+        let (trade, prices) = match self.client.pending_trade() {
+            Some((_, trade, prices)) => (trade, prices),
             None => return Some(TradeAction::Decline),
         };
 
@@ -523,8 +538,12 @@ impl<'a> Widget for Trade<'a> {
         self.title(&mut state, ui);
         self.phase_indicator(&mut state, ui, &trade);
 
-        event = self.item_pane(&mut state, ui, &trade, false).or(event);
-        event = self.item_pane(&mut state, ui, &trade, true).or(event);
+        event = self
+            .item_pane(&mut state, ui, &trade, &prices, false)
+            .or(event);
+        event = self
+            .item_pane(&mut state, ui, &trade, &prices, true)
+            .or(event);
         event = self
             .accept_decline_buttons(&mut state, ui, &trade)
             .or(event);

@@ -944,7 +944,7 @@ impl Settlement {
                         .do_if(!is_dummy, |e| e.with_automatic_name())
                         .do_if(is_dummy, |e| e.with_name("Training Dummy"))
                         .do_if(is_human && dynamic_rng.gen(), |entity| {
-                            match dynamic_rng.gen_range(0..5) {
+                            match dynamic_rng.gen_range(0..6) {
                                 0 => entity
                                     .with_main_tool(Item::new_from_asset_expect(
                                         "common.items.weapons.sword.iron-4",
@@ -955,7 +955,7 @@ impl Settlement {
                                     .with_skillset_config(
                                         common::skillset_builder::SkillSetConfig::Guard,
                                     ),
-                                1 => entity
+                                1 | 2 => entity
                                     .with_main_tool(Item::new_from_asset_expect(
                                         "common.items.weapons.bow.eldwood-0",
                                     ))

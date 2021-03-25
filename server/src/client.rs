@@ -91,7 +91,7 @@ impl Client {
                     | ServerGeneral::SiteEconomy(_)
                     | ServerGeneral::Outcomes(_)
                     | ServerGeneral::Knockback(_)
-                    | ServerGeneral::UpdatePendingTrade(_, _)
+                    | ServerGeneral::UpdatePendingTrade(_, _, _)
                     | ServerGeneral::FinishedTrade(_) => {
                         self.in_game_stream.lock().unwrap().send(g)
                     },
@@ -162,7 +162,7 @@ impl Client {
                     | ServerGeneral::Outcomes(_)
                     | ServerGeneral::Knockback(_)
                     | ServerGeneral::SiteEconomy(_)
-                    | ServerGeneral::UpdatePendingTrade(_, _)
+                    | ServerGeneral::UpdatePendingTrade(_, _, _)
                     | ServerGeneral::FinishedTrade(_) => {
                         PreparedMsg::new(2, &g, &self.in_game_stream)
                     },
