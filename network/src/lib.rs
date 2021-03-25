@@ -104,7 +104,7 @@ mod message;
 mod metrics;
 mod participant;
 mod scheduler;
-mod trace;
+mod util;
 
 pub use api::{
     Network, NetworkConnectError, NetworkError, Participant, ParticipantError, ProtocolAddr,

@@ -6,7 +6,7 @@ use crate::{
     frame::InitFrame,
     handshake::{ReliableDrain, ReliableSink},
     metrics::ProtocolMetricCache,
-    types::Bandwidth,
+    types::{Bandwidth, Promises},
     RecvProtocol, SendProtocol, UnreliableDrain, UnreliableSink,
 };
 use async_trait::async_trait;
@@ -56,6 +56,16 @@ where
             last: Instant::now(),
             metrics,
         }
+    }
+
+    /// returns all promises that this Protocol can take care of
+    /// If you open a Stream anyway, unsupported promises are ignored.
+    pub fn supported_promises() -> Promises {
+        Promises::ORDERED
+            | Promises::CONSISTENCY
+            | Promises::GUARANTEED_DELIVERY
+            | Promises::COMPRESSED
+            | Promises::ENCRYPTED /*assume a direct mpsc connection is secure*/
     }
 }
 

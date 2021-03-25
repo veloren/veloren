@@ -6,7 +6,7 @@ use crate::{
     message::{ITMessage, ALLOC_BLOCK},
     metrics::{ProtocolMetricCache, RemoveReason},
     prio::PrioManager,
-    types::{Bandwidth, Mid, Sid},
+    types::{Bandwidth, Mid, Promises, Sid},
     RecvProtocol, SendProtocol, UnreliableDrain, UnreliableSink,
 };
 use async_trait::async_trait;
@@ -69,6 +69,15 @@ where
             last: Instant::now(),
             metrics,
         }
+    }
+
+    /// returns all promises that this Protocol can take care of
+    /// If you open a Stream anyway, unsupported promises are ignored.
+    pub fn supported_promises() -> Promises {
+        Promises::ORDERED
+            | Promises::CONSISTENCY
+            | Promises::GUARANTEED_DELIVERY
+            | Promises::COMPRESSED
     }
 }
 

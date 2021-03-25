@@ -65,7 +65,7 @@ pub struct Pid {
 /// Unique ID per Stream, in one Channel.
 /// one side will always start with 0, while the other start with u64::MAX / 2.
 /// number increases for each created Stream.
-#[derive(PartialEq, Eq, Hash, Clone, Copy)]
+#[derive(PartialEq, Eq, Hash, Clone, Copy, PartialOrd, Ord)]
 pub struct Sid {
     internal: u64,
 }
