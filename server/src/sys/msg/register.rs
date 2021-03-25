@@ -1,9 +1,4 @@
-use crate::{
-    client::Client,
-    login_provider::{LoginProvider, PendingLogin},
-    metrics::PlayerMetrics,
-    EditableSettings,
-};
+use crate::{EditableSettings, client::Client, login_provider::{LoginError, LoginProvider, PendingLogin}, metrics::PlayerMetrics};
 use common::{
     comp::{Admin, Player, Stats},
     event::{EventBus, ServerEvent},
@@ -130,38 +125,35 @@ impl<'a> System<'a> for Sys {
                         finished_pending.push(entity);
                         trace!(?r, "pending login returned");
                         match r {
-                            Err(e) => {
-                                let mut retry = false;
-                                if let RegisterError::AlreadyLoggedIn(uuid, ref username) = e {
-                                    if let Some((old_entity, old_client, _)) =
-                                        (&entities, &clients, &players)
-                                            .join()
-                                            .find(|(_, _, old_player)| old_player.uuid() == uuid)
-                                    {
-                                        // Remove old client
-                                        server_event_bus
-                                            .emit_now(ServerEvent::ClientDisconnect(old_entity));
-                                        let _ = old_client.send(ServerGeneral::Disconnect(
-                                            DisconnectReason::Kicked(String::from(
-                                                "You have logged in from another location.",
-                                            )),
-                                        ));
-                                        // We can't login the new client right now as the
-                                        // removal of the old client and player occurs later in
-                                        // the tick, so we instead setup the new login to be
-                                        // processed in the next tick
-                                        // Create "fake" successful pending auth and mark it to
-                                        // be inserted into pending_logins at the end of this
-                                        // run
-                                        retries.push((
-                                            entity,
-                                            PendingLogin::new_success(username.to_string(), uuid),
-                                        ));
-                                        retry = true;
-                                    }
-                                }
-                                if !retry {
-                                    client.send(ServerRegisterAnswer::Err(e))?;
+                            Err(LoginError::RegisterError(e)) => {
+                                client.send(ServerRegisterAnswer::Err(e))?;
+                                return Ok(());
+                            }
+                            Err(LoginError::AlreadyLoggedIn(uuid, ref username)) => {
+                                if let Some((old_entity, old_client, _)) =
+                                    (&entities, &clients, &players)
+                                        .join()
+                                        .find(|(_, _, old_player)| old_player.uuid() == uuid)
+                                {
+                                    // Remove old client
+                                    server_event_bus
+                                        .emit_now(ServerEvent::ClientDisconnect(old_entity));
+                                    let _ = old_client.send(ServerGeneral::Disconnect(
+                                        DisconnectReason::Kicked(String::from(
+                                            "You have logged in from another location.",
+                                        )),
+                                    ));
+                                    // We can't login the new client right now as the
+                                    // removal of the old client and player occurs later in
+                                    // the tick, so we instead setup the new login to be
+                                    // processed in the next tick
+                                    // Create "fake" successful pending auth and mark it to
+                                    // be inserted into pending_logins at the end of this
+                                    // run
+                                    retries.push((
+                                        entity,
+                                        PendingLogin::new_success(username.to_string(), uuid),
+                                    ));
                                 }
                                 return Ok(());
                             },

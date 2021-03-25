@@ -148,9 +148,6 @@ impl PlayState for MainMenuState {
                             client::Error::ServerShutdown => {
                                 localized_strings.get("main.login.server_shut_down").into()
                             },
-                            client::Error::AlreadyLoggedIn => {
-                                localized_strings.get("main.login.already_logged_in").into()
-                            },
                             client::Error::NotOnWhitelist => {
                                 localized_strings.get("main.login.not_on_whitelist").into()
                             },
