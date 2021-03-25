@@ -1344,50 +1344,21 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
     )]
     prof_span!("box_voxel_collision");
 
-    // Function for iterating over the blocks the player at a specific position
-    // collides with
-    /*fn collision_iter<'a, T: BaseVol<Vox = Block> + ReadVol>(
-        pos: Vec3<f32>,
-        terrain: &'a T,
-        hit: &'a impl Fn(&Block) -> bool,
-        height: &'a impl Fn(&Block) -> f32,
-        near_iter: impl Iterator<Item = (i32, i32, i32)> + 'a,
-        radius: f32,
-        z_range: Range<f32>,
-    ) -> impl Iterator<Item = Aabb<f32>> + 'a {
-        near_iter.filter_map(move |(i, j, k)| {
-            let block_pos = pos.map(|e| e.floor() as i32) + Vec3::new(i, j, k);
+    // Convience function to compute the player aabb
+    fn player_aabb(pos: Vec3<f32>, radius: f32, z_range: Range<f32>) -> Aabb<f32> {
+        Aabb {
+            min: pos + Vec3::new(-radius, -radius, z_range.start),
+            max: pos + Vec3::new(radius, radius, z_range.end),
+        }
+    }
 
-            // `near_iter` could be a few blocks too large due to being integer
-            // aligned and rounding up, so skip points outside of the tighter
-            // bounds before looking them up in the terrain
-            // (which incurs a hashmap cost for volgrids)
-            let player_aabb = Aabb {
-                min: pos + Vec3::new(-radius, -radius, z_range.start),
-                max: pos + Vec3::new(radius, radius, z_range.end),
-            };
-            let block_approx = Aabb {
-                min: block_pos.as_(),
-                max: block_pos.as_() + Vec3::new(1.0, 1.0, Block::MAX_HEIGHT),
-            };
-            if !player_aabb.collides_with_aabb(block_approx) {
-                return None;
-            }
-
-            if let Some(block) = terrain.get(block_pos).ok().copied().filter(hit) {
-                let block_aabb = Aabb {
-                    min: block_pos.map(|e| e as f32),
-                    max: block_pos.map(|e| e as f32) + Vec3::new(1.0, 1.0, height(&block)),
-                };
-
-                if player_aabb.collides_with_aabb(block_aabb) {
-                    return Some(block_aabb);
-                }
-            }
-
-            None
-        })
-    }*/
+    // Convience function to translate the near_aabb into the world space
+    fn move_aabb(aabb: Aabb<i32>, pos: Vec3<f32>) -> Aabb<i32> {
+        Aabb {
+            min: aabb.min + pos.map(|e| e.floor() as i32),
+            max: aabb.max + pos.map(|e| e.floor() as i32),
+        }
+    }
 
     // Function for determining whether the player at a specific position collides
     // with blocks with the given criteria
@@ -1399,16 +1370,10 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
         radius: f32,
         z_range: Range<f32>,
     ) -> bool {
-        let player_aabb = Aabb {
-            min: pos + Vec3::new(-radius, -radius, z_range.start),
-            max: pos + Vec3::new(radius, radius, z_range.end),
-        };
+        let player_aabb = player_aabb(pos, radius, z_range);
 
         // Calculate the world space near aabb
-        let near_aabb = Aabb {
-            min: near_aabb.min + pos.map(|e| e.floor() as i32),
-            max: near_aabb.max + pos.map(|e| e.floor() as i32),
-        };
+        let near_aabb = move_aabb(near_aabb, pos);
 
         let mut collision = false;
         // TODO: could short-circuit here
@@ -1431,24 +1396,83 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
     #[allow(clippy::trivially_copy_pass_by_ref)]
     fn always_hits(_: &Block) -> bool { true }
 
+    // Stuff for liquid immersion and wall contact detections
+    let dirs = [
+        Vec3::unit_x(),
+        Vec3::unit_y(),
+        -Vec3::unit_x(),
+        -Vec3::unit_y(),
+    ];
+
+    struct LiquidAndWalls {
+        liquid: Option<(LiquidKind, f32)>,
+        wall_dir_collisions: [bool; 4],
+    }
+
+    impl LiquidAndWalls {
+        pub fn new() -> Self {
+            Self {
+                liquid: None,
+                wall_dir_collisions: [false; 4],
+            }
+        }
+
+        pub fn update_max_liquid(
+            &mut self,
+            block_pos: Vec3<i32>,
+            block: Block,
+            player_aabb: Aabb<f32>,
+        ) {
+            // Check for liquid blocks
+            if let Some(block_liquid) = block.liquid_kind() {
+                let liquid_aabb = Aabb {
+                    min: block_pos.map(|e| e as f32),
+                    // The liquid part of a liquid block always extends 1 block high.
+                    max: block_pos.map(|e| e as f32) + Vec3::one(),
+                };
+                if player_aabb.collides_with_aabb(liquid_aabb) {
+                    self.liquid = match self.liquid {
+                        Some((kind, max_liquid_z)) => Some((
+                            // TODO: merging of liquid kinds and max_liquid_z are done
+                            // independently which allows mix and
+                            // matching them
+                            kind.merge(block_liquid),
+                            max_liquid_z.max(liquid_aabb.max.z),
+                        )),
+                        None => Some((block_liquid, liquid_aabb.max.z)),
+                    };
+                }
+            }
+        }
+
+        pub fn update_walls(
+            &mut self,
+            block_pos: Vec3<i32>,
+            block: Block,
+            player_aabbs: [Aabb<f32>; 4],
+        ) {
+            // Check for walls
+            if block.is_solid() {
+                let block_aabb = Aabb {
+                    min: block_pos.map(|e| e as f32),
+                    max: block_pos.map(|e| e as f32) + Vec3::new(1.0, 1.0, block.solid_height()),
+                };
+
+                for dir in 0..4 {
+                    if player_aabbs[dir].collides_with_aabb(block_aabb) {
+                        self.wall_dir_collisions[dir] = true;
+                    }
+                }
+            }
+        }
+    }
+
+    // Setup values for the loop below
+
     let (radius, z_min, z_max) = cylinder;
 
     // Probe distances
     let hdist = radius.ceil() as i32;
-
-    // Neighbouring blocks iterator
-    /*let near_iter = (-hdist..=hdist)
-    .flat_map(move |i| {
-        (-hdist..=hdist).map(move |j| {
-            let max_block_height = Block::MAX_HEIGHT.ceil() as i32;
-            let box_floor = z_min.floor() as i32;
-            let floor = 1 - max_block_height + box_floor;
-            let ceil = z_max.ceil() as i32;
-
-            (floor..=ceil).map(move |k| (i, j, k))
-        })
-    })
-    .flatten();*/
 
     // Neighbouring blocks Aabb
     let near_aabb = Aabb {
@@ -1461,6 +1485,17 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
     };
 
     let z_range = z_min..z_max;
+
+    // Compute a list of Aabbs to check for collision with nearby walls
+    let player_wall_aabbs = |pos| {
+        dirs.map(|dir| {
+            let pos = pos + dir * 0.01;
+            Aabb {
+                min: pos + Vec3::new(-radius, -radius, z_range.start),
+                max: pos + Vec3::new(radius, radius, z_range.end),
+            }
+        })
+    };
 
     physics_state.on_ground = None;
     physics_state.on_ceiling = false;
@@ -1485,20 +1520,14 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
         let try_colliding_block = |pos: &Pos| {
             prof_span!("most colliding check");
             // Calculate the player's AABB
-            let player_aabb = Aabb {
-                min: pos.0 + Vec3::new(-radius, -radius, z_min),
-                max: pos.0 + Vec3::new(radius, radius, z_max),
-            };
+            let player_aabb = player_aabb(pos.0, radius, z_range.clone());
 
             // Determine the block that we are colliding with most
             // (based on minimum collision axis)
             // (if we are colliding with one)
             let mut most_colliding = None;
             // Calculate the world space near aabb
-            let near_aabb = Aabb {
-                min: near_aabb.min + pos.0.map(|e| e.floor() as i32),
-                max: near_aabb.max + pos.0.map(|e| e.floor() as i32),
-            };
+            let near_aabb = move_aabb(near_aabb, pos.0);
             let player_overlap = |block_aabb: Aabb<f32>| {
                 ordered_float::OrderedFloat(
                     (block_aabb.center() - player_aabb.center() - Vec3::unit_z() * 0.5)
@@ -1546,10 +1575,7 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
             .flatten()
         {
             // Calculate the player's AABB
-            let player_aabb = Aabb {
-                min: pos.0 + Vec3::new(-radius, -radius, z_min),
-                max: pos.0 + Vec3::new(radius, radius, z_max),
-            };
+            let player_aabb = player_aabb(pos.0, radius, z_range.clone());
 
             // Find the intrusion vector of the collision
             let dir = player_aabb.collision_vector_with_aabb(block_aabb);
@@ -1644,6 +1670,7 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
         }
     }
 
+    // Report on_ceiling state
     if on_ceiling {
         physics_state.on_ceiling = true;
     }
@@ -1676,76 +1703,26 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
             .copied();
     }
 
-    let player_aabb = Aabb {
-        min: pos.0 + Vec3::new(-radius, -radius, z_range.start),
-        max: pos.0 + Vec3::new(radius, radius, z_range.end),
-    };
-    let player_voxel_pos = pos.0.map(|e| e.floor() as i32);
+    // Find liquid immersion and wall collision
+    prof_span!(guard, "liquid/walls");
+    let mut liquid_and_walls = LiquidAndWalls::new();
 
-    let dirs = [
-        Vec3::unit_x(),
-        Vec3::unit_y(),
-        -Vec3::unit_x(),
-        -Vec3::unit_y(),
-    ];
-    let player_wall_aabbs = dirs.map(|dir| {
-        let pos = pos.0 + dir * 0.01;
-        Aabb {
-            min: pos + Vec3::new(-radius, -radius, z_range.start),
-            max: pos + Vec3::new(radius, radius, z_range.end),
-        }
-    });
+    let player_aabb = player_aabb(pos.0, radius, z_range.clone());
+    let player_wall_aabbs = player_wall_aabbs(pos.0);
 
     // Calculate the world space near aabb
-    let near_aabb = Aabb {
-        min: near_aabb.min + player_voxel_pos,
-        max: near_aabb.max + player_voxel_pos,
-    };
-    // Find liquid immersion and wall collision all in one round of iteration
-    let mut liquid = None::<(LiquidKind, f32)>; // (kind, max_liquid_z)
-    let mut wall_dir_collisions = [false; 4];
-    prof_span!(guard, "liquid/walls");
+    let near_aabb = move_aabb(near_aabb, pos.0);
+
     terrain.for_each_in(near_aabb, |block_pos, block| {
-        // Check for liquid blocks
-        if let Some(block_liquid) = block.liquid_kind() {
-            let liquid_aabb = Aabb {
-                min: block_pos.map(|e| e as f32),
-                // The liquid part of a liquid block always extends 1 block high.
-                max: block_pos.map(|e| e as f32) + Vec3::one(),
-            };
-            if player_aabb.collides_with_aabb(liquid_aabb) {
-                liquid = match liquid {
-                    Some((kind, max_liquid_z)) => Some((
-                        // TODO: merging of liquid kinds and max_liquid_z are done independently
-                        // which allows mix and matching them
-                        kind.merge(block_liquid),
-                        max_liquid_z.max(liquid_aabb.max.z),
-                    )),
-                    None => Some((block_liquid, liquid_aabb.max.z)),
-                };
-            }
-        }
-
-        // Check for walls
-        if block.is_solid() {
-            let block_aabb = Aabb {
-                min: block_pos.map(|e| e as f32),
-                max: block_pos.map(|e| e as f32) + Vec3::new(1.0, 1.0, block.solid_height()),
-            };
-
-            for dir in 0..4 {
-                if player_wall_aabbs[dir].collides_with_aabb(block_aabb) {
-                    wall_dir_collisions[dir] = true;
-                }
-            }
-        }
+        liquid_and_walls.update_max_liquid(block_pos, block, player_aabb);
+        liquid_and_walls.update_walls(block_pos, block, player_wall_aabbs);
     });
     drop(guard);
 
     // Use wall collision results to determine if we are against a wall
     let mut on_wall = None;
     for dir in 0..4 {
-        if wall_dir_collisions[dir] {
+        if liquid_and_walls.wall_dir_collisions[dir] {
             on_wall = Some(match on_wall {
                 Some(acc) => acc + dirs[dir],
                 None => dirs[dir],
@@ -1761,7 +1738,8 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
         physics_state.ground_vel = ground_vel;
     }
 
-    physics_state.in_fluid = liquid
+    physics_state.in_fluid = liquid_and_walls
+        .liquid
         .map(|(kind, max_z)| {
             // NOTE: assumes min_z == 0.0
             let depth = max_z - pos.0.z;
