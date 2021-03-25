@@ -3127,6 +3127,8 @@ impl Hud {
             WinEvent::InputUpdate(GameInput::Escape, true) => {
                 if self.typing() {
                     self.ui.focus_widget(None);
+                } else if self.show.trade {
+                    self.events.push(Event::TradeAction(TradeAction::Decline));
                 } else {
                     // Close windows on esc
                     self.show.toggle_windows(global_state);
