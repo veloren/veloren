@@ -1,3 +1,4 @@
+use crate::api::ProtocolAddr;
 use network_protocol::{Cid, Pid};
 #[cfg(feature = "metrics")]
 use prometheus::{IntCounter, IntCounterVec, IntGauge, IntGaugeVec, Opts, Registry};
@@ -151,6 +152,27 @@ impl NetworkMetrics {
             .with_label_values(&[remote_p])
             .inc();
     }
+
+    pub(crate) fn listen_request(&self, protocol: &ProtocolAddr) {
+        self.listen_requests_total
+            .with_label_values(&[protocol_name(protocol)])
+            .inc();
+    }
+
+    pub(crate) fn connect_request(&self, protocol: &ProtocolAddr) {
+        self.connect_requests_total
+            .with_label_values(&[protocol_name(protocol)])
+            .inc();
+    }
+}
+
+#[cfg(feature = "metrics")]
+fn protocol_name(protocol: &ProtocolAddr) -> &str {
+    match protocol {
+        ProtocolAddr::Tcp(_) => "tcp",
+        ProtocolAddr::Udp(_) => "udp",
+        ProtocolAddr::Mpsc(_) => "mpsc",
+    }
 }
 
 #[cfg(not(feature = "metrics"))]
@@ -164,6 +186,10 @@ impl NetworkMetrics {
     pub(crate) fn streams_opened(&self, _remote_p: &str) {}
 
     pub(crate) fn streams_closed(&self, _remote_p: &str) {}
+
+    pub(crate) fn listen_request(&self, _protocol: &ProtocolAddr) {}
+
+    pub(crate) fn connect_request(&self, _protocol: &ProtocolAddr) {}
 }
 
 impl std::fmt::Debug for NetworkMetrics {

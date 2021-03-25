@@ -1,5 +1,5 @@
 use common_net::msg::{ClientType, ServerGeneral, ServerMsg};
-use network::{Message, Participant, Stream, StreamError};
+use network::{Message, Participant, Stream, StreamError, StreamParams};
 use serde::{de::DeserializeOwned, Serialize};
 use specs::Component;
 use specs_idvs::IdvStorage;
@@ -26,6 +26,13 @@ pub struct Client {
     character_screen_stream: Mutex<Stream>,
     in_game_stream: Mutex<Stream>,
     terrain_stream: Mutex<Stream>,
+
+    general_stream_params: StreamParams,
+    ping_stream_params: StreamParams,
+    register_stream_params: StreamParams,
+    character_screen_stream_params: StreamParams,
+    in_game_stream_params: StreamParams,
+    terrain_stream_params: StreamParams,
 }
 
 pub struct PreparedMsg {
@@ -50,6 +57,12 @@ impl Client {
         in_game_stream: Stream,
         terrain_stream: Stream,
     ) -> Self {
+        let general_stream_params = general_stream.params();
+        let ping_stream_params = ping_stream.params();
+        let register_stream_params = register_stream.params();
+        let character_screen_stream_params = character_screen_stream.params();
+        let in_game_stream_params = in_game_stream.params();
+        let terrain_stream_params = terrain_stream.params();
         Client {
             client_type,
             participant: Some(participant),
@@ -62,6 +75,12 @@ impl Client {
             character_screen_stream: Mutex::new(character_screen_stream),
             in_game_stream: Mutex::new(in_game_stream),
             terrain_stream: Mutex::new(terrain_stream),
+            general_stream_params,
+            ping_stream_params,
+            register_stream_params,
+            character_screen_stream_params,
+            in_game_stream_params,
+            terrain_stream_params,
         }
     }
 
@@ -138,9 +157,9 @@ impl Client {
 
     pub(crate) fn prepare<M: Into<ServerMsg>>(&self, msg: M) -> PreparedMsg {
         match msg.into() {
-            ServerMsg::Info(m) => PreparedMsg::new(0, &m, &self.register_stream),
-            ServerMsg::Init(m) => PreparedMsg::new(0, &m, &self.register_stream),
-            ServerMsg::RegisterAnswer(m) => PreparedMsg::new(0, &m, &self.register_stream),
+            ServerMsg::Info(m) => PreparedMsg::new(0, &m, &self.register_stream_params),
+            ServerMsg::Init(m) => PreparedMsg::new(0, &m, &self.register_stream_params),
+            ServerMsg::RegisterAnswer(m) => PreparedMsg::new(0, &m, &self.register_stream_params),
             ServerMsg::General(g) => {
                 match g {
                     //Character Screen related
@@ -149,7 +168,7 @@ impl Client {
                     | ServerGeneral::CharacterActionError(_)
                     | ServerGeneral::CharacterCreated(_)
                     | ServerGeneral::CharacterSuccess => {
-                        PreparedMsg::new(1, &g, &self.character_screen_stream)
+                        PreparedMsg::new(1, &g, &self.character_screen_stream_params)
                     },
                     //Ingame related
                     ServerGeneral::GroupUpdate(_)
@@ -164,12 +183,12 @@ impl Client {
                     | ServerGeneral::SiteEconomy(_)
                     | ServerGeneral::UpdatePendingTrade(_, _, _)
                     | ServerGeneral::FinishedTrade(_) => {
-                        PreparedMsg::new(2, &g, &self.in_game_stream)
+                        PreparedMsg::new(2, &g, &self.in_game_stream_params)
                     },
                     //Ingame related, terrain
                     ServerGeneral::TerrainChunkUpdate { .. }
                     | ServerGeneral::TerrainBlockUpdates(_) => {
-                        PreparedMsg::new(5, &g, &self.terrain_stream)
+                        PreparedMsg::new(5, &g, &self.terrain_stream_params)
                     },
                     // Always possible
                     ServerGeneral::PlayerListUpdate(_)
@@ -183,11 +202,11 @@ impl Client {
                     | ServerGeneral::DeleteEntity(_)
                     | ServerGeneral::Disconnect(_)
                     | ServerGeneral::Notification(_) => {
-                        PreparedMsg::new(3, &g, &self.general_stream)
+                        PreparedMsg::new(3, &g, &self.general_stream_params)
                     },
                 }
             },
-            ServerMsg::Ping(m) => PreparedMsg::new(4, &m, &self.ping_stream),
+            ServerMsg::Ping(m) => PreparedMsg::new(4, &m, &self.ping_stream_params),
         }
     }
 
@@ -209,10 +228,10 @@ impl Client {
 }
 
 impl PreparedMsg {
-    fn new<M: Serialize + ?Sized>(id: u8, msg: &M, stream: &Mutex<Stream>) -> PreparedMsg {
+    fn new<M: Serialize + ?Sized>(id: u8, msg: &M, stream_params: &StreamParams) -> PreparedMsg {
         Self {
             stream_id: id,
-            message: Message::serialize(&msg, &stream.lock().unwrap()),
+            message: Message::serialize(&msg, stream_params.clone()),
         }
     }
 }

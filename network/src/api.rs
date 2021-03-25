@@ -119,6 +119,12 @@ pub enum StreamError {
     Deserialize(bincode::Error),
 }
 
+/// All Parameters of a Stream, can be used to generate RawMessages
+#[derive(Debug, Clone)]
+pub struct StreamParams {
+    pub(crate) promises: Promises,
+}
+
 /// Use the `Network` to create connections to other [`Participants`]
 ///
 /// The `Network` is the single source that handles all connections in your
@@ -803,7 +809,7 @@ impl Stream {
     /// [`Serialized`]: Serialize
     #[inline]
     pub fn send<M: Serialize>(&mut self, msg: M) -> Result<(), StreamError> {
-        self.send_raw(&Message::serialize(&msg, &self))
+        self.send_raw(&Message::serialize(&msg, self.params()))
     }
 
     /// This methods give the option to skip multiple calls of [`bincode`] and
@@ -837,7 +843,7 @@ impl Stream {
     ///     let mut stream_b = participant_b.opened().await?;
     ///
     ///     //Prepare Message and decode it
-    ///     let msg = Message::serialize("Hello World", &stream_a);
+    ///     let msg = Message::serialize("Hello World", stream_a.params());
     ///     //Send same Message to multiple Streams
     ///     stream_a.send_raw(&msg);
     ///     stream_b.send_raw(&msg);
@@ -858,7 +864,7 @@ impl Stream {
             return Err(StreamError::StreamClosed);
         }
         #[cfg(debug_assertions)]
-        message.verify(&self);
+        message.verify(self.params());
         self.a2b_msg_s.send((self.sid, message.data.clone()))?;
         Ok(())
     }
@@ -999,7 +1005,7 @@ impl Stream {
                     Message {
                         data,
                         #[cfg(feature = "compression")]
-                        compressed: self.promises().contains(Promises::COMPRESSED),
+                        compressed: self.promises.contains(Promises::COMPRESSED),
                     }
                     .deserialize()?,
                 )),
@@ -1013,7 +1019,11 @@ impl Stream {
         }
     }
 
-    pub fn promises(&self) -> Promises { self.promises }
+    pub fn params(&self) -> StreamParams {
+        StreamParams {
+            promises: self.promises,
+        }
+    }
 }
 
 impl core::cmp::PartialEq for Participant {

@@ -881,7 +881,7 @@ mod tests {
             .unwrap();
 
         let stream = runtime.block_on(b2a_stream_opened_r.recv()).unwrap();
-        assert_eq!(stream.promises(), Promises::ORDERED);
+        assert_eq!(stream.params().promises, Promises::ORDERED);
 
         let (s, r) = oneshot::channel();
         runtime.block_on(async {

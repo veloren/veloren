@@ -3,11 +3,11 @@ use std::{net::SocketAddr, sync::Arc};
 use tokio::{runtime::Runtime, sync::Mutex};
 use veloren_network::{Message, Network, Participant, Pid, Promises, ProtocolAddr, Stream};
 
-fn serialize(data: &[u8], stream: &Stream) { let _ = Message::serialize(data, &stream); }
+fn serialize(data: &[u8], stream: &Stream) { let _ = Message::serialize(data, stream.params()); }
 
 async fn stream_msg(s1_a: Arc<Mutex<Stream>>, s1_b: Arc<Mutex<Stream>>, data: &[u8], cnt: usize) {
     let mut s1_b = s1_b.lock().await;
-    let m = Message::serialize(&data, &s1_b);
+    let m = Message::serialize(&data, s1_b.params());
     std::thread::spawn(move || {
         let mut s1_a = s1_a.try_lock().unwrap();
         for _ in 0..cnt {

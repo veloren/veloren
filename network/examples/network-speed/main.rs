@@ -173,7 +173,7 @@ fn client(address: ProtocolAddr, runtime: Arc<Runtime>) {
             id,
             data: vec![0; 1000],
         },
-        &s1,
+        s1.params(),
     );
     loop {
         s1.send_raw(&raw_msg).unwrap();

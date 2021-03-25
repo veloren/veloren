@@ -177,15 +177,7 @@ impl Scheduler {
 
                 async move {
                     debug!(?address, "Got request to open a channel_creator");
-                    #[cfg(feature = "metrics")]
-                    self.metrics
-                        .listen_requests_total
-                        .with_label_values(&[match address {
-                            ProtocolAddr::Tcp(_) => "tcp",
-                            ProtocolAddr::Udp(_) => "udp",
-                            ProtocolAddr::Mpsc(_) => "mpsc",
-                        }])
-                        .inc();
+                    self.metrics.listen_request(&address);
                     let (end_sender, end_receiver) = oneshot::channel::<()>();
                     self.channel_listener
                         .lock()
@@ -202,13 +194,11 @@ impl Scheduler {
     async fn connect_mgr(&self, mut a2s_connect_r: mpsc::UnboundedReceiver<A2sConnect>) {
         trace!("Start connect_mgr");
         while let Some((addr, pid_sender)) = a2s_connect_r.recv().await {
-            let (protocol, cid, handshake) = match addr {
+            let cid = self.channel_ids.fetch_add(1, Ordering::Relaxed);
+            let metrics = Arc::clone(&self.protocol_metrics);
+            self.metrics.connect_request(&addr);
+            let (protocol, handshake) = match addr {
                 ProtocolAddr::Tcp(addr) => {
-                    #[cfg(feature = "metrics")]
-                    self.metrics
-                        .connect_requests_total
-                        .with_label_values(&["tcp"])
-                        .inc();
                     let stream = match net::TcpStream::connect(addr).await {
                         Ok(stream) => stream,
                         Err(e) => {
@@ -216,13 +206,8 @@ impl Scheduler {
                             continue;
                         },
                     };
-                    let cid = self.channel_ids.fetch_add(1, Ordering::Relaxed);
                     info!("Connecting Tcp to: {}", stream.peer_addr().unwrap());
-                    (
-                        Protocols::new_tcp(stream, cid, Arc::clone(&self.protocol_metrics)),
-                        cid,
-                        false,
-                    )
+                    (Protocols::new_tcp(stream, cid, metrics), false)
                 },
                 ProtocolAddr::Mpsc(addr) => {
                     let mpsc_s = match MPSC_POOL.lock().await.get(&addr) {
@@ -244,17 +229,9 @@ impl Scheduler {
                         .send((remote_to_local_s, local_to_remote_oneshot_s))
                         .unwrap();
                     let local_to_remote_s = local_to_remote_oneshot_r.await.unwrap();
-
-                    let cid = self.channel_ids.fetch_add(1, Ordering::Relaxed);
                     info!(?addr, "Connecting Mpsc");
                     (
-                        Protocols::new_mpsc(
-                            local_to_remote_s,
-                            remote_to_local_r,
-                            cid,
-                            Arc::clone(&self.protocol_metrics),
-                        ),
-                        cid,
+                        Protocols::new_mpsc(local_to_remote_s, remote_to_local_r, cid, metrics),
                         false,
                     )
                 },
