@@ -42,6 +42,7 @@ pub struct Settings {
     pub banned_words_files: Vec<PathBuf>,
     pub max_player_group_size: u32,
     pub client_timeout: Duration,
+    pub spawn_town: Option<String>,
 }
 
 impl Default for Settings {
@@ -59,6 +60,7 @@ impl Default for Settings {
             banned_words_files: Vec::new(),
             max_player_group_size: 6,
             client_timeout: Duration::from_secs(40),
+            spawn_town: None,
         }
     }
 }

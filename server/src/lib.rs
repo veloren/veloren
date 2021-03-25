@@ -297,17 +297,26 @@ impl Server {
             // but are needed to be explicit about casting (and to make the compiler stop
             // complaining)
 
-            // spawn in the chunk, that is in the middle of the world
-            let center_chunk: Vec2<i32> = world.sim().map_size_lg().chunks().map(i32::from) / 2;
-
-            // Find a town to spawn in that's close to the centre of the world
-            let spawn_chunk = world
-                .civs()
-                .sites()
-                .filter(|site| matches!(site.kind, world::civ::SiteKind::Settlement))
-                .map(|site| site.center)
-                .min_by_key(|site_pos| site_pos.distance_squared(center_chunk))
-                .unwrap_or(center_chunk);
+            // Search for town defined by spawn_town server setting. If this fails, or is
+            // None, set spawn to the nearest town to the centre of the world
+            let spawn_chunk = match settings.spawn_town.as_ref().and_then(|spawn_town| {
+                world.civs().sites().find(|site| {
+                    site.site_tmp
+                        .map_or(false, |id| index.sites[id].name() == spawn_town)
+                })
+            }) {
+                Some(t) => t.center,
+                None => {
+                    let center_chunk = world.sim().map_size_lg().chunks().map(i32::from) / 2;
+                    world
+                        .civs()
+                        .sites()
+                        .filter(|site| matches!(site.kind, world::civ::SiteKind::Settlement))
+                        .map(|site| site.center)
+                        .min_by_key(|site_pos| site_pos.distance_squared(center_chunk))
+                        .unwrap_or(center_chunk)
+                },
+            };
 
             // Calculate the middle of the chunk in the world
             let spawn_wpos = TerrainChunkSize::center_wpos(spawn_chunk);
