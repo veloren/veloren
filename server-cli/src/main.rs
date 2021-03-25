@@ -38,10 +38,10 @@ fn main() -> io::Result<()> {
                 .short("b")
                 .long("basic")
                 .help("Disables the tui"),
-            Arg::with_name("interactive")
-                .short("i")
-                .long("interactive")
-                .help("Enables command input for basic mode"),
+            Arg::with_name("non-interactive")
+                .short("n")
+                .long("non-interactive")
+                .help("doesn't listen on STDIN. Useful if you want to send the server in background, and your kernels terminal driver will send SIGTTIN to it otherwise. (https://www.gnu.org/savannah-checkouts/gnu/bash/manual/bash.html#Redirections). and you dont want to use `stty -tostop` or `nohub` or `tmux` or `screen` or `<<< \"\\004\"` to the programm. This implies `-b`"),
             Arg::with_name("no-auth")
                 .long("no-auth")
                 .help("Runs without auth enabled"),
@@ -72,8 +72,11 @@ fn main() -> io::Result<()> {
             .subcommand_name()
             .filter(|name| ["admin"].contains(name))
             .is_some();
-    let interactive = matches.is_present("interactive");
+    let noninteractive = matches.is_present("non-interactive");
     let no_auth = matches.is_present("no-auth");
+
+    // noninteractive implies basic
+    let basic = basic || noninteractive;
 
     let sigusr1_signal = Arc::new(AtomicBool::new(false));
 
@@ -133,7 +136,7 @@ fn main() -> io::Result<()> {
         }));
     }
 
-    let tui = (!basic || interactive).then(|| Tui::run(basic));
+    let tui = (!basic || !noninteractive).then(|| Tui::run(basic));
 
     info!("Starting server...");
 
