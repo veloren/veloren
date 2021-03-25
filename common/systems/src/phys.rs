@@ -1651,7 +1651,7 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
     if on_ground.is_some() {
         physics_state.on_ground = on_ground;
     // If the space below us is free, then "snap" to the ground
-    } else if {
+    } else if vel.0.z <= 0.0 && was_on_ground && block_snap && {
         prof_span!("snap check");
         collision_with(
             pos.0 - Vec3::unit_z() * 1.1,
@@ -1661,10 +1661,7 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
             radius,
             z_range.clone(),
         )
-    } && vel.0.z <= 0.0
-        && was_on_ground
-        && block_snap
-    {
+    } {
         prof_span!("snap!!");
         let snap_height = terrain
             .get(Vec3::new(pos.0.x, pos.0.y, pos.0.z - 0.1).map(|e| e.floor() as i32))
