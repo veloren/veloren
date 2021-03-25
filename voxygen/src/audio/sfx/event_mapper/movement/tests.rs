@@ -353,6 +353,6 @@ fn empty_ability_info() -> states::utils::AbilityInfo {
         tool: None,
         hand: None,
         input: InputKind::Primary,
-        select_pos: None,
+        input_attr: None,
     }
 }

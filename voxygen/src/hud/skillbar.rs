@@ -3,7 +3,7 @@ use super::{
     img_ids::{Imgs, ImgsRot},
     item_imgs::ItemImgs,
     slots, BarNumbers, ShortcutNumbers, BLACK, CRITICAL_HP_COLOR, HP_COLOR, LOW_HP_COLOR,
-    STAMINA_COLOR, QUALITY_EPIC, TEXT_COLOR, UI_HIGHLIGHT_0,
+    QUALITY_EPIC, STAMINA_COLOR, TEXT_COLOR, UI_HIGHLIGHT_0,
 };
 use crate::{
     hud::ComboFloater,
@@ -31,8 +31,6 @@ use conrod_core::{
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 use vek::*;
-use rand::Rng;
-use inline_tweak::*;
 
 widget_ids! {
     struct Ids {
@@ -73,8 +71,7 @@ widget_ids! {
         hp_txt_alignment,
         hp_txt_bg,
         hp_txt,
-        decay_flames,
-        decay_flames_align,
+        decay_overlay,
         // Stamina-Bar
         stamina_alignment,
         stamina_filling,
@@ -293,8 +290,9 @@ impl<'a> Widget for Skillbar<'a> {
         // Health and Stamina bar
         let show_health = self.health.current() != self.health.maximum();
         let show_stamina = self.energy.current() != self.energy.maximum();
+        let decayed_health = 1.0 - self.health.maximum() as f64 / self.health.base_max() as f64;
 
-        if show_health && !self.health.is_dead {
+        if show_health && !self.health.is_dead || decayed_health > 0.0 {
             let offset = 1.0;
             Image::new(self.imgs.health_bg)
                 .w_h(484.0, 24.0)
@@ -313,7 +311,6 @@ impl<'a> Widget for Skillbar<'a> {
                 .color(Some(health_col))
                 .top_left_with_margins_on(state.ids.hp_alignment, 0.0, 0.0)
                 .set(state.ids.hp_filling, ui);
-            let decayed_health = 1.0 - self.health.maximum() as f64 / self.health.base_max() as f64;
 
             if decayed_health > 0.0 {
                 let decay_bar_len = 480.0 * decayed_health * 0.5;
@@ -321,24 +318,15 @@ impl<'a> Widget for Skillbar<'a> {
                     .w_h(decay_bar_len, 18.0)
                     .color(Some(QUALITY_EPIC))
                     .top_right_with_margins_on(state.ids.hp_alignment, 0.0, 0.0)
-                    .set(state.ids.hp_decayed, ui);
-                Rectangle::fill_with([decay_bar_len, 12.0], color::TRANSPARENT)
-                    .top_right_with_margins_on(state.ids.hp_decayed, tweak!(-11.0), 0.0)
                     .crop_kids()
-                    .set(state.ids.decay_flames_align, ui);
-                let mut rng = rand::thread_rng();
-                let max = tweak!(2);
-                let frame_no = rng.gen_range(0..max);
-                Image::new(match frame_no {
-                    0 => self.imgs.flame_frame_0,
-                    1 => self.imgs.flame_frame_2,
-                    _ => self.imgs.flame_frame_0,
-                })
-                    .w_h(480.0, 12.0)
-                    .color(Some(QUALITY_EPIC))
-                    .bottom_right_with_margins_on(state.ids.decay_flames_align, 0.0, 0.0)
-                    .set(state.ids.decay_flames, ui);
+                    .set(state.ids.hp_decayed, ui);
 
+                Image::new(self.imgs.decayed_bg)
+                    .w_h(480.0, 18.0)
+                    .color(Some(Color::Rgba(0.58, 0.29, 0.93, (hp_ani + 0.6).min(1.0))))
+                    .top_left_with_margins_on(state.ids.hp_alignment, 0.0, 0.0)
+                    .parent(state.ids.hp_decayed)
+                    .set(state.ids.decay_overlay, ui);
             }
             Image::new(self.imgs.health_frame)
                 .w_h(484.0, 24.0)
@@ -347,7 +335,11 @@ impl<'a> Widget for Skillbar<'a> {
                 .set(state.ids.frame_health, ui);
         }
         if show_stamina && !self.health.is_dead {
-            let offset = if show_health { 34.0 } else { 1.0 };
+            let offset = if show_health || decayed_health > 0.0 {
+                34.0
+            } else {
+                1.0
+            };
             Image::new(self.imgs.stamina_bg)
                 .w_h(323.0, 16.0)
                 .mid_top_with_margin_on(state.ids.frame, -offset)
