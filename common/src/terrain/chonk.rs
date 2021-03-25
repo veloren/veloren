@@ -163,6 +163,30 @@ impl<V, S: RectVolSize, M: Clone> ReadVol for Chonk<V, S, M> {
                 .map_err(Self::Error::SubChunkError)
         }
     }
+
+    /// Call provided closure with each block in the supplied Aabb
+    /// Portions of the Aabb outside this chonk are ignored
+    //#[inline]
+    fn for_each_in(&self, aabb: Aabb<i32>, mut f: impl FnMut(Vec3<i32>, V))
+    where
+        V: Copy,
+    {
+        for x in aabb.min.x..aabb.max.x + 1 {
+            for y in aabb.min.y..aabb.max.y + 1 {
+                for z in aabb.min.z..aabb.max.z + 1 {
+                    if let Ok(block) = self.get(Vec3::new(x, y, z)) {
+                        f(Vec3::new(x, y, z), *block);
+                    }
+                }
+            }
+        }
+        // TODO
+        //let min_z = self.get_min_z();
+        //let max_z = self.get_max_z();
+        // Iterate through blocks in above terrain
+        // Iterate through blocks in subchunks
+        // Iterate through bloks in below terrain
+    }
 }
 
 impl<V: Clone + PartialEq, S: RectVolSize, M: Clone> WriteVol for Chonk<V, S, M> {
