@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Restored old version of Store and renamed the new and modified version to Depot 
+
 ### Removed
 
 ### Fixed
