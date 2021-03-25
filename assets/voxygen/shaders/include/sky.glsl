@@ -84,7 +84,7 @@ vec2 wind_offset = vec2(time_of_day.x * wind_speed);
 float cloud_scale = view_distance.z / 150.0;
 
 float cloud_tendency_at(vec2 pos) {
-    float nz = texture(t_noise, (pos + wind_offset) / 60000.0 / cloud_scale).x - 0.35;
+    float nz = texture(t_noise, (pos + wind_offset) / 60000.0 / cloud_scale).x - 0.3;
     nz = pow(clamp(nz, 0, 1), 4);
     return nz;
 }
@@ -433,7 +433,7 @@ vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float q
     }
 
     // Sun
-    const vec3 SUN_SURF_COLOR = vec3(1.5, 0.9, 0.35) * 4.0;
+    const vec3 SUN_SURF_COLOR = vec3(1.5, 0.9, 0.35) * 8.0;
 
     vec3 sun_halo_color = mix(
         SUN_HALO_DUSK,
@@ -450,8 +450,8 @@ vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float q
     vec3 sun_light = sun_halo + sun_surf;
 
     // Moon
-    const vec3 MOON_SURF_COLOR = vec3(0.7, 1.0, 1.5) * 3.0;
-    const vec3 MOON_HALO_COLOR = vec3(0.015, 0.015, 0.05) * 25;
+    const vec3 MOON_SURF_COLOR = vec3(0.7, 1.0, 1.5) * 20.0;
+    const vec3 MOON_HALO_COLOR = vec3(0.015, 0.015, 0.05) * 48;
 
     vec3 moon_halo_color = MOON_HALO_COLOR;
     vec3 moon_halo = moon_halo_color * pow(max(dot(dir, -moon_dir), 0), 100.0);

@@ -11,7 +11,7 @@ float emission_strength = clamp((sin(time_of_day.x / (3600 * 24)) - 0.8) / 0.1, 
 // for computing light access.
 float cloud_broad(vec3 pos) {
     return 0.0
-        + 2 * (noise_3d(pos / vec3(vec2(40000.0), 30000.0) / cloud_scale + 1000.0) - 0.5)
+        + 2 * (noise_3d(pos / vec3(vec2(30000.0), 20000.0) / cloud_scale + 1000.0) - 0.5)
     ;
 }
 
@@ -32,7 +32,9 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission) {
     const float MIST_FADE_HEIGHT = 500;
     float mist = 0.00025 * pow(clamp(1.0 - (pos.z - mist_min_alt) / MIST_FADE_HEIGHT, 0.0, 1), 4.0) / (1.0 + pow(1.0 + dist / 20000.0, 2.0));
 
-    vec3 wind_pos = vec3(pos.xy + wind_offset, pos.z);
+    float alt = alt_at(pos.xy - focus_off.xy);
+
+    vec3 wind_pos = vec3(pos.xy + wind_offset, pos.z + noise_2d(pos.xy / 20000) * 500);
 
     // Clouds
     float cloud_tendency = cloud_tendency_at(pos.xy);
@@ -58,23 +60,23 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission) {
         const float CLOUD_DENSITY = 5.0;
         const float CLOUD_ALT_VARI_WIDTH = 100000.0;
         const float CLOUD_ALT_VARI_SCALE = 5000.0;
-        float cloud_alt = CLOUD_AVG_ALT + (noise_3d(wind_pos / CLOUD_ALT_VARI_WIDTH) - 0.5) * CLOUD_ALT_VARI_SCALE;
+        float cloud_alt = CLOUD_AVG_ALT + alt * 0.5;
 
         cloud_broad_a = cloud_broad(wind_pos + sun_dir.xyz * 250);
         cloud_broad_b = cloud_broad(wind_pos - sun_dir.xyz * 250);
         cloud = cloud_tendency + (0.0
             + 24 * (cloud_broad_a + cloud_broad_b) * 0.5
         #if (CLOUD_MODE >= CLOUD_MODE_MINIMAL)
-            + 4 * (noise_3d(wind_pos / 2000.0 / cloud_scale) - 0.5)
+            + 4 * (noise_3d((wind_pos + turb_offset) / 2000.0 / cloud_scale) - 0.5)
         #endif
         #if (CLOUD_MODE >= CLOUD_MODE_LOW)
-            + 1 * (noise_3d((wind_pos + turb_offset * 0.5) / 250.0 / cloud_scale) - 0.5)
+            + 0.5 * (noise_3d((wind_pos + turb_offset * 0.5) / 250.0 / cloud_scale) - 0.5)
         #endif
         #if (CLOUD_MODE >= CLOUD_MODE_HIGH)
-            + 1 * (noise_3d(wind_pos / 50.0 / cloud_scale) - 0.5)
+            + 0.25 * (noise_3d(wind_pos / 50.0 / cloud_scale) - 0.5)
         #endif
         ) * 0.01;
-        cloud = pow(cloud, 2) * sign(cloud);
+        cloud = pow(cloud, 3) * sign(cloud);
         cloud *= CLOUD_DENSITY * (cloud_tendency * 100) * falloff(abs(pos.z - cloud_alt) / CLOUD_DEPTH);
 
         // What proportion of sunlight is *not* being blocked by nearby cloud? (approximation)
@@ -84,7 +86,7 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission) {
             0.25 * (cloud_broad_a - cloud_broad_b + (0.25 * (noise_3d(wind_pos / 4000 / cloud_scale) - 0.5) + 0.1 * (noise_3d(wind_pos / 1000 / cloud_scale) - 0.5)))
         #if (CLOUD_MODE >= CLOUD_MODE_HIGH)
             // More noise
-            + 0.01 * (noise_3d(wind_pos / 500) / cloud_scale - 0.5)
+            /* + 0.01 * (noise_3d(wind_pos / 200) / cloud_scale - 0.5) */
         #endif
         ) * 4.0 - 0.7, -1, 1) + 1.0);
         // Since we're assuming the sun/moon is always above (not always correct) it's the same for the moon
@@ -118,7 +120,7 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission) {
     //moon_access *= suppress_mist;
 
     // Prevent clouds and mist appearing underground (but fade them out gently)
-    float not_underground = clamp(1.0 - (alt_at(pos.xy - focus_off.xy) - (pos.z - focus_off.z)) / 80.0 + dist * 0.001, 0, 1);
+    float not_underground = clamp(1.0 - (alt - (pos.z - focus_off.z)) / 80.0 + dist * 0.001, 0, 1);
     air *= not_underground;
     float vapor_density = (mist + cloud) * not_underground;
 
@@ -129,7 +131,7 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission) {
         #if (CLOUD_MODE >= CLOUD_MODE_MEDIUM)
             emission_alt += (noise_3d(vec3(wind_pos.xy * 0.0005 + cloud_tendency * 0.2, emission_alt * 0.0001 + time_of_day.x * 0.001)) - 0.5) * 1000;
         #endif
-        float tail = (texture(t_noise, wind_pos.xy * 0.00005).x - 0.5) * 5 + (pos.z - emission_alt) * 0.001;
+        float tail = (texture(t_noise, wind_pos.xy * 0.00005).x - 0.5) * 5 + (pos.z - emission_alt) * 0.0001;
         vec3 emission_col = vec3(0.8 + tail * 1.5, 0.5 - tail * 0.2, 0.3 + tail * 0.2);
         float emission_nz = max(texture(t_noise, wind_pos.xy * 0.00003).x - 0.6, 0) / (10.0 + abs(pos.z - emission_alt) / 80);
         emission = emission_col * emission_nz * emission_strength * max(sun_dir.z, 0) * 500000 / (1000.0 + abs(pos.z - emission_alt));
