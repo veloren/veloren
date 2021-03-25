@@ -33,6 +33,7 @@ pub mod combat;
 pub mod comp;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod consts;
+#[cfg(not(target_arch = "wasm32"))] pub mod depot;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod effect;
 #[cfg(not(target_arch = "wasm32"))] pub mod event;
