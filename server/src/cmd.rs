@@ -15,7 +15,7 @@ use common::{
         buff::{BuffCategory, BuffData, BuffKind, BuffSource},
         inventory::item::MaterialStatManifest,
         invite::InviteKind,
-        ChatType, Inventory, Item, LightEmitter, WaypointArea,
+        ChatMode, ChatType, Inventory, Item, LightEmitter, WaypointArea,
     },
     effect::Effect,
     event::{EventBus, ServerEvent},
@@ -2069,6 +2069,17 @@ fn handle_group_kick(
 
             ecs.read_resource::<EventBus<ServerEvent>>()
                 .emit_now(ServerEvent::GroupManip(client, comp::GroupManip::Kick(uid)));
+
+            // Set chat mode to world (if current chat mode is group)
+            if let Some(chat_mode) = server
+                .state
+                .ecs()
+                .write_storage::<ChatMode>()
+                .get_mut(target_player)
+                .filter(|mode| matches!(mode, ChatMode::Group(_)))
+            {
+                *chat_mode = ChatMode::World;
+            }
         } else {
             server.notify_client(
                 client,
@@ -2098,6 +2109,17 @@ fn handle_group_leave(
         .ecs()
         .read_resource::<EventBus<ServerEvent>>()
         .emit_now(ServerEvent::GroupManip(client, comp::GroupManip::Leave));
+
+    // Set chat mode to world (if current chat mode is group)
+    if let Some(chat_mode) = server
+        .state
+        .ecs()
+        .write_storage::<ChatMode>()
+        .get_mut(client)
+        .filter(|mode| matches!(mode, ChatMode::Group(_)))
+    {
+        *chat_mode = ChatMode::World;
+    }
 }
 
 fn handle_group_promote(
