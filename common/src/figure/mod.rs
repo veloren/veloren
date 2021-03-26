@@ -8,7 +8,6 @@ pub use self::{
     mat_cell::MatCell,
 };
 
-use self::cell::{GLOWY, SHINY};
 use crate::{
     vol::{IntoFullPosIterator, IntoFullVolIterator, ReadVol, SizedVol, Vox, WriteVol},
     volumes::dyna::Dyna,
@@ -159,10 +158,7 @@ impl MatSegment {
         for (pos, vox) in self.full_vol_iter() {
             let data = match vox {
                 MatCell::None => continue,
-                MatCell::Mat(mat) => CellData {
-                    col: map(*mat),
-                    attr: 0,
-                },
+                MatCell::Mat(mat) => CellData::new(map(*mat), false, false),
                 MatCell::Normal(data) => *data,
             };
             vol.set(pos, Cell::Filled(data)).unwrap();
@@ -222,12 +218,11 @@ impl MatSegment {
                             .get(index as usize)
                             .copied()
                             .unwrap_or_else(|| Rgb::broadcast(0));
-                        MatCell::Normal(CellData {
-                            col: color,
-                            attr: 0
-                                | ((13..16).contains(&index) as u8 * GLOWY)
-                                | ((8..13).contains(&index) as u8 * SHINY),
-                        })
+                        MatCell::Normal(CellData::new(
+                            color,
+                            (13..16).contains(&index),
+                            (8..13).contains(&index),
+                        ))
                     },
                 };
 
