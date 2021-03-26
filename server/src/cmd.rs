@@ -1404,8 +1404,8 @@ fn handle_build_area_remove(
         let ecs = server.state.ecs();
         let mut build_areas = ecs.write_resource::<BuildAreas>();
 
-        let bb_id = match &build_areas.area_names.get(&area_name) {
-            Some(x) => *x.clone(),
+        let bb_id = match build_areas.area_names.get(&area_name) {
+            Some(x) => *x,
             None => {
                 server.notify_client(
                     client,

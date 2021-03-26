@@ -1,8 +1,8 @@
+use crate::depot::Id;
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
 use vek::geom::Aabb;
-use crate::store::Id;
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct CanBuild {

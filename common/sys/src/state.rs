@@ -6,11 +6,11 @@ use crate::plugin::PluginMgr;
 use common::uid::UidAllocator;
 use common::{
     comp,
+    depot::{Depot, Id},
     event::{EventBus, LocalEvent, ServerEvent},
     region::RegionMap,
     resources::{DeltaTime, GameMode, PlayerEntity, Time, TimeOfDay},
     slowjob::SlowJobPool,
-    store::{Id, Store},
     terrain::{Block, TerrainChunk, TerrainGrid},
     time::DayPeriod,
     trade::Trades,
@@ -42,14 +42,14 @@ const MAX_DELTA_TIME: f32 = 1.0;
 
 #[derive(Default)]
 pub struct BuildAreas {
-    pub areas: Store<geom::Aabb<i32>>,
+    pub areas: Depot<geom::Aabb<i32>>,
     pub area_names: HashMap<String, Id<Aabb<i32>>>,
 }
 
 impl BuildAreas {
     pub fn new() -> Self {
         Self {
-            areas: Store::default(),
+            areas: Depot::default(),
             area_names: HashMap::new(),
         }
     }

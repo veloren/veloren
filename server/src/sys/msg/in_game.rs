@@ -106,10 +106,8 @@ impl Sys {
                 if let Some(comp_can_build) = can_build.get(entity) {
                     if comp_can_build.building_is_on {
                         for area in comp_can_build.build_areas.iter() {
-                            if build_areas.areas.contains(*area) {
-                                println!("build area exists!");
-                                if build_areas.areas.get(*area).contains_point(pos) {
-                                    println!("got build area!");
+                            if let Some(aabb) = build_areas.areas.get(*area) {
+                                if aabb.contains_point(pos) {
                                     if let Ok(block) = terrain.get(pos) {
                                         block_changes.set(pos, block.into_vacant());
                                     }
@@ -123,8 +121,8 @@ impl Sys {
                 if let Some(comp_can_build) = can_build.get(entity) {
                     if comp_can_build.building_is_on {
                         for area in comp_can_build.build_areas.iter() {
-                            if build_areas.areas.contains(*area) {
-                                if build_areas.areas.get(*area).contains_point(pos) {
+                            if let Some(aabb) = build_areas.areas.get(*area) {
+                                if aabb.contains_point(pos) {
                                     block_changes.try_set(pos, block);
                                 }
                             }
