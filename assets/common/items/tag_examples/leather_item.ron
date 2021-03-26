@@ -3,8 +3,6 @@ ItemDef(
     description: "Various leather armors.",
     kind: TagExamples(
         item_ids: [
-            "common.items.armor.rugged.chest",
-            "common.items.armor.rugged.pants",
             "common.items.armor.agile.back",
             "common.items.armor.agile.belt",
             "common.items.armor.agile.chest",
