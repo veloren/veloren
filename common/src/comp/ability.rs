@@ -95,6 +95,8 @@ pub enum CharacterAbility {
     Boost {
         movement_duration: f32,
         only_up: bool,
+        speed: f32,
+        max_exit_velocity: f32,
     },
     DashMelee {
         energy_cost: f32,
@@ -371,9 +373,11 @@ impl CharacterAbility {
             },
             Boost {
                 ref mut movement_duration,
+                speed: ref mut boost_speed,
                 ..
             } => {
                 *movement_duration /= speed;
+                *boost_speed *= power;
             },
             DashMelee {
                 ref mut base_damage,
@@ -1150,10 +1154,14 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
             CharacterAbility::Boost {
                 movement_duration,
                 only_up,
+                speed,
+                max_exit_velocity,
             } => CharacterState::Boost(boost::Data {
                 static_data: boost::StaticData {
                     movement_duration: Duration::from_secs_f32(*movement_duration),
                     only_up: *only_up,
+                    speed: *speed,
+                    max_exit_velocity: *max_exit_velocity,
                     ability_info,
                 },
                 timer: Duration::default(),
