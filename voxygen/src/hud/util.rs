@@ -1,5 +1,6 @@
 use common::{
     comp::{
+        inventory::trade_pricing::TradePricing,
         item::{
             armor::{Armor, ArmorKind, Protection},
             tool::{Hands, StatKind, Stats, Tool, ToolKind},
@@ -8,6 +9,7 @@ use common::{
         BuffKind,
     },
     effect::Effect,
+    trade::{Good, SitePrices},
 };
 use std::{borrow::Cow, fmt::Write};
 
@@ -62,6 +64,20 @@ pub fn item_text<'a>(
     };
 
     (item.name(), desc)
+}
+
+pub fn append_price_desc(desc: &mut String, prices: &Option<SitePrices>, item_definition_id: &str) {
+    if let Some(prices) = prices {
+        let (material, factor) = TradePricing::get_material(item_definition_id);
+        let coinprice = prices.values.get(&Good::Coin).cloned().unwrap_or(1.0);
+        let buyprice = prices.values.get(&material).cloned().unwrap_or_default() * factor;
+        let sellprice = buyprice * material.trade_margin();
+        *desc += &format!(
+            "\n\nBuy price: {:0.1} coins\nSell price: {:0.1} coins",
+            buyprice / coinprice,
+            sellprice / coinprice
+        );
+    }
 }
 
 // TODO: localization

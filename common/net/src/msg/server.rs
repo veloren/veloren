@@ -8,7 +8,7 @@ use common::{
     recipe::RecipeBook,
     resources::TimeOfDay,
     terrain::{Block, TerrainChunk},
-    trade::{PendingTrade, TradeId, TradeResult},
+    trade::{PendingTrade, SitePrices, TradeId, TradeResult},
     uid::Uid,
     uuid::Uuid,
 };
@@ -126,7 +126,7 @@ pub enum ServerGeneral {
     Disconnect(DisconnectReason),
     /// Send a popup notification such as "Waypoint Saved"
     Notification(Notification),
-    UpdatePendingTrade(TradeId, PendingTrade),
+    UpdatePendingTrade(TradeId, PendingTrade, Option<SitePrices>),
     FinishedTrade(TradeResult),
     /// Economic information about sites
     SiteEconomy(EconomyInfo),
@@ -237,7 +237,7 @@ impl ServerMsg {
                         | ServerGeneral::SetViewDistance(_)
                         | ServerGeneral::Outcomes(_)
                         | ServerGeneral::Knockback(_)
-                        | ServerGeneral::UpdatePendingTrade(_, _)
+                        | ServerGeneral::UpdatePendingTrade(_, _, _)
                         | ServerGeneral::FinishedTrade(_)
                         | ServerGeneral::SiteEconomy(_) => {
                             c_type == ClientType::Game && presence.is_some()

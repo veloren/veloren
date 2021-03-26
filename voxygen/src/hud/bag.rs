@@ -64,6 +64,7 @@ pub struct InventoryScrollerState {
 
 #[derive(WidgetCommon)]
 pub struct InventoryScroller<'a> {
+    client: &'a Client,
     imgs: &'a Imgs,
     item_imgs: &'a ItemImgs,
     fonts: &'a Fonts,
@@ -87,6 +88,7 @@ pub struct InventoryScroller<'a> {
 impl<'a> InventoryScroller<'a> {
     #[allow(clippy::too_many_arguments)]
     pub fn new(
+        client: &'a Client,
         imgs: &'a Imgs,
         item_imgs: &'a ItemImgs,
         fonts: &'a Fonts,
@@ -105,6 +107,7 @@ impl<'a> InventoryScroller<'a> {
         bg_ids: &'a BackgroundIds,
     ) -> Self {
         InventoryScroller {
+            client,
             imgs,
             item_imgs,
             fonts,
@@ -302,6 +305,11 @@ impl<'a> InventoryScroller<'a> {
                     Quality::Artifact => self.imgs.inv_slot_orange,
                     _ => self.imgs.inv_slot_red,
                 };
+                let mut desc = desc.to_string();
+                if let Some((_, _, prices)) = self.client.pending_trade() {
+                    super::util::append_price_desc(&mut desc, prices, item.item_definition_id());
+                }
+
                 slot_widget
                     .filled_slot(quality_col_img)
                     .with_tooltip(
@@ -571,6 +579,7 @@ impl<'a> Widget for Bag<'a> {
         .desc_text_color(TEXT_COLOR);
 
         InventoryScroller::new(
+            self.client,
             self.imgs,
             self.item_imgs,
             self.fonts,

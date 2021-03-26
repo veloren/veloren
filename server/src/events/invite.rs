@@ -3,7 +3,7 @@ use crate::{client::Client, Server};
 use common::{
     comp::{
         self,
-        agent::AgentEvent,
+        agent::{Agent, AgentEvent},
         group::GroupManager,
         invite::{Invite, InviteKind, InviteResponse, PendingInvites},
         ChatType,
@@ -162,9 +162,11 @@ pub fn handle_invite_response(
 }
 
 pub fn handle_invite_accept(server: &mut Server, entity: specs::Entity) {
+    let index = server.index.clone();
     let state = server.state_mut();
     let clients = state.ecs().read_storage::<Client>();
     let uids = state.ecs().read_storage::<Uid>();
+    let agents = state.ecs().read_storage::<Agent>();
     let mut invites = state.ecs().write_storage::<Invite>();
     if let Some((inviter, kind)) = invites.remove(entity).and_then(|invite| {
         let Invite { inviter, kind } = invite;
@@ -216,12 +218,20 @@ pub fn handle_invite_accept(server: &mut Server, entity: specs::Entity) {
                     let mut trades = state.ecs().write_resource::<Trades>();
                     let id = trades.begin_trade(inviter_uid, invitee_uid);
                     let trade = trades.trades[&id].clone();
-                    clients
+                    let pricing = agents
                         .get(inviter)
-                        .map(|c| c.send(ServerGeneral::UpdatePendingTrade(id, trade.clone())));
+                        .and_then(|a| index.get_site_prices(a))
+                        .or_else(|| agents.get(entity).and_then(|a| index.get_site_prices(a)));
+                    clients.get(inviter).map(|c| {
+                        c.send(ServerGeneral::UpdatePendingTrade(
+                            id,
+                            trade.clone(),
+                            pricing.clone(),
+                        ))
+                    });
                     clients
                         .get(entity)
-                        .map(|c| c.send(ServerGeneral::UpdatePendingTrade(id, trade)));
+                        .map(|c| c.send(ServerGeneral::UpdatePendingTrade(id, trade, pricing)));
                 }
             },
         }

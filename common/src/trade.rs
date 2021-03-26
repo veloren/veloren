@@ -320,6 +320,21 @@ impl Default for Good {
     }
 }
 
+impl Good {
+    /// The discounting factor applied when selling goods back to a merchant
+    pub fn trade_margin(&self) -> f32 {
+        match self {
+            Good::Tools | Good::Armor => 0.5,
+            Good::Food | Good::Potions | Good::Ingredients => 0.75,
+            Good::Coin => 1.0,
+            // Certain abstract goods (like Territory) shouldn't be attached to concrete items;
+            // give a sale price of 0 if the player is trying to sell a concrete item that somehow
+            // has one of these categories
+            _ => 0.0,
+        }
+    }
+}
+
 // ideally this would be a real Id<Site> but that is from the world crate
 pub type SiteId = u64;
 
@@ -329,7 +344,7 @@ pub struct SiteInformation {
     pub unconsumed_stock: HashMap<Good, f32>,
 }
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct SitePrices {
     pub values: HashMap<Good, f32>,
 }

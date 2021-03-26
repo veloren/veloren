@@ -4,7 +4,9 @@ use crate::{
 };
 use common::{
     assets::{AssetExt, AssetHandle},
+    comp::Agent,
     store::Store,
+    trade::SitePrices,
 };
 use core::ops::Deref;
 use noise::{Seedable, SuperSimplex};
@@ -69,6 +71,15 @@ impl Index {
     }
 
     pub fn colors(&self) -> AssetHandle<Arc<Colors>> { self.colors }
+
+    pub fn get_site_prices(&self, agent: &Agent) -> Option<SitePrices> {
+        agent
+            .trade_for_site
+            .map(|i| self.sites.recreate_id(i))
+            .flatten()
+            .map(|i| self.sites.get(i))
+            .map(|s| s.economy.get_site_prices())
+    }
 }
 
 impl IndexOwned {

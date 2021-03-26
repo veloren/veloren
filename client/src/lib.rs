@@ -35,7 +35,7 @@ use common::{
     recipe::RecipeBook,
     resources::PlayerEntity,
     terrain::{block::Block, neighbors, BiomeKind, SitesKind, TerrainChunk, TerrainChunkSize},
-    trade::{PendingTrade, TradeAction, TradeId, TradeResult},
+    trade::{PendingTrade, SitePrices, TradeAction, TradeId, TradeResult},
     uid::{Uid, UidAllocator},
     vol::RectVolSize,
 };
@@ -156,7 +156,7 @@ pub struct Client {
     // Pending invites that this client has sent out
     pending_invites: HashSet<Uid>,
     // The pending trade the client is involved in, and it's id
-    pending_trade: Option<(TradeId, PendingTrade)>,
+    pending_trade: Option<(TradeId, PendingTrade, Option<SitePrices>)>,
 
     _network: Network,
     participant: Option<Participant>,
@@ -694,7 +694,7 @@ impl Client {
     }
 
     pub fn perform_trade_action(&mut self, action: TradeAction) {
-        if let Some((id, _)) = self.pending_trade {
+        if let Some((id, _, _)) = self.pending_trade {
             if let TradeAction::Decline = action {
                 self.pending_trade.take();
             }
@@ -833,7 +833,9 @@ impl Client {
 
     pub fn pending_invites(&self) -> &HashSet<Uid> { &self.pending_invites }
 
-    pub fn pending_trade(&self) -> &Option<(TradeId, PendingTrade)> { &self.pending_trade }
+    pub fn pending_trade(&self) -> &Option<(TradeId, PendingTrade, Option<SitePrices>)> {
+        &self.pending_trade
+    }
 
     pub fn send_invite(&mut self, invitee: Uid, kind: InviteKind) {
         self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InitiateInvite(
@@ -1637,12 +1639,12 @@ impl Client {
                         impulse,
                     });
             },
-            ServerGeneral::UpdatePendingTrade(id, trade) => {
+            ServerGeneral::UpdatePendingTrade(id, trade, pricing) => {
                 tracing::trace!("UpdatePendingTrade {:?} {:?}", id, trade);
-                self.pending_trade = Some((id, trade));
+                self.pending_trade = Some((id, trade, pricing));
             },
             ServerGeneral::FinishedTrade(result) => {
-                if let Some((_, trade)) = self.pending_trade.take() {
+                if let Some((_, trade, _)) = self.pending_trade.take() {
                     self.update_available_recipes();
                     frontend_events.push(Event::TradeComplete { result, trade })
                 }

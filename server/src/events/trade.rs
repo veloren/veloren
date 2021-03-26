@@ -33,19 +33,18 @@ fn notify_agent_prices(
     event: AgentEvent,
 ) {
     if let Some(agent) = agents.get_mut(entity) {
+        let prices = index.get_site_prices(agent);
         if let AgentEvent::UpdatePendingTrade(boxval) = event {
             // Box<(tid, pend, _, inventories)>) = event {
-            let prices = agent
-                .trade_for_site
-                .map(|i| index.sites.recreate_id(i))
-                .flatten()
-                .map(|i| index.sites.get(i))
-                .map(|s| s.economy.get_site_prices())
-                .unwrap_or_default();
             agent
                 .inbox
                 .push_front(AgentEvent::UpdatePendingTrade(Box::new((
-                    boxval.0, boxval.1, prices, boxval.3,
+                    // Prefer using this Agent's price data, but use the counterparty's price data
+                    // if we don't have price data
+                    boxval.0,
+                    boxval.1,
+                    prices.unwrap_or(boxval.2),
+                    boxval.3,
                 ))));
         }
     }
@@ -103,6 +102,8 @@ pub fn handle_process_trade_action(
                 } else {
                     let mut entities: [Option<specs::Entity>; 2] = [None, None];
                     let mut inventories: [Option<ReducedInventory>; 2] = [None, None];
+                    let mut prices = None;
+                    let agents = server.state.ecs().read_storage::<Agent>();
                     // sadly there is no map and collect on arrays
                     for i in 0..2 {
                         // parties.len()) {
@@ -114,13 +115,23 @@ pub fn handle_process_trade_action(
                                 .read_component::<Inventory>()
                                 .get(e)
                                 .map(|i| ReducedInventory::from(i));
+                            // Get price info from the first Agent in the trade (currently, an
+                            // Agent will never initiate a trade with another agent though)
+                            prices = prices.or_else(|| {
+                                agents.get(e).and_then(|a| server.index.get_site_prices(a))
+                            });
                         }
                     }
+                    drop(agents);
                     for party in entities.iter() {
                         if let Some(e) = *party {
                             server.notify_client(
                                 e,
-                                ServerGeneral::UpdatePendingTrade(trade_id, entry.get().clone()),
+                                ServerGeneral::UpdatePendingTrade(
+                                    trade_id,
+                                    entry.get().clone(),
+                                    prices.clone(),
+                                ),
                             );
                             notify_agent_prices(
                                 server.state.ecs().write_storage::<Agent>(),
@@ -129,7 +140,7 @@ pub fn handle_process_trade_action(
                                 AgentEvent::UpdatePendingTrade(Box::new((
                                     trade_id,
                                     entry.get().clone(),
-                                    Default::default(),
+                                    prices.clone().unwrap_or_default(),
                                     inventories.clone(),
                                 ))),
                             );
