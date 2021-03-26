@@ -93,6 +93,7 @@ pub trait TagExampleInfo {
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub enum ItemTag {
     ClothItem,
+    LeatherItem,
     ModularComponent(ModularComponentTag),
     MetalIngot,
     Cultist,
@@ -102,6 +103,7 @@ impl TagExampleInfo for ItemTag {
     fn name(&self) -> &'static str {
         match self {
             ItemTag::ClothItem => "cloth item",
+            ItemTag::LeatherItem => "leather item",
             ItemTag::ModularComponent(kind) => kind.name(),
             ItemTag::MetalIngot => "metal ingot",
             ItemTag::Cultist => "cultist",
@@ -111,6 +113,7 @@ impl TagExampleInfo for ItemTag {
     fn exemplar_identifier(&self) -> &'static str {
         match self {
             ItemTag::ClothItem => "common.items.tag_examples.cloth_item",
+            ItemTag::LeatherItem => "common.items.tag_examples.leather_item",
             ItemTag::ModularComponent(tag) => tag.exemplar_identifier(),
             ItemTag::MetalIngot => "common.items.tag_examples.metal_ingot",
             ItemTag::Cultist => "common.items.tag_examples.cultist",
