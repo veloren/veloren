@@ -102,6 +102,12 @@ impl<'a> System<'a> for Sys {
             if let Some(entities) = entities {
                 let entity_count = entities.join().count();
                 export_tick.entity_count.set(entity_count as i64);
+                #[cfg(feature = "tracy")]
+                {
+                    use common_base::tracy_client::{create_plot, Plot};
+                    static ENTITY_COUNT: Plot = create_plot!("entity count");
+                    ENTITY_COUNT.point(entity_count as f64);
+                }
             }
         }
 
