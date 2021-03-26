@@ -104,11 +104,11 @@ mod message;
 mod metrics;
 mod participant;
 mod scheduler;
-mod trace;
+mod util;
 
 pub use api::{
     Network, NetworkConnectError, NetworkError, Participant, ParticipantError, ProtocolAddr,
-    Stream, StreamError,
+    Stream, StreamError, StreamParams,
 };
 pub use message::Message;
 pub use network_protocol::{InitProtocolError, Pid, Promises};

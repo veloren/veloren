@@ -1,3 +1,4 @@
+use crate::api::ProtocolAddr;
 use network_protocol::{Cid, Pid};
 #[cfg(feature = "metrics")]
 use prometheus::{IntCounter, IntCounterVec, IntGauge, IntGaugeVec, Opts, Registry};
@@ -12,6 +13,8 @@ pub struct NetworkMetrics {
     pub participants_disconnected_total: IntCounter,
     // channel id's, seperated by PARTICIPANT, max 5
     pub participants_channel_ids: IntGaugeVec,
+    // upload to remote, averaged, seperated by PARTICIPANT
+    pub participants_bandwidth: IntGaugeVec,
     // opened Channels, seperated by PARTICIPANT
     pub channels_connected_total: IntCounterVec,
     pub channels_disconnected_total: IntCounterVec,
@@ -55,6 +58,13 @@ impl NetworkMetrics {
                 "Channel numbers belonging to a Participant in the network",
             ),
             &["participant", "no"],
+        )?;
+        let participants_bandwidth = IntGaugeVec::new(
+            Opts::new(
+                "participants_bandwidth",
+                "max upload possible to Participant",
+            ),
+            &["participant"],
         )?;
         let channels_connected_total = IntCounterVec::new(
             Opts::new(
@@ -103,6 +113,7 @@ impl NetworkMetrics {
             participants_connected_total,
             participants_disconnected_total,
             participants_channel_ids,
+            participants_bandwidth,
             channels_connected_total,
             channels_disconnected_total,
             streams_opened_total,
@@ -117,6 +128,7 @@ impl NetworkMetrics {
         registry.register(Box::new(self.participants_connected_total.clone()))?;
         registry.register(Box::new(self.participants_disconnected_total.clone()))?;
         registry.register(Box::new(self.participants_channel_ids.clone()))?;
+        registry.register(Box::new(self.participants_bandwidth.clone()))?;
         registry.register(Box::new(self.channels_connected_total.clone()))?;
         registry.register(Box::new(self.channels_disconnected_total.clone()))?;
         registry.register(Box::new(self.streams_opened_total.clone()))?;
@@ -140,6 +152,12 @@ impl NetworkMetrics {
             .inc();
     }
 
+    pub(crate) fn participant_bandwidth(&self, remote_p: &str, bandwidth: f32) {
+        self.participants_bandwidth
+            .with_label_values(&[remote_p])
+            .set(bandwidth as i64);
+    }
+
     pub(crate) fn streams_opened(&self, remote_p: &str) {
         self.streams_opened_total
             .with_label_values(&[remote_p])
@@ -151,6 +169,46 @@ impl NetworkMetrics {
             .with_label_values(&[remote_p])
             .inc();
     }
+
+    pub(crate) fn listen_request(&self, protocol: &ProtocolAddr) {
+        self.listen_requests_total
+            .with_label_values(&[protocol_name(protocol)])
+            .inc();
+    }
+
+    pub(crate) fn connect_request(&self, protocol: &ProtocolAddr) {
+        self.connect_requests_total
+            .with_label_values(&[protocol_name(protocol)])
+            .inc();
+    }
+
+    pub(crate) fn cleanup_participant(&self, remote_p: &str) {
+        for no in 0..5 {
+            let _ = self
+                .participants_channel_ids
+                .remove_label_values(&[&remote_p, &no.to_string()]);
+        }
+        let _ = self
+            .channels_connected_total
+            .remove_label_values(&[&remote_p]);
+        let _ = self
+            .channels_disconnected_total
+            .remove_label_values(&[&remote_p]);
+        let _ = self
+            .participants_bandwidth
+            .remove_label_values(&[&remote_p]);
+        let _ = self.streams_opened_total.remove_label_values(&[&remote_p]);
+        let _ = self.streams_closed_total.remove_label_values(&[&remote_p]);
+    }
+}
+
+#[cfg(feature = "metrics")]
+fn protocol_name(protocol: &ProtocolAddr) -> &str {
+    match protocol {
+        ProtocolAddr::Tcp(_) => "tcp",
+        ProtocolAddr::Udp(_) => "udp",
+        ProtocolAddr::Mpsc(_) => "mpsc",
+    }
 }
 
 #[cfg(not(feature = "metrics"))]
@@ -161,9 +219,17 @@ impl NetworkMetrics {
 
     pub(crate) fn channels_disconnected(&self, _remote_p: &str) {}
 
+    pub(crate) fn participant_bandwidth(&self, _remote_p: &str, _bandwidth: f32) {}
+
     pub(crate) fn streams_opened(&self, _remote_p: &str) {}
 
     pub(crate) fn streams_closed(&self, _remote_p: &str) {}
+
+    pub(crate) fn listen_request(&self, _protocol: &ProtocolAddr) {}
+
+    pub(crate) fn connect_request(&self, _protocol: &ProtocolAddr) {}
+
+    pub(crate) fn cleanup_participant(&self, _remote_p: &str) {}
 }
 
 impl std::fmt::Debug for NetworkMetrics {

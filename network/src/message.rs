@@ -1,4 +1,4 @@
-use crate::api::{Stream, StreamError};
+use crate::api::{StreamError, StreamParams};
 use bytes::Bytes;
 #[cfg(feature = "compression")]
 use network_protocol::Promises;
@@ -36,12 +36,12 @@ impl Message {
     /// [`Message::serialize`]: crate::message::Message::serialize
     ///
     /// [`Streams`]: crate::api::Stream
-    pub fn serialize<M: Serialize + ?Sized>(message: &M, stream: &Stream) -> Self {
+    pub fn serialize<M: Serialize + ?Sized>(message: &M, stream_params: StreamParams) -> Self {
         //this will never fail: https://docs.rs/bincode/0.8.0/bincode/fn.serialize.html
         let serialized_data = bincode::serialize(message).unwrap();
 
         #[cfg(feature = "compression")]
-        let compressed = stream.promises().contains(Promises::COMPRESSED);
+        let compressed = stream_params.promises.contains(Promises::COMPRESSED);
         #[cfg(feature = "compression")]
         let data = if compressed {
             let mut compressed_data = Vec::with_capacity(serialized_data.len() / 4 + 10);
@@ -54,7 +54,7 @@ impl Message {
         #[cfg(not(feature = "compression"))]
         let data = serialized_data;
         #[cfg(not(feature = "compression"))]
-        let _stream = stream;
+        let _stream_params = stream_params;
 
         Self {
             data: Bytes::from(data),
@@ -127,13 +127,13 @@ impl Message {
     }
 
     #[cfg(debug_assertions)]
-    pub(crate) fn verify(&self, stream: &Stream) {
+    pub(crate) fn verify(&self, params: StreamParams) {
         #[cfg(not(feature = "compression"))]
         let _stream = stream;
         #[cfg(feature = "compression")]
-        if self.compressed != stream.promises().contains(Promises::COMPRESSED) {
+        if self.compressed != params.promises.contains(Promises::COMPRESSED) {
             warn!(
-                ?stream,
+                ?params,
                 "verify failed, msg is {} and it doesn't match with stream", self.compressed
             );
         }
@@ -171,14 +171,9 @@ pub(crate) fn partial_eq_bincode(first: &bincode::ErrorKind, second: &bincode::E
 
 #[cfg(test)]
 mod tests {
-    use crate::{api::Stream, message::*};
-    use std::sync::{atomic::AtomicBool, Arc};
-    use tokio::sync::mpsc;
+    use crate::{api::StreamParams, message::*};
 
-    fn stub_stream(compressed: bool) -> Stream {
-        use crate::api::*;
-        use network_protocol::*;
-
+    fn stub_stream(compressed: bool) -> StreamParams {
         #[cfg(feature = "compression")]
         let promises = if compressed {
             Promises::COMPRESSED
@@ -189,27 +184,12 @@ mod tests {
         #[cfg(not(feature = "compression"))]
         let promises = Promises::empty();
 
-        let (a2b_msg_s, _a2b_msg_r) = crossbeam_channel::unbounded();
-        let (_b2a_msg_recv_s, b2a_msg_recv_r) = async_channel::unbounded();
-        let (a2b_close_stream_s, _a2b_close_stream_r) = mpsc::unbounded_channel();
-
-        Stream::new(
-            Pid::fake(0),
-            Pid::fake(1),
-            Sid::new(0),
-            0u8,
-            promises,
-            1_000_000,
-            Arc::new(AtomicBool::new(true)),
-            a2b_msg_s,
-            b2a_msg_recv_r,
-            a2b_close_stream_s,
-        )
+        StreamParams { promises }
     }
 
     #[test]
     fn serialize_test() {
-        let msg = Message::serialize("abc", &stub_stream(false));
+        let msg = Message::serialize("abc", stub_stream(false));
         assert_eq!(msg.data.len(), 11);
         assert_eq!(msg.data[0], 3);
         assert_eq!(msg.data[1..7], [0, 0, 0, 0, 0, 0]);
@@ -221,7 +201,7 @@ mod tests {
     #[cfg(feature = "compression")]
     #[test]
     fn serialize_compress_small() {
-        let msg = Message::serialize("abc", &stub_stream(true));
+        let msg = Message::serialize("abc", stub_stream(true));
         assert_eq!(msg.data.len(), 12);
         assert_eq!(msg.data[0], 176);
         assert_eq!(msg.data[1], 3);
@@ -245,7 +225,7 @@ mod tests {
             0,
             "assets/data/plants/flowers/greenrose.ron",
         );
-        let msg = Message::serialize(&msg, &stub_stream(true));
+        let msg = Message::serialize(&msg, stub_stream(true));
         assert_eq!(msg.data.len(), 79);
         assert_eq!(msg.data[0], 34);
         assert_eq!(msg.data[1], 5);
@@ -275,7 +255,7 @@ mod tests {
                 _ => {},
             }
         }
-        let msg = Message::serialize(&msg, &stub_stream(true));
+        let msg = Message::serialize(&msg, stub_stream(true));
         assert_eq!(msg.data.len(), 1331);
     }
 }

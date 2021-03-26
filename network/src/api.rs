@@ -22,7 +22,7 @@ use std::{
 use tokio::{
     io,
     runtime::Runtime,
-    sync::{mpsc, oneshot, Mutex},
+    sync::{mpsc, oneshot, watch, Mutex},
 };
 use tracing::*;
 
@@ -48,6 +48,7 @@ pub struct Participant {
     remote_pid: Pid,
     a2b_open_stream_s: Mutex<mpsc::UnboundedSender<A2bStreamOpen>>,
     b2a_stream_opened_r: Mutex<mpsc::UnboundedReceiver<Stream>>,
+    b2a_bandwidth_stats_r: watch::Receiver<f32>,
     a2s_disconnect_s: A2sDisconnect,
 }
 
@@ -117,6 +118,12 @@ pub enum StreamError {
     #[cfg(feature = "compression")]
     Compression(DecodeError),
     Deserialize(bincode::Error),
+}
+
+/// All Parameters of a Stream, can be used to generate RawMessages
+#[derive(Debug, Clone)]
+pub struct StreamParams {
+    pub(crate) promises: Promises,
 }
 
 /// Use the `Network` to create connections to other [`Participants`]
@@ -487,6 +494,7 @@ impl Participant {
         remote_pid: Pid,
         a2b_open_stream_s: mpsc::UnboundedSender<A2bStreamOpen>,
         b2a_stream_opened_r: mpsc::UnboundedReceiver<Stream>,
+        b2a_bandwidth_stats_r: watch::Receiver<f32>,
         a2s_disconnect_s: mpsc::UnboundedSender<(Pid, S2bShutdownBparticipant)>,
     ) -> Self {
         Self {
@@ -494,6 +502,7 @@ impl Participant {
             remote_pid,
             a2b_open_stream_s: Mutex::new(a2b_open_stream_s),
             b2a_stream_opened_r: Mutex::new(b2a_stream_opened_r),
+            b2a_bandwidth_stats_r,
             a2s_disconnect_s: Arc::new(Mutex::new(Some(a2s_disconnect_s))),
         }
     }
@@ -715,6 +724,10 @@ impl Participant {
         }
     }
 
+    /// Returns the current approximation on the maximum bandwidth available.
+    /// This WILL fluctuate based on the amount/size of send messages.
+    pub fn bandwidth(&self) -> f32 { *self.b2a_bandwidth_stats_r.borrow() }
+
     /// Returns the remote [`Pid`](network_protocol::Pid)
     pub fn remote_pid(&self) -> Pid { self.remote_pid }
 }
@@ -803,7 +816,7 @@ impl Stream {
     /// [`Serialized`]: Serialize
     #[inline]
     pub fn send<M: Serialize>(&mut self, msg: M) -> Result<(), StreamError> {
-        self.send_raw(&Message::serialize(&msg, &self))
+        self.send_raw(&Message::serialize(&msg, self.params()))
     }
 
     /// This methods give the option to skip multiple calls of [`bincode`] and
@@ -837,7 +850,7 @@ impl Stream {
     ///     let mut stream_b = participant_b.opened().await?;
     ///
     ///     //Prepare Message and decode it
-    ///     let msg = Message::serialize("Hello World", &stream_a);
+    ///     let msg = Message::serialize("Hello World", stream_a.params());
     ///     //Send same Message to multiple Streams
     ///     stream_a.send_raw(&msg);
     ///     stream_b.send_raw(&msg);
@@ -858,7 +871,7 @@ impl Stream {
             return Err(StreamError::StreamClosed);
         }
         #[cfg(debug_assertions)]
-        message.verify(&self);
+        message.verify(self.params());
         self.a2b_msg_s.send((self.sid, message.data.clone()))?;
         Ok(())
     }
@@ -999,7 +1012,7 @@ impl Stream {
                     Message {
                         data,
                         #[cfg(feature = "compression")]
-                        compressed: self.promises().contains(Promises::COMPRESSED),
+                        compressed: self.promises.contains(Promises::COMPRESSED),
                     }
                     .deserialize()?,
                 )),
@@ -1013,7 +1026,11 @@ impl Stream {
         }
     }
 
-    pub fn promises(&self) -> Promises { self.promises }
+    pub fn params(&self) -> StreamParams {
+        StreamParams {
+            promises: self.promises,
+        }
+    }
 }
 
 impl core::cmp::PartialEq for Participant {

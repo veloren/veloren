@@ -6,7 +6,7 @@ use crate::{
     frame::InitFrame,
     handshake::{ReliableDrain, ReliableSink},
     metrics::ProtocolMetricCache,
-    types::Bandwidth,
+    types::{Bandwidth, Promises},
     RecvProtocol, SendProtocol, UnreliableDrain, UnreliableSink,
 };
 use async_trait::async_trait;
@@ -57,6 +57,16 @@ where
             metrics,
         }
     }
+
+    /// returns all promises that this Protocol can take care of
+    /// If you open a Stream anyway, unsupported promises are ignored.
+    pub fn supported_promises() -> Promises {
+        Promises::ORDERED
+            | Promises::CONSISTENCY
+            | Promises::GUARANTEED_DELIVERY
+            | Promises::COMPRESSED
+            | Promises::ENCRYPTED /*assume a direct mpsc connection is secure*/
+    }
 }
 
 impl<S> MpscRecvProtocol<S>
@@ -102,7 +112,9 @@ where
         }
     }
 
-    async fn flush(&mut self, _: Bandwidth, _: Duration) -> Result<(), ProtocolError> { Ok(()) }
+    async fn flush(&mut self, _: Bandwidth, _: Duration) -> Result<Bandwidth, ProtocolError> {
+        Ok(0)
+    }
 }
 
 #[async_trait]
