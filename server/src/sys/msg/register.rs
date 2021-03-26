@@ -1,4 +1,9 @@
-use crate::{EditableSettings, client::Client, login_provider::{LoginError, LoginProvider, PendingLogin}, metrics::PlayerMetrics};
+use crate::{
+    client::Client,
+    login_provider::{LoginProvider, PendingLogin},
+    metrics::PlayerMetrics,
+    EditableSettings,
+};
 use common::{
     comp::{Admin, Player, Stats},
     event::{EventBus, ServerEvent},
@@ -125,42 +130,38 @@ impl<'a> System<'a> for Sys {
                         finished_pending.push(entity);
                         trace!(?r, "pending login returned");
                         match r {
-                            Err(LoginError::RegisterError(e)) => {
+                            Err(e) => {
                                 client.send(ServerRegisterAnswer::Err(e))?;
-                                return Ok(());
-                            }
-                            Err(LoginError::AlreadyLoggedIn(uuid, ref username)) => {
-                                if let Some((old_entity, old_client, _)) =
-                                    (&entities, &clients, &players)
-                                        .join()
-                                        .find(|(_, _, old_player)| old_player.uuid() == uuid)
-                                {
-                                    // Remove old client
-                                    server_event_bus
-                                        .emit_now(ServerEvent::ClientDisconnect(old_entity));
-                                    let _ = old_client.send(ServerGeneral::Disconnect(
-                                        DisconnectReason::Kicked(String::from(
-                                            "You have logged in from another location.",
-                                        )),
-                                    ));
-                                    // We can't login the new client right now as the
-                                    // removal of the old client and player occurs later in
-                                    // the tick, so we instead setup the new login to be
-                                    // processed in the next tick
-                                    // Create "fake" successful pending auth and mark it to
-                                    // be inserted into pending_logins at the end of this
-                                    // run
-                                    retries.push((
-                                        entity,
-                                        PendingLogin::new_success(username.to_string(), uuid),
-                                    ));
-                                }
                                 return Ok(());
                             },
                             Ok((username, uuid)) => (username, uuid),
                         }
                     },
                 };
+
+                // Check if user is already logged-in
+                if let Some((old_entity, old_client, _)) = (&entities, &clients, &players)
+                    .join()
+                    .find(|(_, _, old_player)| old_player.uuid() == uuid)
+                {
+                    // Remove old client
+                    server_event_bus.emit_now(ServerEvent::ClientDisconnect(old_entity));
+                    let _ = old_client.send(ServerGeneral::Disconnect(DisconnectReason::Kicked(
+                        String::from("You have logged in from another location."),
+                    )));
+                    // We can't login the new client right now as the
+                    // removal of the old client and player occurs later in
+                    // the tick, so we instead setup the new login to be
+                    // processed in the next tick
+                    // Create "fake" successful pending auth and mark it to
+                    // be inserted into pending_logins at the end of this
+                    // run
+                    retries.push((
+                        entity,
+                        PendingLogin::new_success(username.to_string(), uuid),
+                    ));
+                    return Ok(());
+                }
 
                 let player = Player::new(username, uuid);
                 let is_admin = editable_settings.admins.contains(&uuid);

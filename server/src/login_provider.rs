@@ -43,19 +43,6 @@ impl PendingLogin {
 impl Component for PendingLogin {
     type Storage = IdvStorage<Self>;
 }
-
-#[derive(Debug)]
-pub enum LoginError {
-    AlreadyLoggedIn(Uuid, String),
-    RegisterError(RegisterError),
-}
-
-impl From<RegisterError> for LoginError {
-    fn from(inner: RegisterError) -> LoginError {
-        LoginError::RegisterError(inner)
-    }
-}
-
 pub struct LoginProvider {
     runtime: Arc<Runtime>,
     accounts: HashMap<Uuid, String>,
@@ -86,11 +73,7 @@ impl LoginProvider {
         }
     }
 
-    fn login(&mut self, uuid: Uuid, username: String) -> Result<(), LoginError> {
-        // make sure that the user is not logged in already
-        if self.accounts.contains_key(&uuid) {
-            return Err(LoginError::AlreadyLoggedIn(uuid, username));
-        }
+    fn login(&mut self, uuid: Uuid, username: String) -> Result<(), RegisterError> {
         info!(?username, "New User");
         self.accounts.insert(uuid, username);
         Ok(())
@@ -133,7 +116,7 @@ impl LoginProvider {
         admins: &HashSet<Uuid>,
         whitelist: &HashSet<Uuid>,
         banlist: &HashMap<Uuid, BanRecord>,
-    ) -> Option<Result<(String, Uuid), LoginError>> {
+    ) -> Option<Result<(String, Uuid), RegisterError>> {
         match pending.pending_r.try_recv() {
             Ok(Err(e)) => Some(Err(e.into())),
             Ok(Ok((username, uuid))) => {
