@@ -20,7 +20,7 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission) {
     // Natural attenuation of air (air naturally attenuates light that passes through it)
     // Simulate the atmosphere thinning as you get higher. Not physically accurate, but then
     // it can't be since Veloren's world is flat, not spherical.
-    float atmosphere_alt = CLOUD_AVG_ALT * 8.0;
+    float atmosphere_alt = CLOUD_AVG_ALT + 40000.0;
     float air = 0.00005 * clamp((atmosphere_alt - pos.z) / 20000, 0, 1);
 
     // Mist sits close to the ground in valleys (TODO: use base_alt to put it closer to water)
@@ -56,7 +56,7 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission) {
             + 4 * (noise_2d(wind_pos.xy / 20000) - 0.5)
             + 1 * (noise_3d(wind_pos / 1000) - 0.5);
 
-        const float CLOUD_DEPTH = 4000.0;
+        float CLOUD_DEPTH = (view_distance.w - view_distance.z) * 0.8;
         const float CLOUD_DENSITY = 5.0;
         const float CLOUD_ALT_VARI_WIDTH = 100000.0;
         const float CLOUD_ALT_VARI_SCALE = 5000.0;
@@ -73,7 +73,7 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission) {
             + 0.5 * (noise_3d((wind_pos + turb_offset * 0.5) / 250.0 / cloud_scale) - 0.5)
         #endif
         #if (CLOUD_MODE >= CLOUD_MODE_HIGH)
-            + 0.25 * (noise_3d(wind_pos / 50.0 / cloud_scale) - 0.5)
+            + 0.5 * (noise_3d(wind_pos / 150.0 / cloud_scale) - 0.5)
         #endif
         ) * 0.01;
         cloud = pow(cloud, 3) * sign(cloud);
@@ -86,7 +86,7 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission) {
             0.25 * (cloud_broad_a - cloud_broad_b + (0.25 * (noise_3d(wind_pos / 4000 / cloud_scale) - 0.5) + 0.1 * (noise_3d(wind_pos / 1000 / cloud_scale) - 0.5)))
         #if (CLOUD_MODE >= CLOUD_MODE_HIGH)
             // More noise
-            /* + 0.01 * (noise_3d(wind_pos / 200) / cloud_scale - 0.5) */
+            + 0.01 * (noise_3d(wind_pos / 500) / cloud_scale - 0.5)
         #endif
         ) * 4.0 - 0.7, -1, 1) + 1.0);
         // Since we're assuming the sun/moon is always above (not always correct) it's the same for the moon
@@ -152,13 +152,13 @@ const float DIST_CAP = 50000;
 #if (CLOUD_MODE == CLOUD_MODE_ULTRA)
     const uint QUALITY = 200u;
 #elif (CLOUD_MODE == CLOUD_MODE_HIGH)
-    const uint QUALITY = 50u;
+    const uint QUALITY = 40u;
 #elif (CLOUD_MODE == CLOUD_MODE_MEDIUM)
-    const uint QUALITY = 24u;
+    const uint QUALITY = 18u;
 #elif (CLOUD_MODE == CLOUD_MODE_LOW)
-    const uint QUALITY = 12u;
+    const uint QUALITY = 6u;
 #elif (CLOUD_MODE == CLOUD_MODE_MINIMAL)
-    const uint QUALITY = 4u;
+    const uint QUALITY = 2u;
 #endif
 
 const float STEP_SCALE = DIST_CAP / (10.0 * float(QUALITY));

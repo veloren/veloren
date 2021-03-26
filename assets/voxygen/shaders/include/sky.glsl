@@ -76,7 +76,7 @@ vec3 glow_light(vec3 pos) {
 //    return normalize(-vec3(sin(moon_angle_rad), 0.0, cos(moon_angle_rad) - 0.5));
 //}
 
-float CLOUD_AVG_ALT = view_distance.z + (view_distance.w - view_distance.z) * 1.0;
+float CLOUD_AVG_ALT = view_distance.z + (view_distance.w - view_distance.z) * 1.25;
 
 const float wind_speed = 0.25;
 vec2 wind_offset = vec2(time_of_day.x * wind_speed);
@@ -100,9 +100,7 @@ float cloud_shadow(vec3 pos, vec3 light_dir) {
         float fade = 1.0 - clamp((length(xy_offset) - FADE_RANGE.x) / (FADE_RANGE.y - FADE_RANGE.x), 0, 1);
         float cloud = cloud_tendency_at(pos.xy + focus_off.xy - xy_offset);
 
-        cloud = cloud * 15.0;
-
-        return clamp(1 - fade * cloud * 1.65, 0, 1);
+        return clamp(1 - fade * cloud * 16.0, 0, 1);
     #endif
 }
 
