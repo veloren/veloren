@@ -9,5 +9,5 @@ ItemDef(
         ),
     )),
     quality: Low,
-    tags: [],
+    tags: [ClothItem],
 )

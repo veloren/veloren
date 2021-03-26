@@ -9,5 +9,5 @@ ItemDef(
         ),
     )),
     quality: Common,
-    tags: [],
+    tags: [LeatherItem],
 )

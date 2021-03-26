@@ -391,6 +391,13 @@
             (Item("common.items.crafting_tools.sewing_set"), 0),
         ],
     ),
+    "leather_scraps": (
+        ("common.items.crafting_ing.leather_scraps", 1),
+        [
+            (Tag(LeatherItem), 1),
+            (Item("common.items.crafting_tools.sewing_set"), 0),
+        ],
+    ),
     //"metal_blade": (
     //    ("common.items.crafting_ing.modular.damage.sword.metal_blade", 1),
     //    [
