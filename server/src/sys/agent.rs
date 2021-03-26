@@ -2202,12 +2202,14 @@ impl<'a> AgentData<'a> {
                 }
             },
             Tactic::Mindflayer => {
-                const MINDFLAYER_ATTACK_DIST: f32 = 15.0;
-                const MINION_SUMMON_THRESHOLD: f32 = 0.25;
+                const MINDFLAYER_ATTACK_DIST: f32 = 17.5;
+                const MINION_SUMMON_THRESHOLD: f32 = 0.20;
                 let health_fraction = self.health.map_or(0.5, |h| h.fraction());
-                // Extreme hack to set action_timer to 1 at start of combat
-                if agent.action_timer < 0.01 && health_fraction > 0.5 {
-                    agent.action_timer = 1.0 - MINION_SUMMON_THRESHOLD;
+                // Extreme hack to set action_timer at start of combat
+                if agent.action_timer < MINION_SUMMON_THRESHOLD
+                    && health_fraction > MINION_SUMMON_THRESHOLD
+                {
+                    agent.action_timer = health_fraction - MINION_SUMMON_THRESHOLD;
                 }
                 let mindflayer_is_far = dist_sqrd > MINDFLAYER_ATTACK_DIST.powi(2);
                 if agent.action_timer > health_fraction {
