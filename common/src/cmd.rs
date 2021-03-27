@@ -41,6 +41,7 @@ pub enum ChatCommand {
     Ban,
     Build,
     BuildAreaAdd,
+    BuildAreaList,
     BuildAreaRemove,
     Campfire,
     Debug,
@@ -100,6 +101,7 @@ pub static CHAT_COMMANDS: &[ChatCommand] = &[
     ChatCommand::Ban,
     ChatCommand::Build,
     ChatCommand::BuildAreaAdd,
+    ChatCommand::BuildAreaList,
     ChatCommand::BuildAreaRemove,
     ChatCommand::Campfire,
     ChatCommand::Debug,
@@ -259,6 +261,7 @@ impl ChatCommand {
                 "Adds a new build area",
                 Admin,
             ),
+            ChatCommand::BuildAreaList => cmd(vec![], "List all build areas", Admin),
             ChatCommand::BuildAreaRemove => cmd(
                 vec![Any("name", Required)],
                 "Removes specified build area",
@@ -397,7 +400,7 @@ impl ChatCommand {
                 Admin,
             ),
             ChatCommand::PermitBuild => cmd(
-                vec![PlayerName(Required), Any("area_name", Required)],
+                vec![Any("area_name", Required)],
                 "Grants player a bounded box they can build in",
                 Admin,
             ),
@@ -408,13 +411,13 @@ impl ChatCommand {
                 Admin,
             ),
             ChatCommand::RevokeBuild => cmd(
-                vec![PlayerName(Required), Any("area_name", Required)],
-                "Revokes build area permission for given player",
+                vec![Any("area_name", Required)],
+                "Revokes build area permission for player",
                 Admin,
             ),
             ChatCommand::RevokeBuildAll => cmd(
-                vec![PlayerName(Required)],
-                "Revokes all build area permissions for given player",
+                vec![],
+                "Revokes all build area permissions for player",
                 Admin,
             ),
             ChatCommand::Region => cmd(
@@ -504,6 +507,7 @@ impl ChatCommand {
             ChatCommand::Ban => "ban",
             ChatCommand::Build => "build",
             ChatCommand::BuildAreaAdd => "build_area_add",
+            ChatCommand::BuildAreaList => "build_area_list",
             ChatCommand::BuildAreaRemove => "build_area_remove",
             ChatCommand::Campfire => "campfire",
             ChatCommand::Debug => "debug",

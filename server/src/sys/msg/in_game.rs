@@ -104,14 +104,17 @@ impl Sys {
             },
             ClientGeneral::BreakBlock(pos) => {
                 if let Some(comp_can_build) = can_build.get(entity) {
-                    if comp_can_build.building_is_on {
+                    if comp_can_build.enabled {
                         for area in comp_can_build.build_areas.iter() {
-                            if let Some(aabb) = build_areas.areas.get(*area) {
-                                if aabb.contains_point(pos) {
-                                    if let Ok(block) = terrain.get(pos) {
-                                        block_changes.set(pos, block.into_vacant());
-                                    }
-                                }
+                            if let Some(block) = build_areas
+                                .areas
+                                .get(*area)
+                                // TODO: Make this an exclusive check on the upper bound of the AABB
+                                // Vek defaults to inclusive which is not optimal
+                                .filter(|aabb| aabb.contains_point(pos))
+                                .and_then(|_| terrain.get(pos).ok())
+                            {
+                                block_changes.set(pos, block.into_vacant());
                             }
                         }
                     }
@@ -119,12 +122,17 @@ impl Sys {
             },
             ClientGeneral::PlaceBlock(pos, block) => {
                 if let Some(comp_can_build) = can_build.get(entity) {
-                    if comp_can_build.building_is_on {
+                    if comp_can_build.enabled {
                         for area in comp_can_build.build_areas.iter() {
-                            if let Some(aabb) = build_areas.areas.get(*area) {
-                                if aabb.contains_point(pos) {
-                                    block_changes.try_set(pos, block);
-                                }
+                            if build_areas
+                                .areas
+                                .get(*area)
+                                // TODO: Make this an exclusive check on the upper bound of the AABB
+                                // Vek defaults to inclusive which is not optimal
+                                .filter(|aabb| aabb.contains_point(pos))
+                                .is_some()
+                            {
+                                block_changes.try_set(pos, block);
                             }
                         }
                     }

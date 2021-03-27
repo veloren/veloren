@@ -34,6 +34,7 @@ use common_sys::state::BuildAreas;
 use rand::Rng;
 use specs::{Builder, Entity as EcsEntity, Join, WorldExt};
 use std::{
+    collections::HashSet,
     convert::TryFrom,
     ops::{Deref, DerefMut},
     time::Duration,
@@ -87,6 +88,7 @@ fn get_handler(cmd: &ChatCommand) -> CommandHandler {
         ChatCommand::Ban => handle_ban,
         ChatCommand::Build => handle_build,
         ChatCommand::BuildAreaAdd => handle_build_area_add,
+        ChatCommand::BuildAreaList => handle_build_area_list,
         ChatCommand::BuildAreaRemove => handle_build_area_remove,
         ChatCommand::Campfire => handle_spawn_campfire,
         ChatCommand::Debug => handle_debug,
@@ -1129,60 +1131,42 @@ fn handle_safezone(
 fn handle_permit_build(
     server: &mut Server,
     client: EcsEntity,
-    _target: EcsEntity,
+    target: EcsEntity,
     args: String,
     action: &ChatCommand,
 ) {
-    if let (Some(target_alias), Some(area_name)) =
-        scan_fmt_some!(&args, &action.arg_fmt(), String, String)
-    {
+    if let Some(area_name) = scan_fmt_some!(&args, &action.arg_fmt(), String) {
         let ecs = server.state.ecs();
-        let target_player_opt = (&ecs.entities(), &ecs.read_storage::<comp::Player>())
-            .join()
-            .find(|(_, player)| player.alias == target_alias)
-            .map(|(entity, _)| entity);
-
-        if let Some(target_player) = target_player_opt {
-            if server
-                .state
-                .read_storage::<comp::CanBuild>()
-                .get(target_player)
-                .is_none()
+        if server
+            .state
+            .read_storage::<comp::CanBuild>()
+            .get(target)
+            .is_none()
+        {
+            let _ = ecs
+                .write_storage::<comp::CanBuild>()
+                .insert(target, comp::CanBuild {
+                    enabled: false,
+                    build_areas: HashSet::new(),
+                });
+        }
+        if let Some(bb_id) = ecs
+            .read_resource::<BuildAreas>()
+            .deref()
+            .area_names
+            .get(&area_name)
+        {
+            if let Some(mut comp_can_build) = ecs.write_storage::<comp::CanBuild>().get_mut(target)
             {
-                let _ =
-                    ecs.write_storage::<comp::CanBuild>()
-                        .insert(target_player, comp::CanBuild {
-                            building_is_on: false,
-                            build_areas: Vec::new(),
-                        });
+                comp_can_build.build_areas.insert(*bb_id);
+                server.notify_client(
+                    client,
+                    ServerGeneral::server_msg(
+                        ChatType::CommandInfo,
+                        format!("Permission to build in {} granted", area_name),
+                    ),
+                );
             }
-            if let Some(bb_id) = ecs
-                .read_resource::<BuildAreas>()
-                .deref()
-                .area_names
-                .get(&area_name)
-            {
-                if let Some(mut comp_can_build) =
-                    ecs.write_storage::<comp::CanBuild>().get_mut(target_player)
-                {
-                    comp_can_build.build_areas.push(*bb_id);
-                    server.notify_client(
-                        client,
-                        ServerGeneral::server_msg(
-                            ChatType::CommandInfo,
-                            format!("Gave {} permission to build in {}", target_alias, area_name),
-                        ),
-                    );
-                }
-            }
-        } else {
-            server.notify_client(
-                client,
-                ServerGeneral::server_msg(
-                    ChatType::CommandError,
-                    format!("Player '{}' not found!", target_alias),
-                ),
-            );
         }
     } else {
         server.notify_client(
@@ -1195,50 +1179,29 @@ fn handle_permit_build(
 fn handle_revoke_build(
     server: &mut Server,
     client: EcsEntity,
-    _target: EcsEntity,
+    target: EcsEntity,
     args: String,
     action: &ChatCommand,
 ) {
-    if let (Some(target_alias), Some(area_name)) =
-        scan_fmt_some!(&args, &action.arg_fmt(), String, String)
-    {
+    if let Some(area_name) = scan_fmt_some!(&args, &action.arg_fmt(), String) {
         let ecs = server.state.ecs();
-        let target_player_opt = (&ecs.entities(), &ecs.read_storage::<comp::Player>())
-            .join()
-            .find(|(_, player)| player.alias == target_alias)
-            .map(|(entity, _)| entity);
-
-        if let Some(target_player) = target_player_opt {
-            if let Some(bb_id) = ecs
-                .read_resource::<BuildAreas>()
-                .deref()
-                .area_names
-                .get(&area_name)
+        if let Some(bb_id) = ecs
+            .read_resource::<BuildAreas>()
+            .deref()
+            .area_names
+            .get(&area_name)
+        {
+            if let Some(mut comp_can_build) = ecs.write_storage::<comp::CanBuild>().get_mut(target)
             {
-                if let Some(mut comp_can_build) =
-                    ecs.write_storage::<comp::CanBuild>().get_mut(target_player)
-                {
-                    comp_can_build.build_areas.retain(|&x| x != *bb_id);
-                    server.notify_client(
-                        client,
-                        ServerGeneral::server_msg(
-                            ChatType::CommandInfo,
-                            format!(
-                                "Revoked {}'s permission to build in {}",
-                                target_alias, area_name
-                            ),
-                        ),
-                    );
-                }
+                comp_can_build.build_areas.retain(|&x| x != *bb_id);
+                server.notify_client(
+                    client,
+                    ServerGeneral::server_msg(
+                        ChatType::CommandInfo,
+                        format!("Permission to build in {} revoked", area_name),
+                    ),
+                );
             }
-        } else {
-            server.notify_client(
-                client,
-                ServerGeneral::server_msg(
-                    ChatType::CommandError,
-                    format!("Player '{}' not found!", target_alias),
-                ),
-            );
         }
     } else {
         server.notify_client(
@@ -1251,41 +1214,17 @@ fn handle_revoke_build(
 fn handle_revoke_build_all(
     server: &mut Server,
     client: EcsEntity,
-    _target: EcsEntity,
-    args: String,
-    action: &ChatCommand,
+    target: EcsEntity,
+    _args: String,
+    _action: &ChatCommand,
 ) {
-    if let Some(target_alias) = scan_fmt_some!(&args, &action.arg_fmt(), String) {
-        let ecs = server.state.ecs();
-        let target_player_opt = (&ecs.entities(), &ecs.read_storage::<comp::Player>())
-            .join()
-            .find(|(_, player)| player.alias == target_alias)
-            .map(|(entity, _)| entity);
+    let ecs = server.state.ecs();
 
-        if let Some(target_player) = target_player_opt {
-            ecs.write_storage::<comp::CanBuild>().remove(target_player);
-            server.notify_client(
-                client,
-                ServerGeneral::server_msg(
-                    ChatType::CommandInfo,
-                    format!("Revoked {}'s permission to build everywhere", target_alias),
-                ),
-            );
-        } else {
-            server.notify_client(
-                client,
-                ServerGeneral::server_msg(
-                    ChatType::CommandError,
-                    format!("Player '{}' not found!", target_alias),
-                ),
-            );
-        }
-    } else {
-        server.notify_client(
-            client,
-            ServerGeneral::server_msg(ChatType::CommandError, action.help_string()),
-        );
-    }
+    ecs.write_storage::<comp::CanBuild>().remove(target);
+    server.notify_client(
+        client,
+        ServerGeneral::server_msg(ChatType::CommandInfo, "All build permissions revoked"),
+    );
 }
 
 fn handle_players(
@@ -1328,14 +1267,14 @@ fn handle_build(
         .write_storage::<comp::CanBuild>()
         .get_mut(target)
     {
-        if can_build.building_is_on {
-            can_build.building_is_on = false;
+        if can_build.enabled {
+            can_build.enabled = false;
             server.notify_client(
                 client,
                 ServerGeneral::server_msg(ChatType::CommandInfo, "Toggled off build mode!"),
             );
         } else {
-            can_build.building_is_on = true;
+            can_build.enabled = true;
             server.notify_client(
                 client,
                 ServerGeneral::server_msg(ChatType::CommandInfo, "Toggled on build mode!"),
@@ -1371,13 +1310,28 @@ fn handle_build_area_add(
         i32
     ) {
         let ecs = server.state.ecs();
+        if ecs
+            .read_resource::<BuildAreas>()
+            .deref()
+            .area_names
+            .contains_key(&area_name)
+        {
+            server.notify_client(
+                client,
+                ServerGeneral::server_msg(
+                    ChatType::CommandError,
+                    format!("Build zone {} already exists!", area_name),
+                ),
+            );
+            return;
+        }
         let bb_id = ecs
             .write_resource::<BuildAreas>()
             .deref_mut()
             .areas
             .insert(Aabb {
-                min: Vec3::new(xlo, ylo, zlo),
-                max: Vec3::new(xhi, yhi, zhi),
+                min: Vec3::new(xlo.min(xhi), ylo.min(yhi), zlo.min(zhi)),
+                max: Vec3::new(xhi.max(xlo), yhi.max(ylo), zhi.max(zlo)),
             });
         ecs.write_resource::<BuildAreas>()
             .deref_mut()
@@ -1391,6 +1345,34 @@ fn handle_build_area_add(
             ),
         );
     }
+}
+
+fn handle_build_area_list(
+    server: &mut Server,
+    client: EcsEntity,
+    _target: EcsEntity,
+    _args: String,
+    _action: &ChatCommand,
+) {
+    let ecs = server.state.ecs();
+    let build_areas = ecs.read_resource::<BuildAreas>();
+
+    server.notify_client(
+        client,
+        ServerGeneral::server_msg(
+            ChatType::CommandInfo,
+            build_areas.area_names.iter().fold(
+                "Build Areas:".to_string(),
+                |acc, (area_name, bb_id)| {
+                    if let Some(aabb) = build_areas.areas.get(*bb_id) {
+                        format!("{}\n{}: {} to {}", acc, area_name, aabb.min, aabb.max)
+                    } else {
+                        acc
+                    }
+                },
+            ),
+        ),
+    );
 }
 
 fn handle_build_area_remove(

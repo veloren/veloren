@@ -317,7 +317,7 @@ impl PlayState for SessionState {
                 .state()
                 .read_storage::<comp::CanBuild>()
                 .get(player_entity)
-                .map_or_else(|| false, |cb| cb.building_is_on);
+                .map_or_else(|| false, |cb| cb.enabled);
 
             let is_mining = self
                 .client
