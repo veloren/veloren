@@ -1325,14 +1325,13 @@ fn handle_build_area_add(
             );
             return;
         }
-        let bb_id = ecs
-            .write_resource::<BuildAreas>()
-            .deref_mut()
-            .areas
-            .insert(Aabb {
-                min: Vec3::new(xlo.min(xhi), ylo.min(yhi), zlo.min(zhi)),
-                max: Vec3::new(xhi.max(xlo), yhi.max(ylo), zhi.max(zlo)),
-            });
+        let bb_id = ecs.write_resource::<BuildAreas>().deref_mut().areas.insert(
+            Aabb {
+                min: Vec3::new(xlo, ylo, zlo),
+                max: Vec3::new(xhi, yhi, zhi),
+            }
+            .made_valid(),
+        );
         ecs.write_resource::<BuildAreas>()
             .deref_mut()
             .area_names
