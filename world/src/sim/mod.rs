@@ -265,7 +265,7 @@ pub type ModernMap = WorldMap_0_7_0;
 /// with changing versions, or at least keep it in a constant somewhere that's
 /// easy to change.
 #[allow(clippy::redundant_static_lifetimes)] // TODO: Pending review in #587
-pub const DEFAULT_WORLD_MAP: &'static str = "world.map.veloren_0_6_0_0";
+pub const DEFAULT_WORLD_MAP: &'static str = "world.map.veloren_0_9_0_0";
 
 impl WorldFileLegacy {
     #[inline]
@@ -462,7 +462,7 @@ impl WorldSim {
         //
         // FIXME: This is a hack!  At some point we will hae a more principled way of
         // dealing with this.
-        let continent_scale_hack = 1.0/*4.0*/;
+        let continent_scale_hack = 2.0/*4.0*/;
         let (parsed_world_file, map_size_lg) = parsed_world_file
             .and_then(|map| match MapSizeLg::new(map.map_size_lg) {
                 Ok(map_size_lg) => Some((Some(map), map_size_lg)),
