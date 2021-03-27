@@ -462,48 +462,50 @@ vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float q
 
     // Replaced all clamp(sun_dir, 0, 1) with max(sun_dir, 0) because sun_dir is calculated from sin and cos, which are never > 1
 
-    /*
-    vec3 sky_top = mix(
-        mix(
-            SKY_DUSK_TOP + star / (1.0 + moon_surf * 100.0),
-            SKY_NIGHT_TOP + star / (1.0 + moon_surf * 100.0),
-            max(pow(sun_dir.z, 0.2), 0)
-        ),
-        SKY_DAY_TOP,
-        max(-sun_dir.z, 0)
-    );
+    #if (CLOUD_MODE == CLOUD_MODE_NONE)
+        vec3 sky_top = mix(
+            mix(
+                SKY_DUSK_TOP + star / (1.0 + moon_surf * 100.0),
+                SKY_NIGHT_TOP + star / (1.0 + moon_surf * 100.0),
+                max(pow(sun_dir.z, 0.2), 0)
+            ),
+            SKY_DAY_TOP,
+            max(-sun_dir.z, 0)
+        );
 
-    vec3 sky_mid = mix(
-        mix( SKY_DUSK_MID,
-            SKY_NIGHT_MID,
-            max(pow(sun_dir.z, 0.2), 0)
-        ),
-        SKY_DAY_MID,
-        max(-sun_dir.z, 0)
-    );
+        vec3 sky_mid = mix(
+            mix( SKY_DUSK_MID,
+                SKY_NIGHT_MID,
+                max(pow(sun_dir.z, 0.2), 0)
+            ),
+            SKY_DAY_MID,
+            max(-sun_dir.z, 0)
+        );
 
-    vec3 sky_bot = mix(
-        mix(
-            SKY_DUSK_BOT,
-            SKY_NIGHT_BOT,
-            max(pow(sun_dir.z, 0.2), 0)
-        ),
-        SKY_DAY_BOT,
-        max(-sun_dir.z, 0)
-    );
+        vec3 sky_bot = mix(
+            mix(
+                SKY_DUSK_BOT,
+                SKY_NIGHT_BOT,
+                max(pow(sun_dir.z, 0.2), 0)
+            ),
+            SKY_DAY_BOT,
+            max(-sun_dir.z, 0)
+        );
 
-    vec3 sky_color = mix(
-        mix(
-            sky_mid,
-            sky_bot,
-            pow(max(-dir.z, 0), 0.4)
-        ),
-        sky_top,
-        max(dir.z, 0)
-    );
-    */
+        vec3 sky_color = mix(
+            mix(
+                sky_mid,
+                sky_bot,
+                pow(max(-dir.z, 0), 0.4)
+            ),
+            sky_top,
+            max(dir.z, 0)
+        );
+    #else
+        vec3 sky_color = vec3(0) + star;
+    #endif
 
-    return star + sun_light + moon_light;
+    return sky_color + sun_light + moon_light;
 }
 
 vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float quality, bool with_stars) {
