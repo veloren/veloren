@@ -159,7 +159,8 @@ enum Mode {
         name_input: text_input::State,
         back_button: button::State,
         create_button: button::State,
-        randomize_button: button::State,
+        rand_character_button: button::State,
+        rand_name_button: button::State,
     },
 }
 
@@ -200,7 +201,8 @@ impl Mode {
             name_input: Default::default(),
             back_button: Default::default(),
             create_button: Default::default(),
-            randomize_button: Default::default(),
+            rand_character_button: Default::default(),
+            rand_name_button: Default::default(),
         }
     }
 }
@@ -244,6 +246,7 @@ enum Message {
     Species(humanoid::Species),
     Tool(&'static str),
     RandomizeCharacter,
+    RandomizeName,
     CancelDeletion,
     ConfirmDeletion,
     ClearCharacterListError,
@@ -548,7 +551,7 @@ impl Controls {
                 ])
                 .height(Length::Fill);
 
-                let right_column = Column::with_children(vec![server.into(), characters.into()])
+                let left_column = Column::with_children(vec![server.into(), characters.into()])
                     .spacing(10)
                     .width(Length::Units(322)) // TODO: see if we can get iced to work with settings below
                     //.max_width(360)
@@ -556,7 +559,7 @@ impl Controls {
                     .height(Length::Fill);
 
                 let top = Row::with_children(vec![
-                    right_column.into(),
+                    left_column.into(),
                     MouseDetector::new(&mut self.mouse_detector, Length::Fill, Length::Fill).into(),
                 ])
                 .padding(15)
@@ -699,7 +702,8 @@ impl Controls {
                 ref mut name_input,
                 ref mut back_button,
                 ref mut create_button,
-                ref mut randomize_button,
+                ref mut rand_character_button,
+                ref mut rand_name_button,
             } => {
                 let unselected_style = style::button::Style::new(imgs.icon_border)
                     .hover_image(imgs.icon_border_mo)
@@ -1038,14 +1042,30 @@ impl Controls {
                 .max_width(200)
                 .padding(5);
 
+                const CHAR_DICE_SIZE: u16 = 50;
+                let rand_character = Button::new(
+                    rand_character_button,
+                    Space::new(Length::Units(CHAR_DICE_SIZE), Length::Units(CHAR_DICE_SIZE)),
+                )
+                .style(
+                    style::button::Style::new(imgs.dice)
+                        .hover_image(imgs.dice_hover)
+                        .press_image(imgs.dice_press),
+                )
+                .on_press(Message::RandomizeCharacter)
+                .with_tooltip(tooltip_manager, move || {
+                    tooltip::text(i18n.get("common.rand_appearance"), tooltip_style)
+                });
+
                 let column_content = vec![
                     body_type.into(),
                     species.into(),
                     tool.into(),
                     slider_options.into(),
+                    rand_character.into(),
                 ];
 
-                let right_column = Container::new(
+                let left_column = Container::new(
                     Scrollable::new(scroll)
                         .push(
                             Column::with_children(column_content)
@@ -1066,8 +1086,8 @@ impl Controls {
                 //.width(Length::Fill)
                 .height(Length::Fill);
 
-                let right_column = Column::with_children(vec![
-                    Container::new(right_column)
+                let left_column = Column::with_children(vec![
+                    Container::new(left_column)
                         .style(style::container::Style::color(Rgba::from_translucent(
                             0,
                             BANNER_ALPHA,
@@ -1084,7 +1104,7 @@ impl Controls {
                 .height(Length::Fill);
 
                 let top = Row::with_children(vec![
-                    right_column.into(),
+                    left_column.into(),
                     MouseDetector::new(&mut self.mouse_detector, Length::Fill, Length::Fill).into(),
                 ])
                 .padding(10)
@@ -1099,19 +1119,19 @@ impl Controls {
                     Some(Message::Back),
                 );
 
-                const DICE_SIZE: u16 = 35;
-                let randomize = Button::new(
-                    randomize_button,
-                    Space::new(Length::Units(DICE_SIZE), Length::Units(DICE_SIZE)),
+                const NAME_DICE_SIZE: u16 = 35;
+                let rand_name = Button::new(
+                    rand_name_button,
+                    Space::new(Length::Units(NAME_DICE_SIZE), Length::Units(NAME_DICE_SIZE)),
                 )
                 .style(
                     style::button::Style::new(imgs.dice)
                         .hover_image(imgs.dice_hover)
                         .press_image(imgs.dice_press),
                 )
-                .on_press(Message::RandomizeCharacter)
+                .on_press(Message::RandomizeName)
                 .with_tooltip(tooltip_manager, move || {
-                    tooltip::text(i18n.get("common.rand_appearance"), tooltip_style)
+                    tooltip::text(i18n.get("common.rand_name"), tooltip_style)
                 });
 
                 let name_input = BackgroundContainer::new(
@@ -1131,9 +1151,10 @@ impl Controls {
 
                 let bottom_center = Container::new(
                     Row::with_children(vec![
-                        randomize.into(),
+                        rand_name.into(),
                         name_input.into(),
-                        Space::new(Length::Units(DICE_SIZE), Length::Units(DICE_SIZE)).into(),
+                        Space::new(Length::Units(NAME_DICE_SIZE), Length::Units(NAME_DICE_SIZE))
+                            .into(),
                     ])
                     .align_items(Align::Center)
                     .spacing(5)
@@ -1270,9 +1291,9 @@ impl Controls {
                     );
                 }
             },
+            //Todo: Add species and body type to randomization.
             Message::RandomizeCharacter => {
-                if let Mode::Create { name, body, .. } = &mut self.mode {
-                    use common::npc;
+                if let Mode::Create { body, .. } = &mut self.mode {
                     use rand::Rng;
                     let body_type = body.body_type;
                     let species = body.species;
@@ -1284,12 +1305,19 @@ impl Controls {
                     body.skin = rng.gen_range(0..species.num_skin_colors());
                     body.eye_color = rng.gen_range(0..species.num_eye_colors());
                     body.eyes = rng.gen_range(0..species.num_eyes(body_type));
+                }
+            },
+
+            Message::RandomizeName => {
+                if let Mode::Create { name, body, .. } = &mut self.mode {
+                    use common::npc;
                     *name = npc::get_npc_name(
                         npc::NpcKind::Humanoid,
                         npc::BodyType::from_body(comp::Body::Humanoid(*body)),
                     );
                 }
             },
+
             Message::ConfirmDeletion => {
                 if let Mode::Select { info_content, .. } = &mut self.mode {
                     if let Some(InfoContent::Deletion(idx)) = info_content {
