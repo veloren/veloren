@@ -1,3 +1,4 @@
+use serde::{Deserialize, Serialize};
 use std::{
     cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd},
     fmt, hash,
@@ -6,6 +7,7 @@ use std::{
 };
 
 /// Type safe index into Depot
+#[derive(Deserialize, Serialize)]
 pub struct Id<T> {
     idx: u32,
     gen: u32,

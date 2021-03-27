@@ -6,6 +6,7 @@ use crate::plugin::PluginMgr;
 use common::uid::UidAllocator;
 use common::{
     comp,
+    depot::{Depot, Id},
     event::{EventBus, LocalEvent, ServerEvent},
     region::RegionMap,
     resources::{DeltaTime, GameMode, PlayerEntity, Time, TimeOfDay},
@@ -38,6 +39,21 @@ const DAY_CYCLE_FACTOR: f64 = 24.0 * 2.0;
 /// this value, the game's physics will begin to produce time lag. Ideally, we'd
 /// avoid such a situation.
 const MAX_DELTA_TIME: f32 = 1.0;
+
+#[derive(Default)]
+pub struct BuildAreas {
+    pub areas: Depot<geom::Aabb<i32>>,
+    pub area_names: HashMap<String, Id<Aabb<i32>>>,
+}
+
+impl BuildAreas {
+    pub fn new() -> Self {
+        Self {
+            areas: Depot::default(),
+            area_names: HashMap::new(),
+        }
+    }
+}
 
 #[derive(Default)]
 pub struct BlockChange {
@@ -204,6 +220,7 @@ impl State {
         ecs.insert(PlayerEntity(None));
         ecs.insert(TerrainGrid::new().unwrap());
         ecs.insert(BlockChange::default());
+        ecs.insert(BuildAreas::new());
         ecs.insert(TerrainChanges::default());
         ecs.insert(EventBus::<LocalEvent>::default());
         ecs.insert(game_mode);

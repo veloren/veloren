@@ -7,7 +7,7 @@ use common::{
 };
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::{ClientGeneral, PresenceKind, ServerGeneral};
-use common_sys::state::BlockChange;
+use common_sys::state::{BlockChange, BuildAreas};
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, Write, WriteStorage};
 use tracing::{debug, trace};
 
@@ -29,6 +29,7 @@ impl Sys {
         orientations: &mut WriteStorage<'_, Ori>,
         controllers: &mut WriteStorage<'_, Controller>,
         settings: &Read<'_, Settings>,
+        build_areas: &Read<'_, BuildAreas>,
         msg: ClientGeneral,
     ) -> Result<(), crate::error::Error> {
         let presence = match maybe_presence {
@@ -102,13 +103,39 @@ impl Sys {
                 }
             },
             ClientGeneral::BreakBlock(pos) => {
-                if let Some(block) = can_build.get(entity).and_then(|_| terrain.get(pos).ok()) {
-                    block_changes.set(pos, block.into_vacant());
+                if let Some(comp_can_build) = can_build.get(entity) {
+                    if comp_can_build.enabled {
+                        for area in comp_can_build.build_areas.iter() {
+                            if let Some(block) = build_areas
+                                .areas
+                                .get(*area)
+                                // TODO: Make this an exclusive check on the upper bound of the AABB
+                                // Vek defaults to inclusive which is not optimal
+                                .filter(|aabb| aabb.contains_point(pos))
+                                .and_then(|_| terrain.get(pos).ok())
+                            {
+                                block_changes.set(pos, block.into_vacant());
+                            }
+                        }
+                    }
                 }
             },
             ClientGeneral::PlaceBlock(pos, block) => {
-                if can_build.get(entity).is_some() {
-                    block_changes.try_set(pos, block);
+                if let Some(comp_can_build) = can_build.get(entity) {
+                    if comp_can_build.enabled {
+                        for area in comp_can_build.build_areas.iter() {
+                            if build_areas
+                                .areas
+                                .get(*area)
+                                // TODO: Make this an exclusive check on the upper bound of the AABB
+                                // Vek defaults to inclusive which is not optimal
+                                .filter(|aabb| aabb.contains_point(pos))
+                                .is_some()
+                            {
+                                block_changes.try_set(pos, block);
+                            }
+                        }
+                    }
                 }
             },
             ClientGeneral::UnlockSkill(skill) => {
@@ -156,6 +183,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Client>,
         WriteStorage<'a, Controller>,
         Read<'a, Settings>,
+        Read<'a, BuildAreas>,
     );
 
     const NAME: &'static str = "msg::in_game";
@@ -180,6 +208,7 @@ impl<'a> System<'a> for Sys {
             mut clients,
             mut controllers,
             settings,
+            build_areas,
         ): Self::SystemData,
     ) {
         let mut server_emitter = server_event_bus.emitter();
@@ -204,6 +233,7 @@ impl<'a> System<'a> for Sys {
                     &mut orientations,
                     &mut controllers,
                     &settings,
+                    &build_areas,
                     msg,
                 )
             });

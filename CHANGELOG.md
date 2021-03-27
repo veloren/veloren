@@ -14,8 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - You can now jump out of rolls for a slight jump boost
 - Dungeons now have multiple kinds of stairs.
 - Trades now display item prices in tooltips.
+- Admin designated build areas
 
 ### Changed
+
+- Permission to build is no longer tied to being an admin
 
 ### Removed
 
