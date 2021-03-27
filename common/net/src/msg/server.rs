@@ -10,7 +10,6 @@ use common::{
     terrain::{Block, TerrainChunk},
     trade::{PendingTrade, SitePrices, TradeId, TradeResult},
     uid::Uid,
-    uuid::Uuid,
 };
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
@@ -192,7 +191,6 @@ pub enum DisconnectReason {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum RegisterError {
-    AlreadyLoggedIn(Uuid, String),
     AuthError(String),
     Banned(String),
     Kicked(String),

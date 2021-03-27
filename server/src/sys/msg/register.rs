@@ -115,7 +115,7 @@ impl<'a> System<'a> for Sys {
                     uid_allocator: &uid_allocator,
                 };
 
-                let (username, uuid) = match login_provider.try_login(
+                let (username, uuid) = match login_provider.login(
                     &mut pending,
                     #[cfg(feature = "plugins")]
                     &ecs_world,
@@ -131,44 +131,34 @@ impl<'a> System<'a> for Sys {
                         trace!(?r, "pending login returned");
                         match r {
                             Err(e) => {
-                                let mut retry = false;
-                                if let RegisterError::AlreadyLoggedIn(uuid, ref username) = e {
-                                    if let Some((old_entity, old_client, _)) =
-                                        (&entities, &clients, &players)
-                                            .join()
-                                            .find(|(_, _, old_player)| old_player.uuid() == uuid)
-                                    {
-                                        // Remove old client
-                                        server_event_bus
-                                            .emit_now(ServerEvent::ClientDisconnect(old_entity));
-                                        let _ = old_client.send(ServerGeneral::Disconnect(
-                                            DisconnectReason::Kicked(String::from(
-                                                "You have logged in from another location.",
-                                            )),
-                                        ));
-                                        // We can't login the new client right now as the
-                                        // removal of the old client and player occurs later in
-                                        // the tick, so we instead setup the new login to be
-                                        // processed in the next tick
-                                        // Create "fake" successful pending auth and mark it to
-                                        // be inserted into pending_logins at the end of this
-                                        // run
-                                        retries.push((
-                                            entity,
-                                            PendingLogin::new_success(username.to_string(), uuid),
-                                        ));
-                                        retry = true;
-                                    }
-                                }
-                                if !retry {
-                                    client.send(ServerRegisterAnswer::Err(e))?;
-                                }
+                                client.send(ServerRegisterAnswer::Err(e))?;
                                 return Ok(());
                             },
                             Ok((username, uuid)) => (username, uuid),
                         }
                     },
                 };
+
+                // Check if user is already logged-in
+                if let Some((old_entity, old_client, _)) = (&entities, &clients, &players)
+                    .join()
+                    .find(|(_, _, old_player)| old_player.uuid() == uuid)
+                {
+                    // Remove old client
+                    server_event_bus.emit_now(ServerEvent::ClientDisconnect(old_entity));
+                    let _ = old_client.send(ServerGeneral::Disconnect(DisconnectReason::Kicked(
+                        String::from("You have logged in from another location."),
+                    )));
+                    // We can't login the new client right now as the
+                    // removal of the old client and player occurs later in
+                    // the tick, so we instead setup the new login to be
+                    // processed in the next tick
+                    // Create "fake" successful pending auth and mark it to
+                    // be inserted into pending_logins at the end of this
+                    // run
+                    retries.push((entity, PendingLogin::new_success(username, uuid)));
+                    return Ok(());
+                }
 
                 let player = Player::new(username, uuid);
                 let is_admin = editable_settings.admins.contains(&uuid);

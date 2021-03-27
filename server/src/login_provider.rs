@@ -46,7 +46,6 @@ impl Component for PendingLogin {
 
 pub struct LoginProvider {
     runtime: Arc<Runtime>,
-    accounts: HashMap<Uuid, String>,
     auth_server: Option<Arc<AuthClient>>,
 }
 
@@ -69,25 +68,8 @@ impl LoginProvider {
 
         Self {
             runtime,
-            accounts: HashMap::new(),
             auth_server,
         }
-    }
-
-    fn login(&mut self, uuid: Uuid, username: String) -> Result<(), RegisterError> {
-        // make sure that the user is not logged in already
-        if self.accounts.contains_key(&uuid) {
-            return Err(RegisterError::AlreadyLoggedIn(uuid, username));
-        }
-        info!(?username, "New User");
-        self.accounts.insert(uuid, username);
-        Ok(())
-    }
-
-    pub fn logout(&mut self, uuid: Uuid) {
-        if self.accounts.remove(&uuid).is_none() {
-            error!(?uuid, "Attempted to logout user that is not logged in.");
-        };
     }
 
     pub fn verify(&self, username_or_token: &str) -> PendingLogin {
@@ -113,7 +95,7 @@ impl LoginProvider {
         PendingLogin { pending_r }
     }
 
-    pub fn try_login(
+    pub fn login(
         &mut self,
         pending: &mut PendingLogin,
         #[cfg(feature = "plugins")] world: &EcsWorld,
@@ -154,11 +136,8 @@ impl LoginProvider {
                     };
                 }
 
-                // add the user to self.accounts
-                match self.login(uuid, username.clone()) {
-                    Ok(()) => Some(Ok((username, uuid))),
-                    Err(e) => Some(Err(e)),
-                }
+                info!(?username, "New User");
+                Some(Ok((username, uuid)))
             },
             Err(tokio::sync::oneshot::error::TryRecvError::Closed) => {
                 error!("channel got closed to early, this shouldn't happen");

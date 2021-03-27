@@ -13,7 +13,6 @@ pub enum Error {
     ServerShutdown,
     TooManyPlayers,
     NotOnWhitelist,
-    AlreadyLoggedIn,
     AuthErr(String),
     AuthClientError(AuthClientError),
     AuthServerUrlInvalid(String),

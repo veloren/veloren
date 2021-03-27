@@ -149,7 +149,6 @@ https://veloren.net/account/.
         "main.login.outdated_client_or_server": "Inkompatible Version",
         "main.login.timeout": "Zeitüberschreitung",
         "main.login.server_shut_down": "Server heruntergefahren",
-        "main.login.already_logged_in": "Ihr seid bereits eingeloggt",
         "main.login.network_error": "Netzwerkfehler",
         "main.login.failed_sending_request": "Authentifizierung fehlgeschlagen",
         "main.login.invalid_character": "Ungültiger Charakter",
