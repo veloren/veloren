@@ -133,7 +133,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Gnoll, _) => (0.0, 15.5),
                 (Haniwa, _) => (0.0, 11.0),
                 (Myrmidon, _) => (0.0, 11.0),
-                (Husk, _) => (0.0, 11.0),
+                (Husk, _) => (0.0, 13.0),
             },
             pants: match (body.species, body.body_type) {
                 (Gnome, _) => (0.0, -3.0),
@@ -146,7 +146,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Gnoll, _) => (0.5, -7.5),
                 (Haniwa, _) => (0.0, -3.5),
                 (Myrmidon, _) => (0.0, -3.0),
-                (Husk, _) => (-1.0, -6.0),
+                (Husk, _) => (-1.0, -3.0),
             },
             tail: match (body.species, body.body_type) {
                 (Gnome, _) => (0.0, 0.0),

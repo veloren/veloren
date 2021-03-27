@@ -1,6 +1,7 @@
 pub mod alpha;
 pub mod beam;
 pub mod beta;
+pub mod blink;
 pub mod charge;
 pub mod dash;
 pub mod equip;
@@ -12,15 +13,16 @@ pub mod shockwave;
 pub mod shoot;
 pub mod spin;
 pub mod spinmelee;
+pub mod summon;
 pub mod wield;
 
 // Reexports
 pub use self::{
-    alpha::AlphaAnimation, beam::BeamAnimation, beta::BetaAnimation, charge::ChargeAnimation,
-    dash::DashAnimation, equip::EquipAnimation, idle::IdleAnimation, jump::JumpAnimation,
-    leapmelee::LeapAnimation, run::RunAnimation, shockwave::ShockwaveAnimation,
-    shoot::ShootAnimation, spin::SpinAnimation, spinmelee::SpinMeleeAnimation,
-    wield::WieldAnimation,
+    alpha::AlphaAnimation, beam::BeamAnimation, beta::BetaAnimation, blink::BlinkAnimation,
+    charge::ChargeAnimation, dash::DashAnimation, equip::EquipAnimation, idle::IdleAnimation,
+    jump::JumpAnimation, leapmelee::LeapAnimation, run::RunAnimation,
+    shockwave::ShockwaveAnimation, shoot::ShootAnimation, spin::SpinAnimation,
+    spinmelee::SpinMeleeAnimation, summon::SummonAnimation, wield::WieldAnimation,
 };
 
 use super::{make_bone, vek::*, FigureBoneData, Skeleton};
@@ -127,7 +129,7 @@ pub struct SkeletonAttr {
     foot: (f32, f32, f32),
     scaler: f32,
     tempo: f32,
-    grip: f32,
+    grip: (f32, f32),
     shl: (f32, f32, f32, f32, f32, f32),
     shr: (f32, f32, f32, f32, f32, f32),
     sc: (f32, f32, f32, f32, f32, f32),
@@ -169,7 +171,7 @@ impl Default for SkeletonAttr {
             foot: (0.0, 0.0, 0.0),
             scaler: 0.0,
             tempo: 0.0,
-            grip: 0.0,
+            grip: (0.0, 0.0),
             shl: (0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
             shr: (0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
             sc: (0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
@@ -259,7 +261,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Occultsaurok, _) => (0.0, -5.0),
                 (Mightysaurok, _) => (0.0, -5.0),
                 (Slysaurok, _) => (0.0, -6.0),
-                (Mindflayer, _) => (3.5, -19.5),
+                (Mindflayer, _) => (3.5, -10.0),
                 (Minotaur, _) => (1.5, -8.5),
                 (Tidalwarrior, _) => (0.0, -9.5),
                 (Yeti, _) => (0.0, -6.5),
@@ -343,7 +345,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Occultsaurok, _) => (3.5, 3.5, -10.0),
                 (Mightysaurok, _) => (3.5, 3.5, -10.0),
                 (Slysaurok, _) => (3.5, 3.5, -10.0),
-                (Mindflayer, _) => (4.5, 1.5, -7.0),
+                (Mindflayer, _) => (4.5, 1.5, -16.0),
                 (Minotaur, _) => (6.0, 4.5, -17.5),
                 (Tidalwarrior, _) => (3.5, 0.5, -10.5),
                 (Yeti, _) => (4.5, 0.5, -12.5),
@@ -380,23 +382,23 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 _ => 1.0,
             },
             grip: match (body.species, body.body_type) {
-                (Ogre, Male) => 13.0,
-                (Ogre, Female) => 8.0,
-                (Cyclops, _) => 12.0,
-                (Wendigo, _) => 15.0,
-                (Troll, _) => 12.0,
-                (Dullahan, _) => 15.0,
-                (Werewolf, _) => 13.0,
-                (Occultsaurok, _) => 10.0,
-                (Mightysaurok, _) => 10.0,
-                (Slysaurok, _) => 10.0,
-                (Mindflayer, _) => 12.0,
-                (Minotaur, _) => 14.0,
-                (Tidalwarrior, _) => 14.0,
-                (Yeti, _) => 12.5,
-                (Harvester, _) => 7.5,
-                (Blueoni, _) => 12.5,
-                (Redoni, _) => 12.5,
+                (Ogre, Male) => (13.0, 0.0),
+                (Ogre, Female) => (8.0, 0.0),
+                (Cyclops, _) => (12.0, 0.0),
+                (Wendigo, _) => (15.0, 0.0),
+                (Troll, _) => (12.0, 0.0),
+                (Dullahan, _) => (15.0, 0.0),
+                (Werewolf, _) => (13.0, 0.0),
+                (Occultsaurok, _) => (10.0, 0.0),
+                (Mightysaurok, _) => (10.0, 0.0),
+                (Slysaurok, _) => (10.0, 0.0),
+                (Mindflayer, _) => (12.0, 2.5),
+                (Minotaur, _) => (14.0, 0.0),
+                (Tidalwarrior, _) => (14.0, 0.0),
+                (Yeti, _) => (12.5, 0.0),
+                (Harvester, _) => (7.5, 0.0),
+                (Blueoni, _) => (12.5, 0.0),
+                (Redoni, _) => (12.5, 0.0),
             },
             shl: match (body.species, body.body_type) {
                 (Dullahan, _) => (-4.75, -11.0, 8.5, 1.47, -0.2, 0.0),

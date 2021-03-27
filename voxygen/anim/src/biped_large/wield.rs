@@ -95,8 +95,8 @@ impl Animation for WieldAnimation {
             next.main.position = Vec3::new(0.0, 0.0, 0.0);
             next.main.orientation = Quaternion::rotation_x(0.0);
 
-            next.hand_l.position = Vec3::new(0.0, 0.0, s_a.grip);
-            next.hand_r.position = Vec3::new(0.0, 0.0, s_a.grip);
+            next.hand_l.position = Vec3::new(s_a.grip.1, 0.0, s_a.grip.0);
+            next.hand_r.position = Vec3::new(-s_a.grip.1, 0.0, s_a.grip.0);
 
             next.hand_l.orientation = Quaternion::rotation_x(0.0);
             next.hand_r.orientation = Quaternion::rotation_x(0.0);
@@ -158,8 +158,8 @@ impl Animation for WieldAnimation {
 
                     next.control.position = Vec3::new(
                         -3.0,
-                        5.0 + s_a.grip / 1.2,
-                        -4.0 + -s_a.grip / 2.0 + short * -1.5,
+                        5.0 + s_a.grip.0 / 1.2,
+                        -4.0 + -s_a.grip.0 / 2.0 + short * -1.5,
                     );
 
                     next.control_l.orientation =
@@ -177,8 +177,8 @@ impl Animation for WieldAnimation {
 
                     next.control.position = Vec3::new(
                         -1.0,
-                        6.0 + s_a.grip / 1.2,
-                        -5.0 + -s_a.grip / 2.0 + short * -1.5,
+                        6.0 + s_a.grip.0 / 1.2,
+                        -5.0 + -s_a.grip.0 / 2.0 + short * -1.5,
                     );
 
                     next.control_l.orientation =
@@ -195,8 +195,11 @@ impl Animation for WieldAnimation {
                     next.control_l.position = Vec3::new(-1.0, 2.0, 12.0);
                     next.control_r.position = Vec3::new(1.0, 2.0, -2.0);
 
-                    next.control.position =
-                        Vec3::new(4.0, 0.0 + s_a.grip / 1.0, -s_a.grip / 0.8 + short * -1.5);
+                    next.control.position = Vec3::new(
+                        4.0,
+                        0.0 + s_a.grip.0 / 1.0,
+                        -s_a.grip.0 / 0.8 + short * -1.5,
+                    );
 
                     next.control_l.orientation =
                         Quaternion::rotation_x(PI / 2.0) * Quaternion::rotation_y(-0.0);
@@ -207,14 +210,15 @@ impl Animation for WieldAnimation {
                     next.control.orientation =
                         Quaternion::rotation_x(-1.0 + short * 0.2) * Quaternion::rotation_y(-1.8);
                 },
-                Some(ToolKind::StaffSimple) => {
+                Some(ToolKind::StaffSimple)
+                | Some(ToolKind::Unique(UniqueKind::MindflayerStaff)) => {
                     next.control_l.position = Vec3::new(-1.0, 3.0, 12.0);
                     next.control_r.position = Vec3::new(1.0, 2.0, 2.0);
 
                     next.control.position = Vec3::new(
                         -3.0,
-                        3.0 + s_a.grip / 1.2,
-                        -11.0 + -s_a.grip / 2.0 + short * -1.5,
+                        3.0 + s_a.grip.0 / 1.2,
+                        -11.0 + -s_a.grip.0 / 2.0 + short * -1.5,
                     );
 
                     next.control_l.orientation =

@@ -406,6 +406,7 @@ impl assets::Compound for AbilityMap {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum UniqueKind {
     StoneGolemFist,
+    Husk,
     BeastClaws,
     WendigoMagic,
     TidalClaws,

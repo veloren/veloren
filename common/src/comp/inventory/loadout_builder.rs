@@ -311,7 +311,7 @@ impl LoadoutBuilder {
                     },
                     (biped_small::Species::Husk, _) => {
                         main_tool = Some(Item::new_from_asset_expect(
-                            "common.items.npc_weapons.unique.quadmedbasic",
+                            "common.items.npc_weapons.unique.husk",
                         ));
                     },
                     _ => {

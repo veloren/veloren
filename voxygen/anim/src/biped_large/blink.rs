@@ -8,9 +8,9 @@ use common::{
 };
 use std::f32::consts::PI;
 
-pub struct SpinMeleeAnimation;
+pub struct BlinkAnimation;
 
-impl Animation for SpinMeleeAnimation {
+impl Animation for BlinkAnimation {
     type Dependency = (
         Option<ToolKind>,
         Option<ToolKind>,
@@ -22,9 +22,9 @@ impl Animation for SpinMeleeAnimation {
     type Skeleton = BipedLargeSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
-    const UPDATE_FN: &'static [u8] = b"biped_large_spinmelee\0";
+    const UPDATE_FN: &'static [u8] = b"biped_large_blink\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_large_spinmelee")]
+    #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_large_blink")]
     #[allow(clippy::approx_constant)] // TODO: Pending review in #587
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
@@ -35,7 +35,6 @@ impl Animation for SpinMeleeAnimation {
     ) -> Self::Skeleton {
         *rate = 1.0;
         let mut next = (*skeleton).clone();
-
         let speed = Vec2::<f32>::from(velocity).magnitude();
 
         let lab: f32 = 0.65 * s_a.tempo;
@@ -47,14 +46,12 @@ impl Animation for SpinMeleeAnimation {
 
         let footrotr = ((1.0 / (0.5 + (0.5) * ((acc_vel * lab + PI * 0.4).sin()).powi(2))).sqrt())
             * ((acc_vel * lab + PI * 0.4).sin());
-
-        let (move1base, move2, move3) = match stage_section {
-            Some(StageSection::Buildup) => ((anim_time.powf(0.25)), 0.0, 0.0),
-            Some(StageSection::Swing) => (1.0, (anim_time * 0.05).sin() - 0.05, 0.0),
-            Some(StageSection::Recover) => (1.0, 0.0, anim_time),
-            _ => (0.0, 0.0, 0.0),
+        let (move1base, move2) = match stage_section {
+            Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0),
+            Some(StageSection::Recover) => (1.0, anim_time.powi(4)),
+            _ => (0.0, 0.0),
         };
-        let pullback = 1.0 - move3;
+        let pullback = 1.0 - move2;
         let move1 = move1base * pullback;
 
         next.shoulder_l.position = Vec3::new(
@@ -85,43 +82,31 @@ impl Animation for SpinMeleeAnimation {
 
         match active_tool_kind {
             Some(ToolKind::StaffSimple) | Some(ToolKind::Unique(UniqueKind::MindflayerStaff)) => {
-                next.head.orientation = Quaternion::rotation_x(move1 * -0.3 + move2 * 0.5);
-                next.control_l.position = Vec3::new(
-                    -1.0 + move1 * -10.0 + move2 * -10.0,
-                    3.0,
-                    12.0 + move1 * 7.0,
-                );
-                next.control_r.position = Vec3::new(
-                    1.0 + move1 * 10.0 + move2 * -10.0,
-                    2.0 + move1 * -0.0,
-                    2.0 + move1 * 15.0,
-                );
+                next.head.orientation =
+                    Quaternion::rotation_x(move1 * -0.3) * Quaternion::rotation_y(move1 * -0.1);
+                next.control_l.position = Vec3::new(-1.0, 3.0, 12.0);
+                next.control_r.position =
+                    Vec3::new(1.0 + move1 * 12.0, 2.0 + move1 * 8.0, 2.0 + move1 * 18.0);
 
                 next.control.position = Vec3::new(
-                    -3.0 + move1 * 3.0,
-                    3.0 + s_a.grip.0 / 1.2 + move1 * 18.0,
-                    -11.0 + -s_a.grip.0 / 2.0 + move1 * 8.0,
+                    -3.0 + move1 * -4.0,
+                    3.0 + s_a.grip.0 / 1.2 + move1 * -8.0,
+                    -11.0 + -s_a.grip.0 / 2.0,
                 );
 
-                next.control_l.orientation = Quaternion::rotation_x(PI / 2.0 - move1 * 0.2)
-                    * Quaternion::rotation_y(-0.5 + move1 * 0.3)
+                next.control_l.orientation = Quaternion::rotation_x(PI / 2.0 - move1 * -0.8)
+                    * Quaternion::rotation_y(-0.5 + move1 * -0.0)
                     * Quaternion::rotation_z(move1 * 0.0);
-                next.control_r.orientation = Quaternion::rotation_x(PI / 2.5 + move1 * 0.0)
-                    * Quaternion::rotation_y(0.5 + move1 * -0.3)
-                    * Quaternion::rotation_z(move2 * 1.0);
+                next.control_r.orientation = Quaternion::rotation_x(PI / 2.5 + move1 * 0.7)
+                    * Quaternion::rotation_y(0.5 + move1 * -0.6)
+                    * Quaternion::rotation_z(move1 * 1.5);
 
-                next.control.orientation = Quaternion::rotation_x(-0.2 + move1 * 0.8)
-                    * Quaternion::rotation_y(-0.1 + move1 * 0.1 + move2 * 1.0);
-
-                next.upper_torso.orientation = Quaternion::rotation_x(move1 * -0.5);
-
-                next.lower_torso.orientation = Quaternion::rotation_x(move1 * 0.8);
-                next.torso.position = Vec3::new(0.0, 0.0, move1 * 0.8);
+                next.control.orientation =
+                    Quaternion::rotation_x(-0.2 + move1 * -0.4) * Quaternion::rotation_y(-0.1);
             },
 
             _ => {},
         }
-
         next
     }
 }

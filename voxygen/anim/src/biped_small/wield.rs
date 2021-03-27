@@ -2,7 +2,7 @@ use super::{
     super::{vek::*, Animation},
     BipedSmallSkeleton, SkeletonAttr,
 };
-use common::comp::item::ToolKind;
+use common::comp::item::{ToolKind, UniqueKind};
 use std::f32::consts::PI;
 
 pub struct WieldAnimation;
@@ -146,6 +146,14 @@ impl Animation for WieldAnimation {
                 next.control.orientation = Quaternion::rotation_x(-0.3 + 0.2 * speednorm)
                     * Quaternion::rotation_y(-0.2 * speednorm)
                     * Quaternion::rotation_z(0.5);
+            },
+            Some(ToolKind::Unique(UniqueKind::Husk)) => {
+                next.hand_l.position = Vec3::new(-s_a.hand.0, s_a.hand.1, s_a.hand.2);
+                next.hand_r.position = Vec3::new(s_a.hand.0, s_a.hand.1, s_a.hand.2);
+
+                next.hand_l.orientation =
+                    Quaternion::rotation_x(1.7) * Quaternion::rotation_y(-0.3);
+                next.hand_r.orientation = Quaternion::rotation_x(1.7) * Quaternion::rotation_y(0.3);
             },
             _ => {},
         }

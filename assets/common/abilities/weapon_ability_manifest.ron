@@ -29,6 +29,11 @@
             (Some(Bow(UnlockRepeater)), "common.abilities.bow.repeater"),
         ],
     ),
+    Unique(Husk): (
+        primary: "common.abilities.unique.husk.singlestrike",
+        secondary: "common.abilities.unique.husk.triplestrike",
+        abilities: [],
+    ),
     Spear: (
         primary: "common.abilities.spear.doublestrike",
         secondary: "common.abilities.spear.dash",

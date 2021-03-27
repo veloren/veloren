@@ -47,8 +47,8 @@ impl Animation for DashAnimation {
         next.main.position = Vec3::new(0.0, 0.0, 0.0);
         next.main.orientation = Quaternion::rotation_x(0.0);
 
-        next.hand_l.position = Vec3::new(0.0, 0.0, s_a.grip);
-        next.hand_r.position = Vec3::new(0.0, 0.0, s_a.grip);
+        next.hand_l.position = Vec3::new(0.0, 0.0, s_a.grip.0);
+        next.hand_r.position = Vec3::new(0.0, 0.0, s_a.grip.0);
 
         next.hand_l.orientation = Quaternion::rotation_x(0.0);
         next.hand_r.orientation = Quaternion::rotation_x(0.0);
@@ -88,8 +88,8 @@ impl Animation for DashAnimation {
                     * Quaternion::rotation_z(move1 * -0.2 + move2 * 0.6);
                 next.control.position = Vec3::new(
                     -3.0 + move1 * -2.0 + move2 * 2.0,
-                    5.0 + s_a.grip / 1.2 + move1 * -4.0 + move2 * 2.0 + move3 * 8.0,
-                    -4.0 + -s_a.grip / 2.0 + move2 * -5.0 + move3 * 5.0,
+                    5.0 + s_a.grip.0 / 1.2 + move1 * -4.0 + move2 * 2.0 + move3 * 8.0,
+                    -4.0 + -s_a.grip.0 / 2.0 + move2 * -5.0 + move3 * 5.0,
                 );
                 next.upper_torso.orientation = Quaternion::rotation_x(move2 * -0.2 + move3 * 0.2)
                     * Quaternion::rotation_z(move1 * 0.8 + move3 * -0.7);
@@ -114,8 +114,8 @@ impl Animation for DashAnimation {
 
                 next.control.position = Vec3::new(
                     4.0 + move1 * -3.0 + move3 * -5.0,
-                    (s_a.grip / 1.0) + move1 * -1.0 + move3 * 1.0 + footrotl * 2.0,
-                    (-s_a.grip / 0.8) + move1 * 2.0 + move3 * -3.0,
+                    (s_a.grip.0 / 1.0) + move1 * -1.0 + move3 * 1.0 + footrotl * 2.0,
+                    (-s_a.grip.0 / 0.8) + move1 * 2.0 + move3 * -3.0,
                 );
                 next.head.orientation = Quaternion::rotation_x(move1 * -0.5 + move3 * 0.5)
                     * Quaternion::rotation_z(move1 * 0.3 + move3 * 0.3);
