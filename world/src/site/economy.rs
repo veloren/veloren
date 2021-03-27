@@ -279,7 +279,7 @@ impl Economy {
         // info!("resources {:?}", self.stocks);
     }
 
-    pub fn add_chunk(&mut self, ch: &SimChunk, distance_squared: i32) {
+    pub fn add_chunk(&mut self, ch: &SimChunk, distance_squared: i64) {
         let biome = ch.get_biome();
         // we don't scale by pi, although that would be correct
         let distance_bin = (distance_squared >> 16).min(64) as usize;

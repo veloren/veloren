@@ -251,13 +251,13 @@ impl Civs {
             .into_iter()
             .for_each(|posi| {
                 let chpos = uniform_idx_as_vec2(ctx.sim.map_size_lg(), posi);
-                let wpos = chpos * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
+                let wpos = chpos.map(|e| e as i64) * TerrainChunkSize::RECT_SIZE.map(|e| e as i64);
                 let closest_site = (*sites)
                     .iter_mut()
                     .filter(|s| !matches!(s.1.kind, crate::site::SiteKind::Dungeon(_)))
-                    .min_by_key(|(_id, s)| s.get_origin().distance_squared(wpos));
+                    .min_by_key(|(_id, s)| s.get_origin().map(|e| e as i64).distance_squared(wpos));
                 if let Some((_id, s)) = closest_site {
-                    let distance_squared = s.get_origin().distance_squared(wpos);
+                    let distance_squared = s.get_origin().map(|e| e as i64).distance_squared(wpos);
                     s.economy
                         .add_chunk(ctx.sim.get(chpos).unwrap(), distance_squared);
                 }
