@@ -102,6 +102,7 @@ impl<'a> System<'a> for Sys {
             if let Some(entities) = entities {
                 let entity_count = entities.join().count();
                 export_tick.entity_count.set(entity_count as i64);
+                common_base::plot!("entity count", entity_count as f64);
             }
         }
 

@@ -1,6 +1,6 @@
 use prometheus::{
-    Gauge, GaugeVec, HistogramOpts, HistogramVec, IntCounter, IntCounterVec, IntGauge, IntGaugeVec,
-    Opts, Registry,
+    Gauge, GaugeVec, Histogram, HistogramOpts, HistogramVec, IntCounter, IntCounterVec, IntGauge,
+    IntGaugeVec, Opts, Registry,
 };
 use std::{
     convert::TryInto,
@@ -48,6 +48,7 @@ pub struct TickMetrics {
     pub chunk_groups_count: IntGauge,
     pub entity_count: IntGauge,
     pub tick_time: IntGaugeVec,
+    pub tick_time_hist: Histogram,
     pub build_info: IntGauge,
     pub start_time: IntGauge,
     pub time_of_day: Gauge,
@@ -262,6 +263,28 @@ impl TickMetrics {
             Opts::new("tick_time", "time in ns required for a tick of the server"),
             &["period"],
         )?;
+        // 33.33ms is the ideal tick time. So we have hight detail around it.
+        // 300/700 are to detect high I/O blocks
+        let bucket = vec![
+            Duration::from_millis(8).as_secs_f64(),
+            Duration::from_millis(16).as_secs_f64(),
+            Duration::from_millis(24).as_secs_f64(),
+            Duration::from_millis(30).as_secs_f64(),
+            Duration::from_millis(33).as_secs_f64(),
+            Duration::from_millis(37).as_secs_f64(),
+            Duration::from_millis(45).as_secs_f64(),
+            Duration::from_millis(60).as_secs_f64(),
+            Duration::from_millis(100).as_secs_f64(),
+            Duration::from_millis(300).as_secs_f64(),
+            Duration::from_millis(700).as_secs_f64(),
+        ];
+        let tick_time_hist = Histogram::with_opts(
+            HistogramOpts::new(
+                "tick_time_hist",
+                "shows the detailed time in ns spend for the whole tick as histogram",
+            )
+            .buckets(bucket),
+        )?;
 
         let since_the_epoch = SystemTime::now()
             .duration_since(UNIX_EPOCH)
@@ -277,6 +300,7 @@ impl TickMetrics {
         registry.register(Box::new(time_of_day.clone()))?;
         registry.register(Box::new(light_count.clone()))?;
         registry.register(Box::new(tick_time.clone()))?;
+        registry.register(Box::new(tick_time_hist.clone()))?;
 
         Ok(Self {
             chonks_count,
@@ -284,6 +308,7 @@ impl TickMetrics {
             chunk_groups_count,
             entity_count,
             tick_time,
+            tick_time_hist,
             build_info,
             start_time,
             time_of_day,

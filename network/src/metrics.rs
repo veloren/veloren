@@ -9,6 +9,8 @@ use std::error::Error;
 pub struct NetworkMetrics {
     pub listen_requests_total: IntCounterVec,
     pub connect_requests_total: IntCounterVec,
+    pub incoming_connections_total: IntCounterVec,
+    pub failed_handshakes_total: IntCounter,
     pub participants_connected_total: IntCounter,
     pub participants_disconnected_total: IntCounter,
     // channel id's, seperated by PARTICIPANT, max 5
@@ -44,6 +46,17 @@ impl NetworkMetrics {
             ),
             &["protocol"],
         )?;
+        let incoming_connections_total = IntCounterVec::new(
+            Opts::new(
+                "incoming_connections_total",
+                "Shows the number of external requests to the scheduler",
+            ),
+            &["protocol"],
+        )?;
+        let failed_handshakes_total = IntCounter::with_opts(Opts::new(
+            "failed_handshakes_total",
+            "Shows the number of failed handshakes",
+        ))?;
         let participants_connected_total = IntCounter::with_opts(Opts::new(
             "participants_connected_total",
             "Shows the number of participants connected to the network",
@@ -110,6 +123,8 @@ impl NetworkMetrics {
         Ok(Self {
             listen_requests_total,
             connect_requests_total,
+            incoming_connections_total,
+            failed_handshakes_total,
             participants_connected_total,
             participants_disconnected_total,
             participants_channel_ids,
@@ -125,6 +140,8 @@ impl NetworkMetrics {
     pub fn register(&self, registry: &Registry) -> Result<(), Box<dyn Error>> {
         registry.register(Box::new(self.listen_requests_total.clone()))?;
         registry.register(Box::new(self.connect_requests_total.clone()))?;
+        registry.register(Box::new(self.incoming_connections_total.clone()))?;
+        registry.register(Box::new(self.failed_handshakes_total.clone()))?;
         registry.register(Box::new(self.participants_connected_total.clone()))?;
         registry.register(Box::new(self.participants_disconnected_total.clone()))?;
         registry.register(Box::new(self.participants_channel_ids.clone()))?;
@@ -135,6 +152,11 @@ impl NetworkMetrics {
         registry.register(Box::new(self.streams_closed_total.clone()))?;
         registry.register(Box::new(self.network_info.clone()))?;
         Ok(())
+    }
+
+    pub(crate) fn connect_requests_cache(&self, protocol: &ProtocolAddr) -> prometheus::IntCounter {
+        self.incoming_connections_total
+            .with_label_values(&[protocol_name(protocol)])
     }
 
     pub(crate) fn channels_connected(&self, remote_p: &str, no: usize, cid: Cid) {

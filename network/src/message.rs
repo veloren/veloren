@@ -129,7 +129,7 @@ impl Message {
     #[cfg(debug_assertions)]
     pub(crate) fn verify(&self, params: StreamParams) {
         #[cfg(not(feature = "compression"))]
-        let _stream = stream;
+        let _params = params;
         #[cfg(feature = "compression")]
         if self.compressed != params.promises.contains(Promises::COMPRESSED) {
             warn!(
