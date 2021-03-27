@@ -86,7 +86,6 @@ impl Civs {
         let initial_civ_count = initial_civ_count(sim.map_size_lg());
         let mut ctx = GenCtx { sim, rng };
 
-        // TODO: Care about world size when generating caves.
         for _ in 0..ctx.sim.get_size().product() / 10_000 {
             this.generate_cave(&mut ctx);
         }
