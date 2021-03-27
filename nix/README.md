@@ -33,7 +33,7 @@ nix run gitlab:veloren/veloren
 # Server CLI:
 nix run gitlab:veloren/veloren#veloren-server-cli
 # or if you have a local repo
-nix run .
+nix run
 nix run .#veloren-server-cli
 ```
 
@@ -44,7 +44,7 @@ nix profile install gitlab:veloren/veloren
 # Server CLI:
 nix profile install giltab:veloren/veloren#veloren-server-cli
 # or if you have a local repo:
-nix profile install .
+nix profile install
 nix profile install .#veloren-server-cli
 ```
 
@@ -172,12 +172,9 @@ cp nix/envrc .envrc
 
 If a specific revision is specified in `flake.nix`, you will have to update that first, either by specifying a new desired revision or by removing it.
 
-You can update the dependencies individually or all at once from the root of the project:
+You can update dependencies with:
 ```shell
-# only nixpkgs
-nix flake update --update-input nixpkgs
-# everything
-nix flake update --recreate-lock-file
+nix flake update
 ```
 
 ### Without flakes
