@@ -43,9 +43,9 @@ impl PendingLogin {
 impl Component for PendingLogin {
     type Storage = IdvStorage<Self>;
 }
+
 pub struct LoginProvider {
     runtime: Arc<Runtime>,
-    accounts: HashMap<Uuid, String>,
     auth_server: Option<Arc<AuthClient>>,
 }
 
@@ -68,21 +68,8 @@ impl LoginProvider {
 
         Self {
             runtime,
-            accounts: HashMap::new(),
             auth_server,
         }
-    }
-
-    fn login(&mut self, uuid: Uuid, username: String) -> Result<(), RegisterError> {
-        info!(?username, "New User");
-        self.accounts.insert(uuid, username);
-        Ok(())
-    }
-
-    pub fn logout(&mut self, uuid: Uuid) {
-        if self.accounts.remove(&uuid).is_none() {
-            error!(?uuid, "Attempted to logout user that is not logged in.");
-        };
     }
 
     pub fn verify(&self, username_or_token: &str) -> PendingLogin {
@@ -108,7 +95,7 @@ impl LoginProvider {
         PendingLogin { pending_r }
     }
 
-    pub fn try_login(
+    pub fn login(
         &mut self,
         pending: &mut PendingLogin,
         #[cfg(feature = "plugins")] world: &EcsWorld,
@@ -118,17 +105,17 @@ impl LoginProvider {
         banlist: &HashMap<Uuid, BanRecord>,
     ) -> Option<Result<(String, Uuid), RegisterError>> {
         match pending.pending_r.try_recv() {
-            Ok(Err(e)) => Some(Err(e.into())),
+            Ok(Err(e)) => Some(Err(e)),
             Ok(Ok((username, uuid))) => {
                 if let Some(ban_record) = banlist.get(&uuid) {
                     // Pull reason string out of ban record and send a copy of it
-                    return Some(Err(RegisterError::Banned(ban_record.reason.clone()).into()));
+                    return Some(Err(RegisterError::Banned(ban_record.reason.clone())));
                 }
 
                 // user can only join if he is admin, the whitelist is empty (everyone can join)
                 // or his name is in the whitelist
                 if !whitelist.is_empty() && !whitelist.contains(&uuid) && !admins.contains(&uuid) {
-                    return Some(Err(RegisterError::NotOnWhitelist.into()));
+                    return Some(Err(RegisterError::NotOnWhitelist));
                 }
                 #[cfg(feature = "plugins")]
                 {
@@ -139,7 +126,7 @@ impl LoginProvider {
                         Ok(e) => {
                             for i in e.into_iter() {
                                 if let PlayerJoinResult::Kick(a) = i {
-                                    return Some(Err(RegisterError::Kicked(a).into()));
+                                    return Some(Err(RegisterError::Kicked(a)));
                                 }
                             }
                         },
@@ -149,17 +136,14 @@ impl LoginProvider {
                     };
                 }
 
-                // add the user to self.accounts
-                match self.login(uuid, username.clone()) {
-                    Ok(()) => Some(Ok((username, uuid))),
-                    Err(e) => Some(Err(e)),
-                }
+                info!(?username, "New User");
+                Some(Ok((username, uuid)))
             },
             Err(tokio::sync::oneshot::error::TryRecvError::Closed) => {
                 error!("channel got closed to early, this shouldn't happen");
                 Some(Err(RegisterError::AuthError(
                     "Internal Error verifying".to_string(),
-                ).into()))
+                )))
             },
             Err(tokio::sync::oneshot::error::TryRecvError::Empty) => None,
         }

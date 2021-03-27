@@ -115,7 +115,7 @@ impl<'a> System<'a> for Sys {
                     uid_allocator: &uid_allocator,
                 };
 
-                let (username, uuid) = match login_provider.try_login(
+                let (username, uuid) = match login_provider.login(
                     &mut pending,
                     #[cfg(feature = "plugins")]
                     &ecs_world,
@@ -156,10 +156,7 @@ impl<'a> System<'a> for Sys {
                     // Create "fake" successful pending auth and mark it to
                     // be inserted into pending_logins at the end of this
                     // run
-                    retries.push((
-                        entity,
-                        PendingLogin::new_success(username.to_string(), uuid),
-                    ));
+                    retries.push((entity, PendingLogin::new_success(username, uuid)));
                     return Ok(());
                 }
 

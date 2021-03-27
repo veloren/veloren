@@ -1,11 +1,8 @@
 use super::Event;
-use crate::{
-    client::Client, login_provider::LoginProvider, persistence, presence::Presence,
-    state_ext::StateExt, Server,
-};
+use crate::{client::Client, persistence, presence::Presence, state_ext::StateExt, Server};
 use common::{
     comp,
-    comp::{group, Player},
+    comp::group,
     uid::{Uid, UidAllocator},
 };
 use common_base::span;
@@ -141,12 +138,6 @@ pub fn handle_client_disconnect(server: &mut Server, entity: EcsEntity) -> Event
         state.notify_players(ServerGeneral::PlayerListUpdate(PlayerListUpdate::Remove(
             *uid,
         )));
-    }
-
-    // Make sure to remove the player from the logged in list. (See LoginProvider)
-    if let Some(player) = state.ecs().read_storage::<Player>().get(entity) {
-        let mut login_provider = state.ecs().write_resource::<LoginProvider>();
-        login_provider.logout(player.uuid());
     }
 
     // Sync the player's character data to the database
