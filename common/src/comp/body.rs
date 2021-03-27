@@ -541,10 +541,10 @@ impl Body {
     /// due to AI or not using an actual weapon
     // TODO: Match on species
     pub fn combat_multiplier(&self) -> f32 {
-        if let Body::Object(_) | Body::Ship(_) = self {
-            0.0
-        } else {
-            1.0
+        match self {
+            Body::Object(_) | Body::Ship(_) => 0.0,
+            Body::BipedLarge(b) if matches!(b.species, biped_large::Species::Mindflayer) => 4.0,
+            _ => 1.0,
         }
     }
 

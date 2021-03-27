@@ -1010,7 +1010,9 @@ impl Floor {
                                         ));
                                     3
                                 ],
-                                2 => vec![
+                                2 => {
+                                    let mut entities = Vec::new();
+                                    entities.resize_with(6, || {
                                     EntityInfo::at(tile_wcenter.map(|e| e as f32))
                                         .with_body(comp::Body::QuadrupedLow(
                                             comp::quadruped_low::Body::random_with(
@@ -1019,53 +1021,10 @@ impl Floor {
                                             ),
                                         ))
                                         .with_name("Hakulaq".to_string())
-                                        .with_loot_drop(comp::Item::new_from_asset_expect(chosen)),
-                                        EntityInfo::at(tile_wcenter.map(|e| e as f32))
-                                        .with_body(comp::Body::QuadrupedLow(
-                                            comp::quadruped_low::Body::random_with(
-                                                dynamic_rng,
-                                                &comp::quadruped_low::Species::Hakulaq,
-                                            ),
-                                        ))
-                                        .with_name("Hakulaq".to_string())
-                                        .with_loot_drop(comp::Item::new_from_asset_expect(chosen)),
-                                        EntityInfo::at(tile_wcenter.map(|e| e as f32))
-                                        .with_body(comp::Body::QuadrupedLow(
-                                            comp::quadruped_low::Body::random_with(
-                                                dynamic_rng,
-                                                &comp::quadruped_low::Species::Hakulaq,
-                                            ),
-                                        ))
-                                        .with_name("Hakulaq".to_string())
-                                        .with_loot_drop(comp::Item::new_from_asset_expect(chosen)),
-                                        EntityInfo::at(tile_wcenter.map(|e| e as f32))
-                                        .with_body(comp::Body::QuadrupedLow(
-                                            comp::quadruped_low::Body::random_with(
-                                                dynamic_rng,
-                                                &comp::quadruped_low::Species::Hakulaq,
-                                            ),
-                                        ))
-                                        .with_name("Hakulaq".to_string())
-                                        .with_loot_drop(comp::Item::new_from_asset_expect(chosen)),
-                                        EntityInfo::at(tile_wcenter.map(|e| e as f32))
-                                        .with_body(comp::Body::QuadrupedLow(
-                                            comp::quadruped_low::Body::random_with(
-                                                dynamic_rng,
-                                                &comp::quadruped_low::Species::Hakulaq,
-                                            ),
-                                        ))
-                                        .with_name("Hakulaq".to_string())
-                                        .with_loot_drop(comp::Item::new_from_asset_expect(chosen)),
-                                        EntityInfo::at(tile_wcenter.map(|e| e as f32))
-                                        .with_body(comp::Body::QuadrupedLow(
-                                            comp::quadruped_low::Body::random_with(
-                                                dynamic_rng,
-                                                &comp::quadruped_low::Species::Hakulaq,
-                                            ),
-                                        ))
-                                        .with_name("Hakulaq".to_string())
-                                        .with_loot_drop(comp::Item::new_from_asset_expect(chosen)),
-                                ],
+                                        .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
+                                    });
+                                    entities
+                                },
                                 3 => vec![
                                     EntityInfo::at(tile_wcenter.map(|e| e as f32))
                                         .with_body(comp::Body::Humanoid(
@@ -1118,17 +1077,22 @@ impl Floor {
                                         .with_name("Dullahan Guard".to_string())
                                         .with_loot_drop(comp::Item::new_from_asset_expect(chosen)),
                                 ],
-                                5 => vec![
+                                5 => {
+                                    let mut entities = Vec::new();
+                                    entities.resize_with(10, || {
                                     EntityInfo::at(tile_wcenter.map(|e| e as f32))
-                                        .with_body(comp::Body::Golem(
-                                            comp::golem::Body::random_with(
+                                        .with_body(comp::Body::BipedSmall(
+                                            comp::biped_small::Body::random_with(
                                                 dynamic_rng,
-                                                &comp::golem::Species::StoneGolem,
+                                                &comp::biped_small::Species::Husk,
                                             ),
                                         ))
-                                        .with_name("Stonework Defender".to_string())
-                                        .with_loot_drop(comp::Item::new_from_asset_expect(chosen)),
-                                ],
+                                        .with_name("Cultist Husk".to_string())
+                                        .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
+                                        .with_loadout_config(loadout_builder::LoadoutConfig::Husk)
+                                    });
+                                    entities
+                                },
                                 _ => {
                                     vec![EntityInfo::at(tile_wcenter.map(|e| e as f32)).with_body(
                                         comp::Body::QuadrupedSmall(
