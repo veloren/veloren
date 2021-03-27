@@ -384,6 +384,8 @@ impl Scheduler {
         s2a_listen_result_s: oneshot::Sender<io::Result<()>>,
     ) {
         trace!(?addr, "Start up channel creator");
+        #[cfg(feature = "metrics")]
+        let mcache = self.metrics.connect_requests_cache(&addr);
         match addr {
             ProtocolAddr::Tcp(addr) => {
                 let listener = match net::TcpListener::bind(addr).await {
@@ -395,7 +397,7 @@ impl Scheduler {
                         info!(
                             ?addr,
                             ?e,
-                            "Tcp bind error durin listener startup"
+                            "Tcp bind error during listener startup"
                         );
                         s2a_listen_result_s.send(Err(e)).unwrap();
                         return;
@@ -414,8 +416,10 @@ impl Scheduler {
                             continue;
                         },
                     };
-                    info!("Accepting Tcp from: {}", remote_addr);
+                    #[cfg(feature = "metrics")]
+                    mcache.inc();
                     let cid = self.channel_ids.fetch_add(1, Ordering::Relaxed);
+                    info!(?remote_addr, ?cid, "Accepting Tcp from");
                     self.init_protocol(Protocols::new_tcp(stream, cid, Arc::clone(&self.protocol_metrics)), cid, None, true)
                         .await;
                 }
@@ -433,8 +437,10 @@ impl Scheduler {
                 } {
                     let (remote_to_local_s, remote_to_local_r) = mpsc::channel(Self::MPSC_CHANNEL_BOUND);
                     local_remote_to_local_s.send(remote_to_local_s).unwrap();
-                    info!(?addr, "Accepting Mpsc from");
+                    #[cfg(feature = "metrics")]
+                    mcache.inc();
                     let cid = self.channel_ids.fetch_add(1, Ordering::Relaxed);
+                    info!(?addr, ?cid, "Accepting Mpsc from");
                     self.init_protocol(Protocols::new_mpsc(local_to_remote_s, remote_to_local_r, cid, Arc::clone(&self.protocol_metrics)), cid, None, true)
                         .await;
                 }
@@ -650,6 +656,8 @@ impl Scheduler {
                     },
                     Err(e) => {
                         debug!(?cid, ?e, "Handshake from a new connection failed");
+                        #[cfg(feature = "metrics")]
+                        metrics.failed_handshakes_total.inc();
                         if let Some(pid_oneshot) = s2a_return_pid_s {
                             // someone is waiting with `connect`, so give them their Error
                             trace!(?cid, "returning the Err to api who requested the connect");
