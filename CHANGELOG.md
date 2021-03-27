@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Trades now display item prices in tooltips.
 
 ### Changed
+- Diamonds are now much more than twice as expensive as twigs.
 
 ### Removed
 
