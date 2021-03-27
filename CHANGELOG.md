@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Permission to build is no longer tied to being an admin
 
+- Seperated character randomization buttons into appearance and name.
+
 ### Removed
 
 ### Fixed
