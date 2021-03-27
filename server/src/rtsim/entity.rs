@@ -153,41 +153,103 @@ impl Entity {
         });
         self.brain.tgt = tgt_site;
 
-        tgt_site.map(|tgt_site| {
+        if self.get_body().is_humanoid() && self.brain.track.is_none() && !self.brain.track_computed
+        {
+            let nearest_site = world
+                .civs()
+                .sites
+                .iter()
+                .min_by_key(|(_, site)| {
+                    let wpos = site.center * TerrainChunk::RECT_SIZE.map(|e| e as i32);
+                    wpos.map(|e| e as f32).distance(self.pos.xy()) as u32
+                })
+                .map(|(id, _)| id);
+            let track = nearest_site
+                .zip(tgt_site)
+                .and_then(|(near, tgt)| world.civs().track_between(near, tgt));
+            // .map(|track_id| world.civs().tracks.get(track_id));
+            self.brain.track = track;
+            self.brain.track_progress = 0;
+            self.brain.track_computed = true;
+        }
+
+        if let Some(tgt_site) = tgt_site {
             let site = &world.civs().sites[tgt_site];
 
             let destination_name = site
                 .site_tmp
                 .map_or("".to_string(), |id| index.sites[id].name().to_string());
+            if let Some(track_id) = self.brain.track {
+                let track = &world.civs().tracks.get(track_id);
+                if let Some(sim_pos) = track.path.iter().nth(self.brain.track_progress) {
+                    let chunkpos = sim_pos * TerrainChunk::RECT_SIZE.map(|e| e as i32);
+                    let mut wpos = chunkpos;
+                    if let Some(pathdata) = world.sim().get_nearest_path(chunkpos) {
+                        wpos = pathdata.1.map(|e| e as i32);
+                    }
+                    let dist = wpos.map(|e| e as f32).distance(self.pos.xy()) as u32;
 
-            let wpos = site.center * TerrainChunk::RECT_SIZE.map(|e| e as i32);
-            let dist = wpos.map(|e| e as f32).distance(self.pos.xy()) as u32;
+                    if dist < 32 {
+                        self.brain.track_progress += 1;
+                        if self.brain.track_progress > track.path.len() {
+                            self.brain.track = None;
+                        }
+                    }
 
-            if dist < 64 {
-                self.brain.tgt = None;
+                    let travel_to = self.pos.xy()
+                        + Vec3::from(
+                            (wpos.map(|e| e as f32 + 0.5) - self.pos.xy())
+                                .try_normalized()
+                                .unwrap_or_else(Vec2::zero),
+                        ) * 64.0;
+                    let travel_to_alt = world
+                        .sim()
+                        .get_alt_approx(travel_to.map(|e| e as i32))
+                        .unwrap_or(0.0) as i32;
+                    let travel_to = terrain
+                        .find_space(Vec3::new(
+                            travel_to.x as i32,
+                            travel_to.y as i32,
+                            travel_to_alt,
+                        ))
+                        .map(|e| e as f32)
+                        + Vec3::new(0.5, 0.5, 0.0);
+                    self.controller.travel_to = Some((travel_to, destination_name));
+                    self.controller.speed_factor = 0.70;
+                } else {
+                    self.brain.track = None;
+                }
+            } else {
+                let wpos = site.center * TerrainChunk::RECT_SIZE.map(|e| e as i32);
+                let dist = wpos.map(|e| e as f32).distance(self.pos.xy()) as u32;
+
+                if dist < 64 {
+                    self.brain.tgt = None;
+                    self.brain.track_computed = false;
+                }
+
+                let travel_to = self.pos.xy()
+                    + Vec3::from(
+                        (wpos.map(|e| e as f32 + 0.5) - self.pos.xy())
+                            .try_normalized()
+                            .unwrap_or_else(Vec2::zero),
+                    ) * 64.0;
+                let travel_to_alt = world
+                    .sim()
+                    .get_alt_approx(travel_to.map(|e| e as i32))
+                    .unwrap_or(0.0) as i32;
+                let travel_to = terrain
+                    .find_space(Vec3::new(
+                        travel_to.x as i32,
+                        travel_to.y as i32,
+                        travel_to_alt,
+                    ))
+                    .map(|e| e as f32)
+                    + Vec3::new(0.5, 0.5, 0.0);
+                self.controller.travel_to = Some((travel_to, destination_name));
+                self.controller.speed_factor = 0.70;
             }
-
-            let travel_to = self.pos.xy()
-                + Vec3::from(
-                    (wpos.map(|e| e as f32 + 0.5) - self.pos.xy())
-                        .try_normalized()
-                        .unwrap_or_else(Vec2::zero),
-                ) * 64.0;
-            let travel_to_alt = world
-                .sim()
-                .get_alt_approx(travel_to.map(|e| e as i32))
-                .unwrap_or(0.0) as i32;
-            let travel_to = terrain
-                .find_space(Vec3::new(
-                    travel_to.x as i32,
-                    travel_to.y as i32,
-                    travel_to_alt,
-                ))
-                .map(|e| e as f32)
-                + Vec3::new(0.5, 0.5, 0.0);
-            self.controller.travel_to = Some((travel_to, destination_name));
-            self.controller.speed_factor = 0.70;
-        });
+        }
 
         // Forget old memories
         self.brain
@@ -199,7 +261,9 @@ impl Entity {
 #[derive(Default)]
 pub struct Brain {
     tgt: Option<Id<Site>>,
-    track: Option<(Track, usize)>,
+    track: Option<Id<Track>>,
+    track_progress: usize,
+    track_computed: bool,
     memories: Vec<Memory>,
 }
 

@@ -370,7 +370,7 @@ impl Civs {
     }
 
     /// Return the direct track between two places
-    fn track_between(&self, a: Id<Site>, b: Id<Site>) -> Option<Id<Track>> {
+    pub fn track_between(&self, a: Id<Site>, b: Id<Site>) -> Option<Id<Track>> {
         self.track_map
             .get(&a)
             .and_then(|dests| dests.get(&b))
@@ -686,7 +686,7 @@ pub struct Track {
     /// arbitrary unit and doesn't make sense unless compared to other track
     /// costs.
     cost: f32,
-    path: Path<Vec2<i32>>,
+    pub path: Path<Vec2<i32>>,
 }
 
 #[derive(Debug)]
