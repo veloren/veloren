@@ -165,15 +165,15 @@
     ),
     // 1h Swords
     "common.items.weapons.sword_1h.bloodsteel-0": (
-        vox_spec: ("weapon.sword_1h.bloodsteel-0", (-2.0, -4.5, -3.0)),
+        vox_spec: ("weapon.sword_1h.bloodsteel-0", (-2.5, -3.5, -3.0)),
         color: None
     ),
     "common.items.weapons.sword_1h.bloodsteel-1": (
-        vox_spec: ("weapon.sword_1h.bloodsteel-1", (-2.0, -4.5, -3.0)),
+        vox_spec: ("weapon.sword_1h.bloodsteel-1", (-1.5, -3.0, -3.0)),
         color: None
     ),
     "common.items.weapons.sword_1h.bloodsteel-2": (
-        vox_spec: ("weapon.sword_1h.bloodsteel-2", (-2.0, -4.5, -3.0)),
+        vox_spec: ("weapon.sword_1h.bloodsteel-2", (-1.5, -3.0, -3.0)),
         color: None
     ),
     "common.items.weapons.sword_1h.bronze-0": (
@@ -391,11 +391,11 @@
     ),
     // 1h Axes
     "common.items.weapons.axe_1h.bloodsteel-0": (
-        vox_spec: ("weapon.axe_1h.bloodsteel-0", (-1.5, -7.5, -3.0)),
+        vox_spec: ("weapon.axe_1h.bloodsteel-0", (-1.5, -2.0, -3.0)),
         color: None
     ),
     "common.items.weapons.axe_1h.bloodsteel-1": (
-        vox_spec: ("weapon.axe_1h.bloodsteel-1", (-1.5, -5.0, -3.0)),
+        vox_spec: ("weapon.axe_1h.bloodsteel-1", (-1.5, -2.0, -3.0)),
         color: None
     ),
     "common.items.weapons.axe_1h.bronze-0": (
@@ -609,7 +609,7 @@
     ),*/
     // 1h Hammers
     "common.items.weapons.hammer_1h.bloodsteel-0": (
-        vox_spec: ("weapon.hammer_1h.bloodsteel-0", (-1.5, -5.0, -6.0)),
+        vox_spec: ("weapon.hammer_1h.bloodsteel-0", (-2.5, -3.0, -3.0)),
         color: None
     ),
     "common.items.weapons.hammer_1h.bloodsteel-1": (

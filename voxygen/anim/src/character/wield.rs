@@ -97,7 +97,10 @@ impl Animation for WieldAnimation {
         //     (Some(Hands::One), Some(Hands::One)) => Vec3::one(),
         //    (_, _) => Vec3::zero(),
         // };
-
+        next.main.position = Vec3::new(0.0, 0.0, 0.0);
+        next.main.orientation = Quaternion::rotation_z(0.0);
+        next.second.position = Vec3::new(0.0, 0.0, 0.0);
+        next.second.orientation = Quaternion::rotation_z(0.0);
         if speed > 0.2 && velocity.z == 0.0 {
             next.chest.orientation = Quaternion::rotation_z(short * 0.1 + strafe * 0.7)
                 * Quaternion::rotation_y(strafe * 0.2)
@@ -342,44 +345,34 @@ impl Animation for WieldAnimation {
             (_, _) => {},
         };
         match hands {
-            (Some(Hands::One), _) => {
-                next.main.position = Vec3::new(0.0, 0.0, 0.0);
-                next.second.position = Vec3::new(0.0, 0.0, 0.0);
-                next.main.orientation = Quaternion::rotation_z(PI);
-                next.second.orientation = Quaternion::rotation_z(PI);
-
-                next.control_l.position = Vec3::new(-8.0, 9.0, 4.0);
+            (Some(Hands::One), Some(Hands::One)) | (Some(Hands::One), None) => {
+                next.control_l.position = Vec3::new(-7.0, 8.0, 2.0);
                 next.control_l.orientation = Quaternion::rotation_x(-0.3);
-                next.hand_l.position = Vec3::new(0.0, 0.5, -4.0);
+                next.hand_l.position = Vec3::new(0.0, -0.5, 0.0);
                 next.hand_l.orientation = Quaternion::rotation_x(1.57)
             },
             (_, _) => {},
         };
         match hands {
-            (_, Some(Hands::One)) => {
-                next.main.position = Vec3::new(0.0, 0.0, 0.0);
-                next.second.position = Vec3::new(0.0, 0.0, 0.0);
-                next.main.orientation = Quaternion::rotation_z(PI);
-                next.second.orientation = Quaternion::rotation_z(PI);
-
-                next.control_r.position = Vec3::new(8.0, 9.0, 4.0);
+            (Some(Hands::One), Some(Hands::One)) | (None, Some(Hands::One)) => {
+                next.control_r.position = Vec3::new(7.0, 8.0, 2.0);
                 next.control_r.orientation = Quaternion::rotation_x(-0.3);
-
-                next.hand_r.position = Vec3::new(0.0, 0.5, -4.0);
+                next.hand_r.position = Vec3::new(0.0, -0.5, 0.0);
                 next.hand_r.orientation = Quaternion::rotation_x(1.57)
             },
             (_, _) => {},
         };
         match hands {
-            (None, _) => {
-                next.hand_l.position = Vec3::new(0.0, 0.0, 20.0);
+            (None, None) | (None, Some(Hands::One)) => {
+                next.hand_l.position = Vec3::new(-4.5, 8.0, 5.0);
+                next.hand_l.orientation = Quaternion::rotation_x(1.9) * Quaternion::rotation_y(-0.5)
             },
             (_, _) => {},
         };
-
         match hands {
-            (_, None) => {
-                next.hand_r.position = Vec3::new(0.0, 0.0, 20.0);
+            (None, None) | (Some(Hands::One), None) => {
+                next.hand_r.position = Vec3::new(4.5, 8.0, 5.0);
+                next.hand_r.orientation = Quaternion::rotation_x(1.9) * Quaternion::rotation_y(0.5)
             },
             (_, _) => {},
         };

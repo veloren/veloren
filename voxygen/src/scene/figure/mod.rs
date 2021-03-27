@@ -899,6 +899,7 @@ impl FigureMgr {
                                 (
                                     active_tool_kind,
                                     second_tool_kind,
+                                    hands,
                                     rel_vel.magnitude(),
                                     time,
                                     Some(s.stage_section),
@@ -1057,6 +1058,7 @@ impl FigureMgr {
                                 (
                                     active_tool_kind,
                                     second_tool_kind,
+                                    hands,
                                     rel_vel.magnitude(),
                                     time,
                                     None,
@@ -1361,6 +1363,7 @@ impl FigureMgr {
                                     (
                                         active_tool_kind,
                                         second_tool_kind,
+                                        hands,
                                         rel_vel.magnitude(),
                                         time,
                                         Some(s.stage_section),

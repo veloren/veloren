@@ -144,7 +144,7 @@ impl Animation for StandAnimation {
         next.second.scale = Vec3::one();
 
         next.second.scale = match hands {
-            (Some(Hands::One), Some(Hands::One)) => Vec3::one(),
+            (None, Some(Hands::One)) | (Some(Hands::One), Some(Hands::One)) => Vec3::one(),
             (_, _) => Vec3::zero(),
         };
 
