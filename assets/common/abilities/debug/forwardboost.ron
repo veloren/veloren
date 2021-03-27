@@ -1,4 +1,6 @@
 Boost(
     movement_duration: 0.05,
     only_up: false,
+    speed: 400.0,
+    max_exit_velocity: 100.0,
 )

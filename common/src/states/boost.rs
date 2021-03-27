@@ -13,6 +13,8 @@ use std::time::Duration;
 pub struct StaticData {
     pub movement_duration: Duration,
     pub only_up: bool,
+    pub speed: f32,
+    pub max_exit_velocity: f32,
     pub ability_info: AbilityInfo,
 }
 
@@ -34,9 +36,9 @@ impl CharacterBehavior for Data {
         if self.timer < self.static_data.movement_duration {
             // Movement
             if self.static_data.only_up {
-                update.vel.0.z += 500.0 * data.dt.0;
+                update.vel.0.z += self.static_data.speed * data.dt.0;
             } else {
-                update.vel.0 += *data.inputs.look_dir * 500.0 * data.dt.0;
+                update.vel.0 += *data.inputs.look_dir * self.static_data.speed * data.dt.0;
             }
             update.character = CharacterState::Boost(Data {
                 timer: self
@@ -50,6 +52,12 @@ impl CharacterBehavior for Data {
             if input_is_pressed(data, self.static_data.ability_info.input) {
                 reset_state(self, data, &mut update);
             } else {
+                update.vel.0 = update.vel.0.normalized()
+                    * update
+                        .vel
+                        .0
+                        .magnitude()
+                        .min(self.static_data.max_exit_velocity);
                 update.character = CharacterState::Wielding;
             }
         }
