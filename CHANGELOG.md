@@ -46,6 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Server kicks old client when a user is trying to log in again (often the case when a user's original connection gets dropped)
 - Added a raycast check to beams to prevent their effect applying through walls
 - Flying agents raycast more angles to check for obstacles.
+- Mouse Cursor now stays in the same position when menu is not open
 
 ## [0.9.0] - 2021-03-20
 

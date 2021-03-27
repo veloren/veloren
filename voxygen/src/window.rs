@@ -1036,7 +1036,17 @@ impl Window {
                 self.events.push(Event::Focused(state));
             },
             WindowEvent::CursorMoved { position, .. } => {
-                self.cursor_position = position;
+                if self.cursor_grabbed {
+                    if let Err(err) = self
+                        .window
+                        .window()
+                        .set_cursor_position(self.cursor_position)
+                    {
+                        error!("Error setting cursor position: {:?}", err);
+                    }
+                } else {
+                    self.cursor_position = position;
+                }
             },
             WindowEvent::MouseWheel { delta, .. } if self.cursor_grabbed && self.focused => {
                 const DIFFERENCE_FROM_DEVICE_EVENT_ON_X11: f32 = -15.0;
