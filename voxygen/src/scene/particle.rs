@@ -9,8 +9,8 @@ use crate::{
 use common::{
     assets::{AssetExt, DotVoxAsset},
     comp::{
-        self, aura, beam, buff, item::Reagent, object, BeamSegment, Body, CharacterState, Ori, Pos,
-        Shockwave, Vel,
+        self, aura, beam, body, buff, item::Reagent, object, BeamSegment, Body, CharacterState,
+        Ori, Pos, Shockwave, Vel,
     },
     figure::Segment,
     outcome::Outcome,
@@ -156,7 +156,6 @@ impl ParticleMgr {
                     );
                 }
             },
-            Outcome::ProjectileShot { .. } => {},
             Outcome::BreakBlock { pos, .. } => {
                 // TODO: Use color field when particle colors are a thing
                 self.particles.resize_with(self.particles.len() + 30, || {
@@ -168,7 +167,40 @@ impl ParticleMgr {
                     )
                 });
             },
-            _ => {},
+            Outcome::SummonedCreature { pos, body } => match body {
+                Body::BipedSmall(b) if matches!(b.species, body::biped_small::Species::Husk) => {
+                    self.particles.resize_with(
+                        self.particles.len()
+                            + 2 * usize::from(self.scheduler.heartbeats(Duration::from_millis(1))),
+                        || {
+                            let start_pos = pos + Vec3::unit_z() * body.height() / 2.0;
+                            let end_pos = pos
+                                + Vec3::new(
+                                    2.0 * rng.gen::<f32>() - 1.0,
+                                    2.0 * rng.gen::<f32>() - 1.0,
+                                    0.0,
+                                )
+                                .normalized()
+                                    * (body.radius() + 4.0)
+                                + Vec3::unit_z() * (body.height() + 2.0) * rng.gen::<f32>();
+
+                            Particle::new_directed(
+                                Duration::from_secs_f32(0.5),
+                                time,
+                                ParticleMode::CultistFlame,
+                                start_pos,
+                                end_pos,
+                            )
+                        },
+                    );
+                },
+                _ => {},
+            },
+            Outcome::ProjectileShot { .. }
+            | Outcome::Beam { .. }
+            | Outcome::ExpChange { .. }
+            | Outcome::SkillPointGain { .. }
+            | Outcome::ComboChange { .. } => {},
         }
     }
 

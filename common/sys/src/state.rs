@@ -8,6 +8,7 @@ use common::{
     comp,
     depot::{Depot, Id},
     event::{EventBus, LocalEvent, ServerEvent},
+    outcome::Outcome,
     region::RegionMap,
     resources::{DeltaTime, GameMode, PlayerEntity, Time, TimeOfDay},
     slowjob::SlowJobPool,
@@ -514,6 +515,9 @@ impl State {
                     if let Some(position) = positions.get_mut(entity) {
                         *position = pos;
                     }
+                },
+                LocalEvent::CreateOutcome(outcome) => {
+                    self.ecs.write_resource::<Vec<Outcome>>().push(outcome);
                 },
             }
         }

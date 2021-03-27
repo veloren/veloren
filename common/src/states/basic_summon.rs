@@ -4,7 +4,8 @@ use crate::{
         inventory::loadout_builder::{LoadoutBuilder, LoadoutConfig},
         CharacterState, StateUpdate,
     },
-    event::ServerEvent,
+    event::{LocalEvent, ServerEvent},
+    outcome::Outcome,
     skillset_builder::{SkillSetBuilder, SkillSetConfig},
     states::{
         behavior::{CharacterBehavior, JoinData},
@@ -92,6 +93,7 @@ impl CharacterBehavior for Data {
                         )
                         .build();
 
+                        // Send server event to create npc
                         update.server_events.push_front(ServerEvent::CreateNpc {
                             pos: *data.pos,
                             stats,
@@ -113,6 +115,14 @@ impl CharacterBehavior for Data {
                             drop_item: None,
                             rtsim_entity: None,
                         });
+
+                        // Send local event used for frontend shenanigans
+                        update.local_events.push_front(LocalEvent::CreateOutcome(
+                            Outcome::SummonedCreature {
+                                pos: data.pos.0,
+                                body,
+                            },
+                        ));
 
                         update.character = CharacterState::BasicSummon(Data {
                             timer: self

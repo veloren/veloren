@@ -364,11 +364,13 @@ impl SfxMgr {
                     audio.play_sfx(file_ref, *pos, None);
                 },
             },
-            Outcome::ExpChange { .. } | Outcome::ComboChange { .. } => {},
             Outcome::BreakBlock { pos, .. } => {
                 let file_ref = "voxygen.audio.sfx.footsteps.stone_step_1";
                 audio.play_sfx(file_ref, pos.map(|e| e as f32 + 0.5), Some(3.0));
             },
+            Outcome::ExpChange { .. }
+            | Outcome::ComboChange { .. }
+            | Outcome::SummonedCreature { .. } => {},
         }
     }
 

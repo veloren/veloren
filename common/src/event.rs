@@ -1,16 +1,17 @@
 use crate::{
     character::CharacterId,
-    comp,
+    comp::{
+        self,
+        invite::{InviteKind, InviteResponse},
+        item::Item,
+        Ori, Pos,
+    },
+    outcome::Outcome,
     rtsim::RtSimEntity,
     trade::{TradeAction, TradeId},
     uid::Uid,
     util::Dir,
     Explosion,
-};
-use comp::{
-    invite::{InviteKind, InviteResponse},
-    item::Item,
-    Ori, Pos,
 };
 use specs::Entity as EcsEntity;
 use std::{collections::VecDeque, ops::DerefMut, sync::Mutex};
@@ -30,6 +31,8 @@ pub enum LocalEvent {
     Boost { entity: EcsEntity, vel: Vec3<f32> },
     /// Updates the position of the entity
     PositionUpdate { entity: EcsEntity, pos: Pos },
+    /// Creates an outcome
+    CreateOutcome(Outcome),
 }
 
 #[allow(clippy::large_enum_variant)] // TODO: Pending review in #587
