@@ -52,7 +52,7 @@ impl CharacterBehavior for Data {
             if input_is_pressed(data, self.static_data.ability_info.input) {
                 reset_state(self, data, &mut update);
             } else {
-                update.vel.0 = update.vel.0.normalized()
+                update.vel.0 = update.vel.0.try_normalized().unwrap_or_default()
                     * update
                         .vel
                         .0
