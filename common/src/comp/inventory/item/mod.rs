@@ -13,7 +13,7 @@ use crate::{
         CharacterAbility,
     },
     effect::Effect,
-    lottery::Lottery,
+    lottery::{Lottery, LootSpec},
     recipe::RecipeInput,
     terrain::{Block, SpriteKind},
 };
@@ -601,44 +601,44 @@ impl Item {
             // Containers
             // IMPORTANT: Add any new container to `SpriteKind::is_container`
             SpriteKind::Chest => {
-                chosen = Lottery::<String>::load_expect(match rng.gen_range(0..7) {
-                    0 => "common.loot_tables.loot_table_weapon_uncommon",
-                    1 => "common.loot_tables.loot_table_weapon_common",
-                    2 => "common.loot_tables.loot_table_armor_light",
-                    3 => "common.loot_tables.loot_table_armor_cloth",
-                    4 => "common.loot_tables.loot_table_armor_heavy",
-                    _ => "common.loot_tables.loot_table_armor_misc",
+                chosen = Lottery::<LootSpec>::load_expect(match rng.gen_range(0..7) {
+                    0 => "common.loot_tables.weapon_uncommon",
+                    1 => "common.loot_tables.weapon_common",
+                    2 => "common.loot_tables.armor_light",
+                    3 => "common.loot_tables.armor_cloth",
+                    4 => "common.loot_tables.armor_heavy",
+                    _ => "common.loot_tables.armor_misc",
                 })
                 .read();
-                chosen.choose()
+                return Some(chosen.choose().to_item())
             },
             SpriteKind::ChestBurried => {
-                chosen = Lottery::<String>::load_expect(match rng.gen_range(0..7) {
-                    1 => "common.loot_tables.loot_table_weapon_common",
-                    2 => "common.loot_tables.loot_table_armor_light",
-                    3 => "common.loot_tables.loot_table_armor_cloth",
-                    _ => "common.loot_tables.loot_table_armor_misc",
+                chosen = Lottery::<LootSpec>::load_expect(match rng.gen_range(0..7) {
+                    1 => "common.loot_tables.weapon_common",
+                    2 => "common.loot_tables.armor_light",
+                    3 => "common.loot_tables.armor_cloth",
+                    _ => "common.loot_tables.armor_misc",
                 })
                 .read();
-                chosen.choose()
+                return Some(chosen.choose().to_item())
             },
             SpriteKind::Mud => {
-                chosen = Lottery::<String>::load_expect(match rng.gen_range(0..5) {
-                    0 => "common.loot_tables.loot_table_crafting",
-                    1 => "common.loot_tables.loot_table_weapon_common",
-                    2 => "common.loot_tables.loot_table_armor_misc",
-                    _ => "common.loot_tables.loot_table_rocks",
+                chosen = Lottery::<LootSpec>::load_expect(match rng.gen_range(0..5) {
+                    0 => "common.loot_tables.crafting",
+                    1 => "common.loot_tables.weapon_common",
+                    2 => "common.loot_tables.armor_misc",
+                    _ => "common.loot_tables.rocks",
                 })
                 .read();
-                chosen.choose()
+                return Some(chosen.choose().to_item())
             },
             SpriteKind::Crate => {
-                chosen = Lottery::<String>::load_expect(match rng.gen_range(0..4) {
-                    0 => "common.loot_tables.loot_table_crafting",
-                    _ => "common.loot_tables.loot_table_food",
+                chosen = Lottery::<LootSpec>::load_expect(match rng.gen_range(0..4) {
+                    0 => "common.loot_tables.crafting",
+                    _ => "common.loot_tables.food",
                 })
                 .read();
-                chosen.choose()
+                return Some(chosen.choose().to_item())
             },
 
             SpriteKind::Beehive => "common.items.crafting_ing.honey",

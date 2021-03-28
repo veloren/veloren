@@ -16,7 +16,7 @@ use common::{
         {self},
     },
     generation::{ChunkSupplement, EntityInfo},
-    lottery::Lottery,
+    lottery::{LootSpec, Lottery},
     store::{Id, Store},
     terrain::{Block, BlockKind, SpriteKind, Structure, StructuresGroup, TerrainChunkSize},
     vol::{BaseVol, ReadVol, RectSizedVol, RectVolSize, WriteVol},
@@ -553,52 +553,52 @@ impl Floor {
                         // Bad
                         let chosen = match room.difficulty {
                             0 => {
-                                Lottery::<String>::load_expect(match dynamic_rng.gen_range(0..4) {
-                                    0 => "common.loot_tables.loot_table_humanoids",
-                                    1 => "common.loot_tables.loot_table_armor_cloth",
-                                    _ => "common.loot_tables.loot_table_weapon_common",
+                                Lottery::<LootSpec>::load_expect(match dynamic_rng.gen_range(0..4) {
+                                    0 => "common.loot_tables.humanoids",
+                                    1 => "common.loot_tables.armor_cloth",
+                                    _ => "common.loot_tables.weapon_common",
                                 })
                             },
                             1 => {
-                                Lottery::<String>::load_expect(match dynamic_rng.gen_range(0..4) {
-                                    0 => "common.loot_tables.loot_table_humanoids",
-                                    1 => "common.loot_tables.loot_table_armor_light",
-                                    _ => "common.loot_tables.loot_table_weapon_uncommon",
+                                Lottery::<LootSpec>::load_expect(match dynamic_rng.gen_range(0..4) {
+                                    0 => "common.loot_tables.humanoids",
+                                    1 => "common.loot_tables.armor_light",
+                                    _ => "common.loot_tables.weapon_uncommon",
                                 })
                             },
                             2 => {
-                                Lottery::<String>::load_expect(match dynamic_rng.gen_range(0..4) {
-                                    0 => "common.loot_tables.loot_table_humanoids",
-                                    1 => "common.loot_tables.loot_table_armor_heavy",
-                                    _ => "common.loot_tables.loot_table_weapon_rare",
+                                Lottery::<LootSpec>::load_expect(match dynamic_rng.gen_range(0..4) {
+                                    0 => "common.loot_tables.humanoids",
+                                    1 => "common.loot_tables.armor_heavy",
+                                    _ => "common.loot_tables.weapon_rare",
                                 })
                             },
                             3 => {
-                                Lottery::<String>::load_expect(match dynamic_rng.gen_range(0..10) {
-                                    0 => "common.loot_tables.loot_table_humanoids",
-                                    1 => "common.loot_tables.loot_table_armor_heavy",
-                                    2 => "common.loot_tables.loot_table_weapon_rare",
-                                    _ => "common.loot_tables.loot_table_cultists",
+                                Lottery::<LootSpec>::load_expect(match dynamic_rng.gen_range(0..10) {
+                                    0 => "common.loot_tables.humanoids",
+                                    1 => "common.loot_tables.armor_heavy",
+                                    2 => "common.loot_tables.weapon_rare",
+                                    _ => "common.loot_tables.cultists",
                                 })
                             },
                             4 => {
-                                Lottery::<String>::load_expect(match dynamic_rng.gen_range(0..6) {
-                                    0 => "common.loot_tables.loot_table_humanoids",
-                                    1 => "common.loot_tables.loot_table_armor_misc",
-                                    2 => "common.loot_tables.loot_table_weapon_rare",
-                                    _ => "common.loot_tables.loot_table_cultists",
+                                Lottery::<LootSpec>::load_expect(match dynamic_rng.gen_range(0..6) {
+                                    0 => "common.loot_tables.humanoids",
+                                    1 => "common.loot_tables.armor_misc",
+                                    2 => "common.loot_tables.weapon_rare",
+                                    _ => "common.loot_tables.cultists",
                                 })
                             },
                             5 => {
-                                Lottery::<String>::load_expect(match dynamic_rng.gen_range(0..5) {
-                                    0 => "common.loot_tables.loot_table_humanoids",
-                                    1 => "common.loot_tables.loot_table_armor_misc",
-                                    2 => "common.loot_tables.loot_table_weapon_rare",
-                                    _ => "common.loot_tables.loot_table_cultists",
+                                Lottery::<LootSpec>::load_expect(match dynamic_rng.gen_range(0..5) {
+                                    0 => "common.loot_tables.humanoids",
+                                    1 => "common.loot_tables.armor_misc",
+                                    2 => "common.loot_tables.weapon_rare",
+                                    _ => "common.loot_tables.cultists",
                                 })
                             },
-                            _ => Lottery::<String>::load_expect(
-                                "common.loot_tables.loot_table_armor_misc",
+                            _ => Lottery::<LootSpec>::load_expect(
+                                "common.loot_tables.armor_misc",
                             ),
                         };
                         let chosen = chosen.read();
@@ -617,7 +617,7 @@ impl Floor {
                         .with_alignment(comp::Alignment::Enemy)
                         .with_loadout_config(loadout_builder::LoadoutConfig::CultistAcolyte)
                         .with_skillset_config(common::skillset_builder::SkillSetConfig::CultistAcolyte)
-                        .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
+                        .with_loot_drop(chosen.to_item())
                         .with_level(dynamic_rng.gen_range((room.difficulty as f32).powf(1.25) + 3.0..(room.difficulty as f32).powf(1.5) + 4.0).round() as u16);
                         let entity = match room.difficulty {
                             0 => entity
@@ -632,7 +632,7 @@ impl Floor {
                                 .with_skillset_config(
                                     common::skillset_builder::SkillSetConfig::Gnarling,
                                 )
-                                .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
+                                .with_loot_drop(chosen.to_item())
                                 .with_main_tool(comp::Item::new_from_asset_expect(
                                     match dynamic_rng.gen_range(0..5) {
                                         0 => {
@@ -661,7 +661,7 @@ impl Floor {
                                 .with_skillset_config(
                                     common::skillset_builder::SkillSetConfig::Adlet,
                                 )
-                                .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
+                                .with_loot_drop(chosen.to_item())
                                 .with_main_tool(comp::Item::new_from_asset_expect(
                                     match dynamic_rng.gen_range(0..5) {
                                         0 => "common.items.npc_weapons.biped_small.adlet.adlet_bow",
@@ -686,7 +686,7 @@ impl Floor {
                                 .with_skillset_config(
                                     common::skillset_builder::SkillSetConfig::Sahagin,
                                 )
-                                .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
+                                .with_loot_drop(chosen.to_item())
                                 .with_main_tool(comp::Item::new_from_asset_expect(
                                     match dynamic_rng.gen_range(0..5) {
                                         0 => {
@@ -714,7 +714,7 @@ impl Floor {
                                 .with_skillset_config(
                                     common::skillset_builder::SkillSetConfig::Haniwa,
                                 )
-                                .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
+                                .with_loot_drop(chosen.to_item())
                                 .with_main_tool(comp::Item::new_from_asset_expect(
                                     match dynamic_rng.gen_range(0..5) {
                                         0 => {
@@ -742,7 +742,7 @@ impl Floor {
                                 .with_skillset_config(
                                     common::skillset_builder::SkillSetConfig::Myrmidon,
                                 )
-                                .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
+                                .with_loot_drop(chosen.to_item())
                                 .with_main_tool(comp::Item::new_from_asset_expect(
                                     match dynamic_rng.gen_range(0..5) {
                                         0 => {
@@ -767,7 +767,7 @@ impl Floor {
                                     .with_skillset_config(
                                         common::skillset_builder::SkillSetConfig::Warlock,
                                     )
-                                    .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
+                                    .with_loot_drop(chosen.to_item())
                                     .with_main_tool(comp::Item::new_from_asset_expect(
                                         "common.items.weapons.staff.cultist_staff",
                                     )),
@@ -783,7 +783,7 @@ impl Floor {
                                     .with_skillset_config(
                                         common::skillset_builder::SkillSetConfig::Warlord,
                                     )
-                                    .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
+                                    .with_loot_drop(chosen.to_item())
                                     .with_main_tool(comp::Item::new_from_asset_expect(
                                         match dynamic_rng.gen_range(0..5) {
                                             0 => "common.items.weapons.axe.malachite_axe-0",
@@ -818,29 +818,29 @@ impl Floor {
 
                         if tile_pos == boss_spawn_tile && tile_wcenter.xy() == wpos2d {
                             let chosen = match room.difficulty {
-                                0 => Lottery::<String>::load_expect(
-                                    "common.loot_tables.loot_table_weapon_uncommon",
+                                0 => Lottery::<LootSpec>::load_expect(
+                                    "common.loot_tables.weapon_uncommon",
                                 ),
-                                1 => Lottery::<String>::load_expect(
-                                    "common.loot_tables.loot_table_weapon_uncommon",
+                                1 => Lottery::<LootSpec>::load_expect(
+                                    "common.loot_tables.weapon_uncommon",
                                 ),
-                                2 => Lottery::<String>::load_expect(
-                                    "common.loot_tables.loot_table_armor_heavy",
+                                2 => Lottery::<LootSpec>::load_expect(
+                                    "common.loot_tables.armor_heavy",
                                 ),
-                                3 => Lottery::<String>::load_expect(
-                                    "common.loot_tables.loot_table_weapon_rare",
+                                3 => Lottery::<LootSpec>::load_expect(
+                                    "common.loot_tables.weapon_rare",
                                 ),
-                                4 => Lottery::<String>::load_expect(
-                                    "common.loot_tables.loot_table_miniboss",
+                                4 => Lottery::<LootSpec>::load_expect(
+                                    "common.loot_tables.miniboss",
                                 ),
-                                5 => Lottery::<String>::load_expect(
+                                5 => Lottery::<LootSpec>::load_expect(
                                     match dynamic_rng.gen_range(0..3) {
                                         0 => "common.loot_tables.mindflayer",
-                                        _ => "common.loot_tables.loot_table_miniboss",
+                                        _ => "common.loot_tables.miniboss",
                                     },
                                 ),
-                                _ => Lottery::<String>::load_expect(
-                                    "common.loot_tables.loot_table_armor_misc",
+                                _ => Lottery::<LootSpec>::load_expect(
+                                    "common.loot_tables.armor_misc",
                                 ),
                             };
                             let chosen = chosen.read();
@@ -855,7 +855,7 @@ impl Floor {
                                             ),
                                         ))
                                         .with_name("Harvester".to_string())
-                                        .with_loot_drop(comp::Item::new_from_asset_expect(chosen)),
+                                        .with_loot_drop(chosen.to_item()),
                                 ],
                                 1 => vec![
                                     EntityInfo::at(tile_wcenter.map(|e| e as f32))
@@ -866,7 +866,7 @@ impl Floor {
                                             ),
                                         ))
                                         .with_name("Yeti".to_string())
-                                        .with_loot_drop(comp::Item::new_from_asset_expect(chosen)),
+                                        .with_loot_drop(chosen.to_item()),
                                 ],
                                 2 => vec![
                                     EntityInfo::at(tile_wcenter.map(|e| e as f32))
@@ -877,7 +877,7 @@ impl Floor {
                                             ),
                                         ))
                                         .with_name("Tidal Warrior".to_string())
-                                        .with_loot_drop(comp::Item::new_from_asset_expect(chosen)),
+                                        .with_loot_drop(chosen.to_item()),
                                 ],
                                 3 => vec![
                                     EntityInfo::at(tile_wcenter.map(|e| e as f32))
@@ -888,7 +888,7 @@ impl Floor {
                                             ),
                                         ))
                                         .with_name("Clay Golem".to_string())
-                                        .with_loot_drop(comp::Item::new_from_asset_expect(chosen)),
+                                        .with_loot_drop(chosen.to_item()),
                                 ],
                                 4 => vec![
                                     EntityInfo::at(tile_wcenter.map(|e| e as f32))
@@ -899,7 +899,7 @@ impl Floor {
                                             ),
                                         ))
                                         .with_name("Minotaur".to_string())
-                                        .with_loot_drop(comp::Item::new_from_asset_expect(chosen)),
+                                        .with_loot_drop(chosen.to_item()),
                                 ],
                                 5 => vec![
                                     EntityInfo::at(tile_wcenter.map(|e| e as f32))
@@ -910,7 +910,7 @@ impl Floor {
                                             ),
                                         ))
                                         .with_name("Mindflayer".to_string())
-                                        .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
+                                        .with_loot_drop(chosen.to_item())
                                         .with_skillset_config(
                                             common::skillset_builder::SkillSetConfig::Mindflayer,
                                         ),
@@ -961,26 +961,26 @@ impl Floor {
 
                         if tile_pos == miniboss_spawn_tile && tile_wcenter.xy() == wpos2d {
                             let chosen = match room.difficulty {
-                                0 => Lottery::<String>::load_expect(
-                                    "common.loot_tables.loot_table_animal_parts",
+                                0 => Lottery::<LootSpec>::load_expect(
+                                    "common.loot_tables.animal_parts",
                                 ),
-                                1 => Lottery::<String>::load_expect(
-                                    "common.loot_tables.loot_table_animal_parts",
+                                1 => Lottery::<LootSpec>::load_expect(
+                                    "common.loot_tables.animal_parts",
                                 ),
-                                2 => Lottery::<String>::load_expect(
-                                    "common.loot_tables.loot_table_animal_parts",
+                                2 => Lottery::<LootSpec>::load_expect(
+                                    "common.loot_tables.animal_parts",
                                 ),
-                                3 => Lottery::<String>::load_expect(
-                                    "common.loot_tables.loot_table_weapon_rare",
+                                3 => Lottery::<LootSpec>::load_expect(
+                                    "common.loot_tables.weapon_rare",
                                 ),
-                                4 => Lottery::<String>::load_expect(
-                                    "common.loot_tables.loot_table_weapon_rare",
+                                4 => Lottery::<LootSpec>::load_expect(
+                                    "common.loot_tables.weapon_rare",
                                 ),
-                                5 => Lottery::<String>::load_expect(
-                                    "common.loot_tables.loot_table_husk",
+                                5 => Lottery::<LootSpec>::load_expect(
+                                    "common.loot_tables.husk",
                                 ),
-                                _ => Lottery::<String>::load_expect(
-                                    "common.loot_tables.loot_table_armor_misc",
+                                _ => Lottery::<LootSpec>::load_expect(
+                                    "common.loot_tables.armor_misc",
                                 ),
                             };
                             let chosen = chosen.read();
@@ -995,7 +995,7 @@ impl Floor {
                                             ),
                                         ))
                                         .with_name("Bonerattler".to_string())
-                                        .with_loot_drop(comp::Item::new_from_asset_expect(chosen)),
+                                        .with_loot_drop(chosen.to_item()),
                                 ],
                                 1 => vec![
                                     EntityInfo::at(tile_wcenter.map(|e| e as f32))
@@ -1006,9 +1006,7 @@ impl Floor {
                                             )
                                         ))
                                         .with_name("Bonerattler".to_string())
-                                        .with_loot_drop(comp::Item::new_from_asset_expect(
-                                            chosen
-                                        ));
+                                        .with_loot_drop(chosen.to_item());
                                     3
                                 ],
                                 2 => {
@@ -1022,7 +1020,7 @@ impl Floor {
                                             ),
                                         ))
                                         .with_name("Hakulaq".to_string())
-                                        .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
+                                        .with_loot_drop(chosen.to_item())
                                     });
                                     entities
                                 },
@@ -1032,7 +1030,7 @@ impl Floor {
                                             comp::humanoid::Body::random(),
                                         ))
                                         .with_name("Animal Trainer".to_string())
-                                        .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
+                                        .with_loot_drop(chosen.to_item())
                                         .with_loadout_config(loadout_builder::LoadoutConfig::CultistAcolyte)
                                         .with_skillset_config(
                                             common::skillset_builder::SkillSetConfig::CultistAcolyte
@@ -1056,7 +1054,7 @@ impl Floor {
                                             ),
                                         ))
                                         .with_name("Tamed Darkhound".to_string())
-                                        .with_loot_drop(comp::Item::new_from_asset_expect(chosen)),
+                                        .with_loot_drop(chosen.to_item()),
                                     EntityInfo::at(tile_wcenter.map(|e| e as f32))
                                         .with_body(comp::Body::QuadrupedMedium(
                                             comp::quadruped_medium::Body::random_with(
@@ -1065,7 +1063,7 @@ impl Floor {
                                             ),
                                         ))
                                         .with_name("Tamed Darkhound".to_string())
-                                        .with_loot_drop(comp::Item::new_from_asset_expect(chosen)),
+                                        .with_loot_drop(chosen.to_item()),
                                 ],
                                 4 => vec![
                                     EntityInfo::at(tile_wcenter.map(|e| e as f32))
@@ -1076,7 +1074,7 @@ impl Floor {
                                             ),
                                         ))
                                         .with_name("Dullahan Guard".to_string())
-                                        .with_loot_drop(comp::Item::new_from_asset_expect(chosen)),
+                                        .with_loot_drop(chosen.to_item()),
                                 ],
                                 5 => {
                                     let mut entities = Vec::new();

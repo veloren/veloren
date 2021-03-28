@@ -6,11 +6,17 @@ use serde::Serialize;
 use std::{error::Error, fs::File, io::Write};
 use structopt::StructOpt;
 
-use comp::item::{
-    armor::{ArmorKind, Protection},
-    ItemDesc, ItemKind, ItemTag, Quality,
+use veloren_common::{
+    assets::ASSETS_PATH,
+    comp::{
+        self,
+        item::{
+            armor::{ArmorKind, Protection},
+            ItemDesc, ItemKind, ItemTag, Quality,
+        },
+    },
+    lottery::LootSpec,
 };
-use veloren_common::{assets::ASSETS_PATH, comp};
 
 #[derive(StructOpt)]
 struct Cli {
@@ -372,17 +378,21 @@ fn loot_table(loot_table: &str) -> Result<(), Box<dyn Error>> {
         .map(|(i, x)| (x.to_string(), i))
         .collect();
 
-    let mut items = Vec::<(f32, String)>::new();
+    let mut items = Vec::<(f32, LootSpec)>::new();
 
     for record in rdr.records() {
         if let Ok(ref record) = record {
-            let item = record.get(headers["Item"]).expect("No item");
+            let item = match record.get(headers["Kind"]).expect("No loot specifier") {
+                "Item" => LootSpec::Item(record.get(headers["Item"]).expect("No item").to_string()),
+                "LootTable" => LootSpec::LootTable(record.get(headers["Item"]).expect("No loot table").to_string()),
+                _ => panic!("Loot specifier kind must be either \"Item\" or \"LootTable\""),
+            };
             let chance: f32 = record
                 .get(headers["Relative Chance"])
                 .expect("No chance for item in entry")
                 .parse()
                 .expect("Not an f32 for chance in entry");
-            items.push((chance, item.to_string()));
+            items.push((chance, item));
         }
     }
 

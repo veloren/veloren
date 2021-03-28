@@ -184,15 +184,16 @@ impl TradePricing {
         let mut result = TradePricing::default();
         let files = TradingPriceFile::load_expect("common.item_price_calculation");
         let contents = files.read();
-        for i in contents.loot_tables.iter() {
-            if PRICING_DEBUG {
-                info!(?i);
-            }
-            let loot = ProbabilityFile::load_expect(&i.1);
-            for j in loot.read().content.iter() {
-                add(&mut result.get_list_by_path_mut(&j.1), &j.1, i.0 * j.0);
-            }
-        }
+        // TODO: Re-enable this
+        // for i in contents.loot_tables.iter() {
+        //     if PRICING_DEBUG {
+        //         info!(?i);
+        //     }
+        //     let loot = ProbabilityFile::load_expect(&i.1);
+        //     for j in loot.read().content.iter() {
+        //         add(&mut result.get_list_by_path_mut(&j.1), &j.1, i.0 * j.0);
+        //     }
+        // }
 
         // Apply recipe book
         let book = default_recipe_book().read();
@@ -289,27 +290,28 @@ impl TradePricing {
         result
     }
 
-    fn random_item_impl(&self, good: Good, amount: f32) -> Option<String> {
-        if good == Good::Coin {
-            Some(TradePricing::COIN_ITEM.into())
-        } else {
-            let table = self.get_list(good);
-            let upper = table.len();
-            let lower = table
-                .iter()
-                .enumerate()
-                .find(|i| i.1.1 * amount >= 1.0)
-                .map(|i| i.0)
-                .unwrap_or(upper - 1);
-            let index = (rand::random::<f32>() * ((upper - lower) as f32)).floor() as usize + lower;
-            //.gen_range(lower..upper);
-            table.get(index).map(|i| i.0.clone())
-        }
-    }
+    // TODO: Re-enable later
+    // fn random_item_impl(&self, good: Good, amount: f32) -> Option<String> {
+    //     if good == Good::Coin {
+    //         Some(TradePricing::COIN_ITEM.into())
+    //     } else {
+    //         let table = self.get_list(good);
+    //         let upper = table.len();
+    //         let lower = table
+    //             .iter()
+    //             .enumerate()
+    //             .find(|i| i.1.1 * amount >= 1.0)
+    //             .map(|i| i.0)
+    //             .unwrap_or(upper - 1);
+    //         let index = (rand::random::<f32>() * ((upper - lower) as f32)).floor() as usize + lower;
+    //         //.gen_range(lower..upper);
+    //         table.get(index).map(|i| i.0.clone())
+    //     }
+    // }
 
-    pub fn random_item(good: Good, amount: f32) -> Option<String> {
-        TRADE_PRICING.random_item_impl(good, amount)
-    }
+    // pub fn random_item(good: Good, amount: f32) -> Option<String> {
+    //     TRADE_PRICING.random_item_impl(good, amount)
+    // }
 
     pub fn get_material(item: &str) -> (Good, f32) {
         if item == TradePricing::COIN_ITEM {

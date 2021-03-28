@@ -1,0 +1,15 @@
+[
+    // armor
+    (1.0, Item("common.items.armor.cultist.belt")),
+    (1.0, Item("common.items.armor.cultist.chest")),
+    (1.0, Item("common.items.armor.cultist.foot")),
+    (1.0, Item("common.items.armor.cultist.hand")),
+    (1.0, Item("common.items.armor.cultist.pants")),
+    (1.0, Item("common.items.armor.cultist.shoulder")),
+    (1.0, Item("common.items.armor.misc.back.dungeon_purple")),
+    (1.0, Item("common.items.armor.misc.ring.skull")),
+    // weapons
+    (1.0, Item("common.items.weapons.staff.cultist_staff")),
+    (1.0, Item("common.items.weapons.hammer.cultist_purp_2h-0")),
+    (1.0, Item("common.items.weapons.sword.cultist")),
+]

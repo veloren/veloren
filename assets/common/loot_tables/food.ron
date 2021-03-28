@@ -1,0 +1,14 @@
+[
+    // simple
+    (3.0, Item("common.items.food.cheese")),
+    (3.0, Item("common.items.food.apple")),
+    (3.0, Item("common.items.food.mushroom")),
+    (1.0, Item("common.items.food.coconut")),
+    (1.0, Item("common.items.food.lettuce")),
+    (1.0, Item("common.items.food.tomato")),
+    (2.0, Item("common.items.food.carrot")),
+    // crafted
+    (0.05, Item("common.items.food.apple_mushroom_curry")),
+    (0.1, Item("common.items.food.apple_stick")),
+    (0.1, Item("common.items.food.mushroom_stick")),
+]

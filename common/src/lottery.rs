@@ -26,9 +26,9 @@
 // Cheese drop rate = 3/X = 29.6%
 // Coconut drop rate = 1/X = 9.85%
 
-use crate::assets;
+use crate::{assets::{self, AssetExt}, comp::Item};
 use rand::prelude::*;
-use serde::{de::DeserializeOwned, Deserialize};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 #[derive(Clone, Debug, PartialEq, Deserialize)]
 pub struct Lottery<T> {
@@ -72,6 +72,23 @@ impl<T> Lottery<T> {
     pub fn total(&self) -> f32 { self.total }
 }
 
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+pub enum LootSpec {
+    Item(String),
+    LootTable(String),
+}
+
+impl LootSpec {
+    pub fn to_item(&self) -> Item {
+        match self {
+            Self::Item(item) => Item::new_from_asset_expect(&item),
+            Self::LootTable(table) => {
+                Lottery::<LootSpec>::load_expect(&table).read().choose().to_item()
+            },
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -79,13 +96,13 @@ mod tests {
 
     #[test]
     fn test_loot_table() {
-        let test = Lottery::<String>::load_expect("common.loot_tables.loot_table");
+        let test = Lottery::<LootSpec>::load_expect("common.loot_tables.fallback");
 
-        for (_, item_asset_specifier) in test.read().iter() {
+        for (_, to_itemifier) in test.read().iter() {
             assert!(
-                Item::new_from_asset(item_asset_specifier).is_ok(),
+                Item::new_from_asset(to_itemifier).is_ok(),
                 "Invalid loot table item '{}'",
-                item_asset_specifier
+                to_itemifier
             );
         }
     }

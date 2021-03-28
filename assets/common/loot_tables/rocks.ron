@@ -1,0 +1,6 @@
+[
+    (1.0, Item("common.items.crafting_ing.stones")),
+    (0.05, Item("common.items.crafting_ing.diamond")),
+    (0.1, Item("common.items.ore.velorite")),
+    (0.2, Item("common.items.ore.veloritefrag")),
+]

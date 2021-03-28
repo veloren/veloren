@@ -1,0 +1,5 @@
+[
+    (1.0, Item("common.items.flowers.red")),
+    (1.0, Item("common.items.crafting_ing.twigs")),
+    (0.5, Item("common.items.food.coconut")),
+]

@@ -1,0 +1,19 @@
+[
+    (2.0, Item("common.items.crafting_ing.empty_vial")),
+    (0.01, Item("common.items.crafting_ing.diamond")),
+    (3.0, Item("common.items.crafting_ing.cloth_scraps")),
+    (2.0, Item("common.items.crafting_ing.leather_scraps")),
+    // Consumables
+    (0.5, Item("common.items.consumable.potion_minor")),
+    // Ring
+    (0.2, Item("common.items.armor.misc.ring.gold")),
+    // Utility
+    (0.1, Item("common.items.utility.collar")),
+    // Bag
+    (0.1, Item("common.items.armor.misc.bag.liana_kit")),
+    // Food
+    (2.0, Item("common.items.food.coconut")),
+    (0.3, Item("common.items.food.apple_mushroom_curry")),
+    (0.6, Item("common.items.food.apple_stick")),
+    (0.8, Item("common.items.food.mushroom_stick")),
+]

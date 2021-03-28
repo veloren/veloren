@@ -1,0 +1,32 @@
+[
+    // belts
+    (0.4, Item("common.items.armor.druid.belt")),
+    (0.2, Item("common.items.armor.twigs.belt")),
+    (0.2, Item("common.items.armor.twigsflowers.belt")),
+    (0.2, Item("common.items.armor.twigsleaves.belt")),
+    // chests
+    (0.4, Item("common.items.armor.druid.chest")),
+    (0.2, Item("common.items.armor.twigs.chest")),
+    (0.2, Item("common.items.armor.twigsflowers.chest")),
+    (0.2, Item("common.items.armor.twigsleaves.chest")),
+    // shoes
+    (0.4, Item("common.items.armor.druid.foot")),
+    (0.2, Item("common.items.armor.twigs.foot")),
+    (0.2, Item("common.items.armor.twigsflowers.foot")),
+    (0.2, Item("common.items.armor.twigsleaves.foot")),
+    // pants
+    (0.4, Item("common.items.armor.druid.pants")),
+    (0.2, Item("common.items.armor.twigs.pants")),
+    (0.2, Item("common.items.armor.twigsflowers.pants")),
+    (0.2, Item("common.items.armor.twigsleaves.pants")),
+    // shoulders
+    (0.4, Item("common.items.armor.druid.shoulder")),
+    (0.2, Item("common.items.armor.twigs.shoulder")),
+    (0.2, Item("common.items.armor.twigsflowers.shoulder")),
+    (0.2, Item("common.items.armor.twigsleaves.shoulder")),
+    //gloves
+    (0.4, Item("common.items.armor.druid.hand")),
+    (0.2, Item("common.items.armor.twigs.hand")),
+    (0.2, Item("common.items.armor.twigsflowers.hand")),
+    (0.2, Item("common.items.armor.twigsleaves.hand")),
+]
