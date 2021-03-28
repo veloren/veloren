@@ -12,7 +12,7 @@ use fader::Fader;
 use sfx::{SfxEvent, SfxTriggerItem};
 use soundcache::{OggSound, WavSound};
 use std::time::Duration;
-use tracing::debug;
+use tracing::{debug, error};
 
 use common::assets::AssetExt;
 use rodio::{source::Source, OutputStream, OutputStreamHandle, StreamError};
@@ -60,7 +60,16 @@ impl AudioFrontend {
 
         let (stream, audio_stream) = match get_default_stream() {
             Ok(s) => (Some(s.0), Some(s.1)),
-            Err(_) => (None, None),
+            Err(e) => {
+                #[cfg(unix)]
+                error!(
+                    ?e,
+                    "failed to construct audio frontend. Is `pulseaudio-alsa` installed?"
+                );
+                #[cfg(not(unix))]
+                error!(?e, "failed to construct audio frontend.");
+                (None, None)
+            },
         };
 
         let mut sfx_channels = Vec::with_capacity(max_sfx_channels);
@@ -420,7 +429,7 @@ impl AudioFrontend {
 //}
 
 /// Returns the default stream
-pub fn get_default_stream() -> Result<(OutputStream, OutputStreamHandle), StreamError> {
+fn get_default_stream() -> Result<(OutputStream, OutputStreamHandle), StreamError> {
     rodio::OutputStream::try_default()
 }
 
