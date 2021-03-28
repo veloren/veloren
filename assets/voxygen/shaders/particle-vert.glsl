@@ -62,6 +62,7 @@ const int EXPLOSION = 20;
 const int ICE = 21;
 const int LIFESTEAL_BEAM = 22;
 const int CULTIST_FLAME = 23;
+const int STATIC_SMOKE = 24;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -402,6 +403,13 @@ void main() {
             vec4(purp_color, 0.0, purp_color, 1),
             spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
         );
+    } else if (inst_mode == STATIC_SMOKE) {
+        attr = Attr(
+            vec3(0),
+            vec3((0.5 * (1 - slow_start(0.8)))),
+            vec4(1.0),
+            spin_in_axis(vec3(rand6, rand7, rand8), rand9)
+        );
     } else {
         attr = Attr(
             linear_motion(
@@ -424,7 +432,7 @@ void main() {
     vec4 normals[6] = vec4[](vec4(-1,0,0,0), vec4(1,0,0,0), vec4(0,-1,0,0), vec4(0,1,0,0), vec4(0,0,-1,0), vec4(0,0,1,0));
     f_norm =
         // inst_pos *
-        ((normals[(v_norm_ao >> 0) & 0x7u]) * attr.rot).xyz;
+        normalize(((normals[(v_norm_ao >> 0) & 0x7u]) * attr.rot).xyz);
 
     //vec3 col = vec3((uvec3(v_col) >> uvec3(0, 8, 16)) & uvec3(0xFFu)) / 255.0;
     f_col = vec4(attr.col.rgb, attr.col.a);

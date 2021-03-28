@@ -10,6 +10,7 @@ use common::{
     },
     consts::{FRIC_GROUND, GRAVITY},
     event::{EventBus, ServerEvent},
+    outcome::Outcome,
     resources::DeltaTime,
     terrain::{Block, TerrainGrid},
     uid::Uid,
@@ -20,7 +21,7 @@ use common_ecs::{Job, Origin, ParMode, Phase, PhysicsMetrics, System};
 use rayon::iter::ParallelIterator;
 use specs::{
     shred::{ResourceId, World},
-    Entities, Entity, Join, ParJoin, Read, ReadExpect, ReadStorage, SystemData, WriteExpect,
+    Entities, Entity, Join, ParJoin, Read, ReadExpect, ReadStorage, SystemData, Write, WriteExpect,
     WriteStorage,
 };
 use std::ops::Range;
@@ -106,6 +107,7 @@ pub struct PhysicsWrite<'a> {
     pos_vel_defers: WriteStorage<'a, PosVelDefer>,
     orientations: WriteStorage<'a, Ori>,
     previous_phys_cache: WriteStorage<'a, PreviousPhysCache>,
+    outcomes: Write<'a, Vec<Outcome>>,
 }
 
 #[derive(SystemData)]
@@ -590,7 +592,7 @@ impl<'a> PhysicsData<'a> {
         let velocities = &write.velocities;
 
         // Second pass: resolve collisions
-        let land_on_grounds = (
+        let (land_on_grounds, mut outcomes) = (
             &read.entities,
             read.scales.maybe(),
             read.stickies.maybe(),
@@ -628,15 +630,11 @@ impl<'a> PhysicsData<'a> {
                     _,
                 )| {
                     let mut land_on_ground = None;
+                    let mut outcomes = Vec::new();
                     // Defer the writes of positions and velocities to allow an inner loop over
                     // terrain-like entities
                     let old_vel = *vel;
                     let mut vel = *vel;
-
-                    if sticky.is_some() && physics_state.on_surface().is_some() {
-                        vel.0 = physics_state.ground_vel;
-                        return land_on_ground;
-                    }
 
                     let scale = if let Collider::Voxel { .. } = collider {
                         scale.map(|s| s.0).unwrap_or(1.0)
@@ -738,17 +736,45 @@ impl<'a> PhysicsData<'a> {
                         Collider::Point => {
                             let mut pos = *pos;
 
-                            let (dist, block) = read
+                            let (dist, block) = if let Some(block) = read
                                 .terrain
-                                .ray(pos.0, pos.0 + pos_delta)
-                                .until(|block: &Block| block.is_filled())
-                                .ignore_error()
-                                .cast();
+                                .get(pos.0.map(|e| e.floor() as i32))
+                                .ok()
+                                .filter(|b| b.is_filled())
+                            // TODO: `is_solid`, when arrows are special-cased
+                            {
+                                (0.0, Some(block))
+                            } else {
+                                let (dist, block) = read
+                                    .terrain
+                                    .ray(pos.0, pos.0 + pos_delta)
+                                    .until(|block: &Block| block.is_filled())
+                                    .ignore_error()
+                                    .cast();
+                                (dist, block.unwrap()) // Can't fail since we do ignore_error above
+                            };
 
                             pos.0 += pos_delta.try_normalized().unwrap_or_else(Vec3::zero) * dist;
 
-                            // Can't fail since we do ignore_error above
-                            if block.unwrap().is_some() {
+                            // TODO: Not all projectiles should count as sticky!
+                            if sticky.is_some() {
+                                if let Some((projectile, body)) = read
+                                    .projectiles
+                                    .get(entity)
+                                    .filter(|_| vel.0.magnitude_squared() > 1.0 && block.is_some())
+                                    .zip(read.bodies.get(entity).copied())
+                                {
+                                    outcomes.push(Outcome::ProjectileHit {
+                                        pos: pos.0,
+                                        body,
+                                        vel: vel.0,
+                                        source: projectile.owner,
+                                        target: None,
+                                    });
+                                }
+                            }
+
+                            if block.is_some() {
                                 let block_center = pos.0.map(|e| e.floor()) + 0.5;
                                 let block_rpos = (pos.0 - block_center)
                                     .try_normalized()
@@ -773,6 +799,11 @@ impl<'a> PhysicsData<'a> {
                                             vel.0.y = 0.0;
                                             Vec3::unit_y() * -block_rpos.y.signum()
                                         });
+                                }
+
+                                // Sticky things shouldn't move
+                                if sticky.is_some() {
+                                    vel.0 = Vec3::zero();
                                 }
                             }
 
@@ -978,19 +1009,30 @@ impl<'a> PhysicsData<'a> {
                         pos_vel_defer.vel = None;
                     }
 
-                    land_on_ground
+                    (land_on_ground, outcomes)
                 },
             )
-            .fold(Vec::new, |mut land_on_grounds, land_on_ground| {
-                land_on_ground.map(|log| land_on_grounds.push(log));
-                land_on_grounds
-            })
-            .reduce(Vec::new, |mut land_on_grounds_a, mut land_on_grounds_b| {
-                land_on_grounds_a.append(&mut land_on_grounds_b);
-                land_on_grounds_a
-            });
+            .fold(
+                || (Vec::new(), Vec::new()),
+                |(mut land_on_grounds, mut all_outcomes), (land_on_ground, mut outcomes)| {
+                    land_on_ground.map(|log| land_on_grounds.push(log));
+                    all_outcomes.append(&mut outcomes);
+                    (land_on_grounds, all_outcomes)
+                },
+            )
+            .reduce(
+                || (Vec::new(), Vec::new()),
+                |(mut land_on_grounds_a, mut outcomes_a),
+                 (mut land_on_grounds_b, mut outcomes_b)| {
+                    land_on_grounds_a.append(&mut land_on_grounds_b);
+                    outcomes_a.append(&mut outcomes_b);
+                    (land_on_grounds_a, outcomes_a)
+                },
+            );
         drop(guard);
         job.cpu_stats.measure(ParMode::Single);
+
+        write.outcomes.append(&mut outcomes);
 
         prof_span!(guard, "write deferred pos and vel");
         for (_, pos, vel, pos_vel_defer) in (
@@ -1279,6 +1321,7 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
                         if d * e.signum() < 0.0 { 0.0 } else { e }
                     },
                 );
+
                 pos_delta *= resolve_dir.map(|e| if e != 0.0 { 0.0 } else { 1.0 });
             }
 

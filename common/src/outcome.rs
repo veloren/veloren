@@ -22,6 +22,13 @@ pub enum Outcome {
         body: comp::Body,
         vel: Vec3<f32>,
     },
+    ProjectileHit {
+        pos: Vec3<f32>,
+        body: comp::Body,
+        vel: Vec3<f32>,
+        source: Option<Uid>,
+        target: Option<Uid>,
+    },
     Beam {
         pos: Vec3<f32>,
         specifier: beam::FrontendSpecifier,
@@ -56,6 +63,7 @@ impl Outcome {
         match self {
             Outcome::Explosion { pos, .. }
             | Outcome::ProjectileShot { pos, .. }
+            | Outcome::ProjectileHit { pos, .. }
             | Outcome::Beam { pos, .. }
             | Outcome::SkillPointGain { pos, .. }
             | Outcome::SummonedCreature { pos, .. } => Some(*pos),

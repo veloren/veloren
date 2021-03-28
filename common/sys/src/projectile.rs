@@ -1,21 +1,23 @@
 use common::{
     combat::{AttackerInfo, TargetInfo},
     comp::{
-        projectile, Combo, Energy, Group, Health, HealthSource, Inventory, Ori, PhysicsState, Pos,
-        Projectile, Stats, Vel,
+        projectile, Body, Combo, Energy, Group, Health, HealthSource, Inventory, Ori, PhysicsState,
+        Pos, Projectile, Stats, Vel,
     },
     event::{EventBus, ServerEvent},
+    outcome::Outcome,
     resources::DeltaTime,
-    uid::UidAllocator,
+    uid::{Uid, UidAllocator},
     util::Dir,
     GroupTarget,
 };
 use common_ecs::{Job, Origin, Phase, System};
 use specs::{
     saveload::MarkerAllocator, shred::ResourceId, Entities, Join, Read, ReadStorage, SystemData,
-    World, WriteStorage,
+    World, Write, WriteStorage,
 };
 use std::time::Duration;
+use vek::*;
 
 #[derive(SystemData)]
 pub struct ReadData<'a> {
@@ -23,6 +25,7 @@ pub struct ReadData<'a> {
     dt: Read<'a, DeltaTime>,
     uid_allocator: Read<'a, UidAllocator>,
     server_bus: Read<'a, EventBus<ServerEvent>>,
+    uids: ReadStorage<'a, Uid>,
     positions: ReadStorage<'a, Pos>,
     physics_states: ReadStorage<'a, PhysicsState>,
     velocities: ReadStorage<'a, Vel>,
@@ -32,6 +35,7 @@ pub struct ReadData<'a> {
     stats: ReadStorage<'a, Stats>,
     combos: ReadStorage<'a, Combo>,
     healths: ReadStorage<'a, Health>,
+    bodies: ReadStorage<'a, Body>,
 }
 
 /// This system is responsible for handling projectile effect triggers
@@ -42,13 +46,17 @@ impl<'a> System<'a> for Sys {
         ReadData<'a>,
         WriteStorage<'a, Ori>,
         WriteStorage<'a, Projectile>,
+        Write<'a, Vec<Outcome>>,
     );
 
     const NAME: &'static str = "projectile";
     const ORIGIN: Origin = Origin::Common;
     const PHASE: Phase = Phase::Create;
 
-    fn run(_job: &mut Job<Self>, (read_data, mut orientations, mut projectiles): Self::SystemData) {
+    fn run(
+        _job: &mut Job<Self>,
+        (read_data, mut orientations, mut projectiles, mut outcomes): Self::SystemData,
+    ) {
         let mut server_emitter = read_data.server_bus.emitter();
 
         // Attacks
@@ -122,6 +130,19 @@ impl<'a> System<'a> for Sys {
                                     stats: read_data.stats.get(target),
                                     health: read_data.healths.get(target),
                                 };
+
+                                if let Some(&body) = read_data.bodies.get(entity) {
+                                    outcomes.push(Outcome::ProjectileHit {
+                                        pos: pos.0,
+                                        body,
+                                        vel: read_data
+                                            .velocities
+                                            .get(entity)
+                                            .map_or(Vec3::zero(), |v| v.0),
+                                        source: projectile.owner,
+                                        target: read_data.uids.get(target).copied(),
+                                    });
+                                }
 
                                 attack.apply_attack(
                                     target_group,

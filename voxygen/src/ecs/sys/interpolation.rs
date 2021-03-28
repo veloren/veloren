@@ -41,8 +41,8 @@ impl<'a> System<'a> for Sys {
         )
             .join()
         {
-            // Update interpolation values
-            if i.pos.distance_squared(pos.0) < 64.0 * 64.0 {
+            // Update interpolation values, but don't interpolate far things or objects
+            if i.pos.distance_squared(pos.0) < 64.0 * 64.0 && !matches!(body, Body::Object(_)) {
                 i.pos = Lerp::lerp(i.pos, pos.0 + vel.0 * 0.03, 10.0 * dt.0);
                 i.ori = Ori::slerp(i.ori, *ori, base_ori_interp(body) * dt.0);
             } else {

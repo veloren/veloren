@@ -47,20 +47,21 @@ pub fn handle_remove<C: Component>(entity: Entity, world: &World) {
 }
 
 pub trait InterpolatableComponent: Component {
-    type InterpData: Component + Default;
+    type InterpData: Component;
     type ReadData;
 
+    fn new_data(x: Self) -> Self::InterpData;
     fn update_component(&self, data: &mut Self::InterpData, time: f64, force_update: bool);
     fn interpolate(self, data: &Self::InterpData, time: f64, read_data: &Self::ReadData) -> Self;
 }
 
-pub fn handle_interp_insert<C: InterpolatableComponent>(
+pub fn handle_interp_insert<C: InterpolatableComponent + Clone>(
     comp: C,
     entity: Entity,
     world: &World,
     force_update: bool,
 ) {
-    let mut interp_data = C::InterpData::default();
+    let mut interp_data = C::new_data(comp.clone());
     let time = world.read_resource::<Time>().0;
     comp.update_component(&mut interp_data, time, force_update);
     handle_insert(comp, entity, world);

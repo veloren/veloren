@@ -8,13 +8,25 @@ use specs_idvs::IdvStorage;
 use tracing::warn;
 use vek::ops::{Lerp, Slerp};
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct InterpBuffer<T> {
     pub buf: [(f64, T); 4],
     pub i: usize,
 }
 
 impl<T: Clone> InterpBuffer<T> {
+    pub fn new(x: T) -> Self {
+        Self {
+            buf: [
+                (0.0, x.clone()),
+                (0.0, x.clone()),
+                (0.0, x.clone()),
+                (0.0, x),
+            ],
+            i: 0,
+        }
+    }
+
     fn push(&mut self, time: f64, x: T) {
         let InterpBuffer {
             ref mut buf,
@@ -53,6 +65,8 @@ const ENABLE_POSITION_HERMITE: bool = false;
 impl InterpolatableComponent for Pos {
     type InterpData = InterpBuffer<Pos>;
     type ReadData = InterpBuffer<Vel>;
+
+    fn new_data(x: Self) -> Self::InterpData { InterpBuffer::new(x) }
 
     fn update_component(&self, interp_data: &mut Self::InterpData, time: f64, force_update: bool) {
         interp_data.update(time, *self, force_update);
@@ -108,6 +122,8 @@ impl InterpolatableComponent for Vel {
     type InterpData = InterpBuffer<Vel>;
     type ReadData = ();
 
+    fn new_data(x: Self) -> Self::InterpData { InterpBuffer::new(x) }
+
     fn update_component(&self, interp_data: &mut Self::InterpData, time: f64, force_update: bool) {
         interp_data.update(time, *self, force_update);
     }
@@ -142,6 +158,8 @@ impl InterpolatableComponent for Vel {
 impl InterpolatableComponent for Ori {
     type InterpData = InterpBuffer<Ori>;
     type ReadData = ();
+
+    fn new_data(x: Self) -> Self::InterpData { InterpBuffer::new(x) }
 
     fn update_component(&self, interp_data: &mut Self::InterpData, time: f64, force_update: bool) {
         interp_data.update(time, *self, force_update);

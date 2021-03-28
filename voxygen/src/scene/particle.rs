@@ -196,6 +196,18 @@ impl ParticleMgr {
                 },
                 _ => {},
             },
+            Outcome::ProjectileHit { pos, target, .. } => {
+                if target.is_some() {
+                    self.particles.resize_with(self.particles.len() + 30, || {
+                        Particle::new(
+                            Duration::from_millis(100),
+                            time,
+                            ParticleMode::Shrapnel,
+                            *pos,
+                        )
+                    });
+                }
+            },
             Outcome::ProjectileShot { .. }
             | Outcome::Beam { .. }
             | Outcome::ExpChange { .. }
@@ -257,6 +269,12 @@ impl ParticleMgr {
                 Body::Object(object::Body::CampfireLit) => {
                     self.maintain_campfirelit_particles(scene_data, pos, vel)
                 },
+                Body::Object(
+                    object::Body::Arrow
+                    | object::Body::MultiArrow
+                    | object::Body::ArrowSnake
+                    | object::Body::ArrowTurret,
+                ) => self.maintain_arrow_particles(scene_data, pos, vel),
                 Body::Object(object::Body::BoltFire) => {
                     self.maintain_boltfire_particles(scene_data, pos, vel)
                 },
@@ -309,6 +327,33 @@ impl ParticleMgr {
                 ParticleMode::CampfireSmoke,
                 pos.0.map(|e| e + thread_rng().gen_range(-0.25..0.25))
                     + vel.map_or(Vec3::zero(), |v| -v.0 * dt * rng.gen::<f32>()),
+            ));
+        }
+    }
+
+    fn maintain_arrow_particles(&mut self, scene_data: &SceneData, pos: &Pos, vel: Option<&Vel>) {
+        const MIN_SPEED: f32 = 15.0;
+        // Don't emit particles for immobile arrows
+        if vel.map_or(true, |v| v.0.magnitude_squared() < MIN_SPEED.powi(2)) {
+            return;
+        }
+
+        span!(
+            _guard,
+            "arrow_particles",
+            "ParticleMgr::maintain_arrow_particles"
+        );
+        let time = scene_data.state.get_time();
+        let dt = scene_data.state.get_delta_time();
+
+        let count = self.scheduler.heartbeats(Duration::from_millis(2));
+        for i in 0..count {
+            let proportion = i as f32 / count as f32;
+            self.particles.push(Particle::new(
+                Duration::from_millis(200),
+                time,
+                ParticleMode::StaticSmoke,
+                pos.0 + vel.map_or(Vec3::zero(), |v| -v.0 * dt * proportion),
             ));
         }
     }
