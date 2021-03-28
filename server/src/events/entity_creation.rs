@@ -1,4 +1,4 @@
-use crate::{sys, Server, StateExt};
+use crate::{client::Client, sys, Server, StateExt};
 use common::{
     character::CharacterId,
     comp::{
@@ -6,15 +6,16 @@ use common::{
         aura::{Aura, AuraKind, AuraTarget},
         beam,
         buff::{BuffCategory, BuffData, BuffKind, BuffSource},
-        group,
         inventory::loadout::Loadout,
         shockwave, Agent, Alignment, Body, Gravity, Health, HomeChunk, Inventory, Item, ItemDrop,
         LightEmitter, Object, Ori, Poise, Pos, Projectile, Scale, Stats, Vel, WaypointArea,
     },
     outcome::Outcome,
     rtsim::RtSimEntity,
+    uid::Uid,
     util::Dir,
 };
+use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
 use specs::{Builder, Entity as EcsEntity, WorldExt};
 use std::time::Duration;
 use vek::{Rgb, Vec3};
@@ -59,15 +60,6 @@ pub fn handle_create_npc(
     home_chunk: Option<HomeChunk>,
     rtsim_entity: Option<RtSimEntity>,
 ) {
-    let group = match alignment {
-        Alignment::Wild => None,
-        Alignment::Passive => None,
-        Alignment::Enemy => Some(group::ENEMY),
-        Alignment::Npc | Alignment::Tame => Some(group::NPC),
-        // TODO: handle
-        Alignment::Owned(_) => None,
-    };
-
     let inventory = Inventory::new_with_loadout(loadout);
 
     let entity = server
@@ -75,12 +67,6 @@ pub fn handle_create_npc(
         .create_npc(pos, stats, health, poise, inventory, body)
         .with(scale)
         .with(alignment);
-
-    let entity = if let Some(group) = group {
-        entity.with(group)
-    } else {
-        entity
-    };
 
     let entity = if let Some(agent) = agent.into() {
         entity.with(agent)
@@ -106,7 +92,45 @@ pub fn handle_create_npc(
         entity
     };
 
-    entity.build();
+    let new_entity = entity.build();
+
+    // Add to group system if a pet
+    if let comp::Alignment::Owned(owner_uid) = alignment {
+        let state = server.state();
+        let clients = state.ecs().read_storage::<Client>();
+        let uids = state.ecs().read_storage::<Uid>();
+        let mut group_manager = state.ecs().write_resource::<comp::group::GroupManager>();
+        if let Some(owner) = state.ecs().entity_from_uid(owner_uid.into()) {
+            group_manager.new_pet(
+                new_entity,
+                owner,
+                &mut state.ecs().write_storage(),
+                &state.ecs().entities(),
+                &state.ecs().read_storage(),
+                &uids,
+                &mut |entity, group_change| {
+                    clients
+                        .get(entity)
+                        .and_then(|c| {
+                            group_change
+                                .try_map(|e| uids.get(e).copied())
+                                .map(|g| (g, c))
+                        })
+                        .map(|(g, c)| {
+                            c.send_fallible(ServerGeneral::GroupUpdate(g));
+                        });
+                },
+            );
+        }
+    } else if let Some(group) = match alignment {
+        comp::Alignment::Wild => None,
+        comp::Alignment::Passive => None,
+        comp::Alignment::Enemy => Some(comp::group::ENEMY),
+        comp::Alignment::Npc | comp::Alignment::Tame => Some(comp::group::NPC),
+        comp::Alignment::Owned(_) => unreachable!(),
+    } {
+        let _ = server.state.ecs().write_storage().insert(new_entity, group);
+    }
 }
 
 #[allow(clippy::too_many_arguments)]

@@ -8,6 +8,7 @@ use common::{
     comp,
     depot::{Depot, Id},
     event::{EventBus, LocalEvent, ServerEvent},
+    outcome::Outcome,
     region::RegionMap,
     resources::{DeltaTime, GameMode, PlayerEntity, Time, TimeOfDay},
     slowjob::SlowJobPool,
@@ -508,6 +509,9 @@ impl State {
                     if let Some(vel) = velocities.get_mut(entity) {
                         vel.0 += extra_vel;
                     }
+                },
+                LocalEvent::CreateOutcome(outcome) => {
+                    self.ecs.write_resource::<Vec<Outcome>>().push(outcome);
                 },
             }
         }

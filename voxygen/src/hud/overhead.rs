@@ -1,7 +1,7 @@
 use super::{
     cr_color, img_ids::Imgs, DEFAULT_NPC, ENEMY_HP_COLOR, FACTION_COLOR, GROUP_COLOR, GROUP_MEMBER,
-    HP_COLOR, LOW_HP_COLOR, REGION_COLOR, SAY_COLOR, STAMINA_COLOR, TELL_COLOR, TEXT_BG,
-    TEXT_COLOR,
+    HP_COLOR, LOW_HP_COLOR, QUALITY_EPIC, REGION_COLOR, SAY_COLOR, STAMINA_COLOR, TELL_COLOR,
+    TEXT_BG, TEXT_COLOR,
 };
 use crate::{
     hud::{get_buff_image, get_buff_info},
@@ -16,6 +16,7 @@ use conrod_core::{
     widget::{self, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
+
 const MAX_BUBBLE_WIDTH: f64 = 250.0;
 widget_ids! {
     struct Ids {
@@ -42,6 +43,7 @@ widget_ids! {
         level,
         level_skull,
         health_bar,
+        decay_bar,
         health_bar_bg,
         health_txt,
         mana_bar,
@@ -64,8 +66,13 @@ pub struct Info<'a> {
 }
 
 /// Determines whether to show the healthbar
-pub fn should_show_healthbar(health: &Health) -> bool { health.current() != health.maximum() }
-
+pub fn should_show_healthbar(health: &Health) -> bool {
+    health.current() != health.maximum() || health.current() < health.base_max()
+}
+/// Determines if there is decayed health being applied
+pub fn decayed_health_displayed(health: &Health) -> bool {
+    (1.0 - health.maximum() as f64 / health.base_max() as f64) > 0.0
+}
 /// ui widget containing everything that goes over a character's head
 /// (Speech bubble, Name, Level, HP/energy bars, etc.)
 #[derive(WidgetCommon)]
@@ -145,6 +152,11 @@ impl<'a> Ingameable for Overhead<'a> {
                 } else {
                     0
                 }
+                + if info.health.map_or(false, |h| decayed_health_displayed(h)) {
+                    1
+                } else {
+                    0
+                }
         }) + if self.bubble.is_some() { 13 } else { 0 }
     }
 }
@@ -176,8 +188,9 @@ impl<'a> Widget for Overhead<'a> {
         }) = self.info
         {
             // Used to set healthbar colours based on hp_percentage
-            let hp_percentage =
-                health.map_or(100.0, |h| h.current() as f64 / h.maximum() as f64 * 100.0);
+            let hp_percentage = health.map_or(100.0, |h| {
+                h.current() as f64 / h.base_max().max(h.maximum()) as f64 * 100.0
+            });
             // Compare levels to decide if a skull is shown
             let health_current = health.map_or(1.0, |h| (h.current() / 10) as f64);
             let health_max = health.map_or(1.0, |h| (h.maximum() / 10) as f64);
@@ -298,18 +311,20 @@ impl<'a> Widget for Overhead<'a> {
                 .set(state.ids.name, ui);
 
             match health {
-                Some(health) if should_show_healthbar(health) => {
+                Some(health)
+                    if should_show_healthbar(health) || decayed_health_displayed(health) =>
+                {
                     // Show HP Bar
                     let hp_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 1.0; //Animation timer
                     let crit_hp_color: Color = Color::Rgba(0.93, 0.59, 0.03, hp_ani);
-
+                    let decayed_health = 1.0 - health.maximum() as f64 / health.base_max() as f64;
                     // Background
                     Image::new(if self.in_group {self.imgs.health_bar_group_bg} else {self.imgs.enemy_health_bg})
-                .w_h(84.0 * BARSIZE, 10.0 * BARSIZE)
-                .x_y(0.0, MANA_BAR_Y + 6.5) //-25.5)
-                .color(Some(Color::Rgba(0.1, 0.1, 0.1, 0.8)))
-                .parent(id)
-                .set(state.ids.health_bar_bg, ui);
+                        .w_h(84.0 * BARSIZE, 10.0 * BARSIZE)
+                        .x_y(0.0, MANA_BAR_Y + 6.5) //-25.5)
+                        .color(Some(Color::Rgba(0.1, 0.1, 0.1, 0.8)))
+                        .parent(id)
+                        .set(state.ids.health_bar_bg, ui);
 
                     // % HP Filling
                     let size_factor = (hp_percentage / 100.0) * BARSIZE;
@@ -339,6 +354,27 @@ impl<'a> Widget for Overhead<'a> {
                         })
                         .parent(id)
                         .set(state.ids.health_bar, ui);
+
+                    if decayed_health > 0.0 {
+                        let x_decayed = if self.in_group {
+                            (0.0 - (decayed_health * 41.0 - 41.0)) * BARSIZE
+                        } else {
+                            (4.5 - (decayed_health * 36.45 - 36.45)) * BARSIZE
+                        };
+
+                        let decay_bar_len = decayed_health
+                            * if self.in_group {
+                                82.0 * BARSIZE
+                            } else {
+                                73.0 * BARSIZE
+                            };
+                        Image::new(self.imgs.enemy_bar)
+                            .w_h(decay_bar_len, h)
+                            .x_y(x_decayed, MANA_BAR_Y + 8.0)
+                            .color(Some(QUALITY_EPIC))
+                            .parent(id)
+                            .set(state.ids.decay_bar, ui);
+                    }
                     let mut txt = format!("{}/{}", health_cur_txt, health_max_txt);
                     if health.is_dead {
                         txt = self.i18n.get("hud.group.dead").to_string()
@@ -409,7 +445,7 @@ impl<'a> Widget for Overhead<'a> {
                         .parent(id)
                         .set(state.ids.level, ui);
                     }
-                },
+                }
                 _ => {},
             }
         }

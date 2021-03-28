@@ -18,7 +18,7 @@ loot_tables: [
     (1,"common.loot_tables.loot_table_food"),
     (0.1,"common.loot_tables.loot_table_humanoids"),
     (1,"common.loot_tables.loot_table_maneater"),
-    (0.0001,"common.loot_tables.loot_table_mindflayer"),
+    (0.0001,"common.loot_tables.mindflayer"),
     (0.001,"common.loot_tables.loot_table_miniboss"),
     (0.05,"common.loot_tables.loot_table_raptor"),
     // loot_table_rocks is dropped by rock monsters, but is also the only source of stones to econsim until cave_scatter information is turned into a loot table

@@ -96,5 +96,13 @@
                  vox_spec: ("npc.myrmidon.male.hand_r", (0.0, -2.0, -9.0)),
             )
         ),
+        "Husk": (
+            left: (
+                vox_spec: ("npc.husk.male.hand_r", (-7.0, -2.5, -10.0)),
+            ),
+            right: (
+                 vox_spec: ("npc.husk.male.hand_r", (0.0, -2.5, -10.0)),
+            )
+        ),
     },
 ))

@@ -61,6 +61,7 @@ const int SNOW = 19;
 const int EXPLOSION = 20;
 const int ICE = 21;
 const int LIFESTEAL_BEAM = 22;
+const int CULTIST_FLAME = 23;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -363,8 +364,8 @@ void main() {
     } else if (inst_mode == FLAMETHROWER) {
         f_reflect = 0.0; // Fire doesn't reflect light, it emits it
         attr = Attr(
-            (inst_dir * slow_end(1.5)) + vec3(rand0, rand1, rand2) * (lifetime * 5 + 0.25),
-            vec3((2.5 * (1 - slow_start(0.3)))),
+            (inst_dir * slow_end(1.5)) + vec3(rand0, rand1, rand2) * (percent() + 2) * 0.1,
+            vec3((2.5 * (1 - slow_start(0.2)))),
             vec4(3, 1.6 + rand5 * 0.3 - 0.4 * percent(), 0.2, 1),
             spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
         );
@@ -391,6 +392,15 @@ void main() {
             vec3((5 * (1 - slow_start(0.5)))),
             vec4(3, 1.6 + rand5 * 0.3 - 0.4 * percent(), 0.2, 1),
             spin_in_axis(vec3(rand3, rand4, rand5), rand6)
+        );
+    } else if (inst_mode == CULTIST_FLAME) {
+        f_reflect = 0.0; // Fire doesn't reflect light, it emits it
+        float purp_color = 0.9 + 0.3 * rand3;
+        attr = Attr(
+            (inst_dir * slow_end(1.5)) + vec3(rand0, rand1, rand2) * (percent() + 2) * 0.1,
+            vec3((3.5 * (1 - slow_start(0.2)))),
+            vec4(purp_color, 0.0, purp_color, 1),
+            spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
         );
     } else {
         attr = Attr(

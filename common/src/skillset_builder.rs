@@ -4,9 +4,10 @@ use crate::comp::{
         AxeSkill, BowSkill, HammerSkill, Skill, SkillGroupKind, SkillSet, StaffSkill, SwordSkill,
     },
 };
+use serde::{Deserialize, Serialize};
 use tracing::warn;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq, Serialize, Deserialize, Debug)]
 pub enum SkillSetConfig {
     Adlet,
     Gnarling,

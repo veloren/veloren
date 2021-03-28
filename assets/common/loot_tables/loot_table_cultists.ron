@@ -13,7 +13,6 @@
     // Misc
     (4, "common.items.crafting_ing.empty_vial"),
     (0.25, "common.items.armor.misc.neck.plain_1"),
-    (0.001, "common.items.glider.glider_purp"),
     (0.1, "common.items.glider.glider_blue"),
     (0.5, "common.items.utility.firework_purple"),
     (0.5, "common.items.utility.bomb"),
@@ -198,12 +197,10 @@
     (0.10, "common.items.weapons.sword.bloodsteel-0"),
     (0.10, "common.items.weapons.sword.bloodsteel-1"),
     (0.10, "common.items.weapons.sword.bloodsteel-2"),
-    (0.001, "common.items.weapons.sword.caladbolg"),
     // axes
     (0.20, "common.items.weapons.axe.bloodsteel_axe-0"),
     (0.20, "common.items.weapons.axe.bloodsteel_axe-1"),
     (0.20, "common.items.weapons.axe.bloodsteel_axe-2"),
-    (0.001, "common.items.weapons.axe.parashu"),
     // healing staff
     (0.25, "common.items.weapons.sceptre.staff_nature"),
     // staves
@@ -212,13 +209,11 @@
     (0.10, "common.items.weapons.staff.flamethrower_0"),
     (0.05, "common.items.weapons.staff.bent_fuse"),
     (0.05, "common.items.weapons.staff.orc_iron"),
-    (0.001, "common.items.weapons.staff.phoenix"),
     // hammers
     (0.01, "common.items.weapons.hammer.cobalt_hammer-0"),
     (0.01, "common.items.weapons.hammer.cobalt_hammer-1"),
     (0.01, "common.items.weapons.hammer.runic_hammer"),
     (0.1, "common.items.weapons.hammer.ramshead_hammer"),
-    (0.001, "common.items.weapons.hammer.mjolnir"),
     // bows
     (0.20, "common.items.weapons.bow.frostwood-0"),
     (0.20, "common.items.weapons.bow.frostwood-1"),
@@ -226,5 +221,4 @@
     (0.10, "common.items.weapons.bow.eldwood-0"),
     (0.10, "common.items.weapons.bow.eldwood-1"),
     (0.10, "common.items.weapons.bow.eldwood-2"),
-    (0.001, "common.items.weapons.bow.sagitta"),
 ]

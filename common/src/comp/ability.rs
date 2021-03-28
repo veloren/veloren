@@ -1,6 +1,6 @@
 use crate::{
     assets::{self, Asset},
-    combat,
+    combat::{self, CombatEffect, Knockback},
     comp::{
         aura, beam, inventory::item::tool::ToolKind, projectile::ProjectileConstructor, skills,
         Body, CharacterState, EnergySource, Gravity, LightEmitter, StateUpdate,
@@ -10,7 +10,6 @@ use crate::{
         utils::{AbilityInfo, StageSection},
         *,
     },
-    Knockback,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -156,14 +155,17 @@ pub enum CharacterAbility {
         recover_duration: f32,
         base_damage: f32,
         base_poise_damage: f32,
-        knockback: f32,
+        knockback: Knockback,
         range: f32,
+        damage_effect: Option<CombatEffect>,
         energy_cost: f32,
         is_infinite: bool,
         movement_behavior: spin_melee::MovementBehavior,
         is_interruptible: bool,
         forward_speed: f32,
         num_spins: u32,
+        specifier: Option<spin_melee::FrontendSpecifier>,
+        target: Option<combat::GroupTarget>,
     },
     ChargedMelee {
         energy_cost: f32,
@@ -223,7 +225,7 @@ pub enum CharacterAbility {
         tick_rate: f32,
         range: f32,
         max_angle: f32,
-        lifesteal_eff: f32,
+        damage_effect: Option<CombatEffect>,
         energy_regen: f32,
         energy_drain: f32,
         orientation_behavior: basic_beam::MovementBehavior,
@@ -249,6 +251,18 @@ pub enum CharacterAbility {
         max_angle: f32,
         energy_cost: f32,
         specifier: beam::FrontendSpecifier,
+    },
+    Blink {
+        buildup_duration: f32,
+        recover_duration: f32,
+        max_range: f32,
+    },
+    BasicSummon {
+        buildup_duration: f32,
+        cast_duration: f32,
+        recover_duration: f32,
+        summon_amount: u32,
+        summon_info: basic_summon::SummonInfo,
     },
 }
 
@@ -530,6 +544,25 @@ impl CharacterAbility {
                 *heal *= power;
                 *tick_rate *= speed;
             },
+            Blink {
+                ref mut buildup_duration,
+                ref mut recover_duration,
+                ..
+            } => {
+                *buildup_duration /= speed;
+                *recover_duration /= speed;
+            },
+            BasicSummon {
+                ref mut buildup_duration,
+                ref mut cast_duration,
+                ref mut recover_duration,
+                ..
+            } => {
+                // TODO: Figure out how/if power should affect this
+                *buildup_duration /= speed;
+                *cast_duration /= speed;
+                *recover_duration /= speed;
+            },
         }
         self
     }
@@ -556,7 +589,7 @@ impl CharacterAbility {
                     0
                 }
             },
-            BasicBlock | Boost { .. } | ComboMelee { .. } => 0,
+            BasicBlock | Boost { .. } | ComboMelee { .. } | Blink { .. } | BasicSummon { .. } => 0,
         }
     }
 
@@ -1008,7 +1041,7 @@ impl CharacterAbility {
                         ref mut damage,
                         ref mut range,
                         ref mut beam_duration,
-                        ref mut lifesteal_eff,
+                        ref mut damage_effect,
                         ref mut energy_regen,
                         ..
                     } => {
@@ -1024,8 +1057,10 @@ impl CharacterAbility {
                         if let Ok(Some(level)) = skillset.skill_level(Sceptre(LRegen)) {
                             *energy_regen *= 1.25_f32.powi(level.into());
                         }
-                        if let Ok(Some(level)) = skillset.skill_level(Sceptre(LLifesteal)) {
-                            *lifesteal_eff *= 1.3_f32.powi(level.into());
+                        if let (Ok(Some(level)), Some(CombatEffect::Lifesteal(ref mut lifesteal))) =
+                            (skillset.skill_level(Sceptre(LLifesteal)), damage_effect)
+                        {
+                            *lifesteal *= 1.3_f32.powi(level.into());
                         }
                     },
                     HealingBeam {
@@ -1299,12 +1334,15 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 base_poise_damage,
                 knockback,
                 range,
+                damage_effect,
                 energy_cost,
                 is_infinite,
                 movement_behavior,
                 is_interruptible,
                 forward_speed,
                 num_spins,
+                specifier,
+                target,
             } => CharacterState::SpinMelee(spin_melee::Data {
                 static_data: spin_melee::StaticData {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
@@ -1314,13 +1352,16 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                     base_poise_damage: *base_poise_damage,
                     knockback: *knockback,
                     range: *range,
+                    damage_effect: *damage_effect,
                     energy_cost: *energy_cost,
                     is_infinite: *is_infinite,
                     movement_behavior: *movement_behavior,
                     is_interruptible: *is_interruptible,
                     forward_speed: *forward_speed,
                     num_spins: *num_spins,
+                    target: *target,
                     ability_info,
+                    specifier: *specifier,
                 },
                 timer: Duration::default(),
                 spins_remaining: *num_spins - 1,
@@ -1479,7 +1520,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 tick_rate,
                 range,
                 max_angle,
-                lifesteal_eff,
+                damage_effect,
                 energy_regen,
                 energy_drain,
                 orientation_behavior,
@@ -1493,7 +1534,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                     tick_rate: *tick_rate,
                     range: *range,
                     max_angle: *max_angle,
-                    lifesteal_eff: *lifesteal_eff,
+                    damage_effect: *damage_effect,
                     energy_regen: *energy_regen,
                     energy_drain: *energy_drain,
                     ability_info,
@@ -1549,6 +1590,39 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                     ability_info,
                     specifier: *specifier,
                 },
+                timer: Duration::default(),
+                stage_section: StageSection::Buildup,
+            }),
+            CharacterAbility::Blink {
+                buildup_duration,
+                recover_duration,
+                max_range,
+            } => CharacterState::Blink(blink::Data {
+                static_data: blink::StaticData {
+                    buildup_duration: Duration::from_secs_f32(*buildup_duration),
+                    recover_duration: Duration::from_secs_f32(*recover_duration),
+                    max_range: *max_range,
+                    ability_info,
+                },
+                timer: Duration::default(),
+                stage_section: StageSection::Buildup,
+            }),
+            CharacterAbility::BasicSummon {
+                buildup_duration,
+                cast_duration,
+                recover_duration,
+                summon_amount,
+                summon_info,
+            } => CharacterState::BasicSummon(basic_summon::Data {
+                static_data: basic_summon::StaticData {
+                    buildup_duration: Duration::from_secs_f32(*buildup_duration),
+                    cast_duration: Duration::from_secs_f32(*cast_duration),
+                    recover_duration: Duration::from_secs_f32(*recover_duration),
+                    summon_amount: *summon_amount,
+                    summon_info: *summon_info,
+                    ability_info,
+                },
+                summon_count: 0,
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
             }),

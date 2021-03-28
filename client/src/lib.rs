@@ -999,11 +999,17 @@ impl Client {
         }
     }
 
-    pub fn handle_input(&mut self, input: InputKind, pressed: bool, select_pos: Option<Vec3<f32>>) {
+    pub fn handle_input(
+        &mut self,
+        input: InputKind,
+        pressed: bool,
+        select_pos: Option<Vec3<f32>>,
+        target_entity: Option<EcsEntity>,
+    ) {
         if pressed {
             self.control_action(ControlAction::StartInput {
                 input,
-                target: None,
+                target_entity: target_entity.and_then(|e| self.state.read_component_copied(e)),
                 select_pos,
             });
         } else {

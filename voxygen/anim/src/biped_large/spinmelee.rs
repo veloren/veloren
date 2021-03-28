@@ -2,7 +2,10 @@ use super::{
     super::{vek::*, Animation},
     BipedLargeSkeleton, SkeletonAttr,
 };
-use common::{comp::item::ToolKind, states::utils::StageSection};
+use common::{
+    comp::item::{ToolKind, UniqueKind},
+    states::utils::StageSection,
+};
 use std::f32::consts::PI;
 
 pub struct SpinMeleeAnimation;
@@ -14,6 +17,7 @@ impl Animation for SpinMeleeAnimation {
         Vec3<f32>,
         f32,
         Option<StageSection>,
+        f32,
     );
     type Skeleton = BipedLargeSkeleton;
 
@@ -24,122 +28,97 @@ impl Animation for SpinMeleeAnimation {
     #[allow(clippy::approx_constant)] // TODO: Pending review in #587
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, _second_tool_kind, velocity, _global_time, stage_section): Self::Dependency,
+        (active_tool_kind, _second_tool_kind, velocity, _global_time, stage_section, acc_vel): Self::Dependency,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         *rate = 1.0;
-        let lab: f32 = 1.0;
-        let (_movement1, movement2, movement3) = match stage_section {
-            Some(StageSection::Buildup) => (anim_time, 0.0, 0.0),
-            Some(StageSection::Swing) => (1.0, anim_time, 0.0),
-            Some(StageSection::Recover) => (1.0, 1.0, anim_time),
+        let mut next = (*skeleton).clone();
+
+        let speed = Vec2::<f32>::from(velocity).magnitude();
+
+        let lab: f32 = 0.65 * s_a.tempo;
+        let speednorm = (speed / 12.0).powf(0.4);
+        let foothoril = (acc_vel * lab + PI * 1.45).sin() * speednorm;
+        let foothorir = (acc_vel * lab + PI * (0.45)).sin() * speednorm;
+        let footrotl = ((1.0 / (0.5 + (0.5) * ((acc_vel * lab + PI * 1.4).sin()).powi(2))).sqrt())
+            * ((acc_vel * lab + PI * 1.4).sin());
+
+        let footrotr = ((1.0 / (0.5 + (0.5) * ((acc_vel * lab + PI * 0.4).sin()).powi(2))).sqrt())
+            * ((acc_vel * lab + PI * 0.4).sin());
+
+        let (move1base, move2, move3) = match stage_section {
+            Some(StageSection::Buildup) => ((anim_time.powf(0.25)), 0.0, 0.0),
+            Some(StageSection::Swing) => (1.0, (anim_time * 0.05).sin() - 0.05, 0.0),
+            Some(StageSection::Recover) => (1.0, 0.0, anim_time),
             _ => (0.0, 0.0, 0.0),
         };
-        let speed = Vec2::<f32>::from(velocity).magnitude();
-        let mut next = (*skeleton).clone();
-        //torso movement
-        let xshift = if velocity.z.abs() < 0.1 {
-            ((anim_time - 1.1) * lab * 3.0).sin()
-        } else {
-            0.0
-        };
-        let yshift = if velocity.z.abs() < 0.1 {
-            ((anim_time - 1.1) * lab * 3.0 + PI / 2.0).sin()
-        } else {
-            0.0
-        };
+        let pullback = 1.0 - move3;
+        let move1 = move1base * pullback;
 
-        let spin = if anim_time < 1.1 && velocity.z.abs() < 0.1 {
-            0.5 * (anim_time.powi(2))
-        } else {
-            lab * anim_time * 0.9
-        };
+        next.shoulder_l.position = Vec3::new(
+            -s_a.shoulder.0,
+            s_a.shoulder.1,
+            s_a.shoulder.2 - foothorir * 1.0,
+        );
+        next.shoulder_l.orientation =
+            Quaternion::rotation_x(move1 * 0.8 + 0.6 * speednorm + (footrotr * -0.2) * speednorm);
 
-        //feet
-        let slowersmooth = (anim_time * lab * 4.0).sin();
-        let quick = (anim_time * lab * 8.0).sin();
+        next.shoulder_r.position = Vec3::new(
+            s_a.shoulder.0,
+            s_a.shoulder.1,
+            s_a.shoulder.2 - foothoril * 1.0,
+        );
+        next.shoulder_r.orientation =
+            Quaternion::rotation_x(move1 * 0.8 + 0.6 * speednorm + (footrotl * -0.2) * speednorm);
+        next.torso.orientation = Quaternion::rotation_z(0.0);
+
+        next.main.position = Vec3::new(0.0, 0.0, 0.0);
+        next.main.orientation = Quaternion::rotation_x(0.0);
+
+        next.hand_l.position = Vec3::new(s_a.grip.1, 0.0, s_a.grip.0);
+        next.hand_r.position = Vec3::new(-s_a.grip.1, 0.0, s_a.grip.0);
+
+        next.hand_l.orientation = Quaternion::rotation_x(0.0);
+        next.hand_r.orientation = Quaternion::rotation_x(0.0);
 
         match active_tool_kind {
-            Some(ToolKind::Sword) => {
-                next.main.position = Vec3::new(0.0, 0.0, 0.0);
-                next.main.orientation = Quaternion::rotation_x(0.0);
-
-                next.hand_l.position = Vec3::new(s_a.shl.0, s_a.shl.1, s_a.shl.2);
-                next.hand_l.orientation =
-                    Quaternion::rotation_x(s_a.shl.3) * Quaternion::rotation_y(s_a.shl.4);
-                next.hand_r.position = Vec3::new(s_a.shr.0, s_a.shr.1, s_a.shr.2);
-                next.hand_r.orientation =
-                    Quaternion::rotation_x(s_a.shr.3) * Quaternion::rotation_y(s_a.shr.4);
-
-                next.control.position = Vec3::new(s_a.sc.0, s_a.sc.1, s_a.sc.2);
-                next.control.orientation =
-                    Quaternion::rotation_x(s_a.sc.3 - PI / 2.0 + movement3 * PI / 2.0)
-                        * Quaternion::rotation_z(s_a.sc.5 - PI / 2.0 + movement3 * PI / 2.0);
-                next.torso.orientation = Quaternion::rotation_z(movement2 * PI * 2.0);
-
-                next.upper_torso.position = Vec3::new(0.0, s_a.upper_torso.0, s_a.upper_torso.1);
-                next.upper_torso.orientation = Quaternion::rotation_y(0.3 + movement3 * -0.3);
-                next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
-                next.head.orientation = Quaternion::rotation_x(-0.15 + movement3 * 0.15);
-                next.lower_torso.orientation = Quaternion::rotation_x(0.2);
-            },
-            Some(ToolKind::Axe) => {
-                next.hand_l.position = Vec3::new(-0.5, 0.0, 4.0);
-                next.hand_l.orientation =
-                    Quaternion::rotation_x(PI / 2.0) * Quaternion::rotation_y(PI);
-                next.hand_r.position = Vec3::new(0.5, 0.0, -2.5);
-                next.hand_r.orientation = Quaternion::rotation_x(PI / 2.0);
-                next.main.position = Vec3::new(-0.0, -2.0, -1.0);
-                next.main.orientation = Quaternion::rotation_x(0.0);
-
-                next.control.position = Vec3::new(0.0, 16.0, 3.0);
-                next.control.orientation =
-                    Quaternion::rotation_x(-1.4) * Quaternion::rotation_z(1.4);
-
-                next.head.orientation =
-                    Quaternion::rotation_x(-0.15) * Quaternion::rotation_y(0.08);
-                next.upper_torso.position =
-                    Vec3::new(0.0, s_a.upper_torso.0 - 3.0, s_a.upper_torso.1 - 2.0);
-                next.upper_torso.orientation = Quaternion::rotation_z(0.0)
-                    * Quaternion::rotation_x(-0.1)
-                    * Quaternion::rotation_y(0.3);
-
-                next.lower_torso.position = Vec3::new(0.0, 3.0, -2.5);
-                next.lower_torso.orientation = Quaternion::rotation_z(0.0)
-                    * Quaternion::rotation_x(0.7)
-                    * Quaternion::rotation_y(0.0);
-                next.torso.position = Vec3::new(
-                    -xshift * anim_time.min(0.6),
-                    -yshift * anim_time.min(0.6),
-                    0.0,
+            Some(ToolKind::StaffSimple) | Some(ToolKind::Unique(UniqueKind::MindflayerStaff)) => {
+                next.head.orientation = Quaternion::rotation_x(move1 * -0.3 + move2 * 0.5);
+                next.control_l.position = Vec3::new(
+                    -1.0 + move1 * -10.0 + move2 * -10.0,
+                    3.0,
+                    12.0 + move1 * 7.0,
                 );
-                next.torso.orientation = Quaternion::rotation_z(spin * -16.0)
-                    * Quaternion::rotation_x(0.0)
-                    * Quaternion::rotation_y(0.0);
-                if velocity.z.abs() > 0.1 {
-                    next.foot_l.position = Vec3::new(-s_a.foot.0, 8.0, s_a.foot.2 + 2.0);
-                    next.foot_l.orientation =
-                        Quaternion::rotation_x(1.0) * Quaternion::rotation_z(0.0);
+                next.control_r.position = Vec3::new(
+                    1.0 + move1 * 10.0 + move2 * -10.0,
+                    2.0 + move1 * -0.0,
+                    2.0 + move1 * 15.0,
+                );
 
-                    next.foot_r.position = Vec3::new(s_a.foot.0, 8.0, s_a.foot.2 + 2.0);
-                    next.foot_r.orientation = Quaternion::rotation_x(1.0);
-                } else if speed < 0.5 {
-                    next.foot_l.position = Vec3::new(-s_a.foot.0, 2.0 + quick * -6.0, s_a.foot.2);
-                    next.foot_l.orientation = Quaternion::rotation_x(0.5 + slowersmooth * 0.2);
+                next.control.position = Vec3::new(
+                    -3.0 + move1 * 3.0,
+                    3.0 + s_a.grip.0 / 1.2 + move1 * 18.0,
+                    -11.0 + -s_a.grip.0 / 2.0 + move1 * 8.0,
+                );
 
-                    next.foot_r.position = Vec3::new(s_a.foot.0, 4.0, s_a.foot.2);
-                    next.foot_r.orientation = Quaternion::rotation_x(0.5 - slowersmooth * 0.2)
-                        * Quaternion::rotation_y(-0.4);
-                } else {
-                    next.foot_l.position = Vec3::new(-s_a.foot.0, 2.0 + quick * -6.0, s_a.foot.2);
-                    next.foot_l.orientation = Quaternion::rotation_x(0.5 + slowersmooth * 0.2);
+                next.control_l.orientation = Quaternion::rotation_x(PI / 2.0 - move1 * 0.2)
+                    * Quaternion::rotation_y(-0.5 + move1 * 0.3)
+                    * Quaternion::rotation_z(move1 * 0.0);
+                next.control_r.orientation = Quaternion::rotation_x(PI / 2.5 + move1 * 0.0)
+                    * Quaternion::rotation_y(0.5 + move1 * -0.3)
+                    * Quaternion::rotation_z(move2 * 1.0);
 
-                    next.foot_r.position = Vec3::new(s_a.foot.0, 2.0 + quick * 6.0, s_a.foot.2);
-                    next.foot_r.orientation = Quaternion::rotation_x(0.5 - slowersmooth * 0.2);
-                };
+                next.control.orientation = Quaternion::rotation_x(-0.2 + move1 * 0.8)
+                    * Quaternion::rotation_y(-0.1 + move1 * 0.1 + move2 * 1.0);
+
+                next.upper_torso.orientation = Quaternion::rotation_x(move1 * -0.5);
+
+                next.lower_torso.orientation = Quaternion::rotation_x(move1 * 0.8);
+                next.torso.position = Vec3::new(0.0, 0.0, move1 * 0.8);
             },
+
             _ => {},
         }
 

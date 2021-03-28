@@ -1,12 +1,14 @@
 use crate::{
-    combat::{Attack, AttackDamage, AttackEffect, CombatBuff, CombatEffect, CombatRequirement},
+    combat::{
+        Attack, AttackDamage, AttackEffect, CombatBuff, CombatEffect, CombatRequirement, Damage,
+        DamageSource, GroupTarget, Knockback,
+    },
     comp::{tool::ToolKind, CharacterState, EnergyChange, EnergySource, Melee, StateUpdate},
     consts::GRAVITY,
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
     },
-    Damage, DamageSource, GroupTarget, Knockback, KnockbackDir,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -26,9 +28,11 @@ pub struct StaticData {
     /// Base poise damage
     pub base_poise_damage: f32,
     /// Knockback
-    pub knockback: f32,
+    pub knockback: Knockback,
     /// Range
     pub range: f32,
+    /// Adds an effect onto the main damage of the attack
+    pub damage_effect: Option<CombatEffect>,
     /// Energy cost per attack
     pub energy_cost: f32,
     /// Whether spin state is infinite
@@ -41,8 +45,12 @@ pub struct StaticData {
     pub forward_speed: f32,
     /// Number of spins
     pub num_spins: u32,
+    /// Used to determine targeting of attack
+    pub target: Option<GroupTarget>,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
+    /// Used to specify the melee attack to the frontend
+    pub specifier: Option<FrontendSpecifier>,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -65,7 +73,7 @@ impl CharacterBehavior for Data {
         let mut update = StateUpdate::from(data);
 
         match self.static_data.movement_behavior {
-            MovementBehavior::ForwardGround => {},
+            MovementBehavior::ForwardGround | MovementBehavior::Stationary => {},
             MovementBehavior::AxeHover => {
                 let new_vel_z = update.vel.0.z + GRAVITY * data.dt.0 * 0.5;
                 update.vel.0 = Vec3::new(0.0, 0.0, new_vel_z) + data.inputs.move_dir * 5.0;
@@ -104,27 +112,29 @@ impl CharacterBehavior for Data {
                     });
 
                     let poise = AttackEffect::new(
-                        Some(GroupTarget::OutOfGroup),
+                        self.static_data.target,
                         CombatEffect::Poise(self.static_data.base_poise_damage as f32),
                     )
                     .with_requirement(CombatRequirement::AnyDamage);
                     let knockback = AttackEffect::new(
-                        Some(GroupTarget::OutOfGroup),
-                        CombatEffect::Knockback(Knockback {
-                            strength: self.static_data.knockback,
-                            direction: KnockbackDir::Away,
-                        }),
+                        self.static_data.target,
+                        CombatEffect::Knockback(self.static_data.knockback),
                     )
                     .with_requirement(CombatRequirement::AnyDamage);
-                    let buff = CombatEffect::Buff(CombatBuff::default_physical());
-                    let damage = AttackDamage::new(
+                    let mut damage = AttackDamage::new(
                         Damage {
                             source: DamageSource::Melee,
                             value: self.static_data.base_damage as f32,
                         },
-                        Some(GroupTarget::OutOfGroup),
-                    )
-                    .with_effect(buff);
+                        self.static_data.target,
+                    );
+                    match self.static_data.damage_effect {
+                        Some(effect) => damage = damage.with_effect(effect),
+                        None => {
+                            let buff = CombatEffect::Buff(CombatBuff::default_physical());
+                            damage = damage.with_effect(buff);
+                        },
+                    }
                     let (crit_chance, crit_mult) =
                         get_crit_data(data, self.static_data.ability_info);
                     let attack = Attack::default()
@@ -204,6 +214,8 @@ impl CharacterBehavior for Data {
                         stage_section: StageSection::Recover,
                         ..*self
                     });
+                    // Remove melee attack component
+                    data.updater.remove::<Melee>(data.entity);
                 }
             },
             StageSection::Recover => {
@@ -242,7 +254,13 @@ impl CharacterBehavior for Data {
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum MovementBehavior {
+    Stationary,
     ForwardGround,
     AxeHover,
     GolemHover,
+}
+
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub enum FrontendSpecifier {
+    CultistVortex,
 }

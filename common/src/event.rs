@@ -1,16 +1,17 @@
 use crate::{
     character::CharacterId,
-    comp,
+    comp::{
+        self,
+        invite::{InviteKind, InviteResponse},
+        item::Item,
+        Ori, Pos,
+    },
+    outcome::Outcome,
     rtsim::RtSimEntity,
     trade::{TradeAction, TradeId},
     uid::Uid,
     util::Dir,
     Explosion,
-};
-use comp::{
-    invite::{InviteKind, InviteResponse},
-    item::Item,
-    Ori, Pos,
 };
 use specs::Entity as EcsEntity;
 use std::{collections::VecDeque, ops::DerefMut, sync::Mutex};
@@ -28,6 +29,8 @@ pub enum LocalEvent {
     },
     /// Applies `vel` velocity to `entity`
     Boost { entity: EcsEntity, vel: Vec3<f32> },
+    /// Creates an outcome
+    CreateOutcome(Outcome),
 }
 
 #[allow(clippy::large_enum_variant)] // TODO: Pending review in #587
@@ -160,6 +163,11 @@ pub enum ServerEvent {
     MineBlock {
         pos: Vec3<i32>,
         tool: Option<comp::tool::ToolKind>,
+    },
+    TeleportTo {
+        entity: EcsEntity,
+        target: Uid,
+        max_range: Option<f32>,
     },
 }
 

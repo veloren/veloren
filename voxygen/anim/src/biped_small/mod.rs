@@ -120,6 +120,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Gnoll, _) => (5.5, -1.0),
                 (Haniwa, _) => (0.0, 7.0),
                 (Myrmidon, _) => (0.0, 8.0),
+                (Husk, _) => (0.5, 8.5),
             },
             chest: match (body.species, body.body_type) {
                 (Gnome, _) => (0.0, 9.0),
@@ -132,6 +133,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Gnoll, _) => (0.0, 15.5),
                 (Haniwa, _) => (0.0, 11.0),
                 (Myrmidon, _) => (0.0, 11.0),
+                (Husk, _) => (0.0, 13.0),
             },
             pants: match (body.species, body.body_type) {
                 (Gnome, _) => (0.0, -3.0),
@@ -144,6 +146,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Gnoll, _) => (0.5, -7.5),
                 (Haniwa, _) => (0.0, -3.5),
                 (Myrmidon, _) => (0.0, -3.0),
+                (Husk, _) => (-1.0, -3.0),
             },
             tail: match (body.species, body.body_type) {
                 (Gnome, _) => (0.0, 0.0),
@@ -156,6 +159,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Gnoll, _) => (-2.5, -2.0),
                 (Haniwa, _) => (-4.5, -2.0),
                 (Myrmidon, _) => (-2.5, -1.0),
+                (Husk, _) => (0.0, 0.0),
             },
             hand: match (body.species, body.body_type) {
                 (Gnome, _) => (4.0, 0.5, -1.0),
@@ -168,6 +172,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Gnoll, _) => (3.5, 0.5, -1.0),
                 (Haniwa, _) => (4.25, -1.0, 1.5),
                 (Myrmidon, _) => (3.5, 1.5, 2.0),
+                (Husk, _) => (4.0, 0.0, 1.0),
             },
             foot: match (body.species, body.body_type) {
                 (Gnome, _) => (3.0, 0.0, 4.0),
@@ -180,6 +185,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Gnoll, _) => (3.0, 1.0, 7.0),
                 (Haniwa, _) => (3.0, 0.5, 8.0),
                 (Myrmidon, _) => (3.0, 0.5, 7.0),
+                (Husk, _) => (4.0, 0.5, 7.0),
             },
             grip: match (body.species, body.body_type) {
                 (Gnome, _) => (0.0, 0.0, 5.0),
@@ -192,6 +198,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Gnoll, _) => (1.0, 0.0, 9.0),
                 (Haniwa, _) => (0.0, 0.5, 8.0),
                 (Myrmidon, _) => (0.0, 0.0, 8.0),
+                (Husk, _) => (0.0, 0.0, 8.0),
             },
             scaler: match (body.species, body.body_type) {
                 (Gnome, _) => 1.0,
@@ -204,6 +211,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Gnoll, _) => 1.0,
                 (Haniwa, _) => 1.4,
                 (Myrmidon, _) => 1.5,
+                (Husk, _) => 1.4,
             },
         }
     }

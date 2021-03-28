@@ -9,13 +9,14 @@ use crate::{
 use common::{
     assets::{AssetExt, DotVoxAsset},
     comp::{
-        self, aura, beam, buff, item::Reagent, object, BeamSegment, Body, CharacterState, Ori, Pos,
-        Shockwave, Vel,
+        self, aura, beam, body, buff, item::Reagent, object, BeamSegment, Body, CharacterState,
+        Ori, Pos, Shockwave, Vel,
     },
     figure::Segment,
     outcome::Outcome,
     resources::DeltaTime,
     spiral::Spiral2d,
+    states::{self, utils::StageSection},
     terrain::TerrainChunk,
     vol::{RectRasterableVol, SizedVol},
 };
@@ -155,7 +156,6 @@ impl ParticleMgr {
                     );
                 }
             },
-            Outcome::ProjectileShot { .. } => {},
             Outcome::BreakBlock { pos, .. } => {
                 // TODO: Use color field when particle colors are a thing
                 self.particles.resize_with(self.particles.len() + 30, || {
@@ -167,7 +167,40 @@ impl ParticleMgr {
                     )
                 });
             },
-            _ => {},
+            Outcome::SummonedCreature { pos, body } => match body {
+                Body::BipedSmall(b) if matches!(b.species, body::biped_small::Species::Husk) => {
+                    self.particles.resize_with(
+                        self.particles.len()
+                            + 2 * usize::from(self.scheduler.heartbeats(Duration::from_millis(1))),
+                        || {
+                            let start_pos = pos + Vec3::unit_z() * body.height() / 2.0;
+                            let end_pos = pos
+                                + Vec3::new(
+                                    2.0 * rng.gen::<f32>() - 1.0,
+                                    2.0 * rng.gen::<f32>() - 1.0,
+                                    0.0,
+                                )
+                                .normalized()
+                                    * (body.radius() + 4.0)
+                                + Vec3::unit_z() * (body.height() + 2.0) * rng.gen::<f32>();
+
+                            Particle::new_directed(
+                                Duration::from_secs_f32(0.5),
+                                time,
+                                ParticleMode::CultistFlame,
+                                start_pos,
+                                end_pos,
+                            )
+                        },
+                    );
+                },
+                _ => {},
+            },
+            Outcome::ProjectileShot { .. }
+            | Outcome::Beam { .. }
+            | Outcome::ExpChange { .. }
+            | Outcome::SkillPointGain { .. }
+            | Outcome::ComboChange { .. } => {},
         }
     }
 
@@ -189,11 +222,12 @@ impl ParticleMgr {
 
             // add new Particle
             self.maintain_body_particles(scene_data);
-            self.maintain_boost_particles(scene_data);
+            self.maintain_char_state_particles(scene_data);
             self.maintain_beam_particles(scene_data, lights);
             self.maintain_block_particles(scene_data, terrain);
             self.maintain_shockwave_particles(scene_data);
             self.maintain_aura_particles(scene_data);
+            self.maintain_buff_particles(scene_data);
         } else {
             // remove all particle lifespans
             self.particles.clear();
@@ -409,11 +443,11 @@ impl ParticleMgr {
         }
     }
 
-    fn maintain_boost_particles(&mut self, scene_data: &SceneData) {
+    fn maintain_char_state_particles(&mut self, scene_data: &SceneData) {
         span!(
             _guard,
-            "boost_particles",
-            "ParticleMgr::maintain_boost_particles"
+            "char_state_particles",
+            "ParticleMgr::maintain_char_state_particles"
         );
         let state = scene_data.state;
         let ecs = state.ecs();
@@ -421,26 +455,141 @@ impl ParticleMgr {
         let dt = scene_data.state.get_delta_time();
         let mut rng = thread_rng();
 
-        for (pos, vel, character_state) in (
+        for (entity, pos, vel, character_state, body) in (
+            &ecs.entities(),
             &ecs.read_storage::<Pos>(),
             ecs.read_storage::<Vel>().maybe(),
             &ecs.read_storage::<CharacterState>(),
+            &ecs.read_storage::<Body>(),
         )
             .join()
         {
-            if let CharacterState::Boost(_) = character_state {
-                self.particles.resize_with(
-                    self.particles.len()
-                        + usize::from(self.scheduler.heartbeats(Duration::from_millis(10))),
-                    || {
-                        Particle::new(
-                            Duration::from_secs(15),
-                            time,
-                            ParticleMode::CampfireSmoke,
-                            pos.0 + vel.map_or(Vec3::zero(), |v| -v.0 * dt * rng.gen::<f32>()),
-                        )
-                    },
-                );
+            match character_state {
+                CharacterState::Boost(_) => {
+                    self.particles.resize_with(
+                        self.particles.len()
+                            + usize::from(self.scheduler.heartbeats(Duration::from_millis(10))),
+                        || {
+                            Particle::new(
+                                Duration::from_secs(15),
+                                time,
+                                ParticleMode::CampfireSmoke,
+                                pos.0 + vel.map_or(Vec3::zero(), |v| -v.0 * dt * rng.gen::<f32>()),
+                            )
+                        },
+                    );
+                },
+                CharacterState::SpinMelee(spin) => {
+                    if let Some(specifier) = spin.static_data.specifier {
+                        match specifier {
+                            states::spin_melee::FrontendSpecifier::CultistVortex => {
+                                if matches!(spin.stage_section, StageSection::Swing) {
+                                    let range = spin.static_data.range;
+                                    // Particles for vortex
+                                    let heartbeats =
+                                        self.scheduler.heartbeats(Duration::from_millis(3));
+                                    self.particles.resize_with(
+                                        self.particles.len()
+                                            + range.powi(2) as usize * usize::from(heartbeats)
+                                                / 150,
+                                        || {
+                                            let rand_dist =
+                                                range * (1.0 - rng.gen::<f32>().powi(10));
+                                            let init_pos = Vec3::new(
+                                                2.0 * rng.gen::<f32>() - 1.0,
+                                                2.0 * rng.gen::<f32>() - 1.0,
+                                                0.0,
+                                            )
+                                            .normalized()
+                                                * rand_dist
+                                                + pos.0
+                                                + Vec3::unit_z() * 0.05;
+                                            Particle::new_directed(
+                                                Duration::from_millis(900),
+                                                time,
+                                                ParticleMode::CultistFlame,
+                                                init_pos,
+                                                pos.0,
+                                            )
+                                        },
+                                    );
+                                    // Particles for lifesteal effect
+                                    for (_entity_b, pos_b, body_b, _health_b) in (
+                                        &ecs.entities(),
+                                        &ecs.read_storage::<Pos>(),
+                                        &ecs.read_storage::<Body>(),
+                                        &ecs.read_storage::<comp::Health>(),
+                                    )
+                                        .join()
+                                        .filter(|(e, _, _, h)| !h.is_dead && entity != *e)
+                                    {
+                                        if pos.0.distance_squared(pos_b.0) < range.powi(2) {
+                                            let heartbeats = self
+                                                .scheduler
+                                                .heartbeats(Duration::from_millis(20));
+                                            self.particles.resize_with(
+                                                self.particles.len()
+                                                    + range.powi(2) as usize
+                                                        * usize::from(heartbeats)
+                                                        / 150,
+                                                || {
+                                                    let start_pos = pos_b.0
+                                                        + Vec3::unit_z() * body_b.height() * 0.5
+                                                        + Vec3::<f32>::zero()
+                                                            .map(|_| rng.gen_range(-1.0..1.0))
+                                                            .normalized()
+                                                            * 1.0;
+                                                    Particle::new_directed(
+                                                        Duration::from_millis(900),
+                                                        time,
+                                                        ParticleMode::CultistFlame,
+                                                        start_pos,
+                                                        pos.0
+                                                            + Vec3::unit_z() * body.height() * 0.5,
+                                                    )
+                                                },
+                                            );
+                                        }
+                                    }
+                                }
+                            },
+                        }
+                    }
+                },
+                CharacterState::Blink(c) => {
+                    self.particles.resize_with(
+                        self.particles.len()
+                            + usize::from(self.scheduler.heartbeats(Duration::from_millis(10))),
+                        || {
+                            let center_pos = pos.0 + Vec3::unit_z() * body.height() / 2.0;
+                            let outer_pos = pos.0
+                                + Vec3::new(
+                                    2.0 * rng.gen::<f32>() - 1.0,
+                                    2.0 * rng.gen::<f32>() - 1.0,
+                                    0.0,
+                                )
+                                .normalized()
+                                    * (body.radius() + 2.0)
+                                + Vec3::unit_z() * body.height() * rng.gen::<f32>();
+
+                            let (start_pos, end_pos) =
+                                if matches!(c.stage_section, StageSection::Buildup) {
+                                    (outer_pos, center_pos)
+                                } else {
+                                    (center_pos, outer_pos)
+                                };
+
+                            Particle::new_directed(
+                                Duration::from_secs_f32(0.5),
+                                time,
+                                ParticleMode::CultistFlame,
+                                start_pos,
+                                end_pos,
+                            )
+                        },
+                    );
+                },
+                _ => {},
             }
         }
     }
@@ -477,7 +626,7 @@ impl ParticleMgr {
                         2.0,
                     ));
                     self.particles.resize_with(
-                        self.particles.len() + 2 * usize::from(beam_tick_count),
+                        self.particles.len() + usize::from(beam_tick_count) / 2,
                         || {
                             let phi: f32 = rng.gen_range(0.0..beam.properties.angle);
                             let theta: f32 = rng.gen_range(0.0..2.0 * PI);
@@ -491,6 +640,37 @@ impl ParticleMgr {
                                 beam.properties.duration,
                                 time,
                                 ParticleMode::FlameThrower,
+                                pos.0,
+                                pos.0 + random_ori * range,
+                            )
+                        },
+                    );
+                },
+                beam::FrontendSpecifier::Cultist => {
+                    let mut rng = thread_rng();
+                    let (from, to) = (Vec3::<f32>::unit_z(), *ori.look_dir());
+                    let m = Mat3::<f32>::rotation_from_to_3d(from, to);
+                    // Emit a light when using flames
+                    lights.push(Light::new(
+                        pos.0,
+                        Rgb::new(1.0, 0.0, 1.0).map(|e| e * rng.gen_range(0.5..1.0)),
+                        2.0,
+                    ));
+                    self.particles.resize_with(
+                        self.particles.len() + usize::from(beam_tick_count) / 2,
+                        || {
+                            let phi: f32 = rng.gen_range(0.0..beam.properties.angle);
+                            let theta: f32 = rng.gen_range(0.0..2.0 * PI);
+                            let offset_z = Vec3::new(
+                                phi.sin() * theta.cos(),
+                                phi.sin() * theta.sin(),
+                                phi.cos(),
+                            );
+                            let random_ori = offset_z * m * Vec3::new(-1.0, -1.0, 1.0);
+                            Particle::new_directed(
+                                beam.properties.duration,
+                                time,
+                                ParticleMode::CultistFlame,
                                 pos.0,
                                 pos.0 + random_ori * range,
                             )
@@ -531,6 +711,7 @@ impl ParticleMgr {
         let state = scene_data.state;
         let ecs = state.ecs();
         let time = state.get_time();
+        let mut rng = thread_rng();
 
         for (pos, auras) in (
             &ecs.read_storage::<Pos>(),
@@ -545,7 +726,6 @@ impl ParticleMgr {
                         kind: buff::BuffKind::ProtectingWard,
                         ..
                     } => {
-                        let mut rng = thread_rng();
                         let heartbeats = self.scheduler.heartbeats(Duration::from_millis(5));
                         self.particles.resize_with(
                             self.particles.len()
@@ -560,6 +740,54 @@ impl ParticleMgr {
                                     ParticleMode::EnergyNature,
                                     pos.0,
                                     pos.0 + init_pos,
+                                )
+                            },
+                        );
+                    },
+                    _ => {},
+                }
+            }
+        }
+    }
+
+    fn maintain_buff_particles(&mut self, scene_data: &SceneData) {
+        let state = scene_data.state;
+        let ecs = state.ecs();
+        let time = state.get_time();
+        let mut rng = rand::thread_rng();
+
+        for (pos, buffs, body) in (
+            &ecs.read_storage::<Pos>(),
+            &ecs.read_storage::<comp::Buffs>(),
+            &ecs.read_storage::<comp::Body>(),
+        )
+            .join()
+        {
+            for (buff_kind, _) in buffs.kinds.iter() {
+                #[allow(clippy::single_match)]
+                match buff_kind {
+                    buff::BuffKind::Cursed => {
+                        self.particles.resize_with(
+                            self.particles.len()
+                                + usize::from(self.scheduler.heartbeats(Duration::from_millis(15))),
+                            || {
+                                let start_pos = pos.0
+                                    + Vec3::unit_z() * body.height() * 0.25
+                                    + Vec3::<f32>::zero()
+                                        .map(|_| rng.gen_range(-1.0..1.0))
+                                        .normalized()
+                                        * 0.25;
+                                let end_pos = start_pos
+                                    + Vec3::unit_z() * body.height()
+                                    + Vec3::<f32>::zero()
+                                        .map(|_| rng.gen_range(-1.0..1.0))
+                                        .normalized();
+                                Particle::new_directed(
+                                    Duration::from_secs(1),
+                                    time,
+                                    ParticleMode::CultistFlame,
+                                    start_pos,
+                                    end_pos,
                                 )
                             },
                         );
@@ -712,14 +940,13 @@ impl ParticleMgr {
         let ecs = state.ecs();
         let time = state.get_time();
 
-        for (_i, (_entity, pos, ori, shockwave)) in (
+        for (_entity, pos, ori, shockwave) in (
             &ecs.entities(),
             &ecs.read_storage::<Pos>(),
             &ecs.read_storage::<Ori>(),
             &ecs.read_storage::<Shockwave>(),
         )
             .join()
-            .enumerate()
         {
             let elapsed = time - shockwave.creation.unwrap_or_default();
 

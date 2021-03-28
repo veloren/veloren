@@ -7,7 +7,6 @@
     (0.10, "common.items.weapons.sword.bloodsteel-0"),
     (0.10, "common.items.weapons.sword.bloodsteel-1"),
     (0.10, "common.items.weapons.sword.bloodsteel-2"),
-    (0.01, "common.items.weapons.sword.caladbolg"),
     // axes
     (0.20, "common.items.weapons.axe.bloodsteel_axe-0"),
     (0.20, "common.items.weapons.axe.bloodsteel_axe-1"),
@@ -15,7 +14,6 @@
     (0.30, "common.items.weapons.axe.cobalt_axe-0"),
     (0.30, "common.items.weapons.axe.cobalt_axe-1"),
     (0.10, "common.items.weapons.axe.malachite_axe-0"),
-    (0.01, "common.items.weapons.axe.parashu"),
     // healing staff    
     (0.15, "common.items.weapons.sceptre.loops0"),
     (0.10, "common.items.weapons.sceptre.fork0"),
@@ -30,7 +28,6 @@
     (0.30, "common.items.weapons.hammer.cobalt_hammer-1"),
     (0.15, "common.items.weapons.hammer.runic_hammer"),
     (0.15, "common.items.weapons.hammer.ramshead_hammer"),
-    (0.01, "common.items.weapons.hammer.mjolnir"),
     // bows
     (0.20, "common.items.weapons.bow.frostwood-0"),
     (0.20, "common.items.weapons.bow.frostwood-1"),
@@ -38,5 +35,4 @@
     (0.10, "common.items.weapons.bow.eldwood-0"),
     (0.10, "common.items.weapons.bow.eldwood-1"),
     (0.10, "common.items.weapons.bow.eldwood-2"),
-    (0.01, "common.items.weapons.bow.sagitta"),
 ]

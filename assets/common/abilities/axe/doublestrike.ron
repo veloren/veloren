@@ -3,7 +3,7 @@ ComboMelee(
         (
             stage: 1,
             base_damage: 90,
-            base_poise_damage: 20,
+            base_poise_damage: 15,
             damage_increase: 10,
             poise_damage_increase: 0,
             knockback: 8.0,

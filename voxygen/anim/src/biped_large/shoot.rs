@@ -82,8 +82,8 @@ impl Animation for ShootAnimation {
         next.main.position = Vec3::new(0.0, 0.0, 0.0);
         next.main.orientation = Quaternion::rotation_x(0.0);
 
-        next.hand_l.position = Vec3::new(0.0, 0.0, s_a.grip);
-        next.hand_r.position = Vec3::new(0.0, 0.0, s_a.grip);
+        next.hand_l.position = Vec3::new(0.0, 0.0, s_a.grip.0);
+        next.hand_r.position = Vec3::new(0.0, 0.0, s_a.grip.0);
 
         next.hand_l.orientation = Quaternion::rotation_x(0.0);
         next.hand_r.orientation = Quaternion::rotation_x(0.0);
@@ -105,8 +105,8 @@ impl Animation for ShootAnimation {
 
                 next.control.position = Vec3::new(
                     -3.0,
-                    3.0 + s_a.grip / 1.2 + move1 * 4.0 + move2 + move1shake * 2.0 + move2 * -2.0,
-                    -11.0 + -s_a.grip / 2.0 + move1 * 3.0,
+                    3.0 + s_a.grip.0 / 1.2 + move1 * 4.0 + move2 + move1shake * 2.0 + move2 * -2.0,
+                    -11.0 + -s_a.grip.0 / 2.0 + move1 * 3.0,
                 );
                 next.head.orientation = Quaternion::rotation_x(move1 * -0.15)
                     * Quaternion::rotation_y(move1 * 0.25)
@@ -154,8 +154,8 @@ impl Animation for ShootAnimation {
 
                 next.control.position = Vec3::new(
                     -1.0 + move1 * 2.0,
-                    6.0 + s_a.grip / 1.2 + move1 * 7.0,
-                    -5.0 + -s_a.grip / 2.0 + move1 * 8.0,
+                    6.0 + s_a.grip.0 / 1.2 + move1 * 7.0,
+                    -5.0 + -s_a.grip.0 / 2.0 + move1 * 8.0,
                 );
 
                 next.control_l.orientation =

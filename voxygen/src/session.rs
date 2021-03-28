@@ -390,7 +390,12 @@ impl PlayState for SessionState {
                                         client.remove_block(select_pos.map(|e| e.floor() as i32));
                                     }
                                 } else {
-                                    client.handle_input(InputKind::Primary, state, select_pos);
+                                    client.handle_input(
+                                        InputKind::Primary,
+                                        state,
+                                        select_pos,
+                                        target_entity.map(|t| t.0),
+                                    );
                                 }
                             },
                             GameInput::Secondary => {
@@ -404,7 +409,12 @@ impl PlayState for SessionState {
                                         );
                                     }
                                 } else {
-                                    client.handle_input(InputKind::Secondary, state, select_pos);
+                                    client.handle_input(
+                                        InputKind::Secondary,
+                                        state,
+                                        select_pos,
+                                        target_entity.map(|t| t.0),
+                                    );
                                 }
                             },
                             GameInput::Roll => {
@@ -423,7 +433,12 @@ impl PlayState for SessionState {
                                         }
                                     }
                                 } else {
-                                    client.handle_input(InputKind::Roll, state, select_pos);
+                                    client.handle_input(
+                                        InputKind::Roll,
+                                        state,
+                                        select_pos,
+                                        target_entity.map(|t| t.0),
+                                    );
                                 }
                             },
                             GameInput::Respawn => {
@@ -434,7 +449,12 @@ impl PlayState for SessionState {
                             },
                             GameInput::Jump => {
                                 let mut client = self.client.borrow_mut();
-                                client.handle_input(InputKind::Jump, state, select_pos);
+                                client.handle_input(
+                                    InputKind::Jump,
+                                    state,
+                                    select_pos,
+                                    target_entity.map(|t| t.0),
+                                );
                             },
                             GameInput::SwimUp => {
                                 self.key_state.swim_up = state;
@@ -495,7 +515,12 @@ impl PlayState for SessionState {
                                 // controller change
                                 self.key_state.fly ^= state;
                                 let mut client = self.client.borrow_mut();
-                                client.handle_input(InputKind::Fly, self.key_state.fly, select_pos);
+                                client.handle_input(
+                                    InputKind::Fly,
+                                    self.key_state.fly,
+                                    select_pos,
+                                    target_entity.map(|t| t.0),
+                                );
                             },
                             GameInput::Climb => {
                                 self.key_state.climb_up = state;
@@ -1254,11 +1279,21 @@ impl PlayState for SessionState {
                     },
                     HudEvent::Ability3(state) => {
                         let mut client = self.client.borrow_mut();
-                        client.handle_input(InputKind::Ability(0), state, select_pos);
+                        client.handle_input(
+                            InputKind::Ability(0),
+                            state,
+                            select_pos,
+                            target_entity.map(|t| t.0),
+                        );
                     },
                     HudEvent::Ability4(state) => {
                         let mut client = self.client.borrow_mut();
-                        client.handle_input(InputKind::Ability(1), state, select_pos);
+                        client.handle_input(
+                            InputKind::Ability(1),
+                            state,
+                            select_pos,
+                            target_entity.map(|t| t.0),
+                        );
                     },
                     HudEvent::ChangeFOV(new_fov) => {
                         global_state.settings.graphics.fov = new_fov;

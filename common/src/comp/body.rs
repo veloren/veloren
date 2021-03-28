@@ -285,7 +285,7 @@ impl Body {
                 biped_large::Species::Slysaurok => 3.4,
                 biped_large::Species::Occultsaurok => 3.4,
                 biped_large::Species::Mightysaurok => 3.4,
-                biped_large::Species::Mindflayer => 6.3,
+                biped_large::Species::Mindflayer => 8.0,
                 biped_large::Species::Minotaur => 8.0,
                 biped_large::Species::Dullahan => 5.5,
                 biped_large::Species::Cyclops => 6.5,
@@ -393,6 +393,7 @@ impl Body {
                 biped_small::Species::Sahagin => 500,
                 biped_small::Species::Haniwa => 700,
                 biped_small::Species::Myrmidon => 800,
+                biped_small::Species::Husk => 200,
                 _ => 600,
             },
             Body::Object(object) => match object {
@@ -540,10 +541,10 @@ impl Body {
     /// due to AI or not using an actual weapon
     // TODO: Match on species
     pub fn combat_multiplier(&self) -> f32 {
-        if let Body::Object(_) | Body::Ship(_) = self {
-            0.0
-        } else {
-            1.0
+        match self {
+            Body::Object(_) | Body::Ship(_) => 0.0,
+            Body::BipedLarge(b) if matches!(b.species, biped_large::Species::Mindflayer) => 4.0,
+            _ => 1.0,
         }
     }
 

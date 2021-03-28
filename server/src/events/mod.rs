@@ -8,7 +8,7 @@ use entity_creation::{
 use entity_manipulation::{
     handle_aura, handle_buff, handle_combo_change, handle_damage, handle_delete, handle_destroy,
     handle_energy_change, handle_explosion, handle_knockback, handle_land_on_ground, handle_poise,
-    handle_respawn,
+    handle_respawn, handle_teleport_to,
 };
 use group_manip::handle_group;
 use information::handle_site_info;
@@ -199,6 +199,11 @@ impl Server {
                 },
                 ServerEvent::RequestSiteInfo { entity, id } => handle_site_info(&self, entity, id),
                 ServerEvent::MineBlock { pos, tool } => handle_mine_block(self, pos, tool),
+                ServerEvent::TeleportTo {
+                    entity,
+                    target,
+                    max_range,
+                } => handle_teleport_to(&self, entity, target, max_range),
             }
         }
 

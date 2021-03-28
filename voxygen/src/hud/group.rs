@@ -2,7 +2,8 @@ use super::{
     cr_color,
     img_ids::{Imgs, ImgsRot},
     Show, BLACK, BUFF_COLOR, DEBUFF_COLOR, ERROR_COLOR, GROUP_COLOR, HP_COLOR, KILL_COLOR,
-    LOW_HP_COLOR, STAMINA_COLOR, TEXT_COLOR, TEXT_COLOR_GREY, UI_HIGHLIGHT_0, UI_MAIN,
+    LOW_HP_COLOR, QUALITY_EPIC, STAMINA_COLOR, TEXT_COLOR, TEXT_COLOR_GREY, UI_HIGHLIGHT_0,
+    UI_MAIN,
 };
 
 use crate::{
@@ -51,6 +52,7 @@ widget_ids! {
         member_panels_txt_bg[],
         member_panels_txt[],
         member_health[],
+        member_health_decay[],
         member_stam[],
         buffs[],
         buff_timers[],
@@ -284,7 +286,14 @@ impl<'a> Widget for Group<'a> {
                 state.update(|s| {
                     s.ids
                         .member_health
-                        .resize(group_size, &mut ui.widget_id_generator())
+                        .resize(group_size, &mut ui.widget_id_generator());
+                })
+            };
+            if state.ids.member_health_decay.len() < group_size {
+                state.update(|s| {
+                    s.ids
+                        .member_health_decay
+                        .resize(group_size, &mut ui.widget_id_generator());
                 })
             };
             if state.ids.member_stam.len() < group_size {
@@ -364,7 +373,8 @@ impl<'a> Widget for Group<'a> {
                     let combat_rating =
                         combat::combat_rating(inventory, health, stats, *body, &self.msm);
                     let char_name = stats.name.to_string();
-                    let health_perc = health.current() as f64 / health.maximum() as f64;
+                    let health_perc =
+                        health.current() as f64 / health.base_max().max(health.maximum()) as f64;
                     // change panel positions when debug info is shown
                     let x = if debug_on { i / 8 } else { i / 12 };
                     let y = if debug_on { i % 8 } else { i % 12 };
@@ -395,6 +405,16 @@ impl<'a> Widget for Group<'a> {
                         .color(Some(health_col))
                         .top_left_with_margins_on(state.ids.member_panels_bg[i], 2.0, 2.0)
                         .set(state.ids.member_health[i], ui);
+                    // Health Decay
+                    let decayed_health = 1.0 - health.maximum() as f64 / health.base_max() as f64;
+                    if decayed_health > 0.0 {
+                        let decay_bar_len = 148.0 * decayed_health;
+                        Image::new(self.imgs.bar_content)
+                            .w_h(decay_bar_len, 22.0)
+                            .color(Some(QUALITY_EPIC))
+                            .top_right_with_margins_on(state.ids.member_panels_bg[i], 2.0, 2.0)
+                            .set(state.ids.member_health_decay[i], ui);
+                    }
                     if health.is_dead {
                         // Death Text
                         Text::new(&self.localized_strings.get("hud.group.dead"))

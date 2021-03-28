@@ -36,5 +36,8 @@
         "Myrmidon": (
             vox_spec: ("npc.myrmidon.male.head", (-4.5, -7.0, -6.5)),
         ),
+        "Husk": (
+            vox_spec: ("npc.husk.male.head", (-6.0, -6.0, -5.5)),
+        ),
     },
 ))

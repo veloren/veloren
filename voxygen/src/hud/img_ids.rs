@@ -299,6 +299,7 @@ image_ids! {
         skillbar_frame: "voxygen.element.skillbar.frame",
         health_bg: "voxygen.element.skillbar.health_bg",
         health_frame: "voxygen.element.skillbar.health_frame",
+        decayed_bg: "voxygen.element.skillbar.decayed_bg",
         stamina_bg: "voxygen.element.skillbar.stamina_bg",
         stamina_frame: "voxygen.element.skillbar.stamina_frame",
         m1_ico: "voxygen.element.icons.m1",

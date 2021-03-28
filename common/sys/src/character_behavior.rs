@@ -5,6 +5,7 @@ use specs::{
 
 use common::{
     comp::{
+        self,
         inventory::{
             item::MaterialStatManifest,
             slot::{EquipSlot, Slot},
@@ -71,6 +72,7 @@ pub struct ReadData<'a> {
     stats: ReadStorage<'a, Stats>,
     msm: Read<'a, MaterialStatManifest>,
     combos: ReadStorage<'a, Combo>,
+    alignments: ReadStorage<'a, comp::Alignment>,
 }
 
 /// ## Character Behavior System
@@ -255,6 +257,7 @@ impl<'a> System<'a> for Sys {
                 beam: read_data.beams.get(entity),
                 stat: &stat,
                 combo: &combo,
+                alignment: read_data.alignments.get(entity),
             };
 
             for action in actions {
@@ -302,6 +305,8 @@ impl<'a> System<'a> for Sys {
                     CharacterState::BasicBeam(data) => data.handle_event(&j, action),
                     CharacterState::BasicAura(data) => data.handle_event(&j, action),
                     CharacterState::HealingBeam(data) => data.handle_event(&j, action),
+                    CharacterState::Blink(data) => data.handle_event(&j, action),
+                    CharacterState::BasicSummon(data) => data.handle_event(&j, action),
                 };
                 local_emitter.append(&mut state_update.local_events);
                 server_emitter.append(&mut state_update.server_events);
@@ -354,6 +359,8 @@ impl<'a> System<'a> for Sys {
                 CharacterState::BasicBeam(data) => data.behavior(&j),
                 CharacterState::BasicAura(data) => data.behavior(&j),
                 CharacterState::HealingBeam(data) => data.behavior(&j),
+                CharacterState::Blink(data) => data.behavior(&j),
+                CharacterState::BasicSummon(data) => data.behavior(&j),
             };
 
             local_emitter.append(&mut state_update.local_events);

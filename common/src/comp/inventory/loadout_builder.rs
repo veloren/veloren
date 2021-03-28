@@ -12,6 +12,7 @@ use crate::{
     trade::{Good, SiteInformation},
 };
 use rand::Rng;
+use serde::{Deserialize, Serialize};
 
 /// Builder for character Loadouts, containing weapon and armour items belonging
 /// to a character, along with some helper methods for loading Items and
@@ -34,13 +35,14 @@ use rand::Rng;
 #[derive(Clone)]
 pub struct LoadoutBuilder(Loadout);
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq, Serialize, Deserialize, Debug)]
 pub enum LoadoutConfig {
     Adlet,
     Gnarling,
     Sahagin,
     Haniwa,
     Myrmidon,
+    Husk,
     Guard,
     Villager,
     Merchant,
@@ -307,6 +309,11 @@ impl LoadoutBuilder {
                             "common.items.npc_weapons.biped_small.adlet.gnoll_staff",
                         ));
                     },
+                    (biped_small::Species::Husk, _) => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.unique.husk",
+                        ));
+                    },
                     _ => {
                         main_tool = Some(Item::new_from_asset_expect(
                             "common.items.npc_weapons.biped_small.adlet.wooden_spear",
@@ -500,6 +507,24 @@ impl LoadoutBuilder {
                     )))
                     .belt(Some(Item::new_from_asset_expect(
                         "common.items.npc_armor.biped_small.myrmidon.tail.myrmidon",
+                    )))
+                    .build(),
+                Husk => LoadoutBuilder::new()
+                    .active_item(active_item)
+                    .head(Some(Item::new_from_asset_expect(
+                        "common.items.npc_armor.biped_small.husk.head.husk",
+                    )))
+                    .feet(Some(Item::new_from_asset_expect(
+                        "common.items.npc_armor.biped_small.husk.foot.husk",
+                    )))
+                    .hands(Some(Item::new_from_asset_expect(
+                        "common.items.npc_armor.biped_small.husk.hand.husk",
+                    )))
+                    .chest(Some(Item::new_from_asset_expect(
+                        "common.items.npc_armor.biped_small.husk.chest.husk",
+                    )))
+                    .pants(Some(Item::new_from_asset_expect(
+                        "common.items.npc_armor.biped_small.husk.pants.husk",
                     )))
                     .build(),
                 Guard => LoadoutBuilder::new()

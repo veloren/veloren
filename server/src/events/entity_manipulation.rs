@@ -329,7 +329,14 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
             .insert(entity, comp::CharacterState::default());
 
         false
-    } else if state.ecs().read_storage::<comp::Agent>().contains(entity) {
+    } else if state.ecs().read_storage::<comp::Agent>().contains(entity)
+        && !matches!(
+            state.ecs().read_storage::<comp::Alignment>().get(entity),
+            Some(comp::Alignment::Owned(_))
+        )
+    {
+        // Only drop loot if entity has agency (not a player), and if it is not owned by
+        // another entity (not a pet)
         use specs::Builder;
 
         // Decide for a loot drop before turning into a lootbag
@@ -938,6 +945,31 @@ pub fn handle_combo_change(server: &Server, entity: EcsEntity, change: i32) {
                 uid: *uid,
                 combo: combo.counter(),
             });
+        }
+    }
+}
+
+pub fn handle_teleport_to(server: &Server, entity: EcsEntity, target: Uid, max_range: Option<f32>) {
+    let ecs = &server.state.ecs();
+    let mut positions = ecs.write_storage::<Pos>();
+
+    let target_pos = ecs
+        .entity_from_uid(target.into())
+        .and_then(|e| positions.get(e))
+        .copied();
+
+    if let (Some(pos), Some(target_pos)) = (positions.get_mut(entity), target_pos) {
+        if max_range.map_or(true, |r| pos.0.distance_squared(target_pos.0) < r.powi(2)) {
+            *pos = target_pos;
+            ecs.write_storage()
+                .insert(entity, comp::ForceUpdate)
+                .err()
+                .map(|e| {
+                    error!(
+                        ?e,
+                        "Error inserting ForceUpdate component when teleporting client"
+                    )
+                });
         }
     }
 }

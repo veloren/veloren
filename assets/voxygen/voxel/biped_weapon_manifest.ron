@@ -969,7 +969,7 @@
             vox_spec: ("armor.empty", (-3.0, -3.5, 1.0)),
             color: None
     ),
-    "common.items.npc_weapons.empty.empty": (
+    "common.items.npc_weapons.unique.husk": (
             vox_spec: ("armor.empty", (-3.0, -3.5, 1.0)),
             color: None
     ),

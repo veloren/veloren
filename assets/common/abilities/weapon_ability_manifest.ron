@@ -29,6 +29,11 @@
             (Some(Bow(UnlockRepeater)), "common.abilities.bow.repeater"),
         ],
     ),
+    Unique(Husk): (
+        primary: "common.abilities.unique.husk.singlestrike",
+        secondary: "common.abilities.unique.husk.triplestrike",
+        abilities: [],
+    ),
     Spear: (
         primary: "common.abilities.spear.doublestrike",
         secondary: "common.abilities.spear.dash",
@@ -166,7 +171,7 @@
         primary: "common.abilities.unique.quadlowbeam.healingbeam",
         secondary: "common.abilities.unique.quadlowbreathe.triplestrike",
         abilities: [
-    (None, "common.abilities.unique.quadlowbreathe.dash"),
+            (None, "common.abilities.unique.quadlowbreathe.dash"),
         ],
     ),
     Unique(QuadSmallBasic): (
@@ -193,6 +198,14 @@
         primary: "common.abilities.unique.turret.arrows",
         secondary: "common.abilities.unique.turret.arrows",
         abilities: [],
+    ),
+    Unique(MindflayerStaff): (
+        primary: "common.abilities.unique.mindflayer.cursedflames",
+        secondary: "common.abilities.unique.mindflayer.necroticvortex",
+        abilities: [
+            (None, "common.abilities.unique.mindflayer.dimensionaldoor"),
+            (None, "common.abilities.unique.mindflayer.summonminions"),
+        ],
     ),
     Debug: (
         primary: "common.abilities.debug.forwardboost",

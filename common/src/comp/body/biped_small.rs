@@ -44,6 +44,7 @@ make_case_elim!(
         Gnoll = 7,
         Haniwa = 8,
         Myrmidon = 9,
+        Husk = 10,
     }
 );
 
@@ -62,6 +63,7 @@ pub struct AllSpecies<SpeciesMeta> {
     pub gnoll: SpeciesMeta,
     pub haniwa: SpeciesMeta,
     pub myrmidon: SpeciesMeta,
+    pub husk: SpeciesMeta,
 }
 
 impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> {
@@ -80,11 +82,12 @@ impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> 
             Species::Gnoll => &self.gnoll,
             Species::Haniwa => &self.haniwa,
             Species::Myrmidon => &self.myrmidon,
+            Species::Husk => &self.husk,
         }
     }
 }
 
-pub const ALL_SPECIES: [Species; 10] = [
+pub const ALL_SPECIES: [Species; 11] = [
     Species::Gnome,
     Species::Sahagin,
     Species::Adlet,
@@ -95,6 +98,7 @@ pub const ALL_SPECIES: [Species; 10] = [
     Species::Gnoll,
     Species::Haniwa,
     Species::Myrmidon,
+    Species::Husk,
 ];
 
 impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {

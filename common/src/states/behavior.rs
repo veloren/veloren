@@ -1,8 +1,8 @@
 use crate::{
     comp::{
-        item::MaterialStatManifest, Beam, Body, CharacterState, Combo, ControlAction, Controller,
-        ControllerInputs, Energy, Health, InputAttr, InputKind, Inventory, InventoryAction, Melee,
-        Ori, PhysicsState, Pos, StateUpdate, Stats, Vel,
+        self, item::MaterialStatManifest, Beam, Body, CharacterState, Combo, ControlAction,
+        Controller, ControllerInputs, Energy, Health, InputAttr, InputKind, Inventory,
+        InventoryAction, Melee, Ori, PhysicsState, Pos, StateUpdate, Stats, Vel,
     },
     resources::DeltaTime,
     uid::Uid,
@@ -34,11 +34,14 @@ pub trait CharacterBehavior {
         &self,
         data: &JoinData,
         input: InputKind,
-        _target: Option<Uid>,
+        target_entity: Option<Uid>,
         select_pos: Option<Vec3<f32>>,
     ) -> StateUpdate {
         let mut update = StateUpdate::from(data);
-        update.queued_inputs.insert(input, InputAttr { select_pos });
+        update.queued_inputs.insert(input, InputAttr {
+            select_pos,
+            target_entity,
+        });
         update
     }
     fn cancel_input(&self, data: &JoinData, input: InputKind) -> StateUpdate {
@@ -60,9 +63,9 @@ pub trait CharacterBehavior {
             ControlAction::Talk => self.talk(data),
             ControlAction::StartInput {
                 input,
-                target,
+                target_entity,
                 select_pos,
-            } => self.start_input(data, input, target, select_pos),
+            } => self.start_input(data, input, target_entity, select_pos),
             ControlAction::CancelInput(input) => self.cancel_input(data, input),
         }
     }
@@ -90,6 +93,7 @@ pub struct JoinData<'a> {
     pub stats: &'a Stats,
     pub msm: &'a MaterialStatManifest,
     pub combo: &'a Combo,
+    pub alignment: Option<&'a comp::Alignment>,
 }
 
 type RestrictedMut<'a, C> = PairedStorage<
@@ -118,6 +122,7 @@ pub struct JoinStruct<'a> {
     pub beam: Option<&'a Beam>,
     pub stat: &'a Stats,
     pub combo: &'a Combo,
+    pub alignment: Option<&'a comp::Alignment>,
 }
 
 impl<'a> JoinData<'a> {
@@ -147,6 +152,7 @@ impl<'a> JoinData<'a> {
             dt,
             msm,
             combo: j.combo,
+            alignment: j.alignment,
         }
     }
 }

@@ -2,7 +2,10 @@ use super::{
     super::{vek::*, Animation},
     BipedLargeSkeleton, SkeletonAttr,
 };
-use common::{comp::item::ToolKind, states::utils::StageSection};
+use common::{
+    comp::item::{ToolKind, UniqueKind},
+    states::utils::StageSection,
+};
 use std::f32::consts::PI;
 
 pub struct BeamAnimation;
@@ -53,23 +56,25 @@ impl Animation for BeamAnimation {
         next.main.position = Vec3::new(0.0, 0.0, 0.0);
         next.main.orientation = Quaternion::rotation_x(0.0);
 
-        next.hand_l.position = Vec3::new(0.0, 0.0, s_a.grip);
-        next.hand_r.position = Vec3::new(0.0, 0.0, s_a.grip);
+        next.hand_l.position = Vec3::new(s_a.grip.1, 0.0, s_a.grip.0);
+        next.hand_r.position = Vec3::new(-s_a.grip.1, 0.0, s_a.grip.0);
 
         next.hand_l.orientation = Quaternion::rotation_x(0.0);
         next.hand_r.orientation = Quaternion::rotation_x(0.0);
         match active_tool_kind {
-            Some(ToolKind::StaffSimple) | Some(ToolKind::Sceptre) => {
+            Some(ToolKind::StaffSimple)
+            | Some(ToolKind::Sceptre)
+            | Some(ToolKind::Unique(UniqueKind::MindflayerStaff)) => {
                 let (move1base, move2shake, _move2base, move3) = match stage_section {
                     Some(StageSection::Buildup) => (
                         (anim_time.powf(0.25)).min(1.0),
-                        (anim_time * 10.0 + PI).sin(),
+                        (anim_time * 15.0 + PI).sin(),
                         (anim_time * 10.0 + PI).sin(),
                         0.0,
                     ),
                     Some(StageSection::Cast) => (
                         1.0,
-                        (anim_time * 10.0 + PI).sin(),
+                        (anim_time * 15.0 + PI).sin(),
                         anim_time.powf(0.25),
                         0.0,
                     ),
@@ -80,14 +85,15 @@ impl Animation for BeamAnimation {
                 let move1 = move1base * pullback;
                 next.control_l.position = Vec3::new(-1.0, 3.0, 12.0);
                 next.control_r.position =
-                    Vec3::new(1.0 + move1 * 5.0, 2.0 + move1 * 1.0, 2.0 + move1 * 8.0);
+                    Vec3::new(1.0 + move1 * 5.0, 2.0 + move1 * 1.0, 2.0 + move1 * 14.0);
 
                 next.control.position = Vec3::new(
-                    -3.0 + move1 * 5.0,
-                    3.0 + s_a.grip / 1.2 + move1 * 5.0 + move2shake * 1.0,
-                    -11.0 + -s_a.grip / 2.0 + move1 * -4.0,
+                    -3.0 + move1 * -5.0,
+                    3.0 + s_a.grip.0 / 1.2 + move1 * 3.0 + move2shake * 1.0,
+                    -11.0 + -s_a.grip.0 / 2.0 + move1 * -2.0,
                 );
-                next.head.orientation = Quaternion::rotation_x(move1 * -0.2);
+                next.head.orientation =
+                    Quaternion::rotation_x(move1 * -0.2) * Quaternion::rotation_y(move1 * 0.2);
                 next.jaw.orientation = Quaternion::rotation_x(0.0);
 
                 next.control_l.orientation =
@@ -96,8 +102,8 @@ impl Animation for BeamAnimation {
                     * Quaternion::rotation_y(0.5)
                     * Quaternion::rotation_z(move1 * 1.2 + move2shake * 0.5);
 
-                next.control.orientation = Quaternion::rotation_x(-0.2 + move1 * -0.2)
-                    * Quaternion::rotation_y(-0.1 + move1 * -0.4);
+                next.control.orientation = Quaternion::rotation_x(-0.2 + move1 * -0.1)
+                    * Quaternion::rotation_y(-0.1 + move1 * 0.6);
                 next.shoulder_l.position = Vec3::new(
                     -s_a.shoulder.0,
                     s_a.shoulder.1,
