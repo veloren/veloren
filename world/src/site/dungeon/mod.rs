@@ -976,7 +976,7 @@ impl Floor {
                                     "common.loot_tables.loot_table_weapon_rare",
                                 ),
                                 5 => Lottery::<String>::load_expect(
-                                    "common.loot_tables.loot_table_miniboss",
+                                    "common.loot_tables.loot_table_husk",
                                 ),
                                 _ => Lottery::<String>::load_expect(
                                     "common.loot_tables.loot_table_armor_misc",
@@ -1088,7 +1088,7 @@ impl Floor {
                                             ),
                                         ))
                                         .with_name("Cultist Husk".to_string())
-                                        .with_loot_drop(comp::Item::new_from_asset_expect(chosen))
+                                        .with_loot_drop(comp::Item::new_from_asset_expect("common.items.crafting_ing.stones"))
                                         .with_loadout_config(loadout_builder::LoadoutConfig::Husk)
                                     });
                                     entities
