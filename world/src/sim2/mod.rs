@@ -568,7 +568,7 @@ fn trade_at_site(
                         break;
                     }
                 }
-                let paid_amount = allocated_amount - balance / *price;
+                let mut paid_amount = allocated_amount - balance / *price;
                 if paid_amount / allocated_amount < 0.95 {
                     debug!(
                         "Client {} is broke on {:?} : {} {} severity {}",
@@ -581,7 +581,6 @@ fn trade_at_site(
                 } else {
                     debug!("bought {:?} {} {}", *g, paid_amount, *price);
                 }
-                good_delivery[*g] += paid_amount;
                 if economy.stocks[*g] - paid_amount < 0.0 {
                     info!(
                         "BUG {:?} {:?} {} TO {:?} OSR {:?} ND {:?}",
@@ -592,8 +591,9 @@ fn trade_at_site(
                         order_stock_ratio,
                         next_demand[*g]
                     );
+                    paid_amount = economy.stocks[*g];
                 }
-                assert!(economy.stocks[*g] - paid_amount >= 0.0);
+                good_delivery[*g] += paid_amount;
                 economy.stocks[*g] -= paid_amount;
             }
         }
