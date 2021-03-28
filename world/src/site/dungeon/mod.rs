@@ -835,7 +835,7 @@ impl Floor {
                                 5 => Lottery::<String>::load_expect(
                                     match dynamic_rng.gen_range(0..4) {
                                         0 => "common.loot_tables.mindflayer",
-                                        _ => "common.loot_tables.loot_table_cultists",
+                                        _ => "common.loot_tables.loot_table_miniboss",
                                     },
                                 ),
                                 _ => Lottery::<String>::load_expect(
