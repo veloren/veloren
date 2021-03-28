@@ -27,7 +27,7 @@ fn read_input() -> String {
 
 fn main() {
     // Initialize logging.
-    tracing_subscriber::fmt::init();
+    common_frontend::init_stdout(None);
 
     info!("Starting chat-cli...");
 

@@ -24,7 +24,7 @@ pub struct BotCreds {
 }
 
 pub fn main() {
-    tui::init_logging();
+    common_frontend::init_stdout(None);
 
     let settings = Settings::load();
     info!("Settings: {:?}", settings);

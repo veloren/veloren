@@ -6,7 +6,6 @@
 use veloren_voxygen::{
     audio::AudioFrontend,
     i18n::{self, i18n_asset_key, Localization},
-    logging,
     profile::Profile,
     run,
     settings::{get_fps, AudioOutput, Settings},
@@ -34,7 +33,8 @@ fn main() {
     }
 
     // Init logging and hold the guards.
-    let _guards = logging::init(&settings);
+    const LOG_FILENAME: &str = "voxygen.log";
+    let _guards = common_frontend::init_stdout(Some((&settings.log.logs_path, LOG_FILENAME)));
 
     if let Some(path) = veloren_voxygen::settings::voxygen_data_dir().parent() {
         info!("Using userdata dir at: {}", path.display());

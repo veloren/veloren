@@ -11,10 +11,9 @@ use crate::{
     window::Event,
     Direction, GlobalState, PlayState, PlayStateResult,
 };
-use client::{
-    addr::ConnectionArgs,
-    error::{InitProtocolError, NetworkConnectError, NetworkError},
-};
+#[cfg(feature = "singleplayer")]
+use client::addr::ConnectionArgs;
+use client::error::{InitProtocolError, NetworkConnectError, NetworkError};
 use client_init::{ClientConnArgs, ClientInit, Error as InitError, Msg as InitMsg};
 use common::{assets::AssetExt, comp};
 use common_base::span;

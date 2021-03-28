@@ -13,7 +13,7 @@ gl = ["gfx_device_gl", "gfx_gl"]
 hot-anim = ["anim/use-dyn-lib"]
 singleplayer = ["server"]
 simd = ["vek/platform_intrinsics"]
-tracy = ["tracing-tracy", "common/tracy", "common-ecs/tracy", "common-net/tracy", "common-sys/tracy", "client/tracy"]
+tracy = ["common/tracy", "common-ecs/tracy", "common-frontend/tracy", "common-net/tracy", "common-sys/tracy", "client/tracy"]
 plugins = ["client/plugins"]
 
 default = ["gl", "singleplayer", "native-dialog", "plugins", "simd"]
@@ -23,6 +23,7 @@ client = {package = "veloren-client", path = "../client"}
 common = {package = "veloren-common", path = "../common"}
 common-base = {package = "veloren-common-base", path = "../common/base"}
 common-ecs = {package = "veloren-common-ecs", path = "../common/ecs"}
+common-frontend = {package = "veloren-common-frontend", path = "../common/frontend"}
 common-net = {package = "veloren-common-net", path = "../common/net"}
 common-sys = {package = "veloren-common-sys", path = "../common/sys"}
 
@@ -90,14 +91,7 @@ inline_tweak = "1.0.2"
 itertools = "0.10.0"
 
 # Tracy
-tracing-tracy = { version = "0.6.0", optional = true }
-
-# Logging
-termcolor = "1.1"
 tracing = "0.1"
-tracing-appender = "0.1"
-tracing-log = "0.1.1"
-tracing-subscriber = {version = "0.2.3", default-features = false, features = ["env-filter", "fmt", "chrono", "ansi", "smallvec", "tracing-log"]}
 
 [target.'cfg(target_os = "macos")'.dependencies]
 dispatch = "0.1.4"

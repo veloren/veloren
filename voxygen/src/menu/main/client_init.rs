@@ -29,6 +29,7 @@ pub enum Msg {
 
 pub enum ClientConnArgs {
     Host(String),
+    #[allow(dead_code)] //singleplayer
     Resolved(ConnectionArgs),
 }
 

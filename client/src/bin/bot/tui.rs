@@ -2,21 +2,6 @@ use clap::{App, AppSettings, Arg, SubCommand};
 use std::{thread, time::Duration};
 use tracing::error;
 
-pub fn init_logging() {
-    use termcolor::{ColorChoice, StandardStream};
-    use tracing::Level;
-    use tracing_subscriber::{filter::LevelFilter, EnvFilter, FmtSubscriber};
-    const RUST_LOG_ENV: &str = "RUST_LOG";
-    let filter = EnvFilter::from_env(RUST_LOG_ENV).add_directive(LevelFilter::INFO.into());
-    let subscriber = FmtSubscriber::builder()
-        .with_max_level(Level::ERROR)
-        .with_env_filter(filter);
-
-    subscriber
-        .with_writer(|| StandardStream::stdout(ColorChoice::Auto))
-        .init();
-}
-
 pub enum Cmd {
     Register {
         prefix: String,

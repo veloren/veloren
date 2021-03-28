@@ -14,7 +14,6 @@ pub mod error;
 pub mod hud;
 pub mod i18n;
 pub mod key_state;
-pub mod logging;
 pub mod menu;
 pub mod mesh;
 pub mod profile;
