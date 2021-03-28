@@ -313,7 +313,7 @@ impl<'a> Widget for Skillbar<'a> {
                 .set(state.ids.hp_filling, ui);
 
             if decayed_health > 0.0 {
-                let decay_bar_len = 480.0 * decayed_health * 0.5;
+                let decay_bar_len = 480.0 * decayed_health;
                 Image::new(self.imgs.bar_content)
                     .w_h(decay_bar_len, 18.0)
                     .color(Some(QUALITY_EPIC))

@@ -16,7 +16,7 @@ use conrod_core::{
     widget::{self, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
-use inline_tweak::*;
+
 const MAX_BUBBLE_WIDTH: f64 = 250.0;
 widget_ids! {
     struct Ids {
@@ -188,8 +188,9 @@ impl<'a> Widget for Overhead<'a> {
         }) = self.info
         {
             // Used to set healthbar colours based on hp_percentage
-            let hp_percentage =
-                health.map_or(100.0, |h| h.current() as f64 / h.maximum() as f64 * 100.0);
+            let hp_percentage = health.map_or(100.0, |h| {
+                h.current() as f64 / h.base_max().max(h.maximum()) as f64 * 100.0
+            });
             // Compare levels to decide if a skull is shown
             let health_current = health.map_or(1.0, |h| (h.current() / 10) as f64);
             let health_max = health.map_or(1.0, |h| (h.maximum() / 10) as f64);
@@ -356,19 +357,20 @@ impl<'a> Widget for Overhead<'a> {
 
                     if decayed_health > 0.0 {
                         let x_decayed = if self.in_group {
-                            (tweak!(0.0) + (decayed_health / 100.0 * tweak!(41.0) - tweak!(41.0)))
-                                * BARSIZE
+                            (0.0 - (decayed_health * 41.0 - 41.0)) * BARSIZE
                         } else {
-                            (tweak!(-4.5)
-                                + (decayed_health / 100.0 * tweak!(36.45) - tweak!(36.45)))
-                                * BARSIZE
+                            (4.5 - (decayed_health * 36.45 - 36.45)) * BARSIZE
                         };
 
-                        let decay_bar_len =
-                            decayed_health * 0.5 * if self.in_group { 82.0 } else { 73.0 };
+                        let decay_bar_len = decayed_health
+                            * if self.in_group {
+                                82.0 * BARSIZE
+                            } else {
+                                73.0 * BARSIZE
+                            };
                         Image::new(self.imgs.enemy_bar)
                             .w_h(decay_bar_len, h)
-                            .x_y(x_decayed * tweak!(-1.0), MANA_BAR_Y + 8.0)
+                            .x_y(x_decayed, MANA_BAR_Y + 8.0)
                             .color(Some(QUALITY_EPIC))
                             .parent(id)
                             .set(state.ids.decay_bar, ui);
