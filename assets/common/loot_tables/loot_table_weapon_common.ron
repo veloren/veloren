@@ -17,7 +17,8 @@
     (0.10, "common.items.weapons.axe.worn_iron_axe-4"),
     // healing staff
     (0.30, "common.items.weapons.sceptre.starter_sceptre"),
-    (0.20, "common.items.weapons.sceptre.moon0"),
+    (0.10, "common.items.weapons.sceptre.moon0"),
+    (0.10, "common.items.weapons.sceptre.druids_arbor"),
     // staves
     (1.00, "common.items.weapons.staff.starter_staff"),
     // hammers

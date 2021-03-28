@@ -873,8 +873,8 @@
         "voxel.weapon.staff.firestaff_bone",
         (1.0, 0.0, 0.0), (-130., 90.0, 0.0), 1.2,
     ),
-    Tool("common.items.weapons.staff.amethyst_staff"): VoxTrans(
-        "voxel.weapon.staff.firestaff_amethyst",
+    Tool("common.items.weapons.staff.crimson_eye"): VoxTrans(
+        "voxel.weapon.staff.crimson_eye",
         (1.0, 0.0, 0.0), (-130., 90.0, 0.0), 1.2,
     ),
     Tool("common.items.weapons.staff.cultist_staff"): VoxTrans(
@@ -921,6 +921,34 @@
         "voxel.weapon.staff.heated_arm",
         (1.0, 0.0, 0.0), (-130., 90.0, 0.0), 1.1,
     ),
+    Tool("common.items.weapons.staff.eldwood"): VoxTrans(
+        "voxel.weapon.staff.eldwood",
+        (1.0, 0.0, 0.0), (-130., 90.0, 0.0), 1.1,
+    ),
+    Tool("common.items.weapons.staff.frostwood_torch"): VoxTrans(
+        "voxel.weapon.staff.frostwood_torch",
+        (1.0, 0.0, 0.0), (-130., 90.0, 0.0), 1.1,
+    ),
+    Tool("common.items.weapons.staff.golden_khakkara"): VoxTrans(
+        "voxel.weapon.staff.golden_khakkara",
+        (1.0, 0.0, 0.0), (-130., 90.0, 0.0), 1.1,
+    ),
+    Tool("common.items.weapons.staff.laevateinn"): VoxTrans(
+        "voxel.weapon.staff.laevateinn",
+        (1.0, 0.0, 0.0), (-130., 90.0, 0.0), 1.1,
+    ),
+    Tool("common.items.weapons.staff.ruby_rod"): VoxTrans(
+        "voxel.weapon.staff.ruby_rod",
+        (1.0, 0.0, 0.0), (-130., 90.0, 0.0), 1.1,
+    ),
+    Tool("common.items.weapons.staff.dragon_tongue"): VoxTrans(
+        "voxel.weapon.staff.dragon_tongue",
+        (1.0, 0.0, 0.0), (-130., 90.0, 0.0), 1.1,
+    ),
+    Tool("common.items.weapons.staff.solar"): VoxTrans(
+        "voxel.weapon.staff.solar",
+        (1.0, 0.0, 0.0), (-130., 90.0, 0.0), 1.1,
+    ),
     // Healing Sceptres
     Tool("common.items.weapons.sceptre.starter_sceptre"): VoxTrans(
         "voxel.weapon.sceptre.wood-simple",
@@ -957,6 +985,30 @@
      Tool("common.items.weapons.sceptre.sceptre_velorite_0"): VoxTrans(
         "voxel.weapon.sceptre.ore-nature",
         (1.0, -1.0, 0.0), (-130., 90.0, 0.0), 1.15,
+    ),
+    Tool("common.items.weapons.sceptre.caduceus"): VoxTrans(
+        "voxel.weapon.sceptre.caduceus",
+        (1.0, 0.0, 0.0), (-130., 90.0, 0.0), 1.1,
+    ),
+    Tool("common.items.weapons.sceptre.coralline_cane"): VoxTrans(
+        "voxel.weapon.sceptre.coralline_cane",
+        (1.0, 0.0, 0.0), (-130., 90.0, 0.0), 1.2,
+    ),
+    Tool("common.items.weapons.sceptre.divine_gohei"): VoxTrans(
+        "voxel.weapon.sceptre.divine_gohei",
+        (1.0, 0.0, 0.0), (-130., 90.0, 0.0), 1.15,
+    ),
+    Tool("common.items.weapons.sceptre.emerald"): VoxTrans(
+        "voxel.weapon.sceptre.emerald",
+        (1.0, 0.0, 0.0), (-130., 90.0, 0.0), 1.12,
+    ),
+    Tool("common.items.weapons.sceptre.druids_arbor"): VoxTrans(
+        "voxel.weapon.sceptre.druids_arbor",
+        (1.0, 0.0, 0.0), (-130., 90.0, 0.0), 1.12,
+    ),
+    Tool("common.items.weapons.sceptre.amethyst"): VoxTrans(
+        "voxel.weapon.sceptre.amethyst",
+        (1.0, 0.0, 0.0), (-130., 90.0, 0.0), 1.12,
     ),
     // Shields
     Tool("common.items.weapons.shield.shield_1"): VoxTrans(

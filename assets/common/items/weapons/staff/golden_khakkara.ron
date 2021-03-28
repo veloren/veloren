@@ -1,0 +1,18 @@
+ItemDef(
+    name: "Golden Khakkara",
+    description: "Originally used to frighten away animals",
+    kind: Tool((
+        kind: Staff,
+        hands: Two,
+        stats: Direct((
+            equip_time_secs: 0.3,
+            power: 1.2,
+            poise_strength: 1.0,
+            speed: 1.2,
+            crit_chance: 0.115,
+            crit_mult: 1.4571428,
+        )),
+    )),
+    quality: Moderate,
+    tags: [],
+)

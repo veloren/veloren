@@ -1,0 +1,18 @@
+ItemDef(
+    name: "Solar Staff",
+    description: "Sun energy rumble deep within this staff",
+    kind: Tool((
+        kind: Staff,
+        hands: Two,
+        stats: Direct((
+            equip_time_secs: 0.3,
+            power: 1.2,
+            poise_strength: 1.0,
+            speed: 0.9,
+            crit_chance: 0.125,
+            crit_mult: 1.4571428,
+        )),
+    )),
+    quality: Moderate,
+    tags: [],
+)

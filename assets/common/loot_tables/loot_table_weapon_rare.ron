@@ -17,10 +17,14 @@
     // healing staff    
     (0.15, "common.items.weapons.sceptre.loops0"),
     (0.10, "common.items.weapons.sceptre.fork0"),
+    (0.10, "common.items.weapons.sceptre.emerald"),
+    (0.10, "common.items.weapons.sceptre.coralline_cane"),
     // staves
-    (1.00, "common.items.weapons.staff.amethyst_staff"),
+    (1.00, "common.items.weapons.staff.crimson_eye"),
     (0.7, "common.items.weapons.staff.aurora"),
-    (0.65, "common.items.weapons.staff.lava_rod"),
+    (0.7, "common.items.weapons.staff.frostwood_torch"),
+    (0.5, "common.items.weapons.staff.lava_rod"),
+    (0.5, "common.items.weapons.staff.dragon_tongue"),
     (0.75, "common.items.weapons.staff.infused_tower"),
     (0.5, "common.items.weapons.staff.flamethrower_0"),
     // hammers

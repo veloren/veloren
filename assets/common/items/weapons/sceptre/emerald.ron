@@ -1,0 +1,18 @@
+ItemDef(
+    name: "Emerald Staff",
+    description: "Its stone is the closest thing from perfection",
+    kind: Tool((
+        kind: Sceptre,
+        hands: Two,
+        stats: Direct((
+            equip_time_secs: 0.3,
+            power: 2.0,
+            poise_strength: 1.0,
+            speed: 1.0,
+            crit_chance: 0.140625,
+            crit_mult: 1.4063492,
+        )),
+    )),
+    quality: Epic,
+    tags: [],
+)
