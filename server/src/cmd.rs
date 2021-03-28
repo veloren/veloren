@@ -482,49 +482,9 @@ fn handle_site(
                     .map_or(false, |id| server.index.sites[id].name() == dest_name)
             }) {
                 Some(site) => {
-                    // The bulk of this code is to find the z coordinate to teleport to, searching
-                    // for the lowest available one. Copied nearly verbatim from server's lib.rs
-                    let dest_chunk = site.center;
-                    // Unwrapping because generate_chunk only returns err when should_continue evals
-                    // to true
-                    let (tc, _cs) = server
+                    let pos = server
                         .world
-                        .generate_chunk(server.index.as_index_ref(), dest_chunk, || false)
-                        .unwrap();
-                    let min_z = tc.get_min_z();
-                    let max_z = tc.get_max_z();
-
-                    let pos = TerrainChunkSize::center_wpos(dest_chunk);
-                    let pos = Vec3::new(pos.x, pos.y, min_z);
-                    let pos = {
-                        use common::vol::ReadVol;
-                        (0..(max_z - min_z))
-                            .map(|z_diff| pos + Vec3::unit_z() * z_diff)
-                            .find(|test_pos| {
-                                let chunk_relative_xy =
-                                    test_pos.xy().map2(TerrainChunkSize::RECT_SIZE, |e, sz| {
-                                        e.rem_euclid(sz as i32)
-                                    });
-                                tc.get(
-                                    Vec3::new(chunk_relative_xy.x, chunk_relative_xy.y, test_pos.z)
-                                        - Vec3::unit_z(),
-                                )
-                                .map_or(false, |b| b.is_filled())
-                                    && (0..3).all(|z| {
-                                        tc.get(
-                                            Vec3::new(
-                                                chunk_relative_xy.x,
-                                                chunk_relative_xy.y,
-                                                test_pos.z,
-                                            ) + Vec3::unit_z() * z,
-                                        )
-                                        .map_or(true, |b| !b.is_solid())
-                                    })
-                            })
-                            .unwrap_or(pos)
-                            .map(|e| e as f32)
-                            + 0.5
-                    };
+                        .find_lowest_accessible_pos(server.index.as_index_ref(), site.center);
                     server.state.write_component(target, comp::Pos(pos));
                     server.state.write_component(target, comp::ForceUpdate);
                 },
