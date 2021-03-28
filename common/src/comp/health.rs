@@ -132,7 +132,7 @@ impl Health {
     }
 
     /// Returns the fraction of health an entity has remaining
-    pub fn fraction(&self) -> f32 { self.current as f32 / self.maximum as f32 }
+    pub fn fraction(&self) -> f32 { self.current as f32 / self.maximum.max(1) as f32 }
 }
 
 #[cfg(not(target_arch = "wasm32"))]
