@@ -29,8 +29,6 @@ pub enum LocalEvent {
     },
     /// Applies `vel` velocity to `entity`
     Boost { entity: EcsEntity, vel: Vec3<f32> },
-    /// Updates the position of the entity
-    PositionUpdate { entity: EcsEntity, pos: Pos },
     /// Creates an outcome
     CreateOutcome(Outcome),
 }

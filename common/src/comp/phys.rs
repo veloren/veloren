@@ -154,7 +154,8 @@ impl Component for PhysicsState {
     type Storage = IdvStorage<Self>;
 }
 
-// ForceUpdate
+/// Used to forcefully update the position, velocity, and orientation of the
+/// client
 #[derive(Copy, Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct ForceUpdate;
 

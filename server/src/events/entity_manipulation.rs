@@ -952,11 +952,8 @@ pub fn handle_combo_change(server: &Server, entity: EcsEntity, change: i32) {
 pub fn handle_teleport_to(server: &Server, entity: EcsEntity, target: Uid, max_range: Option<f32>) {
     let ecs = &server.state.ecs();
     let mut positions = ecs.write_storage::<Pos>();
-    let clients = ecs.read_storage::<Client>();
 
-    let target_pos = server
-        .state
-        .ecs()
+    let target_pos = ecs
         .entity_from_uid(target.into())
         .and_then(|e| positions.get(e))
         .copied();
@@ -964,9 +961,15 @@ pub fn handle_teleport_to(server: &Server, entity: EcsEntity, target: Uid, max_r
     if let (Some(pos), Some(target_pos)) = (positions.get_mut(entity), target_pos) {
         if max_range.map_or(true, |r| pos.0.distance_squared(target_pos.0) < r.powi(2)) {
             *pos = target_pos;
-            if let Some(client) = clients.get(entity) {
-                client.send_fallible(ServerGeneral::PositionUpdate(target_pos));
-            }
+            ecs.write_storage()
+                .insert(entity, comp::ForceUpdate)
+                .err()
+                .map(|e| {
+                    error!(
+                        ?e,
+                        "Error inserting ForceUpdate component when teleporting client"
+                    )
+                });
         }
     }
 }

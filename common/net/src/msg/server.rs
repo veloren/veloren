@@ -104,7 +104,6 @@ pub enum ServerGeneral {
     SetViewDistance(u32),
     Outcomes(Vec<Outcome>),
     Knockback(Vec3<f32>),
-    PositionUpdate(comp::Pos),
     // Ingame related AND terrain stream
     TerrainChunkUpdate {
         key: Vec2<i32>,
@@ -236,7 +235,6 @@ impl ServerMsg {
                         | ServerGeneral::SetViewDistance(_)
                         | ServerGeneral::Outcomes(_)
                         | ServerGeneral::Knockback(_)
-                        | ServerGeneral::PositionUpdate(_)
                         | ServerGeneral::UpdatePendingTrade(_, _, _)
                         | ServerGeneral::FinishedTrade(_)
                         | ServerGeneral::SiteEconomy(_) => {

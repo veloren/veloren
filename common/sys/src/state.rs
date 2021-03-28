@@ -490,7 +490,6 @@ impl State {
         let events = self.ecs.read_resource::<EventBus<LocalEvent>>().recv_all();
         for event in events {
             let mut velocities = self.ecs.write_storage::<comp::Vel>();
-            let mut positions = self.ecs.write_storage::<comp::Pos>();
             let physics = self.ecs.read_storage::<comp::PhysicsState>();
             match event {
                 LocalEvent::Jump(entity, impulse) => {
@@ -509,11 +508,6 @@ impl State {
                 } => {
                     if let Some(vel) = velocities.get_mut(entity) {
                         vel.0 += extra_vel;
-                    }
-                },
-                LocalEvent::PositionUpdate { entity, pos } => {
-                    if let Some(position) = positions.get_mut(entity) {
-                        *position = pos;
                     }
                 },
                 LocalEvent::CreateOutcome(outcome) => {

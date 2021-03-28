@@ -1644,15 +1644,6 @@ impl Client {
                         impulse,
                     });
             },
-            ServerGeneral::PositionUpdate(pos) => {
-                self.state
-                    .ecs()
-                    .read_resource::<EventBus<LocalEvent>>()
-                    .emit_now(LocalEvent::PositionUpdate {
-                        entity: self.entity(),
-                        pos,
-                    });
-            },
             ServerGeneral::UpdatePendingTrade(id, trade, pricing) => {
                 tracing::trace!("UpdatePendingTrade {:?} {:?}", id, trade);
                 self.pending_trade = Some((id, trade, pricing));
