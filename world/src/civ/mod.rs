@@ -61,7 +61,7 @@ pub struct Civs {
 }
 
 // Change this to get rid of particularly horrid seeds
-const SEED_SKIP: u8 = 0;
+const SEED_SKIP: u8 = 5;
 
 pub struct GenCtx<'a, R: Rng> {
     sim: &'a mut WorldSim,
