@@ -115,6 +115,8 @@ impl TradePricing {
             _ if name.starts_with("common.items.ore.") => &self.ingredients,
             _ if name.starts_with("common.items.flowers.") => &self.ingredients,
             _ if name.starts_with("common.items.crafting_tools.") => &self.other,
+            _ if name.starts_with("common.items.lantern.") => &self.other,
+            _ if name.starts_with("common.items.tool.") => &self.tools,
             _ => {
                 info!("unknown loot item {}", name);
                 &self.other
@@ -135,6 +137,8 @@ impl TradePricing {
             _ if name.starts_with("common.items.ore.") => &mut self.ingredients,
             _ if name.starts_with("common.items.flowers.") => &mut self.ingredients,
             _ if name.starts_with("common.items.crafting_tools.") => &mut self.other,
+            _ if name.starts_with("common.items.lantern.") => &mut self.other,
+            _ if name.starts_with("common.items.tool.") => &mut self.tools,
             _ => {
                 info!("unknown loot item {}", name);
                 &mut self.other
