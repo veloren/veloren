@@ -25,6 +25,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Reworked mindflayer to have unique attacks
 - Glowing remains are now `Armor` instead of `Ingredients`.
 
+- Generated a net world map
+- Overhauled clouds for more verticality and performance
+
 ### Removed
 
 ### Fixed

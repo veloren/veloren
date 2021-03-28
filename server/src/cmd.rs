@@ -127,6 +127,7 @@ fn get_handler(cmd: &ChatCommand) -> CommandHandler {
         ChatCommand::Safezone => handle_safezone,
         ChatCommand::Say => handle_say,
         ChatCommand::SetMotd => handle_set_motd,
+        ChatCommand::Site => handle_site,
         ChatCommand::SkillPoint => handle_skill_point,
         ChatCommand::Spawn => handle_spawn,
         ChatCommand::Sudo => handle_sudo,
@@ -449,6 +450,51 @@ fn handle_goto(
                 .state
                 .write_component(target, comp::Pos(Vec3::new(x, y, z)));
             server.state.write_component(target, comp::ForceUpdate);
+        } else {
+            server.notify_client(
+                client,
+                ServerGeneral::server_msg(ChatType::CommandError, "You have no position."),
+            );
+        }
+    } else {
+        server.notify_client(
+            client,
+            ServerGeneral::server_msg(ChatType::CommandError, action.help_string()),
+        );
+    }
+}
+
+fn handle_site(
+    server: &mut Server,
+    client: EcsEntity,
+    target: EcsEntity,
+    args: String,
+    action: &ChatCommand,
+) {
+    if let Ok(dest_name) = scan_fmt!(&args, &action.arg_fmt(), String) {
+        if server
+            .state
+            .read_component_copied::<comp::Pos>(target)
+            .is_some()
+        {
+            match server.world.civs().sites().find(|site| {
+                site.site_tmp
+                    .map_or(false, |id| server.index.sites[id].name() == dest_name)
+            }) {
+                Some(site) => {
+                    let pos = server
+                        .world
+                        .find_lowest_accessible_pos(server.index.as_index_ref(), site.center);
+                    server.state.write_component(target, comp::Pos(pos));
+                    server.state.write_component(target, comp::ForceUpdate);
+                },
+                None => {
+                    server.notify_client(
+                        client,
+                        ServerGeneral::server_msg(ChatType::CommandError, "Site not found"),
+                    );
+                },
+            };
         } else {
             server.notify_client(
                 client,

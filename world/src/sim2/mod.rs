@@ -568,7 +568,7 @@ fn trade_at_site(
                         break;
                     }
                 }
-                let mut paid_amount = allocated_amount - balance / *price;
+                let mut paid_amount = (allocated_amount - balance / *price).min(economy.stocks[*g]);
                 if paid_amount / allocated_amount < 0.95 {
                     debug!(
                         "Client {} is broke on {:?} : {} {} severity {}",

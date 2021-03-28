@@ -179,7 +179,7 @@ void main() {
     // Squared to account for prior saturation.
     float f_light = 1.0;// pow(f_light, 1.5);
     vec3 reflect_color = get_sky_color(/*reflect_ray_dir*/beam_view_dir, time_of_day.x, f_pos, vec3(-100000), 0.125, true);
-    reflect_color = get_cloud_color(reflect_color, reflect_ray_dir, cam_pos.xyz, time_of_day.x, 100000.0, 0.25);
+    reflect_color = get_cloud_color(reflect_color, reflect_ray_dir, cam_pos.xyz, time_of_day.x, 100000.0, 0.1);
     reflect_color *= f_light;
     // /*const */vec3 water_color = srgb_to_linear(vec3(0.2, 0.5, 1.0));
     // /*const */vec3 water_color = srgb_to_linear(vec3(0.8, 0.9, 1.0));

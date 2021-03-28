@@ -80,6 +80,7 @@ pub enum ChatCommand {
     Safezone,
     Say,
     SetMotd,
+    Site,
     SkillPoint,
     Spawn,
     Sudo,
@@ -140,6 +141,7 @@ pub static CHAT_COMMANDS: &[ChatCommand] = &[
     ChatCommand::Safezone,
     ChatCommand::Say,
     ChatCommand::SetMotd,
+    ChatCommand::Site,
     ChatCommand::SkillPoint,
     ChatCommand::Spawn,
     ChatCommand::Sudo,
@@ -438,6 +440,9 @@ impl ChatCommand {
             ChatCommand::SetMotd => {
                 cmd(vec![Message(Optional)], "Set the server description", Admin)
             },
+            // Uses Message because site names can contain spaces, which would be assumed to be
+            // separators otherwise
+            ChatCommand::Site => cmd(vec![Message(Required)], "Teleport to a site", Admin),
             ChatCommand::SkillPoint => cmd(
                 vec![
                     Enum("skill tree", SKILL_TREES.clone(), Required),
@@ -546,6 +551,7 @@ impl ChatCommand {
             ChatCommand::Safezone => "safezone",
             ChatCommand::Say => "say",
             ChatCommand::SetMotd => "set_motd",
+            ChatCommand::Site => "site",
             ChatCommand::SkillPoint => "skill_point",
             ChatCommand::Spawn => "spawn",
             ChatCommand::Sudo => "sudo",

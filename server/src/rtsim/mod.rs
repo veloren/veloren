@@ -98,7 +98,7 @@ pub fn init(state: &mut State, #[cfg(feature = "worldgen")] world: &world::World
     #[cfg(not(feature = "worldgen"))]
     let mut rtsim = RtSim::new(Vec2::new(40, 40));
 
-    for _ in 0..2500 {
+    for _ in 0..world.sim().get_size().product() / 400 {
         let pos = rtsim
             .chunks
             .size()

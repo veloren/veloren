@@ -33,7 +33,7 @@ use common::{
     grid::Grid,
     outcome::Outcome,
     recipe::RecipeBook,
-    resources::PlayerEntity,
+    resources::{DeltaTime, PlayerEntity, TimeOfDay},
     terrain::{block::Block, neighbors, BiomeKind, SitesKind, TerrainChunk, TerrainChunkSize},
     trade::{PendingTrade, SitePrices, TradeAction, TradeId, TradeResult},
     uid::{Uid, UidAllocator},
@@ -1472,7 +1472,9 @@ impl Client {
                 }
             },
             ServerGeneral::TimeOfDay(time_of_day) => {
-                *self.state.ecs_mut().write_resource() = time_of_day;
+                let dt = self.state.ecs().read_resource::<DeltaTime>().0;
+                let mut tod = self.state.ecs_mut().write_resource::<TimeOfDay>();
+                tod.0 = Lerp::lerp(tod.0, time_of_day.0, dt as f64);
             },
             ServerGeneral::EntitySync(entity_sync_package) => {
                 self.state
