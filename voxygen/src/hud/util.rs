@@ -11,7 +11,7 @@ use common::{
     effect::Effect,
     trade::{Good, SitePrices},
 };
-use std::fmt::Write;
+use std::{borrow::Cow, fmt::Write};
 
 use crate::i18n::Localization;
 
@@ -27,36 +27,38 @@ pub fn price_desc(
         let sellprice = buyprice * material.trade_margin();
         Some(format!(
             "{} : {:0.1} {}\n{} : {:0.1} {}",
-            i18n.get("hud.trade.buy_price").to_string(),
+            i18n.get("hud.trade.buy_price"),
             buyprice / coinprice,
-            i18n.get("hud.trade.coin").to_string(),
-            i18n.get("hud.trade.sell_price").to_string(),
+            i18n.get("hud.trade.coin"),
+            i18n.get("hud.trade.sell_price"),
             sellprice / coinprice,
-            i18n.get("hud.trade.coin").to_string(),
+            i18n.get("hud.trade.coin"),
         ))
     } else {
         None
     }
 }
 
-pub fn kind_text(kind: &ItemKind, i18n: &Localization) -> String {
+pub fn kind_text<'a>(kind: &ItemKind, i18n: &'a Localization) -> Cow<'a, str> {
     match kind {
-        ItemKind::Armor(armor) => armor_kind(&armor, &i18n),
-        ItemKind::Tool(tool) => {
-            format!("{} ({})", tool_kind(&tool, &i18n), tool_hands(&tool, i18n))
-        },
-        ItemKind::ModularComponent(_mc) => i18n.get("common.bag.shoulders").to_string(),
-        ItemKind::Glider(_glider) => i18n.get("common.kind.glider").to_string(),
-        ItemKind::Consumable { .. } => i18n.get("common.kind.consumable").to_string(),
-        ItemKind::Throwable { .. } => i18n.get("common.kind.throwable").to_string(),
-        ItemKind::Utility { .. } => i18n.get("common.kind.utility").to_string(),
-        ItemKind::Ingredient { .. } => i18n.get("common.kind.ingredient").to_string(),
-        ItemKind::Lantern { .. } => i18n.get("common.kind.lantern").to_string(),
-        ItemKind::TagExamples { .. } => "".to_string(),
+        ItemKind::Armor(armor) => Cow::Borrowed(armor_kind(&armor, &i18n)),
+        ItemKind::Tool(tool) => Cow::Owned(format!(
+            "{} ({})",
+            tool_kind(&tool, i18n),
+            tool_hands(&tool, i18n)
+        )),
+        ItemKind::ModularComponent(_mc) => Cow::Borrowed(i18n.get("common.bag.shoulders")),
+        ItemKind::Glider(_glider) => Cow::Borrowed(i18n.get("common.kind.glider")),
+        ItemKind::Consumable { .. } => Cow::Borrowed(i18n.get("common.kind.consumable")),
+        ItemKind::Throwable { .. } => Cow::Borrowed(i18n.get("common.kind.throwable")),
+        ItemKind::Utility { .. } => Cow::Borrowed(i18n.get("common.kind.utility")),
+        ItemKind::Ingredient { .. } => Cow::Borrowed(i18n.get("common.kind.ingredient")),
+        ItemKind::Lantern { .. } => Cow::Borrowed(i18n.get("common.kind.lantern")),
+        ItemKind::TagExamples { .. } => Cow::Borrowed(""),
     }
 }
 
-// TODO: localization
+// TODO: localization, refactor when mc are player facing
 pub fn modular_component_desc(
     mc: &ModularComponent,
     components: &[Item],
@@ -78,7 +80,7 @@ pub fn modular_component_desc(
 }
 
 pub fn consumable_desc(effects: &[Effect], i18n: &Localization) -> String {
-    let mut description = "".to_string();
+    let mut description = String::new();
 
     for effect in effects {
         if let Effect::Buff(buff) = effect {
@@ -135,7 +137,7 @@ pub fn consumable_desc(effects: &[Effect], i18n: &Localization) -> String {
 }
 
 // Armor
-fn armor_kind(armor: &Armor, i18n: &Localization) -> String {
+fn armor_kind<'a>(armor: &Armor, i18n: &'a Localization) -> &'a str {
     let kind = match armor.kind {
         ArmorKind::Shoulder(_) => i18n.get("hud.bag.shoulders"),
         ArmorKind::Chest(_) => i18n.get("hud.bag.chest"),
@@ -150,12 +152,12 @@ fn armor_kind(armor: &Armor, i18n: &Localization) -> String {
         ArmorKind::Tabard(_) => i18n.get("hud.bag.tabard"),
         ArmorKind::Bag(_) => i18n.get("hud.bag.bag"),
     };
-    kind.to_string()
+    kind
 }
 
 //Tool
 
-fn tool_kind(tool: &Tool, i18n: &Localization) -> String {
+fn tool_kind<'a>(tool: &Tool, i18n: &'a Localization) -> &'a str {
     let kind = match tool.kind {
         ToolKind::Sword => i18n.get("common.weapons.sword"),
         ToolKind::Axe => i18n.get("common.weapons.axe"),
@@ -177,15 +179,15 @@ fn tool_kind(tool: &Tool, i18n: &Localization) -> String {
         ToolKind::Pick => i18n.get("common.tool.pick"),
         ToolKind::Empty => i18n.get("common.empty"),
     };
-    kind.to_string()
+    kind
 }
 
-pub fn tool_hands(tool: &Tool, i18n: &Localization) -> String {
+pub fn tool_hands<'a>(tool: &Tool, i18n: &'a Localization) -> &'a str {
     let hands = match tool.hands {
         Hands::One => i18n.get("common.hands.one"),
         Hands::Two => i18n.get("common.hands.two"),
     };
-    hands.to_string()
+    hands
 }
 
 fn statblock_desc(stats: &Stats) -> String {
@@ -202,13 +204,13 @@ fn statblock_desc(stats: &Stats) -> String {
 }
 
 // Compare two type, output a colored character to show comparison
-pub fn comparison<T: PartialOrd>(first: T, other: T) -> (String, conrod_core::color::Color) {
+pub fn comparison<T: PartialOrd>(first: T, other: T) -> (&'static str, conrod_core::Color) {
     if first == other {
-        ("•".to_string(), conrod_core::color::GREY)
+        ("•", conrod_core::color::GREY)
     } else if other < first {
-        ("▲".to_string(), conrod_core::color::GREEN)
+        ("▲", conrod_core::color::GREEN)
     } else {
-        ("▼".to_string(), conrod_core::color::RED)
+        ("▼", conrod_core::color::RED)
     }
 }
 

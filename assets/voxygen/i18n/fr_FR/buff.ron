@@ -28,7 +28,7 @@
         "buff.stat.health": "Restaure {str_total} points de vie",
         "buff.stat.increase_max_stamina": "Augmente la vigueur maximale de {strength}",
         "buff.stat.increase_max_health": "Augmente la santé maximale de {strength}",
-        "buff.stat.invulenrability": "Rend invincible",
+        "buff.stat.invulnerability": "Rend invincible",
         // Text
         "buff.text.over_seconds": "pendant {dur_secs} secondes",
         "buff.text.for_seconds": "pour {dur_secs} secondes",

@@ -27,12 +27,12 @@ impl Armor {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
-pub struct Stats<Protection> {
+pub struct Stats {
     protection: Protection,
     poise_resilience: Protection,
 }
 
-impl Stats<Protection> {
+impl Stats {
     // DO NOT USE UNLESS YOU KNOW WHAT YOU ARE DOING
     // Added for csv import of stats
     pub fn new(protection: Protection, poise_resilience: Protection) -> Self {
@@ -47,7 +47,7 @@ impl Stats<Protection> {
     pub fn get_poise_resilience(&self) -> Protection { self.poise_resilience }
 }
 
-impl Sub<Stats<Protection>> for Stats<Protection> {
+impl Sub<Stats> for Stats {
     type Output = Self;
 
     fn sub(self, other: Self) -> Self::Output {
@@ -64,7 +64,7 @@ pub enum Protection {
     Normal(f32),
 }
 
-impl Sub<Protection> for Protection {
+impl Sub for Protection {
     type Output = Self;
 
     fn sub(self, other: Self) -> Self::Output {
@@ -92,7 +92,7 @@ impl PartialOrd for Protection {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Armor {
     pub kind: ArmorKind,
-    pub stats: Stats<Protection>,
+    pub stats: Stats,
 }
 
 impl Armor {
