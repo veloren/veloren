@@ -26,7 +26,7 @@
 // Cheese drop rate = 3/X = 29.6%
 // Coconut drop rate = 1/X = 9.85%
 
-use crate::{assets::{self, AssetExt}, comp::Item};
+use crate::{assets::{self, AssetExt}, comp::{Body, Item}};
 use rand::prelude::*;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
@@ -74,17 +74,31 @@ impl<T> Lottery<T> {
 
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub enum LootSpec {
+    /// Asset specifier
     Item(String),
+    /// Asset specifier, lower range, upper range
+    ItemQuantity(String, u32, u32),
+    /// Loot table
     LootTable(String),
+    /// Matches on species to provide a crafting material
+    CreatureMaterial,
 }
 
 impl LootSpec {
-    pub fn to_item(&self) -> Item {
+    pub fn to_item(&self, body: Option<Body>) -> Item {
         match self {
             Self::Item(item) => Item::new_from_asset_expect(&item),
-            Self::LootTable(table) => {
-                Lottery::<LootSpec>::load_expect(&table).read().choose().to_item()
+            Self::ItemQuantity(item, lower, upper) => {
+                let range = *lower..=*upper;
+                let quantity = thread_rng().gen_range(range);
+                let mut item = Item::new_from_asset_expect(&item);
+                item.set_amount(quantity);
+                item
             },
+            Self::LootTable(table) => {
+                Lottery::<LootSpec>::load_expect(&table).read().choose().to_item(body)
+            },
+            Self::CreatureMaterial => body.map_or(Item::new_from_asset_expect("common.items.food.cheese"), |b| b.get_loot()),
         }
     }
 }

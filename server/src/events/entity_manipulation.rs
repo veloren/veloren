@@ -444,7 +444,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
         let item = {
             let mut item_drops = state.ecs().write_storage::<comp::ItemDrop>();
             item_drops.remove(entity).map_or_else(
-                || lottery().read().choose().to_item(),
+                || lottery().read().choose().to_item(old_body),
                 |item_drop| item_drop.0,
             )
         };

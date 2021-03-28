@@ -16,6 +16,7 @@ pub mod theropod;
 
 use crate::{
     assets::{self, Asset},
+    comp::Item,
     make_case_elim,
     npc::NpcKind,
 };
@@ -581,6 +582,12 @@ impl Body {
             Body::Ship(ship::Body::DefaultAirship) => Vec3::from([0.0, 0.0, 10.0]),
             _ => Vec3::unit_z(),
         }
+    }
+
+    pub fn get_loot(&self) -> Item {
+        Item::new_from_asset_expect(match self {
+            _ => "common.items.food.cheese"
+        })
     }
 }
 
