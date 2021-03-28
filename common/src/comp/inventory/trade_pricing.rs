@@ -104,6 +104,7 @@ impl TradePricing {
 
     fn get_list_by_path(&self, name: &str) -> &Entries {
         match name {
+            "common.items.crafting_ing.mindflayer_bag_damaged" => &self.armor,
             _ if name.starts_with("common.items.crafting_ing.") => &self.ingredients,
             _ if name.starts_with("common.items.armor.") => &self.armor,
             _ if name.starts_with("common.items.glider.") => &self.other,
@@ -126,6 +127,7 @@ impl TradePricing {
 
     fn get_list_by_path_mut(&mut self, name: &str) -> &mut Entries {
         match name {
+            "common.items.crafting_ing.mindflayer_bag_damaged" => &mut self.armor,
             _ if name.starts_with("common.items.crafting_ing.") => &mut self.ingredients,
             _ if name.starts_with("common.items.armor.") => &mut self.armor,
             _ if name.starts_with("common.items.glider.") => &mut self.other,

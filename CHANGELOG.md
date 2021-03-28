@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Permission to build is no longer tied to being an admin
 - Separated character randomization buttons into appearance and name.
 - Reworked mindflayer to have unique attacks
+- Glowing remains are now `Armor` instead of `Ingredients`.
 
 ### Removed
 
