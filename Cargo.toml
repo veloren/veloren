@@ -29,7 +29,8 @@ panic = "abort"
 debug = false
 codegen-units = 8
 lto = false
-incremental = true
+# TEMP false to avoid fingerprints bug
+incremental = false
 # All dependencies (but not this crate itself)
 [profile.dev.package."*"]
 opt-level = 3
