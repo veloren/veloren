@@ -171,21 +171,48 @@ impl<V, S: RectVolSize, M: Clone> ReadVol for Chonk<V, S, M> {
     where
         V: Copy,
     {
-        for x in aabb.min.x..aabb.max.x + 1 {
-            for y in aabb.min.y..aabb.max.y + 1 {
-                for z in aabb.min.z..aabb.max.z + 1 {
-                    if let Ok(block) = self.get(Vec3::new(x, y, z)) {
-                        f(Vec3::new(x, y, z), *block);
+        // Iterate through blocks in above terrain
+        if aabb.max.z >= self.get_max_z() {
+            let min_z = aabb.min.z.max(self.get_max_z());
+            for x in aabb.min.x..aabb.max.x + 1 {
+                for y in aabb.min.y..aabb.max.y + 1 {
+                    for z in min_z..aabb.max.z + 1 {
+                        f(Vec3::new(x, y, z), self.above);
                     }
                 }
             }
         }
-        // TODO
-        //let min_z = self.get_min_z();
-        //let max_z = self.get_max_z();
-        // Iterate through blocks in above terrain
         // Iterate through blocks in subchunks
+        // Compute lowest & highest subchunks
+        {
+            let min_z = self.get_min_z().max(aabb.min.z);
+            let max_z = (self.get_max_z() - 1).min(aabb.max.z);
+            let min_sub_chunk_idx = self.sub_chunk_idx(min_z);
+            let max_sub_chunk_idx = self.sub_chunk_idx(max_z);
+            for sub_chunk_idx in min_sub_chunk_idx..max_sub_chunk_idx + 1 {
+                let z_offset = -Vec3::unit_z()
+                    * (self.z_offset + sub_chunk_idx * SubChunkSize::<S>::SIZE.z as i32);
+                let relative_aabb = Aabb {
+                    min: aabb.min + z_offset,
+                    max: aabb.max + z_offset,
+                };
+                self.sub_chunks[sub_chunk_idx as usize]
+                    .for_each_in(relative_aabb, |relative_pos, block| {
+                        f(relative_pos - z_offset, block)
+                    });
+            }
+        }
         // Iterate through bloks in below terrain
+        if aabb.min.z > self.get_min_z() {
+            let max_z = aabb.max.z.min(self.get_min_z() - 1);
+            for x in aabb.min.x..aabb.max.x + 1 {
+                for y in aabb.min.y..aabb.max.y + 1 {
+                    for z in aabb.min.z..max_z + 1 {
+                        f(Vec3::new(x, y, z), self.below);
+                    }
+                }
+            }
+        }
     }
 }
 
