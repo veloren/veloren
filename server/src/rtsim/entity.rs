@@ -34,19 +34,20 @@ impl Entity {
     pub fn get_body(&self) -> comp::Body {
         match self.rng(PERM_GENUS).gen::<f32>() {
             // we want 5% airships, 45% birds, 50% humans
-            x if x < 0.05 => comp::Body::Ship(comp::ship::Body::DefaultAirship),
-            x if x < 0.50 => {
+            // HUMANS TEMPORARILY DISABLED UNTIL PATHFINDING FIXED
+            x if x < 0.10 => comp::Body::Ship(comp::ship::Body::DefaultAirship),
+            _ => {
                 let species = *(&comp::bird_medium::ALL_SPECIES)
                     .choose(&mut self.rng(PERM_SPECIES))
                     .unwrap();
                 comp::bird_medium::Body::random_with(&mut self.rng(PERM_BODY), &species).into()
             },
-            _ => {
-                let species = *(&comp::humanoid::ALL_SPECIES)
-                    .choose(&mut self.rng(PERM_SPECIES))
-                    .unwrap();
-                comp::humanoid::Body::random_with(&mut self.rng(PERM_BODY), &species).into()
-            },
+            // _ => {
+            //     let species = *(&comp::humanoid::ALL_SPECIES)
+            //         .choose(&mut self.rng(PERM_SPECIES))
+            //         .unwrap();
+            //     comp::humanoid::Body::random_with(&mut self.rng(PERM_BODY), &species).into()
+            // },
         }
     }
 
