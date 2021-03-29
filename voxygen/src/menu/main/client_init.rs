@@ -115,6 +115,7 @@ impl ClientInit {
                             break 'tries;
                         }
                         let _ = tx.send(Msg::Done(Ok(client)));
+                        tokio::task::block_in_place(move || drop(runtime2));
                         return;
                     },
                     Err(ClientError::NetworkErr(NetworkError::ConnectFailed(
