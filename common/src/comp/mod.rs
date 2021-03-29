@@ -9,8 +9,10 @@ pub mod buff;
 mod character_state;
 #[cfg(not(target_arch = "wasm32"))] pub mod chat;
 #[cfg(not(target_arch = "wasm32"))] pub mod combo;
+pub mod compass;
 #[cfg(not(target_arch = "wasm32"))]
 mod controller;
+pub mod dialogue;
 #[cfg(not(target_arch = "wasm32"))] mod energy;
 #[cfg(not(target_arch = "wasm32"))] pub mod group;
 mod health;

@@ -4,8 +4,8 @@ use vek::*;
 
 use common::{
     comp::{
-        self, agent::AgentEvent, inventory::slot::EquipSlot, item, slot::Slot, tool::ToolKind,
-        Inventory, Pos,
+        self, agent::AgentEvent, dialogue::Subject, inventory::slot::EquipSlot, item, slot::Slot,
+        tool::ToolKind, Inventory, Pos,
     },
     consts::MAX_MOUNT_RANGE,
     outcome::Outcome,
@@ -70,7 +70,9 @@ pub fn handle_npc_interaction(server: &mut Server, interactor: EcsEntity, npc_en
         .get_mut(npc_entity)
     {
         if let Some(interactor_uid) = state.ecs().uid_from_entity(interactor) {
-            agent.inbox.push_front(AgentEvent::Talk(interactor_uid));
+            agent
+                .inbox
+                .push_front(AgentEvent::Talk(interactor_uid, Subject::Regular));
         }
     }
 }

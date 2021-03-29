@@ -81,6 +81,12 @@ impl RtSim {
             .get_mut(entity)
             .map(|entity| entity.brain.add_memory(memory));
     }
+
+    pub fn set_entity_mood(&mut self, entity: RtSimId, memory: Memory) {
+        self.entities
+            .get_mut(entity)
+            .map(|entity| entity.brain.set_mood(memory));
+    }
 }
 
 pub fn add_server_systems(dispatch_builder: &mut DispatcherBuilder) {
