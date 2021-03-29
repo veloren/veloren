@@ -20,6 +20,7 @@ use common::{
     path::TraversalConfig,
     resources::{DeltaTime, Time, TimeOfDay},
     rtsim::{Memory, MemoryItem, RtSimEntity, RtSimEvent},
+    states::utils::StageSection,
     terrain::{Block, TerrainGrid},
     time::DayPeriod,
     trade::{TradeAction, TradePhase, TradeResult},
@@ -37,7 +38,7 @@ use specs::{
     Entities, Entity as EcsEntity, Join, ParJoin, Read, ReadExpect, ReadStorage, SystemData, World,
     Write, WriteExpect, WriteStorage,
 };
-use std::{f32::consts::PI, sync::Arc};
+use std::{f32::consts::PI, sync::Arc, time::Duration};
 use vek::*;
 
 struct AgentData<'a> {
@@ -2202,7 +2203,7 @@ impl<'a> AgentData<'a> {
                 }
             },
             Tactic::Mindflayer => {
-                const MINDFLAYER_ATTACK_DIST: f32 = 17.5;
+                const MINDFLAYER_ATTACK_DIST: f32 = 16.0;
                 const MINION_SUMMON_THRESHOLD: f32 = 0.20;
                 let health_fraction = self.health.map_or(0.5, |h| h.fraction());
                 // Extreme hack to set action_timer at start of combat
@@ -2214,10 +2215,11 @@ impl<'a> AgentData<'a> {
                 let mindflayer_is_far = dist_sqrd > MINDFLAYER_ATTACK_DIST.powi(2);
                 if agent.action_timer > health_fraction {
                     // Summon minions at particular thresholds of health
-                    if !self.char_state.is_attack() {
-                        controller
-                            .actions
-                            .push(ControlAction::basic_input(InputKind::Ability(1)));
+                    controller
+                        .actions
+                        .push(ControlAction::basic_input(InputKind::Ability(1)));
+                    if matches!(self.char_state, CharacterState::BasicSummon(c) if matches!(c.stage_section, StageSection::Recover))
+                    {
                         agent.action_timer -= MINION_SUMMON_THRESHOLD;
                     }
                 } else if mindflayer_is_far {
@@ -2233,13 +2235,16 @@ impl<'a> AgentData<'a> {
                     });
                 } else {
                     // If close to target, use either primary or secondary ability
-                    if matches!(self.char_state, CharacterState::BasicBeam(_)) {
-                        // If already using primary, keep using primary
+                    if matches!(self.char_state, CharacterState::BasicBeam(c) if c.timer < Duration::from_secs(10) && !matches!(c.stage_section, StageSection::Recover))
+                    {
+                        // If already using primary, keep using primary until 10 consecutive seconds
                         controller
                             .actions
                             .push(ControlAction::basic_input(InputKind::Primary));
-                    } else if matches!(self.char_state, CharacterState::SpinMelee(_)) {
-                        // If already using secondary, keep using secondary
+                    } else if matches!(self.char_state, CharacterState::SpinMelee(c) if c.consecutive_spins < 50 && !matches!(c.stage_section, StageSection::Recover))
+                    {
+                        // If already using secondary, keep using secondary until 10 consecutive
+                        // seconds
                         controller
                             .actions
                             .push(ControlAction::basic_input(InputKind::Secondary));
@@ -2254,6 +2259,23 @@ impl<'a> AgentData<'a> {
                             .actions
                             .push(ControlAction::basic_input(InputKind::Secondary));
                     }
+                }
+
+                // Move towards target
+                if let Some((bearing, speed)) = agent.chaser.chase(
+                    &*terrain,
+                    self.pos.0,
+                    self.vel.0,
+                    tgt_pos.0,
+                    TraversalConfig {
+                        min_tgt_dist: 1.25,
+                        ..self.traversal_config
+                    },
+                ) {
+                    controller.inputs.move_dir =
+                        bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+                    self.jump_if(controller, bearing.z > 1.5);
+                    controller.inputs.move_z = bearing.z;
                 }
             },
         }

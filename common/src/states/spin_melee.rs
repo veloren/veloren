@@ -60,8 +60,8 @@ pub struct Data {
     pub static_data: StaticData,
     /// Timer for each stage
     pub timer: Duration,
-    /// How many spins it can do before ending
-    pub spins_remaining: u32,
+    /// How many spins it has done
+    pub consecutive_spins: u32,
     /// What section the character stage is in
     pub stage_section: StageSection,
     /// Whether the state can deal damage
@@ -187,18 +187,13 @@ impl CharacterBehavior for Data {
                         ..*self
                     });
                 } else if update.energy.current() as f32 >= self.static_data.energy_cost
-                    && (self.spins_remaining != 0
+                    && (self.consecutive_spins < self.static_data.num_spins
                         || (self.static_data.is_infinite
                             && input_is_pressed(data, self.static_data.ability_info.input)))
                 {
-                    let new_spins_remaining = if self.static_data.is_infinite {
-                        self.spins_remaining
-                    } else {
-                        self.spins_remaining - 1
-                    };
                     update.character = CharacterState::SpinMelee(Data {
                         timer: Duration::default(),
-                        spins_remaining: new_spins_remaining,
+                        consecutive_spins: self.consecutive_spins + 1,
                         exhausted: false,
                         ..*self
                     });

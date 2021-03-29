@@ -1364,7 +1364,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                     specifier: *specifier,
                 },
                 timer: Duration::default(),
-                spins_remaining: *num_spins - 1,
+                consecutive_spins: 1,
                 stage_section: StageSection::Buildup,
                 exhausted: false,
             }),
