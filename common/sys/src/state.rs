@@ -198,6 +198,7 @@ impl State {
         ecs.register::<comp::Last<comp::Ori>>();
         ecs.register::<comp::Alignment>();
         ecs.register::<comp::Agent>();
+        ecs.register::<comp::Behavior>();
         ecs.register::<comp::WaypointArea>();
         ecs.register::<comp::ForceUpdate>();
         ecs.register::<comp::InventoryUpdate>();

@@ -3,7 +3,7 @@ use specs_idvs::IdvStorage;
 use std::mem;
 
 /// Behavior Component
-#[derive(Clone, Debug)]
+#[derive(Default, Clone, Debug)]
 pub struct Behavior {
     tags: Vec<BehaviorTag>,
 }
@@ -15,8 +15,11 @@ pub enum BehaviorTag {
     CanSpeak,
     /// The entity is able to trade
     CanTrade,
+
+    /// The entity is currently trading
+    IsTrading,
     /// The entity has issued a trade
-    TradingIssuer,
+    IsTradingIssuer,
 }
 
 impl Behavior {
@@ -57,15 +60,11 @@ impl Behavior {
     }
 
     /// Get a specific tag by variant
-    pub fn get_tag(&self, tag: &BehaviorTag) -> Option<&BehaviorTag> {
+    pub fn get_tag(&self, tag: BehaviorTag) -> Option<&BehaviorTag> {
         self.tags
             .iter()
-            .find(|behavior_tag| mem::discriminant(*behavior_tag) == mem::discriminant(tag))
+            .find(|behavior_tag| mem::discriminant(*behavior_tag) == mem::discriminant(&tag))
     }
-}
-
-impl Default for Behavior {
-    fn default() -> Self { Behavior { tags: vec![] } }
 }
 
 impl Component for Behavior {
