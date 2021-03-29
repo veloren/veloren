@@ -865,8 +865,8 @@
         vox_spec: ("weapon.staff.firestaff_bone", (-1.5, -2.5, -3.0)),
         color: None
     ),
-    "common.items.weapons.staff.amethyst_staff": (
-        vox_spec: ("weapon.staff.firestaff_amethyst", (-1.5, -4.0, -4.0)),
+    "common.items.weapons.staff.crimson_eye": (
+        vox_spec: ("weapon.staff.crimson_eye", (-1.5, -3.5, -4.0)),
         color: None
     ),
     "common.items.weapons.staff.cultist_staff": (
@@ -913,7 +913,35 @@
         vox_spec: ("weapon.staff.bent_fuse", (-2.0, -2.5, -5.0)),
         color: None
     ),
-    // Healing sceptre
+    "common.items.weapons.staff.eldwood": (
+        vox_spec: ("weapon.staff.eldwood", (-1.5, -4.5, -3.0)),
+        color: None
+    ),
+    "common.items.weapons.staff.frostwood_torch": (
+        vox_spec: ("weapon.staff.frostwood_torch", (-2.5, -3.5, -3.0)),
+        color: None
+    ),
+    "common.items.weapons.staff.golden_khakkara": (
+        vox_spec: ("weapon.staff.golden_khakkara", (-2.5, -3.5, -4.0)),
+        color: None
+    ),
+    "common.items.weapons.staff.laevateinn": (
+        vox_spec: ("weapon.staff.laevateinn", (-1.5, -4.5, -4.0)),
+        color: None
+    ),
+    "common.items.weapons.staff.ruby_rod": (
+        vox_spec: ("weapon.staff.ruby_rod", (-1.5, -3.5, -3.0)),
+        color: None
+    ),
+    "common.items.weapons.staff.dragon_tongue": (
+        vox_spec: ("weapon.staff.dragon_tongue", (-2.5, -6.0, -5.0)),
+        color: None
+    ),
+    "common.items.weapons.staff.solar": (
+        vox_spec: ("weapon.staff.solar", (-1.5, -4.5, -3.0)),
+        color: None
+    ),
+    // Sceptres
     "common.items.weapons.sceptre.starter_sceptre": (
         vox_spec: ("weapon.sceptre.wood-simple", (-1.5, -2.5, -6.0)),
         color: None
@@ -948,6 +976,30 @@
     ),
     "common.items.weapons.sceptre.sceptre_velorite_0": (
         vox_spec: ("weapon.sceptre.ore-nature", (-2.0, -6.0, -5.0)),
+        color: None
+    ),
+    "common.items.weapons.sceptre.caduceus": (
+        vox_spec: ("weapon.sceptre.caduceus", (-1.5, -4.5, -4.0)),
+        color: None
+    ),
+    "common.items.weapons.sceptre.coralline_cane": (
+        vox_spec: ("weapon.sceptre.coralline_cane", (-3.5, -4.0, -5.0)),
+        color: None
+    ),
+    "common.items.weapons.sceptre.divine_gohei": (
+        vox_spec: ("weapon.sceptre.divine_gohei", (-0.5, -3.5, -2.0)),
+        color: None
+    ),
+    "common.items.weapons.sceptre.emerald": (
+        vox_spec: ("weapon.sceptre.emerald", (-3.5, -3.5, -6.0)),
+        color: None
+    ),
+    "common.items.weapons.sceptre.druids_arbor": (
+        vox_spec: ("weapon.sceptre.druids_arbor", (-1.5, -4.5, -6.0)),
+        color: None
+    ),
+    "common.items.weapons.sceptre.amethyst": (
+        vox_spec: ("weapon.sceptre.amethyst", (-1.5, -4.5, -9.5)),
         color: None
     ),
 	// Picks

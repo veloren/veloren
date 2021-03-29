@@ -1,0 +1,18 @@
+ItemDef(
+    name: "Frostwood Torch",
+    description: "Staff made from the coolest wood",
+    kind: Tool((
+        kind: Staff,
+        hands: Two,
+        stats: Direct((
+            equip_time_secs: 0.3,
+            power: 1.6,
+            poise_strength: 1.0,
+            speed: 1.2,
+            crit_chance: 0.134379086,
+            crit_mult: 1.4114286,
+        )),
+    )),
+    quality: High,
+    tags: [],
+)

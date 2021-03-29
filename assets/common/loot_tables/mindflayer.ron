@@ -6,8 +6,11 @@
     (1.0, "common.items.weapons.axe.parashu"),
     (1.0, "common.items.weapons.hammer.mjolnir"),
     (1.0, "common.items.weapons.bow.sagitta"),
-    (1.0, "common.items.weapons.staff.phoenix"),
-    (1.0, "common.items.weapons.sceptre.root_evil"),
+    (0.5, "common.items.weapons.staff.phoenix"),
+    (0.5, "common.items.weapons.staff.laevateinn"),
+    (0.5, "common.items.weapons.sceptre.root_evil"),
+    (0.5, "common.items.weapons.sceptre.caduceus"),
+
     // Rare misc items
     (0.5, "common.items.boss_drops.lantern"),
     (0.5, "common.items.glider.glider_purp"),

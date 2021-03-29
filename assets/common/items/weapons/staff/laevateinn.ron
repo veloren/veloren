@@ -1,0 +1,18 @@
+ItemDef(
+    name: "Laevateinn",
+    description: "Can shatter the gate of death",
+    kind: Tool((
+        kind: Staff,
+        hands: Two,
+        stats: Direct((
+            equip_time_secs: 0.6,
+            power: 1.8,
+            poise_strength: 1.0,
+            speed: 1.6,
+            crit_chance: 0.2002994,
+            crit_mult: 1.3798152,
+        )),
+    )),
+    quality: Legendary,
+    tags: [],
+)

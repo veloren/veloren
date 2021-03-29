@@ -1,0 +1,18 @@
+ItemDef(
+    name: "Ruby Rod",
+    description: "Some legends tell that the ruby is is tied to the fire element",
+    kind: Tool((
+        kind: Staff,
+        hands: Two,
+        stats: Direct((
+            equip_time_secs: 0.3,
+            power: 1.6,
+            poise_strength: 1.0,
+            speed: 1.0,
+            crit_chance: 0.2625,
+            crit_mult: 1.4761904,
+        )),
+    )),
+    quality: High,
+    tags: [],
+)

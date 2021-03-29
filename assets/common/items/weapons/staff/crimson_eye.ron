@@ -1,12 +1,12 @@
 ItemDef(
-    name: "Amethyst Staff",
-    description: "The amethyst faintly glows.",
+    name: "Crimson Eye",
+    description: "The eye faintly glows.",
     kind: Tool((
         kind: Staff,
         hands: Two,
         stats: Direct((
             equip_time_secs: 0.3,
-            power: 1.5,
+            power: 1.3,
             poise_strength: 1.0,
             speed: 1.0,
             crit_chance: 0.125,
