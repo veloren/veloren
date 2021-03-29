@@ -199,12 +199,7 @@ impl ParticleMgr {
             Outcome::ProjectileHit { pos, target, .. } => {
                 if target.is_some() {
                     self.particles.resize_with(self.particles.len() + 30, || {
-                        Particle::new(
-                            Duration::from_millis(100),
-                            time,
-                            ParticleMode::Shrapnel,
-                            *pos,
-                        )
+                        Particle::new(Duration::from_millis(250), time, ParticleMode::Blood, *pos)
                     });
                 }
             },
