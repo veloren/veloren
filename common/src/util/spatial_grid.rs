@@ -1,5 +1,6 @@
 use vek::*;
 
+#[derive(Debug)]
 pub struct SpatialGrid {
     // Uses two scales of grids so that we can have a hard limit on how far to search in the
     // smaller grid
@@ -73,5 +74,11 @@ impl SpatialGrid {
             &self.large_grid,
             self.lg2_large_cell_size,
         ))
+    }
+
+    pub fn clear(&mut self) {
+        self.grid.clear();
+        self.large_grid.clear();
+        self.largest_large_radius = self.radius_cutoff;
     }
 }

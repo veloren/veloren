@@ -6,7 +6,6 @@ use crate::plugin::PluginMgr;
 use common::uid::UidAllocator;
 use common::{
     comp,
-    depot::{Depot, Id},
     event::{EventBus, LocalEvent, ServerEvent},
     outcome::Outcome,
     region::RegionMap,
@@ -21,7 +20,7 @@ use common_base::span;
 use common_ecs::{PhysicsMetrics, SysMetrics};
 use common_net::sync::{interpolation as sync_interp, WorldSyncExt};
 use core::{convert::identity, time::Duration};
-use hashbrown::{hash_map, HashMap, HashSet};
+use hashbrown::{HashMap, HashSet};
 use rayon::{ThreadPool, ThreadPoolBuilder};
 use specs::{
     prelude::Resource,
@@ -42,57 +41,6 @@ const DAY_CYCLE_FACTOR: f64 = 24.0 * 2.0;
 /// this value, the game's physics will begin to produce time lag. Ideally, we'd
 /// avoid such a situation.
 const MAX_DELTA_TIME: f32 = 1.0;
-
-/// NOTE: Please don't add `Deserialize` without checking to make sure we
-/// can guarantee the invariant that every entry in `area_names` points to a
-/// valid id in `areas`.
-#[derive(Default)]
-pub struct BuildAreas {
-    areas: Depot<Aabb<i32>>,
-    area_names: HashMap<String, Id<Aabb<i32>>>,
-}
-
-pub enum BuildAreaError {
-    /// This build area name is reserved by the system.
-    Reserved,
-    /// The build area name was not found.
-    NotFound,
-}
-
-/// Build area names that can only be inserted, not removed.
-const RESERVED_BUILD_AREA_NAMES: &[&str] = &["world"];
-
-impl BuildAreas {
-    pub fn areas(&self) -> &Depot<geom::Aabb<i32>> { &self.areas }
-
-    pub fn area_names(&self) -> &HashMap<String, Id<Aabb<i32>>> { &self.area_names }
-
-    /// If the area_name is already in the map, returns Err(area_name).
-    pub fn insert(&mut self, area_name: String, area: Aabb<i32>) -> Result<Id<Aabb<i32>>, String> {
-        let area_name_entry = match self.area_names.entry(area_name) {
-            hash_map::Entry::Occupied(o) => return Err(o.replace_key()),
-            hash_map::Entry::Vacant(v) => v,
-        };
-        let bb_id = self.areas.insert(area.made_valid());
-        area_name_entry.insert(bb_id);
-        Ok(bb_id)
-    }
-
-    pub fn remove(&mut self, area_name: &str) -> Result<Aabb<i32>, BuildAreaError> {
-        if RESERVED_BUILD_AREA_NAMES.contains(&area_name) {
-            return Err(BuildAreaError::Reserved);
-        }
-        let bb_id = self
-            .area_names
-            .remove(area_name)
-            .ok_or(BuildAreaError::NotFound)?;
-        let area = self.areas.remove(bb_id).expect(
-            "Entries in `areas` are added before entries in `area_names` in `insert`, and that is \
-             the only exposed way to add elements to `area_names`.",
-        );
-        Ok(area)
-    }
-}
 
 #[derive(Default)]
 pub struct BlockChange {
@@ -128,13 +76,6 @@ impl TerrainChanges {
         self.modified_chunks.clear();
         self.removed_chunks.clear();
     }
-}
-
-#[derive(Copy, Clone)]
-pub enum ExecMode {
-    Server,
-    Client,
-    Singleplayer,
 }
 
 /// A type used to represent game state stored on both the client and the
@@ -260,7 +201,7 @@ impl State {
         ecs.insert(PlayerEntity(None));
         ecs.insert(TerrainGrid::new().unwrap());
         ecs.insert(BlockChange::default());
-        ecs.insert(BuildAreas::default());
+        ecs.insert(crate::build_areas::BuildAreas::default());
         ecs.insert(TerrainChanges::default());
         ecs.insert(EventBus::<LocalEvent>::default());
         ecs.insert(game_mode);
