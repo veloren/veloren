@@ -35,19 +35,19 @@ impl Entity {
         match self.rng(PERM_GENUS).gen::<f32>() {
             // we want 5% airships, 45% birds, 50% humans
             // HUMANS TEMPORARILY DISABLED UNTIL PATHFINDING FIXED
-            x if x < 0.10 => comp::Body::Ship(comp::ship::Body::DefaultAirship),
-            _ => {
+            x if x < 0.05 => comp::Body::Ship(comp::ship::Body::DefaultAirship),
+            x if x < 0.50 => {
                 let species = *(&comp::bird_medium::ALL_SPECIES)
                     .choose(&mut self.rng(PERM_SPECIES))
                     .unwrap();
                 comp::bird_medium::Body::random_with(&mut self.rng(PERM_BODY), &species).into()
             },
-            // _ => {
-            //     let species = *(&comp::humanoid::ALL_SPECIES)
-            //         .choose(&mut self.rng(PERM_SPECIES))
-            //         .unwrap();
-            //     comp::humanoid::Body::random_with(&mut self.rng(PERM_BODY), &species).into()
-            // },
+            _ => {
+                let species = *(&comp::humanoid::ALL_SPECIES)
+                    .choose(&mut self.rng(PERM_SPECIES))
+                    .unwrap();
+                comp::humanoid::Body::random_with(&mut self.rng(PERM_BODY), &species).into()
+            },
         }
     }
 
@@ -133,6 +133,18 @@ impl Entity {
     }
 
     pub fn tick(&mut self, time: &Time, terrain: &TerrainGrid, world: &World, index: &IndexRef) {
+        // TODO: Make travellers travel smarter
+        // This is mainly for humanoids
+        // 1. If they have a track, follow that
+        //      - if the next point is too far away:
+        //          - if progress is 0, attempt to reverse it
+        //          - otherwise, clear the track
+        //  2. If they have a target site and no track, attempt to go there directly
+        //  3. If there is no target site or track, check if they are currently at a
+        // site
+        //      - If they are at site, calculate a new target site
+        //      - If they aren't go to the nearest site
+        let mut next_pos_calculated = false;
         let tgt_site = self.brain.tgt.or_else(|| {
             world
                 .civs()
@@ -153,34 +165,50 @@ impl Entity {
         });
         self.brain.tgt = tgt_site;
 
-        if self.get_body().is_humanoid() && self.brain.track.is_none() && !self.brain.track_computed
-        {
-            let nearest_site = world
-                .civs()
-                .sites
-                .iter()
-                .min_by_key(|(_, site)| {
-                    let wpos = site.center * TerrainChunk::RECT_SIZE.map(|e| e as i32);
-                    wpos.map(|e| e as f32).distance(self.pos.xy()) as u32
-                })
-                .map(|(id, _)| id);
-            let track = nearest_site
-                .zip(tgt_site)
-                .and_then(|(near, tgt)| world.civs().track_between(near, tgt));
-            // .map(|track_id| world.civs().tracks.get(track_id));
-            self.brain.track = track;
-            self.brain.track_progress = 0;
-            self.brain.track_computed = true;
-        }
+        if self.get_body().is_humanoid() {
+            let begin_site_id = self.brain.begin.or_else(|| {
+                world
+                    .civs()
+                    .sites
+                    .iter()
+                    .min_by_key(|(_, site)| {
+                        let wpos = site.center * TerrainChunk::RECT_SIZE.map(|e| e as i32);
+                        wpos.map(|e| e as f32).distance(self.pos.xy()) as u32
+                    })
+                    .map(|(id, _)| id)
+            });
+            self.brain.begin = begin_site_id;
 
-        if let Some(tgt_site) = tgt_site {
-            let site = &world.civs().sites[tgt_site];
+            if self.brain.track_computed == false {
+                begin_site_id
+                    .zip(tgt_site)
+                    .map(|(begin_site_id, tgt_site)| {
+                        let begin_site = &world.civs().sites[begin_site_id];
 
-            let destination_name = site
-                .site_tmp
-                .map_or("".to_string(), |id| index.sites[id].name().to_string());
-            if let Some(track_id) = self.brain.track {
+                        let begin_pos =
+                            begin_site.center * TerrainChunk::RECT_SIZE.map(|e| e as i32);
+                        let begin_dist = begin_pos.map(|e| e as f32).distance(self.pos.xy()) as u32;
+
+                        if begin_dist < 64 {
+                            let track = self
+                                .brain
+                                .track
+                                .or_else(|| world.civs().track_between(begin_site_id, tgt_site));
+                            self.brain.track = track;
+                            self.brain.track_progress = 0;
+                            self.brain.track_computed = true;
+                        }
+                    });
+            }
+
+            if self.brain.track_computed && self.brain.track.is_some() && tgt_site.is_some() {
+                let track_id = self.brain.track.unwrap(); // track checked above
                 let track = &world.civs().tracks.get(track_id);
+
+                let site = &world.civs().sites[tgt_site.unwrap()]; // tgt_site checked above
+                let destination_name = site
+                    .site_tmp
+                    .map_or("".to_string(), |id| index.sites[id].name().to_string());
                 if let Some(sim_pos) = track.path.iter().nth(self.brain.track_progress) {
                     let chunkpos = sim_pos * TerrainChunk::RECT_SIZE.map(|e| e as i32);
                     let mut wpos = chunkpos;
@@ -189,9 +217,23 @@ impl Entity {
                     }
                     let dist = wpos.map(|e| e as f32).distance(self.pos.xy()) as u32;
 
-                    if dist < 32 {
+                    if dist < 32 && !self.brain.track_reversed {
                         self.brain.track_progress += 1;
                         if self.brain.track_progress > track.path.len() {
+                            self.brain.track = None;
+                        }
+                    } else if dist < 32 && self.brain.track_reversed {
+                        if self.brain.track_progress == 0 {
+                            self.brain.track = None;
+                        } else {
+                            self.brain.track_progress -= 1;
+                        }
+                    }
+
+                    if self.brain.track_progress == 0 && dist > 128 {
+                        if !self.brain.track_reversed {
+                            self.brain.track_reversed = true;
+                        } else {
                             self.brain.track = None;
                         }
                     }
@@ -216,39 +258,47 @@ impl Entity {
                         + Vec3::new(0.5, 0.5, 0.0);
                     self.controller.travel_to = Some((travel_to, destination_name));
                     self.controller.speed_factor = 0.70;
-                } else {
-                    self.brain.track = None;
+                    next_pos_calculated = true;
                 }
-            } else {
-                let wpos = site.center * TerrainChunk::RECT_SIZE.map(|e| e as i32);
-                let dist = wpos.map(|e| e as f32).distance(self.pos.xy()) as u32;
-
-                if dist < 64 {
-                    self.brain.tgt = None;
-                    self.brain.track_computed = false;
-                }
-
-                let travel_to = self.pos.xy()
-                    + Vec3::from(
-                        (wpos.map(|e| e as f32 + 0.5) - self.pos.xy())
-                            .try_normalized()
-                            .unwrap_or_else(Vec2::zero),
-                    ) * 64.0;
-                let travel_to_alt = world
-                    .sim()
-                    .get_alt_approx(travel_to.map(|e| e as i32))
-                    .unwrap_or(0.0) as i32;
-                let travel_to = terrain
-                    .find_space(Vec3::new(
-                        travel_to.x as i32,
-                        travel_to.y as i32,
-                        travel_to_alt,
-                    ))
-                    .map(|e| e as f32)
-                    + Vec3::new(0.5, 0.5, 0.0);
-                self.controller.travel_to = Some((travel_to, destination_name));
-                self.controller.speed_factor = 0.70;
             }
+        }
+
+        if !next_pos_calculated && tgt_site.is_some() {
+            let site = &world.civs().sites[tgt_site.unwrap()];
+            let destination_name = site
+                .site_tmp
+                .map_or("".to_string(), |id| index.sites[id].name().to_string());
+
+            let wpos = site.center * TerrainChunk::RECT_SIZE.map(|e| e as i32);
+            let dist = wpos.map(|e| e as f32).distance(self.pos.xy()) as u32;
+
+            if dist < 64 {
+                self.brain.tgt = None;
+                self.brain.begin = None;
+                self.brain.track_computed = false;
+            }
+
+            let travel_to = self.pos.xy()
+                + Vec3::from(
+                    (wpos.map(|e| e as f32 + 0.5) - self.pos.xy())
+                        .try_normalized()
+                        .unwrap_or_else(Vec2::zero),
+                ) * 64.0;
+            let travel_to_alt = world
+                .sim()
+                .get_alt_approx(travel_to.map(|e| e as i32))
+                .unwrap_or(0.0) as i32;
+            let travel_to = terrain
+                .find_space(Vec3::new(
+                    travel_to.x as i32,
+                    travel_to.y as i32,
+                    travel_to_alt,
+                ))
+                .map(|e| e as f32)
+                + Vec3::new(0.5, 0.5, 0.0);
+            self.controller.travel_to = Some((travel_to, destination_name));
+            self.controller.speed_factor = 0.70;
+            // next_pos_calculated = true;
         }
 
         // Forget old memories
@@ -260,10 +310,12 @@ impl Entity {
 
 #[derive(Default)]
 pub struct Brain {
+    begin: Option<Id<Site>>,
     tgt: Option<Id<Site>>,
     track: Option<Id<Track>>,
     track_progress: usize,
     track_computed: bool,
+    track_reversed: bool,
     memories: Vec<Memory>,
 }
 
