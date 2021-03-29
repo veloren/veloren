@@ -731,11 +731,19 @@ impl<'a> PhysicsData<'a> {
                                 climbing,
                                 |entity, vel| land_on_ground = Some((entity, vel)),
                             );
+
+                            // Sticky things shouldn't move when on a surface
+                            if physics_state.on_surface().is_some() && sticky.is_some() {
+                                vel.0 = physics_state.ground_vel;
+                            }
+
                             tgt_pos = cpos.0;
                         },
                         Collider::Point => {
                             let mut pos = *pos;
 
+                            // If the velocity is exactly 0, a raycast may not pick up the current
+                            // block. Handle this.
                             let (dist, block) = if let Some(block) = read
                                 .terrain
                                 .get(pos.0.map(|e| e.floor() as i32))
@@ -803,7 +811,7 @@ impl<'a> PhysicsData<'a> {
 
                                 // Sticky things shouldn't move
                                 if sticky.is_some() {
-                                    vel.0 = Vec3::zero();
+                                    vel.0 = physics_state.ground_vel;
                                 }
                             }
 
