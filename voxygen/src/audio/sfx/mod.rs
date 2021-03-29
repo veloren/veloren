@@ -289,6 +289,7 @@ impl SfxMgr {
         );
     }
 
+    #[allow(clippy::single_match)]
     pub fn handle_outcome(
         &mut self,
         outcome: &Outcome,
