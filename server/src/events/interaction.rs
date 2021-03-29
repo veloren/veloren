@@ -1,17 +1,11 @@
-use specs::{world::WorldExt, Builder, Entity as EcsEntity, Join};
+use specs::{world::WorldExt, Builder, Entity as EcsEntity};
 use tracing::error;
 use vek::*;
 
 use common::{
     comp::{
-        self,
-        agent::AgentEvent,
-        dialogue::{AskedPerson, Subject},
-        inventory::slot::EquipSlot,
-        item,
-        slot::Slot,
-        tool::ToolKind,
-        Inventory, Pos,
+        self, agent::AgentEvent, dialogue::Subject, inventory::slot::EquipSlot, item, slot::Slot,
+        tool::ToolKind, Inventory, Pos,
     },
     consts::MAX_MOUNT_RANGE,
     outcome::Outcome,
