@@ -81,11 +81,11 @@ impl SpatialGrid {
     // TODO: using the circle directly would be tighter (how efficient would it be
     // to query the cells intersecting a circle?) (note: if doing this rename
     // the function)
-    pub fn in_circle_aabr<'a>(
-        &'a self,
+    pub fn in_circle_aabr(
+        &self,
         center: Vec2<f32>,
         radius: f32,
-    ) -> impl Iterator<Item = specs::Entity> + 'a {
+    ) -> impl Iterator<Item = specs::Entity> + '_ {
         let center = center.map(|e| e as i32);
         let radius = radius.ceil() as i32;
         // From conversion of center above
