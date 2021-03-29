@@ -7,8 +7,8 @@ mod diary;
 mod esc_menu;
 mod group;
 mod hotbar;
-mod img_ids;
-mod item_imgs;
+pub mod img_ids;
+pub mod item_imgs;
 mod map;
 mod minimap;
 mod overhead;
@@ -20,7 +20,7 @@ mod skillbar;
 mod slots;
 mod social;
 mod trade;
-mod util;
+pub mod util;
 
 pub use hotbar::{SlotContents as HotbarSlotContents, State as HotbarState};
 pub use item_imgs::animate_by_pulse;
@@ -263,6 +263,7 @@ widget_ids! {
         crafting_window,
         settings_window,
         group_window,
+        item_info,
 
         // Free look indicator
         free_look_txt,
@@ -903,8 +904,9 @@ impl Hud {
     ) -> Vec<Event> {
         span!(_guard, "update_layout", "Hud::update_layout");
         let mut events = std::mem::replace(&mut self.events, Vec::new());
-        let (ref mut ui_widgets, ref mut tooltip_manager) = self.ui.set_widgets();
-        // pulse time for pulsating elements
+        let (ref mut ui_widgets, ref mut item_tooltip_manager, ref mut tooltip_manager) =
+            &mut self.ui.set_widgets();
+        // self.ui.set_item_widgets(); pulse time for pulsating elements
         self.pulse = self.pulse + dt.as_secs_f32();
         // FPS
         let fps = global_state.clock.stats().average_tps;
@@ -1338,6 +1340,7 @@ impl Hud {
                     &mut self.ids.overitems,
                     &mut ui_widgets.widget_id_generator(),
                 );
+
                 let ingame_pos = pos.0 + Vec3::unit_z() * 1.2;
 
                 let text = if item.amount() > 1 {
@@ -1346,9 +1349,12 @@ impl Hud {
                     item.name().to_string()
                 };
 
+                let quality = get_quality_col(item);
+
                 // Item
                 overitem::Overitem::new(
                     &text,
+                    &quality,
                     &distance,
                     &self.fonts,
                     &global_state.settings.controls,
@@ -2226,6 +2232,7 @@ impl Hud {
             controllers.get(entity).map(|c| &c.inputs),
         ) {
             Skillbar::new(
+                client,
                 global_state,
                 &self.imgs,
                 &self.item_imgs,
@@ -2239,6 +2246,7 @@ impl Hud {
                 //&controller,
                 &self.hotbar,
                 tooltip_manager,
+                item_tooltip_manager,
                 &mut self.slot_manager,
                 i18n,
                 &ability_map,
@@ -2262,6 +2270,7 @@ impl Hud {
                     &self.fonts,
                     &self.rot_imgs,
                     tooltip_manager,
+                    item_tooltip_manager,
                     &mut self.slot_manager,
                     self.pulse,
                     i18n,
@@ -2298,7 +2307,7 @@ impl Hud {
                 &self.item_imgs,
                 &self.fonts,
                 &self.rot_imgs,
-                tooltip_manager,
+                item_tooltip_manager,
                 &mut self.slot_manager,
                 i18n,
                 &msm,
@@ -2363,7 +2372,7 @@ impl Hud {
                     i18n,
                     self.pulse,
                     &self.rot_imgs,
-                    tooltip_manager,
+                    item_tooltip_manager,
                     &self.item_imgs,
                     &inventory,
                     &msm,
@@ -3323,7 +3332,7 @@ impl Hud {
     }
 }
 // Get item qualities of equipped items and assign a tooltip title/frame color
-pub fn get_quality_col<I: ItemDesc>(item: &I) -> Color {
+pub fn get_quality_col<I: ItemDesc + ?Sized>(item: &I) -> Color {
     match item.quality() {
         Quality::Low => QUALITY_LOW,
         Quality::Common => QUALITY_COMMON,

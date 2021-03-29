@@ -8,7 +8,7 @@ use crate::{
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use std::{
-    ops::{AddAssign, DivAssign, MulAssign},
+    ops::{AddAssign, DivAssign, MulAssign, Sub},
     time::Duration,
 };
 use tracing::error;
@@ -136,6 +136,21 @@ impl DivAssign<usize> for Stats {
         self.speed /= scalar as f32;
         self.crit_chance /= scalar as f32;
         self.crit_mult /= scalar as f32;
+    }
+}
+
+impl Sub<Stats> for Stats {
+    type Output = Self;
+
+    fn sub(self, other: Self) -> Self::Output {
+        Self {
+            equip_time_secs: self.equip_time_secs - other.equip_time_secs,
+            power: self.power - other.power,
+            poise_strength: self.poise_strength - other.poise_strength,
+            speed: self.speed - other.speed,
+            crit_chance: self.crit_chance - other.crit_chance,
+            crit_mult: self.crit_mult - other.crit_mult,
+        }
     }
 }
 

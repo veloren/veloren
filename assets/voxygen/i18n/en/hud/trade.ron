@@ -16,6 +16,9 @@
 	"hud.trade.result.completed": "Trade completed successfully.",
 	"hud.trade.result.declined": "Trade declined.",
 	"hud.trade.result.nospace": "Not enough space to complete the trade.",
+	"hud.trade.buy_price": "Buy price",
+	"hud.trade.sell_price": "Sell Price",
+	"hud.trade.coin": "coin(s)",
     },
 
 

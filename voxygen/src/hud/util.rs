@@ -4,7 +4,7 @@ use common::{
         item::{
             armor::{Armor, ArmorKind, Protection},
             tool::{Hands, StatKind, Stats, Tool, ToolKind},
-            Item, ItemDesc, ItemKind, MaterialStatManifest, ModularComponent,
+            Item, ItemKind, MaterialStatManifest, ModularComponent,
         },
         BuffKind,
     },
@@ -13,75 +13,53 @@ use common::{
 };
 use std::{borrow::Cow, fmt::Write};
 
-pub fn loadout_slot_text<'a>(
-    item: Option<&'a impl ItemDesc>,
-    mut empty: impl FnMut() -> (&'a str, &'a str),
-    msm: &'a MaterialStatManifest,
-) -> (&'a str, Cow<'a, str>) {
-    item.map_or_else(
-        || {
-            let (title, desc) = empty();
-            (title, Cow::Borrowed(desc))
-        },
-        |item| item_text(item, msm),
-    )
-}
+use crate::i18n::Localization;
 
-pub fn item_text<'a>(
-    item: &'a impl ItemDesc,
-    msm: &'a MaterialStatManifest,
-) -> (&'a str, Cow<'a, str>) {
-    let desc: Cow<str> = match item.kind() {
-        ItemKind::Armor(armor) => {
-            Cow::Owned(armor_desc(armor, item.description(), item.num_slots()))
-        },
-        ItemKind::Tool(tool) => Cow::Owned(tool_desc(
-            &tool,
-            item.components(),
-            &msm,
-            item.description(),
-        )),
-        ItemKind::ModularComponent(mc) => Cow::Owned(modular_component_desc(
-            mc,
-            item.components(),
-            &msm,
-            item.description(),
-        )),
-        ItemKind::Glider(_glider) => Cow::Owned(glider_desc(item.description())),
-        ItemKind::Consumable { effect, .. } => {
-            Cow::Owned(consumable_desc(effect, item.description()))
-        },
-        ItemKind::Throwable { .. } => Cow::Owned(throwable_desc(item.description())),
-        ItemKind::Utility { .. } => Cow::Owned(utility_desc(item.description())),
-        ItemKind::Ingredient { .. } => Cow::Owned(ingredient_desc(
-            item.description(),
-            item.item_definition_id(),
-            msm,
-        )),
-        ItemKind::Lantern { .. } => Cow::Owned(lantern_desc(item.description())),
-        ItemKind::TagExamples { .. } => Cow::Borrowed(item.description()),
-        //_ => Cow::Borrowed(item.description()),
-    };
-
-    (item.name(), desc)
-}
-
-pub fn append_price_desc(desc: &mut String, prices: &Option<SitePrices>, item_definition_id: &str) {
+pub fn price_desc(
+    prices: &Option<SitePrices>,
+    item_definition_id: &str,
+    i18n: &Localization,
+) -> Option<String> {
     if let Some(prices) = prices {
         let (material, factor) = TradePricing::get_material(item_definition_id);
         let coinprice = prices.values.get(&Good::Coin).cloned().unwrap_or(1.0);
         let buyprice = prices.values.get(&material).cloned().unwrap_or_default() * factor;
         let sellprice = buyprice * material.trade_margin();
-        *desc += &format!(
-            "\n\nBuy price: {:0.1} coins\nSell price: {:0.1} coins",
+        Some(format!(
+            "{} : {:0.1} {}\n{} : {:0.1} {}",
+            i18n.get("hud.trade.buy_price"),
             buyprice / coinprice,
-            sellprice / coinprice
-        );
+            i18n.get("hud.trade.coin"),
+            i18n.get("hud.trade.sell_price"),
+            sellprice / coinprice,
+            i18n.get("hud.trade.coin"),
+        ))
+    } else {
+        None
     }
 }
 
-// TODO: localization
-fn modular_component_desc(
+pub fn kind_text<'a>(kind: &ItemKind, i18n: &'a Localization) -> Cow<'a, str> {
+    match kind {
+        ItemKind::Armor(armor) => Cow::Borrowed(armor_kind(&armor, &i18n)),
+        ItemKind::Tool(tool) => Cow::Owned(format!(
+            "{} ({})",
+            tool_kind(&tool, i18n),
+            tool_hands(&tool, i18n)
+        )),
+        ItemKind::ModularComponent(_mc) => Cow::Borrowed(i18n.get("common.bag.shoulders")),
+        ItemKind::Glider(_glider) => Cow::Borrowed(i18n.get("common.kind.glider")),
+        ItemKind::Consumable { .. } => Cow::Borrowed(i18n.get("common.kind.consumable")),
+        ItemKind::Throwable { .. } => Cow::Borrowed(i18n.get("common.kind.throwable")),
+        ItemKind::Utility { .. } => Cow::Borrowed(i18n.get("common.kind.utility")),
+        ItemKind::Ingredient { .. } => Cow::Borrowed(i18n.get("common.kind.ingredient")),
+        ItemKind::Lantern { .. } => Cow::Borrowed(i18n.get("common.kind.lantern")),
+        ItemKind::TagExamples { .. } => Cow::Borrowed(""),
+    }
+}
+
+// TODO: localization, refactor when mc are player facing
+pub fn modular_component_desc(
     mc: &ModularComponent,
     components: &[Item],
     msm: &MaterialStatManifest,
@@ -100,11 +78,9 @@ fn modular_component_desc(
     }
     result
 }
-fn glider_desc(desc: &str) -> String { format!("Glider\n\n{}\n\n<Right-Click to use>", desc) }
 
-fn consumable_desc(effects: &[Effect], desc: &str) -> String {
-    // TODO: localization
-    let mut description = "Consumable".to_string();
+pub fn consumable_desc(effects: &[Effect], i18n: &Localization) -> String {
+    let mut description = String::new();
 
     for effect in effects {
         if let Effect::Buff(buff) = effect {
@@ -113,34 +89,34 @@ fn consumable_desc(effects: &[Effect], desc: &str) -> String {
             let str_total = dur_secs.map_or(strength, |secs| strength * secs);
 
             let buff_desc = match buff.kind {
-                BuffKind::Saturation | BuffKind::Regeneration | BuffKind::Potion => {
-                    format!("Restores {} Health", str_total)
-                },
-                BuffKind::IncreaseMaxEnergy => {
-                    format!("Raises Maximum Stamina by {}", strength)
-                },
-                BuffKind::IncreaseMaxHealth => {
-                    format!("Raises Maximum Health by {}", strength)
-                },
-                BuffKind::Invulnerability => "Grants invulnerability".to_string(),
+                BuffKind::Saturation | BuffKind::Regeneration | BuffKind::Potion => i18n
+                    .get("buff.stat.health")
+                    .replace("{str_total}", &str_total.to_string()),
+                BuffKind::IncreaseMaxEnergy => i18n
+                    .get("buff.stat.increase_max_stamina")
+                    .replace("{strength}", &strength.to_string()),
+                BuffKind::IncreaseMaxHealth => i18n
+                    .get("buff.stat.increase_max_health")
+                    .replace("{strength}", &strength.to_string()),
+                BuffKind::Invulnerability => i18n.get("buff.stat.invulenrability").to_string(),
                 BuffKind::Bleeding
                 | BuffKind::CampfireHeal
                 | BuffKind::Cursed
                 | BuffKind::ProtectingWard => continue,
             };
 
-            write!(&mut description, "\n\n{}", buff_desc).unwrap();
+            write!(&mut description, "{}", buff_desc).unwrap();
 
-            let dur_desc = if dur_secs.is_some() {
+            let dur_desc = if let Some(dur_secs) = dur_secs {
                 match buff.kind {
-                    BuffKind::Saturation | BuffKind::Regeneration => {
-                        format!("over {} seconds", dur_secs.unwrap())
-                    },
+                    BuffKind::Saturation | BuffKind::Regeneration => i18n
+                        .get("buff.text.over_seconds")
+                        .replace("{dur_secs}", &dur_secs.to_string()),
                     BuffKind::IncreaseMaxEnergy
                     | BuffKind::IncreaseMaxHealth
-                    | BuffKind::Invulnerability => {
-                        format!("for {} seconds", dur_secs.unwrap())
-                    },
+                    | BuffKind::Invulnerability => i18n
+                        .get("buff.text.for_seconds")
+                        .replace("{dur_secs}", &dur_secs.to_string()),
                     BuffKind::Bleeding
                     | BuffKind::Potion
                     | BuffKind::CampfireHeal
@@ -148,7 +124,7 @@ fn consumable_desc(effects: &[Effect], desc: &str) -> String {
                     | BuffKind::ProtectingWard => continue,
                 }
             } else if let BuffKind::Saturation | BuffKind::Regeneration = buff.kind {
-                "every second".to_string()
+                i18n.get("buff.text.every_second").to_string()
             } else {
                 continue;
             };
@@ -157,119 +133,61 @@ fn consumable_desc(effects: &[Effect], desc: &str) -> String {
         }
     }
 
-    if !desc.is_empty() {
-        write!(&mut description, "\n\n{}", desc).unwrap();
-    }
-
-    write!(&mut description, "\n\n<Right-Click to use>").unwrap();
     description
 }
 
-fn throwable_desc(desc: &str) -> String {
-    format!("Can be thrown\n\n{}\n\n<Right-Click to use>", desc)
-}
-
-fn utility_desc(desc: &str) -> String { format!("{}\n\n<Right-Click to use>", desc) }
-
-fn ingredient_desc(desc: &str, item_id: &str, msm: &MaterialStatManifest) -> String {
-    let mut result = format!("Crafting Ingredient\n\n{}", desc);
-    if let Some(stats) = msm.0.get(item_id) {
-        result += "\n\nStat multipliers:\n";
-        result += &statblock_desc(stats);
-    }
-    result
-}
-
-fn lantern_desc(desc: &str) -> String { format!("Lantern\n\n{}\n\n<Right-Click to use>", desc) }
-
-fn armor_desc(armor: &Armor, desc: &str, slots: u16) -> String {
-    // TODO: localization
+// Armor
+fn armor_kind<'a>(armor: &Armor, i18n: &'a Localization) -> &'a str {
     let kind = match armor.kind {
-        ArmorKind::Shoulder(_) => "Shoulders",
-        ArmorKind::Chest(_) => "Chest",
-        ArmorKind::Belt(_) => "Belt",
-        ArmorKind::Hand(_) => "Hands",
-        ArmorKind::Pants(_) => "Legs",
-        ArmorKind::Foot(_) => "Feet",
-        ArmorKind::Back(_) => "Back",
-        ArmorKind::Ring(_) => "Ring",
-        ArmorKind::Neck(_) => "Neck",
-        ArmorKind::Head(_) => "Head",
-        ArmorKind::Tabard(_) => "Tabard",
-        ArmorKind::Bag(_) => "Bag",
+        ArmorKind::Shoulder(_) => i18n.get("hud.bag.shoulders"),
+        ArmorKind::Chest(_) => i18n.get("hud.bag.chest"),
+        ArmorKind::Belt(_) => i18n.get("hud.bag.belt"),
+        ArmorKind::Hand(_) => i18n.get("hud.bag.hands"),
+        ArmorKind::Pants(_) => i18n.get("hud.bag.legs"),
+        ArmorKind::Foot(_) => i18n.get("hud.bag.feet"),
+        ArmorKind::Back(_) => i18n.get("hud.bag.back"),
+        ArmorKind::Ring(_) => i18n.get("hud.bag.ring"),
+        ArmorKind::Neck(_) => i18n.get("hud.bag.neck"),
+        ArmorKind::Head(_) => i18n.get("hud.bag.head"),
+        ArmorKind::Tabard(_) => i18n.get("hud.bag.tabard"),
+        ArmorKind::Bag(_) => i18n.get("hud.bag.bag"),
     };
-    let armor_protection = match armor.get_protection() {
-        Protection::Normal(a) => a.to_string(),
-        Protection::Invincible => "Inf".to_string(),
-    };
-    let armor_poise_resilience = match armor.get_poise_resilience() {
-        Protection::Normal(a) => a.to_string(),
-        Protection::Invincible => "Inf".to_string(),
-    };
-
-    let mut description = format!(
-        "{}\n\nArmor: {}\n\nPoise Resilience: {}",
-        kind, armor_protection, armor_poise_resilience
-    );
-
-    if !desc.is_empty() {
-        write!(&mut description, "\n\n{}", desc).unwrap();
-    }
-
-    if slots > 0 {
-        write!(&mut description, "\n\nSlots: {}", slots).unwrap();
-    }
-
-    write!(&mut description, "\n\n<Right-Click to use>").unwrap();
-    description
+    kind
 }
 
-fn tool_desc(tool: &Tool, components: &[Item], msm: &MaterialStatManifest, desc: &str) -> String {
+//Tool
+
+fn tool_kind<'a>(tool: &Tool, i18n: &'a Localization) -> &'a str {
     let kind = match tool.kind {
-        ToolKind::Sword => "Sword",
-        ToolKind::Axe => "Axe",
-        ToolKind::Hammer => "Hammer",
-        ToolKind::Bow => "Bow",
-        ToolKind::Dagger => "Dagger",
-        ToolKind::Staff => "Staff",
-        ToolKind::Sceptre => "Sceptre",
-        ToolKind::Shield => "Shield",
-        ToolKind::Spear => "Spear",
-        ToolKind::HammerSimple => "HammerSimple",
-        ToolKind::SwordSimple => "SwordSimple",
-        ToolKind::StaffSimple => "StaffSimple",
-        ToolKind::AxeSimple => "AxeSimple",
-        ToolKind::BowSimple => "BowSimple",
-        ToolKind::Unique(_) => "Unique",
-        ToolKind::Debug => "Debug",
-        ToolKind::Farming => "Farming Tool",
-        ToolKind::Pick => "Pickaxe",
-        ToolKind::Empty => "Empty",
+        ToolKind::Sword => i18n.get("common.weapons.sword"),
+        ToolKind::Axe => i18n.get("common.weapons.axe"),
+        ToolKind::Hammer => i18n.get("common.weapons.hammer"),
+        ToolKind::Bow => i18n.get("common.weapons.bow"),
+        ToolKind::Dagger => i18n.get("common.weapons.dagger"),
+        ToolKind::Staff => i18n.get("common.weapons.staff"),
+        ToolKind::Sceptre => i18n.get("common.weapons.sceptre"),
+        ToolKind::Shield => i18n.get("common.weapons.shield"),
+        ToolKind::Spear => i18n.get("common.weapons.spear"),
+        ToolKind::HammerSimple => i18n.get("common.weapons.hammer_simple"),
+        ToolKind::SwordSimple => i18n.get("common.weapons.sword_simple"),
+        ToolKind::StaffSimple => i18n.get("common.weapons.staff_simple"),
+        ToolKind::AxeSimple => i18n.get("common.weapons.axe_simple"),
+        ToolKind::BowSimple => i18n.get("common.weapons.bow_simple"),
+        ToolKind::Unique(_) => i18n.get("common.weapons.unique_simple"),
+        ToolKind::Debug => i18n.get("common.tool.debug"),
+        ToolKind::Farming => i18n.get("common.tool.farming"),
+        ToolKind::Pick => i18n.get("common.tool.pick"),
+        ToolKind::Empty => i18n.get("common.empty"),
     };
+    kind
+}
 
-    // Get tool stats
-    let stats = tool.stats.resolve_stats(msm, components).clamp_speed();
-
+pub fn tool_hands<'a>(tool: &Tool, i18n: &'a Localization) -> &'a str {
     let hands = match tool.hands {
-        Hands::One => "One",
-        Hands::Two => "Two",
+        Hands::One => i18n.get("common.hands.one"),
+        Hands::Two => i18n.get("common.hands.two"),
     };
-
-    let mut result = format!("{}-Handed {}\n\n", hands, kind);
-    result += &statblock_desc(&stats);
-    if !components.is_empty() {
-        result += "Made from:\n";
-        for component in components {
-            result += component.name();
-            result += "\n"
-        }
-        result += "\n";
-    }
-    if !desc.is_empty() {
-        result += &format!("{}\n\n", desc);
-    }
-    result += "<Right-Click to use>";
-    result
+    hands
 }
 
 fn statblock_desc(stats: &Stats) -> String {
@@ -285,87 +203,20 @@ fn statblock_desc(stats: &Stats) -> String {
     )
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_glider_desc() {
-        let item_description = "mushrooms";
-
-        assert_eq!(
-            "Glider\n\nmushrooms\n\n<Right-Click to use>",
-            glider_desc(item_description)
-        );
+// Compare two type, output a colored character to show comparison
+pub fn comparison<T: PartialOrd>(first: T, other: T) -> (&'static str, conrod_core::Color) {
+    if first == other {
+        ("•", conrod_core::color::GREY)
+    } else if other < first {
+        ("▲", conrod_core::color::GREEN)
+    } else {
+        ("▼", conrod_core::color::RED)
     }
+}
 
-    #[test]
-    fn test_consumable_desc() {
-        let item_description = "mushrooms";
-
-        assert_eq!(
-            "Consumable\n\nmushrooms\n\n<Right-Click to use>",
-            consumable_desc(&[], item_description)
-        );
-    }
-
-    #[test]
-    fn test_throwable_desc() {
-        let item_description = "mushrooms";
-
-        assert_eq!(
-            "Can be thrown\n\nmushrooms\n\n<Right-Click to use>",
-            throwable_desc(item_description)
-        );
-    }
-
-    #[test]
-    fn test_utility_desc() {
-        let item_description = "mushrooms";
-
-        assert_eq!(
-            "mushrooms\n\n<Right-Click to use>",
-            utility_desc(item_description)
-        );
-    }
-
-    #[test]
-    fn test_ingredient_desc() {
-        let mut testmsm = MaterialStatManifest(hashbrown::HashMap::new());
-        testmsm.0.insert(
-            "common.items.crafting_ing.bronze_ingot".to_string(),
-            Stats {
-                equip_time_secs: 0.0,
-                power: 3.0,
-                poise_strength: 5.0,
-                speed: 7.0,
-                crit_chance: 0.5,
-                crit_mult: 2.0,
-            },
-        );
-
-        assert_eq!(
-            "Crafting Ingredient\n\nmushrooms",
-            ingredient_desc("mushrooms", "common.items.food.mushroom", &testmsm)
-        );
-        assert_eq!(
-            "Crafting Ingredient\n\nA bronze ingot.\n\nStat multipliers:\nPower: 30.0\n\nPoise \
-             Strength: 50.0\n\nSpeed: 7.0\n\nCrit chance: 50.0%\n\nCrit damage: x2.0\n\n",
-            ingredient_desc(
-                "A bronze ingot.",
-                "common.items.crafting_ing.bronze_ingot",
-                &testmsm
-            )
-        );
-    }
-
-    #[test]
-    fn test_lantern_desc() {
-        let item_description = "mushrooms";
-
-        assert_eq!(
-            "Lantern\n\nmushrooms\n\n<Right-Click to use>",
-            lantern_desc(item_description)
-        );
+pub fn protec2string(stat: Protection) -> String {
+    match stat {
+        Protection::Normal(a) => format!("{:.1}", a),
+        Protection::Invincible => "Inf".to_string(),
     }
 }

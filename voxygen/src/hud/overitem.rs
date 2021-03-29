@@ -24,6 +24,7 @@ widget_ids! {
 #[derive(WidgetCommon)]
 pub struct Overitem<'a> {
     name: &'a str,
+    quality: &'a Color,
     distance_from_player_sqr: &'a f32,
     fonts: &'a Fonts,
     controls: &'a ControlSettings,
@@ -34,12 +35,14 @@ pub struct Overitem<'a> {
 impl<'a> Overitem<'a> {
     pub fn new(
         name: &'a str,
+        quality: &'a Color,
         distance_from_player_sqr: &'a f32,
         fonts: &'a Fonts,
         controls: &'a ControlSettings,
     ) -> Self {
         Self {
             name,
+            quality,
             distance_from_player_sqr,
             fonts,
             controls,
@@ -118,7 +121,7 @@ impl<'a> Widget for Overitem<'a> {
         Text::new(&self.name)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(text_font_size as u32)
-            .color(text_color)
+            .color(*self.quality)
             .x_y(0.0, text_pos_y)
             .depth(self.distance_from_player_sqr + 3.0)
             .parent(id)

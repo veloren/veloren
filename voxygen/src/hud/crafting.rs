@@ -4,9 +4,8 @@ use super::{
     TEXT_COLOR, TEXT_DULL_RED_COLOR, TEXT_GRAY_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
 };
 use crate::{
-    hud::get_quality_col,
     i18n::Localization,
-    ui::{fonts::Fonts, ImageFrame, Tooltip, TooltipManager, Tooltipable},
+    ui::{fonts::Fonts, ImageFrame, ItemTooltip, ItemTooltipManager, ItemTooltipable},
 };
 use client::{self, Client};
 use common::{
@@ -65,7 +64,7 @@ pub struct Crafting<'a> {
     localized_strings: &'a Localization,
     pulse: f32,
     rot_imgs: &'a ImgsRot,
-    tooltip_manager: &'a mut TooltipManager,
+    item_tooltip_manager: &'a mut ItemTooltipManager,
     item_imgs: &'a ItemImgs,
     inventory: &'a Inventory,
     msm: &'a MaterialStatManifest,
@@ -81,7 +80,7 @@ impl<'a> Crafting<'a> {
         localized_strings: &'a Localization,
         pulse: f32,
         rot_imgs: &'a ImgsRot,
-        tooltip_manager: &'a mut TooltipManager,
+        item_tooltip_manager: &'a mut ItemTooltipManager,
         item_imgs: &'a ItemImgs,
         inventory: &'a Inventory,
         msm: &'a MaterialStatManifest,
@@ -93,7 +92,7 @@ impl<'a> Crafting<'a> {
             localized_strings,
             pulse,
             rot_imgs,
-            tooltip_manager,
+            item_tooltip_manager,
             item_imgs,
             inventory,
             msm,
@@ -138,17 +137,27 @@ impl<'a> Widget for Crafting<'a> {
         let mut events = Vec::new();
 
         // Tooltips
-        let item_tooltip = Tooltip::new({
-            let edge = &self.rot_imgs.tt_side;
-            let corner = &self.rot_imgs.tt_corner;
-            ImageFrame::new(
-                [edge.cw180, edge.none, edge.cw270, edge.cw90],
-                [corner.none, corner.cw270, corner.cw90, corner.cw180],
-                Color::Rgba(0.08, 0.07, 0.04, 1.0),
-                5.0,
-            )
-        })
-        .title_font_size(self.fonts.cyri.scale(15))
+        let item_tooltip = ItemTooltip::new(
+            {
+                // Edge images [t, b, r, l]
+                // Corner images [tr, tl, br, bl]
+                let edge = &self.rot_imgs.tt_side;
+                let corner = &self.rot_imgs.tt_corner;
+                ImageFrame::new(
+                    [edge.cw180, edge.none, edge.cw270, edge.cw90],
+                    [corner.none, corner.cw270, corner.cw90, corner.cw180],
+                    Color::Rgba(0.08, 0.07, 0.04, 1.0),
+                    5.0,
+                )
+            },
+            self.client,
+            self.imgs,
+            self.item_imgs,
+            self.pulse,
+            self.msm,
+            self.localized_strings,
+        )
+        .title_font_size(self.fonts.cyri.scale(20))
         .parent(ui.window)
         .desc_font_size(self.fonts.cyri.scale(12))
         .font_id(self.fonts.cyri.conrod_id)
@@ -300,8 +309,6 @@ impl<'a> Widget for Crafting<'a> {
                 {
                     let output_text = format!("x{}", &recipe.output.1.to_string());
                     // Output Image
-                    let (title, desc) = super::util::item_text(&*recipe.output.0, self.msm);
-                    let quality_col = get_quality_col(&*recipe.output.0);
                     Button::image(animate_by_pulse(
                         &self
                             .item_imgs
@@ -316,12 +323,11 @@ impl<'a> Widget for Crafting<'a> {
                     .label_y(conrod_core::position::Relative::Scalar(-24.0))
                     .label_x(conrod_core::position::Relative::Scalar(24.0))
                     .middle_of(state.ids.output_img_frame)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        title,
-                        &*desc,
+                    .with_item_tooltip(
+                        self.item_tooltip_manager,
+                        &*recipe.output.0,
+                        None,
                         &item_tooltip,
-                        quality_col,
                     )
                     .set(state.ids.output_img, ui);
                 }
@@ -472,7 +478,6 @@ impl<'a> Widget for Crafting<'a> {
                 } else {
                     0.0
                 };
-                let quality_col = get_quality_col(&*item_def);
                 let quality_col_img = match &item_def.quality {
                     Quality::Low => self.imgs.inv_slot_grey,
                     Quality::Common => self.imgs.inv_slot,
@@ -491,20 +496,13 @@ impl<'a> Widget for Crafting<'a> {
                 };
                 frame.set(state.ids.ingredient_frame[i], ui);
                 //Item Image
-                let (title, desc) = super::util::item_text(&*item_def, self.msm);
                 Button::image(animate_by_pulse(
                     &self.item_imgs.img_ids_or_not_found_img((&*item_def).into()),
                     self.pulse,
                 ))
                 .w_h(22.0, 22.0)
                 .middle_of(state.ids.ingredient_frame[i])
-                .with_tooltip(
-                    self.tooltip_manager,
-                    title,
-                    &*desc,
-                    &item_tooltip,
-                    quality_col,
-                )
+                .with_item_tooltip(self.item_tooltip_manager, &*item_def, None, &item_tooltip)
                 .set(state.ids.ingredient_img[i], ui);
                 // Ingredients text and amount
                 // Don't show inventory amounts above 999 to avoid the widget clipping

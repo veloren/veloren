@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::{cmp::Ordering, ops::Sub};
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ArmorKind {
@@ -40,12 +41,52 @@ impl Stats {
             poise_resilience,
         }
     }
+
+    pub fn get_protection(&self) -> Protection { self.protection }
+
+    pub fn get_poise_resilience(&self) -> Protection { self.poise_resilience }
+}
+
+impl Sub<Stats> for Stats {
+    type Output = Self;
+
+    fn sub(self, other: Self) -> Self::Output {
+        Self {
+            protection: self.protection - other.protection,
+            poise_resilience: self.poise_resilience - other.poise_resilience,
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Protection {
     Invincible,
     Normal(f32),
+}
+
+impl Sub for Protection {
+    type Output = Self;
+
+    fn sub(self, other: Self) -> Self::Output {
+        let diff = match (self, other) {
+            (Protection::Invincible, Protection::Normal(_)) => f32::INFINITY,
+            (Protection::Invincible, Protection::Invincible) => 0_f32,
+            (Protection::Normal(_), Protection::Invincible) => -f32::INFINITY,
+            (Protection::Normal(a), Protection::Normal(b)) => a - b,
+        };
+        Protection::Normal(diff)
+    }
+}
+
+impl PartialOrd for Protection {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        match (*self, *other) {
+            (Protection::Invincible, Protection::Invincible) => Some(Ordering::Equal),
+            (Protection::Invincible, _) => Some(Ordering::Greater),
+            (_, Protection::Invincible) => Some(Ordering::Less),
+            (Protection::Normal(a), Protection::Normal(b)) => f32::partial_cmp(&a, &b),
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]

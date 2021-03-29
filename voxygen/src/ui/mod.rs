@@ -16,6 +16,7 @@ pub use widgets::{
     image_frame::ImageFrame,
     image_slider::ImageSlider,
     ingame::{Ingame, Ingameable},
+    item_tooltip::{ItemTooltip, ItemTooltipManager, ItemTooltipable},
     radio_list::RadioList,
     slot,
     toggle_button::ToggleButton,
@@ -124,6 +125,8 @@ pub struct Ui {
     scale: Scale,
     // Tooltips
     tooltip_manager: TooltipManager,
+    // Item tooltips manager
+    item_tooltip_manager: ItemTooltipManager,
 }
 
 impl Ui {
@@ -138,6 +141,14 @@ impl Ui {
         // to be updated, there's no reason to set the redraw count higher than
         // 1.
         ui.set_num_redraw_frames(1);
+
+        let item_tooltip_manager = ItemTooltipManager::new(
+            ui.widget_id_generator(),
+            Duration::from_millis(1),
+            Duration::from_millis(0),
+            scale.scale_factor_logical(),
+        );
+
         let tooltip_manager = TooltipManager::new(
             ui.widget_id_generator(),
             Duration::from_millis(1),
@@ -160,6 +171,7 @@ impl Ui {
             need_cache_resize: false,
             scale,
             tooltip_manager,
+            item_tooltip_manager,
         })
     }
 
@@ -223,8 +235,16 @@ impl Ui {
 
     pub fn id_generator(&mut self) -> Generator { self.ui.widget_id_generator() }
 
-    pub fn set_widgets(&mut self) -> (UiCell, &mut TooltipManager) {
-        (self.ui.set_widgets(), &mut self.tooltip_manager)
+    pub fn set_widgets(&mut self) -> (UiCell, &mut ItemTooltipManager, &mut TooltipManager) {
+        (
+            self.ui.set_widgets(),
+            &mut self.item_tooltip_manager,
+            &mut self.tooltip_manager,
+        )
+    }
+
+    pub fn set_item_widgets(&mut self) -> (UiCell, &mut ItemTooltipManager) {
+        (self.ui.set_widgets(), &mut self.item_tooltip_manager)
     }
 
     // Accepts Option so widget can be unfocused.
@@ -290,6 +310,10 @@ impl Ui {
         span!(_guard, "maintain", "Ui::maintain");
         // Maintain tooltip manager
         self.tooltip_manager
+            .maintain(self.ui.global_input(), self.scale.scale_factor_logical());
+
+        // Maintain tooltip manager
+        self.item_tooltip_manager
             .maintain(self.ui.global_input(), self.scale.scale_factor_logical());
 
         // Handle scale factor changing

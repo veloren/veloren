@@ -3,16 +3,15 @@ use super::{
     img_ids::{Imgs, ImgsRot},
     item_imgs::ItemImgs,
     slots::{ArmorSlot, EquipSlot, InventorySlot, SlotManager},
-    util::loadout_slot_text,
-    Show, CRITICAL_HP_COLOR, LOW_HP_COLOR, QUALITY_COMMON, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
+    Show, CRITICAL_HP_COLOR, LOW_HP_COLOR, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
 };
 use crate::{
-    hud::get_quality_col,
     i18n::Localization,
     ui::{
         fonts::Fonts,
         slot::{ContentSize, SlotMaker},
-        ImageFrame, Tooltip, TooltipManager, Tooltipable,
+        ImageFrame, ItemTooltip, ItemTooltipManager, ItemTooltipable, Tooltip, TooltipManager,
+        Tooltipable,
     },
 };
 use client::Client;
@@ -70,15 +69,14 @@ pub struct InventoryScroller<'a> {
     fonts: &'a Fonts,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
-    tooltip_manager: &'a mut TooltipManager,
+    item_tooltip_manager: &'a mut ItemTooltipManager,
     slot_manager: &'a mut SlotManager,
     pulse: f32,
     localized_strings: &'a Localization,
     show_stats: bool,
     show_bag_inv: bool,
-    msm: &'a MaterialStatManifest,
     on_right: bool,
-    item_tooltip: &'a Tooltip<'a>,
+    item_tooltip: &'a ItemTooltip<'a>,
     playername: String,
     is_us: bool,
     inventory: &'a Inventory,
@@ -92,15 +90,14 @@ impl<'a> InventoryScroller<'a> {
         imgs: &'a Imgs,
         item_imgs: &'a ItemImgs,
         fonts: &'a Fonts,
-        tooltip_manager: &'a mut TooltipManager,
+        item_tooltip_manager: &'a mut ItemTooltipManager,
         slot_manager: &'a mut SlotManager,
         pulse: f32,
         localized_strings: &'a Localization,
         show_stats: bool,
         show_bag_inv: bool,
-        msm: &'a MaterialStatManifest,
         on_right: bool,
-        item_tooltip: &'a Tooltip<'a>,
+        item_tooltip: &'a ItemTooltip<'a>,
         playername: String,
         is_us: bool,
         inventory: &'a Inventory,
@@ -112,13 +109,12 @@ impl<'a> InventoryScroller<'a> {
             item_imgs,
             fonts,
             common: widget::CommonBuilder::default(),
-            tooltip_manager,
+            item_tooltip_manager,
             slot_manager,
             pulse,
             localized_strings,
             show_stats,
             show_bag_inv,
-            msm,
             on_right,
             item_tooltip,
             playername,
@@ -293,8 +289,6 @@ impl<'a> InventoryScroller<'a> {
             }
 
             if let Some(item) = item {
-                let (title, desc) = super::util::item_text(item, &self.msm);
-                let quality_col = get_quality_col(item);
                 let quality_col_img = match item.quality() {
                     Quality::Low => self.imgs.inv_slot_grey,
                     Quality::Common => self.imgs.inv_slot,
@@ -305,19 +299,20 @@ impl<'a> InventoryScroller<'a> {
                     Quality::Artifact => self.imgs.inv_slot_orange,
                     _ => self.imgs.inv_slot_red,
                 };
-                let mut desc = desc.to_string();
+                let i18n = &self.localized_strings;
+
+                let mut prices_info: Option<String> = None;
                 if let Some((_, _, prices)) = self.client.pending_trade() {
-                    super::util::append_price_desc(&mut desc, prices, item.item_definition_id());
+                    prices_info = super::util::price_desc(prices, item.item_definition_id(), i18n);
                 }
 
                 slot_widget
                     .filled_slot(quality_col_img)
-                    .with_tooltip(
-                        self.tooltip_manager,
-                        title,
-                        &*desc,
+                    .with_item_tooltip(
+                        self.item_tooltip_manager,
+                        item,
+                        prices_info,
                         self.item_tooltip,
-                        quality_col,
                     )
                     .set(state.ids.inv_slots[i], ui);
             } else {
@@ -451,6 +446,7 @@ pub struct Bag<'a> {
     common: widget::CommonBuilder,
     rot_imgs: &'a ImgsRot,
     tooltip_manager: &'a mut TooltipManager,
+    item_tooltip_manager: &'a mut ItemTooltipManager,
     slot_manager: &'a mut SlotManager,
     pulse: f32,
     localized_strings: &'a Localization,
@@ -471,6 +467,7 @@ impl<'a> Bag<'a> {
         fonts: &'a Fonts,
         rot_imgs: &'a ImgsRot,
         tooltip_manager: &'a mut TooltipManager,
+        item_tooltip_manager: &'a mut ItemTooltipManager,
         slot_manager: &'a mut SlotManager,
         pulse: f32,
         localized_strings: &'a Localization,
@@ -489,6 +486,7 @@ impl<'a> Bag<'a> {
             common: widget::CommonBuilder::default(),
             rot_imgs,
             tooltip_manager,
+            item_tooltip_manager,
             slot_manager,
             pulse,
             localized_strings,
@@ -560,7 +558,7 @@ impl<'a> Widget for Bag<'a> {
         };
 
         // Tooltips
-        let item_tooltip = Tooltip::new({
+        let tooltip = Tooltip::new({
             // Edge images [t, b, r, l]
             // Corner images [tr, tl, br, bl]
             let edge = &self.rot_imgs.tt_side;
@@ -578,18 +576,43 @@ impl<'a> Widget for Bag<'a> {
         .font_id(self.fonts.cyri.conrod_id)
         .desc_text_color(TEXT_COLOR);
 
+        let item_tooltip = ItemTooltip::new(
+            {
+                // Edge images [t, b, r, l]
+                // Corner images [tr, tl, br, bl]
+                let edge = &self.rot_imgs.tt_side;
+                let corner = &self.rot_imgs.tt_corner;
+                ImageFrame::new(
+                    [edge.cw180, edge.none, edge.cw270, edge.cw90],
+                    [corner.none, corner.cw270, corner.cw90, corner.cw180],
+                    Color::Rgba(0.08, 0.07, 0.04, 1.0),
+                    5.0,
+                )
+            },
+            self.client,
+            self.imgs,
+            self.item_imgs,
+            self.pulse,
+            self.msm,
+            self.localized_strings,
+        )
+        .title_font_size(self.fonts.cyri.scale(20))
+        .parent(ui.window)
+        .desc_font_size(self.fonts.cyri.scale(12))
+        .font_id(self.fonts.cyri.conrod_id)
+        .desc_text_color(TEXT_COLOR);
+
         InventoryScroller::new(
             self.client,
             self.imgs,
             self.item_imgs,
             self.fonts,
-            self.tooltip_manager,
+            self.item_tooltip_manager,
             self.slot_manager,
             self.pulse,
             self.localized_strings,
             self.show.stats,
             self.show.bag_inv,
-            self.msm,
             true,
             &item_tooltip,
             self.stats.name.to_string(),
@@ -717,18 +740,16 @@ impl<'a> Widget for Bag<'a> {
                 } else {
                     btn.down_from(state.ids.stat_icons[i.0 - 1], 7.0)
                 };
-                // TODO: Translation
                 let tooltip_head = match i.1 {
-                    "Health" => "Health",
-                    "Stamina" => "Stamina",
-                    "Combat Rating" => "Combat Rating",
-                    "Protection" => "Protection",
+                    "Health" => i18n.get("hud.bag.health"),
+                    "Stamina" => i18n.get("hud.bag.stamina"),
+                    "Combat Rating" => i18n.get("hud.bag.combat_rating"),
+                    "Protection" => i18n.get("hud.bag.protection"),
                     _ => "",
                 };
-                // TODO: Translation
                 let tooltip_txt = match i.1 {
-                    "Combat Rating" => "Calculated from your\nequipment and health.",
-                    "Protection" => "Damage reduction through armor",
+                    "Combat Rating" => i18n.get("hud.bag.combat_rating_desc"),
+                    "Protection" => i18n.get("hud.bag.protection_desc"),
                     _ => "",
                 };
                 btn.with_tooltip(
@@ -755,386 +776,369 @@ impl<'a> Widget for Bag<'a> {
             }
             // Loadout Slots
             //  Head
-            let (title, desc) = loadout_slot_text(
-                inventory.equipped(EquipSlot::Armor(ArmorSlot::Head)),
-                || (i18n.get("hud.bag.head"), ""),
-                &self.msm,
-            );
-            let head_q_col = inventory
+            let head_item = inventory
                 .equipped(EquipSlot::Armor(ArmorSlot::Head))
-                .map(|item| get_quality_col(item))
-                .unwrap_or(QUALITY_COMMON);
-            slot_maker
+                .map(|item| item.to_owned());
+
+            let slot = slot_maker
                 .fabricate(EquipSlot::Armor(ArmorSlot::Head), [45.0; 2])
                 .mid_top_with_margin_on(state.bg_ids.bg_frame, 60.0)
                 .with_icon(self.imgs.head_bg, Vec2::new(32.0, 40.0), Some(UI_MAIN))
-                .filled_slot(filled_slot)
-                .with_tooltip(
+                .filled_slot(filled_slot);
+            if let Some(item) = head_item {
+                slot.with_item_tooltip(self.item_tooltip_manager, &item, None, &item_tooltip)
+                    .set(state.ids.head_slot, ui)
+            } else {
+                slot.with_tooltip(
                     self.tooltip_manager,
-                    title,
-                    &*desc,
-                    &item_tooltip,
-                    head_q_col,
+                    i18n.get("hud.bag.head"),
+                    "",
+                    &tooltip,
+                    color::WHITE,
                 )
-                .set(state.ids.head_slot, ui);
+                .set(state.ids.head_slot, ui)
+            }
+
             //  Necklace
-            let (title, desc) = loadout_slot_text(
-                inventory.equipped(EquipSlot::Armor(ArmorSlot::Neck)),
-                || (i18n.get("hud.bag.neck"), ""),
-                &self.msm,
-            );
-            let neck_q_col = inventory
+            let neck_item = inventory
                 .equipped(EquipSlot::Armor(ArmorSlot::Neck))
-                .map(|item| get_quality_col(item))
-                .unwrap_or(QUALITY_COMMON);
-            slot_maker
+                .map(|item| item.to_owned());
+            let slot = slot_maker
                 .fabricate(EquipSlot::Armor(ArmorSlot::Neck), [45.0; 2])
                 .mid_bottom_with_margin_on(state.ids.head_slot, -55.0)
                 .with_icon(self.imgs.necklace_bg, Vec2::new(40.0, 31.0), Some(UI_MAIN))
-                .filled_slot(filled_slot)
-                .with_tooltip(
+                .filled_slot(filled_slot);
+            if let Some(item) = neck_item {
+                slot.with_item_tooltip(self.item_tooltip_manager, &item, None, &item_tooltip)
+                    .set(state.ids.neck_slot, ui)
+            } else {
+                slot.with_tooltip(
                     self.tooltip_manager,
-                    title,
-                    &*desc,
-                    &item_tooltip,
-                    neck_q_col,
+                    i18n.get("hud.bag.neck"),
+                    "",
+                    &tooltip,
+                    color::WHITE,
                 )
-                .set(state.ids.neck_slot, ui);
+                .set(state.ids.neck_slot, ui)
+            }
             // Chest
             //Image::new(self.imgs.armor_slot) // different graphics for empty/non empty
-            let (title, desc) = loadout_slot_text(
-                inventory.equipped(EquipSlot::Armor(ArmorSlot::Chest)),
-                || (i18n.get("hud.bag.chest"), ""),
-                &self.msm,
-            );
-            let chest_q_col = inventory
+            let chest_item = inventory
                 .equipped(EquipSlot::Armor(ArmorSlot::Chest))
-                .map(|item| get_quality_col(item))
-                .unwrap_or(QUALITY_COMMON);
-            slot_maker
+                .map(|item| item.to_owned());
+
+            let slot = slot_maker
                 .fabricate(EquipSlot::Armor(ArmorSlot::Chest), [85.0; 2])
                 .mid_bottom_with_margin_on(state.ids.neck_slot, -95.0)
                 .with_icon(self.imgs.chest_bg, Vec2::new(64.0, 42.0), Some(UI_MAIN))
-                .filled_slot(filled_slot)
-                .with_tooltip(
+                .filled_slot(filled_slot);
+            if let Some(item) = chest_item {
+                slot.with_item_tooltip(self.item_tooltip_manager, &item, None, &item_tooltip)
+                    .set(state.ids.chest_slot, ui)
+            } else {
+                slot.with_tooltip(
                     self.tooltip_manager,
-                    title,
-                    &*desc,
-                    &item_tooltip,
-                    chest_q_col,
+                    i18n.get("hud.bag.chest"),
+                    "",
+                    &tooltip,
+                    color::WHITE,
                 )
-                .set(state.ids.chest_slot, ui);
+                .set(state.ids.chest_slot, ui)
+            }
             //  Shoulders
-            let (title, desc) = loadout_slot_text(
-                inventory.equipped(EquipSlot::Armor(ArmorSlot::Shoulders)),
-                || (i18n.get("hud.bag.shoulders"), ""),
-                &self.msm,
-            );
-            let shoulder_q_col = inventory
+            let shoulder_item = inventory
                 .equipped(EquipSlot::Armor(ArmorSlot::Shoulders))
-                .map(|item| get_quality_col(item))
-                .unwrap_or(QUALITY_COMMON);
-            slot_maker
+                .map(|item| item.to_owned());
+
+            let slot = slot_maker
                 .fabricate(EquipSlot::Armor(ArmorSlot::Shoulders), [70.0; 2])
                 .bottom_left_with_margins_on(state.ids.chest_slot, 0.0, -80.0)
                 .with_icon(self.imgs.shoulders_bg, Vec2::new(60.0, 36.0), Some(UI_MAIN))
-                .filled_slot(filled_slot)
-                .with_tooltip(
+                .filled_slot(filled_slot);
+            if let Some(item) = shoulder_item {
+                slot.with_item_tooltip(self.item_tooltip_manager, &item, None, &item_tooltip)
+                    .set(state.ids.shoulders_slot, ui)
+            } else {
+                slot.with_tooltip(
                     self.tooltip_manager,
-                    title,
-                    &*desc,
-                    &item_tooltip,
-                    shoulder_q_col,
+                    i18n.get("hud.bag.shoulders"),
+                    "",
+                    &tooltip,
+                    color::WHITE,
                 )
-                .set(state.ids.shoulders_slot, ui);
+                .set(state.ids.shoulders_slot, ui)
+            }
             // Hands
-            let (title, desc) = loadout_slot_text(
-                inventory.equipped(EquipSlot::Armor(ArmorSlot::Hands)),
-                || (i18n.get("hud.bag.hands"), ""),
-                &self.msm,
-            );
-            let chest_q_col = inventory
+            let hands_item = inventory
                 .equipped(EquipSlot::Armor(ArmorSlot::Hands))
-                .map(|item| get_quality_col(item))
-                .unwrap_or(QUALITY_COMMON);
-            slot_maker
+                .map(|item| item.to_owned());
+            let slot = slot_maker
                 .fabricate(EquipSlot::Armor(ArmorSlot::Hands), [70.0; 2])
                 .bottom_right_with_margins_on(state.ids.chest_slot, 0.0, -80.0)
                 .with_icon(self.imgs.hands_bg, Vec2::new(55.0, 60.0), Some(UI_MAIN))
-                .filled_slot(filled_slot)
-                .with_tooltip(
+                .filled_slot(filled_slot);
+            if let Some(item) = hands_item {
+                slot.with_item_tooltip(self.item_tooltip_manager, &item, None, &item_tooltip)
+                    .set(state.ids.hands_slot, ui)
+            } else {
+                slot.with_tooltip(
                     self.tooltip_manager,
-                    title,
-                    &*desc,
-                    &item_tooltip,
-                    chest_q_col,
+                    i18n.get("hud.bag.hands"),
+                    "",
+                    &tooltip,
+                    color::WHITE,
                 )
-                .set(state.ids.hands_slot, ui);
+                .set(state.ids.hands_slot, ui)
+            }
             // Belt
-            let (title, desc) = loadout_slot_text(
-                inventory.equipped(EquipSlot::Armor(ArmorSlot::Belt)),
-                || (i18n.get("hud.bag.belt"), ""),
-                &self.msm,
-            );
-            let belt_q_col = inventory
+            let belt_item = inventory
                 .equipped(EquipSlot::Armor(ArmorSlot::Belt))
-                .map(|item| get_quality_col(item))
-                .unwrap_or(QUALITY_COMMON);
-            slot_maker
+                .map(|item| item.to_owned());
+            let slot = slot_maker
                 .fabricate(EquipSlot::Armor(ArmorSlot::Belt), [45.0; 2])
                 .mid_bottom_with_margin_on(state.ids.chest_slot, -55.0)
                 .with_icon(self.imgs.belt_bg, Vec2::new(40.0, 23.0), Some(UI_MAIN))
-                .filled_slot(filled_slot)
-                .with_tooltip(
+                .filled_slot(filled_slot);
+            if let Some(item) = belt_item {
+                slot.with_item_tooltip(self.item_tooltip_manager, &item, None, &item_tooltip)
+                    .set(state.ids.belt_slot, ui)
+            } else {
+                slot.with_tooltip(
                     self.tooltip_manager,
-                    title,
-                    &*desc,
-                    &item_tooltip,
-                    belt_q_col,
+                    i18n.get("hud.bag.belt"),
+                    "",
+                    &tooltip,
+                    color::WHITE,
                 )
-                .set(state.ids.belt_slot, ui);
+                .set(state.ids.belt_slot, ui)
+            }
             // Legs
-            let (title, desc) = loadout_slot_text(
-                inventory.equipped(EquipSlot::Armor(ArmorSlot::Legs)),
-                || (i18n.get("hud.bag.legs"), ""),
-                &self.msm,
-            );
-            let legs_q_col = inventory
+            let legs_item = inventory
                 .equipped(EquipSlot::Armor(ArmorSlot::Legs))
-                .map(|item| get_quality_col(item))
-                .unwrap_or(QUALITY_COMMON);
-            slot_maker
+                .map(|item| item.to_owned());
+            let slot = slot_maker
                 .fabricate(EquipSlot::Armor(ArmorSlot::Legs), [85.0; 2])
                 .mid_bottom_with_margin_on(state.ids.belt_slot, -95.0)
                 .with_icon(self.imgs.legs_bg, Vec2::new(48.0, 70.0), Some(UI_MAIN))
-                .filled_slot(filled_slot)
-                .with_tooltip(
+                .filled_slot(filled_slot);
+            if let Some(item) = legs_item {
+                slot.with_item_tooltip(self.item_tooltip_manager, &item, None, &item_tooltip)
+                    .set(state.ids.legs_slot, ui)
+            } else {
+                slot.with_tooltip(
                     self.tooltip_manager,
-                    title,
-                    &*desc,
-                    &item_tooltip,
-                    legs_q_col,
+                    i18n.get("hud.bag.legs"),
+                    "",
+                    &tooltip,
+                    color::WHITE,
                 )
-                .set(state.ids.legs_slot, ui);
+                .set(state.ids.legs_slot, ui)
+            }
             // Ring
-            let (title, desc) = loadout_slot_text(
-                inventory.equipped(EquipSlot::Armor(ArmorSlot::Ring1)),
-                || (i18n.get("hud.bag.ring"), ""),
-                &self.msm,
-            );
-            let ring_q_col = inventory
+            let ring1_item = inventory
                 .equipped(EquipSlot::Armor(ArmorSlot::Ring1))
-                .map(|item| get_quality_col(item))
-                .unwrap_or(QUALITY_COMMON);
-            slot_maker
+                .map(|item| item.to_owned());
+            let slot = slot_maker
                 .fabricate(EquipSlot::Armor(ArmorSlot::Ring1), [45.0; 2])
                 .bottom_left_with_margins_on(state.ids.hands_slot, -55.0, 0.0)
                 .with_icon(self.imgs.ring_bg, Vec2::new(36.0, 40.0), Some(UI_MAIN))
-                .filled_slot(filled_slot)
-                .with_tooltip(
+                .filled_slot(filled_slot);
+            if let Some(item) = ring1_item {
+                slot.with_item_tooltip(self.item_tooltip_manager, &item, None, &item_tooltip)
+                    .set(state.ids.ring1_slot, ui)
+            } else {
+                slot.with_tooltip(
                     self.tooltip_manager,
-                    title,
-                    &*desc,
-                    &item_tooltip,
-                    ring_q_col,
+                    i18n.get("hud.bag.ring"),
+                    "",
+                    &tooltip,
+                    color::WHITE,
                 )
-                .set(state.ids.ring1_slot, ui);
+                .set(state.ids.ring1_slot, ui)
+            }
             // Ring 2
-            let (title, desc) = loadout_slot_text(
-                inventory.equipped(EquipSlot::Armor(ArmorSlot::Ring2)),
-                || (i18n.get("hud.bag.ring"), ""),
-                &self.msm,
-            );
-            let ring2_q_col = inventory
+            let ring2_item = inventory
                 .equipped(EquipSlot::Armor(ArmorSlot::Ring2))
-                .map(|item| get_quality_col(item))
-                .unwrap_or(QUALITY_COMMON);
-            slot_maker
+                .map(|item| item.to_owned());
+            let slot = slot_maker
                 .fabricate(EquipSlot::Armor(ArmorSlot::Ring2), [45.0; 2])
                 .bottom_right_with_margins_on(state.ids.shoulders_slot, -55.0, 0.0)
                 .with_icon(self.imgs.ring_bg, Vec2::new(36.0, 40.0), Some(UI_MAIN))
-                .filled_slot(filled_slot)
-                .with_tooltip(
+                .filled_slot(filled_slot);
+            if let Some(item) = ring2_item {
+                slot.with_item_tooltip(self.item_tooltip_manager, &item, None, &item_tooltip)
+                    .set(state.ids.ring2_slot, ui)
+            } else {
+                slot.with_tooltip(
                     self.tooltip_manager,
-                    title,
-                    &*desc,
-                    &item_tooltip,
-                    ring2_q_col,
+                    i18n.get("hud.bag.ring"),
+                    "",
+                    &tooltip,
+                    color::WHITE,
                 )
-                .set(state.ids.ring2_slot, ui);
+                .set(state.ids.ring2_slot, ui)
+            }
             // Back
-            let (title, desc) = loadout_slot_text(
-                inventory.equipped(EquipSlot::Armor(ArmorSlot::Back)),
-                || (i18n.get("hud.bag.back"), ""),
-                &self.msm,
-            );
-            let back_q_col = inventory
+            let back_item = inventory
                 .equipped(EquipSlot::Armor(ArmorSlot::Back))
-                .map(|item| get_quality_col(item))
-                .unwrap_or(QUALITY_COMMON);
-            slot_maker
+                .map(|item| item.to_owned());
+            let slot = slot_maker
                 .fabricate(EquipSlot::Armor(ArmorSlot::Back), [45.0; 2])
                 .down_from(state.ids.ring2_slot, 10.0)
                 .with_icon(self.imgs.back_bg, Vec2::new(33.0, 40.0), Some(UI_MAIN))
-                .filled_slot(filled_slot)
-                .with_tooltip(
+                .filled_slot(filled_slot);
+            if let Some(item) = back_item {
+                slot.with_item_tooltip(self.item_tooltip_manager, &item, None, &item_tooltip)
+                    .set(state.ids.back_slot, ui)
+            } else {
+                slot.with_tooltip(
                     self.tooltip_manager,
-                    title,
-                    &*desc,
-                    &item_tooltip,
-                    back_q_col,
+                    i18n.get("hud.bag.back"),
+                    "",
+                    &tooltip,
+                    color::WHITE,
                 )
-                .set(state.ids.back_slot, ui);
+                .set(state.ids.back_slot, ui)
+            }
             // Foot
-            let (title, desc) = loadout_slot_text(
-                inventory.equipped(EquipSlot::Armor(ArmorSlot::Feet)),
-                || (i18n.get("hud.bag.feet"), ""),
-                &self.msm,
-            );
-            let foot_q_col = inventory
+            let feet_item = inventory
                 .equipped(EquipSlot::Armor(ArmorSlot::Feet))
-                .map(|item| get_quality_col(item))
-                .unwrap_or(QUALITY_COMMON);
-            slot_maker
+                .map(|item| item.to_owned());
+            let slot = slot_maker
                 .fabricate(EquipSlot::Armor(ArmorSlot::Feet), [45.0; 2])
                 .down_from(state.ids.ring1_slot, 10.0)
                 .with_icon(self.imgs.feet_bg, Vec2::new(32.0, 40.0), Some(UI_MAIN))
-                .filled_slot(filled_slot)
-                .with_tooltip(
+                .filled_slot(filled_slot);
+            if let Some(item) = feet_item {
+                slot.with_item_tooltip(self.item_tooltip_manager, &item, None, &item_tooltip)
+                    .set(state.ids.feet_slot, ui)
+            } else {
+                slot.with_tooltip(
                     self.tooltip_manager,
-                    title,
-                    &*desc,
-                    &item_tooltip,
-                    foot_q_col,
+                    i18n.get("hud.bag.feet"),
+                    "",
+                    &tooltip,
+                    color::WHITE,
                 )
-                .set(state.ids.feet_slot, ui);
+                .set(state.ids.feet_slot, ui)
+            }
             // Lantern
-            let (title, desc) = loadout_slot_text(
-                inventory.equipped(EquipSlot::Lantern),
-                || (i18n.get("hud.bag.lantern"), ""),
-                &self.msm,
-            );
-            let lantern_q_col = inventory
+            let lantern_item = inventory
                 .equipped(EquipSlot::Lantern)
-                .map(|item| get_quality_col(item))
-                .unwrap_or(QUALITY_COMMON);
-            slot_maker
+                .map(|item| item.to_owned());
+            let slot = slot_maker
                 .fabricate(EquipSlot::Lantern, [45.0; 2])
                 .top_right_with_margins_on(state.bg_ids.bg_frame, 60.0, 5.0)
                 .with_icon(self.imgs.lantern_bg, Vec2::new(24.0, 38.0), Some(UI_MAIN))
-                .filled_slot(filled_slot)
-                .with_tooltip(
+                .filled_slot(filled_slot);
+            if let Some(item) = lantern_item {
+                slot.with_item_tooltip(self.item_tooltip_manager, &item, None, &item_tooltip)
+                    .set(state.ids.lantern_slot, ui)
+            } else {
+                slot.with_tooltip(
                     self.tooltip_manager,
-                    title,
-                    &*desc,
-                    &item_tooltip,
-                    lantern_q_col,
+                    i18n.get("hud.bag.lantern"),
+                    "",
+                    &tooltip,
+                    color::WHITE,
                 )
-                .set(state.ids.lantern_slot, ui);
+                .set(state.ids.lantern_slot, ui)
+            }
             // Glider
-            let (title, desc) = loadout_slot_text(
-                inventory.equipped(EquipSlot::Glider),
-                || (i18n.get("hud.bag.glider"), ""),
-                &self.msm,
-            );
-            let glider_q_col = inventory
+            let glider_item = inventory
                 .equipped(EquipSlot::Glider)
-                .map(|item| get_quality_col(item))
-                .unwrap_or(QUALITY_COMMON);
-            slot_maker
+                .map(|item| item.to_owned());
+            let slot = slot_maker
                 .fabricate(EquipSlot::Glider, [45.0; 2])
                 .down_from(state.ids.lantern_slot, 5.0)
                 .with_icon(self.imgs.glider_bg, Vec2::new(38.0, 38.0), Some(UI_MAIN))
-                .filled_slot(filled_slot)
-                .with_tooltip(
+                .filled_slot(filled_slot);
+            if let Some(item) = glider_item {
+                slot.with_item_tooltip(self.item_tooltip_manager, &item, None, &item_tooltip)
+                    .set(state.ids.glider_slot, ui)
+            } else {
+                slot.with_tooltip(
                     self.tooltip_manager,
-                    title,
-                    &*desc,
-                    &item_tooltip,
-                    glider_q_col,
+                    i18n.get("hud.bag.glider"),
+                    "",
+                    &tooltip,
+                    color::WHITE,
                 )
-                .set(state.ids.glider_slot, ui);
+                .set(state.ids.glider_slot, ui)
+            }
             // Tabard
-            let (title, desc) = loadout_slot_text(
-                inventory.equipped(EquipSlot::Armor(ArmorSlot::Tabard)),
-                || (i18n.get("hud.bag.tabard"), ""),
-                &self.msm,
-            );
-            let tabard_q_col = inventory
+            let tabard_item = inventory
                 .equipped(EquipSlot::Armor(ArmorSlot::Tabard))
-                .map(|item| get_quality_col(item))
-                .unwrap_or(QUALITY_COMMON);
-            slot_maker
+                .map(|item| item.to_owned());
+            let slot = slot_maker
                 .fabricate(EquipSlot::Armor(ArmorSlot::Tabard), [45.0; 2])
                 .down_from(state.ids.glider_slot, 5.0)
                 .with_icon(self.imgs.tabard_bg, Vec2::new(38.0, 38.0), Some(UI_MAIN))
-                .filled_slot(filled_slot)
-                .with_tooltip(
+                .filled_slot(filled_slot);
+            if let Some(item) = tabard_item {
+                slot.with_item_tooltip(self.item_tooltip_manager, &item, None, &item_tooltip)
+                    .set(state.ids.tabard_slot, ui)
+            } else {
+                slot.with_tooltip(
                     self.tooltip_manager,
-                    title,
-                    &*desc,
-                    &item_tooltip,
-                    tabard_q_col,
+                    i18n.get("hud.bag.tabard"),
+                    "",
+                    &tooltip,
+                    color::WHITE,
                 )
-                .set(state.ids.tabard_slot, ui);
+                .set(state.ids.tabard_slot, ui)
+            }
             // Mainhand/Left-Slot
-            let (title, desc) = loadout_slot_text(
-                inventory.equipped(EquipSlot::Mainhand),
-                || (i18n.get("hud.bag.mainhand"), ""),
-                &self.msm,
-            );
-            let mainhand_q_col = inventory
+            let mainhand_item = inventory
                 .equipped(EquipSlot::Mainhand)
-                .map(|item| get_quality_col(item))
-                .unwrap_or(QUALITY_COMMON);
-            slot_maker
+                .map(|item| item.to_owned());
+
+            let slot = slot_maker
                 .fabricate(EquipSlot::Mainhand, [85.0; 2])
                 .bottom_right_with_margins_on(state.ids.back_slot, -95.0, 0.0)
                 .with_icon(self.imgs.mainhand_bg, Vec2::new(75.0, 75.0), Some(UI_MAIN))
-                .filled_slot(filled_slot)
-                .with_tooltip(
+                .filled_slot(filled_slot);
+            if let Some(item) = mainhand_item {
+                slot.with_item_tooltip(self.item_tooltip_manager, &item, None, &item_tooltip)
+                    .set(state.ids.mainhand_slot, ui)
+            } else {
+                slot.with_tooltip(
                     self.tooltip_manager,
-                    title,
-                    &*desc,
-                    &item_tooltip,
-                    mainhand_q_col,
+                    i18n.get("hud.bag.mainhand"),
+                    "",
+                    &tooltip,
+                    color::WHITE,
                 )
-                .set(state.ids.mainhand_slot, ui);
+                .set(state.ids.mainhand_slot, ui)
+            }
             // Offhand/Right-Slot
-            let (title, desc) = loadout_slot_text(
-                inventory.equipped(EquipSlot::Offhand),
-                || (i18n.get("hud.bag.offhand"), ""),
-                &self.msm,
-            );
-            let offhand_q_col = inventory
+            let offhand_item = inventory
                 .equipped(EquipSlot::Offhand)
-                .map(|item| get_quality_col(item))
-                .unwrap_or(QUALITY_COMMON);
-            slot_maker
+                .map(|item| item.to_owned());
+            let slot = slot_maker
                 .fabricate(EquipSlot::Offhand, [85.0; 2])
                 .bottom_left_with_margins_on(state.ids.feet_slot, -95.0, 0.0)
                 .with_icon(self.imgs.offhand_bg, Vec2::new(75.0, 75.0), Some(UI_MAIN))
-                .filled_slot(filled_slot)
-                .with_tooltip(
+                .filled_slot(filled_slot);
+            if let Some(item) = offhand_item {
+                slot.with_item_tooltip(self.item_tooltip_manager, &item, None, &item_tooltip)
+                    .set(state.ids.offhand_slot, ui)
+            } else {
+                slot.with_tooltip(
                     self.tooltip_manager,
-                    title,
-                    &*desc,
-                    &item_tooltip,
-                    offhand_q_col,
+                    i18n.get("hud.bag.offhand"),
+                    "",
+                    &tooltip,
+                    color::WHITE,
                 )
-                .set(state.ids.offhand_slot, ui);
+                .set(state.ids.offhand_slot, ui)
+            }
         }
         // Bag 1
-        let (title, desc) = loadout_slot_text(
-            inventory.equipped(EquipSlot::Armor(ArmorSlot::Bag1)),
-            || (i18n.get("hud.bag.bag"), ""),
-            &self.msm,
-        );
-        let bag1_q_col = inventory
+        let bag1_item = inventory
             .equipped(EquipSlot::Armor(ArmorSlot::Bag1))
-            .map(|item| get_quality_col(item))
-            .unwrap_or(QUALITY_COMMON);
-        slot_maker
+            .map(|item| item.to_owned());
+        let slot = slot_maker
             .fabricate(EquipSlot::Armor(ArmorSlot::Bag1), [35.0; 2])
             .bottom_left_with_margins_on(
                 state.bg_ids.bg_frame,
@@ -1142,84 +1146,86 @@ impl<'a> Widget for Bag<'a> {
                 3.0,
             )
             .with_icon(self.imgs.bag_bg, Vec2::new(28.0, 24.0), Some(UI_MAIN))
-            .filled_slot(filled_slot)
-            .with_tooltip(
+            .filled_slot(filled_slot);
+        if let Some(item) = bag1_item {
+            slot.with_item_tooltip(self.item_tooltip_manager, &item, None, &item_tooltip)
+                .set(state.ids.bag1_slot, ui)
+        } else {
+            slot.with_tooltip(
                 self.tooltip_manager,
-                title,
-                &*desc,
-                &item_tooltip,
-                bag1_q_col,
+                i18n.get("hud.bag.bag"),
+                "",
+                &tooltip,
+                color::WHITE,
             )
-            .set(state.ids.bag1_slot, ui);
+            .set(state.ids.bag1_slot, ui)
+        }
         // Bag 2
-        let (title, desc) = loadout_slot_text(
-            inventory.equipped(EquipSlot::Armor(ArmorSlot::Bag2)),
-            || (i18n.get("hud.bag.bag"), ""),
-            &self.msm,
-        );
-        let bag2_q_col = inventory
+        let bag2_item = inventory
             .equipped(EquipSlot::Armor(ArmorSlot::Bag2))
-            .map(|item| get_quality_col(item))
-            .unwrap_or(QUALITY_COMMON);
-        slot_maker
+            .map(|item| item.to_owned());
+        let slot = slot_maker
             .fabricate(EquipSlot::Armor(ArmorSlot::Bag2), [35.0; 2])
             .down_from(state.ids.bag1_slot, 2.0)
             .with_icon(self.imgs.bag_bg, Vec2::new(28.0, 24.0), Some(UI_MAIN))
-            .filled_slot(filled_slot)
-            .with_tooltip(
+            .filled_slot(filled_slot);
+        if let Some(item) = bag2_item {
+            slot.with_item_tooltip(self.item_tooltip_manager, &item, None, &item_tooltip)
+                .set(state.ids.bag2_slot, ui)
+        } else {
+            slot.with_tooltip(
                 self.tooltip_manager,
-                title,
-                &*desc,
-                &item_tooltip,
-                bag2_q_col,
+                i18n.get("hud.bag.bag"),
+                "",
+                &tooltip,
+                color::WHITE,
             )
-            .set(state.ids.bag2_slot, ui);
+            .set(state.ids.bag2_slot, ui)
+        }
         // Bag 3
-        let (title, desc) = loadout_slot_text(
-            inventory.equipped(EquipSlot::Armor(ArmorSlot::Bag3)),
-            || (i18n.get("hud.bag.bag"), ""),
-            &self.msm,
-        );
-        let bag3_q_col = inventory
+        let bag3_item = inventory
             .equipped(EquipSlot::Armor(ArmorSlot::Bag3))
-            .map(|item| get_quality_col(item))
-            .unwrap_or(QUALITY_COMMON);
-        slot_maker
+            .map(|item| item.to_owned());
+        let slot = slot_maker
             .fabricate(EquipSlot::Armor(ArmorSlot::Bag3), [35.0; 2])
             .down_from(state.ids.bag2_slot, 2.0)
             .with_icon(self.imgs.bag_bg, Vec2::new(28.0, 24.0), Some(UI_MAIN))
-            .filled_slot(filled_slot)
-            .with_tooltip(
+            .filled_slot(filled_slot);
+        if let Some(item) = bag3_item {
+            slot.with_item_tooltip(self.item_tooltip_manager, &item, None, &item_tooltip)
+                .set(state.ids.bag3_slot, ui)
+        } else {
+            slot.with_tooltip(
                 self.tooltip_manager,
-                title,
-                &*desc,
-                &item_tooltip,
-                bag3_q_col,
+                i18n.get("hud.bag.bag"),
+                "",
+                &tooltip,
+                color::WHITE,
             )
-            .set(state.ids.bag3_slot, ui);
+            .set(state.ids.bag3_slot, ui)
+        }
         // Bag 4
-        let (title, desc) = loadout_slot_text(
-            inventory.equipped(EquipSlot::Armor(ArmorSlot::Bag4)),
-            || (i18n.get("hud.bag.bag"), ""),
-            &self.msm,
-        );
-        let bag4_q_col = inventory
+        let bag4_item = inventory
             .equipped(EquipSlot::Armor(ArmorSlot::Bag4))
-            .map(|item| get_quality_col(item))
-            .unwrap_or(QUALITY_COMMON);
-        slot_maker
+            .map(|item| item.to_owned());
+        let slot = slot_maker
             .fabricate(EquipSlot::Armor(ArmorSlot::Bag4), [35.0; 2])
             .down_from(state.ids.bag3_slot, 2.0)
             .with_icon(self.imgs.bag_bg, Vec2::new(28.0, 24.0), Some(UI_MAIN))
-            .filled_slot(filled_slot)
-            .with_tooltip(
+            .filled_slot(filled_slot);
+        if let Some(item) = bag4_item {
+            slot.with_item_tooltip(self.item_tooltip_manager, &item, None, &item_tooltip)
+                .set(state.ids.bag4_slot, ui)
+        } else {
+            slot.with_tooltip(
                 self.tooltip_manager,
-                title,
-                &*desc,
-                &item_tooltip,
-                bag4_q_col,
+                i18n.get("hud.bag.bag"),
+                "",
+                &tooltip,
+                color::WHITE,
             )
-            .set(state.ids.bag4_slot, ui);
+            .set(state.ids.bag4_slot, ui)
+        }
 
         // Close button
         if Button::image(self.imgs.close_btn)

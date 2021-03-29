@@ -9,7 +9,7 @@ use tracing::{debug, trace, warn};
 use crate::{
     comp::{
         inventory::{
-            item::{ItemDef, MaterialStatManifest},
+            item::{ItemDef, ItemKind, MaterialStatManifest},
             loadout::Loadout,
             slot::{EquipSlot, Slot, SlotError},
         },
@@ -675,6 +675,10 @@ impl Inventory {
         }
 
         true
+    }
+
+    pub fn equipped_items_of_kind(&self, item_kind: ItemKind) -> impl Iterator<Item = &Item> {
+        self.loadout.equipped_items_of_kind(item_kind)
     }
 }
 

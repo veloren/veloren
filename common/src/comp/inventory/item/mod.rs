@@ -728,3 +728,21 @@ pub struct ItemDrop(pub Item);
 impl Component for ItemDrop {
     type Storage = IdvStorage<Self>;
 }
+
+impl<'a, T: ItemDesc + ?Sized> ItemDesc for &'a T {
+    fn description(&self) -> &str { (*self).description() }
+
+    fn name(&self) -> &str { (*self).name() }
+
+    fn kind(&self) -> &ItemKind { (*self).kind() }
+
+    fn quality(&self) -> &Quality { (*self).quality() }
+
+    fn num_slots(&self) -> u16 { (*self).num_slots() }
+
+    fn item_definition_id(&self) -> &str { (*self).item_definition_id() }
+
+    fn components(&self) -> &[Item] { (*self).components() }
+
+    fn tags(&self) -> &[ItemTag] { (*self).tags() }
+}
