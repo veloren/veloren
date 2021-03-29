@@ -1074,7 +1074,8 @@ fn handle_spawn_airship(
                     animated: true,
                 });
             if let Some(pos) = destination {
-                builder = builder.with(comp::Agent::with_destination(pos))
+                builder = builder.with(comp::Agent::with_destination(pos));
+                builder = builder.with(comp::Behavior::new(true, false))
             }
             builder.build();
 

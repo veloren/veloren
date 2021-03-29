@@ -191,7 +191,6 @@ impl<'a> System<'a> for Sys {
                     agent: if entity.has_agency {
                         Some(comp::Agent::new(
                             Some(entity.pos),
-                            can_speak,
                             trade_for_site,
                             &body,
                             matches!(
@@ -199,6 +198,11 @@ impl<'a> System<'a> for Sys {
                                 Some(comp::inventory::loadout_builder::LoadoutConfig::Guard)
                             ),
                         ))
+                    } else {
+                        None
+                    },
+                    behavior: if entity.has_agency {
+                        Some(comp::Behavior::new(can_speak, trade_for_site.is_some()))
                     } else {
                         None
                     },

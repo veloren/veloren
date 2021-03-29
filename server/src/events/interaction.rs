@@ -1,11 +1,17 @@
-use specs::{world::WorldExt, Builder, Entity as EcsEntity};
+use specs::{world::WorldExt, Builder, Entity as EcsEntity, Join};
 use tracing::error;
 use vek::*;
 
 use common::{
     comp::{
-        self, agent::AgentEvent, dialogue::Subject, inventory::slot::EquipSlot, item, slot::Slot,
-        tool::ToolKind, Inventory, Pos,
+        self,
+        agent::AgentEvent,
+        dialogue::{AskedPerson, Subject},
+        inventory::slot::EquipSlot,
+        item,
+        slot::Slot,
+        tool::ToolKind,
+        Inventory, Pos,
     },
     consts::MAX_MOUNT_RANGE,
     outcome::Outcome,
@@ -73,6 +79,45 @@ pub fn handle_npc_interaction(server: &mut Server, interactor: EcsEntity, npc_en
             agent
                 .inbox
                 .push_front(AgentEvent::Talk(interactor_uid, Subject::Regular));
+        }
+    }
+}
+
+pub fn handle_npc_find_merchant(server: &mut Server, interactor: EcsEntity, npc_entity: EcsEntity) {
+    let state = server.state_mut();
+    let trader_positions: Vec<Vec3<f32>> = {
+        let positions = state.ecs().read_storage::<comp::Pos>();
+        let agents = state.ecs().read_storage::<comp::Agent>();
+        (&agents, &positions)
+            .join()
+            .filter_map(|(a, p)| a.trade_for_site.map(|_| p.0))
+            .collect()
+    };
+    if let Some(agent) = state
+        .ecs()
+        .write_storage::<comp::Agent>()
+        .get_mut(npc_entity)
+    {
+        if let Some(interactor_uid) = state.ecs().uid_from_entity(interactor) {
+            if let Some(mypos) = state.ecs().read_storage::<comp::Pos>().get(interactor) {
+                let mut closest = std::f32::INFINITY;
+                let mut closest_pos = None;
+                for p in trader_positions.iter() {
+                    let diff = p - mypos.0;
+                    let dist = diff.magnitude();
+                    if dist < closest {
+                        closest = dist;
+                        closest_pos = Some(*p);
+                    }
+                }
+                agent.inbox.push_front(AgentEvent::Talk(
+                    interactor_uid,
+                    Subject::Person(AskedPerson {
+                        person_type: comp::dialogue::PersonType::Merchant,
+                        origin: closest_pos,
+                    }),
+                ));
+            }
         }
     }
 }

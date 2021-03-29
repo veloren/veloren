@@ -212,10 +212,7 @@ pub struct Agent {
     pub chaser: Chaser,
     /// Does the agent talk when e.g. hit by the player
     // TODO move speech patterns into a Behavior component
-    pub can_speak: bool,
     pub trade_for_site: Option<SiteId>,
-    pub trading: bool,
-    pub trading_issuer: bool,
     pub psyche: Psyche,
     pub inbox: VecDeque<AgentEvent>,
     pub action_timer: f32,
@@ -230,7 +227,6 @@ impl Agent {
 
     pub fn with_destination(pos: Vec3<f32>) -> Self {
         Self {
-            can_speak: true,
             psyche: Psyche { aggro: 1.0 },
             rtsim_controller: RtSimController::with_destination(pos),
             ..Default::default()
@@ -239,14 +235,12 @@ impl Agent {
 
     pub fn new(
         patrol_origin: Option<Vec3<f32>>,
-        can_speak: bool,
         trade_for_site: Option<SiteId>,
         body: &Body,
         no_flee: bool,
     ) -> Self {
         Agent {
             patrol_origin,
-            can_speak,
             trade_for_site,
             psyche: if no_flee {
                 Psyche { aggro: 1.0 }

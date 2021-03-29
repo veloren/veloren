@@ -2,7 +2,7 @@ use crate::{
     comp::{
         self,
         inventory::loadout_builder::{LoadoutBuilder, LoadoutConfig},
-        CharacterState, StateUpdate,
+        Behavior, CharacterState, StateUpdate,
     },
     event::{LocalEvent, ServerEvent},
     outcome::Outcome,
@@ -104,7 +104,8 @@ impl CharacterBehavior for Data {
                             poise: comp::Poise::new(body),
                             loadout,
                             body,
-                            agent: Some(comp::Agent::new(None, false, None, &body, true)),
+                            agent: Some(comp::Agent::new(None, None, &body, true)),
+                            behavior: Some(Behavior::new(true, false)),
                             alignment: comp::Alignment::Owned(*data.uid),
                             scale: self
                                 .static_data

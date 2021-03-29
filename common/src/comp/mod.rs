@@ -3,6 +3,7 @@
 #[cfg(not(target_arch = "wasm32"))] pub mod agent;
 #[cfg(not(target_arch = "wasm32"))] pub mod aura;
 #[cfg(not(target_arch = "wasm32"))] pub mod beam;
+pub mod behavior;
 #[cfg(not(target_arch = "wasm32"))] pub mod body;
 pub mod buff;
 #[cfg(not(target_arch = "wasm32"))]
@@ -48,6 +49,7 @@ pub use self::{
     agent::{Agent, Alignment},
     aura::{Aura, AuraChange, AuraKind, Auras},
     beam::{Beam, BeamSegment},
+    behavior::{Behavior, BehaviorTag},
     body::{
         biped_large, biped_small, bird_medium, bird_small, dragon, fish_medium, fish_small, golem,
         humanoid, object, quadruped_low, quadruped_medium, quadruped_small, ship, theropod,

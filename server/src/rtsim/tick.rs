@@ -2,7 +2,7 @@
 
 use super::*;
 use common::{
-    comp::{self, inventory::loadout_builder::LoadoutBuilder},
+    comp::{self, inventory::loadout_builder::LoadoutBuilder, Behavior},
     event::{EventBus, ServerEvent},
     resources::{DeltaTime, Time},
     terrain::TerrainGrid,
@@ -103,13 +103,12 @@ impl<'a> System<'a> for Sys {
                 .map(|e| e as f32)
                 + Vec3::new(0.5, 0.5, body.flying_height());
             let pos = comp::Pos(spawn_pos);
-            let agent = Some(comp::Agent::new(
-                None,
-                matches!(body, comp::Body::Humanoid(_)),
-                None,
-                &body,
-                false,
-            ));
+            let agent = Some(comp::Agent::new(None, None, &body, false));
+            let behavior = if matches!(body, comp::Body::Humanoid(_)) {
+                Some(Behavior::new(true, false))
+            } else {
+                None
+            };
             let rtsim_entity = Some(RtSimEntity(id));
             let event = match body {
                 comp::Body::Ship(ship) => ServerEvent::CreateShip {
@@ -130,6 +129,7 @@ impl<'a> System<'a> for Sys {
                     poise: comp::Poise::new(body),
                     body,
                     agent,
+                    behavior,
                     alignment: match body {
                         comp::Body::Humanoid(_) => comp::Alignment::Npc,
                         _ => comp::Alignment::Wild,
