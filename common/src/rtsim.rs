@@ -7,6 +7,8 @@ use specs::Component;
 use specs_idvs::IdvStorage;
 use vek::*;
 
+use crate::comp::dialogue::MoodState;
+
 pub type RtSimId = usize;
 
 #[derive(Copy, Clone, Debug)]
@@ -19,6 +21,7 @@ impl Component for RtSimEntity {
 #[derive(Clone, Debug)]
 pub enum RtSimEvent {
     AddMemory(Memory),
+    SetMood(Memory),
     PrintMemories,
 }
 
@@ -34,6 +37,7 @@ pub enum MemoryItem {
     // such as clothing worn, weapon used, etc.
     CharacterInteraction { name: String },
     CharacterFight { name: String },
+    Mood { state: MoodState },
 }
 
 /// This type is the map route through which the rtsim (real-time simulation)

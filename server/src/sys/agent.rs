@@ -4,9 +4,11 @@ use common::{
         self,
         agent::{AgentEvent, Tactic, Target, DEFAULT_INTERACTION_TIME, TRADE_INTERACTION_TIME},
         buff::{BuffKind, Buffs},
+        compass::{Direction, Distance},
+        dialogue::{MoodContext, MoodState, Subject},
         group,
         inventory::{item::ItemTag, slot::EquipSlot, trade_pricing::TradePricing},
-        invite::InviteResponse,
+        invite::{InviteKind, InviteResponse},
         item::{
             tool::{ToolKind, UniqueKind},
             ItemDesc, ItemKind,
@@ -505,8 +507,14 @@ impl<'a> System<'a> for Sys {
             // Entity must be loaded in as it has an agent component :)
             // React to all events in the controller
             for event in core::mem::take(&mut agent.rtsim_controller.events) {
-                if let RtSimEvent::AddMemory(memory) = event {
-                    rtsim.insert_entity_memory(rtsim_entity.0, memory.clone());
+                match event {
+                    RtSimEvent::AddMemory(memory) => {
+                        rtsim.insert_entity_memory(rtsim_entity.0, memory.clone())
+                    },
+                    RtSimEvent::SetMood(memory) => {
+                        rtsim.set_entity_mood(rtsim_entity.0, memory.clone())
+                    },
+                    _ => {},
                 }
             }
         }
@@ -838,7 +846,7 @@ impl<'a> AgentData<'a> {
         agent.action_timer += read_data.dt.0;
         let msg = agent.inbox.pop_back();
         match msg {
-            Some(AgentEvent::Talk(by)) => {
+            Some(AgentEvent::Talk(by, subject)) => {
                 if agent.can_speak {
                     if let Some(target) = read_data.uid_allocator.retrieve_entity_internal(by.id())
                     {
@@ -847,64 +855,197 @@ impl<'a> AgentData<'a> {
                             hostile: false,
                             selected_at: read_data.time.0,
                         });
-                        if let Some(tgt_pos) = read_data.positions.get(target) {
-                            let eye_offset = self.body.map_or(0.0, |b| b.eye_height());
-                            let tgt_eye_offset =
-                                read_data.bodies.get(target).map_or(0.0, |b| b.eye_height());
-                            if let Some(dir) = Dir::from_unnormalized(
-                                Vec3::new(tgt_pos.0.x, tgt_pos.0.y, tgt_pos.0.z + tgt_eye_offset)
-                                    - Vec3::new(
-                                        self.pos.0.x,
-                                        self.pos.0.y,
-                                        self.pos.0.z + eye_offset,
-                                    ),
-                            ) {
-                                controller.inputs.look_dir = dir;
-                            }
+
+                        if self.look_toward(controller, read_data, &target) {
                             controller.actions.push(ControlAction::Talk);
-                            if let (Some((_travel_to, destination_name)), Some(rtsim_entity)) =
-                                (&agent.rtsim_controller.travel_to, &self.rtsim_entity)
-                            {
-                                let msg = if let Some(tgt_stats) = read_data.stats.get(target) {
-                                    agent.rtsim_controller.events.push(RtSimEvent::AddMemory(
-                                        Memory {
-                                            item: MemoryItem::CharacterInteraction {
-                                                name: tgt_stats.name.clone(),
-                                            },
-                                            time_to_forget: read_data.time.0 + 600.0,
-                                        },
-                                    ));
-                                    if rtsim_entity.brain.remembers_character(&tgt_stats.name) {
-                                        format!(
-                                            "Greetings fair {}! It has been far too long since \
-                                             last I saw you.",
-                                            &tgt_stats.name
-                                        )
+                            match subject {
+                                Subject::Regular => {
+                                    if let (
+                                        Some((_travel_to, destination_name)),
+                                        Some(rtsim_entity),
+                                    ) = (&agent.rtsim_controller.travel_to, &self.rtsim_entity)
+                                    {
+                                        let msg =
+                                            if let Some(tgt_stats) = read_data.stats.get(target) {
+                                                agent.rtsim_controller.events.push(
+                                                    RtSimEvent::AddMemory(Memory {
+                                                        item: MemoryItem::CharacterInteraction {
+                                                            name: tgt_stats.name.clone(),
+                                                        },
+                                                        time_to_forget: read_data.time.0 + 600.0,
+                                                    }),
+                                                );
+                                                if rtsim_entity
+                                                    .brain
+                                                    .remembers_character(&tgt_stats.name)
+                                                {
+                                                    format!(
+                                                        "Greetings fair {}! It has been far too \
+                                                         long since last I saw you.",
+                                                        &tgt_stats.name
+                                                    )
+                                                } else {
+                                                    format!(
+                                                        "I'm heading to {}! Want to come along?",
+                                                        destination_name
+                                                    )
+                                                }
+                                            } else {
+                                                format!(
+                                                    "I'm heading to {}! Want to come along?",
+                                                    destination_name
+                                                )
+                                            };
+                                        event_emitter.emit(ServerEvent::Chat(
+                                            UnresolvedChatMsg::npc(*self.uid, msg),
+                                        ));
+                                    } else if agent.trade_for_site.is_some() {
+                                        let msg = "Can I interest you in a trade?".to_string();
+                                        event_emitter.emit(ServerEvent::Chat(
+                                            UnresolvedChatMsg::npc(*self.uid, msg),
+                                        ));
                                     } else {
-                                        format!(
-                                            "I'm heading to {}! Want to come along?",
-                                            destination_name
-                                        )
+                                        let msg = "npc.speech.villager".to_string();
+                                        event_emitter.emit(ServerEvent::Chat(
+                                            UnresolvedChatMsg::npc(*self.uid, msg),
+                                        ));
                                     }
-                                } else {
-                                    format!(
-                                        "I'm heading to {}! Want to come along?",
-                                        destination_name
-                                    )
-                                };
-                                event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc(
-                                    *self.uid, msg,
-                                )));
-                            } else if agent.trade_for_site.is_some() {
-                                let msg = "Can I interest you in a trade?".to_string();
-                                event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc(
-                                    *self.uid, msg,
-                                )));
-                            } else {
-                                let msg = "npc.speech.villager".to_string();
-                                event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc(
-                                    *self.uid, msg,
-                                )));
+                                },
+                                Subject::Trade => {
+                                    if agent.trade_for_site.is_some() && !agent.trading {
+                                        controller.events.push(ControlEvent::InitiateInvite(
+                                            by,
+                                            InviteKind::Trade,
+                                        ));
+                                        let msg = "Can I interest you in a trade?".to_string();
+                                        event_emitter.emit(ServerEvent::Chat(
+                                            UnresolvedChatMsg::npc(*self.uid, msg),
+                                        ));
+                                    } else {
+                                        // TODO: maybe make some travellers willing to trade with
+                                        // simpler goods like potions
+                                        event_emitter.emit(ServerEvent::Chat(
+                                            UnresolvedChatMsg::npc(
+                                                *self.uid,
+                                                "Sorry, I don't have anything to trade."
+                                                    .to_string(),
+                                            ),
+                                        ));
+                                    }
+                                },
+                                Subject::Mood => {
+                                    if let Some(rtsim_entity) = self.rtsim_entity {
+                                        if !rtsim_entity.brain.remembers_mood() {
+                                            // TODO: the following code will need a rework to
+                                            // implement more mood contexts
+                                            // This require that town NPCs becomes rtsim_entities to
+                                            // work fully.
+                                            match rand::random::<u32>() % 3 {
+                                                0 => agent.rtsim_controller.events.push(
+                                                    RtSimEvent::SetMood(Memory {
+                                                        item: MemoryItem::Mood {
+                                                            state: MoodState::Good(
+                                                                MoodContext::GoodWeather,
+                                                            ),
+                                                        },
+                                                        time_to_forget: read_data.time.0 + 21200.0,
+                                                    }),
+                                                ),
+                                                1 => agent.rtsim_controller.events.push(
+                                                    RtSimEvent::SetMood(Memory {
+                                                        item: MemoryItem::Mood {
+                                                            state: MoodState::Neutral(
+                                                                MoodContext::EverydayLife,
+                                                            ),
+                                                        },
+                                                        time_to_forget: read_data.time.0 + 21200.0,
+                                                    }),
+                                                ),
+                                                2 => agent.rtsim_controller.events.push(
+                                                    RtSimEvent::SetMood(Memory {
+                                                        item: MemoryItem::Mood {
+                                                            state: MoodState::Bad(
+                                                                MoodContext::GoodWeather,
+                                                            ),
+                                                        },
+                                                        time_to_forget: read_data.time.0 + 86400.0,
+                                                    }),
+                                                ),
+                                                _ => {}, // will never happen
+                                            }
+                                        }
+                                        if let Some(memory) = rtsim_entity.brain.get_mood() {
+                                            let msg = match &memory.item {
+                                                MemoryItem::Mood { state } => state.describe(),
+                                                _ => "".to_string(),
+                                            };
+                                            event_emitter.emit(ServerEvent::Chat(
+                                                UnresolvedChatMsg::npc(*self.uid, msg),
+                                            ));
+                                        }
+                                    }
+                                },
+                                Subject::Location(location) => {
+                                    if let Some(tgt_pos) = read_data.positions.get(target) {
+                                        event_emitter.emit(ServerEvent::Chat(
+                                            UnresolvedChatMsg::npc(
+                                                *self.uid,
+                                                format!(
+                                                    "{} ? I think it's {} {} from here!",
+                                                    location.name,
+                                                    Distance::from_dir(
+                                                        location.origin.as_::<f32>()
+                                                            - tgt_pos.0.xy()
+                                                    )
+                                                    .name(),
+                                                    Direction::from_dir(
+                                                        location.origin.as_::<f32>()
+                                                            - tgt_pos.0.xy()
+                                                    )
+                                                    .name()
+                                                ),
+                                            ),
+                                        ));
+                                    }
+                                },
+                                Subject::Person(person) => {
+                                    if let Some(src_pos) = read_data.positions.get(target) {
+                                        let msg = if let Some(person_pos) = person.origin {
+                                            let distance = Distance::from_dir(
+                                                person_pos.xy() - src_pos.0.xy(),
+                                            );
+                                            match distance {
+                                                Distance::NextTo | Distance::Near => {
+                                                    format!(
+                                                        "{} ? I think he's {} {} from here!",
+                                                        person.name(),
+                                                        distance.name(),
+                                                        Direction::from_dir(
+                                                            person_pos.xy() - src_pos.0.xy(),
+                                                        )
+                                                        .name()
+                                                    )
+                                                },
+                                                _ => {
+                                                    format!(
+                                                        "{} ? I think he's gone visiting another \
+                                                         town. Come back later!",
+                                                        person.name()
+                                                    )
+                                                },
+                                            }
+                                        } else {
+                                            format!(
+                                                "{} ? Sorry, I don't know where you can find him.",
+                                                person.name()
+                                            )
+                                        };
+                                        event_emitter.emit(ServerEvent::Chat(
+                                            UnresolvedChatMsg::npc(*self.uid, msg),
+                                        ));
+                                    }
+                                },
+                                Subject::Work => {},
                             }
                         }
                     }
@@ -926,12 +1067,34 @@ impl<'a> AgentData<'a> {
                     controller
                         .events
                         .push(ControlEvent::InviteResponse(InviteResponse::Accept));
+                    agent.trading_issuer = false;
                     agent.trading = true;
                 } else {
                     // TODO: Provide a hint where to find the closest merchant?
                     controller
                         .events
                         .push(ControlEvent::InviteResponse(InviteResponse::Decline));
+                    if agent.can_speak {
+                        event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc(
+                            *self.uid,
+                            "Sorry, I don't have anything to trade.".to_string(),
+                        )));
+                    }
+                }
+            },
+            Some(AgentEvent::TradeAccepted(with)) => {
+                if !agent.trading {
+                    if let Some(target) =
+                        read_data.uid_allocator.retrieve_entity_internal(with.id())
+                    {
+                        agent.target = Some(Target {
+                            target,
+                            hostile: false,
+                            selected_at: read_data.time.0,
+                        });
+                    }
+                    agent.trading = true;
+                    agent.trading_issuer = true;
                 }
             },
             Some(AgentEvent::FinishedTrade(result)) => {
@@ -954,10 +1117,7 @@ impl<'a> AgentData<'a> {
             Some(AgentEvent::UpdatePendingTrade(boxval)) => {
                 let (tradeid, pending, prices, inventories) = *boxval;
                 if agent.trading {
-                    // For now, assume player is 0 and agent is 1.
-                    // This needs revisiting when agents can initiate trades (e.g. to offer
-                    // mercenary contracts as quests)
-                    const WHO: usize = 1;
+                    let who: usize = if agent.trading_issuer { 0 } else { 1 };
                     let balance = |who: usize, reduce: bool| {
                         pending.offers[who]
                             .iter()
@@ -983,8 +1143,8 @@ impl<'a> AgentData<'a> {
                             })
                             .sum()
                     };
-                    let balance0: f32 = balance(1 - WHO, true);
-                    let balance1: f32 = balance(WHO, false);
+                    let balance0: f32 = balance(1 - who, true);
+                    let balance1: f32 = balance(who, false);
                     tracing::debug!("UpdatePendingTrade({}, {})", balance0, balance1);
                     if balance0 >= balance1 {
                         // If the trade is favourable to us, only send an accept message if we're
@@ -992,7 +1152,7 @@ impl<'a> AgentData<'a> {
                         // results in lagging and moving to the review phase of an unfavorable trade
                         // (although since the phase is included in the message, this shouldn't
                         // result in fully accepting an unfavourable trade))
-                        if !pending.accept_flags[WHO] {
+                        if !pending.accept_flags[who] {
                             event_emitter.emit(ServerEvent::ProcessTradeAction(
                                 *self.entity,
                                 tradeid,
@@ -1026,28 +1186,36 @@ impl<'a> AgentData<'a> {
                     // no new events, continue looking towards the last interacting player for some
                     // time
                     if let Some(Target { target, .. }) = &agent.target {
-                        if let Some(tgt_pos) = read_data.positions.get(*target) {
-                            let eye_offset = self.body.map_or(0.0, |b| b.eye_height());
-                            let tgt_eye_offset = read_data
-                                .bodies
-                                .get(*target)
-                                .map_or(0.0, |b| b.eye_height());
-                            if let Some(dir) = Dir::from_unnormalized(
-                                Vec3::new(tgt_pos.0.x, tgt_pos.0.y, tgt_pos.0.z + tgt_eye_offset)
-                                    - Vec3::new(
-                                        self.pos.0.x,
-                                        self.pos.0.y,
-                                        self.pos.0.z + eye_offset,
-                                    ),
-                            ) {
-                                controller.inputs.look_dir = dir;
-                            }
-                        }
+                        self.look_toward(controller, read_data, target);
                     } else {
                         agent.action_timer = 0.0;
                     }
                 }
             },
+        }
+    }
+
+    fn look_toward(
+        &self,
+        controller: &mut Controller,
+        read_data: &ReadData,
+        target: &EcsEntity,
+    ) -> bool {
+        if let Some(tgt_pos) = read_data.positions.get(*target) {
+            let eye_offset = self.body.map_or(0.0, |b| b.eye_height());
+            let tgt_eye_offset = read_data
+                .bodies
+                .get(*target)
+                .map_or(0.0, |b| b.eye_height());
+            if let Some(dir) = Dir::from_unnormalized(
+                Vec3::new(tgt_pos.0.x, tgt_pos.0.y, tgt_pos.0.z + tgt_eye_offset)
+                    - Vec3::new(self.pos.0.x, self.pos.0.y, self.pos.0.z + eye_offset),
+            ) {
+                controller.inputs.look_dir = dir;
+            }
+            true
+        } else {
+            false
         }
     }
 

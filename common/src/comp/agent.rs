@@ -10,6 +10,8 @@ use specs_idvs::IdvStorage;
 use std::collections::VecDeque;
 use vek::*;
 
+use super::dialogue::Subject;
+
 pub const DEFAULT_INTERACTION_TIME: f32 = 3.0;
 pub const TRADE_INTERACTION_TIME: f32 = 300.0;
 
@@ -179,8 +181,9 @@ impl<'a> From<&'a Body> for Psyche {
 /// Events that affect agent behavior from other entities/players/environment
 pub enum AgentEvent {
     /// Engage in conversation with entity with Uid
-    Talk(Uid),
+    Talk(Uid, Subject),
     TradeInvite(Uid),
+    TradeAccepted(Uid),
     FinishedTrade(TradeResult),
     UpdatePendingTrade(
         // this data structure is large so box it to keep AgentEvent small
@@ -212,6 +215,7 @@ pub struct Agent {
     pub can_speak: bool,
     pub trade_for_site: Option<SiteId>,
     pub trading: bool,
+    pub trading_issuer: bool,
     pub psyche: Psyche,
     pub inbox: VecDeque<AgentEvent>,
     pub action_timer: f32,

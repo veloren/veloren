@@ -166,7 +166,7 @@ pub fn handle_invite_accept(server: &mut Server, entity: specs::Entity) {
     let state = server.state_mut();
     let clients = state.ecs().read_storage::<Client>();
     let uids = state.ecs().read_storage::<Uid>();
-    let agents = state.ecs().read_storage::<Agent>();
+    let mut agents = state.ecs().write_storage::<Agent>();
     let mut invites = state.ecs().write_storage::<Invite>();
     if let Some((inviter, kind)) = invites.remove(entity).and_then(|invite| {
         let Invite { inviter, kind } = invite;
@@ -218,6 +218,11 @@ pub fn handle_invite_accept(server: &mut Server, entity: specs::Entity) {
                     let mut trades = state.ecs().write_resource::<Trades>();
                     let id = trades.begin_trade(inviter_uid, invitee_uid);
                     let trade = trades.trades[&id].clone();
+                    if let Some(agent) = agents.get_mut(inviter) {
+                        agent
+                            .inbox
+                            .push_front(AgentEvent::TradeAccepted(invitee_uid));
+                    }
                     let pricing = agents
                         .get(inviter)
                         .and_then(|a| index.get_site_prices(a))

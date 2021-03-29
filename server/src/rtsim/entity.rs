@@ -206,6 +206,33 @@ pub struct Brain {
 impl Brain {
     pub fn add_memory(&mut self, memory: Memory) { self.memories.push(memory); }
 
+    pub fn remembers_mood(&self) -> bool {
+        self.memories
+            .iter()
+            .any(|memory| matches!(&memory.item, MemoryItem::Mood { .. }))
+    }
+
+    pub fn set_mood(&mut self, memory: Memory) {
+        if let MemoryItem::Mood { .. } = memory.item {
+            if self.remembers_mood() {
+                while let Some(position) = self
+                    .memories
+                    .iter()
+                    .position(|mem| matches!(&mem.item, MemoryItem::Mood { .. }))
+                {
+                    self.memories.remove(position);
+                }
+            }
+            self.add_memory(memory);
+        };
+    }
+
+    pub fn get_mood(&self) -> Option<&Memory> {
+        self.memories
+            .iter()
+            .find(|memory| matches!(&memory.item, MemoryItem::Mood { .. }))
+    }
+
     pub fn remembers_character(&self, name_to_remember: &str) -> bool {
         self.memories.iter().any(|memory| matches!(&memory.item, MemoryItem::CharacterInteraction { name, .. } if name == name_to_remember))
     }
