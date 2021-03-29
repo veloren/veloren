@@ -52,8 +52,6 @@ impl SpatialGrid {
     /// provided axis aligned bounding region
     /// NOTE: for best optimization of the iterator use `for_each` rather than a
     /// for loop
-    // TODO: a circle would be tighter (how efficient would it be to query the cells
-    // intersecting a circle?)
     pub fn in_aabr<'a>(&'a self, aabr: Aabr<i32>) -> impl Iterator<Item = specs::Entity> + 'a {
         let iter = |max_entity_radius, grid: &'a hashbrown::HashMap<_, _>, lg2_cell_size| {
             // Add buffer for other entity radius
@@ -74,6 +72,32 @@ impl SpatialGrid {
             &self.large_grid,
             self.lg2_large_cell_size,
         ))
+    }
+
+    /// Get an iterator over the entities overlapping the
+    /// axis aligned bounding region that contains the provided circle
+    /// NOTE: for best optimization of the iterator use `for_each` rather than a
+    /// for loop
+    // TODO: using the circle directly would be tighter (how efficient would it be
+    // to query the cells intersecting a circle?) (note: if doing this rename
+    // the function)
+    pub fn in_circle_aabr<'a>(
+        &'a self,
+        center: Vec2<f32>,
+        radius: f32,
+    ) -> impl Iterator<Item = specs::Entity> + 'a {
+        let center = center.map(|e| e as i32);
+        let radius = radius.ceil() as i32;
+        // From conversion of center above
+        const CENTER_TRUNCATION_ERROR: i32 = 1;
+        let max_dist = radius + CENTER_TRUNCATION_ERROR;
+
+        let aabr = Aabr {
+            min: center - max_dist,
+            max: center + max_dist,
+        };
+
+        self.in_aabr(aabr)
     }
 
     pub fn clear(&mut self) {

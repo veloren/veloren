@@ -144,7 +144,7 @@ pub struct PhysicsRead<'a> {
 #[derive(SystemData)]
 pub struct PhysicsWrite<'a> {
     physics_metrics: WriteExpect<'a, PhysicsMetrics>,
-    cached_spatial_grid: WriteExpect<'a, common::CachedSpatialGrid>,
+    cached_spatial_grid: Write<'a, common::CachedSpatialGrid>,
     physics_states: WriteStorage<'a, PhysicsState>,
     positions: WriteStorage<'a, Pos>,
     velocities: WriteStorage<'a, Vel>,
@@ -343,27 +343,17 @@ impl<'a> PhysicsData<'a> {
                     let mut entity_entity_collision_checks = 0;
                     let mut entity_entity_collisions = 0;
 
-                    let aabr = {
-                        let center = previous_cache.center.xy().map(|e| e as i32);
-                        let radius = previous_cache.collision_boundary.ceil() as i32;
-                        // From conversion of center above
-                        const CENTER_TRUNCATION_ERROR: i32 = 1;
-                        let max_dist = radius + CENTER_TRUNCATION_ERROR;
-
-                        Aabr {
-                            min: center - max_dist,
-                            max: center + max_dist,
-                        }
-                    };
+                    let query_center = previous_cache.center.xy();
+                    let query_radius = previous_cache.collision_boundary;
 
                     spatial_grid
-                        .in_aabr(aabr)
+                        .in_circle_aabr(query_center, query_radius)
                         .filter_map(|entity| {
                             read.uids
                                 .get(entity)
-                                .zip(positions.get(entity))
-                                .zip(previous_phys_cache.get(entity))
-                                .zip(read.masses.get(entity))
+                                .and_then(|l| positions.get(entity).map(|r| (l, r)))
+                                .and_then(|l| previous_phys_cache.get(entity).map(|r| (l, r)))
+                                .and_then(|l| read.masses.get(entity).map(|r| (l, r)))
                                 .map(|(((uid, pos), previous_cache), mass)| {
                                     (
                                         entity,
@@ -886,27 +876,17 @@ impl<'a> PhysicsData<'a> {
                         }
                     };
                     // Collide with terrain-like entities
-                    let aabr = {
-                        let center = path_sphere.center.xy().map(|e| e as i32);
-                        let radius = path_sphere.radius.ceil() as i32;
-                        // From conversion of center above
-                        const CENTER_TRUNCATION_ERROR: i32 = 1;
-                        let max_dist = radius + CENTER_TRUNCATION_ERROR;
-
-                        Aabr {
-                            min: center - max_dist,
-                            max: center + max_dist,
-                        }
-                    };
+                    let query_center = path_sphere.center.xy();
+                    let query_radius = path_sphere.radius;
                     voxel_collider_spatial_grid
-                        .in_aabr(aabr)
+                        .in_circle_aabr(query_center, query_radius)
                         .filter_map(|entity| {
                             positions
                                 .get(entity)
-                                .zip(velocities.get(entity))
-                                .zip(previous_phys_cache.get(entity))
-                                .zip(read.colliders.get(entity))
-                                .zip(orientations.get(entity))
+                                .and_then(|l| velocities.get(entity).map(|r| (l, r)))
+                                .and_then(|l| previous_phys_cache.get(entity).map(|r| (l, r)))
+                                .and_then(|l| read.colliders.get(entity).map(|r| (l, r)))
+                                .and_then(|l| orientations.get(entity).map(|r| (l, r)))
                                 .map(|((((pos, vel), previous_cache), collider), ori)| {
                                     (entity, pos, vel, previous_cache, collider, ori)
                                 })

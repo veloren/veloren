@@ -206,6 +206,7 @@ impl State {
         ecs.insert(EventBus::<LocalEvent>::default());
         ecs.insert(game_mode);
         ecs.insert(Vec::<common::outcome::Outcome>::new());
+        ecs.insert(common::CachedSpatialGrid::default());
 
         let slow_limit = thread_pool.current_num_threads().max(2) as u64;
         let slow_limit = slow_limit / 2 + slow_limit / 4;

@@ -68,6 +68,7 @@ struct AgentData<'a> {
     is_gliding: bool,
     health: Option<&'a Health>,
     char_state: &'a CharacterState,
+    cached_spatial_grid: &'a common::CachedSpatialGrid,
 }
 
 #[derive(SystemData)]
@@ -76,6 +77,7 @@ pub struct ReadData<'a> {
     uid_allocator: Read<'a, UidAllocator>,
     dt: Read<'a, DeltaTime>,
     time: Read<'a, Time>,
+    cached_spatial_grid: Read<'a, common::CachedSpatialGrid>,
     group_manager: Read<'a, group::GroupManager>,
     energies: ReadStorage<'a, Energy>,
     positions: ReadStorage<'a, Pos>,
@@ -284,6 +286,7 @@ impl<'a> System<'a> for Sys {
                         is_gliding,
                         health: read_data.healths.get(entity),
                         char_state,
+                        cached_spatial_grid: &read_data.cached_spatial_grid,
                     };
 
                     ///////////////////////////////////////////////////////////
@@ -1374,10 +1377,19 @@ impl<'a> AgentData<'a> {
     ) {
         agent.action_timer = 0.0;
 
-        // Search for new targets (this looks expensive, but it's only run occasionally)
-        // TODO: Replace this with a better system that doesn't consider *all* entities
-        let target = (&read_data.entities, &read_data.positions, &read_data.healths, &read_data.stats, &read_data.inventories, read_data.alignments.maybe(), read_data.char_states.maybe())
-            .join()
+        // Search area
+        let target = self.cached_spatial_grid.0
+            .in_circle_aabr(self.pos.0.xy(), SEARCH_DIST)
+            .filter_map(|entity| {
+                read_data.positions
+                    .get(entity)
+                    .and_then(|l| read_data.healths.get(entity).map(|r| (l, r)))
+                    .and_then(|l| read_data.stats.get(entity).map(|r| (l, r)))
+                    .and_then(|l| read_data.inventories.get(entity).map(|r| (l, r)))
+                    .map(|(((pos, health), stats), inventory)| {
+                        (entity, pos, health, stats, inventory, read_data.alignments.get(entity), read_data.char_states.get(entity))
+                    })
+            })
             .filter(|(e, e_pos, e_health, e_stats, e_inventory, e_alignment, char_state)| {
                 let mut search_dist = SEARCH_DIST;
                 let mut listen_dist = LISTEN_DIST;
@@ -1436,6 +1448,7 @@ impl<'a> AgentData<'a> {
 
             })
             // Can we even see them?
+            // TODO: limit ray cast distance to the amount needed to tell if we can see the entity
             .filter(|(_, e_pos, _, _, _, _, _)| read_data.terrain
                 .ray(self.pos.0 + Vec3::unit_z(), e_pos.0 + Vec3::unit_z())
                 .until(Block::is_opaque)
@@ -1443,15 +1456,12 @@ impl<'a> AgentData<'a> {
                 .0 >= e_pos.0.distance(self.pos.0))
             .min_by_key(|(_, e_pos, _, _, _, _, _)| (e_pos.0.distance_squared(self.pos.0) * 100.0) as i32) // TODO choose target by more than just distance
             .map(|(e, _, _, _, _, _, _)| e);
-        if let Some(target) = target {
-            agent.target = Some(Target {
-                target,
-                hostile: true,
-                selected_at: read_data.time.0,
-            })
-        } else {
-            agent.target = None;
-        }
+
+        agent.target = target.map(|target| Target {
+            target,
+            hostile: true,
+            selected_at: read_data.time.0,
+        });
     }
 
     fn jump_if(&self, controller: &mut Controller, condition: bool) {
