@@ -935,7 +935,7 @@ impl<'a> AgentData<'a> {
                                         event_emitter.emit(ServerEvent::Chat(
                                             UnresolvedChatMsg::npc(*self.uid, msg),
                                         ));
-                                    } else if agent.trade_for_site.is_some() {
+                                    } else if self.behavior.has_tag(&BehaviorTag::CanTrade) {
                                         let msg = "npc.speech.merchant_advertisement".to_string();
                                         event_emitter.emit(ServerEvent::Chat(
                                             UnresolvedChatMsg::npc(*self.uid, msg),
