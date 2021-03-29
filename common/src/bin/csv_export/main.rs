@@ -219,7 +219,7 @@ fn all_items() -> Result<(), Box<dyn Error>> {
 
 fn loot_table(loot_table: &str) -> Result<(), Box<dyn Error>> {
     let mut wtr = csv::Writer::from_path("loot_table.csv")?;
-    wtr.write_record(&["Kind", "Item", "Relative Chance"])?;
+    wtr.write_record(&["Relative Chance", "Kind", "Item", "Lower Amount", "Upper Amount"])?;
 
     let loot_table = "common.loot_tables.".to_owned() + loot_table;
 
@@ -236,12 +236,12 @@ fn loot_table(loot_table: &str) -> Result<(), Box<dyn Error>> {
         .div(10_f32.powi(5))
         .to_string();
 
-        let (kind, item) = match item {
-            LootSpec::Item(item) => ("Item", item),
-            LootSpec::LootTable(table) => ("LootTable", table),
-        };
-
-        wtr.write_record(&[kind, item, &chance])?;
+        match item {
+            LootSpec::Item(item) => wtr.write_record(&[&chance, "Item", item, "", ""])?,
+            LootSpec::ItemQuantity(item, lower, upper) => wtr.write_record(&[&chance, "Item", item, &lower.to_string(), &upper.to_string()])?,
+            LootSpec::LootTable(table) => wtr.write_record(&[&chance, "LootTable", table, "", ""])?,
+            LootSpec::CreatureMaterial => wtr.write_record(&[&chance, "CreatureMaterial", "", "", ""])?,
+        }
     }
 
     wtr.flush()?;
