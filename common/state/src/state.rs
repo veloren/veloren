@@ -383,11 +383,11 @@ impl State {
     }
 
     /// Insert the provided chunk into this state's terrain.
-    pub fn insert_chunk(&mut self, key: Vec2<i32>, chunk: TerrainChunk) {
+    pub fn insert_chunk(&mut self, key: Vec2<i32>, chunk: Arc<TerrainChunk>) {
         if self
             .ecs
             .write_resource::<TerrainGrid>()
-            .insert(key, Arc::new(chunk))
+            .insert(key, chunk)
             .is_some()
         {
             self.ecs
