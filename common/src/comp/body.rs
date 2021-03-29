@@ -586,7 +586,7 @@ impl Body {
 
     pub fn get_loot(&self) -> Item {
         Item::new_from_asset_expect(match self {
-            _ => "common.items.food.cheese"
+            _ => "common.items.food.cheese",
         })
     }
 }

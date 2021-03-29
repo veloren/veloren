@@ -13,7 +13,7 @@ use crate::{
         CharacterAbility,
     },
     effect::Effect,
-    lottery::{Lottery, LootSpec},
+    lottery::{LootSpec, Lottery},
     recipe::RecipeInput,
     terrain::{Block, SpriteKind},
 };
@@ -610,7 +610,7 @@ impl Item {
                     _ => "common.loot_tables.armor_misc",
                 })
                 .read();
-                return Some(chosen.choose().to_item(None))
+                return Some(chosen.choose().to_item(None));
             },
             SpriteKind::ChestBurried => {
                 chosen = Lottery::<LootSpec>::load_expect(match rng.gen_range(0..7) {
@@ -620,7 +620,7 @@ impl Item {
                     _ => "common.loot_tables.armor_misc",
                 })
                 .read();
-                return Some(chosen.choose().to_item(None))
+                return Some(chosen.choose().to_item(None));
             },
             SpriteKind::Mud => {
                 chosen = Lottery::<LootSpec>::load_expect(match rng.gen_range(0..5) {
@@ -630,7 +630,7 @@ impl Item {
                     _ => "common.loot_tables.rocks",
                 })
                 .read();
-                return Some(chosen.choose().to_item(None))
+                return Some(chosen.choose().to_item(None));
             },
             SpriteKind::Crate => {
                 chosen = Lottery::<LootSpec>::load_expect(match rng.gen_range(0..4) {
@@ -638,7 +638,7 @@ impl Item {
                     _ => "common.loot_tables.food",
                 })
                 .read();
-                return Some(chosen.choose().to_item(None))
+                return Some(chosen.choose().to_item(None));
             },
 
             SpriteKind::Beehive => "common.items.crafting_ing.honey",

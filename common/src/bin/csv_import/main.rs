@@ -383,12 +383,26 @@ fn loot_table(loot_table: &str) -> Result<(), Box<dyn Error>> {
     for record in rdr.records() {
         if let Ok(ref record) = record {
             let item = match record.get(headers["Kind"]).expect("No loot specifier") {
-                "Item" => if let (Some(Ok(lower)), Some(Ok(upper))) = (record.get(headers["Lower Amount"]).map(|a| a.parse()), record.get(headers["Upper Amount"]).map(|a| a.parse())) {
-                    LootSpec::ItemQuantity(record.get(headers["Item"]).expect("No item").to_string(), lower, upper)
-                } else {
-                    LootSpec::Item(record.get(headers["Item"]).expect("No item").to_string())
+                "Item" => {
+                    if let (Some(Ok(lower)), Some(Ok(upper))) = (
+                        record.get(headers["Lower Amount"]).map(|a| a.parse()),
+                        record.get(headers["Upper Amount"]).map(|a| a.parse()),
+                    ) {
+                        LootSpec::ItemQuantity(
+                            record.get(headers["Item"]).expect("No item").to_string(),
+                            lower,
+                            upper,
+                        )
+                    } else {
+                        LootSpec::Item(record.get(headers["Item"]).expect("No item").to_string())
+                    }
                 },
-                "LootTable" => LootSpec::LootTable(record.get(headers["Item"]).expect("No loot table").to_string()),
+                "LootTable" => LootSpec::LootTable(
+                    record
+                        .get(headers["Item"])
+                        .expect("No loot table")
+                        .to_string(),
+                ),
                 "CreatureMaterial" => LootSpec::CreatureMaterial,
                 _ => panic!("Loot specifier kind must be either \"Item\" or \"LootTable\""),
             };

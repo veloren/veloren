@@ -18,7 +18,7 @@ use common::{
         HealthSource, Inventory, Player, Poise, PoiseChange, PoiseSource, Pos, Stats,
     },
     event::{EventBus, ServerEvent},
-    lottery::{Lottery, LootSpec},
+    lottery::{LootSpec, Lottery},
     outcome::Outcome,
     resources::Time,
     rtsim::RtSimEntity,
@@ -368,9 +368,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                 Some(common::comp::Body::QuadrupedMedium(quadruped_medium)) => {
                     match quadruped_medium.species {
                         quadruped_medium::Species::Frostfang
-                        | quadruped_medium::Species::Roshwalr => {
-                            "common.loot_tables.animal_ice"
-                        },
+                        | quadruped_medium::Species::Roshwalr => "common.loot_tables.animal_ice",
                         _ => match rng.gen_range(0..4) {
                             0 => "common.loot_tables.food",
                             2 => "common.loot_tables.animal_parts",
@@ -427,9 +425,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                 Some(common::comp::Body::Dragon(_)) => "common.loot_tables.weapon_rare",
                 Some(common::comp::Body::QuadrupedLow(quadruped_low)) => {
                     match quadruped_low.species {
-                        quadruped_low::Species::Maneater => {
-                            "common.loot_tables.maneater"
-                        },
+                        quadruped_low::Species::Maneater => "common.loot_tables.maneater",
                         _ => match rng.gen_range(0..3) {
                             0 => "common.loot_tables.food",
                             1 => "common.loot_tables.animal_parts",

@@ -17,7 +17,7 @@ use veloren_common::{
             ItemKind,
         },
     },
-    lottery::{Lottery, LootSpec},
+    lottery::{LootSpec, Lottery},
 };
 
 #[derive(StructOpt)]
@@ -219,7 +219,13 @@ fn all_items() -> Result<(), Box<dyn Error>> {
 
 fn loot_table(loot_table: &str) -> Result<(), Box<dyn Error>> {
     let mut wtr = csv::Writer::from_path("loot_table.csv")?;
-    wtr.write_record(&["Relative Chance", "Kind", "Item", "Lower Amount", "Upper Amount"])?;
+    wtr.write_record(&[
+        "Relative Chance",
+        "Kind",
+        "Item",
+        "Lower Amount",
+        "Upper Amount",
+    ])?;
 
     let loot_table = "common.loot_tables.".to_owned() + loot_table;
 
@@ -238,9 +244,19 @@ fn loot_table(loot_table: &str) -> Result<(), Box<dyn Error>> {
 
         match item {
             LootSpec::Item(item) => wtr.write_record(&[&chance, "Item", item, "", ""])?,
-            LootSpec::ItemQuantity(item, lower, upper) => wtr.write_record(&[&chance, "Item", item, &lower.to_string(), &upper.to_string()])?,
-            LootSpec::LootTable(table) => wtr.write_record(&[&chance, "LootTable", table, "", ""])?,
-            LootSpec::CreatureMaterial => wtr.write_record(&[&chance, "CreatureMaterial", "", "", ""])?,
+            LootSpec::ItemQuantity(item, lower, upper) => wtr.write_record(&[
+                &chance,
+                "Item",
+                item,
+                &lower.to_string(),
+                &upper.to_string(),
+            ])?,
+            LootSpec::LootTable(table) => {
+                wtr.write_record(&[&chance, "LootTable", table, "", ""])?
+            },
+            LootSpec::CreatureMaterial => {
+                wtr.write_record(&[&chance, "CreatureMaterial", "", "", ""])?
+            },
         }
     }
 
