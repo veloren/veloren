@@ -548,6 +548,7 @@ impl Floor {
                         .map(|density| dynamic_rng.gen_range(0..density.recip() as usize) == 0)
                         .unwrap_or(false)
                         && !tile_is_pillar
+                        && !(room.boss && room.difficulty == 5)
                     {
                         // Bad
                         let chosen = match room.difficulty {
@@ -833,7 +834,7 @@ impl Floor {
                                     "common.loot_tables.loot_table_miniboss",
                                 ),
                                 5 => Lottery::<String>::load_expect(
-                                    match dynamic_rng.gen_range(0..4) {
+                                    match dynamic_rng.gen_range(0..3) {
                                         0 => "common.loot_tables.mindflayer",
                                         _ => "common.loot_tables.loot_table_miniboss",
                                     },
