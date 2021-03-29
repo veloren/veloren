@@ -7,7 +7,7 @@ members = [
     "common/ecs",
     "common/net",
     "common/state",
-    "common/sys",
+    "common/systems",
     "common/frontend",
     "client",
     "plugin/api",
