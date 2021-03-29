@@ -715,6 +715,7 @@ impl<'a> AgentData<'a> {
         if let Some((travel_to, _destination)) = &agent.rtsim_controller.travel_to {
             // if it has an rtsim destination and can fly then it should
             // if it is flying and bumps something above it then it should move down
+            prof_span!(guard, "rayfly");
             if self.traversal_config.can_fly
                 && !read_data
                     .terrain
@@ -732,6 +733,7 @@ impl<'a> AgentData<'a> {
                     .actions
                     .push(ControlAction::CancelInput(InputKind::Fly))
             }
+            drop(guard);
             if let Some((bearing, speed)) = agent.chaser.chase(
                 &*read_data.terrain,
                 self.pos.0,
@@ -751,6 +753,8 @@ impl<'a> AgentData<'a> {
 
                 controller.inputs.move_z = bearing.z
                     + if self.traversal_config.can_fly {
+                        prof_span!(guard, "rayobstacle");
+                        // NOTE: costs 4 us (imbris)
                         let obstacle_ahead = read_data
                             .terrain
                             .ray(
@@ -763,9 +767,11 @@ impl<'a> AgentData<'a> {
                             .cast()
                             .1
                             .map_or(true, |b| b.is_some());
+                        drop(guard);
                         let mut ground_too_close = self
                             .body
                             .map(|body| {
+                                prof_span!(_guard, "alt approx");
                                 #[cfg(feature = "worldgen")]
                                 let height_approx = self.pos.0.y
                                     - read_data
@@ -781,6 +787,9 @@ impl<'a> AgentData<'a> {
                             .unwrap_or(false);
 
                         const NUM_RAYS: usize = 5;
+
+                        prof_span!(guard, "rays");
+                        // NOTE: costs 15-20 us (imbris)
                         for i in 0..=NUM_RAYS {
                             let magnitude = self.body.map_or(20.0, |b| b.flying_height());
                             // Lerp between a line straight ahead and straight down to detect a
@@ -802,6 +811,7 @@ impl<'a> AgentData<'a> {
                                     .map_or(false, |b| b.is_some())
                             }
                         }
+                        drop(guard);
 
                         if obstacle_ahead || ground_too_close {
                             1.0 //fly up when approaching obstacles
@@ -823,6 +833,7 @@ impl<'a> AgentData<'a> {
                 }
             }
         } else {
+            prof_span!(_guard, "else");
             agent.bearing += Vec2::new(
                 thread_rng().gen::<f32>() - 0.5,
                 thread_rng().gen::<f32>() - 0.5,
@@ -833,6 +844,8 @@ impl<'a> AgentData<'a> {
                 });
 
             // Stop if we're too close to a wall
+            prof_span!(guard, "wall ray");
+            // NOTE: costs 1 us (imbris)
             agent.bearing *= 0.1
                 + if read_data
                     .terrain
@@ -854,6 +867,7 @@ impl<'a> AgentData<'a> {
                 } else {
                     0.0
                 };
+            drop(guard);
 
             if agent.bearing.magnitude_squared() > 0.5f32.powi(2) {
                 controller.inputs.move_dir = agent.bearing * 0.65;
@@ -1448,7 +1462,6 @@ impl<'a> AgentData<'a> {
 
             })
             // Can we even see them?
-            // TODO: limit ray cast distance to the amount needed to tell if we can see the entity
             .filter(|(_, e_pos, _, _, _, _, _)| read_data.terrain
                 .ray(self.pos.0 + Vec3::unit_z(), e_pos.0 + Vec3::unit_z())
                 .until(Block::is_opaque)
