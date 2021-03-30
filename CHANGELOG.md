@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dungeons now have multiple kinds of stairs.
 - Trades now display item prices in tooltips.
 - Admin designated build areas
+- Indicator text to collectable terrain sprites
 
 ### Changed
 

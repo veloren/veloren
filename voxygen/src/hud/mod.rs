@@ -53,6 +53,7 @@ use crate::{
     i18n::{LanguageMetadata, Localization},
     render::{Consts, Globals, RenderMode, Renderer},
     scene::camera::{self, Camera},
+    session::Interactable,
     settings::Fps,
     ui::{
         fonts::Fonts, img_ids::Rotations, slot, slot::SlotKey, Graphic, Ingameable, ScaleMode, Ui,
@@ -67,7 +68,7 @@ use common::{
         self,
         item::{tool::ToolKind, ItemDesc, MaterialStatManifest, Quality},
         skills::{Skill, SkillGroupKind},
-        BuffKind,
+        BuffKind, Item,
     },
     outcome::Outcome,
     terrain::TerrainChunk,
@@ -901,6 +902,7 @@ impl Hud {
         dt: Duration,
         info: HudInfo,
         camera: &Camera,
+        interactable: Option<Interactable>,
     ) -> Vec<Event> {
         span!(_guard, "update_layout", "Hud::update_layout");
         let mut events = std::mem::replace(&mut self.events, Vec::new());
@@ -1330,19 +1332,7 @@ impl Hud {
             let mut sct_walker = self.ids.scts.walk();
             let mut sct_bg_walker = self.ids.sct_bgs.walk();
 
-            // Render overitem: name, etc.
-            for (pos, item, distance) in (&entities, &pos, &items)
-                .join()
-                .map(|(_, pos, item)| (pos, item, pos.0.distance_squared(player_pos)))
-                .filter(|(_, _, distance)| distance < &common::consts::MAX_PICKUP_RANGE.powi(2))
-            {
-                let overitem_id = overitem_walker.next(
-                    &mut self.ids.overitems,
-                    &mut ui_widgets.widget_id_generator(),
-                );
-
-                let ingame_pos = pos.0 + Vec3::unit_z() * 1.2;
-
+            let make_overitem = |item: &Item, pos, distance, active, fonts| {
                 let text = if item.amount() > 1 {
                     format!("{} x {}", item.amount(), item.name())
                 } else {
@@ -1353,15 +1343,72 @@ impl Hud {
 
                 // Item
                 overitem::Overitem::new(
-                    &text,
-                    &quality,
-                    &distance,
-                    &self.fonts,
+                    text.into(),
+                    quality,
+                    distance,
+                    fonts,
                     &global_state.settings.controls,
+                    // If we're currently set to interact with the item...
+                    active,
                 )
                 .x_y(0.0, 100.0)
-                .position_ingame(ingame_pos)
+                .position_ingame(pos)
+            };
+
+            // Render overitem: name, etc.
+            for (entity, pos, item, distance) in (&entities, &pos, &items)
+                .join()
+                .map(|(entity, pos, item)| (entity, pos, item, pos.0.distance_squared(player_pos)))
+                .filter(|(_, _, _, distance)| distance < &common::consts::MAX_PICKUP_RANGE.powi(2))
+            {
+                let overitem_id = overitem_walker.next(
+                    &mut self.ids.overitems,
+                    &mut ui_widgets.widget_id_generator(),
+                );
+
+                make_overitem(
+                    item,
+                    pos.0 + Vec3::unit_z() * 1.2,
+                    distance,
+                    interactable.as_ref().and_then(|i| i.entity()) == Some(entity),
+                    &self.fonts,
+                )
                 .set(overitem_id, ui_widgets);
+            }
+
+            // Render overtime for an interactable block
+            if let Some(Interactable::Block(block, pos)) = interactable {
+                let overitem_id = overitem_walker.next(
+                    &mut self.ids.overitems,
+                    &mut ui_widgets.widget_id_generator(),
+                );
+
+                let pos = pos.map(|e| e as f32 + 0.5);
+                let over_pos = pos + Vec3::unit_z() * 0.7;
+
+                // This is only done once per frame, so it's not a performance issue
+                if block.get_sprite().map_or(false, |s| s.is_container()) {
+                    overitem::Overitem::new(
+                        "???".into(),
+                        overitem::TEXT_COLOR,
+                        pos.distance_squared(player_pos),
+                        &self.fonts,
+                        &global_state.settings.controls,
+                        true,
+                    )
+                    .x_y(0.0, 100.0)
+                    .position_ingame(over_pos)
+                    .set(overitem_id, ui_widgets);
+                } else if let Some(item) = Item::try_reclaim_from_block(block) {
+                    make_overitem(
+                        &item,
+                        over_pos,
+                        pos.distance_squared(player_pos),
+                        true,
+                        &self.fonts,
+                    )
+                    .set(overitem_id, ui_widgets);
+                }
             }
 
             let speech_bubbles = &self.speech_bubbles;
@@ -3244,6 +3291,7 @@ impl Hud {
         camera: &Camera,
         dt: Duration,
         info: HudInfo,
+        interactable: Option<Interactable>,
     ) -> Vec<Event> {
         span!(_guard, "maintain", "Hud::maintain");
         // conrod eats tabs. Un-eat a tabstop so tab completion can work
@@ -3272,7 +3320,15 @@ impl Hud {
         if let Some(maybe_id) = self.to_focus.take() {
             self.ui.focus_widget(maybe_id);
         }
-        let events = self.update_layout(client, global_state, debug_info, dt, info, camera);
+        let events = self.update_layout(
+            client,
+            global_state,
+            debug_info,
+            dt,
+            info,
+            camera,
+            interactable,
+        );
         let camera::Dependents {
             view_mat, proj_mat, ..
         } = camera.dependents();

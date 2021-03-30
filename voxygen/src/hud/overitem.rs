@@ -7,6 +7,9 @@ use conrod_core::{
     widget::{self, RoundedRectangle, Text},
     widget_ids, Color, Colorable, Positionable, Widget, WidgetCommon,
 };
+use std::borrow::Cow;
+
+pub const TEXT_COLOR: Color = Color::Rgba(0.61, 0.61, 0.89, 1.0);
 
 widget_ids! {
     struct Ids {
@@ -23,22 +26,24 @@ widget_ids! {
 /// (Item, DistanceFromPlayer, Rarity, etc.)
 #[derive(WidgetCommon)]
 pub struct Overitem<'a> {
-    name: &'a str,
-    quality: &'a Color,
-    distance_from_player_sqr: &'a f32,
+    name: Cow<'a, str>,
+    quality: Color,
+    distance_from_player_sqr: f32,
     fonts: &'a Fonts,
     controls: &'a ControlSettings,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
+    active: bool,
 }
 
 impl<'a> Overitem<'a> {
     pub fn new(
-        name: &'a str,
-        quality: &'a Color,
-        distance_from_player_sqr: &'a f32,
+        name: Cow<'a, str>,
+        quality: Color,
+        distance_from_player_sqr: f32,
         fonts: &'a Fonts,
         controls: &'a ControlSettings,
+        active: bool,
     ) -> Self {
         Self {
             name,
@@ -47,6 +52,7 @@ impl<'a> Overitem<'a> {
             fonts,
             controls,
             common: widget::CommonBuilder::default(),
+            active,
         }
     }
 }
@@ -84,7 +90,6 @@ impl<'a> Widget for Overitem<'a> {
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { id, state, ui, .. } = args;
 
-        let text_color = Color::Rgba(0.61, 0.61, 0.89, 1.0);
         let btn_color = Color::Rgba(0.0, 0.0, 0.0, 0.4);
 
         // Example:
@@ -121,14 +126,18 @@ impl<'a> Widget for Overitem<'a> {
         Text::new(&self.name)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(text_font_size as u32)
-            .color(*self.quality)
+            .color(self.quality)
             .x_y(0.0, text_pos_y)
             .depth(self.distance_from_player_sqr + 3.0)
             .parent(id)
             .set(state.ids.name, ui);
 
         // Pickup Button
-        if let Some(key_button) = self.controls.get_binding(GameInput::Interact) {
+        if let Some(key_button) = self
+            .controls
+            .get_binding(GameInput::Interact)
+            .filter(|_| self.active)
+        {
             RoundedRectangle::fill_with([btn_rect_size, btn_rect_size], btn_radius, btn_color)
                 .x_y(0.0, btn_rect_pos_y)
                 .depth(self.distance_from_player_sqr + 1.0)
@@ -137,7 +146,7 @@ impl<'a> Widget for Overitem<'a> {
             Text::new(&format!("{}", key_button))
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(btn_font_size as u32)
-                .color(text_color)
+                .color(TEXT_COLOR)
                 .x_y(0.0, btn_text_pos_y)
                 .depth(self.distance_from_player_sqr + 2.0)
                 .parent(id)

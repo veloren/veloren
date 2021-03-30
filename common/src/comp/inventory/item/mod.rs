@@ -597,6 +597,9 @@ impl Item {
             SpriteKind::MediumGrass => "common.items.grasses.medium",
             SpriteKind::ShortGrass => "common.items.grasses.short",
             SpriteKind::Coconut => "common.items.food.coconut",
+
+            // Containers
+            // IMPORTANT: Add any new container to `SpriteKind::is_container`
             SpriteKind::Chest => {
                 chosen = Lottery::<String>::load_expect(match rng.gen_range(0..7) {
                     0 => "common.loot_tables.loot_table_weapon_uncommon",
@@ -637,6 +640,7 @@ impl Item {
                 .read();
                 chosen.choose()
             },
+
             SpriteKind::Beehive => "common.items.crafting_ing.honey",
             SpriteKind::Stones => "common.items.crafting_ing.stones",
             SpriteKind::Twigs => "common.items.crafting_ing.twigs",
