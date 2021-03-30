@@ -105,7 +105,7 @@ impl LootSpec {
                 .to_item(body),
             Self::CreatureMaterial => body.map_or(
                 Item::new_from_asset_expect("common.items.food.cheese"),
-                |b| b.get_loot(),
+                |b| b.get_material(),
             ),
         }
     }

@@ -604,10 +604,10 @@ impl Item {
                 chosen = Lottery::<LootSpec>::load_expect(match rng.gen_range(0..7) {
                     0 => "common.loot_tables.weapon_uncommon",
                     1 => "common.loot_tables.weapon_common",
-                    2 => "common.loot_tables.armor_light",
-                    3 => "common.loot_tables.armor_cloth",
-                    4 => "common.loot_tables.armor_heavy",
-                    _ => "common.loot_tables.armor_misc",
+                    2 => "common.loot_tables.armor.armor_light",
+                    3 => "common.loot_tables.armor.armor_cloth",
+                    4 => "common.loot_tables.armor.armor_heavy",
+                    _ => "common.loot_tables.armor.armor_misc",
                 })
                 .read();
                 return Some(chosen.choose().to_item(None));
@@ -615,9 +615,9 @@ impl Item {
             SpriteKind::ChestBurried => {
                 chosen = Lottery::<LootSpec>::load_expect(match rng.gen_range(0..7) {
                     1 => "common.loot_tables.weapon_common",
-                    2 => "common.loot_tables.armor_light",
-                    3 => "common.loot_tables.armor_cloth",
-                    _ => "common.loot_tables.armor_misc",
+                    2 => "common.loot_tables.armor.armor_light",
+                    3 => "common.loot_tables.armor.armor_cloth",
+                    _ => "common.loot_tables.armor.armor_misc",
                 })
                 .read();
                 return Some(chosen.choose().to_item(None));
@@ -626,7 +626,7 @@ impl Item {
                 chosen = Lottery::<LootSpec>::load_expect(match rng.gen_range(0..5) {
                     0 => "common.loot_tables.crafting",
                     1 => "common.loot_tables.weapon_common",
-                    2 => "common.loot_tables.armor_misc",
+                    2 => "common.loot_tables.armor.armor_misc",
                     _ => "common.loot_tables.rocks",
                 })
                 .read();

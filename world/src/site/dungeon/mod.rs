@@ -555,28 +555,28 @@ impl Floor {
                             0 => Lottery::<LootSpec>::load_expect(
                                 match dynamic_rng.gen_range(0..4) {
                                     0 => "common.loot_tables.humanoids",
-                                    1 => "common.loot_tables.armor_cloth",
+                                    1 => "common.loot_tables.armor.armor_cloth",
                                     _ => "common.loot_tables.weapon_common",
                                 },
                             ),
                             1 => Lottery::<LootSpec>::load_expect(
                                 match dynamic_rng.gen_range(0..4) {
                                     0 => "common.loot_tables.humanoids",
-                                    1 => "common.loot_tables.armor_light",
+                                    1 => "common.loot_tables.armor.armor_light",
                                     _ => "common.loot_tables.weapon_uncommon",
                                 },
                             ),
                             2 => Lottery::<LootSpec>::load_expect(
                                 match dynamic_rng.gen_range(0..4) {
                                     0 => "common.loot_tables.humanoids",
-                                    1 => "common.loot_tables.armor_heavy",
+                                    1 => "common.loot_tables.armor.armor_heavy",
                                     _ => "common.loot_tables.weapon_rare",
                                 },
                             ),
                             3 => Lottery::<LootSpec>::load_expect(
                                 match dynamic_rng.gen_range(0..10) {
                                     0 => "common.loot_tables.humanoids",
-                                    1 => "common.loot_tables.armor_heavy",
+                                    1 => "common.loot_tables.armor.armor_heavy",
                                     2 => "common.loot_tables.weapon_rare",
                                     _ => "common.loot_tables.cultists",
                                 },
@@ -584,7 +584,7 @@ impl Floor {
                             4 => Lottery::<LootSpec>::load_expect(
                                 match dynamic_rng.gen_range(0..6) {
                                     0 => "common.loot_tables.humanoids",
-                                    1 => "common.loot_tables.armor_misc",
+                                    1 => "common.loot_tables.armor.armor_misc",
                                     2 => "common.loot_tables.weapon_rare",
                                     _ => "common.loot_tables.cultists",
                                 },
@@ -592,12 +592,14 @@ impl Floor {
                             5 => Lottery::<LootSpec>::load_expect(
                                 match dynamic_rng.gen_range(0..5) {
                                     0 => "common.loot_tables.humanoids",
-                                    1 => "common.loot_tables.armor_misc",
+                                    1 => "common.loot_tables.armor.armor_misc",
                                     2 => "common.loot_tables.weapon_rare",
                                     _ => "common.loot_tables.cultists",
                                 },
                             ),
-                            _ => Lottery::<LootSpec>::load_expect("common.loot_tables.armor_misc"),
+                            _ => Lottery::<LootSpec>::load_expect(
+                                "common.loot_tables.armor.armor_misc",
+                            ),
                         };
                         let chosen = chosen.read();
                         let chosen = chosen.choose();
@@ -844,7 +846,7 @@ impl Floor {
                                     "common.loot_tables.weapon_uncommon",
                                 ),
                                 2 => Lottery::<LootSpec>::load_expect(
-                                    "common.loot_tables.armor_heavy",
+                                    "common.loot_tables.armor.armor_heavy",
                                 ),
                                 3 => Lottery::<LootSpec>::load_expect(
                                     "common.loot_tables.weapon_rare",
@@ -859,7 +861,7 @@ impl Floor {
                                     },
                                 ),
                                 _ => Lottery::<LootSpec>::load_expect(
-                                    "common.loot_tables.armor_misc",
+                                    "common.loot_tables.armor.armor_misc",
                                 ),
                             };
                             let chosen = chosen.read();
@@ -997,13 +999,13 @@ impl Floor {
                         if tile_pos == miniboss_spawn_tile && tile_wcenter.xy() == wpos2d {
                             let chosen = match room.difficulty {
                                 0 => Lottery::<LootSpec>::load_expect(
-                                    "common.loot_tables.animal_parts",
+                                    "common.loot_tables.wild_animal",
                                 ),
                                 1 => Lottery::<LootSpec>::load_expect(
-                                    "common.loot_tables.animal_parts",
+                                    "common.loot_tables.wild_animal",
                                 ),
                                 2 => Lottery::<LootSpec>::load_expect(
-                                    "common.loot_tables.animal_parts",
+                                    "common.loot_tables.wild_animal",
                                 ),
                                 3 => Lottery::<LootSpec>::load_expect(
                                     "common.loot_tables.weapon_rare",
@@ -1013,7 +1015,7 @@ impl Floor {
                                 ),
                                 5 => Lottery::<LootSpec>::load_expect("common.loot_tables.husk"),
                                 _ => Lottery::<LootSpec>::load_expect(
-                                    "common.loot_tables.armor_misc",
+                                    "common.loot_tables.armor.armor_misc",
                                 ),
                             };
                             let chosen = chosen.read();

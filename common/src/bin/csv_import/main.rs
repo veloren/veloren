@@ -422,7 +422,9 @@ fn loot_table(loot_table: &str) -> Result<(), Box<dyn Error>> {
     let mut path = ASSETS_PATH.clone();
     path.push("common");
     path.push("loot_tables");
-    path.push(loot_table);
+    for part in loot_table.split(".") {
+        path.push(part);
+    }
     path.set_extension("ron");
 
     let path_str = path.to_str().expect("File path not unicode?!");

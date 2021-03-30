@@ -1,9 +1,6 @@
 use crate::{
     client::Client,
-    comp::{
-        biped_large, quadruped_low, quadruped_medium, quadruped_small, skills::SkillGroupKind,
-        theropod, PhysicsState,
-    },
+    comp::{biped_large, quadruped_low, quadruped_small, skills::SkillGroupKind, PhysicsState},
     rtsim::RtSim,
     Server, SpawnPoint, StateExt,
 };
@@ -346,8 +343,8 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
             Lottery::<LootSpec>::load_expect(match old_body {
                 Some(common::comp::Body::Humanoid(_)) => match rng.gen_range(0..4) {
                     0 => "common.loot_tables.humanoids",
-                    1 => "common.loot_tables.armor_light",
-                    2 => "common.loot_tables.armor_cloth",
+                    1 => "common.loot_tables.armor.armor_light",
+                    2 => "common.loot_tables.armor.armor_cloth",
                     3 => "common.loot_tables.weapon_common",
                     4 => "common.loots_tables.loot_table_armor_misc",
                     _ => "common.loot_tables.humanoids",
@@ -360,21 +357,14 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                         },
                         _ => match rng.gen_range(0..4) {
                             0 => "common.loot_tables.food",
-                            2 => "common.loot_tables.animal_parts",
-                            _ => "common.loot_tables.animal_parts",
+                            2 => "common.loot_tables.wild_animal",
+                            _ => "common.loot_tables.wild_animal",
                         },
                     }
                 },
-                Some(common::comp::Body::QuadrupedMedium(quadruped_medium)) => {
-                    match quadruped_medium.species {
-                        quadruped_medium::Species::Frostfang
-                        | quadruped_medium::Species::Roshwalr => "common.loot_tables.animal_ice",
-                        _ => match rng.gen_range(0..4) {
-                            0 => "common.loot_tables.food",
-                            2 => "common.loot_tables.animal_parts",
-                            _ => "common.loot_tables.animal_parts",
-                        },
-                    }
+                Some(common::comp::Body::QuadrupedMedium(_)) => match rng.gen_range(0..4) {
+                    0 => "common.loot_tables.food",
+                    _ => "common.loot_tables.wild_animal",
                 },
                 Some(common::comp::Body::BirdMedium(_)) => match rng.gen_range(0..3) {
                     0 => "common.loot_tables.food",
@@ -385,7 +375,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                 Some(common::comp::Body::BipedLarge(biped_large)) => match biped_large.species {
                     biped_large::Species::Wendigo => match rng.gen_range(0..7) {
                         0 => "common.loot_tables.food",
-                        1 => "common.loot_tables.wendigo",
+                        1 => "common.loot_tables.wild_animal",
                         2 => "common.loot_tables.weapon_uncommon",
                         _ => "common.loot_tables.cave_large",
                     },
@@ -393,42 +383,34 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                         0 => "common.loot_tables.food",
                         1 => "common.loot_tables.cave_large",
                         2 => "common.loot_tables.weapon_uncommon",
-                        _ => "common.loot_tables.troll",
+                        _ => "common.loot_tables.wild_animal",
                     },
                     biped_large::Species::Occultsaurok
                     | biped_large::Species::Mightysaurok
                     | biped_large::Species::Slysaurok => "common.loot_tables.saurok",
                     _ => match rng.gen_range(0..4) {
                         0 => "common.loot_tables.food",
-                        1 => "common.loot_tables.armor_nature",
+                        1 => "common.loot_tables.armor.armor_nature",
                         _ => "common.loot_tables.cave_large",
                     },
                 },
                 Some(common::comp::Body::Golem(_)) => match rng.gen_range(0..9) {
                     0 => "common.loot_tables.food",
-                    2 => "common.loot_tables.armor_light",
-                    3 => "common.loot_tables.armor_heavy",
+                    2 => "common.loot_tables.armor.armor_light",
+                    3 => "common.loot_tables.armor.armor_heavy",
                     5 => "common.loot_tables.weapon_common",
                     6 => "common.loot_tables.weapon_uncommon",
                     7 => "common.loot_tables.weapon_rare",
                     _ => "common.loot_tables.fallback",
                 },
-                Some(common::comp::Body::Theropod(theropod)) => match theropod.species {
-                    theropod::Species::Sandraptor
-                    | theropod::Species::Snowraptor
-                    | theropod::Species::Woodraptor => match rng.gen_range(0..3) {
-                        0 => "common.loot_tables.raptor",
-                        _ => "common.loot_tables.animal_parts",
-                    },
-                    _ => "common.loot_tables.animal_parts",
-                },
+                Some(common::comp::Body::Theropod(_)) => "common.loot_tables.wild_animal",
                 Some(common::comp::Body::Dragon(_)) => "common.loot_tables.weapon_rare",
                 Some(common::comp::Body::QuadrupedLow(quadruped_low)) => {
                     match quadruped_low.species {
                         quadruped_low::Species::Maneater => "common.loot_tables.maneater",
                         _ => match rng.gen_range(0..3) {
                             0 => "common.loot_tables.food",
-                            1 => "common.loot_tables.animal_parts",
+                            1 => "common.loot_tables.wild_animal",
                             _ => "common.loot_tables.fallback",
                         },
                     }
