@@ -77,6 +77,7 @@ impl<'a> System<'a> for Sys {
                 },
             };
             // Send the chunk to all nearby players.
+            let mut lazy_msg = None;
             for (presence, pos, client) in (&presences, &positions, &clients).join() {
                 let chunk_pos = terrain.pos_key(pos.0.map(|e| e as i32));
                 // Subtract 2 from the offset before computing squared magnitude
@@ -87,10 +88,13 @@ impl<'a> System<'a> for Sys {
                     .magnitude_squared();
 
                 if adjusted_dist_sqr <= presence.view_distance.pow(2) {
-                    client.send_fallible(ServerGeneral::TerrainChunkUpdate {
-                        key,
-                        chunk: Ok(Box::new(chunk.clone())),
-                    });
+                    if lazy_msg.is_none() {
+                        lazy_msg = Some(client.prepare(ServerGeneral::TerrainChunkUpdate {
+                            key,
+                            chunk: Ok(Box::new(chunk.clone())),
+                        }));
+                    }
+                    lazy_msg.as_ref().map(|ref msg| client.send_prepared(&msg));
                 }
             }
 
