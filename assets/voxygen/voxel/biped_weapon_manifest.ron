@@ -862,7 +862,7 @@
         color: None
     ),
     "common.items.weapons.staff.bone_staff": (
-        vox_spec: ("weapon.staff.firestaff_bone", (-1.5, -2.5, -3.0)),
+        vox_spec: ("weapon.staff.bone_staff", (-1.5, -2.5, -3.0)),
         color: None
     ),
     "common.items.weapons.staff.crimson_eye": (
@@ -913,32 +913,28 @@
         vox_spec: ("weapon.staff.bent_fuse", (-2.0, -2.5, -5.0)),
         color: None
     ),
-    "common.items.weapons.staff.eldwood": (
-        vox_spec: ("weapon.staff.eldwood", (-1.5, -4.5, -3.0)),
-        color: None
-    ),
     "common.items.weapons.staff.frostwood_torch": (
         vox_spec: ("weapon.staff.frostwood_torch", (-2.5, -3.5, -3.0)),
         color: None
     ),
     "common.items.weapons.staff.golden_khakkara": (
-        vox_spec: ("weapon.staff.golden_khakkara", (-2.5, -3.5, -4.0)),
+        vox_spec: ("weapon.staff.golden_khakkara", (-2.5, -3.5, -6.0)),
         color: None
     ),
     "common.items.weapons.staff.laevateinn": (
-        vox_spec: ("weapon.staff.laevateinn", (-1.5, -4.5, -4.0)),
+        vox_spec: ("weapon.staff.laevateinn", (-1.5, -4.5, -6.0)),
         color: None
     ),
     "common.items.weapons.staff.ruby_rod": (
-        vox_spec: ("weapon.staff.ruby_rod", (-1.5, -3.5, -3.0)),
+        vox_spec: ("weapon.staff.ruby_rod", (-1.5, -3.5, -4.0)),
         color: None
     ),
     "common.items.weapons.staff.dragon_tongue": (
-        vox_spec: ("weapon.staff.dragon_tongue", (-2.5, -6.0, -5.0)),
+        vox_spec: ("weapon.staff.dragon_tongue", (-2.5, -6.0, -7.0)),
         color: None
     ),
     "common.items.weapons.staff.solar": (
-        vox_spec: ("weapon.staff.solar", (-1.5, -4.5, -3.0)),
+        vox_spec: ("weapon.staff.solar", (-1.5, -4.5, -4.0)),
         color: None
     ),
     // Sceptres
@@ -979,7 +975,7 @@
         color: None
     ),
     "common.items.weapons.sceptre.caduceus": (
-        vox_spec: ("weapon.sceptre.caduceus", (-1.5, -4.5, -4.0)),
+        vox_spec: ("weapon.sceptre.caduceus", (-1.5, -4.5, -6.0)),
         color: None
     ),
     "common.items.weapons.sceptre.coralline_cane": (
@@ -995,7 +991,7 @@
         color: None
     ),
     "common.items.weapons.sceptre.druids_arbor": (
-        vox_spec: ("weapon.sceptre.druids_arbor", (-1.5, -4.5, -6.0)),
+        vox_spec: ("weapon.sceptre.druids_arbor", (-1.5, -4.5, -4.0)),
         color: None
     ),
     "common.items.weapons.sceptre.amethyst": (

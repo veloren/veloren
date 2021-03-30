@@ -171,7 +171,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             group_size: 3..8,
             is_underwater: false,
             get_density: |c, col| {
-                close(c.temp, CONFIG.snow_temp + 0.2, 0.6) * col.tree_density * BASE_DENSITY * 1.0
+                close(c.temp, CONFIG.snow_temp + 0.2, 0.6) * col.tree_density * BASE_DENSITY * 0.9
             },
         },
         // Taiga pack wild

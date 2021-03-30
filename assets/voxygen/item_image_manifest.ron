@@ -870,7 +870,7 @@
         (1.0, 0.0, 0.0), (-130., 90.0, 0.0), 1.2,
     ),
     Tool("common.items.weapons.staff.bone_staff"): VoxTrans(
-        "voxel.weapon.staff.firestaff_bone",
+        "voxel.weapon.staff.bone_staff",
         (1.0, 0.0, 0.0), (-130., 90.0, 0.0), 1.2,
     ),
     Tool("common.items.weapons.staff.crimson_eye"): VoxTrans(
@@ -919,10 +919,6 @@
     ),
     Tool("common.items.weapons.staff.heated_arm"): VoxTrans(
         "voxel.weapon.staff.heated_arm",
-        (1.0, 0.0, 0.0), (-130., 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.staff.eldwood"): VoxTrans(
-        "voxel.weapon.staff.eldwood",
         (1.0, 0.0, 0.0), (-130., 90.0, 0.0), 1.1,
     ),
     Tool("common.items.weapons.staff.frostwood_torch"): VoxTrans(
