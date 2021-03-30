@@ -877,6 +877,7 @@ impl PlayState for SessionState {
                     target_entity: self.target_entity,
                     selected_entity: self.selected_entity,
                 },
+                self.interactable,
             );
 
             // Look for changes in the localization files
@@ -1678,11 +1679,12 @@ fn under_cursor(
         &ecs.entities(),
         &positions,
         scales.maybe(),
-        &ecs.read_storage::<comp::Body>()
+        &ecs.read_storage::<comp::Body>(),
+        ecs.read_storage::<comp::Item>().maybe(),
     )
         .join()
-        .filter(|(e, _, _, _)| *e != player_entity)
-        .map(|(e, p, s, b)| {
+        .filter(|(e, _, _, _, _)| *e != player_entity)
+        .filter_map(|(e, p, s, b, i)| {
             const RADIUS_SCALE: f32 = 3.0;
             // TODO: use collider radius instead of body radius?
             let radius = s.map_or(1.0, |s| s.0) * b.radius() * RADIUS_SCALE;
@@ -1690,7 +1692,12 @@ fn under_cursor(
             let pos = Vec3::new(p.0.x, p.0.y, p.0.z + radius);
             // Distance squared from camera to the entity
             let dist_sqr = pos.distance_squared(cam_pos);
-            (e, pos, radius, dist_sqr)
+            // We only care about interacting with entities that contain items, or are not inanimate (to trade with)
+            if i.is_some() || !matches!(b, comp::Body::Object(_)) {
+                Some((e, pos, radius, dist_sqr))
+            } else {
+                None
+            }
         })
         // Roughly filter out entities farther than ray distance
         .filter(|(_, _, r, d_sqr)| *d_sqr <= cast_dist.powi(2) + 2.0 * cast_dist * r + r.powi(2))
@@ -1730,13 +1737,13 @@ fn under_cursor(
 }
 
 #[derive(Clone, Copy)]
-enum Interactable {
+pub enum Interactable {
     Block(Block, Vec3<i32>),
     Entity(specs::Entity),
 }
 
 impl Interactable {
-    fn entity(self) -> Option<specs::Entity> {
+    pub fn entity(self) -> Option<specs::Entity> {
         match self {
             Self::Entity(e) => Some(e),
             Self::Block(_, _) => None,

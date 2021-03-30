@@ -240,6 +240,14 @@ impl SpriteKind {
         }
     }
 
+    /// Is the sprite a container that will emit a mystery item?
+    pub fn is_container(&self) -> bool {
+        matches!(
+            self,
+            SpriteKind::Chest | SpriteKind::ChestBurried | SpriteKind::Mud | SpriteKind::Crate,
+        )
+    }
+
     pub fn mine_tool(&self) -> Option<ToolKind> {
         match self {
             SpriteKind::Velorite
