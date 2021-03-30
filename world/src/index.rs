@@ -73,7 +73,7 @@ impl Index {
     pub fn colors(&self) -> AssetHandle<Arc<Colors>> { self.colors }
 
     pub fn get_site_prices(&self, behavior: &Behavior) -> Option<SitePrices> {
-        if let Some(BehaviorTag::CanTrade(site_id)) = behavior.get_tag(BehaviorTag::CanTrade(None))
+        if let Some(BehaviorTag::CanTrade(site_id)) = behavior.get_tag(&BehaviorTag::CanTrade(None))
         {
             site_id
                 .map(|i| self.sites.recreate_id(i))

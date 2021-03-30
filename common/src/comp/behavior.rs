@@ -47,7 +47,10 @@ impl Behavior {
     /// Revoke a tag to the Behavior
     pub fn remove_tag(&mut self, tag: BehaviorTag) {
         if self.has_tag(&tag) {
-            self.tags.remove(&tag);
+            let tag = self.get_tag(&tag).cloned();
+            if let Some(tag) = tag {
+                self.tags.remove(&tag);
+            }
         }
     }
 
@@ -59,10 +62,10 @@ impl Behavior {
     }
 
     /// Get a specific tag by variant
-    pub fn get_tag(&self, tag: BehaviorTag) -> Option<&BehaviorTag> {
+    pub fn get_tag(&self, tag: &BehaviorTag) -> Option<&BehaviorTag> {
         self.tags
             .iter()
-            .find(|behavior_tag| mem::discriminant(*behavior_tag) == mem::discriminant(&tag))
+            .find(|behavior_tag| mem::discriminant(*behavior_tag) == mem::discriminant(tag))
     }
 }
 
