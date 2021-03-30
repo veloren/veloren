@@ -108,6 +108,7 @@ pub struct Scene {
 }
 
 pub struct SceneData<'a> {
+    pub client: &'a Client,
     pub state: &'a State,
     pub player_entity: specs::Entity,
     pub target_entity: Option<specs::Entity>,
@@ -398,7 +399,8 @@ impl Scene {
     ) {
         span!(_guard, "handle_outcome", "Scene::handle_outcome");
         self.particle_mgr.handle_outcome(&outcome, &scene_data);
-        self.sfx_mgr.handle_outcome(&outcome, audio);
+        self.sfx_mgr
+            .handle_outcome(&outcome, audio, scene_data.client);
 
         match outcome {
             Outcome::Explosion {

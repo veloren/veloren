@@ -289,7 +289,13 @@ impl SfxMgr {
         );
     }
 
-    pub fn handle_outcome(&mut self, outcome: &Outcome, audio: &mut AudioFrontend) {
+    #[allow(clippy::single_match)]
+    pub fn handle_outcome(
+        &mut self,
+        outcome: &Outcome,
+        audio: &mut AudioFrontend,
+        client: &Client,
+    ) {
         if !audio.sfx_enabled() {
             return;
         }
@@ -349,6 +355,33 @@ impl SfxMgr {
                         // not mapped to sfx file
                     },
                 }
+            },
+            Outcome::ProjectileHit {
+                pos,
+                body,
+                source,
+                target,
+                ..
+            } => match body {
+                Body::Object(
+                    object::Body::Arrow
+                    | object::Body::MultiArrow
+                    | object::Body::ArrowSnake
+                    | object::Body::ArrowTurret,
+                ) => {
+                    if target.is_none() {
+                        audio.play_sfx("voxygen.audio.sfx.arrow_miss", *pos, Some(2.0));
+                    } else if *source == client.uid() {
+                        audio.play_sfx(
+                            "voxygen.audio.sfx.arrow_hit",
+                            client.position().unwrap_or(*pos),
+                            Some(2.0),
+                        );
+                    } else {
+                        audio.play_sfx("voxygen.audio.sfx.arrow_hit", *pos, Some(2.0));
+                    }
+                },
+                _ => {},
             },
             Outcome::SkillPointGain { pos, .. } => {
                 let file_ref = "voxygen.audio.sfx.character.level_up_sound_-_shorter_wind_up";

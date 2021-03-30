@@ -297,6 +297,7 @@ impl Body {
             Body::BipedSmall(_) => 1.4,
             Body::Object(object) => match object {
                 object::Body::Crossbow => 1.7,
+                object::Body::TrainingDummy => 2.2,
                 _ => 1.0,
             },
             Body::Ship(_) => 1.0,

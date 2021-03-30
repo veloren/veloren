@@ -1510,6 +1510,7 @@ impl PlayState for SessionState {
             {
                 let client = self.client.borrow();
                 let scene_data = SceneData {
+                    client: &client,
                     state: client.state(),
                     player_entity: client.entity(),
                     // Only highlight if interactable
@@ -1577,6 +1578,7 @@ impl PlayState for SessionState {
             let client = self.client.borrow();
 
             let scene_data = SceneData {
+                client: &client,
                 state: client.state(),
                 player_entity: client.entity(),
                 // Only highlight if interactable

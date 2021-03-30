@@ -1033,17 +1033,18 @@ impl Client {
 
     pub fn loaded_distance(&self) -> f32 { self.loaded_distance }
 
+    pub fn position(&self) -> Option<Vec3<f32>> {
+        self.state
+            .read_storage::<comp::Pos>()
+            .get(self.entity())
+            .map(|v| v.0)
+    }
+
     pub fn current_chunk(&self) -> Option<Arc<TerrainChunk>> {
-        let chunk_pos = Vec2::from(
-            self.state
-                .read_storage::<comp::Pos>()
-                .get(self.entity())
-                .cloned()?
-                .0,
-        )
-        .map2(TerrainChunkSize::RECT_SIZE, |e: f32, sz| {
-            (e as u32).div_euclid(sz) as i32
-        });
+        let chunk_pos = Vec2::from(self.position()?)
+            .map2(TerrainChunkSize::RECT_SIZE, |e: f32, sz| {
+                (e as u32).div_euclid(sz) as i32
+            });
 
         self.state.terrain().get_key_arc(chunk_pos).cloned()
     }
