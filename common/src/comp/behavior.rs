@@ -1,6 +1,6 @@
 use specs::Component;
 use specs_idvs::IdvStorage;
-use std::mem;
+use std::{collections::HashSet, mem};
 
 use crate::trade::SiteId;
 
@@ -11,11 +11,11 @@ use crate::trade::SiteId;
 /// state when needed
 #[derive(Default, Clone, Debug)]
 pub struct Behavior {
-    tags: Vec<BehaviorTag>,
+    tags: HashSet<BehaviorTag>,
 }
 
 /// Versatile tags attached to behaviors
-#[derive(PartialEq, Clone, Debug)]
+#[derive(Hash, Eq, PartialEq, Clone, Debug)]
 pub enum BehaviorTag {
     /// The entity is allowed to speak
     CanSpeak,
@@ -40,20 +40,14 @@ impl Behavior {
     /// Apply a tag to the Behavior
     pub fn add_tag(&mut self, tag: BehaviorTag) {
         if !self.has_tag(&tag) {
-            self.tags.push(tag);
+            self.tags.insert(tag);
         }
     }
 
     /// Revoke a tag to the Behavior
     pub fn remove_tag(&mut self, tag: BehaviorTag) {
         if self.has_tag(&tag) {
-            while let Some(position) = self
-                .tags
-                .iter()
-                .position(|behavior_tag| behavior_tag == &tag)
-            {
-                self.tags.remove(position);
-            }
+            self.tags.remove(&tag);
         }
     }
 
