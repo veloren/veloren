@@ -10,6 +10,7 @@ use crate::{
 };
 use client::Client;
 use common::{
+    combat,
     comp::item::{armor::Protection, Item, ItemDesc, ItemKind, MaterialStatManifest, Quality},
     trade::SitePrices,
 };
@@ -553,10 +554,10 @@ impl<'a> Widget for ItemTooltip<'a> {
                 let poise_str = tool.base_poise_strength(self.msm, item.components()) * 10.0;
                 let crit_chance = tool.base_crit_chance(self.msm, item.components()) * 100.0;
                 let crit_mult = tool.base_crit_mult(self.msm, item.components());
-                let dps = power * speed;
+                let combat_rating = combat::weapon_rating(&item, self.msm) * 10.0;
 
-                // DPS
-                widget::Text::new(&format!("{:.1}", dps))
+                // Combat Rating
+                widget::Text::new(&format!("{:.1}", combat_rating))
                     .graphics_for(id)
                     .parent(id)
                     .with_style(self.style.desc)
@@ -566,7 +567,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                     .right_from(state.ids.item_frame, H_PAD)
                     .set(state.ids.main_stat, ui);
 
-                widget::Text::new(i18n.get("common.stats.dps"))
+                widget::Text::new(i18n.get("common.stats.combat_rating"))
                     .graphics_for(id)
                     .parent(id)
                     .with_style(self.style.desc)
@@ -665,11 +666,12 @@ impl<'a> Widget for ItemTooltip<'a> {
                         );
                         let crit_mult_diff =
                             util::comparison(tool_stats.crit_mult, equipped_tool_stats.crit_mult);
-                        let equipped_dps =
-                            equipped_tool_stats.power * equipped_tool_stats.speed * 10.0;
-                        let diff_main_stat = util::comparison(dps, equipped_dps);
+                        let equipped_combat_rating =
+                            combat::weapon_rating(&equipped_item, self.msm) * 10.0;
+                        let diff_main_stat =
+                            util::comparison(combat_rating, equipped_combat_rating);
 
-                        if equipped_dps - dps != 0.0 {
+                        if (equipped_combat_rating - combat_rating).abs() > f32::EPSILON {
                             widget::Text::new(&diff_main_stat.0)
                                 .right_from(state.ids.main_stat_text, H_PAD)
                                 .graphics_for(id)
@@ -679,7 +681,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                                 .set(state.ids.diff_main_stat, ui);
                         }
 
-                        if diff.power != 0.0 {
+                        if diff.power.abs() > f32::EPSILON {
                             widget::Text::new(&format!(
                                 "{} {:.1}",
                                 &power_diff.0,
@@ -693,7 +695,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                             .color(power_diff.1)
                             .set(state.ids.diffs[0], ui);
                         }
-                        if diff.speed != 0.0 {
+                        if diff.speed.abs() > f32::EPSILON {
                             widget::Text::new(&format!("{} {:.1}", &speed_diff.0, &diff.speed))
                                 .align_middle_y_of(state.ids.stats[1])
                                 .right_from(state.ids.stats[1], H_PAD)
@@ -703,7 +705,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                                 .color(speed_diff.1)
                                 .set(state.ids.diffs[1], ui);
                         }
-                        if diff.poise_strength != 0.0 {
+                        if diff.poise_strength.abs() > f32::EPSILON {
                             widget::Text::new(&format!(
                                 "{} {:.1}",
                                 &poise_strength_diff.0,
@@ -717,7 +719,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                             .color(poise_strength_diff.1)
                             .set(state.ids.diffs[2], ui);
                         }
-                        if diff.crit_chance != 0.0 {
+                        if diff.crit_chance.abs() > f32::EPSILON {
                             widget::Text::new(&format!(
                                 "{} {:.1}%",
                                 &crit_chance_diff.0,
@@ -731,7 +733,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                             .color(crit_chance_diff.1)
                             .set(state.ids.diffs[3], ui);
                         }
-                        if diff.crit_mult != 0.0 {
+                        if diff.crit_mult.abs() > f32::EPSILON {
                             widget::Text::new(&format!(
                                 "{} {:.1}",
                                 &crit_mult_diff.0, &diff.crit_mult

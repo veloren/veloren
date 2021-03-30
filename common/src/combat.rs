@@ -7,7 +7,7 @@ use crate::{
             item::{
                 armor::Protection,
                 tool::{self, Tool, ToolKind},
-                Item, ItemKind, MaterialStatManifest,
+                Item, ItemDesc, ItemKind, MaterialStatManifest,
             },
             slot::EquipSlot,
         },
@@ -721,7 +721,7 @@ pub fn get_weapons(inv: &Inventory) -> (Option<ToolKind>, Option<ToolKind>) {
     )
 }
 
-pub fn weapon_rating(item: &Item, msm: &MaterialStatManifest) -> f32 {
+pub fn weapon_rating<T: ItemDesc>(item: &T, msm: &MaterialStatManifest) -> f32 {
     const DAMAGE_WIGHT: f32 = 2.0;
     const POISE_WEIGHT: f32 = 1.0;
 

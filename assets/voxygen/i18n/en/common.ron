@@ -89,7 +89,7 @@ Is the client up to date?"#,
         "common.rand_appearance": "Random appearance",
         "common.rand_name": "Random name",
 
-        "common.stats.dps": "DPS",
+        "common.stats.combat_rating": "CR",
         "common.stats.power": "Power",
         "common.stats.speed": "Speed",
         "common.stats.poise": "Poise",
