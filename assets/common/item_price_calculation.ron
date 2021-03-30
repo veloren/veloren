@@ -3,11 +3,7 @@ loot_tables: [
     // balance the loot tables against each other (higher= more common= smaller price)
     // the fact that loot tables have an own probability not accessible outside of the lottery call doesn't help here
     (4,"common.loot_tables.wild_animal"),
-    (1,"common.loot_tables.armor.armor_cloth"),
-    (0.01,"common.loot_tables.armor.armor_heavy"),
-    (0.1,"common.loot_tables.armor.armor_light"),
-    (0.1,"common.loot_tables.armor.armor_misc"),
-    (0.5,"common.loot_tables.armor.armor_nature"),
+    (1,"common.loot_tables.armor.cloth"),
     (0.1,"common.loot_tables.cave_large"),
     (0.1,"common.loot_tables.consumables"),
     // loot_table_crafting is a rare roll on crate/mud sprite looting

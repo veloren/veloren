@@ -1,0 +1,8 @@
+[
+    (1.0, Item("common.items.armor.twigsleaves.belt")),
+    (1.0, Item("common.items.armor.twigsleaves.chest")),
+    (1.0, Item("common.items.armor.twigsleaves.foot")),
+    (1.0, Item("common.items.armor.twigsleaves.hand")),
+    (1.0, Item("common.items.armor.twigsleaves.pants")),
+    (1.0, Item("common.items.armor.twigsleaves.shoulder")),
+]

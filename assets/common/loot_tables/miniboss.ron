@@ -1,11 +1,6 @@
 [
     // armor
-    (1.0, Item("common.items.armor.cultist.belt")),
-    (1.0, Item("common.items.armor.cultist.chest")),
-    (1.0, Item("common.items.armor.cultist.foot")),
-    (1.0, Item("common.items.armor.cultist.hand")),
-    (1.0, Item("common.items.armor.cultist.pants")),
-    (1.0, Item("common.items.armor.cultist.shoulder")),
+    (6.0, LootTable("common.loot_tables.armor.cultist")),
     (1.0, Item("common.items.armor.misc.back.dungeon_purple")),
     (1.0, Item("common.items.armor.misc.ring.skull")),
     // weapons

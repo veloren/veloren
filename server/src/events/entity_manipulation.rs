@@ -341,13 +341,13 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
         let mut rng = rand::thread_rng();
         let mut lottery = || {
             Lottery::<LootSpec>::load_expect(match old_body {
-                Some(common::comp::Body::Humanoid(_)) => match rng.gen_range(0..4) {
+                Some(common::comp::Body::Humanoid(_)) => match rng.gen_range(0..5) {
                     0 => "common.loot_tables.humanoids",
-                    1 => "common.loot_tables.armor.armor_light",
-                    2 => "common.loot_tables.armor.armor_cloth",
+                    1 => "common.loot_tables.armor.swift",
+                    2 => "common.loot_tables.armor.cloth",
                     3 => "common.loot_tables.weapon_common",
-                    4 => "common.loots_tables.loot_table_armor_misc",
-                    _ => "common.loot_tables.humanoids",
+                    4 => "common.loot_tables.humanoids",
+                    _ => "common.loots_tables.fallback",
                 },
                 Some(common::comp::Body::QuadrupedSmall(quadruped_small)) => {
                     match quadruped_small.species {
@@ -388,19 +388,17 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                     biped_large::Species::Occultsaurok
                     | biped_large::Species::Mightysaurok
                     | biped_large::Species::Slysaurok => "common.loot_tables.saurok",
-                    _ => match rng.gen_range(0..4) {
+                    _ => match rng.gen_range(0..3) {
                         0 => "common.loot_tables.food",
-                        1 => "common.loot_tables.armor.armor_nature",
                         _ => "common.loot_tables.cave_large",
                     },
                 },
-                Some(common::comp::Body::Golem(_)) => match rng.gen_range(0..9) {
+                Some(common::comp::Body::Golem(_)) => match rng.gen_range(0..5) {
                     0 => "common.loot_tables.food",
-                    2 => "common.loot_tables.armor.armor_light",
-                    3 => "common.loot_tables.armor.armor_heavy",
-                    5 => "common.loot_tables.weapon_common",
-                    6 => "common.loot_tables.weapon_uncommon",
-                    7 => "common.loot_tables.weapon_rare",
+                    1 => "common.loot_tables.armor.steel",
+                    2 => "common.loot_tables.weapon_common",
+                    3 => "common.loot_tables.weapon_uncommon",
+                    4 => "common.loot_tables.weapon_rare",
                     _ => "common.loot_tables.fallback",
                 },
                 Some(common::comp::Body::Theropod(_)) => "common.loot_tables.wild_animal",
