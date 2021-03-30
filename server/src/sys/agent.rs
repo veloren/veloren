@@ -285,31 +285,31 @@ impl<'a> System<'a> for Sys {
                     ///////////////////////////////////////////////////////////
                     // Behavior tree
                     ///////////////////////////////////////////////////////////
+                    // The behavior tree is meant to make decisions for agents
+                    // *but should not* mutate any data (only action nodes
+                    // should do that). Each path should lead to one (and only
+                    // one) action node. This makes bugfinding much easier and
+                    // debugging way easier. If you don't think so, try
+                    // debugging the agent code before this MR
+                    // (https://gitlab.com/veloren/veloren/-/merge_requests/1801).
+                    // Each tick should arrive at one (1) action node which
+                    // then determines what the agent does. If this makes you
+                    // uncomfortable, consider dt the response time of the
+                    // NPC. To make the tree easier to read, subtrees can be
+                    // created as methods on `AgentData`. Action nodes are
+                    // also methods on the `AgentData` struct. Action nodes
+                    // are the only parts of this tree that should provide
+                    // inputs.
 
                     // If falling fast and can glide, save yourself!
-                    if data.fall_glide() {
-                        //toggle glider when vertical velocity is above some threshold (here ~
+                    if data.glider_equipped && !data.physics_state.on_ground {
+                        // toggle glider when vertical velocity is above some threshold (here ~
                         // glider fall vertical speed)
-                        if vel.0.z < -26.0 {
-                            controller.actions.push(ControlAction::GlideWield);
-                            if let Some(Target { target, .. }) = agent.target {
-                                if let Some(tgt_pos) = read_data.positions.get(target) {
-                                    controller.inputs.move_dir = (pos.0 - tgt_pos.0)
-                                        .xy()
-                                        .try_normalized()
-                                        .unwrap_or_else(Vec2::zero);
-                                }
-                            }
-                        }
+                        data.glider_fall(agent, controller, &read_data);
                     } else if let Some(Target {
-                        target,
-                        hostile,
-                        selected_at,
+                        target, hostile, ..
                     }) = agent.target
                     {
-                        if read_data.time.0 - selected_at > RETARGETING_THRESHOLD_SECONDS {
-                            data.choose_target(agent, controller, &read_data, &mut event_emitter);
-                        }
                         if let Some(tgt_health) = read_data.healths.get(target) {
                             // If the target is hostile (either based on alignment or if
                             // the target just attacked
@@ -523,8 +523,9 @@ impl<'a> System<'a> for Sys {
 }
 
 impl<'a> AgentData<'a> {
-    fn fall_glide(&self) -> bool { self.glider_equipped && !self.physics_state.on_ground }
-
+    ////////////////////////////////////////
+    // Subtrees
+    ////////////////////////////////////////
     fn idle_tree(
         &self,
         agent: &mut Agent,
@@ -577,7 +578,12 @@ impl<'a> AgentData<'a> {
         read_data: &ReadData,
         event_emitter: &mut Emitter<'_, ServerEvent>,
     ) {
-        if let Some(Target { target, .. }) = agent.target {
+        if let Some(Target {
+            target,
+            selected_at,
+            ..
+        }) = agent.target
+        {
             if let Some(tgt_pos) = read_data.positions.get(target) {
                 let dist_sqrd = self.pos.0.distance_squared(tgt_pos.0);
                 // Should the agent flee?
@@ -615,6 +621,13 @@ impl<'a> AgentData<'a> {
                             event_emitter
                                 .emit(ServerEvent::Chat(UnresolvedChatMsg::npc(*self.uid, msg)));
                         }
+                    // Choose a new target every 10 seconds
+                    // TODO: This should be more principled. Consider factoring
+                    // health, combat rating, wielded
+                    // weapon, etc, into the decision to change
+                    // target.
+                    } else if read_data.time.0 - selected_at > RETARGETING_THRESHOLD_SECONDS {
+                        self.choose_target(agent, controller, &read_data, event_emitter);
                     } else if dist_sqrd < SIGHT_DIST.powi(2) {
                         self.attack(
                             agent,
@@ -629,6 +642,24 @@ impl<'a> AgentData<'a> {
                         agent.target = None;
                         self.idle(agent, controller, &read_data);
                     }
+                }
+            }
+        }
+    }
+
+    ////////////////////////////////////////
+    // Action Nodes
+    ////////////////////////////////////////
+
+    fn glider_fall(&self, agent: &mut Agent, controller: &mut Controller, read_data: &ReadData) {
+        if self.vel.0.z < -26.0 {
+            controller.actions.push(ControlAction::GlideWield);
+            if let Some(Target { target, .. }) = agent.target {
+                if let Some(tgt_pos) = read_data.positions.get(target) {
+                    controller.inputs.move_dir = (self.pos.0 - tgt_pos.0)
+                        .xy()
+                        .try_normalized()
+                        .unwrap_or_else(Vec2::zero);
                 }
             }
         }
