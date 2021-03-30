@@ -6,13 +6,13 @@ mod admin;
 /// `server-cli` interface commands not to be confused with the commands sent
 /// from the client to the server
 mod cmd;
-mod logging;
 mod settings;
 mod shutdown_coordinator;
 mod tui_runner;
 mod tuilog;
-
-use crate::{cmd::Message, shutdown_coordinator::ShutdownCoordinator, tui_runner::Tui};
+use crate::{
+    cmd::Message, shutdown_coordinator::ShutdownCoordinator, tui_runner::Tui, tuilog::TuiLog,
+};
 use clap::{App, Arg, SubCommand};
 use common::clock::Clock;
 use common_base::span;
@@ -25,6 +25,9 @@ use std::{
 };
 use tracing::{info, trace};
 
+lazy_static::lazy_static! {
+    pub static ref LOG: TuiLog<'static> = TuiLog::default();
+}
 const TPS: u64 = 30;
 
 #[allow(clippy::unnecessary_wraps)]
@@ -83,7 +86,11 @@ fn main() -> io::Result<()> {
     #[cfg(any(target_os = "linux", target_os = "macos"))]
     let _ = signal_hook::flag::register(signal_hook::consts::SIGUSR1, Arc::clone(&sigusr1_signal));
 
-    logging::init(basic);
+    let (_guards, _guards2) = if basic {
+        (vec![], common_frontend::init_stdout(None))
+    } else {
+        (common_frontend::init(None, || LOG.clone()), vec![])
+    };
 
     // Load settings
     let settings = settings::Settings::load();

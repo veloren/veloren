@@ -5,10 +5,10 @@ authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>"]
 edition = "2018"
 
 [features]
-tracy = ["common/tracy", "common-base/tracy", "common-sys/tracy", "common-net/tracy"]
+tracy = ["common/tracy", "common-base/tracy", "common-sys/tracy", "common-net/tracy", "common-frontend/tracy"]
 simd = ["vek/platform_intrinsics"]
 plugins = ["common-sys/plugins"]
-bin_bot = ["common-ecs", "serde", "ron", "clap", "rustyline", "termcolor", "tracing-subscriber", "async-channel"]
+bin_bot = ["common-ecs", "serde", "ron", "clap", "rustyline", "common-frontend", "async-channel"]
 
 default = ["simd"]
 
@@ -40,13 +40,13 @@ clap = { version = "2.33", optional = true }
 rustyline = { version = "8.0.0", optional = true }
 ## logging
 termcolor = { version = "1.1", optional = true }
-tracing-subscriber = {version = "0.2.3", default-features = false, features = ["env-filter", "fmt", "chrono", "ansi", "smallvec", "tracing-log"], optional = true }
+common-frontend = { package = "veloren-common-frontend", path = "../common/frontend", optional = true }
 
 [dev-dependencies]
-tracing-subscriber = { version = "0.2.3", default-features = false, features = ["fmt", "chrono", "ansi", "smallvec"] }
 
 [[example]]
 name = "chat-cli"
+required-features = ["bin_bot"]
 
 [[bin]]
 name = "bot"

@@ -641,6 +641,8 @@ impl Show {
                 self.settings(true)
             },
         };
+        #[cfg(not(feature = "singleplayer"))]
+        let _global_state = global_state;
     }
 
     // TODO: Add self updating key-bindings element
@@ -683,6 +685,8 @@ impl Show {
             #[cfg(feature = "singleplayer")]
             global_state.pause();
         }
+        #[cfg(not(feature = "singleplayer"))]
+        let _global_state = global_state;
     }
 
     fn open_setting_tab(&mut self, tab: SettingsTab) {
