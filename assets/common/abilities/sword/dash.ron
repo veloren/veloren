@@ -1,5 +1,5 @@
 DashMelee(
-    energy_cost: 100,
+    energy_cost: 0,
     base_damage: 80,
     scaled_damage: 160,
     base_poise_damage: 60,
@@ -8,7 +8,7 @@ DashMelee(
     scaled_knockback: 7.0,
     range: 5.0,
     angle: 45.0,
-    energy_drain: 600,
+    energy_drain: 0,
     forward_speed: 4.0,
     buildup_duration: 0.25,
     charge_duration: 0.6,

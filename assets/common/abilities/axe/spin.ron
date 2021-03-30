@@ -7,7 +7,7 @@ SpinMelee(
     knockback: ( strength: 0.0, direction: Away),
     range: 3.5,
     damage_effect: None,
-    energy_cost: 100,
+    energy_cost: 0,
     is_infinite: true,
     movement_behavior: AxeHover,
     is_interruptible: false,

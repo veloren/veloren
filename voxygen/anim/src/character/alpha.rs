@@ -4,7 +4,7 @@ use super::{
 };
 use common::{
     comp::item::{Hands, ToolKind},
-    states::utils::StageSection,
+    states::utils::{AbilityInfo, StageSection},
 };
 use std::f32::consts::PI;
 
@@ -18,6 +18,7 @@ impl Animation for AlphaAnimation {
         f32,
         f32,
         Option<StageSection>,
+        Option<AbilityInfo>,
     );
     type Skeleton = CharacterSkeleton;
 
@@ -28,7 +29,15 @@ impl Animation for AlphaAnimation {
     #[allow(clippy::approx_constant)] // TODO: Pending review in #587
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, _second_tool_kind, hands, _velocity, _global_time, stage_section): Self::Dependency,
+        (
+            active_tool_kind,
+            _second_tool_kind,
+            hands,
+            _velocity,
+            _global_time,
+            stage_section,
+            ability_info,
+        ): Self::Dependency,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -36,18 +45,20 @@ impl Animation for AlphaAnimation {
         *rate = 1.0;
         let mut next = (*skeleton).clone();
 
-        let (move1, move2, move3) = match stage_section {
-            Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
-            Some(StageSection::Swing) => (1.0, anim_time, 0.0),
-            Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
-            _ => (0.0, 0.0, 0.0),
+        let (move1, move2, move3, move2h) = match stage_section {
+            Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0, 0.0),
+            Some(StageSection::Swing) => (1.0, anim_time.powi(4), 0.0, anim_time.powf(0.25)),
+            Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4), 1.0), /* hmm maybe don' */
+            // t complete the
+            // recovery?
+            _ => (0.0, 0.0, 0.0, 0.0),
         };
         next.second.position = Vec3::new(0.0, 0.0, 0.0);
         next.second.orientation = Quaternion::rotation_z(0.0);
         next.torso.position = Vec3::new(0.0, 0.0, 0.1) * s_a.scaler;
         next.torso.orientation = Quaternion::rotation_z(0.0);
 
-        match active_tool_kind {
+        match ability_info.and_then(|a| a.tool) {
             Some(ToolKind::Sword) | Some(ToolKind::SwordSimple) => {
                 next.main.position = Vec3::new(0.0, 0.0, 0.0);
                 next.main.orientation = Quaternion::rotation_x(0.0);
@@ -59,11 +70,6 @@ impl Animation for AlphaAnimation {
                 next.head.orientation = Quaternion::rotation_z(
                     move1 * -0.9 + (move2 * 1.75).sin() * 2.5 + move3 * -0.5,
                 );
-            },
-            Some(ToolKind::Dagger) => {
-                next.control_l.position = Vec3::new(-10.0, 6.0, 2.0);
-                next.control_l.orientation =
-                    Quaternion::rotation_x(-1.4) * Quaternion::rotation_z(1.4);
             },
 
             Some(ToolKind::Axe) => {
@@ -119,7 +125,7 @@ impl Animation for AlphaAnimation {
         }
 
         match hands {
-            (Some(Hands::Two), _) => match active_tool_kind {
+            (Some(Hands::Two), _) => match ability_info.and_then(|a| a.tool) {
                 Some(ToolKind::Sword) | Some(ToolKind::SwordSimple) => {
                     next.hand_l.position = Vec3::new(s_a.shl.0, s_a.shl.1, s_a.shl.2);
                     next.hand_l.orientation =
@@ -194,7 +200,7 @@ impl Animation for AlphaAnimation {
 
         match hands {
             (Some(Hands::One), Some(Hands::One)) | (Some(Hands::One), None) => {
-                match active_tool_kind {
+                match ability_info.and_then(|a| a.tool) {
                     Some(ToolKind::Sword) | Some(ToolKind::SwordSimple) => {
                         next.control_l.position = Vec3::new(-7.0, 8.0, 2.0);
                         next.control_l.orientation = Quaternion::rotation_x(-0.3 + move2 * 2.0)
@@ -238,7 +244,7 @@ impl Animation for AlphaAnimation {
         };
         match hands {
             (Some(Hands::One), Some(Hands::One)) | (None, Some(Hands::One)) => {
-                match active_tool_kind {
+                match ability_info.and_then(|a| a.tool) {
                     Some(ToolKind::Sword) | Some(ToolKind::SwordSimple) => {
                         next.control_r.position = Vec3::new(7.0 + move2 * 8.0, 8.0, 2.0);
                         next.control_r.orientation = Quaternion::rotation_x(-0.3 + move2 * 2.0)
@@ -264,11 +270,11 @@ impl Animation for AlphaAnimation {
                     | Some(ToolKind::Pick) => {
                         next.control_r.position = Vec3::new(
                             7.0,
-                            8.0 + move1 * -4.0 + move2 * 4.0,
-                            2.0 + move1 * 16.0 + move2 * -21.0,
+                            8.0 + move1 * -4.0 + move2h * 4.0,
+                            2.0 + move1 * 16.0 + move2h * -21.0,
                         );
                         next.control_r.orientation =
-                            Quaternion::rotation_x(-0.3 + move1 * 1.3 + move2 * -2.3)
+                            Quaternion::rotation_x(-0.3 + move1 * 1.3 + move2h * -2.3)
                                 * Quaternion::rotation_y(0.0)
                                 * Quaternion::rotation_z(0.0);
                         next.hand_r.position = Vec3::new(0.0, -0.5, 0.0);

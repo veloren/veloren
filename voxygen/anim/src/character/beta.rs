@@ -2,7 +2,10 @@ use super::{
     super::{vek::*, Animation},
     CharacterSkeleton, SkeletonAttr,
 };
-use common::{comp::item::ToolKind, states::utils::StageSection};
+use common::{
+    comp::item::{Hands, ToolKind},
+    states::utils::{AbilityInfo, StageSection},
+};
 
 pub struct BetaAnimation;
 
@@ -10,9 +13,11 @@ impl Animation for BetaAnimation {
     type Dependency = (
         Option<ToolKind>,
         Option<ToolKind>,
+        (Option<Hands>, Option<Hands>),
         f32,
         f32,
         Option<StageSection>,
+        Option<AbilityInfo>,
     );
     type Skeleton = CharacterSkeleton;
 
@@ -22,7 +27,15 @@ impl Animation for BetaAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_beta")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (_active_tool_kind, _second_tool_kind, _velocity, _global_time, stage_section): Self::Dependency,
+        (
+            _active_tool_kind,
+            _second_tool_kind,
+            hands,
+            _velocity,
+            _global_time,
+            stage_section,
+            ability_info,
+        ): Self::Dependency,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,

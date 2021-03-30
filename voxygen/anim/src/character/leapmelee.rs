@@ -2,7 +2,10 @@ use super::{
     super::{vek::*, Animation},
     CharacterSkeleton, SkeletonAttr,
 };
-use common::{comp::item::ToolKind, states::utils::StageSection};
+use common::{
+    comp::item::{Hands, ToolKind},
+    states::utils::{AbilityInfo, StageSection},
+};
 use std::f32::consts::PI;
 pub struct LeapAnimation;
 
@@ -10,9 +13,11 @@ impl Animation for LeapAnimation {
     type Dependency = (
         Option<ToolKind>,
         Option<ToolKind>,
+        (Option<Hands>, Option<Hands>),
         Vec3<f32>,
         f32,
         Option<StageSection>,
+        Option<AbilityInfo>,
     );
     type Skeleton = CharacterSkeleton;
 
@@ -23,7 +28,15 @@ impl Animation for LeapAnimation {
     #[allow(clippy::approx_constant)] // TODO: Pending review in #587
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, _second_tool_kind, _velocity, _global_time, stage_section): Self::Dependency,
+        (
+            active_tool_kind,
+            _second_tool_kind,
+            hands,
+            _velocity,
+            _global_time,
+            stage_section,
+            ability_info,
+        ): Self::Dependency,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
