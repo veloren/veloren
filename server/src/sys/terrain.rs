@@ -2,7 +2,9 @@ use crate::{
     chunk_generator::ChunkGenerator, client::Client, presence::Presence, rtsim::RtSim, Tick,
 };
 use common::{
-    comp::{self, bird_medium, inventory::loadout_builder::LoadoutConfig, Alignment, Pos},
+    comp::{
+        self, bird_medium, inventory::loadout_builder::LoadoutConfig, Alignment, BehaviorTag, Pos,
+    },
     event::{EventBus, ServerEvent},
     generation::get_npc_name,
     npc::NPC_NAMES,
@@ -191,7 +193,6 @@ impl<'a> System<'a> for Sys {
                     agent: if entity.has_agency {
                         Some(comp::Agent::new(
                             Some(entity.pos),
-                            trade_for_site,
                             &body,
                             matches!(
                                 loadout_config,
@@ -202,7 +203,14 @@ impl<'a> System<'a> for Sys {
                         None
                     },
                     behavior: if entity.has_agency {
-                        Some(comp::Behavior::new(can_speak, trade_for_site.is_some()))
+                        let mut behavior_tags = vec![];
+                        if can_speak {
+                            behavior_tags.push(BehaviorTag::CanSpeak);
+                        }
+                        if trade_for_site.is_some() {
+                            behavior_tags.push(BehaviorTag::CanTrade(trade_for_site));
+                        }
+                        Some(comp::Behavior::new(&behavior_tags))
                     } else {
                         None
                     },

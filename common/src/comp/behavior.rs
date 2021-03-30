@@ -2,7 +2,13 @@ use specs::Component;
 use specs_idvs::IdvStorage;
 use std::mem;
 
-/// Behavior Component
+use crate::trade::SiteId;
+
+/// # Behavior Component
+/// This component allow an Entity to register one or more behavior tags.
+/// These tags act as flags of what an Entity can do, or what it is doing.  
+/// Behaviors Tags can be added and removed as the Entity lives, to update its
+/// state when needed
 #[derive(Default, Clone, Debug)]
 pub struct Behavior {
     tags: Vec<BehaviorTag>,
@@ -14,7 +20,7 @@ pub enum BehaviorTag {
     /// The entity is allowed to speak
     CanSpeak,
     /// The entity is able to trade
-    CanTrade,
+    CanTrade(Option<SiteId>),
 
     /// The entity is currently trading
     IsTrading,
@@ -23,13 +29,10 @@ pub enum BehaviorTag {
 }
 
 impl Behavior {
-    pub fn new(can_speak: bool, can_trade: bool) -> Self {
+    pub fn new(behavior_tags: &[BehaviorTag]) -> Self {
         let mut behavior = Self::default();
-        if can_speak {
-            behavior.add_tag(BehaviorTag::CanSpeak);
-        }
-        if can_trade {
-            behavior.add_tag(BehaviorTag::CanTrade);
+        for tag in behavior_tags.iter() {
+            behavior.add_tag(tag.clone())
         }
         behavior
     }
@@ -56,7 +59,9 @@ impl Behavior {
 
     /// Check if the Behavior possess a specific tag
     pub fn has_tag(&self, tag: &BehaviorTag) -> bool {
-        self.tags.iter().any(|behavior_tag| behavior_tag == tag)
+        self.tags
+            .iter()
+            .any(|behavior_tag| mem::discriminant(behavior_tag) == mem::discriminant(tag))
     }
 
     /// Get a specific tag by variant

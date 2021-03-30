@@ -935,7 +935,7 @@ impl<'a> AgentData<'a> {
                                         event_emitter.emit(ServerEvent::Chat(
                                             UnresolvedChatMsg::npc(*self.uid, msg),
                                         ));
-                                    } else if self.behavior.has_tag(&BehaviorTag::CanTrade) {
+                                    } else if self.behavior.has_tag(&BehaviorTag::CanTrade(None)) {
                                         let msg = "npc.speech.merchant_advertisement".to_string();
                                         event_emitter.emit(ServerEvent::Chat(
                                             UnresolvedChatMsg::npc(*self.uid, msg),
@@ -948,7 +948,7 @@ impl<'a> AgentData<'a> {
                                     }
                                 },
                                 Subject::Trade => {
-                                    if self.behavior.has_tag(&BehaviorTag::CanTrade) {
+                                    if self.behavior.has_tag(&BehaviorTag::CanTrade(None)) {
                                         if !self.behavior.has_tag(&BehaviorTag::IsTrading) {
                                             controller.events.push(ControlEvent::InitiateInvite(
                                                 by,
@@ -1097,7 +1097,7 @@ impl<'a> AgentData<'a> {
                 }
             },
             Some(AgentEvent::TradeInvite(with)) => {
-                if self.behavior.has_tag(&BehaviorTag::CanTrade) {
+                if self.behavior.has_tag(&BehaviorTag::CanTrade(None)) {
                     if !self.behavior.has_tag(&BehaviorTag::IsTrading) {
                         // stand still and looking towards the trading player
                         controller.actions.push(ControlAction::Stand);

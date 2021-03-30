@@ -3,6 +3,7 @@ use common::{
     comp::{
         agent::{Agent, AgentEvent},
         inventory::{item::MaterialStatManifest, Inventory},
+        Behavior,
     },
     trade::{PendingTrade, ReducedInventory, TradeAction, TradeId, TradeResult, Trades},
 };
@@ -28,12 +29,13 @@ fn notify_agent_simple(
 
 fn notify_agent_prices(
     mut agents: specs::WriteStorage<Agent>,
+    behaviors: specs::ReadStorage<Behavior>,
     index: &IndexOwned,
     entity: EcsEntity,
     event: AgentEvent,
 ) {
-    if let Some(agent) = agents.get_mut(entity) {
-        let prices = index.get_site_prices(agent);
+    if let (Some(agent), Some(behavior)) = (agents.get_mut(entity), behaviors.get(entity)) {
+        let prices = index.get_site_prices(behavior);
         if let AgentEvent::UpdatePendingTrade(boxval) = event {
             // Box<(tid, pend, _, inventories)>) = event {
             agent
@@ -104,6 +106,7 @@ pub fn handle_process_trade_action(
                     let mut inventories: [Option<ReducedInventory>; 2] = [None, None];
                     let mut prices = None;
                     let agents = server.state.ecs().read_storage::<Agent>();
+                    let behaviors = server.state.ecs().read_storage::<Behavior>();
                     // sadly there is no map and collect on arrays
                     for i in 0..2 {
                         // parties.len()) {
@@ -118,7 +121,9 @@ pub fn handle_process_trade_action(
                             // Get price info from the first Agent in the trade (currently, an
                             // Agent will never initiate a trade with another agent though)
                             prices = prices.or_else(|| {
-                                agents.get(e).and_then(|a| server.index.get_site_prices(a))
+                                behaviors
+                                    .get(e)
+                                    .and_then(|b| server.index.get_site_prices(b))
                             });
                         }
                     }
@@ -135,6 +140,7 @@ pub fn handle_process_trade_action(
                             );
                             notify_agent_prices(
                                 server.state.ecs().write_storage::<Agent>(),
+                                server.state.ecs().read_storage::<Behavior>(),
                                 &server.index,
                                 e,
                                 AgentEvent::UpdatePendingTrade(Box::new((

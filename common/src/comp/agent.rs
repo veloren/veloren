@@ -2,7 +2,7 @@ use crate::{
     comp::{humanoid, quadruped_low, quadruped_medium, quadruped_small, Body},
     path::Chaser,
     rtsim::RtSimController,
-    trade::{PendingTrade, ReducedInventory, SiteId, SitePrices, TradeId, TradeResult},
+    trade::{PendingTrade, ReducedInventory, SitePrices, TradeId, TradeResult},
     uid::Uid,
 };
 use specs::{Component, Entity as EcsEntity};
@@ -212,7 +212,6 @@ pub struct Agent {
     pub chaser: Chaser,
     /// Does the agent talk when e.g. hit by the player
     // TODO move speech patterns into a Behavior component
-    pub trade_for_site: Option<SiteId>,
     pub psyche: Psyche,
     pub inbox: VecDeque<AgentEvent>,
     pub action_timer: f32,
@@ -233,15 +232,9 @@ impl Agent {
         }
     }
 
-    pub fn new(
-        patrol_origin: Option<Vec3<f32>>,
-        trade_for_site: Option<SiteId>,
-        body: &Body,
-        no_flee: bool,
-    ) -> Self {
+    pub fn new(patrol_origin: Option<Vec3<f32>>, body: &Body, no_flee: bool) -> Self {
         Agent {
             patrol_origin,
-            trade_for_site,
             psyche: if no_flee {
                 Psyche { aggro: 1.0 }
             } else {

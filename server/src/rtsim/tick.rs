@@ -2,7 +2,7 @@
 
 use super::*;
 use common::{
-    comp::{self, inventory::loadout_builder::LoadoutBuilder, Behavior},
+    comp::{self, inventory::loadout_builder::LoadoutBuilder, Behavior, BehaviorTag},
     event::{EventBus, ServerEvent},
     resources::{DeltaTime, Time},
     terrain::TerrainGrid,
@@ -103,9 +103,9 @@ impl<'a> System<'a> for Sys {
                 .map(|e| e as f32)
                 + Vec3::new(0.5, 0.5, body.flying_height());
             let pos = comp::Pos(spawn_pos);
-            let agent = Some(comp::Agent::new(None, None, &body, false));
+            let agent = Some(comp::Agent::new(None, &body, false));
             let behavior = if matches!(body, comp::Body::Humanoid(_)) {
-                Some(Behavior::new(true, false))
+                Some(Behavior::new(&[BehaviorTag::CanSpeak]))
             } else {
                 None
             };
