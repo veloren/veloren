@@ -31,6 +31,7 @@ pub type SlotManager = slot::SlotManager<SlotKind>;
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct InventorySlot {
     pub slot: InvSlotId,
+    pub entity: EcsEntity,
     pub ours: bool,
 }
 
@@ -85,6 +86,7 @@ impl SlotKey<Inventory, ItemImgs> for TradeSlot {
             InventorySlot {
                 slot: inv_id,
                 ours: self.ours,
+                entity: self.entity,
             }
             .image_key(source)
         })
@@ -96,6 +98,7 @@ impl SlotKey<Inventory, ItemImgs> for TradeSlot {
                 InventorySlot {
                     slot: inv_id,
                     ours: self.ours,
+                    entity: self.entity,
                 }
                 .amount(source)
             })

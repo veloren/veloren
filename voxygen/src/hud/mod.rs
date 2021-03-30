@@ -66,19 +66,23 @@ use common::{
     combat,
     comp::{
         self,
+        inventory::trade_pricing::TradePricing,
         item::{tool::ToolKind, ItemDesc, MaterialStatManifest, Quality},
         skills::{Skill, SkillGroupKind},
         BuffKind, Item,
     },
     outcome::Outcome,
     terrain::TerrainChunk,
-    trade::TradeAction,
+    trade::{ReducedInventory, TradeAction},
     uid::Uid,
     util::srgba_to_linear,
     vol::RectRasterableVol,
 };
 use common_base::span;
-use common_net::msg::{world_msg::SiteId, Notification, PresenceKind};
+use common_net::{
+    msg::{world_msg::SiteId, Notification, PresenceKind},
+    sync::WorldSyncExt,
+};
 use conrod_core::{
     text::cursor::Index,
     widget::{self, Button, Image, Text},
@@ -2901,11 +2905,13 @@ impl Hud {
         }
 
         // Maintain slot manager
-        for event in self.slot_manager.maintain(ui_widgets) {
+        'slot_events: for event in self.slot_manager.maintain(ui_widgets) {
             use comp::slot::Slot;
             use slots::{InventorySlot, SlotKind::*};
             let to_slot = |slot_kind| match slot_kind {
-                Inventory(InventorySlot { slot, ours: true }) => Some(Slot::Inventory(slot)),
+                Inventory(InventorySlot {
+                    slot, ours: true, ..
+                }) => Some(Slot::Inventory(slot)),
                 Inventory(InventorySlot { ours: false, .. }) => None,
                 Equip(e) => Some(Slot::Equip(e)),
                 Hotbar(_) => None,
@@ -2920,8 +2926,12 @@ impl Hud {
                             slot_b: b,
                             bypass_dialog: false,
                         });
-                    } else if let (Inventory(InventorySlot { slot, ours: true }), Hotbar(h)) =
-                        (a, b)
+                    } else if let (
+                        Inventory(InventorySlot {
+                            slot, ours: true, ..
+                        }),
+                        Hotbar(h),
+                    ) = (a, b)
                     {
                         self.hotbar.add_inventory_link(h, slot);
                         events.push(Event::ChangeHotbarState(Box::new(self.hotbar.to_owned())));
@@ -3042,6 +3052,127 @@ impl Hud {
                         });
                     }
                 },
+                slot::Event::Request {
+                    slot,
+                    auto_quantity,
+                } => {
+                    if let Some((_, trade, prices)) = client.pending_trade() {
+                        let ecs = client.state().ecs();
+                        let inventories = ecs.read_component::<common::comp::Inventory>();
+                        let get_inventory = |uid: Uid| {
+                            if let Some(entity) = ecs.entity_from_uid(uid.0) {
+                                inventories.get(entity)
+                            } else {
+                                None
+                            }
+                        };
+                        let mut r_inventories = [None, None];
+                        for (i, party) in trade.parties.iter().enumerate() {
+                            match get_inventory(*party) {
+                                Some(inventory) => {
+                                    r_inventories[i] = Some(ReducedInventory::from(inventory))
+                                },
+                                None => continue 'slot_events,
+                            };
+                        }
+                        let who = match ecs
+                            .uid_from_entity(client.entity())
+                            .and_then(|uid| trade.which_party(uid))
+                        {
+                            Some(who) => who,
+                            None => continue 'slot_events,
+                        };
+                        let do_auto_quantity =
+                            |inventory: &common::comp::Inventory,
+                             slot,
+                             ours,
+                             remove,
+                             quantity: &mut u32| {
+                                if let Some(prices) = prices {
+                                    let balance0 =
+                                        prices.balance(&trade.offers, &r_inventories, who, true);
+                                    let balance1 = prices.balance(
+                                        &trade.offers,
+                                        &r_inventories,
+                                        1 - who,
+                                        false,
+                                    );
+                                    if let Some(item) = inventory.get(slot) {
+                                        let (material, factor) =
+                                            TradePricing::get_material(item.item_definition_id());
+                                        let mut unit_price = prices
+                                            .values
+                                            .get(&material)
+                                            .cloned()
+                                            .unwrap_or_default()
+                                            * factor;
+                                        if ours {
+                                            unit_price *= material.trade_margin();
+                                        }
+                                        let mut float_delta = if ours ^ remove {
+                                            (balance1 - balance0) / unit_price
+                                        } else {
+                                            (balance0 - balance1) / unit_price
+                                        };
+                                        if ours ^ remove {
+                                            float_delta = float_delta.ceil();
+                                        } else {
+                                            float_delta = float_delta.floor();
+                                        }
+                                        *quantity = float_delta.max(0.0) as u32;
+                                    }
+                                }
+                            };
+                        match slot {
+                            Inventory(i) => {
+                                if let Some(inventory) = inventories.get(i.entity) {
+                                    let mut quantity = 1;
+                                    if auto_quantity {
+                                        do_auto_quantity(
+                                            inventory,
+                                            i.slot,
+                                            i.ours,
+                                            false,
+                                            &mut quantity,
+                                        );
+                                        let inv_quantity = i.amount(inventory).unwrap_or(1);
+                                        quantity = quantity.min(inv_quantity);
+                                    }
+
+                                    events.push(Event::TradeAction(TradeAction::AddItem {
+                                        item: i.slot,
+                                        quantity,
+                                        ours: i.ours,
+                                    }));
+                                }
+                            },
+                            Trade(t) => {
+                                if let Some(inventory) = inventories.get(t.entity) {
+                                    if let Some(invslot) = t.invslot {
+                                        let mut quantity = 1;
+                                        if auto_quantity {
+                                            do_auto_quantity(
+                                                inventory,
+                                                invslot,
+                                                t.ours,
+                                                true,
+                                                &mut quantity,
+                                            );
+                                            let inv_quantity = t.amount(inventory).unwrap_or(1);
+                                            quantity = quantity.min(inv_quantity);
+                                        }
+                                        events.push(Event::TradeAction(TradeAction::RemoveItem {
+                                            item: invslot,
+                                            quantity,
+                                            ours: t.ours,
+                                        }));
+                                    }
+                                }
+                            },
+                            _ => {},
+                        }
+                    }
+                },
             }
         }
         self.hotbar.maintain_ability3(client);
@@ -3096,6 +3227,7 @@ impl Hud {
             if let Some(slots::SlotKind::Inventory(InventorySlot {
                 slot: i,
                 ours: true,
+                ..
             })) = slot_manager.selected()
             {
                 hotbar.add_inventory_link(slot, i);

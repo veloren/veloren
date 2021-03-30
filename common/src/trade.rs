@@ -1,5 +1,5 @@
 use crate::{
-    comp::inventory::{slot::InvSlotId, Inventory},
+    comp::inventory::{slot::InvSlotId, trade_pricing::TradePricing, Inventory},
     terrain::BiomeKind,
     uid::Uid,
 };
@@ -347,6 +347,35 @@ pub struct SiteInformation {
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct SitePrices {
     pub values: HashMap<Good, f32>,
+}
+
+impl SitePrices {
+    pub fn balance(
+        &self,
+        offers: &[HashMap<InvSlotId, u32>; 2],
+        inventories: &[Option<ReducedInventory>; 2],
+        who: usize,
+        reduce: bool,
+    ) -> f32 {
+        offers[who]
+            .iter()
+            .map(|(slot, amount)| {
+                inventories[who]
+                    .as_ref()
+                    .map(|ri| {
+                        ri.inventory.get(slot).map(|item| {
+                            let (material, factor) = TradePricing::get_material(&item.name);
+                            self.values.get(&material).cloned().unwrap_or_default()
+                                * factor
+                                * (*amount as f32)
+                                * if reduce { material.trade_margin() } else { 1.0 }
+                        })
+                    })
+                    .flatten()
+                    .unwrap_or_default()
+            })
+            .sum()
+    }
 }
 
 #[derive(Clone, Debug, Default)]

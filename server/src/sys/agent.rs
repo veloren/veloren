@@ -7,7 +7,7 @@ use common::{
         compass::{Direction, Distance},
         dialogue::{MoodContext, MoodState, Subject},
         group,
-        inventory::{item::ItemTag, slot::EquipSlot, trade_pricing::TradePricing},
+        inventory::{item::ItemTag, slot::EquipSlot},
         invite::{InviteKind, InviteResponse},
         item::{
             tool::{ToolKind, UniqueKind},
@@ -1150,33 +1150,9 @@ impl<'a> AgentData<'a> {
                 let (tradeid, pending, prices, inventories) = *boxval;
                 if agent.trading {
                     let who: usize = if agent.trading_issuer { 0 } else { 1 };
-                    let balance = |who: usize, reduce: bool| {
-                        pending.offers[who]
-                            .iter()
-                            .map(|(slot, amount)| {
-                                inventories[who]
-                                    .as_ref()
-                                    .map(|ri| {
-                                        ri.inventory.get(slot).map(|item| {
-                                            let (material, factor) =
-                                                TradePricing::get_material(&item.name);
-                                            prices
-                                                .values
-                                                .get(&material)
-                                                .cloned()
-                                                .unwrap_or_default()
-                                                * factor
-                                                * (*amount as f32)
-                                                * if reduce { material.trade_margin() } else { 1.0 }
-                                        })
-                                    })
-                                    .flatten()
-                                    .unwrap_or_default()
-                            })
-                            .sum()
-                    };
-                    let balance0: f32 = balance(1 - who, true);
-                    let balance1: f32 = balance(who, false);
+                    let balance0: f32 =
+                        prices.balance(&pending.offers, &inventories, 1 - who, true);
+                    let balance1: f32 = prices.balance(&pending.offers, &inventories, who, false);
                     tracing::debug!("UpdatePendingTrade({}, {})", balance0, balance1);
                     if balance0 >= balance1 {
                         // If the trade is favourable to us, only send an accept message if we're
