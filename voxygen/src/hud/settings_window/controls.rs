@@ -74,6 +74,7 @@ impl<'a> Widget for Controls<'a> {
         let widget::UpdateArgs { state, ui, .. } = args;
 
         let mut events = Vec::new();
+        let key_layout = &self.global_state.window.key_layout;
 
         Rectangle::fill_with(args.rect.dim(), color::TRANSPARENT)
             .xy(args.rect.xy())
@@ -125,7 +126,7 @@ impl<'a> Widget for Controls<'a> {
                     )
                 } else if let Some(key) = controls.get_binding(game_input) {
                     (
-                        key.to_string(),
+                        key.display_string(key_layout),
                         if controls.has_conflicting_bindings(key) {
                             TEXT_BIND_CONFLICT_COLOR
                         } else {

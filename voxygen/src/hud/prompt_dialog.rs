@@ -11,6 +11,7 @@ use conrod_core::{
     widget::{self, Button, Image, Text},
     widget_ids, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
+use keyboard_keynames::key_layout::KeyLayout;
 
 widget_ids! {
     struct Ids {
@@ -34,6 +35,7 @@ pub struct PromptDialog<'a> {
     localized_strings: &'a AssetHandle<Localization>,
     settings: &'a Settings,
     prompt_dialog_settings: &'a PromptDialogSettings,
+    key_layout: &'a Option<KeyLayout>,
 }
 
 impl<'a> PromptDialog<'a> {
@@ -44,6 +46,7 @@ impl<'a> PromptDialog<'a> {
         localized_strings: &'a AssetHandle<Localization>,
         settings: &'a Settings,
         prompt_dialog_settings: &'a PromptDialogSettings,
+        key_layout: &'a Option<KeyLayout>,
     ) -> Self {
         Self {
             imgs,
@@ -52,6 +55,7 @@ impl<'a> PromptDialog<'a> {
             common: widget::CommonBuilder::default(),
             settings,
             prompt_dialog_settings,
+            key_layout,
         }
     }
 }
@@ -88,12 +92,12 @@ impl<'a> Widget for PromptDialog<'a> {
             .settings
             .controls
             .get_binding(GameInput::AcceptGroupInvite)
-            .map_or_else(|| "".into(), |key| key.to_string());
+            .map_or_else(|| "".into(), |key| key.display_string(self.key_layout));
         let decline_key = self
             .settings
             .controls
             .get_binding(GameInput::DeclineGroupInvite)
-            .map_or_else(|| "".into(), |key| key.to_string());
+            .map_or_else(|| "".into(), |key| key.display_string(self.key_layout));
 
         // Window
         Image::new(self.imgs.prompt_top)

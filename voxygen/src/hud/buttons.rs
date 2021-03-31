@@ -126,6 +126,7 @@ impl<'a> Widget for Buttons<'a> {
             Some(inv) => inv,
             None => return None,
         };
+        let key_layout = &self.global_state.window.key_layout;
         let localized_strings = self.localized_strings;
         let arrow_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.8; //Animation timer
 
@@ -184,13 +185,13 @@ impl<'a> Widget for Buttons<'a> {
             .controls
             .get_binding(GameInput::Bag)
         {
-            Text::new(bag.to_string().as_str())
+            Text::new(bag.display_string(key_layout).as_str())
                 .bottom_right_with_margins_on(state.ids.bag, 0.0, 0.0)
                 .font_size(10)
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(BLACK)
                 .set(state.ids.bag_text_bg, ui);
-            Text::new(bag.to_string().as_str())
+            Text::new(bag.display_string(key_layout).as_str())
                 .bottom_right_with_margins_on(state.ids.bag_text_bg, 1.0, 1.0)
                 .font_size(10)
                 .font_id(self.fonts.cyri.conrod_id)
@@ -245,13 +246,13 @@ impl<'a> Widget for Buttons<'a> {
             .controls
             .get_binding(GameInput::Settings)
         {
-            Text::new(settings.to_string().as_str())
+            Text::new(settings.display_string(key_layout).as_str())
                 .bottom_right_with_margins_on(state.ids.settings_button, 0.0, 0.0)
                 .font_size(10)
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(BLACK)
                 .set(state.ids.settings_text_bg, ui);
-            Text::new(settings.to_string().as_str())
+            Text::new(settings.display_string(key_layout).as_str())
                 .bottom_right_with_margins_on(state.ids.settings_text_bg, 1.0, 1.0)
                 .font_size(10)
                 .font_id(self.fonts.cyri.conrod_id)
@@ -283,13 +284,13 @@ impl<'a> Widget for Buttons<'a> {
             .controls
             .get_binding(GameInput::Social)
         {
-            Text::new(social.to_string().as_str())
+            Text::new(social.display_string(key_layout).as_str())
                 .bottom_right_with_margins_on(state.ids.social_button, 0.0, 0.0)
                 .font_size(10)
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(BLACK)
                 .set(state.ids.social_text_bg, ui);
-            Text::new(social.to_string().as_str())
+            Text::new(social.display_string(key_layout).as_str())
                 .bottom_right_with_margins_on(state.ids.social_text_bg, 1.0, 1.0)
                 .font_size(10)
                 .font_id(self.fonts.cyri.conrod_id)
@@ -320,13 +321,13 @@ impl<'a> Widget for Buttons<'a> {
             .controls
             .get_binding(GameInput::Map)
         {
-            Text::new(map.to_string().as_str())
+            Text::new(map.display_string(key_layout).as_str())
                 .bottom_right_with_margins_on(state.ids.map_button, 0.0, 0.0)
                 .font_size(10)
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(BLACK)
                 .set(state.ids.map_text_bg, ui);
-            Text::new(map.to_string().as_str())
+            Text::new(map.display_string(key_layout).as_str())
                 .bottom_right_with_margins_on(state.ids.map_text_bg, 1.0, 1.0)
                 .font_size(10)
                 .font_id(self.fonts.cyri.conrod_id)
@@ -362,13 +363,13 @@ impl<'a> Widget for Buttons<'a> {
             .controls
             .get_binding(GameInput::Spellbook)
         {
-            Text::new(spell.to_string().as_str())
+            Text::new(spell.display_string(key_layout).as_str())
                 .bottom_right_with_margins_on(state.ids.spellbook_button, 0.0, 0.0)
                 .font_size(10)
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(BLACK)
                 .set(state.ids.spellbook_text_bg, ui);
-            Text::new(spell.to_string().as_str())
+            Text::new(spell.display_string(key_layout).as_str())
                 .bottom_right_with_margins_on(state.ids.spellbook_text_bg, 1.0, 1.0)
                 .font_size(10)
                 .font_id(self.fonts.cyri.conrod_id)
@@ -422,13 +423,13 @@ impl<'a> Widget for Buttons<'a> {
             .controls
             .get_binding(GameInput::Crafting)
         {
-            Text::new(crafting.to_string().as_str())
+            Text::new(crafting.display_string(key_layout).as_str())
                 .bottom_right_with_margins_on(state.ids.crafting_button, 0.0, 0.0)
                 .font_size(10)
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(BLACK)
                 .set(state.ids.crafting_text_bg, ui);
-            Text::new(crafting.to_string().as_str())
+            Text::new(crafting.display_string(key_layout).as_str())
                 .bottom_right_with_margins_on(state.ids.crafting_text_bg, 1.0, 1.0)
                 .font_size(10)
                 .font_id(self.fonts.cyri.conrod_id)

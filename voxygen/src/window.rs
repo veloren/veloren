@@ -9,9 +9,9 @@ use crossbeam::channel;
 use gilrs::{EventType, Gilrs};
 use hashbrown::HashMap;
 use itertools::Itertools;
+use keyboard_keynames::key_layout::KeyLayout;
 use old_school_gfx_glutin_ext::{ContextBuilderExt, WindowInitExt, WindowUpdateExt};
 use serde::{Deserialize, Serialize};
-use std::fmt;
 use tracing::{error, info, warn};
 use vek::*;
 use winit::monitor::VideoMode;
@@ -320,11 +320,11 @@ pub enum KeyMouse {
     ScanKey(winit::event::ScanCode),
 }
 
-impl fmt::Display for KeyMouse {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl KeyMouse {
+    pub fn display_string(&self, key_layout: &Option<KeyLayout>) -> String {
         use self::KeyMouse::*;
         use winit::event::{MouseButton, VirtualKeyCode::*};
-        write!(f, "{}", match self {
+        let key_string = match self {
             Key(Key1) => "1",
             Key(Key2) => "2",
             Key(Key3) => "3",
@@ -491,11 +491,20 @@ impl fmt::Display for KeyMouse {
             Mouse(MouseButton::Left) => "M1",
             Mouse(MouseButton::Right) => "M2",
             Mouse(MouseButton::Middle) => "M3",
-            Mouse(MouseButton::Other(button)) =>
-            // Additional mouse buttons after middle click start at 1
-                return write!(f, "M{}", button + 3),
-            ScanKey(_) => "Unknown",
-        })
+            Mouse(MouseButton::Other(button)) => {
+                // Additional mouse buttons after middle click start at 1
+                return format!("M{}", button + 3);
+            },
+            ScanKey(scancode) => {
+                if let Some(layout) = key_layout {
+                    return layout.get_key_as_string(*scancode);
+                } else {
+                    return format!("Unknown({})", scancode);
+                }
+            },
+        };
+
+        String::from(key_string)
     }
 }
 
@@ -525,6 +534,7 @@ pub struct Window {
     // Used for screenshots & fullscreen toggle to deduplicate/postpone to after event handler
     take_screenshot: bool,
     toggle_fullscreen: bool,
+    pub key_layout: Option<KeyLayout>,
 }
 
 impl Window {
@@ -600,6 +610,18 @@ impl Window {
 
         let scale_factor = window.window().scale_factor();
 
+        let key_layout = match KeyLayout::new_from_window(window.window()) {
+            Ok(kl) => Some(kl),
+            Err(err) => {
+                warn!(
+                    ?err,
+                    "Failed to construct the scancode to keyname mapper, falling back to \
+                     displaying Unknown(<scancode>)."
+                );
+                None
+            },
+        };
+
         let mut this = Self {
             renderer: Renderer::new(
                 device,
@@ -631,6 +653,7 @@ impl Window {
             message_receiver,
             take_screenshot: false,
             toggle_fullscreen: false,
+            key_layout,
         };
 
         this.set_fullscreen_mode(settings.graphics.fullscreen);
