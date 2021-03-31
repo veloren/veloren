@@ -2,7 +2,7 @@
 use crate::hud::animate_by_pulse;
 use conrod_core::{
     builder_methods, image,
-    input::state::mouse,
+    input::{keyboard::ModifierKey, state::mouse},
     text::font,
     widget::{self, Image, Text},
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
@@ -122,6 +122,8 @@ pub enum Event<K> {
     SplitDragged(K, K),
     // Clicked while selected
     Used(K),
+    // {Shift,Ctrl}-clicked
+    Request { slot: K, auto_quantity: bool },
 }
 // Handles interactions with slots
 pub struct SlotManager<S: SumSlot> {
@@ -367,6 +369,30 @@ where
                     ManagerState::Idle
                 }
             };
+        }
+
+        // Translate ctrl-clicks to stack-requests and shift-clicks to
+        // individual-requests
+        if let Some(click) = input.clicks().left().next() {
+            if !matches!(self.state, ManagerState::Dragging(_, _, _, _)) {
+                match click.modifiers {
+                    ModifierKey::CTRL => {
+                        self.events.push(Event::Request {
+                            slot,
+                            auto_quantity: true,
+                        });
+                        self.state = ManagerState::Idle;
+                    },
+                    ModifierKey::SHIFT => {
+                        self.events.push(Event::Request {
+                            slot,
+                            auto_quantity: false,
+                        });
+                        self.state = ManagerState::Idle;
+                    },
+                    _ => {},
+                }
+            }
         }
 
         // Use on right click if not dragging

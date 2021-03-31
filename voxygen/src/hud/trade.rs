@@ -305,6 +305,7 @@ impl<'a> Trade<'a> {
                 false,
                 &item_tooltip,
                 name,
+                entity,
                 false,
                 &inventory,
                 &state.bg_ids,

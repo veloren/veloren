@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Trades now display item prices in tooltips.
 - Admin designated build areas
 - Indicator text to collectable terrain sprites
+- You can now autorequest exact change by ctrl-clicking in a trade, and can quick-add individual items with shift-click.
 
 ### Changed
 

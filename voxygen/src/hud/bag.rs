@@ -30,6 +30,7 @@ use conrod_core::{
 };
 
 use crate::hud::slots::SlotKind;
+use specs::Entity as EcsEntity;
 use std::sync::Arc;
 use vek::Vec2;
 
@@ -78,6 +79,7 @@ pub struct InventoryScroller<'a> {
     on_right: bool,
     item_tooltip: &'a ItemTooltip<'a>,
     playername: String,
+    entity: EcsEntity,
     is_us: bool,
     inventory: &'a Inventory,
     bg_ids: &'a BackgroundIds,
@@ -99,6 +101,7 @@ impl<'a> InventoryScroller<'a> {
         on_right: bool,
         item_tooltip: &'a ItemTooltip<'a>,
         playername: String,
+        entity: EcsEntity,
         is_us: bool,
         inventory: &'a Inventory,
         bg_ids: &'a BackgroundIds,
@@ -118,6 +121,7 @@ impl<'a> InventoryScroller<'a> {
             on_right,
             item_tooltip,
             playername,
+            entity,
             is_us,
             inventory,
             bg_ids,
@@ -274,6 +278,7 @@ impl<'a> InventoryScroller<'a> {
                     InventorySlot {
                         slot: pos,
                         ours: self.is_us,
+                        entity: self.entity,
                     },
                     [40.0; 2],
                 )
@@ -616,6 +621,7 @@ impl<'a> Widget for Bag<'a> {
             true,
             &item_tooltip,
             self.stats.name.to_string(),
+            self.client.entity(),
             true,
             &inventory,
             &state.bg_ids,
