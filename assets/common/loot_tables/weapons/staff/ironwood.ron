@@ -1,0 +1,5 @@
+[
+    (1.0, Item("common.items.weapons.staff.flamethrower_0")),
+    (1.0, Item("common.items.weapons.staff.golden_khakkara")),
+    (1.0, Item("common.items.weapons.staff.orc_iron")),
+]
