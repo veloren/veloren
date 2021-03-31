@@ -1,0 +1,8 @@
+[
+    (1.0, LootTable("common.loot_tables.weapons.sword.steel")),
+    (1.0, LootTable("common.loot_tables.weapons.axe.steel")),
+    (1.0, LootTable("common.loot_tables.weapons.hammer.steel")),
+    (1.0, LootTable("common.loot_tables.weapons.bow.metal")),
+    (1.0, LootTable("common.loot_tables.weapons.staff.ironwood")),
+    (1.0, LootTable("common.loot_tables.weapons.sceptre.ironwood")),
+]

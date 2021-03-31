@@ -20,9 +20,6 @@ loot_tables: [
     (1,"common.loot_tables.fallback"),
     (0.04,"common.loot_tables.saurok"),
     (0.05,"common.loot_tables.villager"),
-    (1,"common.loot_tables.weapon_common"),
-    (0.008,"common.loot_tables.weapon_rare"),
-    (0.01,"common.loot_tables.weapon_uncommon"),
     // we probably want to include all the scattered scatter information
     //(0.5,"common.cave_scatter"),
 ], 

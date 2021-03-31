@@ -602,8 +602,8 @@ impl Item {
             // IMPORTANT: Add any new container to `SpriteKind::is_container`
             SpriteKind::Chest => {
                 chosen = Lottery::<LootSpec>::load_expect(match rng.gen_range(0..7) {
-                    0 => "common.loot_tables.weapon_uncommon",
-                    1 => "common.loot_tables.weapon_common",
+                    0 => "common.loot_tables.weapons.tier-0",
+                    1 => "common.loot_tables.weapons.tier-1",
                     2 => "common.loot_tables.armor.swift",
                     3 => "common.loot_tables.armor.cloth",
                     4 => "common.loot_tables.armor.plate",
@@ -614,7 +614,7 @@ impl Item {
             },
             SpriteKind::ChestBurried => {
                 chosen = Lottery::<LootSpec>::load_expect(match rng.gen_range(0..7) {
-                    1 => "common.loot_tables.weapon_common",
+                    1 => "common.loot_tables.weapons.tier-1",
                     2 => "common.loot_tables.armor.swift",
                     3 => "common.loot_tables.armor.cloth",
                     _ => "common.loot_tables.fallback",
@@ -625,7 +625,7 @@ impl Item {
             SpriteKind::Mud => {
                 chosen = Lottery::<LootSpec>::load_expect(match rng.gen_range(0..5) {
                     0 => "common.loot_tables.crafting",
-                    1 => "common.loot_tables.weapon_common",
+                    1 => "common.loot_tables.weapons.tier-0",
                     2 => "common.loot_tables.fallback",
                     _ => "common.loot_tables.rocks",
                 })

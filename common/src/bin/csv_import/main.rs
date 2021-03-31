@@ -404,7 +404,10 @@ fn loot_table(loot_table: &str) -> Result<(), Box<dyn Error>> {
                         .to_string(),
                 ),
                 "CreatureMaterial" => LootSpec::CreatureMaterial,
-                a => panic!("Loot specifier kind must be either \"Item\" or \"LootTable\"\n{}", a),
+                a => panic!(
+                    "Loot specifier kind must be either \"Item\" or \"LootTable\"\n{}",
+                    a
+                ),
             };
             let chance: f32 = record
                 .get(headers["Relative Chance"])

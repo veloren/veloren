@@ -7,17 +7,7 @@
     // Consumables
     (0.2, Item("common.items.consumable.potion_minor")),
     // Armour
-    (1.0, Item("common.items.armor.misc.chest.worker_green_0")),
-    (1.0, Item("common.items.armor.misc.chest.worker_green_1")),
-    (1.0, Item("common.items.armor.misc.chest.worker_orange_0")),
-    (1.0, Item("common.items.armor.misc.chest.worker_orange_1")),
-    (1.0, Item("common.items.armor.misc.chest.worker_purple_0")),
-    (1.0, Item("common.items.armor.misc.chest.worker_purple_1")),
-    (1.0, Item("common.items.armor.misc.chest.worker_red_0")),
-    (1.0, Item("common.items.armor.misc.chest.worker_red_1")),
-    (1.0, Item("common.items.armor.misc.chest.worker_yellow_0")),
-    (1.0, Item("common.items.armor.misc.chest.worker_yellow_1")),
-    (1.0, Item("common.items.armor.misc.pants.worker_blue")),
+    (10.0, LootTable("common.loot_tables.armor.cloth")),
     // Utility
     (0.05, Item("common.items.utility.collar")),
     // Food
@@ -29,17 +19,8 @@
     (0.1, Item("common.items.food.apple_stick")),
     (0.1, Item("common.items.food.mushroom_stick")),
     // Weapons
-    (0.15, Item("common.items.weapons.sword.wood-0")),
-    (0.15, Item("common.items.weapons.sword.wood-1")),
-    (0.15, Item("common.items.weapons.sword.wood-2")),
-    (0.1, Item("common.items.weapons.axe.worn_iron_axe-0")),
-    (0.1, Item("common.items.weapons.axe.worn_iron_axe-1")),
-    (0.1, Item("common.items.weapons.axe.worn_iron_axe-2")),
-    (0.1, Item("common.items.weapons.axe.worn_iron_axe-3")),
-    (0.1, Item("common.items.weapons.axe.worn_iron_axe-4")),
-    (0.25, Item("common.items.weapons.sceptre.staff_nature")),
-    (0.15, Item("common.items.weapons.hammer.flimsy_hammer")),
-    (0.1, Item("common.items.weapons.hammer.wood_hammer-0")),
-    (0.15, Item("common.items.weapons.bow.rawwood-0")),
-    (0.15, Item("common.items.weapons.bow.rawwood-1")),
+    (0.5, LootTable("common.loot_tables.sword.wood")),
+    (0.5, LootTable("common.loot_tables.hammer.stone")),
+    (0.5, LootTable("common.loot_tables.bow.rawwood")),
+    (0.5, LootTable("common.loot_tables.starter")),
 ]

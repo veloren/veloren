@@ -345,7 +345,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                     0 => "common.loot_tables.humanoids",
                     1 => "common.loot_tables.armor.swift",
                     2 => "common.loot_tables.armor.cloth",
-                    3 => "common.loot_tables.weapon_common",
+                    3 => "common.loot_tables.weapons.starter",
                     4 => "common.loot_tables.humanoids",
                     _ => "common.loots_tables.fallback",
                 },
@@ -376,13 +376,13 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                     biped_large::Species::Wendigo => match rng.gen_range(0..7) {
                         0 => "common.loot_tables.food",
                         1 => "common.loot_tables.wild_animal",
-                        2 => "common.loot_tables.weapon_uncommon",
+                        2 => "common.loot_tables.weapons.tier-2",
                         _ => "common.loot_tables.cave_large",
                     },
-                    biped_large::Species::Troll => match rng.gen_range(0..10) {
+                    biped_large::Species::Troll => match rng.gen_range(0..8) {
                         0 => "common.loot_tables.food",
                         1 => "common.loot_tables.cave_large",
-                        2 => "common.loot_tables.weapon_uncommon",
+                        2 => "common.loot_tables.weapons.tier-2",
                         _ => "common.loot_tables.wild_animal",
                     },
                     biped_large::Species::Occultsaurok
@@ -396,13 +396,13 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                 Some(common::comp::Body::Golem(_)) => match rng.gen_range(0..5) {
                     0 => "common.loot_tables.food",
                     1 => "common.loot_tables.armor.steel",
-                    2 => "common.loot_tables.weapon_common",
-                    3 => "common.loot_tables.weapon_uncommon",
-                    4 => "common.loot_tables.weapon_rare",
+                    2 => "common.loot_tables.weapons.tier-1",
+                    3 => "common.loot_tables.weapons.tier-2",
+                    4 => "common.loot_tables.weapons.tier-3",
                     _ => "common.loot_tables.fallback",
                 },
                 Some(common::comp::Body::Theropod(_)) => "common.loot_tables.wild_animal",
-                Some(common::comp::Body::Dragon(_)) => "common.loot_tables.weapon_rare",
+                Some(common::comp::Body::Dragon(_)) => "common.loot_tables.weapons.tier-5",
                 Some(common::comp::Body::QuadrupedLow(quadruped_low)) => {
                     match quadruped_low.species {
                         quadruped_low::Species::Maneater => "common.loot_tables.maneater",

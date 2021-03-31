@@ -556,28 +556,28 @@ impl Floor {
                                 match dynamic_rng.gen_range(0..4) {
                                     0 => "common.loot_tables.humanoids",
                                     1 => "common.loot_tables.armor.cloth",
-                                    _ => "common.loot_tables.weapon_common",
+                                    _ => "common.loot_tables.weapons.tier-0",
                                 },
                             ),
                             1 => Lottery::<LootSpec>::load_expect(
                                 match dynamic_rng.gen_range(0..4) {
                                     0 => "common.loot_tables.humanoids",
                                     1 => "common.loot_tables.armor.swift",
-                                    _ => "common.loot_tables.weapon_uncommon",
+                                    _ => "common.loot_tables.weapons.tier-1",
                                 },
                             ),
                             2 => Lottery::<LootSpec>::load_expect(
                                 match dynamic_rng.gen_range(0..4) {
                                     0 => "common.loot_tables.humanoids",
                                     1 => "common.loot_tables.armor.plate",
-                                    _ => "common.loot_tables.weapon_rare",
+                                    _ => "common.loot_tables.weapons.tier-2",
                                 },
                             ),
                             3 => Lottery::<LootSpec>::load_expect(
                                 match dynamic_rng.gen_range(0..10) {
                                     0 => "common.loot_tables.humanoids",
                                     1 => "common.loot_tables.armor.steel",
-                                    2 => "common.loot_tables.weapon_rare",
+                                    2 => "common.loot_tables.weapons.tier-3",
                                     _ => "common.loot_tables.cultists",
                                 },
                             ),
@@ -585,7 +585,7 @@ impl Floor {
                                 match dynamic_rng.gen_range(0..6) {
                                     0 => "common.loot_tables.humanoids",
                                     1 => "common.loot_tables.fallback",
-                                    2 => "common.loot_tables.weapon_rare",
+                                    2 => "common.loot_tables.weapons.tier-4",
                                     _ => "common.loot_tables.cultists",
                                 },
                             ),
@@ -593,7 +593,7 @@ impl Floor {
                                 match dynamic_rng.gen_range(0..5) {
                                     0 => "common.loot_tables.humanoids",
                                     1 => "common.loot_tables.fallback",
-                                    2 => "common.loot_tables.weapon_rare",
+                                    2 => "common.loot_tables.weapons.tier-5",
                                     _ => "common.loot_tables.cultists",
                                 },
                             ),
@@ -838,23 +838,20 @@ impl Floor {
                         if tile_pos == boss_spawn_tile && tile_wcenter.xy() == wpos2d {
                             let chosen = match room.difficulty {
                                 0 => Lottery::<LootSpec>::load_expect(
-                                    "common.loot_tables.weapon_uncommon",
+                                    "common.loot_tables.weapons.tier-0",
                                 ),
                                 1 => Lottery::<LootSpec>::load_expect(
-                                    "common.loot_tables.weapon_uncommon",
+                                    "common.loot_tables.weapons.tier-1",
                                 ),
                                 2 => Lottery::<LootSpec>::load_expect(
-                                    match dynamic_rng.gen_range(0..3) {
-                                        0 => "common.loot_tables.armor.steel",
-                                        _ => "common.loot_tables.armor.plate",
-                                    },
+                                    "common.loot_tables.weapons.tier-2",
                                 ),
                                 3 => Lottery::<LootSpec>::load_expect(
-                                    "common.loot_tables.weapon_rare",
+                                    "common.loot_tables.weapons.tier-3",
                                 ),
-                                4 => {
-                                    Lottery::<LootSpec>::load_expect("common.loot_tables.miniboss")
-                                },
+                                4 => Lottery::<LootSpec>::load_expect(
+                                    "common.loot_tables.weapons.tier-4",
+                                ),
                                 5 => Lottery::<LootSpec>::load_expect(
                                     match dynamic_rng.gen_range(0..3) {
                                         0 => "common.loot_tables.mindflayer",
@@ -1009,10 +1006,10 @@ impl Floor {
                                     "common.loot_tables.wild_animal",
                                 ),
                                 3 => Lottery::<LootSpec>::load_expect(
-                                    "common.loot_tables.weapon_rare",
+                                    "common.loot_tables.weapons.tier-3",
                                 ),
                                 4 => Lottery::<LootSpec>::load_expect(
-                                    "common.loot_tables.weapon_rare",
+                                    "common.loot_tables.weapons.tier-4",
                                 ),
                                 5 => Lottery::<LootSpec>::load_expect("common.loot_tables.husk"),
                                 _ => {
