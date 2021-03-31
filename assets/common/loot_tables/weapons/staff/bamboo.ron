@@ -1,5 +1,5 @@
 [
-    (1.0, Item("common.items.weapons.staff.bent_fuse")),
     (1.0, Item("common.items.weapons.staff.bone_staff")),
     (1.0, Item("common.items.weapons.staff.fiery_wishing_rod")),
+    (1.0, Item("common.items.weapons.staff.ley_seeker")),
 ]

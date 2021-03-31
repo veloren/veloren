@@ -2,4 +2,5 @@
     (1.0, Item("common.items.weapons.staff.heated_arm")),
     (1.0, Item("common.items.weapons.staff.infused_tower")),
     (1.0, Item("common.items.weapons.staff.solar")),
+    (1.0, Item("common.items.weapons.staff.lava_rod")),
 ]

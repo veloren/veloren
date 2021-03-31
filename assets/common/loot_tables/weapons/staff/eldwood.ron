@@ -1,5 +1,4 @@
 [
-    (1.0, Item("common.items.weapons.staff.aurora")),
     (1.0, Item("common.items.weapons.staff.dragon_tongue")),
     (1.0, Item("common.items.weapons.staff.ruby_rod")),
 ]
