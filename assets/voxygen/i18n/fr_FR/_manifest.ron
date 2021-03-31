@@ -86,6 +86,32 @@
             "J'aimerais que quelqu'un garde les loups loin du village.",
             "J'ai fait un merveilleux rêve sur le fromage la nuit dernière. Qu'est-ce que cela signifie ?",
         ],
+        "npc.speech.villager_decline_trade": [
+            "Désolé, je n'ai rien à vous échanger.",
+            "Un échange ? Comme si que j'avais quoi que ce soit qui vous intéresserait.",
+            "Ma maison n'est pas à vendre.",
+        ],
+        "npc.speech.merchant_advertisement": [
+            "Seriez-vous intéressé par un échange ?",
+            "Voulez-vous faire un échange ?",
+            "J'ai pu amasser beaucoup d'objets, vous voulez y jeter un oeil ?"
+        ],
+        "npc.speech.merchant_busy": [
+            "Hey, attendez votre tour.",
+            "Attendez s'il vous plait, je ne suis pas une pieuvre.",
+            "Un moment, laissez-moi terminer.",
+            "On ne dépasse pas.",
+            "Je suis occupé, revenez plus tard."
+        ],
+        "npc.speech.merchant_trade_successful": [
+            "Merci d'avoir échangé avec moi",
+            "Merci!",
+            "Ce fut un plaisir d'échanger avec vous!"
+        ],
+        "npc.speech.merchant_trade_declined": [
+            "Peut-être pour un autre jour, bonne journée !",
+            "Dommage, à la revoyure !"
+        ],
         "npc.speech.villager_cultist_alarm": [
             "Attention ! Il y a un cultiste en liberté !",
             "Aux armes ! Les cultistes attaquent !",

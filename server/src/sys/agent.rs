@@ -932,7 +932,7 @@ impl<'a> AgentData<'a> {
                                             UnresolvedChatMsg::npc(*self.uid, msg),
                                         ));
                                     } else if agent.trade_for_site.is_some() {
-                                        let msg = "Can I interest you in a trade?".to_string();
+                                        let msg = "npc.speech.merchant_advertisement".to_string();
                                         event_emitter.emit(ServerEvent::Chat(
                                             UnresolvedChatMsg::npc(*self.uid, msg),
                                         ));
@@ -944,23 +944,32 @@ impl<'a> AgentData<'a> {
                                     }
                                 },
                                 Subject::Trade => {
-                                    if agent.trade_for_site.is_some() && !agent.trading {
-                                        controller.events.push(ControlEvent::InitiateInvite(
-                                            by,
-                                            InviteKind::Trade,
-                                        ));
-                                        let msg = "Can I interest you in a trade?".to_string();
-                                        event_emitter.emit(ServerEvent::Chat(
-                                            UnresolvedChatMsg::npc(*self.uid, msg),
-                                        ));
+                                    if agent.trade_for_site.is_some() {
+                                        if !agent.trading {
+                                            controller.events.push(ControlEvent::InitiateInvite(
+                                                by,
+                                                InviteKind::Trade,
+                                            ));
+                                            let msg =
+                                                "npc.speech.merchant_advertisement".to_string();
+                                            event_emitter.emit(ServerEvent::Chat(
+                                                UnresolvedChatMsg::npc(*self.uid, msg),
+                                            ));
+                                        } else {
+                                            event_emitter.emit(ServerEvent::Chat(
+                                                UnresolvedChatMsg::npc(
+                                                    *self.uid,
+                                                    "npc.speech.merchant_busy".to_string(),
+                                                ),
+                                            ));
+                                        }
                                     } else {
                                         // TODO: maybe make some travellers willing to trade with
                                         // simpler goods like potions
                                         event_emitter.emit(ServerEvent::Chat(
                                             UnresolvedChatMsg::npc(
                                                 *self.uid,
-                                                "Sorry, I don't have anything to trade."
-                                                    .to_string(),
+                                                "npc.speech.villager_decline_trade".to_string(),
                                             ),
                                         ));
                                     }
@@ -1084,23 +1093,35 @@ impl<'a> AgentData<'a> {
                 }
             },
             Some(AgentEvent::TradeInvite(with)) => {
-                if agent.trade_for_site.is_some() && !agent.trading {
-                    // stand still and looking towards the trading player
-                    controller.actions.push(ControlAction::Talk);
-                    if let Some(target) =
-                        read_data.uid_allocator.retrieve_entity_internal(with.id())
-                    {
-                        agent.target = Some(Target {
-                            target,
-                            hostile: false,
-                            selected_at: read_data.time.0,
-                        });
+                if agent.trade_for_site.is_some() {
+                    if !agent.trading {
+                        // stand still and looking towards the trading player
+                        controller.actions.push(ControlAction::Talk);
+                        if let Some(target) =
+                            read_data.uid_allocator.retrieve_entity_internal(with.id())
+                        {
+                            agent.target = Some(Target {
+                                target,
+                                hostile: false,
+                                selected_at: read_data.time.0,
+                            });
+                        }
+                        controller
+                            .events
+                            .push(ControlEvent::InviteResponse(InviteResponse::Accept));
+                        agent.trading_issuer = false;
+                        agent.trading = true;
+                    } else {
+                        controller
+                            .events
+                            .push(ControlEvent::InviteResponse(InviteResponse::Decline));
+                        if agent.can_speak {
+                            event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc(
+                                *self.uid,
+                                "npc.speech.merchant_busy".to_string(),
+                            )));
+                        }
                     }
-                    controller
-                        .events
-                        .push(ControlEvent::InviteResponse(InviteResponse::Accept));
-                    agent.trading_issuer = false;
-                    agent.trading = true;
                 } else {
                     // TODO: Provide a hint where to find the closest merchant?
                     controller
@@ -1109,7 +1130,7 @@ impl<'a> AgentData<'a> {
                     if agent.can_speak {
                         event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc(
                             *self.uid,
-                            "Sorry, I don't have anything to trade.".to_string(),
+                            "npc.speech.villager_decline_trade".to_string(),
                         )));
                     }
                 }
@@ -1135,12 +1156,12 @@ impl<'a> AgentData<'a> {
                         TradeResult::Completed => {
                             event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc(
                                 *self.uid,
-                                "Thank you for trading with me!".to_string(),
+                                "npc.speech.merchant_trade_successful".to_string(),
                             )))
                         },
                         _ => event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc(
                             *self.uid,
-                            "Maybe another time, have a good day!".to_string(),
+                            "npc.speech.merchant_trade_declined".to_string(),
                         ))),
                     }
                     agent.trading = false;
