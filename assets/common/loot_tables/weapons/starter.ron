@@ -1,0 +1,8 @@
+[
+    (1.0, Item("common.items.weapons.sword.starter")),
+    (1.0, Item("common.items.weapons.hammer.starter_hammer")),
+    (1.0, Item("common.items.weapons.bow.starter")),
+    (1.0, Item("common.items.weapons.axe.starter_axe")),
+    (1.0, Item("common.items.weapons.staff.starter_staff")),
+    (1.0, Item("common.items.weapons.sceptre.starter_sceptre")),
+]
