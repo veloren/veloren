@@ -32,7 +32,7 @@ float hash_fast(uvec3 q)
 
 // 2D, but using shifted 2D textures
 float noise_2d(vec2 pos) {
-    return texture(sampler2D(t_noise, s_noise), pos).x;
+    return textureLod(sampler2D(t_noise, s_noise), pos, 0).x;
 }
 
 // 3D, but using shifted 2D textures
@@ -41,7 +41,7 @@ float noise_3d(vec3 pos) {
     uint z = uint(trunc(pos.z));
     vec2 offs0 = vec2(hash_one(z), hash_one(z + 73u));
     vec2 offs1 = vec2(hash_one(z + 1u), hash_one(z + 1u + 73u));
-    return mix(texture(sampler2D(t_noise, s_noise), pos.xy + offs0).x, texture(sampler2D(t_noise, s_noise), pos.xy + offs1).x, fract(pos.z));
+    return mix(textureLod(sampler2D(t_noise, s_noise), pos.xy + offs0, 0).x, textureLod(sampler2D(t_noise, s_noise), pos.xy + offs1, 0).x, fract(pos.z));
 }
 
 // 3D version of `snoise`

@@ -55,7 +55,7 @@ const float SCALE_FACTOR = pow(SCALE, 1.3) * 0.2;
 
 const int EXTRA_NEG_Z = 32768;
 const int VERT_EXTRA_NEG_Z = 128;
-const int VERT_PAGE_SIZE = 256;
+const uint VERT_PAGE_SIZE = 256;
 
 void main() {
     // Matrix to transform this sprite instance from model space to chunk space
@@ -71,7 +71,8 @@ void main() {
     f_inst_light = vec2(inst_light, inst_glow);
 
     // Index of the vertex data in the 1D vertex texture
-    int vertex_index = int(gl_VertexIndex % VERT_PAGE_SIZE + inst_vert_page * VERT_PAGE_SIZE);
+    // TODO: dx12 warning to switch to uint for modulus here (test if it got speedup?)
+    int vertex_index = int(uint(gl_VertexIndex) % VERT_PAGE_SIZE + inst_vert_page * VERT_PAGE_SIZE);
     //const int WIDTH = 8192; // TODO: temp
     //ivec2 tex_coords = ivec2(vertex_index % WIDTH, vertex_index / WIDTH);
     //uvec2 pos_atlas_pos_norm_ao = texelFetch(usampler2D(t_sprite_verts, s_sprite_verts), tex_coords, 0).xy;
@@ -100,7 +101,21 @@ void main() {
         ) * v_pos.z * model_z_scale * SCALE_FACTOR;
 
     // Determine normal
-    vec3 norm = (inst_mat[(v_pos_norm >> 30u) & 3u].xyz);
+    // TODO: do changes here effect perf on vulkan
+    // TODO: dx12 doesn't like dynamic index
+    // TODO: use mix?
+    // Shader@0x000001AABD89BEE0(112,43-53): error X4576: Input array signature parameter  cannot be indexed dynamically.
+    //vec3 norm = (inst_mat[(v_pos_norm >> 30u) & 3u].xyz);
+    uint index = v_pos_norm >> 30u & 3u;
+    vec3 norm;
+    if (index == 0) {
+        norm = (inst_mat[0].xyz);
+    } else if (index == 1) {
+        norm = (inst_mat[1].xyz);
+    } else {
+        norm = (inst_mat[2].xyz);
+    }
+
     f_norm = normalize(mix(-norm, norm, v_pos_norm >> 29u & 1u));
 
     // Expand atlas tex coords to floats

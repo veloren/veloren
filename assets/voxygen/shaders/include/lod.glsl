@@ -127,7 +127,7 @@ vec2 textureBicubic16(texture2D tex, sampler sampl, vec2 texCoords) {
 }
 
 float alt_at(vec2 pos) {
-    vec4 alt_sample = texture/*textureBicubic16*/(sampler2D(t_alt, s_alt), pos_to_uv(t_alt, s_alt, pos));
+    vec4 alt_sample = textureLod/*textureBicubic16*/(sampler2D(t_alt, s_alt), pos_to_uv(t_alt, s_alt, pos), 0);
     return (/*round*/((alt_sample.r / 256.0 + alt_sample.g) * (/*1300.0*//*1278.7266845703125*/view_distance.w)) + /*140.0*/view_distance.z - focus_off.z);
     //+ (texture(t_noise, pos * 0.002).x - 0.5) * 64.0;
 

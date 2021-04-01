@@ -34,7 +34,7 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission) {
     // Mist sits close to the ground in valleys (TODO: use base_alt to put it closer to water)
     float mist_min_alt = 0.5;
     #if (CLOUD_MODE >= CLOUD_MODE_MEDIUM)
-        mist_min_alt = (texture(sampler2D(t_noise, s_noise), pos.xy / 50000.0).x - 0.5) * 1.5 + 0.5;
+        mist_min_alt = (textureLod(sampler2D(t_noise, s_noise), pos.xy / 50000.0, 0).x - 0.5) * 1.5 + 0.5;
     #endif
     mist_min_alt = view_distance.z * 1.5 * (1.0 + mist_min_alt * 0.5) + alt * 0.5 + 250;
     const float MIST_FADE_HEIGHT = 1000;
@@ -146,9 +146,9 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission) {
         #if (CLOUD_MODE >= CLOUD_MODE_MEDIUM)
             emission_alt += (noise_3d(vec3(wind_pos.xy * 0.0005 + cloud_tendency * 0.2, emission_alt * 0.0001 + time_of_day.x * 0.001)) - 0.5) * 1000;
         #endif
-        float tail = (texture(t_noise, wind_pos.xy * 0.00005).x - 0.5) * 4 + (pos.z - emission_alt) * 0.0001;
+        float tail = (textureLod(t_noise, wind_pos.xy * 0.00005).x - 0.5, 0) * 4 + (pos.z - emission_alt) * 0.0001;
         vec3 emission_col = vec3(0.8 + tail * 1.5, 0.5 - tail * 0.2, 0.3 + tail * 0.2);
-        float emission_nz = max(pow(texture(t_noise, wind_pos.xy * 0.000015).x, 8), 0.01) * 0.25 / (10.0 + abs(pos.z - emission_alt) / 80);
+        float emission_nz = max(pow(textureLod(t_noise, wind_pos.xy * 0.000015, 0).x, 8), 0.01) * 0.25 / (10.0 + abs(pos.z - emission_alt) / 80);
         emission = emission_col * emission_nz * emission_strength * max(sun_dir.z, 0) * 500000 / (1000.0 + abs(pos.z - emission_alt) * 0.1);
     }
 
@@ -196,7 +196,7 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of
     // improves visual quality for low cloud settings
     float splay = 1.0;
     #if (CLOUD_MODE == CLOUD_MODE_MINIMAL)
-        splay += (texture(sampler2D(t_noise, s_noise), vec2(atan2(dir.x, dir.y) * 2 / PI, dir.z) * 5.0 - time_of_day * 0.00005).x - 0.5) * 0.025 / (1.0 + pow(dir.z, 2) * 10);
+        splay += (textureLod(sampler2D(t_noise, s_noise), vec2(atan2(dir.x, dir.y) * 2 / PI, dir.z) * 5.0 - time_of_day * 0.00005, 0).x - 0.5) * 0.025 / (1.0 + pow(dir.z, 2) * 10);
     #endif
 
     /* const float RAYLEIGH = 0.25; */

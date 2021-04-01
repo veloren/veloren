@@ -59,5 +59,6 @@ void main() {
         f_uv = v_uv;
         gl_Position = vec4(v_pos, 0.5, 1.0);
     }
+
     f_mode = v_mode;
 }
