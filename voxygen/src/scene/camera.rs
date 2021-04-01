@@ -187,7 +187,7 @@ impl Camera {
     pub fn zoom_switch(&mut self, delta: f32) {
         if delta > 0_f32 || self.mode != CameraMode::FirstPerson {
             let t = self.tgt_dist + delta;
-            const MIN_THIRD_PERSON: f32 = 2.35;
+            const MIN_THIRD_PERSON: f32 = 0.35;
             match self.mode {
                 CameraMode::ThirdPerson => {
                     if t < MIN_THIRD_PERSON {
