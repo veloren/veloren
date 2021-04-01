@@ -889,6 +889,7 @@ impl<'a> AgentData<'a> {
                         });
 
                         if self.look_toward(controller, read_data, &target) {
+                            controller.actions.push(ControlAction::Stand);
                             controller.actions.push(ControlAction::Talk);
                             match subject {
                                 Subject::Regular => {
@@ -1096,6 +1097,7 @@ impl<'a> AgentData<'a> {
                 if agent.trade_for_site.is_some() {
                     if !agent.trading {
                         // stand still and looking towards the trading player
+                        controller.actions.push(ControlAction::Stand);
                         controller.actions.push(ControlAction::Talk);
                         if let Some(target) =
                             read_data.uid_allocator.retrieve_entity_internal(with.id())
