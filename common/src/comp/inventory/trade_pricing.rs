@@ -1,6 +1,6 @@
 use crate::{
     assets::{self, AssetExt},
-    lottery::LootSpec,
+    lottery::{LootSpec, Lottery},
     recipe::{default_recipe_book, RecipeInput},
     trade::Good,
 };
@@ -8,7 +8,7 @@ use assets_manager::AssetGuard;
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
 use serde::Deserialize;
-use tracing::info;
+use tracing::{info, warn};
 
 #[derive(Debug)]
 struct Entry {
@@ -38,6 +38,7 @@ lazy_static! {
     static ref TRADE_PRICING: TradePricing = TradePricing::read();
 }
 
+#[derive(Clone)]
 struct ProbabilityFile {
     pub content: Vec<(f32, String)>,
 }
@@ -53,10 +54,21 @@ impl From<Vec<(f32, LootSpec)>> for ProbabilityFile {
         Self {
             content: content
                 .into_iter()
-                .filter_map(|(a, b)| match b {
-                    LootSpec::Item(c) => Some((a, c)),
-                    LootSpec::ItemQuantity(c, d, e) => Some((a * (d + e) as f32 / 2.0, c)),
-                    _ => None,
+                .flat_map(|(a, b)| match b {
+                    LootSpec::Item(c) => vec![(a, c)].into_iter(),
+                    LootSpec::ItemQuantity(c, d, e) => {
+                        vec![(a * (d + e) as f32 / 2.0, c)].into_iter()
+                    },
+                    LootSpec::LootTable(c) => {
+                        let total = Lottery::<LootSpec>::load_expect(&c).read().total();
+                        ProbabilityFile::load_expect_cloned(&c)
+                            .content
+                            .into_iter()
+                            .map(|(d, e)| (a * d / total, e))
+                            .collect::<Vec<_>>()
+                            .into_iter()
+                    },
+                    LootSpec::CreatureMaterial => vec![].into_iter(),
                 })
                 .collect(),
         }
@@ -306,6 +318,10 @@ impl TradePricing {
             Some(TradePricing::COIN_ITEM.into())
         } else {
             let table = self.get_list(good);
+            if table.is_empty() {
+                warn!("Good: {:?}, was unreachable.", good);
+                return None;
+            }
             let upper = table.len();
             let lower = table
                 .iter()
