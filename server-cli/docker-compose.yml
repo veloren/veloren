@@ -2,7 +2,7 @@ version: "3.5"
 
 services:
   game-server:
-    image: registry.gitlab.com/veloren/veloren:master-server
+    image: registry.gitlab.com/veloren/veloren/server-cli:nightly
     container_name: veloren-game-server-master
     ports:
       - "14004:14004"
