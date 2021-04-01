@@ -1,9 +1,6 @@
 [
     // Crafting Ingredients
-    (2.0, Item("common.items.crafting_ing.bowl")),
-    (1.0, Item("common.items.crafting_ing.empty_vial")),
-    (0.1, Item("common.items.crafting_ing.diamond")),
-    (1.0, Item("common.items.crafting_ing.cloth_scraps")),
+    (4.0, LootTable("common.loot_tables.materials.common")),
     // Consumables
     (0.2, Item("common.items.consumable.potion_minor")),
     // Armour
@@ -11,13 +8,8 @@
     // Utility
     (0.05, Item("common.items.utility.collar")),
     // Food
-    (0.5, Item("common.items.food.coconut")),
-    (0.5, Item("common.items.food.lettuce")),
-    (0.75, Item("common.items.food.carrot")),
-    (0.75, Item("common.items.food.tomato")),
-    (0.05, Item("common.items.food.apple_mushroom_curry")),
-    (0.1, Item("common.items.food.apple_stick")),
-    (0.1, Item("common.items.food.mushroom_stick")),
+    (2.0, LootTable("common.loot_tables.food.farm_ingredients")),
+    (0.25, LootTable("common.loot_tables.food.prepared")),
     // Weapons
     (0.5, LootTable("common.loot_tables.sword.wood")),
     (0.5, LootTable("common.loot_tables.hammer.stone")),

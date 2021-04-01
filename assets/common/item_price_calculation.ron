@@ -10,7 +10,6 @@ loot_tables: [
     (0.05,"common.loot_tables.crafting"),
     (0.005,"common.loot_tables.cultists"),
     (1,"common.loot_tables.fish"),
-    (1,"common.loot_tables.food"),
     (0.1,"common.loot_tables.humanoids"),
     (1,"common.loot_tables.maneater"),
     (0.0001,"common.loot_tables.mindflayer"),

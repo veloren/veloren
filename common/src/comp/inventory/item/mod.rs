@@ -635,7 +635,7 @@ impl Item {
             SpriteKind::Crate => {
                 chosen = Lottery::<LootSpec>::load_expect(match rng.gen_range(0..4) {
                     0 => "common.loot_tables.crafting",
-                    _ => "common.loot_tables.food",
+                    _ => "common.loot_tables.food.prepared",
                 })
                 .read();
                 return Some(chosen.choose().to_item(None));

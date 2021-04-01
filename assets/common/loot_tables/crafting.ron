@@ -1,8 +1,5 @@
 [
     // crafting ingredients
-    (2.0, Item("common.items.crafting_ing.leather_scraps")),
-    (4.0, Item("common.items.crafting_ing.cloth_scraps")),
-    (1.0, Item("common.items.crafting_ing.empty_vial")),
     (0.5, Item("common.items.crafting_ing.amethyst")),
     (0.5, Item("common.items.crafting_ing.topaz")),
     (0.4, Item("common.items.crafting_ing.sapphire")),

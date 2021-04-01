@@ -356,31 +356,31 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                             _ => "common.loot_tables.rocks",
                         },
                         _ => match rng.gen_range(0..4) {
-                            0 => "common.loot_tables.food",
+                            0 => "common.loot_tables.food.wild_ingredients",
                             2 => "common.loot_tables.wild_animal",
                             _ => "common.loot_tables.wild_animal",
                         },
                     }
                 },
                 Some(common::comp::Body::QuadrupedMedium(_)) => match rng.gen_range(0..4) {
-                    0 => "common.loot_tables.food",
+                    0 => "common.loot_tables.food.wild_ingredients",
                     _ => "common.loot_tables.wild_animal",
                 },
                 Some(common::comp::Body::BirdMedium(_)) => match rng.gen_range(0..3) {
-                    0 => "common.loot_tables.food",
+                    0 => "common.loot_tables.food.wild_ingredients",
                     _ => "common.loot_tables.fallback",
                 },
                 Some(common::comp::Body::FishMedium(_)) => "common.loot_tables.fish",
                 Some(common::comp::Body::FishSmall(_)) => "common.loot_tables.fish",
                 Some(common::comp::Body::BipedLarge(biped_large)) => match biped_large.species {
                     biped_large::Species::Wendigo => match rng.gen_range(0..7) {
-                        0 => "common.loot_tables.food",
+                        0 => "common.loot_tables.food.prepared",
                         1 => "common.loot_tables.wild_animal",
                         2 => "common.loot_tables.weapons.tier-2",
                         _ => "common.loot_tables.cave_large",
                     },
                     biped_large::Species::Troll => match rng.gen_range(0..8) {
-                        0 => "common.loot_tables.food",
+                        0 => "common.loot_tables.food.prepared",
                         1 => "common.loot_tables.cave_large",
                         2 => "common.loot_tables.weapons.tier-2",
                         _ => "common.loot_tables.wild_animal",
@@ -389,12 +389,12 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                     | biped_large::Species::Mightysaurok
                     | biped_large::Species::Slysaurok => "common.loot_tables.saurok",
                     _ => match rng.gen_range(0..3) {
-                        0 => "common.loot_tables.food",
+                        0 => "common.loot_tables.food.prepared",
                         _ => "common.loot_tables.cave_large",
                     },
                 },
                 Some(common::comp::Body::Golem(_)) => match rng.gen_range(0..5) {
-                    0 => "common.loot_tables.food",
+                    0 => "common.loot_tables.food.prepared",
                     1 => "common.loot_tables.armor.steel",
                     2 => "common.loot_tables.weapons.tier-1",
                     3 => "common.loot_tables.weapons.tier-2",
@@ -407,7 +407,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                     match quadruped_low.species {
                         quadruped_low::Species::Maneater => "common.loot_tables.maneater",
                         _ => match rng.gen_range(0..3) {
-                            0 => "common.loot_tables.food",
+                            0 => "common.loot_tables.food.wild_ingredients",
                             1 => "common.loot_tables.wild_animal",
                             _ => "common.loot_tables.fallback",
                         },
