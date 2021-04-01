@@ -499,16 +499,15 @@ impl Scene {
         let up = match self.camera.get_mode() {
             CameraMode::FirstPerson => {
                 if player_rolling {
-                    player_height * 0.42 * 0.1
+                    player_height * 0.42
                 } else if is_running && on_ground.unwrap_or(false) {
-                    player_eye_height * 0.1
-                        + (scene_data.state.get_time() as f32 * 17.0).sin() * 0.05
+                    player_eye_height + (scene_data.state.get_time() as f32 * 17.0).sin() * 0.05
                 } else {
-                    player_eye_height * 0.1
+                    player_eye_height
                 }
             },
-            CameraMode::ThirdPerson if scene_data.is_aiming => player_height * 1.16 * 0.1,
-            CameraMode::ThirdPerson => player_eye_height * 0.1,
+            CameraMode::ThirdPerson if scene_data.is_aiming => player_height * 1.16,
+            CameraMode::ThirdPerson => player_eye_height,
             CameraMode::Freefly => 0.0,
         };
 
