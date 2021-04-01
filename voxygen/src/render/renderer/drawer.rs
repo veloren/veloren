@@ -93,8 +93,8 @@ impl<'frame> Drawer<'frame> {
                     label: Some("shadow pass"),
                     color_attachments: &[],
                     depth_stencil_attachment: Some(
-                        wgpu::RenderPassDepthStencilAttachmentDescriptor {
-                            attachment: &shadow_renderer.directed_depth.view,
+                        wgpu::RenderPassDepthStencilAttachment {
+                            view: &shadow_renderer.directed_depth.view,
                             depth_ops: Some(wgpu::Operations {
                                 load: wgpu::LoadOp::Clear(1.0),
                                 store: true,
@@ -122,16 +122,16 @@ impl<'frame> Drawer<'frame> {
         let mut render_pass =
             encoder.scoped_render_pass("first_pass", device, &wgpu::RenderPassDescriptor {
                 label: Some("first pass"),
-                color_attachments: &[wgpu::RenderPassColorAttachmentDescriptor {
-                    attachment: &self.borrow.views.tgt_color,
+                color_attachments: &[wgpu::RenderPassColorAttachment {
+                    view: &self.borrow.views.tgt_color,
                     resolve_target: None,
                     ops: wgpu::Operations {
                         load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
                         store: true,
                     },
                 }],
-                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachmentDescriptor {
-                    attachment: &self.borrow.views.tgt_depth,
+                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                    view: &self.borrow.views.tgt_depth,
                     depth_ops: Some(wgpu::Operations {
                         load: wgpu::LoadOp::Clear(0.0),
                         store: true,
@@ -156,8 +156,8 @@ impl<'frame> Drawer<'frame> {
         let mut render_pass =
             encoder.scoped_render_pass("second_pass", device, &wgpu::RenderPassDescriptor {
                 label: Some("second pass (clouds)"),
-                color_attachments: &[wgpu::RenderPassColorAttachmentDescriptor {
-                    attachment: &self.borrow.views.tgt_color_pp,
+                color_attachments: &[wgpu::RenderPassColorAttachment {
+                    view: &self.borrow.views.tgt_color_pp,
                     resolve_target: None,
                     ops: wgpu::Operations {
                         load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
@@ -182,10 +182,10 @@ impl<'frame> Drawer<'frame> {
         let mut render_pass =
             encoder.scoped_render_pass("third_pass", device, &wgpu::RenderPassDescriptor {
                 label: Some("third pass (postprocess + ui)"),
-                color_attachments: &[wgpu::RenderPassColorAttachmentDescriptor {
+                color_attachments: &[wgpu::RenderPassColorAttachment {
                     // If a screenshot was requested render to that as an intermediate texture
                     // instead
-                    attachment: self
+                    view: self
                         .taking_screenshot
                         .as_ref()
                         .map_or(&self.swap_tex.view, |s| s.texture_view()),
@@ -234,7 +234,7 @@ impl<'frame> Drawer<'frame> {
                             dimension: Some(wgpu::TextureViewDimension::D2),
                             aspect: wgpu::TextureAspect::DepthOnly,
                             base_mip_level: 0,
-                            level_count: None,
+                            mip_level_count: None,
                             base_array_layer: face,
                             array_layer_count: NonZeroU32::new(1),
                         });
@@ -245,8 +245,8 @@ impl<'frame> Drawer<'frame> {
                         label: Some(&label),
                         color_attachments: &[],
                         depth_stencil_attachment: Some(
-                            wgpu::RenderPassDepthStencilAttachmentDescriptor {
-                                attachment: &view,
+                            wgpu::RenderPassDepthStencilAttachment {
+                                view: &view,
                                 depth_ops: Some(wgpu::Operations {
                                     load: wgpu::LoadOp::Clear(1.0),
                                     store: true,
@@ -295,8 +295,8 @@ impl<'frame> Drawer<'frame> {
                     label: Some("clear directed shadow pass"),
                     color_attachments: &[],
                     depth_stencil_attachment: Some(
-                        wgpu::RenderPassDepthStencilAttachmentDescriptor {
-                            attachment: &shadow_renderer.directed_depth.view,
+                        wgpu::RenderPassDepthStencilAttachment {
+                            view: &shadow_renderer.directed_depth.view,
                             depth_ops: Some(wgpu::Operations {
                                 load: wgpu::LoadOp::Clear(1.0),
                                 store: true,
@@ -319,7 +319,7 @@ impl<'frame> Drawer<'frame> {
                             dimension: Some(wgpu::TextureViewDimension::D2),
                             aspect: wgpu::TextureAspect::DepthOnly,
                             base_mip_level: 0,
-                            level_count: None,
+                            mip_level_count: None,
                             base_array_layer: face,
                             array_layer_count: NonZeroU32::new(1),
                         });
@@ -329,8 +329,8 @@ impl<'frame> Drawer<'frame> {
                     label: Some(&label),
                     color_attachments: &[],
                     depth_stencil_attachment: Some(
-                        wgpu::RenderPassDepthStencilAttachmentDescriptor {
-                            attachment: &view,
+                        wgpu::RenderPassDepthStencilAttachment {
+                            view: &view,
                             depth_ops: Some(wgpu::Operations {
                                 load: wgpu::LoadOp::Clear(1.0),
                                 store: true,
@@ -358,8 +358,8 @@ impl<'frame> Drop for Drawer<'frame> {
                 self.borrow.device,
                 &wgpu::RenderPassDescriptor {
                     label: Some("Blit screenshot pass"),
-                    color_attachments: &[wgpu::RenderPassColorAttachmentDescriptor {
-                        attachment: &self.swap_tex.view,
+                    color_attachments: &[wgpu::RenderPassColorAttachment {
+                        view: &self.swap_tex.view,
                         resolve_target: None,
                         ops: wgpu::Operations {
                             load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),

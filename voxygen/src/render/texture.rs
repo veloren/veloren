@@ -1,6 +1,7 @@
 use super::RenderError;
 use image::{DynamicImage, GenericImageView};
 use wgpu::Extent3d;
+use core::num::NonZeroU32;
 
 /// Represents an image that has been uploaded to the GPU.
 pub struct Texture {
@@ -60,16 +61,16 @@ impl Texture {
             device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
 
         queue.write_texture(
-            wgpu::TextureCopyViewBase {
+            wgpu::ImageCopyTexture {
                 texture: &tex,
                 mip_level: 0,
                 origin: wgpu::Origin3d::ZERO,
             },
             buffer.as_slice(),
-            wgpu::TextureDataLayout {
+            wgpu::ImageDataLayout {
                 offset: 0,
-                bytes_per_row: image.width() * bytes_per_pixel,
-                rows_per_image: image.height(),
+                bytes_per_row: NonZeroU32::new(image.width() * bytes_per_pixel),
+                rows_per_image: NonZeroU32::new(image.height()),
             },
             wgpu::Extent3d {
                 width: image.width(),
@@ -95,7 +96,7 @@ impl Texture {
             dimension: Some(wgpu::TextureViewDimension::D2),
             aspect: wgpu::TextureAspect::All,
             base_mip_level: 0,
-            level_count: None,
+            mip_level_count: None,
             base_array_layer: 0,
             array_layer_count: None,
         });
@@ -143,7 +144,7 @@ impl Texture {
             dimension: Some(wgpu::TextureViewDimension::D2),
             aspect: wgpu::TextureAspect::All,
             base_mip_level: 0,
-            level_count: None,
+            mip_level_count: None,
             base_array_layer: 0,
             array_layer_count: None,
         };
@@ -186,7 +187,7 @@ impl Texture {
         );
         // TODO: Only works for 2D images
         queue.write_texture(
-            wgpu::TextureCopyViewBase {
+            wgpu::ImageCopyTexture {
                 texture: &self.tex,
                 mip_level: 0,
                 origin: wgpu::Origin3d {
@@ -196,10 +197,10 @@ impl Texture {
                 },
             },
             data,
-            wgpu::TextureDataLayout {
+            wgpu::ImageDataLayout {
                 offset: 0,
-                bytes_per_row: size[0] * BYTES_PER_PIXEL,
-                rows_per_image: size[1],
+                bytes_per_row: NonZeroU32::new(size[0] * BYTES_PER_PIXEL),
+                rows_per_image: NonZeroU32::new(size[1]),
             },
             wgpu::Extent3d {
                 width: size[0],

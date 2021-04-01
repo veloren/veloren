@@ -48,7 +48,7 @@ impl TakeScreenshot {
             dimension: Some(wgpu::TextureViewDimension::D2),
             aspect: wgpu::TextureAspect::All,
             base_mip_level: 0,
-            level_count: None,
+            mip_level_count: None,
             base_array_layer: 0,
             array_layer_count: None,
         });
@@ -92,17 +92,17 @@ impl TakeScreenshot {
         let padded_bytes_per_row = padded_bytes_per_row(self.width, self.bytes_per_pixel);
         // Copy image to a buffer
         encoder.copy_texture_to_buffer(
-            wgpu::TextureCopyView {
+            wgpu::ImageCopyTexture {
                 texture: &self.texture,
                 mip_level: 0,
                 origin: wgpu::Origin3d::ZERO,
             },
-            wgpu::BufferCopyView {
+            wgpu::ImageCopyBuffer {
                 buffer: &self.buffer,
-                layout: wgpu::TextureDataLayout {
+                layout: wgpu::ImageDataLayout {
                     offset: 0,
-                    bytes_per_row: padded_bytes_per_row,
-                    rows_per_image: 0,
+                    bytes_per_row: core::num::NonZeroU32::new(padded_bytes_per_row),
+                    rows_per_image: None,
                 },
             },
             wgpu::Extent3d {

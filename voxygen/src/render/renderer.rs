@@ -547,7 +547,7 @@ impl Renderer {
                 // TODO: why is this not Color?
                 aspect: wgpu::TextureAspect::All,
                 base_mip_level: 0,
-                level_count: None,
+                mip_level_count: None,
                 base_array_layer: 0,
                 array_layer_count: None,
             })
@@ -575,7 +575,7 @@ impl Renderer {
             dimension: Some(wgpu::TextureViewDimension::D2),
             aspect: wgpu::TextureAspect::DepthOnly,
             base_mip_level: 0,
-            level_count: None,
+            mip_level_count: None,
             base_array_layer: 0,
             array_layer_count: None,
         });
@@ -600,7 +600,7 @@ impl Renderer {
             dimension: Some(wgpu::TextureViewDimension::D2),
             aspect: wgpu::TextureAspect::DepthOnly,
             base_mip_level: 0,
-            level_count: None,
+            mip_level_count: None,
             base_array_layer: 0,
             array_layer_count: None,
         });
@@ -635,7 +635,7 @@ impl Renderer {
                 dimension: Some(view_dim),
                 aspect: wgpu::TextureAspect::DepthOnly,
                 base_mip_level: 0,
-                level_count: None,
+                mip_level_count: None,
                 base_array_layer: 0,
                 array_layer_count: None,
             };
@@ -666,8 +666,8 @@ impl Renderer {
             encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: Some("Clear dummy shadow texture"),
                 color_attachments: &[],
-                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachmentDescriptor {
-                    attachment: &tex.view,
+                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                    view: &tex.view,
                     depth_ops: Some(wgpu::Operations {
                         load: wgpu::LoadOp::Clear(1.0),
                         store: true,
@@ -762,7 +762,7 @@ impl Renderer {
             dimension: Some(wgpu::TextureViewDimension::Cube),
             aspect: wgpu::TextureAspect::DepthOnly,
             base_mip_level: 0,
-            level_count: None,
+            mip_level_count: None,
             base_array_layer: 0,
             array_layer_count: None,
         };
@@ -787,7 +787,7 @@ impl Renderer {
             dimension: Some(wgpu::TextureViewDimension::D2),
             aspect: wgpu::TextureAspect::DepthOnly,
             base_mip_level: 0,
-            level_count: None,
+            mip_level_count: None,
             base_array_layer: 0,
             array_layer_count: None,
         };

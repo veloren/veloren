@@ -136,7 +136,7 @@ pub fn create_verts_buffer(renderer: &mut Renderer, mut mesh: Mesh<Vertex>) -> B
         dimension: Some(wgpu::TextureViewDimension::D2),
         aspect: wgpu::TextureAspect::All,
         base_mip_level: 0,
-        level_count: None,
+        mip_level_count: None,
         base_array_layer: 0,
         array_layer_count: None,
     };
