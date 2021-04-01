@@ -451,11 +451,15 @@ impl StateExt for State {
             |target, a: &comp::Pos, b: &comp::Pos| a.0.distance_squared(b.0) < target * target;
 
         let group_manager = ecs.read_resource::<comp::group::GroupManager>();
-        let resolved_msg = msg.clone().map_group(|group_id| {
-            group_manager
-                .group_info(group_id)
-                .map_or_else(|| "???".into(), |i| i.name.clone())
-        });
+
+        let group_info = msg
+            .get_group()
+            .map(|g| group_manager.group_info(*g))
+            .flatten();
+
+        let resolved_msg = msg
+            .clone()
+            .map_group(|_| group_info.map_or_else(|| "???".to_string(), |i| i.name.clone()));
 
         match &msg.chat_type {
             comp::ChatType::Offline(_)
@@ -544,17 +548,29 @@ impl StateExt for State {
                     }
                 }
             },
-            comp::ChatType::GroupMeta(g) | comp::ChatType::Group(_, g) => {
-                for (client, group) in (
-                    &ecs.read_storage::<Client>(),
-                    &ecs.read_storage::<comp::Group>(),
-                )
-                    .join()
-                {
-                    if g == group {
-                        client.send_fallible(ServerGeneral::ChatMsg(resolved_msg.clone()));
+            comp::ChatType::Group(from, g) => {
+                if group_info.is_none() {
+                    // group not found, reply with command error
+                    let reply = comp::ChatMsg {
+                        chat_type: comp::ChatType::CommandError,
+                        message: "You are using group chat but do not belong to a group. Use \
+                                  /world or /region to change chat."
+                            .into(),
+                    };
+
+                    if let Some((client, _)) =
+                        (&ecs.read_storage::<Client>(), &ecs.read_storage::<Uid>())
+                            .join()
+                            .find(|(_, uid)| *uid == from)
+                    {
+                        client.send_fallible(ServerGeneral::ChatMsg(reply));
                     }
+                    return;
                 }
+                send_to_group(g, ecs, &resolved_msg);
+            },
+            comp::ChatType::GroupMeta(g) => {
+                send_to_group(g, ecs, &resolved_msg);
             },
         }
     }
@@ -651,5 +667,18 @@ impl StateExt for State {
             }
         }
         res
+    }
+}
+
+fn send_to_group(g: &comp::Group, ecs: &specs::World, msg: &comp::ChatMsg) {
+    for (client, group) in (
+        &ecs.read_storage::<Client>(),
+        &ecs.read_storage::<comp::Group>(),
+    )
+        .join()
+    {
+        if g == group {
+            client.send_fallible(ServerGeneral::ChatMsg(msg.clone()));
+        }
     }
 }

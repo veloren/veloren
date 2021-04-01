@@ -179,6 +179,14 @@ impl<G> GenericChatMsg<G> {
         }
     }
 
+    pub fn get_group(&self) -> Option<&G> {
+        match &self.chat_type {
+            ChatType::GroupMeta(g) => Some(&g),
+            ChatType::Group(_, g) => Some(&g),
+            _ => None,
+        }
+    }
+
     pub fn to_bubble(&self) -> Option<(SpeechBubble, Uid)> {
         let icon = self.icon();
         if let ChatType::Npc(from, r) | ChatType::NpcSay(from, r) = self.chat_type {
