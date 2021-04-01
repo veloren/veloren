@@ -351,9 +351,8 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                 },
                 Some(common::comp::Body::QuadrupedSmall(quadruped_small)) => {
                     match quadruped_small.species {
-                        quadruped_small::Species::Dodarock => match rng.gen_range(0..6) {
-                            1 => "common.loot_tables.rocks",
-                            _ => "common.loot_tables.rocks",
+                        quadruped_small::Species::Dodarock => {
+                            "common.loot_tables.materials.underground"
                         },
                         _ => match rng.gen_range(0..4) {
                             0 => "common.loot_tables.food.wild_ingredients",

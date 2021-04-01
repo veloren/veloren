@@ -624,17 +624,17 @@ impl Item {
             },
             SpriteKind::Mud => {
                 chosen = Lottery::<LootSpec>::load_expect(match rng.gen_range(0..5) {
-                    0 => "common.loot_tables.crafting",
+                    0 => "common.loot_tables.materials.common",
                     1 => "common.loot_tables.weapons.tier-0",
-                    2 => "common.loot_tables.fallback",
-                    _ => "common.loot_tables.rocks",
+                    2 => "common.loot_tables.materials.underground",
+                    _ => "common.loot_tables.fallback",
                 })
                 .read();
                 return Some(chosen.choose().to_item(None));
             },
             SpriteKind::Crate => {
                 chosen = Lottery::<LootSpec>::load_expect(match rng.gen_range(0..4) {
-                    0 => "common.loot_tables.crafting",
+                    0 => "common.loot_tables.materials.common",
                     _ => "common.loot_tables.food.prepared",
                 })
                 .read();

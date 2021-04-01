@@ -1,9 +1,0 @@
-[
-    // crafting ingredients
-    (0.5, Item("common.items.crafting_ing.amethyst")),
-    (0.5, Item("common.items.crafting_ing.topaz")),
-    (0.4, Item("common.items.crafting_ing.sapphire")),
-    (0.35, Item("common.items.crafting_ing.emerald")),
-    (0.25, Item("common.items.crafting_ing.ruby")),
-    (0.1, Item("common.items.crafting_ing.diamond")),
-]

@@ -1,7 +1,8 @@
 [
     // Misc
     (0.25, Item("common.items.armor.misc.neck.plain_1")),
-    (3.0, LootTable("common.loot_tables.materials.common")),
+    (1.5, LootTable("common.loot_tables.materials.common")),
+    (3.5, LootTable("common.loot_tables.materials.underground")),
     (0.1, Item("common.items.glider.glider_blue")),
     (0.05, Item("common.items.glider.glider_morpho")),
     (0.05, Item("common.items.glider.glider_monarch")),

@@ -7,7 +7,6 @@ loot_tables: [
     (0.1,"common.loot_tables.cave_large"),
     (0.1,"common.loot_tables.consumables"),
     // loot_table_crafting is a rare roll on crate/mud sprite looting
-    (0.05,"common.loot_tables.crafting"),
     (0.005,"common.loot_tables.cultists"),
     (1,"common.loot_tables.fish"),
     (0.1,"common.loot_tables.humanoids"),
@@ -15,7 +14,6 @@ loot_tables: [
     (0.0001,"common.loot_tables.mindflayer"),
     (0.001,"common.loot_tables.miniboss"),
     // loot_table_rocks is dropped by rock monsters, but is also the only source of stones to econsim until cave_scatter information is turned into a loot table
-    (0.2,"common.loot_tables.rocks"),
     (1,"common.loot_tables.fallback"),
     (0.04,"common.loot_tables.saurok"),
     (0.05,"common.loot_tables.villager"),

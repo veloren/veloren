@@ -1011,13 +1011,11 @@ impl Floor {
                                 4 => Lottery::<LootSpec>::load_expect(
                                     "common.loot_tables.weapons.tier-4",
                                 ),
-                                5 => Lottery::<LootSpec>::load_expect("common.loot_tables.husk"),
+                                5 => Lottery::<LootSpec>::load_expect("common.loot_tables.cultist"),
                                 _ => {
                                     Lottery::<LootSpec>::load_expect("common.loot_tables.fallback")
                                 },
                             };
-                            let chosen = chosen.read();
-                            let chosen = chosen.choose();
                             let entity = match room.difficulty {
                                 0 => {
                                     let body = comp::Body::QuadrupedMedium(
@@ -1030,7 +1028,9 @@ impl Floor {
                                         EntityInfo::at(tile_wcenter.map(|e| e as f32))
                                             .with_body(body)
                                             .with_name("Bonerattler".to_string())
-                                            .with_loot_drop(chosen.to_item(Some(body))),
+                                            .with_loot_drop(
+                                                chosen.read().choose().to_item(Some(body)),
+                                            ),
                                     ]
                                 },
                                 1 => {
@@ -1044,7 +1044,9 @@ impl Floor {
                                         EntityInfo::at(tile_wcenter.map(|e| e as f32))
                                             .with_body(body)
                                             .with_name("Bonerattler".to_string())
-                                            .with_loot_drop(chosen.to_item(Some(body)));
+                                            .with_loot_drop(
+                                                chosen.read().choose().to_item(Some(body))
+                                            );
                                         3
                                     ]
                                 },
@@ -1060,7 +1062,9 @@ impl Floor {
                                         EntityInfo::at(tile_wcenter.map(|e| e as f32))
                                             .with_body(body)
                                             .with_name("Hakulaq".to_string())
-                                            .with_loot_drop(chosen.to_item(Some(body)))
+                                            .with_loot_drop(
+                                                chosen.read().choose().to_item(Some(body)),
+                                            )
                                     });
                                     entities
                                 },
@@ -1071,7 +1075,7 @@ impl Floor {
                                         EntityInfo::at(tile_wcenter.map(|e| e as f32))
                                             .with_body(body)
                                             .with_name("Animal Trainer".to_string())
-                                            .with_loot_drop(chosen.to_item(Some(body)))
+                                            .with_loot_drop(chosen.read().choose().to_item(Some(body)))
                                             .with_loadout_config(loadout_builder::LoadoutConfig::CultistAcolyte)
                                             .with_skillset_config(
                                                 common::skillset_builder::SkillSetConfig::CultistAcolyte
@@ -1098,7 +1102,9 @@ impl Floor {
                                         EntityInfo::at(tile_wcenter.map(|e| e as f32))
                                             .with_body(body)
                                             .with_name("Tamed Darkhound".to_string())
-                                            .with_loot_drop(chosen.to_item(Some(body)))
+                                            .with_loot_drop(
+                                                chosen.read().choose().to_item(Some(body)),
+                                            )
                                     });
                                     entities
                                 },
@@ -1113,23 +1119,26 @@ impl Floor {
                                         EntityInfo::at(tile_wcenter.map(|e| e as f32))
                                             .with_body(body)
                                             .with_name("Dullahan Guard".to_string())
-                                            .with_loot_drop(chosen.to_item(Some(body))),
+                                            .with_loot_drop(
+                                                chosen.read().choose().to_item(Some(body)),
+                                            ),
                                     ]
                                 },
                                 5 => {
+                                    let body = comp::Body::BipedSmall(
+                                        comp::biped_small::Body::random_with(
+                                            dynamic_rng,
+                                            &comp::biped_small::Species::Husk,
+                                        ),
+                                    );
                                     let mut entities = Vec::new();
                                     entities.resize_with(10, || {
                                         EntityInfo::at(tile_wcenter.map(|e| e as f32))
-                                            .with_body(comp::Body::BipedSmall(
-                                                comp::biped_small::Body::random_with(
-                                                    dynamic_rng,
-                                                    &comp::biped_small::Species::Husk,
-                                                ),
-                                            ))
+                                            .with_body(body)
                                             .with_name("Cultist Husk".to_string())
-                                            .with_loot_drop(comp::Item::new_from_asset_expect(
-                                                "common.items.crafting_ing.stones",
-                                            ))
+                                            .with_loot_drop(
+                                                chosen.read().choose().to_item(Some(body)),
+                                            )
                                             .with_loadout_config(
                                                 loadout_builder::LoadoutConfig::Husk,
                                             )
