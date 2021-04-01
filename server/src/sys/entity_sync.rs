@@ -216,7 +216,7 @@ impl<'a> System<'a> for Sys {
                     // Decide how regularly to send physics updates.
                     let send_now = if client_entity == &entity {
                         // Don't send client physics updates about itself unless force update is set
-                        force_update.is_some()
+                        force_update.is_some() || true
                     } else if matches!(collider, Some(Collider::Voxel { .. })) {
                         // Things with a voxel collider (airships, etc.) need to have very stable
                         // physics so we always send updated for these where

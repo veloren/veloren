@@ -93,14 +93,14 @@ impl Sys {
                 }
             },
             ClientGeneral::PlayerPhysics { pos, vel, ori } => {
-                if matches!(presence.kind, PresenceKind::Character(_))
+                /*if matches!(presence.kind, PresenceKind::Character(_))
                     && force_updates.get(entity).is_none()
                     && healths.get(entity).map_or(true, |h| !h.is_dead)
                 {
                     let _ = positions.insert(entity, pos);
                     let _ = velocities.insert(entity, vel);
                     let _ = orientations.insert(entity, ori);
-                }
+                }*/
             },
             ClientGeneral::BreakBlock(pos) => {
                 if let Some(comp_can_build) = can_build.get(entity) {
