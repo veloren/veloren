@@ -14,15 +14,21 @@ pub struct Player {
 impl Player {
     pub fn new(alias: String, uuid: Uuid) -> Self { Self { alias, uuid } }
 
-    pub fn is_valid(&self) -> bool { Self::alias_is_valid(&self.alias) }
+    pub fn is_valid(&self) -> bool { Self::alias_validate(&self.alias).is_ok() }
 
-    pub fn alias_is_valid(alias: &str) -> bool {
+    pub fn alias_validate(alias: &str) -> Result<(), AliasError> {
         // TODO: Expose auth name validation and use it here.
         // See https://gitlab.com/veloren/auth/-/blob/master/server/src/web.rs#L20
-        alias
+        if !alias
             .chars()
             .all(|c| c.is_alphanumeric() || c == '_' || c == '-')
-            && alias.len() <= MAX_ALIAS_LEN
+        {
+            Err(AliasError::ForbiddenCharacters)
+        } else if alias.len() > MAX_ALIAS_LEN {
+            Err(AliasError::TooLong)
+        } else {
+            Ok(())
+        }
     }
 
     /// Not to be confused with uid
@@ -37,4 +43,19 @@ impl Component for Player {
 pub struct Respawn;
 impl Component for Respawn {
     type Storage = NullStorage<Self>;
+}
+
+pub enum AliasError {
+    ForbiddenCharacters,
+    TooLong,
+}
+
+impl ToString for AliasError {
+    fn to_string(&self) -> String {
+        match *self {
+            AliasError::ForbiddenCharacters => "Alias contains illegal characters.",
+            AliasError::TooLong => "Alias is too long.",
+        }
+        .to_string()
+    }
 }

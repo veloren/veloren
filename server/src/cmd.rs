@@ -751,11 +751,11 @@ fn handle_alias(
         return;
     }
     if let Ok(alias) = scan_fmt!(&args, &action.arg_fmt(), String) {
-        if !comp::Player::alias_is_valid(&alias) {
+        if let Err(error) = comp::Player::alias_validate(&alias) {
             // Prevent silly aliases
             server.notify_client(
                 client,
-                ServerGeneral::server_msg(ChatType::CommandError, "Invalid alias."),
+                ServerGeneral::server_msg(ChatType::CommandError, error.to_string()),
             );
             return;
         }
