@@ -341,13 +341,12 @@ impl TradePricing {
 
     pub fn get_material(item: &str) -> (Good, f32) {
         if item == TradePricing::COIN_ITEM {
-            (Good::Coin, 1.0 / TRADE_PRICING.coin_scale)
+            (Good::Coin, 1.0)
         } else {
-            TRADE_PRICING
-                .material_cache
-                .get(item)
-                .cloned()
-                .unwrap_or((Good::Terrain(crate::terrain::BiomeKind::Void), 0.0))
+            TRADE_PRICING.material_cache.get(item).cloned().map_or(
+                (Good::Terrain(crate::terrain::BiomeKind::Void), 0.0),
+                |(a, b)| (a, b * TRADE_PRICING.coin_scale),
+            )
         }
     }
 

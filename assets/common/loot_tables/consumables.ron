@@ -1,8 +1,8 @@
 [
     // potions
     (1.0, Item("common.items.consumable.potion_minor")),
-    (0.1, Item("common.items.consumable.potion_med")),
-    (0.01, Item("common.items.consumable.potion_big")),
+    (0.5, Item("common.items.consumable.potion_med")),
+    (0.2, Item("common.items.consumable.potion_big")),
     // bombs
     (0.6, Item("common.items.utility.bomb")),
     (0.2, Item("common.items.utility.bomb_pile")),

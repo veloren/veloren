@@ -25,21 +25,21 @@ loot_tables: [
     (0.125, "common.loot_tables.armor.cultist"),
     // Materials
     (7.5, "common.loot_tables.materials.common"),
-    (2.0, "common.loot_tables.materials.underground"),
+    (5.0, "common.loot_tables.materials.underground"),
     // Food
-    (6.0, "common.loot_tables.food.farm_ingredients"),
-    (2.5, "common.loot_tables.food.wild_ingredients"),
-    (0.8, "common.loot_tables.food.prepared"),
+    (0.5, "common.loot_tables.food.farm_ingredients"),
+    (0.25, "common.loot_tables.food.wild_ingredients"),
+    (0.1, "common.loot_tables.food.prepared"),
     // TODO: Change consumables when they are split up later
-    (0.5, "common.loot_tables.consumables"),
+    (1.0, "common.loot_tables.consumables"),
 ], 
 // this is the amount of that good the most common item represents
 // so basically this table balances the goods against each other (higher=less valuable)
 good_scaling: [
-    (Potions, 0.5), // common.items.consumable.potion_minor
-    (Food, 3.0), // common.items.food.mushroom
-    (Coin, 1.0), // common.items.utility.coins
-    (Armor, 0.3), // common.items.armor.misc.pants.worker_blue
-    (Tools, 1.0), // common.items.weapons.staff.starter_staff
-    (Ingredients, 5.0), // common.items.crafting_ing.leather_scraps
+    (Potions, 0.001), // common.items.consumable.potion_minor
+    (Food, 2.0), // common.items.food.mushroom
+    (Coin, 10.0), // common.items.utility.coins
+    (Armor, 0.2), // common.items.armor.misc.pants.worker_blue
+    (Tools, 0.1), // common.items.weapons.staff.starter_staff
+    (Ingredients, 1.0), // common.items.crafting_ing.leather_scraps
 ])
