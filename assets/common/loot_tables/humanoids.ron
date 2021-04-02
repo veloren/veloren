@@ -11,8 +11,8 @@
     (1.0, LootTable("common.loot_tables.food.wild_ingredients")),
     (0.25, LootTable("common.loot_tables.food.prepared")),
     // Weapons
-    (0.5, LootTable("common.loot_tables.sword.wood")),
-    (0.5, LootTable("common.loot_tables.hammer.stone")),
-    (0.5, LootTable("common.loot_tables.bow.rawwood")),
-    (0.5, LootTable("common.loot_tables.starter")),
+    (0.5, LootTable("common.loot_tables.weapons.sword.wood")),
+    (0.5, LootTable("common.loot_tables.weapons.hammer.stone")),
+    (0.5, LootTable("common.loot_tables.weapons.bow.rawwood")),
+    (0.5, LootTable("common.loot_tables.weapons.starter")),
 ]

@@ -114,18 +114,53 @@ impl LootSpec {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{assets::AssetExt, comp::Item};
-
+    use crate::{assets::{AssetExt, Error}, comp::Item};
+    
     #[test]
-    fn test_loot_table() {
-        let test = Lottery::<LootSpec>::load_expect("common.loot_tables.fallback");
+    fn test_loot_tables() {
+        #[derive(Clone)]
+        struct LootTableList(Vec<Lottery<LootSpec>>);
+        impl assets::Compound for LootTableList {
+            fn load<S: assets::source::Source>(
+                cache: &assets::AssetCache<S>,
+                specifier: &str,
+            ) -> Result<Self, Error> {
+                let list = cache
+                    .load::<assets::Directory>(specifier)?
+                    .read()
+                    .iter()
+                    .map(|spec| Lottery::<LootSpec>::load_cloned(spec))
+                    .collect::<Result<_, Error>>()?;
+    
+                Ok(LootTableList(list))
+            }
+        }
 
-        for (_, to_itemifier) in test.read().iter() {
-            assert!(
-                Item::new_from_asset(to_itemifier).is_ok(),
-                "Invalid loot table item '{}'",
-                to_itemifier
-            );
+        fn validate_table_contents(table: Lottery<LootSpec>) {
+            for (_, item) in table.iter() {
+                match item {
+                    LootSpec::Item(item) => {
+                        Item::new_from_asset_expect(&item);
+                    },
+                    LootSpec::ItemQuantity(item, lower, upper) => {
+                        assert!(*lower > 0, "Lower quantity must be more than 0. It is {}.", lower);
+                        assert!(upper >= lower, "Upper quantity must be at least the value of lower quantity. Upper value: {}, low value: {}.", upper, lower);
+                        Item::new_from_asset_expect(&item);
+                    },
+                    LootSpec::LootTable(loot_table) => {
+                        let loot_table = Lottery::<LootSpec>::load_expect_cloned(&loot_table);
+                        validate_table_contents(loot_table);
+                    },
+                    LootSpec::CreatureMaterial => {
+                        item.to_item(None);
+                    },
+                }
+            }
+        }
+
+        let loot_tables = LootTableList::load_expect_cloned("common.loot_tables.*").0;
+        for loot_table in loot_tables {
+            validate_table_contents(loot_table);
         }
     }
 }
