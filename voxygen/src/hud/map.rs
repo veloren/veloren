@@ -135,11 +135,11 @@ fn get_site_economy(site_rich: &SiteInfoRich) -> String {
             let mut result = format!("\n\nPopulation {:?}", economy.population);
             result += "\nStock";
             for i in [Food, Potions, Ingredients, Coin, Tools, Armor].iter() {
-                result += &format!(" {:?}={:.1}", *i, *economy.stock.get(i).unwrap_or(&0.0));
+                result += &format!("\n  {:?}={:.3}", *i, *economy.stock.get(i).unwrap_or(&0.0));
             }
             result += "\nPrice";
             for i in [Food, Potions, Ingredients, Coin, Tools, Armor].iter() {
-                result += &format!(" {:?}={:.1}", *i, *economy.values.get(i).unwrap_or(&0.0));
+                result += &format!("\n  {:?}={:.3}", *i, *economy.values.get(i).unwrap_or(&0.0));
             }
 
             let mut trade_sorted: Vec<(&Good, &f32)> = economy.last_exports.iter().collect();
@@ -149,7 +149,7 @@ fn get_site_economy(site_rich: &SiteInfoRich) -> String {
                 for i in trade_sorted.iter().filter(|x| *x.1 != 0.0) {
                     result += &format!("{:?} ", i.0);
                 }
-                result += &format!("{:.1}", *(trade_sorted.last().unwrap().1));
+                result += &format!("{:.3}", *(trade_sorted.last().unwrap().1));
             }
             result
         } else {

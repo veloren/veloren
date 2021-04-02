@@ -372,12 +372,10 @@ impl<'a> Trade<'a> {
                     Quality::Artifact => self.imgs.inv_slot_orange,
                     _ => self.imgs.inv_slot_red,
                 };
-                let i18n = &self.localized_strings;
 
-                let prices_info = super::util::price_desc(prices, item.item_definition_id(), i18n);
                 slot_widget
                     .filled_slot(quality_col_img)
-                    .with_item_tooltip(self.item_tooltip_manager, item, prices_info, &item_tooltip)
+                    .with_item_tooltip(self.item_tooltip_manager, item, prices, &item_tooltip)
                     .set(slot_id, ui);
             } else {
                 slot_widget.set(slot_id, ui);
