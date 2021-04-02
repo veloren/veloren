@@ -4,8 +4,8 @@ use common::{
     comp::{
         biped_large::{self, BodyType as BLBodyType, Species as BLSpecies},
         biped_small,
+        bird_large::{self, BodyType as BLABodyType, Species as BLASpecies},
         bird_medium::{self, BodyType as BMBodyType, Species as BMSpecies},
-        bird_small,
         dragon::{self, BodyType as DBodyType, Species as DSpecies},
         fish_medium::{self, BodyType as FMBodyType, Species as FMSpecies},
         fish_small::{self, BodyType as FSBodyType, Species as FSSpecies},
@@ -3109,65 +3109,379 @@ impl DragonLateralSpec {
 }
 
 ////
+#[derive(Deserialize)]
+struct BirdLargeCentralSpec(HashMap<(BLASpecies, BLABodyType), SidedBLACentralVoxSpec>);
+
+#[derive(Deserialize)]
+struct SidedBLACentralVoxSpec {
+    head: BirdLargeCentralSubSpec,
+    beak: BirdLargeCentralSubSpec,
+    neck: BirdLargeCentralSubSpec,
+    chest: BirdLargeCentralSubSpec,
+    tail_front: BirdLargeCentralSubSpec,
+    tail_rear: BirdLargeCentralSubSpec,
+}
+#[derive(Deserialize)]
+struct BirdLargeCentralSubSpec {
+    offset: [f32; 3], // Should be relative to initial origin
+    central: VoxSimple,
+}
+
+#[derive(Deserialize)]
+struct BirdLargeLateralSpec(HashMap<(BLASpecies, BLABodyType), SidedBLALateralVoxSpec>);
+
+#[derive(Deserialize)]
+struct SidedBLALateralVoxSpec {
+    wing_in_l: BirdLargeLateralSubSpec,
+    wing_in_r: BirdLargeLateralSubSpec,
+    wing_mid_l: BirdLargeLateralSubSpec,
+    wing_mid_r: BirdLargeLateralSubSpec,
+    wing_out_l: BirdLargeLateralSubSpec,
+    wing_out_r: BirdLargeLateralSubSpec,
+    leg_l: BirdLargeLateralSubSpec,
+    leg_r: BirdLargeLateralSubSpec,
+    foot_l: BirdLargeLateralSubSpec,
+    foot_r: BirdLargeLateralSubSpec,
+}
+#[derive(Deserialize)]
+struct BirdLargeLateralSubSpec {
+    offset: [f32; 3], // Should be relative to initial origin
+    lateral: VoxSimple,
+}
+
 make_vox_spec!(
-    bird_small::Body,
-    struct BirdSmallSpec {},
-    |FigureKey { body, .. }, _spec| {
+    bird_large::Body,
+    struct BirdLargeSpec {
+        central: BirdLargeCentralSpec = "voxygen.voxel.bird_large_central_manifest",
+        lateral: BirdLargeLateralSpec = "voxygen.voxel.bird_large_lateral_manifest",
+    },
+    |FigureKey { body, .. }, spec| {
         [
-            Some(mesh_bird_small_head(body.head)),
-            Some(mesh_bird_small_torso(body.torso)),
-            Some(mesh_bird_small_wing_l(body.wing_l)),
-            Some(mesh_bird_small_wing_r(body.wing_r)),
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
+            Some(spec.central.read().0.mesh_head(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.central.read().0.mesh_beak(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.central.read().0.mesh_neck(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.central.read().0.mesh_chest(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.central.read().0.mesh_tail_front(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.central.read().0.mesh_tail_rear(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.lateral.read().0.mesh_wing_in_l(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.lateral.read().0.mesh_wing_in_r(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.lateral.read().0.mesh_wing_mid_l(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.lateral.read().0.mesh_wing_mid_r(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.lateral.read().0.mesh_wing_out_l(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.lateral.read().0.mesh_wing_out_r(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.lateral.read().0.mesh_leg_l(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.lateral.read().0.mesh_leg_r(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.lateral.read().0.mesh_foot_l(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.lateral.read().0.mesh_foot_r(
+                body.species,
+                body.body_type,
+            )),
         ]
     },
 );
 
-fn mesh_bird_small_head(head: bird_small::Head) -> BoneMeshes {
-    load_mesh(
-        match head {
-            bird_small::Head::Default => "npc.crow.head",
-        },
-        Vec3::new(-7.0, -6.0, -6.0),
-    )
-}
+impl BirdLargeCentralSpec {
+    fn mesh_head(&self, species: BLASpecies, body_type: BLABodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No head specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let central = graceful_load_segment(&spec.head.central.0);
 
-fn mesh_bird_small_torso(torso: bird_small::Torso) -> BoneMeshes {
-    load_mesh(
-        match torso {
-            bird_small::Torso::Default => "npc.crow.torso",
-        },
-        Vec3::new(-7.0, -6.0, -6.0),
-    )
-}
+        (central, Vec3::from(spec.head.offset))
+    }
 
-fn mesh_bird_small_wing_l(wing_l: bird_small::WingL) -> BoneMeshes {
-    load_mesh(
-        match wing_l {
-            bird_small::WingL::Default => "npc.crow.wing_l",
-        },
-        Vec3::new(-7.0, -6.0, -6.0),
-    )
-}
+    fn mesh_beak(&self, species: BLASpecies, body_type: BLABodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No beak specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let central = graceful_load_segment(&spec.beak.central.0);
 
-fn mesh_bird_small_wing_r(wing_r: bird_small::WingR) -> BoneMeshes {
-    load_mesh(
-        match wing_r {
-            bird_small::WingR::Default => "npc.crow.wing_r",
-        },
-        Vec3::new(-7.0, -6.0, -6.0),
-    )
+        (central, Vec3::from(spec.beak.offset))
+    }
+
+    fn mesh_neck(&self, species: BLASpecies, body_type: BLABodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No neck specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let central = graceful_load_segment(&spec.neck.central.0);
+
+        (central, Vec3::from(spec.neck.offset))
+    }
+
+    fn mesh_chest(&self, species: BLASpecies, body_type: BLABodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No chest specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let central = graceful_load_segment(&spec.chest.central.0);
+
+        (central, Vec3::from(spec.chest.offset))
+    }
+
+    fn mesh_tail_front(&self, species: BLASpecies, body_type: BLABodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No tail front specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let central = graceful_load_segment(&spec.tail_front.central.0);
+
+        (central, Vec3::from(spec.tail_front.offset))
+    }
+
+    fn mesh_tail_rear(&self, species: BLASpecies, body_type: BLABodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No tail rear specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let central = graceful_load_segment(&spec.tail_rear.central.0);
+
+        (central, Vec3::from(spec.tail_rear.offset))
+    }
+}
+impl BirdLargeLateralSpec {
+    fn mesh_wing_in_l(&self, species: BLASpecies, body_type: BLABodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No wing in in left specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral = graceful_load_segment(&spec.wing_in_l.lateral.0);
+
+        (lateral, Vec3::from(spec.wing_in_l.offset))
+    }
+
+    fn mesh_wing_in_r(&self, species: BLASpecies, body_type: BLABodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No wing in right specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral = graceful_load_segment(&spec.wing_in_r.lateral.0);
+
+        (lateral, Vec3::from(spec.wing_in_r.offset))
+    }
+
+    fn mesh_wing_mid_l(&self, species: BLASpecies, body_type: BLABodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No wing mid specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral = graceful_load_segment(&spec.wing_mid_l.lateral.0);
+
+        (lateral, Vec3::from(spec.wing_mid_l.offset))
+    }
+
+    fn mesh_wing_mid_r(&self, species: BLASpecies, body_type: BLABodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No wing mid specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral = graceful_load_segment(&spec.wing_in_l.lateral.0);
+
+        (lateral, Vec3::from(spec.wing_mid_r.offset))
+    }
+
+    fn mesh_wing_out_l(&self, species: BLASpecies, body_type: BLABodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No wing out specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral = graceful_load_segment(&spec.wing_out_l.lateral.0);
+
+        (lateral, Vec3::from(spec.wing_out_l.offset))
+    }
+
+    fn mesh_wing_out_r(&self, species: BLASpecies, body_type: BLABodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No wing out specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral = graceful_load_segment(&spec.wing_out_r.lateral.0);
+
+        (lateral, Vec3::from(spec.wing_out_r.offset))
+    }
+
+    fn mesh_leg_l(&self, species: BLASpecies, body_type: BLABodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No leg specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral = graceful_load_segment(&spec.leg_l.lateral.0);
+
+        (lateral, Vec3::from(spec.leg_l.offset))
+    }
+
+    fn mesh_leg_r(&self, species: BLASpecies, body_type: BLABodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No leg specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral = graceful_load_segment(&spec.leg_r.lateral.0);
+
+        (lateral, Vec3::from(spec.leg_r.offset))
+    }
+
+    fn mesh_foot_l(&self, species: BLASpecies, body_type: BLABodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No foot specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral = graceful_load_segment(&spec.foot_l.lateral.0);
+
+        (lateral, Vec3::from(spec.foot_l.offset))
+    }
+
+    fn mesh_foot_r(&self, species: BLASpecies, body_type: BLABodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No foot specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+        let lateral = graceful_load_segment(&spec.foot_r.lateral.0);
+
+        (lateral, Vec3::from(spec.foot_r.offset))
+    }
 }
 
 ////

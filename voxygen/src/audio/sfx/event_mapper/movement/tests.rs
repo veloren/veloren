@@ -2,7 +2,7 @@ use super::*;
 use crate::audio::sfx::SfxEvent;
 use common::{
     comp::{
-        bird_small, humanoid, quadruped_medium, quadruped_small, Body, CharacterState, InputKind,
+        bird_large, humanoid, quadruped_medium, quadruped_small, Body, CharacterState, InputKind,
         PhysicsState,
     },
     states,
@@ -340,12 +340,12 @@ fn determines_relative_volumes() {
         quadruped_small::Body::random(),
     ));
 
-    let bird_small =
-        MovementEventMapper::get_volume_for_body_type(&Body::BirdSmall(bird_small::Body::random()));
+    let bird_large =
+        MovementEventMapper::get_volume_for_body_type(&Body::BirdLarge(bird_large::Body::random()));
 
     assert!(quadruped_medium < human);
     assert!(quadruped_small < quadruped_medium);
-    assert!(bird_small < quadruped_small);
+    assert!(bird_large < quadruped_small);
 }
 
 fn empty_ability_info() -> states::utils::AbilityInfo {

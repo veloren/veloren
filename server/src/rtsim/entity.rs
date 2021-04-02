@@ -60,7 +60,7 @@ impl Entity {
             comp::Body::BirdMedium(b) => {
                 get_npc_name(&npc_names.bird_medium, b.species).to_string()
             },
-            comp::Body::BirdSmall(_) => "Warbler".to_string(),
+            comp::Body::BirdLarge(_) => "Warbler".to_string(),
             comp::Body::Dragon(b) => get_npc_name(&npc_names.dragon, b.species).to_string(),
             comp::Body::Humanoid(b) => get_npc_name(&npc_names.humanoid, b.species).to_string(),
             comp::Body::Ship(_) => "Veloren Air".to_string(),

@@ -19,7 +19,7 @@ use crate::{
 };
 use anim::{
     biped_large::BipedLargeSkeleton, biped_small::BipedSmallSkeleton,
-    bird_medium::BirdMediumSkeleton, bird_small::BirdSmallSkeleton, character::CharacterSkeleton,
+    bird_large::BirdLargeSkeleton, bird_medium::BirdMediumSkeleton, character::CharacterSkeleton,
     dragon::DragonSkeleton, fish_medium::FishMediumSkeleton, fish_small::FishSmallSkeleton,
     golem::GolemSkeleton, object::ObjectSkeleton, quadruped_low::QuadrupedLowSkeleton,
     quadruped_medium::QuadrupedMediumSkeleton, quadruped_small::QuadrupedSmallSkeleton,
@@ -95,7 +95,7 @@ struct FigureMgrStates {
     fish_medium_states: HashMap<EcsEntity, FigureState<FishMediumSkeleton>>,
     theropod_states: HashMap<EcsEntity, FigureState<TheropodSkeleton>>,
     dragon_states: HashMap<EcsEntity, FigureState<DragonSkeleton>>,
-    bird_small_states: HashMap<EcsEntity, FigureState<BirdSmallSkeleton>>,
+    bird_large_states: HashMap<EcsEntity, FigureState<BirdLargeSkeleton>>,
     fish_small_states: HashMap<EcsEntity, FigureState<FishSmallSkeleton>>,
     biped_large_states: HashMap<EcsEntity, FigureState<BipedLargeSkeleton>>,
     biped_small_states: HashMap<EcsEntity, FigureState<BipedSmallSkeleton>>,
@@ -115,7 +115,7 @@ impl FigureMgrStates {
             fish_medium_states: HashMap::new(),
             theropod_states: HashMap::new(),
             dragon_states: HashMap::new(),
-            bird_small_states: HashMap::new(),
+            bird_large_states: HashMap::new(),
             fish_small_states: HashMap::new(),
             biped_large_states: HashMap::new(),
             biped_small_states: HashMap::new(),
@@ -164,8 +164,8 @@ impl FigureMgrStates {
                 .get_mut(&entity)
                 .map(DerefMut::deref_mut),
             Body::Dragon(_) => self.dragon_states.get_mut(&entity).map(DerefMut::deref_mut),
-            Body::BirdSmall(_) => self
-                .bird_small_states
+            Body::BirdLarge(_) => self
+                .bird_large_states
                 .get_mut(&entity)
                 .map(DerefMut::deref_mut),
             Body::FishSmall(_) => self
@@ -202,7 +202,7 @@ impl FigureMgrStates {
             Body::FishMedium(_) => self.fish_medium_states.remove(&entity).map(|e| e.meta),
             Body::Theropod(_) => self.theropod_states.remove(&entity).map(|e| e.meta),
             Body::Dragon(_) => self.dragon_states.remove(&entity).map(|e| e.meta),
-            Body::BirdSmall(_) => self.bird_small_states.remove(&entity).map(|e| e.meta),
+            Body::BirdLarge(_) => self.bird_large_states.remove(&entity).map(|e| e.meta),
             Body::FishSmall(_) => self.fish_small_states.remove(&entity).map(|e| e.meta),
             Body::BipedLarge(_) => self.biped_large_states.remove(&entity).map(|e| e.meta),
             Body::BipedSmall(_) => self.biped_small_states.remove(&entity).map(|e| e.meta),
@@ -222,7 +222,7 @@ impl FigureMgrStates {
         self.fish_medium_states.retain(|k, v| f(k, &mut *v));
         self.theropod_states.retain(|k, v| f(k, &mut *v));
         self.dragon_states.retain(|k, v| f(k, &mut *v));
-        self.bird_small_states.retain(|k, v| f(k, &mut *v));
+        self.bird_large_states.retain(|k, v| f(k, &mut *v));
         self.fish_small_states.retain(|k, v| f(k, &mut *v));
         self.biped_large_states.retain(|k, v| f(k, &mut *v));
         self.biped_small_states.retain(|k, v| f(k, &mut *v));
@@ -241,7 +241,7 @@ impl FigureMgrStates {
             + self.fish_medium_states.len()
             + self.theropod_states.len()
             + self.dragon_states.len()
-            + self.bird_small_states.len()
+            + self.bird_large_states.len()
             + self.fish_small_states.len()
             + self.biped_large_states.len()
             + self.biped_small_states.len()
@@ -291,7 +291,7 @@ impl FigureMgrStates {
                 .filter(|(_, c)| c.visible())
                 .count()
             + self
-                .bird_small_states
+                .bird_large_states
                 .iter()
                 .filter(|(_, c)| c.visible())
                 .count()
@@ -332,7 +332,7 @@ pub struct FigureMgr {
     quadruped_medium_model_cache: FigureModelCache<QuadrupedMediumSkeleton>,
     quadruped_low_model_cache: FigureModelCache<QuadrupedLowSkeleton>,
     bird_medium_model_cache: FigureModelCache<BirdMediumSkeleton>,
-    bird_small_model_cache: FigureModelCache<BirdSmallSkeleton>,
+    bird_large_model_cache: FigureModelCache<BirdLargeSkeleton>,
     dragon_model_cache: FigureModelCache<DragonSkeleton>,
     fish_medium_model_cache: FigureModelCache<FishMediumSkeleton>,
     fish_small_model_cache: FigureModelCache<FishSmallSkeleton>,
@@ -354,7 +354,7 @@ impl FigureMgr {
             quadruped_medium_model_cache: FigureModelCache::new(),
             quadruped_low_model_cache: FigureModelCache::new(),
             bird_medium_model_cache: FigureModelCache::new(),
-            bird_small_model_cache: FigureModelCache::new(),
+            bird_large_model_cache: FigureModelCache::new(),
             dragon_model_cache: FigureModelCache::new(),
             fish_medium_model_cache: FigureModelCache::new(),
             fish_small_model_cache: FigureModelCache::new(),
@@ -381,7 +381,7 @@ impl FigureMgr {
             .clean(&mut self.col_lights, tick);
         self.bird_medium_model_cache
             .clean(&mut self.col_lights, tick);
-        self.bird_small_model_cache
+        self.bird_large_model_cache
             .clean(&mut self.col_lights, tick);
         self.dragon_model_cache.clean(&mut self.col_lights, tick);
         self.fish_medium_model_cache
@@ -3263,8 +3263,8 @@ impl FigureMgr {
                         physics.ground_vel,
                     );
                 },
-                Body::BirdSmall(body) => {
-                    let (model, skeleton_attr) = self.bird_small_model_cache.get_or_create_model(
+                Body::BirdLarge(body) => {
+                    let (model, skeleton_attr) = self.bird_large_model_cache.get_or_create_model(
                         renderer,
                         &mut self.col_lights,
                         *body,
@@ -3277,14 +3277,14 @@ impl FigureMgr {
 
                     let state = self
                         .states
-                        .bird_small_states
+                        .bird_large_states
                         .entry(entity)
                         .or_insert_with(|| {
-                            FigureState::new(renderer, BirdSmallSkeleton::default())
+                            FigureState::new(renderer, BirdLargeSkeleton::default())
                         });
 
                     // Average velocity relative to the current ground
-                    let _rel_avg_vel = state.avg_vel - physics.ground_vel;
+                    let rel_avg_vel = state.avg_vel - physics.ground_vel;
 
                     let (character, last_character) = match (character, last_character) {
                         (Some(c), Some(l)) => (c, l),
@@ -3301,33 +3301,49 @@ impl FigureMgr {
                         physics.in_liquid().is_some(),                      // In water
                     ) {
                         // Standing
-                        (true, false, false) => anim::bird_small::IdleAnimation::update_skeleton(
-                            &BirdSmallSkeleton::default(),
+                        (true, false, false) => anim::bird_large::IdleAnimation::update_skeleton(
+                            &BirdLargeSkeleton::default(),
                             time,
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
                         ),
                         // Running
-                        (true, true, false) => anim::bird_small::RunAnimation::update_skeleton(
-                            &BirdSmallSkeleton::default(),
-                            (rel_vel.magnitude(), time),
+                        (true, true, false) => anim::bird_large::RunAnimation::update_skeleton(
+                            &BirdLargeSkeleton::default(),
+                            (
+                                rel_vel,
+                                // TODO: Update to use the quaternion.
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                time,
+                                rel_avg_vel,
+                                state.acc_vel,
+                            ),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
                         ),
                         // In air
-                        (false, _, false) => anim::bird_small::JumpAnimation::update_skeleton(
-                            &BirdSmallSkeleton::default(),
-                            (rel_vel.magnitude(), time),
+                        (false, _, false) => anim::bird_large::FlyAnimation::update_skeleton(
+                            &BirdLargeSkeleton::default(),
+                            (
+                                rel_vel,
+                                // TODO: Update to use the quaternion.
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                time,
+                                rel_avg_vel,
+                                state.acc_vel,
+                            ),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
                         ),
 
                         // TODO!
-                        _ => anim::bird_small::IdleAnimation::update_skeleton(
-                            &BirdSmallSkeleton::default(),
+                        _ => anim::bird_large::IdleAnimation::update_skeleton(
+                            &BirdLargeSkeleton::default(),
                             time,
                             state.state_time,
                             &mut state_animation_rate,
@@ -4572,7 +4588,7 @@ impl FigureMgr {
             quadruped_medium_model_cache,
             quadruped_low_model_cache,
             bird_medium_model_cache,
-            bird_small_model_cache,
+            bird_large_model_cache,
             dragon_model_cache,
             fish_medium_model_cache,
             fish_small_model_cache,
@@ -4591,7 +4607,7 @@ impl FigureMgr {
                     fish_medium_states,
                     theropod_states,
                     dragon_states,
-                    bird_small_states,
+                    bird_large_states,
                     fish_small_states,
                     biped_large_states,
                     biped_small_states,
@@ -4738,14 +4754,14 @@ impl FigureMgr {
                         ),
                     )
                 }),
-            Body::BirdSmall(body) => bird_small_states
+            Body::BirdLarge(body) => bird_large_states
                 .get(&entity)
                 .filter(|state| filter_state(&*state))
                 .map(move |state| {
                     (
                         state.locals(),
                         state.bone_consts(),
-                        bird_small_model_cache.get_model(
+                        bird_large_model_cache.get_model(
                             col_lights,
                             *body,
                             inventory,

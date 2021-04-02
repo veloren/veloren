@@ -77,7 +77,7 @@ impl Body {
             Body::BirdMedium(_) => 80.0,
             Body::FishMedium(_) => 80.0,
             Body::Dragon(_) => 250.0,
-            Body::BirdSmall(_) => 75.0,
+            Body::BirdLarge(_) => 75.0,
             Body::FishSmall(_) => 60.0,
             Body::BipedSmall(biped_small) => match biped_small.species {
                 biped_small::Species::Haniwa => 65.0,
@@ -133,7 +133,7 @@ impl Body {
             Body::BirdMedium(_) => 6.0,
             Body::FishMedium(_) => 6.0,
             Body::Dragon(_) => 1.0,
-            Body::BirdSmall(_) => 7.0,
+            Body::BirdLarge(_) => 7.0,
             Body::FishSmall(_) => 7.0,
             Body::BipedLarge(_) => 1.6,
             Body::BipedSmall(_) => 2.4,
@@ -165,7 +165,7 @@ impl Body {
             Body::BipedLarge(_) | Body::Golem(_) => Some(200.0 * self.mass().0),
             Body::BipedSmall(_) => Some(100.0 * self.mass().0),
             Body::BirdMedium(_) => Some(50.0 * self.mass().0),
-            Body::BirdSmall(_) => Some(50.0 * self.mass().0),
+            Body::BirdLarge(_) => Some(50.0 * self.mass().0),
             Body::FishMedium(_) => Some(50.0 * self.mass().0),
             Body::FishSmall(_) => Some(50.0 * self.mass().0),
             Body::Dragon(_) => Some(200.0 * self.mass().0),
@@ -188,7 +188,7 @@ impl Body {
     pub fn fly_thrust(&self) -> Option<f32> {
         match self {
             Body::BirdMedium(_) => Some(GRAVITY * self.mass().0 * 2.0),
-            Body::BirdSmall(_) => Some(GRAVITY * self.mass().0 * 2.0),
+            Body::BirdLarge(_) => Some(GRAVITY * self.mass().0 * 2.0),
             Body::Dragon(_) => Some(200_000.0),
             Body::Ship(ship::Body::DefaultAirship) => Some(300_000.0),
             _ => None,
@@ -377,7 +377,7 @@ pub fn fly_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32) -> b
         // Elevation control
         match data.body {
             // flappy flappy
-            Body::Dragon(_) | Body::BirdMedium(_) | Body::BirdSmall(_) => {
+            Body::Dragon(_) | Body::BirdMedium(_) | Body::BirdLarge(_) => {
                 let anti_grav = GRAVITY * (1.0 + data.inputs.move_z.min(0.0));
                 update.vel.0.z += data.dt.0 * (anti_grav + accel * data.inputs.move_z.max(0.0));
             },
