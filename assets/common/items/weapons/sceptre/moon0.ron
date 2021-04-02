@@ -13,6 +13,6 @@ ItemDef(
             crit_mult: 1.7326007,
         )),
     )),
-    quality: Common,
+    quality: Moderate,
     tags: [],
 )

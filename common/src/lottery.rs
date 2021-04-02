@@ -114,8 +114,11 @@ impl LootSpec {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{assets::{AssetExt, Error}, comp::Item};
-    
+    use crate::{
+        assets::{AssetExt, Error},
+        comp::Item,
+    };
+
     #[test]
     fn test_loot_tables() {
         #[derive(Clone)]
@@ -131,7 +134,7 @@ mod tests {
                     .iter()
                     .map(|spec| Lottery::<LootSpec>::load_cloned(spec))
                     .collect::<Result<_, Error>>()?;
-    
+
                 Ok(LootTableList(list))
             }
         }
@@ -143,8 +146,18 @@ mod tests {
                         Item::new_from_asset_expect(&item);
                     },
                     LootSpec::ItemQuantity(item, lower, upper) => {
-                        assert!(*lower > 0, "Lower quantity must be more than 0. It is {}.", lower);
-                        assert!(upper >= lower, "Upper quantity must be at least the value of lower quantity. Upper value: {}, low value: {}.", upper, lower);
+                        assert!(
+                            *lower > 0,
+                            "Lower quantity must be more than 0. It is {}.",
+                            lower
+                        );
+                        assert!(
+                            upper >= lower,
+                            "Upper quantity must be at least the value of lower quantity. Upper \
+                             value: {}, low value: {}.",
+                            upper,
+                            lower
+                        );
                         Item::new_from_asset_expect(&item);
                     },
                     LootSpec::LootTable(loot_table) => {

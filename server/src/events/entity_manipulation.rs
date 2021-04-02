@@ -347,7 +347,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                     2 => "common.loot_tables.armor.cloth",
                     3 => "common.loot_tables.weapons.starter",
                     4 => "common.loot_tables.humanoids",
-                    _ => "common.loots_tables.fallback",
+                    _ => "common.loot_tables.fallback",
                 },
                 Some(common::comp::Body::QuadrupedSmall(quadruped_small)) => {
                     match quadruped_small.species {
@@ -356,7 +356,6 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                         },
                         _ => match rng.gen_range(0..4) {
                             0 => "common.loot_tables.food.wild_ingredients",
-                            2 => "common.loot_tables.wild_animal",
                             _ => "common.loot_tables.wild_animal",
                         },
                     }
