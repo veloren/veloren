@@ -97,12 +97,15 @@ impl Entity {
             _ => None,
         };
 
-        let lantern = match rng.gen_range(0..3) {
+        let lantern = match rng.gen_range(0..4) {
             0 => Some(comp::Item::new_from_asset_expect(
                 "common.items.lantern.black_0",
             )),
             1 => Some(comp::Item::new_from_asset_expect(
                 "common.items.lantern.blue_0",
+            )),
+            2 => Some(comp::Item::new_from_asset_expect(
+                "common.items.lantern.green_0",
             )),
             _ => Some(comp::Item::new_from_asset_expect(
                 "common.items.lantern.red_0",
