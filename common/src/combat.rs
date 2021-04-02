@@ -722,7 +722,7 @@ pub fn get_weapons(inv: &Inventory) -> (Option<ToolKind>, Option<ToolKind>) {
 }
 
 pub fn weapon_rating<T: ItemDesc>(item: &T, msm: &MaterialStatManifest) -> f32 {
-    const DAMAGE_WIGHT: f32 = 2.0;
+    const DAMAGE_WEIGHT: f32 = 2.0;
     const POISE_WEIGHT: f32 = 1.0;
 
     if let ItemKind::Tool(tool) = item.kind() {
@@ -732,7 +732,8 @@ pub fn weapon_rating<T: ItemDesc>(item: &T, msm: &MaterialStatManifest) -> f32 {
             stats.power * stats.speed * (1.0 + stats.crit_chance * (stats.crit_mult - 1.0));
         let poise_rating = stats.poise_strength * stats.speed;
 
-        (damage_rating * DAMAGE_WIGHT + poise_rating * POISE_WEIGHT) / (DAMAGE_WIGHT + POISE_WEIGHT)
+        (damage_rating * DAMAGE_WEIGHT + poise_rating * POISE_WEIGHT)
+            / (DAMAGE_WEIGHT + POISE_WEIGHT)
     } else {
         0.0
     }
@@ -788,8 +789,7 @@ pub fn combat_rating(
         / (1.0 - Damage::compute_damage_reduction(Some(inventory), Some(stats))).max(0.00001);
 
     // Assumes a standard person has earned 20 skill points in the general skill
-    // tree Assumes a standard person has earned 10 skill points for the weapon
-    // skill tree
+    // tree and 10 skill points for the weapon skill tree
     let skills_rating = (stats.skill_set.earned_sp(SkillGroupKind::General) as f32 / 20.0
         + weapon_skills(inventory, stats) / 10.0)
         / 2.0;
