@@ -1,0 +1,21 @@
+/// 警告: ローカライズファイルは、UTF-8のBOM無しで保存する必要があります
+
+/// Localization for 日本語 Japanese
+(
+    string_map: {
+        "character_window.character_name": "キャラクター名",
+        // Character stats
+        "character_window.character_stats": r#"持久力
+
+適応性
+
+自制心
+
+防御性
+"#,
+    },
+
+
+    vector_map: {
+    }
+)

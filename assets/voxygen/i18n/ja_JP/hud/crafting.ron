@@ -1,0 +1,16 @@
+/// 警告: ローカライズファイルは、UTF-8のBOM無しで保存する必要があります
+
+/// Localization for 日本語 Japanese
+(
+    string_map: {
+        "hud.crafting": "クラフト",
+        "hud.crafting.recipes": "レシピ",
+        "hud.crafting.ingredients": "材料:",
+        "hud.crafting.craft": "クラフト",
+        "hud.crafting.tool_cata": "必要:",
+    },
+
+
+    vector_map: {
+    }
+)

@@ -1,0 +1,12 @@
+/// 警告: ローカライズファイルは、UTF-8のBOM無しで保存する必要があります
+
+/// Localization for 日本語 Japanese
+(
+    string_map: {
+
+    },
+
+
+    vector_map: {
+    }
+)

@@ -1,0 +1,31 @@
+/// 警告: ローカライズファイルは、UTF-8のBOM無しで保存する必要があります
+
+/// Localization for 日本語 Japanese
+(
+    string_map: {
+        "char_selection.loading_characters": "キャラクターをロード中...",
+        "char_selection.delete_permanently": "このキャラクターを永久に削除しますか？",
+        "char_selection.deleting_character": "キャラクターを削除中...",
+        "char_selection.change_server": "サーバーを変更",
+        "char_selection.enter_world": "世界に入る",
+        "char_selection.logout": "ログアウト",
+        "char_selection.create_new_character": "新しいキャラクターを作成",
+        "char_selection.creating_character": "キャラクターを作成中...",
+        "char_selection.character_creation": "キャラクター作成",
+        "char_selection.human_default": "人間 規定",
+        "char_selection.level_fmt": "レベル {level_nb}",
+        "char_selection.uncanny_valley": "Wilderness",
+        "char_selection.plains_of_uncertainty": "Plains of Uncertainty",
+        "char_selection.beard": "髭",
+        "char_selection.hair_style": "髪型",
+        "char_selection.hair_color": "髪の色",
+        "char_selection.eye_color": "瞳の色",
+        "char_selection.skin": "肌",
+        "char_selection.eyeshape": "目元",
+        "char_selection.accessories": "アクセサリー",
+        "char_selection.create_info_name": "キャラクターには名前が必要です！",
+    },
+
+    vector_map: {
+    }
+)
