@@ -67,10 +67,6 @@ impl Entity {
         }
     }
 
-    pub fn get_level(&self) -> u32 {
-        (self.rng(PERM_LEVEL).gen::<f32>().powi(2) * 15.0).ceil() as u32
-    }
-
     pub fn get_loadout(&self) -> comp::inventory::loadout::Loadout {
         let mut rng = self.rng(PERM_LOADOUT);
         let main_tool = comp::Item::new_from_asset_expect(
