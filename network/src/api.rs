@@ -476,9 +476,9 @@ impl Network {
         }
 
         trace!("Participants have shut down - next: Scheduler");
-        shutdown_scheduler_s
-            .send(())
-            .expect("Scheduler is closed, but nobody other should be able to close it");
+        if let Err(()) = shutdown_scheduler_s.send(()) {
+            error!("Scheduler is closed, but nobody other should be able to close it")
+        };
         if let Ok(return_s) = return_s {
             if return_s.send(()).is_err() {
                 warn!("Network::drop stoped after a timeout and didn't wait for our shutdown");
@@ -1041,7 +1041,7 @@ impl core::cmp::PartialEq for Participant {
     }
 }
 
-fn actively_wait<T, F>(mut finished_receiver: oneshot::Receiver<T>, f: F)
+fn actively_wait<T, F>(name: &'static str, mut finished_receiver: oneshot::Receiver<T>, f: F)
 where
     F: FnOnce(T) + Send + 'static,
     T: Send + 'static,
@@ -1055,7 +1055,7 @@ where
         handle.spawn(async move {
             match finished_receiver.await {
                 Ok(data) => f(data),
-                Err(e) => panic!("{}: {}", CHANNEL_ERR, e),
+                Err(e) => panic!("{}{}: {}", name, CHANNEL_ERR, e),
             }
         });
     } else {
@@ -1067,7 +1067,7 @@ where
                     f(data);
                     break;
                 },
-                Err(TryRecvError::Closed) => panic!("{}", CHANNEL_ERR),
+                Err(TryRecvError::Closed) => panic!("{}{}", name, CHANNEL_ERR),
                 Err(TryRecvError::Empty) => {
                     trace!("activly sleeping");
                     cnt += 1;
@@ -1094,7 +1094,9 @@ impl Drop for Network {
             .send(finished_sender)
         {
             Err(e) => warn!(?e, "Runtime seems to be dropped already"),
-            Ok(()) => actively_wait(finished_receiver, |()| info!("Network dropped gracefully")),
+            Ok(()) => actively_wait("network", finished_receiver, |()| {
+                info!("Network dropped gracefully")
+            }),
         };
     }
 }
@@ -1123,7 +1125,7 @@ impl Drop for Participant {
                     {
                         Err(e) => warn!(?e, SCHEDULER_ERR),
                         Ok(()) => {
-                            actively_wait(finished_receiver, |d| match d {
+                            actively_wait("participant", finished_receiver, |d| match d {
                                 Ok(()) => info!("Participant dropped gracefully"),
                                 Err(e) => error!(?e, SHUTDOWN_ERR),
                             });
