@@ -326,7 +326,7 @@ impl<'a> Widget for Crafting<'a> {
                     .with_item_tooltip(
                         self.item_tooltip_manager,
                         &*recipe.output.0,
-                        None,
+                        &None,
                         &item_tooltip,
                     )
                     .set(state.ids.output_img, ui);
@@ -502,7 +502,7 @@ impl<'a> Widget for Crafting<'a> {
                 ))
                 .w_h(22.0, 22.0)
                 .middle_of(state.ids.ingredient_frame[i])
-                .with_item_tooltip(self.item_tooltip_manager, &*item_def, None, &item_tooltip)
+                .with_item_tooltip(self.item_tooltip_manager, &*item_def, &None, &item_tooltip)
                 .set(state.ids.ingredient_img[i], ui);
                 // Ingredients text and amount
                 // Don't show inventory amounts above 999 to avoid the widget clipping

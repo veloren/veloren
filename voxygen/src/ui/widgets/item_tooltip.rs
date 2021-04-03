@@ -9,8 +9,9 @@ use crate::{
     i18n::Localization,
 };
 use client::Client;
-use common::comp::item::{
-    armor::Protection, Item, ItemDesc, ItemKind, MaterialStatManifest, Quality,
+use common::{
+    comp::item::{armor::Protection, Item, ItemDesc, ItemKind, MaterialStatManifest, Quality},
+    trade::SitePrices,
 };
 use conrod_core::{
     builder_method, builder_methods, image, input::global::Global, position::Dimension, text,
@@ -43,6 +44,7 @@ pub struct ItemTooltipManager {
     // Current scaling of the ui
     logical_scale_factor: f64,
 }
+
 impl ItemTooltipManager {
     pub fn new(
         mut generator: widget::id::Generator,
@@ -109,7 +111,7 @@ impl ItemTooltipManager {
         &mut self,
         tooltip: &ItemTooltip,
         item: &dyn ItemDesc,
-        extra: Option<String>,
+        prices: &Option<SitePrices>,
         img_id: Option<image::Id>,
         image_dims: Option<(f64, f64)>,
         src_id: widget::Id,
@@ -124,7 +126,7 @@ impl ItemTooltipManager {
             let tooltip = tooltip
                 .clone()
                 .item(item)
-                .extra(extra)
+                .prices(prices)
                 .image(img_id)
                 .image_dims(image_dims);
 
@@ -174,7 +176,7 @@ pub struct ItemTooltipped<'a, W> {
     tooltip_manager: &'a mut ItemTooltipManager,
 
     item: &'a dyn ItemDesc,
-    extra: Option<String>,
+    prices: &'a Option<SitePrices>,
     img_id: Option<image::Id>,
     image_dims: Option<(f64, f64)>,
     tooltip: &'a ItemTooltip<'a>,
@@ -195,7 +197,7 @@ impl<'a, W: Widget> ItemTooltipped<'a, W> {
         self.tooltip_manager.set_tooltip(
             self.tooltip,
             self.item,
-            self.extra,
+            self.prices,
             self.img_id,
             self.image_dims,
             id,
@@ -213,7 +215,7 @@ pub trait ItemTooltipable {
 
         item: &'a dyn ItemDesc,
 
-        extra: Option<String>,
+        prices: &'a Option<SitePrices>,
 
         tooltip: &'a ItemTooltip<'a>,
     ) -> ItemTooltipped<'a, Self>
@@ -225,14 +227,14 @@ impl<W: Widget> ItemTooltipable for W {
         self,
         tooltip_manager: &'a mut ItemTooltipManager,
         item: &'a dyn ItemDesc,
-        extra: Option<String>,
+        prices: &'a Option<SitePrices>,
         tooltip: &'a ItemTooltip<'a>,
     ) -> ItemTooltipped<'a, W> {
         ItemTooltipped {
             inner: self,
             tooltip_manager,
             item,
-            extra,
+            prices,
             img_id: None,
             image_dims: None,
             tooltip,
@@ -258,7 +260,7 @@ pub struct ItemTooltip<'a> {
     common: widget::CommonBuilder,
     item: &'a dyn ItemDesc,
     msm: &'a MaterialStatManifest,
-    extra: Option<String>,
+    prices: &'a Option<SitePrices>,
     image: Option<image::Id>,
     image_dims: Option<(f64, f64)>,
     style: Style,
@@ -285,7 +287,8 @@ widget_ids! {
         title,
         subtitle,
         desc,
-        extra,
+        prices_buy,
+        prices_sell,
         main_stat,
         main_stat_text,
         stats[],
@@ -318,7 +321,7 @@ impl<'a> ItemTooltip<'a> {
         pub desc_line_spacing { style.desc.line_spacing = Some(Scalar) }
         image { image = Option<image::Id> }
         item { item = &'a dyn ItemDesc }
-        extra { extra = Option<String> }
+        prices { prices = &'a Option<SitePrices> }
         msm { msm = &'a MaterialStatManifest }
         image_dims { image_dims = Option<(f64, f64)> }
         transparency { transparency = f32 }
@@ -338,7 +341,7 @@ impl<'a> ItemTooltip<'a> {
             style: Style::default(),
             item: &*EMPTY_ITEM,
             msm,
-            extra: None,
+            prices: &None,
             transparency: 1.0,
             image_frame,
             image: None,
@@ -885,13 +888,16 @@ impl<'a> Widget for ItemTooltip<'a> {
                 .set(state.ids.desc, ui);
         }
 
-        // Extra text
-        if let Some(extra) = self.extra {
-            widget::Text::new(&extra)
+        // Price display
+        if let Some((buy, sell, factor)) =
+            util::price_desc(self.prices, item.item_definition_id(), i18n)
+        {
+            widget::Text::new(&buy)
                 .x_align_to(state.ids.item_frame, conrod_core::position::Align::Start)
                 .graphics_for(id)
                 .parent(id)
                 .with_style(self.style.desc)
+                .color(Color::Rgba(factor, 1.0 - factor, 0.00, 1.0))
                 .down_from(
                     if !desc.is_empty() {
                         state.ids.desc
@@ -903,7 +909,17 @@ impl<'a> Widget for ItemTooltip<'a> {
                     V_PAD,
                 )
                 .w(text_w)
-                .set(state.ids.extra, ui);
+                .set(state.ids.prices_buy, ui);
+
+            widget::Text::new(&sell)
+                .x_align_to(state.ids.item_frame, conrod_core::position::Align::Start)
+                .graphics_for(id)
+                .parent(id)
+                .with_style(self.style.desc)
+                .color(Color::Rgba(1.0 - factor, factor, 0.00, 1.0))
+                .down_from(state.ids.prices_buy, V_PAD_STATS)
+                .w(text_w)
+                .set(state.ids.prices_sell, ui);
         }
     }
 
@@ -969,8 +985,12 @@ impl<'a> Widget for ItemTooltip<'a> {
         };
 
         // Price
-        let price_h: f64 = if let Some(extra) = &self.extra {
-            widget::Text::new(&extra)
+        let price_h: f64 = if let Some((buy, sell, _)) = util::price_desc(
+            self.prices,
+            item.item_definition_id(),
+            &self.localized_strings,
+        ) {
+            widget::Text::new(&format!("{}\n{}", buy, sell))
                 .with_style(self.style.desc)
                 .w(text_w)
                 .get_h(ui)

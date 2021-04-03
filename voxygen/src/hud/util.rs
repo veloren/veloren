@@ -19,21 +19,36 @@ pub fn price_desc(
     prices: &Option<SitePrices>,
     item_definition_id: &str,
     i18n: &Localization,
-) -> Option<String> {
+) -> Option<(String, String, f32)> {
     if let Some(prices) = prices {
         let (material, factor) = TradePricing::get_material(item_definition_id);
         let coinprice = prices.values.get(&Good::Coin).cloned().unwrap_or(1.0);
         let buyprice = prices.values.get(&material).cloned().unwrap_or_default() * factor;
         let sellprice = buyprice * material.trade_margin();
-        Some(format!(
-            "{} : {:0.1} {}\n{} : {:0.1} {}",
+
+        let deal_goodness = prices.values.get(&material).cloned().unwrap_or(0.0)
+            / prices.values.get(&Good::Coin).cloned().unwrap_or(1.0);
+        let deal_goodness = deal_goodness.log(2.0);
+        let buy_string = format!(
+            "{} : {:0.1} {}",
             i18n.get("hud.trade.buy_price"),
             buyprice / coinprice,
             i18n.get("hud.trade.coin"),
+        );
+        let sell_string = format!(
+            "{} : {:0.1} {}",
             i18n.get("hud.trade.sell_price"),
             sellprice / coinprice,
             i18n.get("hud.trade.coin"),
-        ))
+        );
+        let deal_goodness = match deal_goodness {
+            x if x < -2.5 => 0.0,
+            x if x < -1.05 => 0.25,
+            x if x < -0.95 => 0.5,
+            x if x < 0.0 => 0.75,
+            _ => 1.0,
+        };
+        Some((buy_string, sell_string, deal_goodness))
     } else {
         None
     }
