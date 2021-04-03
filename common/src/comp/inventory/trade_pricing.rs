@@ -68,7 +68,6 @@ impl From<Vec<(f32, LootSpec)>> for ProbabilityFile {
                             .collect::<Vec<_>>()
                             .into_iter()
                     },
-                    LootSpec::CreatureMaterial => vec![].into_iter(),
                 })
                 .collect(),
         }

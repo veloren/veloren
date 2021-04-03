@@ -1,0 +1,4 @@
+[
+    (1.0, LootTable("common.loot_tables.food.prepared")),
+    (2.0, LootTable("common.loot_tables.cave_large")),
+]

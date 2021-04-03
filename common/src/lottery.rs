@@ -28,7 +28,7 @@
 
 use crate::{
     assets::{self, AssetExt},
-    comp::{Body, Item},
+    comp::Item,
 };
 use rand::prelude::*;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
@@ -83,30 +83,23 @@ pub enum LootSpec {
     ItemQuantity(String, u32, u32),
     /// Loot table
     LootTable(String),
-    /// Matches on species to provide a crafting material
-    CreatureMaterial,
 }
 
 impl LootSpec {
-    #[allow(unused_must_use)]
-    pub fn to_item(&self, body: Option<Body>) -> Item {
+    pub fn to_item(&self) -> Item {
         match self {
             Self::Item(item) => Item::new_from_asset_expect(&item),
             Self::ItemQuantity(item, lower, upper) => {
                 let range = *lower..=*upper;
                 let quantity = thread_rng().gen_range(range);
                 let mut item = Item::new_from_asset_expect(&item);
-                item.set_amount(quantity);
+                let _ = item.set_amount(quantity);
                 item
             },
             Self::LootTable(table) => Lottery::<LootSpec>::load_expect(&table)
                 .read()
                 .choose()
-                .to_item(body),
-            Self::CreatureMaterial => body.map_or(
-                Item::new_from_asset_expect("common.items.food.cheese"),
-                |b| b.get_material(),
-            ),
+                .to_item(),
         }
     }
 }
@@ -163,9 +156,6 @@ mod tests {
                     LootSpec::LootTable(loot_table) => {
                         let loot_table = Lottery::<LootSpec>::load_expect_cloned(&loot_table);
                         validate_table_contents(loot_table);
-                    },
-                    LootSpec::CreatureMaterial => {
-                        item.to_item(None);
                     },
                 }
             }

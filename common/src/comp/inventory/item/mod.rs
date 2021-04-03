@@ -19,7 +19,6 @@ use crate::{
 };
 use core::mem;
 use crossbeam_utils::atomic::AtomicCell;
-use rand::prelude::*;
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
@@ -579,7 +578,6 @@ impl Item {
 
     pub fn try_reclaim_from_block(block: Block) -> Option<Self> {
         let chosen;
-        let mut rng = rand::thread_rng();
         Some(Item::new_from_asset_expect(match block.get_sprite()? {
             SpriteKind::Apple => "common.items.food.apple",
             SpriteKind::Mushroom => "common.items.food.mushroom",
@@ -601,44 +599,21 @@ impl Item {
             // Containers
             // IMPORTANT: Add any new container to `SpriteKind::is_container`
             SpriteKind::Chest => {
-                chosen = Lottery::<LootSpec>::load_expect(match rng.gen_range(0..7) {
-                    0 => "common.loot_tables.weapons.tier-0",
-                    1 => "common.loot_tables.weapons.tier-1",
-                    2 => "common.loot_tables.armor.swift",
-                    3 => "common.loot_tables.armor.cloth",
-                    4 => "common.loot_tables.armor.plate",
-                    _ => "common.loot_tables.fallback",
-                })
-                .read();
-                return Some(chosen.choose().to_item(None));
+                chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.sprite.chest").read();
+                return Some(chosen.choose().to_item());
             },
-            SpriteKind::ChestBurried => {
-                chosen = Lottery::<LootSpec>::load_expect(match rng.gen_range(0..7) {
-                    1 => "common.loot_tables.weapons.tier-1",
-                    2 => "common.loot_tables.armor.swift",
-                    3 => "common.loot_tables.armor.cloth",
-                    _ => "common.loot_tables.fallback",
-                })
-                .read();
-                return Some(chosen.choose().to_item(None));
+            SpriteKind::ChestBuried => {
+                chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.sprite.chest-buried")
+                    .read();
+                return Some(chosen.choose().to_item());
             },
             SpriteKind::Mud => {
-                chosen = Lottery::<LootSpec>::load_expect(match rng.gen_range(0..5) {
-                    0 => "common.loot_tables.materials.common",
-                    1 => "common.loot_tables.weapons.tier-0",
-                    2 => "common.loot_tables.materials.underground",
-                    _ => "common.loot_tables.fallback",
-                })
-                .read();
-                return Some(chosen.choose().to_item(None));
+                chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.sprite.mud").read();
+                return Some(chosen.choose().to_item());
             },
             SpriteKind::Crate => {
-                chosen = Lottery::<LootSpec>::load_expect(match rng.gen_range(0..4) {
-                    0 => "common.loot_tables.materials.common",
-                    _ => "common.loot_tables.food.prepared",
-                })
-                .read();
-                return Some(chosen.choose().to_item(None));
+                chosen = Lottery::<LootSpec>::load_expect("common.loot_tables.sprite.crate").read();
+                return Some(chosen.choose().to_item());
             },
 
             SpriteKind::Beehive => "common.items.crafting_ing.honey",

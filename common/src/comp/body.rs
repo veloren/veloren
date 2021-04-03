@@ -16,7 +16,6 @@ pub mod theropod;
 
 use crate::{
     assets::{self, Asset},
-    comp::Item,
     make_case_elim,
     npc::NpcKind,
 };
@@ -582,30 +581,6 @@ impl Body {
             Body::Ship(ship::Body::DefaultAirship) => Vec3::from([0.0, 0.0, 10.0]),
             _ => Vec3::unit_z(),
         }
-    }
-
-    pub fn get_material(&self) -> Item {
-        Item::new_from_asset_expect(match self {
-            Body::QuadrupedSmall(_) => "common.items.crafting_ing.leather_scraps",
-            Body::QuadrupedMedium(b) => match b.species {
-                quadruped_medium::Species::Frostfang | quadruped_medium::Species::Roshwalr => {
-                    "common.items.crafting_ing.icy_fang"
-                },
-                _ => "common.items.crafting_ing.leather_scraps",
-            },
-            Body::Theropod(b) => match b.species {
-                theropod::Species::Sandraptor
-                | theropod::Species::Snowraptor
-                | theropod::Species::Woodraptor => "common.items.crafting_ing.raptor_feather",
-                _ => "common.items.crafting_ing.leather_scraps",
-            },
-            Body::BipedLarge(b) => match b.species {
-                biped_large::Species::Troll => "common.items.crafting_ing.leather_troll",
-                biped_large::Species::Wendigo => "common.items.crafting_ing.icy_fang",
-                _ => "common.items.food.cheese",
-            },
-            _ => "common.items.food.cheese",
-        })
     }
 }
 

@@ -403,7 +403,6 @@ fn loot_table(loot_table: &str) -> Result<(), Box<dyn Error>> {
                         .expect("No loot table")
                         .to_string(),
                 ),
-                "CreatureMaterial" => LootSpec::CreatureMaterial,
                 a => panic!(
                     "Loot specifier kind must be either \"Item\" or \"LootTable\"\n{}",
                     a
