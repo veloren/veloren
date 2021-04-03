@@ -912,11 +912,12 @@ impl<'a> AgentData<'a> {
                                                     .brain
                                                     .remembers_character(&tgt_stats.name)
                                                 {
-                                        format!(
-                                            "Greetings fair {}! It has been far too long since \
-                                             last I saw you. I'm going to {} right now.",
-                                            &tgt_stats.name, destination_name
-                                        )
+                                                    format!(
+                                                        "Greetings fair {}! It has been far too \
+                                                         long since last I saw you. I'm going to \
+                                                         {} right now.",
+                                                        &tgt_stats.name, destination_name
+                                                    )
                                                 } else {
                                                     format!(
                                                         "I'm heading to {}! Want to come along?",

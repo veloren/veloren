@@ -179,7 +179,7 @@ impl Entity {
             });
             self.brain.begin = begin_site_id;
 
-            if self.brain.track_computed == false {
+            if !self.brain.track_computed {
                 begin_site_id
                     .zip(tgt_site)
                     .map(|(begin_site_id, tgt_site)| {
@@ -202,10 +202,14 @@ impl Entity {
             }
 
             if self.brain.track_computed && self.brain.track.is_some() && tgt_site.is_some() {
-                let track_id = self.brain.track.unwrap(); // track checked above
+                let track_id = self
+                    .brain
+                    .track
+                    .expect("Track id is none after is_some check"); // track checked above
                 let track = &world.civs().tracks.get(track_id);
 
-                let site = &world.civs().sites[tgt_site.unwrap()]; // tgt_site checked above
+                let site =
+                    &world.civs().sites[tgt_site.expect("Target site is none after is_some check")]; // tgt_site checked above
                 let destination_name = site
                     .site_tmp
                     .map_or("".to_string(), |id| index.sites[id].name().to_string());
@@ -264,7 +268,8 @@ impl Entity {
         }
 
         if !next_pos_calculated && tgt_site.is_some() {
-            let site = &world.civs().sites[tgt_site.unwrap()];
+            let site =
+                &world.civs().sites[tgt_site.expect("Target site is None after is_some check")];
             let destination_name = site
                 .site_tmp
                 .map_or("".to_string(), |id| index.sites[id].name().to_string());
