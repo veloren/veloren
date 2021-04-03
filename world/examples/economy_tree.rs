@@ -6,14 +6,12 @@ use veloren_world::site::economy::{self, good_list, Economy};
 fn good_name(g: Good) -> String {
     let res = format!("{:?}", g);
     let res = res.replace("(", "_");
-    let res = res.replace(")", "_");
-    res
+    res.replace(")", "_")
 }
 
 fn labor_name(l: economy::Labor) -> String {
     let res = format!("{:?}", l);
-    let res = res.replace(" ", "_");
-    res
+    res.replace(" ", "_")
 }
 
 fn main() -> Result<(), std::io::Error> {
@@ -32,14 +30,14 @@ fn main() -> Result<(), std::io::Error> {
         writeln!(f, "{:?} [color=\"{}\"];", good_name(*i), color)?; // shape doubleoctagon ?
     }
 
-    writeln!(f, "")?;
+    writeln!(f)?;
     writeln!(f, "// Professions")?;
     writeln!(f, "Everyone [shape=doubleoctagon];")?;
     for i in economy::Labor::list() {
         writeln!(f, "{:?} [shape=box];", labor_name(i))?;
     }
 
-    writeln!(f, "")?;
+    writeln!(f)?;
     writeln!(f, "// Orders")?;
     for i in o.iter() {
         for j in i.1.iter() {
@@ -71,7 +69,7 @@ fn main() -> Result<(), std::io::Error> {
         }
     }
 
-    writeln!(f, "")?;
+    writeln!(f)?;
     writeln!(f, "// Products")?;
     for i in p.iter() {
         for j in i.1.iter() {
