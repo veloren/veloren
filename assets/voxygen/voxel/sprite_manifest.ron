@@ -2190,7 +2190,7 @@ GrassBlue: Some((
     wind_sway: 1.0,
 )),
 // Underwater Chests
-ChestBurried: Some((
+ChestBuried: Some((
     variations: [
         (
             model: "voxygen.voxel.sprite.underwater_chests.chest_skull",

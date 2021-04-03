@@ -1,0 +1,8 @@
+[
+    (1.0, Item("common.items.armor.swift.belt")),
+    (1.0, Item("common.items.armor.swift.chest")),
+    (1.0, Item("common.items.armor.swift.foot")),
+    (1.0, Item("common.items.armor.swift.hand")),
+    (1.0, Item("common.items.armor.swift.pants")),
+    (1.0, Item("common.items.armor.swift.shoulder")),
+]

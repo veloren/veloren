@@ -1,0 +1,4 @@
+[
+    (1.0, LootTable("common.loot_tables.food.wild_ingredients")),
+    (1.0, LootTable("common.loot_tables.fallback")),
+]

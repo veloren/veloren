@@ -15,10 +15,10 @@ use common::{
         chat::{KillSource, KillType},
         inventory::item::MaterialStatManifest,
         object, Alignment, Body, CharacterState, Energy, EnergyChange, Group, Health, HealthChange,
-        HealthSource, Inventory, Item, Player, Poise, PoiseChange, PoiseSource, Pos, Stats,
+        HealthSource, Inventory, Player, Poise, PoiseChange, PoiseSource, Pos, Stats,
     },
     event::{EventBus, ServerEvent},
-    lottery::Lottery,
+    lottery::{LootSpec, Lottery},
     outcome::Outcome,
     resources::Time,
     rtsim::RtSimEntity,
@@ -31,7 +31,6 @@ use common::{
 use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
 use common_sys::state::BlockChange;
 use hashbrown::HashSet;
-use rand::prelude::*;
 use specs::{join::Join, saveload::MarkerAllocator, Entity as EcsEntity, WorldExt};
 use tracing::error;
 use vek::{Vec2, Vec3};
@@ -341,110 +340,66 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
 
         // Decide for a loot drop before turning into a lootbag
         let old_body = state.ecs().write_storage::<Body>().remove(entity);
-        let mut rng = rand::thread_rng();
-        let mut lottery = || {
-            Lottery::<String>::load_expect(match old_body {
-                Some(common::comp::Body::Humanoid(_)) => match rng.gen_range(0..4) {
-                    0 => "common.loot_tables.loot_table_humanoids",
-                    1 => "common.loot_tables.loot_table_armor_light",
-                    2 => "common.loot_tables.loot_table_armor_cloth",
-                    3 => "common.loot_tables.loot_table_weapon_common",
-                    4 => "common.loots_tables.loot_table_armor_misc",
-                    _ => "common.loot_tables.loot_table_humanoids",
-                },
+        let lottery = || {
+            Lottery::<LootSpec>::load_expect(match old_body {
+                Some(common::comp::Body::Humanoid(_)) => "common.loot_tables.creature.humanoid",
                 Some(common::comp::Body::QuadrupedSmall(quadruped_small)) => {
                     match quadruped_small.species {
-                        quadruped_small::Species::Dodarock => match rng.gen_range(0..6) {
-                            1 => "common.loot_tables.loot_table_rocks",
-                            _ => "common.loot_tables.loot_table_rocks",
+                        quadruped_small::Species::Dodarock => {
+                            "common.loot_tables.creature.quad_small.dodarock"
                         },
-                        _ => match rng.gen_range(0..4) {
-                            0 => "common.loot_tables.loot_table_food",
-                            2 => "common.loot_tables.loot_table_animal_parts",
-                            _ => "common.loot_tables.loot_table_animal_parts",
-                        },
+                        _ => "common.loot_tables.creature.quad_small.default",
                     }
                 },
-                Some(common::comp::Body::QuadrupedMedium(quadruped_medium)) => {
-                    match quadruped_medium.species {
-                        quadruped_medium::Species::Frostfang
-                        | quadruped_medium::Species::Roshwalr => {
-                            "common.loot_tables.loot_table_animal_ice"
-                        },
-                        _ => match rng.gen_range(0..4) {
-                            0 => "common.loot_tables.loot_table_food",
-                            2 => "common.loot_tables.loot_table_animal_parts",
-                            _ => "common.loot_tables.loot_table_animal_parts",
-                        },
-                    }
+                Some(Body::QuadrupedMedium(quadruped_medium)) => match quadruped_medium.species {
+                    quadruped_medium::Species::Frostfang | quadruped_medium::Species::Roshwalr => {
+                        "common.loot_tables.creature.quad_medium.ice"
+                    },
+                    _ => "common.loot_tables.creature.quad_medium.default",
                 },
-                Some(common::comp::Body::BirdMedium(_)) => match rng.gen_range(0..3) {
-                    0 => "common.loot_tables.loot_table_food",
-                    _ => "common.loot_tables.loot_table",
+                Some(common::comp::Body::BirdMedium(_)) => {
+                    "common.loot_tables.creature.bird_medium"
                 },
-                Some(common::comp::Body::FishMedium(_)) => "common.loot_tables.loot_table_fish",
-                Some(common::comp::Body::FishSmall(_)) => "common.loot_tables.loot_table_fish",
+                Some(common::comp::Body::FishMedium(_)) => "common.loot_tables.creature.fish",
+                Some(common::comp::Body::FishSmall(_)) => "common.loot_tables.creature.fish",
                 Some(common::comp::Body::BipedLarge(biped_large)) => match biped_large.species {
-                    biped_large::Species::Wendigo => match rng.gen_range(0..7) {
-                        0 => "common.loot_tables.loot_table_food",
-                        1 => "common.loot_tables.loot_table_wendigo",
-                        2 => "common.loot_tables.loot_table_weapon_uncommon",
-                        _ => "common.loot_tables.loot_table_cave_large",
+                    biped_large::Species::Wendigo => {
+                        "common.loot_tables.creature.biped_large.wendigo"
                     },
-                    biped_large::Species::Troll => match rng.gen_range(0..10) {
-                        0 => "common.loot_tables.loot_table_food",
-                        1 => "common.loot_tables.loot_table_cave_large",
-                        2 => "common.loot_tables.loot_table_weapon_uncommon",
-                        _ => "common.loot_tables.loot_table_troll",
-                    },
+                    biped_large::Species::Troll => "common.loot_tables.creature.biped_large.troll",
                     biped_large::Species::Occultsaurok
                     | biped_large::Species::Mightysaurok
-                    | biped_large::Species::Slysaurok => "common.loot_tables.loot_table_saurok",
-                    _ => match rng.gen_range(0..4) {
-                        0 => "common.loot_tables.loot_table_food",
-                        1 => "common.loot_tables.loot_table_armor_nature",
-                        _ => "common.loot_tables.loot_table_cave_large",
+                    | biped_large::Species::Slysaurok => {
+                        "common.loot_tables.creature.biped_large.saurok"
                     },
+                    _ => "common.loot_tables.creature.biped_large.default",
                 },
-                Some(common::comp::Body::Golem(_)) => match rng.gen_range(0..9) {
-                    0 => "common.loot_tables.loot_table_food",
-                    2 => "common.loot_tables.loot_table_armor_light",
-                    3 => "common.loot_tables.loot_table_armor_heavy",
-                    5 => "common.loot_tables.loot_table_weapon_common",
-                    6 => "common.loot_tables.loot_table_weapon_uncommon",
-                    7 => "common.loot_tables.loot_table_weapon_rare",
-                    _ => "common.loot_tables.loot_table",
-                },
+                Some(common::comp::Body::Golem(_)) => "common.loot_tables.creature.golem",
                 Some(common::comp::Body::Theropod(theropod)) => match theropod.species {
                     theropod::Species::Sandraptor
                     | theropod::Species::Snowraptor
-                    | theropod::Species::Woodraptor => match rng.gen_range(0..3) {
-                        0 => "common.loot_tables.loot_table_raptor",
-                        _ => "common.loot_tables.loot_table_animal_parts",
+                    | theropod::Species::Woodraptor => {
+                        "common.loot_tables.creature.theropod.raptor"
                     },
-                    _ => "common.loot_tables.loot_table_animal_parts",
+                    _ => "common.loot_tables.creature.theropod.default",
                 },
-                Some(common::comp::Body::Dragon(_)) => "common.loot_tables.loot_table_weapon_rare",
+                Some(common::comp::Body::Dragon(_)) => "common.loot_tables.creature.dragon",
                 Some(common::comp::Body::QuadrupedLow(quadruped_low)) => {
                     match quadruped_low.species {
                         quadruped_low::Species::Maneater => {
-                            "common.loot_tables.loot_table_maneater"
+                            "common.loot_tables.creature.quad_low.maneater"
                         },
-                        _ => match rng.gen_range(0..3) {
-                            0 => "common.loot_tables.loot_table_food",
-                            1 => "common.loot_tables.loot_table_animal_parts",
-                            _ => "common.loot_tables.loot_table",
-                        },
+                        _ => "common.loot_tables.creature.quad_low.default",
                     }
                 },
-                _ => "common.loot_tables.loot_table",
+                _ => "common.loot_tables.fallback",
             })
         };
 
         let item = {
             let mut item_drops = state.ecs().write_storage::<comp::ItemDrop>();
             item_drops.remove(entity).map_or_else(
-                || Item::new_from_asset_expect(lottery().read().choose()),
+                || lottery().read().choose().to_item(),
                 |item_drop| item_drop.0,
             )
         };

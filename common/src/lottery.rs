@@ -26,9 +26,12 @@
 // Cheese drop rate = 3/X = 29.6%
 // Coconut drop rate = 1/X = 9.85%
 
-use crate::assets;
+use crate::{
+    assets::{self, AssetExt},
+    comp::Item,
+};
 use rand::prelude::*;
-use serde::{de::DeserializeOwned, Deserialize};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 #[derive(Clone, Debug, PartialEq, Deserialize)]
 pub struct Lottery<T> {
@@ -72,21 +75,95 @@ impl<T> Lottery<T> {
     pub fn total(&self) -> f32 { self.total }
 }
 
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+pub enum LootSpec {
+    /// Asset specifier
+    Item(String),
+    /// Asset specifier, lower range, upper range
+    ItemQuantity(String, u32, u32),
+    /// Loot table
+    LootTable(String),
+}
+
+impl LootSpec {
+    pub fn to_item(&self) -> Item {
+        match self {
+            Self::Item(item) => Item::new_from_asset_expect(&item),
+            Self::ItemQuantity(item, lower, upper) => {
+                let range = *lower..=*upper;
+                let quantity = thread_rng().gen_range(range);
+                let mut item = Item::new_from_asset_expect(&item);
+                let _ = item.set_amount(quantity);
+                item
+            },
+            Self::LootTable(table) => Lottery::<LootSpec>::load_expect(&table)
+                .read()
+                .choose()
+                .to_item(),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{assets::AssetExt, comp::Item};
+    use crate::{
+        assets::{AssetExt, Error},
+        comp::Item,
+    };
 
     #[test]
-    fn test_loot_table() {
-        let test = Lottery::<String>::load_expect("common.loot_tables.loot_table");
+    fn test_loot_tables() {
+        #[derive(Clone)]
+        struct LootTableList(Vec<Lottery<LootSpec>>);
+        impl assets::Compound for LootTableList {
+            fn load<S: assets::source::Source>(
+                cache: &assets::AssetCache<S>,
+                specifier: &str,
+            ) -> Result<Self, Error> {
+                let list = cache
+                    .load::<assets::Directory>(specifier)?
+                    .read()
+                    .iter()
+                    .map(|spec| Lottery::<LootSpec>::load_cloned(spec))
+                    .collect::<Result<_, Error>>()?;
 
-        for (_, item_asset_specifier) in test.read().iter() {
-            assert!(
-                Item::new_from_asset(item_asset_specifier).is_ok(),
-                "Invalid loot table item '{}'",
-                item_asset_specifier
-            );
+                Ok(LootTableList(list))
+            }
+        }
+
+        fn validate_table_contents(table: Lottery<LootSpec>) {
+            for (_, item) in table.iter() {
+                match item {
+                    LootSpec::Item(item) => {
+                        Item::new_from_asset_expect(&item);
+                    },
+                    LootSpec::ItemQuantity(item, lower, upper) => {
+                        assert!(
+                            *lower > 0,
+                            "Lower quantity must be more than 0. It is {}.",
+                            lower
+                        );
+                        assert!(
+                            upper >= lower,
+                            "Upper quantity must be at least the value of lower quantity. Upper \
+                             value: {}, low value: {}.",
+                            upper,
+                            lower
+                        );
+                        Item::new_from_asset_expect(&item);
+                    },
+                    LootSpec::LootTable(loot_table) => {
+                        let loot_table = Lottery::<LootSpec>::load_expect_cloned(&loot_table);
+                        validate_table_contents(loot_table);
+                    },
+                }
+            }
+        }
+
+        let loot_tables = LootTableList::load_expect_cloned("common.loot_tables.*").0;
+        for loot_table in loot_tables {
+            validate_table_contents(loot_table);
         }
     }
 }

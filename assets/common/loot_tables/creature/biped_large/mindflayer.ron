@@ -1,0 +1,9 @@
+[
+    // Crafting material
+    (1.0, Item("common.items.crafting_ing.mindflayer_bag_damaged")),
+    // Legendary weapons
+    (4.0, LootTable("common.loot_tables.weapons.legendary")),
+    // Rare misc items
+    (0.5, Item("common.items.boss_drops.lantern")),
+    (0.5, Item("common.items.glider.glider_purp")),
+]

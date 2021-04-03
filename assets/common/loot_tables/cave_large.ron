@@ -1,0 +1,16 @@
+[
+    // Misc
+    (0.25, Item("common.items.armor.misc.neck.plain_1")),
+    (1.5, LootTable("common.loot_tables.materials.common")),
+    (3.5, LootTable("common.loot_tables.materials.underground")),
+    (0.1, Item("common.items.glider.glider_blue")),
+    (0.05, Item("common.items.glider.glider_morpho")),
+    (0.05, Item("common.items.glider.glider_monarch")),
+    (0.05, Item("common.items.glider.glider_moth")),
+    (0.05, Item("common.items.armor.misc.ring.gold")),
+    (0.1, Item("common.items.lantern.geode_purp")),
+    (2.0, LootTable("common.loot_tables.weapons.tier-3")),
+    (1.5, LootTable("common.loot_tables.weapons.tier-4")),
+    (1.0, LootTable("common.loot_tables.weapons.tier-5")),
+    (0.05, LootTable("common.loot_tables.weapons.cave")),
+]

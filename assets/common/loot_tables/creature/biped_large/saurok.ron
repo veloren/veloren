@@ -1,0 +1,14 @@
+[
+    (7.0, LootTable("common.loot_tables.materials.common")),
+    // Consumables
+    (0.5, Item("common.items.consumable.potion_minor")),
+    // Ring
+    (0.2, Item("common.items.armor.misc.ring.gold")),
+    // Utility
+    (0.1, Item("common.items.utility.collar")),
+    // Bag
+    (0.1, Item("common.items.armor.misc.bag.liana_kit")),
+    // Food
+    (2.0, LootTable("common.loot_tables.food.wild_ingredients")),
+    (1.5, LootTable("common.loot_tables.food.prepared")),
+]

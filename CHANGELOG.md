@@ -31,6 +31,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Overhauled clouds for more verticality and performance
 - New tooltip for items with stats comparison
 - Improved bow feedback, added arrow particles
+- Retiered most sceptres and staves
+- Loot tables can now recursively reference loot tables
 
 ### Removed
 

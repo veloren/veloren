@@ -105,7 +105,7 @@ make_case_elim!(
         VialEmpty = 0x4E,
         PotionMinor = 0x4F,
         GrassBlue = 0x50,
-        ChestBurried = 0x51,
+        ChestBuried = 0x51,
         Mud = 0x52,
         FireBowlGround = 0x53,
         CaveMushroom = 0x54,
@@ -182,7 +182,7 @@ impl SpriteKind {
             SpriteKind::WardrobeDouble => 3.0,
             SpriteKind::Pot => 0.90,
             SpriteKind::Mud => 0.36,
-            SpriteKind::ChestBurried => 0.91,
+            SpriteKind::ChestBuried => 0.91,
             SpriteKind::StonyCoral => 1.4,
             // TODO: Find suitable heights.
             SpriteKind::BarrelCactus
@@ -233,7 +233,7 @@ impl SpriteKind {
             SpriteKind::VialEmpty => true,
             SpriteKind::PotionMinor => true,
             SpriteKind::Bowl => true,
-            SpriteKind::ChestBurried => true,
+            SpriteKind::ChestBuried => true,
             SpriteKind::Mud => true,
             SpriteKind::Seashells => true,
             _ => false,
@@ -244,7 +244,7 @@ impl SpriteKind {
     pub fn is_container(&self) -> bool {
         matches!(
             self,
-            SpriteKind::Chest | SpriteKind::ChestBurried | SpriteKind::Mud | SpriteKind::Crate,
+            SpriteKind::Chest | SpriteKind::ChestBuried | SpriteKind::Mud | SpriteKind::Crate,
         )
     }
 

@@ -1,46 +1,45 @@
 (
 loot_tables: [
     // balance the loot tables against each other (higher= more common= smaller price)
-    // the fact that loot tables have an own probability not accessible outside of the lottery call doesn't help here
-    (0.5,"common.loot_tables.loot_table_animal_ice"),
-    (4,"common.loot_tables.loot_table_animal_parts"),
-    (1,"common.loot_tables.loot_table_armor_cloth"),
-    (0.01,"common.loot_tables.loot_table_armor_heavy"),
-    (0.1,"common.loot_tables.loot_table_armor_light"),
-    (0.1,"common.loot_tables.loot_table_armor_misc"),
-    (0.5,"common.loot_tables.loot_table_armor_nature"),
-    (0.1,"common.loot_tables.loot_table_cave_large"),
-    (0.1,"common.loot_tables.loot_table_consumables"),
-    // loot_table_crafting is a rare roll on crate/mud sprite looting
-    (0.05,"common.loot_tables.loot_table_crafting"),
-    (0.005,"common.loot_tables.loot_table_cultists"),
-    (1,"common.loot_tables.loot_table_fish"),
-    (1,"common.loot_tables.loot_table_food"),
-    (0.1,"common.loot_tables.loot_table_humanoids"),
-    (1,"common.loot_tables.loot_table_maneater"),
-    (0.0001,"common.loot_tables.mindflayer"),
-    (0.001,"common.loot_tables.loot_table_miniboss"),
-    (0.05,"common.loot_tables.loot_table_raptor"),
-    // loot_table_rocks is dropped by rock monsters, but is also the only source of stones to econsim until cave_scatter information is turned into a loot table
-    (0.2,"common.loot_tables.loot_table_rocks"),
-    (1,"common.loot_tables.loot_table"),
-    (0.04,"common.loot_tables.loot_table_saurok"),
-    (0.02,"common.loot_tables.loot_table_troll"),
-    (0.05,"common.loot_tables.loot_table_villager"),
-    (1,"common.loot_tables.loot_table_weapon_common"),
-    (0.008,"common.loot_tables.loot_table_weapon_rare"),
-    (0.01,"common.loot_tables.loot_table_weapon_uncommon"),
-    (0.01,"common.loot_tables.loot_table_wendigo"),
-    // we probably want to include all the scattered scatter information
-    //(0.5,"common.cave_scatter"),
+    // Weapons
+    (16.0, "common.loot_tables.weapons.starter"),
+    (8.0, "common.loot_tables.weapons.tier-0"),
+    (4.0, "common.loot_tables.weapons.tier-1"),
+    (2.0, "common.loot_tables.weapons.tier-2"),
+    (1.0, "common.loot_tables.weapons.tier-3"),
+    (0.5, "common.loot_tables.weapons.tier-4"),
+    (0.25, "common.loot_tables.weapons.tier-5"),
+    (0.125, "common.loot_tables.weapons.cultist"),
+    (0.125, "common.loot_tables.weapons.cave"),
+    (0.0625, "common.loot_tables.weapons.legendary"),
+    // Armor
+    (20.0, "common.loot_tables.armor.cloth"),
+    (6.0, "common.loot_tables.armor.agile"),
+    (3.0, "common.loot_tables.armor.swift"),
+    (6.0, "common.loot_tables.armor.druid"),
+    (2.0, "common.loot_tables.armor.twigs"),
+    (2.0, "common.loot_tables.armor.twigsflowers"),
+    (2.0, "common.loot_tables.armor.twigsleaves"),
+    (0.5, "common.loot_tables.armor.plate"),
+    (0.25, "common.loot_tables.armor.steel"),
+    (0.125, "common.loot_tables.armor.cultist"),
+    // Materials
+    (7.5, "common.loot_tables.materials.common"),
+    (5.0, "common.loot_tables.materials.underground"),
+    // Food
+    (0.5, "common.loot_tables.food.farm_ingredients"),
+    (0.25, "common.loot_tables.food.wild_ingredients"),
+    (0.1, "common.loot_tables.food.prepared"),
+    // TODO: Change consumables when they are split up later
+    (1.0, "common.loot_tables.consumables"),
 ], 
 // this is the amount of that good the most common item represents
 // so basically this table balances the goods against each other (higher=less valuable)
 good_scaling: [
-    (Potions, 0.5), // common.items.consumable.potion_minor
-    (Food, 3.0), // common.items.food.mushroom
-    (Coin, 1.0), // common.items.utility.coins
-    (Armor, 0.3), // common.items.armor.misc.pants.worker_blue
-    (Tools, 1.0), // common.items.weapons.staff.starter_staff
-    (Ingredients, 5.0), // common.items.crafting_ing.leather_scraps
+    (Potions, 0.001), // common.items.consumable.potion_minor
+    (Food, 2.0), // common.items.food.mushroom
+    (Coin, 10.0), // common.items.utility.coins
+    (Armor, 0.2), // common.items.armor.misc.pants.worker_blue
+    (Tools, 0.1), // common.items.weapons.staff.starter_staff
+    (Ingredients, 1.0), // common.items.crafting_ing.leather_scraps
 ])

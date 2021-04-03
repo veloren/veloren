@@ -1,5 +1,6 @@
 use crate::{
     assets::{self, AssetExt},
+    lottery::{LootSpec, Lottery},
     recipe::{default_recipe_book, RecipeInput},
     trade::Good,
 };
@@ -7,7 +8,7 @@ use assets_manager::AssetGuard;
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
 use serde::Deserialize;
-use tracing::info;
+use tracing::{info, warn};
 
 #[derive(Debug)]
 struct Entry {
@@ -37,18 +38,40 @@ lazy_static! {
     static ref TRADE_PRICING: TradePricing = TradePricing::read();
 }
 
+#[derive(Clone)]
 struct ProbabilityFile {
     pub content: Vec<(f32, String)>,
 }
 
 impl assets::Asset for ProbabilityFile {
-    type Loader = assets::LoadFrom<Vec<(f32, String)>, assets::RonLoader>;
+    type Loader = assets::LoadFrom<Vec<(f32, LootSpec)>, assets::RonLoader>;
 
     const EXTENSION: &'static str = "ron";
 }
 
-impl From<Vec<(f32, String)>> for ProbabilityFile {
-    fn from(content: Vec<(f32, String)>) -> ProbabilityFile { Self { content } }
+impl From<Vec<(f32, LootSpec)>> for ProbabilityFile {
+    fn from(content: Vec<(f32, LootSpec)>) -> ProbabilityFile {
+        Self {
+            content: content
+                .into_iter()
+                .flat_map(|(a, b)| match b {
+                    LootSpec::Item(c) => vec![(a, c)].into_iter(),
+                    LootSpec::ItemQuantity(c, d, e) => {
+                        vec![(a * (d + e) as f32 / 2.0, c)].into_iter()
+                    },
+                    LootSpec::LootTable(c) => {
+                        let total = Lottery::<LootSpec>::load_expect(&c).read().total();
+                        ProbabilityFile::load_expect_cloned(&c)
+                            .content
+                            .into_iter()
+                            .map(|(d, e)| (a * d / total, e))
+                            .collect::<Vec<_>>()
+                            .into_iter()
+                    },
+                })
+                .collect(),
+        }
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -294,6 +317,10 @@ impl TradePricing {
             Some(TradePricing::COIN_ITEM.into())
         } else {
             let table = self.get_list(good);
+            if table.is_empty() {
+                warn!("Good: {:?}, was unreachable.", good);
+                return None;
+            }
             let upper = table.len();
             let lower = table
                 .iter()
@@ -313,13 +340,12 @@ impl TradePricing {
 
     pub fn get_material(item: &str) -> (Good, f32) {
         if item == TradePricing::COIN_ITEM {
-            (Good::Coin, 1.0 / TRADE_PRICING.coin_scale)
+            (Good::Coin, 1.0)
         } else {
-            TRADE_PRICING
-                .material_cache
-                .get(item)
-                .cloned()
-                .unwrap_or((Good::Terrain(crate::terrain::BiomeKind::Void), 0.0))
+            TRADE_PRICING.material_cache.get(item).cloned().map_or(
+                (Good::Terrain(crate::terrain::BiomeKind::Void), 0.0),
+                |(a, b)| (a, b * TRADE_PRICING.coin_scale),
+            )
         }
     }
 

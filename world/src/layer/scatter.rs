@@ -282,7 +282,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
             )
         }),
         // Underwater chests
-        (ChestBurried, true, |_, col| {
+        (ChestBuried, true, |_, col| {
             (
                 MUSH_FACT
                     * 1.0e-6

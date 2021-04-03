@@ -1,0 +1,9 @@
+[
+    (1.0, Item("common.items.armor.agile.back")),
+    (1.0, Item("common.items.armor.agile.belt")),
+    (1.0, Item("common.items.armor.agile.chest")),
+    (1.0, Item("common.items.armor.agile.foot")),
+    (1.0, Item("common.items.armor.agile.hand")),
+    (1.0, Item("common.items.armor.agile.pants")),
+    (1.0, Item("common.items.armor.agile.shoulder")),
+]
