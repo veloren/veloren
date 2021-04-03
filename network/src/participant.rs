@@ -199,7 +199,7 @@ impl BParticipant {
         }
         // check for tcp
         if network_protocol::TcpSendProtocol::<crate::channel::TcpDrain>::supported_promises()
-            == promises
+            .contains(promises)
         {
             for (cid, p) in all.data.iter() {
                 if matches!(p, SendProtocols::Tcp(_)) {
