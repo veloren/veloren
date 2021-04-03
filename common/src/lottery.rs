@@ -32,6 +32,7 @@ use crate::{
 };
 use rand::prelude::*;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use tracing::warn;
 
 #[derive(Clone, Debug, PartialEq, Deserialize)]
 pub struct Lottery<T> {
@@ -93,7 +94,10 @@ impl LootSpec {
                 let range = *lower..=*upper;
                 let quantity = thread_rng().gen_range(range);
                 let mut item = Item::new_from_asset_expect(&item);
-                let _ = item.set_amount(quantity);
+                // TODO: Handle multiple of an item that is unstackable
+                if item.set_amount(quantity).is_err() {
+                    warn!("Tried to set quantity on non stackable item");
+                }
                 item
             },
             Self::LootTable(table) => Lottery::<LootSpec>::load_expect(&table)
