@@ -779,8 +779,7 @@ impl PromptDialogSettings {
 pub struct Hud {
     ui: Ui,
     ids: Ids,
-    world_map: (/* Id */ Rotations, Vec2<u32>),
-    world_map_topo: (/* Id */ Rotations, Vec2<u32>),
+    world_map_layers: (/* Id */ Vec<Rotations>, Vec2<u32>),
     imgs: Imgs,
     item_imgs: ItemImgs,
     fonts: Fonts,
@@ -821,19 +820,15 @@ impl Hud {
         // translucent alpha since UI have transparency and LOD doesn't).
         let water_color = srgba_to_linear(Rgba::new(0.0, 0.18, 0.37, 1.0));
         // Load world map
-        let world_map = (
-            ui.add_graphic_with_rotations(Graphic::Image(
-                Arc::clone(client.world_data().map_image()),
+        let mut layers = Vec::new();
+        for layer in client.world_data().map_layers() {
+            layers.push(ui.add_graphic_with_rotations(Graphic::Image(
+                Arc::clone(layer),
                 Some(water_color),
-            )),
-            client.world_data().chunk_size().map(|e| e as u32),
-        );
-        // Load world topo map
-        let world_map_topo = (
-            ui.add_graphic_with_rotations(Graphic::Image(
-                Arc::clone(client.world_data().map_topo_image()),
-                Some(water_color),
-            )),
+            )));
+        }
+        let world_map_layers = (
+            layers,
             client.world_data().chunk_size().map(|e| e as u32),
         );
         // Load images.
@@ -872,8 +867,7 @@ impl Hud {
         Self {
             ui,
             imgs,
-            world_map,
-            world_map_topo,
+            world_map_layers,
             rot_imgs,
             item_imgs,
             fonts,
@@ -2241,8 +2235,7 @@ impl Hud {
             client,
             &self.imgs,
             &self.rot_imgs,
-            &self.world_map,
-            &self.world_map_topo,
+            &(&self.world_map_layers.0[1], self.world_map_layers.1),
             &self.fonts,
             camera.get_orientation(),
             &global_state,
@@ -2795,8 +2788,7 @@ impl Hud {
                 client,
                 &self.imgs,
                 &self.rot_imgs,
-                &self.world_map,
-                &self.world_map_topo,
+                &self.world_map_layers,
                 &self.fonts,
                 self.pulse,
                 i18n,

@@ -31,7 +31,9 @@ widget_ids! {
         location_name,
         indicator,
         indicator_overlay,
-        grid,
+        grid_layer_0,
+        grid_layer_1,
+        grid_layer_2,
         map_title,
         qlog_title,
         zoom_slider,
@@ -71,8 +73,7 @@ const SHOW_ECONOMY: bool = false; // turn this display off (for 0.9) until we ha
 #[derive(WidgetCommon)]
 pub struct Map<'a> {
     client: &'a Client,
-    world_map: &'a (img_ids::Rotations, Vec2<u32>),
-    world_map_topo: &'a (img_ids::Rotations, Vec2<u32>),
+    world_map_layers: &'a (Vec<img_ids::Rotations>, Vec2<u32>),
     imgs: &'a Imgs,
     fonts: &'a Fonts,
     #[conrod(common_builder)]
@@ -89,8 +90,7 @@ impl<'a> Map<'a> {
         client: &'a Client,
         imgs: &'a Imgs,
         rot_imgs: &'a ImgsRot,
-        world_map: &'a (img_ids::Rotations, Vec2<u32>),
-        world_map_topo: &'a (img_ids::Rotations, Vec2<u32>),
+        world_map_layers: &'a (Vec<img_ids::Rotations>, Vec2<u32>),
         fonts: &'a Fonts,
         pulse: f32,
         localized_strings: &'a Localization,
@@ -100,8 +100,7 @@ impl<'a> Map<'a> {
         Self {
             imgs,
             rot_imgs,
-            world_map,
-            world_map_topo,
+            world_map_layers,
             client,
             fonts,
             common: widget::CommonBuilder::default(),
@@ -274,9 +273,13 @@ impl<'a> Widget for Map<'a> {
             .mid_top_with_margin_on(state.ids.map_align, 5.0)
             .w_h(765.0, 765.0)
             .parent(state.ids.bg)
-            .set(state.ids.grid, ui);
+            .set(state.ids.grid_layer_0, ui);
         // Map Image
-        let (world_map, worldsize) = if !show_topo_map { self.world_map } else { self.world_map_topo };
+        //let (world_map, worldsize) = if !show_topo_map { self.world_map } else { self.world_map_topo };
+        let world_map_layer_0 = &self.world_map_layers.0[0];
+        let world_map_layer_1 = &self.world_map_layers.0[1];
+        let world_map_layer_2 = &self.world_map_layers.0[2];
+        let worldsize = self.world_map_layers.1;
 
         // Coordinates
         let player_pos = self
@@ -297,7 +300,7 @@ impl<'a> Widget for Map<'a> {
         // Handle dragging
         let drag = self.global_state.settings.interface.map_drag;
         let dragged: Vec2<f64> = ui
-            .widget_input(state.ids.grid)
+            .widget_input(state.ids.grid_layer_0)
             .drags()
             .left()
             .map(|drag| Vec2::<f64>::from(drag.delta_xy))
@@ -325,15 +328,32 @@ impl<'a> Widget for Map<'a> {
         {
             events.push(Event::Close);
         }
-        Image::new(world_map.none)
+        // Map layer 0
+        Image::new(world_map_layer_0.none)
             .mid_top_with_margin_on(state.ids.map_align, 10.0)
             .w_h(map_size.x, map_size.y)
             .parent(state.ids.bg)
             .source_rectangle(rect_src)
-            .set(state.ids.grid, ui);
+            .set(state.ids.grid_layer_0, ui);
+        // Map layer 1
+        Image::new(world_map_layer_1.none)
+            .mid_top_with_margin_on(state.ids.map_align, 10.0)
+            .w_h(map_size.x, map_size.y)
+            .parent(state.ids.bg)
+            .source_rectangle(rect_src)
+            .graphics_for(state.ids.grid_layer_0)
+            .set(state.ids.grid_layer_1, ui);
+        // Map layer 2
+        Image::new(world_map_layer_2.none)
+            .mid_top_with_margin_on(state.ids.map_align, 10.0)
+            .w_h(map_size.x, map_size.y)
+            .parent(state.ids.bg)
+            .source_rectangle(rect_src)
+            .graphics_for(state.ids.grid_layer_0)
+            .set(state.ids.grid_layer_2, ui);
         // Handle zooming with the mousewheel
         let scrolled: f64 = ui
-            .widget_input(state.ids.grid)
+            .widget_input(state.ids.grid_layer_0)
             .scrolls()
             .map(|scroll| scroll.y)
             .sum();
@@ -551,40 +571,6 @@ impl<'a> Widget for Map<'a> {
             .graphics_for(state.ids.show_trees_box)
             .color(TEXT_COLOR)
             .set(state.ids.show_trees_text, ui);
-        // Topographical Map
-        Image::new(self.imgs.mmap_site_tree)
-            .down_from(state.ids.show_caves_img, 10.0)
-            .w_h(20.0, 20.0)
-            .set(state.ids.show_trees_img, ui);
-        if Button::image(if show_topo_map {
-            self.imgs.checkbox_checked
-        } else {
-            self.imgs.checkbox
-        })
-        .w_h(18.0, 18.0)
-        .hover_image(if show_topo_map {
-            self.imgs.checkbox_checked_mo
-        } else {
-            self.imgs.checkbox_mo
-        })
-        .press_image(if show_topo_map {
-            self.imgs.checkbox_checked
-        } else {
-            self.imgs.checkbox_press
-        })
-        .right_from(state.ids.show_trees_img, 10.0)
-        .set(state.ids.show_trees_box, ui)
-        .was_clicked()
-        {
-            events.push(Event::ShowTopoMap(!show_topo_map));
-        }
-        Text::new(i18n.get("hud.map.trees"))
-            .right_from(state.ids.show_trees_box, 10.0)
-            .font_size(self.fonts.cyri.scale(14))
-            .font_id(self.fonts.cyri.conrod_id)
-            .graphics_for(state.ids.show_trees_box)
-            .color(TEXT_COLOR)
-            .set(state.ids.show_trees_text, ui);
         // Map icons
         if state.ids.mmap_site_icons.len() < self.client.sites().len() {
             state.update(|state| {
@@ -649,7 +635,7 @@ impl<'a> Widget for Map<'a> {
                 SiteKind::Tree => self.imgs.mmap_site_tree,
             })
             .x_y_position_relative_to(
-                state.ids.grid,
+                state.ids.grid_layer_0,
                 position::Relative::Scalar(rpos.x as f64),
                 position::Relative::Scalar(rpos.y as f64),
             )
@@ -824,7 +810,7 @@ impl<'a> Widget for Map<'a> {
                     _ => self.imgs.indicator_group,
                 })
                 .x_y_position_relative_to(
-                    state.ids.grid,
+                    state.ids.grid_layer_0,
                     position::Relative::Scalar(rpos.x as f64),
                     position::Relative::Scalar(rpos.y as f64),
                 )
@@ -858,7 +844,7 @@ impl<'a> Widget for Map<'a> {
         {
             Image::new(self.rot_imgs.indicator_mmap_small.target_north)
                 .x_y_position_relative_to(
-                    state.ids.grid,
+                    state.ids.grid_layer_0,
                     position::Relative::Scalar(rpos.x as f64),
                     position::Relative::Scalar(rpos.y as f64),
                 )
@@ -877,7 +863,7 @@ impl<'a> Widget for Map<'a> {
         };
         if Button::image(self.imgs.button)
             .w_h(92.0, icon_size.y)
-            .mid_bottom_with_margin_on(state.ids.grid, -36.0)
+            .mid_bottom_with_margin_on(state.ids.grid_layer_0, -36.0)
             .hover_image(if recenter {
                 self.imgs.button_hover
             } else {
@@ -909,7 +895,7 @@ impl<'a> Widget for Map<'a> {
         };
 
         Image::new(self.imgs.m_move_ico)
-            .bottom_left_with_margins_on(state.ids.grid, -36.0, 0.0)
+            .bottom_left_with_margins_on(state.ids.grid_layer_0, -36.0, 0.0)
             .w_h(icon_size.x, icon_size.y)
             .color(Some(UI_HIGHLIGHT_0))
             .set(state.ids.drag_ico, ui);
@@ -917,7 +903,7 @@ impl<'a> Widget for Map<'a> {
             .right_from(state.ids.drag_ico, 5.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
-            .graphics_for(state.ids.grid)
+            .graphics_for(state.ids.grid_layer_0)
             .color(TEXT_COLOR)
             .set(state.ids.drag_txt, ui);
         Image::new(self.imgs.m_scroll_ico)
@@ -929,7 +915,7 @@ impl<'a> Widget for Map<'a> {
             .right_from(state.ids.zoom_ico, 5.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
-            .graphics_for(state.ids.grid)
+            .graphics_for(state.ids.grid_layer_0)
             .color(TEXT_COLOR)
             .set(state.ids.zoom_txt, ui);
 
