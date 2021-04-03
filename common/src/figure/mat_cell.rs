@@ -27,3 +27,14 @@ impl Vox for MatCell {
 
     fn is_empty(&self) -> bool { matches!(self, MatCell::None) }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn met_cell_size() {
+        assert_eq!(5, std::mem::size_of::<MatCell>());
+        assert_eq!(1, std::mem::align_of::<MatCell>());
+    }
+}
