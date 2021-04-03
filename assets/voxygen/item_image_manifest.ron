@@ -1918,7 +1918,7 @@
         (1.0, 1.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
     ),
     Ingredient("SewingSet"): Png(
-        "element.icons.item_bag_t1_purp",
+        "element.icons.sewing_set",
     ),
     Ingredient("Flower"): VoxTrans(
         "voxel.sprite.flowers.sunflower_1",
