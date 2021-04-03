@@ -72,6 +72,7 @@ const SHOW_ECONOMY: bool = false; // turn this display off (for 0.9) until we ha
 pub struct Map<'a> {
     client: &'a Client,
     world_map: &'a (img_ids::Rotations, Vec2<u32>),
+    world_map_topo: &'a (img_ids::Rotations, Vec2<u32>),
     imgs: &'a Imgs,
     fonts: &'a Fonts,
     #[conrod(common_builder)]
@@ -89,6 +90,7 @@ impl<'a> Map<'a> {
         imgs: &'a Imgs,
         rot_imgs: &'a ImgsRot,
         world_map: &'a (img_ids::Rotations, Vec2<u32>),
+        world_map_topo: &'a (img_ids::Rotations, Vec2<u32>),
         fonts: &'a Fonts,
         pulse: f32,
         localized_strings: &'a Localization,
@@ -99,6 +101,7 @@ impl<'a> Map<'a> {
             imgs,
             rot_imgs,
             world_map,
+            world_map_topo,
             client,
             fonts,
             common: widget::CommonBuilder::default(),
@@ -123,6 +126,7 @@ pub enum Event {
     ShowDungeons(bool),
     ShowCaves(bool),
     ShowTrees(bool),
+    ShowTopoMap(bool),
     Close,
     RequestSiteInfo(SiteId),
 }
@@ -184,6 +188,7 @@ impl<'a> Widget for Map<'a> {
         let show_castles = self.global_state.settings.interface.map_show_castles;
         let show_caves = self.global_state.settings.interface.map_show_caves;
         let show_trees = self.global_state.settings.interface.map_show_trees;
+        let show_topo_map = self.global_state.settings.interface.map_show_topo_map;
         let mut events = Vec::new();
         let i18n = &self.localized_strings;
         // Tooltips
@@ -271,7 +276,7 @@ impl<'a> Widget for Map<'a> {
             .parent(state.ids.bg)
             .set(state.ids.grid, ui);
         // Map Image
-        let (world_map, worldsize) = self.world_map;
+        let (world_map, worldsize) = if !show_topo_map { self.world_map } else { self.world_map_topo };
 
         // Coordinates
         let player_pos = self
@@ -538,6 +543,40 @@ impl<'a> Widget for Map<'a> {
         .was_clicked()
         {
             events.push(Event::ShowTrees(!show_trees));
+        }
+        Text::new(i18n.get("hud.map.trees"))
+            .right_from(state.ids.show_trees_box, 10.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .graphics_for(state.ids.show_trees_box)
+            .color(TEXT_COLOR)
+            .set(state.ids.show_trees_text, ui);
+        // Topographical Map
+        Image::new(self.imgs.mmap_site_tree)
+            .down_from(state.ids.show_caves_img, 10.0)
+            .w_h(20.0, 20.0)
+            .set(state.ids.show_trees_img, ui);
+        if Button::image(if show_topo_map {
+            self.imgs.checkbox_checked
+        } else {
+            self.imgs.checkbox
+        })
+        .w_h(18.0, 18.0)
+        .hover_image(if show_topo_map {
+            self.imgs.checkbox_checked_mo
+        } else {
+            self.imgs.checkbox_mo
+        })
+        .press_image(if show_topo_map {
+            self.imgs.checkbox_checked
+        } else {
+            self.imgs.checkbox_press
+        })
+        .right_from(state.ids.show_trees_img, 10.0)
+        .set(state.ids.show_trees_box, ui)
+        .was_clicked()
+        {
+            events.push(Event::ShowTopoMap(!show_topo_map));
         }
         Text::new(i18n.get("hud.map.trees"))
             .right_from(state.ids.show_trees_box, 10.0)

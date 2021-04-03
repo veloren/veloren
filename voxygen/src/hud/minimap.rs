@@ -48,6 +48,7 @@ pub struct MiniMap<'a> {
     imgs: &'a Imgs,
     rot_imgs: &'a ImgsRot,
     world_map: &'a (img_ids::Rotations, Vec2<u32>),
+    world_map_topo: &'a (img_ids::Rotations, Vec2<u32>),
     fonts: &'a Fonts,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
@@ -61,6 +62,7 @@ impl<'a> MiniMap<'a> {
         imgs: &'a Imgs,
         rot_imgs: &'a ImgsRot,
         world_map: &'a (img_ids::Rotations, Vec2<u32>),
+        world_map_topo: &'a (img_ids::Rotations, Vec2<u32>),
         fonts: &'a Fonts,
         ori: Vec3<f32>,
         global_state: &'a GlobalState,
@@ -70,6 +72,7 @@ impl<'a> MiniMap<'a> {
             imgs,
             rot_imgs,
             world_map,
+            world_map_topo,
             fonts,
             common: widget::CommonBuilder::default(),
             ori,
@@ -140,7 +143,8 @@ impl<'a> Widget for MiniMap<'a> {
                 .set(state.ids.mmap_frame_bg, ui);
 
             // Map size in chunk coords
-            let (world_map, worldsize) = self.world_map;
+            let show_topo_map = self.global_state.settings.interface.map_show_topo_map;
+            let (world_map, worldsize) = if !show_topo_map { self.world_map } else { self.world_map_topo };
 
             // Zoom Buttons
 

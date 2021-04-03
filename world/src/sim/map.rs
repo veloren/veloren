@@ -260,5 +260,6 @@ pub fn sample_pos(
         } else {
             None
         },
+        is_path,
     }
 }

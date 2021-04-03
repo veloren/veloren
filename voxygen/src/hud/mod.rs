@@ -250,6 +250,7 @@ widget_ids! {
         chat,
         map,
         world_map,
+        world_map_topo,
         character_window,
         popup,
         minimap,
@@ -380,6 +381,7 @@ pub enum Event {
     MapShowCastles(bool),
     MapShowCaves(bool),
     MapShowTrees(bool),
+    MapShowTopo(bool),
     AdjustWindowSize([u16; 2]),
     ChangeFullscreenMode(FullScreenSettings),
     ToggleParticlesEnabled(bool),
@@ -778,6 +780,7 @@ pub struct Hud {
     ui: Ui,
     ids: Ids,
     world_map: (/* Id */ Rotations, Vec2<u32>),
+    world_map_topo: (/* Id */ Rotations, Vec2<u32>),
     imgs: Imgs,
     item_imgs: ItemImgs,
     fonts: Fonts,
@@ -825,6 +828,14 @@ impl Hud {
             )),
             client.world_data().chunk_size().map(|e| e as u32),
         );
+        // Load world topo map
+        let world_map_topo = (
+            ui.add_graphic_with_rotations(Graphic::Image(
+                Arc::clone(client.world_data().map_topo_image()),
+                Some(water_color),
+            )),
+            client.world_data().chunk_size().map(|e| e as u32),
+        );
         // Load images.
         let imgs = Imgs::load(&mut ui).expect("Failed to load images!");
         // Load rotation images.
@@ -862,6 +873,7 @@ impl Hud {
             ui,
             imgs,
             world_map,
+            world_map_topo,
             rot_imgs,
             item_imgs,
             fonts,
@@ -2230,6 +2242,7 @@ impl Hud {
             &self.imgs,
             &self.rot_imgs,
             &self.world_map,
+            &self.world_map_topo,
             &self.fonts,
             camera.get_orientation(),
             &global_state,
@@ -2783,6 +2796,7 @@ impl Hud {
                 &self.imgs,
                 &self.rot_imgs,
                 &self.world_map,
+                &self.world_map_topo,
                 &self.fonts,
                 self.pulse,
                 i18n,
@@ -2820,6 +2834,9 @@ impl Hud {
                     },
                     map::Event::ShowTrees(map_show_trees) => {
                         events.push(Event::MapShowTrees(map_show_trees));
+                    },
+                    map::Event::ShowTopoMap(map_show_topo_map) => {
+                        events.push(Event::MapShowTopo(map_show_topo_map));
                     },
                     map::Event::RequestSiteInfo(id) => {
                         events.push(Event::RequestSiteInfo(id));

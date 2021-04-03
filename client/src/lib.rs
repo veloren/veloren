@@ -34,7 +34,7 @@ use common::{
     outcome::Outcome,
     recipe::RecipeBook,
     resources::{DeltaTime, PlayerEntity, TimeOfDay},
-    terrain::{block::Block, neighbors, BiomeKind, SitesKind, TerrainChunk, TerrainChunkSize},
+    terrain::{block::Block, map::MapConfig, neighbors, BiomeKind, SitesKind, TerrainChunk, TerrainChunkSize},
     trade::{PendingTrade, SitePrices, TradeAction, TradeId, TradeResult},
     uid::{Uid, UidAllocator},
     vol::RectVolSize,
@@ -112,21 +112,22 @@ pub struct WorldData {
     /// map data (e.g. with shadow map data or river data), but at present
     /// we opt not to do this.
     ///
-    /// The second element of the tuple is the world size (as a 2D grid,
-    /// in chunks), and the third element holds the minimum height for any land
-    /// chunk (i.e. the sea level) in its x coordinate, and the maximum land
-    /// height above this height (i.e. the max height) in its y coordinate.
-    map: (Arc<DynamicImage>, Vec2<u16>, Vec2<f32>),
+    /// The first two elements of the tuple are the regular and topographic maps
+    /// respectively. The third element of the tuple is the world size (as a 2D
+    /// grid, in chunks), and the fourth element holds the minimum height for
+    /// any land chunk (i.e. the sea level) in its x coordinate, and the maximum
+    /// land height above this height (i.e. the max height) in its y coordinate.
+    map: (Arc<DynamicImage>, Arc<DynamicImage>, Vec2<u16>, Vec2<f32>),
 }
 
 impl WorldData {
-    pub fn chunk_size(&self) -> Vec2<u16> { self.map.1 }
+    pub fn chunk_size(&self) -> Vec2<u16> { self.map.2 }
 
     pub fn map_image(&self) -> &Arc<DynamicImage> { &self.map.0 }
 
-    pub fn min_chunk_alt(&self) -> f32 { self.map.2.x }
+    pub fn map_topo_image(&self) -> &Arc<DynamicImage> { &self.map.1 }
 
-    pub fn max_chunk_alt(&self) -> f32 { self.map.2.y }
+    pub fn max_chunk_alt(&self) -> f32 { self.map.3.y }
 }
 
 pub struct SiteInfoRich {
@@ -324,6 +325,7 @@ impl Client {
 
                 // Redraw map (with shadows this time).
                 let mut world_map_rgba = vec![0u32; rgba.size().product() as usize];
+                let mut world_map_topo = vec![0u32; rgba.size().product() as usize];
                 let mut map_config = common::terrain::map::MapConfig::orthographic(
                     map_size_lg,
                     core::ops::RangeInclusive::new(0.0, max_height),
@@ -336,18 +338,40 @@ impl Client {
                         && pos.y < map_size.y as i32
                 };
                 ping_stream.send(PingMsg::Ping)?;
-                map_config.generate(
-                    |pos| {
+                fn sample_pos(map_config: &MapConfig, pos: Vec2<i32>, alt: &Grid<u32>, rgba: &Grid<u32>, map_size: &Vec2<u16>, map_size_lg: &common::terrain::MapSizeLg, max_height: f32) -> common::terrain::map::MapSample {
+                        let rescale_height = |h: f32| h / max_height;
+                        let scale_height_big = |h: u32| (h >> 3) as f32 / 8191.0 * max_height;
+                        let bounds_check = |pos: Vec2<i32>| {
+                            pos.reduce_partial_min() >= 0
+                                && pos.x < map_size.x as i32
+                                && pos.y < map_size.y as i32
+                        };
+                        let MapConfig {
+                            gain,
+                            is_contours,
+                            is_hill_shaded,
+                            ..
+                        } = *map_config;
+                        let mut is_contour_line = false;
                         let (rgba, alt, downhill_wpos) = if bounds_check(pos) {
                             let posi = pos.y as usize * map_size.x as usize + pos.x as usize;
                             let [r, g, b, a] = rgba[pos].to_le_bytes();
                             let alti = alt[pos];
+                            // Compute contours (chunks are assigned in the river code below)
+                            let altj = rescale_height(scale_height_big(alti));
+                            let chunk_contour = (altj * gain / 100.0) as u32;
+
                             // Compute downhill.
                             let downhill = {
                                 let mut best = -1;
                                 let mut besth = alti;
-                                for nposi in neighbors(map_size_lg, posi) {
+                                for nposi in neighbors(*map_size_lg, posi) {
                                     let nbh = alt.raw()[nposi];
+                                    let nalt = rescale_height(scale_height_big(nbh));
+                                    let nchunk_contour = (nalt * gain / 100.0) as u32;
+                                    if chunk_contour > nchunk_contour {
+                                        is_contour_line = true;
+                                    }
                                     if nbh < besth {
                                         besth = nbh;
                                         best = nposi as isize;
@@ -369,17 +393,43 @@ impl Client {
                         } else {
                             (Rgba::zero(), 0, None)
                         };
+                        let alt = f64::from(rescale_height(scale_height_big(alt)));
                         let wpos = pos * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
                         let downhill_wpos = downhill_wpos
                             .unwrap_or(wpos + TerrainChunkSize::RECT_SIZE.map(|e| e as i32));
-                        let alt = rescale_height(scale_height_big(alt));
+                        let is_path = rgba.r == 0x37 && rgba.g == 0x29 && rgba.b == 0x23;
+                        let rgb = Rgb::from(rgba).map(|e: u8| e as f64 / 255.0);
+                        let rgb = if is_hill_shaded {
+                            if is_path  {
+                                // Path color is Rgb::new(0x37, 0x29, 0x23)
+                                Rgb::new(0.9, 0.9, 0.63)
+                            } else if rgb.r == 0.0 && rgb.b > 0.4 && rgb.g < 0.3 {
+                                // Water
+                                Rgb::new(0.23, 0.47, 0.53)
+                            } else if is_contours && is_contour_line {
+                                // Color contour lines
+                                Rgb::new(0.15, 0.15, 0.15)
+                            } else {
+                                // Color hill shading
+                                let lightness = (alt + 0.2).min(1.0) as f64;
+                                Rgb::new(lightness, 0.9 * lightness, 0.5 * lightness)
+                            }
+                        } else if is_contours && is_contour_line {
+                            // Color contour lines
+                            Rgb::new(0.15, 0.15, 0.15)
+                        } else {
+                            rgb
+                        }.map(|e| (e * 255.0) as u8);
                         common::terrain::map::MapSample {
-                            rgb: Rgb::from(rgba),
-                            alt: f64::from(alt),
+                            rgb,
+                            alt,
                             downhill_wpos,
                             connections: None,
+                            is_path,
                         }
-                    },
+                }
+                map_config.generate(
+                    |pos| sample_pos(&map_config, pos, &alt, &rgba, &map_size, &map_size_lg, max_height),
                     |wpos| {
                         let pos = wpos.map2(TerrainChunkSize::RECT_SIZE, |e, f| e / f as i32);
                         rescale_height(if bounds_check(pos) {
@@ -390,6 +440,26 @@ impl Client {
                     },
                     |pos, (r, g, b, a)| {
                         world_map_rgba[pos.y * map_size.x as usize + pos.x] =
+                            u32::from_le_bytes([r, g, b, a]);
+                    },
+                );
+
+                // Generate topographic map
+                map_config.is_hill_shaded = true;
+                map_config.is_contours = true;
+                map_config.is_shaded = false;
+                map_config.generate(
+                    |pos| sample_pos(&map_config, pos, &alt, &rgba, &map_size, &map_size_lg, max_height),
+                    |wpos| {
+                        let pos = wpos.map2(TerrainChunkSize::RECT_SIZE, |e, f| e / f as i32);
+                        rescale_height(if bounds_check(pos) {
+                            scale_height_big(alt[pos])
+                        } else {
+                            0.0
+                        })
+                    },
+                    |pos, (r, g, b, a)| {
+                        world_map_topo[pos.y * map_size.x as usize + pos.x] =
                             u32::from_le_bytes([r, g, b, a]);
                     },
                 );
@@ -413,6 +483,7 @@ impl Client {
                 let lod_base = rgba;
                 let lod_alt = alt;
                 let world_map_img = make_raw(&world_map_rgba)?;
+                let world_map_topo_img = make_raw(&world_map_topo)?;
                 let horizons = (west.0, west.1, east.0, east.1)
                     .into_par_iter()
                     .map(|(wa, wh, ea, eh)| u32::from_le_bytes([wa, wh, ea, eh]))
@@ -426,7 +497,7 @@ impl Client {
                     lod_base,
                     lod_alt,
                     Grid::from_raw(map_size.map(|e| e as i32), lod_horizon),
-                    (world_map_img, map_size, map_bounds),
+                    (world_map_img, world_map_topo_img, map_size, map_bounds),
                     world_map.sites,
                     recipe_book,
                     max_group_size,

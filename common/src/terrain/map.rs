@@ -317,6 +317,16 @@ pub struct MapConfig<'a> {
     ///
     /// Defaults to false.
     pub is_debug: bool,
+    /// If true, contour lines are drawn on top of the base rbg
+    ///
+    /// Defaults to false.
+    pub is_contours: bool,
+    /// If true, hill shading is applied to the terrain and all the
+    /// colors are different. Is incompatible with humidity/temperature/shaded
+    /// maps.
+    ///
+    /// Defaults to false
+    pub is_hill_shaded: bool,
 }
 
 pub const QUADRANTS: usize = 4;
@@ -366,6 +376,8 @@ pub struct MapSample {
     /// Connections at each index correspond to the same index in
     /// NEIGHBOR_DELTA.
     pub connections: Option<[Option<Connection>; 8]>,
+    /// If the chunk contains a path
+    pub is_path: bool,
 }
 
 impl<'a> MapConfig<'a> {
@@ -395,6 +407,8 @@ impl<'a> MapConfig<'a> {
             is_temperature: false,
             is_humidity: false,
             is_debug: false,
+            is_contours: false,
+            is_hill_shaded: false,
         }
     }
 
@@ -432,7 +446,6 @@ impl<'a> MapConfig<'a> {
             scale,
             light_direction,
             horizons,
-
             is_shaded,
             // is_debug,
             ..
@@ -712,3 +725,4 @@ impl<'a> MapConfig<'a> {
         }
     }
 }
+
