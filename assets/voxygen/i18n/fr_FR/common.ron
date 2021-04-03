@@ -87,7 +87,7 @@ Le client est-il à jour?"#,
 
         "common.rand_appearance": "Apparence et nom aléatoire",
 
-        "common.stats.dps": "DPS",
+        "common.stats.combat_rating": "CR",
         "common.stats.power": "Puissance",
         "common.stats.speed": "Vitesse",
         "common.stats.poise": "Impact",

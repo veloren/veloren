@@ -30,7 +30,7 @@
         "hud.bag.combat_rating": "Combat Rating",
         "hud.bag.protection": "Protection",
         "hud.bag.combat_rating_desc": "Calculated from your\nequipment and health.",
-        "hud.bag.protection": "Damage reduction through armor",
+        "hud.bag.protection_desc": "Damage reduction through armor",
     },
 
 

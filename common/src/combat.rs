@@ -6,13 +6,13 @@ use crate::{
         inventory::{
             item::{
                 armor::Protection,
-                tool::{Tool, ToolKind},
-                Item, ItemKind, MaterialStatManifest,
+                tool::{self, Tool, ToolKind},
+                Item, ItemDesc, ItemKind, MaterialStatManifest,
             },
             slot::EquipSlot,
         },
         poise::PoiseChange,
-        skills::{SkillGroupKind, SkillSet},
+        skills::SkillGroupKind,
         Body, Combo, Energy, EnergyChange, EnergySource, Health, HealthChange, HealthSource,
         Inventory, Stats,
     },
@@ -721,21 +721,55 @@ pub fn get_weapons(inv: &Inventory) -> (Option<ToolKind>, Option<ToolKind>) {
     )
 }
 
-#[cfg(not(target_arch = "wasm32"))]
-fn offensive_rating(inv: &Inventory, skillset: &SkillSet, msm: &MaterialStatManifest) -> f32 {
-    let active_damage =
-        equipped_item_and_tool(inv, EquipSlot::Mainhand).map_or(0.0, |(item, tool)| {
-            tool.base_power(msm, item.components())
-                * tool.base_speed(msm, item.components())
-                * (1.0 + 0.05 * skillset.earned_sp(SkillGroupKind::Weapon(tool.kind)) as f32)
-        });
-    let second_damage =
-        equipped_item_and_tool(inv, EquipSlot::Offhand).map_or(0.0, |(item, tool)| {
-            tool.base_power(msm, item.components())
-                * tool.base_speed(msm, item.components())
-                * (1.0 + 0.05 * skillset.earned_sp(SkillGroupKind::Weapon(tool.kind)) as f32)
-        });
-    active_damage.max(second_damage)
+pub fn weapon_rating<T: ItemDesc>(item: &T, msm: &MaterialStatManifest) -> f32 {
+    const DAMAGE_WEIGHT: f32 = 2.0;
+    const POISE_WEIGHT: f32 = 1.0;
+
+    if let ItemKind::Tool(tool) = item.kind() {
+        let stats = tool::Stats::from((msm, item.components(), tool));
+
+        let damage_rating =
+            stats.power * stats.speed * (1.0 + stats.crit_chance * (stats.crit_mult - 1.0));
+        let poise_rating = stats.poise_strength * stats.speed;
+
+        (damage_rating * DAMAGE_WEIGHT + poise_rating * POISE_WEIGHT)
+            / (DAMAGE_WEIGHT + POISE_WEIGHT)
+    } else {
+        0.0
+    }
+}
+
+fn weapon_skills(inventory: &Inventory, stats: &Stats) -> f32 {
+    let (mainhand, offhand) = get_weapons(inventory);
+    let mainhand_skills = if let Some(tool) = mainhand {
+        stats.skill_set.earned_sp(SkillGroupKind::Weapon(tool)) as f32
+    } else {
+        0.0
+    };
+    let offhand_skills = if let Some(tool) = offhand {
+        stats.skill_set.earned_sp(SkillGroupKind::Weapon(tool)) as f32
+    } else {
+        0.0
+    };
+    mainhand_skills.max(offhand_skills)
+}
+
+fn get_weapon_rating(inventory: &Inventory, msm: &MaterialStatManifest) -> f32 {
+    let mainhand_rating =
+        if let Some((item, _)) = equipped_item_and_tool(inventory, EquipSlot::Mainhand) {
+            weapon_rating(item, msm)
+        } else {
+            0.0
+        };
+
+    let offhand_rating =
+        if let Some((item, _)) = equipped_item_and_tool(inventory, EquipSlot::Offhand) {
+            weapon_rating(item, msm)
+        } else {
+            0.0
+        };
+
+    mainhand_rating.max(offhand_rating)
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -746,15 +780,28 @@ pub fn combat_rating(
     body: Body,
     msm: &MaterialStatManifest,
 ) -> f32 {
-    let defensive_weighting = 1.0;
-    let offensive_weighting = 1.0;
-    let defensive_rating = health.maximum() as f32
-        / (1.0 - Damage::compute_damage_reduction(Some(inventory), Some(stats))).max(0.00001)
-        / 100.0;
-    let offensive_rating = offensive_rating(inventory, &stats.skill_set, msm).max(0.1)
-        + 0.05 * stats.skill_set.earned_sp(SkillGroupKind::General) as f32;
-    let combined_rating = (offensive_rating * offensive_weighting
-        + defensive_rating * defensive_weighting)
-        / (offensive_weighting + defensive_weighting);
+    const WEAPON_WEIGHT: f32 = 1.0;
+    const HEALTH_WEIGHT: f32 = 1.0;
+    const SKILLS_WEIGHT: f32 = 1.0;
+    // Assumes a "standard" max health of 100
+    let health_rating = health.base_max() as f32
+        / 100.0
+        / (1.0 - Damage::compute_damage_reduction(Some(inventory), Some(stats))).max(0.00001);
+
+    // Assumes a standard person has earned 20 skill points in the general skill
+    // tree and 10 skill points for the weapon skill tree
+    let skills_rating = (stats.skill_set.earned_sp(SkillGroupKind::General) as f32 / 20.0
+        + weapon_skills(inventory, stats) / 10.0)
+        / 2.0;
+
+    let weapon_rating = get_weapon_rating(inventory, msm);
+
+    let combined_rating = (health_rating * HEALTH_WEIGHT
+        + skills_rating * SKILLS_WEIGHT
+        + weapon_rating * WEAPON_WEIGHT)
+        / (HEALTH_WEIGHT + SKILLS_WEIGHT + WEAPON_WEIGHT);
+
+    // Body multiplier meant to account for an enemy being harder than equipment and
+    // skills would account for. It should only not be 1.0 for non-humanoids
     combined_rating * body.combat_multiplier()
 }
