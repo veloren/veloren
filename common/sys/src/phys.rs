@@ -398,7 +398,7 @@ impl<'a> PhysicsData<'a> {
                                                 + z_limits_other.1 * previous_cache_other.scale
                                     {
                                         if !collided {
-                                            physics.touch_entities.push(*other);
+                                            physics.touch_entities.insert(*other);
                                             entity_entity_collisions += 1;
                                         }
 
@@ -988,9 +988,6 @@ impl<'a> PhysicsData<'a> {
                                             .on_wall
                                             .map(|dir| ori_from.mul_direction(dir))
                                     });
-                                    physics_state
-                                        .touch_entities
-                                        .append(&mut physics_state_delta.touch_entities);
                                     physics_state.in_liquid = match (
                                         physics_state.in_liquid,
                                         physics_state_delta.in_liquid,
