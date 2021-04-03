@@ -1,4 +1,5 @@
 use crate::uid::Uid;
+use hashbrown::HashSet;
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage, NullStorage};
 use specs_idvs::IdvStorage;
@@ -124,7 +125,7 @@ pub struct PhysicsState {
     pub on_ground: bool,
     pub on_ceiling: bool,
     pub on_wall: Option<Vec3<f32>>,
-    pub touch_entities: Vec<Uid>,
+    pub touch_entities: HashSet<Uid>,
     pub in_liquid: Option<f32>, // Depth
     pub ground_vel: Vec3<f32>,
 }
