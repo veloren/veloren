@@ -686,7 +686,11 @@ pub struct Track {
     /// arbitrary unit and doesn't make sense unless compared to other track
     /// costs.
     cost: f32,
-    pub path: Path<Vec2<i32>>,
+    path: Path<Vec2<i32>>,
+}
+
+impl Track {
+    pub fn path(&self) -> &Path<Vec2<i32>> { &self.path }
 }
 
 #[derive(Debug)]

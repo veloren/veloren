@@ -34,7 +34,6 @@ impl Entity {
     pub fn get_body(&self) -> comp::Body {
         match self.rng(PERM_GENUS).gen::<f32>() {
             // we want 5% airships, 45% birds, 50% humans
-            // HUMANS TEMPORARILY DISABLED UNTIL PATHFINDING FIXED
             x if x < 0.05 => comp::Body::Ship(comp::ship::Body::DefaultAirship),
             x if x < 0.50 => {
                 let species = *(&comp::bird_medium::ALL_SPECIES)
@@ -133,17 +132,6 @@ impl Entity {
     }
 
     pub fn tick(&mut self, time: &Time, terrain: &TerrainGrid, world: &World, index: &IndexRef) {
-        // TODO: Make travellers travel smarter
-        // This is mainly for humanoids
-        // 1. If they have a track, follow that
-        //      - if the next point is too far away:
-        //          - if progress is 0, attempt to reverse it
-        //          - otherwise, clear the track
-        //  2. If they have a target site and no track, attempt to go there directly
-        //  3. If there is no target site or track, check if they are currently at a
-        // site
-        //      - If they are at site, calculate a new target site
-        //      - If they aren't go to the nearest site
         let mut next_pos_calculated = false;
         let tgt_site = self.brain.tgt.or_else(|| {
             world
@@ -213,22 +201,26 @@ impl Entity {
                 let destination_name = site
                     .site_tmp
                     .map_or("".to_string(), |id| index.sites[id].name().to_string());
-                if let Some(sim_pos) = track.path.iter().nth(self.brain.track_progress) {
+                if let Some(sim_pos) = track.path().iter().nth(self.brain.track_progress) {
                     let chunkpos = sim_pos * TerrainChunk::RECT_SIZE.map(|e| e as i32);
-                    let mut wpos = chunkpos;
-                    if let Some(pathdata) = world.sim().get_nearest_path(chunkpos) {
-                        wpos = pathdata.1.map(|e| e as i32);
-                    }
+                    let wpos = if let Some(pathdata) = world.sim().get_nearest_path(chunkpos) {
+                        pathdata.1.map(|e| e as i32)
+                    } else {
+                        chunkpos
+                    };
                     let dist = wpos.map(|e| e as f32).distance(self.pos.xy()) as u32;
 
-                    if dist < 32 && !self.brain.track_reversed {
-                        self.brain.track_progress += 1;
-                        if self.brain.track_progress > track.path.len() {
-                            self.brain.track = None;
+                    if dist < 32 {
+                        if !self.brain.track_reversed {
+                            self.brain.track_progress += 1;
+                            if self.brain.track_progress > track.path().len() {
+                                self.brain.track = None;
+                                self.brain.track_reversed = false;
+                            }
                         }
-                    } else if dist < 32 && self.brain.track_reversed {
                         if self.brain.track_progress == 0 {
                             self.brain.track = None;
+                            self.brain.track_reversed = false;
                         } else {
                             self.brain.track_progress -= 1;
                         }
@@ -239,6 +231,7 @@ impl Entity {
                             self.brain.track_reversed = true;
                         } else {
                             self.brain.track = None;
+                            self.brain.track_reversed = false;
                         }
                     }
 
@@ -301,9 +294,9 @@ impl Entity {
                 ))
                 .map(|e| e as f32)
                 + Vec3::new(0.5, 0.5, 0.0);
+
             self.controller.travel_to = Some((travel_to, destination_name));
             self.controller.speed_factor = 0.70;
-            // next_pos_calculated = true;
         }
 
         // Forget old memories
