@@ -410,6 +410,7 @@ image_ids! {
         expand_btn_hover: "voxygen.element.buttons.inv_expand_hover",
         expand_btn_press: "voxygen.element.buttons.inv_expand_press",
         coin_ico: "voxygen.element.icons.coin",
+        cheese_ico: "voxygen.element.icons.item_cheese",
         inv_bg_armor: "voxygen.element.misc_bg.inv_bg_0",
         inv_bg_stats: "voxygen.element.misc_bg.inv_bg_1",
         inv_frame: "voxygen.element.misc_bg.inv_frame",

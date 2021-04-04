@@ -49,8 +49,10 @@ widget_ids! {
         bg_frame,
         char_ico,
         coin_ico,
+        cheese_ico,
         space_txt,
-        currency_txt,
+        coin_txt,
+        cheese_txt,
         inventory_title,
         inventory_title_bg,
         scrollbar_bg,
@@ -336,19 +338,32 @@ impl<'a> InventoryScroller<'a> {
         let bag_space = format!("{}/{}", space_used, space_max);
         let bag_space_percentage = space_used as f32 / space_max as f32;
         let coin_itemdef = Arc::<ItemDef>::load_expect_cloned("common.items.utility.coins");
-        let currency = self.inventory.item_count(&coin_itemdef);
+        let coin_count = self.inventory.item_count(&coin_itemdef);
+        let cheese_itemdef = Arc::<ItemDef>::load_expect_cloned("common.items.food.cheese");
+        let cheese_count = self.inventory.item_count(&cheese_itemdef);
 
-        // Coin Icon and Currency Text
+        // Coin Icon and Coin Text
         Image::new(self.imgs.coin_ico)
             .w_h(16.0, 17.0)
             .bottom_left_with_margins_on(self.bg_ids.bg_frame, 2.0, 43.0)
             .set(state.ids.coin_ico, ui);
-        Text::new(&format!("{}", currency))
+        Text::new(&format!("{}", coin_count))
             .bottom_left_with_margins_on(self.bg_ids.bg_frame, 6.0, 64.0)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(14))
             .color(Color::Rgba(0.871, 0.863, 0.05, 1.0))
-            .set(state.ids.currency_txt, ui);
+            .set(state.ids.coin_txt, ui);
+        // Cheese Icon and Cheese Text
+        Image::new(self.imgs.cheese_ico)
+            .w_h(16.0, 17.0)
+            .bottom_left_with_margins_on(self.bg_ids.bg_frame, 2.0, 110.0)
+            .set(state.ids.cheese_ico, ui);
+        Text::new(&format!("{}", cheese_count))
+            .bottom_left_with_margins_on(self.bg_ids.bg_frame, 6.0, 144.0)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(14))
+            .color(Color::Rgba(0.871, 0.863, 0.05, 1.0))
+            .set(state.ids.cheese_txt, ui);
         //Free Bag-Space
         Text::new(&bag_space)
             .bottom_right_with_margins_on(self.bg_ids.bg_frame, 6.0, 43.0)
@@ -403,7 +418,6 @@ widget_ids! {
         char_ico,
         coin_ico,
         space_txt,
-        currency_txt,
         inventory_title,
         inventory_title_bg,
         scrollbar_bg,
