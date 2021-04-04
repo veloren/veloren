@@ -185,18 +185,18 @@ impl Entity {
                             })
                         {
                             let mut rng = thread_rng();
-                            if let (Ok(normalpos), Ok(normalrad)) =
-                                (Normal::new(0.0, 64.0), (Normal::new(0.0, PI / 8.0)))
-                            {
+                            if let Ok(normalpos) = Normal::new(0.0, 64.0) {
                                 let mut path = Vec::<Vec2<i32>>::default();
                                 let target_site_pos = site.center.map(|e| e as f32)
                                     * TerrainChunk::RECT_SIZE.map(|e| e as f32);
                                 let offset_site_pos =
                                     target_site_pos.map(|v| v + normalpos.sample(&mut rng));
-                                let dir_vec = (offset_site_pos - self.pos.xy()).normalized();
+                                let offset_dir = (offset_site_pos - self.pos.xy()).normalized();
                                 let dist = (offset_site_pos - self.pos.xy()).magnitude();
-                                let inbetween_dir = dir_vec.rotated_z(normalrad.sample(&mut rng));
-                                let inbetween_pos = self.pos.xy() + (inbetween_dir * (dist / 2.0));
+                                let midpoint = self.pos.xy() + offset_dir * (dist / 2.0);
+                                let perp_dir = offset_dir.rotated_z(PI / 2.0);
+                                let offset = normalpos.sample(&mut rng);
+                                let inbetween_pos = midpoint + (perp_dir * offset);
 
                                 path.push(inbetween_pos.map(|e| e as i32));
                                 path.push(target_site_pos.map(|e| e as i32));
