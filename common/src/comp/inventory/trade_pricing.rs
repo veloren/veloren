@@ -354,21 +354,73 @@ impl TradePricing {
 
     #[cfg(test)]
     fn print_sorted(&self) {
-        fn printvec(x: &str, e: &[(String, f32)]) {
+        use crate::comp::item::{armor, tool, Item, ItemKind};
+
+        // we pass the item and the inverse of the price to the closure
+        fn printvec<F>(x: &str, e: &[(String, f32)], f: F)
+        where
+            F: Fn(&Item, f32) -> String,
+        {
             println!("{}", x);
             for i in e.iter() {
-                println!("{} {}", i.0, 1.0 / i.1);
+                let it = Item::new_from_asset_expect(&i.0);
+                let price = 1.0 / i.1;
+                println!("{}  {:.2}  {:?}  {}", i.0, price, it.quality, f(&it, i.1));
             }
         }
-        printvec("Armor", &self.armor);
-        printvec("Tools", &self.tools);
-        printvec("Potions", &self.potions);
-        printvec("Food", &self.food);
-        printvec("Ingredients", &self.ingredients);
+
+        printvec("Armor", &self.armor, |i, p| match &i.kind {
+            ItemKind::Armor(a) => match a.get_protection() {
+                armor::Protection::Invincible => "Invincible".into(),
+                armor::Protection::Normal(x) => format!("{:.4} prot/val", x * p),
+            },
+            _ => format!("{:?}", i.kind),
+        });
+        printvec("Tools", &self.tools, |i, p| match &i.kind {
+            ItemKind::Tool(t) => match &t.stats {
+                tool::StatKind::Direct(d) => {
+                    format!("{:.4} dps/val", d.power * d.speed * p)
+                },
+                tool::StatKind::Modular => "Modular".into(),
+            },
+            _ => format!("{:?}", i.kind),
+        });
+        printvec("Potions", &self.potions, |i, p| match &i.kind {
+            ItemKind::Consumable { kind: _, effect } => effect
+                .iter()
+                .map(|e| match e {
+                    crate::effect::Effect::Buff(b) => {
+                        format!("{:.2} str/val", b.data.strength * p)
+                    },
+                    _ => format!("{:?}", e),
+                })
+                .collect::<Vec<String>>()
+                .join(" "),
+            _ => format!("{:?}", i.kind),
+        });
+        printvec("Food", &self.food, |i, p| match &i.kind {
+            ItemKind::Consumable { kind: _, effect } => effect
+                .iter()
+                .map(|e| match e {
+                    crate::effect::Effect::Buff(b) => {
+                        format!("{:.2} str/val", b.data.strength * p)
+                    },
+                    _ => format!("{:?}", e),
+                })
+                .collect::<Vec<String>>()
+                .join(" "),
+            _ => format!("{:?}", i.kind),
+        });
+        printvec("Ingredients", &self.ingredients, |i, _p| match &i.kind {
+            ItemKind::Ingredient { kind } => kind.clone(),
+            _ => format!("{:?}", i.kind),
+        });
         println!("{} {}", TradePricing::COIN_ITEM, self.coin_scale);
     }
 }
 
+// if you want to take a look at the calculated values run:
+// cd common && cargo test trade_pricing -- --nocapture
 #[cfg(test)]
 mod tests {
     use crate::{comp::inventory::trade_pricing::TradePricing, trade::Good};
