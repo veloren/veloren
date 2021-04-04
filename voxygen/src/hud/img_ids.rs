@@ -67,6 +67,7 @@ image_ids! {
         diary_frame: "voxygen.element.misc_bg.diary_frame",
         diary_exp_bg: "voxygen.element.misc_bg.diary_exp_bg",
         diary_exp_frame: "voxygen.element.misc_bg.diary_exp_frame",
+        pixel: "voxygen.element.misc_bg.pixel",
 
         // Skill Trees
         slot_skills: "voxygen.element.buttons.slot_skilltree",
@@ -104,6 +105,15 @@ image_ids! {
         crafting_icon: "voxygen.element.buttons.anvil",
         crafting_icon_hover: "voxygen.element.buttons.anvil_hover",
         crafting_icon_press: "voxygen.element.buttons.anvil_press",
+        icon_armor: "voxygen.element.icons.armors",
+        icon_tools: "voxygen.element.icons.crafting_tools",
+        icon_dismantle: "voxygen.element.icons.dismantle",
+        icon_food: "voxygen.element.icons.foods",
+        icon_glider: "voxygen.element.icons.gliders",
+        icon_potion: "voxygen.element.icons.potions",
+        icon_utility: "voxygen.element.icons.utilities",
+        icon_weapon: "voxygen.element.icons.weapons",
+        icon_bag: "voxygen.element.icons.item_bag_leather_large",
 
         // Group Window
         member_frame: "voxygen.element.frames.group_member_frame",

@@ -14,5 +14,5 @@ ItemDef(
         )),
     )),
     quality: Low,
-    tags: [],
+    tags: [CraftingTool],
 )

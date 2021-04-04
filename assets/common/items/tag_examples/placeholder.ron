@@ -1,0 +1,10 @@
+ItemDef(
+    name: "Placeholder",
+    description: "This is a placeholder because we intend to autogenerate these from the tags later",
+    kind: Ingredient(
+        kind: "Placeholder",
+    ),
+    quality: Common,
+    tags: [],
+)
+

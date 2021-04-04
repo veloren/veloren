@@ -11,6 +11,6 @@ ItemDef(
         )
     ),
     quality: Common,
-    tags: [],
+    tags: [Bag],
     slots: 3,
 )

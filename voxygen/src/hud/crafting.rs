@@ -1,17 +1,22 @@
 use super::{
     img_ids::{Imgs, ImgsRot},
     item_imgs::{animate_by_pulse, ItemImgs},
-    TEXT_COLOR, TEXT_DULL_RED_COLOR, TEXT_GRAY_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
+    Show, TEXT_COLOR, TEXT_DULL_RED_COLOR, TEXT_GRAY_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
 };
 use crate::{
     i18n::Localization,
-    ui::{fonts::Fonts, ImageFrame, ItemTooltip, ItemTooltipManager, ItemTooltipable},
+    ui::{
+        fonts::Fonts, ImageFrame, ItemTooltip, ItemTooltipManager, ItemTooltipable, Tooltip,
+        TooltipManager, Tooltipable,
+    },
 };
 use client::{self, Client};
 use common::{
     assets::AssetExt,
     comp::{
-        item::{ItemDef, ItemDesc, MaterialStatManifest, Quality, TagExampleInfo},
+        item::{
+            ItemDef, ItemDesc, ItemKind, ItemTag, MaterialStatManifest, Quality, TagExampleInfo,
+        },
         Inventory,
     },
     recipe::RecipeInput,
@@ -22,6 +27,9 @@ use conrod_core::{
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 use std::sync::Arc;
+
+use strum::IntoEnumIterator;
+use strum_macros::EnumIter;
 
 widget_ids! {
     pub struct Ids {
@@ -48,11 +56,15 @@ widget_ids! {
         output_img_frame,
         output_img,
         output_amount,
+        category_bgs[],
+        category_tabs[],
+        category_imgs[],
     }
 }
 
 pub enum Event {
     CraftRecipe(String),
+    ChangeCraftingTab(SelectedCraftingTab),
     Close,
 }
 
@@ -70,6 +82,8 @@ pub struct Crafting<'a> {
     msm: &'a MaterialStatManifest,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
+    tooltip_manager: &'a mut TooltipManager,
+    show: &'a mut Show,
 }
 #[allow(clippy::too_many_arguments)]
 impl<'a> Crafting<'a> {
@@ -84,6 +98,8 @@ impl<'a> Crafting<'a> {
         item_imgs: &'a ItemImgs,
         inventory: &'a Inventory,
         msm: &'a MaterialStatManifest,
+        tooltip_manager: &'a mut TooltipManager,
+        show: &'a mut Show,
     ) -> Self {
         Self {
             client,
@@ -93,12 +109,27 @@ impl<'a> Crafting<'a> {
             pulse,
             rot_imgs,
             item_tooltip_manager,
+            tooltip_manager,
             item_imgs,
             inventory,
             msm,
+            show,
             common: widget::CommonBuilder::default(),
         }
     }
+}
+
+#[derive(Debug, EnumIter, PartialEq)]
+pub enum SelectedCraftingTab {
+    Armor,
+    Weapon,
+    Food,
+    Dismantle,
+    Potion,
+    Bag,
+    Tool,
+    Utility,
+    Glider,
 }
 
 pub struct State {
@@ -132,7 +163,6 @@ impl<'a> Widget for Crafting<'a> {
                 )
             });
         }
-        let ids = &state.ids;
 
         let mut events = Vec::new();
 
@@ -162,17 +192,35 @@ impl<'a> Widget for Crafting<'a> {
         .desc_font_size(self.fonts.cyri.scale(12))
         .font_id(self.fonts.cyri.conrod_id)
         .desc_text_color(TEXT_COLOR);
+        // Tab tooltips
+        let tabs_tooltip = Tooltip::new({
+            // Edge images [t, b, r, l]
+            // Corner images [tr, tl, br, bl]
+            let edge = &self.rot_imgs.tt_side;
+            let corner = &self.rot_imgs.tt_corner;
+            ImageFrame::new(
+                [edge.cw180, edge.none, edge.cw270, edge.cw90],
+                [corner.none, corner.cw270, corner.cw90, corner.cw180],
+                Color::Rgba(0.08, 0.07, 0.04, 1.0),
+                5.0,
+            )
+        })
+        .title_font_size(self.fonts.cyri.scale(15))
+        .parent(ui.window)
+        .desc_font_size(self.fonts.cyri.scale(12))
+        .font_id(self.fonts.cyri.conrod_id)
+        .desc_text_color(TEXT_COLOR);
 
         Image::new(self.imgs.crafting_window)
             .bottom_right_with_margins_on(ui.window, 308.0, 450.0)
             .color(Some(UI_MAIN))
             .w_h(422.0, 460.0)
-            .set(ids.window, ui);
+            .set(state.ids.window, ui);
         Image::new(self.imgs.crafting_frame)
-            .middle_of(ids.window)
+            .middle_of(state.ids.window)
             .color(Some(UI_HIGHLIGHT_0))
             .w_h(422.0, 460.0)
-            .set(ids.window_frame, ui);
+            .set(state.ids.window_frame, ui);
         Image::new(self.imgs.crafting_icon_bordered)
             .w_h(38.0, 38.0)
             .top_left_with_margins_on(state.ids.window_frame, 4.0, 4.0)
@@ -182,8 +230,8 @@ impl<'a> Widget for Crafting<'a> {
             .w_h(24.0, 25.0)
             .hover_image(self.imgs.close_button_hover)
             .press_image(self.imgs.close_button_press)
-            .top_right_with_margins_on(ids.window, 0.0, 0.0)
-            .set(ids.close, ui)
+            .top_right_with_margins_on(state.ids.window, 0.0, 0.0)
+            .set(state.ids.close, ui)
             .was_clicked()
         {
             events.push(Event::Close);
@@ -191,21 +239,119 @@ impl<'a> Widget for Crafting<'a> {
 
         // Title
         Text::new(&self.localized_strings.get("hud.crafting"))
-            .mid_top_with_margin_on(ids.window_frame, 9.0)
+            .mid_top_with_margin_on(state.ids.window_frame, 9.0)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(20))
             .color(TEXT_COLOR)
-            .set(ids.title_main, ui);
+            .set(state.ids.title_main, ui);
 
         // Alignment
         Rectangle::fill_with([136.0, 378.0], color::TRANSPARENT)
-            .top_left_with_margins_on(ids.window_frame, 74.0, 5.0)
+            .top_left_with_margins_on(state.ids.window_frame, 74.0, 5.0)
             .scroll_kids_vertically()
-            .set(ids.align_rec, ui);
+            .set(state.ids.align_rec, ui);
         Rectangle::fill_with([274.0, 340.0], color::TRANSPARENT)
-            .top_right_with_margins_on(ids.window, 74.0, 5.0)
+            .top_right_with_margins_on(state.ids.window, 74.0, 5.0)
             .scroll_kids_vertically()
-            .set(ids.align_ing, ui);
+            .set(state.ids.align_ing, ui);
+        // Category Tabs
+        if state.ids.category_bgs.len() < SelectedCraftingTab::iter().enumerate().len() {
+            state.update(|s| {
+                s.ids.category_bgs.resize(
+                    SelectedCraftingTab::iter().enumerate().len(),
+                    &mut ui.widget_id_generator(),
+                )
+            })
+        };
+        if state.ids.category_tabs.len() < SelectedCraftingTab::iter().enumerate().len() {
+            state.update(|s| {
+                s.ids.category_tabs.resize(
+                    SelectedCraftingTab::iter().enumerate().len(),
+                    &mut ui.widget_id_generator(),
+                )
+            })
+        };
+        if state.ids.category_imgs.len() < SelectedCraftingTab::iter().enumerate().len() {
+            state.update(|s| {
+                s.ids.category_imgs.resize(
+                    SelectedCraftingTab::iter().enumerate().len(),
+                    &mut ui.widget_id_generator(),
+                )
+            })
+        };
+        let sel_crafting_tab = &self.show.crafting_tab;
+        for i in SelectedCraftingTab::iter().enumerate() {
+            // TODO: i18n!
+            let tab_name = match i.1 {
+                SelectedCraftingTab::Armor => "Armor",
+                SelectedCraftingTab::Dismantle => "Dismantle",
+                SelectedCraftingTab::Food => "Food",
+                SelectedCraftingTab::Glider => "Gliders",
+                SelectedCraftingTab::Potion => "Potions",
+                SelectedCraftingTab::Tool => "Tools",
+                SelectedCraftingTab::Utility => "Utility",
+                SelectedCraftingTab::Weapon => "Weapons",
+                SelectedCraftingTab::Bag => "Weapons",
+            };
+            let tab_img = match i.1 {
+                SelectedCraftingTab::Armor => self.imgs.icon_armor,
+                SelectedCraftingTab::Dismantle => self.imgs.icon_dismantle,
+                SelectedCraftingTab::Food => self.imgs.icon_food,
+                SelectedCraftingTab::Glider => self.imgs.icon_glider,
+                SelectedCraftingTab::Potion => self.imgs.icon_potion,
+                SelectedCraftingTab::Tool => self.imgs.icon_tools,
+                SelectedCraftingTab::Utility => self.imgs.icon_utility,
+                SelectedCraftingTab::Weapon => self.imgs.icon_weapon,
+                SelectedCraftingTab::Bag => self.imgs.icon_bag,
+            };
+            // Button Background
+            let mut bg = Image::new(self.imgs.pixel)
+                .w_h(40.0, 30.0)
+                .color(Some(UI_MAIN));
+            if i.0 == 0 {
+                bg = bg.top_left_with_margins_on(state.ids.window_frame, 50.0, -40.0)
+            } else {
+                bg = bg.down_from(state.ids.category_bgs[i.0 - 1], 0.0)
+            };
+            bg.set(state.ids.category_bgs[i.0], ui);
+            // Category Button
+            if Button::image(if i.1 == *sel_crafting_tab {
+                self.imgs.wpn_icon_border_pressed
+            } else {
+                self.imgs.wpn_icon_border
+            })
+            .wh_of(state.ids.category_bgs[i.0])
+            .middle_of(state.ids.category_bgs[i.0])
+            .hover_image(if i.1 == *sel_crafting_tab {
+                self.imgs.wpn_icon_border_pressed
+            } else {
+                self.imgs.wpn_icon_border_mo
+            })
+            .press_image(if i.1 == *sel_crafting_tab {
+                self.imgs.wpn_icon_border_pressed
+            } else {
+                self.imgs.wpn_icon_border_press
+            })
+            .with_tooltip(
+                self.tooltip_manager,
+                tab_name,
+                "",
+                &tabs_tooltip,
+                TEXT_COLOR,
+            )
+            .set(state.ids.category_tabs[i.0], ui)
+            .was_clicked()
+            {
+                events.push(Event::ChangeCraftingTab(i.1))
+            };
+            // Tab images
+            Image::new(tab_img)
+                .middle_of(state.ids.category_tabs[i.0])
+                .w_h(20.0, 20.0)
+                .graphics_for(state.ids.category_tabs[i.0])
+                .set(state.ids.category_imgs[i.0], ui);
+        }
+
         let client = &self.client;
         // First available recipes, then unavailable ones, each alphabetically
         // In the triples, "name" is the recipe book key, and "recipe.output.0.name()"
@@ -270,9 +416,9 @@ impl<'a> Widget for Crafting<'a> {
                     .label_font_size(self.fonts.cyri.scale(12))
                     .label_font_id(self.fonts.cyri.conrod_id)
                     .image_color(can_perform.then_some(TEXT_COLOR).unwrap_or(TEXT_GRAY_COLOR))
-                    .mid_bottom_with_margin_on(ids.align_ing, -31.0)
-                    .parent(ids.window_frame)
-                    .set(ids.btn_craft, ui)
+                    .mid_bottom_with_margin_on(state.ids.align_ing, -31.0)
+                    .parent(state.ids.window_frame)
+                    .set(state.ids.btn_craft, ui)
                     .was_clicked()
                 {
                     events.push(Event::CraftRecipe(recipe.clone()));
@@ -299,8 +445,8 @@ impl<'a> Widget for Crafting<'a> {
                 Image::new(quality_col_img)
                     .w_h(60.0, 60.0)
                     .top_right_with_margins_on(state.ids.align_ing, 15.0, 10.0)
-                    .parent(ids.align_ing)
-                    .set(ids.output_img_frame, ui);
+                    .parent(state.ids.align_ing)
+                    .set(state.ids.output_img_frame, ui);
 
                 if let Some(recipe) = state
                     .selected_recipe
@@ -335,7 +481,36 @@ impl<'a> Widget for Crafting<'a> {
         }
 
         // Recipe list
-        for (i, (name, recipe, quantity)) in ordered_recipes.into_iter().enumerate() {
+        for (i, (name, recipe, quantity)) in ordered_recipes
+            .into_iter()
+            .filter(|(_name, recipe, _quantity)| match &self.show.crafting_tab {
+                SelectedCraftingTab::Food => recipe.output.0.tags().contains(&ItemTag::Food),
+                SelectedCraftingTab::Armor => match recipe.output.0.kind() {
+                    ItemKind::Armor(_) => !recipe.output.0.tags().contains(&ItemTag::Bag),
+                    _ => false,
+                },
+                SelectedCraftingTab::Glider => {
+                    matches!(recipe.output.0.kind(), ItemKind::Glider(_))
+                },
+                SelectedCraftingTab::Potion => recipe.output.0.tags().contains(&ItemTag::Potion),
+                SelectedCraftingTab::Bag => recipe.output.0.tags().contains(&ItemTag::Bag),
+                SelectedCraftingTab::Tool => {
+                    recipe.output.0.tags().contains(&ItemTag::CraftingTool)
+                },
+                SelectedCraftingTab::Utility => recipe.output.0.tags().contains(&ItemTag::Utility),
+                SelectedCraftingTab::Weapon => match recipe.output.0.kind() {
+                    ItemKind::Tool(_) => !recipe.output.0.tags().contains(&ItemTag::CraftingTool),
+                    _ => false,
+                },
+                SelectedCraftingTab::Dismantle => match recipe.output.0.kind() {
+                    ItemKind::Ingredient { .. } => {
+                        !recipe.output.0.tags().contains(&ItemTag::CraftingTool)
+                    },
+                    _ => false,
+                },
+            })
+            .enumerate()
+        {
             let button = Button::image(
                 if state
                     .selected_recipe
@@ -550,26 +725,24 @@ impl<'a> Widget for Crafting<'a> {
                 }
             }
         }
-
-        let ids = &state.ids;
         // Scrollbars
-        Scrollbar::y_axis(ids.align_rec)
+        Scrollbar::y_axis(state.ids.align_rec)
             .thickness(5.0)
             .rgba(0.33, 0.33, 0.33, 1.0)
-            .set(ids.scrollbar_rec, ui);
-        Scrollbar::y_axis(ids.align_ing)
+            .set(state.ids.scrollbar_rec, ui);
+        Scrollbar::y_axis(state.ids.align_ing)
             .thickness(5.0)
             .rgba(0.33, 0.33, 0.33, 1.0)
-            .set(ids.scrollbar_ing, ui);
+            .set(state.ids.scrollbar_ing, ui);
 
         // Title Recipes and Ingredients
         Text::new(&self.localized_strings.get("hud.crafting.recipes"))
-            .mid_top_with_margin_on(ids.align_rec, -22.0)
+            .mid_top_with_margin_on(state.ids.align_rec, -22.0)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(14))
             .color(TEXT_COLOR)
-            .parent(ids.window)
-            .set(ids.title_rec, ui);
+            .parent(state.ids.window)
+            .set(state.ids.title_rec, ui);
 
         events
     }

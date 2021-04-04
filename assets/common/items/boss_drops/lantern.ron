@@ -10,5 +10,5 @@ ItemDef(
         ),
     ),
     quality: High,
-    tags: [],
+    tags: [Utility],
 )

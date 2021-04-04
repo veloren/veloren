@@ -18,5 +18,5 @@ ItemDef(
         ]
     ),
     quality: Moderate,
-    tags: [],
+    tags: [Food],
 )

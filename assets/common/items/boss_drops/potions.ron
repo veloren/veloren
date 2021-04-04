@@ -18,5 +18,5 @@ ItemDef(
         ]
     ),
     quality: High,
-    tags: [],
+    tags: [Potion],
 )
