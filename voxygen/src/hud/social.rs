@@ -386,8 +386,8 @@ impl<'a> Widget for Social<'a> {
                 player
                     .character
                     .as_ref()
-                    .map(|character| &character.name)
-                    .unwrap_or(&player.player_alias)
+                    .map(|character| character.name.to_lowercase())
+                    .unwrap_or_else(|| player.player_alias.to_string())
             });
             for (i, (&uid, player_info)) in player_list.into_iter().enumerate() {
                 let hide_username = true;

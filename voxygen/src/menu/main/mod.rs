@@ -340,18 +340,19 @@ fn attempt_login(
     client_init: &mut Option<ClientInit>,
     runtime: Option<Arc<runtime::Runtime>>,
 ) {
-    if comp::Player::alias_is_valid(&username) {
-        // Don't try to connect if there is already a connection in progress.
-        if client_init.is_none() {
-            *client_init = Some(ClientInit::new(
-                connection_args,
-                username,
-                Some(settings.graphics.view_distance),
-                password,
-                runtime,
-            ));
-        }
-    } else {
-        *info_message = Some("Invalid username".to_string());
+    if let Err(err) = comp::Player::alias_validate(&username) {
+        *info_message = Some(err.to_string());
+        return;
+    }
+
+    // Don't try to connect if there is already a connection in progress.
+    if client_init.is_none() {
+        *client_init = Some(ClientInit::new(
+            connection_args,
+            username,
+            Some(settings.graphics.view_distance),
+            password,
+            runtime,
+        ));
     }
 }
