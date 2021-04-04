@@ -31,9 +31,7 @@ widget_ids! {
         location_name,
         indicator,
         indicator_overlay,
-        grid_layer_0,
-        grid_layer_1,
-        grid_layer_2,
+        map_layers[],
         map_title,
         qlog_title,
         zoom_slider,
@@ -125,7 +123,6 @@ pub enum Event {
     ShowDungeons(bool),
     ShowCaves(bool),
     ShowTrees(bool),
-    ShowTopoMap(bool),
     Close,
     RequestSiteInfo(SiteId),
 }
@@ -187,7 +184,6 @@ impl<'a> Widget for Map<'a> {
         let show_castles = self.global_state.settings.interface.map_show_castles;
         let show_caves = self.global_state.settings.interface.map_show_caves;
         let show_trees = self.global_state.settings.interface.map_show_trees;
-        let show_topo_map = self.global_state.settings.interface.map_show_topo_map;
         let mut events = Vec::new();
         let i18n = &self.localized_strings;
         // Tooltips
@@ -269,16 +265,24 @@ impl<'a> Widget for Map<'a> {
                 .color(TEXT_COLOR)
                 .set(state.ids.location_name, ui),
         }*/
+        // Map Layers
+        // It is assumed that there is at least one layer
+        if state.ids.map_layers.len() < self.world_map_layers.0.len() {
+            state.update(|state| {
+                state
+                    .ids
+                    .map_layers
+                    .resize(self.world_map_layers.0.len(), &mut ui.widget_id_generator())
+            });
+        }
+
         Image::new(self.imgs.map_frame_art)
             .mid_top_with_margin_on(state.ids.map_align, 5.0)
             .w_h(765.0, 765.0)
             .parent(state.ids.bg)
-            .set(state.ids.grid_layer_0, ui);
-        // Map Image
-        //let (world_map, worldsize) = if !show_topo_map { self.world_map } else { self.world_map_topo };
-        let world_map_layer_0 = &self.world_map_layers.0[0];
-        let world_map_layer_1 = &self.world_map_layers.0[1];
-        let world_map_layer_2 = &self.world_map_layers.0[2];
+            .set(state.ids.map_layers[0], ui);
+
+        // Map Size
         let worldsize = self.world_map_layers.1;
 
         // Coordinates
@@ -300,7 +304,7 @@ impl<'a> Widget for Map<'a> {
         // Handle dragging
         let drag = self.global_state.settings.interface.map_drag;
         let dragged: Vec2<f64> = ui
-            .widget_input(state.ids.grid_layer_0)
+            .widget_input(state.ids.map_layers[0])
             .drags()
             .left()
             .map(|drag| Vec2::<f64>::from(drag.delta_xy))
@@ -328,32 +332,30 @@ impl<'a> Widget for Map<'a> {
         {
             events.push(Event::Close);
         }
-        // Map layer 0
-        Image::new(world_map_layer_0.none)
-            .mid_top_with_margin_on(state.ids.map_align, 10.0)
-            .w_h(map_size.x, map_size.y)
-            .parent(state.ids.bg)
-            .source_rectangle(rect_src)
-            .set(state.ids.grid_layer_0, ui);
-        // Map layer 1
-        Image::new(world_map_layer_1.none)
-            .mid_top_with_margin_on(state.ids.map_align, 10.0)
-            .w_h(map_size.x, map_size.y)
-            .parent(state.ids.bg)
-            .source_rectangle(rect_src)
-            .graphics_for(state.ids.grid_layer_0)
-            .set(state.ids.grid_layer_1, ui);
-        // Map layer 2
-        Image::new(world_map_layer_2.none)
-            .mid_top_with_margin_on(state.ids.map_align, 10.0)
-            .w_h(map_size.x, map_size.y)
-            .parent(state.ids.bg)
-            .source_rectangle(rect_src)
-            .graphics_for(state.ids.grid_layer_0)
-            .set(state.ids.grid_layer_2, ui);
+
+        // Map Layer Images
+        for (index, layer) in self.world_map_layers.0.iter().enumerate() {
+            if index == 0 {
+                Image::new(layer.none)
+                    .mid_top_with_margin_on(state.ids.map_align, 10.0)
+                    .w_h(map_size.x, map_size.y)
+                    .parent(state.ids.bg)
+                    .source_rectangle(rect_src)
+                    .set(state.ids.map_layers[index], ui);
+            } else {
+                Image::new(layer.none)
+                    .mid_top_with_margin_on(state.ids.map_align, 10.0)
+                    .w_h(map_size.x, map_size.y)
+                    .parent(state.ids.bg)
+                    .source_rectangle(rect_src)
+                    .graphics_for(state.ids.map_layers[0])
+                    .set(state.ids.map_layers[index], ui);
+            }
+        }
+
         // Handle zooming with the mousewheel
         let scrolled: f64 = ui
-            .widget_input(state.ids.grid_layer_0)
+            .widget_input(state.ids.map_layers[0])
             .scrolls()
             .map(|scroll| scroll.y)
             .sum();
@@ -635,7 +637,7 @@ impl<'a> Widget for Map<'a> {
                 SiteKind::Tree => self.imgs.mmap_site_tree,
             })
             .x_y_position_relative_to(
-                state.ids.grid_layer_0,
+                state.ids.map_layers[0],
                 position::Relative::Scalar(rpos.x as f64),
                 position::Relative::Scalar(rpos.y as f64),
             )
@@ -810,7 +812,7 @@ impl<'a> Widget for Map<'a> {
                     _ => self.imgs.indicator_group,
                 })
                 .x_y_position_relative_to(
-                    state.ids.grid_layer_0,
+                    state.ids.map_layers[0],
                     position::Relative::Scalar(rpos.x as f64),
                     position::Relative::Scalar(rpos.y as f64),
                 )
@@ -844,7 +846,7 @@ impl<'a> Widget for Map<'a> {
         {
             Image::new(self.rot_imgs.indicator_mmap_small.target_north)
                 .x_y_position_relative_to(
-                    state.ids.grid_layer_0,
+                    state.ids.map_layers[0],
                     position::Relative::Scalar(rpos.x as f64),
                     position::Relative::Scalar(rpos.y as f64),
                 )
@@ -863,7 +865,7 @@ impl<'a> Widget for Map<'a> {
         };
         if Button::image(self.imgs.button)
             .w_h(92.0, icon_size.y)
-            .mid_bottom_with_margin_on(state.ids.grid_layer_0, -36.0)
+            .mid_bottom_with_margin_on(state.ids.map_layers[0], -36.0)
             .hover_image(if recenter {
                 self.imgs.button_hover
             } else {
@@ -895,7 +897,7 @@ impl<'a> Widget for Map<'a> {
         };
 
         Image::new(self.imgs.m_move_ico)
-            .bottom_left_with_margins_on(state.ids.grid_layer_0, -36.0, 0.0)
+            .bottom_left_with_margins_on(state.ids.map_layers[0], -36.0, 0.0)
             .w_h(icon_size.x, icon_size.y)
             .color(Some(UI_HIGHLIGHT_0))
             .set(state.ids.drag_ico, ui);
@@ -903,7 +905,7 @@ impl<'a> Widget for Map<'a> {
             .right_from(state.ids.drag_ico, 5.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
-            .graphics_for(state.ids.grid_layer_0)
+            .graphics_for(state.ids.map_layers[0])
             .color(TEXT_COLOR)
             .set(state.ids.drag_txt, ui);
         Image::new(self.imgs.m_scroll_ico)
@@ -915,7 +917,7 @@ impl<'a> Widget for Map<'a> {
             .right_from(state.ids.zoom_ico, 5.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
-            .graphics_for(state.ids.grid_layer_0)
+            .graphics_for(state.ids.map_layers[0])
             .color(TEXT_COLOR)
             .set(state.ids.zoom_txt, ui);
 

@@ -250,7 +250,6 @@ widget_ids! {
         chat,
         map,
         world_map,
-        world_map_topo,
         character_window,
         popup,
         minimap,
@@ -381,7 +380,6 @@ pub enum Event {
     MapShowCastles(bool),
     MapShowCaves(bool),
     MapShowTrees(bool),
-    MapShowTopo(bool),
     AdjustWindowSize([u16; 2]),
     ChangeFullscreenMode(FullScreenSettings),
     ToggleParticlesEnabled(bool),
@@ -2235,7 +2233,7 @@ impl Hud {
             client,
             &self.imgs,
             &self.rot_imgs,
-            &(&self.world_map_layers.0[1], self.world_map_layers.1),
+            &self.world_map_layers,
             &self.fonts,
             camera.get_orientation(),
             &global_state,
@@ -2826,9 +2824,6 @@ impl Hud {
                     },
                     map::Event::ShowTrees(map_show_trees) => {
                         events.push(Event::MapShowTrees(map_show_trees));
-                    },
-                    map::Event::ShowTopoMap(map_show_topo_map) => {
-                        events.push(Event::MapShowTopo(map_show_topo_map));
                     },
                     map::Event::RequestSiteInfo(id) => {
                         events.push(Event::RequestSiteInfo(id));

@@ -352,8 +352,9 @@ impl Client {
                         let MapConfig {
                             gain,
                             is_contours,
-                            is_hill_shaded,
+                            is_height_map,
                             is_political,
+                            is_roads,
                             ..
                         } = *map_config;
                         let mut is_contour_line = false;
@@ -365,7 +366,8 @@ impl Client {
                             let alti = alt[pos];
                             // Compute contours (chunks are assigned in the river code below)
                             let altj = rescale_height(scale_height_big(alti));
-                            let chunk_contour = (altj * gain / 150.0) as u32;
+                            let contour_interval = 150.0;
+                            let chunk_contour = (altj * gain / contour_interval) as u32;
 
                             // Compute downhill.
                             let downhill = {
@@ -374,7 +376,7 @@ impl Client {
                                 for nposi in neighbors(*map_size_lg, posi) {
                                     let nbh = alt.raw()[nposi];
                                     let nalt = rescale_height(scale_height_big(nbh));
-                                    let nchunk_contour = (nalt * gain / 150.0) as u32;
+                                    let nchunk_contour = (nalt * gain / contour_interval) as u32;
                                     if !is_contour_line && chunk_contour > nchunk_contour {
                                         is_contour_line = true;
                                     }
@@ -412,7 +414,7 @@ impl Client {
                             .unwrap_or(wpos + TerrainChunkSize::RECT_SIZE.map(|e| e as i32));
                         let is_path = rgba.r == 0x37 && rgba.g == 0x29 && rgba.b == 0x23;
                         let rgba = rgba.map(|e: u8| e as f64 / 255.0);
-                        let rgba = if is_hill_shaded {
+                        let rgba = if is_height_map {
                             if is_path  {
                                 // Path color is Rgb::new(0x37, 0x29, 0x23)
                                 Rgba::new(0.9, 0.9, 0.63, 1.0)
@@ -427,9 +429,8 @@ impl Client {
                                 let lightness = (alt + 0.2).min(1.0) as f64;
                                 Rgba::new(lightness, 0.9 * lightness, 0.5 * lightness, 0.5)
                             }
-                        } else if is_contours && is_contour_line {
-                            // Color contour lines
-                            Rgba::new(0.15, 0.15, 0.15, 0.9)
+                        } else if is_roads && is_path {
+                            Rgba::new(0.9, 0.9, 0.63, 1.0)
                         } else if is_political {
                             if is_path {
                                 Rgba::new(0.3, 0.3, 0.3, 1.0)
@@ -438,6 +439,8 @@ impl Client {
                             } else {
                                 Rgba::new(1.0, 0.9, 0.6, 1.0)
                             }
+                        } else if is_contours && is_contour_line {
+                            Rgba::new(0.15, 0.15, 0.15, 0.9)
                         } else {
                             Rgba::new(rgba.r, rgba.g, rgba.b, 0.5)
                         }.map(|e| (e * 255.0) as u8);
@@ -485,8 +488,8 @@ impl Client {
                     },
                 );
                 // Generate topographic map
-                //map_config.is_hill_shaded = true;
                 map_config.is_contours = true;
+                map_config.is_roads = true;
                 map_config.generate(
                     |pos| sample_pos(&map_config, pos, &alt, &rgba, &map_size, &map_size_lg, max_height),
                     |wpos| {

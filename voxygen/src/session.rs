@@ -1356,10 +1356,6 @@ impl PlayState for SessionState {
                         global_state.settings.interface.map_show_trees = map_show_trees;
                         global_state.settings.save_to_file_warn();
                     },
-                    HudEvent::MapShowTopo(map_show_topo) => {
-                        global_state.settings.interface.map_show_topo_map = map_show_topo;
-                        global_state.settings.save_to_file_warn();
-                    },
                     HudEvent::RequestSiteInfo(id) => {
                         let mut client = self.client.borrow_mut();
                         client.request_site_economy(id);

@@ -321,16 +321,19 @@ pub struct MapConfig<'a> {
     ///
     /// Defaults to false.
     pub is_contours: bool,
-    /// If true, hill shading is applied to the terrain and all the
-    /// colors are different. Is incompatible with humidity/temperature/shaded
-    /// maps.
+    /// If true, a yellow/terracotta heightmap shading is applied to the
+    /// terrain and water is a faded blue.
     ///
     /// Defaults to false
-    pub is_hill_shaded: bool,
+    pub is_height_map: bool,
     /// If true, terrain is white, rivers, borders, and roads are black.
     ///
     /// Defaults to false
     pub is_political: bool,
+    /// If true, roads are colored on top of everything else
+    ///
+    /// Defaults to false
+    pub is_roads: bool,
 }
 
 pub const QUADRANTS: usize = 4;
@@ -412,8 +415,9 @@ impl<'a> MapConfig<'a> {
             is_humidity: false,
             is_debug: false,
             is_contours: false,
-            is_hill_shaded: false,
+            is_height_map: false,
             is_political: false,
+            is_roads: false,
         }
     }
 
@@ -511,7 +515,7 @@ impl<'a> MapConfig<'a> {
             let alt = alt as f32;
             let wposi = pos * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
             let rgb = Rgb::new(rgba.r, rgba.g, rgba.b).map(|e| e as f64 / 255.0);
-            let rgba = rgba.map(|e| e as f64 / 255.0);
+            let mut rgba = rgba.map(|e| e as f64 / 255.0);
 
             // Material properties:
             //
@@ -587,7 +591,7 @@ impl<'a> MapConfig<'a> {
             if has_river {
                 let water_rgb = Rgb::new(0, ((g_water) * 1.0) as u8, ((b_water) * 1.0) as u8)
                     .map(|e| e as f64 / 255.0);
-                //rgba = Rgba::new(water_rgb.r, water_rgb.g, water_rgb.b, 1.0);
+                rgba = Rgba::new(water_rgb.r, water_rgb.g, water_rgb.b, rgba.a);
                 k_s = Rgb::new(1.0, 1.0, 1.0);
                 k_d = water_rgb;
                 k_a = water_rgb;
