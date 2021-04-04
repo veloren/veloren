@@ -132,30 +132,30 @@ impl Entity {
     }
 
     pub fn tick(&mut self, time: &Time, terrain: &TerrainGrid, world: &World, index: &IndexRef) {
-        let mut next_pos_calculated = false;
-        let tgt_site = self.brain.tgt.or_else(|| {
-            world
-                .civs()
-                .sites
-                .iter()
-                .filter(|s| match self.get_body() {
-                    comp::Body::Humanoid(_) => s.1.is_settlement() | s.1.is_castle(),
-                    comp::Body::Ship(_) => s.1.is_settlement(),
-                    _ => s.1.is_dungeon(),
-                })
-                .filter(|_| thread_rng().gen_range(0i32..4) == 0)
-                .min_by_key(|(_, site)| {
-                    let wpos = site.center * TerrainChunk::RECT_SIZE.map(|e| e as i32);
-                    let dist = wpos.map(|e| e as f32).distance(self.pos.xy()) as u32;
-                    dist + if dist < 96 { 100_000 } else { 0 }
-                })
-                .map(|(id, _)| id)
-        });
-        self.brain.tgt = tgt_site;
-
-        if self.get_body().is_humanoid() {
-            let begin_site_id = self.brain.begin.or_else(|| {
-                world
+        self.brain.route = match self.brain.route {
+            Travel::Lost => {
+                if !self.get_body().is_humanoid() {
+                    if let Some(target_id) = world
+                        .civs()
+                        .sites
+                        .iter()
+                        .filter(|s| match self.get_body() {
+                            comp::Body::Ship(_) => s.1.is_settlement(),
+                            _ => s.1.is_dungeon(),
+                        })
+                        .filter(|_| thread_rng().gen_range(0i32..4) == 0)
+                        .min_by_key(|(_, site)| {
+                            let wpos = site.center * TerrainChunk::RECT_SIZE.map(|e| e as i32);
+                            let dist = wpos.map(|e| e as f32).distance(self.pos.xy()) as u32;
+                            dist + if dist < 96 { 100_000 } else { 0 }
+                        })
+                        .map(|(id, _)| id)
+                    {
+                        Travel::Direct { target_id }
+                    } else {
+                        Travel::Lost
+                    }
+                } else if let Some(nearest_site_id) = world
                     .civs()
                     .sites
                     .iter()
@@ -164,77 +164,69 @@ impl Entity {
                         wpos.map(|e| e as f32).distance(self.pos.xy()) as u32
                     })
                     .map(|(id, _)| id)
-            });
-            self.brain.begin = begin_site_id;
-
-            if !self.brain.track_computed {
-                begin_site_id
-                    .zip(tgt_site)
-                    .map(|(begin_site_id, tgt_site)| {
-                        let begin_site = &world.civs().sites[begin_site_id];
-
-                        let begin_pos =
-                            begin_site.center * TerrainChunk::RECT_SIZE.map(|e| e as i32);
-                        let begin_dist = begin_pos.map(|e| e as f32).distance(self.pos.xy()) as u32;
-
-                        if begin_dist < 64 {
-                            let track = self
-                                .brain
-                                .track
-                                .or_else(|| world.civs().track_between(begin_site_id, tgt_site));
-                            self.brain.track = track;
-                            self.brain.track_progress = 0;
-                            self.brain.track_computed = true;
+                {
+                    let nearest_site = &world.civs().sites[nearest_site_id];
+                    let site_wpos = nearest_site.center * TerrainChunk::RECT_SIZE.map(|e| e as i32);
+                    let dist = site_wpos.map(|e| e as f32).distance(self.pos.xy()) as u32;
+                    if dist < 32 {
+                        Travel::InSite {
+                            site_id: nearest_site_id,
                         }
-                    });
-            }
-
-            if self.brain.track_computed && self.brain.track.is_some() && tgt_site.is_some() {
-                let track_id = self
-                    .brain
-                    .track
-                    .expect("Track id is none after is_some check"); // track checked above
-                let track = &world.civs().tracks.get(track_id);
-
-                let site =
-                    &world.civs().sites[tgt_site.expect("Target site is none after is_some check")]; // tgt_site checked above
+                    } else {
+                        Travel::Direct {
+                            target_id: nearest_site_id,
+                        }
+                    }
+                } else {
+                    // Somehow no nearest site could be found
+                    // Logically this should never happen, but if it does the rtsim entity will just
+                    // sit tight
+                    Travel::Lost
+                }
+            },
+            Travel::InSite { site_id } => {
+                if !self.get_body().is_humanoid() {
+                    // Non humanoids don't care if they start at a site
+                    Travel::Lost
+                } else if let Some(target_id) = world
+                    .civs()
+                    .sites
+                    .iter()
+                    .filter(|s| s.1.is_settlement() | s.1.is_castle())
+                    .filter(|_| thread_rng().gen_range(0i32..4) == 0)
+                    .min_by_key(|(_, site)| {
+                        let wpos = site.center * TerrainChunk::RECT_SIZE.map(|e| e as i32);
+                        let dist = wpos.map(|e| e as f32).distance(self.pos.xy()) as u32;
+                        dist + if dist < 96 { 100_000 } else { 0 }
+                    })
+                    .map(|(id, _)| id)
+                {
+                    if let Some(track_id) = world.civs().track_between(site_id, target_id) {
+                        Travel::Path {
+                            target_id,
+                            track_id,
+                            progress: 0,
+                            reversed: false,
+                        }
+                    } else {
+                        Travel::Direct { target_id }
+                    }
+                } else {
+                    Travel::InSite { site_id }
+                }
+            },
+            Travel::Direct { target_id } => {
+                let site = &world.civs().sites[target_id];
                 let destination_name = site
                     .site_tmp
                     .map_or("".to_string(), |id| index.sites[id].name().to_string());
-                if let Some(sim_pos) = track.path().iter().nth(self.brain.track_progress) {
-                    let chunkpos = sim_pos * TerrainChunk::RECT_SIZE.map(|e| e as i32);
-                    let wpos = if let Some(pathdata) = world.sim().get_nearest_path(chunkpos) {
-                        pathdata.1.map(|e| e as i32)
-                    } else {
-                        chunkpos
-                    };
-                    let dist = wpos.map(|e| e as f32).distance(self.pos.xy()) as u32;
 
-                    if dist < 32 {
-                        if !self.brain.track_reversed {
-                            self.brain.track_progress += 1;
-                            if self.brain.track_progress > track.path().len() {
-                                self.brain.track = None;
-                                self.brain.track_reversed = false;
-                            }
-                        }
-                        if self.brain.track_progress == 0 {
-                            self.brain.track = None;
-                            self.brain.track_reversed = false;
-                        } else {
-                            self.brain.track_progress -= 1;
-                        }
-                    }
+                let wpos = site.center * TerrainChunk::RECT_SIZE.map(|e| e as i32);
+                let dist = wpos.map(|e| e as f32).distance(self.pos.xy()) as u32;
 
-                    if self.brain.track_progress == 0 && dist > 128 {
-                        if !self.brain.track_reversed {
-                            self.brain.track_reversed = true;
-                        } else {
-                            self.brain.track = None;
-                            self.brain.track_reversed = false;
-                        }
-                    }
-
+                if dist < 64 {
+                    Travel::InSite { site_id: target_id }
+                } else {
                     let travel_to = self.pos.xy()
                         + Vec3::from(
                             (wpos.map(|e| e as f32 + 0.5) - self.pos.xy())
@@ -253,51 +245,98 @@ impl Entity {
                         ))
                         .map(|e| e as f32)
                         + Vec3::new(0.5, 0.5, 0.0);
+
                     self.controller.travel_to = Some((travel_to, destination_name));
                     self.controller.speed_factor = 0.70;
-                    next_pos_calculated = true;
+                    Travel::Direct { target_id }
                 }
-            }
-        }
+            },
+            Travel::Path {
+                target_id,
+                track_id,
+                progress,
+                reversed,
+            } => {
+                let track = &world.civs().tracks.get(track_id);
+                let site = &world.civs().sites[target_id];
+                let destination_name = site
+                    .site_tmp
+                    .map_or("".to_string(), |id| index.sites[id].name().to_string());
+                let nth = if reversed {
+                    track.path().len() - progress
+                } else {
+                    progress
+                };
 
-        if !next_pos_calculated && tgt_site.is_some() {
-            let site =
-                &world.civs().sites[tgt_site.expect("Target site is None after is_some check")];
-            let destination_name = site
-                .site_tmp
-                .map_or("".to_string(), |id| index.sites[id].name().to_string());
+                if let Some(sim_pos) = track.path().iter().nth(nth) {
+                    let chunkpos = sim_pos * TerrainChunk::RECT_SIZE.map(|e| e as i32);
+                    let wpos = if let Some(pathdata) = world.sim().get_nearest_path(chunkpos) {
+                        pathdata.1.map(|e| e as i32)
+                    } else {
+                        chunkpos
+                    };
+                    let dist = wpos.map(|e| e as f32).distance(self.pos.xy()) as u32;
 
-            let wpos = site.center * TerrainChunk::RECT_SIZE.map(|e| e as i32);
-            let dist = wpos.map(|e| e as f32).distance(self.pos.xy()) as u32;
-
-            if dist < 64 {
-                self.brain.tgt = None;
-                self.brain.begin = None;
-                self.brain.track_computed = false;
-            }
-
-            let travel_to = self.pos.xy()
-                + Vec3::from(
-                    (wpos.map(|e| e as f32 + 0.5) - self.pos.xy())
-                        .try_normalized()
-                        .unwrap_or_else(Vec2::zero),
-                ) * 64.0;
-            let travel_to_alt = world
-                .sim()
-                .get_alt_approx(travel_to.map(|e| e as i32))
-                .unwrap_or(0.0) as i32;
-            let travel_to = terrain
-                .find_space(Vec3::new(
-                    travel_to.x as i32,
-                    travel_to.y as i32,
-                    travel_to_alt,
-                ))
-                .map(|e| e as f32)
-                + Vec3::new(0.5, 0.5, 0.0);
-
-            self.controller.travel_to = Some((travel_to, destination_name));
-            self.controller.speed_factor = 0.70;
-        }
+                    match dist {
+                        d if d < 32 => {
+                            if progress + 1 > track.path().len() {
+                                Travel::InSite { site_id: target_id }
+                            } else {
+                                Travel::Path {
+                                    target_id,
+                                    track_id,
+                                    progress: progress + 1,
+                                    reversed,
+                                }
+                            }
+                        },
+                        d if d > 256 => {
+                            if !reversed && progress == 0 {
+                                Travel::Path {
+                                    target_id,
+                                    track_id,
+                                    progress: 0,
+                                    reversed: true,
+                                }
+                            } else {
+                                Travel::Direct { target_id }
+                            }
+                        },
+                        _ => {
+                            let travel_to = self.pos.xy()
+                                + Vec3::from(
+                                    (wpos.map(|e| e as f32 + 0.5) - self.pos.xy())
+                                        .try_normalized()
+                                        .unwrap_or_else(Vec2::zero),
+                                ) * 64.0;
+                            let travel_to_alt = world
+                                .sim()
+                                .get_alt_approx(travel_to.map(|e| e as i32))
+                                .unwrap_or(0.0)
+                                as i32;
+                            let travel_to = terrain
+                                .find_space(Vec3::new(
+                                    travel_to.x as i32,
+                                    travel_to.y as i32,
+                                    travel_to_alt,
+                                ))
+                                .map(|e| e as f32)
+                                + Vec3::new(0.5, 0.5, 0.0);
+                            self.controller.travel_to = Some((travel_to, destination_name));
+                            self.controller.speed_factor = 0.70;
+                            Travel::Path {
+                                target_id,
+                                track_id,
+                                progress,
+                                reversed,
+                            }
+                        },
+                    }
+                } else {
+                    Travel::Lost
+                }
+            },
+        };
 
         // Forget old memories
         self.brain
@@ -306,14 +345,31 @@ impl Entity {
     }
 }
 
+enum Travel {
+    Lost,
+    InSite {
+        site_id: Id<Site>,
+    },
+    Direct {
+        target_id: Id<Site>,
+    },
+    Path {
+        target_id: Id<Site>,
+        track_id: Id<Track>,
+        progress: usize,
+        reversed: bool,
+    },
+}
+
+impl Default for Travel {
+    fn default() -> Self { Self::Lost }
+}
+
 #[derive(Default)]
 pub struct Brain {
     begin: Option<Id<Site>>,
     tgt: Option<Id<Site>>,
-    track: Option<Id<Track>>,
-    track_progress: usize,
-    track_computed: bool,
-    track_reversed: bool,
+    route: Travel,
     memories: Vec<Memory>,
 }
 
