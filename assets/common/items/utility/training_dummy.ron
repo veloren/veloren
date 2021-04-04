@@ -5,5 +5,5 @@ ItemDef(
         kind: TrainingDummy,
     ),
     quality: Moderate,
-    tags: [],
+    tags: [Utility],
 )

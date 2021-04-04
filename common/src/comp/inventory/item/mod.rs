@@ -96,6 +96,12 @@ pub enum ItemTag {
     ModularComponent(ModularComponentTag),
     MetalIngot,
     Cultist,
+    Potion,
+    Food,
+    BaseMaterial, // Cloth-scraps, Leather...
+    CraftingTool, // Pickaxe, Craftsman-Hammer, Sewing-Set
+    Utility,
+    Bag,
 }
 
 impl TagExampleInfo for ItemTag {
@@ -106,9 +112,16 @@ impl TagExampleInfo for ItemTag {
             ItemTag::ModularComponent(kind) => kind.name(),
             ItemTag::MetalIngot => "metal ingot",
             ItemTag::Cultist => "cultist",
+            ItemTag::Potion => "potion",
+            ItemTag::Food => "food",
+            ItemTag::BaseMaterial => "basemat",
+            ItemTag::CraftingTool => "tool",
+            ItemTag::Utility => "utility",
+            ItemTag::Bag => "bag",
         }
     }
 
+    // TODO: Autogenerate these?
     fn exemplar_identifier(&self) -> &'static str {
         match self {
             ItemTag::ClothItem => "common.items.tag_examples.cloth_item",
@@ -116,6 +129,12 @@ impl TagExampleInfo for ItemTag {
             ItemTag::ModularComponent(tag) => tag.exemplar_identifier(),
             ItemTag::MetalIngot => "common.items.tag_examples.metal_ingot",
             ItemTag::Cultist => "common.items.tag_examples.cultist",
+            ItemTag::Potion => "common.items.tag_examples.placeholder",
+            ItemTag::Food => "common.items.tag_examples.placeholder",
+            ItemTag::BaseMaterial => "common.items.tag_examples.placeholder",
+            ItemTag::CraftingTool => "common.items.tag_examples.placeholder",
+            ItemTag::Utility => "common.items.tag_examples.placeholder",
+            ItemTag::Bag => "common.items.tag_examples.placeholder",
         }
     }
 }

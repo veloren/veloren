@@ -5,5 +5,5 @@ ItemDef(
         kind: Firework(Yellow),
     ),
     quality: Moderate,
-    tags: [],
+    tags: [Utility],
 )

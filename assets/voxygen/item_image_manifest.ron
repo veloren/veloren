@@ -4,6 +4,10 @@
 ({
     // Weapons
     // Diary Example Images
+    Tool("example_utility"): VoxTrans(
+        "voxel.weapon.projectile.fireworks_green-0",
+        (0.0, 0.5, 0.0), (-50.0, 40.0, 20.0), 0.8,
+    ),
     Tool("example_sword"): VoxTrans(
         "voxel.weapon.sword.greatsword_2h_dullahan",
         (0.0, 0.0, 0.0), (90.0, 80.0, 0.0), 1.0,

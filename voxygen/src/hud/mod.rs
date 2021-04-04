@@ -31,7 +31,7 @@ use buffs::BuffsBar;
 use buttons::Buttons;
 use chat::Chat;
 use chrono::NaiveTime;
-use crafting::Crafting;
+use crafting::{Crafting, SelectedCraftingTab};
 use diary::{Diary, SelectedSkillTree};
 use esc_menu::EscMenu;
 use group::Group;
@@ -544,6 +544,7 @@ pub struct Show {
     ingame: bool,
     settings_tab: SettingsTab,
     skilltreetab: SelectedSkillTree,
+    crafting_tab: SelectedCraftingTab,
     social_tab: SocialTab,
     want_grab: bool,
     stats: bool,
@@ -726,6 +727,10 @@ impl Show {
         self.skilltreetab = tree_sel;
         self.social = false;
     }
+
+    fn selected_crafting_tab(&mut self, sel_cat: SelectedCraftingTab) {
+        self.crafting_tab = sel_cat;
+    }
 }
 
 pub struct PromptDialogSettings {
@@ -865,6 +870,7 @@ impl Hud {
                 group_menu: false,
                 settings_tab: SettingsTab::Interface,
                 skilltreetab: SelectedSkillTree::General,
+                crafting_tab: SelectedCraftingTab::Armor,
                 social_tab: SocialTab::Online,
                 want_grab: true,
                 ingame: true,
@@ -2431,6 +2437,8 @@ impl Hud {
                     &self.item_imgs,
                     &inventory,
                     &msm,
+                    tooltip_manager,
+                    &mut self.show,
                 )
                 .set(self.ids.crafting_window, ui_widgets)
                 {
@@ -2448,6 +2456,9 @@ impl Hud {
                             } else {
                                 self.force_ungrab = true
                             };
+                        },
+                        crafting::Event::ChangeCraftingTab(sel_cat) => {
+                            self.show.selected_crafting_tab(sel_cat);
                         },
                     }
                 }

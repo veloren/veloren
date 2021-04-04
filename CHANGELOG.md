@@ -17,11 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Admin designated build areas
 - Indicator text to collectable terrain sprites
 - You can now autorequest exact change by ctrl-clicking in a trade, and can quick-add individual items with shift-click.
-<<<<<<< HEAD
 - Buy and sell prices in tooltips when trading with a merchant now have colors.
-=======
 - Attacks now emit sound effects from the target on hit.
->>>>>>> e2f8d1d27 (Changelog)
+- Crafting menu tabs
+
 
 ### Changed
 
@@ -31,16 +30,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Separated character randomization buttons into appearance and name.
 - Reworked mindflayer to have unique attacks
 - Glowing remains are now `Armor` instead of `Ingredients`.
-- Generated a net world map
+- Generated a new world map
 - Overhauled clouds for more verticality and performance
 - New tooltip for items with stats comparison
 - Improved bow feedback, added arrow particles
-<<<<<<< HEAD
 - Retiered most sceptres and staves
 - Loot tables can now recursively reference loot tables
-=======
 - "max_sfx_channels" default now set to 30
->>>>>>> e2f8d1d27 (Changelog)
 
 ### Removed
 
