@@ -5,6 +5,7 @@ use common::{
         Shockwave, ShockwaveHitEntities, Stats,
     },
     event::{EventBus, ServerEvent},
+    outcome::Outcome,
     resources::{DeltaTime, Time},
     uid::{Uid, UidAllocator},
     util::Dir,
@@ -13,7 +14,7 @@ use common::{
 use common_ecs::{Job, Origin, Phase, System};
 use specs::{
     saveload::MarkerAllocator, shred::ResourceId, Entities, Join, Read, ReadStorage, SystemData,
-    World, WriteStorage,
+    World, Write, WriteStorage,
 };
 use vek::*;
 
@@ -47,6 +48,7 @@ impl<'a> System<'a> for Sys {
         ReadData<'a>,
         WriteStorage<'a, Shockwave>,
         WriteStorage<'a, ShockwaveHitEntities>,
+        Write<'a, Vec<Outcome>>,
     );
 
     const NAME: &'static str = "shockwave";
@@ -55,7 +57,7 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         _job: &mut Job<Self>,
-        (read_data, mut shockwaves, mut shockwave_hit_lists): Self::SystemData,
+        (read_data, mut shockwaves, mut shockwave_hit_lists, mut outcomes): Self::SystemData,
     ) {
         let mut server_emitter = read_data.server_bus.emitter();
 
@@ -189,6 +191,7 @@ impl<'a> System<'a> for Sys {
                         inventory: read_data.inventories.get(target),
                         stats: read_data.stats.get(target),
                         health: read_data.healths.get(target),
+                        pos: pos.0,
                     };
 
                     shockwave.properties.attack.apply_attack(
@@ -199,6 +202,7 @@ impl<'a> System<'a> for Sys {
                         false,
                         1.0,
                         |e| server_emitter.emit(e),
+                        |o| outcomes.push(o),
                     );
 
                     shockwave_hit_list.hit_entities.push(*uid_b);

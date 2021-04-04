@@ -72,7 +72,7 @@ impl EventMapper for CampfireEventMapper {
                         .map(|b| b.is_liquid())
                         .unwrap_or(false);
                     let sfx_trigger_item = triggers.get_key_value(&mapped_event);
-                    const CAMPFIRE_VOLUME: f32 = 0.1;
+                    const CAMPFIRE_VOLUME: f32 = 0.9;
                     audio.emit_sfx(sfx_trigger_item, pos.0, Some(CAMPFIRE_VOLUME), underwater);
                     internal_state.time = Instant::now();
                 }

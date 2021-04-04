@@ -677,7 +677,7 @@ impl Default for AudioSettings {
             master_volume: 1.0,
             music_volume: 0.4,
             sfx_volume: 0.6,
-            max_sfx_channels: 10,
+            max_sfx_channels: 30,
             output: AudioOutput::Automatic,
         }
     }

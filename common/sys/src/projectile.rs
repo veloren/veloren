@@ -129,6 +129,7 @@ impl<'a> System<'a> for Sys {
                                     inventory: read_data.inventories.get(target),
                                     stats: read_data.stats.get(target),
                                     health: read_data.healths.get(target),
+                                    pos: pos.0,
                                 };
 
                                 if let Some(&body) = read_data.bodies.get(entity) {
@@ -152,6 +153,7 @@ impl<'a> System<'a> for Sys {
                                     false,
                                     1.0,
                                     |e| server_emitter.emit(e),
+                                    |o| outcomes.push(o),
                                 );
                             }
                         },

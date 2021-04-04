@@ -1,8 +1,7 @@
-use crate::comp::buff::BuffKind;
 #[cfg(not(target_arch = "wasm32"))]
 use crate::{
     comp::{
-        buff::{Buff, BuffChange, BuffData, BuffSource},
+        buff::{Buff, BuffChange, BuffData, BuffKind, BuffSource},
         inventory::{
             item::{
                 armor::Protection,
@@ -17,6 +16,7 @@ use crate::{
         Inventory, Stats,
     },
     event::ServerEvent,
+    outcome::Outcome,
     uid::Uid,
     util::Dir,
 };
@@ -54,6 +54,7 @@ pub struct TargetInfo<'a> {
     pub inventory: Option<&'a Inventory>,
     pub stats: Option<&'a Stats>,
     pub health: Option<&'a Health>,
+    pub pos: Vec3<f32>,
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -115,6 +116,7 @@ impl Attack {
         // Currently just modifies damage, maybe look into modifying strength of other effects?
         strength_modifier: f32,
         mut emit: impl FnMut(ServerEvent),
+        mut emit_outcome: impl FnMut(Outcome),
     ) {
         let is_crit = thread_rng().gen::<f32>() < self.crit_chance;
         let mut accumulated_damage = 0.0;
@@ -134,6 +136,7 @@ impl Attack {
             );
             let applied_damage = -change.amount as f32;
             accumulated_damage += applied_damage;
+            emit_outcome(Outcome::Damage { pos: target.pos });
             if change.amount != 0 {
                 emit(ServerEvent::Damage {
                     entity: target.entity,

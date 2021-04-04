@@ -56,6 +56,9 @@ pub enum Outcome {
         pos: Vec3<f32>,
         body: comp::Body,
     },
+    Damage {
+        pos: Vec3<f32>,
+    },
 }
 
 impl Outcome {
@@ -66,7 +69,8 @@ impl Outcome {
             | Outcome::ProjectileHit { pos, .. }
             | Outcome::Beam { pos, .. }
             | Outcome::SkillPointGain { pos, .. }
-            | Outcome::SummonedCreature { pos, .. } => Some(*pos),
+            | Outcome::SummonedCreature { pos, .. }
+            | Outcome::Damage { pos, .. } => Some(*pos),
             Outcome::BreakBlock { pos, .. } => Some(pos.map(|e| e as f32 + 0.5)),
             Outcome::ExpChange { .. } | Outcome::ComboChange { .. } => None,
         }

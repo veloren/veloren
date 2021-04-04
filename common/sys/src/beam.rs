@@ -5,6 +5,7 @@ use common::{
         Scale, Stats,
     },
     event::{EventBus, ServerEvent},
+    outcome::Outcome,
     resources::{DeltaTime, Time},
     terrain::TerrainGrid,
     uid::{Uid, UidAllocator},
@@ -15,7 +16,7 @@ use common_ecs::{Job, Origin, ParMode, Phase, System};
 use rayon::iter::ParallelIterator;
 use specs::{
     saveload::MarkerAllocator, shred::ResourceId, Entities, Join, ParJoin, Read, ReadExpect,
-    ReadStorage, SystemData, World, WriteStorage,
+    ReadStorage, SystemData, World, Write, WriteStorage,
 };
 use std::time::Duration;
 use vek::*;
@@ -49,13 +50,17 @@ impl<'a> System<'a> for Sys {
         ReadData<'a>,
         WriteStorage<'a, BeamSegment>,
         WriteStorage<'a, Beam>,
+        Write<'a, Vec<Outcome>>,
     );
 
     const NAME: &'static str = "beam";
     const ORIGIN: Origin = Origin::Common;
     const PHASE: Phase = Phase::Create;
 
-    fn run(job: &mut Job<Self>, (read_data, mut beam_segments, mut beams): Self::SystemData) {
+    fn run(
+        job: &mut Job<Self>,
+        (read_data, mut beam_segments, mut beams, mut outcomes): Self::SystemData,
+    ) {
         let mut server_emitter = read_data.server_bus.emitter();
 
         let time = read_data.time.0;
@@ -64,24 +69,25 @@ impl<'a> System<'a> for Sys {
         job.cpu_stats.measure(ParMode::Rayon);
 
         // Beams
-        let (server_events, add_hit_entities) = (
+        let (server_events, add_hit_entities, mut new_outcomes) = (
             &read_data.entities,
             &read_data.positions,
             &read_data.orientations,
             &beam_segments,
         )
             .par_join()
-            .fold(|| (Vec::new(), Vec::new()), |(mut server_events, mut add_hit_entities), (entity, pos, ori, beam_segment)|
+            .fold(|| (Vec::new(), Vec::new(), Vec::new()),
+            |(mut server_events, mut add_hit_entities, mut outcomes),
+            (entity, pos, ori, beam_segment)|
         {
             let creation_time = match beam_segment.creation {
                 Some(time) => time,
                 // Skip newly created beam segments
-                None => return (server_events, add_hit_entities),
+                None => return (server_events, add_hit_entities, outcomes),
             };
             let end_time = creation_time + beam_segment.duration.as_secs_f64();
-
             // If beam segment is out of time emit destroy event but still continue since it
-            // may have traveled and produced effects a bit before reaching it's
+            // may have traveled and produced effects a bit before reaching its
             // end point
             if end_time < time {
                 server_events.push(ServerEvent::Destroy {
@@ -93,7 +99,7 @@ impl<'a> System<'a> for Sys {
             // Determine area that was covered by the beam in the last tick
             let frame_time = dt.min((end_time - time) as f32);
             if frame_time <= 0.0 {
-                return (server_events, add_hit_entities);
+                return (server_events, add_hit_entities, outcomes);
             }
             // Note: min() probably uneeded
             let time_since_creation = (time - creation_time) as f32;
@@ -112,7 +118,7 @@ impl<'a> System<'a> for Sys {
             let hit_entities = if let Some(beam) = beam_owner.and_then(|e| beams.get(e)) {
                 &beam.hit_entities
             } else {
-                return (server_events, add_hit_entities);
+                return (server_events, add_hit_entities, outcomes);
             };
 
             // Go through all other effectable entities
@@ -181,6 +187,7 @@ impl<'a> System<'a> for Sys {
                         inventory: read_data.inventories.get(target),
                         stats: read_data.stats.get(target),
                         health: read_data.healths.get(target),
+                        pos: pos.0,
                     };
 
                     beam_segment.properties.attack.apply_attack(
@@ -191,19 +198,23 @@ impl<'a> System<'a> for Sys {
                         false,
                         1.0,
                         |e| server_events.push(e),
+                        |o| outcomes.push(o),
                     );
 
                     add_hit_entities.push((beam_owner, *uid_b));
                 }
             }
-            (server_events, add_hit_entities)
-        }).reduce(|| (Vec::new(), Vec::new()), |(mut events_a, mut hit_entities_a), (mut events_b, mut hit_entities_b)| {
-            events_a.append(&mut events_b);
-            hit_entities_a.append(&mut hit_entities_b);
-            (events_a, hit_entities_a)
-        });
-
+            (server_events, add_hit_entities, outcomes)
+        }).reduce(|| (Vec::new(), Vec::new(), Vec::new()),
+            |(mut events_a, mut hit_entities_a, mut outcomes_a),
+            (mut events_b, mut hit_entities_b, mut outcomes_b)| {
+                events_a.append(&mut events_b);
+                hit_entities_a.append(&mut hit_entities_b);
+                outcomes_a.append(&mut outcomes_b);
+                (events_a, hit_entities_a, outcomes_a)
+            });
         job.cpu_stats.measure(ParMode::Single);
+        outcomes.append(&mut new_outcomes);
 
         for event in server_events {
             server_emitter.emit(event);
