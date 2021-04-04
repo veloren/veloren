@@ -168,6 +168,8 @@ pub enum SfxEvent {
     Inventory(SfxInventoryEvent),
     Explosion,
     ProjectileShot,
+    Damage,
+    // Poise(StunState),
 }
 
 #[derive(Clone, Debug, PartialEq, Deserialize, Hash, Eq)]
@@ -311,7 +313,7 @@ impl SfxMgr {
                 let file_ref = if *is_attack && matches!(reagent, Some(Reagent::Green)) {
                     "voxygen.audio.sfx.abilities.heal_bomb"
                 } else {
-                    "voxygen.audio.sfx.explosion"
+                    "voxygen.audio.sfx.abilities.explosion"
                 };
 
                 audio.play_sfx(
@@ -370,10 +372,10 @@ impl SfxMgr {
                     | object::Body::ArrowTurret,
                 ) => {
                     if target.is_none() {
-                        audio.play_sfx("voxygen.audio.sfx.arrow_miss", *pos, Some(2.0));
+                        audio.play_sfx("voxygen.audio.sfx.character.arrow_miss", *pos, Some(2.0));
                     } else if *source == client.uid() {
                         audio.play_sfx(
-                            "voxygen.audio.sfx.arrow_hit",
+                            "voxygen.audio.sfx.character.arrow_hit",
                             client.position().unwrap_or(*pos),
                             Some(2.0),
                         );
@@ -389,12 +391,16 @@ impl SfxMgr {
             },
             Outcome::Beam { pos, specifier } => match specifier {
                 beam::FrontendSpecifier::LifestealBeam | beam::FrontendSpecifier::HealingBeam => {
-                    let file_ref = "voxygen.audio.sfx.abilities.staff_channeling";
-                    audio.play_sfx(file_ref, *pos, None);
+                    let file_ref = "voxygen.audio.sfx.abilities.sceptre_channeling";
+                    if thread_rng().gen_bool(0.5) {
+                        audio.play_sfx(file_ref, *pos, None);
+                    };
                 },
                 beam::FrontendSpecifier::Flamethrower | beam::FrontendSpecifier::Cultist => {
                     let file_ref = "voxygen.audio.sfx.abilities.flame_thrower";
-                    audio.play_sfx(file_ref, *pos, None);
+                    if thread_rng().gen_bool(0.5) {
+                        audio.play_sfx(file_ref, *pos, None);
+                    }
                 },
             },
             Outcome::BreakBlock { pos, .. } => {
@@ -404,6 +410,15 @@ impl SfxMgr {
             Outcome::ExpChange { .. }
             | Outcome::ComboChange { .. }
             | Outcome::SummonedCreature { .. } => {},
+            Outcome::Damage { pos, .. } => {
+                let file_ref = vec![
+                    "voxygen.audio.sfx.character.hit_1",
+                    "voxygen.audio.sfx.character.hit_2",
+                    "voxygen.audio.sfx.character.hit_3",
+                    "voxygen.audio.sfx.character.hit_4",
+                ][rand::thread_rng().gen_range(1..4)];
+                audio.play_sfx(file_ref, *pos, None);
+            },
         }
     }
 

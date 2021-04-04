@@ -544,17 +544,17 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
     // Add an outcome
     // Uses radius as outcome power for now
     let outcome_power = explosion.radius;
-    ecs.write_resource::<Vec<Outcome>>()
-        .push(Outcome::Explosion {
-            pos,
-            power: outcome_power,
-            radius: explosion.radius,
-            is_attack: explosion
-                .effects
-                .iter()
-                .any(|e| matches!(e, RadiusEffect::Attack(_))),
-            reagent: explosion.reagent,
-        });
+    let mut outcomes = ecs.write_resource::<Vec<Outcome>>();
+    outcomes.push(Outcome::Explosion {
+        pos,
+        power: outcome_power,
+        radius: explosion.radius,
+        is_attack: explosion
+            .effects
+            .iter()
+            .any(|e| matches!(e, RadiusEffect::Attack(_))),
+        reagent: explosion.reagent,
+    });
     let owner_entity = owner.and_then(|uid| {
         ecs.read_resource::<UidAllocator>()
             .retrieve_entity_internal(uid.into())
@@ -711,6 +711,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                             inventory: inventory_b_maybe,
                             stats: stats_b_maybe,
                             health: Some(health_b),
+                            pos,
                         };
 
                         let server_eventbus = ecs.read_resource::<EventBus<ServerEvent>>();
@@ -723,6 +724,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                             false,
                             strength,
                             |e| server_eventbus.emit_now(e),
+                            |o| outcomes.push(o),
                         );
                     }
                 }

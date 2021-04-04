@@ -5,13 +5,14 @@ use common::{
         Stats,
     },
     event::{EventBus, ServerEvent},
+    outcome::Outcome,
     uid::Uid,
     util::Dir,
     GroupTarget,
 };
 use common_ecs::{Job, Origin, Phase, System};
 use specs::{
-    shred::ResourceId, Entities, Join, Read, ReadStorage, SystemData, World, WriteStorage,
+    shred::ResourceId, Entities, Join, Read, ReadStorage, SystemData, World, Write, WriteStorage,
 };
 use vek::*;
 
@@ -39,13 +40,17 @@ pub struct ReadData<'a> {
 pub struct Sys;
 
 impl<'a> System<'a> for Sys {
-    type SystemData = (ReadData<'a>, WriteStorage<'a, Melee>);
+    type SystemData = (
+        ReadData<'a>,
+        WriteStorage<'a, Melee>,
+        Write<'a, Vec<Outcome>>,
+    );
 
     const NAME: &'static str = "melee";
     const ORIGIN: Origin = Origin::Common;
     const PHASE: Phase = Phase::Create;
 
-    fn run(_job: &mut Job<Self>, (read_data, mut melee_attacks): Self::SystemData) {
+    fn run(_job: &mut Job<Self>, (read_data, mut melee_attacks, mut outcomes): Self::SystemData) {
         let mut server_emitter = read_data.server_bus.emitter();
         // Attacks
         for (attacker, uid, pos, ori, melee_attack, body) in (
@@ -141,6 +146,7 @@ impl<'a> System<'a> for Sys {
                         inventory: read_data.inventories.get(target),
                         stats: read_data.stats.get(target),
                         health: read_data.healths.get(target),
+                        pos: pos.0,
                     };
 
                     melee_attack.attack.apply_attack(
@@ -151,6 +157,7 @@ impl<'a> System<'a> for Sys {
                         is_dodge,
                         1.0,
                         |e| server_emitter.emit(e),
+                        |o| outcomes.push(o),
                     );
 
                     melee_attack.hit_count += 1;

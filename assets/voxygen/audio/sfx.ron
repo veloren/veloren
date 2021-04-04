@@ -194,7 +194,7 @@
         //),
         GliderOpen: (
             files: [
-                "voxygen.audio.sfx.glider_open",
+                "voxygen.audio.sfx.character.glider_open",
             ],
             threshold: 0.5,
         ),
@@ -206,7 +206,7 @@
         //),
         GliderClose: (
             files: [
-                "voxygen.audio.sfx.glider_close",
+                "voxygen.audio.sfx.character.glider_close",
             ],
             threshold: 0.5,
         ),

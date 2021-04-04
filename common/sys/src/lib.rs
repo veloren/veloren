@@ -11,7 +11,7 @@ pub mod melee;
 mod mount;
 pub mod phys;
 #[cfg(feature = "plugins")] pub mod plugin;
-mod projectile;
+pub mod projectile;
 mod shockwave;
 pub mod state;
 mod stats;
@@ -34,6 +34,5 @@ pub fn add_local_systems(dispatch_builder: &mut DispatcherBuilder) {
     dispatch::<projectile::Sys>(dispatch_builder, &[&phys::Sys::sys_name()]);
     dispatch::<shockwave::Sys>(dispatch_builder, &[&phys::Sys::sys_name()]);
     dispatch::<beam::Sys>(dispatch_builder, &[&phys::Sys::sys_name()]);
-    dispatch::<melee::Sys>(dispatch_builder, &[&projectile::Sys::sys_name()]);
     dispatch::<aura::Sys>(dispatch_builder, &[]);
 }

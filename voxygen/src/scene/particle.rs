@@ -208,6 +208,7 @@ impl ParticleMgr {
             | Outcome::ExpChange { .. }
             | Outcome::SkillPointGain { .. }
             | Outcome::ComboChange { .. } => {},
+            Outcome::Damage { .. } => {},
         }
     }
 
