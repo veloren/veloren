@@ -599,15 +599,12 @@ impl LoadoutBuilder {
                     let mut item_with_amount = |item_id: &str, amount: &mut f32| {
                         if *amount > 0.0 {
                             let mut item = Item::new_from_asset_expect(&item_id);
-                            if *amount > 1.0 && item.is_stackable() {
-                                let n = rng.gen_range(0..amount.min(100.0) as u32).max(1);
-                                item.set_amount(n).unwrap_or_else(|_| {
-                                    panic!("{} should be stackable (n={})", item_id, n)
-                                });
-                                *amount -= n as f32;
+                            let n = rng.gen_range(0..amount.min(100.0) as u32).max(1);
+                            *amount -= if item.set_amount(n).is_ok() {
+                                n as f32
                             } else {
-                                *amount -= 1.0;
-                            }
+                                1.0
+                            };
                             Some(item)
                         } else {
                             None
