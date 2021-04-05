@@ -1,0 +1,13 @@
+/// 警告: ローカライズファイルは、UTF-8のBOM無しで保存する必要があります
+
+/// Localization for 日本語 Japanese
+(
+    string_map: {
+        "esc_menu.logout": "ログアウト",
+        "esc_menu.quit_game": "ゲーム終了",
+    },
+
+
+    vector_map: {
+    }
+)
