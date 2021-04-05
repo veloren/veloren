@@ -440,7 +440,7 @@ impl Client {
                                 Rgba::new(1.0, 0.9, 0.6, 1.0)
                             }
                         } else if is_contours && is_contour_line {
-                            Rgba::new(0.15, 0.15, 0.15, 0.9)
+                            Rgba::new(0.15, 0.15, 0.15, 0.8)
                         } else {
                             Rgba::new(rgba.r, rgba.g, rgba.b, 0.5)
                         }.map(|e| (e * 255.0) as u8);

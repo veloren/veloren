@@ -71,7 +71,7 @@ const SHOW_ECONOMY: bool = false; // turn this display off (for 0.9) until we ha
 #[derive(WidgetCommon)]
 pub struct Map<'a> {
     client: &'a Client,
-    world_map_layers: &'a (Vec<img_ids::Rotations>, Vec2<u32>),
+    world_map: &'a (Vec<img_ids::Rotations>, Vec2<u32>),
     imgs: &'a Imgs,
     fonts: &'a Fonts,
     #[conrod(common_builder)]
@@ -88,7 +88,7 @@ impl<'a> Map<'a> {
         client: &'a Client,
         imgs: &'a Imgs,
         rot_imgs: &'a ImgsRot,
-        world_map_layers: &'a (Vec<img_ids::Rotations>, Vec2<u32>),
+        world_map: &'a (Vec<img_ids::Rotations>, Vec2<u32>),
         fonts: &'a Fonts,
         pulse: f32,
         localized_strings: &'a Localization,
@@ -98,7 +98,7 @@ impl<'a> Map<'a> {
         Self {
             imgs,
             rot_imgs,
-            world_map_layers,
+            world_map,
             client,
             fonts,
             common: widget::CommonBuilder::default(),
@@ -267,12 +267,12 @@ impl<'a> Widget for Map<'a> {
         }*/
         // Map Layers
         // It is assumed that there is at least one layer
-        if state.ids.map_layers.len() < self.world_map_layers.0.len() {
+        if state.ids.map_layers.len() < self.world_map.0.len() {
             state.update(|state| {
                 state
                     .ids
                     .map_layers
-                    .resize(self.world_map_layers.0.len(), &mut ui.widget_id_generator())
+                    .resize(self.world_map.0.len(), &mut ui.widget_id_generator())
             });
         }
 
@@ -283,7 +283,7 @@ impl<'a> Widget for Map<'a> {
             .set(state.ids.map_layers[0], ui);
 
         // Map Size
-        let worldsize = self.world_map_layers.1;
+        let worldsize = self.world_map.1;
 
         // Coordinates
         let player_pos = self
@@ -334,7 +334,7 @@ impl<'a> Widget for Map<'a> {
         }
 
         // Map Layer Images
-        for (index, layer) in self.world_map_layers.0.iter().enumerate() {
+        for (index, layer) in self.world_map.0.iter().enumerate() {
             if index == 0 {
                 Image::new(layer.none)
                     .mid_top_with_margin_on(state.ids.map_align, 10.0)
@@ -603,6 +603,7 @@ impl<'a> Widget for Map<'a> {
             // Convert to relative pixel coordinates from the center of the map
             // Accounting for zooming
             let rpos = rfpos.map2(map_size, |e, sz| e * sz as f32 * zoom as f32);
+            let rside = zoom * 6.0;
 
             if rpos
                 .map2(map_size, |e, sz| e.abs() > sz as f32 / 2.0)
@@ -641,7 +642,7 @@ impl<'a> Widget for Map<'a> {
                 position::Relative::Scalar(rpos.x as f64),
                 position::Relative::Scalar(rpos.y as f64),
             )
-            .w_h(20.0 * 1.2, 20.0 * 1.2)
+            .w_h(rside * 1.2, rside * 1.2)
             .hover_image(match &site.kind {
                 SiteKind::Town => self.imgs.mmap_site_town_hover,
                 SiteKind::Dungeon { .. } => self.imgs.mmap_site_dungeon_hover,
@@ -700,16 +701,16 @@ impl<'a> Widget for Map<'a> {
                     _ => self.imgs.nothing,
                 })
                 .mid_top_with_margin_on(state.ids.mmap_site_icons[i], match difficulty {
-                    5 => -12.0 * size,
-                    _ => -4.0 * size,
+                    5 => -2.0 * zoom * size,
+                    _ => -1.0 * zoom * size,
                 })
                 .w(match difficulty {
-                    5 => 12.0 * size,
-                    _ => 4.0 * size * difficulty as f64,
+                    5 => 2.0 * zoom * size,
+                    _ => 1.0 * zoom * size * difficulty as f64,
                 })
                 .h(match difficulty {
-                    5 => 12.0 * size,
-                    _ => 4.0 * size,
+                    5 => 2.0 * size * zoom,
+                    _ => 1.0 * zoom * size,
                 })
                 .color(Some(match difficulty {
                     0 => QUALITY_LOW,

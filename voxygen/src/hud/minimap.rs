@@ -47,7 +47,7 @@ pub struct MiniMap<'a> {
 
     imgs: &'a Imgs,
     rot_imgs: &'a ImgsRot,
-    world_map_layers: &'a (Vec<img_ids::Rotations>, Vec2<u32>),
+    world_map: &'a (Vec<img_ids::Rotations>, Vec2<u32>),
     fonts: &'a Fonts,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
@@ -60,7 +60,7 @@ impl<'a> MiniMap<'a> {
         client: &'a Client,
         imgs: &'a Imgs,
         rot_imgs: &'a ImgsRot,
-        world_map_layers: &'a (Vec<img_ids::Rotations>, Vec2<u32>),
+        world_map: &'a (Vec<img_ids::Rotations>, Vec2<u32>),
         fonts: &'a Fonts,
         ori: Vec3<f32>,
         global_state: &'a GlobalState,
@@ -69,7 +69,7 @@ impl<'a> MiniMap<'a> {
             client,
             imgs,
             rot_imgs,
-            world_map_layers,
+            world_map,
             fonts,
             common: widget::CommonBuilder::default(),
             ori,
@@ -99,7 +99,7 @@ impl<'a> Widget for MiniMap<'a> {
             ids: Ids::new(id_gen),
 
             zoom: {
-                let min_world_dim = self.world_map_layers.1.reduce_partial_min() as f64;
+                let min_world_dim = self.world_map.1.reduce_partial_min() as f64;
                 min_world_dim.min(
                     min_world_dim
                         * (TerrainChunkSize::RECT_SIZE.reduce_partial_max() as f64 / 32.0)
@@ -140,15 +140,15 @@ impl<'a> Widget for MiniMap<'a> {
                 .set(state.ids.mmap_frame_bg, ui);
 
             // Map size in chunk coords
-            let worldsize = self.world_map_layers.1;
+            let worldsize = self.world_map.1;
             // Map Layers
             // It is assumed that there is at least one layer
-            if state.ids.map_layers.len() < self.world_map_layers.0.len() {
+            if state.ids.map_layers.len() < self.world_map.0.len() {
                 state.update(|state| {
                     state
                         .ids
                         .map_layers
-                        .resize(self.world_map_layers.0.len(), &mut ui.widget_id_generator())
+                        .resize(self.world_map.0.len(), &mut ui.widget_id_generator())
                 });
             }
 
@@ -259,7 +259,7 @@ impl<'a> Widget for MiniMap<'a> {
 
             // Map Image
             // Map Layer Images
-            for (index, layer) in self.world_map_layers.0.iter().enumerate() {
+            for (index, layer) in self.world_map.0.iter().enumerate() {
                 let world_map_rotation = if is_facing_north {
                     layer.none
                 } else {
@@ -350,7 +350,7 @@ impl<'a> Widget for MiniMap<'a> {
                     SiteKind::Cave => Color::Rgba(1.0, 1.0, 1.0, 0.0),
                     SiteKind::Tree => Color::Rgba(1.0, 1.0, 1.0, 0.0),
                 }))
-                .parent(state.ids.map_layers[0])
+                .parent(state.ids.map_layers[2])
                 .set(state.ids.mmap_site_icons_bgs[i], ui);
                 Image::new(match &site.kind {
                     SiteKind::Town => self.imgs.mmap_site_town,
