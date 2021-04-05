@@ -64,8 +64,9 @@ use common::{
     resources::TimeOfDay,
     rtsim::RtSimEntity,
     slowjob::SlowJobPool,
-    terrain::TerrainChunkSize,
+    terrain::{TerrainChunk, TerrainChunkSize},
     uid::UidAllocator,
+    vol::RectRasterableVol,
 };
 use common_ecs::run_now;
 use common_net::{
@@ -78,7 +79,7 @@ use common_net::{
 use common_sys::plugin::memory_manager::EcsWorld;
 #[cfg(feature = "plugins")]
 use common_sys::plugin::PluginMgr;
-use common_sys::state::State;
+use common_sys::state::{BuildAreas, State};
 use metrics::{EcsSystemMetrics, PhysicsMetrics, TickMetrics};
 use network::{Network, Pid, ProtocolAddr};
 use persistence::{
@@ -324,6 +325,23 @@ impl Server {
 
         // Set the spawn point we calculated above
         state.ecs_mut().insert(SpawnPoint(spawn_point));
+
+        // Insert a default AABB for the world
+        // TODO: prevent this from being deleted
+        {
+            let mut build_areas = state.ecs().write_resource::<BuildAreas>();
+            let world_size = world.sim().get_size().map(|e| e as i32)
+                * TerrainChunk::RECT_SIZE.map(|e| e as i32);
+            let world_aabb = Aabb {
+                min: Vec3::new(0, 0, -32768),
+                max: Vec3::new(world_size.x, world_size.y, 32767),
+            }
+            .made_valid();
+            let world_aabb_id = build_areas.areas.insert(world_aabb);
+            build_areas
+                .area_names
+                .insert("world".to_string(), world_aabb_id);
+        }
 
         // Insert the world into the ECS (todo: Maybe not an Arc?)
         let world = Arc::new(world);

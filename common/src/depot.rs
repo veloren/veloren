@@ -94,7 +94,7 @@ impl<T> Depot<T> {
             if entry.gen == id.gen {
                 entry.item.as_ref()
             } else {
-                panic!("Stale ID used to access depot entry");
+                None
             }
         } else {
             None
@@ -106,7 +106,7 @@ impl<T> Depot<T> {
             if entry.gen == id.gen {
                 entry.item.as_mut()
             } else {
-                panic!("Stale ID used to access depot entry");
+                None
             }
         } else {
             None
