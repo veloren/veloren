@@ -1049,18 +1049,18 @@ impl CharacterAbility {
                             *damage *= 1.2_f32.powi(level.into());
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Sceptre(LRange)) {
-                            let range_mod = 1.25_f32.powi(level.into());
+                            let range_mod = 1.2_f32.powi(level.into());
                             *range *= range_mod;
                             // Duration modified to keep velocity constant
                             *beam_duration *= range_mod;
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Sceptre(LRegen)) {
-                            *energy_regen *= 1.25_f32.powi(level.into());
+                            *energy_regen *= 1.2_f32.powi(level.into());
                         }
                         if let (Ok(Some(level)), Some(CombatEffect::Lifesteal(ref mut lifesteal))) =
                             (skillset.skill_level(Sceptre(LLifesteal)), damage_effect)
                         {
-                            *lifesteal *= 1.3_f32.powi(level.into());
+                            *lifesteal *= 1.15_f32.powi(level.into());
                         }
                     },
                     HealingBeam {
@@ -1074,7 +1074,7 @@ impl CharacterAbility {
                             *heal *= 1.2_f32.powi(level.into());
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Sceptre(HRange)) {
-                            let range_mod = 1.25_f32.powi(level.into());
+                            let range_mod = 1.2_f32.powi(level.into());
                             *range *= range_mod;
                             // Duration modified to keep velocity constant
                             *beam_duration *= range_mod;
@@ -1090,16 +1090,16 @@ impl CharacterAbility {
                         ..
                     } => {
                         if let Ok(Some(level)) = skillset.skill_level(Sceptre(AStrength)) {
-                            aura.strength *= 1.2_f32.powi(level.into());
+                            aura.strength *= 1.15_f32.powi(level.into());
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Sceptre(ADuration)) {
-                            aura.duration.map(|dur| dur * 1.3_f32.powi(level.into()));
+                            aura.duration.map(|dur| dur * 1.2_f32.powi(level.into()));
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Sceptre(ARange)) {
                             *range *= 1.25_f32.powi(level.into());
                         }
                         if let Ok(Some(level)) = skillset.skill_level(Sceptre(ACost)) {
-                            *energy_cost *= 0.8_f32.powi(level.into());
+                            *energy_cost *= 0.85_f32.powi(level.into());
                         }
                     },
                     _ => {},
