@@ -291,7 +291,7 @@ impl<'a> Widget for Crafting<'a> {
                 SelectedCraftingTab::Tool => "Tools",
                 SelectedCraftingTab::Utility => "Utility",
                 SelectedCraftingTab::Weapon => "Weapons",
-                SelectedCraftingTab::Bag => "Weapons",
+                SelectedCraftingTab::Bag => "Bags",
             };
             let tab_img = match i.1 {
                 SelectedCraftingTab::Armor => self.imgs.icon_armor,
