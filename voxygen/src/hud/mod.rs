@@ -434,6 +434,7 @@ pub enum Event {
     ChangeAutoWalkBehavior(PressBehavior),
     ChangeCameraClampBehavior(PressBehavior),
     ChangeStopAutoWalkOnInput(bool),
+    ChangeAutoCamera(bool),
     CraftRecipe(String),
     InviteMember(Uid),
     AcceptInvite,
@@ -2662,6 +2663,9 @@ impl Hud {
                     },
                     settings_window::Event::ChangeStopAutoWalkOnInput(state) => {
                         events.push(Event::ChangeStopAutoWalkOnInput(state));
+                    },
+                    settings_window::Event::ChangeAutoCamera(state) => {
+                        events.push(Event::ChangeAutoCamera(state));
                     },
                     settings_window::Event::ResetInterfaceSettings => {
                         self.show.help = false;

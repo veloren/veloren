@@ -52,6 +52,17 @@ pub struct Camera {
     frustum: Frustum<f32>,
 }
 
+fn clamp_and_modulate(ori: Vec3<f32>) -> Vec3<f32> {
+    Vec3 {
+        // Wrap camera yaw
+        x: ori.x.rem_euclid(2.0 * PI),
+        // Clamp camera pitch to the vertical limits
+        y: ori.y.min(PI / 2.0 - 0.0001).max(-PI / 2.0 + 0.0001),
+        // Wrap camera roll
+        z: ori.z.rem_euclid(2.0 * PI),
+    }
+}
+
 impl Camera {
     /// Create a new `Camera` with default parameters.
     pub fn new(aspect: f32, mode: CameraMode) -> Self {
@@ -156,23 +167,12 @@ impl Camera {
     }
 
     /// Set the orientation of the camera about its focus.
-    pub fn set_orientation(&mut self, ori: Vec3<f32>) {
-        // Wrap camera yaw
-        self.tgt_ori.x = ori.x.rem_euclid(2.0 * PI);
-        // Clamp camera pitch to the vertical limits
-        self.tgt_ori.y = ori.y.min(PI / 2.0 - 0.0001).max(-PI / 2.0 + 0.0001);
-        // Wrap camera roll
-        self.tgt_ori.z = ori.z.rem_euclid(2.0 * PI);
-    }
+    pub fn set_orientation(&mut self, ori: Vec3<f32>) { self.tgt_ori = clamp_and_modulate(ori); }
 
     /// Set the orientation of the camera about its focus without lerping.
-    pub fn set_ori_instant(&mut self, ori: Vec3<f32>) {
-        // Wrap camera yaw
-        self.ori.x = ori.x.rem_euclid(2.0 * PI);
-        // Clamp camera pitch to the vertical limits
-        self.ori.y = ori.y.min(PI / 2.0 - 0.0001).max(-PI / 2.0 + 0.0001);
-        // Wrap camera roll
-        self.ori.z = ori.z.rem_euclid(2.0 * PI);
+    pub fn set_orientation_instant(&mut self, ori: Vec3<f32>) {
+        self.set_orientation(ori);
+        self.ori = self.tgt_ori;
     }
 
     /// Zoom the camera by the given delta, limiting the input accordingly.
@@ -249,15 +249,16 @@ impl Camera {
             Lerp::lerp(a, b + *offs, rate)
         };
 
-        if smoothing_enabled {
-            self.set_ori_instant(Vec3::new(
+        let ori = if smoothing_enabled {
+            Vec3::new(
                 lerp_angle(self.ori.x, self.tgt_ori.x, LERP_ORI_RATE * dt),
                 Lerp::lerp(self.ori.y, self.tgt_ori.y, LERP_ORI_RATE * dt),
                 lerp_angle(self.ori.z, self.tgt_ori.z, LERP_ORI_RATE * dt),
-            ));
+            )
         } else {
-            self.set_ori_instant(self.tgt_ori)
+            self.tgt_ori
         };
+        self.ori = clamp_and_modulate(ori);
     }
 
     pub fn interp_time(&self) -> f32 {

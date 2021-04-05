@@ -732,6 +732,27 @@ impl PlayState for SessionState {
             // Get the current state of movement related inputs
             let input_vec = self.key_state.dir_vec();
             let (axis_right, axis_up) = (input_vec[0], input_vec[1]);
+            let dt = global_state.clock.get_stable_dt().as_secs_f32();
+
+            // Auto camera mode
+            if global_state.settings.gameplay.auto_camera
+                && matches!(
+                    self.scene.camera().get_mode(),
+                    camera::CameraMode::ThirdPerson | camera::CameraMode::FirstPerson
+                )
+                && input_vec.magnitude_squared() > 0.0
+            {
+                let camera = self.scene.camera_mut();
+                let ori = camera.get_orientation();
+                camera.set_orientation_instant(Vec3::new(
+                    ori.x
+                        + input_vec.x
+                            * (3.0 - input_vec.y * 1.5 * if is_aiming { 1.5 } else { 1.0 })
+                            * dt,
+                    std::f32::consts::PI * if is_aiming { 0.015 } else { 0.1 },
+                    0.0,
+                ));
+            }
 
             match self.scene.camera().get_mode() {
                 camera::CameraMode::FirstPerson | camera::CameraMode::ThirdPerson => {
@@ -753,7 +774,6 @@ impl PlayState for SessionState {
                     let right = self.scene.camera().right();
                     let dir = right * axis_right + forward * axis_up;
 
-                    let dt = global_state.clock.get_stable_dt().as_secs_f32();
                     if self.freefly_vel.magnitude_squared() > 0.01 {
                         let new_vel = self.freefly_vel
                             - self.freefly_vel.normalized() * (FREEFLY_DAMPING * dt);
@@ -1404,6 +1424,10 @@ impl PlayState for SessionState {
                     },
                     HudEvent::ChangeStopAutoWalkOnInput(state) => {
                         global_state.settings.gameplay.stop_auto_walk_on_input = state;
+                        global_state.settings.save_to_file_warn();
+                    },
+                    HudEvent::ChangeAutoCamera(state) => {
+                        global_state.settings.gameplay.auto_camera = state;
                         global_state.settings.save_to_file_warn();
                     },
                     HudEvent::CraftRecipe(r) => {

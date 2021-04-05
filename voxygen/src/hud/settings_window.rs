@@ -243,6 +243,8 @@ widget_ids! {
         camera_clamp_behavior_list,
         stop_auto_walk_on_input_button,
         stop_auto_walk_on_input_label,
+        auto_camera_button,
+        auto_camera_label,
     }
 }
 
@@ -350,6 +352,7 @@ pub enum Event {
     ChangeAutoWalkBehavior(PressBehavior),
     ChangeCameraClampBehavior(PressBehavior),
     ChangeStopAutoWalkOnInput(bool),
+    ChangeAutoCamera(bool),
 }
 
 #[derive(Clone)]
@@ -1703,7 +1706,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 self.imgs.checkbox_checked,
             )
             .w_h(18.0, 18.0)
-            .right_from(state.ids.auto_walk_behavior_text, 80.0)
+            .down_from(state.ids.smooth_pan_toggle_button, 8.0)
             .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
             .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
             .set(state.ids.stop_auto_walk_on_input_button, ui);
@@ -1727,6 +1730,32 @@ impl<'a> Widget for SettingsWindow<'a> {
             .graphics_for(state.ids.stop_auto_walk_on_input_button)
             .color(TEXT_COLOR)
             .set(state.ids.stop_auto_walk_on_input_label, ui);
+
+            // Auto-camera toggle
+            let auto_camera_toggle = ToggleButton::new(
+                self.global_state.settings.gameplay.auto_camera,
+                self.imgs.checkbox,
+                self.imgs.checkbox_checked,
+            )
+            .w_h(18.0, 18.0)
+            .down_from(state.ids.stop_auto_walk_on_input_button, 8.0)
+            .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+            .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+            .set(state.ids.auto_camera_button, ui);
+
+            if self.global_state.settings.gameplay.auto_camera != auto_camera_toggle {
+                events.push(Event::ChangeAutoCamera(
+                    !self.global_state.settings.gameplay.auto_camera,
+                ));
+            }
+
+            Text::new(&self.localized_strings.get("hud.settings.auto_camera"))
+                .right_from(state.ids.auto_camera_button, 10.0)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
+                .graphics_for(state.ids.auto_camera_button)
+                .color(TEXT_COLOR)
+                .set(state.ids.auto_camera_label, ui);
 
             // Reset the gameplay settings to the default settings
             if Button::image(self.imgs.button)
