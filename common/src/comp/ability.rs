@@ -335,11 +335,11 @@ impl CharacterAbility {
 
     pub fn default_roll() -> CharacterAbility {
         CharacterAbility::Roll {
-            energy_cost: 150.0,
+            energy_cost: 120.0,
             buildup_duration: 0.05,
-            movement_duration: 0.28,
+            movement_duration: 0.33,
             recover_duration: 0.125,
-            roll_strength: 1.8,
+            roll_strength: 2.0,
             immune_melee: false,
         }
     }
@@ -1117,13 +1117,13 @@ impl CharacterAbility {
                     use skills::RollSkill::*;
                     *immune_melee = skillset.has_skill(Skill::Roll(ImmuneMelee));
                     if let Ok(Some(level)) = skillset.skill_level(Skill::Roll(Cost)) {
-                        *energy_cost *= 0.8_f32.powi(level.into());
+                        *energy_cost *= 0.9_f32.powi(level.into());
                     }
                     if let Ok(Some(level)) = skillset.skill_level(Skill::Roll(Strength)) {
-                        *roll_strength *= 1.2_f32.powi(level.into());
+                        *roll_strength *= 1.1_f32.powi(level.into());
                     }
                     if let Ok(Some(level)) = skillset.skill_level(Skill::Roll(Duration)) {
-                        *movement_duration *= 1.2_f32.powi(level.into());
+                        *movement_duration *= 1.1_f32.powi(level.into());
                     }
                 }
             },
