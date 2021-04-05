@@ -731,6 +731,24 @@ impl Show {
     fn selected_crafting_tab(&mut self, sel_cat: SelectedCraftingTab) {
         self.crafting_tab = sel_cat;
     }
+
+    /// If all of the menus are closed, adjusts coordinates of cursor to center
+    /// of screen
+    fn toggle_cursor_on_menu_close(&self, global_state: &mut GlobalState) {
+        if !self.bag
+            && !self.trade
+            && !self.esc_menu
+            && !self.map
+            && !self.social
+            && !self.crafting
+            && !self.diary
+            && !self.help
+            && !self.intro
+            && global_state.window.is_cursor_grabbed()
+        {
+            global_state.window.center_cursor();
+        }
+    }
 }
 
 pub struct PromptDialogSettings {
@@ -3340,67 +3358,74 @@ impl Hud {
             },
 
             // Press key while not typing
-            WinEvent::InputUpdate(key, state) if !self.typing() => match key {
-                GameInput::Command if state => {
-                    self.force_chat_input = Some("/".to_owned());
-                    self.force_chat_cursor = Some(Index { line: 0, char: 1 });
-                    self.ui.focus_widget(Some(self.ids.chat));
-                    true
-                },
-                GameInput::Map if state => {
-                    self.show.toggle_map();
-                    true
-                },
-                GameInput::Bag if state => {
-                    self.show.toggle_bag();
-                    true
-                },
-                GameInput::Social if state => {
-                    self.show.toggle_social();
-                    true
-                },
-                GameInput::Crafting if state => {
-                    self.show.toggle_crafting();
-                    true
-                },
-                GameInput::Spellbook if state => {
-                    self.show.toggle_spell();
-                    true
-                },
-                GameInput::Settings if state => {
-                    self.show.toggle_settings(global_state);
-                    true
-                },
-                GameInput::Help if state => {
-                    self.show.toggle_settings(global_state);
-                    self.show.settings_tab = SettingsTab::Controls;
-                    true
-                },
-                GameInput::ToggleDebug if state => {
-                    global_state.settings.interface.toggle_debug =
-                        !global_state.settings.interface.toggle_debug;
-                    self.show.debug = global_state.settings.interface.toggle_debug;
-                    true
-                },
-                GameInput::ToggleIngameUi if state => {
-                    self.show.ingame = !self.show.ingame;
-                    true
-                },
-                // Skillbar
-                input => {
-                    if let Some(slot) = try_hotbar_slot_from_input(input) {
-                        handle_slot(
-                            slot,
-                            state,
-                            &mut self.events,
-                            &mut self.slot_manager,
-                            &mut self.hotbar,
-                        );
+            WinEvent::InputUpdate(key, state) if !self.typing() => {
+                let matching_key = match key {
+                    GameInput::Command if state => {
+                        self.force_chat_input = Some("/".to_owned());
+                        self.force_chat_cursor = Some(Index { line: 0, char: 1 });
+                        self.ui.focus_widget(Some(self.ids.chat));
                         true
-                    } else {
-                        false
-                    }
-                },
+                    },
+                    GameInput::Map if state => {
+                        self.show.toggle_map();
+                        true
+                    },
+                    GameInput::Bag if state => {
+                        self.show.toggle_bag();
+                        true
+                    },
+                    GameInput::Social if state => {
+                        self.show.toggle_social();
+                        true
+                    },
+                    GameInput::Crafting if state => {
+                        self.show.toggle_crafting();
+                        true
+                    },
+                    GameInput::Spellbook if state => {
+                        self.show.toggle_spell();
+                        true
+                    },
+                    GameInput::Settings if state => {
+                        self.show.toggle_settings(global_state);
+                        true
+                    },
+                    GameInput::Help if state => {
+                        self.show.toggle_settings(global_state);
+                        self.show.settings_tab = SettingsTab::Controls;
+                        true
+                    },
+                    GameInput::ToggleDebug if state => {
+                        global_state.settings.interface.toggle_debug =
+                            !global_state.settings.interface.toggle_debug;
+                        self.show.debug = global_state.settings.interface.toggle_debug;
+                        true
+                    },
+                    GameInput::ToggleIngameUi if state => {
+                        self.show.ingame = !self.show.ingame;
+                        true
+                    },
+                    // Skillbar
+                    input => {
+                        if let Some(slot) = try_hotbar_slot_from_input(input) {
+                            handle_slot(
+                                slot,
+                                state,
+                                &mut self.events,
+                                &mut self.slot_manager,
+                                &mut self.hotbar,
+                            );
+                            true
+                        } else {
+                            false
+                        }
+                    },
+                };
+
+                // When a player closes all menus, resets the cursor
+                // to the center of the screen
+                self.show.toggle_cursor_on_menu_close(global_state);
+                matching_key
             },
             // Else the player is typing in chat
             WinEvent::InputUpdate(_key, _) => self.typing(),

@@ -1036,7 +1036,11 @@ impl Window {
                 self.events.push(Event::Focused(state));
             },
             WindowEvent::CursorMoved { position, .. } => {
-                self.cursor_position = position;
+                if self.cursor_grabbed {
+                    self.center_cursor();
+                } else {
+                    self.cursor_position = position;
+                }
             },
             WindowEvent::MouseWheel { delta, .. } if self.cursor_grabbed && self.focused => {
                 const DIFFERENCE_FROM_DEVICE_EVENT_ON_X11: f32 = -15.0;
@@ -1088,6 +1092,23 @@ impl Window {
         self.cursor_grabbed = grab;
         self.window.window().set_cursor_visible(!grab);
         let _ = self.window.window().set_cursor_grab(grab);
+    }
+
+    /// Moves mouse cursor to center of screen
+    /// based on the window dimensions
+    pub fn center_cursor(&self) {
+        let dimensions: Vec2<f64> = self.logical_size();
+
+        if let Err(err) =
+            self.window
+                .window()
+                .set_cursor_position(winit::dpi::PhysicalPosition::new(
+                    dimensions[0] / (2_f64),
+                    dimensions[1] / (2_f64),
+                ))
+        {
+            error!("Error centering cursor position: {:?}", err);
+        }
     }
 
     pub fn toggle_fullscreen(&mut self, settings: &mut Settings) {
