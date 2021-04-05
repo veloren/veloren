@@ -81,7 +81,7 @@ impl Animation for ChargeswingAnimation {
                 next.chest.orientation =
                     Quaternion::rotation_z(short * 0.04 + (move1 * 2.0 + move2 * -3.5));
                 next.belt.orientation = Quaternion::rotation_z(short * 0.08 + (move1 * -1.0));
-                next.shorts.orientation = Quaternion::rotation_z(short * 0.15 + (move1 * -1.0));
+                next.shorts.orientation = Quaternion::rotation_z(short * 0.15 + (move1 * -1.5));
                 next.head.position = Vec3::new(
                     0.0 + (move1 * -1.0 + move2 * 2.0),
                     s_a.head.0 + (move1 * 1.0),
@@ -128,14 +128,13 @@ impl Animation for ChargeswingAnimation {
                         next.control_l.position = Vec3::new(
                             -7.0 + move1 * 4.0,
                             8.0 + move1 * 2.0 + move2 * 4.0,
-                            2.0 + move1 * -1.0 + slowrise * 8.0,
+                            2.0 + move1 * -1.0 + slowrise * 20.0,
                         );
-                        next.control_l.orientation =
-                            Quaternion::rotation_x(-0.3 + move2 * 1.0 + slowrise * -1.5)
-                                * Quaternion::rotation_y(
-                                    tension * 0.07 + move1 * -1.2 + slowrise * 0.5,
-                                )
-                                * Quaternion::rotation_z(move2 * 1.0);
+                        next.control_l.orientation = Quaternion::rotation_x(-0.3 + move2 * -1.0)
+                            * Quaternion::rotation_y(
+                                tension * 0.07 + move1 * -1.2 + slowrise * 0.5,
+                            )
+                            * Quaternion::rotation_z(move2 * 1.0);
                         next.hand_l.position = Vec3::new(0.0, -0.5, 0.0);
                         next.hand_l.orientation = Quaternion::rotation_x(1.57)
                     },
@@ -152,11 +151,11 @@ impl Animation for ChargeswingAnimation {
                         next.control_r.position = Vec3::new(
                             7.0 + move1 * 1.0 + move2 * -20.0,
                             8.0 + move1 * 1.0 + move2 * 4.0,
-                            2.0 + move1 * -3.0 + slowrise * 8.0,
+                            2.0 + move1 * -3.0 + slowrise * 20.0,
                         );
-                        next.control_r.orientation = Quaternion::rotation_x(-0.3 + move2 * 1.0)
+                        next.control_r.orientation = Quaternion::rotation_x(-0.3 + move2 * -1.0)
                             * Quaternion::rotation_y(
-                                tension * -0.07 + move1 * -2.0 + slowrise * 0.5,
+                                tension * -0.07 + move1 * -2.0 + slowrise * 1.5,
                             )
                             * Quaternion::rotation_z(move2 * 1.0);
                         next.hand_r.position = Vec3::new(0.0, -0.5, 0.0);

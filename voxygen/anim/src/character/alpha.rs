@@ -97,23 +97,23 @@ impl Animation for AlphaAnimation {
             Some(ToolKind::Hammer) | Some(ToolKind::HammerSimple) | Some(ToolKind::Pick) => {
                 let (move1, move2, move3) = match stage_section {
                     Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
-                    Some(StageSection::Swing) => (1.0, anim_time, 0.0),
+                    Some(StageSection::Swing) => (1.0, anim_time.powf(0.25), 0.0),
                     Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
                     _ => (0.0, 0.0, 0.0),
                 };
+                let pullback = (1.0 - move3);
+                let moveret1 = move1 * pullback;
+                let moveret2 = move2 * pullback;
                 next.main.position = Vec3::new(0.0, 0.0, 0.0);
                 next.main.orientation = Quaternion::rotation_x(0.0);
 
                 next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
-                next.head.orientation =
-                    Quaternion::rotation_x((move1 * 0.1 + move2 * 0.3) * (1.0 - move3))
-                        * Quaternion::rotation_z((move1 * -0.2 + move2 * 0.2) * (1.0 - move3));
-                next.chest.position =
-                    Vec3::new(0.0, s_a.chest.0, s_a.chest.1 + move2 * -2.0 * (1.0 - move3));
-                next.chest.orientation =
-                    Quaternion::rotation_x((move1 * 0.4 + move2 * -0.7) * (1.0 - move3))
-                        * Quaternion::rotation_y((move1 * 0.3 + move2 * -0.4) * (1.0 - move3))
-                        * Quaternion::rotation_z((move1 * 0.5 + move2 * -0.5) * (1.0 - move3));
+                next.head.orientation = Quaternion::rotation_x((moveret1 * 0.1 + moveret2 * 0.3))
+                    * Quaternion::rotation_z((move1 * -0.2 + moveret2 * 0.2));
+                next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1 + moveret2 * -2.0);
+                next.chest.orientation = Quaternion::rotation_x((moveret1 * 0.4 + moveret2 * -0.7))
+                    * Quaternion::rotation_y((moveret1 * 0.3 + moveret2 * -0.4))
+                    * Quaternion::rotation_z((moveret1 * 0.5 + moveret2 * -0.5));
             },
             Some(ToolKind::Debug) => {
                 next.hand_l.position = Vec3::new(-7.0, 4.0, 3.0);
@@ -173,8 +173,11 @@ impl Animation for AlphaAnimation {
                         Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
                         _ => (0.0, 0.0, 0.0),
                     };
+                    let pullback = (1.0 - move3);
+                    let moveret1 = move1 * pullback;
+                    let moveret2 = move2 * pullback;
                     next.hand_l.position =
-                        Vec3::new(s_a.hhl.0, s_a.hhl.1, s_a.hhl.2 + move2 * -7.0);
+                        Vec3::new(s_a.hhl.0, s_a.hhl.1, s_a.hhl.2 + moveret2 * -7.0);
                     next.hand_l.orientation =
                         Quaternion::rotation_x(s_a.hhl.3) * Quaternion::rotation_y(s_a.hhl.4);
                     next.hand_r.position = Vec3::new(s_a.hhr.0, s_a.hhr.1, s_a.hhr.2);
@@ -182,16 +185,14 @@ impl Animation for AlphaAnimation {
                         Quaternion::rotation_x(s_a.hhr.3) * Quaternion::rotation_y(s_a.hhr.4);
 
                     next.control.position = Vec3::new(
-                        s_a.hc.0 + (move1 * -13.0) * (1.0 - move3),
-                        s_a.hc.1 + (move2 * 5.0) * (1.0 - move3),
-                        s_a.hc.2,
+                        s_a.hc.0 + moveret1 * -13.0 + moveret2 * 3.0,
+                        s_a.hc.1 + (moveret2 * 5.0),
+                        s_a.hc.2 + moveret1 * 5.0 + moveret2 * -8.0,
                     );
                     next.control.orientation =
-                        Quaternion::rotation_x(s_a.hc.3 + (move1 * 1.5 + move2 * -2.5))
-                            * (1.0 - move3)
-                            * Quaternion::rotation_y(s_a.hc.4 + (move1 * 1.57))
-                            * (1.0 - move3)
-                            * Quaternion::rotation_z(s_a.hc.5 + (move2 * -0.5) * (1.0 - move3));
+                        Quaternion::rotation_x(s_a.hc.3 + (moveret1 * 1.5 + moveret2 * -2.9))
+                            * Quaternion::rotation_y(s_a.hc.4 + moveret1 * 1.57 + moveret2 * 0.5)
+                            * Quaternion::rotation_z(s_a.hc.5 + (moveret2 * -0.5));
                 },
                 _ => {},
             },
@@ -230,7 +231,7 @@ impl Animation for AlphaAnimation {
                             2.0 + move1 * 16.0 + move2 * -19.0,
                         );
                         next.control_l.orientation =
-                            Quaternion::rotation_x(-0.3 + move1 * 1.3 + move2 * -2.3)
+                            Quaternion::rotation_x(-0.3 + move1 * 1.9 + move2 * -3.0)
                                 * Quaternion::rotation_y(0.0)
                                 * Quaternion::rotation_z(0.0);
                         next.hand_l.position = Vec3::new(0.0, -0.5, 0.0);
@@ -271,10 +272,10 @@ impl Animation for AlphaAnimation {
                         next.control_r.position = Vec3::new(
                             7.0,
                             8.0 + move1 * -4.0 + move2h * 4.0,
-                            2.0 + move1 * 16.0 + move2h * -21.0,
+                            2.0 + move1 * 12.0 + move2h * -16.0,
                         );
                         next.control_r.orientation =
-                            Quaternion::rotation_x(-0.3 + move1 * 1.3 + move2h * -2.3)
+                            Quaternion::rotation_x(-0.3 + move1 * 2.3 + move2h * -3.5)
                                 * Quaternion::rotation_y(0.0)
                                 * Quaternion::rotation_z(0.0);
                         next.hand_r.position = Vec3::new(0.0, -0.5, 0.0);
