@@ -49,10 +49,10 @@ widget_ids! {
         bg_frame,
         char_ico,
         coin_ico,
-        cheese_ico,
+        //cheese_ico,
         space_txt,
         coin_txt,
-        cheese_txt,
+        //cheese_txt,
         inventory_title,
         inventory_title_bg,
         scrollbar_bg,
@@ -339,8 +339,10 @@ impl<'a> InventoryScroller<'a> {
         let bag_space_percentage = space_used as f32 / space_max as f32;
         let coin_itemdef = Arc::<ItemDef>::load_expect_cloned("common.items.utility.coins");
         let coin_count = self.inventory.item_count(&coin_itemdef);
-        let cheese_itemdef = Arc::<ItemDef>::load_expect_cloned("common.items.food.cheese");
-        let cheese_count = self.inventory.item_count(&cheese_itemdef);
+        // TODO: Reuse this to generally count a stackable item the player selected
+        //let cheese_itemdef =
+        // Arc::<ItemDef>::load_expect_cloned("common.items.food.cheese");
+        // let cheese_count = self.inventory.item_count(&cheese_itemdef);
 
         // Coin Icon and Coin Text
         Image::new(self.imgs.coin_ico)
@@ -353,8 +355,9 @@ impl<'a> InventoryScroller<'a> {
             .font_size(self.fonts.cyri.scale(14))
             .color(Color::Rgba(0.871, 0.863, 0.05, 1.0))
             .set(state.ids.coin_txt, ui);
-        // Cheese Icon and Cheese Text
-        Image::new(self.imgs.cheese_ico)
+        // TODO: Add a customizable counter for stackable items here
+        // TODO: Cheese is funny until it's real
+        /*Image::new(self.imgs.cheese_ico)
             .w_h(16.0, 17.0)
             .bottom_left_with_margins_on(self.bg_ids.bg_frame, 2.0, 110.0)
             .set(state.ids.cheese_ico, ui);
@@ -363,7 +366,7 @@ impl<'a> InventoryScroller<'a> {
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(14))
             .color(Color::Rgba(0.871, 0.863, 0.05, 1.0))
-            .set(state.ids.cheese_txt, ui);
+            .set(state.ids.cheese_txt, ui);*/
         //Free Bag-Space
         Text::new(&bag_space)
             .bottom_right_with_margins_on(self.bg_ids.bg_frame, 6.0, 43.0)

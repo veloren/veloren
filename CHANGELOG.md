@@ -20,8 +20,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Buy and sell prices in tooltips when trading with a merchant now have colors.
 - Attacks now emit sound effects from the target on hit.
 - Crafting menu tabs
-- Cheese count indicator next to the coin count indicator
-
 
 ### Changed
 
