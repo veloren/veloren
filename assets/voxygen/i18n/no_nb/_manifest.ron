@@ -15,8 +15,8 @@
 /// Lokalisering for norsk bokmål 
 (
     metadata: (
-        language_name: "Norsk",
-        language_identifier: "no",
+        language_name: "Norsk bokmål",
+        language_identifier: "no_nb",
     ),
     convert_utf8_to_ascii: false,
     fonts: {
