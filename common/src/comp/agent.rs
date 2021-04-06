@@ -210,8 +210,6 @@ pub struct Agent {
     pub patrol_origin: Option<Vec3<f32>>,
     pub target: Option<Target>,
     pub chaser: Chaser,
-    /// Does the agent talk when e.g. hit by the player
-    // TODO move speech patterns into a Behavior component
     pub psyche: Psyche,
     pub inbox: VecDeque<AgentEvent>,
     pub action_timer: f32,

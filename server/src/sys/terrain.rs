@@ -3,7 +3,8 @@ use crate::{
 };
 use common::{
     comp::{
-        self, bird_medium, inventory::loadout_builder::LoadoutConfig, Alignment, BehaviorFlag, Pos,
+        self, bird_medium, inventory::loadout_builder::LoadoutConfig, Alignment,
+        BehaviorCapability, Pos,
     },
     event::{EventBus, ServerEvent},
     generation::get_npc_name,
@@ -206,10 +207,10 @@ impl<'a> System<'a> for Sys {
                     behavior: if entity.has_agency {
                         let mut behavior = Behavior::default();
                         if can_speak {
-                            behavior.set(BehaviorFlag::CAN_SPEAK);
+                            behavior.allow(BehaviorCapability::SPEAK);
                         }
                         if trade_for_site.is_some() {
-                            behavior.set(BehaviorFlag::CAN_TRADE);
+                            behavior.allow(BehaviorCapability::TRADE);
                             behavior.trade_site = trade_for_site
                         }
                         Some(behavior)

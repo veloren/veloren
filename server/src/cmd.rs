@@ -15,7 +15,7 @@ use common::{
         buff::{BuffCategory, BuffData, BuffKind, BuffSource},
         inventory::item::MaterialStatManifest,
         invite::InviteKind,
-        BehaviorFlag, ChatType, Inventory, Item, LightEmitter, WaypointArea,
+        BehaviorCapability, ChatType, Inventory, Item, LightEmitter, WaypointArea,
     },
     effect::Effect,
     event::{EventBus, ServerEvent},
@@ -1075,7 +1075,7 @@ fn handle_spawn_airship(
                 });
             if let Some(pos) = destination {
                 builder = builder.with(comp::Agent::with_destination(pos));
-                builder = builder.with(comp::Behavior::from(BehaviorFlag::CAN_SPEAK))
+                builder = builder.with(comp::Behavior::from(BehaviorCapability::SPEAK))
             }
             builder.build();
 

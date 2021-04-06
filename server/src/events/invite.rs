@@ -226,12 +226,13 @@ pub fn handle_invite_accept(server: &mut Server, entity: specs::Entity) {
                     }
                     let pricing = behaviors
                         .get(inviter)
-                        .and_then(|b| index.get_site_prices(b.trade_site))
+                        .and_then(|b| b.trade_site.map(|id| index.get_site_prices(id)))
                         .or_else(|| {
                             behaviors
                                 .get(entity)
-                                .and_then(|b| index.get_site_prices(b.trade_site))
-                        });
+                                .and_then(|b| b.trade_site.map(|id| index.get_site_prices(id)))
+                        })
+                        .flatten();
                     clients.get(inviter).map(|c| {
                         c.send(ServerGeneral::UpdatePendingTrade(
                             id,

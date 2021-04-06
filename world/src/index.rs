@@ -71,10 +71,9 @@ impl Index {
 
     pub fn colors(&self) -> AssetHandle<Arc<Colors>> { self.colors }
 
-    pub fn get_site_prices(&self, site_id: Option<SiteId>) -> Option<SitePrices> {
-        site_id
-            .map(|i| self.sites.recreate_id(i))
-            .flatten()
+    pub fn get_site_prices(&self, site_id: SiteId) -> Option<SitePrices> {
+        self.sites
+            .recreate_id(site_id)
             .map(|i| self.sites.get(i))
             .map(|s| s.economy.get_site_prices())
     }

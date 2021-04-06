@@ -2,7 +2,7 @@
 
 use super::*;
 use common::{
-    comp::{self, inventory::loadout_builder::LoadoutBuilder, Behavior, BehaviorFlag},
+    comp::{self, inventory::loadout_builder::LoadoutBuilder, Behavior, BehaviorCapability},
     event::{EventBus, ServerEvent},
     resources::{DeltaTime, Time},
     terrain::TerrainGrid,
@@ -105,7 +105,7 @@ impl<'a> System<'a> for Sys {
             let pos = comp::Pos(spawn_pos);
             let agent = Some(comp::Agent::new(None, &body, false));
             let behavior = matches!(body, comp::Body::Humanoid(_))
-                .then(|| Behavior::from(BehaviorFlag::CAN_SPEAK));
+                .then(|| Behavior::from(BehaviorCapability::SPEAK));
             let rtsim_entity = Some(RtSimEntity(id));
             let event = match body {
                 comp::Body::Ship(ship) => ServerEvent::CreateShip {
