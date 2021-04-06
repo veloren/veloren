@@ -49,7 +49,7 @@ pub use self::{
     agent::{Agent, Alignment},
     aura::{Aura, AuraChange, AuraKind, Auras},
     beam::{Beam, BeamSegment},
-    behavior::{Behavior, BehaviorTag},
+    behavior::{Behavior, BehaviorFlag},
     body::{
         biped_large, biped_small, bird_medium, bird_small, dragon, fish_medium, fish_small, golem,
         humanoid, object, quadruped_low, quadruped_medium, quadruped_small, ship, theropod,

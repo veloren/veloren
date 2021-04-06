@@ -35,7 +35,7 @@ fn notify_agent_prices(
     event: AgentEvent,
 ) {
     if let (Some(agent), Some(behavior)) = (agents.get_mut(entity), behaviors.get(entity)) {
-        let prices = index.get_site_prices(behavior);
+        let prices = index.get_site_prices(behavior.trade_site);
         if let AgentEvent::UpdatePendingTrade(boxval) = event {
             // Box<(tid, pend, _, inventories)>) = event {
             agent
@@ -123,7 +123,7 @@ pub fn handle_process_trade_action(
                             prices = prices.or_else(|| {
                                 behaviors
                                     .get(e)
-                                    .and_then(|b| server.index.get_site_prices(b))
+                                    .and_then(|b| server.index.get_site_prices(b.trade_site))
                             });
                         }
                     }

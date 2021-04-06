@@ -75,11 +75,8 @@ pub fn handle_create_npc(
     } else {
         entity
     };
-    let entity = if let Some(behavior) = behavior {
-        entity.with(behavior)
-    } else {
-        entity.with(Behavior::default())
-    };
+
+    let entity = entity.with(behavior.unwrap_or_default());
 
     let entity = if let Some(drop_item) = drop_item {
         entity.with(ItemDrop(drop_item))

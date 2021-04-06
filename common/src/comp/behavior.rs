@@ -1,72 +1,44 @@
 use specs::Component;
 use specs_idvs::IdvStorage;
-use std::{collections::HashSet, mem};
 
 use crate::trade::SiteId;
+
+bitflags! {
+    #[derive(Default)]
+    pub struct BehaviorFlag: u8 {
+        const CAN_SPEAK         = 0b00000001;
+        const CAN_TRADE         = 0b00000010;
+        const IS_TRADING        = 0b00000100;
+        const IS_TRADING_ISSUER = 0b00001000;
+    }
+}
 
 /// # Behavior Component
 /// This component allow an Entity to register one or more behavior tags.
 /// These tags act as flags of what an Entity can do, or what it is doing.  
 /// Behaviors Tags can be added and removed as the Entity lives, to update its
 /// state when needed
-#[derive(Default, Clone, Debug)]
+#[derive(Default, Copy, Clone, Debug)]
 pub struct Behavior {
-    tags: HashSet<BehaviorTag>,
+    pub flags: BehaviorFlag,
+    pub trade_site: Option<SiteId>,
 }
 
-/// Versatile tags attached to behaviors
-#[derive(Hash, Eq, PartialEq, Clone, Debug)]
-pub enum BehaviorTag {
-    /// The entity is allowed to speak
-    CanSpeak,
-    /// The entity is able to trade
-    CanTrade(Option<SiteId>),
-
-    /// The entity is currently trading
-    IsTrading,
-    /// The entity has issued a trade
-    IsTradingIssuer,
+impl From<BehaviorFlag> for Behavior {
+    fn from(flags: BehaviorFlag) -> Self {
+        Behavior {
+            flags,
+            trade_site: None,
+        }
+    }
 }
 
 impl Behavior {
-    pub fn new(behavior_tags: &[BehaviorTag]) -> Self {
-        let mut behavior = Self::default();
-        for tag in behavior_tags.iter() {
-            behavior.add_tag(tag.clone())
-        }
-        behavior
-    }
+    pub fn set(&mut self, flags: BehaviorFlag) { self.flags.set(flags, true) }
 
-    /// Apply a tag to the Behavior
-    pub fn add_tag(&mut self, tag: BehaviorTag) {
-        if !self.has_tag(&tag) {
-            self.tags.insert(tag);
-        }
-    }
+    pub fn unset(&mut self, flags: BehaviorFlag) { self.flags.set(flags, false) }
 
-    /// Revoke a tag to the Behavior
-    pub fn remove_tag(&mut self, tag: BehaviorTag) {
-        if self.has_tag(&tag) {
-            let tag = self.get_tag(&tag).cloned();
-            if let Some(tag) = tag {
-                self.tags.remove(&tag);
-            }
-        }
-    }
-
-    /// Check if the Behavior possess a specific tag
-    pub fn has_tag(&self, tag: &BehaviorTag) -> bool {
-        self.tags
-            .iter()
-            .any(|behavior_tag| mem::discriminant(behavior_tag) == mem::discriminant(tag))
-    }
-
-    /// Get a specific tag by variant
-    pub fn get_tag(&self, tag: &BehaviorTag) -> Option<&BehaviorTag> {
-        self.tags
-            .iter()
-            .find(|behavior_tag| mem::discriminant(*behavior_tag) == mem::discriminant(tag))
-    }
+    pub fn has(&self, flags: BehaviorFlag) -> bool { self.flags.contains(flags) }
 }
 
 impl Component for Behavior {

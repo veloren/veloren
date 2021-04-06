@@ -4,9 +4,8 @@ use crate::{
 };
 use common::{
     assets::{AssetExt, AssetHandle},
-    comp::{Behavior, BehaviorTag},
     store::Store,
-    trade::SitePrices,
+    trade::{SiteId, SitePrices},
 };
 use core::ops::Deref;
 use noise::{Seedable, SuperSimplex};
@@ -72,17 +71,12 @@ impl Index {
 
     pub fn colors(&self) -> AssetHandle<Arc<Colors>> { self.colors }
 
-    pub fn get_site_prices(&self, behavior: &Behavior) -> Option<SitePrices> {
-        if let Some(BehaviorTag::CanTrade(site_id)) = behavior.get_tag(&BehaviorTag::CanTrade(None))
-        {
-            site_id
-                .map(|i| self.sites.recreate_id(i))
-                .flatten()
-                .map(|i| self.sites.get(i))
-                .map(|s| s.economy.get_site_prices())
-        } else {
-            None
-        }
+    pub fn get_site_prices(&self, site_id: Option<SiteId>) -> Option<SitePrices> {
+        site_id
+            .map(|i| self.sites.recreate_id(i))
+            .flatten()
+            .map(|i| self.sites.get(i))
+            .map(|s| s.economy.get_site_prices())
     }
 }
 

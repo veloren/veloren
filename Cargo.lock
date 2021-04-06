@@ -5377,6 +5377,7 @@ dependencies = [
  "approx 0.4.0",
  "arraygen",
  "assets_manager",
+ "bitflags",
  "criterion",
  "crossbeam-channel",
  "crossbeam-utils 0.8.3",

@@ -3,7 +3,7 @@ use crate::{
 };
 use common::{
     comp::{
-        self, bird_medium, inventory::loadout_builder::LoadoutConfig, Alignment, BehaviorTag, Pos,
+        self, bird_medium, inventory::loadout_builder::LoadoutConfig, Alignment, BehaviorFlag, Pos,
     },
     event::{EventBus, ServerEvent},
     generation::get_npc_name,
@@ -14,6 +14,7 @@ use common::{
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::ServerGeneral;
 use common_sys::state::TerrainChanges;
+use comp::Behavior;
 use specs::{Join, Read, ReadStorage, Write, WriteExpect};
 use std::sync::Arc;
 use vek::*;
@@ -203,14 +204,15 @@ impl<'a> System<'a> for Sys {
                         None
                     },
                     behavior: if entity.has_agency {
-                        let mut behavior_tags = vec![];
+                        let mut behavior = Behavior::default();
                         if can_speak {
-                            behavior_tags.push(BehaviorTag::CanSpeak);
+                            behavior.set(BehaviorFlag::CAN_SPEAK);
                         }
                         if trade_for_site.is_some() {
-                            behavior_tags.push(BehaviorTag::CanTrade(trade_for_site));
+                            behavior.set(BehaviorFlag::CAN_TRADE);
+                            behavior.trade_site = trade_for_site
                         }
-                        Some(comp::Behavior::new(&behavior_tags))
+                        Some(behavior)
                     } else {
                         None
                     },
