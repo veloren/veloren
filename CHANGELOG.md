@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Retiered most sceptres and staves
 - Loot tables can now recursively reference loot tables
 - "max_sfx_channels" default now set to 30
+- Merchants now have stacks of stackable items instead of just one per slot
 
 ### Removed
 
