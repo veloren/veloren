@@ -1,0 +1,264 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for Vietnamese (Vietnam)
+(
+    metadata: (
+        language_name: "Tiếng Việt",
+        language_identifier: "vi_VI",
+    ),
+    convert_utf8_to_ascii: false,
+    fonts: {
+        "opensans": Font (
+            asset_key: "voxygen.font.OpenSans-Regular",
+            scale_ratio: 1.0,
+        ),
+        "metamorph": Font (
+            asset_key: "voxygen.font.Metamorphous-Regular",
+            scale_ratio: 1.0,
+        ),
+        "alkhemi": Font (
+            asset_key: "voxygen.font.Alkhemikal",
+            scale_ratio: 1.0,
+        ),
+        "wizard": Font (
+            asset_key: "voxygen.font.wizard",
+            scale_ratio: 1.0,
+        ),
+        "cyri": Font (
+            asset_key: "voxygen.font.OpenSans-Regular",
+            scale_ratio: 1.0,
+        ),
+    },
+    sub_directories: [],
+
+    string_map: {
+    /// Start Common section
+    // Texts used in multiple locations with the same formatting
+    "common.username": "Tên tài khoản",
+    "common.singleplayer": "Chơi đơn",
+    "common.multiplayer": "Chơi mạng",
+    "common.servers": "Máy chủ",
+    "common.quit": "Bỏ cuộc",
+    "common.settings": "Cài đặt",
+    "common.languages": "Ngôn ngữ",
+    "common.interface": "Giao diện",
+    "common.gameplay": "Lối chơi",
+    "common.controls": "Điều khiển",
+    "common.video": "Đồ họa",
+    "common.sound": "Âm thanh",
+    "common.resume": "Tiếp tục",
+    "common.characters": "Nhân vật",
+    "common.close": "Đóng",
+    "common.yes": "Đúng",
+    "common.no": "Không",
+    "common.back": "Trở lại",
+    "common.create": "Tạo nên",
+    "common.okay": "Được",
+    "common.add": "Thêm vào",
+    "common.accept": "Chấp nhận",
+    "common.decline": "Từ chối",
+    "common.disclaimer": "Khước từ",
+    "common.cancel": "Hủy bỏ",
+    "common.none": "Không còn",
+    "common.error": "Lỗi",
+    "common.fatal_error": "Lỗi nghiêm trọng",
+    "common.you": "Bạn",
+    "common.automatic": "Tự động",
+    "common.random": "Ngẫu nhiên",
+    
+    // Settings Window title
+    "common.interface_settings": "Cài đặt giao diện",
+    "common.gameplay_settings": "Cài đặt chế độ chơi",
+    "common.controls_settings": "Cài đặt điều khiển",
+    "common.video_settings": "Cài đặt hình ảnh",
+    "common.sound_settings": "Cài đặt âm thanh",
+    "common.language_settings": "Cài đặt ngôn ngữ",
+
+    // Message when connection to the server is lost
+    "common.connection_lost": r#"Mất mạng!
+Máy chủ có khởi động lại không?
+Trò chơi có được cập nhật không?"#,
+
+
+    "common.species.orc": "Loài orc",
+    "common.species.human": "Loài người",
+    "common.species.dwarf": "Quỷ lùn",
+    "common.species.elf": "Yêu tinh",
+    "common.species.undead": "Xác sống",
+    "common.species.danari": "Loài Danari",
+
+    "common.weapons.axe": "Rìu",
+    "common.weapons.sword": "Kiếm",
+    "common.weapons.staff": "Ba toong",
+    "common.weapons.bow": "Cung",
+    "common.weapons.hammer": "Búa",
+    "common.weapons.general": "Chiến đấu chung",
+    "common.weapons.sceptre": "Quyền trượng chữa bệnh",
+    "common.rand_appearance": "Sự xuất hiện ngẫu nhiên và tên",
+    /// End Common section
+
+    /// Start Main screen section
+    "main.username": "Tên tài khoản",
+    "main.server": "Máy chủ",
+    "main.password": "Mật khẩu",
+    "main.connecting": "Đang kết nối",
+    "main.creating_world": "Đang tạo thế giới mới",
+    "main.tip": "Lời khuyên:",
+
+    // Welcome notice that appears the first time Veloren is started
+    "main.notice": r#"Chào mừng đến với phiên bản alpha của Veloren!
+
+Trước khi bạn nhảy trong vào Veloren, bạn phải nhớ những điều này:
+
+- Đây là một alpha rất sớm. Mong đợi lỗi chương trình, trò chơi cực kỳ chưa hoàn thành, cơ khí chưa hoàn thành, và tính năng bị thiếu.
+
+- Nếu bạn có phản hồi hoặc là báo cáo lỗi máy tính, liên hệ chúng tôi trên Reddit, GitLab, hoặc là máy chủ Discord của chúng tôi.
+
+- Veloren được cấp phép theo GPL 3 open-source licence. Đó có nghĩa là bạn được phép chơi miễn phí, sửa đổi, và phân phối lại trò chơi theo cách bạn muốn (miễn là công việc bắt nguồn cũng cấp phép theo GPL 3).
+
+- Veloren là một dự án cộng đồng phi lợi nhuận, và mọi người đang làm việc đó là một tình nguyện viên. Nếu bạn thích những gì bạn đang thấy, Chúng tôi mời bạn vô đội phát triển hoặc nghệ thuật!
+
+Cảm ơn bạn đã dành thời gian đọc thông báo này, chúng tôi hy vọng bạn thích trò chơi này!
+
+~ The Veloren Devs"#,
+
+        // Login process description
+        "main.login_process": r#"Thông tin về quá trình đăng nhập:
+
+Xin lưu ý rằng bây giờ bạn cần một tài khoản
+để chơi trên máy chủ xác thực được kích hoạt.
+
+Bạn có thể tạo một tài khoản ở
+
+
+https://veloren.net/account/."#,
+        "main.login.server_not_found": "Không tìm thấy được may chủ",
+        "main.login.authentication_error": "Lỗi xác thực trên máy chủ",
+        "main.login.server_full": "Máy chủ đầy rồi",
+        "main.login.untrusted_auth_server": "máy chủ xác thực không đáng tin cậy",
+        "main.login.outdated_client_or_server": "Máy chủ nổi khùng: 
+        Có thể các phiên bản không tương thích, kiểm tra xem có cập nhật không.",
+        "main.login.timeout": "Hết giờ: máy chủ không phản hồi kịp thời. (quá tải hoặc lỗi mạng).",
+        "main.login.server_shut_down": "Máy chủ ngừng hoạt động",
+        "main.login.already_logged_in": "Bạn đã đăng nhập vào máy chủ rồi.",
+        "main.login.network_error": "lỗi mạng",
+        "main.login.failed_sending_request": "yêu cầu máy chủ ủy quyền không thành công",
+        "main.login.invalid_character": "Ký tự đã chọn không hợp lệ",
+        "main.login.client_crashed": "Trò chơi bị rơi",
+        "main.login.not_on_whitelist": "Bạn cần được quản trị viên chấp thuận để tham gia",
+        "main.login.banned": "Bạn đã bị cấm tại vì",
+        "main.login.kicked": "Bạn đã bị đá bởi vì",
+        "main.login.select_language": "Chọn một ngôn ngữ",
+
+        "main.servers.select_server": "Chọn một máy chủ",
+        /// End Main screen section
+    },
+
+    vector_map: {
+        "loading.tips": [
+            "Nhấn 'G' bật đèn lồng của bạn.",
+            "Nhấn 'F1' để xem tất cả các liên kết phím mặc định.",
+            "Bạn có thể gõ /say hoặc là /s để nói chuyện xung quanh bạn.",
+            "Bạn có thể gõ /region hoặc là /r nói chuyện với người chơi vài trăm blocks xung quanh bạn.",
+            "Quản trị viên có thể sử dụng /build để vào chế độ xây dựng.",
+            "Bạn có thể gõ /group hoặc là /g để nói chuyện với những người chơi trong nhóm hiện tại của bạnto.",
+            "Để gửi tin nhắn riêng tư gõ /tell theo sau là tên người chơi và tin nhắn của bạn.",
+            "NPCs với cùng một mức độ có thể có một khó khăn khác nhau.",
+            "Coi chừng thức ăn, rương và các chiến lợi phẩm khác lan rộng khắp thế giới!",
+            "Thực phẩm đầy tồn kho? Hãy thử chế biến những món ăn ngon hơn từ nó!",
+            "Tự hỏi những gì ở đó để làm? Thử một trong những ngục tối được đánh dấu trên bản đồ!",
+            "Đừng quên điều chỉnh đồ họa cho hệ thống của bạn. Nhấn 'N' để mở cài đặt.",
+            "Chơi với những người khác rất vui! Nhấn 'O' để xem ai cũng đáng chơi hiện tại bây giờ.",
+            "Kẻ thù có đầu lâu bên dưới thanh máu của chúng mạnh mẽ hơn so với chính bạn.",
+            "Nhấn 'J' để nhảy múa. Buổi tiệc!",
+            "Nhấn 'L-Shift' để mở tàu lượn của bạn và chinh phục bầu trời.",
+            "Veloren vẫn đang trong giai đoạn Pre-Alpha. Chúng tôi cố gắng hết sức để cải thiện nó mỗi ngày!",
+            "Nếu bạn muốn tham gia nhóm nhà phát triển hoặc chỉ cần trò chuyện với chúng tôi, hãy tham gia Discord-Server.",
+            "Bạn có thể thay đổi hiển thị lượng máu của mình trên thanh sức khỏe trong cài đặt.",
+            "Để xem số liệu thống kê của bạn, hãy nhấn vào nút 'Stats' trong kho.",
+            "Ngồi gần lửa trại (nhấn nút 'K') để nghỉ ngơi - nhận được một sự chữa lành chậm theo thời gian.",
+            "Cần thêm túi hoặc áo giáp tốt hơn để tiếp tục cuộc hành trình của bạny? Nhấn 'C' để mở menu chế tạo!",
+        ],
+        "npc.speech.villager_under_attack": [
+            "Giúp, mình đang bị tấn công!",
+            "Giúp! Mình đang bị tấn công!",
+            "Đau! Mình đang bị tấn công!",
+            "Đau! Mình đang bị tấn công! Giúp!",
+            "Giúp tôi! Mình đang bị tấn công!",
+            "Mình đang bị tấn công! Giúp!",
+            "Mình đang bị tấn công! Giúp tôi!",
+            "Giúp!",
+            "Giúp! Giúp!",
+            "Giúp! Giúp! Giúp!",
+            "Mình đang bị tấn công!",
+            "AAAHHH! Mình đang bị tấn công!",
+            "AAAHHH! Mình đang bị tấn công! Giúp!",
+            "Giúp! Chúng ta đang bị tấn công!",
+            "Giúp! Kẻ giết người!",
+            "Giúp! Có một kẻ giết người đang thả rông!",
+            "Giúp! Họ ráng giết tôi!",
+            "Người đâu, Mình đang bị tấn công!",
+            "Người đâu! Mình đang bị tấn công!",
+            "Mình đang bị tấn công! Lính canh!",
+            "Giúp! Lính canh! Mình đang bị tấn công!",
+            "Lính canh! Đến nhanh!",
+            "Lính canh! Lính canh!",
+            "Lính canh! Có một nhân vật phản diện đang tấn công tôi!",
+            "Lính canh, Giết kẻ xấu xa này!",
+            "Lính canh! Có một kẻ giết người!",
+            "Lính canh! Giúp tôi!",
+            "Mày sẽ không thoát khỏi điều này! Lính canh!",
+            "Mày khốn nạn!",
+            "Cứu tôi!",
+            "Giúp! Làm ơn!",
+            "Đau! Lính canh! Giúp!",
+            "Họ đang tìm kiếm tôi!",
+            "Giúp! Giúp! Tôi đang bị kìm nén!",
+            "Ah, bây giờ chúng ta thấy bạo lực vốn có trong hệ thống",
+            "Đây chỉ là một vết xước",
+            "Dừng lại!",
+            "Tôi đã làm gì cho bạn?!",
+            "Làm ơn đừng tấn công tôi nữa!",
+            "Chời ơi! Bạn phải để ý xem bạn đang chỉ cái đó ở đâu",
+            "Kẻ khốn nạn ghê tởm, biến mất chỗ khác!",
+            "Dừng lại! Đi chỗ khác!",
+            "Mày đang chọc tao điên!",
+            "Mày! Mày nghĩ bạn là ai?!",
+            "Tôi sẽ có đầu của mày cho điều đó!",
+            "Xin dừng lại! Tôi không mang gì co giá trị!",
+            "Tôi sẽ kể anh trai tôi. Anh to hơn bạn!",
+            "Khôngggg, tôi đi méc mẹ!",
+            "Ba má không biết dạy!",
+            "Làm ơn đừng làm vậy.",
+            "Điều đó không tốt lắm!",
+            "Vũ khí của bạn hoạt động, bạn có thể cất nó đi ngay bây giờ!",
+            "Tha cho tôi!",
+            "Làm ơn, tôi có một gia đình!",
+            "Tôi còn quá trẻ để chết!",
+            "Chúng ta có thể nói về điều này không?",
+            "Bạo lực không bao giờ là câu trả lời!",
+            "Hôm nay hóa ra là một ngày rất tồi tệ...",
+            "Chời ơi, đau đấy!",
+            "Eek!",
+            "Thật là thô lỗ!",
+            "Dừng lại, tôi cầu xin bạn!",
+            "Tôi ước bạn bệnh!",
+            "Điều này không vui.",
+            "Mày dám?!",
+            "Mày sẽ trả cho điều đó!",
+            "Hãy tiếp tục và bạn sẽ hối hận!",
+            "Đừng bắt tôi đánh bạn!",
+            "Phải có một số hiểu lầm!",
+            "Bạn không cần phải làm điều này!",
+            "Biến đi, tên khốn!",
+            "Đau quá!",
+            "Tại sao bạn lại làm vậy?",
+            "Chời ơi, dừng lại!",
+            "Bạn phải làm cho tôi nhầm lẫn với một người khác!",
+            "Tôi không xứng đáng điều này!",
+            "Xin đừng làm điều đó một lần nữa.",
+            "Các vệ binh, ném con quái vật này xuống hồ!",
+            "Tôi sẽ gọi con tarrasque của tôi để tấn công bạn!",
+        ],
+    }
+)
