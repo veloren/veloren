@@ -336,6 +336,7 @@ image_ids! {
         crosshair_bg_pressed: "voxygen.element.misc_bg.crosshair_bg_pressed",
 
         // Map
+        map_topo: "voxygen.element.map.topographic",
         map_bg: "voxygen.element.misc_bg.map_bg",
         map_frame: "voxygen.element.misc_bg.map_frame",
         map_frame_art: "voxygen.element.misc_bg.map_frame_art",

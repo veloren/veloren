@@ -334,6 +334,10 @@ pub struct MapConfig<'a> {
     ///
     /// Defaults to false
     pub is_roads: bool,
+    /// Alpha value for rgba. Handled by the sample_pos closure
+    ///
+    /// Defaults to 1.0
+    pub rgba_alpha: f64,
 }
 
 pub const QUADRANTS: usize = 4;
@@ -418,6 +422,7 @@ impl<'a> MapConfig<'a> {
             is_height_map: false,
             is_political: false,
             is_roads: false,
+            rgba_alpha: 1.0,
         }
     }
 
@@ -736,4 +741,3 @@ impl<'a> MapConfig<'a> {
         }
     }
 }
-

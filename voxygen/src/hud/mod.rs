@@ -374,6 +374,7 @@ pub enum Event {
     ChangeAmbiance(f32),
     MapZoom(f64),
     MapDrag(Vec2<f64>),
+    MapShowTopoMap(bool),
     MapShowDifficulty(bool),
     MapShowTowns(bool),
     MapShowDungeons(bool),
@@ -777,7 +778,7 @@ impl PromptDialogSettings {
 pub struct Hud {
     ui: Ui,
     ids: Ids,
-    world_map_layers: (/* Id */ Vec<Rotations>, Vec2<u32>),
+    world_map: (/* Id */ Vec<Rotations>, Vec2<u32>),
     imgs: Imgs,
     item_imgs: ItemImgs,
     fonts: Fonts,
@@ -820,15 +821,11 @@ impl Hud {
         // Load world map
         let mut layers = Vec::new();
         for layer in client.world_data().map_layers() {
-            layers.push(ui.add_graphic_with_rotations(Graphic::Image(
-                Arc::clone(layer),
-                Some(water_color),
-            )));
+            layers.push(
+                ui.add_graphic_with_rotations(Graphic::Image(Arc::clone(layer), Some(water_color))),
+            );
         }
-        let world_map_layers = (
-            layers,
-            client.world_data().chunk_size().map(|e| e as u32),
-        );
+        let world_map = (layers, client.world_data().chunk_size().map(|e| e as u32));
         // Load images.
         let imgs = Imgs::load(&mut ui).expect("Failed to load images!");
         // Load rotation images.
@@ -865,7 +862,7 @@ impl Hud {
         Self {
             ui,
             imgs,
-            world_map_layers,
+            world_map,
             rot_imgs,
             item_imgs,
             fonts,
@@ -2233,7 +2230,7 @@ impl Hud {
             client,
             &self.imgs,
             &self.rot_imgs,
-            &self.world_map_layers,
+            &self.world_map,
             &self.fonts,
             camera.get_orientation(),
             &global_state,
@@ -2786,7 +2783,7 @@ impl Hud {
                 client,
                 &self.imgs,
                 &self.rot_imgs,
-                &self.world_map_layers,
+                &self.world_map,
                 &self.fonts,
                 self.pulse,
                 i18n,
@@ -2800,6 +2797,9 @@ impl Hud {
                         self.show.map(false);
                         self.show.want_grab = true;
                         self.force_ungrab = false;
+                    },
+                    map::Event::ShowTopoMap(map_show_topo_map) => {
+                        events.push(Event::MapShowTopoMap(map_show_topo_map));
                     },
                     map::Event::ShowDifficulties(map_show_difficulties) => {
                         events.push(Event::MapShowDifficulty(map_show_difficulties));

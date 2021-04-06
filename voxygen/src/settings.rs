@@ -444,6 +444,7 @@ pub struct InterfaceSettings {
     pub ui_scale: ScaleMode,
     pub map_zoom: f64,
     pub map_drag: Vec2<f64>,
+    pub map_show_topo_map: bool,
     pub map_show_difficulty: bool,
     pub map_show_towns: bool,
     pub map_show_dungeons: bool,
@@ -451,7 +452,6 @@ pub struct InterfaceSettings {
     pub loading_tips: bool,
     pub map_show_caves: bool,
     pub map_show_trees: bool,
-    pub map_show_topo: bool,
     pub minimap_show: bool,
     pub minimap_face_north: bool,
 }
@@ -477,6 +477,7 @@ impl Default for InterfaceSettings {
             ui_scale: ScaleMode::RelativeToWindow([1920.0, 1080.0].into()),
             map_zoom: 10.0,
             map_drag: Vec2 { x: 0.0, y: 0.0 },
+            map_show_topo_map: false,
             map_show_difficulty: true,
             map_show_towns: true,
             map_show_dungeons: true,
@@ -484,7 +485,6 @@ impl Default for InterfaceSettings {
             loading_tips: true,
             map_show_caves: true,
             map_show_trees: true,
-            map_show_topo: false,
             minimap_show: true,
             minimap_face_north: false,
         }

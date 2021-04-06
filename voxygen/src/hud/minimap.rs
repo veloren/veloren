@@ -118,6 +118,7 @@ impl<'a> Widget for MiniMap<'a> {
         const SCALE: f64 = 1.5; // TODO Make this a setting
         let show_minimap = self.global_state.settings.interface.minimap_show;
         let is_facing_north = self.global_state.settings.interface.minimap_face_north;
+        let show_topo_map = self.global_state.settings.interface.map_show_topo_map;
         let orientation = if is_facing_north {
             Vec3::new(0.0, 1.0, 0.0)
         } else {
@@ -272,7 +273,7 @@ impl<'a> Widget for MiniMap<'a> {
                         .parent(state.ids.mmap_frame_bg)
                         .source_rectangle(rect_src)
                         .set(state.ids.map_layers[index], ui);
-                } else {
+                } else if show_topo_map {
                     Image::new(world_map_rotation)
                         .middle_of(state.ids.mmap_frame_bg)
                         .w_h(map_size.x, map_size.y)
@@ -350,7 +351,7 @@ impl<'a> Widget for MiniMap<'a> {
                     SiteKind::Cave => Color::Rgba(1.0, 1.0, 1.0, 0.0),
                     SiteKind::Tree => Color::Rgba(1.0, 1.0, 1.0, 0.0),
                 }))
-                .parent(state.ids.map_layers[2])
+                .parent(state.ids.map_layers[3])
                 .set(state.ids.mmap_site_icons_bgs[i], ui);
                 Image::new(match &site.kind {
                     SiteKind::Town => self.imgs.mmap_site_town,

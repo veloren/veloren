@@ -31,7 +31,7 @@ debug = false
 codegen-units = 8
 lto = false
 # TEMP false to avoid fingerprints bug
-incremental = true
+incremental = false
 # All dependencies (but not this crate itself)
 [profile.dev.package."*"]
 opt-level = 3

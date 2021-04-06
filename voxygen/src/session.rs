@@ -1332,6 +1332,10 @@ impl PlayState for SessionState {
                         global_state.settings.interface.map_drag = map_drag;
                         global_state.settings.save_to_file_warn();
                     },
+                    HudEvent::MapShowTopoMap(map_show_topo_map) => {
+                        global_state.settings.interface.map_show_topo_map = map_show_topo_map;
+                        global_state.settings.save_to_file_warn();
+                    },
                     HudEvent::MapShowDifficulty(map_show_difficulty) => {
                         global_state.settings.interface.map_show_difficulty = map_show_difficulty;
                         global_state.settings.save_to_file_warn();

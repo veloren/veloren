@@ -6,6 +6,7 @@
         // Map and Questlog
         "hud.map.map_title": "Map",
         "hud.map.qlog_title": "Quests",
+        "hud.map.topo_map": "Topographic",
         "hud.map.difficulty": "Difficulty",
         "hud.map.towns": "Towns",
         "hud.map.castles": "Castles",

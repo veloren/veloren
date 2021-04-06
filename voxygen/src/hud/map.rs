@@ -40,6 +40,9 @@ widget_ids! {
         member_indicators[],
         member_height_indicators[],
         map_settings_align,
+        show_topo_map_img,
+        show_topo_map_box,
+        show_topo_map_text,
         show_towns_img,
         show_towns_box,
         show_towns_text,
@@ -123,6 +126,7 @@ pub enum Event {
     ShowDungeons(bool),
     ShowCaves(bool),
     ShowTrees(bool),
+    ShowTopoMap(bool),
     Close,
     RequestSiteInfo(SiteId),
 }
@@ -184,6 +188,7 @@ impl<'a> Widget for Map<'a> {
         let show_castles = self.global_state.settings.interface.map_show_castles;
         let show_caves = self.global_state.settings.interface.map_show_caves;
         let show_trees = self.global_state.settings.interface.map_show_trees;
+        let show_topo_map = self.global_state.settings.interface.map_show_topo_map;
         let mut events = Vec::new();
         let i18n = &self.localized_strings;
         // Tooltips
@@ -342,7 +347,7 @@ impl<'a> Widget for Map<'a> {
                     .parent(state.ids.bg)
                     .source_rectangle(rect_src)
                     .set(state.ids.map_layers[index], ui);
-            } else {
+            } else if show_topo_map {
                 Image::new(layer.none)
                     .mid_top_with_margin_on(state.ids.map_align, 10.0)
                     .w_h(map_size.x, map_size.y)
@@ -369,9 +374,44 @@ impl<'a> Widget for Map<'a> {
             .top_right_with_margins_on(state.ids.frame, 55.0, 10.0)
             .set(state.ids.map_settings_align, ui);
         // Checkboxes
+        // Show topographic map
+        Image::new(self.imgs.map_topo)
+            .top_left_with_margins_on(state.ids.map_settings_align, 5.0, 5.0)
+            .w_h(20.0, 20.0)
+            .set(state.ids.show_topo_map_img, ui);
+        if Button::image(if show_topo_map {
+            self.imgs.checkbox_checked
+        } else {
+            self.imgs.checkbox
+        })
+        .w_h(18.0, 18.0)
+        .hover_image(if show_topo_map {
+            self.imgs.checkbox_checked_mo
+        } else {
+            self.imgs.checkbox_mo
+        })
+        .press_image(if show_topo_map {
+            self.imgs.checkbox_checked
+        } else {
+            self.imgs.checkbox_press
+        })
+        .right_from(state.ids.show_topo_map_img, 10.0)
+        .set(state.ids.show_topo_map_box, ui)
+        .was_clicked()
+        {
+            events.push(Event::ShowTopoMap(!show_topo_map));
+        }
+        Text::new(i18n.get("hud.map.topo_map"))
+            .right_from(state.ids.show_topo_map_box, 10.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .graphics_for(state.ids.show_topo_map_box)
+            .color(TEXT_COLOR)
+            .set(state.ids.show_topo_map_text, ui);
+
         // Show difficulties
         Image::new(self.imgs.map_dif_6)
-            .top_left_with_margins_on(state.ids.map_settings_align, 5.0, 5.0)
+            .down_from(state.ids.show_topo_map_img, 10.0)
             .w_h(20.0, 20.0)
             .set(state.ids.show_difficulty_img, ui);
         if Button::image(if show_difficulty {
