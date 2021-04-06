@@ -12,7 +12,7 @@ pub mod terrain_sync;
 pub mod waypoint;
 
 use common_ecs::{dispatch, run_now, System};
-use common_sys::{interpolation, melee, projectile};
+use common_sys::{melee, projectile};
 use specs::DispatcherBuilder;
 use std::{
     marker::PhantomData,
@@ -23,7 +23,8 @@ pub type PersistenceScheduler = SysScheduler<persistence::Sys>;
 
 pub fn add_server_systems(dispatch_builder: &mut DispatcherBuilder) {
     dispatch::<melee::Sys>(dispatch_builder, &[&projectile::Sys::sys_name()]);
-    dispatch::<agent::Sys>(dispatch_builder, &[&interpolation::Sys::sys_name()]);
+    //Note: server should not depend on interpolation system
+    dispatch::<agent::Sys>(dispatch_builder, &[]);
     dispatch::<terrain::Sys>(dispatch_builder, &[]);
     dispatch::<waypoint::Sys>(dispatch_builder, &[]);
     dispatch::<invite_timeout::Sys>(dispatch_builder, &[]);
