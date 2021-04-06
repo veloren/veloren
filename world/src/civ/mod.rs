@@ -379,7 +379,7 @@ impl Civs {
     }
 
     /// Return an iterator over a site's neighbors
-    fn neighbors(&self, site: Id<Site>) -> impl Iterator<Item = Id<Site>> + '_ {
+    pub fn neighbors(&self, site: Id<Site>) -> impl Iterator<Item = Id<Site>> + '_ {
         let to = self
             .track_map
             .get(&site)

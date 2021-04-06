@@ -185,7 +185,9 @@ impl Entity {
                             })
                         {
                             let mut rng = thread_rng();
-                            if let Ok(normalpos) = Normal::new(0.0, 64.0) {
+                            if let (Ok(normalpos), Ok(normaloff)) =
+                                (Normal::new(0.0, 64.0), Normal::new(0.0, 256.0))
+                            {
                                 let mut path = Vec::<Vec2<i32>>::default();
                                 let target_site_pos = site.center.map(|e| e as f32)
                                     * TerrainChunk::RECT_SIZE.map(|e| e as f32);
@@ -195,7 +197,7 @@ impl Entity {
                                 let dist = (offset_site_pos - self.pos.xy()).magnitude();
                                 let midpoint = self.pos.xy() + offset_dir * (dist / 2.0);
                                 let perp_dir = offset_dir.rotated_z(PI / 2.0);
-                                let offset = normalpos.sample(&mut rng);
+                                let offset = normaloff.sample(&mut rng);
                                 let inbetween_pos = midpoint + (perp_dir * offset);
 
                                 path.push(inbetween_pos.map(|e| e as i32));
@@ -238,9 +240,50 @@ impl Entity {
                 }
             },
             Travel::InSite { site_id } => {
+                let site = &world.civs().sites[site_id];
+                let site_name = site
+                    .site_tmp
+                    .map_or("".to_string(), |id| index.sites[id].name().to_string());
+                let last_name = self
+                    .brain
+                    .last_visited
+                    .and_then(|last| site.site_tmp.map(|id| index.sites[id].name().to_string()))
+                    .or_else(|| Some("None".to_string()));
+                println!("In: {:?}, prev: {:?}", site_name, last_name);
                 if !self.get_body().is_humanoid() {
                     // Non humanoids don't care if they start at a site
                     Travel::Lost
+                } else if let Some(target_id) = world
+                    .civs()
+                    .neighbors(site_id)
+                    .filter(|sid| {
+                        let site = world.civs().sites.get(*sid);
+                        let wpos = site.center * TerrainChunk::RECT_SIZE.map(|e| e as i32);
+                        let dist = wpos.map(|e| e as f32).distance(self.pos.xy()) as u32;
+                        dist > 96
+                    })
+                    .filter(|sid| {
+                        if let Some(last_visited) = self.brain.last_visited {
+                            *sid != last_visited
+                        } else {
+                            true
+                        }
+                    })
+                    .choose(&mut thread_rng())
+                {
+                    if let Some(track_id) = world.civs().track_between(site_id, target_id) {
+                        self.brain.last_visited = Some(site_id);
+                        Travel::Path {
+                            target_id,
+                            track_id,
+                            progress: 0,
+                            reversed: false,
+                        }
+                    } else {
+                        self.brain.last_visited = Some(site_id);
+                        // This should never trigger
+                        Travel::Direct { target_id }
+                    }
                 } else if let Some(target_id) = world
                     .civs()
                     .sites
@@ -254,17 +297,11 @@ impl Entity {
                     })
                     .map(|(id, _)| id)
                 {
-                    if let Some(track_id) = world.civs().track_between(site_id, target_id) {
-                        Travel::Path {
-                            target_id,
-                            track_id,
-                            progress: 0,
-                            reversed: false,
-                        }
-                    } else {
-                        Travel::Direct { target_id }
-                    }
+                    self.brain.last_visited = Some(site_id);
+                    // Directly travel if no paths exist
+                    Travel::Direct { target_id }
                 } else {
+                    self.brain.last_visited = Some(site_id);
                     Travel::InSite { site_id }
                 }
             },
@@ -387,7 +424,7 @@ impl Entity {
                     match dist {
                         d if d < 32 => {
                             if progress + 1 > track.path().len() {
-                                Travel::InSite { site_id: target_id }
+                                Travel::Direct { target_id }
                             } else {
                                 Travel::Path {
                                     target_id,
@@ -406,7 +443,7 @@ impl Entity {
                                     reversed: true,
                                 }
                             } else {
-                                Travel::Direct { target_id }
+                                Travel::Lost
                             }
                         },
                         _ => {
@@ -483,6 +520,7 @@ pub struct Brain {
     begin: Option<Id<Site>>,
     tgt: Option<Id<Site>>,
     route: Travel,
+    last_visited: Option<Id<Site>>,
     memories: Vec<Memory>,
 }
 
