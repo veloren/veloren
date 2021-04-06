@@ -2,9 +2,9 @@ use crate::settings::BanRecord;
 use authc::{AuthClient, AuthClientError, AuthToken, Uuid};
 use common_net::msg::RegisterError;
 #[cfg(feature = "plugins")]
-use common_sys::plugin::memory_manager::EcsWorld;
+use common_state::plugin::memory_manager::EcsWorld;
 #[cfg(feature = "plugins")]
-use common_sys::plugin::PluginMgr;
+use common_state::plugin::PluginMgr;
 use hashbrown::{HashMap, HashSet};
 use plugin_api::event::{PlayerJoinEvent, PlayerJoinResult};
 use specs::Component;

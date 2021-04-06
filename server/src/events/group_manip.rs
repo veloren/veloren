@@ -9,7 +9,7 @@ use common::{
     uid::Uid,
 };
 use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
-use common_sys::state::State;
+use common_state::State;
 use specs::{
     world::{Entity, WorldExt},
     ReadStorage, WriteStorage,

@@ -54,7 +54,8 @@ use common_net::{
     },
     sync::WorldSyncExt,
 };
-use common_sys::state::State;
+use common_state::State;
+use common_sys::add_local_systems;
 use comp::BuffKind;
 use futures_util::FutureExt;
 use hashbrown::{HashMap, HashSet};
@@ -1418,7 +1419,8 @@ impl Client {
         }
 
         // 4) Tick the client's LocalState
-        self.state.tick(dt, add_foreign_systems, true);
+        self.state
+            .tick(dt, add_local_systems, add_foreign_systems, true);
         // TODO: avoid emitting these in the first place
         self.state
             .ecs()

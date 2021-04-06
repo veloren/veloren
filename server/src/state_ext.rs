@@ -18,7 +18,7 @@ use common_net::{
     msg::{CharacterInfo, PlayerListUpdate, PresenceKind, ServerGeneral},
     sync::WorldSyncExt,
 };
-use common_sys::state::State;
+use common_state::State;
 use rand::prelude::*;
 use specs::{
     saveload::MarkerAllocator, Builder, Entity as EcsEntity, EntityBuilder as EcsEntityBuilder,

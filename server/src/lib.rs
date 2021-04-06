@@ -77,10 +77,11 @@ use common_net::{
     sync::WorldSyncExt,
 };
 #[cfg(feature = "plugins")]
-use common_sys::plugin::memory_manager::EcsWorld;
+use common_state::plugin::memory_manager::EcsWorld;
 #[cfg(feature = "plugins")]
-use common_sys::plugin::PluginMgr;
-use common_sys::state::{BuildAreas, State};
+use common_state::plugin::PluginMgr;
+use common_state::{BuildAreas, State};
+use common_sys::add_local_systems;
 use metrics::{EcsSystemMetrics, PhysicsMetrics, TickMetrics};
 use network::{Network, Pid, ProtocolAddr};
 use persistence::{
@@ -516,6 +517,7 @@ impl Server {
         // in sys/terrain.rs
         self.state.tick(
             dt,
+            add_local_systems,
             |dispatcher_builder| {
                 sys::msg::add_server_systems(dispatcher_builder);
                 sys::add_server_systems(dispatcher_builder);

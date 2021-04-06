@@ -49,7 +49,7 @@ use common::{
     assets::{self, AssetExt, AssetHandle},
     terrain::{BiomeKind, SitesKind},
 };
-use common_sys::state::State;
+use common_state::State;
 use hashbrown::HashMap;
 use rand::{prelude::SliceRandom, thread_rng, Rng};
 use serde::Deserialize;

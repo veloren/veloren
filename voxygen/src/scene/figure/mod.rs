@@ -39,7 +39,7 @@ use common::{
     vol::RectRasterableVol,
 };
 use common_base::span;
-use common_sys::state::State;
+use common_state::State;
 use core::{
     borrow::Borrow,
     convert::TryFrom,

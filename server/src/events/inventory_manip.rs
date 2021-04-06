@@ -17,7 +17,7 @@ use common::{
     vol::ReadVol,
 };
 use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
-use common_sys::state::State;
+use common_state::State;
 use comp::LightEmitter;
 
 use crate::{client::Client, Server, StateExt};

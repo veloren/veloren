@@ -5442,6 +5442,7 @@ dependencies = [
  "veloren-common-ecs",
  "veloren-common-frontend",
  "veloren-common-net",
+ "veloren-common-state",
  "veloren-common-sys",
  "veloren-network",
 ]
@@ -5535,18 +5536,14 @@ dependencies = [
 ]
 
 [[package]]
-name = "veloren-common-sys"
+name = "veloren-common-state"
 version = "0.9.0"
 dependencies = [
  "bincode",
  "hashbrown",
- "indexmap",
- "ordered-float 2.1.1",
- "rand 0.8.3",
  "rayon",
  "scopeguard",
  "serde",
- "slab",
  "specs",
  "tar",
  "toml",
@@ -5558,6 +5555,25 @@ dependencies = [
  "veloren-common-net",
  "veloren-plugin-api",
  "wasmer",
+]
+
+[[package]]
+name = "veloren-common-sys"
+version = "0.9.0"
+dependencies = [
+ "hashbrown",
+ "indexmap",
+ "ordered-float 2.1.1",
+ "rand 0.8.3",
+ "rayon",
+ "slab",
+ "specs",
+ "tracing",
+ "vek",
+ "veloren-common",
+ "veloren-common-base",
+ "veloren-common-ecs",
+ "veloren-common-net",
 ]
 
 [[package]]
@@ -5666,6 +5682,7 @@ dependencies = [
  "veloren-common-base",
  "veloren-common-ecs",
  "veloren-common-net",
+ "veloren-common-state",
  "veloren-common-sys",
  "veloren-network",
  "veloren-plugin-api",
@@ -5753,6 +5770,7 @@ dependencies = [
  "veloren-common-ecs",
  "veloren-common-frontend",
  "veloren-common-net",
+ "veloren-common-state",
  "veloren-common-sys",
  "veloren-server",
  "veloren-voxygen-anim",

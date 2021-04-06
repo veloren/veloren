@@ -29,7 +29,7 @@ use common::{
     Damage, DamageSource, Explosion, GroupTarget, RadiusEffect,
 };
 use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
-use common_sys::state::BlockChange;
+use common_state::BlockChange;
 use comp::chat::GenericChatMsg;
 use hashbrown::HashSet;
 use specs::{join::Join, saveload::MarkerAllocator, Entity as EcsEntity, WorldExt};

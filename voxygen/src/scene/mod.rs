@@ -32,7 +32,7 @@ use common::{
     vol::ReadVol,
 };
 use common_base::span;
-use common_sys::state::State;
+use common_state::State;
 use comp::item::Reagent;
 use num::traits::{Float, FloatConst};
 use specs::{Entity as EcsEntity, Join, WorldExt};
