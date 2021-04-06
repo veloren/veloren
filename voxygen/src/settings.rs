@@ -503,6 +503,7 @@ pub struct GameplaySettings {
     pub auto_walk_behavior: PressBehavior,
     pub camera_clamp_behavior: PressBehavior,
     pub stop_auto_walk_on_input: bool,
+    pub auto_camera: bool,
 }
 
 impl Default for GameplaySettings {
@@ -518,6 +519,7 @@ impl Default for GameplaySettings {
             auto_walk_behavior: PressBehavior::Toggle,
             camera_clamp_behavior: PressBehavior::Toggle,
             stop_auto_walk_on_input: true,
+            auto_camera: false,
         }
     }
 }

@@ -49,6 +49,7 @@
         "hud.settings.auto_walk_behavior": "Auto walk behavior",
         "hud.settings.camera_clamp_behavior": "Camera clamp behavior",
         "hud.settings.stop_auto_walk_on_input": "Stop auto walk on movement",
+        "hud.settings.auto_camera": "Auto camera",
         "hud.settings.reset_gameplay": "Reset to Defaults",
 
         "hud.settings.view_distance": "View Distance",
@@ -77,7 +78,7 @@
         "hud.settings.particles": "Particles",
         "hud.settings.resolution": "Resolution",
         "hud.settings.bit_depth": "Bit Depth",
-        "hud.settings.refresh_rate": "Refresh Rate",        
+        "hud.settings.refresh_rate": "Refresh Rate",
         "hud.settings.lighting_rendering_mode": "Lighting Rendering Mode",
         "hud.settings.lighting_rendering_mode.ashikhmin": "Type A - High    ",
         "hud.settings.lighting_rendering_mode.blinnphong": "Type B - Medium",
