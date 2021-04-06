@@ -167,9 +167,17 @@ impl LoginProvider {
         let token = AuthToken::from_str(username_or_token)
             .map_err(|e| RegisterError::AuthError(e.to_string()))?;
         // Validate token
-        let uuid = srv.validate(token).await?;
-        let username = srv.uuid_to_username(uuid).await?;
-        Ok((username, uuid))
+        match async {
+            let uuid = srv.validate(token).await?;
+            let username = srv.uuid_to_username(uuid).await?;
+            let r: Result<_, authc::AuthClientError> = Ok((username, uuid));
+            r
+        }
+        .await
+        {
+            Err(e) => Err(RegisterError::AuthError(e.to_string())),
+            Ok((username, uuid)) => Ok((username, uuid)),
+        }
     }
 
     pub fn username_to_uuid(&self, username: &str) -> Result<Uuid, AuthClientError> {

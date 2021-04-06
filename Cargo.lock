@@ -5524,7 +5524,6 @@ dependencies = [
 name = "veloren-common-net"
 version = "0.9.0"
 dependencies = [
- "authc",
  "hashbrown",
  "serde",
  "specs",
