@@ -11,13 +11,21 @@ pub enum InitProtocolError {
 /// When you return closed you must stay closed!
 #[derive(Debug, PartialEq)]
 pub enum ProtocolError {
+    /// Closed indicates the underlying I/O got closed
+    /// e.g. the TCP, UDP or MPSC connection is dropped by the OS
     Closed,
+    /// Violated indicates the veloren_network_protocol was violated
+    /// the underlying I/O connection is still valid, but the remote side
+    /// send WRONG (e.g. Invalid, or wrong order) data on the protocol layer.
+    Violated,
 }
 
 impl From<ProtocolError> for InitProtocolError {
     fn from(err: ProtocolError) -> Self {
         match err {
             ProtocolError::Closed => InitProtocolError::Closed,
+            // not possible as the Init has raw access to the I/O
+            ProtocolError::Violated => InitProtocolError::Closed,
         }
     }
 }
@@ -46,6 +54,7 @@ impl core::fmt::Display for ProtocolError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
             ProtocolError::Closed => write!(f, "Channel closed"),
+            ProtocolError::Violated => write!(f, "Channel protocol violated"),
         }
     }
 }

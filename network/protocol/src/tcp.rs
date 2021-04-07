@@ -266,7 +266,7 @@ where
                                     ?mid,
                                     "protocol violation by remote side: send Data before Header"
                                 );
-                                break 'outer Err(ProtocolError::Closed);
+                                break 'outer Err(ProtocolError::Violated);
                             },
                         };
                         m.data.extend_from_slice(&data);
@@ -321,7 +321,7 @@ where
                 return Ok(frame);
             }
         }
-        Err(ProtocolError::Closed)
+        Err(ProtocolError::Violated)
     }
 }
 

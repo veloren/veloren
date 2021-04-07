@@ -142,7 +142,7 @@ where
                 }
                 Ok(e)
             },
-            MpscMsg::InitFrame(_) => Err(ProtocolError::Closed),
+            MpscMsg::InitFrame(_) => Err(ProtocolError::Violated),
         }
     }
 }
@@ -164,7 +164,7 @@ where
 {
     async fn recv(&mut self) -> Result<InitFrame, ProtocolError> {
         match self.sink.recv().await? {
-            MpscMsg::Event(_) => Err(ProtocolError::Closed),
+            MpscMsg::Event(_) => Err(ProtocolError::Violated),
             MpscMsg::InitFrame(f) => Ok(f),
         }
     }
