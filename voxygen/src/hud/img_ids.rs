@@ -88,15 +88,6 @@ image_ids! {
         // Social Window
         social_frame_on: "voxygen.element.misc_bg.social_frame",
         social_bg_on: "voxygen.element.misc_bg.social_bg",
-        social_frame_friends: "voxygen.element.misc_bg.social_frame",
-        social_bg_friends: "voxygen.element.misc_bg.social_bg",
-        social_frame_fact: "voxygen.element.misc_bg.social_frame",
-        social_bg_fact: "voxygen.element.misc_bg.social_bg",
-        social_tab_act: "voxygen.element.buttons.social_tab_active",
-        social_tab_online: "voxygen.element.misc_bg.social_tab_online",
-        social_tab_inact: "voxygen.element.buttons.social_tab_inactive",
-        social_tab_inact_hover: "voxygen.element.buttons.social_tab_inactive",
-        social_tab_inact_press: "voxygen.element.buttons.social_tab_inactive",
 
         // Crafting Window
         crafting_window: "voxygen.element.misc_bg.crafting",
@@ -110,6 +101,7 @@ image_ids! {
         icon_dismantle: "voxygen.element.icons.dismantle",
         icon_food: "voxygen.element.icons.foods",
         icon_glider: "voxygen.element.icons.gliders",
+        icon_globe: "voxygen.element.icons.globe",
         icon_potion: "voxygen.element.icons.potions",
         icon_utility: "voxygen.element.icons.utilities",
         icon_weapon: "voxygen.element.icons.weapons",
@@ -403,6 +395,10 @@ image_ids! {
         close_button_hover: "voxygen.element.buttons.close_btn_hover",
         close_button_press: "voxygen.element.buttons.close_btn_press",
 
+        // Search-button
+        search_btn: "voxygen.element.buttons.search_btn",
+        search_btn_hover: "voxygen.element.buttons.search_btn_hover",
+        search_btn_press: "voxygen.element.buttons.search_btn_press",
         // Inventory
         collapse_btn: "voxygen.element.buttons.inv_collapse",
         collapse_btn_hover: "voxygen.element.buttons.inv_collapse_hover",

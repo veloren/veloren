@@ -22,8 +22,8 @@ use common::{
     recipe::RecipeInput,
 };
 use conrod_core::{
-    color,
-    widget::{self, Button, Image, Rectangle, Scrollbar, Text},
+    color, image,
+    widget::{self, Button, Image, Rectangle, Scrollbar, Text, TextEdit},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 use std::sync::Arc;
@@ -41,7 +41,13 @@ widget_ids! {
         title_rec,
         align_rec,
         scrollbar_rec,
+        btn_open_search,
+        btn_close_search,
+        input_search,
+        input_bg_search,
+        input_overlay_search,
         title_ing,
+        tags_ing[],
         align_ing,
         scrollbar_ing,
         btn_craft,
@@ -64,8 +70,10 @@ widget_ids! {
 
 pub enum Event {
     CraftRecipe(String),
-    ChangeCraftingTab(SelectedCraftingTab),
+    ChangeCraftingTab(CraftingTab),
     Close,
+    Focus(widget::Id),
+    SearchRecipe(Option<String>),
 }
 
 #[derive(WidgetCommon)]
@@ -120,7 +128,8 @@ impl<'a> Crafting<'a> {
 }
 
 #[derive(Debug, EnumIter, PartialEq)]
-pub enum SelectedCraftingTab {
+pub enum CraftingTab {
+    All,
     Armor,
     Weapon,
     Food,
@@ -130,6 +139,61 @@ pub enum SelectedCraftingTab {
     Tool,
     Utility,
     Glider,
+}
+impl CraftingTab {
+    fn name_key(&self) -> &str {
+        match self {
+            CraftingTab::All => "hud.crafting.tabs.all",
+            CraftingTab::Armor => "hud.crafting.tabs.armor",
+            CraftingTab::Dismantle => "hud.crafting.tabs.dismantle",
+            CraftingTab::Food => "hud.crafting.tabs.food",
+            CraftingTab::Glider => "hud.crafting.tabs.glider",
+            CraftingTab::Potion => "hud.crafting.tabs.potion",
+            CraftingTab::Tool => "hud.crafting.tabs.tool",
+            CraftingTab::Utility => "hud.crafting.tabs.utility",
+            CraftingTab::Weapon => "hud.crafting.tabs.weapon",
+            CraftingTab::Bag => "hud.crafting.tabs.bag",
+        }
+    }
+
+    fn img_id(&self, imgs: &Imgs) -> image::Id {
+        match self {
+            CraftingTab::All => imgs.icon_globe,
+            CraftingTab::Armor => imgs.icon_armor,
+            CraftingTab::Dismantle => imgs.icon_dismantle,
+            CraftingTab::Food => imgs.icon_food,
+            CraftingTab::Glider => imgs.icon_glider,
+            CraftingTab::Potion => imgs.icon_potion,
+            CraftingTab::Tool => imgs.icon_tools,
+            CraftingTab::Utility => imgs.icon_utility,
+            CraftingTab::Weapon => imgs.icon_weapon,
+            CraftingTab::Bag => imgs.icon_bag,
+        }
+    }
+
+    fn satisfies(&self, item: &ItemDef) -> bool {
+        match self {
+            CraftingTab::All => true,
+            CraftingTab::Food => item.tags().contains(&ItemTag::Food),
+            CraftingTab::Armor => match item.kind() {
+                ItemKind::Armor(_) => !item.tags().contains(&ItemTag::Bag),
+                _ => false,
+            },
+            CraftingTab::Glider => matches!(item.kind(), ItemKind::Glider(_)),
+            CraftingTab::Potion => item.tags().contains(&ItemTag::Potion),
+            CraftingTab::Bag => item.tags().contains(&ItemTag::Bag),
+            CraftingTab::Tool => item.tags().contains(&ItemTag::CraftingTool),
+            CraftingTab::Utility => item.tags().contains(&ItemTag::Utility),
+            CraftingTab::Weapon => match item.kind() {
+                ItemKind::Tool(_) => !item.tags().contains(&ItemTag::CraftingTool),
+                _ => false,
+            },
+            CraftingTab::Dismantle => match item.kind() {
+                ItemKind::Ingredient { .. } => !item.tags().contains(&ItemTag::CraftingTool),
+                _ => false,
+            },
+        }
+    }
 }
 
 pub struct State {
@@ -154,15 +218,6 @@ impl<'a> Widget for Crafting<'a> {
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { state, ui, .. } = args;
-
-        if state.ids.recipe_names.len() < self.client.recipe_book().iter().len() {
-            state.update(|state| {
-                state.ids.recipe_names.resize(
-                    self.client.recipe_book().iter().len(),
-                    &mut ui.widget_id_generator(),
-                )
-            });
-        }
 
         let mut events = Vec::new();
 
@@ -211,21 +266,36 @@ impl<'a> Widget for Crafting<'a> {
         .font_id(self.fonts.cyri.conrod_id)
         .desc_text_color(TEXT_COLOR);
 
+        // Frame and window
         Image::new(self.imgs.crafting_window)
             .bottom_right_with_margins_on(ui.window, 308.0, 450.0)
             .color(Some(UI_MAIN))
             .w_h(422.0, 460.0)
             .set(state.ids.window, ui);
+        // Search Background
+        // I couldn't find a way to manually set they layer of a widget
+        // If it is possible, please move this code (for rectangle) down to the code for
+        // search input
+        if self.show.crafting_search_key.is_some() {
+            Rectangle::fill([114.0, 20.0])
+                .top_left_with_margins_on(state.ids.window, 52.0, 26.0)
+                .hsla(0.0, 0.0, 0.0, 0.7)
+                .set(state.ids.input_bg_search, ui);
+        }
+        // Window
         Image::new(self.imgs.crafting_frame)
             .middle_of(state.ids.window)
             .color(Some(UI_HIGHLIGHT_0))
             .w_h(422.0, 460.0)
             .set(state.ids.window_frame, ui);
+
+        // Crafting Icon
         Image::new(self.imgs.crafting_icon_bordered)
             .w_h(38.0, 38.0)
             .top_left_with_margins_on(state.ids.window_frame, 4.0, 4.0)
             .set(state.ids.icon, ui);
-        //  Close Button
+
+        // Close Button
         if Button::image(self.imgs.close_button)
             .w_h(24.0, 25.0)
             .hover_image(self.imgs.close_button_hover)
@@ -254,105 +324,83 @@ impl<'a> Widget for Crafting<'a> {
             .top_right_with_margins_on(state.ids.window, 74.0, 5.0)
             .scroll_kids_vertically()
             .set(state.ids.align_ing, ui);
+
         // Category Tabs
-        if state.ids.category_bgs.len() < SelectedCraftingTab::iter().enumerate().len() {
+        if state.ids.category_bgs.len() < CraftingTab::iter().enumerate().len() {
             state.update(|s| {
                 s.ids.category_bgs.resize(
-                    SelectedCraftingTab::iter().enumerate().len(),
+                    CraftingTab::iter().enumerate().len(),
                     &mut ui.widget_id_generator(),
                 )
             })
         };
-        if state.ids.category_tabs.len() < SelectedCraftingTab::iter().enumerate().len() {
+        if state.ids.category_tabs.len() < CraftingTab::iter().enumerate().len() {
             state.update(|s| {
                 s.ids.category_tabs.resize(
-                    SelectedCraftingTab::iter().enumerate().len(),
+                    CraftingTab::iter().enumerate().len(),
                     &mut ui.widget_id_generator(),
                 )
             })
         };
-        if state.ids.category_imgs.len() < SelectedCraftingTab::iter().enumerate().len() {
+        if state.ids.category_imgs.len() < CraftingTab::iter().enumerate().len() {
             state.update(|s| {
                 s.ids.category_imgs.resize(
-                    SelectedCraftingTab::iter().enumerate().len(),
+                    CraftingTab::iter().enumerate().len(),
                     &mut ui.widget_id_generator(),
                 )
             })
         };
         let sel_crafting_tab = &self.show.crafting_tab;
-        for i in SelectedCraftingTab::iter().enumerate() {
-            // TODO: i18n!
-            let tab_name = match i.1 {
-                SelectedCraftingTab::Armor => "Armor",
-                SelectedCraftingTab::Dismantle => "Dismantle",
-                SelectedCraftingTab::Food => "Food",
-                SelectedCraftingTab::Glider => "Gliders",
-                SelectedCraftingTab::Potion => "Potions",
-                SelectedCraftingTab::Tool => "Tools",
-                SelectedCraftingTab::Utility => "Utility",
-                SelectedCraftingTab::Weapon => "Weapons",
-                SelectedCraftingTab::Bag => "Bags",
-            };
-            let tab_img = match i.1 {
-                SelectedCraftingTab::Armor => self.imgs.icon_armor,
-                SelectedCraftingTab::Dismantle => self.imgs.icon_dismantle,
-                SelectedCraftingTab::Food => self.imgs.icon_food,
-                SelectedCraftingTab::Glider => self.imgs.icon_glider,
-                SelectedCraftingTab::Potion => self.imgs.icon_potion,
-                SelectedCraftingTab::Tool => self.imgs.icon_tools,
-                SelectedCraftingTab::Utility => self.imgs.icon_utility,
-                SelectedCraftingTab::Weapon => self.imgs.icon_weapon,
-                SelectedCraftingTab::Bag => self.imgs.icon_bag,
-            };
+        for (i, crafting_tab) in CraftingTab::iter().enumerate() {
+            let tab_img = crafting_tab.img_id(self.imgs);
             // Button Background
             let mut bg = Image::new(self.imgs.pixel)
                 .w_h(40.0, 30.0)
                 .color(Some(UI_MAIN));
-            if i.0 == 0 {
+            if i == 0 {
                 bg = bg.top_left_with_margins_on(state.ids.window_frame, 50.0, -40.0)
             } else {
-                bg = bg.down_from(state.ids.category_bgs[i.0 - 1], 0.0)
+                bg = bg.down_from(state.ids.category_bgs[i - 1], 0.0)
             };
-            bg.set(state.ids.category_bgs[i.0], ui);
+            bg.set(state.ids.category_bgs[i], ui);
             // Category Button
-            if Button::image(if i.1 == *sel_crafting_tab {
+            if Button::image(if crafting_tab == *sel_crafting_tab {
                 self.imgs.wpn_icon_border_pressed
             } else {
                 self.imgs.wpn_icon_border
             })
-            .wh_of(state.ids.category_bgs[i.0])
-            .middle_of(state.ids.category_bgs[i.0])
-            .hover_image(if i.1 == *sel_crafting_tab {
+            .wh_of(state.ids.category_bgs[i])
+            .middle_of(state.ids.category_bgs[i])
+            .hover_image(if crafting_tab == *sel_crafting_tab {
                 self.imgs.wpn_icon_border_pressed
             } else {
                 self.imgs.wpn_icon_border_mo
             })
-            .press_image(if i.1 == *sel_crafting_tab {
+            .press_image(if crafting_tab == *sel_crafting_tab {
                 self.imgs.wpn_icon_border_pressed
             } else {
                 self.imgs.wpn_icon_border_press
             })
             .with_tooltip(
                 self.tooltip_manager,
-                tab_name,
+                &self.localized_strings.get(crafting_tab.name_key()),
                 "",
                 &tabs_tooltip,
                 TEXT_COLOR,
             )
-            .set(state.ids.category_tabs[i.0], ui)
+            .set(state.ids.category_tabs[i], ui)
             .was_clicked()
             {
-                events.push(Event::ChangeCraftingTab(i.1))
+                events.push(Event::ChangeCraftingTab(crafting_tab))
             };
             // Tab images
             Image::new(tab_img)
-                .middle_of(state.ids.category_tabs[i.0])
+                .middle_of(state.ids.category_tabs[i])
                 .w_h(20.0, 20.0)
-                .graphics_for(state.ids.category_tabs[i.0])
-                .set(state.ids.category_imgs[i.0], ui);
+                .graphics_for(state.ids.category_tabs[i])
+                .set(state.ids.category_imgs[i], ui);
         }
 
-        let client = &self.client;
         // First available recipes, then unavailable ones, each alphabetically
         // In the triples, "name" is the recipe book key, and "recipe.output.0.name()"
         // is the display name (as stored in the item descriptors)
@@ -366,6 +414,17 @@ impl<'a> Widget for Crafting<'a> {
             .client
             .recipe_book()
             .iter()
+            .filter(|(_, recipe)| {
+                let output_name = recipe.output.0.name.to_lowercase();
+                if let Some(key) = &self.show.crafting_search_key {
+                    key.as_str()
+                        .to_lowercase()
+                        .split_whitespace()
+                        .all(|substring| output_name.contains(substring))
+                } else {
+                    true
+                }
+            })
             .map(|(name, recipe)| {
                 let at_least_some_ingredients = recipe.inputs.iter().any(|(input, amount)| {
                     *amount > 0
@@ -375,7 +434,7 @@ impl<'a> Widget for Crafting<'a> {
                                 .unwrap_or(false)
                         })
                 });
-                let state = if client.available_recipes().contains(name.as_str()) {
+                let state = if self.client.available_recipes().contains(name.as_str()) {
                     RecipeIngredientQuantity::All
                 } else if at_least_some_ingredients {
                     RecipeIngredientQuantity::Some
@@ -386,129 +445,19 @@ impl<'a> Widget for Crafting<'a> {
             })
             .collect();
         ordered_recipes.sort_by_key(|(_, recipe, state)| (*state, recipe.output.0.name()));
-        match &state.selected_recipe {
-            None => {},
-            Some(recipe) => {
-                let can_perform = client.available_recipes().contains(recipe.as_str());
-                // Ingredients Text
-                Text::new(&self.localized_strings.get("hud.crafting.ingredients"))
-                    .top_left_with_margins_on(state.ids.align_ing, 10.0, 5.0)
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .font_size(self.fonts.cyri.scale(18))
-                    .color(TEXT_COLOR)
-                    .set(state.ids.ingredients_txt, ui);
-                // Craft button
-                if Button::image(self.imgs.button)
-                    .w_h(105.0, 25.0)
-                    .hover_image(
-                        can_perform
-                            .then_some(self.imgs.button_hover)
-                            .unwrap_or(self.imgs.button),
-                    )
-                    .press_image(
-                        can_perform
-                            .then_some(self.imgs.button_press)
-                            .unwrap_or(self.imgs.button),
-                    )
-                    .label(&self.localized_strings.get("hud.crafting.craft"))
-                    .label_y(conrod_core::position::Relative::Scalar(1.0))
-                    .label_color(can_perform.then_some(TEXT_COLOR).unwrap_or(TEXT_GRAY_COLOR))
-                    .label_font_size(self.fonts.cyri.scale(12))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .image_color(can_perform.then_some(TEXT_COLOR).unwrap_or(TEXT_GRAY_COLOR))
-                    .mid_bottom_with_margin_on(state.ids.align_ing, -31.0)
-                    .parent(state.ids.window_frame)
-                    .set(state.ids.btn_craft, ui)
-                    .was_clicked()
-                {
-                    events.push(Event::CraftRecipe(recipe.clone()));
-                }
-                // Result Image BG
-                let quality_col_img = if let Some(recipe) = state
-                    .selected_recipe
-                    .as_ref()
-                    .and_then(|r| self.client.recipe_book().get(r.as_str()))
-                {
-                    match recipe.output.0.quality {
-                        Quality::Low => self.imgs.inv_slot_grey,
-                        Quality::Common => self.imgs.inv_slot,
-                        Quality::Moderate => self.imgs.inv_slot_green,
-                        Quality::High => self.imgs.inv_slot_blue,
-                        Quality::Epic => self.imgs.inv_slot_purple,
-                        Quality::Legendary => self.imgs.inv_slot_gold,
-                        Quality::Artifact => self.imgs.inv_slot_orange,
-                        _ => self.imgs.inv_slot_red,
-                    }
-                } else {
-                    self.imgs.inv_slot
-                };
-                Image::new(quality_col_img)
-                    .w_h(60.0, 60.0)
-                    .top_right_with_margins_on(state.ids.align_ing, 15.0, 10.0)
-                    .parent(state.ids.align_ing)
-                    .set(state.ids.output_img_frame, ui);
-
-                if let Some(recipe) = state
-                    .selected_recipe
-                    .as_ref()
-                    .and_then(|r| self.client.recipe_book().get(r.as_str()))
-                {
-                    let output_text = format!("x{}", &recipe.output.1.to_string());
-                    // Output Image
-                    Button::image(animate_by_pulse(
-                        &self
-                            .item_imgs
-                            .img_ids_or_not_found_img((&*recipe.output.0).into()),
-                        self.pulse,
-                    ))
-                    .w_h(55.0, 55.0)
-                    .label(&output_text)
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(self.fonts.cyri.scale(14))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .label_y(conrod_core::position::Relative::Scalar(-24.0))
-                    .label_x(conrod_core::position::Relative::Scalar(24.0))
-                    .middle_of(state.ids.output_img_frame)
-                    .with_item_tooltip(
-                        self.item_tooltip_manager,
-                        &*recipe.output.0,
-                        &None,
-                        &item_tooltip,
-                    )
-                    .set(state.ids.output_img, ui);
-                }
-            },
-        }
 
         // Recipe list
+        if state.ids.recipe_names.len() < self.client.recipe_book().iter().len() {
+            state.update(|state| {
+                state.ids.recipe_names.resize(
+                    self.client.recipe_book().iter().len(),
+                    &mut ui.widget_id_generator(),
+                )
+            });
+        }
         for (i, (name, recipe, quantity)) in ordered_recipes
             .into_iter()
-            .filter(|(_name, recipe, _quantity)| match &self.show.crafting_tab {
-                SelectedCraftingTab::Food => recipe.output.0.tags().contains(&ItemTag::Food),
-                SelectedCraftingTab::Armor => match recipe.output.0.kind() {
-                    ItemKind::Armor(_) => !recipe.output.0.tags().contains(&ItemTag::Bag),
-                    _ => false,
-                },
-                SelectedCraftingTab::Glider => {
-                    matches!(recipe.output.0.kind(), ItemKind::Glider(_))
-                },
-                SelectedCraftingTab::Potion => recipe.output.0.tags().contains(&ItemTag::Potion),
-                SelectedCraftingTab::Bag => recipe.output.0.tags().contains(&ItemTag::Bag),
-                SelectedCraftingTab::Tool => {
-                    recipe.output.0.tags().contains(&ItemTag::CraftingTool)
-                },
-                SelectedCraftingTab::Utility => recipe.output.0.tags().contains(&ItemTag::Utility),
-                SelectedCraftingTab::Weapon => match recipe.output.0.kind() {
-                    ItemKind::Tool(_) => !recipe.output.0.tags().contains(&ItemTag::CraftingTool),
-                    _ => false,
-                },
-                SelectedCraftingTab::Dismantle => match recipe.output.0.kind() {
-                    ItemKind::Ingredient { .. } => {
-                        !recipe.output.0.tags().contains(&ItemTag::CraftingTool)
-                    },
-                    _ => false,
-                },
-            })
+            .filter(|(_, recipe, _)| self.show.crafting_tab.satisfies(recipe.output.0.as_ref()))
             .enumerate()
         {
             let button = Button::image(
@@ -562,11 +511,11 @@ impl<'a> Widget for Crafting<'a> {
             }
         }
 
-        //Ingredients
-        if let Some(recipe) = state
+        // Selected Recipe
+        if let Some((recipe_name, recipe)) = state
             .selected_recipe
             .as_ref()
-            .and_then(|r| self.client.recipe_book().get(r.as_str()))
+            .and_then(|rn| self.client.recipe_book().get(rn.as_str()).map(|r| (rn, r)))
         {
             // Title
             Text::new(&recipe.output.0.name())
@@ -576,6 +525,132 @@ impl<'a> Widget for Crafting<'a> {
                 .color(TEXT_COLOR)
                 .parent(state.ids.window)
                 .set(state.ids.title_ing, ui);
+            let can_perform = self
+                .client
+                .available_recipes()
+                .contains(recipe_name.as_str());
+
+            // Craft button
+            if Button::image(self.imgs.button)
+                .w_h(105.0, 25.0)
+                .hover_image(
+                    can_perform
+                        .then_some(self.imgs.button_hover)
+                        .unwrap_or(self.imgs.button),
+                )
+                .press_image(
+                    can_perform
+                        .then_some(self.imgs.button_press)
+                        .unwrap_or(self.imgs.button),
+                )
+                .label(&self.localized_strings.get("hud.crafting.craft"))
+                .label_y(conrod_core::position::Relative::Scalar(1.0))
+                .label_color(can_perform.then_some(TEXT_COLOR).unwrap_or(TEXT_GRAY_COLOR))
+                .label_font_size(self.fonts.cyri.scale(12))
+                .label_font_id(self.fonts.cyri.conrod_id)
+                .image_color(can_perform.then_some(TEXT_COLOR).unwrap_or(TEXT_GRAY_COLOR))
+                .mid_bottom_with_margin_on(state.ids.align_ing, -31.0)
+                .parent(state.ids.window_frame)
+                .set(state.ids.btn_craft, ui)
+                .was_clicked()
+            {
+                events.push(Event::CraftRecipe(recipe_name.clone()));
+            }
+
+            // Output Image Frame
+            let quality_col_img = match recipe.output.0.quality {
+                Quality::Low => self.imgs.inv_slot_grey,
+                Quality::Common => self.imgs.inv_slot,
+                Quality::Moderate => self.imgs.inv_slot_green,
+                Quality::High => self.imgs.inv_slot_blue,
+                Quality::Epic => self.imgs.inv_slot_purple,
+                Quality::Legendary => self.imgs.inv_slot_gold,
+                Quality::Artifact => self.imgs.inv_slot_orange,
+                _ => self.imgs.inv_slot_red,
+            };
+
+            Image::new(quality_col_img)
+                .w_h(60.0, 60.0)
+                .top_right_with_margins_on(state.ids.align_ing, 15.0, 10.0)
+                .parent(state.ids.align_ing)
+                .set(state.ids.output_img_frame, ui);
+
+            let output_text = format!("x{}", &recipe.output.1.to_string());
+            // Output Image
+            Button::image(animate_by_pulse(
+                &self
+                    .item_imgs
+                    .img_ids_or_not_found_img((&*recipe.output.0).into()),
+                self.pulse,
+            ))
+            .w_h(55.0, 55.0)
+            .label(&output_text)
+            .label_color(TEXT_COLOR)
+            .label_font_size(self.fonts.cyri.scale(14))
+            .label_font_id(self.fonts.cyri.conrod_id)
+            .label_y(conrod_core::position::Relative::Scalar(-24.0))
+            .label_x(conrod_core::position::Relative::Scalar(24.0))
+            .middle_of(state.ids.output_img_frame)
+            .with_item_tooltip(
+                self.item_tooltip_manager,
+                &*recipe.output.0,
+                &None,
+                &item_tooltip,
+            )
+            .set(state.ids.output_img, ui);
+
+            // Tags
+            if state.ids.tags_ing.len() < CraftingTab::iter().len() {
+                state.update(|state| {
+                    state
+                        .ids
+                        .tags_ing
+                        .resize(CraftingTab::iter().len(), &mut ui.widget_id_generator())
+                });
+            }
+            for (row, chunk) in CraftingTab::iter()
+                .filter(|crafting_tab| match crafting_tab {
+                    CraftingTab::All => false,
+                    _ => crafting_tab.satisfies(recipe.output.0.as_ref()),
+                })
+                .filter(|crafting_tab| crafting_tab != &self.show.crafting_tab)
+                .collect::<Vec<_>>()
+                .chunks(3)
+                .enumerate()
+            {
+                for (col, crafting_tab) in chunk.iter().rev().enumerate() {
+                    let i = 3 * row + col;
+                    let icon = Image::new(crafting_tab.img_id(self.imgs))
+                        .w_h(20.0, 20.0)
+                        .parent(state.ids.window);
+                    let icon = if col == 0 {
+                        icon.bottom_right_with_margins_on(
+                            state.ids.output_img_frame,
+                            -24.0 - 24.0 * (row as f64),
+                            4.0,
+                        )
+                    } else {
+                        icon.left_from(state.ids.tags_ing[i - 1], 4.0)
+                    };
+                    icon.with_tooltip(
+                        self.tooltip_manager,
+                        &self.localized_strings.get(crafting_tab.name_key()),
+                        "",
+                        &tabs_tooltip,
+                        TEXT_COLOR,
+                    )
+                    .set(state.ids.tags_ing[i], ui);
+                }
+            }
+
+            // Ingredients Text
+            Text::new(&self.localized_strings.get("hud.crafting.ingredients"))
+                .top_left_with_margins_on(state.ids.align_ing, 10.0, 5.0)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(18))
+                .color(TEXT_COLOR)
+                .set(state.ids.ingredients_txt, ui);
+
             // Ingredient images with tooltip
             if state.ids.ingredient_frame.len() < recipe.inputs().len() {
                 state.update(|state| {
@@ -725,6 +800,56 @@ impl<'a> Widget for Crafting<'a> {
                 }
             }
         }
+
+        // Search / Title Recipes
+        if let Some(key) = &self.show.crafting_search_key {
+            if Button::image(self.imgs.close_btn)
+                .top_left_with_margins_on(state.ids.align_rec, -20.0, 5.0)
+                .w_h(14.0, 14.0)
+                .hover_image(self.imgs.close_btn_hover)
+                .press_image(self.imgs.close_btn_press)
+                .parent(state.ids.window)
+                .set(state.ids.btn_close_search, ui)
+                .was_clicked()
+            {
+                events.push(Event::SearchRecipe(None));
+            }
+            if let Some(string) = TextEdit::new(key.as_str())
+                .top_left_with_margins_on(state.ids.btn_close_search, -2.0, 18.0)
+                .w_h(90.0, 20.0)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(14))
+                .color(TEXT_COLOR)
+                .parent(state.ids.window)
+                .set(state.ids.input_search, ui)
+            {
+                events.push(Event::SearchRecipe(Some(string)));
+            }
+        } else {
+            Text::new(&self.localized_strings.get("hud.crafting.recipes"))
+                .mid_top_with_margin_on(state.ids.align_rec, -22.0)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(14))
+                .color(TEXT_COLOR)
+                .parent(state.ids.window)
+                .set(state.ids.title_rec, ui);
+            Rectangle::fill_with([114.0, 20.0], color::TRANSPARENT)
+                .top_left_with_margins_on(state.ids.window, 52.0, 26.0)
+                .graphics_for(state.ids.btn_open_search)
+                .set(state.ids.input_overlay_search, ui);
+            if Button::image(self.imgs.search_btn)
+                .top_left_with_margins_on(state.ids.align_rec, -21.0, 5.0)
+                .w_h(16.0, 16.0)
+                .hover_image(self.imgs.search_btn_hover)
+                .press_image(self.imgs.search_btn_press)
+                .parent(state.ids.window)
+                .set(state.ids.btn_open_search, ui)
+                .was_clicked()
+            {
+                events.push(Event::SearchRecipe(Some(String::new())));
+                events.push(Event::Focus(state.ids.input_search));
+            }
+        }
         // Scrollbars
         Scrollbar::y_axis(state.ids.align_rec)
             .thickness(5.0)
@@ -734,15 +859,6 @@ impl<'a> Widget for Crafting<'a> {
             .thickness(5.0)
             .rgba(0.33, 0.33, 0.33, 1.0)
             .set(state.ids.scrollbar_ing, ui);
-
-        // Title Recipes and Ingredients
-        Text::new(&self.localized_strings.get("hud.crafting.recipes"))
-            .mid_top_with_margin_on(state.ids.align_rec, -22.0)
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(14))
-            .color(TEXT_COLOR)
-            .parent(state.ids.window)
-            .set(state.ids.title_rec, ui);
 
         events
     }
