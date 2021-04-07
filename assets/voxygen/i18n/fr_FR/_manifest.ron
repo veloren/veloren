@@ -216,6 +216,11 @@
             "Ne faites plus cela.",
             "Gardes, jetez ce monstre dans le lac !",
             "Je vais t'envoyer ma tarrasque !",
-        ],        
+        ],
+        "npc.speech.villager_enemy_killed": [
+            "J'ai détruit mon ennemi !",
+            "Enfin en paix !",
+            "... qu'est-ce que je faisais déjà ?",
+        ],
     }
 )

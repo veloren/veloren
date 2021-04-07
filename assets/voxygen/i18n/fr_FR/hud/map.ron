@@ -6,6 +6,7 @@
         // Carte et journal de quetes
         "hud.map.map_title": "Carte",
         "hud.map.qlog_title": "Quêtes",
+        "hud.map.topo_map": "Topographique",
         "hud.map.difficulty": "Difficulté",
         "hud.map.towns": "Villes",
         "hud.map.castles": "Châteaux",

@@ -617,7 +617,7 @@ impl<'a> AgentData<'a> {
                     ) {
                         agent.target = None;
                         if agent.can_speak {
-                            let msg = "I have destroyed my enemy!".to_string();
+                            let msg = "npc.speech.villager_enemy_killed".to_string();
                             event_emitter
                                 .emit(ServerEvent::Chat(UnresolvedChatMsg::npc(*self.uid, msg)));
                         }

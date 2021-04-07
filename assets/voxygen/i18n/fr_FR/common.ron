@@ -85,7 +85,8 @@ Le client est-il à jour?"#,
         "common.hands.one": "Une main",
         "common.hands.two": "Deux mains",
 
-        "common.rand_appearance": "Apparence et nom aléatoire",
+        "common.rand_appearance": "Apparence aléatoire",
+        "common.rand_name": "Nom aléatoire",
 
         "common.stats.combat_rating": "CR",
         "common.stats.power": "Puissance",
