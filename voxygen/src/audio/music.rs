@@ -50,6 +50,7 @@ use common::{
     terrain::{BiomeKind, SitesKind},
 };
 use common_sys::state::State;
+use lazy_static::lazy_static;
 use rand::{prelude::SliceRandom, thread_rng, Rng};
 use serde::Deserialize;
 use std::time::Instant;
@@ -84,6 +85,11 @@ pub struct SoundtrackItem {
     /// What the player is doing when the track is played (i.e. exploring,
     /// combat)
     activity: MusicActivity,
+    /// What activity to override the activity state with, if any (e.g. to make
+    /// a long combat intro also act like the loop for the purposes of outro
+    /// transitions)
+    #[serde(default)]
+    activity_override: Option<MusicActivityState>,
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -94,7 +100,7 @@ enum RawSoundtrackItem {
         timing: Option<DayPeriod>,
         biomes: Vec<(BiomeKind, u8)>,
         site: Option<SitesKind>,
-        segments: Vec<(String, f32, MusicActivity)>,
+        segments: Vec<(String, f32, MusicActivity, Option<MusicActivityState>)>,
     },
 }
 
@@ -146,7 +152,47 @@ pub struct MusicMgr {
     /// being played twice in a row
     last_track: String,
     /// The previous track's activity kind, for transitions
-    last_activity: MusicActivityState,
+    last_activity: MusicActivity,
+}
+
+#[derive(Deserialize)]
+struct MusicTransitionManifest {
+    /// Within what radius do enemies count towards combat music?
+    combat_nearby_radius: f32,
+    /// Each multiple of this factor that an enemy has health counts as an extra
+    /// enemy
+    combat_health_factor: u32,
+    /// How many nearby enemies trigger High combat music
+    combat_nearby_high_thresh: u32,
+    /// How many nearby enemies trigger Low combat music
+    combat_nearby_low_thresh: u32,
+}
+
+impl Default for MusicTransitionManifest {
+    fn default() -> MusicTransitionManifest {
+        MusicTransitionManifest {
+            combat_nearby_radius: 40.0,
+            combat_health_factor: 1000,
+            combat_nearby_high_thresh: 3,
+            combat_nearby_low_thresh: 1,
+        }
+    }
+}
+
+impl assets::Asset for MusicTransitionManifest {
+    type Loader = assets::RonLoader;
+
+    const EXTENSION: &'static str = "ron";
+
+    fn default_value(id: &str, e: assets::Error) -> Result<MusicTransitionManifest, assets::Error> {
+        warn!("Error loading MusicTransitionManifest {:?}: {:?}", id, e);
+        Ok(MusicTransitionManifest::default())
+    }
+}
+
+lazy_static! {
+    static ref MUSIC_TRANSITION_MANIFEST: AssetHandle<MusicTransitionManifest> =
+        AssetExt::load_expect("voxygen.audio.music_transition_manifest");
 }
 
 impl Default for MusicMgr {
@@ -156,7 +202,7 @@ impl Default for MusicMgr {
             began_playing: Instant::now(),
             next_track_change: 0.0,
             last_track: String::from("None"),
-            last_activity: MusicActivityState::Explore,
+            last_activity: MusicActivity::State(MusicActivityState::Explore),
         }
     }
 }
@@ -185,34 +231,41 @@ impl MusicMgr {
         let positions = ecs.read_component::<Pos>();
         let healths = ecs.read_component::<Health>();
         let groups = ecs.read_component::<Group>();
+        let mtm = MUSIC_TRANSITION_MANIFEST.read();
         if let Some(player_pos) = positions.get(player) {
-            const NEARBY_RADIUS: f32 = 50.0;
-            const HEALTH_FACTOR: u32 = 100;
             let num_nearby_entities: u32 = (&entities, &positions, &healths, &groups)
                 .join()
                 .map(|(entity, pos, health, group)| {
                     if entity != player
                         && group == &ENEMY
-                        && (player_pos.0 - pos.0).magnitude_squared() < NEARBY_RADIUS.powf(2.0)
+                        && (player_pos.0 - pos.0).magnitude_squared()
+                            < mtm.combat_nearby_radius.powf(2.0)
                     {
-                        (health.maximum() / HEALTH_FACTOR).max(1)
+                        (health.maximum() / mtm.combat_health_factor).max(1)
                     } else {
                         0
                     }
                 })
                 .sum();
 
-            if num_nearby_entities > 2 {
+            if num_nearby_entities >= mtm.combat_nearby_high_thresh {
                 activity_state = Combat(CombatIntensity::High);
-            } else if num_nearby_entities >= 1 {
+            } else if num_nearby_entities >= mtm.combat_nearby_low_thresh {
                 activity_state = Combat(CombatIntensity::Low);
             }
+            trace!(
+                "in audio maintain: {:?} {:?}",
+                activity_state,
+                num_nearby_entities
+            );
         }
 
-        let activity = if self.last_activity != activity_state {
-            MusicActivity::Transition(self.last_activity, activity_state)
-        } else {
-            MusicActivity::State(activity_state)
+        let activity = match self.last_activity {
+            MusicActivity::State(prev) if prev != activity_state => {
+                MusicActivity::Transition(prev, activity_state)
+            },
+            MusicActivity::Transition(_, next) => MusicActivity::State(next),
+            _ => MusicActivity::State(activity_state),
         };
 
         let interrupt = matches!(activity, MusicActivity::Transition(_, _));
@@ -221,9 +274,13 @@ impl MusicMgr {
             && !self.soundtrack.read().tracks.is_empty()
             && (self.began_playing.elapsed().as_secs_f32() > self.next_track_change || interrupt)
         {
-            trace!("in audio maintain: {:?} {:?}", self.last_activity, activity);
-            if let Ok(()) = self.play_random_track(audio, state, client, &activity) {
-                self.last_activity = activity_state;
+            trace!(
+                "pre-play_random_track: {:?} {:?}",
+                self.last_activity,
+                activity
+            );
+            if let Ok(next_activity) = self.play_random_track(audio, state, client, &activity) {
+                self.last_activity = next_activity;
             }
         }
     }
@@ -234,7 +291,7 @@ impl MusicMgr {
         state: &State,
         client: &Client,
         activity: &MusicActivity,
-    ) -> Result<(), ()> {
+    ) -> Result<MusicActivity, ()> {
         let mut rng = thread_rng();
 
         // Adds a bit of randomness between plays
@@ -254,7 +311,7 @@ impl MusicMgr {
         // too many constraints. Returning Err(()) signals that we couldn't find
         // an appropriate track for the current state, and hence the state
         // machine for the activity shouldn't be updated.
-        let mut res = Ok(());
+        let mut res = Ok(*activity);
         let soundtrack = self.soundtrack.read();
         // First, filter out tracks not matching the timing, site, and biome
         let mut maybe_tracks = soundtrack
@@ -339,16 +396,15 @@ impl MusicMgr {
         );
 
         if let Ok(track) = new_maybe_track {
+            if let Some(state) = track.activity_override {
+                res = Ok(MusicActivity::State(state));
+            }
             //println!("Now playing {:?}", track.title);
             self.last_track = String::from(&track.title);
             self.began_playing = Instant::now();
             self.next_track_change = track.length + silence_between_tracks_seconds;
 
-            let tag = if matches!(
-                activity,
-                MusicActivity::State(MusicActivityState::Explore)
-                    | MusicActivity::Transition(_, MusicActivityState::Explore)
-            ) {
+            let tag = if matches!(activity, MusicActivity::State(MusicActivityState::Explore)) {
                 MusicChannelTag::Exploration
             } else {
                 MusicChannelTag::Combat
@@ -398,7 +454,7 @@ impl assets::Compound for SoundtrackCollection<SoundtrackItem> {
                         site,
                         segments,
                     } => {
-                        for (path, length, activity) in segments.into_iter() {
+                        for (path, length, activity, activity_override) in segments.into_iter() {
                             soundtracks.tracks.push(SoundtrackItem {
                                 title: title.clone(),
                                 path,
@@ -407,6 +463,7 @@ impl assets::Compound for SoundtrackCollection<SoundtrackItem> {
                                 biomes: biomes.clone(),
                                 site,
                                 activity,
+                                activity_override,
                             });
                         }
                     },

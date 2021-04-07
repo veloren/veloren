@@ -1,0 +1,6 @@
+(
+    combat_nearby_radius: 40.0,
+    combat_health_factor: 1000,
+    combat_nearby_high_thresh: 4,
+    combat_nearby_low_thresh: 1,
+)
