@@ -3382,7 +3382,7 @@ impl BirdLargeLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.wing_in_l.lateral.0);
+        let lateral = graceful_load_segment(&spec.wing_mid_r.lateral.0);
 
         (lateral, Vec3::from(spec.wing_mid_r.offset))
     }

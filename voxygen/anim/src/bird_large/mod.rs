@@ -134,13 +134,13 @@ impl<'a> From<&'a Body> for SkeletonAttr {
         use comp::bird_large::Species::*;
         Self {
             chest: match (body.species, body.body_type) {
-                (Phoenix, _) => (2.5, 8.5),
+                (Phoenix, _) => (2.5, 7.5),
             },
             neck: match (body.species, body.body_type) {
                 (Phoenix, _) => (0.5, 3.0),
             },
             head: match (body.species, body.body_type) {
-                (Phoenix, _) => (2.0, 3.0),
+                (Phoenix, _) => (2.0, 2.0),
             },
             beak: match (body.species, body.body_type) {
                 (Phoenix, _) => (2.0, 1.0),
@@ -152,7 +152,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Phoenix, _) => (-3.0, -3.0),
             },
             wing_in: match (body.species, body.body_type) {
-                (Phoenix, _) => (3.0, 2.5, 4.0),
+                (Phoenix, _) => (3.0, 2.5, 3.0),
             },
             wing_mid: match (body.species, body.body_type) {
                 (Phoenix, _) => (6.5, -1.0, 0.0),
@@ -161,7 +161,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Phoenix, _) => (0.5, -1.0, 0.0),
             },
             leg: match (body.species, body.body_type) {
-                (Phoenix, _) => (2.5, -2.5, -6.5),
+                (Phoenix, _) => (2.5, -2.5, -3.5),
             },
             foot: match (body.species, body.body_type) {
                 (Phoenix, _) => (2.5, -16.5, -6.5),
