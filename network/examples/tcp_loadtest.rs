@@ -54,7 +54,7 @@ fn main() -> Result<(), u32> {
         threads.push(thread::spawn(move || {
             let mut stream = match TcpStream::connect(addr.as_ref()) {
                 Err(err) => {
-                    total_finished_threads.fetch_add(1, Ordering::Relaxed);
+                    total_finished_threads.fetch_add(1, Ordering::SeqCst);
                     panic!("could not open connection: {}", err);
                 },
                 Ok(s) => s,
@@ -70,15 +70,15 @@ fn main() -> Result<(), u32> {
                 if cur.duration_since(thread_last_sync) >= Duration::from_secs(1) {
                     thread_last_sync = cur;
                     println!("[{}]send: {}MiB/s", i, thread_bytes_send / (1024 * 1024));
-                    total_bytes_send.fetch_add(thread_bytes_send, Ordering::Relaxed);
+                    total_bytes_send.fetch_add(thread_bytes_send, Ordering::SeqCst);
                     thread_bytes_send = 0;
                 }
 
-                total_send_count.fetch_add(1, Ordering::Relaxed);
+                total_send_count.fetch_add(1, Ordering::SeqCst);
                 let ret = stream.write_all(data[0..(tosend as usize)].as_bytes());
                 if ret.is_err() {
                     println!("[{}] error: {}", i, ret.err().unwrap());
-                    total_finished_threads.fetch_add(1, Ordering::Relaxed);
+                    total_finished_threads.fetch_add(1, Ordering::SeqCst);
                     return;
                 }
                 //stream.flush();
@@ -86,7 +86,7 @@ fn main() -> Result<(), u32> {
         }));
     }
 
-    while total_finished_threads.load(Ordering::Relaxed) < thread_count {
+    while total_finished_threads.load(Ordering::SeqCst) < thread_count {
         thread::sleep(Duration::from_millis(10));
     }
 
@@ -96,16 +96,16 @@ fn main() -> Result<(), u32> {
     println!("test ended");
     println!(
         "total send: {}MiB",
-        total_bytes_send.load(Ordering::Relaxed) / (1024 * 1024)
+        total_bytes_send.load(Ordering::SeqCst) / (1024 * 1024)
     );
     println!("total time: {}s", dur.as_secs());
     println!(
         "average: {}KiB/s",
-        total_bytes_send.load(Ordering::Relaxed) * 1000 / dur.as_millis() as u64 / 1024
+        total_bytes_send.load(Ordering::SeqCst) * 1000 / dur.as_millis() as u64 / 1024
     );
     println!(
         "send count: {}/s",
-        total_send_count.load(Ordering::Relaxed) * 1000 / dur.as_millis() as u64
+        total_send_count.load(Ordering::SeqCst) * 1000 / dur.as_millis() as u64
     );
 
     Ok(())
