@@ -41,6 +41,7 @@ enum ChannelState {
 pub enum MusicChannelTag {
     TitleMusic,
     Exploration,
+    Combat,
 }
 
 /// A MusicChannel uses a non-positional audio sink designed to play music which
