@@ -103,9 +103,17 @@ impl<'a> System<'a> for Sys {
                 .map(|e| e as f32)
                 + Vec3::new(0.5, 0.5, body.flying_height());
             let pos = comp::Pos(spawn_pos);
-            let agent = Some(comp::Agent::new(None, &body, false));
-            let behavior = matches!(body, comp::Body::Humanoid(_))
-                .then(|| Behavior::from(BehaviorCapability::SPEAK));
+            let agent = Some(comp::Agent::new(
+                None,
+                &body,
+                if matches!(body, comp::Body::Humanoid(_)) {
+                    Behavior::from(BehaviorCapability::SPEAK)
+                } else {
+                    Behavior::default()
+                },
+                false,
+            ));
+
             let rtsim_entity = Some(RtSimEntity(id));
             let event = match body {
                 comp::Body::Ship(ship) => ServerEvent::CreateShip {
@@ -126,7 +134,6 @@ impl<'a> System<'a> for Sys {
                     poise: comp::Poise::new(body),
                     body,
                     agent,
-                    behavior,
                     alignment: match body {
                         comp::Body::Humanoid(_) => comp::Alignment::Npc,
                         _ => comp::Alignment::Wild,

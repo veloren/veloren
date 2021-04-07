@@ -7,9 +7,8 @@ use common::{
         beam,
         buff::{BuffCategory, BuffData, BuffKind, BuffSource},
         inventory::loadout::Loadout,
-        shockwave, Agent, Alignment, Behavior, Body, Gravity, Health, HomeChunk, Inventory, Item,
-        ItemDrop, LightEmitter, Object, Ori, Poise, Pos, Projectile, Scale, Stats, Vel,
-        WaypointArea,
+        shockwave, Agent, Alignment, Body, Gravity, Health, HomeChunk, Inventory, Item, ItemDrop,
+        LightEmitter, Object, Ori, Poise, Pos, Projectile, Scale, Stats, Vel, WaypointArea,
     },
     outcome::Outcome,
     rtsim::RtSimEntity,
@@ -55,7 +54,6 @@ pub fn handle_create_npc(
     loadout: Loadout,
     body: Body,
     agent: impl Into<Option<Agent>>,
-    behavior: Option<Behavior>,
     alignment: Alignment,
     scale: Scale,
     drop_item: Option<Item>,
@@ -75,8 +73,6 @@ pub fn handle_create_npc(
     } else {
         entity
     };
-
-    let entity = entity.with(behavior.unwrap_or_default());
 
     let entity = if let Some(drop_item) = drop_item {
         entity.with(ItemDrop(drop_item))

@@ -6,7 +6,7 @@ use common::{
         agent::{Agent, AgentEvent},
         group::GroupManager,
         invite::{Invite, InviteKind, InviteResponse, PendingInvites},
-        Behavior, ChatType,
+        ChatType,
     },
     trade::Trades,
     uid::Uid,
@@ -167,7 +167,6 @@ pub fn handle_invite_accept(server: &mut Server, entity: specs::Entity) {
     let clients = state.ecs().read_storage::<Client>();
     let uids = state.ecs().read_storage::<Uid>();
     let mut agents = state.ecs().write_storage::<Agent>();
-    let behaviors = state.ecs().read_storage::<Behavior>();
     let mut invites = state.ecs().write_storage::<Invite>();
     if let Some((inviter, kind)) = invites.remove(entity).and_then(|invite| {
         let Invite { inviter, kind } = invite;
@@ -224,13 +223,13 @@ pub fn handle_invite_accept(server: &mut Server, entity: specs::Entity) {
                             .inbox
                             .push_front(AgentEvent::TradeAccepted(invitee_uid));
                     }
-                    let pricing = behaviors
+                    let pricing = agents
                         .get(inviter)
-                        .and_then(|b| b.trade_site.map(|id| index.get_site_prices(id)))
+                        .and_then(|a| a.behavior.trade_site.map(|id| index.get_site_prices(id)))
                         .or_else(|| {
-                            behaviors
-                                .get(entity)
-                                .and_then(|b| b.trade_site.map(|id| index.get_site_prices(id)))
+                            agents.get(entity).and_then(|a| {
+                                a.behavior.trade_site.map(|id| index.get_site_prices(id))
+                            })
                         })
                         .flatten();
                     clients.get(inviter).map(|c| {

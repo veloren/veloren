@@ -14,9 +14,9 @@ use common::{
             ItemDesc, ItemKind,
         },
         skills::{AxeSkill, BowSkill, HammerSkill, Skill, StaffSkill, SwordSkill},
-        Agent, Alignment, Behavior, BehaviorCapability, BehaviorState, Body, CharacterState,
-        ControlAction, ControlEvent, Controller, Energy, Health, InputKind, Inventory,
-        LightEmitter, MountState, Ori, PhysicsState, Pos, Scale, Stats, UnresolvedChatMsg, Vel,
+        Agent, Alignment, BehaviorCapability, BehaviorState, Body, CharacterState, ControlAction,
+        ControlEvent, Controller, Energy, Health, InputKind, Inventory, LightEmitter, MountState,
+        Ori, PhysicsState, Pos, Scale, Stats, UnresolvedChatMsg, Vel,
     },
     event::{Emitter, EventBus, ServerEvent},
     path::TraversalConfig,
@@ -121,7 +121,6 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Agent>,
         WriteStorage<'a, Controller>,
         WriteExpect<'a, RtSim>,
-        WriteStorage<'a, Behavior>,
     );
 
     const NAME: &'static str = "agent";
@@ -131,7 +130,7 @@ impl<'a> System<'a> for Sys {
     #[allow(clippy::or_fun_call)] // TODO: Pending review in #587
     fn run(
         job: &mut Job<Self>,
-        (read_data, event_bus, mut agents, mut controllers, mut rtsim, mut behaviors): Self::SystemData,
+        (read_data, event_bus, mut agents, mut controllers, mut rtsim): Self::SystemData,
     ) {
         let rtsim = &mut *rtsim;
         job.cpu_stats.measure(ParMode::Rayon);
@@ -154,10 +153,9 @@ impl<'a> System<'a> for Sys {
             read_data.groups.maybe(),
             read_data.mount_states.maybe(),
             &read_data.char_states,
-            &mut behaviors,
         )
             .par_join()
-            .filter(|(_, _, _, _, _, _, _, _, _, _, _, _, mount_state, _, _)| {
+            .filter(|(_, _, _, _, _, _, _, _, _, _, _, _, mount_state, _)| {
                 // Skip mounted entities
                 mount_state
                     .map(|ms| *ms == MountState::Unmounted)
@@ -184,7 +182,6 @@ impl<'a> System<'a> for Sys {
                     groups,
                     _,
                     char_state,
-                    behavior,
                 )| {
                     //// Hack, replace with better system when groups are more sophisticated
                     //// Override alignment if in a group unless entity is owned already
@@ -318,7 +315,6 @@ impl<'a> System<'a> for Sys {
                                 if hostile {
                                     data.hostile_tree(
                                         agent,
-                                        behavior,
                                         controller,
                                         &read_data,
                                         &mut event_emitter,
@@ -396,7 +392,6 @@ impl<'a> System<'a> for Sys {
                                         } else {
                                             data.idle_tree(
                                                 agent,
-                                                behavior,
                                                 controller,
                                                 &read_data,
                                                 &mut event_emitter,
@@ -406,7 +401,6 @@ impl<'a> System<'a> for Sys {
                                 } else {
                                     data.idle_tree(
                                         agent,
-                                        behavior,
                                         controller,
                                         &read_data,
                                         &mut event_emitter,
@@ -414,23 +408,11 @@ impl<'a> System<'a> for Sys {
                                 }
                             } else {
                                 agent.target = None;
-                                data.idle_tree(
-                                    agent,
-                                    behavior,
-                                    controller,
-                                    &read_data,
-                                    &mut event_emitter,
-                                );
+                                data.idle_tree(agent, controller, &read_data, &mut event_emitter);
                             }
                         } else {
                             agent.target = None;
-                            data.idle_tree(
-                                agent,
-                                behavior,
-                                controller,
-                                &read_data,
-                                &mut event_emitter,
-                            );
+                            data.idle_tree(agent, controller, &read_data, &mut event_emitter);
                         }
                     } else {
                         // Target an entity that's attacking us if the attack was recent and we
@@ -454,7 +436,6 @@ impl<'a> System<'a> for Sys {
                                                 agent.target = None;
                                                 data.idle_tree(
                                                     agent,
-                                                    behavior,
                                                     controller,
                                                     &read_data,
                                                     &mut event_emitter,
@@ -495,7 +476,6 @@ impl<'a> System<'a> for Sys {
                                             agent.target = None;
                                             data.idle_tree(
                                                 agent,
-                                                behavior,
                                                 controller,
                                                 &read_data,
                                                 &mut event_emitter,
@@ -506,7 +486,6 @@ impl<'a> System<'a> for Sys {
                                     agent.target = None;
                                     data.idle_tree(
                                         agent,
-                                        behavior,
                                         controller,
                                         &read_data,
                                         &mut event_emitter,
@@ -514,13 +493,7 @@ impl<'a> System<'a> for Sys {
                                 }
                             },
                             _ => {
-                                data.idle_tree(
-                                    agent,
-                                    behavior,
-                                    controller,
-                                    &read_data,
-                                    &mut event_emitter,
-                                );
+                                data.idle_tree(agent, controller, &read_data, &mut event_emitter);
                             },
                         }
                     }
@@ -554,7 +527,6 @@ impl<'a> AgentData<'a> {
     fn idle_tree(
         &self,
         agent: &mut Agent,
-        behavior: &mut Behavior,
         controller: &mut Controller,
         read_data: &ReadData,
         event_emitter: &mut Emitter<'_, ServerEvent>,
@@ -577,13 +549,13 @@ impl<'a> AgentData<'a> {
         }
         if agent.action_timer > 0.0 {
             if agent.action_timer
-                < (if behavior.is(BehaviorState::TRADING) {
+                < (if agent.behavior.is(BehaviorState::TRADING) {
                     TRADE_INTERACTION_TIME
                 } else {
                     DEFAULT_INTERACTION_TIME
                 })
             {
-                self.interact(agent, behavior, controller, &read_data, event_emitter);
+                self.interact(agent, controller, &read_data, event_emitter);
             } else {
                 agent.action_timer = 0.0;
                 agent.target = None;
@@ -591,7 +563,7 @@ impl<'a> AgentData<'a> {
                 self.idle(agent, controller, &read_data);
             }
         } else if thread_rng().gen::<f32>() < 0.1 {
-            self.choose_target(agent, behavior, controller, &read_data, event_emitter);
+            self.choose_target(agent, controller, &read_data, event_emitter);
         } else {
             self.idle(agent, controller, &read_data);
         }
@@ -600,7 +572,6 @@ impl<'a> AgentData<'a> {
     fn hostile_tree(
         &self,
         agent: &mut Agent,
-        behavior: &mut Behavior,
         controller: &mut Controller,
         read_data: &ReadData,
         event_emitter: &mut Emitter<'_, ServerEvent>,
@@ -615,7 +586,7 @@ impl<'a> AgentData<'a> {
                 let dist_sqrd = self.pos.0.distance_squared(tgt_pos.0);
                 // Should the agent flee?
                 if 1.0 - agent.psyche.aggro > self.damage && self.flees {
-                    if agent.action_timer == 0.0 && behavior.can(BehaviorCapability::SPEAK) {
+                    if agent.action_timer == 0.0 && agent.behavior.can(BehaviorCapability::SPEAK) {
                         let msg = "npc.speech.villager_under_attack".to_string();
                         event_emitter
                             .emit(ServerEvent::Chat(UnresolvedChatMsg::npc(*self.uid, msg)));
@@ -643,7 +614,7 @@ impl<'a> AgentData<'a> {
                         read_data.buffs.get(target),
                     ) {
                         agent.target = None;
-                        if behavior.can(BehaviorCapability::SPEAK) {
+                        if agent.behavior.can(BehaviorCapability::SPEAK) {
                             let msg = "npc.speech.villager_enemy_killed".to_string();
                             event_emitter
                                 .emit(ServerEvent::Chat(UnresolvedChatMsg::npc(*self.uid, msg)));
@@ -654,7 +625,7 @@ impl<'a> AgentData<'a> {
                     // weapon, etc, into the decision to change
                     // target.
                     } else if read_data.time.0 - selected_at > RETARGETING_THRESHOLD_SECONDS {
-                        self.choose_target(agent, behavior, controller, &read_data, event_emitter);
+                        self.choose_target(agent, controller, &read_data, event_emitter);
                     } else if dist_sqrd < SIGHT_DIST.powi(2) {
                         self.attack(
                             agent,
@@ -884,7 +855,6 @@ impl<'a> AgentData<'a> {
     fn interact(
         &self,
         agent: &mut Agent,
-        behavior: &mut Behavior,
         controller: &mut Controller,
         read_data: &ReadData,
         event_emitter: &mut Emitter<'_, ServerEvent>,
@@ -907,7 +877,7 @@ impl<'a> AgentData<'a> {
         let msg = agent.inbox.pop_back();
         match msg {
             Some(AgentEvent::Talk(by, subject)) => {
-                if behavior.can(BehaviorCapability::SPEAK) {
+                if agent.behavior.can(BehaviorCapability::SPEAK) {
                     if let Some(target) = read_data.uid_allocator.retrieve_entity_internal(by.id())
                     {
                         agent.target = Some(Target {
@@ -960,7 +930,7 @@ impl<'a> AgentData<'a> {
                                         event_emitter.emit(ServerEvent::Chat(
                                             UnresolvedChatMsg::npc(*self.uid, msg),
                                         ));
-                                    } else if behavior.can(BehaviorCapability::TRADE) {
+                                    } else if agent.behavior.can(BehaviorCapability::TRADE) {
                                         let msg = "npc.speech.merchant_advertisement".to_string();
                                         event_emitter.emit(ServerEvent::Chat(
                                             UnresolvedChatMsg::npc(*self.uid, msg),
@@ -973,8 +943,8 @@ impl<'a> AgentData<'a> {
                                     }
                                 },
                                 Subject::Trade => {
-                                    if behavior.can(BehaviorCapability::TRADE) {
-                                        if !behavior.is(BehaviorState::TRADING) {
+                                    if agent.behavior.can(BehaviorCapability::TRADE) {
+                                        if !agent.behavior.is(BehaviorState::TRADING) {
                                             controller.events.push(ControlEvent::InitiateInvite(
                                                 by,
                                                 InviteKind::Trade,
@@ -1122,8 +1092,8 @@ impl<'a> AgentData<'a> {
                 }
             },
             Some(AgentEvent::TradeInvite(with)) => {
-                if behavior.can(BehaviorCapability::TRADE) {
-                    if !behavior.is(BehaviorState::TRADING) {
+                if agent.behavior.can(BehaviorCapability::TRADE) {
+                    if !agent.behavior.is(BehaviorState::TRADING) {
                         // stand still and looking towards the trading player
                         controller.actions.push(ControlAction::Stand);
                         controller.actions.push(ControlAction::Talk);
@@ -1139,13 +1109,13 @@ impl<'a> AgentData<'a> {
                         controller
                             .events
                             .push(ControlEvent::InviteResponse(InviteResponse::Accept));
-                        behavior.unset(BehaviorState::TRADING_ISSUER);
-                        behavior.set(BehaviorState::TRADING);
+                        agent.behavior.unset(BehaviorState::TRADING_ISSUER);
+                        agent.behavior.set(BehaviorState::TRADING);
                     } else {
                         controller
                             .events
                             .push(ControlEvent::InviteResponse(InviteResponse::Decline));
-                        if behavior.can(BehaviorCapability::SPEAK) {
+                        if agent.behavior.can(BehaviorCapability::SPEAK) {
                             event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc(
                                 *self.uid,
                                 "npc.speech.merchant_busy".to_string(),
@@ -1157,7 +1127,7 @@ impl<'a> AgentData<'a> {
                     controller
                         .events
                         .push(ControlEvent::InviteResponse(InviteResponse::Decline));
-                    if behavior.can(BehaviorCapability::SPEAK) {
+                    if agent.behavior.can(BehaviorCapability::SPEAK) {
                         event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc(
                             *self.uid,
                             "npc.speech.villager_decline_trade".to_string(),
@@ -1166,7 +1136,7 @@ impl<'a> AgentData<'a> {
                 }
             },
             Some(AgentEvent::TradeAccepted(with)) => {
-                if !behavior.is(BehaviorState::TRADING) {
+                if !agent.behavior.is(BehaviorState::TRADING) {
                     if let Some(target) =
                         read_data.uid_allocator.retrieve_entity_internal(with.id())
                     {
@@ -1176,12 +1146,12 @@ impl<'a> AgentData<'a> {
                             selected_at: read_data.time.0,
                         });
                     }
-                    behavior.set(BehaviorState::TRADING);
-                    behavior.set(BehaviorState::TRADING_ISSUER);
+                    agent.behavior.set(BehaviorState::TRADING);
+                    agent.behavior.set(BehaviorState::TRADING_ISSUER);
                 }
             },
             Some(AgentEvent::FinishedTrade(result)) => {
-                if behavior.is(BehaviorState::TRADING) {
+                if agent.behavior.is(BehaviorState::TRADING) {
                     match result {
                         TradeResult::Completed => {
                             event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc(
@@ -1194,13 +1164,13 @@ impl<'a> AgentData<'a> {
                             "npc.speech.merchant_trade_declined".to_string(),
                         ))),
                     }
-                    behavior.unset(BehaviorState::TRADING);
+                    agent.behavior.unset(BehaviorState::TRADING);
                 }
             },
             Some(AgentEvent::UpdatePendingTrade(boxval)) => {
                 let (tradeid, pending, prices, inventories) = *boxval;
-                if behavior.is(BehaviorState::TRADING) {
-                    let who: usize = if behavior.is(BehaviorState::TRADING_ISSUER) {
+                if agent.behavior.is(BehaviorState::TRADING) {
+                    let who: usize = if agent.behavior.is(BehaviorState::TRADING_ISSUER) {
                         0
                     } else {
                         1
@@ -1234,7 +1204,7 @@ impl<'a> AgentData<'a> {
                         }
                         if pending.phase != TradePhase::Mutate {
                             // we got into the review phase but without balanced goods, decline
-                            behavior.unset(BehaviorState::TRADING);
+                            agent.behavior.unset(BehaviorState::TRADING);
                             event_emitter.emit(ServerEvent::ProcessTradeAction(
                                 *self.entity,
                                 tradeid,
@@ -1245,7 +1215,7 @@ impl<'a> AgentData<'a> {
                 }
             },
             None => {
-                if behavior.can(BehaviorCapability::SPEAK) {
+                if agent.behavior.can(BehaviorCapability::SPEAK) {
                     // no new events, continue looking towards the last interacting player for some
                     // time
                     if let Some(Target { target, .. }) = &agent.target {
@@ -1321,7 +1291,6 @@ impl<'a> AgentData<'a> {
     fn choose_target(
         &self,
         agent: &mut Agent,
-        behavior: &mut Behavior,
         controller: &mut Controller,
         read_data: &ReadData,
         event_emitter: &mut Emitter<'_, ServerEvent>,
@@ -1369,7 +1338,7 @@ impl<'a> AgentData<'a> {
                         (
                             self.alignment.map_or(false, |alignment| {
                                 if matches!(alignment, Alignment::Npc) && e_inventory.equipped_items().filter(|item| item.tags().contains(&ItemTag::Cultist)).count() > 2 {
-                                    if behavior.can(BehaviorCapability::SPEAK) {
+                                    if agent.behavior.can(BehaviorCapability::SPEAK) {
                                         if self.rtsim_entity.is_some() {
                                             agent.rtsim_controller.events.push(
                                                 RtSimEvent::AddMemory(Memory {

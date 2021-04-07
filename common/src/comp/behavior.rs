@@ -1,16 +1,13 @@
-use specs::Component;
-use specs_idvs::IdvStorage;
-
 use crate::trade::SiteId;
 
-bitflags! {
+bitflags::bitflags! {
     #[derive(Default)]
     pub struct BehaviorCapability: u8 {
         const SPEAK = 0b00000001;
         const TRADE = 0b00000010;
     }
 }
-bitflags! {
+bitflags::bitflags! {
     #[derive(Default)]
     pub struct BehaviorState: u8 {
         const TRADING        = 0b00000001;
@@ -64,10 +61,6 @@ impl Behavior {
 
     /// Check if the Behavior has a specific state
     pub fn is(&self, state: BehaviorState) -> bool { self.state.contains(state) }
-}
-
-impl Component for Behavior {
-    type Storage = IdvStorage<Self>;
 }
 
 #[cfg(test)]

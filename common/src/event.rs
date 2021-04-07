@@ -120,7 +120,6 @@ pub enum ServerEvent {
         loadout: comp::inventory::loadout::Loadout,
         body: comp::Body,
         agent: Option<comp::Agent>,
-        behavior: Option<comp::Behavior>,
         alignment: comp::Alignment,
         scale: comp::Scale,
         home_chunk: Option<comp::HomeChunk>,

@@ -10,7 +10,7 @@ use specs_idvs::IdvStorage;
 use std::collections::VecDeque;
 use vek::*;
 
-use super::dialogue::Subject;
+use super::{dialogue::Subject, Behavior};
 
 pub const DEFAULT_INTERACTION_TIME: f32 = 3.0;
 pub const TRADE_INTERACTION_TIME: f32 = 300.0;
@@ -210,6 +210,7 @@ pub struct Agent {
     pub patrol_origin: Option<Vec3<f32>>,
     pub target: Option<Target>,
     pub chaser: Chaser,
+    pub behavior: Behavior,
     pub psyche: Psyche,
     pub inbox: VecDeque<AgentEvent>,
     pub action_timer: f32,
@@ -217,20 +218,26 @@ pub struct Agent {
 }
 
 impl Agent {
-    pub fn with_patrol_origin(mut self, origin: Vec3<f32>) -> Self {
+    pub fn set_patrol_origin(mut self, origin: Vec3<f32>) -> Self {
         self.patrol_origin = Some(origin);
         self
     }
 
-    pub fn with_destination(pos: Vec3<f32>) -> Self {
+    pub fn with_destination(behavior: Behavior, pos: Vec3<f32>) -> Self {
         Self {
             psyche: Psyche { aggro: 1.0 },
             rtsim_controller: RtSimController::with_destination(pos),
+            behavior,
             ..Default::default()
         }
     }
 
-    pub fn new(patrol_origin: Option<Vec3<f32>>, body: &Body, no_flee: bool) -> Self {
+    pub fn new(
+        patrol_origin: Option<Vec3<f32>>,
+        body: &Body,
+        behavior: Behavior,
+        no_flee: bool,
+    ) -> Self {
         Agent {
             patrol_origin,
             psyche: if no_flee {
@@ -238,6 +245,7 @@ impl Agent {
             } else {
                 Psyche::from(body)
             },
+            behavior,
             ..Default::default()
         }
     }
