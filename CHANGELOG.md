@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Crafting menu tabs
 - Auto camera setting, making the game easier to play with one hand
 - Topographic map option
+- Search bars for social and crafting window
 
 ### Changed
 
@@ -48,6 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a raycast check to beams to prevent their effect applying through walls
 - Flying agents raycast more angles to check for obstacles.
 - Mouse Cursor now locks to the center of the screen when menu is not open
+- Social window no longer moves when group is open
 
 ## [0.9.0] - 2021-03-20
 

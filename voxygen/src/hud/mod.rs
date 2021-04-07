@@ -31,7 +31,7 @@ use buffs::BuffsBar;
 use buttons::Buttons;
 use chat::Chat;
 use chrono::NaiveTime;
-use crafting::{Crafting, SelectedCraftingTab};
+use crafting::{Crafting, CraftingTab};
 use diary::{Diary, SelectedSkillTree};
 use esc_menu::EscMenu;
 use group::Group;
@@ -44,7 +44,7 @@ use prompt_dialog::PromptDialog;
 use serde::{Deserialize, Serialize};
 use settings_window::{SettingsTab, SettingsWindow};
 use skillbar::Skillbar;
-use social::{Social, SocialTab};
+use social::Social;
 use trade::Trade;
 
 use crate::{
@@ -546,8 +546,9 @@ pub struct Show {
     ingame: bool,
     settings_tab: SettingsTab,
     skilltreetab: SelectedSkillTree,
-    crafting_tab: SelectedCraftingTab,
-    social_tab: SocialTab,
+    crafting_tab: CraftingTab,
+    crafting_search_key: Option<String>,
+    social_search_key: Option<String>,
     want_grab: bool,
     stats: bool,
     free_look: bool,
@@ -561,6 +562,10 @@ impl Show {
             self.bag = open;
             self.map = false;
             self.want_grab = !open;
+
+            if !open {
+                self.crafting = false;
+            }
         }
     }
 
@@ -590,6 +595,10 @@ impl Show {
 
     fn social(&mut self, open: bool) {
         if !self.esc_menu {
+            if !self.social && open {
+                // rising edge detector
+                self.search_social_players(None);
+            }
             self.social = open;
             self.diary = false;
             self.want_grab = !open;
@@ -598,6 +607,10 @@ impl Show {
 
     fn crafting(&mut self, open: bool) {
         if !self.esc_menu {
+            if !self.crafting && open {
+                // rising edge detector
+                self.search_crafting_recipe(None);
+            }
             self.crafting = open;
             self.bag = open;
             self.map = false;
@@ -711,11 +724,6 @@ impl Show {
 
     fn toggle_crafting(&mut self) { self.crafting(!self.crafting) }
 
-    fn open_social_tab(&mut self, social_tab: SocialTab) {
-        self.social_tab = social_tab;
-        self.diary = false;
-    }
-
     fn toggle_spell(&mut self) {
         self.diary = !self.diary;
         self.bag = false;
@@ -730,8 +738,14 @@ impl Show {
         self.social = false;
     }
 
-    fn selected_crafting_tab(&mut self, sel_cat: SelectedCraftingTab) {
-        self.crafting_tab = sel_cat;
+    fn selected_crafting_tab(&mut self, sel_cat: CraftingTab) { self.crafting_tab = sel_cat; }
+
+    fn search_crafting_recipe(&mut self, search_key: Option<String>) {
+        self.crafting_search_key = search_key;
+    }
+
+    fn search_social_players(&mut self, search_key: Option<String>) {
+        self.social_search_key = search_key;
     }
 
     /// If all of the menus are closed, adjusts coordinates of cursor to center
@@ -890,8 +904,9 @@ impl Hud {
                 group_menu: false,
                 settings_tab: SettingsTab::Interface,
                 skilltreetab: SelectedSkillTree::General,
-                crafting_tab: SelectedCraftingTab::Armor,
-                social_tab: SocialTab::Online,
+                crafting_tab: CraftingTab::All,
+                crafting_search_key: None,
+                social_search_key: None,
                 want_grab: true,
                 ingame: true,
                 stats: false,
@@ -2368,7 +2383,6 @@ impl Hud {
                     Some(bag::Event::Close) => {
                         self.show.stats = false;
                         self.show.bag(false);
-                        self.show.crafting(false);
                         if !self.show.social {
                             self.show.want_grab = true;
                             self.force_ungrab = false;
@@ -2469,7 +2483,6 @@ impl Hud {
                         crafting::Event::Close => {
                             self.show.stats = false;
                             self.show.crafting(false);
-                            self.show.bag(false);
                             if !self.show.social {
                                 self.show.want_grab = true;
                                 self.force_ungrab = false;
@@ -2479,6 +2492,12 @@ impl Hud {
                         },
                         crafting::Event::ChangeCraftingTab(sel_cat) => {
                             self.show.selected_crafting_tab(sel_cat);
+                        },
+                        crafting::Event::Focus(widget_id) => {
+                            self.to_focus = Some(Some(widget_id));
+                        },
+                        crafting::Event::SearchRecipe(search_key) => {
+                            self.show.search_crafting_recipe(search_key);
                         },
                     }
                 }
@@ -2735,10 +2754,13 @@ impl Hud {
                                 self.force_ungrab = true
                             };
                         },
-                        social::Event::ChangeSocialTab(social_tab) => {
-                            self.show.open_social_tab(social_tab)
+                        social::Event::Focus(widget_id) => {
+                            self.to_focus = Some(Some(widget_id));
                         },
                         social::Event::Invite(uid) => events.push(Event::InviteMember(uid)),
+                        social::Event::SearchPlayers(search_key) => {
+                            self.show.search_social_players(search_key)
+                        },
                     }
                 }
             }
