@@ -317,6 +317,27 @@ pub struct MapConfig<'a> {
     ///
     /// Defaults to false.
     pub is_debug: bool,
+    /// If true, contour lines are drawn on top of the base rbg
+    ///
+    /// Defaults to false.
+    pub is_contours: bool,
+    /// If true, a yellow/terracotta heightmap shading is applied to the
+    /// terrain and water is a faded blue.
+    ///
+    /// Defaults to false
+    pub is_height_map: bool,
+    /// If true, terrain is white, rivers, borders, and roads are black.
+    ///
+    /// Defaults to false
+    pub is_political: bool,
+    /// If true, roads are colored on top of everything else
+    ///
+    /// Defaults to false
+    pub is_roads: bool,
+    /// Alpha value for rgba. Handled by the sample_pos closure
+    ///
+    /// Defaults to 1.0
+    pub rgba_alpha: f64,
 }
 
 pub const QUADRANTS: usize = 4;
@@ -353,7 +374,7 @@ pub struct Connection {
 pub struct MapSample {
     /// the base RGB color for a particular map pixel using the current settings
     /// (i.e. the color *without* lighting).
-    pub rgb: Rgb<u8>,
+    pub rgba: Rgba<u8>,
     /// Surface altitude information
     /// (correctly reflecting settings like is_basement and is_water)
     pub alt: f64,
@@ -366,6 +387,8 @@ pub struct MapSample {
     /// Connections at each index correspond to the same index in
     /// NEIGHBOR_DELTA.
     pub connections: Option<[Option<Connection>; 8]>,
+    /// If the chunk contains a path
+    pub is_path: bool,
 }
 
 impl<'a> MapConfig<'a> {
@@ -395,6 +418,11 @@ impl<'a> MapConfig<'a> {
             is_temperature: false,
             is_humidity: false,
             is_debug: false,
+            is_contours: false,
+            is_height_map: false,
+            is_political: false,
+            is_roads: false,
+            rgba_alpha: 1.0,
         }
     }
 
@@ -432,7 +460,6 @@ impl<'a> MapConfig<'a> {
             scale,
             light_direction,
             horizons,
-
             is_shaded,
             // is_debug,
             ..
@@ -484,7 +511,7 @@ impl<'a> MapConfig<'a> {
             };
 
             let MapSample {
-                rgb,
+                rgba,
                 alt,
                 downhill_wpos,
                 ..
@@ -492,7 +519,8 @@ impl<'a> MapConfig<'a> {
 
             let alt = alt as f32;
             let wposi = pos * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
-            let mut rgb = rgb.map(|e| e as f64 / 255.0);
+            let rgb = Rgb::new(rgba.r, rgba.g, rgba.b).map(|e| e as f64 / 255.0);
+            let mut rgba = rgba.map(|e| e as f64 / 255.0);
 
             // Material properties:
             //
@@ -568,7 +596,7 @@ impl<'a> MapConfig<'a> {
             if has_river {
                 let water_rgb = Rgb::new(0, ((g_water) * 1.0) as u8, ((b_water) * 1.0) as u8)
                     .map(|e| e as f64 / 255.0);
-                rgb = water_rgb;
+                rgba = Rgba::new(water_rgb.r, water_rgb.g, water_rgb.b, rgba.a);
                 k_s = Rgb::new(1.0, 1.0, 1.0);
                 k_d = water_rgb;
                 k_a = water_rgb;
@@ -694,13 +722,14 @@ impl<'a> MapConfig<'a> {
                 let ambient = k_a * i_a;
                 let diffuse = k_d * lambertian * i_m_d;
                 let specular = k_s * spec_angle.powf(alpha) * i_m_s;
-                (ambient + shadow * (diffuse + specular)).map(|e| e.min(1.0))
+                let shadow_rgb = (ambient + shadow * (diffuse + specular)).map(|e| e.min(1.0));
+                Rgba::new(shadow_rgb.r, shadow_rgb.g, shadow_rgb.b, 1.0)
             } else {
-                rgb
+                rgba
             }
             .map(|e| (e * 255.0) as u8);
 
-            let rgba = (rgb.r, rgb.g, rgb.b, 255);
+            let rgba = (rgb.r, rgb.g, rgb.b, rgb.a);
             write_pixel(Vec2::new(i, j), rgba);
         });
 

@@ -29,7 +29,7 @@ widget_ids! {
         mmap_plus,
         mmap_minus,
         mmap_north_button,
-        grid,
+        map_layers[],
         indicator,
         mmap_north,
         mmap_east,
@@ -47,7 +47,7 @@ pub struct MiniMap<'a> {
 
     imgs: &'a Imgs,
     rot_imgs: &'a ImgsRot,
-    world_map: &'a (img_ids::Rotations, Vec2<u32>),
+    world_map: &'a (Vec<img_ids::Rotations>, Vec2<u32>),
     fonts: &'a Fonts,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
@@ -60,7 +60,7 @@ impl<'a> MiniMap<'a> {
         client: &'a Client,
         imgs: &'a Imgs,
         rot_imgs: &'a ImgsRot,
-        world_map: &'a (img_ids::Rotations, Vec2<u32>),
+        world_map: &'a (Vec<img_ids::Rotations>, Vec2<u32>),
         fonts: &'a Fonts,
         ori: Vec3<f32>,
         global_state: &'a GlobalState,
@@ -118,6 +118,7 @@ impl<'a> Widget for MiniMap<'a> {
         const SCALE: f64 = 1.5; // TODO Make this a setting
         let show_minimap = self.global_state.settings.interface.minimap_show;
         let is_facing_north = self.global_state.settings.interface.minimap_face_north;
+        let show_topo_map = self.global_state.settings.interface.map_show_topo_map;
         let orientation = if is_facing_north {
             Vec3::new(0.0, 1.0, 0.0)
         } else {
@@ -140,7 +141,17 @@ impl<'a> Widget for MiniMap<'a> {
                 .set(state.ids.mmap_frame_bg, ui);
 
             // Map size in chunk coords
-            let (world_map, worldsize) = self.world_map;
+            let worldsize = self.world_map.1;
+            // Map Layers
+            // It is assumed that there is at least one layer
+            if state.ids.map_layers.len() < self.world_map.0.len() {
+                state.update(|state| {
+                    state
+                        .ids
+                        .map_layers
+                        .resize(self.world_map.0.len(), &mut ui.widget_id_generator())
+                });
+            }
 
             // Zoom Buttons
 
@@ -248,17 +259,30 @@ impl<'a> Widget for MiniMap<'a> {
             let map_size = Vec2::new(170.0 * SCALE, 170.0 * SCALE);
 
             // Map Image
-            let world_map_rotation = if is_facing_north {
-                world_map.none
-            } else {
-                world_map.source_north
-            };
-            Image::new(world_map_rotation)
-                .middle_of(state.ids.mmap_frame_bg)
-                .w_h(map_size.x, map_size.y)
-                .parent(state.ids.mmap_frame_bg)
-                .source_rectangle(rect_src)
-                .set(state.ids.grid, ui);
+            // Map Layer Images
+            for (index, layer) in self.world_map.0.iter().enumerate() {
+                let world_map_rotation = if is_facing_north {
+                    layer.none
+                } else {
+                    layer.source_north
+                };
+                if index == 0 {
+                    Image::new(world_map_rotation)
+                        .middle_of(state.ids.mmap_frame_bg)
+                        .w_h(map_size.x, map_size.y)
+                        .parent(state.ids.mmap_frame_bg)
+                        .source_rectangle(rect_src)
+                        .set(state.ids.map_layers[index], ui);
+                } else if show_topo_map {
+                    Image::new(world_map_rotation)
+                        .middle_of(state.ids.mmap_frame_bg)
+                        .w_h(map_size.x, map_size.y)
+                        .parent(state.ids.mmap_frame_bg)
+                        .source_rectangle(rect_src)
+                        .graphics_for(state.ids.map_layers[0])
+                        .set(state.ids.map_layers[index], ui);
+                }
+            }
 
             // Map icons
             if state.ids.mmap_site_icons.len() < self.client.sites().len() {
@@ -307,7 +331,7 @@ impl<'a> Widget for MiniMap<'a> {
                     SiteKind::Tree => self.imgs.mmap_site_tree,
                 })
                 .x_y_position_relative_to(
-                    state.ids.grid,
+                    state.ids.map_layers[0],
                     position::Relative::Scalar(rpos.x as f64),
                     position::Relative::Scalar(rpos.y as f64),
                 )
@@ -327,7 +351,7 @@ impl<'a> Widget for MiniMap<'a> {
                     SiteKind::Cave => Color::Rgba(1.0, 1.0, 1.0, 0.0),
                     SiteKind::Tree => Color::Rgba(1.0, 1.0, 1.0, 0.0),
                 }))
-                .parent(state.ids.grid)
+                .parent(state.ids.map_layers[3])
                 .set(state.ids.mmap_site_icons_bgs[i], ui);
                 Image::new(match &site.kind {
                     SiteKind::Town => self.imgs.mmap_site_town,
@@ -398,7 +422,7 @@ impl<'a> Widget for MiniMap<'a> {
                         _ => self.imgs.indicator_group,
                     })
                     .x_y_position_relative_to(
-                        state.ids.grid,
+                        state.ids.map_layers[0],
                         position::Relative::Scalar(rpos.x as f64),
                         position::Relative::Scalar(rpos.y as f64),
                     )
@@ -416,7 +440,7 @@ impl<'a> Widget for MiniMap<'a> {
                 self.rot_imgs.indicator_mmap_small.none
             };
             Image::new(ind_rotation)
-                .middle_of(state.ids.grid)
+                .middle_of(state.ids.map_layers[0])
                 .w_h(32.0 * ind_scale, 37.0 * ind_scale)
                 .color(Some(UI_HIGHLIGHT_0))
                 .floating(true)
@@ -436,7 +460,7 @@ impl<'a> Widget for MiniMap<'a> {
                 let pos = clamped * (map_size / 2.0 - 10.0);
                 Text::new(name)
                     .x_y_position_relative_to(
-                        state.ids.grid,
+                        state.ids.map_layers[0],
                         position::Relative::Scalar(pos.x),
                         position::Relative::Scalar(pos.y),
                     )

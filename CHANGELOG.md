@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Attacks now emit sound effects from the target on hit.
 - Crafting menu tabs
 - Auto camera setting, making the game easier to play with one hand
+- Topographic map option
 
 ### Changed
 

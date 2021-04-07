@@ -248,7 +248,7 @@ pub fn sample_pos(
     };
 
     MapSample {
-        rgb,
+        rgba: Rgba::new(rgb.r, rgb.g, rgb.b, 255),
         alt: if is_water {
             true_alt.max(true_water_alt)
         } else {
@@ -260,5 +260,6 @@ pub fn sample_pos(
         } else {
             None
         },
+        is_path,
     }
 }

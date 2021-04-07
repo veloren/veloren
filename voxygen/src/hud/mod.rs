@@ -374,6 +374,7 @@ pub enum Event {
     ChangeAmbiance(f32),
     MapZoom(f64),
     MapDrag(Vec2<f64>),
+    MapShowTopoMap(bool),
     MapShowDifficulty(bool),
     MapShowTowns(bool),
     MapShowDungeons(bool),
@@ -777,7 +778,7 @@ impl PromptDialogSettings {
 pub struct Hud {
     ui: Ui,
     ids: Ids,
-    world_map: (/* Id */ Rotations, Vec2<u32>),
+    world_map: (/* Id */ Vec<Rotations>, Vec2<u32>),
     imgs: Imgs,
     item_imgs: ItemImgs,
     fonts: Fonts,
@@ -818,13 +819,13 @@ impl Hud {
         // translucent alpha since UI have transparency and LOD doesn't).
         let water_color = srgba_to_linear(Rgba::new(0.0, 0.18, 0.37, 1.0));
         // Load world map
-        let world_map = (
-            ui.add_graphic_with_rotations(Graphic::Image(
-                Arc::clone(client.world_data().map_image()),
-                Some(water_color),
-            )),
-            client.world_data().chunk_size().map(|e| e as u32),
-        );
+        let mut layers = Vec::new();
+        for layer in client.world_data().map_layers() {
+            layers.push(
+                ui.add_graphic_with_rotations(Graphic::Image(Arc::clone(layer), Some(water_color))),
+            );
+        }
+        let world_map = (layers, client.world_data().chunk_size().map(|e| e as u32));
         // Load images.
         let imgs = Imgs::load(&mut ui).expect("Failed to load images!");
         // Load rotation images.
@@ -2796,6 +2797,9 @@ impl Hud {
                         self.show.map(false);
                         self.show.want_grab = true;
                         self.force_ungrab = false;
+                    },
+                    map::Event::ShowTopoMap(map_show_topo_map) => {
+                        events.push(Event::MapShowTopoMap(map_show_topo_map));
                     },
                     map::Event::ShowDifficulties(map_show_difficulties) => {
                         events.push(Event::MapShowDifficulty(map_show_difficulties));
