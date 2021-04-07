@@ -175,7 +175,7 @@ impl MusicMgr {
         //    player_alt = position.0.z;
         //}
 
-        use common::comp::{Health, Pos};
+        use common::comp::{group::ENEMY, Group, Health, Pos};
         use specs::{Join, WorldExt};
         use MusicActivityState::*;
         let mut activity_state = Explore;
@@ -184,16 +184,18 @@ impl MusicMgr {
         let entities = ecs.entities();
         let positions = ecs.read_component::<Pos>();
         let healths = ecs.read_component::<Health>();
+        let groups = ecs.read_component::<Group>();
         if let Some(player_pos) = positions.get(player) {
             const NEARBY_RADIUS: f32 = 50.0;
-            // TODO: consider filtering by Alignment::Enemy (requires sync changes)
-            let num_nearby_entities: u32 = (&entities, &positions, &healths)
+            const HEALTH_FACTOR: u32 = 100;
+            let num_nearby_entities: u32 = (&entities, &positions, &healths, &groups)
                 .join()
-                .map(|(entity, pos, _)| {
+                .map(|(entity, pos, health, group)| {
                     if entity != player
+                        && group == &ENEMY
                         && (player_pos.0 - pos.0).magnitude_squared() < NEARBY_RADIUS.powf(2.0)
                     {
-                        1
+                        (health.maximum() / HEALTH_FACTOR).max(1)
                     } else {
                         0
                     }
