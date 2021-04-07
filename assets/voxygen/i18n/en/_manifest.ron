@@ -226,5 +226,10 @@
             "I'll set my tarasque on you!",
             "Why meeeeeee?",
         ],
+        "npc.speech.villager_enemy_killed": [
+            "I have destroyed my enemy!",
+            "Finally at peace!",
+            "... now what I was doing?",
+        ]
     }
 )

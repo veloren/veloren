@@ -40,13 +40,16 @@
 
         "hud.settings.pan_sensitivity": "Sensibilité de la souris",
         "hud.settings.zoom_sensitivity": "Sensibilité du zoom",
+        "hud.settings.camera_clamp_angle": "Angle pour le mode Verrouillage Caméra",
         "hud.settings.invert_scroll_zoom": "Inverser la molette",
         "hud.settings.invert_mouse_y_axis": "Inverser l'axe Y de la souris",
         "hud.settings.invert_controller_y_axis": "Inverser l'axe Y de la manette",
         "hud.settings.enable_mouse_smoothing": "Lissage de la Caméra",
         "hud.settings.free_look_behavior": "Comportement Vue libre",
         "hud.settings.auto_walk_behavior": "Comportement Marche Automatique",
+        "hud.settings.camera_clamp_behavior": "Comportement Verrouillage Caméra",
         "hud.settings.stop_auto_walk_on_input": "Arrêt marche-auto si mouvement",
+        "hud.settings.auto_camera": "Caméra automatique",
         "hud.settings.reset_gameplay": "Restaurer par Défaut",
 
         "hud.settings.view_distance": "Distance d'affichage",
