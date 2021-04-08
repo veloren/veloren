@@ -500,18 +500,30 @@ impl Entity {
 
 #[derive(Clone, Debug)]
 enum Travel {
+    // The initial state all entities start in, and a fallback for when a state has stopped making
+    // sense. Non humanoids will always revert to this state after reaching their goal since the
+    // current site they are in doesn't change their behavior.
     Lost,
+    // When an rtsim entity reaches a site it will switch to this state to restart their
+    // pathfinding from the beginning. Useful when the entity needs to know its current site to
+    // decide their next target.
     InSite {
         site_id: Id<Site>,
     },
+    // Move directly to a target site. Used by birds mostly, but also by humands who cannot find a
+    // path.
     Direct {
         target_id: Id<Site>,
     },
+    // Follow a custom path to reach the destination. Airships define a custom path to reduce the
+    // chance of collisions.
     CustomPath {
         target_id: Id<Site>,
         path: Vec<Vec2<i32>>,
         progress: usize,
     },
+    // Follow a track defined in the track_map to reach a site. Humanoids do this whenever
+    // possible.
     Path {
         target_id: Id<Site>,
         track_id: Id<Track>,
