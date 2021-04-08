@@ -141,15 +141,23 @@ impl Renderer {
 
         // TODO: fix panic on wayland with opengl?
         // TODO: fix backend defaulting to opengl on wayland.
-        let only_vulkan = std::env::var("ONLY_VULKAN")
+        let backend_bit = std::env::var("WGPU_BACKEND")
             .ok()
-            .map_or(false, |s| &s == "1" || &s == "true");
-        let backend_bit = if only_vulkan {
-            info!("Only requesting Vulkan backend due to ONLY_VULKAN env var being set");
-            wgpu::BackendBit::VULKAN
-        } else {
-            wgpu::BackendBit::PRIMARY /* | wgpu::BackendBit::SECONDARY */
-        };
+            .and_then(|backend| match backend.to_lowercase().as_str() {
+                "vulkan" => Some(wgpu::BackendBit::VULKAN),
+                "metal" => Some(wgpu::BackendBit::METAL),
+                "dx12" => Some(wgpu::BackendBit::DX12),
+                "primary" => Some(wgpu::BackendBit::PRIMARY),
+                "opengl" | "gl" => Some(wgpu::BackendBit::GL),
+                "dx11" => Some(wgpu::BackendBit::DX11),
+                "secondary" => Some(wgpu::BackendBit::SECONDARY),
+                "all" => Some(wgpu::BackendBit::all()),
+                _ => None,
+            })
+            .unwrap_or(
+                wgpu::BackendBit::PRIMARY, /* | wgpu::BackendBit::SECONDARY */
+            );
+
         let instance = wgpu::Instance::new(backend_bit);
 
         let dims = window.inner_size();
@@ -172,21 +180,26 @@ impl Renderer {
             ..Default::default()
         };
 
-        let (device, queue) = futures::executor::block_on(adapter.request_device(
-            &wgpu::DeviceDescriptor {
-                // TODO
-                label: None,
-                features: wgpu::Features::DEPTH_CLAMPING
+        let (device, queue) = futures::executor::block_on(
+            adapter.request_device(
+                &wgpu::DeviceDescriptor {
+                    // TODO
+                    label: None,
+                    features: wgpu::Features::DEPTH_CLAMPING
                     | wgpu::Features::ADDRESS_MODE_CLAMP_TO_BORDER
                     | wgpu::Features::PUSH_CONSTANTS
                     // TODO: make optional based on enabling profiling
                     // NOTE: requires recreating the device/queue is this setting changes
                     // alternatively it could be a compile time feature toggle
                     | (adapter.features() & wgpu_profiler::GpuProfiler::REQUIRED_WGPU_FEATURES),
-                limits,
-            },
-            None,
-        ))?;
+                    limits,
+                },
+                std::env::var_os("WGPU_TRACE_DIR")
+                    .as_ref()
+                    .map(|v| std::path::Path::new(v))
+                    .or(Some("./wgpu-trace".as_ref())),
+            ),
+        )?;
 
         let profiler_features_enabled = device
             .features()
