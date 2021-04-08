@@ -1,7 +1,7 @@
 use super::RenderError;
+use core::num::NonZeroU32;
 use image::{DynamicImage, GenericImageView};
 use wgpu::Extent3d;
-use core::num::NonZeroU32;
 
 /// Represents an image that has been uploaded to the GPU.
 pub struct Texture {
@@ -9,6 +9,8 @@ pub struct Texture {
     pub view: wgpu::TextureView,
     pub sampler: wgpu::Sampler,
     size: Extent3d,
+    /// TODO: consider making Texture generic over the format
+    format: wgpu::TextureFormat,
 }
 
 impl Texture {
@@ -106,10 +108,16 @@ impl Texture {
             view,
             sampler: device.create_sampler(&sampler_info),
             size,
+            format,
         })
     }
 
-    pub fn new_dynamic(device: &wgpu::Device, width: u32, height: u32) -> Self {
+    pub fn new_dynamic(
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
+        width: u32,
+        height: u32,
+    ) -> Self {
         let size = wgpu::Extent3d {
             width,
             height,
@@ -149,9 +157,13 @@ impl Texture {
             array_layer_count: None,
         };
 
-        Self::new_raw(device, &tex_info, &view_info, &sampler_info)
+        let texture = Self::new_raw(device, &tex_info, &view_info, &sampler_info);
+        texture.clear(device, queue); // Needs to be fully initialized for partial writes to work on Dx12 AMD
+        texture
     }
 
+    /// Note: the user is responsible for making sure the texture is fully
+    /// initialized before doing partial writes on Dx12 AMD: https://github.com/gfx-rs/wgpu/issues/1306
     pub fn new_raw(
         device: &wgpu::Device,
         texture_info: &wgpu::TextureDescriptor,
@@ -166,14 +178,25 @@ impl Texture {
             view,
             sampler: device.create_sampler(sampler_info),
             size: texture_info.size,
+            format: texture_info.format,
         }
+    }
+
+    /// Clears the texture data to 0
+    pub fn clear(&self, device: &wgpu::Device, queue: &wgpu::Queue) {
+        let size = self.size;
+        let byte_len = size.width as usize
+            * size.height as usize
+            * size.depth_or_array_layers as usize
+            * self.format.describe().block_size as usize;
+        let zeros = vec![0; byte_len];
+
+        self.update(device, queue, [0, 0], [size.width, size.height], &zeros);
     }
 
     /// Update a texture with the given data (used for updating the glyph cache
     /// texture).
-    /// TODO: using generic here seems a bit hacky, consider storing this info
-    /// in the texture type or pass in wgpu::TextureFormat
-    pub fn update<const BYTES_PER_PIXEL: u32>(
+    pub fn update(
         &self,
         device: &wgpu::Device,
         queue: &wgpu::Queue,
@@ -181,9 +204,11 @@ impl Texture {
         size: [u32; 2],
         data: &[u8],
     ) {
+        let bytes_per_pixel = self.format.describe().block_size as u32;
+
         debug_assert_eq!(
             data.len(),
-            size[0] as usize * size[1] as usize * BYTES_PER_PIXEL as usize
+            size[0] as usize * size[1] as usize * bytes_per_pixel as usize
         );
         // TODO: Only works for 2D images
         queue.write_texture(
@@ -199,7 +224,7 @@ impl Texture {
             data,
             wgpu::ImageDataLayout {
                 offset: 0,
-                bytes_per_row: NonZeroU32::new(size[0] * BYTES_PER_PIXEL),
+                bytes_per_row: NonZeroU32::new(size[0] * bytes_per_pixel),
                 rows_per_image: NonZeroU32::new(size[1]),
             },
             wgpu::Extent3d {

@@ -105,7 +105,7 @@ impl LodData {
                 array_layer_count: None,
             };
 
-            renderer.create_texture_with_data_raw::<4>(
+            renderer.create_texture_with_data_raw(
                 &texture_info,
                 &view_info,
                 &sampler_info,

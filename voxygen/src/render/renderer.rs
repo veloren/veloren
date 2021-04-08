@@ -1094,7 +1094,10 @@ impl Renderer {
     }
 
     /// Create a new immutable texture from the provided image.
-    pub fn create_texture_with_data_raw<const BYTES_PER_PIXEL: u32>(
+    /// # Panics
+    /// If the provided data doesn't completely fill the texture this function
+    /// will panic.
+    pub fn create_texture_with_data_raw(
         &mut self,
         texture_info: &wgpu::TextureDescriptor,
         view_info: &wgpu::TextureViewDescriptor,
@@ -1103,7 +1106,20 @@ impl Renderer {
     ) -> Texture {
         let tex = Texture::new_raw(&self.device, &texture_info, &view_info, &sampler_info);
 
-        tex.update::<BYTES_PER_PIXEL>(
+        let size = texture_info.size;
+        let block_size = texture_info.format.describe().block_size;
+        assert_eq!(
+            size.width as usize
+                * size.height as usize
+                * size.depth_or_array_layers as usize
+                * block_size as usize,
+            data.len(),
+            "Provided data length {} does not fill the provided texture size {:?}",
+            data.len(),
+            size,
+        );
+
+        tex.update(
             &self.device,
             &self.queue,
             [0; 2],
@@ -1121,7 +1137,9 @@ impl Renderer {
         view_info: &wgpu::TextureViewDescriptor,
         sampler_info: &wgpu::SamplerDescriptor,
     ) -> Texture {
-        Texture::new_raw(&self.device, texture_info, view_info, sampler_info)
+        let texture = Texture::new_raw(&self.device, texture_info, view_info, sampler_info);
+        texture.clear(&self.device, &self.queue); // Needs to be fully initialized for partial writes to work on Dx12 AMD
+        texture
     }
 
     /// Create a new texture from the provided image.
@@ -1147,7 +1165,7 @@ impl Renderer {
     ///
     /// Currently only supports Rgba8Srgb
     pub fn create_dynamic_texture(&mut self, dims: Vec2<u32>) -> Texture {
-        Texture::new_dynamic(&self.device, dims.x, dims.y)
+        Texture::new_dynamic(&self.device, &self.queue, dims.x, dims.y)
     }
 
     /// Update a texture with the provided offset, size, and data.
@@ -1158,18 +1176,10 @@ impl Renderer {
         texture: &Texture, /* <T> */
         offset: [u32; 2],
         size: [u32; 2],
-        // TODO
-        //        data: &[<<T as gfx::format::Formatted>::Surface as
-        // gfx::format::SurfaceTyped>::DataType],    ) -> Result<(), RenderError>
-        //    where
-        //        <T as gfx::format::Formatted>::Surface: gfx::format::TextureSurface,
-        //        <T as gfx::format::Formatted>::Channel: gfx::format::TextureChannel,
-        //        <<T as gfx::format::Formatted>::Surface as gfx::format::SurfaceTyped>::DataType:
-        // Copy,    {
-        //        texture.update(&mut self.encoder, offset, size, data)
+        // TODO: generic over pixel type
         data: &[[u8; 4]],
     ) {
-        texture.update::<4>(
+        texture.update(
             &self.device,
             &self.queue,
             offset,
