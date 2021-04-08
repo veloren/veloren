@@ -24,6 +24,7 @@ serde = { version = "1.0.110", features = ["derive", "rc"] }
 approx = "0.4.0"
 arraygen = "0.1.13"
 crossbeam-utils = "0.8.1"
+bitflags = "1.2"
 crossbeam-channel = "0.5"
 enum-iterator = "0.6"
 lazy_static = "1.4.0"

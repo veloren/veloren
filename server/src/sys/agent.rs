@@ -14,9 +14,9 @@ use common::{
             ItemDesc, ItemKind,
         },
         skills::{AxeSkill, BowSkill, HammerSkill, Skill, StaffSkill, SwordSkill},
-        Agent, Alignment, Body, CharacterState, ControlAction, ControlEvent, Controller, Energy,
-        Health, InputKind, Inventory, LightEmitter, MountState, Ori, PhysicsState, Pos, Scale,
-        Stats, UnresolvedChatMsg, Vel,
+        Agent, Alignment, BehaviorCapability, BehaviorState, Body, CharacterState, ControlAction,
+        ControlEvent, Controller, Energy, Health, InputKind, Inventory, LightEmitter, MountState,
+        Ori, PhysicsState, Pos, Scale, Stats, UnresolvedChatMsg, Vel,
     },
     event::{Emitter, EventBus, ServerEvent},
     path::TraversalConfig,
@@ -137,9 +137,11 @@ impl<'a> System<'a> for Sys {
         (
             &read_data.entities,
             (&read_data.energies, read_data.healths.maybe()),
-            &read_data.positions,
-            &read_data.velocities,
-            &read_data.orientations,
+            (
+                &read_data.positions,
+                &read_data.velocities,
+                &read_data.orientations,
+            ),
             read_data.bodies.maybe(),
             &read_data.inventories,
             &read_data.stats,
@@ -153,14 +155,12 @@ impl<'a> System<'a> for Sys {
             &read_data.char_states,
         )
             .par_join()
-            .filter(
-                |(_, _, _, _, _, _, _, _, _, _, _, _, _, _, mount_state, _)| {
-                    // Skip mounted entities
-                    mount_state
-                        .map(|ms| *ms == MountState::Unmounted)
-                        .unwrap_or(true)
-                },
-            )
+            .filter(|(_, _, _, _, _, _, _, _, _, _, _, _, mount_state, _)| {
+                // Skip mounted entities
+                mount_state
+                    .map(|ms| *ms == MountState::Unmounted)
+                    .unwrap_or(true)
+            })
             .for_each_init(
                 || {
                     prof_span!(guard, "agent rayon job");
@@ -170,9 +170,7 @@ impl<'a> System<'a> for Sys {
                  (
                     entity,
                     (energy, health),
-                    pos,
-                    vel,
-                    ori,
+                    (pos, vel, ori),
                     body,
                     inventory,
                     stats,
@@ -551,7 +549,7 @@ impl<'a> AgentData<'a> {
         }
         if agent.action_timer > 0.0 {
             if agent.action_timer
-                < (if agent.trading {
+                < (if agent.behavior.is(BehaviorState::TRADING) {
                     TRADE_INTERACTION_TIME
                 } else {
                     DEFAULT_INTERACTION_TIME
@@ -588,7 +586,7 @@ impl<'a> AgentData<'a> {
                 let dist_sqrd = self.pos.0.distance_squared(tgt_pos.0);
                 // Should the agent flee?
                 if 1.0 - agent.psyche.aggro > self.damage && self.flees {
-                    if agent.action_timer == 0.0 && agent.can_speak {
+                    if agent.action_timer == 0.0 && agent.behavior.can(BehaviorCapability::SPEAK) {
                         let msg = "npc.speech.villager_under_attack".to_string();
                         event_emitter
                             .emit(ServerEvent::Chat(UnresolvedChatMsg::npc(*self.uid, msg)));
@@ -616,7 +614,7 @@ impl<'a> AgentData<'a> {
                         read_data.buffs.get(target),
                     ) {
                         agent.target = None;
-                        if agent.can_speak {
+                        if agent.behavior.can(BehaviorCapability::SPEAK) {
                             let msg = "npc.speech.villager_enemy_killed".to_string();
                             event_emitter
                                 .emit(ServerEvent::Chat(UnresolvedChatMsg::npc(*self.uid, msg)));
@@ -879,7 +877,7 @@ impl<'a> AgentData<'a> {
         let msg = agent.inbox.pop_back();
         match msg {
             Some(AgentEvent::Talk(by, subject)) => {
-                if agent.can_speak {
+                if agent.behavior.can(BehaviorCapability::SPEAK) {
                     if let Some(target) = read_data.uid_allocator.retrieve_entity_internal(by.id())
                     {
                         agent.target = Some(Target {
@@ -933,7 +931,7 @@ impl<'a> AgentData<'a> {
                                         event_emitter.emit(ServerEvent::Chat(
                                             UnresolvedChatMsg::npc(*self.uid, msg),
                                         ));
-                                    } else if agent.trade_for_site.is_some() {
+                                    } else if agent.behavior.can_trade() {
                                         let msg = "npc.speech.merchant_advertisement".to_string();
                                         event_emitter.emit(ServerEvent::Chat(
                                             UnresolvedChatMsg::npc(*self.uid, msg),
@@ -946,8 +944,8 @@ impl<'a> AgentData<'a> {
                                     }
                                 },
                                 Subject::Trade => {
-                                    if agent.trade_for_site.is_some() {
-                                        if !agent.trading {
+                                    if agent.behavior.can_trade() {
+                                        if !agent.behavior.is(BehaviorState::TRADING) {
                                             controller.events.push(ControlEvent::InitiateInvite(
                                                 by,
                                                 InviteKind::Trade,
@@ -1095,8 +1093,8 @@ impl<'a> AgentData<'a> {
                 }
             },
             Some(AgentEvent::TradeInvite(with)) => {
-                if agent.trade_for_site.is_some() {
-                    if !agent.trading {
+                if agent.behavior.can_trade() {
+                    if !agent.behavior.is(BehaviorState::TRADING) {
                         // stand still and looking towards the trading player
                         controller.actions.push(ControlAction::Stand);
                         controller.actions.push(ControlAction::Talk);
@@ -1112,13 +1110,13 @@ impl<'a> AgentData<'a> {
                         controller
                             .events
                             .push(ControlEvent::InviteResponse(InviteResponse::Accept));
-                        agent.trading_issuer = false;
-                        agent.trading = true;
+                        agent.behavior.unset(BehaviorState::TRADING_ISSUER);
+                        agent.behavior.set(BehaviorState::TRADING);
                     } else {
                         controller
                             .events
                             .push(ControlEvent::InviteResponse(InviteResponse::Decline));
-                        if agent.can_speak {
+                        if agent.behavior.can(BehaviorCapability::SPEAK) {
                             event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc(
                                 *self.uid,
                                 "npc.speech.merchant_busy".to_string(),
@@ -1130,7 +1128,7 @@ impl<'a> AgentData<'a> {
                     controller
                         .events
                         .push(ControlEvent::InviteResponse(InviteResponse::Decline));
-                    if agent.can_speak {
+                    if agent.behavior.can(BehaviorCapability::SPEAK) {
                         event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc(
                             *self.uid,
                             "npc.speech.villager_decline_trade".to_string(),
@@ -1139,7 +1137,7 @@ impl<'a> AgentData<'a> {
                 }
             },
             Some(AgentEvent::TradeAccepted(with)) => {
-                if !agent.trading {
+                if !agent.behavior.is(BehaviorState::TRADING) {
                     if let Some(target) =
                         read_data.uid_allocator.retrieve_entity_internal(with.id())
                     {
@@ -1149,12 +1147,12 @@ impl<'a> AgentData<'a> {
                             selected_at: read_data.time.0,
                         });
                     }
-                    agent.trading = true;
-                    agent.trading_issuer = true;
+                    agent.behavior.set(BehaviorState::TRADING);
+                    agent.behavior.set(BehaviorState::TRADING_ISSUER);
                 }
             },
             Some(AgentEvent::FinishedTrade(result)) => {
-                if agent.trading {
+                if agent.behavior.is(BehaviorState::TRADING) {
                     match result {
                         TradeResult::Completed => {
                             event_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg::npc(
@@ -1167,13 +1165,17 @@ impl<'a> AgentData<'a> {
                             "npc.speech.merchant_trade_declined".to_string(),
                         ))),
                     }
-                    agent.trading = false;
+                    agent.behavior.unset(BehaviorState::TRADING);
                 }
             },
             Some(AgentEvent::UpdatePendingTrade(boxval)) => {
                 let (tradeid, pending, prices, inventories) = *boxval;
-                if agent.trading {
-                    let who: usize = if agent.trading_issuer { 0 } else { 1 };
+                if agent.behavior.is(BehaviorState::TRADING) {
+                    let who: usize = if agent.behavior.is(BehaviorState::TRADING_ISSUER) {
+                        0
+                    } else {
+                        1
+                    };
                     let balance0: f32 =
                         prices.balance(&pending.offers, &inventories, 1 - who, true);
                     let balance1: f32 = prices.balance(&pending.offers, &inventories, who, false);
@@ -1203,7 +1205,7 @@ impl<'a> AgentData<'a> {
                         }
                         if pending.phase != TradePhase::Mutate {
                             // we got into the review phase but without balanced goods, decline
-                            agent.trading = false;
+                            agent.behavior.unset(BehaviorState::TRADING);
                             event_emitter.emit(ServerEvent::ProcessTradeAction(
                                 *self.entity,
                                 tradeid,
@@ -1214,7 +1216,7 @@ impl<'a> AgentData<'a> {
                 }
             },
             None => {
-                if agent.can_speak {
+                if agent.behavior.can(BehaviorCapability::SPEAK) {
                     // no new events, continue looking towards the last interacting player for some
                     // time
                     if let Some(Target { target, .. }) = &agent.target {
@@ -1337,7 +1339,7 @@ impl<'a> AgentData<'a> {
                         (
                             self.alignment.map_or(false, |alignment| {
                                 if matches!(alignment, Alignment::Npc) && e_inventory.equipped_items().filter(|item| item.tags().contains(&ItemTag::Cultist)).count() > 2 {
-                                    if agent.can_speak {
+                                    if agent.behavior.can(BehaviorCapability::SPEAK) {
                                         if self.rtsim_entity.is_some() {
                                             agent.rtsim_controller.events.push(
                                                 RtSimEvent::AddMemory(Memory {

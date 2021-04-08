@@ -98,6 +98,90 @@ impl Component for Alignment {
     type Storage = IdvStorage<Self>;
 }
 
+bitflags::bitflags! {
+    #[derive(Default)]
+    pub struct BehaviorCapability: u8 {
+        const SPEAK = 0b00000001;
+    }
+}
+bitflags::bitflags! {
+    #[derive(Default)]
+    pub struct BehaviorState: u8 {
+        const TRADING        = 0b00000001;
+        const TRADING_ISSUER = 0b00000010;
+    }
+}
+
+/// # Behavior Component
+/// This component allow an Entity to register one or more behavior tags.
+/// These tags act as flags of what an Entity can do, or what it is doing.  
+/// Behaviors Tags can be added and removed as the Entity lives, to update its
+/// state when needed
+#[derive(Default, Copy, Clone, Debug)]
+pub struct Behavior {
+    capabilities: BehaviorCapability,
+    state: BehaviorState,
+    pub trade_site: Option<SiteId>,
+}
+
+impl From<BehaviorCapability> for Behavior {
+    fn from(capabilities: BehaviorCapability) -> Self {
+        Behavior {
+            capabilities,
+            state: BehaviorState::default(),
+            trade_site: None,
+        }
+    }
+}
+
+impl Behavior {
+    /// Builder function  
+    /// Set capabilities if Option is Some
+    pub fn maybe_with_capabilities(
+        mut self,
+        maybe_capabilities: Option<BehaviorCapability>,
+    ) -> Self {
+        if let Some(capabilities) = maybe_capabilities {
+            self.allow(capabilities)
+        }
+        self
+    }
+
+    /// Builder function
+    /// Set trade_site if Option is Some
+    pub fn with_trade_site(mut self, trade_site: Option<SiteId>) -> Self {
+        self.trade_site = trade_site;
+        self
+    }
+
+    /// Set capabilities to the Behavior
+    pub fn allow(&mut self, capabilities: BehaviorCapability) {
+        self.capabilities.set(capabilities, true)
+    }
+
+    /// Unset capabilities to the Behavior
+    pub fn deny(&mut self, capabilities: BehaviorCapability) {
+        self.capabilities.set(capabilities, false)
+    }
+
+    /// Check if the Behavior is able to do something
+    pub fn can(&self, capabilities: BehaviorCapability) -> bool {
+        self.capabilities.contains(capabilities)
+    }
+
+    /// Check if the Behavior is able to trade
+    pub fn can_trade(&self) -> bool { self.trade_site.is_some() }
+
+    /// Set a state to the Behavior
+    pub fn set(&mut self, state: BehaviorState) { self.state.set(state, true) }
+
+    /// Unset a state to the Behavior
+    pub fn unset(&mut self, state: BehaviorState) { self.state.set(state, false) }
+
+    /// Check if the Behavior has a specific state
+    pub fn is(&self, state: BehaviorState) -> bool { self.state.contains(state) }
+}
+
 #[derive(Clone, Debug, Default)]
 pub struct Psyche {
     pub aggro: f32, // 0.0 = always flees, 1.0 = always attacks, 0.5 = flee at 50% health
@@ -210,12 +294,7 @@ pub struct Agent {
     pub patrol_origin: Option<Vec3<f32>>,
     pub target: Option<Target>,
     pub chaser: Chaser,
-    /// Does the agent talk when e.g. hit by the player
-    // TODO move speech patterns into a Behavior component
-    pub can_speak: bool,
-    pub trade_for_site: Option<SiteId>,
-    pub trading: bool,
-    pub trading_issuer: bool,
+    pub behavior: Behavior,
     pub psyche: Psyche,
     pub inbox: VecDeque<AgentEvent>,
     pub action_timer: f32,
@@ -228,31 +307,27 @@ impl Agent {
         self
     }
 
-    pub fn with_destination(pos: Vec3<f32>) -> Self {
-        Self {
-            can_speak: true,
-            psyche: Psyche { aggro: 1.0 },
-            rtsim_controller: RtSimController::with_destination(pos),
-            ..Default::default()
-        }
+    pub fn with_destination(mut self, pos: Vec3<f32>) -> Self {
+        self.psyche = Psyche { aggro: 1.0 };
+        self.rtsim_controller = RtSimController::with_destination(pos);
+        self.behavior.allow(BehaviorCapability::SPEAK);
+        self
     }
 
     pub fn new(
         patrol_origin: Option<Vec3<f32>>,
-        can_speak: bool,
-        trade_for_site: Option<SiteId>,
         body: &Body,
+        behavior: Behavior,
         no_flee: bool,
     ) -> Self {
         Agent {
             patrol_origin,
-            can_speak,
-            trade_for_site,
             psyche: if no_flee {
                 Psyche { aggro: 1.0 }
             } else {
                 Psyche::from(body)
             },
+            behavior,
             ..Default::default()
         }
     }
@@ -260,4 +335,31 @@ impl Agent {
 
 impl Component for Agent {
     type Storage = IdvStorage<Self>;
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{Behavior, BehaviorCapability, BehaviorState};
+
+    /// Test to verify that Behavior is working correctly at its most basic
+    /// usages
+    #[test]
+    pub fn behavior_basic() {
+        let mut b = Behavior::default();
+        // test capabilities
+        assert!(!b.can(BehaviorCapability::SPEAK));
+        b.allow(BehaviorCapability::SPEAK);
+        assert!(b.can(BehaviorCapability::SPEAK));
+        b.deny(BehaviorCapability::SPEAK);
+        assert!(!b.can(BehaviorCapability::SPEAK));
+        // test states
+        assert!(!b.is(BehaviorState::TRADING));
+        b.set(BehaviorState::TRADING);
+        assert!(b.is(BehaviorState::TRADING));
+        b.unset(BehaviorState::TRADING);
+        assert!(!b.is(BehaviorState::TRADING));
+        // test `from`
+        let b = Behavior::from(BehaviorCapability::SPEAK);
+        assert!(b.can(BehaviorCapability::SPEAK));
+    }
 }

@@ -45,7 +45,7 @@ pub mod visual;
 pub use self::{
     ability::{CharacterAbility, CharacterAbilityType},
     admin::Admin,
-    agent::{Agent, Alignment},
+    agent::{Agent, Alignment, Behavior, BehaviorCapability, BehaviorState},
     aura::{Aura, AuraChange, AuraKind, Auras},
     beam::{Beam, BeamSegment},
     body::{

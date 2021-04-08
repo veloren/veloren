@@ -2,7 +2,10 @@ use crate::{
     chunk_generator::ChunkGenerator, client::Client, presence::Presence, rtsim::RtSim, Tick,
 };
 use common::{
-    comp::{self, bird_medium, inventory::loadout_builder::LoadoutConfig, Alignment, Pos},
+    comp::{
+        self, bird_medium, inventory::loadout_builder::LoadoutConfig, Alignment,
+        BehaviorCapability, Pos,
+    },
     event::{EventBus, ServerEvent},
     generation::get_npc_name,
     npc::NPC_NAMES,
@@ -12,6 +15,7 @@ use common::{
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::ServerGeneral;
 use common_sys::state::TerrainChanges;
+use comp::Behavior;
 use specs::{Join, Read, ReadStorage, Write, WriteExpect};
 use std::sync::Arc;
 use vek::*;
@@ -191,9 +195,12 @@ impl<'a> System<'a> for Sys {
                     agent: if entity.has_agency {
                         Some(comp::Agent::new(
                             Some(entity.pos),
-                            can_speak,
-                            trade_for_site,
                             &body,
+                            Behavior::default()
+                                .maybe_with_capabilities(
+                                    can_speak.then(|| BehaviorCapability::SPEAK),
+                                )
+                                .with_trade_site(trade_for_site),
                             matches!(
                                 loadout_config,
                                 Some(comp::inventory::loadout_builder::LoadoutConfig::Guard)
