@@ -8,6 +8,7 @@ use common::{
 };
 use rand_distr::{Distribution, Normal};
 use std::f32::consts::PI;
+use tracing::warn;
 use world::{
     civ::{Site, Track},
     util::RandomPerm,
@@ -142,17 +143,21 @@ impl Entity {
                             .civs()
                             .sites
                             .iter()
+                            .filter(|s| s.1.is_settlement() || s.1.is_castle())
                             .min_by_key(|(_, site)| {
                                 let wpos = site.center * TerrainChunk::RECT_SIZE.map(|e| e as i32);
                                 wpos.map(|e| e as f32).distance(self.pos.xy()) as u32
                             })
                             .map(|(id, _)| id)
                         {
+                            // The path choosing code works best when Humanoids can assume they are
+                            // in a town that has at least one path. If the Human isn't in a town
+                            // with at least one path, we need to get them to a town that does.
                             let nearest_site = &world.civs().sites[nearest_site_id];
                             let site_wpos =
                                 nearest_site.center * TerrainChunk::RECT_SIZE.map(|e| e as i32);
                             let dist = site_wpos.map(|e| e as f32).distance(self.pos.xy()) as u32;
-                            if dist < 32 {
+                            if dist < 64 {
                                 Travel::InSite {
                                     site_id: nearest_site_id,
                                 }
@@ -165,6 +170,7 @@ impl Entity {
                             // Somehow no nearest site could be found
                             // Logically this should never happen, but if it does the rtsim entity
                             // will just sit tight
+                            warn!("Nearest site could not be found");
                             Travel::Lost
                         }
                     },
@@ -240,16 +246,6 @@ impl Entity {
                 }
             },
             Travel::InSite { site_id } => {
-                let site = &world.civs().sites[site_id];
-                let site_name = site
-                    .site_tmp
-                    .map_or("".to_string(), |id| index.sites[id].name().to_string());
-                let last_name = self
-                    .brain
-                    .last_visited
-                    .and_then(|last| site.site_tmp.map(|id| index.sites[id].name().to_string()))
-                    .or_else(|| Some("None".to_string()));
-                println!("In: {:?}, prev: {:?}", site_name, last_name);
                 if !self.get_body().is_humanoid() {
                     // Non humanoids don't care if they start at a site
                     Travel::Lost
@@ -280,8 +276,10 @@ impl Entity {
                             reversed: false,
                         }
                     } else {
+                        // This should never trigger, since neighbors returns a list of sites for
+                        // which a track exists going from the current town.
+                        warn!("Could not get track after selecting from neighbor list");
                         self.brain.last_visited = Some(site_id);
-                        // This should never trigger
                         Travel::Direct { target_id }
                     }
                 } else if let Some(target_id) = world
@@ -297,10 +295,13 @@ impl Entity {
                     })
                     .map(|(id, _)| id)
                 {
+                    // This code should only trigger when no paths out of the current town exist.
+                    // The traveller will attempt to directly travel to another town
                     self.brain.last_visited = Some(site_id);
-                    // Directly travel if no paths exist
                     Travel::Direct { target_id }
                 } else {
+                    // No paths we're picked, so stay in town. This will cause direct travel on the
+                    // next tick.
                     self.brain.last_visited = Some(site_id);
                     Travel::InSite { site_id }
                 }
@@ -353,7 +354,7 @@ impl Entity {
 
                 if let Some(wpos) = &path.get(progress) {
                     let dist = wpos.map(|e| e as f32).distance(self.pos.xy()) as u32;
-                    if dist < 64 {
+                    if dist < 16 {
                         if progress + 1 < path.len() {
                             Travel::CustomPath {
                                 target_id,
@@ -407,7 +408,7 @@ impl Entity {
                     .site_tmp
                     .map_or("".to_string(), |id| index.sites[id].name().to_string());
                 let nth = if reversed {
-                    track.path().len() - progress
+                    track.path().len() - progress - 1
                 } else {
                     progress
                 };
@@ -422,8 +423,8 @@ impl Entity {
                     let dist = wpos.map(|e| e as f32).distance(self.pos.xy()) as u32;
 
                     match dist {
-                        d if d < 32 => {
-                            if progress + 1 > track.path().len() {
+                        d if d < 16 => {
+                            if progress + 1 >= track.path().len() {
                                 Travel::Direct { target_id }
                             } else {
                                 Travel::Path {
@@ -477,6 +478,11 @@ impl Entity {
                         },
                     }
                 } else {
+                    // This code should never trigger. If we've gone outside the bounds of the
+                    // tracks vec then a logic bug has occured. I actually had
+                    // an off by one error that caused this to trigger and
+                    // resulted in travellers getting stuck in towns.
+                    warn!("Progress out of bounds while following track");
                     Travel::Lost
                 }
             },
@@ -489,7 +495,7 @@ impl Entity {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 enum Travel {
     Lost,
     InSite {
