@@ -170,7 +170,7 @@ checksum = "0609c78bd572f4edc74310dfb63a01f5609d53fa8b4dd7c4d98aef3b3e8d72d1"
 dependencies = [
  "proc-macro-hack",
  "quote 1.0.9",
- "syn 1.0.65",
+ "syn 1.0.72",
 ]
 
 [[package]]
@@ -242,7 +242,7 @@ checksum = "36ea56748e10732c49404c153638a15ec3d6211ec5ff35d9bb20e13b93576adf"
 dependencies = [
  "proc-macro2 1.0.26",
  "quote 1.0.9",
- "syn 1.0.65",
+ "syn 1.0.72",
 ]
 
 [[package]]
@@ -446,7 +446,7 @@ checksum = "8e215f8c2f9f79cb53c8335e687ffd07d5bfcb6fe5fc80723762d0be46e7cc54"
 dependencies = [
  "proc-macro2 1.0.26",
  "quote 1.0.9",
- "syn 1.0.65",
+ "syn 1.0.72",
 ]
 
 [[package]]
@@ -1270,7 +1270,7 @@ dependencies = [
  "proc-macro2 1.0.26",
  "quote 1.0.9",
  "strsim 0.9.3",
- "syn 1.0.65",
+ "syn 1.0.72",
 ]
 
 [[package]]
@@ -1284,7 +1284,7 @@ dependencies = [
  "proc-macro2 1.0.26",
  "quote 1.0.9",
  "strsim 0.10.0",
- "syn 1.0.65",
+ "syn 1.0.72",
 ]
 
 [[package]]
@@ -1295,7 +1295,7 @@ checksum = "d9b5a2f4ac4969822c62224815d069952656cadc7084fdca9751e6d959189b72"
 dependencies = [
  "darling_core 0.10.2",
  "quote 1.0.9",
- "syn 1.0.65",
+ "syn 1.0.72",
 ]
 
 [[package]]
@@ -1306,7 +1306,7 @@ checksum = "0a7a1445d54b2f9792e3b31a3e715feabbace393f38dc4ffd49d94ee9bc487d5"
 dependencies = [
  "darling_core 0.12.3",
  "quote 1.0.9",
- "syn 1.0.65",
+ "syn 1.0.72",
 ]
 
 [[package]]
@@ -1336,7 +1336,7 @@ checksum = "fcc3dd5e9e9c0b295d6e1e4d811fb6f157d5ffd784b8d202fc62eac8035a770b"
 dependencies = [
  "proc-macro2 1.0.26",
  "quote 1.0.9",
- "syn 1.0.65",
+ "syn 1.0.72",
 ]
 
 [[package]]
@@ -1468,7 +1468,7 @@ checksum = "1e94aa31f7c0dc764f57896dc615ddd76fc13b0d5dca7eb6cc5e018a5a09ec06"
 dependencies = [
  "proc-macro2 1.0.26",
  "quote 1.0.9",
- "syn 1.0.65",
+ "syn 1.0.72",
 ]
 
 [[package]]
@@ -1489,7 +1489,7 @@ dependencies = [
  "darling 0.12.3",
  "proc-macro2 1.0.26",
  "quote 1.0.9",
- "syn 1.0.65",
+ "syn 1.0.72",
 ]
 
 [[package]]
@@ -1555,7 +1555,7 @@ checksum = "ccb5acb1045ebbfa222e2c50679e392a71dd77030b78fb0189f2d9c5974400f9"
 dependencies = [
  "proc-macro2 1.0.26",
  "quote 1.0.9",
- "syn 1.0.65",
+ "syn 1.0.72",
 ]
 
 [[package]]
@@ -1768,7 +1768,7 @@ dependencies = [
  "proc-macro-hack",
  "proc-macro2 1.0.26",
  "quote 1.0.9",
- "syn 1.0.65",
+ "syn 1.0.72",
 ]
 
 [[package]]
@@ -1875,7 +1875,7 @@ dependencies = [
 [[package]]
 name = "gfx-auxil"
 version = "0.8.0"
-source = "git+https://github.com/gfx-rs/gfx?rev=2ac006f7fe86f32dd5b5e07f9daf44cd876a66f0#2ac006f7fe86f32dd5b5e07f9daf44cd876a66f0"
+source = "git+https://github.com/gfx-rs/gfx?rev=2a93d52661aafcbd6441ea83e739c8ced906cd21#2a93d52661aafcbd6441ea83e739c8ced906cd21"
 dependencies = [
  "fxhash",
  "gfx-hal",
@@ -1885,7 +1885,7 @@ dependencies = [
 [[package]]
 name = "gfx-backend-dx11"
 version = "0.7.0"
-source = "git+https://github.com/gfx-rs/gfx?rev=2ac006f7fe86f32dd5b5e07f9daf44cd876a66f0#2ac006f7fe86f32dd5b5e07f9daf44cd876a66f0"
+source = "git+https://github.com/gfx-rs/gfx?rev=2a93d52661aafcbd6441ea83e739c8ced906cd21#2a93d52661aafcbd6441ea83e739c8ced906cd21"
 dependencies = [
  "arrayvec",
  "bitflags",
@@ -1906,7 +1906,7 @@ dependencies = [
 [[package]]
 name = "gfx-backend-dx12"
 version = "0.7.0"
-source = "git+https://github.com/gfx-rs/gfx?rev=2ac006f7fe86f32dd5b5e07f9daf44cd876a66f0#2ac006f7fe86f32dd5b5e07f9daf44cd876a66f0"
+source = "git+https://github.com/gfx-rs/gfx?rev=2a93d52661aafcbd6441ea83e739c8ced906cd21#2a93d52661aafcbd6441ea83e739c8ced906cd21"
 dependencies = [
  "arrayvec",
  "bit-set",
@@ -1927,7 +1927,7 @@ dependencies = [
 [[package]]
 name = "gfx-backend-empty"
 version = "0.7.0"
-source = "git+https://github.com/gfx-rs/gfx?rev=2ac006f7fe86f32dd5b5e07f9daf44cd876a66f0#2ac006f7fe86f32dd5b5e07f9daf44cd876a66f0"
+source = "git+https://github.com/gfx-rs/gfx?rev=2a93d52661aafcbd6441ea83e739c8ced906cd21#2a93d52661aafcbd6441ea83e739c8ced906cd21"
 dependencies = [
  "gfx-hal",
  "log",
@@ -1937,12 +1937,11 @@ dependencies = [
 [[package]]
 name = "gfx-backend-gl"
 version = "0.7.0"
-source = "git+https://github.com/gfx-rs/gfx?rev=2ac006f7fe86f32dd5b5e07f9daf44cd876a66f0#2ac006f7fe86f32dd5b5e07f9daf44cd876a66f0"
+source = "git+https://github.com/gfx-rs/gfx?rev=2a93d52661aafcbd6441ea83e739c8ced906cd21#2a93d52661aafcbd6441ea83e739c8ced906cd21"
 dependencies = [
  "arrayvec",
  "bitflags",
  "fxhash",
- "gfx-auxil",
  "gfx-hal",
  "glow",
  "js-sys",
@@ -1952,7 +1951,6 @@ dependencies = [
  "naga",
  "parking_lot 0.11.1",
  "raw-window-handle",
- "spirv_cross",
  "wasm-bindgen",
  "web-sys",
 ]
@@ -1960,7 +1958,7 @@ dependencies = [
 [[package]]
 name = "gfx-backend-metal"
 version = "0.7.0"
-source = "git+https://github.com/gfx-rs/gfx?rev=2ac006f7fe86f32dd5b5e07f9daf44cd876a66f0#2ac006f7fe86f32dd5b5e07f9daf44cd876a66f0"
+source = "git+https://github.com/gfx-rs/gfx?rev=2a93d52661aafcbd6441ea83e739c8ced906cd21#2a93d52661aafcbd6441ea83e739c8ced906cd21"
 dependencies = [
  "arrayvec",
  "bitflags",
@@ -1969,7 +1967,6 @@ dependencies = [
  "copyless",
  "foreign-types",
  "fxhash",
- "gfx-auxil",
  "gfx-hal",
  "log",
  "metal",
@@ -1978,14 +1975,13 @@ dependencies = [
  "parking_lot 0.11.1",
  "range-alloc",
  "raw-window-handle",
- "spirv_cross",
  "storage-map",
 ]
 
 [[package]]
 name = "gfx-backend-vulkan"
 version = "0.7.0"
-source = "git+https://github.com/gfx-rs/gfx?rev=2ac006f7fe86f32dd5b5e07f9daf44cd876a66f0#2ac006f7fe86f32dd5b5e07f9daf44cd876a66f0"
+source = "git+https://github.com/gfx-rs/gfx?rev=2a93d52661aafcbd6441ea83e739c8ced906cd21#2a93d52661aafcbd6441ea83e739c8ced906cd21"
 dependencies = [
  "arrayvec",
  "ash",
@@ -2005,7 +2001,7 @@ dependencies = [
 [[package]]
 name = "gfx-hal"
 version = "0.7.0"
-source = "git+https://github.com/gfx-rs/gfx?rev=2ac006f7fe86f32dd5b5e07f9daf44cd876a66f0#2ac006f7fe86f32dd5b5e07f9daf44cd876a66f0"
+source = "git+https://github.com/gfx-rs/gfx?rev=2a93d52661aafcbd6441ea83e739c8ced906cd21#2a93d52661aafcbd6441ea83e739c8ced906cd21"
 dependencies = [
  "bitflags",
  "naga",
@@ -2145,9 +2141,8 @@ dependencies = [
 
 [[package]]
 name = "gpu-alloc"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1e7724b9aef57ea36d70faf54e0ee6265f86e41de16bed8333efdeab5b00e16b"
+version = "0.4.0"
+source = "git+https://github.com/zakarumych/gpu-alloc.git?rev=560ad651aa8f7aefcee8f5bcf41e67a84561bcda#560ad651aa8f7aefcee8f5bcf41e67a84561bcda"
 dependencies = [
  "bitflags",
  "gpu-alloc-types",
@@ -2155,9 +2150,8 @@ dependencies = [
 
 [[package]]
 name = "gpu-alloc-types"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "54804d0d6bc9d7f26db4eaec1ad10def69b599315f487d32c334a80d1efe67a5"
+version = "0.2.1"
+source = "git+https://github.com/zakarumych/gpu-alloc.git?rev=560ad651aa8f7aefcee8f5bcf41e67a84561bcda#560ad651aa8f7aefcee8f5bcf41e67a84561bcda"
 dependencies = [
  "bitflags",
 ]
@@ -2606,9 +2600,9 @@ checksum = "229d53d58899083193af11e15917b5640cd40b29ff475a1fe4ef725deb02d0f2"
 
 [[package]]
 name = "js-sys"
-version = "0.3.49"
+version = "0.3.50"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dc15e39392125075f60c95ba416f5381ff6c3a948ff02ab12464715adf56c821"
+checksum = "2d99f9e3e84b8f67f846ef5b4cbbc3b1c29f6c759fcbce6f01aa0e73d932a24c"
 dependencies = [
  "wasm-bindgen",
 ]
@@ -3052,7 +3046,7 @@ checksum = "0debeb9fcf88823ea64d64e4a815ab1643f33127d995978e099942ce38f25238"
 [[package]]
 name = "naga"
 version = "0.3.1"
-source = "git+https://github.com/gfx-rs/naga?tag=gfx-18#e87f57d82c44b12fe0288d876b050e9ddd1d6e1b"
+source = "git+https://github.com/gfx-rs/naga?tag=gfx-20#0369ee181ed9cd315635fc0e3d99deecdbc72246"
 dependencies = [
  "bit-set",
  "bitflags",
@@ -3146,7 +3140,7 @@ dependencies = [
  "proc-macro-crate",
  "proc-macro2 1.0.26",
  "quote 1.0.9",
- "syn 1.0.65",
+ "syn 1.0.72",
 ]
 
 [[package]]
@@ -3375,7 +3369,7 @@ checksum = "876a53fff98e03a936a674b29568b0e605f06b29372c2489ff4de23f1949743d"
 dependencies = [
  "proc-macro2 1.0.26",
  "quote 1.0.9",
- "syn 1.0.65",
+ "syn 1.0.72",
 ]
 
 [[package]]
@@ -3483,7 +3477,7 @@ dependencies = [
  "proc-macro-crate",
  "proc-macro2 1.0.26",
  "quote 1.0.9",
- "syn 1.0.65",
+ "syn 1.0.72",
 ]
 
 [[package]]
@@ -3495,7 +3489,7 @@ dependencies = [
  "proc-macro-crate",
  "proc-macro2 1.0.26",
  "quote 1.0.9",
- "syn 1.0.65",
+ "syn 1.0.72",
 ]
 
 [[package]]
@@ -3772,7 +3766,7 @@ checksum = "a490329918e856ed1b083f244e3bfe2d8c4f336407e4ea9e1a9f479ff09049e5"
 dependencies = [
  "proc-macro2 1.0.26",
  "quote 1.0.9",
- "syn 1.0.65",
+ "syn 1.0.72",
 ]
 
 [[package]]
@@ -3892,7 +3886,7 @@ dependencies = [
  "proc-macro-error-attr",
  "proc-macro2 1.0.26",
  "quote 1.0.9",
- "syn 1.0.65",
+ "syn 1.0.72",
  "version_check 0.9.3",
 ]
 
@@ -4145,7 +4139,7 @@ dependencies = [
 [[package]]
 name = "range-alloc"
 version = "0.1.2"
-source = "git+https://github.com/gfx-rs/gfx?rev=2ac006f7fe86f32dd5b5e07f9daf44cd876a66f0#2ac006f7fe86f32dd5b5e07f9daf44cd876a66f0"
+source = "git+https://github.com/gfx-rs/gfx?rev=2a93d52661aafcbd6441ea83e739c8ced906cd21#2a93d52661aafcbd6441ea83e739c8ced906cd21"
 
 [[package]]
 name = "raw-window-handle"
@@ -4256,7 +4250,7 @@ dependencies = [
  "quote 1.0.9",
  "refinery-core",
  "regex",
- "syn 1.0.65",
+ "syn 1.0.72",
 ]
 
 [[package]]
@@ -4660,7 +4654,7 @@ checksum = "b093b7a2bb58203b5da3056c05b4ec1fed827dcfdb37347a8841695263b3d06d"
 dependencies = [
  "proc-macro2 1.0.26",
  "quote 1.0.9",
- "syn 1.0.65",
+ "syn 1.0.72",
 ]
 
 [[package]]
@@ -4682,7 +4676,7 @@ checksum = "2dc6b7951b17b051f3210b063f12cc17320e2fe30ae05b0fe2a3abb068551c76"
 dependencies = [
  "proc-macro2 1.0.26",
  "quote 1.0.9",
- "syn 1.0.65",
+ "syn 1.0.72",
 ]
 
 [[package]]
@@ -4764,7 +4758,7 @@ checksum = "d5404c36bd155e41a54276ab6aafedad2fb627e5e5849d36ec439c9ddc044a2f"
 dependencies = [
  "proc-macro2 1.0.26",
  "quote 1.0.9",
- "syn 1.0.65",
+ "syn 1.0.72",
 ]
 
 [[package]]
@@ -4911,7 +4905,7 @@ source = "git+https://github.com/amethyst/specs.git?rev=5a9b71035007be0e3574f351
 dependencies = [
  "proc-macro2 1.0.26",
  "quote 1.0.9",
- "syn 1.0.65",
+ "syn 1.0.72",
 ]
 
 [[package]]
@@ -5012,7 +5006,7 @@ dependencies = [
  "quote 1.0.9",
  "serde",
  "serde_derive",
- "syn 1.0.65",
+ "syn 1.0.72",
 ]
 
 [[package]]
@@ -5028,7 +5022,7 @@ dependencies = [
  "serde_derive",
  "serde_json",
  "sha1",
- "syn 1.0.65",
+ "syn 1.0.72",
 ]
 
 [[package]]
@@ -5091,7 +5085,7 @@ dependencies = [
  "proc-macro-error",
  "proc-macro2 1.0.26",
  "quote 1.0.9",
- "syn 1.0.65",
+ "syn 1.0.72",
 ]
 
 [[package]]
@@ -5109,7 +5103,7 @@ dependencies = [
  "heck",
  "proc-macro2 1.0.26",
  "quote 1.0.9",
- "syn 1.0.65",
+ "syn 1.0.72",
 ]
 
 [[package]]
@@ -5137,9 +5131,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "1.0.65"
+version = "1.0.72"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f3a1d708c221c5a612956ef9f75b37e454e88d1f7b899fbd3a18d4252012d663"
+checksum = "a1e8cdbefb79a9a5a65e0db8b47b723ee907b7c7f8496c76a1770b5c310bab82"
 dependencies = [
  "proc-macro2 1.0.26",
  "quote 1.0.9",
@@ -5218,7 +5212,7 @@ checksum = "7765189610d8241a44529806d6fd1f2e0a08734313a35d5b3a556f92b381f3c0"
 dependencies = [
  "proc-macro2 1.0.26",
  "quote 1.0.9",
- "syn 1.0.65",
+ "syn 1.0.72",
 ]
 
 [[package]]
@@ -5298,7 +5292,7 @@ checksum = "caf7b11a536f46a809a8a9f0bb4237020f70ecbf115b842360afb127ea2fda57"
 dependencies = [
  "proc-macro2 1.0.26",
  "quote 1.0.9",
- "syn 1.0.65",
+ "syn 1.0.72",
 ]
 
 [[package]]
@@ -5383,7 +5377,7 @@ checksum = "c42e6fa53307c8a17e4ccd4dc81cf5ec38db9209f59b222210375b54ee40d1e2"
 dependencies = [
  "proc-macro2 1.0.26",
  "quote 1.0.9",
- "syn 1.0.65",
+ "syn 1.0.72",
 ]
 
 [[package]]
@@ -5890,7 +5884,7 @@ version = "0.1.0"
 dependencies = [
  "proc-macro2 1.0.26",
  "quote 1.0.9",
- "syn 1.0.65",
+ "syn 1.0.72",
 ]
 
 [[package]]
@@ -6172,9 +6166,9 @@ checksum = "fd6fbd9a79829dd1ad0cc20627bf1ed606756a7f77edff7b66b7064f9cb327c6"
 
 [[package]]
 name = "wasm-bindgen"
-version = "0.2.72"
+version = "0.2.73"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8fe8f61dba8e5d645a4d8132dc7a0a66861ed5e1045d2c0ed940fab33bac0fbe"
+checksum = "83240549659d187488f91f33c0f8547cbfef0b2088bc470c116d1d260ef623d9"
 dependencies = [
  "cfg-if 1.0.0",
  "wasm-bindgen-macro",
@@ -6182,24 +6176,24 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen-backend"
-version = "0.2.72"
+version = "0.2.73"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "046ceba58ff062da072c7cb4ba5b22a37f00a302483f7e2a6cdc18fedbdc1fd3"
+checksum = "ae70622411ca953215ca6d06d3ebeb1e915f0f6613e3b495122878d7ebec7dae"
 dependencies = [
  "bumpalo",
  "lazy_static",
  "log",
  "proc-macro2 1.0.26",
  "quote 1.0.9",
- "syn 1.0.65",
+ "syn 1.0.72",
  "wasm-bindgen-shared",
 ]
 
 [[package]]
 name = "wasm-bindgen-futures"
-version = "0.4.22"
+version = "0.4.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "73157efb9af26fb564bb59a009afd1c7c334a44db171d280690d0c3faaec3468"
+checksum = "81b8b767af23de6ac18bf2168b690bed2902743ddf0fb39252e36f9e2bfc63ea"
 dependencies = [
  "cfg-if 1.0.0",
  "js-sys",
@@ -6209,9 +6203,9 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen-macro"
-version = "0.2.72"
+version = "0.2.73"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0ef9aa01d36cda046f797c57959ff5f3c615c9cc63997a8d545831ec7976819b"
+checksum = "3e734d91443f177bfdb41969de821e15c516931c3c3db3d318fa1b68975d0f6f"
 dependencies = [
  "quote 1.0.9",
  "wasm-bindgen-macro-support",
@@ -6219,22 +6213,22 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen-macro-support"
-version = "0.2.72"
+version = "0.2.73"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "96eb45c1b2ee33545a813a92dbb53856418bf7eb54ab34f7f7ff1448a5b3735d"
+checksum = "d53739ff08c8a68b0fdbcd54c372b8ab800b1449ab3c9d706503bc7dd1621b2c"
 dependencies = [
  "proc-macro2 1.0.26",
  "quote 1.0.9",
- "syn 1.0.65",
+ "syn 1.0.72",
  "wasm-bindgen-backend",
  "wasm-bindgen-shared",
 ]
 
 [[package]]
 name = "wasm-bindgen-shared"
-version = "0.2.72"
+version = "0.2.73"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b7148f4696fb4960a346eaa60bbfb42a1ac4ebba21f750f75fc1375b098d5ffa"
+checksum = "d9a543ae66aa233d14bb765ed9af4a33e81b8b58d1584cf1b47ff8cd0b9e4489"
 
 [[package]]
 name = "wasmer"
@@ -6304,7 +6298,7 @@ dependencies = [
  "proc-macro-error",
  "proc-macro2 1.0.26",
  "quote 1.0.9",
- "syn 1.0.65",
+ "syn 1.0.72",
 ]
 
 [[package]]
@@ -6579,9 +6573,9 @@ dependencies = [
 
 [[package]]
 name = "web-sys"
-version = "0.3.49"
+version = "0.3.50"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "59fe19d70f5dacc03f6e46777213facae5ac3801575d56ca6cbd4c93dcd12310"
+checksum = "a905d57e488fec8861446d3393670fb50d27a262344013181c2cdf9fff5481be"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
@@ -6610,10 +6604,11 @@ dependencies = [
 [[package]]
 name = "wgpu"
 version = "0.7.0"
-source = "git+https://github.com/gfx-rs/wgpu-rs.git?rev=c5ee9cd98310aee66fb49bc98f4f65590304e4aa#c5ee9cd98310aee66fb49bc98f4f65590304e4aa"
+source = "git+https://github.com/gfx-rs/wgpu-rs.git?rev=1de388afacee29fc2acb922f16081399839e57fa#1de388afacee29fc2acb922f16081399839e57fa"
 dependencies = [
  "arrayvec",
  "js-sys",
+ "log",
  "naga",
  "parking_lot 0.11.1",
  "profiling",
@@ -6629,7 +6624,7 @@ dependencies = [
 [[package]]
 name = "wgpu-core"
 version = "0.7.0"
-source = "git+https://github.com/gfx-rs/wgpu?rev=b7ba481a9170e5b9c6364b2eb16080e527462039#b7ba481a9170e5b9c6364b2eb16080e527462039"
+source = "git+https://github.com/gfx-rs/wgpu?rev=e430cf4bcc10aea447f637067fe81c75c80f0e46#e430cf4bcc10aea447f637067fe81c75c80f0e46"
 dependencies = [
  "arrayvec",
  "bitflags",
@@ -6668,7 +6663,7 @@ dependencies = [
 [[package]]
 name = "wgpu-types"
 version = "0.7.0"
-source = "git+https://github.com/gfx-rs/wgpu?rev=b7ba481a9170e5b9c6364b2eb16080e527462039#b7ba481a9170e5b9c6364b2eb16080e527462039"
+source = "git+https://github.com/gfx-rs/wgpu?rev=e430cf4bcc10aea447f637067fe81c75c80f0e46#e430cf4bcc10aea447f637067fe81c75c80f0e46"
 dependencies = [
  "bitflags",
 ]

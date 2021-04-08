@@ -167,6 +167,7 @@ impl ShadowFigurePipeline {
                 strip_index_format: None,
                 front_face: wgpu::FrontFace::Ccw,
                 cull_mode: Some(wgpu::Face::Front),
+                clamp_depth: true,
                 polygon_mode: wgpu::PolygonMode::Fill,
                 conservative: false,
             },
@@ -185,7 +186,6 @@ impl ShadowFigurePipeline {
                     slope_scale: 0.0,
                     clamp: 0.0,
                 },
-                clamp_depth: true,
             }),
             multisample: wgpu::MultisampleState {
                 count: samples,
@@ -242,6 +242,7 @@ impl ShadowPipeline {
                 strip_index_format: None,
                 front_face: wgpu::FrontFace::Ccw,
                 cull_mode: Some(wgpu::Face::Front),
+                clamp_depth: true,
                 polygon_mode: wgpu::PolygonMode::Fill,
                 conservative: false,
             },
@@ -260,7 +261,6 @@ impl ShadowPipeline {
                     slope_scale: 0.0,
                     clamp: 0.0,
                 },
-                clamp_depth: true,
             }),
             multisample: wgpu::MultisampleState {
                 count: samples,
@@ -319,6 +319,7 @@ impl PointShadowPipeline {
                 strip_index_format: None,
                 front_face: wgpu::FrontFace::Ccw,
                 cull_mode: Some(wgpu::Face::Back),
+                clamp_depth: false,
                 polygon_mode: wgpu::PolygonMode::Fill,
                 conservative: false,
             },
@@ -337,7 +338,6 @@ impl PointShadowPipeline {
                     slope_scale: 0.0,
                     clamp: 0.0,
                 },
-                clamp_depth: false,
             }),
             multisample: wgpu::MultisampleState {
                 count: samples,

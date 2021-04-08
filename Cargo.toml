@@ -110,22 +110,23 @@ buildInputs = ["openssl"]
 nativeBuildInputs = ["pkg-config"]
 
 [patch.crates-io]
-# macos CI fix isn't merged yet
+# macos CI fix isn't released yet
 winit = { git = "https://gitlab.com/veloren/winit.git", branch = "macos-test-spiffed" }
 vek = { git = "https://gitlab.com/veloren/vek.git", branch = "fix_intrinsics2" }
 # patch wgpu so we can use wgpu-profiler crate
-wgpu = { git = "https://github.com/gfx-rs/wgpu-rs.git", rev = "d44fc6ff855faf37b63fd711a9f9a916256cedc2" }
-# patch gfx-hal for the dx12 backend patch for cube sampling
-[patch."https://github.com/gfx-rs/gfx"]
-gfx-hal = { path = "../gfx/src/hal" }
-gfx-backend-empty = { path = "../gfx/src/backend/empty" }
-gfx-backend-vulkan = { path = "../gfx/src/backend/vulkan" }
-gfx-backend-gl = { path = "../gfx/src/backend/gl" }
-gfx-backend-dx12 = { path = "../gfx/src/backend/dx12" }
-gfx-backend-dx11 = { path = "../gfx/src/backend/dx11" }
-gfx-backend-metal = { path = "../gfx/src/backend/metal" }
+wgpu = { git = "https://github.com/gfx-rs/wgpu-rs.git", rev = "1de388afacee29fc2acb922f16081399839e57fa" }
 
 # # Uncomment this to use a local fork of wgpu (for testing purposes)
 # [patch.'https://github.com/gfx-rs/wgpu']
 # wgpu-core = { path = "../wgpu/wgpu-core" }
 # wgpu-types = { path = "../wgpu/wgpu-types" }
+
+# # Uncomment this to use a local fork of gfx-hal (for testing purposes)
+# [patch."https://github.com/gfx-rs/gfx"]
+# gfx-hal = { path = "../gfx/src/hal" }
+# gfx-backend-empty = { path = "../gfx/src/backend/empty" }
+# gfx-backend-vulkan = { path = "../gfx/src/backend/vulkan" }
+# gfx-backend-gl = { path = "../gfx/src/backend/gl" }
+# gfx-backend-dx12 = { path = "../gfx/src/backend/dx12" }
+# gfx-backend-dx11 = { path = "../gfx/src/backend/dx11" }
+# gfx-backend-metal = { path = "../gfx/src/backend/metal" }

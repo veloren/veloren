@@ -184,6 +184,7 @@ impl LodTerrainPipeline {
                 strip_index_format: None,
                 front_face: wgpu::FrontFace::Ccw,
                 cull_mode: Some(wgpu::Face::Back),
+                clamp_depth: false,
                 polygon_mode: wgpu::PolygonMode::Fill,
                 conservative: false,
             },
@@ -202,7 +203,6 @@ impl LodTerrainPipeline {
                     slope_scale: 0.0,
                     clamp: 0.0,
                 },
-                clamp_depth: false,
             }),
             multisample: wgpu::MultisampleState {
                 count: samples,
