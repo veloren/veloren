@@ -193,18 +193,14 @@ impl<'a> System<'a> for Sys {
                     poise,
                     loadout,
                     agent: if entity.has_agency {
-                        let mut behavior = Behavior::default();
-                        if can_speak {
-                            behavior.allow(BehaviorCapability::SPEAK);
-                        }
-                        if trade_for_site.is_some() {
-                            behavior.allow(BehaviorCapability::TRADE);
-                            behavior.trade_site = trade_for_site
-                        }
                         Some(comp::Agent::new(
                             Some(entity.pos),
                             &body,
-                            behavior,
+                            Behavior::default()
+                                .maybe_with_capabilities(
+                                    can_speak.then(|| BehaviorCapability::SPEAK),
+                                )
+                                .with_trade_site(trade_for_site),
                             matches!(
                                 loadout_config,
                                 Some(comp::inventory::loadout_builder::LoadoutConfig::Guard)

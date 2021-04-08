@@ -32,22 +32,21 @@ fn notify_agent_prices(
     entity: EcsEntity,
     event: AgentEvent,
 ) {
-    if let Some(agent) = agents.get_mut(entity) {
-        if let Some(site_id) = agent.behavior.trade_site {
-            let prices = index.get_site_prices(site_id);
-            if let AgentEvent::UpdatePendingTrade(boxval) = event {
-                // Box<(tid, pend, _, inventories)>) = event {
-                agent
-                    .inbox
-                    .push_front(AgentEvent::UpdatePendingTrade(Box::new((
-                        // Prefer using this Agent's price data, but use the counterparty's price
-                        // data if we don't have price data
-                        boxval.0,
-                        boxval.1,
-                        prices.unwrap_or(boxval.2),
-                        boxval.3,
-                    ))));
-            }
+    if let Some((Some(site_id), agent)) = agents.get_mut(entity).map(|a| (a.behavior.trade_site, a))
+    {
+        let prices = index.get_site_prices(site_id);
+        if let AgentEvent::UpdatePendingTrade(boxval) = event {
+            // Box<(tid, pend, _, inventories)>) = event {
+            agent
+                .inbox
+                .push_front(AgentEvent::UpdatePendingTrade(Box::new((
+                    // Prefer using this Agent's price data, but use the counterparty's price
+                    // data if we don't have price data
+                    boxval.0,
+                    boxval.1,
+                    prices.unwrap_or(boxval.2),
+                    boxval.3,
+                ))));
         }
     }
 }
@@ -122,12 +121,8 @@ pub fn handle_process_trade_action(
                             prices = prices.or_else(|| {
                                 agents
                                     .get(e)
-                                    .and_then(|a| {
-                                        a.behavior
-                                            .trade_site
-                                            .map(|id| server.index.get_site_prices(id))
-                                    })
-                                    .flatten()
+                                    .and_then(|a| a.behavior.trade_site)
+                                    .and_then(|id| server.index.get_site_prices(id))
                             });
                         }
                     }

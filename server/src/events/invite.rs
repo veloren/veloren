@@ -225,13 +225,18 @@ pub fn handle_invite_accept(server: &mut Server, entity: specs::Entity) {
                     }
                     let pricing = agents
                         .get(inviter)
-                        .and_then(|a| a.behavior.trade_site.map(|id| index.get_site_prices(id)))
+                        .and_then(|a| {
+                            a.behavior
+                                .trade_site
+                                .and_then(|id| index.get_site_prices(id))
+                        })
                         .or_else(|| {
                             agents.get(entity).and_then(|a| {
-                                a.behavior.trade_site.map(|id| index.get_site_prices(id))
+                                a.behavior
+                                    .trade_site
+                                    .and_then(|id| index.get_site_prices(id))
                             })
-                        })
-                        .flatten();
+                        });
                     clients.get(inviter).map(|c| {
                         c.send(ServerGeneral::UpdatePendingTrade(
                             id,

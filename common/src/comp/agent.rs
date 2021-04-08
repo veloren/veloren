@@ -136,6 +136,30 @@ impl From<BehaviorCapability> for Behavior {
 }
 
 impl Behavior {
+    /// Builder function  
+    /// Set capabilities if Option is Some
+    pub fn maybe_with_capabilities(
+        mut self,
+        maybe_capabilities: Option<BehaviorCapability>,
+    ) -> Self {
+        if let Some(capabilities) = maybe_capabilities {
+            self.allow(capabilities)
+        }
+        self
+    }
+
+    /// Builder function
+    /// Set trade_site and TRADE capability if Option is Some
+    pub fn with_trade_site(mut self, trade_site: Option<SiteId>) -> Self {
+        self.trade_site = trade_site;
+        if trade_site.is_some() {
+            self.allow(BehaviorCapability::TRADE);
+        } else {
+            self.deny(BehaviorCapability::TRADE);
+        }
+        self
+    }
+
     /// Set capabilities to the Behavior
     pub fn allow(&mut self, capabilities: BehaviorCapability) {
         self.capabilities.set(capabilities, true)
@@ -281,18 +305,16 @@ pub struct Agent {
 }
 
 impl Agent {
-    pub fn set_patrol_origin(mut self, origin: Vec3<f32>) -> Self {
+    pub fn with_patrol_origin(mut self, origin: Vec3<f32>) -> Self {
         self.patrol_origin = Some(origin);
         self
     }
 
-    pub fn with_destination(behavior: Behavior, pos: Vec3<f32>) -> Self {
-        Self {
-            psyche: Psyche { aggro: 1.0 },
-            rtsim_controller: RtSimController::with_destination(pos),
-            behavior,
-            ..Default::default()
-        }
+    pub fn with_destination(mut self, pos: Vec3<f32>) -> Self {
+        self.psyche = Psyche { aggro: 1.0 };
+        self.rtsim_controller = RtSimController::with_destination(pos);
+        self.behavior.allow(BehaviorCapability::SPEAK);
+        self
     }
 
     pub fn new(

@@ -15,7 +15,7 @@ use common::{
         buff::{BuffCategory, BuffData, BuffKind, BuffSource},
         inventory::item::MaterialStatManifest,
         invite::InviteKind,
-        BehaviorCapability, ChatType, Inventory, Item, LightEmitter, WaypointArea,
+        ChatType, Inventory, Item, LightEmitter, WaypointArea,
     },
     effect::Effect,
     event::{EventBus, ServerEvent},
@@ -31,7 +31,6 @@ use common_net::{
     sync::WorldSyncExt,
 };
 use common_sys::state::BuildAreas;
-use comp::Behavior;
 use rand::Rng;
 use specs::{Builder, Entity as EcsEntity, Join, WorldExt};
 use std::{
@@ -889,7 +888,7 @@ fn handle_spawn(
                             if let comp::Alignment::Owned(_) | comp::Alignment::Npc = alignment {
                                 comp::Agent::default()
                             } else {
-                                comp::Agent::default().set_patrol_origin(pos.0)
+                                comp::Agent::default().with_patrol_origin(pos.0)
                             };
 
                         for _ in 0..amount {
@@ -1075,10 +1074,7 @@ fn handle_spawn_airship(
                     animated: true,
                 });
             if let Some(pos) = destination {
-                builder = builder.with(comp::Agent::with_destination(
-                    Behavior::from(BehaviorCapability::SPEAK),
-                    pos,
-                ));
+                builder = builder.with(comp::Agent::default().with_destination(pos))
             }
             builder.build();
 
