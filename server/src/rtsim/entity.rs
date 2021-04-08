@@ -146,7 +146,7 @@ impl Entity {
                             .filter(|s| s.1.is_settlement() || s.1.is_castle())
                             .min_by_key(|(_, site)| {
                                 let wpos = site.center * TerrainChunk::RECT_SIZE.map(|e| e as i32);
-                                wpos.map(|e| e as f32).distance(self.pos.xy()) as u32
+                                wpos.map(|e| e as f32).distance_squared(self.pos.xy()) as u32
                             })
                             .map(|(id, _)| id)
                         {
@@ -156,8 +156,9 @@ impl Entity {
                             let nearest_site = &world.civs().sites[nearest_site_id];
                             let site_wpos =
                                 nearest_site.center * TerrainChunk::RECT_SIZE.map(|e| e as i32);
-                            let dist = site_wpos.map(|e| e as f32).distance(self.pos.xy()) as u32;
-                            if dist < 64 {
+                            let dist =
+                                site_wpos.map(|e| e as f32).distance_squared(self.pos.xy()) as u32;
+                            if dist < 64_u32.pow(2) {
                                 Travel::InSite {
                                     site_id: nearest_site_id,
                                 }
@@ -186,8 +187,9 @@ impl Entity {
                             .filter(|_| thread_rng().gen_range(0i32..4) == 0)
                             .min_by_key(|(_, site)| {
                                 let wpos = site.center * TerrainChunk::RECT_SIZE.map(|e| e as i32);
-                                let dist = wpos.map(|e| e as f32).distance(self.pos.xy()) as u32;
-                                dist + if dist < 96 { 100_000 } else { 0 }
+                                let dist =
+                                    wpos.map(|e| e as f32).distance_squared(self.pos.xy()) as u32;
+                                dist + if dist < 96_u32.pow(2) { 100_000_000 } else { 0 }
                             })
                         {
                             let mut rng = thread_rng();
@@ -233,8 +235,9 @@ impl Entity {
                             .filter(|_| thread_rng().gen_range(0i32..4) == 0)
                             .min_by_key(|(_, site)| {
                                 let wpos = site.center * TerrainChunk::RECT_SIZE.map(|e| e as i32);
-                                let dist = wpos.map(|e| e as f32).distance(self.pos.xy()) as u32;
-                                dist + if dist < 96 { 100_000 } else { 0 }
+                                let dist =
+                                    wpos.map(|e| e as f32).distance_squared(self.pos.xy()) as u32;
+                                dist + if dist < 96_u32.pow(2) { 100_000 } else { 0 }
                             })
                             .map(|(id, _)| id)
                         {
@@ -255,8 +258,8 @@ impl Entity {
                     .filter(|sid| {
                         let site = world.civs().sites.get(*sid);
                         let wpos = site.center * TerrainChunk::RECT_SIZE.map(|e| e as i32);
-                        let dist = wpos.map(|e| e as f32).distance(self.pos.xy()) as u32;
-                        dist > 96
+                        let dist = wpos.map(|e| e as f32).distance_squared(self.pos.xy()) as u32;
+                        dist > 96_u32.pow(2)
                     })
                     .filter(|sid| {
                         if let Some(last_visited) = self.brain.last_visited {
@@ -290,8 +293,8 @@ impl Entity {
                     .filter(|_| thread_rng().gen_range(0i32..4) == 0)
                     .min_by_key(|(_, site)| {
                         let wpos = site.center * TerrainChunk::RECT_SIZE.map(|e| e as i32);
-                        let dist = wpos.map(|e| e as f32).distance(self.pos.xy()) as u32;
-                        dist + if dist < 96 { 100_000 } else { 0 }
+                        let dist = wpos.map(|e| e as f32).distance_squared(self.pos.xy()) as u32;
+                        dist + if dist < 96_u32.pow(2) { 100_000 } else { 0 }
                     })
                     .map(|(id, _)| id)
                 {
@@ -313,9 +316,9 @@ impl Entity {
                     .map_or("".to_string(), |id| index.sites[id].name().to_string());
 
                 let wpos = site.center * TerrainChunk::RECT_SIZE.map(|e| e as i32);
-                let dist = wpos.map(|e| e as f32).distance(self.pos.xy()) as u32;
+                let dist = wpos.map(|e| e as f32).distance_squared(self.pos.xy()) as u32;
 
-                if dist < 64 {
+                if dist < 64_u32.pow(2) {
                     Travel::InSite { site_id: target_id }
                 } else {
                     let travel_to = self.pos.xy()
@@ -353,8 +356,8 @@ impl Entity {
                     .map_or("".to_string(), |id| index.sites[id].name().to_string());
 
                 if let Some(wpos) = &path.get(progress) {
-                    let dist = wpos.map(|e| e as f32).distance(self.pos.xy()) as u32;
-                    if dist < 16 {
+                    let dist = wpos.map(|e| e as f32).distance_squared(self.pos.xy()) as u32;
+                    if dist < 16_u32.pow(2) {
                         if progress + 1 < path.len() {
                             Travel::CustomPath {
                                 target_id,
@@ -420,10 +423,10 @@ impl Entity {
                     } else {
                         chunkpos
                     };
-                    let dist = wpos.map(|e| e as f32).distance(self.pos.xy()) as u32;
+                    let dist = wpos.map(|e| e as f32).distance_squared(self.pos.xy()) as u32;
 
                     match dist {
-                        d if d < 16 => {
+                        d if d < 16_u32.pow(2) => {
                             if progress + 1 >= track.path().len() {
                                 Travel::Direct { target_id }
                             } else {
@@ -435,7 +438,7 @@ impl Entity {
                                 }
                             }
                         },
-                        d if d > 256 => {
+                        d if d > 256_u32.pow(2) => {
                             if !reversed && progress == 0 {
                                 Travel::Path {
                                     target_id,
