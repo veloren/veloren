@@ -1179,7 +1179,6 @@ impl<'a> AgentData<'a> {
                     let balance0: f32 =
                         prices.balance(&pending.offers, &inventories, 1 - who, true);
                     let balance1: f32 = prices.balance(&pending.offers, &inventories, who, false);
-                    tracing::debug!("UpdatePendingTrade({}, {})", balance0, balance1);
                     if balance0 >= balance1 {
                         // If the trade is favourable to us, only send an accept message if we're
                         // not already accepting (since otherwise, spamclicking the accept button
@@ -1192,6 +1191,7 @@ impl<'a> AgentData<'a> {
                                 tradeid,
                                 TradeAction::Accept(pending.phase),
                             ));
+                            tracing::trace!(?tradeid, ?balance0, ?balance1, "Accept Pending Trade");
                         }
                     } else {
                         if balance1 > 0.0 {

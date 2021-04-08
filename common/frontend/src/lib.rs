@@ -48,6 +48,7 @@ where
     let base_exceptions = |env: EnvFilter| {
         env.add_directive("dot_vox::parser=warn".parse().unwrap())
             .add_directive("gfx_device_gl=warn".parse().unwrap())
+            .add_directive("veloren_common::trade=info".parse().unwrap())
             .add_directive("veloren_world::sim=info".parse().unwrap())
             .add_directive("veloren_world::civ=info".parse().unwrap())
             .add_directive("hyper=info".parse().unwrap())
