@@ -50,6 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Flying agents raycast more angles to check for obstacles.
 - Mouse Cursor now locks to the center of the screen when menu is not open
 - Social window no longer moves when group is open
+- Combat rating no longer takes buffs into account
 
 ## [0.9.0] - 2021-03-20
 
