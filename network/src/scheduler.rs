@@ -334,7 +334,7 @@ impl Scheduler {
         trace!("Start scheduler_shutdown_mgr");
         a2s_scheduler_shutdown_r.await.unwrap();
         info!("Shutdown of scheduler requested");
-        self.closed.store(true, Ordering::Relaxed);
+        self.closed.store(true, Ordering::SeqCst);
         debug!("Shutting down all BParticipants gracefully");
         let mut participants = self.participants.lock().await;
         let waitings = participants

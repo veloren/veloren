@@ -399,7 +399,7 @@ impl BParticipant {
         self.open_stream_channels.lock().await.take();
         trace!("Stop send_mgr");
         self.shutdown_barrier
-            .fetch_sub(Self::BARR_SEND, Ordering::Relaxed);
+            .fetch_sub(Self::BARR_SEND, Ordering::SeqCst);
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -536,12 +536,12 @@ impl BParticipant {
         }
         trace!("receiving no longer possible, closing all streams");
         for (_, si) in self.streams.write().await.drain() {
-            si.send_closed.store(true, Ordering::Relaxed);
+            si.send_closed.store(true, Ordering::SeqCst);
             self.metrics.streams_closed(&self.remote_pid_string);
         }
         trace!("Stop recv_mgr");
         self.shutdown_barrier
-            .fetch_sub(Self::BARR_RECV, Ordering::Relaxed);
+            .fetch_sub(Self::BARR_RECV, Ordering::SeqCst);
     }
 
     async fn create_channel_mgr(
@@ -584,7 +584,7 @@ impl BParticipant {
             .await;
         trace!("Stop create_channel_mgr");
         self.shutdown_barrier
-            .fetch_sub(Self::BARR_CHANNEL, Ordering::Relaxed);
+            .fetch_sub(Self::BARR_CHANNEL, Ordering::SeqCst);
     }
 
     /// sink shutdown:
@@ -618,7 +618,7 @@ impl BParticipant {
         let wait_for_manager = || async {
             let mut sleep = 0.01f64;
             loop {
-                let bytes = self.shutdown_barrier.load(Ordering::Relaxed);
+                let bytes = self.shutdown_barrier.load(Ordering::SeqCst);
                 if bytes == 0 {
                     break;
                 }
@@ -635,7 +635,7 @@ impl BParticipant {
         {
             let lock = self.streams.read().await;
             for si in lock.values() {
-                si.send_closed.store(true, Ordering::Relaxed);
+                si.send_closed.store(true, Ordering::SeqCst);
             }
         }
 
@@ -693,7 +693,7 @@ impl BParticipant {
         let stream = { self.streams.write().await.remove(&sid) };
         match stream {
             Some(si) => {
-                si.send_closed.store(true, Ordering::Relaxed);
+                si.send_closed.store(true, Ordering::SeqCst);
                 si.b2a_msg_recv_s.lock().await.close();
             },
             None => {
