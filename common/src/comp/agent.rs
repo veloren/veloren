@@ -102,7 +102,6 @@ bitflags::bitflags! {
     #[derive(Default)]
     pub struct BehaviorCapability: u8 {
         const SPEAK = 0b00000001;
-        const TRADE = 0b00000010;
     }
 }
 bitflags::bitflags! {
@@ -149,14 +148,9 @@ impl Behavior {
     }
 
     /// Builder function
-    /// Set trade_site and TRADE capability if Option is Some
+    /// Set trade_site if Option is Some
     pub fn with_trade_site(mut self, trade_site: Option<SiteId>) -> Self {
         self.trade_site = trade_site;
-        if trade_site.is_some() {
-            self.allow(BehaviorCapability::TRADE);
-        } else {
-            self.deny(BehaviorCapability::TRADE);
-        }
         self
     }
 
@@ -174,6 +168,9 @@ impl Behavior {
     pub fn can(&self, capabilities: BehaviorCapability) -> bool {
         self.capabilities.contains(capabilities)
     }
+
+    /// Check if the Behavior is able to trade
+    pub fn can_trade(&self) -> bool { self.trade_site.is_some() }
 
     /// Set a state to the Behavior
     pub fn set(&mut self, state: BehaviorState) { self.state.set(state, true) }
@@ -362,9 +359,7 @@ mod tests {
         b.unset(BehaviorState::TRADING);
         assert!(!b.is(BehaviorState::TRADING));
         // test `from`
-        let b = Behavior::from(BehaviorCapability::SPEAK | BehaviorCapability::TRADE);
+        let b = Behavior::from(BehaviorCapability::SPEAK);
         assert!(b.can(BehaviorCapability::SPEAK));
-        assert!(b.can(BehaviorCapability::TRADE));
-        assert!(b.can(BehaviorCapability::SPEAK | BehaviorCapability::TRADE));
     }
 }
