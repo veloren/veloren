@@ -914,8 +914,9 @@ impl<'a> AgentData<'a> {
                                                 {
                                                     format!(
                                                         "Greetings fair {}! It has been far too \
-                                                         long since last I saw you.",
-                                                        &tgt_stats.name
+                                                         long since last I saw you. I'm going to \
+                                                         {} right now.",
+                                                        &tgt_stats.name, destination_name
                                                     )
                                                 } else {
                                                     format!(

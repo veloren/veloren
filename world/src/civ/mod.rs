@@ -370,7 +370,7 @@ impl Civs {
     }
 
     /// Return the direct track between two places
-    fn track_between(&self, a: Id<Site>, b: Id<Site>) -> Option<Id<Track>> {
+    pub fn track_between(&self, a: Id<Site>, b: Id<Site>) -> Option<Id<Track>> {
         self.track_map
             .get(&a)
             .and_then(|dests| dests.get(&b))
@@ -379,7 +379,7 @@ impl Civs {
     }
 
     /// Return an iterator over a site's neighbors
-    fn neighbors(&self, site: Id<Site>) -> impl Iterator<Item = Id<Site>> + '_ {
+    pub fn neighbors(&self, site: Id<Site>) -> impl Iterator<Item = Id<Site>> + '_ {
         let to = self
             .track_map
             .get(&site)
@@ -687,6 +687,10 @@ pub struct Track {
     /// costs.
     cost: f32,
     path: Path<Vec2<i32>>,
+}
+
+impl Track {
+    pub fn path(&self) -> &Path<Vec2<i32>> { &self.path }
 }
 
 #[derive(Debug)]

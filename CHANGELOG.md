@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Auto camera setting, making the game easier to play with one hand
 - Topographic map option
 - Search bars for social and crafting window
+- RTsim travellers now follow paths between towns
 
 ### Changed
 
