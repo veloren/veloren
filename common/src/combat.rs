@@ -789,7 +789,7 @@ pub fn combat_rating(
     // Assumes a "standard" max health of 100
     let health_rating = health.base_max() as f32
         / 100.0
-        / (1.0 - Damage::compute_damage_reduction(Some(inventory), Some(stats))).max(0.00001);
+        / (1.0 - Damage::compute_damage_reduction(Some(inventory), None)).max(0.00001);
 
     // Assumes a standard person has earned 20 skill points in the general skill
     // tree and 10 skill points for the weapon skill tree
