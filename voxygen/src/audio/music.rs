@@ -50,6 +50,7 @@ use common::{
     terrain::{BiomeKind, SitesKind},
 };
 use common_sys::state::State;
+use hashbrown::HashMap;
 use lazy_static::lazy_static;
 use rand::{prelude::SliceRandom, thread_rng, Rng};
 use serde::Deserialize;
@@ -156,7 +157,7 @@ pub struct MusicMgr {
 }
 
 #[derive(Deserialize)]
-struct MusicTransitionManifest {
+pub struct MusicTransitionManifest {
     /// Within what radius do enemies count towards combat music?
     combat_nearby_radius: f32,
     /// Each multiple of this factor that an enemy has health counts as an extra
@@ -166,6 +167,8 @@ struct MusicTransitionManifest {
     combat_nearby_high_thresh: u32,
     /// How many nearby enemies trigger Low combat music
     combat_nearby_low_thresh: u32,
+    /// Fade in and fade out timings for transitions between channels
+    pub fade_timings: HashMap<(MusicChannelTag, MusicChannelTag), (f32, f32)>,
 }
 
 impl Default for MusicTransitionManifest {
@@ -175,6 +178,7 @@ impl Default for MusicTransitionManifest {
             combat_health_factor: 1000,
             combat_nearby_high_thresh: 3,
             combat_nearby_low_thresh: 1,
+            fade_timings: HashMap::new(),
         }
     }
 }
@@ -191,7 +195,7 @@ impl assets::Asset for MusicTransitionManifest {
 }
 
 lazy_static! {
-    static ref MUSIC_TRANSITION_MANIFEST: AssetHandle<MusicTransitionManifest> =
+    pub static ref MUSIC_TRANSITION_MANIFEST: AssetHandle<MusicTransitionManifest> =
         AssetExt::load_expect("voxygen.audio.music_transition_manifest");
 }
 
@@ -260,6 +264,13 @@ impl MusicMgr {
             );
         }
 
+        // Override combat music with explore music if the player is dead
+        if let Some(health) = healths.get(player) {
+            if health.is_dead {
+                activity_state = Explore;
+            }
+        }
+
         let activity = match self.last_activity {
             MusicActivity::State(prev) if prev != activity_state => {
                 MusicActivity::Transition(prev, activity_state)
@@ -311,7 +322,6 @@ impl MusicMgr {
         // too many constraints. Returning Err(()) signals that we couldn't find
         // an appropriate track for the current state, and hence the state
         // machine for the activity shouldn't be updated.
-        let mut res = Ok(*activity);
         let soundtrack = self.soundtrack.read();
         // First, filter out tracks not matching the timing, site, and biome
         let mut maybe_tracks = soundtrack
@@ -354,7 +364,7 @@ impl MusicMgr {
         if !filtered_tracks.is_empty() {
             maybe_tracks = filtered_tracks;
         } else {
-            res = Err(());
+            return Err(());
         }
         // Third, prevent playing the last track if possible (though don't return Err
         // here, since the combat music is intended to loop)
@@ -396,9 +406,6 @@ impl MusicMgr {
         );
 
         if let Ok(track) = new_maybe_track {
-            if let Some(state) = track.activity_override {
-                res = Ok(MusicActivity::State(state));
-            }
             //println!("Now playing {:?}", track.title);
             self.last_track = String::from(&track.title);
             self.began_playing = Instant::now();
@@ -410,7 +417,12 @@ impl MusicMgr {
                 MusicChannelTag::Combat
             };
             audio.play_music(&track.path, tag);
-            res
+
+            if let Some(state) = track.activity_override {
+                Ok(MusicActivity::State(state))
+            } else {
+                Ok(*activity)
+            }
         } else {
             Err(())
         }

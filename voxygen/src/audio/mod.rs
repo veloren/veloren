@@ -9,6 +9,7 @@ pub mod soundcache;
 
 use channel::{AmbientChannel, AmbientChannelTag, MusicChannel, MusicChannelTag, SfxChannel};
 use fader::Fader;
+use music::MUSIC_TRANSITION_MANIFEST;
 use sfx::{SfxEvent, SfxTriggerItem};
 use soundcache::{OggSound, WavSound};
 use std::time::Duration;
@@ -152,14 +153,19 @@ impl AudioFrontend {
                 let existing_channel = self.music_channels.last_mut()?;
 
                 if existing_channel.get_tag() != next_channel_tag {
+                    let mtm = MUSIC_TRANSITION_MANIFEST.read();
+                    let (fade_out, fade_in) = mtm
+                        .fade_timings
+                        .get(&(existing_channel.get_tag(), next_channel_tag))
+                        .unwrap_or(&(1.0, 1.0));
+                    let fade_out = Duration::from_millis((1000.0 * fade_out) as _);
+                    let fade_in = Duration::from_millis((1000.0 * fade_in) as _);
                     // Fade the existing channel out. It will be removed when the fade completes.
-                    existing_channel
-                        .set_fader(Fader::fade_out(Duration::from_secs(2), self.music_volume));
+                    existing_channel.set_fader(Fader::fade_out(fade_out, self.music_volume));
 
                     let mut next_music_channel = MusicChannel::new(&audio_stream);
 
-                    next_music_channel
-                        .set_fader(Fader::fade_in(Duration::from_secs(12), self.music_volume));
+                    next_music_channel.set_fader(Fader::fade_in(fade_in, self.music_volume));
 
                     self.music_channels.push(next_music_channel);
                 }
