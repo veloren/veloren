@@ -2,12 +2,13 @@ use crate::{
     api::{ParticipantError, Stream},
     channel::{Protocols, RecvProtocols, SendProtocols},
     metrics::NetworkMetrics,
-    util::{DeferredTracer, SortedVec},
+    util::DeferredTracer,
 };
 use bytes::Bytes;
 use futures_util::{FutureExt, StreamExt};
 use network_protocol::{
     Bandwidth, Cid, Pid, Prio, Promises, ProtocolEvent, RecvProtocol, SendProtocol, Sid,
+    _internal::SortedVec,
 };
 use std::{
     collections::HashMap,

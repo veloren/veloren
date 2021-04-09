@@ -5,6 +5,7 @@ use network_protocol::{
     ProtocolError, ProtocolEvent, ProtocolMetricCache, ProtocolMetrics, Sid, TcpRecvProtocol,
     TcpSendProtocol, UnreliableDrain, UnreliableSink,
 };
+#[cfg(feature = "quic")] use quinn::*;
 use std::{sync::Arc, time::Duration};
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
@@ -16,18 +17,24 @@ use tokio::{
 pub(crate) enum Protocols {
     Tcp((TcpSendProtocol<TcpDrain>, TcpRecvProtocol<TcpSink>)),
     Mpsc((MpscSendProtocol<MpscDrain>, MpscRecvProtocol<MpscSink>)),
+    #[cfg(feature = "quic")]
+    Quic((QuicSendProtocol<QuicDrain>, QuicRecvProtocol<QuicSink>)),
 }
 
 #[derive(Debug)]
 pub(crate) enum SendProtocols {
     Tcp(TcpSendProtocol<TcpDrain>),
     Mpsc(MpscSendProtocol<MpscDrain>),
+    #[cfg(feature = "quic")]
+    Quic(QuicSendProtocol<QuicDrain>),
 }
 
 #[derive(Debug)]
 pub(crate) enum RecvProtocols {
     Tcp(TcpRecvProtocol<TcpSink>),
     Mpsc(MpscRecvProtocol<MpscSink>),
+    #[cfg(feature = "quic")]
+    Quic(QuicSendProtocol<QuicDrain>),
 }
 
 impl Protocols {
@@ -67,6 +74,8 @@ impl Protocols {
         match self {
             Protocols::Tcp((s, r)) => (SendProtocols::Tcp(s), RecvProtocols::Tcp(r)),
             Protocols::Mpsc((s, r)) => (SendProtocols::Mpsc(s), RecvProtocols::Mpsc(r)),
+            #[cfg(feature = "quic")]
+            Protocols::Quic((s, r)) => (SendProtocols::Quic(s), RecvProtocols::Quic(r)),
         }
     }
 }
@@ -82,6 +91,8 @@ impl network_protocol::InitProtocol for Protocols {
         match self {
             Protocols::Tcp(p) => p.initialize(initializer, local_pid, secret).await,
             Protocols::Mpsc(p) => p.initialize(initializer, local_pid, secret).await,
+            #[cfg(feature = "quic")]
+            Protocols::Quic(p) => p.initialize(initializer, local_pid, secret).await,
         }
     }
 }
@@ -92,6 +103,8 @@ impl network_protocol::SendProtocol for SendProtocols {
         match self {
             SendProtocols::Tcp(s) => s.notify_from_recv(event),
             SendProtocols::Mpsc(s) => s.notify_from_recv(event),
+            #[cfg(feature = "quic")]
+            SendProtocols::Quic(s) => s.notify_from_recv(event),
         }
     }
 
@@ -99,6 +112,8 @@ impl network_protocol::SendProtocol for SendProtocols {
         match self {
             SendProtocols::Tcp(s) => s.send(event).await,
             SendProtocols::Mpsc(s) => s.send(event).await,
+            #[cfg(feature = "quic")]
+            SendProtocols::Quic(s) => s.send(event).await,
         }
     }
 
@@ -110,6 +125,8 @@ impl network_protocol::SendProtocol for SendProtocols {
         match self {
             SendProtocols::Tcp(s) => s.flush(bandwidth, dt).await,
             SendProtocols::Mpsc(s) => s.flush(bandwidth, dt).await,
+            #[cfg(feature = "quic")]
+            SendProtocols::Quic(s) => s.flush(bandwidth, dt).await,
         }
     }
 }
@@ -120,6 +137,8 @@ impl network_protocol::RecvProtocol for RecvProtocols {
         match self {
             RecvProtocols::Tcp(r) => r.recv().await,
             RecvProtocols::Mpsc(r) => r.recv().await,
+            #[cfg(feature = "quic")]
+            RecvProtocols::Quic(r) => r.recv().await,
         }
     }
 }
@@ -193,6 +212,45 @@ impl UnreliableSink for MpscSink {
 
     async fn recv(&mut self) -> Result<Self::DataFormat, ProtocolError> {
         self.receiver.recv().await.ok_or(ProtocolError::Closed)
+    }
+}
+
+///////////////////////////////////////
+//// QUIC
+#[derive(Debug)]
+pub struct QuicDrain {
+    half: OwnedWriteHalf,
+}
+
+#[derive(Debug)]
+pub struct QuicSink {
+    half: OwnedReadHalf,
+    buffer: BytesMut,
+}
+
+#[async_trait]
+impl UnreliableDrain for QuicDrain {
+    type DataFormat = BytesMut;
+
+    async fn send(&mut self, data: Self::DataFormat) -> Result<(), ProtocolError> {
+        match self.half.write_all(&data).await {
+            Ok(()) => Ok(()),
+            Err(_) => Err(ProtocolError::Closed),
+        }
+    }
+}
+
+#[async_trait]
+impl UnreliableSink for QuicSink {
+    type DataFormat = BytesMut;
+
+    async fn recv(&mut self) -> Result<Self::DataFormat, ProtocolError> {
+        self.buffer.resize(1500, 0u8);
+        match self.half.read(&mut self.buffer).await {
+            Ok(0) => Err(ProtocolError::Closed),
+            Ok(n) => Ok(self.buffer.split_to(n)),
+            Err(_) => Err(ProtocolError::Closed),
+        }
     }
 }
 

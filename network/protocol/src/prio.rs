@@ -75,7 +75,7 @@ impl PrioManager {
 
     /// bandwidth might be extended, as for technical reasons
     /// guaranteed_bandwidth is used and frames are always 1400 bytes.
-    pub fn grab(&mut self, bandwidth: Bandwidth, dt: Duration) -> (Vec<OTFrame>, Bandwidth) {
+    pub fn grab(&mut self, bandwidth: Bandwidth, dt: Duration) -> (Vec<(Sid, OTFrame)>, Bandwidth) {
         let total_bytes = (bandwidth as f64 * dt.as_secs_f64()) as u64;
         let mut cur_bytes = 0u64;
         let mut frames = vec![];
@@ -84,7 +84,7 @@ impl PrioManager {
         let metrics = &mut self.metrics;
 
         let mut process_stream =
-            |stream: &mut StreamInfo, mut bandwidth: i64, cur_bytes: &mut u64| {
+            |sid: &Sid, stream: &mut StreamInfo, mut bandwidth: i64, cur_bytes: &mut u64| {
                 let mut finished = None;
                 'outer: for (i, msg) in stream.messages.iter_mut().enumerate() {
                     while let Some(frame) = msg.next() {
@@ -95,7 +95,7 @@ impl PrioManager {
                         } as u64;
                         bandwidth -= b as i64;
                         *cur_bytes += b;
-                        frames.push(frame);
+                        frames.push((*sid, frame));
                         if bandwidth <= 0 {
                             break 'outer;
                         }
@@ -111,10 +111,10 @@ impl PrioManager {
             };
 
         // Add guaranteed bandwidth
-        for stream in self.streams.values_mut() {
+        for (sid, stream) in self.streams.iter_mut() {
             prios[stream.prio as usize] += 1;
             let stream_byte_cnt = (stream.guaranteed_bandwidth as f64 * dt.as_secs_f64()) as u64;
-            process_stream(stream, stream_byte_cnt as i64, &mut cur_bytes);
+            process_stream(sid, stream, stream_byte_cnt as i64, &mut cur_bytes);
         }
 
         if cur_bytes < total_bytes {
@@ -124,11 +124,11 @@ impl PrioManager {
                     continue;
                 }
                 let per_stream_bytes = ((total_bytes - cur_bytes) / prios[prio as usize]) as i64;
-                for stream in self.streams.values_mut() {
+                for (sid, stream) in self.streams.iter_mut() {
                     if stream.prio != prio {
                         continue;
                     }
-                    process_stream(stream, per_stream_bytes, &mut cur_bytes);
+                    process_stream(sid, stream, per_stream_bytes, &mut cur_bytes);
                 }
             }
         }
