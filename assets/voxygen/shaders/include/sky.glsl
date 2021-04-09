@@ -87,7 +87,7 @@ vec2 wind_offset = vec2(time_of_day.x * wind_speed);
 float cloud_scale = view_distance.z / 150.0;
 
 float cloud_tendency_at(vec2 pos) {
-    float nz = textureLod(sampler2D(t_noise, s_nosie), (pos + wind_offset) / 60000.0 / cloud_scale, 0).x - 0.3;
+    float nz = textureLod(sampler2D(t_noise, s_noise), (pos + wind_offset) / 60000.0 / cloud_scale, 0).x - 0.3;
     nz = pow(clamp(nz, 0, 1), 3);
     return nz;
 }

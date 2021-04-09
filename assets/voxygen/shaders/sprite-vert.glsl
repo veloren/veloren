@@ -127,7 +127,7 @@ void main() {
     vec3 inst_chunk_pos = vec3(ivec3((uvec3(inst_pos_ori) >> uvec3(0, 6, 12)) & uvec3(0x3Fu, 0x3Fu, 0xFFFFu)) - ivec3(0, 0, EXTRA_NEG_Z));
     // Select glowing
     vec3 sprite_pos = inst_chunk_pos + chunk_offs;
-    f_light = (select_pos.w > 0 && select_pos.xyz == sprite_pos) ? 1.0 : 0.0;
+    f_select = (select_pos.w > 0 && select_pos.xyz == sprite_pos) ? 1.0 : 0.0;
 
     gl_Position =
         all_mat *
