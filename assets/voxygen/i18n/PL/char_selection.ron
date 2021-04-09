@@ -1,0 +1,29 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+(
+    string_map: {
+        "char_selection.loading_characters": "Ładowanie postaci...",
+        "char_selection.delete_permanently": "Czy chcesz skasować tę postać (nie będzie można jej odzyskać)?",
+        "char_selection.deleting_character": "Kasowanie postaci...",
+        "char_selection.change_server": "Zmień serwer",
+        "char_selection.enter_world": "Wejdź do świata",
+        "char_selection.logout": "Wyloguj się",
+        "char_selection.create_new_character": "Stwórz nową postać",
+        "char_selection.creating_character": "Tworzenie nowej postaci...",
+        "char_selection.character_creation": "Tworzenie postaci",
+        "char_selection.human_default": "Domyślny człowiek",
+        "char_selection.level_fmt": "Poziom {level_nb}",
+        "char_selection.uncanny_valley": "Dzicz",
+        "char_selection.plains_of_uncertainty": "Niepewne ziemie",
+        "char_selection.beard": "Broda",
+        "char_selection.hair_style": "Fryzura",
+        "char_selection.hair_color": "Kolor włosów",
+        "char_selection.eye_color": "Kolor oczu",
+        "char_selection.skin": "Skóra",
+        "char_selection.eyeshape": "Detale oczu",
+        "char_selection.accessories": "Akcesoria",
+        "char_selection.create_info_name": "Twoja postać musi posiadać imię!",
+    },
+
+    vector_map: {
+    }
+)

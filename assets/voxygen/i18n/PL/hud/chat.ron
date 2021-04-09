@@ -1,0 +1,37 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+(
+    string_map: {
+        // Chat outputs
+        "hud.chat.online_msg": "[{name}] jest online",
+        "hud.chat.offline_msg": "[{name}] jest offline",
+
+        "hud.chat.default_death_msg": "[{name}] umiera",
+        "hud.chat.environmental_kill_msg": "[{name}] umiera w {environment}",
+        "hud.chat.fall_kill_msg": "[{name}] spada z wysokości",
+        "hud.chat.suicide_msg": "[{name}] umiera od własnych ran",
+
+        "hud.chat.pvp_buff_kill_msg": "[{victim}] umiera od {buff} - nałożone przez [{attacker}]",
+        "hud.chat.pvp_melee_kill_msg": "[{attacker}] zwycięża nad [{victim}]",
+        "hud.chat.pvp_ranged_kill_msg": "[{attacker}] ustrzela [{victim}]",
+        "hud.chat.pvp_explosion_kill_msg": "[{attacker}] wysadza [{victim}]",
+        "hud.chat.pvp_energy_kill_msg": "[{attacker}] ubija [{victim}] magią",
+
+        "hud.chat.nonexistent_buff_kill_msg": "[{victim}] umiera od {buff}",
+
+        "hud.chat.npc_buff_kill_msg": "[{victim}] umiera od {buff} - nałożone przez {attacker}",
+        "hud.chat.npc_melee_kill_msg": "{attacker} ubija [{victim}]",
+        "hud.chat.npc_ranged_kill_msg": "{attacker} ustrzela [{victim}]",
+        "hud.chat.npc_explosion_kill_msg": "{attacker} wysadza [{victim}]",
+        "hud.chat.npc_energy_kill_msg": "{attacker} ubija [{victim}] magią",
+        "hud.chat.npc_other_kill_msg": "{attacker} ubija [{victim}]",
+
+        "hud.chat.loot_msg": "Podniesiono [{item}]",
+        "hud.chat.loot_fail": "Twój ekwipunek jest pełen!",
+        "hud.chat.goodbye": "Żegnaj!",
+        "hud.chat.connection_lost": "Stracono połączenie. Wyrzucanie za {time} sekund.",
+    },
+
+
+    vector_map: {
+    }
+)
