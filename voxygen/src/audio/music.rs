@@ -55,7 +55,7 @@ use lazy_static::lazy_static;
 use rand::{prelude::SliceRandom, thread_rng, Rng};
 use serde::Deserialize;
 use std::time::Instant;
-use tracing::{debug, trace, warn};
+use tracing::{debug, warn};
 
 /// Collection of all the tracks
 #[derive(Debug, Deserialize)]
@@ -237,6 +237,9 @@ impl MusicMgr {
         let groups = ecs.read_component::<Group>();
         let mtm = MUSIC_TRANSITION_MANIFEST.read();
         if let Some(player_pos) = positions.get(player) {
+            // TODO: `group::ENEMY` will eventually be moved server-side with an
+            // alignment/faction rework, so this will need an alternative way to measure
+            // "in-combat-ness"
             let num_nearby_entities: u32 = (&entities, &positions, &healths, &groups)
                 .join()
                 .map(|(entity, pos, health, group)| {
@@ -257,11 +260,6 @@ impl MusicMgr {
             } else if num_nearby_entities >= mtm.combat_nearby_low_thresh {
                 activity_state = Combat(CombatIntensity::Low);
             }
-            trace!(
-                "in audio maintain: {:?} {:?}",
-                activity_state,
-                num_nearby_entities
-            );
         }
 
         // Override combat music with explore music if the player is dead
@@ -285,10 +283,9 @@ impl MusicMgr {
             && !self.soundtrack.read().tracks.is_empty()
             && (self.began_playing.elapsed().as_secs_f32() > self.next_track_change || interrupt)
         {
-            trace!(
+            debug!(
                 "pre-play_random_track: {:?} {:?}",
-                self.last_activity,
-                activity
+                self.last_activity, activity
             );
             if let Ok(next_activity) = self.play_random_track(audio, state, client, &activity) {
                 self.last_activity = next_activity;
@@ -323,7 +320,8 @@ impl MusicMgr {
         // an appropriate track for the current state, and hence the state
         // machine for the activity shouldn't be updated.
         let soundtrack = self.soundtrack.read();
-        // First, filter out tracks not matching the timing, site, and biome
+        // First, filter out tracks not matching the timing, site, biome, and current
+        // activity
         let mut maybe_tracks = soundtrack
             .tracks
             .iter()
@@ -349,35 +347,18 @@ impl MusicMgr {
                 }
                 result
             })
-            .collect::<Vec<&SoundtrackItem>>();
-        // Second, filter out any tracks that don't match the current activity.
-        let filtered_tracks: Vec<_> = maybe_tracks
-            .iter()
             .filter(|track| &track.activity == activity)
-            .cloned()
-            .collect();
-        trace!(
-            "maybe_len: {}, filtered len: {}",
-            maybe_tracks.len(),
-            filtered_tracks.len()
-        );
-        if !filtered_tracks.is_empty() {
-            maybe_tracks = filtered_tracks;
-        } else {
+            .collect::<Vec<&SoundtrackItem>>();
+        if maybe_tracks.is_empty() {
             return Err(());
         }
-        // Third, prevent playing the last track if possible (though don't return Err
+        // Second, prevent playing the last track if possible (though don't return Err
         // here, since the combat music is intended to loop)
         let filtered_tracks: Vec<_> = maybe_tracks
             .iter()
             .filter(|track| !track.title.eq(&self.last_track))
             .cloned()
             .collect();
-        trace!(
-            "maybe_len: {}, filtered len: {}",
-            maybe_tracks.len(),
-            filtered_tracks.len()
-        );
         if !filtered_tracks.is_empty() {
             maybe_tracks = filtered_tracks;
         }
