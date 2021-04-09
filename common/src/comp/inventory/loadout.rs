@@ -10,12 +10,13 @@ use serde::{Deserialize, Serialize};
 use std::ops::Range;
 use tracing::warn;
 
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Loadout {
     slots: Vec<LoadoutSlot>,
 }
 
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+/// NOTE: Please don't derive a PartialEq Instance for this; that's broken!
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct LoadoutSlot {
     /// The EquipSlot that this slot represents
     pub(super) equip_slot: EquipSlot,

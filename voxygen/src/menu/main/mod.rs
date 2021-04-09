@@ -126,6 +126,11 @@ impl PlayState for MainMenuState {
                             localized_strings.get("main.login.server_not_found").into()
                         },
                         InitError::ClientError(err) => match err {
+                            client::Error::SpecsErr(e) => format!(
+                                "{}: {}",
+                                localized_strings.get("main.login.internal_error"),
+                                e
+                            ),
                             client::Error::AuthErr(e) => format!(
                                 "{}: {}",
                                 localized_strings.get("main.login.authentication_error"),

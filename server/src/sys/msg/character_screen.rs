@@ -17,7 +17,6 @@ impl Sys {
     #[allow(clippy::too_many_arguments)]
     fn handle_client_character_screen_msg(
         server_emitter: &mut common::event::Emitter<'_, ServerEvent>,
-        new_chat_msgs: &mut Vec<(Option<specs::Entity>, UnresolvedChatMsg)>,
         entity: specs::Entity,
         client: &Client,
         character_loader: &ReadExpect<'_, CharacterLoader>,
@@ -68,7 +67,7 @@ impl Sys {
 
                         if !client.login_msg_sent.load(Ordering::Relaxed) {
                             if let Some(player_uid) = uids.get(entity) {
-                                new_chat_msgs.push((None, UnresolvedChatMsg {
+                                server_emitter.emit(ServerEvent::Chat(UnresolvedChatMsg {
                                     chat_type: ChatType::Online(*player_uid),
                                     message: "".to_string(),
                                 }));
@@ -155,13 +154,11 @@ impl<'a> System<'a> for Sys {
         ): Self::SystemData,
     ) {
         let mut server_emitter = server_event_bus.emitter();
-        let mut new_chat_msgs = Vec::new();
 
         for (entity, client) in (&entities, &clients).join() {
             let _ = super::try_recv_all(client, 1, |client, msg| {
                 Self::handle_client_character_screen_msg(
                     &mut server_emitter,
-                    &mut new_chat_msgs,
                     entity,
                     client,
                     &character_loader,
@@ -173,20 +170,6 @@ impl<'a> System<'a> for Sys {
                     msg,
                 )
             });
-        }
-
-        // Handle new chat messages.
-        for (entity, msg) in new_chat_msgs {
-            // Handle chat commands.
-            if msg.message.starts_with('/') {
-                if let (Some(entity), true) = (entity, msg.message.len() > 1) {
-                    let argv = String::from(&msg.message[1..]);
-                    server_emitter.emit(ServerEvent::ChatCmd(entity, argv));
-                }
-            } else {
-                // Send chat message
-                server_emitter.emit(ServerEvent::Chat(msg));
-            }
         }
     }
 }

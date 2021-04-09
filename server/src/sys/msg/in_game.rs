@@ -107,7 +107,7 @@ impl Sys {
                     if comp_can_build.enabled {
                         for area in comp_can_build.build_areas.iter() {
                             if let Some(block) = build_areas
-                                .areas
+                                .areas()
                                 .get(*area)
                                 // TODO: Make this an exclusive check on the upper bound of the AABB
                                 // Vek defaults to inclusive which is not optimal
@@ -125,7 +125,7 @@ impl Sys {
                     if comp_can_build.enabled {
                         for area in comp_can_build.build_areas.iter() {
                             if build_areas
-                                .areas
+                                .areas()
                                 .get(*area)
                                 // TODO: Make this an exclusive check on the upper bound of the AABB
                                 // Vek defaults to inclusive which is not optimal

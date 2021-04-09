@@ -15,6 +15,7 @@ use common::{
 };
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::{msg::ServerGeneral, sync::CompSyncPackage};
+use itertools::Either;
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, Write, WriteStorage};
 use vek::*;
 
@@ -127,18 +128,19 @@ impl<'a> System<'a> for Sys {
                             continue;
                         }
                         let entity = entities.entity(*id);
-                        if let Some((_uid, pos, vel, ori)) = uids.get(entity).and_then(|uid| {
-                            positions.get(entity).map(|pos| {
-                                (uid, pos, velocities.get(entity), orientations.get(entity))
-                            })
-                        }) {
-                            let create_msg =
-                                ServerGeneral::CreateEntity(tracked_comps.create_entity_package(
+                        if let Some(pkg) = positions
+                            .get(entity)
+                            .map(|pos| (pos, velocities.get(entity), orientations.get(entity)))
+                            .and_then(|(pos, vel, ori)| {
+                                tracked_comps.create_entity_package(
                                     entity,
                                     Some(*pos),
                                     vel.copied(),
                                     ori.copied(),
-                                ));
+                                )
+                            })
+                        {
+                            let create_msg = ServerGeneral::CreateEntity(pkg);
                             for (client, regions, client_entity, _) in &mut subscribers {
                                 if maybe_key
                                     .as_ref()
@@ -178,38 +180,35 @@ impl<'a> System<'a> for Sys {
                     .take_deleted_in_region(key)
                     .unwrap_or_default(),
             );
-            let mut entity_sync_package = Some(entity_sync_package);
-            let mut comp_sync_package = Some(comp_sync_package);
-            let mut entity_sync_lazymsg = None;
-            let mut comp_sync_lazymsg = None;
-            subscribers.iter_mut().for_each(move |(client, _, _, _)| {
-                if entity_sync_lazymsg.is_none() {
-                    entity_sync_lazymsg = Some(client.prepare(ServerGeneral::EntitySync(
-                        entity_sync_package.take().unwrap(),
-                    )));
-                    comp_sync_lazymsg = Some(
-                        client.prepare(ServerGeneral::CompSync(comp_sync_package.take().unwrap())),
-                    );
-                }
-                entity_sync_lazymsg
-                    .as_ref()
-                    .map(|msg| client.send_prepared(&msg));
-                comp_sync_lazymsg
-                    .as_ref()
-                    .map(|msg| client.send_prepared(&msg));
-            });
+            // We lazily initializethe the synchronization messages in case there are no
+            // clients.
+            let mut entity_comp_sync = Either::Left((entity_sync_package, comp_sync_package));
+            for (client, _, _, _) in &mut subscribers {
+                let msg =
+                    entity_comp_sync.right_or_else(|(entity_sync_package, comp_sync_package)| {
+                        (
+                            client.prepare(ServerGeneral::EntitySync(entity_sync_package)),
+                            client.prepare(ServerGeneral::CompSync(comp_sync_package)),
+                        )
+                    });
+                // We don't care much about stream errors here since they could just represent
+                // network disconnection, which is handled elsewhere.
+                let _ = client.send_prepared(&msg.0);
+                let _ = client.send_prepared(&msg.1);
+                entity_comp_sync = Either::Right(msg);
+            }
 
             for (client, _, client_entity, client_pos) in &mut subscribers {
                 let mut comp_sync_package = CompSyncPackage::new();
 
-                for (_, entity, &uid, &pos, vel, ori, force_update, collider) in (
+                for (_, entity, &uid, (&pos, last_pos), vel, ori, force_update, collider) in (
                     region.entities(),
                     &entities,
                     &uids,
-                    &positions,
-                    velocities.maybe(),
-                    orientations.maybe(),
-                    force_updates.maybe(),
+                    (&positions, last_pos.mask().maybe()),
+                    (&velocities, last_vel.mask().maybe()).maybe(),
+                    (&orientations, last_vel.mask().maybe()).maybe(),
+                    force_updates.mask().maybe(),
                     colliders.maybe(),
                 )
                     .join()
@@ -246,45 +245,48 @@ impl<'a> System<'a> for Sys {
                         }
                     };
 
-                    if last_pos.get(entity).is_none() {
+                    if last_pos.is_none() {
                         comp_sync_package.comp_inserted(uid, pos);
                     } else if send_now {
                         comp_sync_package.comp_modified(uid, pos);
                     }
 
-                    vel.map(|v| {
-                        if last_vel.get(entity).is_none() {
+                    if let Some((v, last_vel)) = vel {
+                        if last_vel.is_none() {
                             comp_sync_package.comp_inserted(uid, *v);
                         } else if send_now {
                             comp_sync_package.comp_modified(uid, *v);
                         }
-                    });
+                    }
 
-                    ori.map(|o| {
-                        if last_ori.get(entity).is_none() {
+                    if let Some((o, last_ori)) = ori {
+                        if last_ori.is_none() {
                             comp_sync_package.comp_inserted(uid, *o);
                         } else if send_now {
                             comp_sync_package.comp_modified(uid, *o);
                         }
-                    });
+                    }
                 }
 
                 client.send_fallible(ServerGeneral::CompSync(comp_sync_package));
             }
 
             // Update the last physics components for each entity
-            for (_, entity, &pos, vel, ori) in (
+            for (_, _, &pos, vel, ori, last_pos, last_vel, last_ori) in (
                 region.entities(),
                 &entities,
                 &positions,
                 velocities.maybe(),
                 orientations.maybe(),
+                last_pos.entries(),
+                last_vel.entries(),
+                last_ori.entries(),
             )
                 .join()
             {
-                let _ = last_pos.insert(entity, Last(pos));
-                vel.map(|v| last_vel.insert(entity, Last(*v)));
-                ori.map(|o| last_ori.insert(entity, Last(*o)));
+                last_pos.replace(Last(pos));
+                vel.and_then(|&v| last_vel.replace(Last(v)));
+                ori.and_then(|&o| last_ori.replace(Last(o)));
             }
         }
 
@@ -347,10 +349,12 @@ impl<'a> System<'a> for Sys {
         // system?)
         let mut tof_lazymsg = None;
         for client in (&clients).join() {
-            if tof_lazymsg.is_none() {
-                tof_lazymsg = Some(client.prepare(ServerGeneral::TimeOfDay(*time_of_day)));
-            }
-            tof_lazymsg.as_ref().map(|msg| client.send_prepared(&msg));
+            let msg = tof_lazymsg
+                .unwrap_or_else(|| client.prepare(ServerGeneral::TimeOfDay(*time_of_day)));
+            // We don't care much about stream errors here since they could just represent
+            // network disconnection, which is handled elsewhere.
+            let _ = client.send_prepared(&msg);
+            tof_lazymsg = Some(msg);
         }
     }
 }

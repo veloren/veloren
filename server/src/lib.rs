@@ -86,7 +86,6 @@ use persistence::{
     character_loader::{CharacterLoader, CharacterLoaderResponseKind},
     character_updater::CharacterUpdater,
 };
-use plugin_api::Uid;
 use prometheus::Registry;
 use prometheus_hyper::Server as PrometheusServer;
 use specs::{join::Join, Builder, Entity as EcsEntity, SystemData, WorldExt};
@@ -337,10 +336,9 @@ impl Server {
                 max: Vec3::new(world_size.x, world_size.y, 32767),
             }
             .made_valid();
-            let world_aabb_id = build_areas.areas.insert(world_aabb);
             build_areas
-                .area_names
-                .insert("world".to_string(), world_aabb_id);
+                .insert("world".to_string(), world_aabb)
+                .expect("The initial insert should always work.");
         }
 
         // Insert the world into the ECS (todo: Maybe not an Arc?)
@@ -748,11 +746,18 @@ impl Server {
             .ecs()
             .read_storage::<Client>()
             .get(entity)
-            .unwrap()
+            .expect(
+                "We just created this entity with a Client component using build(), and we have \
+                 &mut access to the ecs so it can't have been deleted yet.",
+            )
             .send(ServerInit::GameSync {
                 // Send client their entity
                 entity_package: TrackedComps::fetch(&self.state.ecs())
-                    .create_entity_package(entity, None, None, None),
+                    .create_entity_package(entity, None, None, None)
+                    .expect(
+                        "We just created this entity as marked() (using create_entity_synced) so \
+                         it definitely has a uid",
+                    ),
                 time_of_day: *self.state.ecs().read_resource(),
                 max_group_size: self.settings().max_player_group_size,
                 client_timeout: self.settings().client_timeout,
@@ -840,22 +845,24 @@ impl Server {
                     uid_allocator: &self.state.ecs().read_resource::<UidAllocator>().into(),
                     player: self.state.ecs().read_component().into(),
                 };
+                let uid = if let Some(uid) = ecs_world.uid.get(entity).copied() {
+                    uid
+                } else {
+                    self.notify_client(
+                        entity,
+                        ServerGeneral::server_msg(
+                            comp::ChatType::CommandError,
+                            "Can't get player UUID (player may be disconnected?)",
+                        ),
+                    );
+                    return;
+                };
                 let rs = plugin_manager.execute_event(
                     &ecs_world,
                     &plugin_api::event::ChatCommandEvent {
                         command: kwd.clone(),
                         command_args: args.split(' ').map(|x| x.to_owned()).collect(),
-                        player: plugin_api::event::Player {
-                            id: plugin_api::Uid(
-                                (self
-                                    .state
-                                    .ecs()
-                                    .read_storage::<Uid>()
-                                    .get(entity)
-                                    .expect("Can't get player UUID [This should never appen]"))
-                                .0,
-                            ),
-                        },
+                        player: plugin_api::event::Player { id: uid },
                     },
                 );
                 match rs {
@@ -976,8 +983,7 @@ impl Server {
                 .map(|(e, _)| e)
         }) {
             // Remove admin component if the player is ingame
-            let _ = self
-                .state
+            self.state
                 .ecs()
                 .write_storage::<comp::Admin>()
                 .remove(entity);

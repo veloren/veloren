@@ -41,6 +41,7 @@ You can create an account over at
 https://veloren.net/account/."#,
         "main.login.server_not_found": "Server not found",
         "main.login.authentication_error": "Auth error on server",
+        "main.login.internal_error": "Internal error on client (most likely, player character was deleted)",
         "main.login.failed_auth_server_url_invalid": "Failed to connect to auth server",
         "main.login.insecure_auth_scheme": "The auth Scheme HTTP is NOT supported. It's insecure! For development purposes, HTTP is allowed for 'localhost' or debug builds",
         "main.login.server_full": "Server is full",

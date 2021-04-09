@@ -31,7 +31,8 @@ pub mod trade_pricing;
 pub type InvSlot = Option<Item>;
 const DEFAULT_INVENTORY_SLOTS: usize = 18;
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+/// NOTE: Do not add a PartialEq instance for Inventory; that's broken!
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Inventory {
     loadout: Loadout,
     /// The "built-in" slots belonging to the inventory itself, all other slots
@@ -99,24 +100,61 @@ impl Inventory {
     }
 
     /// Adds a new item to the first fitting group of the inventory or starts a
-    /// new group. Returns the item again if no space was found.
-    pub fn push(&mut self, item: Item) -> Option<Item> {
-        if item.is_stackable() {
-            if let Some(slot_item) = self
-                .slots_mut()
-                .filter_map(Option::as_mut)
-                .find(|s| *s == &item)
-            {
-                return slot_item
-                    .increase_amount(item.amount())
-                    .err()
-                    .and(Some(item));
-            }
-        }
+    /// new group. Returns the item in an error if no space was found, otherwise
+    /// returns the found slot.
+    pub fn push(&mut self, item: Item) -> Result<(), Item> {
+        // First, check to make sure there's enough room for all instances of the
+        // item (note that if we find any empty slots, we can guarantee this by
+        // just filling up the whole slot, but to be nice we won't use it if we
+        // can find enough space in any combination of existing slots, and
+        // that's what we check in the `is_stackable` case).
 
-        // No existing item to stack with or item not stackable, put the item in a new
-        // slot
-        self.insert(item)
+        if item.is_stackable()
+            && self
+                .slots()
+                .filter_map(Option::as_ref)
+                .filter(|s| *s == &item)
+                .try_fold(item.amount(), |remaining, current| {
+                    remaining
+                        .checked_sub(current.max_amount() - current.amount())
+                        .filter(|&remaining| remaining > 0)
+                })
+                .is_none()
+        {
+            // We either exactly matched or had more than enough space for inserting the
+            // item into existing slots, so go do that!
+            assert!(
+                self.slots_mut()
+                    .filter_map(Option::as_mut)
+                    .filter(|s| *s == &item)
+                    .try_fold(item.amount(), |remaining, current| {
+                        // NOTE: Invariant that current.amount <= current.max_amount(), so the
+                        // subtraction is safe.
+                        let new_remaining = remaining
+                            .checked_sub(current.max_amount() - current.amount())
+                            .filter(|&remaining| remaining > 0);
+                        if new_remaining.is_some() {
+                            // Not enough capacity left to hold all the remaining items, so we fill
+                            // it as much as we can.
+                            current
+                                .set_amount(current.max_amount())
+                                .expect("max_amount() is always a valid amount.");
+                        } else {
+                            // Enough capacity to hold all the remaining items.
+                            current
+                                .increase_amount(remaining)
+                                .expect("Already checked that there is enough room.");
+                        }
+                        new_remaining
+                    })
+                    .is_none()
+            );
+            Ok(())
+        } else {
+            // No existing item to stack with or item not stackable, put the item in a new
+            // slot
+            self.insert(item)
+        }
     }
 
     /// Add a series of items to inventory, returning any which do not fit as an
@@ -125,7 +163,7 @@ impl Inventory {
         // Vec doesn't allocate for zero elements so this should be cheap
         let mut leftovers = Vec::new();
         for item in items {
-            if let Some(item) = self.push(item) {
+            if let Err(item) = self.push(item) {
                 leftovers.push(item);
             }
         }
@@ -149,7 +187,9 @@ impl Inventory {
         let mut leftovers = Vec::new();
         for item in &mut items {
             if self.contains(&item).not() {
-                self.push(item).map(|overflow| leftovers.push(overflow));
+                if let Err(overflow) = self.push(item) {
+                    leftovers.push(overflow);
+                }
             } // else drop item if it was already in
         }
         if !leftovers.is_empty() {
@@ -181,14 +221,17 @@ impl Inventory {
             }
         }
         if let Some(amount) = amount {
-            self.remove(src);
             let dstitem = self
                 .get_mut(dst)
                 .expect("self.get(dst) was Some right above this");
             dstitem
                 .increase_amount(amount)
-                .expect("already checked is_stackable");
-            true
+                .map(|_| {
+                    // Suceeded in adding the item, so remove it from `src`.
+                    self.remove(src).expect("Already verified that src was populated.");
+                })
+                // Can fail if we exceed `max_amount`
+                .is_ok()
         } else {
             false
         }
@@ -318,9 +361,11 @@ impl Inventory {
                 let mut return_item = item.duplicate(msm);
                 let returning_amount = item.amount() / 2;
                 item.decrease_amount(returning_amount).ok()?;
-                return_item
-                    .set_amount(returning_amount)
-                    .expect("Items duplicated from a stackable item must be stackable.");
+                return_item.set_amount(returning_amount).expect(
+                    "return_item.amount() = item.amount() / 2 < item.amount() (since \
+                     item.amount() ≥ 1) ≤ item.max_amount() = return_item.max_amount(), since \
+                     return_item is a duplicate of item",
+                );
                 Some(return_item)
             } else {
                 self.remove(inv_slot_id)
@@ -367,6 +412,8 @@ impl Inventory {
                     .filter(|item| item.matches_recipe_input(&*input))
                 {
                     let claim = slot_claims.entry(inv_slot_id).or_insert(0);
+                    // FIXME: Fishy, looks like it can underflow before min which can trigger an
+                    // overflow check.
                     let can_claim = (item.amount() - *claim).min(needed);
                     *claim += can_claim;
                     needed -= can_claim;
@@ -387,14 +434,15 @@ impl Inventory {
     }
 
     /// Adds a new item to the first empty slot of the inventory. Returns the
-    /// item again if no free slot was found.
-    fn insert(&mut self, item: Item) -> Option<Item> {
+    /// item again in an Err if no free slot was found, otherwise returns a
+    /// reference to the item.
+    fn insert(&mut self, item: Item) -> Result<(), Item> {
         match self.slots_mut().find(|slot| slot.is_none()) {
             Some(slot) => {
                 *slot = Some(item);
-                None
+                Ok(())
             },
-            None => Some(item),
+            None => Err(item),
         }
     }
 
@@ -495,7 +543,7 @@ impl Inventory {
     /// currently supported.
     pub fn pickup_item(&mut self, mut item: Item) -> Result<(), Item> {
         if item.is_stackable() {
-            return self.push(item).map_or(Ok(()), Err);
+            return self.push(item);
         }
 
         if self.free_slots() < item.populated_slots() + 1 {
@@ -506,11 +554,9 @@ impl Inventory {
         // itself into the inventory. We already know that there are enough free slots
         // so push will never give us an item back.
         item.drain().for_each(|item| {
-            self.push(item).unwrap_none();
+            self.push(item).unwrap();
         });
-        self.push(item).unwrap_none();
-
-        Ok(())
+        self.push(item)
     }
 
     /// Unequip an item from slot and place into inventory. Will leave the item
@@ -528,7 +574,7 @@ impl Inventory {
             .and_then(|mut unequipped_item| {
                 let unloaded_items: Vec<Item> = unequipped_item.drain().collect();
                 self.push(unequipped_item)
-                    .expect_none("Failed to push item to inventory, precondition failed?");
+                    .expect("Failed to push item to inventory, precondition failed?");
 
                 // Unload any items that were inside the equipped item into the inventory, with
                 // any that don't fit to be to be dropped on the floor by the caller
@@ -626,7 +672,7 @@ impl Inventory {
                 // inventory slot instead.
                 if let Err(returned) = self.insert_at(inv_slot_id, from_equip) {
                     self.push(returned)
-                        .expect_none("Unable to push to inventory, no slots (bug in can_swap()?)");
+                        .expect("Unable to push to inventory, no slots (bug in can_swap()?)");
                 }
 
                 items
@@ -686,7 +732,7 @@ impl Component for Inventory {
     type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum InventoryUpdateEvent {
     Init,
     Used,

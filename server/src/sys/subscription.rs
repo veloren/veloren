@@ -179,7 +179,7 @@ impl<'a> System<'a> for Sys {
                     // already within the set of subscribed regions
                     if subscription.regions.insert(key) {
                         if let Some(region) = region_map.get(key) {
-                            for (pos, vel, ori, _, entity) in (
+                            (
                                 &positions,
                                 velocities.maybe(),
                                 orientations.maybe(),
@@ -188,18 +188,19 @@ impl<'a> System<'a> for Sys {
                             )
                                 .join()
                                 .filter(|(_, _, _, _, e)| *e != client_entity)
-                            {
-                                // Send message to create entity and tracked components and physics
-                                // components
-                                client.send_fallible(ServerGeneral::CreateEntity(
+                                .filter_map(|(pos, vel, ori, _, entity)| {
                                     tracked_comps.create_entity_package(
                                         entity,
                                         Some(*pos),
                                         vel.copied(),
                                         ori.copied(),
-                                    ),
-                                ));
-                            }
+                                    )
+                                })
+                                .for_each(|msg| {
+                                    // Send message to create entity and tracked components and
+                                    // physics components
+                                    client.send_fallible(ServerGeneral::CreateEntity(msg));
+                                })
                         }
                     }
                 }
@@ -228,39 +229,40 @@ pub fn initialize_region_subscription(world: &World, entity: specs::Entity) {
         let tracked_comps = TrackedComps::fetch(world);
         for key in &regions {
             if let Some(region) = region_map.get(*key) {
-                for (pos, vel, ori, _, entity) in (
+                (
                     &world.read_storage::<Pos>(), // We assume all these entities have a position
                     world.read_storage::<Vel>().maybe(),
                     world.read_storage::<Ori>().maybe(),
                     region.entities(),
                     &world.entities(),
                 )
-                    .join()
-                    // Don't send client its own components because we do that below
-                    .filter(|t| t.4 != entity)
-                {
+                .join()
+                // Don't send client its own components because we do that below
+                .filter(|t| t.4 != entity)
+                .filter_map(|(pos, vel, ori, _, entity)|
+                    tracked_comps.create_entity_package(
+                        entity,
+                        Some(*pos),
+                        vel.copied(),
+                        ori.copied(),
+                    )
+                )
+                .for_each(|msg| {
                     // Send message to create entity and tracked components and physics components
-                    client.send_fallible(ServerGeneral::CreateEntity(
-                        tracked_comps.create_entity_package(
-                            entity,
-                            Some(*pos),
-                            vel.copied(),
-                            ori.copied(),
-                        ),
-                    ));
-                }
+                    client.send_fallible(ServerGeneral::CreateEntity(msg));
+                });
             }
         }
         // If client position was modified it might not be updated in the region system
         // so we send its components here
-        client.send_fallible(ServerGeneral::CreateEntity(
-            tracked_comps.create_entity_package(
-                entity,
-                Some(*client_pos),
-                world.read_storage().get(entity).copied(),
-                world.read_storage().get(entity).copied(),
-            ),
-        ));
+        if let Some(pkg) = tracked_comps.create_entity_package(
+            entity,
+            Some(*client_pos),
+            world.read_storage().get(entity).copied(),
+            world.read_storage().get(entity).copied(),
+        ) {
+            client.send_fallible(ServerGeneral::CreateEntity(pkg));
+        }
 
         if let Err(e) = world.write_storage().insert(entity, RegionSubscription {
             fuzzy_chunk,

@@ -11,7 +11,7 @@ type TodoRect = (
     Vec3<i32>,
 );
 
-pub struct GreedyConfig<D, FL, FG, FC, FO, FS, FP, FT> {
+pub struct GreedyConfig<D, FL, FG, FO, FS, FP, FT> {
     pub data: D,
     /// The minimum position to mesh, in the coordinate system used
     /// for queries against the volume.
@@ -39,9 +39,6 @@ pub struct GreedyConfig<D, FL, FG, FC, FO, FS, FP, FT> {
     /// Given a position, return the glow information for the voxel at that
     /// position (i.e: additional non-sun light).
     pub get_glow: FG,
-    /// Given a position, return the color information for the voxel at that
-    /// position.
-    pub get_color: FC,
     /// Given a position, return the opacity information for the voxel at that
     /// position. Currently, we don't support real translucent lighting, so the
     /// value should either be `false` (for opaque blocks) or `true`
@@ -63,8 +60,8 @@ pub struct GreedyConfig<D, FL, FG, FC, FO, FS, FP, FT> {
     /// world space, the normal facing out frmo the rectangle in world
     /// space, and meta information common to every voxel in this rectangle.
     pub push_quad: FP,
-    /// Create a texel (in the texture atlas) that corresponds to a face with
-    /// the given properties.
+    /// Given a position and the lighting information for a face at that
+    /// position, return the texel for the face at that position.
     pub make_face_texel: FT,
 }
 
@@ -146,17 +143,16 @@ impl<'a> GreedyMesh<'a> {
     /// Returns an estimate of the bounds of the current meshed model.
     ///
     /// For more information on the config parameter, see [GreedyConfig].
-    pub fn push<M: PartialEq, D: 'a, FL, FG, FC, FO, FS, FP, FT>(
+    pub fn push<M: PartialEq, D: 'a, FL, FG, FO, FS, FP, FT>(
         &mut self,
-        config: GreedyConfig<D, FL, FG, FC, FO, FS, FP, FT>,
+        config: GreedyConfig<D, FL, FG, FO, FS, FP, FT>,
     ) where
         FL: for<'r> FnMut(&'r mut D, Vec3<i32>) -> f32 + 'a,
         FG: for<'r> FnMut(&'r mut D, Vec3<i32>) -> f32 + 'a,
-        FC: for<'r> FnMut(&'r mut D, Vec3<i32>) -> Rgb<u8> + 'a,
         FO: for<'r> FnMut(&'r mut D, Vec3<i32>) -> bool + 'a,
         FS: for<'r> FnMut(&'r mut D, Vec3<i32>, Vec3<i32>, Vec2<Vec3<i32>>) -> Option<(bool, M)>,
         FP: FnMut(Vec2<u16>, Vec2<Vec2<u16>>, Vec3<f32>, Vec2<Vec3<f32>>, Vec3<f32>, &M),
-        FT: for<'r> FnMut(&'r mut D, Vec3<i32>, u8, u8, Rgb<u8>) -> <<ColLightFmt as gfx::format::Formatted>::Surface as gfx::format::SurfaceTyped>::DataType + 'a,
+        FT: for<'r> FnMut(&'r mut D, Vec3<i32>, u8, u8) -> <<ColLightFmt as gfx::format::Formatted>::Surface as gfx::format::SurfaceTyped>::DataType + 'a,
     {
         span!(_guard, "push", "GreedyMesh::push");
         let cont = greedy_mesh(
@@ -194,7 +190,7 @@ impl<'a> GreedyMesh<'a> {
     pub fn max_size(&self) -> guillotiere::Size { self.max_size }
 }
 
-fn greedy_mesh<'a, M: PartialEq, D: 'a, FL, FG, FC, FO, FS, FP, FT>(
+fn greedy_mesh<'a, M: PartialEq, D: 'a, FL, FG, FO, FS, FP, FT>(
     atlas: &mut guillotiere::SimpleAtlasAllocator,
     col_lights_size: &mut Vec2<u16>,
     max_size: guillotiere::Size,
@@ -205,21 +201,19 @@ fn greedy_mesh<'a, M: PartialEq, D: 'a, FL, FG, FC, FO, FS, FP, FT>(
         greedy_size_cross,
         get_light,
         get_glow,
-        get_color,
         get_opacity,
         mut should_draw,
         mut push_quad,
         make_face_texel,
-    }: GreedyConfig<D, FL, FG, FC, FO, FS, FP, FT>,
+    }: GreedyConfig<D, FL, FG, FO, FS, FP, FT>,
 ) -> Box<SuspendedMesh<'a>>
 where
     FL: for<'r> FnMut(&'r mut D, Vec3<i32>) -> f32 + 'a,
     FG: for<'r> FnMut(&'r mut D, Vec3<i32>) -> f32 + 'a,
-    FC: for<'r> FnMut(&'r mut D, Vec3<i32>) -> Rgb<u8> + 'a,
     FO: for<'r> FnMut(&'r mut D, Vec3<i32>) -> bool + 'a,
     FS: for<'r> FnMut(&'r mut D, Vec3<i32>, Vec3<i32>, Vec2<Vec3<i32>>) -> Option<(bool, M)>,
     FP: FnMut(Vec2<u16>, Vec2<Vec2<u16>>, Vec3<f32>, Vec2<Vec3<f32>>, Vec3<f32>, &M),
-    FT: for<'r> FnMut(&'r mut D, Vec3<i32>, u8, u8, Rgb<u8>) -> <<ColLightFmt as gfx::format::Formatted>::Surface as gfx::format::SurfaceTyped>::DataType + 'a,
+    FT: for<'r> FnMut(&'r mut D, Vec3<i32>, u8, u8) -> <<ColLightFmt as gfx::format::Formatted>::Surface as gfx::format::SurfaceTyped>::DataType + 'a,
 {
     span!(_guard, "greedy_mesh");
     // TODO: Collect information to see if we can choose a good value here.
@@ -357,7 +351,6 @@ where
             draw_delta,
             get_light,
             get_glow,
-            get_color,
             get_opacity,
             make_face_texel,
         );
@@ -513,9 +506,8 @@ fn draw_col_lights<D>(
     draw_delta: Vec3<i32>,
     mut get_light: impl FnMut(&mut D, Vec3<i32>) -> f32,
     mut get_glow: impl FnMut(&mut D, Vec3<i32>) -> f32,
-    mut get_color: impl FnMut(&mut D, Vec3<i32>) -> Rgb<u8>,
     mut get_opacity: impl FnMut(&mut D, Vec3<i32>) -> bool,
-    mut make_face_texel: impl FnMut(&mut D, Vec3<i32>, u8, u8, Rgb<u8>) -> <<ColLightFmt as gfx::format::Formatted>::Surface as gfx::format::SurfaceTyped>::DataType,
+    mut make_face_texel: impl FnMut(&mut D, Vec3<i32>, u8, u8) -> <<ColLightFmt as gfx::format::Formatted>::Surface as gfx::format::SurfaceTyped>::DataType,
 ) {
     todo_rects.into_iter().for_each(|(pos, uv, rect, delta)| {
         // NOTE: Conversions are safe because width, height, and offset must be
@@ -589,10 +581,9 @@ fn draw_col_lights<D>(
                             0.0
                         })
                         / 4.0;
-                    let col = get_color(data, pos);
                     let light = (darkness * 31.5) as u8;
                     let glow = (glowiness * 31.5) as u8;
-                    *col_light = make_face_texel(data, pos, light, glow, col);
+                    *col_light = make_face_texel(data, pos, light, glow);
                 });
         });
     });

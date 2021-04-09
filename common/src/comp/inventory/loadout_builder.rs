@@ -599,7 +599,10 @@ impl LoadoutBuilder {
                     let mut item_with_amount = |item_id: &str, amount: &mut f32| {
                         if *amount > 0.0 {
                             let mut item = Item::new_from_asset_expect(&item_id);
-                            let n = rng.gen_range(1..(amount.min(100.0) as u32).max(2));
+                            // NOTE: Conversion to and from f32 works fine because we make sure the
+                            // number we're converting is ≤ 100.
+                            let max = amount.min(100.min(item.max_amount()) as f32) as u32;
+                            let n = rng.gen_range(1..max.max(2));
                             *amount -= if item.set_amount(n).is_ok() {
                                 n as f32
                             } else {

@@ -80,78 +80,101 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
         })
     };
 
+    let mut inventories = state.ecs().write_storage::<comp::Inventory>();
+    let mut inventory = if let Some(inventory) = inventories.get_mut(entity) {
+        inventory
+    } else {
+        error!(
+            ?entity,
+            "Can't manipulate inventory, entity doesn't have one"
+        );
+        return;
+    };
+
     match manip {
         comp::InventoryManip::Pickup(uid) => {
-            let picked_up_item: Option<comp::Item>;
-            let item_entity = if let (Some((item, item_entity)), Some(mut inv)) = (
-                state
-                    .ecs()
-                    .entity_from_uid(uid.into())
-                    .and_then(|item_entity| {
-                        state
-                            .ecs()
-                            .write_storage::<comp::Item>()
-                            .get_mut(item_entity)
-                            .map(|item| (item.clone(), item_entity))
-                    }),
-                state
-                    .ecs()
-                    .write_storage::<comp::Inventory>()
-                    .get_mut(entity),
-            ) {
-                picked_up_item = Some(item.clone());
-
-                let entity_cylinder = get_cylinder(state, entity);
-                if !within_pickup_range(entity_cylinder, || get_cylinder(state, item_entity)) {
-                    debug!(
-                        ?entity_cylinder,
-                        "Failed to pick up item as not within range, Uid: {}", uid
-                    );
-                    return;
-                };
-
-                // Grab the health from the entity and check if the entity is dead.
-                let healths = state.ecs().read_storage::<comp::Health>();
-                if let Some(entity_health) = healths.get(entity) {
-                    if entity_health.is_dead {
-                        debug!("Failed to pick up item as the entity is dead");
-                        return; // If dead, don't continue
-                    }
-                }
-
-                // First try to equip the picked up item
-                if let Err(returned_item) = inv.try_equip(item) {
-                    // If we couldn't equip it (no empty slot for it or unequippable) then attempt
-                    // to add the item to the entity's inventory
-                    match inv.pickup_item(returned_item) {
-                        Ok(_) => Some(item_entity),
-                        Err(_) => None, // Inventory was full
-                    }
-                } else {
-                    Some(item_entity)
-                }
+            let item_entity = if let Some(item_entity) = state.ecs().entity_from_uid(uid.into()) {
+                item_entity
             } else {
-                // Item entity/component could not be found - most likely because the entity
+                // Item entity could not be found - most likely because the entity
                 // attempted to pick up the same item very quickly before its deletion of the
                 // world from the first pickup attempt was processed.
-                debug!("Failed to get entity/component for item Uid: {}", uid);
+                debug!("Failed to get entity for item Uid: {}", uid);
+                return;
+            };
+            let entity_cylinder = get_cylinder(state, entity);
+
+            // FIXME: Raycast so we can't pick up items through walls.
+            if !within_pickup_range(entity_cylinder, || get_cylinder(state, item_entity)) {
+                debug!(
+                    ?entity_cylinder,
+                    "Failed to pick up item as not within range, Uid: {}", uid
+                );
+                return;
+            }
+
+            // Grab the health from the entity and check if the entity is dead.
+            let healths = state.ecs().read_storage::<comp::Health>();
+            if let Some(entity_health) = healths.get(entity) {
+                if entity_health.is_dead {
+                    debug!("Failed to pick up item as the entity is dead");
+                    return; // If dead, don't continue
+                }
+            }
+            drop(healths);
+
+            // First, we remove the item, assuming picking it up will succeed (we do this to
+            // avoid cloning the item, as we should not call Item::clone and it
+            // may be removed!).
+            let mut item_storage = state.ecs().write_storage::<comp::Item>();
+            let item = if let Some(item) = item_storage.remove(item_entity) {
+                item
+            } else {
+                // Item component could not be found - most likely because the entity
+                // attempted to pick up the same item very quickly before its deletion of the
+                // world from the first pickup attempt was processed.
+                debug!("Failed to delete item component for entity, Uid: {}", uid);
                 return;
             };
 
-            let event = if let Some(item_entity) = item_entity {
-                if let Err(err) = state.delete_entity_recorded(item_entity) {
-                    // If this occurs it means the item was duped as it's been pushed to the
-                    // entity's inventory but also left on the ground
-                    panic!("Failed to delete picked up item entity: {:?}", err);
-                }
-                comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Collected(
-                    picked_up_item.unwrap(),
-                ))
-            } else {
-                comp::InventoryUpdate::new(comp::InventoryUpdateEvent::CollectFailed)
+            // NOTE: We dup the item for message purposes.
+            let item_msg = item.duplicate(&state.ecs().read_resource::<MaterialStatManifest>());
+
+            // Next, we try to equip the picked up item
+            let event = match inventory.try_equip(item).or_else(|returned_item| {
+                // If we couldn't equip it (no empty slot for it or unequippable) then attempt
+                // to add the item to the entity's inventory
+                inventory.pickup_item(returned_item)
+            }) {
+                Err(returned_item) => {
+                    // Inventory was full, so we need to put back the item (note that we know there
+                    // was no old item component for this entity).
+                    item_storage.insert(entity, returned_item).expect(
+                        "We know item_entity exists since we just successfully removed its Item \
+                         component.",
+                    );
+                    drop(item_storage);
+                    drop(inventories);
+                    comp::InventoryUpdate::new(comp::InventoryUpdateEvent::CollectFailed)
+                },
+                Ok(_) => {
+                    // We succeeded in picking up the item, so we may now delete its old entity
+                    // entirely.
+                    drop(item_storage);
+                    drop(inventories);
+                    state.delete_entity_recorded(item_entity).expect(
+                        "We knew item_entity existed since we just successfully removed its Item \
+                         component.",
+                    );
+                    comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Collected(item_msg))
+                },
             };
 
-            state.write_component(entity, event);
+            state
+                .ecs()
+                .write_storage()
+                .insert(entity, event)
+                .expect("We know entity exists since we got its inventory.");
         },
         comp::InventoryManip::Collect(pos) => {
             let block = state.terrain().get(pos).ok().copied();
@@ -174,34 +197,31 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                     };
 
                     if let Some(item) = comp::Item::try_reclaim_from_block(block) {
-                        let (event, item_was_added) = if let Some(mut inv) = state
-                            .ecs()
-                            .write_storage::<comp::Inventory>()
-                            .get_mut(entity)
-                        {
-                            match inv.push(item.clone()) {
-                                None => (
-                                    Some(comp::InventoryUpdate::new(
-                                        comp::InventoryUpdateEvent::Collected(item),
-                                    )),
-                                    true,
-                                ),
-                                Some(_) => (
-                                    Some(comp::InventoryUpdate::new(
-                                        comp::InventoryUpdateEvent::CollectFailed,
-                                    )),
-                                    false,
-                                ),
-                            }
-                        } else {
-                            debug!(
-                                "Can't add item to inventory: entity has no inventory ({:?})",
-                                entity
-                            );
-                            (None, false)
+                        // NOTE: We dup the item for message purposes.
+                        let item_msg =
+                            item.duplicate(&state.ecs().read_resource::<MaterialStatManifest>());
+                        let (event, item_was_added) = match inventory.push(item) {
+                            Ok(_) => (
+                                Some(comp::InventoryUpdate::new(
+                                    comp::InventoryUpdateEvent::Collected(item_msg),
+                                )),
+                                true,
+                            ),
+                            // The item we created was in some sense "fake" so it's safe to
+                            // drop it.
+                            Err(_) => (
+                                Some(comp::InventoryUpdate::new(
+                                    comp::InventoryUpdateEvent::CollectFailed,
+                                )),
+                                false,
+                            ),
                         };
                         if let Some(event) = event {
-                            state.write_component(entity, event);
+                            state
+                                .ecs()
+                                .write_storage()
+                                .insert(entity, event)
+                                .expect("We know entity exists since we got its inventory.");
                             if item_was_added {
                                 // we made sure earlier the block was not already modified this tick
                                 state.set_block(pos, block.into_vacant())
@@ -222,19 +242,9 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                     );
                 }
             }
+            drop(inventories);
         },
         comp::InventoryManip::Use(slot) => {
-            let mut inventories = state.ecs().write_storage::<comp::Inventory>();
-            let mut inventory = if let Some(inventory) = inventories.get_mut(entity) {
-                inventory
-            } else {
-                error!(
-                    ?entity,
-                    "Can't manipulate inventory, entity doesn't have one"
-                );
-                return;
-            };
-
             let mut maybe_effect = None;
 
             let event = match slot {
@@ -380,7 +390,9 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                 Some(comp::InventoryUpdateEvent::Used)
                             },
                             _ => {
-                                inventory.insert_or_stack_at(slot, item).unwrap();
+                                inventory.insert_or_stack_at(slot, item).expect(
+                                    "slot was just vacated of item, so it definitely fits there.",
+                                );
                                 None
                             },
                         }
@@ -420,55 +432,51 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                 }
             }
             if let Some(event) = event {
-                state.write_component(entity, comp::InventoryUpdate::new(event));
+                state
+                    .ecs()
+                    .write_storage()
+                    .insert(entity, comp::InventoryUpdate::new(event))
+                    .expect("We know entity exists since we got its inventory.");
             }
         },
         comp::InventoryManip::Swap(a, b) => {
             let ecs = state.ecs();
 
             if let Some(pos) = ecs.read_storage::<comp::Pos>().get(entity) {
-                if let Some(mut inventory) = ecs.write_storage::<comp::Inventory>().get_mut(entity)
-                {
-                    let mut merged_stacks = false;
+                let mut merged_stacks = false;
 
-                    // If both slots have items and we're attemping to drag from one stack
-                    // into another, stack the items.
-                    if let (Slot::Inventory(slot_a), Slot::Inventory(slot_b)) = (a, b) {
-                        merged_stacks |= inventory.merge_stack_into(slot_a, slot_b);
-                    }
+                // If both slots have items and we're attemping to drag from one stack
+                // into another, stack the items.
+                if let (Slot::Inventory(slot_a), Slot::Inventory(slot_b)) = (a, b) {
+                    merged_stacks |= inventory.merge_stack_into(slot_a, slot_b);
+                }
 
-                    // If the stacks weren't mergable carry out a swap.
-                    if !merged_stacks {
-                        dropped_items.extend(inventory.swap(a, b).into_iter().map(|x| {
-                            (
-                                *pos,
-                                state
-                                    .read_component_copied::<comp::Ori>(entity)
-                                    .unwrap_or_default(),
-                                x,
-                            )
-                        }));
-                    }
+                // If the stacks weren't mergable carry out a swap.
+                if !merged_stacks {
+                    dropped_items.extend(inventory.swap(a, b).into_iter().map(|x| {
+                        (
+                            *pos,
+                            state
+                                .read_component_copied::<comp::Ori>(entity)
+                                .unwrap_or_default(),
+                            x,
+                        )
+                    }));
                 }
             }
+            drop(inventories);
 
-            state.write_component(
-                entity,
-                comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Swapped),
-            );
+            state
+                .ecs()
+                .write_storage()
+                .insert(
+                    entity,
+                    comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Swapped),
+                )
+                .expect("We know entity exists since we got its inventory.");
         },
         comp::InventoryManip::SplitSwap(slot, target) => {
             let msm = state.ecs().read_resource::<MaterialStatManifest>();
-            let mut inventories = state.ecs().write_storage::<comp::Inventory>();
-            let mut inventory = if let Some(inventory) = inventories.get_mut(entity) {
-                inventory
-            } else {
-                error!(
-                    ?entity,
-                    "Can't manipulate inventory, entity doesn't have one"
-                );
-                return;
-            };
 
             // If both slots have items and we're attemping to split from one stack
             // into another, ensure that they are the same type of item. If they are
@@ -496,27 +504,22 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                     inventory.insert_or_stack_at(target, item).ok();
                 }
             }
-            drop(inventory);
-            drop(inventories);
             drop(msm);
 
-            state.write_component(
-                entity,
-                comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Swapped),
-            );
+            state
+                .ecs()
+                .write_storage()
+                .insert(
+                    entity,
+                    comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Swapped),
+                )
+                .expect("We know entity exists since we got its inventory.");
+            drop(inventories);
         },
         comp::InventoryManip::Drop(slot) => {
             let item = match slot {
-                Slot::Inventory(slot) => state
-                    .ecs()
-                    .write_storage::<comp::Inventory>()
-                    .get_mut(entity)
-                    .and_then(|mut inv| inv.remove(slot)),
-                Slot::Equip(slot) => state
-                    .ecs()
-                    .write_storage::<comp::Inventory>()
-                    .get_mut(entity)
-                    .and_then(|mut inv| inv.replace_loadout_item(slot, None)),
+                Slot::Inventory(slot) => inventory.remove(slot),
+                Slot::Equip(slot) => inventory.replace_loadout_item(slot, None),
             };
 
             // FIXME: We should really require the drop and write to be atomic!
@@ -532,19 +535,20 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                     item,
                 ));
             }
-            state.write_component(
-                entity,
-                comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Dropped),
-            );
+            state
+                .ecs()
+                .write_storage()
+                .insert(
+                    entity,
+                    comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Dropped),
+                )
+                .expect("We know entity exists since we got its inventory.");
+            drop(inventories);
         },
         comp::InventoryManip::SplitDrop(slot) => {
             let msm = state.ecs().read_resource::<MaterialStatManifest>();
             let item = match slot {
-                Slot::Inventory(slot) => state
-                    .ecs()
-                    .write_storage::<comp::Inventory>()
-                    .get_mut(entity)
-                    .and_then(|mut inv| inv.take_half(slot, &msm)),
+                Slot::Inventory(slot) => inventory.take_half(slot, &msm),
                 Slot::Equip(_) => None,
             };
 
@@ -562,47 +566,48 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                 ));
             }
             drop(msm);
-            state.write_component(
-                entity,
-                comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Dropped),
-            );
+            state
+                .ecs()
+                .write_storage()
+                .insert(
+                    entity,
+                    comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Dropped),
+                )
+                .expect("We know entity exists since we got its inventory.");
+            drop(inventories);
         },
         comp::InventoryManip::CraftRecipe(recipe) => {
-            if let Some(mut inv) = state
-                .ecs()
-                .write_storage::<comp::Inventory>()
-                .get_mut(entity)
-            {
-                let recipe_book = default_recipe_book().read();
-                let craft_result = recipe_book.get(&recipe).and_then(|r| {
-                    r.perform(
-                        &mut inv,
-                        &state.ecs().read_resource::<item::MaterialStatManifest>(),
-                    )
-                    .ok()
-                });
+            let recipe_book = default_recipe_book().read();
+            let craft_result = recipe_book.get(&recipe).and_then(|r| {
+                r.perform(
+                    &mut inventory,
+                    &state.ecs().read_resource::<item::MaterialStatManifest>(),
+                )
+                .ok()
+            });
+            drop(inventories);
 
-                // FIXME: We should really require the drop and write to be atomic!
-                if craft_result.is_some() {
-                    let _ = state.ecs().write_storage().insert(
-                        entity,
-                        comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Craft),
-                    );
-                }
+            // FIXME: We should really require the drop and write to be atomic!
+            if craft_result.is_some() {
+                let _ = state.ecs().write_storage().insert(
+                    entity,
+                    comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Craft),
+                );
+            }
 
-                // Drop the item if there wasn't enough space
-                if let Some(Some((item, amount))) = craft_result {
-                    for _ in 0..amount {
-                        dropped_items.push((
-                            state
-                                .read_component_copied::<comp::Pos>(entity)
-                                .unwrap_or_default(),
-                            state
-                                .read_component_copied::<comp::Ori>(entity)
-                                .unwrap_or_default(),
-                            item.clone(),
-                        ));
-                    }
+            // Drop the item if there wasn't enough space
+            if let Some(Some((item, amount))) = craft_result {
+                let msm = state.ecs().read_resource::<MaterialStatManifest>();
+                for _ in 0..amount {
+                    dropped_items.push((
+                        state
+                            .read_component_copied::<comp::Pos>(entity)
+                            .unwrap_or_default(),
+                        state
+                            .read_component_copied::<comp::Ori>(entity)
+                            .unwrap_or_default(),
+                        item.duplicate(&msm),
+                    ));
                 }
             }
         },

@@ -124,7 +124,7 @@ impl Server {
                 ServerEvent::Mount(mounter, mountee) => handle_mount(self, mounter, mountee),
                 ServerEvent::Unmount(mounter) => handle_unmount(self, mounter),
                 ServerEvent::Possess(possessor_uid, possesse_uid) => {
-                    handle_possess(&self, possessor_uid, possesse_uid)
+                    handle_possess(self, possessor_uid, possesse_uid)
                 },
                 ServerEvent::InitCharacterData {
                     entity,

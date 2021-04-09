@@ -3,7 +3,6 @@ use std::{
     cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd},
     fmt, hash,
     marker::PhantomData,
-    ops::{Index, IndexMut},
 };
 
 /// Type safe index into Depot
@@ -210,14 +209,4 @@ impl<T> Depot<T> {
             })
         }
     }
-}
-
-impl<T> Index<Id<T>> for Depot<T> {
-    type Output = T;
-
-    fn index(&self, id: Id<T>) -> &Self::Output { self.get(id).unwrap() }
-}
-
-impl<T> IndexMut<Id<T>> for Depot<T> {
-    fn index_mut(&mut self, id: Id<T>) -> &mut Self::Output { self.get_mut(id).unwrap() }
 }

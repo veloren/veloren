@@ -41,10 +41,14 @@ pub fn create_character(
     let mut inventory = Inventory::new_with_loadout(loadout);
 
     // Default items for new characters
-    inventory.push(Item::new_from_asset_expect(
-        "common.items.consumable.potion_minor",
-    ));
-    inventory.push(Item::new_from_asset_expect("common.items.food.cheese"));
+    inventory
+        .push(Item::new_from_asset_expect(
+            "common.items.consumable.potion_minor",
+        ))
+        .expect("Inventory has at least 2 slots left!");
+    inventory
+        .push(Item::new_from_asset_expect("common.items.food.cheese"))
+        .expect("Inventory has at least 1 slot left!");
 
     let waypoint = None;
 

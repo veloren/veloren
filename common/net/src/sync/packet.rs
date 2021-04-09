@@ -105,36 +105,6 @@ pub struct EntityPackage<P: CompPacket> {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct StatePackage<P: CompPacket> {
-    pub entities: Vec<EntityPackage<P>>,
-}
-
-impl<P: CompPacket> Default for StatePackage<P> {
-    fn default() -> Self {
-        Self {
-            entities: Vec::new(),
-        }
-    }
-}
-
-impl<P: CompPacket> StatePackage<P> {
-    pub fn new() -> Self { Self::default() }
-
-    pub fn with_entities<C: Component + Clone + Send + Sync>(
-        mut self,
-        mut entities: Vec<EntityPackage<P>>,
-    ) -> Self {
-        self.entities.append(&mut entities);
-        self
-    }
-
-    pub fn with_entity(mut self, entry: EntityPackage<P>) -> Self {
-        self.entities.push(entry);
-        self
-    }
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct EntitySyncPackage {
     pub created_entities: Vec<u64>,
     pub deleted_entities: Vec<u64>,

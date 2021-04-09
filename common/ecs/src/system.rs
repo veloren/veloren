@@ -77,7 +77,12 @@ impl CpuTimeline {
     fn end(&mut self) -> std::time::Duration {
         let end = Instant::now();
         self.measures.push((end, ParMode::None));
-        end.duration_since(self.measures.first().unwrap().0)
+        end.duration_since(
+            self.measures
+                .first()
+                .expect("We just pushed onto the vector.")
+                .0,
+        )
     }
 
     fn get(&self, time: Instant) -> ParMode {
@@ -181,9 +186,17 @@ pub fn gen_stats(
         // update ALL states
         for individual in individual_cores_wanted.iter() {
             let actual = (individual.1 as f32 / total_or_max) * physical_threads as f32;
-            let p = result.get_mut(individual.0).unwrap();
-            if (p.measures.last().unwrap().1 - actual).abs() > 0.0001 {
-                p.measures.push((relative_time, actual));
+            if let Some(p) = result.get_mut(individual.0) {
+                if p.measures
+                    .last()
+                    .map(|last| (last.1 - actual).abs())
+                    .unwrap_or(0.0)
+                    > 0.0001
+                {
+                    p.measures.push((relative_time, actual));
+                }
+            } else {
+                tracing::warn!("Invariant violation: keys in both hashmaps should be the same.");
             }
         }
     }

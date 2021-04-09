@@ -108,14 +108,9 @@ impl RegionMap {
         span!(_guard, "tick", "Region::tick");
         self.tick += 1;
         // Clear events within each region
-        for i in 0..self.regions.len() {
-            self.regions
-                .get_index_mut(i)
-                .map(|(_, v)| v)
-                .unwrap()
-                .events
-                .clear();
-        }
+        self.regions.values_mut().for_each(|region| {
+            region.events.clear();
+        });
 
         // Add any untracked entities
         for (pos, id) in (&pos, &entities, !&self.tracked_entities)
@@ -130,52 +125,55 @@ impl RegionMap {
 
         let mut regions_to_remove = Vec::new();
 
-        for i in 0..self.regions.len() {
-            for (maybe_pos, _maybe_vel, id) in (
-                pos.maybe(),
-                vel.maybe(),
-                &self.regions.get_index(i).map(|(_, v)| v).unwrap().bitset,
-            )
-                .join()
-            {
-                match maybe_pos {
-                    // Switch regions for entities which need switching
-                    // TODO don't check every tick (use velocity) (and use id to stagger)
-                    // Starting parameters at v = 0 check every 100 ticks
-                    // tether_length^2 / vel^2  (with a max of every tick)
-                    Some(pos) => {
-                        let pos = pos.0.map(|e| e as i32);
-                        let current_region = self.index_key(i).unwrap();
-                        let key = Self::pos_key(pos);
-                        // Consider switching
-                        // Calculate distance outside border
-                        if key != current_region
-                            && (Vec2::<i32>::from(pos) - Self::key_pos(current_region))
-                                .map(|e| e.abs() as u32)
-                                .reduce_max()
-                                > TETHER_LENGTH
-                        {
-                            // Switch
-                            self.entities_to_move.push((i, id, pos));
-                        }
-                    },
-                    // Remove any non-existant entities (or just ones that lost their position
-                    // component) TODO: distribute this between ticks
-                    None => {
-                        // TODO: shouldn't there be a way to extract the bitset of entities with
-                        // positions directly from specs?
-                        self.entities_to_remove.push((i, id));
-                    },
+        let RegionMap {
+            entities_to_move,
+            entities_to_remove,
+            regions,
+            ..
+        } = self;
+        regions
+            .iter()
+            .enumerate()
+            .for_each(|(i, (&current_region, region_data))| {
+                for (maybe_pos, _maybe_vel, id) in
+                    (pos.maybe(), vel.maybe(), &region_data.bitset).join()
+                {
+                    match maybe_pos {
+                        // Switch regions for entities which need switching
+                        // TODO don't check every tick (use velocity) (and use id to stagger)
+                        // Starting parameters at v = 0 check every 100 ticks
+                        // tether_length^2 / vel^2  (with a max of every tick)
+                        Some(pos) => {
+                            let pos = pos.0.map(|e| e as i32);
+                            let key = Self::pos_key(pos);
+                            // Consider switching
+                            // Calculate distance outside border
+                            if key != current_region
+                                && (Vec2::<i32>::from(pos) - Self::key_pos(current_region))
+                                    .map(|e| e.abs() as u32)
+                                    .reduce_max()
+                                    > TETHER_LENGTH
+                            {
+                                // Switch
+                                entities_to_move.push((i, id, pos));
+                            }
+                        },
+                        // Remove any non-existant entities (or just ones that lost their position
+                        // component) TODO: distribute this between ticks
+                        None => {
+                            // TODO: shouldn't there be a way to extract the bitset of entities with
+                            // positions directly from specs?
+                            entities_to_remove.push((i, id));
+                        },
+                    }
                 }
-            }
 
-            // Remove region if it is empty
-            // TODO: distribute this between ticks
-            let (key, region) = self.regions.get_index(i).unwrap();
-            if region.removable() {
-                regions_to_remove.push(*key);
-            }
-        }
+                // Remove region if it is empty
+                // TODO: distribute this between ticks
+                if region_data.removable() {
+                    regions_to_remove.push(current_region);
+                }
+            });
 
         // Mutate
         // Note entity moving is outside the whole loop so that the same entity is not
@@ -266,10 +264,6 @@ impl RegionMap {
 
     fn key_index(&self, key: Vec2<i32>) -> Option<usize> {
         self.regions.get_full(&key).map(|(i, _, _)| i)
-    }
-
-    fn index_key(&self, index: usize) -> Option<Vec2<i32>> {
-        self.regions.get_index(index).map(|(k, _)| k).copied()
     }
 
     /// Adds a new region

@@ -1,8 +1,8 @@
 use common::{
     comp::{
-        Auras, BeamSegment, Body, Buffs, CanBuild, CharacterState, Collider, Combo, Energy,
-        Gravity, Group, Health, Inventory, Item, LightEmitter, Mass, MountState, Mounting, Ori,
-        Player, Poise, Pos, Scale, Shockwave, Stats, Sticky, Vel,
+        item::MaterialStatManifest, Auras, BeamSegment, Body, Buffs, CanBuild, CharacterState,
+        Collider, Combo, Energy, Gravity, Group, Health, Inventory, Item, LightEmitter, Mass,
+        MountState, Mounting, Ori, Player, Poise, Pos, Scale, Shockwave, Stats, Sticky, Vel,
     },
     uid::Uid,
 };
@@ -63,6 +63,7 @@ pub struct TrackedComps<'a> {
     pub character_state: ReadStorage<'a, CharacterState>,
     pub shockwave: ReadStorage<'a, Shockwave>,
     pub beam_segment: ReadStorage<'a, BeamSegment>,
+    pub msm: ReadExpect<'a, MaterialStatManifest>,
 }
 impl<'a> TrackedComps<'a> {
     pub fn create_entity_package(
@@ -71,13 +72,8 @@ impl<'a> TrackedComps<'a> {
         pos: Option<Pos>,
         vel: Option<Vel>,
         ori: Option<Ori>,
-    ) -> EntityPackage<EcsCompPacket> {
-        let uid = self
-            .uid
-            .get(entity)
-            .copied()
-            .expect("No uid to create an entity package")
-            .0;
+    ) -> Option<EntityPackage<EcsCompPacket>> {
+        let uid = self.uid.get(entity).copied()?.0;
         let mut comps = Vec::new();
         self.body.get(entity).copied().map(|c| comps.push(c.into()));
         self.player
@@ -120,7 +116,10 @@ impl<'a> TrackedComps<'a> {
             .get(entity)
             .copied()
             .map(|c| comps.push(c.into()));
-        self.item.get(entity).cloned().map(|c| comps.push(c.into()));
+        self.item
+            .get(entity)
+            .map(|item| item.duplicate(&self.msm))
+            .map(|c| comps.push(c.into()));
         self.scale
             .get(entity)
             .copied()
@@ -171,7 +170,7 @@ impl<'a> TrackedComps<'a> {
         vel.map(|c| comps.push(c.into()));
         ori.map(|c| comps.push(c.into()));
 
-        EntityPackage { uid, comps }
+        Some(EntityPackage { uid, comps })
     }
 }
 #[derive(SystemData)]

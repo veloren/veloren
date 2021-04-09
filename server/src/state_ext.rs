@@ -361,37 +361,40 @@ impl StateExt for State {
     fn initialize_character_data(&mut self, entity: EcsEntity, character_id: CharacterId) {
         let spawn_point = self.ecs().read_resource::<SpawnPoint>().0;
 
-        self.write_component(entity, comp::Controller::default());
-        self.write_component(entity, comp::Pos(spawn_point));
-        self.write_component(entity, comp::Vel(Vec3::zero()));
-        self.write_component(entity, comp::Ori::default());
-        self.write_component(entity, comp::Collider::Box {
-            radius: 0.4,
-            z_min: 0.0,
-            z_max: 1.75,
-        });
-        self.write_component(entity, comp::Gravity(1.0));
-        self.write_component(entity, comp::CharacterState::default());
-        self.write_component(
-            entity,
-            comp::Alignment::Owned(self.read_component_copied(entity).unwrap()),
-        );
-        self.write_component(entity, comp::Buffs::default());
-        self.write_component(entity, comp::Auras::default());
-        self.write_component(entity, comp::Combo::default());
+        if let Some(player_uid) = self.read_component_copied::<Uid>(entity) {
+            // NOTE: By fetching the player_uid, we validated that the entity exists, and we
+            // call nothing that can delete it in any of the subsequent
+            // commands, so we can assume that all of these calls succeed,
+            // justifying ignoring the result of insertion.
+            self.write_component_ignore_entity_dead(entity, comp::Controller::default());
+            self.write_component_ignore_entity_dead(entity, comp::Pos(spawn_point));
+            self.write_component_ignore_entity_dead(entity, comp::Vel(Vec3::zero()));
+            self.write_component_ignore_entity_dead(entity, comp::Ori::default());
+            self.write_component_ignore_entity_dead(entity, comp::Collider::Box {
+                radius: 0.4,
+                z_min: 0.0,
+                z_max: 1.75,
+            });
+            self.write_component_ignore_entity_dead(entity, comp::Gravity(1.0));
+            self.write_component_ignore_entity_dead(entity, comp::CharacterState::default());
+            self.write_component_ignore_entity_dead(entity, comp::Alignment::Owned(player_uid));
+            self.write_component_ignore_entity_dead(entity, comp::Buffs::default());
+            self.write_component_ignore_entity_dead(entity, comp::Auras::default());
+            self.write_component_ignore_entity_dead(entity, comp::Combo::default());
 
-        // Make sure physics components are updated
-        self.write_component(entity, comp::ForceUpdate);
+            // Make sure physics components are updated
+            self.write_component_ignore_entity_dead(entity, comp::ForceUpdate);
 
-        const INITIAL_VD: u32 = 5; //will be changed after login
-        self.write_component(
-            entity,
-            Presence::new(INITIAL_VD, PresenceKind::Character(character_id)),
-        );
+            const INITIAL_VD: u32 = 5; //will be changed after login
+            self.write_component_ignore_entity_dead(
+                entity,
+                Presence::new(INITIAL_VD, PresenceKind::Character(character_id)),
+            );
 
-        // Tell the client its request was successful.
-        if let Some(client) = self.ecs().read_storage::<Client>().get(entity) {
-            client.send_fallible(ServerGeneral::CharacterSuccess);
+            // Tell the client its request was successful.
+            if let Some(client) = self.ecs().read_storage::<Client>().get(entity) {
+                client.send_fallible(ServerGeneral::CharacterSuccess);
+            }
         }
     }
 
@@ -406,12 +409,16 @@ impl StateExt for State {
                 }),
             ));
 
-            self.write_component(entity, comp::Collider::Box {
+            // NOTE: By fetching the player_uid, we validated that the entity exists, and we
+            // call nothing that can delete it in any of the subsequent
+            // commands, so we can assume that all of these calls succeed,
+            // justifying ignoring the result of insertion.
+            self.write_component_ignore_entity_dead(entity, comp::Collider::Box {
                 radius: body.radius(),
                 z_min: 0.0,
                 z_max: body.height(),
             });
-            self.write_component(entity, body);
+            self.write_component_ignore_entity_dead(entity, body);
             let (health_level, energy_level) = (
                 stats
                     .skill_set
@@ -424,21 +431,21 @@ impl StateExt for State {
                     .unwrap_or(None)
                     .unwrap_or(0),
             );
-            self.write_component(entity, comp::Health::new(body, health_level));
-            self.write_component(entity, comp::Energy::new(body, energy_level));
-            self.write_component(entity, comp::Poise::new(body));
-            self.write_component(entity, stats);
-            self.write_component(entity, inventory);
-            self.write_component(
+            self.write_component_ignore_entity_dead(entity, comp::Health::new(body, health_level));
+            self.write_component_ignore_entity_dead(entity, comp::Energy::new(body, energy_level));
+            self.write_component_ignore_entity_dead(entity, comp::Poise::new(body));
+            self.write_component_ignore_entity_dead(entity, stats);
+            self.write_component_ignore_entity_dead(entity, inventory);
+            self.write_component_ignore_entity_dead(
                 entity,
                 comp::InventoryUpdate::new(comp::InventoryUpdateEvent::default()),
             );
 
             if let Some(waypoint) = waypoint {
-                self.write_component(entity, waypoint);
-                self.write_component(entity, comp::Pos(waypoint.get_pos()));
-                self.write_component(entity, comp::Vel(Vec3::zero()));
-                self.write_component(entity, comp::ForceUpdate);
+                self.write_component_ignore_entity_dead(entity, waypoint);
+                self.write_component_ignore_entity_dead(entity, comp::Pos(waypoint.get_pos()));
+                self.write_component_ignore_entity_dead(entity, comp::Vel(Vec3::zero()));
+                self.write_component_ignore_entity_dead(entity, comp::ForceUpdate);
             }
         }
     }
@@ -585,8 +592,8 @@ impl StateExt for State {
         )
             .join()
         {
-            if lazy_msg.is_none() {
-                lazy_msg = Some(client.prepare(msg.take().unwrap()));
+            if let Some(msg) = msg.take() {
+                lazy_msg = Some(client.prepare(msg));
             }
             lazy_msg.as_ref().map(|ref msg| client.send_prepared(&msg));
         }
@@ -602,8 +609,8 @@ impl StateExt for State {
         )
             .join()
         {
-            if lazy_msg.is_none() {
-                lazy_msg = Some(client.prepare(msg.take().unwrap()));
+            if let Some(msg) = msg.take() {
+                lazy_msg = Some(client.prepare(msg));
             }
             lazy_msg.as_ref().map(|ref msg| client.send_prepared(&msg));
         }

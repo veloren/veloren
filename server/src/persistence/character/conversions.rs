@@ -253,6 +253,9 @@ pub fn convert_inventory_from_database_items(
 
         // Stack Size
         if db_item.stack_size == 1 || item.is_stackable() {
+            // FIXME: On failure, collect the set of items that don't fit and return them
+            // (to be dropped next to the player) as this could be the result of
+            // a change in the max amount for that item.
             item.set_amount(u32::try_from(db_item.stack_size).map_err(|_| {
                 Error::ConversionError(format!(
                     "Invalid item stack size for stackable={}: {}",
@@ -280,6 +283,11 @@ pub fn convert_inventory_from_database_items(
             let insert_res = inventory.insert_at(slot, item).map_err(|_| {
                 // If this happens there were too many items in the database for the current
                 // inventory size
+                //
+                // FIXME: On failure, collect the set of items that don't fit and return them
+                // (to be dropped next to the player) as this could be the
+                // result of a change in the slot capacity for an equipped bag
+                // (or a change in the inventory size).
                 Error::ConversionError(format!(
                     "Error inserting item into inventory, position: {:?}",
                     slot

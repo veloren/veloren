@@ -78,12 +78,6 @@ where
             }
         };
         let get_glow = |_vol: &mut V, _pos: Vec3<i32>| 0.0;
-        let get_color = |vol: &mut V, pos: Vec3<i32>| {
-            vol.get(pos)
-                .ok()
-                .and_then(|vox| vox.get_color())
-                .unwrap_or(Rgb::zero())
-        };
         let get_opacity =
             |vol: &mut V, pos: Vec3<i32>| vol.get(pos).map(|vox| vox.is_empty()).unwrap_or(true);
         let should_draw = |vol: &mut V, pos: Vec3<i32>, delta: Vec3<i32>, uv| {
@@ -102,7 +96,6 @@ where
             greedy_size_cross,
             get_light,
             get_glow,
-            get_color,
             get_opacity,
             should_draw,
             push_quad: |atlas_origin, dim, origin, draw_dim, norm, meta: &()| {
@@ -116,11 +109,12 @@ where
                     |atlas_pos, pos, norm, &_meta| create_opaque(atlas_pos, pos, norm),
                 ));
             },
-            make_face_texel: |vol: &mut V, pos, light, _, col| {
-                let (glowy, shiny) = vol
-                    .get(pos)
+            make_face_texel: |vol: &mut V, pos, light, _| {
+                let cell = vol.get(pos).ok();
+                let (glowy, shiny) = cell
                     .map(|c| (c.is_glowy(), c.is_shiny()))
                     .unwrap_or_default();
+                let col = cell.and_then(|vox| vox.get_color()).unwrap_or(Rgb::zero());
                 TerrainVertex::make_col_light_figure(light, glowy, shiny, col)
             },
         });
@@ -212,7 +206,6 @@ where
             greedy_size_cross,
             get_light,
             get_glow,
-            get_color,
             get_opacity,
             should_draw,
             push_quad: |atlas_origin, dim, origin, draw_dim, norm, meta: &bool| {
@@ -226,8 +219,8 @@ where
                     |atlas_pos, pos, norm, &meta| create_opaque(atlas_pos, pos, norm, meta),
                 ));
             },
-            make_face_texel: |_: &mut V, _, light, glow, col| {
-                TerrainVertex::make_col_light(light, glow, col)
+            make_face_texel: move |vol: &mut V, pos, light, glow| {
+                TerrainVertex::make_col_light(light, glow, get_color(vol, pos))
             },
         });
 
@@ -311,7 +304,6 @@ where
             greedy_size_cross,
             get_light,
             get_glow,
-            get_color,
             get_opacity,
             should_draw,
             push_quad: |atlas_origin, dim, origin, draw_dim, norm, meta: &()| {
@@ -325,8 +317,8 @@ where
                     |atlas_pos, pos, norm, &_meta| create_opaque(atlas_pos, pos, norm),
                 ));
             },
-            make_face_texel: |_: &mut V, _, light, glow, col| {
-                TerrainVertex::make_col_light(light, glow, col)
+            make_face_texel: move |vol: &mut V, pos, light, glow| {
+                TerrainVertex::make_col_light(light, glow, get_color(vol, pos))
             },
         });
 
