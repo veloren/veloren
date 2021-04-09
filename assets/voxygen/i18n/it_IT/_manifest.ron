@@ -176,6 +176,7 @@ https://veloren.net/account/."#,
         "main.login.invalid_character": "Il personaggio selezionato è invalido",
         "main.login.client_crashed": "Il client si è arrestato",
         "main.login.not_on_whitelist": "Hai bisogno di un permesso di accesso da un admin per entrare",
+        "main.login.select_language": "Scegliere una lingua",
 
 
 
