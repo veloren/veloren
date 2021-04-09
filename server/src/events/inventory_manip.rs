@@ -607,9 +607,11 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             }
         },
     }
-
-    // Drop items
-    for (pos, ori, item) in dropped_items {
+    // Drop items, Debug items should simply disappear when dropped
+    for (pos, ori, item) in dropped_items
+        .into_iter()
+        .filter(|(_, _, i)| !matches!(i.quality(), item::Quality::Debug))
+    {
         // hack: special case coins for now
         let body = match item.item_definition_id() {
             "common.items.utility.coins" => comp::object::Body::Coins,
