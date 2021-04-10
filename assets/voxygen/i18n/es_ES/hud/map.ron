@@ -6,6 +6,7 @@
         // Map and Questlog
         "hud.map.map_title": "Mapa",
         "hud.map.qlog_title": "Misiones",
+        "hud.map.topo_map": "Topografia",
         "hud.map.difficulty": "Dificultad",
         "hud.map.towns": "Ciudades",
         "hud.map.castles": "Castillos",

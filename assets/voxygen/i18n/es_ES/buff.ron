@@ -17,11 +17,21 @@
         "buff.desc.campfire_heal": "Descansar en una fogata te sana 1% por segundo.",
         "buff.title.invulnerability": "Invulnerabilidad",
         "buff.desc.invulnerability": "No puedes ser dañado por ningún ataque.",
+        "buff.title.protectingward": "Guardián protector",
+        "buff.desc.protectingward": "De alguna manera, estás protegido de los ataques.",
         // Debuffs
         "buff.title.bleed": "Sangrado",
         "buff.desc.bleed": "Inflige un daño periódico.",
         "buff.title.cursed": "Maldito",
         "buff.desc.cursed": "Estás maldito.",
+        // Buffs stats
+        "buff.stat.health": "Restaura {str_total} salud",
+        "buff.stat.increase_max_stamina": "Aumenta la resistencia máxima en {strength}",
+        "buff.stat.increase_max_health": "Aumenta la salud máxima en {strength}",
+        "buff.stat.invulnerability": "Ofrece invulnerabilidad",
+        // Text
+        "buff.text.over_seconds": "durante {dur_secs} segundos",
+        "buff.text.for_seconds": "durante {dur_secs} segundos",
     },
 
 

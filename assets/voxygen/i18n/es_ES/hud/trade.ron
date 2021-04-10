@@ -16,6 +16,9 @@
 	"hud.trade.result.completed": "Trato completado con éxito",
 	"hud.trade.result.declined": "Trato rechazado",
 	"hud.trade.result.nospace": "No hay espacio suficiente para completar el comercio",
+	"hud.trade.buy_price": "Precio de compra",
+	"hud.trade.sell_price": "Precio de venta",
+	"hud.trade.coin": "Moneda(s)",
     },
 
 

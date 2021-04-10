@@ -8,6 +8,18 @@
         "hud.crafting.ingredients": "Ingredientes:",
         "hud.crafting.craft": "Elaborar",
         "hud.crafting.tool_cata": "Requisitos:",
+
+        // Tabs
+        "hud.crafting.tabs.all": "Todo",
+        "hud.crafting.tabs.armor": "Armadura",
+        "hud.crafting.tabs.dismantle": "Desmantelar",
+        "hud.crafting.tabs.food": "Comida",
+        "hud.crafting.tabs.glider": "Planeadores",
+        "hud.crafting.tabs.potion": "Pociones",
+        "hud.crafting.tabs.tool": "Herramientas",
+        "hud.crafting.tabs.utility": "Utilidad",
+        "hud.crafting.tabs.weapon": "Armas",
+        "hud.crafting.tabs.bag": "Bolsas",
     },
 
 

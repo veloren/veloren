@@ -89,6 +89,60 @@
             "No puedo entender de dónde vienen esos Sauroks",
             "Me gustaría que alguien mantuviera a los lobos alejados del pueblo",
             "Anoche tuve un sueño maravilloso sobre el queso. ¿Qué significa?",
+            "He dejado algo de queso con mi hermano. Ahora no se si existe o no. Lo llamo el queso de Schrödinger.",
+            "He dejado algo de queso con mi hermana. Ahora no se si existe o no. Lo llamo el queso de Schrödinger.",
+            "Alguien debería de hacer algo con esos cultistas. Preferiblemente alguien que no sea yo",
+            "Espero que llueva pronto. Sería bueno para los cultivos.",
+            "¡Me encanta la miel! Y odio las abejas.",
+            "Quiero ver el mundo algun día. Tiene que haber algo más en esta vida que este pueblo.",
+        ],
+        "npc.speech.villager_decline_trade": [
+            "Lo siento, no tengo nada para comerciar.",
+            "¿Comerciar? Como si tuviera algo que te pueda interesar.",
+            "Mi casa es mía y no la cambiaré por nada.",
+        ],
+        "npc.speech.merchant_advertisement": [
+            "¿Te interesaría comerciar conmigo?",
+            "¿Querrías comerciar conmigo?",
+            "Tengo muchos bienes. ¿Quieres echar un vistazo?"
+        ],
+        "npc.speech.merchant_busy": [
+            "Hey, espera tu turno",
+            "Ten paciencia, solo soy una persona.",
+            "¿Que no ves que estoy comerciando con alguien?",
+            "Un momento, dejame acabar.",
+            "Nada de colarse.",
+            "Estoy ocupado, vuelve más tarde."
+        ],
+        "npc.speech.merchant_trade_successful": [
+            "¡Gracias por comerciar conmigo!",
+            "¡Muchas gracias!",
+        ],
+        "npc.speech.merchant_trade_declined": [
+            "Quizás en otra ocasión, ¡ten un buen día!",
+            "Vaya, supongo que en otra ocasión."
+        ],
+        "npc.speech.villager_cultist_alarm": [
+            "¡Cuidado! ¡Hay cultistas sueltos!",
+            "¡A las armas! ¡Los cultistas nos atacan!",
+            "¡Como se atreven los cultistas a atacar esta aldea!",
+            "¡Muerte a los cultistas!",
+            "¡Aquí no toleramos a los cultistas!",
+            "¡Cultista asesino!",
+            "¡Prueba el filo de mi espada, sucio cultista!",
+            "¡Nada podrá limpiar la sangre de tus manos, cultista!",
+            "¡Esos malvados cultistas seran aniquilados!",
+            "¡Este cultista es mío!",
+            "¡Prepárate para conocer a tu creados, sucio cultista!",
+            "¡Veo un cultista! ¡Atrapadlo!",
+            "¡Veo un cultista! ¡Atacadlo!",
+            "¡Veo un cultista! ¡No dejéis que escape!",
+            "¡Nunca perdonamos!¡Nunca olvidamos!¡Muere, cultista!",
+            "¡Muere, cultista!",
+            "¡Tu reinado de terror llegará a su fin!",
+            "¡Pagarás por todo lo que has hecho!",
+            "Por aquí no tratamos con amabilidad a los de tu especie.",
+            "¡Deberías de haberte quedado bajo tierra!",
         ],
         "npc.speech.villager_under_attack": [
             "Ayuda, ¡me atacan!",
@@ -171,5 +225,10 @@
             "¡Guardias, arrojed a este monstruo al lago!",
             "¡Enviare mi Tarasca a por ti!",
         ],
+        "npc.speech.villager_enemy_killed": [
+            "¡He acabado con el enemigo!",
+            "¡Por fin, paz!",
+            "... ¿por dónde me había quedado?",
+        ]
     }
 )
