@@ -146,7 +146,7 @@ enum Mode {
         no_button: button::State,
     },
     Create {
-        name: String, // TODO: default to username
+        name: String,
         body: humanoid::Body,
         inventory: Box<comp::inventory::Inventory>,
         tool: &'static str,
@@ -230,6 +230,7 @@ struct Controls {
     mode: Mode,
     // Id of the selected character
     selected: Option<CharacterId>,
+    default_name: String,
 }
 
 #[derive(Clone)]
@@ -263,7 +264,7 @@ enum Message {
 }
 
 impl Controls {
-    fn new(fonts: Fonts, imgs: Imgs, selected: Option<CharacterId>) -> Self {
+    fn new(fonts: Fonts, imgs: Imgs, selected: Option<CharacterId>, default_name: String) -> Self {
         let version = common::util::DISPLAY_VERSION_LONG.clone();
         let alpha = format!("Veloren {}", common::util::DISPLAY_VERSION.as_str());
 
@@ -277,6 +278,7 @@ impl Controls {
             mouse_detector: Default::default(),
             mode: Mode::select(Some(InfoContent::LoadingCharacters)),
             selected,
+            default_name,
         }
     }
 
@@ -1246,7 +1248,7 @@ impl Controls {
             },
             Message::NewCharacter => {
                 if matches!(&self.mode, Mode::Select { .. }) {
-                    self.mode = Mode::create(String::new());
+                    self.mode = Mode::create(self.default_name.clone());
                 }
             },
             Message::CreateCharacter => {
@@ -1435,10 +1437,20 @@ impl CharSelectionUi {
 
         let fonts = Fonts::load(&i18n.fonts, &mut ui).expect("Impossible to load fonts");
 
+        #[cfg(feature = "singleplayer")]
+        let default_name = match global_state.singleplayer {
+            Some(_) => String::new(),
+            None => global_state.settings.networking.username.clone(),
+        };
+
+        #[cfg(not(feature = "singleplayer"))]
+        let default_name = global_state.settings.networking.username.clone();
+
         let controls = Controls::new(
             fonts,
             Imgs::load(&mut ui).expect("Failed to load images"),
             selected_character,
+            default_name,
         );
 
         Self {
