@@ -128,6 +128,7 @@ https://veloren.net/account/."#,
         "main.login.network_error": "Błąd sieci.",
         "main.login.failed_sending_request": "Zapytanie do serwera weryfikacji nie powiodło się",
         "main.login.client_crashed": "Crash clienta",
+        "main.login.select_language": "Wybierz język",
 
         /// End Main screen section
         /// Koniec sekcji Ekranu głównego

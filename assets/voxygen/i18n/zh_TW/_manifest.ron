@@ -121,6 +121,7 @@ https://veloren.net/account/."#,
         "main.login.network_error": "網路錯誤",
         "main.login.failed_sending_request": "認證伺服器請求失敗",
         "main.login.client_crashed": "客戶端崩潰",
+        "main.login.select_language": "选择一种语言 ",
 
         /// End Main screen section
 

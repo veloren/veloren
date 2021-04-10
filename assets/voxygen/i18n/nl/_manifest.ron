@@ -155,6 +155,8 @@ https://veloren.net/account/."#,
         "main.login.not_on_whitelist": "Je moet op de whitelist staan om deze wereld te joinen",
         "main.login.banned": "Je bent verbannen voor de volgende reden",
         "main.login.kicked": "Je bent gekicked voor de volgende reden",
+        "main.login.select_language": "Kies een taal",
+        
 
         /// End Main screen section
 
