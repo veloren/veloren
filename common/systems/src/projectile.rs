@@ -1,8 +1,8 @@
 use common::{
-    combat::{AttackerInfo, TargetInfo},
+    combat::{AttackSource, AttackerInfo, TargetInfo},
     comp::{
-        projectile, Body, Combo, Energy, Group, Health, HealthSource, Inventory, Ori, PhysicsState,
-        Pos, Projectile, Stats, Vel,
+        projectile, Body, CharacterState, Combo, Energy, Group, Health, HealthSource, Inventory,
+        Ori, PhysicsState, Pos, Projectile, Stats, Vel,
     },
     event::{EventBus, ServerEvent},
     outcome::Outcome,
@@ -36,6 +36,7 @@ pub struct ReadData<'a> {
     combos: ReadStorage<'a, Combo>,
     healths: ReadStorage<'a, Health>,
     bodies: ReadStorage<'a, Body>,
+    character_states: ReadStorage<'a, CharacterState>,
 }
 
 /// This system is responsible for handling projectile effect triggers
@@ -130,6 +131,10 @@ impl<'a> System<'a> for Sys {
                                     stats: read_data.stats.get(target),
                                     health: read_data.healths.get(target),
                                     pos: pos.0,
+                                    // TODO: Let someone smarter figure this out
+                                    // ori: orientations.get(target),
+                                    ori: None,
+                                    char_state: read_data.character_states.get(target),
                                 };
 
                                 if let Some(&body) = read_data.bodies.get(entity) {
@@ -152,6 +157,7 @@ impl<'a> System<'a> for Sys {
                                     ori.look_dir(),
                                     false,
                                     1.0,
+                                    AttackSource::Projectile,
                                     |e| server_emitter.emit(e),
                                     |o| outcomes.push(o),
                                 );

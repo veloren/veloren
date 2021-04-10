@@ -1,1 +1,6 @@
-BasicBlock
+BasicBlock(
+    buildup_duration: 0.1,
+    recover_duration: 0.1,
+    max_angle: 90.0,
+    block_strength: 0.8,
+)

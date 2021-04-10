@@ -12,8 +12,8 @@ use crate::{
         },
         poise::PoiseChange,
         skills::SkillGroupKind,
-        Body, Combo, Energy, EnergyChange, EnergySource, Health, HealthChange, HealthSource,
-        Inventory, SkillSet, Stats,
+        Body, CharacterState, Combo, Energy, EnergyChange, EnergySource, Health, HealthChange, HealthSource,
+        Inventory, Ori, SkillSet, Stats,
     },
     event::ServerEvent,
     outcome::Outcome,
@@ -39,6 +39,15 @@ pub enum GroupTarget {
     OutOfGroup,
 }
 
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+pub enum AttackSource {
+    Melee,
+    Projectile,
+    Beam,
+    Shockwave,
+    Explosion,
+}
+
 #[cfg(not(target_arch = "wasm32"))]
 #[derive(Copy, Clone)]
 pub struct AttackerInfo<'a> {
@@ -55,6 +64,8 @@ pub struct TargetInfo<'a> {
     pub stats: Option<&'a Stats>,
     pub health: Option<&'a Health>,
     pub pos: Vec3<f32>,
+    pub ori: Option<&'a Ori>,
+    pub char_state: Option<&'a CharacterState>,
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -105,6 +116,28 @@ impl Attack {
 
     pub fn effects(&self) -> impl Iterator<Item = &AttackEffect> { self.effects.iter() }
 
+    pub fn compute_damage_reduction(target: &TargetInfo, source: AttackSource, dir: Dir) -> f32 {
+        let damage_reduction = Damage::compute_damage_reduction(target.inventory, target.stats);
+        let block_reduction = match source {
+            AttackSource::Melee => {
+                if let (Some(CharacterState::BasicBlock(data)), Some(ori)) =
+                    (target.char_state, target.ori)
+                {
+                    if ori.look_vec().angle_between(-*dir) < data.static_data.max_angle.to_radians()
+                    {
+                        data.static_data.block_strength
+                    } else {
+                        0.0
+                    }
+                } else {
+                    0.0
+                }
+            },
+            _ => 0.0,
+        };
+        1.0 - (1.0 - damage_reduction) * (1.0 - block_reduction)
+    }
+
     #[allow(clippy::too_many_arguments)]
     pub fn apply_attack(
         &self,
@@ -115,6 +148,7 @@ impl Attack {
         target_dodging: bool,
         // Currently just modifies damage, maybe look into modifying strength of other effects?
         strength_modifier: f32,
+        attack_source: AttackSource,
         mut emit: impl FnMut(ServerEvent),
         mut emit_outcome: impl FnMut(Outcome),
     ) {
@@ -126,7 +160,7 @@ impl Attack {
             .filter(|d| d.target.map_or(true, |t| t == target_group))
             .filter(|d| !(matches!(d.target, Some(GroupTarget::OutOfGroup)) && target_dodging))
         {
-            let damage_reduction = Damage::compute_damage_reduction(target.inventory, target.stats);
+            let damage_reduction = Attack::compute_damage_reduction(&target, attack_source, dir);
             let change = damage.damage.calculate_health_change(
                 damage_reduction,
                 attacker.map(|a| a.uid),

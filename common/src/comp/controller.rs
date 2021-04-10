@@ -149,10 +149,11 @@ impl ControlAction {
 pub enum InputKind {
     Primary = 0,
     Secondary = 1,
-    Ability(usize) = 2,
-    Roll = 3,
-    Jump = 4,
-    Fly = 5,
+    Block = 2,
+    Ability(usize) = 3,
+    Roll = 4,
+    Jump = 5,
+    Fly = 6,
 }
 
 impl InputKind {

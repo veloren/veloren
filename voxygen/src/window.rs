@@ -21,6 +21,7 @@ use winit::monitor::VideoMode;
 pub enum GameInput {
     Primary,
     Secondary,
+    Block,
     Slot1,
     Slot2,
     Slot3,
@@ -85,6 +86,7 @@ impl GameInput {
         match *self {
             GameInput::Primary => "gameinput.primary",
             GameInput::Secondary => "gameinput.secondary",
+            GameInput::Block => "gameinput.block",
             GameInput::ToggleCursor => "gameinput.togglecursor",
             GameInput::MoveForward => "gameinput.moveforward",
             GameInput::MoveLeft => "gameinput.moveleft",
@@ -149,6 +151,7 @@ impl GameInput {
         [
             GameInput::Primary,
             GameInput::Secondary,
+            GameInput::Block,
             GameInput::ToggleCursor,
             GameInput::MoveForward,
             GameInput::MoveLeft,

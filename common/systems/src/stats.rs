@@ -253,26 +253,11 @@ impl<'a> System<'a> for Sys {
                         energy.get_mut_unchecked().regen_rate = 0.0
                     }
                 },
-                // recover small amount of passive energy from blocking, and bonus energy from
-                // blocking attacks?
-                CharacterState::BasicBlock => {
-                    let res = {
-                        let energy = energy.get_unchecked();
-                        energy.current() < energy.maximum()
-                    };
-
-                    if res {
-                        energy.get_mut_unchecked().change_by(EnergyChange {
-                            amount: -3,
-                            source: EnergySource::Regen,
-                        });
-                    }
-                },
-                // Non-combat abilities that consume energy;
-                // temporarily stall energy gain, but preserve regen_rate.
+                // Abilities that temporarily stall energy gain, but preserve regen_rate.
                 CharacterState::Roll { .. }
                 | CharacterState::Climb { .. }
-                | CharacterState::Stunned { .. } => {},
+                | CharacterState::Stunned { .. }
+                | CharacterState::BasicBlock { .. } => {},
             }
         }
 

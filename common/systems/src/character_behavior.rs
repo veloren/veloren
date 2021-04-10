@@ -301,9 +301,7 @@ impl<'a> System<'a> for Sys {
                     CharacterState::Sneak => {
                         states::sneak::Data::handle_event(&states::sneak::Data, &j, action)
                     },
-                    CharacterState::BasicBlock => {
-                        states::basic_block::Data.handle_event(&j, action)
-                    },
+                    CharacterState::BasicBlock(data) => data.handle_event(&j, action),
                     CharacterState::Roll(data) => data.handle_event(&j, action),
                     CharacterState::Wielding => states::wielding::Data.handle_event(&j, action),
                     CharacterState::Equipping(data) => data.handle_event(&j, action),
@@ -357,7 +355,7 @@ impl<'a> System<'a> for Sys {
                 CharacterState::Sit => states::sit::Data::behavior(&states::sit::Data, &j),
                 CharacterState::Dance => states::dance::Data::behavior(&states::dance::Data, &j),
                 CharacterState::Sneak => states::sneak::Data::behavior(&states::sneak::Data, &j),
-                CharacterState::BasicBlock => states::basic_block::Data.behavior(&j),
+                CharacterState::BasicBlock(data) => data.behavior(&j),
                 CharacterState::Roll(data) => data.behavior(&j),
                 CharacterState::Wielding => states::wielding::Data.behavior(&j),
                 CharacterState::Equipping(data) => data.behavior(&j),

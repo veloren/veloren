@@ -111,6 +111,7 @@ impl ControlSettings {
         match game_input {
             GameInput::Primary => KeyMouse::Mouse(MouseButton::Left),
             GameInput::Secondary => KeyMouse::Mouse(MouseButton::Right),
+            GameInput::Block => KeyMouse::Key(VirtualKeyCode::LAlt),
             GameInput::ToggleCursor => KeyMouse::Key(VirtualKeyCode::Comma),
             GameInput::Escape => KeyMouse::Key(VirtualKeyCode::Escape),
             GameInput::Chat => KeyMouse::Key(VirtualKeyCode::Return),

@@ -1,5 +1,5 @@
 use common::{
-    combat::{AttackerInfo, TargetInfo},
+    combat::{AttackSource, AttackerInfo, TargetInfo},
     comp::{
         Body, CharacterState, Combo, Energy, Group, Health, Inventory, Melee, Ori, Pos, Scale,
         Stats,
@@ -147,6 +147,8 @@ impl<'a> System<'a> for Sys {
                         stats: read_data.stats.get(target),
                         health: read_data.healths.get(target),
                         pos: pos.0,
+                        ori: read_data.orientations.get(target),
+                        char_state: read_data.char_states.get(target),
                     };
 
                     melee_attack.attack.apply_attack(
@@ -156,6 +158,7 @@ impl<'a> System<'a> for Sys {
                         dir,
                         is_dodge,
                         1.0,
+                        AttackSource::Melee,
                         |e| server_emitter.emit(e),
                         |o| outcomes.push(o),
                     );

@@ -579,7 +579,7 @@ fn handle_ability(data: &JoinData, update: &mut StateUpdate, input: InputKind) {
                     .get(skill_index)
                     .cloned()
                     .and_then(unlocked),
-                InputKind::Roll | InputKind::Jump | InputKind::Fly => None,
+                InputKind::Roll | InputKind::Jump | InputKind::Fly | InputKind::Block => None,
             })
             .map(|a| {
                 let tool = unwrap_tool_data(data, equip_slot).map(|t| t.kind);
@@ -615,6 +615,7 @@ pub fn handle_input(data: &JoinData, update: &mut StateUpdate, input: InputKind)
         InputKind::Jump => {
             handle_jump(data, update, 1.0);
         },
+        InputKind::Block => handle_block_input(data, update),
         InputKind::Fly => {},
     }
 }
@@ -623,6 +624,21 @@ pub fn attempt_input(data: &JoinData, update: &mut StateUpdate) {
     // TODO: look into using first() when it becomes stable
     if let Some(input) = data.controller.queued_inputs.keys().next() {
         handle_input(data, update, *input);
+    }
+}
+
+/// Checks that player can block, then attempts to block
+pub fn handle_block_input(data: &JoinData, update: &mut StateUpdate) {
+    let can_block =
+        |equip_slot| matches!(unwrap_tool_data(data, equip_slot), Some(tool) if tool.can_block());
+    if input_is_pressed(data, InputKind::Block) && can_block(EquipSlot::Mainhand) {
+        let ability = CharacterAbility::default_block();
+        if ability.requirements_paid(data, update) {
+            update.character = CharacterState::from((
+                &ability,
+                AbilityInfo::from_input(data, false, InputKind::Roll),
+            ));
+        }
     }
 }
 

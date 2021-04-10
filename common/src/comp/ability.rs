@@ -39,7 +39,7 @@ impl From<&CharacterState> for CharacterAbilityType {
             CharacterState::BasicRanged(_) => Self::BasicRanged,
             CharacterState::Boost(_) => Self::Boost,
             CharacterState::DashMelee(data) => Self::DashMelee(data.stage_section),
-            CharacterState::BasicBlock => Self::BasicBlock,
+            CharacterState::BasicBlock(_) => Self::BasicBlock,
             CharacterState::LeapMelee(data) => Self::LeapMelee(data.stage_section),
             CharacterState::ComboMelee(data) => Self::ComboMelee(data.stage_section, data.stage),
             CharacterState::SpinMelee(data) => Self::SpinMelee(data.stage_section),
@@ -114,7 +114,12 @@ pub enum CharacterAbility {
         charge_through: bool,
         is_interruptible: bool,
     },
-    BasicBlock,
+    BasicBlock {
+        buildup_duration: f32,
+        recover_duration: f32,
+        max_angle: f32,
+        block_strength: f32,
+    },
     Roll {
         energy_cost: f32,
         buildup_duration: f32,
@@ -341,6 +346,15 @@ impl CharacterAbility {
         }
     }
 
+    pub fn default_block() -> CharacterAbility {
+        CharacterAbility::BasicBlock {
+            buildup_duration: 0.1,
+            recover_duration: 0.1,
+            max_angle: 60.0,
+            block_strength: 0.5,
+        }
+    }
+
     pub fn adjusted_by_stats(mut self, power: f32, poise_strength: f32, speed: f32) -> Self {
         use CharacterAbility::*;
         match self {
@@ -408,7 +422,15 @@ impl CharacterAbility {
                 *swing_duration /= speed;
                 *recover_duration /= speed;
             },
-            BasicBlock => {},
+            BasicBlock {
+                ref mut buildup_duration,
+                ref mut recover_duration,
+                // Block strength explicitly not modified by power, that will be a separate stat
+                ..
+            } => {
+                *buildup_duration /= speed;
+                *recover_duration /= speed;
+            },
             Roll {
                 ref mut buildup_duration,
                 ref mut movement_duration,
@@ -586,7 +608,11 @@ impl CharacterAbility {
                     0
                 }
             },
-            BasicBlock | Boost { .. } | ComboMelee { .. } | Blink { .. } | BasicSummon { .. } => 0,
+            BasicBlock { .. }
+            | Boost { .. }
+            | ComboMelee { .. }
+            | Blink { .. }
+            | BasicSummon { .. } => 0,
         }
     }
 
@@ -1235,7 +1261,23 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 stage_section: StageSection::Buildup,
                 exhausted: false,
             }),
-            CharacterAbility::BasicBlock => CharacterState::BasicBlock,
+            CharacterAbility::BasicBlock {
+                buildup_duration,
+                recover_duration,
+                max_angle,
+                block_strength,
+            } => CharacterState::BasicBlock(basic_block::Data {
+                static_data: basic_block::StaticData {
+                    buildup_duration: Duration::from_secs_f32(*buildup_duration),
+                    recover_duration: Duration::from_secs_f32(*recover_duration),
+                    max_angle: *max_angle,
+                    block_strength: *block_strength,
+                    ability_info,
+                },
+                timer: Duration::default(),
+                stage_section: StageSection::Buildup,
+                parry: false,
+            }),
             CharacterAbility::Roll {
                 energy_cost: _,
                 buildup_duration,

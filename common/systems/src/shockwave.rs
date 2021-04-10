@@ -1,8 +1,8 @@
 use common::{
-    combat::{AttackerInfo, TargetInfo},
+    combat::{AttackSource, AttackerInfo, TargetInfo},
     comp::{
-        Body, Combo, Energy, Group, Health, HealthSource, Inventory, Ori, PhysicsState, Pos, Scale,
-        Shockwave, ShockwaveHitEntities, Stats,
+        Body, CharacterState, Combo, Energy, Group, Health, HealthSource, Inventory, Ori,
+        PhysicsState, Pos, Scale, Shockwave, ShockwaveHitEntities, Stats,
     },
     event::{EventBus, ServerEvent},
     outcome::Outcome,
@@ -37,6 +37,7 @@ pub struct ReadData<'a> {
     energies: ReadStorage<'a, Energy>,
     stats: ReadStorage<'a, Stats>,
     combos: ReadStorage<'a, Combo>,
+    character_states: ReadStorage<'a, CharacterState>,
 }
 
 /// This system is responsible for handling accepted inputs like moving or
@@ -193,6 +194,8 @@ impl<'a> System<'a> for Sys {
                         stats: read_data.stats.get(target),
                         health: read_data.healths.get(target),
                         pos: pos.0,
+                        ori: read_data.orientations.get(target),
+                        char_state: read_data.character_states.get(target),
                     };
 
                     shockwave.properties.attack.apply_attack(
@@ -202,6 +205,7 @@ impl<'a> System<'a> for Sys {
                         dir,
                         false,
                         1.0,
+                        AttackSource::Shockwave,
                         |e| server_emitter.emit(e),
                         |o| outcomes.push(o),
                     );
