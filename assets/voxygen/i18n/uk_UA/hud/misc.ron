@@ -19,6 +19,10 @@
         // Respawn message
         "hud.press_key_to_respawn": r#"Натисніть {key}, щоб відновитись біля останньої відвіданої ватри."#,
 
+        // Tutorial Button 
+        "hud.tutorial_btn": r#"Туторіал"#,
+        "hud.tutorial_click_here": r#"Натисни [ {key} ] щоб звільнити свій курсор і натиснути цю кнопку!"#,
+        "hud.tutorial_elements": r#"Ремесло"#,
         // Welcome message
         "hud.welcome": r#"Вітаємо в Veloren Alpha!
 
@@ -64,13 +68,13 @@
 Можливо, ти навіть зможеш здобути якісь
 їз їхніх магічних предметів?"#,
 
-
         "hud.spell": "Чари",
         // Diary
         "hud.diary": "Щоденник",
 
         "hud.free_look_indicator": "Вільний огляд активовано. Натисніть {key}, щоб вимкнути.",
         "hud.auto_walk_indicator": "Авто-хода активована",
+        "hud.camera_clamp_indicator": "Камера вертикально закріплена. Натисніть {key} щоб відімкнути",
     },
 
 

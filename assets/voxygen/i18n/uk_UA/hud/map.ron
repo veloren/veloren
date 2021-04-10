@@ -14,11 +14,14 @@
         "hud.map.cave": "Печера",
         "hud.map.town": "Місто",
         "hud.map.castle": "Фортеця",
+        "hud.map.tree": "Гігантське дерево",
+        "hud.map.trees": "Гігатські дерева",
         "hud.map.dungeon": "Підземелля",
         "hud.map.difficulty_dungeon": "Складність\n\nПідземелля: {difficulty}",
         "hud.map.drag": "Область",
         "hud.map.zoom": "Масштаб",
         "hud.map.recenter": "Відцентрувати",
+        "hud.map.topo_map": "Топографічна мапа",
     },
 
 

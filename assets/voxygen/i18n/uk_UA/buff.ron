@@ -3,6 +3,7 @@
 /// Localization for Ukrainian
 (
     string_map: {
+        // Buffs
         "buff.remove": "Клікніть, щоб видалити",
         "buff.title.missing": "Назва відсутня",
         "buff.desc.missing": "Опис відсутній",
@@ -14,8 +15,23 @@
         "buff.desc.saturation": "Поступово відновлює здоров'я з їжі.",
         "buff.title.campfire_heal": "Відновлення біля ватри",
         "buff.desc.campfire_heal": "Відпочинок біля ватри лікує на 1% за секунду.",
+        "buff.title.invulnerability": "Непробивний",
+        "buff.desc.invulnerability": "Ви невразливий, але тримайтесь подалі від омели.",
+        "buff.title.protectingward": "Захисна Аура",
+        "buff.desc.protectingward": "Ви захищені від атак, у якомусь сенсі.",
+        // Debuffs
+        "buff.title.cursed": "Проклін",
+        "buff.desc.cursed": "Вас прокляли.",
         "buff.title.bleed": "Кровотеча",
-        "buff.desc.bleed": "Наносить регулярні ушкодження.",
+        "buff.desc.bleed": "Завдає регулярних пошкодженнь.",
+        // Stats
+        "buff.stat.health": "Відновлює {str_total} здоров'я",
+        "buff.stat.increase_max_health": "Піднімає Максимальне здоров'я на {strength}",
+        "buff.stat.increase_max_stamina": "Піднімає Максимальну енергію на {strength}",
+        "buff.stat.invulnerability": "Дає невразливість",
+        // Text
+        "buff.text.for_seconds": "протягом {dur_secs} секунд",
+        "buff.text.over_seconds": "впродовж {dur_secs} секунд",
     },
 
 
