@@ -51,6 +51,7 @@
         "gameinput.interact": "Interactuar",
         "gameinput.freelook": "Vista libre",
         "gameinput.autowalk": "Auto Correr",
+        "gameinput.cameraclamp": "Sujeción de la cámara",
         "gameinput.dance": "Bailar",
         "gameinput.select": "Seleccionar entidad",
         "gameinput.acceptgroupinvite": "Aceptar invitación al grupo",

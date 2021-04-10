@@ -4,8 +4,6 @@
 (
     string_map: {
         /// Start Main screen section
-        "main.connecting": "Conectando",
-        "main.creating_world": "Creando mundo",
         "main.username": "Usuario",
         "main.server": "Servidor",
         "main.password": "Contraseña",
@@ -44,6 +42,7 @@ Puedes crear una cuenta en
 https://veloren.net/account/."#,
         "main.login.server_not_found": "Servidor no encontrado",
         "main.login.authentication_error": "Error de autenticación al servidor",
+        "main.login.failed_auth_server_url_invalid": "Error al conectar al servidor de identificaicón",
         "main.login.server_full": "El servidor está lleno",
         "main.login.untrusted_auth_server": "Servidor con autenticación sin confianza",
         "main.login.outdated_client_or_server": "ServerEnloquecido: Probablemente las versiones son incompatibles, revisa si hay actualizaciones.",

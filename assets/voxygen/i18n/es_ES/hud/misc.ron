@@ -42,7 +42,8 @@ Cuando te sientas preparado, ¡intenta conseguir un equipo aún mejor en los num
         // Diary
         "hud.diary": "Diario",
 
-        "hud.free_look_indicator": "Vista libre activa",
+        "hud.free_look_indicator": "Vista libre activa. Presiona {key} para desactivarla.",
+        "hud.camera_clamp_indicator": "Sujeción vertical de la cámara activa. Presiona {key} para desactivarla.",
         "hud.auto_walk_indicator": "Marcha automática activa",
     },
 
