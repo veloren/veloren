@@ -2,7 +2,14 @@
 #![allow(incomplete_features)]
 #![allow(clippy::option_map_unit_fn)]
 #![deny(clippy::clone_on_ref_ptr)]
-#![feature(array_map, bool_to_option, const_generics, drain_filter, or_patterns)]
+#![feature(
+    array_map,
+    bool_to_option,
+    const_generics,
+    drain_filter,
+    once_cell,
+    or_patterns
+)]
 #![recursion_limit = "2048"]
 
 #[macro_use]
@@ -47,6 +54,7 @@ pub struct GlobalState {
     pub settings: Settings,
     pub profile: Profile,
     pub window: Window,
+    pub lazy_init: scene::terrain::SpriteRenderContextLazy,
     pub audio: AudioFrontend,
     pub info_message: Option<String>,
     pub clock: Clock,
