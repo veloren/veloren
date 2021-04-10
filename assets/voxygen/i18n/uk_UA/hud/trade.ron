@@ -1,0 +1,28 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for "global" Ukrainian
+(
+    string_map: {
+        "hud.trade.trade_window": "Торгове вікно",
+	"hud.trade.phase1_description": "Перетягніть речі, якими ви хочете\nторгувати до відповідної області.",
+	"hud.trade.phase2_description": "Торговий процес тепер замкнений і\nви маєте змогу перевірити угоду.",
+	/// Phase3 should only be visible for a few milliseconds if everything is working properly, but is included for completeness
+	"hud.trade.phase3_description": "Угода опрацьовується.",
+	"hud.trade.persons_offer": "Пропозиція\n{playername}",
+	"hud.trade.has_accepted": "{playername}\n дав згоду",
+	"hud.trade.accept": "Прийняти",
+	"hud.trade.decline": "Відмовитись",
+	"hud.trade.invite_sent": "Пропозиція торгувати надіслана до {playername}.",
+	"hud.trade.result.completed": "Торгівля завершилась успішно.",
+	"hud.trade.result.declined": "Торгівля розірвана.",
+	"hud.trade.result.nospace": "Недостатньо місця щоб завершити торг.",
+	"hud.trade.buy_price": "Ціна покупки",
+	"hud.trade.sell_price": "Ціна продажу",
+	"hud.trade.coin": "Монет",
+    },
+
+
+    vector_map: {
+    }
+)
+

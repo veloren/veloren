@@ -57,8 +57,11 @@
         "gameinput.crafting": "Ремесло",
         "gameinput.fly": "Летіти",
         "gameinput.sneak": "Підкрадатись",
-        "gameinput.swimdown": "Плисти вниз",
-        "gameinput.swimup": "Плисти вверх",
+        "gameinput.swimdown": "Пірнати",
+        "gameinput.swimup": "Випливати",
+        "gameinput.cameraclamp": "Закріпити камеру",
+        "gameinput.cyclecamera": "Крутити камеру",
+        "gameinput.trade": "Торгувати",
     },
 
 

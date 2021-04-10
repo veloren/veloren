@@ -5,9 +5,21 @@
     string_map: {
         "hud.crafting": "Ремесло",
         "hud.crafting.recipes": "Рецепти",
-        "hud.crafting.ingredients": "Інгрідієнти:",
+        "hud.crafting.ingredients": "Інгредієнти:",
         "hud.crafting.craft": "Виготовити",
         "hud.crafting.tool_cata": "Необхідно:",
+
+        // Tabs
+        "hud.crafting.tabs.all": "Усе",
+        "hud.crafting.tabs.armor": "Броня",
+        "hud.crafting.tabs.dismantle": "Переробка",
+        "hud.crafting.tabs.food": "Їжа",
+        "hud.crafting.tabs.glider": "Планери",
+        "hud.crafting.tabs.potion": "Зілля",
+        "hud.crafting.tabs.tool": "Інструменти",
+        "hud.crafting.tabs.utility": "Корисності",
+        "hud.crafting.tabs.weapon": "Зброя",
+        "hud.crafting.tabs.bag": "Сумки",
     },
 
 

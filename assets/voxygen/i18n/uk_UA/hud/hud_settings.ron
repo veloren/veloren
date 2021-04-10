@@ -84,6 +84,10 @@
         "hud.settings.shadow_rendering_mode.map.resolution": "Роздільна здатність",
         "hud.settings.lod_detail": "Рівень деталізації",
         "hud.settings.save_window_size": "Зберегти розмір вікна",
+        "hud.settings.auto_camera": "Авто камера",
+        "hud.settings.camera_clamp_angle": "Кут для закріплення камери у режимі закріплення",
+        "hud.settings.camera_clamp_behavior": "Поведінка закріпленої камери",
+        "hud.settings.invert_controller_y_axis": "Інвертація контролера по осі Y",
 
         "hud.settings.music_volume": "Гучність музики",
         "hud.settings.sound_effect_volume": "Гучність звукових ефектів",
@@ -91,7 +95,11 @@
 
         "hud.settings.awaitingkey": "Натисніть клавішу...",
         "hud.settings.unbound": "Нічого",
-        "hud.settings.reset_keybinds": "Скинути до типових",
+        "hud.settings.reset_keybinds": "Значення за замовчуванням",
+        "hud.settings.reset_gameplay": "Значення за замовчуванням",
+        "hud.settings.reset_graphics": "Значення за замовчуванням",
+        "hud.settings.reset_interface": "Значення за замовчуванням",
+        "hud.settings.reset_sound": "Значення за замовчуванням",
     },
 
 
