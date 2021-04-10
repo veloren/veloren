@@ -84,6 +84,7 @@ impl SessionState {
         // game world.
         let mut scene = Scene::new(
             global_state.window.renderer_mut(),
+            &mut global_state.lazy_init,
             &*client.borrow(),
             &global_state.settings,
         );

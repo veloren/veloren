@@ -4904,7 +4904,7 @@ impl FigureColLights {
                 i32::from(tex_size.y),
             ))
             .expect("Not yet implemented: allocate new atlas on allocation failure.");
-        let col_lights = ShadowPipeline::create_col_lights(renderer, (tex, tex_size))?;
+        let col_lights = ShadowPipeline::create_col_lights(renderer, &(tex, tex_size))?;
         let model_len = u32::try_from(opaque.vertices().len())
             .expect("The model size for this figure does not fit in a u32!");
         let model = renderer.create_model(&opaque)?;

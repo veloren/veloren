@@ -13,6 +13,7 @@ use common::{
     figure::Cell,
     vol::{BaseVol, ReadVol, SizedVol, Vox},
 };
+use core::convert::TryFrom;
 use vek::*;
 
 type SpriteVertex = <SpritePipeline as render::Pipeline>::Vertex;
@@ -79,10 +80,10 @@ where
         };
         let get_glow = |_vol: &mut V, _pos: Vec3<i32>| 0.0;
         let get_opacity =
-            |vol: &mut V, pos: Vec3<i32>| vol.get(pos).map(|vox| vox.is_empty()).unwrap_or(true);
+            |vol: &mut V, pos: Vec3<i32>| vol.get(pos).map_or(true, |vox| vox.is_empty());
         let should_draw = |vol: &mut V, pos: Vec3<i32>, delta: Vec3<i32>, uv| {
             should_draw_greedy(pos, delta, uv, |vox| {
-                vol.get(vox).map(|vox| *vox).unwrap_or(Vox::empty())
+                vol.get(vox).map(|vox| *vox).unwrap_or(Cell::empty())
             })
         };
         let create_opaque = |atlas_pos, pos, norm| {
@@ -161,6 +162,14 @@ where
                 && lower_bound.y <= upper_bound.y
                 && lower_bound.z <= upper_bound.z
         );
+        // Lower bound coordinates must fit in an i16 (which means upper bound
+        // coordinates fit as integers in a f23).
+        assert!(
+            i16::try_from(lower_bound.x).is_ok()
+                && i16::try_from(lower_bound.y).is_ok()
+                && i16::try_from(lower_bound.z).is_ok(),
+            "Sprite offsets should fit in i16",
+        );
         let greedy_size = upper_bound - lower_bound + 1;
         // TODO: Should this be 16, 16, 64?
         assert!(
@@ -168,39 +177,69 @@ where
             "Sprite size out of bounds: {:?} ≤ (31, 31, 63)",
             greedy_size - 1
         );
+
+        let (flat, flat_get) = {
+            let (w, h, d) = (greedy_size + 2).into_tuple();
+            let flat = {
+                let vol = self;
+
+                let mut flat = vec![Cell::empty(); (w * h * d) as usize];
+                let mut i = 0;
+                for x in -1..greedy_size.x + 1 {
+                    for y in -1..greedy_size.y + 1 {
+                        for z in -1..greedy_size.z + 1 {
+                            let wpos = lower_bound + Vec3::new(x, y, z);
+                            let block = vol.get(wpos).map(|b| *b).unwrap_or(Cell::empty());
+                            flat[i] = block;
+                            i += 1;
+                        }
+                    }
+                }
+                flat
+            };
+
+            let flat_get = move |flat: &Vec<Cell>, Vec3 { x, y, z }| match flat
+                .get((x * h * d + y * d + z) as usize)
+                .copied()
+            {
+                Some(b) => b,
+                None => panic!("x {} y {} z {} d {} h {}", x, y, z, d, h),
+            };
+
+            (flat, flat_get)
+        };
+
         // NOTE: Cast to usize is safe because of previous check, since all values fit
         // into u16 which is safe to cast to usize.
         let greedy_size = greedy_size.as_::<usize>();
 
         let greedy_size_cross = greedy_size;
-        let draw_delta = lower_bound;
+        let draw_delta = Vec3::new(1, 1, 1);
 
-        let get_light = |vol: &mut V, pos: Vec3<i32>| {
-            if vol.get(pos).map(|vox| vox.is_empty()).unwrap_or(true) {
+        let get_light = move |flat: &mut _, pos: Vec3<i32>| {
+            if flat_get(flat, pos).is_empty() {
                 1.0
             } else {
                 0.0
             }
         };
-        let get_glow = |_vol: &mut V, _pos: Vec3<i32>| 0.0;
-        let get_color = |vol: &mut V, pos: Vec3<i32>| {
-            vol.get(pos)
-                .ok()
-                .and_then(|vox| vox.get_color())
-                .unwrap_or(Rgb::zero())
+        let get_glow = |_flat: &mut _, _pos: Vec3<i32>| 0.0;
+        let get_color = move |flat: &mut _, pos: Vec3<i32>| {
+            flat_get(flat, pos).get_color().unwrap_or(Rgb::zero())
         };
-        let get_opacity =
-            |vol: &mut V, pos: Vec3<i32>| vol.get(pos).map(|vox| vox.is_empty()).unwrap_or(true);
-        let should_draw = |vol: &mut V, pos: Vec3<i32>, delta: Vec3<i32>, uv| {
-            should_draw_greedy_ao(vertical_stripes, pos, delta, uv, |vox| {
-                vol.get(vox).map(|vox| *vox).unwrap_or(Vox::empty())
-            })
+        let get_opacity = move |flat: &mut _, pos: Vec3<i32>| flat_get(flat, pos).is_empty();
+        let should_draw = move |flat: &mut _, pos: Vec3<i32>, delta: Vec3<i32>, uv| {
+            should_draw_greedy_ao(vertical_stripes, pos, delta, uv, |vox| flat_get(flat, vox))
         };
-        let create_opaque =
-            |atlas_pos, pos: Vec3<f32>, norm, _meta| SpriteVertex::new(atlas_pos, pos, norm);
+        // NOTE: Fits in i16 (much lower actually) so f32 is no problem (and the final
+        // position, pos + mesh_delta, is guaranteed to fit in an f32).
+        let mesh_delta = lower_bound.as_::<f32>();
+        let create_opaque = |atlas_pos, pos: Vec3<f32>, norm, _meta| {
+            SpriteVertex::new(atlas_pos, pos + mesh_delta, norm)
+        };
 
         greedy.push(GreedyConfig {
-            data: self,
+            data: flat,
             draw_delta,
             greedy_size,
             greedy_size_cross,
@@ -219,8 +258,8 @@ where
                     |atlas_pos, pos, norm, &meta| create_opaque(atlas_pos, pos, norm, meta),
                 ));
             },
-            make_face_texel: move |vol: &mut V, pos, light, glow| {
-                TerrainVertex::make_col_light(light, glow, get_color(vol, pos))
+            make_face_texel: move |flat: &mut _, pos, light, glow| {
+                TerrainVertex::make_col_light(light, glow, get_color(flat, pos))
             },
         });
 
@@ -288,10 +327,10 @@ where
                 .unwrap_or(Rgb::zero())
         };
         let get_opacity =
-            |vol: &mut V, pos: Vec3<i32>| vol.get(pos).map(|vox| vox.is_empty()).unwrap_or(true);
+            |vol: &mut V, pos: Vec3<i32>| vol.get(pos).map_or(true, |vox| vox.is_empty());
         let should_draw = |vol: &mut V, pos: Vec3<i32>, delta: Vec3<i32>, uv| {
             should_draw_greedy(pos, delta, uv, |vox| {
-                vol.get(vox).map(|vox| *vox).unwrap_or(Vox::empty())
+                vol.get(vox).map(|vox| *vox).unwrap_or(Cell::empty())
             })
         };
         let create_opaque = |_atlas_pos, pos: Vec3<f32>, norm| ParticleVertex::new(pos, norm);

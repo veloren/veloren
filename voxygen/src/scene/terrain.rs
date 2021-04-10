@@ -304,13 +304,211 @@ impl TerrainChunkData {
     pub fn can_shadow_sun(&self) -> bool { self.visible.is_visible() || self.can_shadow_sun }
 }
 
-impl<V: RectRasterableVol> Terrain<V> {
-    #[allow(clippy::float_cmp)] // TODO: Pending review in #587
-    pub fn new(renderer: &mut Renderer) -> Self {
-        // Load all the sprite config data.
-        let sprite_config =
-            Arc::<SpriteSpec>::load_expect("voxygen.voxel.sprite_manifest").cloned();
+#[derive(Clone)]
+pub struct SpriteRenderContext {
+    sprite_config: Arc<SpriteSpec>,
+    sprite_data: Arc<HashMap<(SpriteKind, usize), Vec<SpriteData>>>,
+    sprite_col_lights: Texture<ColLightFmt>,
+}
 
+pub type SpriteRenderContextLazy = Box<dyn FnMut(&mut Renderer) -> SpriteRenderContext>;
+
+impl SpriteRenderContext {
+    #[allow(clippy::float_cmp)] // TODO: Pending review in #587
+    pub fn new(renderer: &mut Renderer) -> SpriteRenderContextLazy {
+        let max_texture_size = renderer.max_texture_size();
+
+        struct SpriteDataResponse {
+            locals: [SpriteLocals; 8],
+            model: Mesh<SpritePipeline>,
+            offset: Vec3<f32>,
+        }
+
+        struct SpriteWorkerResponse {
+            sprite_config: Arc<SpriteSpec>,
+            sprite_data: HashMap<(SpriteKind, usize), Vec<SpriteDataResponse>>,
+            sprite_col_lights: ColLightInfo,
+        }
+
+        let join_handle = std::thread::spawn(move || {
+            // Load all the sprite config data.
+            let sprite_config =
+                Arc::<SpriteSpec>::load_expect("voxygen.voxel.sprite_manifest").cloned();
+
+            let max_size =
+                guillotiere::Size::new(i32::from(max_texture_size), i32::from(max_texture_size));
+            let mut greedy = GreedyMesh::new(max_size);
+            let mut locals_buffer = [SpriteLocals::default(); 8];
+            let sprite_config_ = &sprite_config;
+            // NOTE: Tracks the start vertex of the next model to be meshed.
+
+            let sprite_data: HashMap<(SpriteKind, usize), _> = SpriteKind::into_enum_iter()
+                .filter_map(|kind| Some((kind, kind.elim_case_pure(&sprite_config_.0).as_ref()?)))
+                .flat_map(|(kind, sprite_config)| {
+                    let wind_sway = sprite_config.wind_sway;
+                    sprite_config.variations.iter().enumerate().map(
+                        move |(
+                            variation,
+                            SpriteModelConfig {
+                                model,
+                                offset,
+                                lod_axes,
+                            },
+                        )| {
+                            let scaled = [1.0, 0.8, 0.6, 0.4, 0.2];
+                            let offset = Vec3::from(*offset);
+                            let lod_axes = Vec3::from(*lod_axes);
+                            let model = DotVoxAsset::load_expect(model);
+                            let zero = Vec3::zero();
+                            let model_size = model
+                                .read()
+                                .0
+                                .models
+                                .first()
+                                .map(
+                                    |&dot_vox::Model {
+                                         size: dot_vox::Size { x, y, z },
+                                         ..
+                                     }| Vec3::new(x, y, z),
+                                )
+                                .unwrap_or(zero);
+                            let max_model_size = Vec3::new(31.0, 31.0, 63.0);
+                            let model_scale = max_model_size.map2(model_size, |max_sz: f32, cur_sz| {
+                                let scale = max_sz / max_sz.max(cur_sz as f32);
+                                if scale < 1.0 && (cur_sz as f32 * scale).ceil() > max_sz {
+                                    scale - 0.001
+                                } else {
+                                    scale
+                                }
+                            });
+                            let sprite_mat: Mat4<f32> =
+                                Mat4::translation_3d(offset).scaled_3d(SPRITE_SCALE);
+                            move |greedy: &mut GreedyMesh| {
+                                (
+                                    (kind, variation),
+                                    scaled
+                                        .iter()
+                                        .map(|&lod_scale_orig| {
+                                            let lod_scale = model_scale
+                                                * if lod_scale_orig == 1.0 {
+                                                    Vec3::broadcast(1.0)
+                                                } else {
+                                                    lod_axes * lod_scale_orig
+                                                        + lod_axes
+                                                            .map(|e| if e == 0.0 { 1.0 } else { 0.0 })
+                                                };
+                                            // Mesh generation exclusively acts using side effects; it
+                                            // has no
+                                            // interesting return value, but updates the mesh.
+                                            let mut opaque_mesh = Mesh::new();
+                                            Meshable::<SpritePipeline, &mut GreedyMesh>::generate_mesh(
+                                                Segment::from(&model.read().0).scaled_by(lod_scale),
+                                                (greedy, &mut opaque_mesh, false),
+                                            );
+
+                                            let sprite_scale = Vec3::one() / lod_scale;
+                                            let sprite_mat: Mat4<f32> =
+                                                sprite_mat * Mat4::scaling_3d(sprite_scale);
+                                            locals_buffer.iter_mut().enumerate().for_each(
+                                                |(ori, locals)| {
+                                                    let sprite_mat = sprite_mat
+                                                        .rotated_z(f32::consts::PI * 0.25 * ori as f32);
+                                                    *locals = SpriteLocals::new(
+                                                        sprite_mat,
+                                                        sprite_scale,
+                                                        offset,
+                                                        wind_sway,
+                                                    );
+                                                },
+                                            );
+
+                                            SpriteDataResponse {
+                                                model: opaque_mesh,
+                                                offset,
+                                                locals: locals_buffer,
+                                            }
+                                        })
+                                        .collect::<Vec<_>>(),
+                                )
+                            }
+                        },
+                    )
+                })
+                .map(|mut f| f(&mut greedy))
+                .collect();
+
+            let sprite_col_lights = greedy.finalize();
+
+            SpriteWorkerResponse {
+                sprite_config,
+                sprite_data,
+                sprite_col_lights,
+            }
+        });
+
+        let init = core::lazy::OnceCell::new();
+        let mut join_handle = Some(join_handle);
+        let mut closure = move |renderer: &mut Renderer| {
+            // The second unwrap can only fail if the sprite meshing thread panics, which
+            // implies that our sprite assets either were not found or did not
+            // satisfy the size requirements for meshing, both of which are
+            // considered invariant violations.
+            let SpriteWorkerResponse {
+                sprite_config,
+                sprite_data,
+                sprite_col_lights,
+            } = join_handle
+                .take()
+                .expect(
+                    "Closure should only be called once (in a `OnceCell::get_or_init`) in the \
+                     absence of caught panics!",
+                )
+                .join()
+                .unwrap();
+
+            let sprite_data = sprite_data
+                .into_iter()
+                .map(|(key, models)| {
+                    (
+                        key,
+                        models
+                            .into_iter()
+                            .map(
+                                |SpriteDataResponse {
+                                     locals,
+                                     model,
+                                     offset,
+                                 }| {
+                                    SpriteData {
+                                        locals: renderer
+                                            .create_consts(&locals)
+                                            .expect("Failed to upload sprite locals to the GPU!"),
+                                        model: renderer.create_model(&model).expect(
+                                            "Failed to upload sprite model data to the GPU!",
+                                        ),
+                                        offset,
+                                    }
+                                },
+                            )
+                            .collect(),
+                    )
+                })
+                .collect();
+            let sprite_col_lights = ShadowPipeline::create_col_lights(renderer, &sprite_col_lights)
+                .expect("Failed to upload sprite color and light data to the GPU!");
+
+            Self {
+                sprite_config: Arc::clone(&sprite_config),
+                sprite_data: Arc::new(sprite_data),
+                sprite_col_lights,
+            }
+        };
+        Box::new(move |renderer| init.get_or_init(|| closure(renderer)).clone())
+    }
+}
+
+impl<V: RectRasterableVol> Terrain<V> {
+    pub fn new(renderer: &mut Renderer, sprite_render_context: SpriteRenderContext) -> Self {
         // Create a new mpsc (Multiple Produced, Single Consumer) pair for communicating
         // with worker threads that are meshing chunks.
         let (send, recv) = channel::unbounded();
@@ -318,128 +516,17 @@ impl<V: RectRasterableVol> Terrain<V> {
         let (atlas, col_lights) =
             Self::make_atlas(renderer).expect("Failed to create atlas texture");
 
-        let max_texture_size = renderer.max_texture_size();
-        let max_size =
-            guillotiere::Size::new(i32::from(max_texture_size), i32::from(max_texture_size));
-        let mut greedy = GreedyMesh::new(max_size);
-        let mut locals_buffer = [SpriteLocals::default(); 8];
-        let sprite_config_ = &sprite_config;
-        // NOTE: Tracks the start vertex of the next model to be meshed.
-
-        let sprite_data: HashMap<(SpriteKind, usize), _> = SpriteKind::into_enum_iter()
-            .filter_map(|kind| Some((kind, kind.elim_case_pure(&sprite_config_.0).as_ref()?)))
-            .flat_map(|(kind, sprite_config)| {
-                let wind_sway = sprite_config.wind_sway;
-                sprite_config.variations.iter().enumerate().map(
-                    move |(
-                        variation,
-                        SpriteModelConfig {
-                            model,
-                            offset,
-                            lod_axes,
-                        },
-                    )| {
-                        let scaled = [1.0, 0.8, 0.6, 0.4, 0.2];
-                        let offset = Vec3::from(*offset);
-                        let lod_axes = Vec3::from(*lod_axes);
-                        let model = DotVoxAsset::load_expect(model);
-                        let zero = Vec3::zero();
-                        let model_size = model
-                            .read()
-                            .0
-                            .models
-                            .first()
-                            .map(
-                                |&dot_vox::Model {
-                                     size: dot_vox::Size { x, y, z },
-                                     ..
-                                 }| Vec3::new(x, y, z),
-                            )
-                            .unwrap_or(zero);
-                        let max_model_size = Vec3::new(31.0, 31.0, 63.0);
-                        let model_scale = max_model_size.map2(model_size, |max_sz: f32, cur_sz| {
-                            let scale = max_sz / max_sz.max(cur_sz as f32);
-                            if scale < 1.0 && (cur_sz as f32 * scale).ceil() > max_sz {
-                                scale - 0.001
-                            } else {
-                                scale
-                            }
-                        });
-                        let sprite_mat: Mat4<f32> =
-                            Mat4::translation_3d(offset).scaled_3d(SPRITE_SCALE);
-                        move |greedy: &mut GreedyMesh, renderer: &mut Renderer| {
-                            (
-                                (kind, variation),
-                                scaled
-                                    .iter()
-                                    .map(|&lod_scale_orig| {
-                                        let lod_scale = model_scale
-                                            * if lod_scale_orig == 1.0 {
-                                                Vec3::broadcast(1.0)
-                                            } else {
-                                                lod_axes * lod_scale_orig
-                                                    + lod_axes
-                                                        .map(|e| if e == 0.0 { 1.0 } else { 0.0 })
-                                            };
-                                        // Mesh generation exclusively acts using side effects; it
-                                        // has no
-                                        // interesting return value, but updates the mesh.
-                                        let mut opaque_mesh = Mesh::new();
-                                        Meshable::<SpritePipeline, &mut GreedyMesh>::generate_mesh(
-                                            Segment::from(&model.read().0).scaled_by(lod_scale),
-                                            (greedy, &mut opaque_mesh, false),
-                                        );
-                                        let model = renderer.create_model(&opaque_mesh).expect(
-                                            "Failed to upload sprite model data to the GPU!",
-                                        );
-
-                                        let sprite_scale = Vec3::one() / lod_scale;
-                                        let sprite_mat: Mat4<f32> =
-                                            sprite_mat * Mat4::scaling_3d(sprite_scale);
-                                        locals_buffer.iter_mut().enumerate().for_each(
-                                            |(ori, locals)| {
-                                                let sprite_mat = sprite_mat
-                                                    .rotated_z(f32::consts::PI * 0.25 * ori as f32);
-                                                *locals = SpriteLocals::new(
-                                                    sprite_mat,
-                                                    sprite_scale,
-                                                    offset,
-                                                    wind_sway,
-                                                );
-                                            },
-                                        );
-
-                                        SpriteData {
-                                            /* vertex_range */ model,
-                                            offset,
-                                            locals: renderer.create_consts(&locals_buffer).expect(
-                                                "Failed to upload sprite locals to the GPU!",
-                                            ),
-                                        }
-                                    })
-                                    .collect::<Vec<_>>(),
-                            )
-                        }
-                    },
-                )
-            })
-            .map(|mut f| f(&mut greedy, renderer))
-            .collect();
-
-        let sprite_col_lights = ShadowPipeline::create_col_lights(renderer, greedy.finalize())
-            .expect("Failed to upload sprite color and light data to the GPU!");
-
         Self {
             atlas,
-            sprite_config,
+            sprite_config: sprite_render_context.sprite_config,
             chunks: HashMap::default(),
             shadow_chunks: Vec::default(),
             mesh_send_tmp: send,
             mesh_recv: recv,
             mesh_todo: HashMap::default(),
             mesh_todos_active: Arc::new(AtomicU64::new(0)),
-            sprite_data: Arc::new(sprite_data),
-            sprite_col_lights,
+            sprite_data: sprite_render_context.sprite_data,
+            sprite_col_lights: sprite_render_context.sprite_col_lights,
             waves: renderer
                 .create_texture(
                     &assets::Image::load_expect("voxygen.texture.waves").read().0,

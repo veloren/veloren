@@ -8,6 +8,7 @@ use veloren_voxygen::{
     i18n::{self, i18n_asset_key, Localization},
     profile::Profile,
     run,
+    scene::terrain::SpriteRenderContext,
     settings::{get_fps, AudioOutput, Settings},
     window::Window,
     GlobalState,
@@ -175,14 +176,17 @@ fn main() {
     i18n.read().log_missing_entries();
 
     // Create window
-    let (window, event_loop) = Window::new(&settings).expect("Failed to create window!");
+    let (mut window, event_loop) = Window::new(&settings).expect("Failed to create window!");
 
     let clipboard = iced_winit::Clipboard::new(window.window());
+
+    let lazy_init = SpriteRenderContext::new(window.renderer_mut());
 
     let global_state = GlobalState {
         audio,
         profile,
         window,
+        lazy_init,
         clock: Clock::new(std::time::Duration::from_secs_f64(
             1.0 / get_fps(settings.graphics.max_fps) as f64,
         )),

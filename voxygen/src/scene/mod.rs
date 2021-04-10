@@ -11,7 +11,7 @@ pub use self::{
     figure::FigureMgr,
     lod::Lod,
     particle::ParticleMgr,
-    terrain::Terrain,
+    terrain::{SpriteRenderContextLazy, Terrain},
 };
 use crate::{
     audio::{ambient::AmbientMgr, music::MusicMgr, sfx::SfxMgr, AudioFrontend},
@@ -267,8 +267,14 @@ fn compute_warping_parameter_perspective<F: Float + FloatConst>(
 
 impl Scene {
     /// Create a new `Scene` with default parameters.
-    pub fn new(renderer: &mut Renderer, client: &Client, settings: &Settings) -> Self {
+    pub fn new(
+        renderer: &mut Renderer,
+        lazy_init: &mut SpriteRenderContextLazy,
+        client: &Client,
+        settings: &Settings,
+    ) -> Self {
         let resolution = renderer.get_resolution().map(|e| e as f32);
+        let sprite_render_context = lazy_init(renderer);
 
         Self {
             data: GlobalModel {
@@ -301,7 +307,7 @@ impl Scene {
                     .create_consts(&[PostProcessLocals::default()])
                     .unwrap(),
             },
-            terrain: Terrain::new(renderer),
+            terrain: Terrain::new(renderer, sprite_render_context),
             lod: Lod::new(renderer, client, settings),
             loaded_distance: 0.0,
             map_bounds: Vec2::new(

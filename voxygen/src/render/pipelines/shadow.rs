@@ -67,7 +67,7 @@ pub struct ShadowPipeline;
 impl ShadowPipeline {
     pub fn create_col_lights(
         renderer: &mut Renderer,
-        (col_lights, col_lights_size): ColLightInfo,
+        (col_lights, col_lights_size): &ColLightInfo,
     ) -> Result<Texture<ColLightFmt>, RenderError> {
         renderer.create_texture_immutable_raw(
             gfx::texture::Kind::D2(
@@ -76,7 +76,7 @@ impl ShadowPipeline {
                 gfx::texture::AaMode::Single,
             ),
             gfx::texture::Mipmap::Provided,
-            &[&col_lights],
+            &[col_lights],
             gfx::texture::SamplerInfo::new(
                 gfx::texture::FilterMethod::Bilinear,
                 gfx::texture::WrapMode::Clamp,
