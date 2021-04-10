@@ -43,7 +43,7 @@ conrod_winit = {git = "https://gitlab.com/veloren/conrod.git", branch="copypasta
 euc = "0.5.0"
 iced = {package = "iced_native", git = "https://github.com/hecrj/iced", rev = "8d882d787e6b7fd7c2435f42f82933e2ed904edf"}
 iced_winit = {git = "https://github.com/hecrj/iced", rev = "8d882d787e6b7fd7c2435f42f82933e2ed904edf"}
-window_clipboard = "0.1.1"
+window_clipboard = "0.2"
 glyph_brush = "0.7.0"
 
 # ECS
@@ -85,7 +85,7 @@ rand = "0.8"
 rodio = {version = "0.13", default-features = false, features = ["wav", "vorbis"]}
 ron = {version = "0.6", default-features = false}
 serde = {version = "1.0", features = [ "rc", "derive" ]}
-treeculler = "0.1.0"
+treeculler = "0.2"
 tokio = { version = "1", default-features = false, features = ["rt-multi-thread"] }
 num_cpus = "1.0"
 # vec_map = { version = "0.8.2" }
