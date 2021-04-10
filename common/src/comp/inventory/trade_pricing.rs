@@ -10,13 +10,9 @@ use lazy_static::lazy_static;
 use serde::Deserialize;
 use tracing::{info, warn};
 
-#[derive(Debug)]
-struct Entry {
-    probability: f32,
-    item: String,
-}
+type Entry = (String, f32);
 
-type Entries = Vec<(String, f32)>;
+type Entries = Vec<Entry>;
 const PRICING_DEBUG: bool = false;
 
 #[derive(Default, Debug)]
@@ -103,29 +99,29 @@ impl TradePricing {
 
     // add this much of a non-consumed crafting tool price
 
-    fn get_list(&self, good: Good) -> &Entries {
+    fn get_list(&self, good: Good) -> &[Entry] {
         match good {
             Good::Armor => &self.armor,
             Good::Tools => &self.tools,
             Good::Potions => &self.potions,
             Good::Food => &self.food,
             Good::Ingredients => &self.ingredients,
-            _ => panic!("invalid good"),
+            _ => &[],
         }
     }
 
-    fn get_list_mut(&mut self, good: Good) -> &mut Entries {
+    fn get_list_mut(&mut self, good: Good) -> &mut [Entry] {
         match good {
             Good::Armor => &mut self.armor,
             Good::Tools => &mut self.tools,
             Good::Potions => &mut self.potions,
             Good::Food => &mut self.food,
             Good::Ingredients => &mut self.ingredients,
-            _ => panic!("invalid good"),
+            _ => &mut [],
         }
     }
 
-    fn get_list_by_path(&self, name: &str) -> &Entries {
+    fn get_list_by_path(&self, name: &str) -> &[Entry] {
         match name {
             "common.items.crafting_ing.mindflayer_bag_damaged" => &self.armor,
             _ if name.starts_with("common.items.crafting_ing.") => &self.ingredients,
@@ -186,12 +182,15 @@ impl TradePricing {
                 entryvec.push((itemname.to_string(), probability));
             }
         }
-        fn sort_and_normalize(entryvec: &mut Entries, scale: f32) {
+        fn sort_and_normalize(entryvec: &mut [Entry], scale: f32) {
             if !entryvec.is_empty() {
                 entryvec.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
-                let rescale = scale / entryvec.last().unwrap().1;
-                for i in entryvec.iter_mut() {
-                    i.1 *= rescale;
+                if let Some((_, max_scale)) = entryvec.last() {
+                    // most common item has frequency max_scale.  avoid NaN
+                    let rescale = scale / max_scale;
+                    for i in entryvec.iter_mut() {
+                        i.1 *= rescale;
+                    }
                 }
             }
         }
@@ -228,16 +227,12 @@ impl TradePricing {
                 input: r
                     .inputs
                     .iter()
-                    .filter(|i| matches!(i.0, RecipeInput::Item(_)))
-                    .map(|i| {
-                        (
-                            if let RecipeInput::Item(it) = &i.0 {
-                                it.id().into()
-                            } else {
-                                panic!("recipe logic broken");
-                            },
-                            i.1,
-                        )
+                    .filter_map(|&(ref recipe_input, count)| {
+                        if let RecipeInput::Item(it) = recipe_input {
+                            Some((it.id().into(), count))
+                        } else {
+                            None
+                        }
                     })
                     .collect(),
             });
@@ -262,16 +257,14 @@ impl TradePricing {
         // re-look up prices and sort the vector by ascending material cost, return
         // whether first cost is finite
         fn price_sort(s: &TradePricing, vec: &mut Vec<RememberedRecipe>) -> bool {
-            if !vec.is_empty() {
-                for e in vec.iter_mut() {
-                    e.material_cost = calculate_material_cost(s, e);
-                }
-                vec.sort_by(|a, b| a.material_cost.partial_cmp(&b.material_cost).unwrap());
-                //info!(?vec);
-                vec.first().unwrap().material_cost < TradePricing::UNAVAILABLE_PRICE
-            } else {
-                false
+            for e in vec.iter_mut() {
+                e.material_cost = calculate_material_cost(s, e);
             }
+            vec.sort_by(|a, b| a.material_cost.partial_cmp(&b.material_cost).unwrap());
+            //info!(?vec);
+            vec.first()
+                .filter(|recipe| recipe.material_cost < TradePricing::UNAVAILABLE_PRICE)
+                .is_some()
         }
         // re-evaluate prices based on crafting tables
         // (start with cheap ones to avoid changing material prices after evaluation)

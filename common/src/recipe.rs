@@ -46,7 +46,7 @@ impl Recipe {
         for i in 0..self.output.1 {
             let crafted_item =
                 Item::new_from_item_def(Arc::clone(&self.output.0), &components, msm);
-            if let Some(item) = inv.push(crafted_item) {
+            if let Err(item) = inv.push(crafted_item) {
                 return Ok(Some((item, self.output.1 - i)));
             }
         }

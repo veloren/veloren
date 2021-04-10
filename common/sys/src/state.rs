@@ -20,14 +20,16 @@ use common::{
 use common_base::span;
 use common_ecs::{run_now, PhysicsMetrics, SysMetrics};
 use common_net::sync::{interpolation as sync_interp, WorldSyncExt};
-use hashbrown::{HashMap, HashSet};
+use core::{convert::identity, time::Duration};
+use hashbrown::{hash_map, HashMap, HashSet};
 use rayon::{ThreadPool, ThreadPoolBuilder};
 use specs::{
+    prelude::Resource,
     shred::{Fetch, FetchMut},
     storage::{MaskedStorage as EcsMaskedStorage, Storage as EcsStorage},
     Component, DispatcherBuilder, Entity as EcsEntity, WorldExt,
 };
-use std::{sync::Arc, time::Duration};
+use std::sync::Arc;
 use vek::*;
 
 /// How much faster should an in-game day be compared to a real day?
@@ -41,18 +43,54 @@ const DAY_CYCLE_FACTOR: f64 = 24.0 * 2.0;
 /// avoid such a situation.
 const MAX_DELTA_TIME: f32 = 1.0;
 
+/// NOTE: Please don't add `Deserialize` without checking to make sure we
+/// can guarantee the invariant that every entry in `area_names` points to a
+/// valid id in `areas`.
 #[derive(Default)]
 pub struct BuildAreas {
-    pub areas: Depot<geom::Aabb<i32>>,
-    pub area_names: HashMap<String, Id<Aabb<i32>>>,
+    areas: Depot<Aabb<i32>>,
+    area_names: HashMap<String, Id<Aabb<i32>>>,
 }
 
+pub enum BuildAreaError {
+    /// This build area name is reserved by the system.
+    Reserved,
+    /// The build area name was not found.
+    NotFound,
+}
+
+/// Build area names that can only be inserted, not removed.
+const RESERVED_BUILD_AREA_NAMES: &[&str] = &["world"];
+
 impl BuildAreas {
-    pub fn new() -> Self {
-        Self {
-            areas: Depot::default(),
-            area_names: HashMap::new(),
+    pub fn areas(&self) -> &Depot<geom::Aabb<i32>> { &self.areas }
+
+    pub fn area_names(&self) -> &HashMap<String, Id<Aabb<i32>>> { &self.area_names }
+
+    /// If the area_name is already in the map, returns Err(area_name).
+    pub fn insert(&mut self, area_name: String, area: Aabb<i32>) -> Result<Id<Aabb<i32>>, String> {
+        let area_name_entry = match self.area_names.entry(area_name) {
+            hash_map::Entry::Occupied(o) => return Err(o.replace_key()),
+            hash_map::Entry::Vacant(v) => v,
+        };
+        let bb_id = self.areas.insert(area.made_valid());
+        area_name_entry.insert(bb_id);
+        Ok(bb_id)
+    }
+
+    pub fn remove(&mut self, area_name: &str) -> Result<Aabb<i32>, BuildAreaError> {
+        if RESERVED_BUILD_AREA_NAMES.contains(&area_name) {
+            return Err(BuildAreaError::Reserved);
         }
+        let bb_id = self
+            .area_names
+            .remove(area_name)
+            .ok_or(BuildAreaError::NotFound)?;
+        let area = self.areas.remove(bb_id).expect(
+            "Entries in `areas` are added before entries in `area_names` in `insert`, and that is \
+             the only exposed way to add elements to `area_names`.",
+        );
+        Ok(area)
     }
 }
 
@@ -221,7 +259,7 @@ impl State {
         ecs.insert(PlayerEntity(None));
         ecs.insert(TerrainGrid::new().unwrap());
         ecs.insert(BlockChange::default());
-        ecs.insert(BuildAreas::new());
+        ecs.insert(BuildAreas::default());
         ecs.insert(TerrainChanges::default());
         ecs.insert(EventBus::<LocalEvent>::default());
         ecs.insert(game_mode);
@@ -286,9 +324,24 @@ impl State {
         self
     }
 
-    /// Write a component attributed to a particular entity.
-    pub fn write_component<C: Component>(&mut self, entity: EcsEntity, comp: C) {
-        let _ = self.ecs.write_storage().insert(entity, comp);
+    /// Write a component attributed to a particular entity, ignoring errors.
+    ///
+    /// This should be used *only* when we can guarantee that the rest of the
+    /// code does not rely on the insert having succeeded (meaning the
+    /// entity is no longer alive!).
+    ///
+    /// Returns None if the entity was dead or there was no previous entry for
+    /// this component; otherwise, returns Some(old_component).
+    pub fn write_component_ignore_entity_dead<C: Component>(
+        &mut self,
+        entity: EcsEntity,
+        comp: C,
+    ) -> Option<C> {
+        self.ecs
+            .write_storage()
+            .insert(entity, comp)
+            .ok()
+            .and_then(identity)
     }
 
     /// Delete a component attributed to a particular entity.
@@ -304,6 +357,17 @@ impl State {
     /// Read a component attributed to a particular entity.
     pub fn read_component_copied<C: Component + Copy>(&self, entity: EcsEntity) -> Option<C> {
         self.ecs.read_storage().get(entity).copied()
+    }
+
+    /// Given mutable access to the resource R, assuming the resource
+    /// component exists (this is already the behavior of functions like `fetch`
+    /// and `write_component_ignore_entity_dead`).  Since all of our resources
+    /// are generated up front, any failure here is definitely a code bug.
+    pub fn mut_resource<R: Resource>(&mut self) -> &mut R {
+        self.ecs.get_mut::<R>().expect(
+            "Tried to fetch an invalid resource even though all our resources should be known at \
+             compile time.",
+        )
     }
 
     /// Get a read-only reference to the storage of a particular component type.
@@ -355,16 +419,16 @@ impl State {
     }
 
     /// Set a block in this state's terrain.
-    pub fn set_block(&mut self, pos: Vec3<i32>, block: Block) {
+    pub fn set_block(&self, pos: Vec3<i32>, block: Block) {
         self.ecs.write_resource::<BlockChange>().set(pos, block);
     }
 
     /// Check if the block at given position `pos` has already been modified
     /// this tick.
-    pub fn can_set_block(&mut self, pos: Vec3<i32>) -> bool {
+    pub fn can_set_block(&self, pos: Vec3<i32>) -> bool {
         !self
             .ecs
-            .write_resource::<BlockChange>()
+            .read_resource::<BlockChange>()
             .blocks
             .contains_key(&pos)
     }

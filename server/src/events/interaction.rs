@@ -77,6 +77,7 @@ pub fn handle_npc_interaction(server: &mut Server, interactor: EcsEntity, npc_en
     }
 }
 
+/// FIXME: Make mounting more robust, avoid bidirectional links.
 pub fn handle_mount(server: &mut Server, mounter: EcsEntity, mountee: EcsEntity) {
     let state = server.state_mut();
 
@@ -101,8 +102,14 @@ pub fn handle_mount(server: &mut Server, mounter: EcsEntity, mountee: EcsEntity)
                 state.ecs().uid_from_entity(mounter),
                 state.ecs().uid_from_entity(mountee),
             ) {
-                state.write_component(mountee, comp::MountState::MountedBy(mounter_uid));
-                state.write_component(mounter, comp::Mounting(mountee_uid));
+                // We know the entities must exist to be able to look up their UIDs, so these
+                // are guaranteed to work; hence we can ignore possible errors
+                // here.
+                state.write_component_ignore_entity_dead(
+                    mountee,
+                    comp::MountState::MountedBy(mounter_uid),
+                );
+                state.write_component_ignore_entity_dead(mounter, comp::Mounting(mountee_uid));
             }
         }
     }
@@ -126,8 +133,11 @@ pub fn handle_unmount(server: &mut Server, mounter: EcsEntity) {
 }
 
 #[allow(clippy::nonminimal_bool)] // TODO: Pending review in #587
-pub fn handle_possess(server: &Server, possessor_uid: Uid, possesse_uid: Uid) {
-    let ecs = &server.state.ecs();
+/// FIXME: This code is dangerous and needs to be refactored.  We can't just
+/// comment it out, but it needs to be fixed for a variety of reasons.  Get rid
+/// of this ASAP!
+pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possesse_uid: Uid) {
+    let ecs = server.state.ecs();
     if let (Some(possessor), Some(possesse)) = (
         ecs.entity_from_uid(possessor_uid.into()),
         ecs.entity_from_uid(possesse_uid.into()),
@@ -231,18 +241,21 @@ pub fn handle_possess(server: &Server, possessor_uid: Uid, possesse_uid: Uid) {
         let mut inventories = ecs.write_storage::<Inventory>();
         let mut inventory = inventories
             .entry(possesse)
-            .expect("Could not read inventory component while possessing")
+            .expect("Nobody has &mut World, so there's no way to delete an entity.")
             .or_insert(Inventory::new_empty());
 
         let debug_item = comp::Item::new_from_asset_expect("common.items.debug.admin_stick");
         if let item::ItemKind::Tool(_) = debug_item.kind() {
-            inventory
-                .swap(
-                    Slot::Equip(EquipSlot::Mainhand),
-                    Slot::Equip(EquipSlot::Offhand),
-                )
-                .first()
-                .unwrap_none(); // Swapping main and offhand never results in leftover items
+            assert!(
+                inventory
+                    .swap(
+                        Slot::Equip(EquipSlot::Mainhand),
+                        Slot::Equip(EquipSlot::Offhand),
+                    )
+                    .first()
+                    .is_none(),
+                "Swapping main and offhand never results in leftover items",
+            );
 
             inventory.replace_loadout_item(EquipSlot::Mainhand, Some(debug_item));
         }

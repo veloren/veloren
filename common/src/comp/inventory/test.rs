@@ -13,38 +13,47 @@ lazy_static! {
 /// Attempting to push into a full inventory should return the same item.
 #[test]
 fn push_full() {
+    let msm = &MaterialStatManifest::default();
     let mut inv = Inventory {
-        slots: TEST_ITEMS.iter().map(|a| Some(a.clone())).collect(),
+        slots: TEST_ITEMS.iter().map(|a| Some(a.duplicate(msm))).collect(),
         loadout: LoadoutBuilder::new().build(),
     };
     assert_eq!(
-        inv.push(TEST_ITEMS[0].clone()).unwrap(),
-        TEST_ITEMS[0].clone()
+        inv.push(TEST_ITEMS[0].duplicate(msm)).unwrap_err(),
+        TEST_ITEMS[0].duplicate(msm)
     )
 }
 
 /// Attempting to push a series into a full inventory should return them all.
 #[test]
 fn push_all_full() {
+    let msm = &MaterialStatManifest::default();
     let mut inv = Inventory {
-        slots: TEST_ITEMS.iter().map(|a| Some(a.clone())).collect(),
+        slots: TEST_ITEMS.iter().map(|a| Some(a.duplicate(msm))).collect(),
         loadout: LoadoutBuilder::new().build(),
     };
     let Error::Full(leftovers) = inv
-        .push_all(TEST_ITEMS.iter().cloned())
+        .push_all(TEST_ITEMS.iter().map(|item| item.duplicate(msm)))
         .expect_err("Pushing into a full inventory somehow worked!");
-    assert_eq!(leftovers, TEST_ITEMS.clone())
+    assert_eq!(
+        leftovers,
+        TEST_ITEMS
+            .iter()
+            .map(|item| item.duplicate(msm))
+            .collect::<Vec<_>>()
+    )
 }
 
 /// Attempting to push uniquely into an inventory containing all the items
 /// should work fine.
 #[test]
 fn push_unique_all_full() {
+    let msm = &MaterialStatManifest::default();
     let mut inv = Inventory {
-        slots: TEST_ITEMS.iter().map(|a| Some(a.clone())).collect(),
+        slots: TEST_ITEMS.iter().map(|a| Some(a.duplicate(msm))).collect(),
         loadout: LoadoutBuilder::new().build(),
     };
-    inv.push_all_unique(TEST_ITEMS.iter().cloned())
+    inv.push_all_unique(TEST_ITEMS.iter().map(|item| item.duplicate(msm)))
         .expect("Pushing unique items into an inventory that already contains them didn't work!");
 }
 
@@ -52,11 +61,12 @@ fn push_unique_all_full() {
 /// should work fine.
 #[test]
 fn push_all_empty() {
+    let msm = &MaterialStatManifest::default();
     let mut inv = Inventory {
         slots: vec![None, None],
         loadout: LoadoutBuilder::new().build(),
     };
-    inv.push_all(TEST_ITEMS.iter().cloned())
+    inv.push_all(TEST_ITEMS.iter().map(|item| item.duplicate(msm)))
         .expect("Pushing items into an empty inventory didn't work!");
 }
 
@@ -64,22 +74,25 @@ fn push_all_empty() {
 /// should work fine.
 #[test]
 fn push_all_unique_empty() {
+    let msm = &MaterialStatManifest::default();
     let mut inv = Inventory {
         slots: vec![None, None],
         loadout: LoadoutBuilder::new().build(),
     };
-    inv.push_all_unique(TEST_ITEMS.iter().cloned()).expect(
-        "Pushing unique items into an empty inventory that didn't contain them didn't work!",
-    );
+    inv.push_all_unique(TEST_ITEMS.iter().map(|item| item.duplicate(msm)))
+        .expect(
+            "Pushing unique items into an empty inventory that didn't contain them didn't work!",
+        );
 }
 
 #[test]
 fn free_slots_minus_equipped_item_items_only_present_in_equipped_bag_slots() {
+    let msm = &MaterialStatManifest::default();
     let mut inv = Inventory::new_empty();
 
     let bag = get_test_bag(18);
     let bag1_slot = EquipSlot::Armor(ArmorSlot::Bag1);
-    inv.loadout.swap(bag1_slot, Some(bag.clone()));
+    inv.loadout.swap(bag1_slot, Some(bag.duplicate(msm)));
 
     inv.insert_at(InvSlotId::new(15, 0), bag)
         .unwrap()
@@ -94,13 +107,14 @@ fn free_slots_minus_equipped_item_items_only_present_in_equipped_bag_slots() {
 
 #[test]
 fn free_slots_minus_equipped_item() {
+    let msm = &MaterialStatManifest::default();
     let mut inv = Inventory::new_empty();
 
     let bag = get_test_bag(18);
     let bag1_slot = EquipSlot::Armor(ArmorSlot::Bag1);
-    inv.loadout.swap(bag1_slot, Some(bag.clone()));
+    inv.loadout.swap(bag1_slot, Some(bag.duplicate(msm)));
     inv.loadout
-        .swap(EquipSlot::Armor(ArmorSlot::Bag2), Some(bag.clone()));
+        .swap(EquipSlot::Armor(ArmorSlot::Bag2), Some(bag.duplicate(msm)));
 
     inv.insert_at(InvSlotId::new(16, 0), bag)
         .unwrap()
@@ -171,12 +185,13 @@ fn can_swap_equipped_bag_into_only_empty_slot_provided_by_itself_should_return_f
 
 #[test]
 fn unequip_items_both_hands() {
+    let msm = &MaterialStatManifest::default();
     let mut inv = Inventory::new_empty();
 
     let sword = Item::new_from_asset_expect("common.items.weapons.sword.steel-8");
 
-    inv.replace_loadout_item(EquipSlot::Mainhand, Some(sword.clone()));
-    inv.replace_loadout_item(EquipSlot::Offhand, Some(sword.clone()));
+    inv.replace_loadout_item(EquipSlot::Mainhand, Some(sword.duplicate(msm)));
+    inv.replace_loadout_item(EquipSlot::Offhand, Some(sword.duplicate(msm)));
 
     // Fill all inventory slots except one
     fill_inv_slots(&mut inv, 17);
@@ -200,6 +215,7 @@ fn unequip_items_both_hands() {
 
 #[test]
 fn equip_replace_already_equipped_item() {
+    let msm = &MaterialStatManifest::default();
     let boots = Item::new_from_asset_expect("common.items.testing.test_boots");
 
     let starting_sandles = Some(Item::new_from_asset_expect(
@@ -207,8 +223,11 @@ fn equip_replace_already_equipped_item() {
     ));
 
     let mut inv = Inventory::new_empty();
-    inv.push(boots.clone());
-    inv.replace_loadout_item(EquipSlot::Armor(ArmorSlot::Feet), starting_sandles.clone());
+    inv.push(boots.duplicate(msm)).unwrap();
+    inv.replace_loadout_item(
+        EquipSlot::Armor(ArmorSlot::Feet),
+        starting_sandles.as_ref().map(|item| item.duplicate(msm)),
+    );
 
     let _ = inv.equip(InvSlotId::new(0, 0));
 
@@ -219,10 +238,7 @@ fn equip_replace_already_equipped_item() {
     );
 
     // Verify inventory
-    assert_eq!(
-        inv.slots[0].as_ref().unwrap().item_definition_id(),
-        starting_sandles.unwrap().item_definition_id()
-    );
+    assert_eq!(&inv.slots[0], &starting_sandles,);
     assert_eq!(inv.populated_slots(), 1);
 }
 
@@ -274,14 +290,15 @@ fn unequip_unequipping_bag_into_its_own_slot_with_no_other_free_slots() {
 
 #[test]
 fn equip_one_bag_equipped_equip_second_bag() {
+    let msm = &MaterialStatManifest::default();
     let mut inv = Inventory::new_empty();
 
     let bag = get_test_bag(9);
     inv.loadout
-        .swap(EquipSlot::Armor(ArmorSlot::Bag1), Some(bag.clone()))
+        .swap(EquipSlot::Armor(ArmorSlot::Bag1), Some(bag.duplicate(msm)))
         .unwrap_none();
 
-    inv.push(bag);
+    inv.push(bag).unwrap();
 
     let _ = inv.equip(InvSlotId::new(0, 0));
 
@@ -298,7 +315,7 @@ fn free_after_swap_equipped_item_has_more_slots() {
         .unwrap_none();
 
     let small_bag = get_test_bag(9);
-    inv.push(small_bag);
+    inv.push(small_bag).unwrap();
 
     // Fill all remaining slots
     fill_inv_slots(&mut inv, 35);
@@ -319,10 +336,10 @@ fn free_after_swap_equipped_item_has_less_slots() {
         .unwrap_none();
 
     let small_bag = get_test_bag(18);
-    inv.push(small_bag);
+    inv.push(small_bag).unwrap();
 
     // Fill all slots except the last one
-    fill_inv_slots(&mut inv, 27);
+    fill_inv_slots(&mut inv, 26);
 
     let result = inv.free_after_swap(EquipSlot::Armor(ArmorSlot::Bag1), InvSlotId::new(0, 0));
 
@@ -352,7 +369,7 @@ fn free_after_swap_equipped_item_with_slots_swapped_with_empty_inv_slot() {
 fn free_after_swap_inv_item_with_slots_swapped_with_empty_equip_slot() {
     let mut inv = Inventory::new_empty();
 
-    inv.push(get_test_bag(9));
+    inv.push(get_test_bag(9)).unwrap();
 
     // Add 5 items to the inventory
     fill_inv_slots(&mut inv, 5);
@@ -368,7 +385,7 @@ fn free_after_swap_inv_item_without_slots_swapped_with_empty_equip_slot() {
     let mut inv = Inventory::new_empty();
 
     let boots = Item::new_from_asset_expect("common.items.testing.test_boots");
-    inv.push(boots);
+    inv.push(boots).unwrap();
 
     // Add 5 items to the inventory
     fill_inv_slots(&mut inv, 5);
@@ -380,8 +397,9 @@ fn free_after_swap_inv_item_without_slots_swapped_with_empty_equip_slot() {
 }
 
 fn fill_inv_slots(inv: &mut Inventory, items: u16) {
+    let msm = &MaterialStatManifest::default();
     let boots = Item::new_from_asset_expect("common.items.testing.test_boots");
     for _ in 0..items {
-        inv.push(boots.clone());
+        inv.push(boots.duplicate(msm)).unwrap();
     }
 }

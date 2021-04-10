@@ -17,16 +17,17 @@ use crate::{
     recipe::RecipeInput,
     terrain::{Block, SpriteKind},
 };
-use core::mem;
+use core::{
+    convert::TryFrom,
+    mem,
+    num::{NonZeroU32, NonZeroU64},
+    ops::Deref,
+};
 use crossbeam_utils::atomic::AtomicCell;
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
-use std::{
-    num::{NonZeroU32, NonZeroU64},
-    ops::Deref,
-    sync::Arc,
-};
+use std::sync::Arc;
 use vek::Rgb;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -185,6 +186,12 @@ pub struct CreateDatabaseItemId {
     item_id: Arc<ItemId>,
 }*/
 
+/// NOTE: Do not call `Item::clone` without consulting the core devs!  It only
+/// exists due to being required for message serialization at the moment, and
+/// should not be used for any other purpose.
+///
+/// FIXME: Turn on a Clippy lint forbidding the use of `Item::clone` using the
+/// `disallowed_method` feature.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Item {
     /// item_id is hidden because it represents the persistent, storage entity
@@ -242,21 +249,28 @@ pub struct ItemConfig {
     pub dodge_ability: Option<CharacterAbility>,
 }
 
-impl From<(&ItemKind, &[Item], &AbilityMap, &MaterialStatManifest)> for ItemConfig {
-    fn from(
+#[derive(Debug)]
+pub enum ItemConfigError {
+    BadItemKind,
+}
+
+impl TryFrom<(&ItemKind, &[Item], &AbilityMap, &MaterialStatManifest)> for ItemConfig {
+    type Error = ItemConfigError;
+
+    fn try_from(
         (item_kind, components, map, msm): (&ItemKind, &[Item], &AbilityMap, &MaterialStatManifest),
-    ) -> Self {
+    ) -> Result<Self, Self::Error> {
         if let ItemKind::Tool(tool) = item_kind {
             let abilities = tool.get_abilities(msm, components, map);
 
-            return ItemConfig {
+            Ok(ItemConfig {
                 abilities,
                 block_ability: None,
                 dodge_ability: Some(CharacterAbility::default_roll()),
-            };
+            })
+        } else {
+            Err(ItemConfigError::BadItemKind)
         }
-
-        unimplemented!("ItemConfig is currently only supported for Tools")
     }
 }
 
@@ -314,6 +328,12 @@ impl ItemDef {
     }
 }
 
+/// NOTE: This PartialEq instance is pretty broken!  It doesn't check item
+/// amount or any child items (and, arguably, doing so should be able to ignore
+/// things like item order within the main inventory or within each bag, and
+/// possibly even coalesce amounts, though these may be more controversial).
+/// Until such time as we find an actual need for a proper PartialEq instance,
+/// please don't rely on this for anything!
 impl PartialEq for Item {
     fn eq(&self, other: &Self) -> bool {
         self.item_def.item_definition_id == other.item_def.item_definition_id
@@ -461,7 +481,20 @@ impl Item {
 
     /// Duplicates an item, creating an exact copy but with a new item ID
     pub fn duplicate(&self, msm: &MaterialStatManifest) -> Self {
-        Item::new_from_item_def(Arc::clone(&self.item_def), &self.components, msm)
+        let mut new_item =
+            Item::new_from_item_def(Arc::clone(&self.item_def), &self.components, msm);
+        new_item.set_amount(self.amount()).expect(
+            "`new_item` has the same `item_def` and as an invariant, \
+             self.set_amount(self.amount()) should always succeed.",
+        );
+        new_item.slots_mut().iter_mut().zip(self.slots()).for_each(
+            |(new_item_slot, old_item_slot)| {
+                *new_item_slot = old_item_slot
+                    .as_ref()
+                    .map(|old_item| old_item.duplicate(msm));
+            },
+        );
+        new_item
     }
 
     /// FIXME: HACK: In order to set the entity ID asynchronously, we currently
@@ -501,6 +534,7 @@ impl Item {
         let amount = u32::from(self.amount);
         self.amount = amount
             .checked_add(increase_by)
+            .filter(|&amount| amount <= self.max_amount())
             .and_then(NonZeroU32::new)
             .ok_or(OperationFailure)?;
         Ok(())
@@ -516,7 +550,7 @@ impl Item {
     }
 
     pub fn set_amount(&mut self, give_amount: u32) -> Result<(), OperationFailure> {
-        if give_amount == 1 || self.item_def.is_stackable() {
+        if give_amount <= self.max_amount() {
             self.amount = NonZeroU32::new(give_amount).ok_or(OperationFailure)?;
             Ok(())
         } else {
@@ -534,16 +568,14 @@ impl Item {
     }
 
     fn update_item_config(&mut self, msm: &MaterialStatManifest) {
-        self.item_config = if let ItemKind::Tool(_) = self.kind() {
-            Some(Box::new(ItemConfig::from((
-                self.kind(),
-                self.components(),
-                &self.item_def.ability_map,
-                msm,
-            ))))
-        } else {
-            None
-        };
+        if let Ok(item_config) = ItemConfig::try_from((
+            self.kind(),
+            self.components(),
+            &self.item_def.ability_map,
+            msm,
+        )) {
+            self.item_config = Some(Box::new(item_config));
+        }
     }
 
     /// Returns an iterator that drains items contained within the item's slots
@@ -571,6 +603,10 @@ impl Item {
     pub fn kind(&self) -> &ItemKind { &self.item_def.kind }
 
     pub fn amount(&self) -> u32 { u32::from(self.amount) }
+
+    /// NOTE: invariant that amount() ≤ max_amount(), 1 ≤ max_amount(),
+    /// and if !self.is_stackable(), self.max_amount() = 1.
+    pub fn max_amount(&self) -> u32 { if self.is_stackable() { u32::MAX } else { 1 } }
 
     pub fn quality(&self) -> Quality { self.item_def.quality }
 

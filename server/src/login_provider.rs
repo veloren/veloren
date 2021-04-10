@@ -21,7 +21,7 @@ fn derive_uuid(username: &str) -> Uuid {
         state = state.wrapping_mul(309485009821345068724781371);
     }
 
-    Uuid::from_slice(&state.to_be_bytes()).unwrap()
+    Uuid::from_u128(state)
 }
 
 /// derive Uuid for "singleplayer" is a pub fn
@@ -107,26 +107,35 @@ impl LoginProvider {
         match pending.pending_r.try_recv() {
             Ok(Err(e)) => Some(Err(e)),
             Ok(Ok((username, uuid))) => {
-                if let Some(ban_record) = banlist.get(&uuid) {
-                    // Pull reason string out of ban record and send a copy of it
-                    return Some(Err(RegisterError::Banned(ban_record.reason.clone())));
+                // Hardcoded admins can always log in.
+                let is_admin = admins.contains(&uuid);
+                if !is_admin {
+                    if let Some(ban_record) = banlist.get(&uuid) {
+                        // Pull reason string out of ban record and send a copy of it
+                        return Some(Err(RegisterError::Banned(ban_record.reason.clone())));
+                    }
+
+                    // non-admins can only join if the whitelist is empty (everyone can join)
+                    // or his name is in the whitelist
+                    if !whitelist.is_empty() && !whitelist.contains(&uuid) {
+                        return Some(Err(RegisterError::NotOnWhitelist));
+                    }
                 }
 
-                // user can only join if he is admin, the whitelist is empty (everyone can join)
-                // or his name is in the whitelist
-                if !whitelist.is_empty() && !whitelist.contains(&uuid) && !admins.contains(&uuid) {
-                    return Some(Err(RegisterError::NotOnWhitelist));
-                }
                 #[cfg(feature = "plugins")]
                 {
+                    // Plugin player join hooks execute for all players, but are only allowed to
+                    // filter non-admins.
                     match plugin_manager.execute_event(&world, &PlayerJoinEvent {
                         player_name: username.clone(),
                         player_id: *uuid.as_bytes(),
                     }) {
                         Ok(e) => {
-                            for i in e.into_iter() {
-                                if let PlayerJoinResult::Kick(a) = i {
-                                    return Some(Err(RegisterError::Kicked(a)));
+                            if !is_admin {
+                                for i in e.into_iter() {
+                                    if let PlayerJoinResult::Kick(a) = i {
+                                        return Some(Err(RegisterError::Kicked(a)));
+                                    }
                                 }
                             }
                         },

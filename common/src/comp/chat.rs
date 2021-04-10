@@ -44,8 +44,8 @@ impl ChatMode {
     }
 }
 
-impl Default for ChatMode {
-    fn default() -> Self { Self::World }
+impl ChatMode {
+    pub const fn default() -> Self { Self::World }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

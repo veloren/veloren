@@ -166,7 +166,7 @@ fn commit_trade(ecs: &specs::World, trade: &PendingTrade) -> TradeResult {
             None => return TradeResult::Declined,
         }
     }
-    let mut inventories = ecs.write_component::<Inventory>();
+    let mut inventories = ecs.write_storage::<Inventory>();
     for entity in entities.iter() {
         if inventories.get_mut(*entity).is_none() {
             return TradeResult::Declined;

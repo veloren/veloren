@@ -35,15 +35,13 @@ pub fn handle_site_info(server: &Server, entity: EcsEntity, id: u64) {
                 .economy
                 .labor_values
                 .iter()
-                .filter(|a| a.1.is_some())
-                .map(|(g, a)| (g, a.unwrap()))
+                .filter_map(|(g, a)| a.map(|a| (g, a)))
                 .collect(),
             values: site
                 .economy
                 .values
                 .iter()
-                .filter(|a| a.1.is_some())
-                .map(|(g, a)| (g, a.unwrap()))
+                .filter_map(|(g, a)| a.map(|a| (g, a)))
                 .collect(),
             labors: site.economy.labors.iter().map(|(_, a)| (*a)).collect(),
             last_exports: site

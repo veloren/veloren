@@ -1,7 +1,5 @@
 use super::{
-    packet::{
-        CompPacket, CompSyncPackage, CompUpdateKind, EntityPackage, EntitySyncPackage, StatePackage,
-    },
+    packet::{CompPacket, CompSyncPackage, CompUpdateKind, EntityPackage, EntitySyncPackage},
     track::UpdateTracker,
 };
 use common::{
@@ -31,7 +29,6 @@ pub trait WorldSyncExt {
         &mut self,
         entity_package: EntityPackage<P>,
     ) -> specs::Entity;
-    fn apply_state_package<P: CompPacket>(&mut self, state_package: StatePackage<P>);
     fn apply_entity_sync_package(&mut self, package: EntitySyncPackage);
     fn apply_comp_sync_package<P: CompPacket>(&mut self, package: CompSyncPackage<P>);
 }
@@ -97,19 +94,6 @@ impl WorldSyncExt for specs::World {
                 error!(?e, "Failed to delete entity");
             }
         }
-    }
-
-    fn apply_state_package<P: CompPacket>(&mut self, state_package: StatePackage<P>) {
-        let StatePackage { entities } = state_package;
-
-        // Apply state package entities
-        for entity_package in entities {
-            self.apply_entity_package(entity_package);
-        }
-
-        // TODO: determine if this is needed
-        // Initialize entities
-        //self.maintain();
     }
 
     fn apply_entity_sync_package(&mut self, package: EntitySyncPackage) {

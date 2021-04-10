@@ -142,9 +142,16 @@ impl ConnectionHandler {
 
 impl Drop for ConnectionHandler {
     fn drop(&mut self) {
-        let _ = self.stop_sender.take().unwrap().send(());
+        let _ = self
+            .stop_sender
+            .take()
+            .expect("`stop_sender` is private, initialized as `Some`, and only updated in Drop")
+            .send(());
         trace!("aborting ConnectionHandler");
-        self.thread_handle.take().unwrap().abort();
+        self.thread_handle
+            .take()
+            .expect("`thread_handle` is private, initialized as `Some`, and only updated in Drop")
+            .abort();
         trace!("aborted ConnectionHandler!");
     }
 }

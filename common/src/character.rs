@@ -18,7 +18,7 @@ pub struct Character {
 
 /// Data needed to render a single character item in the character list
 /// presented during character selection.
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CharacterItem {
     pub character: Character,
     pub body: comp::Body,

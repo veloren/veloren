@@ -852,8 +852,9 @@ impl Client {
     pub fn request_remove_character(&mut self) { self.send_msg(ClientGeneral::ExitInGame); }
 
     pub fn set_view_distance(&mut self, view_distance: u32) {
-        self.view_distance = Some(view_distance.max(1).min(65));
-        self.send_msg(ClientGeneral::SetViewDistance(self.view_distance.unwrap()));
+        let view_distance = view_distance.max(1).min(65);
+        self.view_distance = Some(view_distance);
+        self.send_msg(ClientGeneral::SetViewDistance(view_distance));
     }
 
     pub fn use_slot(&mut self, slot: Slot) {
@@ -1381,13 +1382,13 @@ impl Client {
                 if let Some(client_character_state) =
                     ecs.read_storage::<comp::CharacterState>().get(entity)
                 {
-                    if last_character_states
-                        .get(entity)
-                        .map(|l| !client_character_state.same_variant(&l.0))
-                        .unwrap_or(true)
+                    if let Some(l) = last_character_states
+                        .entry(entity)
+                        .ok()
+                        .map(|l| l.or_insert_with(|| comp::Last(client_character_state.clone())))
+                        .filter(|l| !client_character_state.same_variant(&l.0))
                     {
-                        let _ = last_character_states
-                            .insert(entity, comp::Last(client_character_state.clone()));
+                        *l = comp::Last(client_character_state.clone());
                     }
                 }
             }
@@ -1815,7 +1816,22 @@ impl Client {
                     InventoryUpdateEvent::CollectFailed => {},
                     _ => {
                         // Push the updated inventory component to the client
-                        self.state.write_component(self.entity(), inventory);
+                        // FIXME: Figure out whether this error can happen under normal gameplay,
+                        // if not find a better way to handle it, if so maybe consider kicking the
+                        // client back to login?
+                        let entity = self.entity();
+                        if let Err(e) = self
+                            .state
+                            .ecs_mut()
+                            .write_storage()
+                            .insert(entity, inventory)
+                        {
+                            warn!(
+                                ?e,
+                                "Received an inventory update event for client entity, but this \
+                                 entity was not found... this may be a bug."
+                            );
+                        }
                     },
                 }
 
@@ -2353,14 +2369,12 @@ impl Drop for Client {
             trace!("no disconnect msg necessary as client wasn't registered")
         }
 
-        tokio::task::block_in_place(|| {
-            if let Err(e) = self
-                .runtime
-                .block_on(self.participant.take().unwrap().disconnect())
-            {
-                warn!(?e, "error when disconnecting, couldn't send all data");
-            }
-        });
+        self.runtime.spawn(
+            self.participant
+                .take()
+                .expect("Only set to None in Drop")
+                .disconnect(),
+        );
     }
 }
 

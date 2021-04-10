@@ -10,7 +10,7 @@ pub use common::uid::{Uid, UidAllocator};
 pub use packet::{
     handle_insert, handle_interp_insert, handle_interp_modify, handle_interp_remove, handle_modify,
     handle_remove, CompPacket, CompSyncPackage, EntityPackage, EntitySyncPackage,
-    InterpolatableComponent, StatePackage,
+    InterpolatableComponent,
 };
 pub use sync_ext::WorldSyncExt;
 pub use track::UpdateTracker;

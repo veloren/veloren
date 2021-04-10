@@ -45,13 +45,16 @@ fn incorporate_update(join: &mut JoinStruct, mut state_update: StateUpdate) {
     if state_update.swap_equipped_weapons {
         let mut inventory = join.inventory.get_mut_unchecked();
         let inventory = &mut *inventory;
-        inventory
-            .swap(
-                Slot::Equip(EquipSlot::Mainhand),
-                Slot::Equip(EquipSlot::Offhand),
-            )
-            .first()
-            .unwrap_none(); // Swapping main and offhand never results in leftover items
+        assert!(
+            inventory
+                .swap(
+                    Slot::Equip(EquipSlot::Mainhand),
+                    Slot::Equip(EquipSlot::Offhand),
+                )
+                .first()
+                .is_none(),
+            "Swapping main and offhand never results in leftover items",
+        );
     }
 }
 

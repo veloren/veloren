@@ -1,6 +1,7 @@
 use authc::AuthClientError;
 pub use network::{InitProtocolError, NetworkConnectError, NetworkError};
 use network::{ParticipantError, StreamError};
+use specs::error::Error as SpecsError;
 
 #[derive(Debug)]
 pub enum Error {
@@ -22,6 +23,11 @@ pub enum Error {
     InvalidCharacter,
     //TODO: InvalidAlias,
     Other(String),
+    SpecsErr(SpecsError),
+}
+
+impl From<SpecsError> for Error {
+    fn from(err: SpecsError) -> Self { Self::SpecsErr(err) }
 }
 
 impl From<NetworkError> for Error {

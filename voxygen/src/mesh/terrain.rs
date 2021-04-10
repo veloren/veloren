@@ -412,7 +412,6 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug + 'static>
             greedy_size_cross,
             get_light,
             get_glow,
-            get_color,
             get_opacity,
             should_draw,
             push_quad: |atlas_origin, dim, origin, draw_dim, norm, meta: &FaceKind| match meta {
@@ -439,8 +438,8 @@ impl<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug + 'static>
                     ));
                 },
             },
-            make_face_texel: |_: &mut (), _, light, glow, col| {
-                TerrainVertex::make_col_light(light, glow, col)
+            make_face_texel: |data: &mut (), pos, light, glow| {
+                TerrainVertex::make_col_light(light, glow, get_color(data, pos))
             },
         });
 
