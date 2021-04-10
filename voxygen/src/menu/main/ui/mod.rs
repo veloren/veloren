@@ -39,18 +39,18 @@ image_ids_ice! {
 
         <ImageGraphic>
         bg: "voxygen.background.bg_main",
-        banner_top: "voxygen.element.frames.banner_top",
-        banner_gradient_bottom: "voxygen.element.frames.banner_gradient_bottom",
-        button: "voxygen.element.buttons.button",
-        button_hover: "voxygen.element.buttons.button_hover",
-        button_press: "voxygen.element.buttons.button_press",
-        input_bg: "voxygen.element.misc_bg.textbox",
-        loading_art: "voxygen.element.frames.loading_screen.loading_bg",
-        loading_art_l: "voxygen.element.frames.loading_screen.loading_bg_l",
-        loading_art_r: "voxygen.element.frames.loading_screen.loading_bg_r",
-        selection: "voxygen.element.frames.selection",
-        selection_hover: "voxygen.element.frames.selection_hover",
-        selection_press: "voxygen.element.frames.selection_press",
+        banner_top: "voxygen.element.ui.generic.frames.banner_top",
+        banner_gradient_bottom: "voxygen.element.ui.generic.frames.banner_gradient_bottom",
+        button: "voxygen.element.ui.generic.buttons.button",
+        button_hover: "voxygen.element.ui.generic.buttons.button_hover",
+        button_press: "voxygen.element.ui.generic.buttons.button_press",
+        input_bg: "voxygen.element.ui.generic.textbox",
+        loading_art: "voxygen.element.ui.generic.frames.loading_screen.loading_bg",
+        loading_art_l: "voxygen.element.ui.generic.frames.loading_screen.loading_bg_l",
+        loading_art_r: "voxygen.element.ui.generic.frames.loading_screen.loading_bg_r",
+        selection: "voxygen.element.ui.generic.frames.selection",
+        selection_hover: "voxygen.element.ui.generic.frames.selection_hover",
+        selection_press: "voxygen.element.ui.generic.frames.selection_press",
     }
 }
 

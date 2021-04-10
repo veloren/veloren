@@ -63,60 +63,60 @@ const UI_MAIN: Rgba<u8> = Rgba::new(156, 179, 179, 255); // Greenish Blue
 image_ids_ice! {
     struct Imgs {
         <ImageGraphic>
-        frame_bottom: "voxygen.element.frames.banner_bot",
+        frame_bottom: "voxygen.element.ui.generic.frames.banner_bot",
 
-        slider_range: "voxygen.element.slider.track",
-        slider_indicator: "voxygen.element.slider.indicator",
+        slider_range: "voxygen.element.ui.generic.slider.track",
+        slider_indicator: "voxygen.element.ui.generic.slider.indicator",
 
-        selection: "voxygen.element.frames.selection",
-        selection_hover: "voxygen.element.frames.selection_hover",
-        selection_press: "voxygen.element.frames.selection_press",
+        selection: "voxygen.element.ui.generic.frames.selection",
+        selection_hover: "voxygen.element.ui.generic.frames.selection_hover",
+        selection_press: "voxygen.element.ui.generic.frames.selection_press",
 
-        delete_button: "voxygen.element.buttons.x_red",
-        delete_button_hover: "voxygen.element.buttons.x_red_hover",
-        delete_button_press: "voxygen.element.buttons.x_red_press",
+        delete_button: "voxygen.element.ui.generic.buttons.x_red",
+        delete_button_hover: "voxygen.element.ui.generic.buttons.x_red_hover",
+        delete_button_press: "voxygen.element.ui.generic.buttons.x_red_press",
 
-        name_input: "voxygen.element.misc_bg.textbox",
+        name_input: "voxygen.element.ui.generic.textbox",
 
         // Tool Icons
-        sceptre: "voxygen.element.icons.sceptre",
-        sword: "voxygen.element.icons.sword",
-        axe: "voxygen.element.icons.axe",
-        hammer: "voxygen.element.icons.hammer",
-        bow: "voxygen.element.icons.bow",
-        staff: "voxygen.element.icons.staff",
+        sceptre: "voxygen.element.weapons.sceptre",
+        sword: "voxygen.element.weapons.sword",
+        axe: "voxygen.element.weapons.axe",
+        hammer: "voxygen.element.weapons.hammer",
+        bow: "voxygen.element.weapons.bow",
+        staff: "voxygen.element.weapons.staff",
 
         // Dice icons
-        dice: "voxygen.element.icons.dice",
-        dice_hover: "voxygen.element.icons.dice_hover",
-        dice_press: "voxygen.element.icons.dice_press",
+        dice: "voxygen.element.ui.char_select.icons.dice",
+        dice_hover: "voxygen.element.ui.char_select.icons.dice_hover",
+        dice_press: "voxygen.element.ui.char_select.icons.dice_press",
 
         // Species Icons
-        human_m: "voxygen.element.icons.human_m",
-        human_f: "voxygen.element.icons.human_f",
-        orc_m: "voxygen.element.icons.orc_m",
-        orc_f: "voxygen.element.icons.orc_f",
-        dwarf_m: "voxygen.element.icons.dwarf_m",
-        dwarf_f: "voxygen.element.icons.dwarf_f",
-        undead_m: "voxygen.element.icons.ud_m",
-        undead_f: "voxygen.element.icons.ud_f",
-        elf_m: "voxygen.element.icons.elf_m",
-        elf_f: "voxygen.element.icons.elf_f",
-        danari_m: "voxygen.element.icons.danari_m",
-        danari_f: "voxygen.element.icons.danari_f",
+        human_m: "voxygen.element.ui.char_select.portraits.human_m",
+        human_f: "voxygen.element.ui.char_select.portraits.human_f",
+        orc_m: "voxygen.element.ui.char_select.portraits.orc_m",
+        orc_f: "voxygen.element.ui.char_select.portraits.orc_f",
+        dwarf_m: "voxygen.element.ui.char_select.portraits.dwarf_m",
+        dwarf_f: "voxygen.element.ui.char_select.portraits.dwarf_f",
+        undead_m: "voxygen.element.ui.char_select.portraits.ud_m",
+        undead_f: "voxygen.element.ui.char_select.portraits.ud_f",
+        elf_m: "voxygen.element.ui.char_select.portraits.elf_m",
+        elf_f: "voxygen.element.ui.char_select.portraits.elf_f",
+        danari_m: "voxygen.element.ui.char_select.portraits.danari_m",
+        danari_f: "voxygen.element.ui.char_select.portraits.danari_f",
         // Icon Borders
-        icon_border: "voxygen.element.buttons.border",
-        icon_border_mo: "voxygen.element.buttons.border_mo",
-        icon_border_press: "voxygen.element.buttons.border_press",
-        icon_border_pressed: "voxygen.element.buttons.border_pressed",
+        icon_border: "voxygen.element.ui.generic.buttons.border",
+        icon_border_mo: "voxygen.element.ui.generic.buttons.border_mo",
+        icon_border_press: "voxygen.element.ui.generic.buttons.border_press",
+        icon_border_pressed: "voxygen.element.ui.generic.buttons.border_pressed",
 
-        button: "voxygen.element.buttons.button",
-        button_hover: "voxygen.element.buttons.button_hover",
-        button_press: "voxygen.element.buttons.button_press",
+        button: "voxygen.element.ui.generic.buttons.button",
+        button_hover: "voxygen.element.ui.generic.buttons.button_hover",
+        button_press: "voxygen.element.ui.generic.buttons.button_press",
 
         // Tooltips
-        tt_edge: "voxygen.element.frames.tooltip.edge",
-        tt_corner: "voxygen.element.frames.tooltip.corner",
+        tt_edge: "voxygen.element.ui.generic.frames.tooltip.edge",
+        tt_corner: "voxygen.element.ui.generic.frames.tooltip.corner",
     }
 }
 
