@@ -20,7 +20,7 @@ use common::{
     combat::{combat_rating, Damage},
     comp::{
         item::{ItemDef, MaterialStatManifest, Quality},
-        Body, Energy, Health, Inventory, Stats,
+        Body, Energy, Health, Inventory, Poise, Stats,
     },
 };
 use conrod_core::{
@@ -521,7 +521,13 @@ impl<'a> Bag<'a> {
         }
     }
 }
-const STATS: [&str; 4] = ["Health", "Stamina", "Protection", "Combat Rating"];
+const STATS: [&str; 5] = [
+    "Health",
+    "Stamina",
+    "Protection",
+    "Combat Rating",
+    "Stun Resilience",
+];
 
 pub struct BagState {
     ids: BagIds,
@@ -741,6 +747,7 @@ impl<'a> Widget for Bag<'a> {
                     "Stamina" => self.imgs.stamina_ico,
                     "Combat Rating" => self.imgs.combat_rating_ico,
                     "Protection" => self.imgs.protection_ico,
+                    "Stun Resilience" => self.imgs.stun_res_ico,
                     _ => self.imgs.nothing,
                 })
                 .w_h(20.0, 20.0)
@@ -757,7 +764,10 @@ impl<'a> Widget for Bag<'a> {
                 let health_txt = format!("{}", (self.health.maximum() as f32 / 10.0) as usize);
                 let stamina_txt = format!("{}", (self.energy.maximum() as f32 / 10.0) as usize);
                 let combat_rating_txt = format!("{}", (combat_rating * 10.0) as usize);
-
+                let stun_res_txt = format!(
+                    "{}",
+                    (100.0 * Poise::compute_poise_damage_reduction(inventory)) as i32
+                );
                 let btn = if i.0 == 0 {
                     btn.top_left_with_margins_on(state.bg_ids.bg_frame, 55.0, 10.0)
                 } else {
@@ -768,11 +778,13 @@ impl<'a> Widget for Bag<'a> {
                     "Stamina" => i18n.get("hud.bag.stamina"),
                     "Combat Rating" => i18n.get("hud.bag.combat_rating"),
                     "Protection" => i18n.get("hud.bag.protection"),
+                    "Stun Resilience" => i18n.get("hud.bag.stun_res"),
                     _ => "",
                 };
                 let tooltip_txt = match i.1 {
                     "Combat Rating" => i18n.get("hud.bag.combat_rating_desc"),
                     "Protection" => i18n.get("hud.bag.protection_desc"),
+                    "Stun Resilience" => i18n.get("hud.bag.stun_res_desc"),
                     _ => "",
                 };
                 btn.with_tooltip(
@@ -788,6 +800,7 @@ impl<'a> Widget for Bag<'a> {
                     "Stamina" => &stamina_txt,
                     "Combat Rating" => &combat_rating_txt,
                     "Protection" => &protection_txt,
+                    "Stun Resilience" => &stun_res_txt,
                     _ => "",
                 })
                 .right_from(state.ids.stat_icons[i.0], 10.0)

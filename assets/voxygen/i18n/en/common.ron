@@ -96,7 +96,7 @@ Is the client up to date?"#,
         "common.stats.crit_chance": "Crit Chance",
         "common.stats.crit_mult": "Crit Mult",
         "common.stats.armor": "Armor",
-        "common.stats.poise_res": "Poise res",
+        "common.stats.poise_res":"Stun Res",
         "common.stats.slots": "Slots",
     },
 

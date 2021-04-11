@@ -24,6 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Topographic map option
 - Search bars for social and crafting window
 - RTsim travellers now follow paths between towns
+- "Poise" renamed to "Stun resilience"
+- Stun resilience stat display
 
 ### Changed
 
@@ -41,6 +43,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Loot tables can now recursively reference loot tables
 - "max_sfx_channels" default now set to 30
 - Merchants now have stacks of stackable items instead of just one per slot
+- Bag tooltips only show slots now
+- Removed infinite armour values from most admin items
 
 ### Removed
 
@@ -52,6 +56,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Mouse Cursor now locks to the center of the screen when menu is not open
 - Social window no longer moves when group is open
 - Combat rating no longer takes buffs into account
+- Minimap icons are now displayed in both map modes
 
 ## [0.9.0] - 2021-03-20
 

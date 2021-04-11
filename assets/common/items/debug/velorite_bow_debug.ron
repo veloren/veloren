@@ -1,0 +1,18 @@
+ItemDef(
+    name: "Admin Velorite Bow",
+    description: "Infused with Velorite power.",
+    kind: Tool((
+        kind: Bow,
+        hands: Two,
+        stats: Direct((
+                equip_time_secs: 0.0,
+                power: 999.9,
+                poise_strength: 999.9,
+                speed: 100.0,
+                crit_chance: 0.5,
+                crit_mult: 2.0,
+            )), 
+    )),
+    quality: Debug,
+    tags: [],
+)

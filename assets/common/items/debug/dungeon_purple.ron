@@ -5,8 +5,8 @@ ItemDef(
         (
             kind: Back("VeloriteMage"),
             stats: (
-                protection: Invincible,
-                poise_resilience: Invincible,
+                protection: Normal(0.0),
+                poise_resilience: Normal(0.0),
             ),
         )
     ),

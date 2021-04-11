@@ -11,7 +11,10 @@ use crate::{
 use client::Client;
 use common::{
     combat,
-    comp::item::{armor::Protection, Item, ItemDesc, ItemKind, MaterialStatManifest, Quality},
+    comp::item::{
+        armor::{ArmorKind, Protection},
+        Item, ItemDesc, ItemKind, MaterialStatManifest, Quality,
+    },
     trade::SitePrices,
 };
 use conrod_core::{
@@ -424,13 +427,20 @@ impl<'a> Widget for ItemTooltip<'a> {
         } = args;
 
         fn stats_count(item: &dyn ItemDesc) -> usize {
+            let is_bag = matches!(item.kind(), ItemKind::Armor(armor) if matches!(armor.kind, ArmorKind::Bag(_)));
             let mut count = match item.kind() {
-                ItemKind::Armor(_) => 1,
+                ItemKind::Armor(armor) => {
+                    if matches!(armor.kind, ArmorKind::Bag(_)) {
+                        0
+                    } else {
+                        1
+                    }
+                },
                 ItemKind::Tool(_) => 5,
                 ItemKind::Consumable { .. } => 1,
                 _ => 0,
             };
-            if item.num_slots() != 0 {
+            if item.num_slots() != 0 && !is_bag {
                 count += 1
             }
             count as usize
@@ -750,57 +760,76 @@ impl<'a> Widget for ItemTooltip<'a> {
                 }
             },
             ItemKind::Armor(armor) => {
-                let protection = armor.get_protection();
-                let poise_res = armor.get_poise_resilience();
+                match armor.kind {
+                    ArmorKind::Bag(_) => {
+                        // Bags
+                        widget::Text::new(&format!(
+                            "{} {}",
+                            item.num_slots(),
+                            i18n.get("common.stats.slots")
+                        ))
+                        .graphics_for(id)
+                        .parent(id)
+                        .with_style(self.style.desc)
+                        .color(text_color)
+                        .font_size(34)
+                        .align_middle_y_of(state.ids.item_frame)
+                        .right_from(state.ids.item_frame, H_PAD)
+                        .set(state.ids.main_stat, ui);
+                    },
+                    _ => {
+                        // Armour
+                        let protection = armor.get_protection();
+                        let poise_res = armor.get_poise_resilience();
+                        widget::Text::new(&util::protec2string(protection))
+                            .graphics_for(id)
+                            .parent(id)
+                            .with_style(self.style.desc)
+                            .color(text_color)
+                            .font_size(34)
+                            .align_middle_y_of(state.ids.item_frame)
+                            .right_from(state.ids.item_frame, H_PAD)
+                            .set(state.ids.main_stat, ui);
 
-                // Armour
-                widget::Text::new(&util::protec2string(protection))
-                    .graphics_for(id)
-                    .parent(id)
-                    .with_style(self.style.desc)
-                    .color(text_color)
-                    .font_size(34)
-                    .align_middle_y_of(state.ids.item_frame)
-                    .right_from(state.ids.item_frame, H_PAD)
-                    .set(state.ids.main_stat, ui);
+                        widget::Text::new(i18n.get("common.stats.armor"))
+                            .graphics_for(id)
+                            .parent(id)
+                            .with_style(self.style.desc)
+                            .color(text_color)
+                            .align_bottom_of(state.ids.main_stat)
+                            .right_from(state.ids.main_stat, H_PAD)
+                            .set(state.ids.main_stat_text, ui);
 
-                widget::Text::new(i18n.get("common.stats.armor"))
-                    .graphics_for(id)
-                    .parent(id)
-                    .with_style(self.style.desc)
-                    .color(text_color)
-                    .align_bottom_of(state.ids.main_stat)
-                    .right_from(state.ids.main_stat, H_PAD)
-                    .set(state.ids.main_stat_text, ui);
+                        // Poise res
+                        widget::Text::new(&format!(
+                            "{} : {}",
+                            i18n.get("common.stats.poise_res"),
+                            util::protec2string(poise_res)
+                        ))
+                        .graphics_for(id)
+                        .parent(id)
+                        .with_style(self.style.desc)
+                        .color(text_color)
+                        .x_align_to(state.ids.item_frame, conrod_core::position::Align::Start)
+                        .down_from(state.ids.item_frame, V_PAD)
+                        .set(state.ids.stats[0], ui);
 
-                // Poise res
-                widget::Text::new(&format!(
-                    "{} : {}",
-                    i18n.get("common.stats.poise_res"),
-                    util::protec2string(poise_res)
-                ))
-                .graphics_for(id)
-                .parent(id)
-                .with_style(self.style.desc)
-                .color(text_color)
-                .x_align_to(state.ids.item_frame, conrod_core::position::Align::Start)
-                .down_from(state.ids.item_frame, V_PAD)
-                .set(state.ids.stats[0], ui);
-
-                // Slots
-                if item.num_slots() > 0 {
-                    widget::Text::new(&format!(
-                        "{} : {}",
-                        i18n.get("common.stats.slots"),
-                        item.num_slots()
-                    ))
-                    .graphics_for(id)
-                    .parent(id)
-                    .with_style(self.style.desc)
-                    .color(text_color)
-                    .x_align_to(state.ids.item_frame, conrod_core::position::Align::Start)
-                    .down_from(state.ids.stats[0], V_PAD_STATS)
-                    .set(state.ids.stats[1], ui);
+                        // Slots
+                        if item.num_slots() > 0 {
+                            widget::Text::new(&format!(
+                                "{} : {}",
+                                i18n.get("common.stats.slots"),
+                                item.num_slots()
+                            ))
+                            .graphics_for(id)
+                            .parent(id)
+                            .with_style(self.style.desc)
+                            .color(text_color)
+                            .x_align_to(state.ids.item_frame, conrod_core::position::Align::Start)
+                            .down_from(state.ids.stats[0], V_PAD_STATS)
+                            .set(state.ids.stats[1], ui);
+                        }
+                    },
                 }
 
                 if let Some(equipped_item) = equip_slot.cloned().next() {
@@ -932,13 +961,24 @@ impl<'a> Widget for ItemTooltip<'a> {
     fn default_y_dimension(&self, ui: &Ui) -> Dimension {
         fn stats_count(item: &dyn ItemDesc) -> usize {
             let mut count = match item.kind() {
-                ItemKind::Armor(_) => 1,
+                ItemKind::Armor(armor) => {
+                    if matches!(armor.kind, ArmorKind::Bag(_)) {
+                        0
+                    } else {
+                        1
+                    }
+                },
                 ItemKind::Tool(_) => 5,
                 ItemKind::Consumable { .. } => 1,
                 ItemKind::ModularComponent { .. } => 1,
                 _ => 0,
             };
-            if item.num_slots() != 0 {
+
+            let is_bag = match item.kind() {
+                ItemKind::Armor(armor) => matches!(armor.kind, ArmorKind::Bag(_)),
+                _ => false,
+            };
+            if item.num_slots() != 0 && !is_bag {
                 count += 1
             }
             count as usize

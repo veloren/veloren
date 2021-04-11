@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Sturdy Red Backpack",
-    description: "Made from some patches of dyed cloth.",
+    name: "Sturdy Red Saddlebag",
+    description: "Made from a large amount of dyed cloth patches.",
     kind: Armor(
         (
             kind: Bag("RedLarge"),
