@@ -13,6 +13,7 @@ use crate::{
 };
 use rand::Rng;
 use serde::{Deserialize, Serialize};
+use tracing::warn;
 
 /// Builder for character Loadouts, containing weapon and armour items belonging
 /// to a character, along with some helper methods for loading Items and
@@ -53,6 +54,18 @@ pub enum LoadoutConfig {
     CultistAcolyte,
     Warlord,
     Warlock,
+}
+
+pub fn make_potion_bag(quantity: u32) -> Item {
+    let mut bag = Item::new_from_asset_expect("common.items.armor.misc.bag.tiny_leather_pouch");
+    if let Some(i) = bag.slots_mut().iter_mut().next() {
+        let mut potions = Item::new_from_asset_expect("common.items.consumable.potion_big");
+        if let Err(e) = potions.set_amount(quantity) {
+            warn!("Failed to set potion quantity: {:?}", e);
+        }
+        *i = Some(potions);
+    }
+    bag
 }
 
 impl LoadoutBuilder {
@@ -551,6 +564,7 @@ impl LoadoutBuilder {
                         0 => Some(Item::new_from_asset_expect("common.items.lantern.black_0")),
                         _ => None,
                     })
+                    .bag(ArmorSlot::Bag1, Some(make_potion_bag(25)))
                     .build(),
                 Merchant => {
                     let mut backpack =
@@ -934,6 +948,7 @@ impl LoadoutBuilder {
                             _ => "common.items.armor.misc.foot.sandals",
                         },
                     )))
+                    .bag(ArmorSlot::Bag1, Some(make_potion_bag(10)))
                     .build(),
             }
         } else {

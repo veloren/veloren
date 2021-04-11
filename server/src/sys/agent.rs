@@ -11,13 +11,15 @@ use common::{
         invite::{InviteKind, InviteResponse},
         item::{
             tool::{ToolKind, UniqueKind},
-            ItemDesc, ItemKind,
+            Item, ItemDesc, ItemKind,
         },
         skills::{AxeSkill, BowSkill, HammerSkill, Skill, StaffSkill, SwordSkill},
         Agent, Alignment, BehaviorCapability, BehaviorState, Body, CharacterState, ControlAction,
-        ControlEvent, Controller, Energy, Health, InputKind, Inventory, LightEmitter, MountState,
-        Ori, PhysicsState, Pos, Scale, Stats, UnresolvedChatMsg, Vel,
+        ControlEvent, Controller, Energy, Health, HealthChange, InputKind, Inventory,
+        InventoryAction, LightEmitter, MountState, Ori, PhysicsState, Pos, Scale, Stats,
+        UnresolvedChatMsg, Vel,
     },
+    effect::{BuffEffect, Effect},
     event::{Emitter, EventBus, ServerEvent},
     path::TraversalConfig,
     resources::{DeltaTime, Time, TimeOfDay},
@@ -109,6 +111,7 @@ const SIGHT_DIST: f32 = 80.0;
 const SNEAK_COEFFICIENT: f32 = 0.25;
 const AVG_FOLLOW_DIST: f32 = 6.0;
 const RETARGETING_THRESHOLD_SECONDS: f64 = 10.0;
+const HEALING_ITEM_THRESHOLD: f32 = 0.5;
 
 /// This system will allow NPCs to modify their controller
 #[derive(Default)]
@@ -576,6 +579,11 @@ impl<'a> AgentData<'a> {
         read_data: &ReadData,
         event_emitter: &mut Emitter<'_, ServerEvent>,
     ) {
+        if self.damage < HEALING_ITEM_THRESHOLD && self.heal_self(agent, controller) {
+            agent.action_timer = 0.01;
+            return;
+        }
+
         if let Some(Target {
             target,
             selected_at,
@@ -619,12 +627,14 @@ impl<'a> AgentData<'a> {
                             event_emitter
                                 .emit(ServerEvent::Chat(UnresolvedChatMsg::npc(*self.uid, msg)));
                         }
-                    // Choose a new target every 10 seconds
+                    // Choose a new target every 10 seconds, but only for
+                    // enemies
                     // TODO: This should be more principled. Consider factoring
-                    // health, combat rating, wielded
-                    // weapon, etc, into the decision to change
-                    // target.
-                    } else if read_data.time.0 - selected_at > RETARGETING_THRESHOLD_SECONDS {
+                    // health, combat rating, wielded weapon, etc, into the
+                    // decision to change target.
+                    } else if read_data.time.0 - selected_at > RETARGETING_THRESHOLD_SECONDS
+                        && matches!(self.alignment, Some(Alignment::Enemy))
+                    {
                         self.choose_target(agent, controller, &read_data, event_emitter);
                     } else if dist_sqrd < SIGHT_DIST.powi(2) {
                         self.attack(
@@ -689,6 +699,11 @@ impl<'a> AgentData<'a> {
                 controller.events.push(ControlEvent::DisableLantern)
             }
         };
+
+        if self.damage < HEALING_ITEM_THRESHOLD && self.heal_self(agent, controller) {
+            agent.action_timer = 0.01;
+            return;
+        }
 
         agent.action_timer = 0.0;
         if let Some((travel_to, _destination)) = &agent.rtsim_controller.travel_to {
@@ -1287,6 +1302,61 @@ impl<'a> AgentData<'a> {
             controller.inputs.move_z = bearing.z;
         }
         agent.action_timer += dt.0;
+    }
+
+    /// Attempt to consume a healing item, and return whether any healing items
+    /// were queued. Callers should use this to implement a delay so that
+    /// the healing isn't interrupted.
+    fn heal_self(&self, _agent: &mut Agent, controller: &mut Controller) -> bool {
+        let healing_value = |item: &Item| {
+            let mut value = 0;
+            #[allow(clippy::single_match)]
+            match item.kind() {
+                ItemKind::Consumable { effect, .. } => {
+                    for e in effect.iter() {
+                        use BuffKind::*;
+                        match e {
+                            Effect::Health(HealthChange { amount, .. }) => {
+                                value += *amount;
+                            },
+                            Effect::Buff(BuffEffect { kind, data, .. })
+                                if matches!(kind, Regeneration | Saturation | Potion) =>
+                            {
+                                value += (data.strength
+                                    * data.duration.map_or(0.0, |d| d.as_secs() as f32))
+                                    as i32;
+                            }
+                            _ => {},
+                        }
+                    }
+                },
+                _ => {},
+            }
+            value
+        };
+
+        let mut consumables: Vec<_> = self
+            .inventory
+            .slots_with_id()
+            .filter_map(|(id, slot)| match slot {
+                Some(item) if healing_value(item) > 0 => Some((id, item)),
+                _ => None,
+            })
+            .collect();
+
+        consumables.sort_by_key(|(_, item)| healing_value(item));
+
+        if let Some((id, _)) = consumables.last() {
+            use comp::inventory::slot::Slot;
+            controller
+                .actions
+                .push(ControlAction::InventoryAction(InventoryAction::Use(
+                    Slot::Inventory(*id),
+                )));
+            true
+        } else {
+            false
+        }
     }
 
     fn choose_target(

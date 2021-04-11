@@ -131,6 +131,10 @@ impl Entity {
             .chest(chest)
             .pants(pants)
             .shoulder(shoulder)
+            .bag(
+                comp::inventory::slot::ArmorSlot::Bag1,
+                Some(comp::inventory::loadout_builder::make_potion_bag(100)),
+            )
             .build()
     }
 
