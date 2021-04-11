@@ -1,0 +1,40 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// 本地化 "Simplified Chinese" 简体中文
+(
+    string_map: {
+        // Buffs
+        "buff.remove": "点击删除",
+        "buff.title.missing": "缺少标题",
+        "buff.desc.missing": "缺少说明",
+        "buff.title.heal": "治愈",
+        "buff.desc.heal": "一定时间内生命值随缓慢恢复.",
+        "buff.title.potion": "药水",
+        "buff.desc.potion": "吨吨吨...",
+        "buff.title.saturation": "饱腹",
+        "buff.desc.saturation": "吃饱喝足后,一定时间内生命值随缓慢恢复.",
+        "buff.title.campfire_heal": "篝火疗愈",
+        "buff.desc.campfire_heal": "在篝火旁休息每秒可治愈1%生命.",
+        "buff.title.invulnerability": "无敌",
+        "buff.desc.invulnerability": "你不会受到任何攻击的伤害.",
+        "buff.title.protectingward": "守护领域",
+        "buff.desc.protectingward": "有股力量在守护着你,一定时间内防御得到显著提升.",
+        // Debuffs
+        "buff.title.bleed": "流血",
+        "buff.desc.bleed": "造成定期伤害.",
+        "buff.title.cursed": "诅咒",
+        "buff.desc.cursed": "你被诅咒了.",
+        // Buffs stats
+        "buff.stat.health": "总共恢复 {str_total} 点生命值",
+        "buff.stat.increase_max_stamina": "提高{strength}点耐力值上限 ",
+        "buff.stat.increase_max_health": "提高{strength}点生命值上限",
+        "buff.stat.invulnerability": "获得无敌状态",
+        // Text
+        "buff.text.over_seconds": "{dur_secs} 秒后结束",
+        "buff.text.for_seconds": "持续 {dur_secs} 秒",
+    },
+
+
+    vector_map: {
+    }
+)
