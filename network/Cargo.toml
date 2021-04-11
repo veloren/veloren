@@ -11,7 +11,7 @@ metrics = ["prometheus", "network-protocol/metrics"]
 compression = ["lz-fear"]
 quic = ["quinn"]
 
-default = ["metrics","compression","quinn"]
+default = ["metrics","compression","quic"]
 
 [dependencies]
 

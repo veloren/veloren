@@ -33,6 +33,8 @@ type A2sDisconnect = Arc<Mutex<Option<mpsc::UnboundedSender<(Pid, S2bShutdownBpa
 pub enum ProtocolAddr {
     Tcp(SocketAddr),
     Udp(SocketAddr),
+    #[cfg(feature = "quic")]
+    Quic(SocketAddr, quinn::ServerConfig),
     Mpsc(u64),
 }
 

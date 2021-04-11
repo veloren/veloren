@@ -28,8 +28,8 @@ pub enum QuicDataFormatStream {
 }
 
 pub struct QuicDataFormat {
-    stream: QuicDataFormatStream,
-    data: BytesMut,
+    pub stream: QuicDataFormatStream,
+    pub data: BytesMut,
 }
 
 impl QuicDataFormat {

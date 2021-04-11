@@ -1,6 +1,7 @@
 use async_trait::async_trait;
 use bytes::BytesMut;
 use network_protocol::{
+    QuicDataFormat, QuicDataFormatStream, QuicSendProtocol, QuicRecvProtocol,
     Bandwidth, Cid, InitProtocolError, MpscMsg, MpscRecvProtocol, MpscSendProtocol, Pid,
     ProtocolError, ProtocolEvent, ProtocolMetricCache, ProtocolMetrics, Sid, TcpRecvProtocol,
     TcpSendProtocol, UnreliableDrain, UnreliableSink,
@@ -68,6 +69,31 @@ impl Protocols {
         let sp = MpscSendProtocol::new(MpscDrain { sender }, metrics.clone());
         let rp = MpscRecvProtocol::new(MpscSink { receiver }, metrics);
         Protocols::Mpsc((sp, rp))
+    }
+
+    #[cfg(feature = "quic")]
+    pub(crate) async fn new_quic(
+        connection: quinn::NewConnection,
+        cid: Cid,
+        metrics: Arc<ProtocolMetrics>,
+    ) -> Result<Self, quinn::ConnectionError> {
+        let metrics = ProtocolMetricCache::new(&cid.to_string(), metrics);
+
+        let (sendstream, recvstream) = connection.connection.open_bi().await?;
+
+
+        let sp = QuicSendProtocol::new(QuicDrain {
+            con: connection.connection.clone(),
+            main: sendstream,
+            reliables: vec!(),
+        }, metrics.clone());
+        let rp = QuicRecvProtocol::new(QuicSink {
+            con: connection.connection,
+            main: recvstream,
+            reliables: vec!(),
+            buffer: BytesMut::new(),
+        }, metrics);
+        Ok(Protocols::Quic((sp, rp)))
     }
 
     pub(crate) fn split(self) -> (SendProtocols, RecvProtocols) {
@@ -219,21 +245,29 @@ impl UnreliableSink for MpscSink {
 //// QUIC
 #[derive(Debug)]
 pub struct QuicDrain {
-    half: OwnedWriteHalf,
+    con: quinn::Connection,
+    main: quinn::SendStream,
+    reliables: Vec<quinn::SendStream>,
 }
 
 #[derive(Debug)]
 pub struct QuicSink {
-    half: OwnedReadHalf,
+    con: quinn::Connection,
+    main: quinn::RecvStream,
+    reliables: Vec<quinn::RecvStream>,
     buffer: BytesMut,
 }
 
 #[async_trait]
 impl UnreliableDrain for QuicDrain {
-    type DataFormat = BytesMut;
+    type DataFormat = QuicDataFormat;
 
     async fn send(&mut self, data: Self::DataFormat) -> Result<(), ProtocolError> {
-        match self.half.write_all(&data).await {
+        match match data.stream {
+            QuicDataFormatStream::Main => self.main.write_all(&data.data),
+            QuicDataFormatStream::Unreliable => unimplemented!(),
+            QuicDataFormatStream::Reliable(id) => self.reliables.get_mut(id as usize).ok_or(ProtocolError::Closed)?.write_all(&data.data),
+        }.await {
             Ok(()) => Ok(()),
             Err(_) => Err(ProtocolError::Closed),
         }
@@ -242,13 +276,15 @@ impl UnreliableDrain for QuicDrain {
 
 #[async_trait]
 impl UnreliableSink for QuicSink {
-    type DataFormat = BytesMut;
+    type DataFormat = QuicDataFormat;
 
     async fn recv(&mut self) -> Result<Self::DataFormat, ProtocolError> {
         self.buffer.resize(1500, 0u8);
-        match self.half.read(&mut self.buffer).await {
-            Ok(0) => Err(ProtocolError::Closed),
-            Ok(n) => Ok(self.buffer.split_to(n)),
+        //TODO improve
+        match self.main.read(&mut self.buffer).await {
+            Ok(Some(0)) => Err(ProtocolError::Closed),
+            Ok(Some(n)) => Ok(QuicDataFormat{stream: QuicDataFormatStream::Main, data: self.buffer.split_to(n)}),
+            Ok(None) => Err(ProtocolError::Closed),
             Err(_) => Err(ProtocolError::Closed),
         }
     }

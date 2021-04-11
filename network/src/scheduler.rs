@@ -431,6 +431,47 @@ impl Scheduler {
                         .await;
                 }
             },
+            #[cfg(feature = "quic")]
+            ProtocolAddr::Quic(addr, server_config) => {
+                let mut endpoint = quinn::Endpoint::builder();
+                endpoint.listen(server_config);
+                let (endpoint, mut listener) = match endpoint.bind(&addr) {
+                    Ok((endpoint, listener)) => {
+                        s2a_listen_result_s.send(Ok(())).unwrap();
+                        (endpoint, listener)
+                    },
+                    Err(quinn::EndpointError::Socket(e)) => {
+                        info!(
+                            ?addr,
+                            ?e,
+                            "Quic bind error during listener startup"
+                        );
+                        s2a_listen_result_s.send(Err(e)).unwrap();
+                        return;
+                    }
+                };
+                trace!(?addr, "Listener bound");
+                let mut end_receiver = s2s_stop_listening_r.fuse();
+                while let Some(Some(connecting)) = select! {
+                    next = listener.next().fuse() => Some(next),
+                    _ = &mut end_receiver => None,
+                } {
+                    let remote_addr = connecting.remote_address();
+                    let connection = match connecting.await {
+                        Ok(c) => c,
+                        Err(e) => {
+                            debug!(?e, ?remote_addr, "skipping connection attempt");
+                            continue;
+                        },
+                    };
+                    #[cfg(feature = "metrics")]
+                    mcache.inc();
+                    let cid = self.channel_ids.fetch_add(1, Ordering::Relaxed);
+                    info!(?remote_addr, ?cid, "Accepting Quic from");
+                    self.init_protocol(Protocols::new_quic(connection, cid, Arc::clone(&self.protocol_metrics)), cid, None, true)
+                        .await;
+                }
+            },
             ProtocolAddr::Mpsc(addr) => {
                 let (mpsc_s, mut mpsc_r) = mpsc::unbounded_channel();
                 MPSC_POOL.lock().await.insert(addr, mpsc_s);
