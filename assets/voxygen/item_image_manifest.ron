@@ -153,6 +153,10 @@
         "voxel.weapon.bow.velorite",
         (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
     ),
+    Tool("common.items.debug.velorite_bow_debug"): VoxTrans(
+        "voxel.weapon.bow.velorite",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
     Tool("common.items.weapons.bow.wood-0"): VoxTrans(
         "voxel.weapon.bow.wood-0",
         (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
@@ -1072,8 +1076,8 @@
     ),
     // Other
     Utility(Coins): VoxTrans(
-        "voxel.object.coins",
-        (0.0, 0.0, 0.0), (0.0, 0.0, 0.0), 0.6,
+        "voxel.object.v-coin",
+        (0.0, 0.0, 0.0), (-10.0, 15.0, 0.0), 0.8,
     ),
     Utility(Collar): Png(
         "element.icons.collar",

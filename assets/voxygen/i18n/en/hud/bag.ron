@@ -29,8 +29,10 @@
         "hud.bag.stamina": "Stamina",
         "hud.bag.combat_rating": "Combat Rating",
         "hud.bag.protection": "Protection",
+        "hud.bag.stun_res": "Stun Resilience",
         "hud.bag.combat_rating_desc": "Calculated from your\nequipment and health.",
         "hud.bag.protection_desc": "Damage reduction through armor",
+        "hud.bag.stun_res_desc": "Resilience against being stunned by consecutive hits.\nRegenerates like Stamina.",
     },
 
 

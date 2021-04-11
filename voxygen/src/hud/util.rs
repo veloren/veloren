@@ -113,7 +113,7 @@ pub fn consumable_desc(effects: &[Effect], i18n: &Localization) -> String {
                 BuffKind::IncreaseMaxHealth => i18n
                     .get("buff.stat.increase_max_health")
                     .replace("{strength}", &strength.to_string()),
-                BuffKind::Invulnerability => i18n.get("buff.stat.invulenrability").to_string(),
+                BuffKind::Invulnerability => i18n.get("buff.stat.invulnerability").to_string(),
                 BuffKind::Bleeding
                 | BuffKind::CampfireHeal
                 | BuffKind::Cursed
@@ -171,7 +171,6 @@ fn armor_kind<'a>(armor: &Armor, i18n: &'a Localization) -> &'a str {
 }
 
 //Tool
-
 fn tool_kind<'a>(tool: &Tool, i18n: &'a Localization) -> &'a str {
     let kind = match tool.kind {
         ToolKind::Sword => i18n.get("common.weapons.sword"),

@@ -799,6 +799,10 @@
         vox_spec: ("weapon.bow.velorite", (-1.5, -4.0, -15.0)),
         color: None
     ),
+    "common.items.debug.velorite_bow_debug": (
+        vox_spec: ("weapon.bow.velorite", (-1.5, -4.0, -15.0)),
+        color: Some((73, 63, 59))
+    ),
     "common.items.weapons.bow.wood-0": (
         vox_spec: ("weapon.bow.wood-0", (-0.5, -5.0, -11.0)),
         color: None

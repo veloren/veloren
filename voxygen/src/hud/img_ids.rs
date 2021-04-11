@@ -337,6 +337,7 @@ image_ids! {
         indicator_group: "voxygen.element.map.group_indicator",
         indicator_group_up: "voxygen.element.map.group_indicator_arrow_up",
         indicator_group_down: "voxygen.element.map.group_indicator_arrow_down",
+        map_mode_overlay: "voxygen.element.buttons.map_modes",
 
         // MiniMap
         mmap_frame: "voxygen.element.frames.mmap",
@@ -452,6 +453,7 @@ image_ids! {
         health_ico: "voxygen.element.icons.health",
         protection_ico: "voxygen.element.icons.protection",
         combat_rating_ico: "voxygen.element.icons.combat_rating",
+        stun_res_ico: "voxygen.element.icons.stun_res",
         combat_rating_ico_shadow: "voxygen.element.icons.combat_rating_shadow",
 
         not_found: "voxygen.element.not_found",

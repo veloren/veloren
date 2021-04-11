@@ -40,9 +40,6 @@ widget_ids! {
         member_indicators[],
         member_height_indicators[],
         map_settings_align,
-        show_topo_map_img,
-        show_topo_map_box,
-        show_topo_map_text,
         show_towns_img,
         show_towns_box,
         show_towns_text,
@@ -66,6 +63,8 @@ widget_ids! {
         drag_ico,
         zoom_txt,
         zoom_ico,
+        map_mode_btn,
+        map_mode_overlay,
     }
 }
 
@@ -374,44 +373,9 @@ impl<'a> Widget for Map<'a> {
             .top_right_with_margins_on(state.ids.frame, 55.0, 10.0)
             .set(state.ids.map_settings_align, ui);
         // Checkboxes
-        // Show topographic map
-        Image::new(self.imgs.map_topo)
-            .top_left_with_margins_on(state.ids.map_settings_align, 5.0, 5.0)
-            .w_h(20.0, 20.0)
-            .set(state.ids.show_topo_map_img, ui);
-        if Button::image(if show_topo_map {
-            self.imgs.checkbox_checked
-        } else {
-            self.imgs.checkbox
-        })
-        .w_h(18.0, 18.0)
-        .hover_image(if show_topo_map {
-            self.imgs.checkbox_checked_mo
-        } else {
-            self.imgs.checkbox_mo
-        })
-        .press_image(if show_topo_map {
-            self.imgs.checkbox_checked
-        } else {
-            self.imgs.checkbox_press
-        })
-        .right_from(state.ids.show_topo_map_img, 10.0)
-        .set(state.ids.show_topo_map_box, ui)
-        .was_clicked()
-        {
-            events.push(Event::ShowTopoMap(!show_topo_map));
-        }
-        Text::new(i18n.get("hud.map.topo_map"))
-            .right_from(state.ids.show_topo_map_box, 10.0)
-            .font_size(self.fonts.cyri.scale(14))
-            .font_id(self.fonts.cyri.conrod_id)
-            .graphics_for(state.ids.show_topo_map_box)
-            .color(TEXT_COLOR)
-            .set(state.ids.show_topo_map_text, ui);
-
         // Show difficulties
         Image::new(self.imgs.map_dif_6)
-            .down_from(state.ids.show_topo_map_img, 10.0)
+            .top_left_with_margins_on(state.ids.map_settings_align, 5.0, 5.0)
             .w_h(20.0, 20.0)
             .set(state.ids.show_difficulty_img, ui);
         if Button::image(if show_difficulty {
@@ -961,6 +925,30 @@ impl<'a> Widget for Map<'a> {
             .graphics_for(state.ids.map_layers[0])
             .color(TEXT_COLOR)
             .set(state.ids.zoom_txt, ui);
+
+        // Show topographic map
+        if Button::image(self.imgs.button)
+            .w_h(92.0, icon_size.y)
+            .hover_image(self.imgs.button_hover)
+            .press_image(self.imgs.button_press)
+            .bottom_right_with_margins_on(state.ids.map_layers[0], -36.0, 0.0)
+            .with_tooltip(
+                self.tooltip_manager,
+                "Change Map Mode",
+                "",
+                &site_tooltip,
+                TEXT_COLOR,
+            )
+            .set(state.ids.map_mode_btn, ui)
+            .was_clicked()
+        {
+            events.push(Event::ShowTopoMap(!show_topo_map));
+        };
+        Button::image(self.imgs.map_mode_overlay)
+            .w_h(92.0, icon_size.y)
+            .graphics_for(state.ids.map_mode_btn)
+            .middle_of(state.ids.map_mode_btn)
+            .set(state.ids.map_mode_overlay, ui);
 
         events
     }

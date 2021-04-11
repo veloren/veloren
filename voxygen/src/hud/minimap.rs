@@ -351,7 +351,6 @@ impl<'a> Widget for MiniMap<'a> {
                     SiteKind::Cave => Color::Rgba(1.0, 1.0, 1.0, 0.0),
                     SiteKind::Tree => Color::Rgba(1.0, 1.0, 1.0, 0.0),
                 }))
-                .parent(state.ids.map_layers[3])
                 .set(state.ids.mmap_site_icons_bgs[i], ui);
                 Image::new(match &site.kind {
                     SiteKind::Town => self.imgs.mmap_site_town,
