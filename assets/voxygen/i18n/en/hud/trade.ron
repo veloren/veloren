@@ -19,6 +19,8 @@
 	"hud.trade.buy_price": "Buy price",
 	"hud.trade.sell_price": "Sell Price",
 	"hud.trade.coin": "coin(s)",
+	"hud.trade.tooltip_hint_1": "<Shift-Click to Add/Remove from trade.>",
+	"hud.trade.tooltip_hint_2": "<Ctrl-Click to Auto-Balance with this.>",
     },
 
 

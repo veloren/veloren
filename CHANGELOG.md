@@ -45,6 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Merchants now have stacks of stackable items instead of just one per slot
 - Bag tooltips only show slots now
 - Removed infinite armour values from most admin items
+- Item tooltips during trades will now inform the user of what ctrl-click and shift-click do
 
 ### Removed
 

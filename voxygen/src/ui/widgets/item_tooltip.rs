@@ -293,6 +293,7 @@ widget_ids! {
         desc,
         prices_buy,
         prices_sell,
+        tooltip_hints,
         main_stat,
         main_stat_text,
         stats[],
@@ -951,6 +952,21 @@ impl<'a> Widget for ItemTooltip<'a> {
                 .down_from(state.ids.prices_buy, V_PAD_STATS)
                 .w(text_w)
                 .set(state.ids.prices_sell, ui);
+
+            //Tooltips for trade mini-tutorial
+            widget::Text::new(&format!(
+                "{}\n{}",
+                i18n.get("hud.trade.tooltip_hint_1"),
+                i18n.get("hud.trade.tooltip_hint_2")
+            ))
+            .x_align_to(state.ids.item_frame, conrod_core::position::Align::Start)
+            .graphics_for(id)
+            .parent(id)
+            .with_style(self.style.desc)
+            .color(Color::Rgba(255.0, 255.0, 255.0, 1.0))
+            .down_from(state.ids.prices_sell, V_PAD_STATS)
+            .w(text_w)
+            .set(state.ids.tooltip_hints, ui);
         }
     }
 
@@ -1032,7 +1048,12 @@ impl<'a> Widget for ItemTooltip<'a> {
             item.item_definition_id(),
             &self.localized_strings,
         ) {
-            widget::Text::new(&format!("{}\n{}", buy, sell))
+            //Get localized tooltip strings (gotten here because these should only show if
+            // in a trade- aka if buy/sell prices are present)
+            let tt_hint_1 = self.localized_strings.get("hud.trade.tooltip_hint_1");
+            let tt_hint_2 = self.localized_strings.get("hud.trade.tooltip_hint_2");
+
+            widget::Text::new(&format!("{}\n{}\n{}\n{}", buy, sell, tt_hint_1, tt_hint_2))
                 .with_style(self.style.desc)
                 .w(text_w)
                 .get_h(ui)
