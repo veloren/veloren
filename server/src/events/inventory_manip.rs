@@ -149,7 +149,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                 Err(returned_item) => {
                     // Inventory was full, so we need to put back the item (note that we know there
                     // was no old item component for this entity).
-                    item_storage.insert(entity, returned_item).expect(
+                    item_storage.insert(item_entity, returned_item).expect(
                         "We know item_entity exists since we just successfully removed its Item \
                          component.",
                     );
