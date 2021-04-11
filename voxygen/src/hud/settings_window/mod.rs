@@ -289,56 +289,44 @@ impl<'a> Widget for SettingsWindow<'a> {
         }
 
         // Content Area
-        macro_rules! setup_content_area {
-            ($parent:expr, $ui:expr, $widget:expr, $id:expr) => {
-                $widget
-                    .top_left_with_margins_on($parent, 0.0, 0.0)
-                    .wh_of($parent)
-                    .set($id, $ui)
-            };
-        }
         let global_state = self.global_state;
         let show = self.show;
         let imgs = self.imgs;
         let fonts = self.fonts;
         let localized_strings = self.localized_strings;
         for event in match self.show.settings_tab {
-            SettingsTab::Interface => setup_content_area!(
-                state.ids.settings_content_align,
-                ui,
-                interface::Interface::new(global_state, show, imgs, fonts, localized_strings,),
-                state.ids.interface
-            ),
-            SettingsTab::Gameplay => setup_content_area!(
-                state.ids.settings_content_align,
-                ui,
-                gameplay::Gameplay::new(global_state, imgs, fonts, localized_strings,),
-                state.ids.gameplay
-            ),
-            SettingsTab::Controls => setup_content_area!(
-                state.ids.settings_content_align,
-                ui,
-                controls::Controls::new(global_state, imgs, fonts, localized_strings,),
-                state.ids.controls
-            ),
-            SettingsTab::Video => setup_content_area!(
-                state.ids.settings_content_align,
-                ui,
-                video::Video::new(global_state, imgs, fonts, localized_strings, self.fps,),
-                state.ids.video
-            ),
-            SettingsTab::Sound => setup_content_area!(
-                state.ids.settings_content_align,
-                ui,
-                sound::Sound::new(global_state, imgs, fonts, localized_strings,),
-                state.ids.sound
-            ),
-            SettingsTab::Lang => setup_content_area!(
-                state.ids.settings_content_align,
-                ui,
-                language::Language::new(global_state, imgs, fonts),
-                state.ids.language
-            ),
+            SettingsTab::Interface => {
+                interface::Interface::new(global_state, show, imgs, fonts, localized_strings)
+                    .top_left_with_margins_on(state.ids.settings_content_align, 0.0, 0.0)
+                    .wh_of(state.ids.settings_content_align)
+                    .set(state.ids.interface, ui)
+            },
+            SettingsTab::Gameplay => {
+                gameplay::Gameplay::new(global_state, imgs, fonts, localized_strings)
+                    .top_left_with_margins_on(state.ids.settings_content_align, 0.0, 0.0)
+                    .wh_of(state.ids.settings_content_align)
+                    .set(state.ids.gameplay, ui)
+            },
+            SettingsTab::Controls => {
+                controls::Controls::new(global_state, imgs, fonts, localized_strings)
+                    .top_left_with_margins_on(state.ids.settings_content_align, 0.0, 0.0)
+                    .wh_of(state.ids.settings_content_align)
+                    .set(state.ids.controls, ui)
+            },
+            SettingsTab::Video => {
+                video::Video::new(global_state, imgs, fonts, localized_strings, self.fps)
+                    .top_left_with_margins_on(state.ids.settings_content_align, 0.0, 0.0)
+                    .wh_of(state.ids.settings_content_align)
+                    .set(state.ids.video, ui)
+            },
+            SettingsTab::Sound => sound::Sound::new(global_state, imgs, fonts, localized_strings)
+                .top_left_with_margins_on(state.ids.settings_content_align, 0.0, 0.0)
+                .wh_of(state.ids.settings_content_align)
+                .set(state.ids.sound, ui),
+            SettingsTab::Lang => language::Language::new(global_state, imgs, fonts)
+                .top_left_with_margins_on(state.ids.settings_content_align, 0.0, 0.0)
+                .wh_of(state.ids.settings_content_align)
+                .set(state.ids.language, ui),
         } {
             events.push(event);
         }
