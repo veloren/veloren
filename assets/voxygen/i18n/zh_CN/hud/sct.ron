@@ -1,0 +1,14 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// 本地化 "Simplified Chinese" 简体中文
+(
+    string_map: {
+        // SCT outputs
+        "hud.sct.experience": "{amount}经验",
+        "hud.sct.block": "格挡",       
+        },
+
+
+    vector_map: {
+    }
+)

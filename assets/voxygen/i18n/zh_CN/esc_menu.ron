@@ -1,0 +1,13 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// 本地化 "Simplified Chinese" 简体中文
+(
+    string_map: {
+        "esc_menu.logout": "登出",
+        "esc_menu.quit_game": "退出游戏",
+    },
+
+
+    vector_map: {
+    }
+)
