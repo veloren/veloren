@@ -569,8 +569,6 @@ impl Show {
         }
     }
 
-    fn toggle_bag(&mut self) { self.bag(!self.bag); }
-
     fn trade(&mut self, open: bool) {
         if !self.esc_menu {
             self.bag = open;
@@ -579,8 +577,6 @@ impl Show {
             self.want_grab = !open;
         }
     }
-
-    fn toggle_trade(&mut self) { self.trade(!self.trade); }
 
     fn map(&mut self, open: bool) {
         if !self.esc_menu {
@@ -629,8 +625,6 @@ impl Show {
         }
     }
 
-    fn toggle_map(&mut self) { self.map(!self.map) }
-
     fn settings(&mut self, open: bool) {
         if !self.esc_menu {
             self.open_windows = if open {
@@ -645,6 +639,20 @@ impl Show {
             self.want_grab = !open;
         }
     }
+
+    fn toggle_bag(&mut self) { self.bag(!self.bag); }
+
+    fn toggle_trade(&mut self) { self.trade(!self.trade); }
+
+    fn toggle_map(&mut self) { self.map(!self.map) }
+
+    fn toggle_social(&mut self) { self.social(!self.social); }
+
+    fn toggle_crafting(&mut self) { self.crafting(!self.crafting) }
+
+    fn toggle_spell(&mut self) { self.diary(!self.diary) }
+
+    fn toggle_ui(&mut self) { self.ui = !self.ui; }
 
     fn toggle_settings(&mut self, global_state: &GlobalState) {
         match self.open_windows {
@@ -667,8 +675,6 @@ impl Show {
 
     // TODO: Add self updating key-bindings element
     //fn toggle_help(&mut self) { self.help = !self.help }
-
-    fn toggle_ui(&mut self) { self.ui = !self.ui; }
 
     fn toggle_windows(&mut self, global_state: &mut GlobalState) {
         if self.bag
@@ -715,22 +721,6 @@ impl Show {
         self.settings_tab = tab;
         self.bag = false;
         self.want_grab = false;
-    }
-
-    fn toggle_social(&mut self) {
-        self.social(!self.social);
-        self.diary = false;
-    }
-
-    fn toggle_crafting(&mut self) { self.crafting(!self.crafting) }
-
-    fn toggle_spell(&mut self) {
-        self.diary = !self.diary;
-        self.bag = false;
-        self.crafting = false;
-        self.social = false;
-        self.map = false;
-        self.want_grab = !self.diary;
     }
 
     fn open_skill_tree(&mut self, tree_sel: SelectedSkillTree) {
