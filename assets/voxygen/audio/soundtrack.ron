@@ -13,7 +13,7 @@
             timing: None,
             biomes: [],
             site: Some(Dungeon),
-            activity: State(Explore),
+            music_state: Activity(Explore),
             artist: "Aeronic",
         )),
         Individual((
@@ -25,7 +25,7 @@
                 (Mountain, 1)
             ],
             site: Some(Void),
-            activity: State(Explore),
+            music_state: Activity(Explore),
             artist: "Ultimafounding; mixed by Robotnik",
         )),
         Individual((
@@ -37,7 +37,7 @@
                 (Desert, 1)
             ],
             site: Some(Void),
-            activity: State(Explore),
+            music_state: Activity(Explore),
             artist: "Aeronic; mixed by Robotnik",
         )),
         Individual((
@@ -47,7 +47,7 @@
             timing: None,
             biomes: [],
             site: Some(Dungeon),
-            activity: State(Explore),
+            music_state: Activity(Explore),
             artist: "Aeronic",
         )),
         Individual((
@@ -57,7 +57,7 @@
             timing: None,
             biomes: [],
             site: Some(Cave),
-            activity: State(Explore),
+            music_state: Activity(Explore),
             artist: "Flashbang",
         )),
         Individual((
@@ -67,7 +67,7 @@
             timing: None,
             biomes: [],
             site: Some(Dungeon),
-            activity: State(Explore),
+            music_state: Activity(Explore),
             artist: "Aeronic",
         )),
         Individual((
@@ -77,7 +77,7 @@
             timing: None,
             biomes: [],
             site: Some(Dungeon),
-            activity: State(Explore),
+            music_state: Activity(Explore),
             artist: "Aeronic",
         )),
         Individual((
@@ -89,7 +89,7 @@
                 (Forest, 1),
             ],
             site: Some(Void),
-            activity: State(Explore),
+            music_state: Activity(Explore),
             artist: "DaforLynx",
         )),
         Individual((
@@ -101,7 +101,7 @@
                 (Jungle, 1),
             ],
             site: Some(Void),
-            activity: State(Explore),
+            music_state: Activity(Explore),
             artist: "badbbad",
         )),
         Individual((
@@ -113,7 +113,7 @@
                 (Mountain, 1),
             ],
             site: Some(Void),
-            activity: State(Explore),
+            music_state: Activity(Explore),
             artist: "Aeronic",
         )),
         Individual((
@@ -126,7 +126,7 @@
                 (Lake, 1),
             ],
             site: Some(Void),
-            activity: State(Explore),
+            music_state: Activity(Explore),
             artist: "Aeronic",
         )),
         Individual((
@@ -139,7 +139,7 @@
                 (Mountain, 1),
             ],
             site: Some(Void),
-            activity: State(Explore),
+            music_state: Activity(Explore),
             artist: "badbbad",
         )),
         Individual((
@@ -151,7 +151,7 @@
                 (Grassland, 1),
             ],
             site: Some(Void),
-            activity: State(Explore),
+            music_state: Activity(Explore),
             artist: "Aeronic",
         )),
         Individual((
@@ -163,7 +163,7 @@
                 (Grassland, 1),
             ],
             site: Some(Void),
-            activity: State(Explore),
+            music_state: Activity(Explore),
             artist: "Ultimafounding",
         )),
         Individual((
@@ -176,7 +176,7 @@
                 (Ocean, 1),
             ],
             site: Some(Void),
-            activity: State(Explore),
+            music_state: Activity(Explore),
             artist: "DaforLynx",
         )),
         Individual((
@@ -188,7 +188,7 @@
                 (Snowland, 1),
             ],
             site: Some(Void),
-            activity: State(Explore),
+            music_state: Activity(Explore),
             artist: "DaforLynx",
         )),
         Individual((
@@ -201,7 +201,7 @@
                 (Mountain, 1),
             ],
             site: Some(Void),
-            activity: State(Explore),
+            music_state: Activity(Explore),
             artist: "Ap1evideogame",
         )),
         Individual((
@@ -214,7 +214,7 @@
                 (Ocean, 1),
             ],
             site: Some(Void),
-            activity: State(Explore),
+            music_state: Activity(Explore),
             artist: "Eden",
         )),
         Individual((
@@ -227,7 +227,7 @@
                 (Mountain, 1),
             ],
             site: Some(Void),
-            activity: State(Explore),
+            music_state: Activity(Explore),
             artist: "Eden",
         )),        
         Individual((
@@ -240,7 +240,7 @@
                 (Jungle, 1),
             ],
             site: Some(Void),
-            activity: State(Explore),
+            music_state: Activity(Explore),
             artist: "Aeronic",
         )),
         Individual((
@@ -253,7 +253,7 @@
                 (Forest, 1),
             ],
             site: Some(Void),
-            activity: State(Explore),
+            music_state: Activity(Explore),
             artist: "Aeronic",
         )),
         Individual((
@@ -265,7 +265,7 @@
                 (Grassland, 1),
             ],
             site: Some(Void),
-            activity: State(Explore),
+            music_state: Activity(Explore),
             artist: "Aeronic",
         )),
         Individual((
@@ -277,7 +277,7 @@
                 (Snowland, 1),
             ],
             site: Some(Void),
-            activity: State(Explore),
+            music_state: Activity(Explore),
             artist: "Aeronic",
         )),
         Individual((
@@ -287,7 +287,7 @@
             timing: None,
             biomes: [],
             site: Some(Cave),
-            activity: State(Explore),
+            music_state: Activity(Explore),
             artist: "Aeronic",
         )),
         Individual((
@@ -299,7 +299,7 @@
                 (Snowland, 1),
             ],
             site: Some(Void),
-            activity: State(Explore),
+            music_state: Activity(Explore),
             artist: "Aeronic",
         )),
         Individual((
@@ -312,7 +312,7 @@
                 (Desert, 1),
             ],
             site: Some(Void),
-            activity: State(Explore),
+            music_state: Activity(Explore),
             artist: "Aeronic",
         )),
         Individual((
@@ -324,7 +324,7 @@
                 (Grassland, 1),
             ],
             site: Some(Void),
-            activity: State(Explore),
+            music_state: Activity(Explore),
             artist: "badbbad",
         )),
         Individual((
@@ -336,7 +336,7 @@
                 (Forest, 1),
             ],
             site: Some(Void),
-            activity: State(Explore),
+            music_state: Activity(Explore),
             artist: "badbbad",
         )),
         Individual((
@@ -348,7 +348,7 @@
                 (Mountain, 1),
             ],
             site: Some(Void),
-            activity: State(Explore),
+            music_state: Activity(Explore),
             artist: "badbbad",
         )),
         Individual((   
@@ -358,7 +358,7 @@
             timing: None,
             biomes: [],
             site: Some(Dungeon),
-            activity: State(Explore),
+            music_state: Activity(Explore),
             artist: "badbbad",
         )),
         Individual((
@@ -370,7 +370,7 @@
                 (Forest, 1),
             ],
             site: Some(Void),
-            activity: State(Explore),
+            music_state: Activity(Explore),
             artist: "badbbad",
         )),
         Segmented(
@@ -381,10 +381,10 @@
             site: Some(Dungeon),
             segments: [
                 ("voxygen.audio.soundtrack.barred_paths.barred_paths-hi-end", 6.0, Transition(Combat(High), Explore), None),
-                ("voxygen.audio.soundtrack.barred_paths.barred_paths-hi-loop", 54.0, State(Combat(High)), None),
+                ("voxygen.audio.soundtrack.barred_paths.barred_paths-hi-loop", 54.0, Activity(Combat(High)), None),
                 ("voxygen.audio.soundtrack.barred_paths.barred_paths-hi-start", 55.0, Transition(Explore, Combat(High)), Some(Combat(High))),
                 ("voxygen.audio.soundtrack.barred_paths.barred_paths-lo-end", 3.0, Transition(Combat(Low), Explore), None),
-                ("voxygen.audio.soundtrack.barred_paths.barred_paths-lo-loop", 7.0, State(Combat(Low)), None),
+                ("voxygen.audio.soundtrack.barred_paths.barred_paths-lo-loop", 7.0, Activity(Combat(Low)), None),
                 ("voxygen.audio.soundtrack.barred_paths.barred_paths-lo-start", 10.0, Transition(Explore, Combat(Low)), None),
                 ("voxygen.audio.soundtrack.barred_paths.barred_paths-trans-hi-lo", 10.0, Transition(Combat(High), Combat(Low)), None),
                 ("voxygen.audio.soundtrack.barred_paths.barred_paths-trans-lo-hi", 7.0, Transition(Combat(Low), Combat(High)), None),

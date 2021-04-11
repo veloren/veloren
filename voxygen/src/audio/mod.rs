@@ -9,13 +9,13 @@ pub mod soundcache;
 
 use channel::{AmbientChannel, AmbientChannelTag, MusicChannel, MusicChannelTag, SfxChannel};
 use fader::Fader;
-use music::MUSIC_TRANSITION_MANIFEST;
+use music::MusicTransitionManifest;
 use sfx::{SfxEvent, SfxTriggerItem};
 use soundcache::{OggSound, WavSound};
 use std::time::Duration;
 use tracing::{debug, error};
 
-use common::assets::AssetExt;
+use common::assets::{AssetExt, AssetHandle};
 use rodio::{source::Source, OutputStream, OutputStreamHandle, StreamError};
 use vek::*;
 
@@ -46,6 +46,8 @@ pub struct AudioFrontend {
     sfx_volume: f32,
     music_volume: f32,
     listener: Listener,
+
+    mtm: AssetHandle<MusicTransitionManifest>,
 }
 
 impl AudioFrontend {
@@ -91,6 +93,7 @@ impl AudioFrontend {
             sfx_volume: 1.0,
             music_volume: 1.0,
             listener: Listener::default(),
+            mtm: AssetExt::load_expect("voxygen.audio.music_transition_manifest"),
         }
     }
 
@@ -109,6 +112,9 @@ impl AudioFrontend {
             sfx_volume: 1.0,
             music_volume: 1.0,
             listener: Listener::default(),
+            // This expect should be fine, since `<MusicTransitionManifest as Asset>::default_value`
+            // is specified
+            mtm: AssetExt::load_expect("voxygen.audio.music_transition_manifest"),
         }
     }
 
@@ -153,13 +159,13 @@ impl AudioFrontend {
                 let existing_channel = self.music_channels.last_mut()?;
 
                 if existing_channel.get_tag() != next_channel_tag {
-                    let mtm = MUSIC_TRANSITION_MANIFEST.read();
+                    let mtm = self.mtm.read();
                     let (fade_out, fade_in) = mtm
                         .fade_timings
                         .get(&(existing_channel.get_tag(), next_channel_tag))
                         .unwrap_or(&(1.0, 1.0));
-                    let fade_out = Duration::from_millis((1000.0 * fade_out) as _);
-                    let fade_in = Duration::from_millis((1000.0 * fade_in) as _);
+                    let fade_out = Duration::from_secs_f32(*fade_out);
+                    let fade_in = Duration::from_secs_f32(*fade_in);
                     // Fade the existing channel out. It will be removed when the fade completes.
                     existing_channel.set_fader(Fader::fade_out(fade_out, self.music_volume));
 
