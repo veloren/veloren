@@ -1,0 +1,103 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+(
+    string_map: {
+        // Texts used in multiple locations with the same formatting
+        "common.username": "nazwa konta",
+        "common.singleplayer": "Tryb jednoosobowy",
+        "common.multiplayer": "Tryb wieloosobowy",
+        "common.servers": "Serwery",
+        "common.quit": "Wyjdź",
+        "common.settings": "Ustawienia",
+        "common.languages": "Języki",
+        "common.interface": "Interfejs",
+        "common.gameplay": "Rozgrywka",
+        "common.controls": "Sterowanie",
+        "common.video": "Grafika",
+        "common.sound": "Dźwięk",
+        "common.resume": "Kontynuuj",
+        "common.characters": "Postacie",
+        "common.close": "Zamknij",
+        "common.yes": "Tak",
+        "common.no": "Nie",
+        "common.back": "Wstecz",
+        "common.create": "Stwórz",
+        "common.okay": "Okej",
+        "common.add": "Dodaj",
+        "common.accept": "Akceptuj",
+        "common.decline": "Odrzuć",
+        "common.disclaimer": "Przypis",
+        "common.cancel": "Anuluj",
+        "common.none": "Brak",
+        "common.error": "Błąd",
+        "common.fatal_error": "Błąd krytyczny",
+        "common.you": "Ty",
+        "common.automatic": "Automatyczne",
+        "common.random": "Losowo",
+        "common.empty": "Pusty",
+
+        // Settings Window title
+        "common.interface_settings": "Ustawienia interfejsu",
+        "common.gameplay_settings": "Ustawienia rozgrywki",
+        "common.controls_settings": "Ustawienia sterowania",
+        "common.video_settings": "Ustawienia grafiki",
+        "common.sound_settings": "Ustawienia dźwięku",
+        "common.language_settings": "Ustawienia języka",
+
+        // Message when connection to the server is lost
+        "common.connection_lost": r#"Stracono połączenia!
+Serwer jest restartowany?
+Czy masz aktualną wersję gry?"#,
+
+        "common.species.orc": "Ork",
+        "common.species.human": "Człowiek",
+        "common.species.dwarf": "Krasnolud",
+        "common.species.elf": "Elf",
+        "common.species.undead": "Nieumarły",
+        "common.species.danari": "Danari",
+
+        "common.weapons.axe": "Siekiera",
+        "common.weapons.sword": "Miecz",
+        "common.weapons.staff": "Kostur maga",
+        "common.weapons.bow": "Łuk",
+        "common.weapons.hammer": "Młot",
+        "common.weapons.general": "Ogólna walka",
+        "common.weapons.sceptre": "Kostur druida",
+        "common.weapons.shield": "Tarcza",
+        "common.weapons.spear": "Włócznia",
+        "common.weapons.hammer_simple": "Prosty młot",
+        "common.weapons.sword_simple": "Prosty miecz",
+        "common.weapons.staff_simple": "Prosty kostur maga",
+        "common.weapons.axe_simple": "Prosta siekiera",
+        "common.weapons.bow_simple": "Prosty łuk",
+        "common.weapons.unique": "Unikalny",
+        "common.tool.debug": "Debug",
+        "common.tool.faming": "Narzędzie do uprawy",
+        "common.tool.pick": "Kilof",
+        "common.kind.modular_component": "Modularny komponent",
+        "common.kind.glider": "Lotnia",
+        "common.kind.consumable": "Jadalne",
+        "common.kind.throwable": "Może być rzucone",
+        "common.kind.utility": "Użytkowy",
+        "common.kind.ingredient": "Składnik",
+        "common.kind.lantern": "Latarnia",
+        "common.hands.one": "Jednoręczne",
+        "common.hands.two": "Dwuręczne",
+
+        "common.rand_appearance": "Losowy wygląd",
+        "common.rand_name": "Losowe imię",
+
+        "common.stats.combat_rating": "CR",
+        "common.stats.power": "Moc",
+        "common.stats.speed": "Prędkość",
+        "common.stats.poise": "Odp. na ogłu.",
+        "common.stats.crit_chance": "Krytyczne%",
+        "common.stats.crit_mult": "Krytytyczne*",
+        "common.stats.armor": "Obrona",
+        "common.stats.poise_res": "Odp. na ogłu.",
+        "common.stats.slots": "Sloty",
+    },
+
+
+    vector_map: {
+    }
+)

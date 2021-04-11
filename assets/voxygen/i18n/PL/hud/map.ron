@@ -1,0 +1,27 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+(
+    string_map: {
+        // Map and Questlog
+        "hud.map.map_title": "Mapa",
+        "hud.map.qlog_title": "Zadania",
+        "hud.map.difficulty": "Trudność",
+        "hud.map.towns": "Miasta",
+        "hud.map.castles": "Zamki",
+        "hud.map.dungeons": "Lochy",
+        "hud.map.caves": "Jaskinie",
+        "hud.map.cave": "Jaskinia",
+        "hud.map.trees": "Gigan. drzewa",
+        "hud.map.tree": "Gigantyczne drzewo",
+        "hud.map.town": "Miasto",
+        "hud.map.castle": "Zamek",
+        "hud.map.dungeon": "Loch",
+        "hud.map.difficulty_dungeon": "Loch\n\nTrudność: {difficulty}",
+        "hud.map.drag": "Przewiń",
+        "hud.map.zoom": "Przybliż",
+        "hud.map.recenter": "Wycentruj",
+    },
+
+
+    vector_map: {
+    }
+)

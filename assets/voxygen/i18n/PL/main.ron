@@ -1,0 +1,67 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+(
+    string_map: {
+        /// Start Main screen section
+        "main.username": "Nazwa użytkownika",
+        "main.server": "Serwer",
+        "main.password": "Hasło",
+        "main.connecting": "Łączenie",
+        "main.creating_world": "Tworzenie świata",
+        "main.tip": "Porada:",
+
+        // Welcome notice that appears the first time Veloren is started
+        "main.notice": r#"Witaj w alfie Veloren!
+
+Zanim zanurzysz się w tym świecie, prosimy pamiętać o kilku rzeczach:
+
+- Jest to bardzo wczesna alfa. Spodziewaj się błędów, bardzo niedokończonej rozgrywki, niedokończonych mechanik i brakujących funkcjonalności.
+
+- Jeśli chcesz podzielić się kontruktywną krytyką lub zgłosić błąd/błędy - możesz skontakować się z nami na Reddicie, Gitlabie lub Discordzie.
+
+- Veloren jest objęty licencją 'GPL 3 open-source licence'. Co oznacza, jest darmowy do grania, modyfikacji i redystrybucji gry jakkolwiek
+ chcesz (ograniczeniem jest by praca pochodna też była na licencji GPL 3).
+
+- Veloren jest projektem non-profit i każdy wkład jest pracą wolontariuszy.
+Jeśli podoba Ci się ten projekt - zapraszamy do naszych ekip programistów, artystów i innych drużyn rozwojowych.
+
+Dziękujemy za przeczytanie tej notki i życzymy miłej gry!
+
+~ Ekipa Veloren"#,
+
+        // Login process description
+        "main.login_process": r#"Informacje o procesie logowania:
+
+By grać na serwerach z wymaganą
+rejestracją potrzebujesz stworzyć konto.
+
+Konto możesz stworzyć wchodząc na
+
+https://veloren.net/account/."#,
+        "main.login.server_not_found": "Serwer nie został znaleziony",
+        "main.login.authentication_error": "Błąd autoryzacji na serwerze",
+        "main.login.failed_auth_server_url_invalid": "Błąd w łączeniu się z serwerem kont",
+        /// "The auth Scheme HTTP is NOT supported. It's insecure! For development purposes, HTTP is allowed for 'localhost' or debug builds",
+        "main.login.insecure_auth_scheme": "Autoryzacja poprzez HTTP nie jest wspierana. HTTP jest dopuszczalne jedynie w kontekście 'localhost' i lokalnych kompilacji do użytku testowego. (The auth Scheme HTTP is NOT supported. It's insecure! For development purposes, HTTP is allowed for 'localhost' or debug builds)",
+        "main.login.server_full": "Serwer jest pełen",
+        "main.login.untrusted_auth_server": "Serwer autoryzacji nie jest zaufany",
+        "main.login.outdated_client_or_server": "Serwer odrzucił połączenie: prawdopodobnie masz inną wersję gry niż serwer - sprawdź aktualizacje.",
+        "main.login.timeout": "Przekroczenie czasu oczekiwania: serwer nie odpowiedział na czas (przeładowany, bądź problemy z połączeniem, sprawdź swój ping do serwera).",
+        "main.login.server_shut_down": "Serwer został wyłączony",
+        "main.login.network_error": "Błąd sieci",
+        "main.login.network_wrong_version": "Serwer jest na innej wersji gry niż Ty, sprawdź aktualizacje.",
+        "main.login.failed_sending_request": "Błąd z wysysłaniem próby logowania",
+        "main.login.invalid_character": "Wybrana postać jest wadliwa",
+        "main.login.client_crashed": "Klient się wysypał",
+        "main.login.not_on_whitelist": "Musisz zapytać o dopisanie na białą listę",
+        "main.login.banned": "Konto zostało zbanowane z powodu:",
+        "main.login.kicked": "Sesja została wyrzucona z powodu:",
+        "main.login.select_language": "Wybierz język",
+
+        "main.servers.select_server": "Wybierz serwer",
+        /// End Main screen section
+    },
+
+
+    vector_map: {
+    }
+)

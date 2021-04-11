@@ -1,0 +1,25 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+(
+    string_map: {
+        "hud.trade.trade_window": "Okno handlu",
+        "hud.trade.phase1_description": "Przeciągnij przedmioty, które chcesz wymienić\n na swoją część okna wymiany.",
+        "hud.trade.phase2_description": "Wymiana została zatrzymana by dać Ci\n czas by sprawdzić czy wszystko się zgadza.",
+        /// Phase3 should only be visible for a few milliseconds if everything is working properly, but is included for completeness
+        "hud.trade.phase3_description": "Przetwarzanie wymiany.",
+        "hud.trade.persons_offer": "Oferta {playername}",
+        "hud.trade.has_accepted": "{playername}\nzaakceptowano",
+        "hud.trade.accept": "Akceptuj",
+        "hud.trade.decline": "Odrzuć",
+        "hud.trade.invite_sent": "Zaproszenie do wymiany wysłane do {playername}.",
+        "hud.trade.result.completed": "Wymiana zakończona pomyślnie.",
+        "hud.trade.result.declined": "Wymiana została zerwana.",
+        "hud.trade.result.nospace": "Brak miejsca by dokonać wymiany.",
+        "hud.trade.buy_price": "Cena kupna",
+        "hud.trade.sell_price": "Cena sprzedaży",
+        "hud.trade.coin": "monet(y)",
+    },
+
+    vector_map: {
+    }
+)
+

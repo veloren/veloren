@@ -1,0 +1,37 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+(
+    string_map: {
+        // Inventory
+        "hud.bag.inventory": "Ekwipunek {playername}",
+        "hud.bag.stats_title": "Statystyki {playername}",
+        "hud.bag.exp": "Doświadczenie",
+        "hud.bag.armor": "Obrona",
+        "hud.bag.stats": "Statystyki",
+        "hud.bag.head": "Głowa",
+        "hud.bag.neck": "Szyja",
+        "hud.bag.tabard": "Płaszcz",
+        "hud.bag.shoulders": "Ramiona",
+        "hud.bag.chest": "Tors",
+        "hud.bag.hands": "Dłonie",
+        "hud.bag.lantern": "Latarnia",
+        "hud.bag.glider": "Lotnia",
+        "hud.bag.belt": "Pas",
+        "hud.bag.ring": "Pierścień",
+        "hud.bag.back": "Plecy",
+        "hud.bag.legs": "Nogi",
+        "hud.bag.feet": "Stopy",
+        "hud.bag.mainhand": "Ręka główna",
+        "hud.bag.offhand": "Ręka poboczna",
+        "hud.bag.bag": "Torba",
+        "hud.bag.health": "Zdrowie",
+        "hud.bag.stamina": "Energia",
+        "hud.bag.combat_rating": "Combat Rating",
+        "hud.bag.protection": "Ochrona",
+        "hud.bag.combat_rating_desc": "Liczone na postawie Twojego\nekwipunku i zdrowia.",
+        "hud.bag.protection_desc": "Redukcja obrażeń dzięki pancerzowi",
+    },
+
+
+    vector_map: {
+    }
+)

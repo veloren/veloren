@@ -1,0 +1,37 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+(
+    string_map: {
+        // Buffs
+        "buff.remove": "Kliknij by usunąć",
+        "buff.title.missing": "Brak tytułu",
+        "buff.desc.missing": "Brak opisu",
+        "buff.title.heal": "Uzdrowienie",
+        "buff.desc.heal": "Odnawia zdrowie w ciągu chwili",
+        "buff.title.potion": "Mikstura",
+        "buff.desc.potion": "Można ją wypić...",
+        "buff.title.saturation": "Najedzenie",
+        "buff.desc.saturation": "Odzyskaj zdrowie jedząc żywność.",
+        "buff.title.campfire_heal": "Odpoczynek przy ognisku",
+        "buff.desc.campfire_heal": "Odpoczywanie przy ognisku odzyskuje 1% zdrowia na sekundę.",
+        "buff.title.invulnerability": "Nietykalność",
+        "buff.desc.invulnerability": "Nie można Cię zranić.",
+        "buff.title.protectingward": "Totem ochronny",
+        "buff.desc.protectingward": "Ochrona, poniekąd, przed atakami.",
+        // Debuffs
+        "buff.title.bleed": "Krwawienie",
+        "buff.desc.bleed": "Zadaje regularne obrażenia.",
+        "buff.title.cursed": "Klątwa",
+        "buff.desc.cursed": "Jesteś przeklęty.",
+        // Buffs stats
+        "buff.stat.health": "Odnawia {str_total} Zdrowia",
+        "buff.stat.increase_max_stamina": "Podnosi Maksymalną Wytrzymałość o {strength}",
+        "buff.stat.increase_max_health": "Podnosi Maksymalne Zdrowie o {strength}",
+        "buff.stat.invulnerability": "Daje nietykalność",
+        // Text
+        "buff.text.over_seconds": "przez {dur_secs} sekund",
+        "buff.text.for_seconds": "na {dur_secs} sekund",
+    },
+
+    vector_map: {
+    }
+)
