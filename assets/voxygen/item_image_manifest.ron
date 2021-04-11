@@ -1021,16 +1021,16 @@
     ),
     // Lanterns
     Lantern("Black0"): Png(
-        "element.icons.lantern_black-0",
+        "element.items.lantern_black-0",
     ),
     Lantern("Green0"): Png(
-        "element.icons.lantern_green-0",
+        "element.items.lantern_green-0",
     ),
     Lantern("Blue0"): Png(
-        "element.icons.lantern_blue-0",
+        "element.items.lantern_blue-0",
     ),
     Lantern("Red0"): Png(
-        "element.icons.lantern_red-0",
+        "element.items.lantern_red-0",
     ),
     Lantern("GeodePurp"): VoxTrans(
         "voxel.lantern.geode_purp",
@@ -1080,7 +1080,7 @@
         (0.0, 0.0, 0.0), (-10.0, 15.0, 0.0), 0.8,
     ),
     Utility(Collar): Png(
-        "element.icons.collar",
+        "element.items.collar",
     ),
     // Armor
     // Starter Parts
@@ -1747,18 +1747,18 @@
 
     // Necks
     Armor(Neck("Plain0")): Png(
-        "element.icons.neck-0",
+        "element.items.neck-0",
     ),
     Armor(Neck("Plain1")): Png(
-        "element.icons.neck-1",
+        "element.items.neck-1",
     ),
     Armor(Neck("Shell")): Png(
-        "element.icons.neck-seashell",
+        "element.items.neck-seashell",
     ),
 
     // Tabards
     Armor(Tabard("Admin")): Png(
-        "element.icons.tabard_admin",
+        "element.items.tabard_admin",
     ),
     // Heads
     Armor(Head("Swift")): VoxTrans(
@@ -1771,50 +1771,50 @@
     ),
     // Bags
     Armor(Bag("RedFace")): Png (
-        "element.icons.item_bag_red_face",
+        "element.items.item_bag_red_face",
     ),
     Armor(Bag("BlackHole")): Png (
-        "element.icons.item_bag_brown_face",
+        "element.items.item_bag_brown_face",
     ),
     Armor(Bag("BlueFace")): Png (
-        "element.icons.item_bag_blue_face",
+        "element.items.item_bag_blue_face",
     ),
     Armor(Bag("PurpleSkull")): Png (
-        "element.icons.item_bag_skull",
+        "element.items.item_bag_skull",
     ),
     Armor(Bag("GreenLarge")): Png (
-        "element.icons.item_bag_green_large",
+        "element.items.item_bag_green_large",
     ),
     Armor(Bag("LeatherLarge")): Png (
-        "element.icons.item_bag_leather_large",
+        "element.items.item_bag_leather_large",
     ),
     Armor(Bag("GreenMid")): Png (
-        "element.icons.item_bag_green_mid",
+        "element.items.item_bag_green_mid",
     ),
     Armor(Bag("LeatherSmall")): Png (
-        "element.icons.item_bag_leather_small",
+        "element.items.item_bag_leather_small",
     ),
     Armor(Bag("RedLarge")): Png (
-        "element.icons.item_bag_large",
+        "element.items.item_bag_large",
     ),
     Armor(Bag("RedMed")): Png (
-        "element.icons.item_bag_med",
+        "element.items.item_bag_med",
     ),
     Armor(Bag("RedSmall")): Png (
-        "element.icons.item_bag_small",
+        "element.items.item_bag_small",
     ),
     Armor(Bag("RedTiny")): Png (
-        "element.icons.item_bag_tiny",
+        "element.items.item_bag_tiny",
     ),
     Armor(Bag("BluePouch")): Png (
-        "element.icons.item_bag_blue",
+        "element.items.item_bag_blue",
     ),
     // Consumables
     Consumable("Apple"): Png(
-        "element.icons.item_apple",
+        "element.items.item_apple",
     ),
     Consumable("Coconut"): Png(
-        "element.icons.item_coconut",
+        "element.items.item_coconut",
     ),
     Consumable("PotionMed"): VoxTrans(
         "voxel.object.potion_red",
@@ -1833,7 +1833,7 @@
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
     ),
     Consumable("Cheese"): Png(
-        "element.icons.item_cheese",
+        "element.items.item_cheese",
     ),
     Consumable("Potion"): VoxTrans(
         "voxel.object.potion_red",
@@ -1852,16 +1852,16 @@
         (0.0, 0.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
     ),
     Consumable("AppleShroomCurry"): Png(
-        "element.icons.item_apple_curry",
+        "element.items.item_apple_curry",
     ),
     Consumable("AppleStick"): Png(
-        "element.icons.item_apple_stick",
+        "element.items.item_apple_stick",
     ),
     Consumable("MushroomStick"): Png(
-        "element.icons.item_shroom_stick",
+        "element.items.item_shroom_stick",
     ),
     Consumable("SunflowerTea"): Png(
-        "element.icons.item_sunflower_tea",
+        "element.items.item_sunflower_tea",
     ),
     Consumable("Carrot"): VoxTrans(
         "voxel.sprite.carrot.carrot",
@@ -1926,7 +1926,7 @@
         (1.0, 1.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
     ),
     Ingredient("SewingSet"): Png(
-        "element.icons.sewing_set",
+        "element.items.sewing_set",
     ),
     Ingredient("Flower"): VoxTrans(
         "voxel.sprite.flowers.sunflower_1",
@@ -1953,13 +1953,13 @@
         (0.0, 0.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
     ),
     Ingredient("IcyShard"): Png(
-        "element.icons.item_ice_shard",
+        "element.items.item_ice_shard",
     ),
     Ingredient("FlayerBagDamaged"): Png(
-        "element.icons.item_flayer_soul",
+        "element.items.item_flayer_soul",
     ),
     Ingredient("RaptorFeather"): Png(
-        "element.icons.item_raptor_feather",
+        "element.items.item_raptor_feather",
     ),
     Ingredient("Twigs"): VoxTrans(
         "voxel.sprite.twigs.twigs-0",
@@ -1974,22 +1974,22 @@
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
     Ingredient("Honey"): Png(
-        "element.icons.item_honey",
+        "element.items.item_honey",
     ),
     Ingredient("LeatherScraps"): Png(
-        "element.icons.item_leather0",
+        "element.items.item_leather0",
     ),
     Ingredient("TrollLeather"): Png(
-        "element.icons.item_leather_green",
+        "element.items.item_leather_green",
     ),
     Ingredient("ClothScraps"): Png(
-        "element.icons.item_cloth0",
+        "element.items.item_cloth0",
     ),
     Ingredient("ClothScrapsRed"): Png(
-        "element.icons.item_cloth_red",
+        "element.items.item_cloth_red",
     ),
     Ingredient("MortarPestle"): Png(
-        "element.icons.item_mortarpestlecoco",
+        "element.items.item_mortarpestlecoco",
     ),
     Ingredient("EmptyVial"): VoxTrans(
         "voxel.object.potion_empty",

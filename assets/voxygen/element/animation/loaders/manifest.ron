@@ -13,6 +13,13 @@
         "voxygen.element.animation.loaders.cheese4",
         "voxygen.element.animation.loaders.cheese5",
     ]),
+    (8.0, [
+        "voxygen.element.animation.loaders.mouse-cheese1",
+        "voxygen.element.animation.loaders.mouse-cheese2",
+        "voxygen.element.animation.loaders.mouse-cheese3",
+        "voxygen.element.animation.loaders.mouse-cheese4",
+        "voxygen.element.animation.loaders.mouse-cheese5",
+    ]),
     (6.0, [
         "voxygen.element.animation.loaders.coins1",
         "voxygen.element.animation.loaders.coins2",
