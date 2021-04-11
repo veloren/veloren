@@ -207,6 +207,11 @@
             (None, "common.abilities.unique.mindflayer.summonminions"),
         ],
     ),
+    Unique(BirdLargeBreathe): (
+        primary: "common.abilities.unique.birdlargebreathe.flamethrower",
+        secondary: "common.abilities.unique.birdlargebreathe.triplestrike",
+        abilities: [],
+    ),
     Debug: (
         primary: "common.abilities.debug.forwardboost",
         secondary: "common.abilities.debug.upboost",

@@ -2,40 +2,40 @@ use super::{
     super::{vek::*, Animation},
     BirdLargeSkeleton, SkeletonAttr,
 };
-use std::ops::Mul;
+use common::states::utils::StageSection;
 
-pub struct IdleAnimation;
+pub struct AlphaAnimation;
 
-impl Animation for IdleAnimation {
-    type Dependency = f32;
+impl Animation for AlphaAnimation {
+    type Dependency = (Option<StageSection>, f32, f32);
     type Skeleton = BirdLargeSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
-    const UPDATE_FN: &'static [u8] = b"bird_large_idle\0";
+    const UPDATE_FN: &'static [u8] = b"bird_large_alpha\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "bird_large_idle")]
+    #[cfg_attr(feature = "be-dyn-lib", export_name = "bird_large_alpha")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        global_time: Self::Dependency,
+        (stage_section, _global_time, _timer): Self::Dependency,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        let duck_head_look = Vec2::new(
-            (global_time / 2.0 + anim_time / 8.0)
-                .floor()
-                .mul(7331.0)
-                .sin()
-                * 0.5,
-            (global_time / 2.0 + anim_time / 8.0)
-                .floor()
-                .mul(1337.0)
-                .sin()
-                * 0.25,
-        );
+        let (move1base, move2base, move3) = match stage_section {
+            Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
+            Some(StageSection::Swing) => (1.0, anim_time, 0.0),
+            Some(StageSection::Recover) => (1.0, 1.0, anim_time.powf(4.0)),
+            _ => (0.0, 0.0, 0.0),
+        };
+
         let wave_slow_cos = (anim_time * 4.5).cos();
+
+        let pullback = 1.0 - move3;
+
+        let move1 = move1base * pullback;
+        let move2 = move2base * pullback;
 
         next.head.scale = Vec3::one() * 0.98;
         next.neck.scale = Vec3::one() * 1.02;
@@ -46,23 +46,21 @@ impl Animation for IdleAnimation {
         next.foot_r.scale = Vec3::one() * 1.02;
         next.chest.scale = Vec3::one() * s_a.scaler / 8.0;
 
-        next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1 + wave_slow_cos * 0.06 + 1.5)
-            * s_a.scaler
-            / 8.0;
-        next.chest.orientation = Quaternion::rotation_x(0.0);
+        next.chest.position =
+            Vec3::new(0.0, s_a.chest.0, s_a.chest.1 + wave_slow_cos * 0.06) * s_a.scaler / 8.0;
+        next.chest.orientation = Quaternion::rotation_x(move1 * 0.5 - move2 * 0.8);
 
         next.neck.position = Vec3::new(0.0, s_a.neck.0, s_a.neck.1);
-        next.neck.orientation = Quaternion::rotation_x(0.0);
+        next.neck.orientation = Quaternion::rotation_x(move1 * 0.5 - move2 * 0.8);
 
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
-        next.head.orientation = Quaternion::rotation_z(duck_head_look.x)
-            * Quaternion::rotation_x(-duck_head_look.y.abs() + wave_slow_cos * 0.01);
+        next.head.orientation = Quaternion::rotation_x(move1 * 0.5 - move2 * 0.8);
 
         next.beak.position = Vec3::new(0.0, s_a.beak.0, s_a.beak.1);
         next.beak.orientation = Quaternion::rotation_x(wave_slow_cos * -0.02 - 0.02);
 
         next.tail_front.position = Vec3::new(0.0, s_a.tail_front.0, s_a.tail_front.1);
-        next.tail_front.orientation = Quaternion::rotation_x(0.0);
+        next.tail_front.orientation = Quaternion::rotation_x(-move1 * 0.2);
         next.tail_rear.position = Vec3::new(0.0, s_a.tail_rear.0, s_a.tail_rear.1);
         next.tail_rear.orientation = Quaternion::rotation_x(0.0);
 
@@ -83,16 +81,6 @@ impl Animation for IdleAnimation {
         next.wing_out_r.position = Vec3::new(s_a.wing_out.0, s_a.wing_out.1, s_a.wing_out.2);
         next.wing_out_l.orientation = Quaternion::rotation_y(-0.2) * Quaternion::rotation_z(0.2);
         next.wing_out_r.orientation = Quaternion::rotation_y(0.2) * Quaternion::rotation_z(-0.2);
-
-        next.leg_l.position = Vec3::new(-s_a.leg.0, s_a.leg.1, s_a.leg.2) / 8.0;
-        next.leg_l.orientation = Quaternion::rotation_x(0.0);
-        next.leg_r.position = Vec3::new(s_a.leg.0, s_a.leg.1, s_a.leg.2) / 8.0;
-        next.leg_r.orientation = Quaternion::rotation_x(0.0);
-
-        next.foot_l.position = Vec3::new(-s_a.foot.0, s_a.foot.1, s_a.foot.2);
-        next.foot_l.orientation = Quaternion::rotation_x(0.0);
-        next.foot_r.position = Vec3::new(s_a.foot.0, s_a.foot.1, s_a.foot.2);
-        next.foot_r.orientation = Quaternion::rotation_x(0.0);
 
         next
     }

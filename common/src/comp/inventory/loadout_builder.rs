@@ -1,6 +1,6 @@
 use crate::{
     comp::{
-        biped_large, biped_small, golem,
+        biped_large, biped_small, bird_large, golem,
         inventory::{
             loadout::Loadout,
             slot::{ArmorSlot, EquipSlot},
@@ -332,6 +332,14 @@ impl LoadoutBuilder {
                             "common.items.npc_weapons.biped_small.adlet.wooden_spear",
                         ));
                     },
+                },
+                Body::BirdLarge(bird_large) => match (bird_large.species, bird_large.body_type) {
+                    (bird_large::Species::Cockatrice, _) => {
+                        main_tool = Some(Item::new_from_asset_expect(
+                            "common.items.npc_weapons.unique.birdlargebreathe",
+                        ));
+                    },
+                    _ => {},
                 },
                 _ => {},
             };

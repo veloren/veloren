@@ -16,7 +16,7 @@ impl Animation for RunAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "bird_large_run")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (velocity, orientation, last_ori, _global_time, avg_vel, acc_vel): Self::Dependency,
+        (velocity, orientation, last_ori, _global_time, _avg_vel, acc_vel): Self::Dependency,
         _anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -64,11 +64,11 @@ impl Animation for RunAnimation {
         next.head.scale = Vec3::one() * 0.98;
         next.neck.scale = Vec3::one() * 1.02;
         next.beak.scale = Vec3::one() * 0.98;
-        next.leg_l.scale = Vec3::one() * 0.98;
-        next.leg_r.scale = Vec3::one() * 0.98;    
-        next.foot_l.scale = Vec3::one() * 0.98;
-        next.foot_r.scale = Vec3::one() * 0.98;
-        next.chest.scale = Vec3::one() * s_a.scaler / 4.0;
+        next.leg_l.scale = Vec3::one() / 8.0 * 0.98;
+        next.leg_r.scale = Vec3::one() / 8.0 * 0.98;
+        next.foot_l.scale = Vec3::one() * 1.02;
+        next.foot_r.scale = Vec3::one() * 1.02;
+        next.chest.scale = Vec3::one() * s_a.scaler / 8.0;
 
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
         next.head.orientation = Quaternion::rotation_x(-0.1 * speednorm + short * -0.05)
@@ -88,7 +88,7 @@ impl Animation for RunAnimation {
             s_a.chest.0,
             s_a.chest.1 + short * 0.5 + 0.5 * speednorm,
         ) * s_a.scaler
-            / 4.0;
+            / 8.0;
         next.chest.orientation = Quaternion::rotation_x(short * 0.07)
             * Quaternion::rotation_y(tilt * 0.8)
             * Quaternion::rotation_z(shortalt * 0.10);
@@ -102,8 +102,10 @@ impl Animation for RunAnimation {
         next.wing_in_l.position = Vec3::new(-s_a.wing_in.0, s_a.wing_in.1, s_a.wing_in.2);
         next.wing_in_r.position = Vec3::new(s_a.wing_in.0, s_a.wing_in.1, s_a.wing_in.2);
 
-        next.wing_in_l.orientation = Quaternion::rotation_y(-s_a.wings_angle) * Quaternion::rotation_z(0.2);
-        next.wing_in_r.orientation = Quaternion::rotation_y(s_a.wings_angle) * Quaternion::rotation_z(-0.2);
+        next.wing_in_l.orientation =
+            Quaternion::rotation_y(-s_a.wings_angle) * Quaternion::rotation_z(0.2);
+        next.wing_in_r.orientation =
+            Quaternion::rotation_y(s_a.wings_angle) * Quaternion::rotation_z(-0.2);
 
         next.wing_mid_l.position = Vec3::new(-s_a.wing_mid.0, s_a.wing_mid.1, s_a.wing_mid.2);
         next.wing_mid_r.position = Vec3::new(s_a.wing_mid.0, s_a.wing_mid.1, s_a.wing_mid.2);
@@ -121,7 +123,7 @@ impl Animation for RunAnimation {
             -s_a.leg.0 + speednorm * 1.5,
             s_a.leg.1 + foot1b * -2.3,
             s_a.leg.2,
-        );
+        ) / 8.0;
         next.leg_l.orientation = Quaternion::rotation_x(-0.2 * speednorm + foot1a * 0.15)
             * Quaternion::rotation_y(tilt * 0.5);
 
@@ -129,7 +131,7 @@ impl Animation for RunAnimation {
             s_a.leg.0 + speednorm * -1.5,
             s_a.leg.1 + foot2b * -2.3,
             s_a.leg.2,
-        );
+        ) / 8.0;
         next.leg_r.orientation = Quaternion::rotation_x(-0.2 * speednorm + foot2a * 0.15)
             * Quaternion::rotation_y(tilt * 0.5);
 

@@ -122,7 +122,6 @@ impl<'a, BodyMeta, SpeciesMeta> core::ops::Index<&'a Body> for AllBodies<BodyMet
             Body::BirdLarge(_) => &self.bird_large.body,
             Body::FishMedium(_) => &self.fish_medium.body,
             Body::Dragon(_) => &self.dragon.body,
-            Body::BirdLarge(_) => &self.bird_large.body,
             Body::FishSmall(_) => &self.fish_small.body,
             Body::BipedLarge(_) => &self.biped_large.body,
             Body::BipedSmall(_) => &self.biped_small.body,
@@ -433,7 +432,7 @@ impl Body {
             },
             Body::FishMedium(_) => 50,
             Body::Dragon(_) => 5000,
-            Body::BirdLarge(_) => 50,
+            Body::BirdLarge(_) => 9999999,
             Body::FishSmall(_) => 20,
             Body::BipedLarge(biped_large) => match biped_large.species {
                 biped_large::Species::Ogre => 2500,

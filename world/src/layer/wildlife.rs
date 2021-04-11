@@ -1,8 +1,8 @@
 use crate::{column::ColumnSample, sim::SimChunk, IndexRef, CONFIG};
 use common::{
     comp::{
-        biped_large, bird_medium, bird_large, fish_medium, fish_small, quadruped_low, quadruped_medium,
-        quadruped_small, theropod, Alignment,
+        biped_large, bird_large, bird_medium, fish_medium, fish_small, quadruped_low,
+        quadruped_medium, quadruped_small, theropod, Alignment,
     },
     generation::{ChunkSupplement, EntityInfo},
     terrain::Block,

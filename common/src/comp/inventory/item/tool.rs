@@ -441,4 +441,5 @@ pub enum UniqueKind {
     ObjectTurret,
     WoodenSpear,
     MindflayerStaff,
+    BirdLargeBreathe,
 }

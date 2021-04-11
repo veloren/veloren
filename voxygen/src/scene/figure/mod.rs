@@ -3359,7 +3359,100 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
+                        CharacterState::BasicBeam(s) => {
+                            let stage_time = s.timer.as_secs_f32();
+                            let stage_progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
+                                },
+                                StageSection::Cast => s.timer.as_secs_f32(),
+                                StageSection::Recover => {
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
+                                },
+                                _ => 0.0,
+                            };
+                            anim::bird_large::BreatheAnimation::update_skeleton(
+                                &target_base,
+                                (
+                                    rel_vel.magnitude(),
+                                    time,
+                                    ori * anim::vek::Vec3::<f32>::unit_y(),
+                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                    Some(s.stage_section),
+                                    state.state_time,
+                                    look_dir,
+                                    physics.on_ground,
+                                ),
+                                stage_progress,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
+                        CharacterState::ComboMelee(s) => {
+                            let stage_index = (s.stage - 1) as usize;
+                            let stage_time = s.timer.as_secs_f32();
+                            let stage_progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    stage_time
+                                        / s.static_data.stage_data[stage_index]
+                                            .base_buildup_duration
+                                            .as_secs_f32()
+                                },
+                                StageSection::Swing => {
+                                    stage_time
+                                        / s.static_data.stage_data[stage_index]
+                                            .base_swing_duration
+                                            .as_secs_f32()
+                                },
+                                StageSection::Recover => {
+                                    stage_time
+                                        / s.static_data.stage_data[stage_index]
+                                            .base_recover_duration
+                                            .as_secs_f32()
+                                },
+                                _ => 0.0,
+                            };
 
+                            anim::bird_large::AlphaAnimation::update_skeleton(
+                                &target_base,
+                                (Some(s.stage_section), time, state.state_time),
+                                stage_progress,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
+                        CharacterState::Stunned(s) => {
+                            let stage_time = s.timer.as_secs_f32();
+                            let stage_progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
+                                },
+                                StageSection::Recover => {
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
+                                },
+                                _ => 0.0,
+                            };
+                            match s.static_data.poise_state {
+                                PoiseState::Normal
+                                | PoiseState::Interrupted
+                                | PoiseState::Stunned
+                                | PoiseState::Dazed
+                                | PoiseState::KnockedDown => {
+                                    anim::bird_large::StunnedAnimation::update_skeleton(
+                                        &target_base,
+                                        (
+                                            rel_vel.magnitude(),
+                                            time,
+                                            Some(s.stage_section),
+                                            state.state_time,
+                                        ),
+                                        stage_progress,
+                                        &mut state_animation_rate,
+                                        skeleton_attr,
+                                    )
+                                },
+                            }
+                        },
                         // TODO!
                         _ => target_base,
                     };

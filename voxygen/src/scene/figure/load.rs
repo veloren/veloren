@@ -3334,7 +3334,7 @@ impl BirdLargeLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.wing_in_l.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.wing_in_l.lateral.0, true);
 
         (lateral, Vec3::from(spec.wing_in_l.offset))
     }
@@ -3366,7 +3366,7 @@ impl BirdLargeLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.wing_mid_l.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.wing_mid_l.lateral.0, true);
 
         (lateral, Vec3::from(spec.wing_mid_l.offset))
     }
@@ -3398,7 +3398,7 @@ impl BirdLargeLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.wing_out_l.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.wing_out_l.lateral.0, true);
 
         (lateral, Vec3::from(spec.wing_out_l.offset))
     }
@@ -3430,7 +3430,7 @@ impl BirdLargeLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.leg_l.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.leg_l.lateral.0, true);
 
         (lateral, Vec3::from(spec.leg_l.offset))
     }
@@ -3462,7 +3462,7 @@ impl BirdLargeLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.foot_l.lateral.0);
+        let lateral = graceful_load_segment_flipped(&spec.foot_l.lateral.0, true);
 
         (lateral, Vec3::from(spec.foot_l.offset))
     }

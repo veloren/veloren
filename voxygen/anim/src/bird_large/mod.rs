@@ -1,10 +1,16 @@
+pub mod alpha;
+pub mod breathe;
 pub mod feed;
 pub mod fly;
 pub mod idle;
 pub mod run;
+pub mod stunned;
 
 // Reexports
-pub use self::{feed::FeedAnimation, fly::FlyAnimation, idle::IdleAnimation, run::RunAnimation};
+pub use self::{
+    alpha::AlphaAnimation, breathe::BreatheAnimation, feed::FeedAnimation, fly::FlyAnimation,
+    idle::IdleAnimation, run::RunAnimation, stunned::StunnedAnimation,
+};
 
 use super::{make_bone, vek::*, FigureBoneData, Skeleton};
 use common::comp::{self};
@@ -58,8 +64,8 @@ impl Skeleton for BirdLargeSkeleton {
         let wing_mid_r_mat = wing_in_r_mat * Mat4::<f32>::from(self.wing_mid_r);
         let wing_out_l_mat = wing_mid_l_mat * Mat4::<f32>::from(self.wing_out_l);
         let wing_out_r_mat = wing_mid_r_mat * Mat4::<f32>::from(self.wing_out_r);
-        let leg_l_mat = chest_mat * Mat4::<f32>::from(self.leg_l);
-        let leg_r_mat = chest_mat * Mat4::<f32>::from(self.leg_r);
+        let leg_l_mat = base_mat * Mat4::<f32>::from(self.leg_l);
+        let leg_r_mat = base_mat * Mat4::<f32>::from(self.leg_r);
         let foot_l_mat = leg_l_mat * Mat4::<f32>::from(self.foot_l);
         let foot_r_mat = leg_r_mat * Mat4::<f32>::from(self.foot_r);
 
@@ -99,7 +105,6 @@ pub struct SkeletonAttr {
     foot: (f32, f32, f32),
     scaler: f32,
     wings_angle: f32,
-    flight_angle: f32,
 }
 
 impl<'a> std::convert::TryFrom<&'a comp::Body> for SkeletonAttr {
@@ -129,7 +134,6 @@ impl Default for SkeletonAttr {
             foot: (0.0, 0.0, 0.0),
             scaler: 0.0,
             wings_angle: 0.0,
-            flight_angle: 0.0,
         }
     }
 }
@@ -176,11 +180,11 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             },
             leg: match (body.species, body.body_type) {
                 (Phoenix, _) => (2.5, -2.5, -3.5),
-                (Cockatrice, _) => (2.5, 2.5, -3.5),
+                (Cockatrice, _) => (3.5, 2.5, 13.0),
             },
             foot: match (body.species, body.body_type) {
                 (Phoenix, _) => (0.0, -0.5, -0.5),
-                (Cockatrice, _) => (1.5, -3.0, -3.0),
+                (Cockatrice, _) => (0.5, -3.0, -3.0),
             },
             scaler: match (body.species, body.body_type) {
                 (Phoenix, _) => (1.0),
@@ -189,10 +193,6 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             wings_angle: match (body.species, body.body_type) {
                 (Phoenix, _) => (1.3),
                 (Cockatrice, _) => (0.9),
-            },
-            flight_angle: match (body.species, body.body_type) {
-                (Phoenix, _) => (-0.5),
-                (Cockatrice, _) => (1.0),
             },
         }
     }
