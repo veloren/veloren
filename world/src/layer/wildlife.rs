@@ -1,7 +1,7 @@
 use crate::{column::ColumnSample, sim::SimChunk, IndexRef, CONFIG};
 use common::{
     comp::{
-        biped_large, bird_medium, fish_medium, fish_small, quadruped_low, quadruped_medium,
+        biped_large, bird_medium, bird_large, fish_medium, fish_small, quadruped_low, quadruped_medium,
         quadruped_small, theropod, Alignment,
     },
     generation::{ChunkSupplement, EntityInfo},
@@ -603,7 +603,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                             quadruped_low::Body::random_with(rng, &quadruped_low::Species::Monitor)
                                 .into()
                         },
-                        2 => bird_medium::Body::random_with(rng, &bird_medium::Species::Cockatrice)
+                        2 => bird_large::Body::random_with(rng, &bird_large::Species::Cockatrice)
                             .into(),
                         3 => quadruped_small::Body::random_with(
                             rng,

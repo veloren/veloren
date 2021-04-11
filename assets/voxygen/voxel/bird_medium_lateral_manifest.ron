@@ -251,40 +251,4 @@
             lateral: ("npc.parrot.male.leg_r"),
         )
     ),
-    (Cockatrice, Male): (
-        wing_l: (
-            offset: (-2.0, -3.0, -9.0),
-            lateral: ("npc.cockatrice.male.wing_r"),
-        ),
-        wing_r: (
-            offset: (-2.0, -3.0, -9.0),
-            lateral: ("npc.cockatrice.male.wing_r"),
-        ),
-        foot_l: (
-            offset: (-2.5, 0.0, -12.0),
-            lateral: ("npc.cockatrice.male.leg_r"),
-        ),
-        foot_r: (
-            offset: (-2.5, 0.0, -12.0),
-            lateral: ("npc.cockatrice.male.leg_r"),
-        )
-    ),
-    (Cockatrice, Female): (
-        wing_l: (
-            offset: (-2.0, -3.0, -9.0),
-            lateral: ("npc.cockatrice.male.wing_r"),
-        ),
-        wing_r: (
-            offset: (-2.0, -3.0, -9.0),
-            lateral: ("npc.cockatrice.male.wing_r"),
-        ),
-        foot_l: (
-            offset: (-2.5, 0.0, -12.0),
-            lateral: ("npc.cockatrice.male.leg_r"),
-        ),
-        foot_r: (
-            offset: (-2.5, 0.0, -12.0),
-            lateral: ("npc.cockatrice.male.leg_r"),
-        )
-    ),
 })

@@ -1,9 +1,10 @@
+pub mod feed;
 pub mod fly;
 pub mod idle;
 pub mod run;
 
 // Reexports
-pub use self::{fly::FlyAnimation, idle::IdleAnimation, run::RunAnimation};
+pub use self::{feed::FeedAnimation, fly::FlyAnimation, idle::IdleAnimation, run::RunAnimation};
 
 use super::{make_bone, vek::*, FigureBoneData, Skeleton};
 use common::comp::{self};
@@ -59,8 +60,8 @@ impl Skeleton for BirdLargeSkeleton {
         let wing_out_r_mat = wing_mid_r_mat * Mat4::<f32>::from(self.wing_out_r);
         let leg_l_mat = chest_mat * Mat4::<f32>::from(self.leg_l);
         let leg_r_mat = chest_mat * Mat4::<f32>::from(self.leg_r);
-        let foot_l_mat = chest_mat * Mat4::<f32>::from(self.leg_l);
-        let foot_r_mat = chest_mat * Mat4::<f32>::from(self.leg_r);
+        let foot_l_mat = leg_l_mat * Mat4::<f32>::from(self.foot_l);
+        let foot_r_mat = leg_r_mat * Mat4::<f32>::from(self.foot_r);
 
         *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
             make_bone(head_mat),
@@ -97,6 +98,8 @@ pub struct SkeletonAttr {
     leg: (f32, f32, f32),
     foot: (f32, f32, f32),
     scaler: f32,
+    wings_angle: f32,
+    flight_angle: f32,
 }
 
 impl<'a> std::convert::TryFrom<&'a comp::Body> for SkeletonAttr {
@@ -125,6 +128,8 @@ impl Default for SkeletonAttr {
             leg: (0.0, 0.0, 0.0),
             foot: (0.0, 0.0, 0.0),
             scaler: 0.0,
+            wings_angle: 0.0,
+            flight_angle: 0.0,
         }
     }
 }
@@ -134,40 +139,60 @@ impl<'a> From<&'a Body> for SkeletonAttr {
         use comp::bird_large::Species::*;
         Self {
             chest: match (body.species, body.body_type) {
-                (Phoenix, _) => (2.5, 7.5),
+                (Phoenix, _) => (2.5, 8.0),
+                (Cockatrice, _) => (2.5, 16.0),
             },
             neck: match (body.species, body.body_type) {
                 (Phoenix, _) => (0.5, 3.0),
+                (Cockatrice, _) => (5.0, -1.5),
             },
             head: match (body.species, body.body_type) {
                 (Phoenix, _) => (2.0, 2.0),
+                (Cockatrice, _) => (8.0, 4.5),
             },
             beak: match (body.species, body.body_type) {
                 (Phoenix, _) => (2.0, 1.0),
+                (Cockatrice, _) => (2.0, -3.0),
             },
             tail_front: match (body.species, body.body_type) {
                 (Phoenix, _) => (-5.5, -2.0),
+                (Cockatrice, _) => (-5.0, -2.5),
             },
             tail_rear: match (body.species, body.body_type) {
                 (Phoenix, _) => (-3.0, -3.0),
+                (Cockatrice, _) => (-8.0, -3.0),
             },
             wing_in: match (body.species, body.body_type) {
                 (Phoenix, _) => (3.0, 2.5, 3.0),
+                (Cockatrice, _) => (3.5, 7.0, 3.5),
             },
             wing_mid: match (body.species, body.body_type) {
                 (Phoenix, _) => (6.5, -1.0, 0.0),
+                (Cockatrice, _) => (6.0, 0.0, 0.0),
             },
             wing_out: match (body.species, body.body_type) {
                 (Phoenix, _) => (0.5, -1.0, 0.0),
+                (Cockatrice, _) => (4.0, -1.0, 1.0),
             },
             leg: match (body.species, body.body_type) {
                 (Phoenix, _) => (2.5, -2.5, -3.5),
+                (Cockatrice, _) => (2.5, 2.5, -3.5),
             },
             foot: match (body.species, body.body_type) {
-                (Phoenix, _) => (2.5, -16.5, -6.5),
+                (Phoenix, _) => (0.0, -0.5, -0.5),
+                (Cockatrice, _) => (1.5, -3.0, -3.0),
             },
             scaler: match (body.species, body.body_type) {
                 (Phoenix, _) => (1.0),
+                (Cockatrice, _) => (1.0),
+            },
+            wings_angle: match (body.species, body.body_type) {
+                (Phoenix, _) => (1.3),
+                (Cockatrice, _) => (0.9),
+            },
+            flight_angle: match (body.species, body.body_type) {
+                (Phoenix, _) => (-0.5),
+                (Cockatrice, _) => (1.0),
             },
         }
     }

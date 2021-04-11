@@ -61,11 +61,13 @@ impl Animation for RunAnimation {
             0.0
         } * 1.3;
 
-        next.head.scale = Vec3::one() * 1.02;
-        next.neck.scale = Vec3::one() * 0.98;
+        next.head.scale = Vec3::one() * 0.98;
+        next.neck.scale = Vec3::one() * 1.02;
         next.beak.scale = Vec3::one() * 0.98;
-        next.foot_l.scale = Vec3::one() * 0.96;
-        next.foot_r.scale = Vec3::one() * 0.96;
+        next.leg_l.scale = Vec3::one() * 0.98;
+        next.leg_r.scale = Vec3::one() * 0.98;    
+        next.foot_l.scale = Vec3::one() * 0.98;
+        next.foot_r.scale = Vec3::one() * 0.98;
         next.chest.scale = Vec3::one() * s_a.scaler / 4.0;
 
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
@@ -100,8 +102,8 @@ impl Animation for RunAnimation {
         next.wing_in_l.position = Vec3::new(-s_a.wing_in.0, s_a.wing_in.1, s_a.wing_in.2);
         next.wing_in_r.position = Vec3::new(s_a.wing_in.0, s_a.wing_in.1, s_a.wing_in.2);
 
-        next.wing_in_l.orientation = Quaternion::rotation_y(-1.3) * Quaternion::rotation_z(0.2);
-        next.wing_in_r.orientation = Quaternion::rotation_y(1.3) * Quaternion::rotation_z(-0.2);
+        next.wing_in_l.orientation = Quaternion::rotation_y(-s_a.wings_angle) * Quaternion::rotation_z(0.2);
+        next.wing_in_r.orientation = Quaternion::rotation_y(s_a.wings_angle) * Quaternion::rotation_z(-0.2);
 
         next.wing_mid_l.position = Vec3::new(-s_a.wing_mid.0, s_a.wing_mid.1, s_a.wing_mid.2);
         next.wing_mid_r.position = Vec3::new(s_a.wing_mid.0, s_a.wing_mid.1, s_a.wing_mid.2);
@@ -133,20 +135,21 @@ impl Animation for RunAnimation {
 
         next.foot_l.position = Vec3::new(
             -s_a.foot.0,
-            s_a.foot.1 + foot1b * -2.0,
-            s_a.foot.2 + speednorm * 0.5 + (foot1a * 1.5).max(0.0),
+            s_a.foot.1 + foot1b * -1.0,
+            s_a.foot.2 + (foot1a * 1.5).max(0.0),
         );
-        next.foot_l.orientation = Quaternion::rotation_x(-0.2 * speednorm + foot1b * -0.35)
+        next.foot_l.orientation = Quaternion::rotation_x(0.2 * speednorm + foot1b * -0.5 + 0.1)
             * Quaternion::rotation_y(tilt * -1.0)
             * Quaternion::rotation_z(tilt * -0.5);
 
         next.foot_r.position = Vec3::new(
             s_a.foot.0,
-            s_a.foot.1 + foot2b * -2.0,
-            s_a.foot.2 + speednorm * 0.5 + (foot2a * 1.5).max(0.0),
+            s_a.foot.1 + foot2b * -1.0,
+            s_a.foot.2 + (foot2a * 1.5).max(0.0),
         );
-        next.foot_r.orientation = Quaternion::rotation_x(-0.2 * speednorm + foot2b * -0.35)
-            * Quaternion::rotation_y(tilt * -1.0);
+        next.foot_r.orientation = Quaternion::rotation_x(0.2 * speednorm + foot2b * -0.5 + 0.1)
+            * Quaternion::rotation_y(tilt * -1.0)
+            * Quaternion::rotation_z(tilt * -0.5);
 
         next
     }

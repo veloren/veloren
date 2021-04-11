@@ -3340,7 +3340,6 @@ impl FigureMgr {
                             &mut state_animation_rate,
                             skeleton_attr,
                         ),
-
                         // TODO!
                         _ => anim::bird_large::IdleAnimation::update_skeleton(
                             &BirdLargeSkeleton::default(),
@@ -3350,8 +3349,22 @@ impl FigureMgr {
                             skeleton_attr,
                         ),
                     };
+                    let target_bones = match &character {
+                        CharacterState::Sit { .. } => {
+                            anim::bird_large::FeedAnimation::update_skeleton(
+                                &target_base,
+                                time,
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
 
-                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_base, dt_lerp);
+                        // TODO!
+                        _ => target_base,
+                    };
+
+                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
                         pos.0,

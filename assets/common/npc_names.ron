@@ -804,10 +804,6 @@
                 keyword: "parrot",
                 generic: "Parrot"
             ),
-            cockatrice: (
-                keyword: "cockatrice",
-                generic: "Cockatrice"
-            )
         )
     ),
     biped_large: (
@@ -1079,6 +1075,10 @@
             phoenix: (
                 keyword: "phoenix",
                 generic: "Phoenix"
+            ),
+            cockatrice: (
+                keyword: "cockatrice",
+                generic: "Cockatrice"
             ),
         )
     ),
