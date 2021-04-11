@@ -23,35 +23,33 @@ use conrod_core::{
     widget_ids, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 
+use strum::IntoEnumIterator;
+use strum_macros::EnumIter;
+
 widget_ids! {
     struct Ids {
         frame,
+        settings_bg,
         tabs_align,
         icon,
-        settings_content,
-        settings_content_r,
         settings_close,
         settings_title,
+        settings_content_align,
+
+        tabs[],
+        interface,
         gameplay,
         controls,
-        interface,
-        settings_bg,
-        sound,
         video,
+        sound,
         language,
-
-        interface_window,
-        gameplay_window,
-        controls_window,
-        video_window,
-        sound_window,
-        language_window,
     }
 }
 
 const RESET_BUTTONS_HEIGHT: f64 = 34.0;
 const RESET_BUTTONS_WIDTH: f64 = 155.0;
 
+#[derive(Debug, EnumIter, PartialEq)]
 pub enum SettingsTab {
     Interface,
     Video,
@@ -59,6 +57,29 @@ pub enum SettingsTab {
     Gameplay,
     Controls,
     Lang,
+}
+impl SettingsTab {
+    fn name_key(&self) -> &str {
+        match self {
+            SettingsTab::Interface => "common.interface",
+            SettingsTab::Gameplay => "common.gameplay",
+            SettingsTab::Controls => "common.controls",
+            SettingsTab::Video => "common.video",
+            SettingsTab::Sound => "common.sound",
+            SettingsTab::Lang => "common.languages",
+        }
+    }
+
+    fn title_key(&self) -> &str {
+        match self {
+            SettingsTab::Interface => "common.interface_settings",
+            SettingsTab::Gameplay => "common.gameplay_settings",
+            SettingsTab::Controls => "common.controls_settings",
+            SettingsTab::Video => "common.video_settings",
+            SettingsTab::Sound => "common.sound_settings",
+            SettingsTab::Lang => "common.language_settings",
+        }
+    }
 }
 
 #[derive(WidgetCommon)]
@@ -181,8 +202,6 @@ impl<'a> Widget for SettingsWindow<'a> {
         let mut events = Vec::new();
         let tab_font_scale = 18;
 
-        //let mut xp_bar = self.global_state.settings.interface.xp_bar;
-
         // Frame
         Image::new(self.imgs.settings_bg)
             .w_h(1052.0, 886.0)
@@ -199,10 +218,7 @@ impl<'a> Widget for SettingsWindow<'a> {
         // Content Alignment
         Rectangle::fill_with([814.0, 834.0], color::TRANSPARENT)
             .top_right_with_margins_on(state.ids.frame, 46.0, 2.0)
-            .set(state.ids.settings_content, ui);
-        Rectangle::fill_with([814.0 / 2.0, 834.0], color::TRANSPARENT)
-            .top_right_with_margins_on(state.ids.settings_content, 0.0, 0.0)
-            .set(state.ids.settings_content_r, ui);
+            .set(state.ids.settings_content_align, ui);
 
         // Tabs Content Alignment
         Rectangle::fill_with([232.0, 814.0], color::TRANSPARENT)
@@ -217,14 +233,10 @@ impl<'a> Widget for SettingsWindow<'a> {
             .top_left_with_margins_on(state.ids.frame, 2.0, 1.0)
             .set(state.ids.icon, ui);
         // Title
-        Text::new(match self.show.settings_tab {
-            SettingsTab::Interface => self.localized_strings.get("common.interface_settings"),
-            SettingsTab::Gameplay => self.localized_strings.get("common.gameplay_settings"),
-            SettingsTab::Controls => self.localized_strings.get("common.controls_settings"),
-            SettingsTab::Video => self.localized_strings.get("common.video_settings"),
-            SettingsTab::Sound => self.localized_strings.get("common.sound_settings"),
-            SettingsTab::Lang => self.localized_strings.get("common.language_settings"),
-        })
+        Text::new(
+            self.localized_strings
+                .get(self.show.settings_tab.title_key()),
+        )
         .mid_top_with_margin_on(state.ids.frame, 3.0)
         .font_id(self.fonts.cyri.conrod_id)
         .font_size(self.fonts.cyri.scale(29))
@@ -243,229 +255,93 @@ impl<'a> Widget for SettingsWindow<'a> {
             events.push(Event::Close);
         }
 
-        // 1) Interface Tab -------------------------------
-        if Button::image(if let SettingsTab::Interface = self.show.settings_tab {
-            self.imgs.selection
-        } else {
-            self.imgs.nothing
-        })
-        .w_h(230.0, 48.0)
-        .hover_image(self.imgs.selection_hover)
-        .press_image(self.imgs.selection_press)
-        .mid_top_with_margin_on(state.ids.tabs_align, 28.0)
-        .label(&self.localized_strings.get("common.interface"))
-        .label_font_size(self.fonts.cyri.scale(tab_font_scale))
-        .label_font_id(self.fonts.cyri.conrod_id)
-        .label_color(TEXT_COLOR)
-        .set(state.ids.interface, ui)
-        .was_clicked()
-        {
-            events.push(Event::ChangeTab(SettingsTab::Interface));
+        // Tabs
+        if state.ids.tabs.len() < SettingsTab::iter().len() {
+            state.update(|s| {
+                s.ids
+                    .tabs
+                    .resize(SettingsTab::iter().len(), &mut ui.widget_id_generator())
+            });
         }
+        for (i, settings_tab) in SettingsTab::iter().enumerate() {
+            let mut button = Button::image(if self.show.settings_tab == settings_tab {
+                self.imgs.selection
+            } else {
+                self.imgs.nothing
+            })
+            .w_h(230.0, 48.0)
+            .hover_image(self.imgs.selection_hover)
+            .press_image(self.imgs.selection_press)
+            .label(self.localized_strings.get(settings_tab.name_key()))
+            .label_font_size(self.fonts.cyri.scale(tab_font_scale))
+            .label_font_id(self.fonts.cyri.conrod_id)
+            .label_color(TEXT_COLOR);
 
-        // Contents Left Side
-        if let SettingsTab::Interface = self.show.settings_tab {
-            for event in interface::Interface::new(
-                self.global_state,
-                self.show,
-                self.imgs,
-                self.fonts,
-                self.localized_strings,
-            )
-            .parent(state.ids.settings_content)
-            .top_left()
-            .wh_of(state.ids.settings_content)
-            .set(state.ids.interface_window, ui)
-            {
-                events.push(event);
+            button = if i == 0 {
+                button.mid_top_with_margin_on(state.ids.tabs_align, 28.0)
+            } else {
+                button.down_from(state.ids.tabs[i - 1], 0.0)
+            };
+
+            if button.set(state.ids.tabs[i], ui).was_clicked() {
+                events.push(Event::ChangeTab(settings_tab));
             }
         }
 
-        // 2) Gameplay Tab --------------------------------
-        if Button::image(if let SettingsTab::Gameplay = self.show.settings_tab {
-            self.imgs.selection
-        } else {
-            self.imgs.nothing
-        })
-        .w_h(230.0, 48.0)
-        .hover_image(self.imgs.selection_hover)
-        .press_image(self.imgs.selection_press)
-        .down_from(state.ids.interface, 0.0)
-        .parent(state.ids.tabs_align)
-        .label(&self.localized_strings.get("common.gameplay"))
-        .label_font_size(self.fonts.cyri.scale(tab_font_scale))
-        .label_font_id(self.fonts.cyri.conrod_id)
-        .label_color(TEXT_COLOR)
-        .set(state.ids.gameplay, ui)
-        .was_clicked()
-        {
-            events.push(Event::ChangeTab(SettingsTab::Gameplay));
+        // Content Area
+        macro_rules! setup_content_area {
+            ($parent:expr, $ui:expr, $widget:expr, $id:expr) => {
+                $widget
+                    .top_left_with_margins_on($parent, 0.0, 0.0)
+                    .wh_of($parent)
+                    .set($id, $ui)
+            };
         }
-
-        // Contents
-        if let SettingsTab::Gameplay = self.show.settings_tab {
-            for event in gameplay::Gameplay::new(
-                self.global_state,
-                self.imgs,
-                self.fonts,
-                self.localized_strings,
-            )
-            .parent(state.ids.settings_content)
-            .top_left()
-            .wh_of(state.ids.settings_content)
-            .set(state.ids.gameplay_window, ui)
-            {
-                events.push(event);
-            }
+        let global_state = self.global_state;
+        let show = self.show;
+        let imgs = self.imgs;
+        let fonts = self.fonts;
+        let localized_strings = self.localized_strings;
+        for event in match self.show.settings_tab {
+            SettingsTab::Interface => setup_content_area!(
+                state.ids.settings_content_align,
+                ui,
+                interface::Interface::new(global_state, show, imgs, fonts, localized_strings,),
+                state.ids.interface
+            ),
+            SettingsTab::Gameplay => setup_content_area!(
+                state.ids.settings_content_align,
+                ui,
+                gameplay::Gameplay::new(global_state, imgs, fonts, localized_strings,),
+                state.ids.gameplay
+            ),
+            SettingsTab::Controls => setup_content_area!(
+                state.ids.settings_content_align,
+                ui,
+                controls::Controls::new(global_state, imgs, fonts, localized_strings,),
+                state.ids.controls
+            ),
+            SettingsTab::Video => setup_content_area!(
+                state.ids.settings_content_align,
+                ui,
+                video::Video::new(global_state, imgs, fonts, localized_strings, self.fps,),
+                state.ids.video
+            ),
+            SettingsTab::Sound => setup_content_area!(
+                state.ids.settings_content_align,
+                ui,
+                sound::Sound::new(global_state, imgs, fonts, localized_strings,),
+                state.ids.sound
+            ),
+            SettingsTab::Lang => setup_content_area!(
+                state.ids.settings_content_align,
+                ui,
+                language::Language::new(global_state, imgs, fonts),
+                state.ids.language
+            ),
+        } {
+            events.push(event);
         }
-
-        // 3) Controls Tab --------------------------------
-        if Button::image(if let SettingsTab::Controls = self.show.settings_tab {
-            self.imgs.selection
-        } else {
-            self.imgs.nothing
-        })
-        .w_h(230.0, 48.0)
-        .hover_image(self.imgs.selection_hover)
-        .press_image(self.imgs.selection_press)
-        .down_from(state.ids.gameplay, 0.0)
-        .parent(state.ids.tabs_align)
-        .label(&self.localized_strings.get("common.controls"))
-        .label_font_size(self.fonts.cyri.scale(tab_font_scale))
-        .label_font_id(self.fonts.cyri.conrod_id)
-        .label_color(TEXT_COLOR)
-        .set(state.ids.controls, ui)
-        .was_clicked()
-        {
-            events.push(Event::ChangeTab(SettingsTab::Controls));
-        }
-
-        // Contents
-        if let SettingsTab::Controls = self.show.settings_tab {
-            for event in controls::Controls::new(
-                self.global_state,
-                self.imgs,
-                self.fonts,
-                self.localized_strings,
-            )
-            .parent(state.ids.settings_content)
-            .top_left()
-            .wh_of(state.ids.settings_content)
-            .set(state.ids.controls_window, ui)
-            {
-                events.push(event);
-            }
-        }
-
-        // 4) Video Tab -----------------------------------
-        if Button::image(if let SettingsTab::Video = self.show.settings_tab {
-            self.imgs.selection
-        } else {
-            self.imgs.nothing
-        })
-        .w_h(230.0, 48.0)
-        .hover_image(self.imgs.selection_hover)
-        .press_image(self.imgs.selection_press)
-        .down_from(state.ids.controls, 0.0)
-        .parent(state.ids.tabs_align)
-        .label(&self.localized_strings.get("common.video"))
-        .label_font_size(self.fonts.cyri.scale(tab_font_scale))
-        .label_font_id(self.fonts.cyri.conrod_id)
-        .label_color(TEXT_COLOR)
-        .set(state.ids.video, ui)
-        .was_clicked()
-        {
-            events.push(Event::ChangeTab(SettingsTab::Video));
-        }
-
-        // Contents
-        if let SettingsTab::Video = self.show.settings_tab {
-            for event in video::Video::new(
-                self.global_state,
-                self.imgs,
-                self.fonts,
-                self.localized_strings,
-                self.fps,
-            )
-            .parent(state.ids.settings_content)
-            .top_left()
-            .wh_of(state.ids.settings_content)
-            .set(state.ids.video_window, ui)
-            {
-                events.push(event);
-            }
-        }
-
-        // 5) Sound Tab -----------------------------------
-        if Button::image(if let SettingsTab::Sound = self.show.settings_tab {
-            self.imgs.selection
-        } else {
-            self.imgs.nothing
-        })
-        .w_h(230.0, 48.0)
-        .hover_image(self.imgs.selection_hover)
-        .press_image(self.imgs.selection_press)
-        .down_from(state.ids.video, 0.0)
-        .parent(state.ids.tabs_align)
-        .label(&self.localized_strings.get("common.sound"))
-        .label_font_size(self.fonts.cyri.scale(tab_font_scale))
-        .label_font_id(self.fonts.cyri.conrod_id)
-        .label_color(TEXT_COLOR)
-        .set(state.ids.sound, ui)
-        .was_clicked()
-        {
-            events.push(Event::ChangeTab(SettingsTab::Sound));
-        }
-
-        // Contents
-        if let SettingsTab::Sound = self.show.settings_tab {
-            for event in sound::Sound::new(
-                self.global_state,
-                self.imgs,
-                self.fonts,
-                self.localized_strings,
-            )
-            .parent(state.ids.settings_content)
-            .top_left()
-            .wh_of(state.ids.settings_content)
-            .set(state.ids.sound_window, ui)
-            {
-                events.push(event);
-            }
-        }
-
-        // 5) Languages Tab -----------------------------------
-        if Button::image(if let SettingsTab::Lang = self.show.settings_tab {
-            self.imgs.selection
-        } else {
-            self.imgs.nothing
-        })
-        .w_h(230.0, 48.0)
-        .hover_image(self.imgs.selection_hover)
-        .press_image(self.imgs.selection_press)
-        .down_from(state.ids.sound, 0.0)
-        .parent(state.ids.tabs_align)
-        .label(&self.localized_strings.get("common.languages"))
-        .label_font_size(self.fonts.cyri.scale(tab_font_scale))
-        .label_font_id(self.fonts.cyri.conrod_id)
-        .label_color(TEXT_COLOR)
-        .set(state.ids.language, ui)
-        .was_clicked()
-        {
-            events.push(Event::ChangeTab(SettingsTab::Lang));
-        }
-
-        // Contents
-        if let SettingsTab::Lang = self.show.settings_tab {
-            for event in language::Language::new(self.global_state, self.imgs, self.fonts)
-                .parent(state.ids.settings_content)
-                .top_left()
-                .wh_of(state.ids.settings_content)
-                .set(state.ids.language_window, ui)
-            {
-                events.push(event);
-            }
-        };
 
         events
     }
