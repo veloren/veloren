@@ -156,6 +156,32 @@ pub fn handle_process_trade_action(
     }
 }
 
+//Cancel all trades registered for a given UID.
+pub fn cancel_trade_for(server: &mut Server, entity: EcsEntity) {
+    if let Some(uid) = server.state().ecs().uid_from_entity(entity) {
+        let mut trades = server.state.ecs().write_resource::<Trades>();
+
+        let active_trade = match trades.entity_trades.get(&uid) {
+            Some(n) => *n,
+            None => {
+                return;
+            },
+        };
+
+        let to_notify = trades.decline_trade(active_trade, uid);
+        to_notify
+            .and_then(|u| server.state.ecs().entity_from_uid(u.0))
+            .map(|e| {
+                server.notify_client(e, ServerGeneral::FinishedTrade(TradeResult::Declined));
+                notify_agent_simple(
+                    server.state.ecs().write_storage::<Agent>(),
+                    e,
+                    AgentEvent::FinishedTrade(TradeResult::Declined),
+                );
+            });
+    }
+}
+
 /// Commit a trade that both parties have agreed to, modifying their respective
 /// inventories
 fn commit_trade(ecs: &specs::World, trade: &PendingTrade) -> TradeResult {
