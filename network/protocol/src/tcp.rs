@@ -231,60 +231,67 @@ where
 {
     async fn recv(&mut self) -> Result<ProtocolEvent, ProtocolError> {
         'outer: loop {
-            while let Some(frame) = ITFrame::read_frame(&mut self.buffer) {
-                #[cfg(feature = "trace_pedantic")]
-                trace!(?frame, "recv");
-                match frame {
-                    ITFrame::Shutdown => break 'outer Ok(ProtocolEvent::Shutdown),
-                    ITFrame::OpenStream {
-                        sid,
-                        prio,
-                        promises,
-                        guaranteed_bandwidth,
-                    } => {
-                        break 'outer Ok(ProtocolEvent::OpenStream {
-                            sid,
-                            prio: prio.min(crate::types::HIGHEST_PRIO),
-                            promises,
-                            guaranteed_bandwidth,
-                        });
-                    },
-                    ITFrame::CloseStream { sid } => {
-                        break 'outer Ok(ProtocolEvent::CloseStream { sid });
-                    },
-                    ITFrame::DataHeader { sid, mid, length } => {
-                        let m = ITMessage::new(sid, length, &mut self.itmsg_allocator);
-                        self.metrics.rmsg_ib(sid, length);
-                        self.incoming.insert(mid, m);
-                    },
-                    ITFrame::Data { mid, data } => {
-                        self.metrics.rdata_frames_b(data.len() as u64);
-                        let m = match self.incoming.get_mut(&mid) {
-                            Some(m) => m,
-                            None => {
-                                info!(
-                                    ?mid,
-                                    "protocol violation by remote side: send Data before Header"
-                                );
-                                break 'outer Err(ProtocolError::Closed);
+            loop {
+                match ITFrame::read_frame(&mut self.buffer) {
+                    Ok(Some(frame)) => {
+                        #[cfg(feature = "trace_pedantic")]
+                        trace!(?frame, "recv");
+                        match frame {
+                            ITFrame::Shutdown => break 'outer Ok(ProtocolEvent::Shutdown),
+                            ITFrame::OpenStream {
+                                sid,
+                                prio,
+                                promises,
+                                guaranteed_bandwidth,
+                            } => {
+                                break 'outer Ok(ProtocolEvent::OpenStream {
+                                    sid,
+                                    prio: prio.min(crate::types::HIGHEST_PRIO),
+                                    promises,
+                                    guaranteed_bandwidth,
+                                });
+                            },
+                            ITFrame::CloseStream { sid } => {
+                                break 'outer Ok(ProtocolEvent::CloseStream { sid });
+                            },
+                            ITFrame::DataHeader { sid, mid, length } => {
+                                let m = ITMessage::new(sid, length, &mut self.itmsg_allocator);
+                                self.metrics.rmsg_ib(sid, length);
+                                self.incoming.insert(mid, m);
+                            },
+                            ITFrame::Data { mid, data } => {
+                                self.metrics.rdata_frames_b(data.len() as u64);
+                                let m = match self.incoming.get_mut(&mid) {
+                                    Some(m) => m,
+                                    None => {
+                                        info!(
+                                            ?mid,
+                                            "protocol violation by remote side: send Data before \
+                                             Header"
+                                        );
+                                        break 'outer Err(ProtocolError::Violated);
+                                    },
+                                };
+                                m.data.extend_from_slice(&data);
+                                if m.data.len() == m.length as usize {
+                                    // finished, yay
+                                    let m = self.incoming.remove(&mid).unwrap();
+                                    self.metrics.rmsg_ob(
+                                        m.sid,
+                                        RemoveReason::Finished,
+                                        m.data.len() as u64,
+                                    );
+                                    break 'outer Ok(ProtocolEvent::Message {
+                                        sid: m.sid,
+                                        data: m.data.freeze(),
+                                    });
+                                }
                             },
                         };
-                        m.data.extend_from_slice(&data);
-                        if m.data.len() == m.length as usize {
-                            // finished, yay
-                            let m = self.incoming.remove(&mid).unwrap();
-                            self.metrics.rmsg_ob(
-                                m.sid,
-                                RemoveReason::Finished,
-                                m.data.len() as u64,
-                            );
-                            break 'outer Ok(ProtocolEvent::Message {
-                                sid: m.sid,
-                                data: m.data.freeze(),
-                            });
-                        }
                     },
-                };
+                    Ok(None) => break, //inner => read more data
+                    Err(()) => return Err(ProtocolError::Violated),
+                }
             }
             let chunk = self.sink.recv().await?;
             if self.buffer.is_empty() {
@@ -321,7 +328,7 @@ where
                 return Ok(frame);
             }
         }
-        Err(ProtocolError::Closed)
+        Err(ProtocolError::Violated)
     }
 }
 
