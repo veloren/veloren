@@ -10,7 +10,7 @@ ItemDef(
             ),            
         )
     ),
-    quality: Artifact,
+    quality: Debug,
     tags: [],
     slots: 900,
 )
