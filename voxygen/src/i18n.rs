@@ -352,6 +352,24 @@ mod tests {
             .expect("Impossible to fetch the Git object")
     }
 
+    fn correspond(line: &str, key: &str) -> bool {
+        let pat = {
+            // Get left part of split
+            let mut begin = line
+                .split(':')
+                .next()
+                .expect("split always produces value")
+                .trim()
+                .chars();
+            // Remove quotes
+            begin.next();
+            begin.next_back();
+            begin.as_str()
+        };
+
+        pat == key
+    }
+
     fn generate_key_version<'a>(
         repo: &'a git2::Repository,
         localization: &LocalizationFragment,
@@ -366,19 +384,19 @@ mod tests {
         let mut to_process: HashSet<&String> = localization.string_map.keys().collect();
         // Find key start lines
         let file_content = std::str::from_utf8(file_blob.content()).expect("Got non UTF-8 file");
+
         for (line_nb, line) in file_content.lines().enumerate() {
             let mut found_key = None;
 
             for key in to_process.iter() {
-                if line.contains(key.as_str()) {
+                if correspond(line, key) {
                     found_key = Some(key.to_owned());
-                    break;
                 }
             }
 
             if let Some(key) = found_key {
                 keys.get_mut(key).unwrap().key_line = Some(line_nb);
-                to_process.remove(&key);
+                to_process.remove(key);
             };
         }
 
