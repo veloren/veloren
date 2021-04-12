@@ -20,7 +20,7 @@ use inventory_manip::handle_inventory;
 use invite::{handle_invite, handle_invite_response};
 use player::{handle_client_disconnect, handle_exit_ingame};
 use specs::{Entity as EcsEntity, WorldExt};
-use trade::handle_process_trade_action;
+use trade::{cancel_trade_for, handle_process_trade_action};
 
 mod entity_creation;
 mod entity_manipulation;
@@ -133,7 +133,10 @@ impl Server {
                 ServerEvent::UpdateCharacterData { entity, components } => {
                     handle_loaded_character_data(self, entity, components);
                 },
-                ServerEvent::ExitIngame { entity } => handle_exit_ingame(self, entity),
+                ServerEvent::ExitIngame { entity } => {
+                    cancel_trade_for(self, entity);
+                    handle_exit_ingame(self, entity);
+                },
                 ServerEvent::CreateNpc {
                     pos,
                     stats,

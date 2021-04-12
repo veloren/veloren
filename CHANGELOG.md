@@ -63,6 +63,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Social window no longer moves when group is open
 - Combat rating no longer takes buffs into account
 - Minimap icons are now displayed in both map modes
+- Server now denies any running trades when a user exits to the character selection screen.
 
 ## [0.9.0] - 2021-03-20
 
