@@ -19,6 +19,8 @@
 	"hud.trade.buy_price": "Ціна покупки",
 	"hud.trade.sell_price": "Ціна продажу",
 	"hud.trade.coin": "Монет",
+	"hud.trade.tooltip_hint_1": "<Shift-Click щоб Додати/Забрати одиницю товару.>",
+	"hud.trade.tooltip_hint_2": "<Ctrl-Click щоб Врівноважити товаром.>",
     },
 
 
