@@ -85,6 +85,7 @@
         "hud.settings.lod_detail": "Рівень деталізації",
         "hud.settings.save_window_size": "Зберегти розмір вікна",
         "hud.settings.auto_camera": "Авто камера",
+        "hud.settings.cancel_inputs_on_chat": "Зупиняти рух коли відкрито чат",
         "hud.settings.camera_clamp_angle": "Кут для закріплення камери у режимі закріплення",
         "hud.settings.camera_clamp_behavior": "Поведінка закріпленої камери",
         "hud.settings.invert_controller_y_axis": "Інвертація контролера по осі Y",
@@ -95,11 +96,11 @@
 
         "hud.settings.awaitingkey": "Натисніть клавішу...",
         "hud.settings.unbound": "Нічого",
-        "hud.settings.reset_keybinds": "Значення за замовчуванням",
-        "hud.settings.reset_gameplay": "Значення за замовчуванням",
-        "hud.settings.reset_graphics": "Значення за замовчуванням",
-        "hud.settings.reset_interface": "Значення за замовчуванням",
-        "hud.settings.reset_sound": "Значення за замовчуванням",
+        "hud.settings.reset_keybinds": "Значення за\n замовчуванням",
+        "hud.settings.reset_gameplay": "Значення за\n замовчуванням",
+        "hud.settings.reset_graphics": "Значення за\n замовчуванням",
+        "hud.settings.reset_interface": "Значення за\n замовчуванням",
+        "hud.settings.reset_sound": "Значення за\n замовчуванням",
     },
 
 
