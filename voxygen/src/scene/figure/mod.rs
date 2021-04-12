@@ -1161,29 +1161,21 @@ impl FigureMgr {
                             )
                         },
                         CharacterState::LeapMelee(s) => {
-                            let stage_progress = match active_tool_kind {
-                                Some(ToolKind::Axe | ToolKind::Hammer) => {
-                                    let stage_time = s.timer.as_secs_f32();
-                                    match s.stage_section {
-                                        StageSection::Buildup => {
-                                            stage_time
-                                                / s.static_data.buildup_duration.as_secs_f32()
-                                        },
-                                        StageSection::Movement => {
-                                            stage_time
-                                                / s.static_data.movement_duration.as_secs_f32()
-                                        },
-                                        StageSection::Swing => {
-                                            stage_time / s.static_data.swing_duration.as_secs_f32()
-                                        },
-                                        StageSection::Recover => {
-                                            stage_time
-                                                / s.static_data.recover_duration.as_secs_f32()
-                                        },
-                                        _ => 0.0,
-                                    }
+                            let stage_time = s.timer.as_secs_f32();
+                            let stage_progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
-                                _ => state.state_time,
+                                StageSection::Movement => {
+                                    stage_time / s.static_data.movement_duration.as_secs_f32()
+                                },
+                                StageSection::Swing => {
+                                    stage_time / s.static_data.swing_duration.as_secs_f32()
+                                },
+                                StageSection::Recover => {
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
+                                },
+                                _ => 0.0,
                             };
 
                             anim::character::LeapAnimation::update_skeleton(
@@ -1203,25 +1195,18 @@ impl FigureMgr {
                             )
                         },
                         CharacterState::SpinMelee(s) => {
-                            let stage_progress = match active_tool_kind {
-                                Some(ToolKind::Axe | ToolKind::Sword) => {
-                                    let stage_time = s.timer.as_secs_f32();
-                                    match s.stage_section {
-                                        StageSection::Buildup => {
-                                            stage_time
-                                                / s.static_data.buildup_duration.as_secs_f32()
-                                        },
-                                        StageSection::Swing => {
-                                            stage_time / s.static_data.swing_duration.as_secs_f32()
-                                        },
-                                        StageSection::Recover => {
-                                            stage_time
-                                                / s.static_data.recover_duration.as_secs_f32()
-                                        },
-                                        _ => 0.0,
-                                    }
+                            let stage_time = s.timer.as_secs_f32();
+                            let stage_progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
-                                _ => state.state_time,
+                                StageSection::Swing => {
+                                    stage_time / s.static_data.swing_duration.as_secs_f32()
+                                },
+                                StageSection::Recover => {
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
+                                },
+                                _ => 0.0,
                             };
 
                             anim::character::SpinMeleeAnimation::update_skeleton(

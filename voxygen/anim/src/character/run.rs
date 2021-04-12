@@ -253,11 +253,34 @@ impl Animation for RunAnimation {
         next.torso.position = Vec3::new(0.0, 0.0, 0.0) * s_a.scaler;
         next.torso.scale = Vec3::one() / 11.0 * s_a.scaler;
 
-        next.second.scale = match hands {
-            (Some(Hands::One), Some(Hands::One)) => Vec3::one(),
-            (_, _) => Vec3::zero(),
+        match hands {
+            (Some(Hands::One), _) => match active_tool_kind {
+                Some(ToolKind::Axe) | Some(ToolKind::Hammer) | Some(ToolKind::Sword) => {
+                    next.main.position = Vec3::new(-4.0, -5.0, 10.0);
+                    next.main.orientation =
+                        Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
+                },
+
+                _ => {},
+            },
+            (_, _) => {},
+        };
+        match hands {
+            (None | Some(Hands::One), Some(Hands::One)) => match second_tool_kind {
+                Some(ToolKind::Axe) | Some(ToolKind::Hammer) | Some(ToolKind::Sword) => {
+                    next.second.position = Vec3::new(4.0, -5.5, 10.0);
+                    next.second.orientation =
+                        Quaternion::rotation_y(-2.5) * Quaternion::rotation_z(1.57);
+                },
+                _ => {},
+            },
+            (_, _) => {},
         };
 
+        next.second.scale = match hands {
+            (Some(Hands::One) | None, Some(Hands::One)) => Vec3::one(),
+            (_, _) => Vec3::zero(),
+        };
         next
     }
 }

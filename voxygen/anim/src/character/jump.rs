@@ -34,13 +34,9 @@ impl Animation for JumpAnimation {
         let mut next = (*skeleton).clone();
         let slow = (anim_time * 7.0).sin();
 
-        let random =
-            ((((2.0 * ((global_time - anim_time) - ((global_time - anim_time).round()))).abs())
-                * 10.0)
-                .round())
-                / 10.0;
-
-        let switch = if random > 0.5 { 1.0 } else { -1.0 };
+        let subtract = global_time - anim_time as f32;
+        let check = subtract - subtract.trunc();
+        let switch = (check - 0.5).signum();
 
         let speed = Vec2::<f32>::from(velocity).magnitude();
         let speednorm = (speed / 10.0).min(1.0);
@@ -90,7 +86,7 @@ impl Animation for JumpAnimation {
         next.shorts.orientation =
             Quaternion::rotation_x(speednorm * 0.5) * Quaternion::rotation_z(tilt * 3.0);
 
-        if random > 0.5 {
+        if switch > 0.0 {
             next.hand_l.position = Vec3::new(
                 -s_a.hand.0,
                 1.0 + s_a.hand.1 + 4.0,
@@ -194,11 +190,33 @@ impl Animation for JumpAnimation {
         next.torso.orientation = Quaternion::rotation_x(0.0);
         next.torso.scale = Vec3::one() / 11.0 * s_a.scaler;
 
+        match hands {
+            (Some(Hands::One), _) => match active_tool_kind {
+                Some(ToolKind::Axe) | Some(ToolKind::Hammer) | Some(ToolKind::Sword) => {
+                    next.main.position = Vec3::new(-4.0, -5.0, 10.0);
+                    next.main.orientation =
+                        Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
+                },
+
+                _ => {},
+            },
+            (_, _) => {},
+        };
+        match hands {
+            (None | Some(Hands::One), Some(Hands::One)) => match second_tool_kind {
+                Some(ToolKind::Axe) | Some(ToolKind::Hammer) | Some(ToolKind::Sword) => {
+                    next.second.position = Vec3::new(4.0, -5.5, 10.0);
+                    next.second.orientation =
+                        Quaternion::rotation_y(-2.5) * Quaternion::rotation_z(1.57);
+                },
+                _ => {},
+            },
+            (_, _) => {},
+        };
         next.second.scale = match hands {
-            (Some(Hands::One), Some(Hands::One)) => Vec3::one(),
+            (Some(Hands::One) | None, Some(Hands::One)) => Vec3::one(),
             (_, _) => Vec3::zero(),
         };
-
         next
     }
 }

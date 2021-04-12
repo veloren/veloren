@@ -169,38 +169,34 @@ impl Animation for LeapAnimation {
         };
 
         match hands {
-            (Some(Hands::One), Some(Hands::One)) | (Some(Hands::One), None) => {
-                match ability_info.and_then(|a| a.tool) {
-                    Some(ToolKind::Axe) => {
-                        next.control_l.position =
-                            Vec3::new(-7.0 + move3 * 4.0, 8.0 + move3 * 8.0, 2.0 + move3 * -4.0);
-                        next.control_l.orientation =
-                            Quaternion::rotation_x(-0.3 + move2 * 1.0 + move3 * -2.0)
-                                * Quaternion::rotation_y(move2 * -0.5 + move3 * 1.9);
-                        next.hand_l.position = Vec3::new(0.0, -0.5, 0.0);
-                        next.hand_l.orientation = Quaternion::rotation_x(1.57)
-                    },
-                    Some(ToolKind::Hammer)
-                    | Some(ToolKind::HammerSimple)
-                    | Some(ToolKind::Pick) => {
-                        next.control_l.position = Vec3::new(
-                            -7.0,
-                            8.0 + move2 * -5.0 + move3 * 9.0,
-                            2.0 + move2 * 8.0 + move3 * -12.0,
-                        );
-                        next.control_l.orientation =
-                            Quaternion::rotation_x(-0.3 + move2 * 1.5 + move3 * -2.5);
-                        next.hand_l.position = Vec3::new(0.0, -0.5, 0.0);
-                        next.hand_l.orientation = Quaternion::rotation_x(1.57)
-                    },
+            (Some(Hands::One), _) => match ability_info.and_then(|a| a.tool) {
+                Some(ToolKind::Axe) => {
+                    next.control_l.position =
+                        Vec3::new(-7.0 + move3 * 4.0, 8.0 + move3 * 8.0, 2.0 + move3 * -4.0);
+                    next.control_l.orientation =
+                        Quaternion::rotation_x(-0.3 + move2 * 1.0 + move3 * -2.0)
+                            * Quaternion::rotation_y(move2 * -0.5 + move3 * 1.9);
+                    next.hand_l.position = Vec3::new(0.0, -0.5, 0.0);
+                    next.hand_l.orientation = Quaternion::rotation_x(1.57)
+                },
+                Some(ToolKind::Hammer) | Some(ToolKind::HammerSimple) | Some(ToolKind::Pick) => {
+                    next.control_l.position = Vec3::new(
+                        -7.0,
+                        8.0 + move2 * -5.0 + move3 * 9.0,
+                        2.0 + move2 * 8.0 + move3 * -12.0,
+                    );
+                    next.control_l.orientation =
+                        Quaternion::rotation_x(-0.3 + move2 * 1.5 + move3 * -2.5);
+                    next.hand_l.position = Vec3::new(0.0, -0.5, 0.0);
+                    next.hand_l.orientation = Quaternion::rotation_x(1.57)
+                },
 
-                    _ => {},
-                }
+                _ => {},
             },
             (_, _) => {},
         };
         match hands {
-            (Some(Hands::One), Some(Hands::One)) | (None, Some(Hands::One)) => {
+            (None | Some(Hands::One), Some(Hands::One)) => {
                 match ability_info.and_then(|a| a.tool) {
                     Some(ToolKind::Axe) => {
                         next.control_r.position = Vec3::new(

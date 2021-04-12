@@ -48,7 +48,7 @@ impl Animation for WieldAnimation {
         *rate = 1.0;
         let lab: f32 = 1.0;
         let speed = Vec2::<f32>::from(velocity).magnitude();
-
+        let speednorm = speed / 9.5;
         let mut next = (*skeleton).clone();
         let head_look = Vec2::new(
             (global_time + anim_time / 3.0).floor().mul(7331.0).sin() * 0.2,
@@ -102,7 +102,7 @@ impl Animation for WieldAnimation {
         next.second.position = Vec3::new(0.0, 0.0, 0.0);
         next.second.orientation = Quaternion::rotation_z(0.0);
         if speed > 0.2 && velocity.z == 0.0 {
-            next.chest.orientation = Quaternion::rotation_z(short * 0.1 + strafe * 0.7)
+            next.chest.orientation = Quaternion::rotation_z(short * 0.1 + strafe * 0.7 * speednorm)
                 * Quaternion::rotation_y(strafe * 0.2)
                 * Quaternion::rotation_x(((direction * 0.8).min(0.3)) * (1.0 - tilt.abs()));
             next.head.orientation =
@@ -345,7 +345,7 @@ impl Animation for WieldAnimation {
             (_, _) => {},
         };
         match hands {
-            (Some(Hands::One), Some(Hands::One)) | (Some(Hands::One), None) => {
+            (Some(Hands::One), _) => {
                 next.control_l.position = Vec3::new(-7.0, 8.0, 2.0);
                 next.control_l.orientation = Quaternion::rotation_x(-0.3);
                 next.hand_l.position = Vec3::new(0.0, -0.5, 0.0);
@@ -354,7 +354,7 @@ impl Animation for WieldAnimation {
             (_, _) => {},
         };
         match hands {
-            (Some(Hands::One), Some(Hands::One)) | (None, Some(Hands::One)) => {
+            (None | Some(Hands::One), Some(Hands::One)) => {
                 next.control_r.position = Vec3::new(7.0, 8.0, 2.0);
                 next.control_r.orientation = Quaternion::rotation_x(-0.3);
                 next.hand_r.position = Vec3::new(0.0, -0.5, 0.0);
