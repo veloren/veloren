@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Stun resilience stat display
 - Villagers and guards now spawn with potions, and know how to use them.
 - Combat music in dungeons when within range of enemies.
+- New Command: "kit", place a set of items into your inventory
 
 ### Changed
 
@@ -50,6 +51,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Item tooltips during trades will now inform the user of what ctrl-click and shift-click do
 
 ### Removed
+
+- Removed command: "debug", use "/kit debug" instead
 
 ### Fixed
 

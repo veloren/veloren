@@ -1,6 +1,8 @@
 use crate::{assets, comp, npc, terrain};
+use assets::AssetExt;
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
+use serde::{Deserialize, Serialize};
 use std::{
     fmt::{self, Display},
     path::Path,
@@ -44,7 +46,6 @@ pub enum ChatCommand {
     BuildAreaList,
     BuildAreaRemove,
     Campfire,
-    Debug,
     DebugColumn,
     DropAll,
     Dummy,
@@ -65,6 +66,7 @@ pub enum ChatCommand {
     Kick,
     Kill,
     KillNpcs,
+    Kit,
     Lantern,
     Light,
     MakeBlock,
@@ -105,7 +107,6 @@ pub static CHAT_COMMANDS: &[ChatCommand] = &[
     ChatCommand::BuildAreaList,
     ChatCommand::BuildAreaRemove,
     ChatCommand::Campfire,
-    ChatCommand::Debug,
     ChatCommand::DebugColumn,
     ChatCommand::DropAll,
     ChatCommand::Dummy,
@@ -126,6 +127,7 @@ pub static CHAT_COMMANDS: &[ChatCommand] = &[
     ChatCommand::Kick,
     ChatCommand::Kill,
     ChatCommand::KillNpcs,
+    ChatCommand::Kit,
     ChatCommand::Lantern,
     ChatCommand::Light,
     ChatCommand::MakeBlock,
@@ -154,6 +156,14 @@ pub static CHAT_COMMANDS: &[ChatCommand] = &[
     ChatCommand::Whitelist,
     ChatCommand::World,
 ];
+
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+pub struct KitManifest(pub HashMap<String, Vec<(String, u32)>>);
+impl assets::Asset for KitManifest {
+    type Loader = assets::RonLoader;
+
+    const EXTENSION: &'static str = "ron";
+}
 
 lazy_static! {
     pub static ref CHAT_SHORTCUTS: HashMap<char, ChatCommand> = [
@@ -224,6 +234,14 @@ lazy_static! {
         items.sort();
         items
     };
+
+    static ref KITS: Vec<String> = {
+        if let Ok(kits) = KitManifest::load("server.manifests.kits") {
+            kits.read().0.keys().cloned().collect()
+        } else {
+            Vec::new()
+        }
+    };
 }
 
 impl ChatCommand {
@@ -270,7 +288,6 @@ impl ChatCommand {
                 Admin,
             ),
             ChatCommand::Campfire => cmd(vec![], "Spawns a campfire", Admin),
-            ChatCommand::Debug => cmd(vec![], "Place all debug items into your pack.", Admin),
             ChatCommand::DebugColumn => cmd(
                 vec![Integer("x", 15000, Required), Integer("y", 15000, Required)],
                 "Prints some debug information about a column",
@@ -358,6 +375,11 @@ impl ChatCommand {
             ),
             ChatCommand::Kill => cmd(vec![], "Kill yourself", NoAdmin),
             ChatCommand::KillNpcs => cmd(vec![], "Kill the NPCs", Admin),
+            ChatCommand::Kit => cmd(
+                vec![Enum("kit_name", KITS.to_vec(), Required)],
+                "Place a set of items into your inventory.",
+                Admin,
+            ),
             ChatCommand::Lantern => cmd(
                 vec![
                     Float("strength", 5.0, Required),
@@ -515,7 +537,6 @@ impl ChatCommand {
             ChatCommand::BuildAreaList => "build_area_list",
             ChatCommand::BuildAreaRemove => "build_area_remove",
             ChatCommand::Campfire => "campfire",
-            ChatCommand::Debug => "debug",
             ChatCommand::DebugColumn => "debug_column",
             ChatCommand::DropAll => "dropall",
             ChatCommand::Dummy => "dummy",
@@ -535,6 +556,7 @@ impl ChatCommand {
             ChatCommand::Jump => "jump",
             ChatCommand::Kick => "kick",
             ChatCommand::Kill => "kill",
+            ChatCommand::Kit => "kit",
             ChatCommand::KillNpcs => "kill_npcs",
             ChatCommand::Lantern => "lantern",
             ChatCommand::Light => "light",

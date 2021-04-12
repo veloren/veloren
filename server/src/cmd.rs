@@ -6,9 +6,11 @@ use crate::{
     settings::{BanRecord, EditableSetting},
     Server, SpawnPoint, StateExt,
 };
+use assets::AssetExt;
 use authc::Uuid;
 use chrono::{NaiveTime, Timelike};
 use common::{
+    assets,
     cmd::{ChatCommand, CHAT_COMMANDS, CHAT_SHORTCUTS},
     comp::{
         self,
@@ -37,6 +39,7 @@ use core::{convert::TryFrom, ops::Not, time::Duration};
 use hashbrown::HashSet;
 use rand::Rng;
 use specs::{Builder, Entity as EcsEntity, Join, WorldExt};
+
 use vek::*;
 use world::util::Sampler;
 
@@ -98,7 +101,6 @@ fn get_handler(cmd: &ChatCommand) -> CommandHandler {
         ChatCommand::BuildAreaList => handle_build_area_list,
         ChatCommand::BuildAreaRemove => handle_build_area_remove,
         ChatCommand::Campfire => handle_spawn_campfire,
-        ChatCommand::Debug => handle_debug,
         ChatCommand::DebugColumn => handle_debug_column,
         ChatCommand::DropAll => handle_drop_all,
         ChatCommand::Dummy => handle_spawn_training_dummy,
@@ -119,6 +121,7 @@ fn get_handler(cmd: &ChatCommand) -> CommandHandler {
         ChatCommand::Kick => handle_kick,
         ChatCommand::Kill => handle_kill,
         ChatCommand::KillNpcs => handle_kill_npcs,
+        ChatCommand::Kit => handle_kit,
         ChatCommand::Lantern => handle_lantern,
         ChatCommand::Light => handle_light,
         ChatCommand::MakeBlock => handle_make_block,
@@ -1397,7 +1400,55 @@ fn handle_kill_npcs(
         client,
         ServerGeneral::server_msg(ChatType::CommandInfo, text),
     );
+
     Ok(())
+}
+
+fn handle_kit(
+    server: &mut Server,
+    _client: EcsEntity,
+    target: EcsEntity,
+    args: String,
+    action: &ChatCommand,
+) -> CmdResult<()> {
+    let kit_name = scan_fmt!(&args, &action.arg_fmt(), String);
+    if let Ok(name) = kit_name {
+        if let Ok(kits) = common::cmd::KitManifest::load("server.manifests.kits") {
+            let kits = kits.read();
+            if let Some(kit) = kits.0.get(&name) {
+                if let (Some(mut target_inventory), mut target_inv_update) = (
+                    server
+                        .state()
+                        .ecs()
+                        .write_storage::<comp::Inventory>()
+                        .get_mut(target),
+                    server.state.ecs().write_storage::<comp::InventoryUpdate>(),
+                ) {
+                    for (item_id, quantity) in kit.iter() {
+                        if let Ok(mut item) = comp::Item::new_from_asset(item_id) {
+                            let _ = item.set_amount(*quantity);
+                            let (_, _) = (
+                                target_inventory.push(item),
+                                target_inv_update.insert(
+                                    target,
+                                    comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Debug),
+                                ),
+                            );
+                        }
+                    }
+                    Ok(())
+                } else {
+                    Err("Could not get inventory".to_string())
+                }
+            } else {
+                Err(format!("Kit '{}' not found", name))
+            }
+        } else {
+            Err("Could not load manifest file 'server.manifests.kits'".to_string())
+        }
+    } else {
+        Err(action.help_string())
+    }
 }
 
 #[allow(clippy::float_cmp)] // TODO: Pending review in #587
@@ -2109,35 +2160,6 @@ fn parse_skill_tree(skill_tree: &str) -> CmdResult<comp::skills::SkillGroupKind>
         "staff" => Ok(SkillGroupKind::Weapon(ToolKind::Staff)),
         "sceptre" => Ok(SkillGroupKind::Weapon(ToolKind::Sceptre)),
         _ => Err(format!("{} is not a skill group!", skill_tree)),
-    }
-}
-
-fn handle_debug(
-    server: &mut Server,
-    _client: EcsEntity,
-    target: EcsEntity,
-    _args: String,
-    _action: &ChatCommand,
-) -> CmdResult<()> {
-    if let Ok(items) = comp::Item::new_from_asset_glob("common.items.debug.*") {
-        server
-            .state()
-            .ecs()
-            .write_storage::<comp::Inventory>()
-            .get_mut(target)
-            .ok_or("Cannot get inventory for target")?
-            .push_all_unique(items.into_iter())
-            // Deliberately swallow the error if not enough debug items could be added--though it
-            // might be nice to let the admin know, it's better than dropping them on the ground.
-            .ok();
-        insert_or_replace_component(
-            server,
-            target,
-            comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Debug),
-            "target",
-        )
-    } else {
-        Err("Debug items not found? Something is very broken.".into())
     }
 }
 
