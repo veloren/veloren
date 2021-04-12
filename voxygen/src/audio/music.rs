@@ -31,6 +31,7 @@
 //!         (Grassland, 2),
 //!     ],
 //!     site: None,
+//!     activity: Explore,
 //!     artist: "Elvis",
 //! ),
 //! ```
@@ -53,10 +54,6 @@ use rand::{prelude::SliceRandom, thread_rng, Rng};
 use serde::Deserialize;
 use std::time::Instant;
 use tracing::warn;
-
-// TODO These should eventually not be constants if we have seasons
-const DAY_START_SECONDS: u32 = 28800; // 8:00
-const DAY_END_SECONDS: u32 = 70200; // 19:30
 
 /// Collection of all the tracks
 #[derive(Debug, Default, Deserialize)]
@@ -161,8 +158,8 @@ impl MusicMgr {
         // Adds a bit of randomness between plays
         let silence_between_tracks_seconds: f32 = rng.gen_range(60.0..120.0);
 
-        let game_time = (state.get_time_of_day() as u64 % 86400) as u32;
-        let current_period_of_day = Self::get_current_day_period(game_time);
+        let is_dark = (state.get_day_period().is_dark()) as bool;
+        let current_period_of_day = Self::get_current_day_period(is_dark);
         let current_biome = client.current_biome();
         let current_site = client.current_site();
 
@@ -227,11 +224,11 @@ impl MusicMgr {
         }
     }
 
-    fn get_current_day_period(game_time: u32) -> DayPeriod {
-        if game_time > DAY_START_SECONDS && game_time < DAY_END_SECONDS {
-            DayPeriod::Day
-        } else {
+    fn get_current_day_period(is_dark: bool) -> DayPeriod {
+        if is_dark {
             DayPeriod::Night
+        } else {
+            DayPeriod::Day
         }
     }
 

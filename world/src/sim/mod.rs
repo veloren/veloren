@@ -2368,22 +2368,23 @@ impl SimChunk {
     pub fn get_base_z(&self) -> f32 { self.alt - self.chaos * 50.0 - 16.0 }
 
     pub fn get_biome(&self) -> BiomeKind {
-        if self.alt < CONFIG.sea_level {
+        if self.river.is_ocean() {
             BiomeKind::Ocean
-        } else if (self.temp - 0.5) < 0.005 && self.humidity < 0.1 {
+        } else if self.river.is_lake() {
             BiomeKind::Lake
         } else if self.temp < CONFIG.snow_temp {
             BiomeKind::Snowland
-        } else if self.alt > 450.0 && self.chaos > 0.3 && self.tree_density < 0.6 {
+        } else if self.alt > 500.0 && self.chaos > 0.3 && self.tree_density < 0.6 {
             BiomeKind::Mountain
-        } else if self.temp > CONFIG.desert_temp && self.humidity < 0.6 {
+        } else if self.temp > CONFIG.desert_temp && self.humidity < CONFIG.desert_hum {
             BiomeKind::Desert
-        //} else if self.tree_density > 0.65 && self.humidity > 0.7 && self.temp > 0.8 {
-        //    BiomeKind::Jungle
-        } else if self.tree_density > 0.5 {
+        } else if self.tree_density > 0.65 && self.humidity > 0.65 && self.temp > 0.45 {
+            BiomeKind::Jungle
+        } else if self.tree_density > 0.4 {
             BiomeKind::Forest
-        //} else if self.humidity > 0.8 {
+        // } else if self.humidity > 0.8 {
         //    BiomeKind::Swamp
+        //      Swamps don't really exist yet.
         } else {
             BiomeKind::Grassland
         }
