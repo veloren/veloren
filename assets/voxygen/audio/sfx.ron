@@ -5,9 +5,9 @@
         //
         Campfire: (
             files: [
-                "voxygen.audio.sfx.ambient.fire",
+				"voxygen.audio.sfx.ambient.fire",
             ],
-            threshold: 1.688,
+            threshold: 21.835,
         ),
         Birdcall: (
             files: [
@@ -135,6 +135,7 @@
                 "voxygen.audio.sfx.footsteps.stone_step_2",
                 "voxygen.audio.sfx.footsteps.stone_step_3",
                 "voxygen.audio.sfx.footsteps.stone_step_4",
+                "voxygen.audio.sfx.footsteps.stone_step_5",
             ],
             threshold: 1.6,
         ),

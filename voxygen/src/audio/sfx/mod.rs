@@ -380,7 +380,7 @@ impl SfxMgr {
                             Some(2.0),
                         );
                     } else {
-                        audio.play_sfx("voxygen.audio.sfx.arrow_hit", *pos, Some(2.0));
+                        audio.play_sfx("voxygen.audio.sfx.character.arrow_hit", *pos, Some(2.0));
                     }
                 },
                 _ => {},
