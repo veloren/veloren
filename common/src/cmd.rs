@@ -1,6 +1,8 @@
 use crate::{assets, comp, npc, terrain};
+use assets::AssetExt;
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
+use serde::{Deserialize, Serialize};
 use std::{
     fmt::{self, Display},
     path::Path,
@@ -155,6 +157,14 @@ pub static CHAT_COMMANDS: &[ChatCommand] = &[
     ChatCommand::World,
 ];
 
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+pub struct KitManifest(pub HashMap<String, Vec<(String, u32)>>);
+impl assets::Asset for KitManifest {
+    type Loader = assets::RonLoader;
+
+    const EXTENSION: &'static str = "ron";
+}
+
 lazy_static! {
     pub static ref CHAT_SHORTCUTS: HashMap<char, ChatCommand> = [
         ('f', ChatCommand::Faction),
@@ -223,6 +233,14 @@ lazy_static! {
         }
         items.sort();
         items
+    };
+
+    static ref KITS: Vec<String> = {
+        if let Ok(kits) = KitManifest::load("server.manifests.kits") {
+            kits.read().0.keys().cloned().collect()
+        } else {
+            Vec::new()
+        }
     };
 }
 
@@ -358,7 +376,7 @@ impl ChatCommand {
             ChatCommand::Kill => cmd(vec![], "Kill yourself", NoAdmin),
             ChatCommand::KillNpcs => cmd(vec![], "Kill the NPCs", Admin),
             ChatCommand::Kit => cmd(
-                vec![Any("kit_name", Required)],
+                vec![Enum("kit_name", KITS.to_vec(), Required)],
                 "Place a set of items into your inventory.",
                 Admin,
             ),

@@ -38,10 +38,8 @@ use common_sys::state::{BuildAreaError, BuildAreas};
 use core::{convert::TryFrom, ops::Not, time::Duration};
 use hashbrown::HashSet;
 use rand::Rng;
-use serde::{Deserialize, Serialize};
 use specs::{Builder, Entity as EcsEntity, Join, WorldExt};
 
-use std::collections::HashMap;
 use vek::*;
 use world::util::Sampler;
 
@@ -1406,14 +1404,6 @@ fn handle_kill_npcs(
     Ok(())
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
-struct KitManifest(HashMap<String, Vec<String>>);
-impl assets::Asset for KitManifest {
-    type Loader = assets::RonLoader;
-
-    const EXTENSION: &'static str = "ron";
-}
-
 fn handle_kit(
     server: &mut Server,
     _client: EcsEntity,
@@ -1423,28 +1413,33 @@ fn handle_kit(
 ) -> CmdResult<()> {
     let kit_name = scan_fmt!(&args, &action.arg_fmt(), String);
     if let Ok(name) = kit_name {
-        if let Ok(kits) = KitManifest::load("server.manifests.kits") {
+        if let Ok(kits) = common::cmd::KitManifest::load("server.manifests.kits") {
             let kits = kits.read();
             if let Some(kit) = kits.0.get(&name) {
-                for item_id in kit.iter() {
-                    if let Ok(item) = comp::Item::new_from_asset(item_id) {
-                        server
-                            .state()
-                            .ecs()
-                            .write_storage::<comp::Inventory>()
-                            .get_mut(target)
-                            .map(|mut inv| inv.push(item));
-                        let _ = server
-                            .state
-                            .ecs()
-                            .write_storage::<comp::InventoryUpdate>()
-                            .insert(
-                                target,
-                                comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Debug),
+                if let (Some(mut target_inventory), mut target_inv_update) = (
+                    server
+                        .state()
+                        .ecs()
+                        .write_storage::<comp::Inventory>()
+                        .get_mut(target),
+                    server.state.ecs().write_storage::<comp::InventoryUpdate>(),
+                ) {
+                    for (item_id, quantity) in kit.iter() {
+                        if let Ok(mut item) = comp::Item::new_from_asset(item_id) {
+                            let _ = item.set_amount(*quantity);
+                            let (_, _) = (
+                                target_inventory.push(item),
+                                target_inv_update.insert(
+                                    target,
+                                    comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Debug),
+                                ),
                             );
+                        }
                     }
+                    Ok(())
+                } else {
+                    Err("Could not get inventory".to_string())
                 }
-                Ok(())
             } else {
                 Err(format!("Kit '{}' not found", name))
             }
