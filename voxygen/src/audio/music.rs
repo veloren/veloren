@@ -50,20 +50,25 @@ use common::{
     terrain::{BiomeKind, SitesKind},
 };
 use common_sys::state::State;
+use hashbrown::HashMap;
 use rand::{prelude::SliceRandom, thread_rng, Rng};
 use serde::Deserialize;
 use std::time::Instant;
-use tracing::warn;
+use tracing::{debug, warn};
 
 /// Collection of all the tracks
-#[derive(Debug, Default, Deserialize)]
-struct SoundtrackCollection {
+#[derive(Debug, Deserialize)]
+struct SoundtrackCollection<T> {
     /// List of tracks
-    tracks: Vec<SoundtrackItem>,
+    tracks: Vec<T>,
+}
+
+impl<T> Default for SoundtrackCollection<T> {
+    fn default() -> Self { Self { tracks: Vec::new() } }
 }
 
 /// Configuration for a single music track in the soundtrack
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct SoundtrackItem {
     /// Song title
     title: String,
@@ -79,17 +84,46 @@ pub struct SoundtrackItem {
     site: Option<SitesKind>,
     /// What the player is doing when the track is played (i.e. exploring,
     /// combat)
-    activity: MusicActivity,
+    music_state: MusicState,
+    /// What activity to override the activity state with, if any (e.g. to make
+    /// a long combat intro also act like the loop for the purposes of outro
+    /// transitions)
+    #[serde(default)]
+    activity_override: Option<MusicActivity>,
 }
 
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Deserialize)]
+enum RawSoundtrackItem {
+    Individual(SoundtrackItem),
+    Segmented {
+        title: String,
+        timing: Option<DayPeriod>,
+        biomes: Vec<(BiomeKind, u8)>,
+        site: Option<SitesKind>,
+        segments: Vec<(String, f32, MusicState, Option<MusicActivity>)>,
+    },
+}
+
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq)]
+enum CombatIntensity {
+    Low,
+    High,
+}
+
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq)]
 enum MusicActivity {
     Explore,
-    Combat,
+    Combat(CombatIntensity),
+}
+
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq)]
+enum MusicState {
+    Activity(MusicActivity),
+    Transition(MusicActivity, MusicActivity),
 }
 
 /// Allows control over when a track should play based on in-game time of day
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Deserialize, PartialEq)]
 enum DayPeriod {
     /// 8:00 AM to 7:30 PM
     Day,
@@ -109,7 +143,7 @@ enum PlayState {
 /// Provides methods to control music playback
 pub struct MusicMgr {
     /// Collection of all the tracks
-    soundtrack: AssetHandle<SoundtrackCollection>,
+    soundtrack: AssetHandle<SoundtrackCollection<SoundtrackItem>>,
     /// Instant at which the current track began playing
     began_playing: Instant,
     /// Time until the next track should be played
@@ -117,6 +151,51 @@ pub struct MusicMgr {
     /// The title of the last track played. Used to prevent a track
     /// being played twice in a row
     last_track: String,
+    /// Time of the last interrupt (to avoid rapid switching)
+    last_interrupt: Instant,
+    /// The previous track's activity kind, for transitions
+    last_activity: MusicState,
+}
+
+#[derive(Deserialize)]
+pub struct MusicTransitionManifest {
+    /// Within what radius do enemies count towards combat music?
+    combat_nearby_radius: f32,
+    /// Each multiple of this factor that an enemy has health counts as an extra
+    /// enemy
+    combat_health_factor: u32,
+    /// How many nearby enemies trigger High combat music
+    combat_nearby_high_thresh: u32,
+    /// How many nearby enemies trigger Low combat music
+    combat_nearby_low_thresh: u32,
+    /// Fade in and fade out timings for transitions between channels
+    pub fade_timings: HashMap<(MusicChannelTag, MusicChannelTag), (f32, f32)>,
+    /// How many seconds between interrupt checks
+    pub interrupt_delay: f32,
+}
+
+impl Default for MusicTransitionManifest {
+    fn default() -> MusicTransitionManifest {
+        MusicTransitionManifest {
+            combat_nearby_radius: 40.0,
+            combat_health_factor: 1000,
+            combat_nearby_high_thresh: 3,
+            combat_nearby_low_thresh: 1,
+            fade_timings: HashMap::new(),
+            interrupt_delay: 5.0,
+        }
+    }
+}
+
+impl assets::Asset for MusicTransitionManifest {
+    type Loader = assets::RonLoader;
+
+    const EXTENSION: &'static str = "ron";
+
+    fn default_value(id: &str, e: assets::Error) -> Result<MusicTransitionManifest, assets::Error> {
+        warn!("Error loading MusicTransitionManifest {:?}: {:?}", id, e);
+        Ok(MusicTransitionManifest::default())
+    }
 }
 
 impl Default for MusicMgr {
@@ -126,6 +205,8 @@ impl Default for MusicMgr {
             began_playing: Instant::now(),
             next_track_change: 0.0,
             last_track: String::from("None"),
+            last_interrupt: Instant::now(),
+            last_activity: MusicState::Activity(MusicActivity::Explore),
         }
     }
 }
@@ -144,75 +225,159 @@ impl MusicMgr {
         //    player_alt = position.0.z;
         //}
 
+        use common::comp::{group::ENEMY, Group, Health, Pos};
+        use specs::{Join, WorldExt};
+
+        let mut activity_state = MusicActivity::Explore;
+
+        let player = client.entity();
+        let ecs = state.ecs();
+        let entities = ecs.entities();
+        let positions = ecs.read_component::<Pos>();
+        let healths = ecs.read_component::<Health>();
+        let groups = ecs.read_component::<Group>();
+        let mtm = audio.mtm.read();
+
+        if let Some(player_pos) = positions.get(player) {
+            // TODO: `group::ENEMY` will eventually be moved server-side with an
+            // alignment/faction rework, so this will need an alternative way to measure
+            // "in-combat-ness"
+            let num_nearby_entities: u32 = (&entities, &positions, &healths, &groups)
+                .join()
+                .map(|(entity, pos, health, group)| {
+                    if entity != player
+                        && group == &ENEMY
+                        && (player_pos.0 - pos.0).magnitude_squared()
+                            < mtm.combat_nearby_radius.powf(2.0)
+                    {
+                        (health.maximum() / mtm.combat_health_factor).max(1)
+                    } else {
+                        0
+                    }
+                })
+                .sum();
+
+            if num_nearby_entities >= mtm.combat_nearby_high_thresh {
+                activity_state = MusicActivity::Combat(CombatIntensity::High);
+            } else if num_nearby_entities >= mtm.combat_nearby_low_thresh {
+                activity_state = MusicActivity::Combat(CombatIntensity::Low);
+            }
+        }
+
+        // Override combat music with explore music if the player is dead
+        if let Some(health) = healths.get(player) {
+            if health.is_dead {
+                activity_state = MusicActivity::Explore;
+            }
+        }
+
+        let music_state = match self.last_activity {
+            MusicState::Activity(prev) => {
+                if prev != activity_state {
+                    MusicState::Transition(prev, activity_state)
+                } else {
+                    MusicState::Activity(activity_state)
+                }
+            },
+            MusicState::Transition(_, next) => MusicState::Activity(next),
+        };
+
+        let interrupt = matches!(music_state, MusicState::Transition(_, _))
+            && self.last_interrupt.elapsed().as_secs_f32() > mtm.interrupt_delay;
+
         if audio.music_enabled()
             && !self.soundtrack.read().tracks.is_empty()
-            && self.began_playing.elapsed().as_secs_f32() > self.next_track_change
+            && (self.began_playing.elapsed().as_secs_f32() > self.next_track_change || interrupt)
         {
-            self.play_random_track(audio, state, client);
+            if interrupt {
+                self.last_interrupt = Instant::now();
+            }
+            debug!(
+                "pre-play_random_track: {:?} {:?}",
+                self.last_activity, music_state
+            );
+            if let Ok(next_activity) = self.play_random_track(audio, state, client, &music_state) {
+                self.last_activity = next_activity;
+            }
         }
     }
 
-    fn play_random_track(&mut self, audio: &mut AudioFrontend, state: &State, client: &Client) {
+    fn play_random_track(
+        &mut self,
+        audio: &mut AudioFrontend,
+        state: &State,
+        client: &Client,
+        music_state: &MusicState,
+    ) -> Result<MusicState, ()> {
         let mut rng = thread_rng();
 
         // Adds a bit of randomness between plays
-        let silence_between_tracks_seconds: f32 = rng.gen_range(60.0..120.0);
+        let silence_between_tracks_seconds: f32 =
+            if matches!(music_state, MusicState::Activity(MusicActivity::Explore)) {
+                rng.gen_range(60.0..120.0)
+            } else {
+                0.0
+            };
 
         let is_dark = (state.get_day_period().is_dark()) as bool;
         let current_period_of_day = Self::get_current_day_period(is_dark);
         let current_biome = client.current_biome();
         let current_site = client.current_site();
 
-        // Filters out tracks not matching the timing, site, and biome
+        // Filter the soundtrack in stages, so that we don't overprune it if there are
+        // too many constraints. Returning Err(()) signals that we couldn't find
+        // an appropriate track for the current state, and hence the state
+        // machine for the activity shouldn't be updated.
         let soundtrack = self.soundtrack.read();
-        let maybe_tracks = soundtrack
+        // First, filter out tracks not matching the timing, site, biome, and current
+        // activity
+        let mut maybe_tracks = soundtrack
             .tracks
             .iter()
-            .filter(|track| track.activity == MusicActivity::Explore)
             .filter(|track| {
-                !track.title.eq(&self.last_track)
-                    && match &track.timing {
-                        Some(period_of_day) => period_of_day == &current_period_of_day,
-                        None => true,
-                    }
-                    && match &track.site {
-                        Some(site) => site == &current_site,
-                        None => true,
-                    }
-            })
-            .filter(|track| {
-                let mut result = false;
-                if !track.biomes.is_empty() {
-                    for biome in track.biomes.iter() {
-                        if biome.0 == current_biome {
-                            result = true;
-                        }
-                    }
-                } else {
-                    result = true;
+                (match &track.timing {
+                    Some(period_of_day) => period_of_day == &current_period_of_day,
+                    None => true,
+                }) && match &track.site {
+                    Some(site) => site == &current_site,
+                    None => true,
                 }
-                result
             })
+            .filter(|track| {
+                track.biomes.is_empty() || track.biomes.iter().any(|b| b.0 == current_biome)
+            })
+            .filter(|track| &track.music_state == music_state)
             .collect::<Vec<&SoundtrackItem>>();
+        if maybe_tracks.is_empty() {
+            return Err(());
+        }
+        // Second, prevent playing the last track if possible (though don't return Err
+        // here, since the combat music is intended to loop)
+        let filtered_tracks: Vec<_> = maybe_tracks
+            .iter()
+            .filter(|track| !track.title.eq(&self.last_track))
+            .copied()
+            .collect();
+        if !filtered_tracks.is_empty() {
+            maybe_tracks = filtered_tracks;
+        }
 
         // Randomly selects a track from the remaining tracks weighted based
         // on the biome
         let new_maybe_track = maybe_tracks.choose_weighted(&mut rng, |track| {
-            let mut chance = 0;
-            if !track.biomes.is_empty() {
-                for biome in track.biomes.iter() {
-                    if biome.0 == current_biome {
-                        chance = biome.1;
-                    }
-                }
-            } else {
-                // If no biome is listed, the song is still added to the
-                // rotation to allow for site specific songs to play
-                // in any biome
-                chance = 1;
-            }
-            chance
+            // If no biome is listed, the song is still added to the
+            // rotation to allow for site specific songs to play
+            // in any biome
+            track
+                .biomes
+                .iter()
+                .find(|b| b.0 == current_biome)
+                .map_or(1, |b| b.1)
         });
+        debug!(
+            "selecting new track for {:?}: {:?}",
+            music_state, new_maybe_track
+        );
 
         if let Ok(track) = new_maybe_track {
             //println!("Now playing {:?}", track.title);
@@ -220,7 +385,20 @@ impl MusicMgr {
             self.began_playing = Instant::now();
             self.next_track_change = track.length + silence_between_tracks_seconds;
 
-            audio.play_music(&track.path, MusicChannelTag::Exploration);
+            let tag = if matches!(music_state, MusicState::Activity(MusicActivity::Explore)) {
+                MusicChannelTag::Exploration
+            } else {
+                MusicChannelTag::Combat
+            };
+            audio.play_music(&track.path, tag);
+
+            if let Some(state) = track.activity_override {
+                Ok(MusicState::Activity(state))
+            } else {
+                Ok(*music_state)
+            }
+        } else {
+            Err(())
         }
     }
 
@@ -232,23 +410,59 @@ impl MusicMgr {
         }
     }
 
-    fn load_soundtrack_items() -> AssetHandle<SoundtrackCollection> {
+    fn load_soundtrack_items() -> AssetHandle<SoundtrackCollection<SoundtrackItem>> {
         // Cannot fail: A default value is always provided
         SoundtrackCollection::load_expect("voxygen.audio.soundtrack")
     }
 }
-
-impl assets::Asset for SoundtrackCollection {
+impl assets::Asset for SoundtrackCollection<RawSoundtrackItem> {
     type Loader = assets::RonLoader;
 
     const EXTENSION: &'static str = "ron";
+}
 
-    fn default_value(_: &str, error: assets::Error) -> Result<Self, assets::Error> {
-        warn!(
-            "Error reading music config file, music will not be available: {:#?}",
-            error
-        );
-
-        Ok(SoundtrackCollection::default())
+impl assets::Compound for SoundtrackCollection<SoundtrackItem> {
+    fn load<S: assets::source::Source>(
+        _: &assets::AssetCache<S>,
+        id: &str,
+    ) -> Result<Self, assets::Error> {
+        let inner = || -> Result<_, assets::Error> {
+            let manifest: AssetHandle<assets::Ron<SoundtrackCollection<RawSoundtrackItem>>> =
+                AssetExt::load(id)?;
+            let mut soundtracks = SoundtrackCollection::default();
+            for item in manifest.read().0.tracks.iter().cloned() {
+                match item {
+                    RawSoundtrackItem::Individual(track) => soundtracks.tracks.push(track),
+                    RawSoundtrackItem::Segmented {
+                        title,
+                        timing,
+                        biomes,
+                        site,
+                        segments,
+                    } => {
+                        for (path, length, music_state, activity_override) in segments.into_iter() {
+                            soundtracks.tracks.push(SoundtrackItem {
+                                title: title.clone(),
+                                path,
+                                length,
+                                timing: timing.clone(),
+                                biomes: biomes.clone(),
+                                site,
+                                music_state,
+                                activity_override,
+                            });
+                        }
+                    },
+                }
+            }
+            Ok(soundtracks)
+        };
+        match inner() {
+            Ok(soundtracks) => Ok(soundtracks),
+            Err(e) => {
+                warn!("Error loading soundtracks: {:?}", e);
+                Ok(SoundtrackCollection::default())
+            },
+        }
     }
 }

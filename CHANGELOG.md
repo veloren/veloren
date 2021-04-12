@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - "Poise" renamed to "Stun resilience"
 - Stun resilience stat display
 - Villagers and guards now spawn with potions, and know how to use them.
+- Combat music in dungeons when within range of enemies.
 
 ### Changed
 

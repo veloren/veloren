@@ -37,10 +37,11 @@ enum ChannelState {
 /// transition between `TitleMusic` and `Exploration` when a player enters the
 /// world by crossfading over a slow duration. In the future, transitions in the
 /// world such as `Exploration` -> `BossBattle` would transition more rapidly.
-#[derive(PartialEq, Clone, Copy)]
+#[derive(PartialEq, Clone, Copy, Hash, Eq, Deserialize)]
 pub enum MusicChannelTag {
     TitleMusic,
     Exploration,
+    Combat,
 }
 
 /// A MusicChannel uses a non-positional audio sink designed to play music which

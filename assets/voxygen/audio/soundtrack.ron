@@ -6,17 +6,17 @@
 
 (
     tracks: [
-        (
+        Individual((
             title: "Dank Dungeon",
             path: "voxygen.audio.soundtrack.dungeon.dank_dungeon",
             length: 130.0,
             timing: None,
             biomes: [],
             site: Some(Dungeon),
-            activity: Explore,
+            music_state: Activity(Explore),
             artist: "Aeronic",
-        ),
-        (
+        )),
+        Individual((
             title: "Calming Hills",
             path: "voxygen.audio.soundtrack.overworld.calming_hills",
             length: 101.0,
@@ -25,10 +25,10 @@
                 (Mountain, 1)
             ],
             site: Some(Void),
-            activity: Explore,
+            music_state: Activity(Explore),
             artist: "Ultimafounding; mixed by Robotnik",
-        ),
-        (
+        )),
+        Individual((
             title: "Fiesta Del Pueblo",
             path: "voxygen.audio.soundtrack.overworld.fiesta_del_pueblo",
             length: 183.0,
@@ -37,50 +37,50 @@
                 (Desert, 1)
             ],
             site: Some(Void),
-            activity: Explore,
+            music_state: Activity(Explore),
             artist: "Aeronic; mixed by Robotnik",
-        ),
-        (
+        )),
+        Individual((
             title: "Ruination",
             path: "voxygen.audio.soundtrack.dungeon.ruination",
             length: 135.0,
             timing: None,
             biomes: [],
             site: Some(Dungeon),
-            activity: Explore,
+            music_state: Activity(Explore),
             artist: "Aeronic",
-        ),
-        (
+        )),
+        Individual((
             title: "Dank Hallows",
             path: "voxygen.audio.soundtrack.cave.dank_hallows",
             length: 227.0,
             timing: None,
             biomes: [],
             site: Some(Cave),
-            activity: Explore,
+            music_state: Activity(Explore),
             artist: "Flashbang",
-        ),
-        (
+        )),
+        Individual((
             title: "Vast Onslaught",
             path: "voxygen.audio.soundtrack.dungeon.vast_onslaught",
             length: 237.0,
             timing: None,
             biomes: [],
             site: Some(Dungeon),
-            activity: Explore,
+            music_state: Activity(Explore),
             artist: "Aeronic",
-        ),
-        (
+        )),
+        Individual((
             title: "Sacred Temple",
             path: "voxygen.audio.soundtrack.dungeon.sacred_temple",
             length: 75.0,
             timing: None,
             biomes: [],
             site: Some(Dungeon),
-            activity: Explore,
+            music_state: Activity(Explore),
             artist: "Aeronic",
-        ),
-        (
+        )),
+        Individual((
             title: "True Nature",
             path: "voxygen.audio.soundtrack.overworld.true_nature",
             length: 169.0,
@@ -89,10 +89,10 @@
                 (Forest, 1),
             ],
             site: Some(Void),
-            activity: Explore,
+            music_state: Activity(Explore),
             artist: "DaforLynx",
-        ),
-        (
+        )),
+        Individual((
             title: "Jungle Ambient",
             path: "voxygen.audio.soundtrack.overworld.jungle_ambient",
             length: 218.0,
@@ -101,10 +101,10 @@
                 (Jungle, 1),
             ],
             site: Some(Void),
-            activity: Explore,
+            music_state: Activity(Explore),
             artist: "badbbad",
-        ),
-        (
+        )),
+        Individual((
             title: "Ethereal Bonds",
             path: "voxygen.audio.soundtrack.overworld.ethereal_bonds",
             length: 59.0,
@@ -113,10 +113,10 @@
                 (Mountain, 1),
             ],
             site: Some(Void),
-            activity: Explore,
+            music_state: Activity(Explore),
             artist: "Aeronic",
-        ),
-        (
+        )),
+        Individual((
             title: "Leap of Faith",
             path: "voxygen.audio.soundtrack.overworld.leap_of_faith",
             length: 269.0,
@@ -126,10 +126,10 @@
                 (Lake, 1),
             ],
             site: Some(Void),
-            activity: Explore,
+            music_state: Activity(Explore),
             artist: "Aeronic",
-        ),
-        (
+        )),
+        Individual((
             title: "Highland of the Hawk",
             path: "voxygen.audio.soundtrack.overworld.highland_of_the_hawk",
             length: 283.0,
@@ -139,10 +139,10 @@
                 (Mountain, 1),
             ],
             site: Some(Void),
-            activity: Explore,
+            music_state: Activity(Explore),
             artist: "badbbad",
-        ),
-        (
+        )),
+        Individual((
             title: "Verdant Glades",
             path: "voxygen.audio.soundtrack.overworld.verdant_glades",
             length: 97.0,
@@ -151,10 +151,10 @@
                 (Grassland, 1),
             ],
             site: Some(Void),
-            activity: Explore,
+            music_state: Activity(Explore),
             artist: "Aeronic",
-        ),
-        (
+        )),
+        Individual((
             title: "Calling Wild",
             path: "voxygen.audio.soundtrack.overworld.calling_wild",
             length: 160.0,
@@ -163,10 +163,10 @@
                 (Grassland, 1),
             ],
             site: Some(Void),
-            activity: Explore,
+            music_state: Activity(Explore),
             artist: "Ultimafounding",
-        ),
-        (
+        )),
+        Individual((
             title: "Drifting Along",
             path: "voxygen.audio.soundtrack.overworld.drifting_along",
             length: 164.0,
@@ -176,35 +176,35 @@
                 (Ocean, 1),
             ],
             site: Some(Void),
-            activity: Explore,
+            music_state: Activity(Explore),
             artist: "DaforLynx",
-        ),
-		(
-			title: "Winter Falls",
-			path: "voxygen.audio.soundtrack.overworld.winter_falls",
-			length: 215.0,
-			timing: Some(Day),
-			biomes: [
-				(Snowland, 1),
-			],
-			site: Some(Void),
-            activity: Explore,
-			artist: "DaforLynx",
-		),
-		(
-			title: "Short Meandering",
-			path: "voxygen.audio.soundtrack.overworld.short_meandering",
-			length: 147.0,
-			timing: Some(Night),
-			biomes: [
+        )),
+        Individual((
+            title: "Winter Falls",
+            path: "voxygen.audio.soundtrack.overworld.winter_falls",
+            length: 215.0,
+            timing: Some(Day),
+            biomes: [
+                (Snowland, 1),
+            ],
+            site: Some(Void),
+            music_state: Activity(Explore),
+            artist: "DaforLynx",
+        )),
+        Individual((
+            title: "Short Meandering",
+            path: "voxygen.audio.soundtrack.overworld.short_meandering",
+            length: 147.0,
+            timing: Some(Night),
+            biomes: [
                 (Desert, 1),
                 (Mountain, 1),
             ],
-			site: Some(Void),
-            activity: Explore,
-			artist: "Ap1evideogame",
-		),
-        (
+            site: Some(Void),
+            music_state: Activity(Explore),
+            artist: "Ap1evideogame",
+        )),
+        Individual((
             title: "Oceania",
             path: "voxygen.audio.soundtrack.overworld.oceania",
             length: 135.0,
@@ -214,10 +214,10 @@
                 (Ocean, 1),
             ],
             site: Some(Void),
-            activity: Explore,
+            music_state: Activity(Explore),
             artist: "Eden",
-        ),
-        (
+        )),
+        Individual((
             title: "A Solemn Quest",
             path: "voxygen.audio.soundtrack.overworld.a_solemn_quest",
             length: 206.0,
@@ -227,10 +227,10 @@
                 (Mountain, 1),
             ],
             site: Some(Void),
-            activity: Explore,
+            music_state: Activity(Explore),
             artist: "Eden",
-        ),        
-        (
+        )),        
+        Individual((
             title: "Into The Dark Forest",
             path: "voxygen.audio.soundtrack.overworld.into_the_dark_forest",
             length: 184.0,
@@ -240,23 +240,23 @@
                 (Jungle, 1),
             ],
             site: Some(Void),
-            activity: Explore,
+            music_state: Activity(Explore),
             artist: "Aeronic",
-        ),
-        (
+        )),
+        Individual((
             title: "Field Grazing",
             path: "voxygen.audio.soundtrack.overworld.field_grazing",
             length: 154.0,
             timing: Some(Day),
             biomes: [
                 (Grassland, 1),
-				(Forest, 1),
+                (Forest, 1),
             ],
             site: Some(Void),
-            activity: Explore,
+            music_state: Activity(Explore),
             artist: "Aeronic",
-        ),
-        (
+        )),
+        Individual((
             title: "Wandering Voices",
             path: "voxygen.audio.soundtrack.overworld.wandering_voices",
             length: 137.0,
@@ -265,10 +265,10 @@
                 (Grassland, 1),
             ],
             site: Some(Void),
-            activity: Explore,
+            music_state: Activity(Explore),
             artist: "Aeronic",
-        ),
-        (
+        )),
+        Individual((
             title: "Snowtop Volume",
             path: "voxygen.audio.soundtrack.overworld.snowtop_volume",
             length: 89.0,
@@ -277,20 +277,20 @@
                 (Snowland, 1),
             ],
             site: Some(Void),
-            activity: Explore,
+            music_state: Activity(Explore),
             artist: "Aeronic",
-        ),
-        (
+        )),
+        Individual((
             title: "Mineral Deposits",
             path: "voxygen.audio.soundtrack.cave.mineral_deposits",
             length: 148.0,
             timing: None,
             biomes: [],
             site: Some(Cave),
-            activity: Explore,
+            music_state: Activity(Explore),
             artist: "Aeronic",
-        ),
-        (
+        )),
+        Individual((
             title: "Moonbeams",
             path: "voxygen.audio.soundtrack.overworld.moonbeams",
             length: 158.0,
@@ -299,23 +299,23 @@
                 (Snowland, 1),
             ],
             site: Some(Void),
-            activity: Explore,
+            music_state: Activity(Explore),
             artist: "Aeronic",
-        ),
-        (
+        )),
+        Individual((
             title: "Serene Meadows",
             path: "voxygen.audio.soundtrack.overworld.serene_meadows",
             length: 173.0,
             timing: Some(Night),
             biomes: [
                 (Grassland, 1),
-				(Desert, 1),
+                (Desert, 1),
             ],
             site: Some(Void),
-            activity: Explore,
+            music_state: Activity(Explore),
             artist: "Aeronic",
-        ),
-        (
+        )),
+        Individual((
             title: "Just The Beginning",
             path: "voxygen.audio.soundtrack.overworld.just_the_beginning",
             length: 188.0,
@@ -324,10 +324,10 @@
                 (Grassland, 1),
             ],
             site: Some(Void),
-            activity: Explore,
+            music_state: Activity(Explore),
             artist: "badbbad",
-        ),
-        (
+        )),
+        Individual((
             title: "Campfire Stories",
             path: "voxygen.audio.soundtrack.overworld.campfire_stories",
             length: 100.0,
@@ -336,10 +336,10 @@
                 (Forest, 1),
             ],
             site: Some(Void),
-            activity: Explore,
+            music_state: Activity(Explore),
             artist: "badbbad",
-        ),
-        (
+        )),
+        Individual((
             title: "Limits",
             path: "voxygen.audio.soundtrack.overworld.limits",
             length: 203.0,
@@ -348,20 +348,20 @@
                 (Mountain, 1),
             ],
             site: Some(Void),
-            activity: Explore,
+            music_state: Activity(Explore),
             artist: "badbbad",
-        ),
-        (   
+        )),
+        Individual((   
             title: "Down The Rabbit Hole",
             path: "voxygen.audio.soundtrack.dungeon.down_the_rabbit_hole",
             length: 244.0,
             timing: None,
             biomes: [],
             site: Some(Dungeon),
-            activity: Explore,
+            music_state: Activity(Explore),
             artist: "badbbad",
-        ),
-        (
+        )),
+        Individual((
             title: "Between The Fairies",
             path: "voxygen.audio.soundtrack.overworld.between_the_fairies",
             length: 175.0,
@@ -370,8 +370,25 @@
                 (Forest, 1),
             ],
             site: Some(Void),
-            activity: Explore,
+            music_state: Activity(Explore),
             artist: "badbbad",
-        )
+        )),
+        Segmented(
+            title: "Barred Paths",
+            author: "DaforLynx",
+            timing: None,
+            biomes: [],
+            site: Some(Dungeon),
+            segments: [
+                ("voxygen.audio.soundtrack.barred_paths.barred_paths-hi-end", 6.0, Transition(Combat(High), Explore), None),
+                ("voxygen.audio.soundtrack.barred_paths.barred_paths-hi-loop", 54.0, Activity(Combat(High)), None),
+                ("voxygen.audio.soundtrack.barred_paths.barred_paths-hi-start", 55.0, Transition(Explore, Combat(High)), Some(Combat(High))),
+                ("voxygen.audio.soundtrack.barred_paths.barred_paths-lo-end", 3.0, Transition(Combat(Low), Explore), None),
+                ("voxygen.audio.soundtrack.barred_paths.barred_paths-lo-loop", 7.0, Activity(Combat(Low)), None),
+                ("voxygen.audio.soundtrack.barred_paths.barred_paths-lo-start", 10.0, Transition(Explore, Combat(Low)), None),
+                ("voxygen.audio.soundtrack.barred_paths.barred_paths-trans-hi-lo", 10.0, Transition(Combat(High), Combat(Low)), None),
+                ("voxygen.audio.soundtrack.barred_paths.barred_paths-trans-lo-hi", 7.0, Transition(Combat(Low), Combat(High)), None),
+            ],
+        ),
     ]
 )
