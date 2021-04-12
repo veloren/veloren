@@ -33,7 +33,7 @@ use common_net::{
     sync::WorldSyncExt,
 };
 use common_sys::state::{BuildAreaError, BuildAreas};
-use core::{convert::TryFrom, time::Duration};
+use core::{convert::TryFrom, ops::Not, time::Duration};
 use hashbrown::HashSet;
 use rand::Rng;
 use specs::{Builder, Entity as EcsEntity, Join, WorldExt};
@@ -227,6 +227,7 @@ fn verify_not_hardcoded_admin(server: &mut Server, uuid: Uuid, reason: &str) -> 
         .editable_settings()
         .admins
         .contains(&uuid)
+        .not()
         .then_some(())
         .ok_or_else(|| reason.into())
 }
