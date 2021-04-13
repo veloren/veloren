@@ -2571,6 +2571,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "keyboard-keynames"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f6dbe132877d7a0327c4282840703c2cb456312fae930898b5dc126844889626"
+dependencies = [
+ "wayland-client 0.28.5",
+ "winapi 0.3.9",
+ "winit",
+ "xcb 0.8.2",
+ "xkbcommon",
+]
+
+[[package]]
 name = "khronos_api"
 version = "3.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2819,6 +2832,16 @@ name = "memchr"
 version = "2.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0ee1c47aaa256ecabcaea351eae4a9b01ef39ed810004e298d2511ed284b1525"
+
+[[package]]
+name = "memmap"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6585fd95e7bb50d6cc31e20d4cf9afb4e2ba16c5846fc76793f11218da9c475b"
+dependencies = [
+ "libc",
+ "winapi 0.3.9",
+]
 
 [[package]]
 name = "memmap2"
@@ -5687,6 +5710,7 @@ dependencies = [
  "image",
  "inline_tweak",
  "itertools 0.10.0",
+ "keyboard-keynames",
  "lazy_static",
  "native-dialog",
  "num 0.4.0",
@@ -6435,7 +6459,7 @@ version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e5e937afd03b64b7be4f959cc044e09260a47241b71e56933f37db097bf7859d"
 dependencies = [
- "xcb",
+ "xcb 0.9.0",
 ]
 
 [[package]]
@@ -6469,6 +6493,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "244c3741f4240ef46274860397c7c74e50eb23624996930e484c16679633a54c"
 dependencies = [
  "libc",
+]
+
+[[package]]
+name = "xcb"
+version = "0.8.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5e917a3f24142e9ff8be2414e36c649d47d6cc2ba81f16201cdef96e533e02de"
+dependencies = [
+ "libc",
+ "log",
 ]
 
 [[package]]
@@ -6511,6 +6545,17 @@ dependencies = [
  "bitflags",
  "libc",
  "xkbcommon-sys",
+]
+
+[[package]]
+name = "xkbcommon"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fda0ea5f7ddabd51deeeda7799bee06274112f577da7dd3d954b8eda731b2fce"
+dependencies = [
+ "libc",
+ "memmap",
+ "xcb 0.8.2",
 ]
 
 [[package]]

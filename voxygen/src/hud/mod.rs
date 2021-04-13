@@ -953,6 +953,7 @@ impl Hud {
         let fps = global_state.clock.stats().average_tps;
         let version = common::util::DISPLAY_VERSION_LONG.clone();
         let i18n = &*global_state.i18n.read();
+        let key_layout = &global_state.window.key_layout;
 
         if self.show.ingame {
             let ecs = client.state().ecs();
@@ -1389,6 +1390,7 @@ impl Hud {
                     &global_state.settings.controls,
                     // If we're currently set to interact with the item...
                     active,
+                    &global_state.window.key_layout,
                 )
                 .x_y(0.0, 100.0)
                 .position_ingame(pos)
@@ -1434,6 +1436,7 @@ impl Hud {
                         &self.fonts,
                         &global_state.settings.controls,
                         true,
+                        &global_state.window.key_layout,
                     )
                     .x_y(0.0, 100.0)
                     .position_ingame(over_pos)
@@ -1791,21 +1794,19 @@ impl Hud {
                             .mid_top_with_margin_on(self.ids.intro_button, -20.0 + arrow_ani as f64)
                             .color(Some(QUALITY_LEGENDARY))
                             .set(self.ids.tut_arrow, ui_widgets);
-                        Text::new(
-                            &i18n
-                                .get("hud.tutorial_click_here")
-                                .replace("{key}", toggle_cursor_key.to_string().as_str()),
-                        )
+                        Text::new(&i18n.get("hud.tutorial_click_here").replace(
+                            "{key}",
+                            toggle_cursor_key.display_string(key_layout).as_str(),
+                        ))
                         .mid_top_with_margin_on(self.ids.tut_arrow, -18.0)
                         .font_id(self.fonts.cyri.conrod_id)
                         .font_size(self.fonts.cyri.scale(14))
                         .color(BLACK)
                         .set(self.ids.tut_arrow_txt_bg, ui_widgets);
-                        Text::new(
-                            &i18n
-                                .get("hud.tutorial_click_here")
-                                .replace("{key}", toggle_cursor_key.to_string().as_str()),
-                        )
+                        Text::new(&i18n.get("hud.tutorial_click_here").replace(
+                            "{key}",
+                            toggle_cursor_key.display_string(key_layout).as_str(),
+                        ))
                         .bottom_right_with_margins_on(self.ids.tut_arrow_txt_bg, 1.0, 1.0)
                         .font_id(self.fonts.cyri.conrod_id)
                         .font_size(self.fonts.cyri.scale(14))
@@ -2071,7 +2072,7 @@ impl Hud {
                 Text::new(
                     &i18n
                         .get("hud.press_key_to_toggle_keybindings_fmt")
-                        .replace("{key}", help_key.to_string().as_str()),
+                        .replace("{key}", help_key.display_string(key_layout).as_str()),
                 )
                 .color(TEXT_COLOR)
                 .down_from(self.ids.num_particles, 5.0)
@@ -2085,11 +2086,10 @@ impl Hud {
                 .controls
                 .get_binding(GameInput::ToggleDebug)
             {
-                Text::new(
-                    &i18n
-                        .get("hud.press_key_to_toggle_debug_info_fmt")
-                        .replace("{key}", toggle_debug_key.to_string().as_str()),
-                )
+                Text::new(&i18n.get("hud.press_key_to_toggle_debug_info_fmt").replace(
+                    "{key}",
+                    toggle_debug_key.display_string(key_layout).as_str(),
+                ))
                 .color(TEXT_COLOR)
                 .down_from(self.ids.help_info, 5.0)
                 .font_id(self.fonts.cyri.conrod_id)
@@ -2102,7 +2102,7 @@ impl Hud {
                 Text::new(
                     &i18n
                         .get("hud.press_key_to_show_keybindings_fmt")
-                        .replace("{key}", help_key.to_string().as_str()),
+                        .replace("{key}", help_key.display_string(key_layout).as_str()),
                 )
                 .color(TEXT_COLOR)
                 .bottom_left_with_margins_on(ui_widgets.window, 210.0, 10.0)
@@ -2116,11 +2116,10 @@ impl Hud {
                 .controls
                 .get_binding(GameInput::ToggleDebug)
             {
-                Text::new(
-                    &i18n
-                        .get("hud.press_key_to_show_debug_info_fmt")
-                        .replace("{key}", toggle_debug_key.to_string().as_str()),
-                )
+                Text::new(&i18n.get("hud.press_key_to_show_debug_info_fmt").replace(
+                    "{key}",
+                    toggle_debug_key.display_string(key_layout).as_str(),
+                ))
                 .color(TEXT_COLOR)
                 .top_left_with_margins_on(ui_widgets.window, 5.0, 5.0)
                 .font_id(self.fonts.cyri.conrod_id)
@@ -2133,11 +2132,10 @@ impl Hud {
                 .controls
                 .get_binding(GameInput::ToggleLantern)
             {
-                Text::new(
-                    &i18n
-                        .get("hud.press_key_to_toggle_lantern_fmt")
-                        .replace("{key}", toggle_lantern_key.to_string().as_str()),
-                )
+                Text::new(&i18n.get("hud.press_key_to_toggle_lantern_fmt").replace(
+                    "{key}",
+                    toggle_lantern_key.display_string(key_layout).as_str(),
+                ))
                 .color(TEXT_COLOR)
                 .up_from(self.ids.help_info, 2.0)
                 .font_id(self.fonts.cyri.conrod_id)
@@ -2259,6 +2257,7 @@ impl Hud {
                 &global_state.i18n,
                 &global_state.settings,
                 &prompt_dialog_settings,
+                &global_state.window.key_layout,
             )
             .set(self.ids.prompt_dialog, ui_widgets)
             {
@@ -2894,7 +2893,7 @@ impl Hud {
             if self.show.free_look {
                 let msg = i18n
                     .get("hud.free_look_indicator")
-                    .replace("{key}", freelook_key.to_string().as_str());
+                    .replace("{key}", freelook_key.display_string(key_layout).as_str());
                 Text::new(&msg)
                     .color(TEXT_BG)
                     .mid_top_with_margin_on(ui_widgets.window, indicator_offset)
@@ -2937,7 +2936,7 @@ impl Hud {
             if self.show.camera_clamp {
                 let msg = i18n
                     .get("hud.camera_clamp_indicator")
-                    .replace("{key}", cameraclamp_key.to_string().as_str());
+                    .replace("{key}", cameraclamp_key.display_string(key_layout).as_str());
                 Text::new(&msg)
                     .color(TEXT_BG)
                     .mid_top_with_margin_on(ui_widgets.window, indicator_offset)

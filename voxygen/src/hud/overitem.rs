@@ -10,6 +10,7 @@ use conrod_core::{
 use std::borrow::Cow;
 
 pub const TEXT_COLOR: Color = Color::Rgba(0.61, 0.61, 0.89, 1.0);
+use keyboard_keynames::key_layout::KeyLayout;
 
 widget_ids! {
     struct Ids {
@@ -34,6 +35,7 @@ pub struct Overitem<'a> {
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
     active: bool,
+    key_layout: &'a Option<KeyLayout>,
 }
 
 impl<'a> Overitem<'a> {
@@ -44,6 +46,7 @@ impl<'a> Overitem<'a> {
         fonts: &'a Fonts,
         controls: &'a ControlSettings,
         active: bool,
+        key_layout: &'a Option<KeyLayout>,
     ) -> Self {
         Self {
             name,
@@ -53,6 +56,7 @@ impl<'a> Overitem<'a> {
             controls,
             common: widget::CommonBuilder::default(),
             active,
+            key_layout,
         }
     }
 }
@@ -143,7 +147,7 @@ impl<'a> Widget for Overitem<'a> {
                 .depth(self.distance_from_player_sqr + 1.0)
                 .parent(id)
                 .set(state.ids.btn_bg, ui);
-            Text::new(&format!("{}", key_button))
+            Text::new(key_button.display_string(self.key_layout).as_str())
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(btn_font_size as u32)
                 .color(TEXT_COLOR)

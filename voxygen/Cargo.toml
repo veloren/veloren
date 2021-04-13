@@ -45,6 +45,7 @@ iced = {package = "iced_native", git = "https://github.com/hecrj/iced", rev = "8
 iced_winit = {git = "https://github.com/hecrj/iced", rev = "8d882d787e6b7fd7c2435f42f82933e2ed904edf"}
 window_clipboard = "0.2"
 glyph_brush = "0.7.0"
+keyboard-keynames = "0.1.0"
 
 # ECS
 specs = {git = "https://github.com/amethyst/specs.git", rev = "5a9b71035007be0e3574f35184acac1cd4530496"}
