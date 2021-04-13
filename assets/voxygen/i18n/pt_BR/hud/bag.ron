@@ -25,6 +25,14 @@
         "hud.bag.mainhand": "Mão hábil",
         "hud.bag.offhand": "Mão inábil",
         "hud.bag.bag": "Mochila",
+        "hud.bag.health": "Vida",
+        "hud.bag.stamina": "Stamina",
+        "hud.bag.combat_rating": "Pontuação de Combate",
+        "hud.bag.protection": "Proteção",
+        "hud.bag.stun_res": "Resistência à paralisia",
+        "hud.bag.combat_rating_desc": "Calculado por seu\nequipamento e vida.",
+        "hud.bag.protection_desc": "Redução de dano por armadura",
+        "hud.bag.stun_res_desc": "Resistência à paralisia provocada por golpes consecutivos.\nRegenera como Stamina.",
     },
 
 

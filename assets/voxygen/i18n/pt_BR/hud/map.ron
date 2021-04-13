@@ -6,6 +6,7 @@
         // Mapa e Missões
         "hud.map.map_title": "Mapa",
         "hud.map.qlog_title": "Missões",
+        "hud.map.topo_map": "Topografia",
         "hud.map.difficulty": "Dificuldade",
         "hud.map.towns": "Cidades",
         "hud.map.castles": "Castelos",
@@ -13,6 +14,8 @@
         "hud.map.caves": "Cavernas",
         "hud.map.cave": "Caverna",
         "hud.map.town": "Cidade",
+        "hud.map.trees": "Árvores Gigantes",
+        "hud.map.tree": "Árvore Gigante",
         "hud.map.castle": "Castelo",
         "hud.map.dungeon": "Masmorra",
         "hud.map.difficulty_dungeon": "Dificuldade da\n\nMasmorra: {difficulty}",
