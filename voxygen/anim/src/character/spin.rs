@@ -10,16 +10,15 @@ use std::f32::consts::PI;
 
 pub struct SpinAnimation;
 
+type SpinAnimationDependency = (
+    (Option<Hands>, Option<Hands>),
+    Vec3<f32>,
+    f32,
+    Option<StageSection>,
+    Option<AbilityInfo>,
+);
 impl Animation for SpinAnimation {
-    type Dependency = (
-        Option<ToolKind>,
-        Option<ToolKind>,
-        (Option<Hands>, Option<Hands>),
-        Vec3<f32>,
-        f32,
-        Option<StageSection>,
-        Option<AbilityInfo>,
-    );
+    type Dependency = SpinAnimationDependency;
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -28,15 +27,7 @@ impl Animation for SpinAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_spin")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (
-            _active_tool_kind,
-            _second_tool_kind,
-            hands,
-            _velocity,
-            _global_time,
-            stage_section,
-            ability_info,
-        ): Self::Dependency,
+        (hands, _velocity, _global_time, stage_section, ability_info): Self::Dependency,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,

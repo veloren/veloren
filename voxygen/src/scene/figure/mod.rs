@@ -897,8 +897,6 @@ impl FigureMgr {
                             anim::character::AlphaAnimation::update_skeleton(
                                 &target_base,
                                 (
-                                    active_tool_kind,
-                                    second_tool_kind,
                                     hands,
                                     rel_vel.magnitude(),
                                     time,
@@ -993,8 +991,6 @@ impl FigureMgr {
                             anim::character::ChargeswingAnimation::update_skeleton(
                                 &target_base,
                                 (
-                                    active_tool_kind,
-                                    second_tool_kind,
                                     hands,
                                     rel_vel,
                                     time,
@@ -1058,15 +1054,7 @@ impl FigureMgr {
                         CharacterState::Boost(_) => {
                             anim::character::AlphaAnimation::update_skeleton(
                                 &target_base,
-                                (
-                                    active_tool_kind,
-                                    second_tool_kind,
-                                    hands,
-                                    rel_vel.magnitude(),
-                                    time,
-                                    None,
-                                    None,
-                                ),
+                                (hands, rel_vel.magnitude(), time, None, None),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -1092,8 +1080,6 @@ impl FigureMgr {
                             anim::character::DashAnimation::update_skeleton(
                                 &target_base,
                                 (
-                                    active_tool_kind,
-                                    second_tool_kind,
                                     hands,
                                     time,
                                     Some(s.stage_section),
@@ -1181,8 +1167,6 @@ impl FigureMgr {
                             anim::character::LeapAnimation::update_skeleton(
                                 &target_base,
                                 (
-                                    active_tool_kind,
-                                    second_tool_kind,
                                     hands,
                                     rel_vel,
                                     time,
@@ -1212,8 +1196,6 @@ impl FigureMgr {
                             anim::character::SpinMeleeAnimation::update_skeleton(
                                 &target_base,
                                 (
-                                    active_tool_kind,
-                                    second_tool_kind,
                                     hands,
                                     rel_vel,
                                     time,
@@ -1356,8 +1338,6 @@ impl FigureMgr {
                                 1 => anim::character::AlphaAnimation::update_skeleton(
                                     &target_base,
                                     (
-                                        active_tool_kind,
-                                        second_tool_kind,
                                         hands,
                                         rel_vel.magnitude(),
                                         time,
@@ -1371,8 +1351,6 @@ impl FigureMgr {
                                 2 => anim::character::SpinAnimation::update_skeleton(
                                     &target_base,
                                     (
-                                        active_tool_kind,
-                                        second_tool_kind,
                                         hands,
                                         rel_vel,
                                         time,
@@ -1386,8 +1364,6 @@ impl FigureMgr {
                                 _ => anim::character::BetaAnimation::update_skeleton(
                                     &target_base,
                                     (
-                                        active_tool_kind,
-                                        second_tool_kind,
                                         hands,
                                         rel_vel.magnitude(),
                                         time,

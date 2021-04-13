@@ -8,16 +8,16 @@ use common::{
 };
 pub struct ChargeswingAnimation;
 
+type ChargeswingAnimationDependency = (
+    (Option<Hands>, Option<Hands>),
+    Vec3<f32>,
+    f32,
+    Option<StageSection>,
+    Option<AbilityInfo>,
+);
+
 impl Animation for ChargeswingAnimation {
-    type Dependency = (
-        Option<ToolKind>,
-        Option<ToolKind>,
-        (Option<Hands>, Option<Hands>),
-        Vec3<f32>,
-        f32,
-        Option<StageSection>,
-        Option<AbilityInfo>,
-    );
+    type Dependency = ChargeswingAnimationDependency;
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -27,15 +27,7 @@ impl Animation for ChargeswingAnimation {
     #[allow(clippy::approx_constant)] // TODO: Pending review in #587
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (
-            active_tool_kind,
-            _second_tool_kind,
-            hands,
-            _velocity,
-            _global_time,
-            stage_section,
-            ability_info,
-        ): Self::Dependency,
+        (hands, _velocity, _global_time, stage_section, ability_info): Self::Dependency,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -62,35 +54,30 @@ impl Animation for ChargeswingAnimation {
             _ => (0.0, 0.0, 0.0, 0.0, 0.0),
         };
 
-        let pullback = (1.0 - movement3);
+        let pullback = 1.0 - movement3;
         let move1 = move1base * pullback;
         let move2 = move2base * pullback;
         let slowrise = test * pullback;
         next.second.position = Vec3::new(0.0, 0.0, 0.0);
         next.second.orientation = Quaternion::rotation_z(0.0);
 
-        if let Some(ToolKind::Hammer) = active_tool_kind {}
-
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
 
-        match ability_info.and_then(|a| a.tool) {
-            Some(ToolKind::Hammer) => {
-                next.main.position = Vec3::new(0.0, 0.0, 0.0);
-                next.main.orientation = Quaternion::rotation_x(0.0);
+        if let Some(ToolKind::Hammer) = ability_info.and_then(|a| a.tool) {
+            next.main.position = Vec3::new(0.0, 0.0, 0.0);
+            next.main.orientation = Quaternion::rotation_x(0.0);
 
-                next.chest.orientation =
-                    Quaternion::rotation_z(short * 0.04 + (move1 * 2.0 + move2 * -3.5));
-                next.belt.orientation = Quaternion::rotation_z(short * 0.08 + (move1 * -1.0));
-                next.shorts.orientation = Quaternion::rotation_z(short * 0.15 + (move1 * -1.5));
-                next.head.position = Vec3::new(
-                    0.0 + (move1 * -1.0 + move2 * 2.0),
-                    s_a.head.0 + (move1 * 1.0),
-                    s_a.head.1,
-                );
-                next.head.orientation = Quaternion::rotation_z(move1 * -1.5 + move2 * 3.2);
-                next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1);
-            },
-            _ => {},
+            next.chest.orientation =
+                Quaternion::rotation_z(short * 0.04 + (move1 * 2.0 + move2 * -3.5));
+            next.belt.orientation = Quaternion::rotation_z(short * 0.08 + (move1 * -1.0));
+            next.shorts.orientation = Quaternion::rotation_z(short * 0.15 + (move1 * -1.5));
+            next.head.position = Vec3::new(
+                0.0 + (move1 * -1.0 + move2 * 2.0),
+                s_a.head.0 + (move1 * 1.0),
+                s_a.head.1,
+            );
+            next.head.orientation = Quaternion::rotation_z(move1 * -1.5 + move2 * 3.2);
+            next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1);
         }
 
         match hands {

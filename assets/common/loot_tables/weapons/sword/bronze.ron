@@ -1,5 +1,10 @@
 [
+    //2h
     (1.0, Item("common.items.weapons.sword.bronze-0")),
     (1.0, Item("common.items.weapons.sword.bronze-1")),
     (1.0, Item("common.items.weapons.sword.bronze-2")),
+    //1h
+    (1.0, Item("common.items.weapons.sword_1h.bronze-0")),
+    (1.0, Item("common.items.weapons.sword_1h.bronze-1")),
+    (1.0, Item("common.items.weapons.sword_1h.bronze-2")),
 ]

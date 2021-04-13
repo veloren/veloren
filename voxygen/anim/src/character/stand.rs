@@ -3,7 +3,7 @@ use super::{
     CharacterSkeleton, SkeletonAttr,
 };
 use common::comp::item::{Hands, ToolKind};
-use std::{f32::consts::PI, ops::Mul};
+use std::ops::Mul;
 
 pub struct StandAnimation;
 
@@ -111,7 +111,6 @@ impl Animation for StandAnimation {
                     next.main.orientation =
                         Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
                 },
-                _ => {},
             },
             (_, _) => {},
         };

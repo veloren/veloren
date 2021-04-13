@@ -10,16 +10,15 @@ use std::f32::consts::PI;
 
 pub struct AlphaAnimation;
 
+type AlphaAnimationDependency = (
+    (Option<Hands>, Option<Hands>),
+    f32,
+    f32,
+    Option<StageSection>,
+    Option<AbilityInfo>,
+);
 impl Animation for AlphaAnimation {
-    type Dependency = (
-        Option<ToolKind>,
-        Option<ToolKind>,
-        (Option<Hands>, Option<Hands>),
-        f32,
-        f32,
-        Option<StageSection>,
-        Option<AbilityInfo>,
-    );
+    type Dependency = AlphaAnimationDependency;
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -29,15 +28,7 @@ impl Animation for AlphaAnimation {
     #[allow(clippy::approx_constant)] // TODO: Pending review in #587
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (
-            active_tool_kind,
-            _second_tool_kind,
-            hands,
-            _velocity,
-            _global_time,
-            stage_section,
-            ability_info,
-        ): Self::Dependency,
+        (hands, _velocity, _global_time, stage_section, ability_info): Self::Dependency,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -98,17 +89,17 @@ impl Animation for AlphaAnimation {
                     Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
                     _ => (0.0, 0.0, 0.0),
                 };
-                let pullback = (1.0 - move3);
+                let pullback = 1.0 - move3;
                 let moveret1 = move1 * pullback;
                 let moveret2 = move2 * pullback;
 
                 next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
-                next.head.orientation = Quaternion::rotation_x((moveret1 * 0.1 + moveret2 * 0.3))
-                    * Quaternion::rotation_z((move1 * -0.2 + moveret2 * 0.2));
+                next.head.orientation = Quaternion::rotation_x(moveret1 * 0.1 + moveret2 * 0.3)
+                    * Quaternion::rotation_z(move1 * -0.2 + moveret2 * 0.2);
                 next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1 + moveret2 * -2.0);
-                next.chest.orientation = Quaternion::rotation_x((moveret1 * 0.4 + moveret2 * -0.7))
-                    * Quaternion::rotation_y((moveret1 * 0.3 + moveret2 * -0.4))
-                    * Quaternion::rotation_z((moveret1 * 0.5 + moveret2 * -0.5));
+                next.chest.orientation = Quaternion::rotation_x(moveret1 * 0.4 + moveret2 * -0.7)
+                    * Quaternion::rotation_y(moveret1 * 0.3 + moveret2 * -0.4)
+                    * Quaternion::rotation_z(moveret1 * 0.5 + moveret2 * -0.5);
             },
             Some(ToolKind::Debug) => {
                 next.hand_l.position = Vec3::new(-7.0, 4.0, 3.0);
@@ -173,7 +164,7 @@ impl Animation for AlphaAnimation {
                         Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
                         _ => (0.0, 0.0, 0.0),
                     };
-                    let pullback = (1.0 - move3);
+                    let pullback = 1.0 - move3;
                     let moveret1 = move1 * pullback;
                     let moveret2 = move2 * pullback;
                     next.hand_l.position =

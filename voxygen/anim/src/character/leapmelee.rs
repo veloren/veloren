@@ -6,19 +6,17 @@ use common::{
     comp::item::{Hands, ToolKind},
     states::utils::{AbilityInfo, StageSection},
 };
-use std::f32::consts::PI;
 pub struct LeapAnimation;
 
+type LeapAnimationDependency = (
+    (Option<Hands>, Option<Hands>),
+    Vec3<f32>,
+    f32,
+    Option<StageSection>,
+    Option<AbilityInfo>,
+);
 impl Animation for LeapAnimation {
-    type Dependency = (
-        Option<ToolKind>,
-        Option<ToolKind>,
-        (Option<Hands>, Option<Hands>),
-        Vec3<f32>,
-        f32,
-        Option<StageSection>,
-        Option<AbilityInfo>,
-    );
+    type Dependency = LeapAnimationDependency;
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -28,15 +26,7 @@ impl Animation for LeapAnimation {
     #[allow(clippy::approx_constant)] // TODO: Pending review in #587
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (
-            active_tool_kind,
-            _second_tool_kind,
-            hands,
-            _velocity,
-            _global_time,
-            stage_section,
-            ability_info,
-        ): Self::Dependency,
+        (hands, _velocity, _global_time, stage_section, ability_info): Self::Dependency,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -51,7 +41,7 @@ impl Animation for LeapAnimation {
             Some(StageSection::Recover) => (1.0, 1.0, 1.0, anim_time.powf(0.75)),
             _ => (0.0, 0.0, 0.0, 0.0),
         };
-        let pullback = (1.0 - move4);
+        let pullback = 1.0 - move4;
         let move1 = movement1 * pullback;
         let move2 = movement2 * pullback;
         let move3 = movement3 * pullback;

@@ -6,20 +6,18 @@ use common::{
     comp::item::{Hands, ToolKind},
     states::utils::{AbilityInfo, StageSection},
 };
-use std::f32::consts::PI;
 
 pub struct BetaAnimation;
 
+type BetaAnimationDependency = (
+    (Option<Hands>, Option<Hands>),
+    f32,
+    f32,
+    Option<StageSection>,
+    Option<AbilityInfo>,
+);
 impl Animation for BetaAnimation {
-    type Dependency = (
-        Option<ToolKind>,
-        Option<ToolKind>,
-        (Option<Hands>, Option<Hands>),
-        f32,
-        f32,
-        Option<StageSection>,
-        Option<AbilityInfo>,
-    );
+    type Dependency = BetaAnimationDependency;
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -28,15 +26,7 @@ impl Animation for BetaAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_beta")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (
-            _active_tool_kind,
-            _second_tool_kind,
-            hands,
-            _velocity,
-            _global_time,
-            stage_section,
-            ability_info,
-        ): Self::Dependency,
+        (hands, _velocity, _global_time, stage_section, ability_info): Self::Dependency,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -55,14 +45,11 @@ impl Animation for BetaAnimation {
         next.main.position = Vec3::new(0.0, 0.0, 0.0);
         next.main.orientation = Quaternion::rotation_x(0.0);
 
-        match ability_info.and_then(|a| a.tool) {
-            Some(ToolKind::Sword) => {
-                next.chest.orientation = Quaternion::rotation_x(0.15)
-                    * Quaternion::rotation_y((-0.1) * (1.0 - move3))
-                    * Quaternion::rotation_z((0.4 + move1 * 1.5 + move2 * -2.5) * (1.0 - move3));
-                next.head.orientation = Quaternion::rotation_z(-0.4 + move1 * -1.0 + move2 * 1.5);
-            },
-            _ => {},
+        if let Some(ToolKind::Sword) = ability_info.and_then(|a| a.tool) {
+            next.chest.orientation = Quaternion::rotation_x(0.15)
+                * Quaternion::rotation_y((-0.1) * (1.0 - move3))
+                * Quaternion::rotation_z((0.4 + move1 * 1.5 + move2 * -2.5) * (1.0 - move3));
+            next.head.orientation = Quaternion::rotation_z(-0.4 + move1 * -1.0 + move2 * 1.5);
         }
         match hands {
             (Some(Hands::Two), _) => match ability_info.and_then(|a| a.tool) {

@@ -10,15 +10,14 @@ use std::f32::consts::PI;
 
 pub struct DashAnimation;
 
+type DashAnimationDependency = (
+    (Option<Hands>, Option<Hands>),
+    f32,
+    Option<StageSection>,
+    Option<AbilityInfo>,
+);
 impl Animation for DashAnimation {
-    type Dependency = (
-        Option<ToolKind>,
-        Option<ToolKind>,
-        (Option<Hands>, Option<Hands>),
-        f32,
-        Option<StageSection>,
-        Option<AbilityInfo>,
-    );
+    type Dependency = DashAnimationDependency;
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -28,7 +27,7 @@ impl Animation for DashAnimation {
     #[allow(clippy::single_match)] // TODO: Pending review in #587
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, _second_tool_kind, hands, _global_time, stage_section, ability_info): Self::Dependency,
+        (hands, _global_time, stage_section, ability_info): Self::Dependency,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -43,7 +42,7 @@ impl Animation for DashAnimation {
             Some(StageSection::Recover) => (1.1, 1.0, 1.0, anim_time.powi(4)),
             _ => (0.0, 0.0, 0.0, 0.0),
         };
-        let pullback = (1.0 - move4);
+        let pullback = 1.0 - move4;
         let move1 = movement1 * pullback;
         let move2 = movement2 * pullback;
         let move3 = movement3 * pullback;
@@ -77,13 +76,13 @@ impl Animation for DashAnimation {
                     s_a.chest.1 + (2.0 + shortalt(move2) * -2.5) + move3 * -3.0,
                 );
                 next.chest.orientation =
-                    Quaternion::rotation_x((move2.min(1.0) * -0.4 + move3 * 0.4))
-                        * Quaternion::rotation_y((move2.min(1.0) * -0.2 + move3 * 0.3))
-                        * Quaternion::rotation_z((move1 * 1.1 + move3 * -2.2));
+                    Quaternion::rotation_x(move2.min(1.0) * -0.4 + move3 * 0.4)
+                        * Quaternion::rotation_y(move2.min(1.0) * -0.2 + move3 * 0.3)
+                        * Quaternion::rotation_z(move1 * 1.1 + move3 * -2.2);
 
-                next.shorts.orientation = Quaternion::rotation_z((short(move2).min(1.0) * 0.25));
+                next.shorts.orientation = Quaternion::rotation_z(short(move2).min(1.0) * 0.25);
 
-                next.belt.orientation = Quaternion::rotation_z((short(move2).min(1.0) * 0.1));
+                next.belt.orientation = Quaternion::rotation_z(short(move2).min(1.0) * 0.1);
             },
             _ => {},
         }
@@ -145,7 +144,9 @@ impl Animation for DashAnimation {
                         );
                         next.control_r.orientation =
                             Quaternion::rotation_x(-0.3 + move1 * -3.0 + move3 * -0.5)
-                                * Quaternion::rotation_y(move1 * 1.5 + move2 * 1.0 + move3 * 1.5)
+                                * Quaternion::rotation_y(
+                                    move1 * 1.5 + (move2 * 1.0).min(0.8) + move3 * 1.5,
+                                )
                                 * Quaternion::rotation_z(move3 * 1.5);
                         next.hand_r.position = Vec3::new(0.0, -0.5, 0.0);
                         next.hand_r.orientation = Quaternion::rotation_x(1.57)

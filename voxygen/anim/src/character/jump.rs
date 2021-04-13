@@ -195,7 +195,7 @@ impl Animation for JumpAnimation {
                 Some(ToolKind::Axe) | Some(ToolKind::Hammer) | Some(ToolKind::Sword) => {
                     next.main.position = Vec3::new(-4.0, -5.0, 10.0);
                     next.main.orientation =
-                        Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
+                        Quaternion::rotation_y(2.35) * Quaternion::rotation_z(1.57);
                 },
 
                 _ => {},
@@ -207,7 +207,7 @@ impl Animation for JumpAnimation {
                 Some(ToolKind::Axe) | Some(ToolKind::Hammer) | Some(ToolKind::Sword) => {
                     next.second.position = Vec3::new(4.0, -5.5, 10.0);
                     next.second.orientation =
-                        Quaternion::rotation_y(-2.5) * Quaternion::rotation_z(1.57);
+                        Quaternion::rotation_y(-2.35) * Quaternion::rotation_z(1.57);
                 },
                 _ => {},
             },

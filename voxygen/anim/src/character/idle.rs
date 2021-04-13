@@ -3,7 +3,7 @@ use super::{
     CharacterSkeleton, SkeletonAttr,
 };
 use common::comp::item::{Hands, ToolKind};
-use std::{f32::consts::PI, ops::Mul};
+use std::ops::Mul;
 
 pub struct IdleAnimation;
 
@@ -87,48 +87,50 @@ impl Animation for IdleAnimation {
         next.glider.position = Vec3::new(0.0, 0.0, 10.0);
         next.glider.scale = Vec3::one() * 0.0;
         next.hold.position = Vec3::new(0.4, -0.3, -5.8);
-        match active_tool_kind {
-            Some(ToolKind::Dagger) => {
-                next.main.position = Vec3::new(-4.0, -5.0, 7.0);
-                next.main.orientation =
-                    Quaternion::rotation_y(0.25 * PI) * Quaternion::rotation_z(1.5 * PI);
+        match hands {
+            (Some(Hands::Two), _) => match active_tool_kind {
+                Some(ToolKind::Bow) => {
+                    next.main.position = Vec3::new(0.0, -5.0, 6.0);
+                    next.main.orientation =
+                        Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
+                },
+                Some(ToolKind::Staff) | Some(ToolKind::Sceptre) => {
+                    next.main.position = Vec3::new(2.0, -5.0, -1.0);
+                    next.main.orientation =
+                        Quaternion::rotation_y(-0.5) * Quaternion::rotation_z(1.57);
+                },
+                _ => {
+                    next.main.position = Vec3::new(-7.0, -5.0, 15.0);
+                    next.main.orientation =
+                        Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
+                },
             },
-            Some(ToolKind::Shield) => {
-                next.main.position = Vec3::new(-0.0, -5.0, 3.0);
-                next.main.orientation =
-                    Quaternion::rotation_y(0.25 * PI) * Quaternion::rotation_z(-1.5 * PI);
-            },
-            Some(ToolKind::Bow) => {
-                next.main.position = Vec3::new(0.0, -5.0, 6.0);
-                next.main.orientation = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
-            },
-            Some(ToolKind::Staff) | Some(ToolKind::Sceptre) => {
-                next.main.position = Vec3::new(2.0, -5.0, -1.0);
-                next.main.orientation = Quaternion::rotation_y(-0.5) * Quaternion::rotation_z(1.57);
-            },
-            _ => {
-                next.main.position = Vec3::new(-7.0, -5.0, 15.0);
-                next.main.orientation = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
-            },
-        }
+            (_, _) => {},
+        };
 
-        match second_tool_kind {
-            Some(ToolKind::Dagger) => {
-                next.second.position = Vec3::new(4.0, -6.0, 7.0);
-                next.second.orientation =
-                    Quaternion::rotation_y(-0.25 * PI) * Quaternion::rotation_z(-1.5 * PI);
+        match hands {
+            (Some(Hands::One), _) => match active_tool_kind {
+                Some(ToolKind::Axe) | Some(ToolKind::Hammer) | Some(ToolKind::Sword) => {
+                    next.main.position = Vec3::new(-4.0, -5.0, 10.0);
+                    next.main.orientation =
+                        Quaternion::rotation_y(2.35) * Quaternion::rotation_z(1.57);
+                },
+
+                _ => {},
             },
-            Some(ToolKind::Shield) => {
-                next.second.position = Vec3::new(0.0, -4.0, 3.0);
-                next.second.orientation =
-                    Quaternion::rotation_y(-0.25 * PI) * Quaternion::rotation_z(1.5 * PI);
+            (_, _) => {},
+        };
+        match hands {
+            (None | Some(Hands::One), Some(Hands::One)) => match second_tool_kind {
+                Some(ToolKind::Axe) | Some(ToolKind::Hammer) | Some(ToolKind::Sword) => {
+                    next.second.position = Vec3::new(4.0, -5.5, 10.0);
+                    next.second.orientation =
+                        Quaternion::rotation_y(-2.35) * Quaternion::rotation_z(1.57);
+                },
+                _ => {},
             },
-            _ => {
-                next.second.position = Vec3::new(-7.0, -5.0, 15.0);
-                next.second.orientation =
-                    Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
-            },
-        }
+            (_, _) => {},
+        };
 
         next.lantern.position = Vec3::new(s_a.lantern.0, s_a.lantern.1, s_a.lantern.2);
         next.lantern.orientation = Quaternion::rotation_x(0.1) * Quaternion::rotation_y(0.1);
