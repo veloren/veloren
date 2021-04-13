@@ -17,7 +17,10 @@ use clap::{App, Arg, SubCommand};
 use common::clock::Clock;
 use common_base::span;
 use core::sync::atomic::{AtomicUsize, Ordering};
-use server::{Event, Input, Server};
+use server::{
+    persistence::{DatabaseSettings, SqlLogMode},
+    Event, Input, Server,
+};
 use std::{
     io,
     sync::{atomic::AtomicBool, mpsc, Arc},
@@ -48,6 +51,11 @@ fn main() -> io::Result<()> {
             Arg::with_name("no-auth")
                 .long("no-auth")
                 .help("Runs without auth enabled"),
+            Arg::with_name("sql-log-mode")
+                .long("sql-log-mode")
+                .help("Enables SQL logging, valid values are \"trace\" and \"profile\"")
+                .possible_values(&["trace", "profile"])
+                .takes_value(true)
         ])
         .subcommand(
             SubCommand::with_name("admin")
@@ -77,6 +85,12 @@ fn main() -> io::Result<()> {
             .is_some();
     let noninteractive = matches.is_present("non-interactive");
     let no_auth = matches.is_present("no-auth");
+
+    let sql_log_mode = match matches.value_of("sql-log-mode") {
+        Some("trace") => SqlLogMode::Trace,
+        Some("profile") => SqlLogMode::Profile,
+        _ => SqlLogMode::Disabled,
+    };
 
     // noninteractive implies basic
     let basic = basic || noninteractive;
@@ -118,6 +132,15 @@ fn main() -> io::Result<()> {
     // Load server settings
     let mut server_settings = server::Settings::load(&server_data_dir);
     let mut editable_settings = server::EditableSettings::load(&server_data_dir);
+
+    // Relative to data_dir
+    const PERSISTENCE_DB_DIR: &str = "saves";
+
+    let database_settings = DatabaseSettings {
+        db_dir: server_data_dir.join(PERSISTENCE_DB_DIR),
+        sql_log_mode,
+    };
+
     #[allow(clippy::single_match)] // Note: remove this when there are more subcommands
     match matches.subcommand() {
         ("admin", Some(sub_m)) => {
@@ -157,6 +180,7 @@ fn main() -> io::Result<()> {
     let mut server = Server::new(
         server_settings,
         editable_settings,
+        database_settings,
         &server_data_dir,
         runtime,
     )
@@ -225,6 +249,12 @@ fn main() -> io::Result<()> {
                     },
                     Message::LoadArea(view_distance) => {
                         server.create_centered_persister(view_distance);
+                    },
+                    Message::SetSqlLogMode(sql_log_mode) => {
+                        server.set_sql_log_mode(sql_log_mode);
+                    },
+                    Message::DisconnectAllClients => {
+                        server.disconnect_all_clients();
                     },
                 },
                 Err(mpsc::TryRecvError::Empty) | Err(mpsc::TryRecvError::Disconnected) => {},

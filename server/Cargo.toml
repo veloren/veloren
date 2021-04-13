@@ -44,12 +44,12 @@ crossbeam-channel = "0.5"
 prometheus = { version = "0.12", default-features = false}
 portpicker = { git = "https://github.com/xMAC94x/portpicker-rs", rev = "df6b37872f3586ac3b21d08b56c8ec7cd92fb172" }
 authc = { git = "https://gitlab.com/veloren/auth.git", rev = "fb3dcbc4962b367253f8f2f92760ef44d2679c9a" }
-libsqlite3-sys = { version = "0.18", features = ["bundled"] }
-diesel = { version = "1.4.3", features = ["sqlite"] }
-diesel_migrations = "1.4.0"
 dotenv = "0.15.0"
 slab  = "0.4"
 rand_distr = "0.4.0"
+
+rusqlite = { version = "0.24.2", features = ["array", "vtab", "bundled", "trace"] }
+refinery = { git = "https://gitlab.com/veloren/refinery.git", rev = "8ecf4b4772d791e6c8c0a3f9b66a7530fad1af3e", features = ["rusqlite"] }
 
 # Plugins
 plugin-api = { package = "veloren-plugin-api", path = "../plugin/api"}

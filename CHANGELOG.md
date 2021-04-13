@@ -29,6 +29,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Villagers and guards now spawn with potions, and know how to use them.
 - Combat music in dungeons when within range of enemies.
 - New Command: "kit", place a set of items into your inventory
+- Added --sql-log-mode profile/trace parameter to veloren-server-cli
+- Added /disconnect_all_players admin command
+- Added disconnectall CLI command
 
 ### Changed
 
@@ -50,6 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed infinite armour values from most admin items
 - Item tooltips during trades will now inform the user of what ctrl-click and shift-click do
 - International keyboards can now display more key names on Linux and Windows instead of `Unknown`.
+- There is now a brief period after a character leaves the world where they cannot rejoin until their data is saved
 
 ### Removed
 

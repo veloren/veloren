@@ -1,4 +1,5 @@
 use core::time::Duration;
+use server::persistence::SqlLogMode;
 use std::sync::mpsc::Sender;
 use tracing::{error, info, warn};
 
@@ -10,6 +11,8 @@ pub enum Message {
     AddAdmin(String),
     RemoveAdmin(String),
     LoadArea(u32),
+    SetSqlLogMode(SqlLogMode),
+    DisconnectAllClients,
 }
 
 struct Command<'a> {
@@ -22,13 +25,13 @@ struct Command<'a> {
 }
 
 // TODO: maybe we could be using clap here?
-const COMMANDS: [Command; 6] = [
+const COMMANDS: [Command; 8] = [
     Command {
         name: "quit",
         description: "Closes the server",
         split_spaces: true,
         args: 0,
-        cmd: |_, sender| sender.send(Message::Quit).unwrap(),
+        cmd: |_, sender| send(sender, Message::Quit),
     },
     Command {
         name: "shutdown",
@@ -38,15 +41,20 @@ const COMMANDS: [Command; 6] = [
         args: 1,
         cmd: |args, sender| {
             if let Ok(grace_period) = args.first().unwrap().parse::<u64>() {
-                sender
-                    .send(Message::Shutdown {
-                        grace_period: Duration::from_secs(grace_period),
-                    })
-                    .unwrap()
+                send(sender, Message::Shutdown {
+                    grace_period: Duration::from_secs(grace_period),
+                })
             } else {
                 error!("Grace period must an integer")
             }
         },
+    },
+    Command {
+        name: "disconnectall",
+        description: "Disconnects all connected clients",
+        split_spaces: true,
+        args: 0,
+        cmd: |_, sender| send(sender, Message::DisconnectAllClients),
     },
     Command {
         name: "loadarea",
@@ -56,7 +64,7 @@ const COMMANDS: [Command; 6] = [
         args: 1,
         cmd: |args, sender| {
             if let Ok(view_distance) = args.first().unwrap().parse::<u32>() {
-                sender.send(Message::LoadArea(view_distance)).unwrap();
+                send(sender, Message::LoadArea(view_distance));
             } else {
                 error!("View distance must be an integer");
             }
@@ -67,7 +75,7 @@ const COMMANDS: [Command; 6] = [
         description: "Aborts a shutdown if one is in progress",
         split_spaces: false,
         args: 0,
-        cmd: |_, sender| sender.send(Message::AbortShutdown).unwrap(),
+        cmd: |_, sender| send(sender, Message::AbortShutdown),
     },
     Command {
         name: "admin",
@@ -76,13 +84,36 @@ const COMMANDS: [Command; 6] = [
         args: 2,
         cmd: |args, sender| match args.get(..2) {
             Some([op, username]) if op == "add" => {
-                sender.send(Message::AddAdmin(username.clone())).unwrap()
+                send(sender, Message::AddAdmin(username.clone()));
             },
             Some([op, username]) if op == "remove" => {
-                sender.send(Message::RemoveAdmin(username.clone())).unwrap()
+                send(sender, Message::RemoveAdmin(username.clone()));
             },
             Some(_) => error!("First arg must be add or remove"),
             _ => error!("Not enough args, should be unreachable"),
+        },
+    },
+    Command {
+        name: "sqllog",
+        description: "Sets the SQL logging mode, valid values are off, trace and profile",
+        split_spaces: true,
+        args: 1,
+        cmd: |args, sender| match args.get(0) {
+            Some(arg) => {
+                let sql_log_mode = match arg.to_lowercase().as_str() {
+                    "off" => Some(SqlLogMode::Disabled),
+                    "profile" => Some(SqlLogMode::Profile),
+                    "trace" => Some(SqlLogMode::Trace),
+                    _ => None,
+                };
+
+                if let Some(sql_log_mode) = sql_log_mode {
+                    send(sender, Message::SetSqlLogMode(sql_log_mode));
+                } else {
+                    error!("Invalid SQL log mode");
+                }
+            },
+            _ => error!("Not enough args"),
         },
     },
     Command {
@@ -99,6 +130,12 @@ const COMMANDS: [Command; 6] = [
         },
     },
 ];
+
+fn send(sender: &mut Sender<Message>, message: Message) {
+    sender
+        .send(message)
+        .unwrap_or_else(|err| error!("Failed to send CLI message, err: {:?}", err));
+}
 
 pub fn parse_command(input: &str, msg_s: &mut Sender<Message>) {
     let mut args = input.split_whitespace();

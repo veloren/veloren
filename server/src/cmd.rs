@@ -45,7 +45,7 @@ use world::util::Sampler;
 
 use crate::{client::Client, login_provider::LoginProvider};
 use scan_fmt::{scan_fmt, scan_fmt_some};
-use tracing::error;
+use tracing::{error, info, warn};
 
 pub trait ChatCommandExt {
     fn execute(&self, server: &mut Server, entity: EcsEntity, args: String);
@@ -102,6 +102,7 @@ fn get_handler(cmd: &ChatCommand) -> CommandHandler {
         ChatCommand::BuildAreaRemove => handle_build_area_remove,
         ChatCommand::Campfire => handle_spawn_campfire,
         ChatCommand::DebugColumn => handle_debug_column,
+        ChatCommand::DisconnectAllPlayers => handle_disconnect_all_players,
         ChatCommand::DropAll => handle_drop_all,
         ChatCommand::Dummy => handle_spawn_training_dummy,
         ChatCommand::Explosion => handle_explosion,
@@ -2116,6 +2117,46 @@ spawn_rate {:?} "#,
     } else {
         Err("Not a pregenerated chunk.".into())
     }
+}
+
+fn handle_disconnect_all_players(
+    server: &mut Server,
+    client: EcsEntity,
+    _target: EcsEntity,
+    args: String,
+    _action: &ChatCommand,
+) -> CmdResult<()> {
+    if args != *"confirm" {
+        return Err(
+            "Please run the command again with the second argument of \"confirm\" to confirm that \
+             you really want to disconnect all players from the server"
+                .to_string(),
+        );
+    }
+
+    let ecs = server.state.ecs();
+    let players = &ecs.read_storage::<comp::Player>();
+
+    // TODO: This logging and verification of admin commands would be better moved
+    // to a more generic method used for auditing -all- admin commands.
+    let player_name;
+    if let Some(player) = players.get(client) {
+        player_name = &*player.alias;
+    } else {
+        warn!(
+            "Failed to get player name for admin who used /disconnect_all_players - ignoring \
+             command."
+        );
+        return Err("You do not exist, so you cannot use this command".to_string());
+    }
+
+    info!(
+        "Disconnecting all clients due to admin command from {}",
+        player_name
+    );
+    server.disconnect_all_clients_requested = true;
+
+    Ok(())
 }
 
 fn handle_skill_point(

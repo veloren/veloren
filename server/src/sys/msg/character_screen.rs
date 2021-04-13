@@ -1,6 +1,10 @@
 use crate::{
-    alias_validator::AliasValidator, character_creator, client::Client,
-    persistence::character_loader::CharacterLoader, presence::Presence, EditableSettings,
+    alias_validator::AliasValidator,
+    character_creator,
+    client::Client,
+    persistence::{character_loader::CharacterLoader, character_updater::CharacterUpdater},
+    presence::Presence,
+    EditableSettings,
 };
 use common::{
     comp::{ChatType, Player, UnresolvedChatMsg},
@@ -20,6 +24,7 @@ impl Sys {
         entity: specs::Entity,
         client: &Client,
         character_loader: &ReadExpect<'_, CharacterLoader>,
+        character_updater: &ReadExpect<'_, CharacterUpdater>,
         uids: &ReadStorage<'_, Uid>,
         players: &ReadStorage<'_, Player>,
         presences: &ReadStorage<'_, Presence>,
@@ -40,6 +45,28 @@ impl Sys {
                 if let Some(player) = players.get(entity) {
                     if presences.contains(entity) {
                         debug!("player already ingame, aborting");
+                    } else if character_updater
+                        .characters_pending_logout()
+                        .any(|x| x == character_id)
+                    {
+                        debug!("player recently logged out pending persistence, aborting");
+                        client.send(ServerGeneral::CharacterDataLoadError(
+                            "You have recently logged out, please wait a few seconds and try again"
+                                .to_string(),
+                        ))?;
+                    } else if character_updater.disconnect_all_clients_requested() {
+                        // If we're in the middle of disconnecting all clients due to a persistence
+                        // transaction failure, prevent new logins
+                        // temporarily.
+                        debug!(
+                            "Rejecting player login while pending disconnection of all players is \
+                             in progress"
+                        );
+                        client.send(ServerGeneral::CharacterDataLoadError(
+                            "The server is currently recovering from an error, please wait a few \
+                             seconds and try again"
+                                .to_string(),
+                        ))?;
                     } else {
                         // Send a request to load the character's component data from the
                         // DB. Once loaded, persisted components such as stats and inventory
@@ -127,6 +154,7 @@ impl<'a> System<'a> for Sys {
         Entities<'a>,
         Read<'a, EventBus<ServerEvent>>,
         ReadExpect<'a, CharacterLoader>,
+        ReadExpect<'a, CharacterUpdater>,
         ReadStorage<'a, Uid>,
         ReadStorage<'a, Client>,
         ReadStorage<'a, Player>,
@@ -145,6 +173,7 @@ impl<'a> System<'a> for Sys {
             entities,
             server_event_bus,
             character_loader,
+            character_updater,
             uids,
             clients,
             players,
@@ -162,6 +191,7 @@ impl<'a> System<'a> for Sys {
                     entity,
                     client,
                     &character_loader,
+                    &character_updater,
                     &uids,
                     &players,
                     &presences,
