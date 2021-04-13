@@ -3,6 +3,7 @@
 /// Localization for Portuguese (Brazil)
 (
     string_map: {
+        // Buffs
         "buff.remove": "Clique Para Remover",
         "buff.title.missing": "Título Ausente",
         "buff.desc.missing": "Descrição Ausente",
@@ -14,8 +15,23 @@
         "buff.desc.saturation": "Ganha vida no decorrer do tempo através de consumíveis.",
         "buff.title.campfire_heal": "Cura de Acampamento",
         "buff.desc.campfire_heal": "Descansar próximo a uma fogueira de acampamento cura 1% de vida por segundo.",
+        "buff.title.invulnerability": "Invulnerabilidade",
+        "buff.desc.invulnerability": "Você não receberá dano de nenhum ataque.",
+        "buff.title.protectingward": "Guardião Protetor",
+        "buff.desc.protectingward": "Você está protegido, de alguma forma, de ataques.",
+        // Debuffs
         "buff.title.bleed": "Sangramento",
         "buff.desc.bleed": "Inflige Dano contínuo.",
+        "buff.title.cursed": "Maldição",
+        "buff.desc.cursed": "Você está amaldiçoado.",
+        // Buffs stats
+        "buff.stat.health": "Restaura {str_total} de Vida",
+        "buff.stat.increase_max_stamina": "Aumenta a Stamina Máxima em {strength}",
+        "buff.stat.increase_max_health": "Aumenta a Vida Máxima em {strength}",
+        "buff.stat.invulnerability": "Concede invulnerabilidade",
+        // Text
+        "buff.text.over_seconds": "durante {dur_secs} segundos",
+        "buff.text.for_seconds": "durante {dur_secs} segundos",
     },
 
 

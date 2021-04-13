@@ -36,15 +36,21 @@
         "hud.settings.background_transparency": "Transparência de Fundo",
         "hud.settings.chat_character_name": "Nomes de Personagem no chat",
         "hud.settings.loading_tips": "Dicas na Tela de Carregamento",
+        "hud.settings.reset_interface": "Voltar para o padrão",
 
         "hud.settings.pan_sensitivity": "Sensibilidade de Rotação",
         "hud.settings.zoom_sensitivity": "Sensibilidade do Zoom",
+        "hud.settings.camera_clamp_angle": "Ângulo para modo de bloqueio da câmera",
         "hud.settings.invert_scroll_zoom": "Inverter Rolagem do Zoom",
         "hud.settings.invert_mouse_y_axis": "Inverter Eixo Y do Mouse",
+        "hud.settings.invert_controller_y_axis": "Inverter Controle do Eixo Y",
         "hud.settings.enable_mouse_smoothing": "Suavização da Câmera",
         "hud.settings.free_look_behavior": "Comportamento da Câmera livre",
         "hud.settings.auto_walk_behavior": "Comportamento do caminhar automático",
+        "hud.settings.camera_clamp_behavior": "Comportamento de bloqueio da câmera",
         "hud.settings.stop_auto_walk_on_input": "Parar caminhar automático em caso de movimento",
+        "hud.settings.auto_camera": "Câmera automática",
+        "hud.settings.reset_gameplay": "Voltar para o padrão",
 
         "hud.settings.view_distance": "Alcance de Visão",
         "hud.settings.sprites_view_distance": "Distância de visão dos Sprites",
@@ -84,11 +90,13 @@
         "hud.settings.shadow_rendering_mode.map.resolution": "Resolução",
         "hud.settings.lod_detail": "Detalhes",
         "hud.settings.save_window_size": "Salvar Dimensões da Janela",
+        "hud.settings.reset_graphics": "Voltar para o padrão",
 
 
         "hud.settings.music_volume": "Volume da Música",
         "hud.settings.sound_effect_volume": "Volume dos Efeitos",
         "hud.settings.audio_device": "Dispositivo de Áudio",
+        "hud.settings.reset_sound": "Voltar para o padrão",
 
         "hud.settings.awaitingkey": "Pressione uma tecla...",
         "hud.settings.unbound": "Nenhum",
