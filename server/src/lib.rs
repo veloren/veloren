@@ -2,6 +2,7 @@
 #![allow(clippy::option_map_unit_fn)]
 #![deny(clippy::clone_on_ref_ptr)]
 #![feature(
+    box_patterns,
     label_break_value,
     bool_to_option,
     drain_filter,
@@ -101,14 +102,16 @@ use tokio::{runtime::Runtime, sync::Notify};
 use tracing::{debug, error, info, trace};
 use vek::*;
 
+use crate::{
+    persistence::{DatabaseSettings, SqlLogMode},
+    sys::terrain,
+};
+use std::sync::RwLock;
 #[cfg(feature = "worldgen")]
 use world::{
     sim::{FileOpts, WorldOpts, DEFAULT_WORLD_MAP},
     IndexOwned, World,
 };
-
-#[macro_use] extern crate diesel;
-#[macro_use] extern crate diesel_migrations;
 
 #[derive(Copy, Clone)]
 struct SpawnPoint(Vec3<f32>);
@@ -122,6 +125,12 @@ pub struct Tick(u64);
 pub struct HwStats {
     hardware_threads: u32,
     rayon_threads: u32,
+}
+
+#[derive(Clone, Copy, PartialEq)]
+enum DisconnectType {
+    WithPersistence,
+    WithoutPersistence,
 }
 
 // Start of Tick, used for metrics
@@ -139,6 +148,8 @@ pub struct Server {
     runtime: Arc<Runtime>,
 
     metrics_shutdown: Arc<Notify>,
+    database_settings: Arc<RwLock<DatabaseSettings>>,
+    disconnect_all_clients_requested: bool,
 }
 
 impl Server {
@@ -148,6 +159,7 @@ impl Server {
     pub fn new(
         settings: Settings,
         editable_settings: EditableSettings,
+        database_settings: DatabaseSettings,
         data_dir: &std::path::Path,
         runtime: Arc<Runtime>,
     ) -> Result<Self, Error> {
@@ -156,15 +168,11 @@ impl Server {
             info!("Authentication is disabled");
         }
 
-        // Relative to data_dir
-        const PERSISTENCE_DB_DIR: &str = "saves";
-        let persistence_db_dir = data_dir.join(PERSISTENCE_DB_DIR);
-
         // Run pending DB migrations (if any)
         debug!("Running DB migrations...");
-        if let Some(e) = persistence::run_migrations(&persistence_db_dir).err() {
-            panic!("Migration error: {:?}", e);
-        }
+        persistence::run_migrations(&database_settings);
+
+        let database_settings = Arc::new(RwLock::new(database_settings));
 
         let registry = Arc::new(Registry::new());
         let chunk_gen_metrics = metrics::ChunkGenMetrics::new(&registry).unwrap();
@@ -203,9 +211,10 @@ impl Server {
         state
             .ecs_mut()
             .insert(ChunkGenerator::new(chunk_gen_metrics));
-        state
-            .ecs_mut()
-            .insert(CharacterUpdater::new(&persistence_db_dir)?);
+
+        state.ecs_mut().insert(CharacterUpdater::new(
+            Arc::<RwLock<DatabaseSettings>>::clone(&database_settings),
+        )?);
 
         let ability_map = comp::item::tool::AbilityMap::<CharacterAbility>::load_expect_cloned(
             "common.abilities.weapon_ability_manifest",
@@ -215,9 +224,9 @@ impl Server {
         let msm = comp::inventory::item::MaterialStatManifest::default();
         state.ecs_mut().insert(msm);
 
-        state
-            .ecs_mut()
-            .insert(CharacterLoader::new(&persistence_db_dir)?);
+        state.ecs_mut().insert(CharacterLoader::new(
+            Arc::<RwLock<DatabaseSettings>>::clone(&database_settings),
+        )?);
 
         // System schedulers to control execution of systems
         state
@@ -386,6 +395,8 @@ impl Server {
             runtime,
 
             metrics_shutdown,
+            database_settings,
+            disconnect_all_clients_requested: false,
         };
 
         debug!(?settings, "created veloren server with");
@@ -506,6 +517,10 @@ impl Server {
 
         let before_handle_events = Instant::now();
 
+        // Process any pending request to disconnect all clients, the disconnections
+        // will be processed once handle_events() is called below
+        let disconnect_type = self.disconnect_all_clients_if_requested();
+
         // Handle game events
         frontend_events.append(&mut self.handle_events());
 
@@ -529,6 +544,14 @@ impl Server {
         self.world.tick(dt);
 
         let before_entity_cleanup = Instant::now();
+
+        // In the event of a request to disconnect all players without persistence, we
+        // must run the terrain system a second time after the messages to
+        // perform client disconnections have been processed. This ensures that any
+        // items on the ground are deleted.
+        if let Some(DisconnectType::WithoutPersistence) = disconnect_type {
+            run_now::<terrain::Sys>(self.state.ecs_mut());
+        }
 
         // Remove NPCs that are outside the view distances of all players
         // This is done by removing NPCs in unloaded chunks
@@ -571,6 +594,17 @@ impl Server {
             if let Err(e) = self.state.delete_entity_recorded(entity) {
                 error!(?e, "Failed to delete agent outside the terrain");
             }
+        }
+
+        if let Some(DisconnectType::WithoutPersistence) = disconnect_type {
+            info!(
+                "Disconnection of all players without persistence complete, signalling to \
+                 persistence thread that character updates may continue to be processed"
+            );
+            self.state
+                .ecs()
+                .fetch_mut::<CharacterUpdater>()
+                .disconnected_success();
         }
 
         // 7 Persistence updates
@@ -771,6 +805,58 @@ impl Server {
                     .clone(),
             })?;
         Ok(Some(entity))
+    }
+
+    /// Disconnects all clients if requested by either an admin command or
+    /// due to a persistence transaction failure and returns the processed
+    /// DisconnectionType
+    fn disconnect_all_clients_if_requested(&mut self) -> Option<DisconnectType> {
+        let mut character_updater = self.state.ecs().fetch_mut::<CharacterUpdater>();
+
+        let disconnect_type = self.get_disconnect_all_clients_requested(&mut character_updater);
+        if let Some(disconnect_type) = disconnect_type {
+            let with_persistence = disconnect_type == DisconnectType::WithPersistence;
+            let clients = self.state.ecs().read_storage::<Client>();
+            let entities = self.state.ecs().entities();
+
+            info!(
+                "Disconnecting all clients ({} persistence) as requested",
+                if with_persistence { "with" } else { "without" }
+            );
+            for (_, entity) in (&clients, &entities).join() {
+                info!("Emitting client disconnect event for entity: {:?}", entity);
+                let event = if with_persistence {
+                    ServerEvent::ClientDisconnect(entity)
+                } else {
+                    ServerEvent::ClientDisconnectWithoutPersistence(entity)
+                };
+                self.state
+                    .ecs()
+                    .read_resource::<EventBus<ServerEvent>>()
+                    .emitter()
+                    .emit(event);
+            }
+
+            self.disconnect_all_clients_requested = false;
+        }
+
+        disconnect_type
+    }
+
+    fn get_disconnect_all_clients_requested(
+        &self,
+        character_updater: &mut CharacterUpdater,
+    ) -> Option<DisconnectType> {
+        let without_persistence_requested = character_updater.disconnect_all_clients_requested();
+        let with_persistence_requested = self.disconnect_all_clients_requested;
+
+        if without_persistence_requested {
+            return Some(DisconnectType::WithoutPersistence);
+        };
+        if with_persistence_requested {
+            return Some(DisconnectType::WithPersistence);
+        };
+        None
     }
 
     /// Handle new client connections.
@@ -1008,6 +1094,26 @@ impl Server {
         self.state
             .create_persister(pos, view_distance, &self.world, &self.index)
             .build();
+    }
+
+    /// Sets the SQL log mode at runtime
+    pub fn set_sql_log_mode(&mut self, sql_log_mode: SqlLogMode) {
+        // Unwrap is safe here because we only perform a variable assignment with the
+        // RwLock taken meaning that no panic can occur that would cause the
+        // RwLock to become poisoned. This justification also means that calling
+        // unwrap() on the associated read() calls for this RwLock is also safe
+        // as long as no code that can panic is introduced here.
+        let mut database_settings = self.database_settings.write().unwrap();
+        database_settings.sql_log_mode = sql_log_mode;
+        // Drop the RwLockWriteGuard to avoid performing unnecessary actions (logging)
+        // with the lock taken.
+        drop(database_settings);
+        info!("SQL log mode changed to {:?}", sql_log_mode);
+    }
+
+    pub fn disconnect_all_clients(&mut self) {
+        info!("Disconnecting all clients due to local console command");
+        self.disconnect_all_clients_requested = true;
     }
 }
 

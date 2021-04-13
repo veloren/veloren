@@ -4,7 +4,7 @@ use crate::persistence::{
 };
 
 use crate::persistence::{
-    error::Error,
+    error::PersistenceError,
     json_models::{self, CharacterPosition, HumanoidBody},
 };
 use common::{
@@ -23,6 +23,7 @@ use common::{
 use core::{convert::TryFrom, num::NonZeroU64};
 use hashbrown::HashMap;
 use std::{collections::VecDeque, sync::Arc};
+use tracing::trace;
 
 #[derive(Debug)]
 pub struct ItemModelPair {
@@ -174,17 +175,17 @@ pub fn convert_items_to_database_items(
         }
     }
     upserts.sort_by_key(|pair| (depth[&pair.model.item_id], pair.model.item_id));
-    tracing::debug!("upserts: {:#?}", upserts);
+    trace!("upserts: {:#?}", upserts);
     upserts
 }
 
-pub fn convert_body_to_database_json(body: &CompBody) -> Result<String, Error> {
+pub fn convert_body_to_database_json(body: &CompBody) -> Result<String, PersistenceError> {
     let json_model = match body {
         common::comp::Body::Humanoid(humanoid_body) => HumanoidBody::from(humanoid_body),
         _ => unimplemented!("Only humanoid bodies are currently supported for persistence"),
     };
 
-    serde_json::to_string(&json_model).map_err(Error::SerializationError)
+    serde_json::to_string(&json_model).map_err(PersistenceError::SerializationError)
 }
 
 pub fn convert_waypoint_to_database_json(waypoint: Option<Waypoint>) -> Option<String> {
@@ -196,7 +197,10 @@ pub fn convert_waypoint_to_database_json(waypoint: Option<Waypoint>) -> Option<S
             Some(
                 serde_json::to_string(&charpos)
                     .map_err(|err| {
-                        Error::ConversionError(format!("Error encoding waypoint: {:?}", err))
+                        PersistenceError::ConversionError(format!(
+                            "Error encoding waypoint: {:?}",
+                            err
+                        ))
                     })
                     .ok()?,
             )
@@ -205,10 +209,10 @@ pub fn convert_waypoint_to_database_json(waypoint: Option<Waypoint>) -> Option<S
     }
 }
 
-pub fn convert_waypoint_from_database_json(position: &str) -> Result<Waypoint, Error> {
+pub fn convert_waypoint_from_database_json(position: &str) -> Result<Waypoint, PersistenceError> {
     let character_position =
         serde_json::de::from_str::<CharacterPosition>(position).map_err(|err| {
-            Error::ConversionError(format!(
+            PersistenceError::ConversionError(format!(
                 "Error de-serializing waypoint: {} err: {}",
                 position, err
             ))
@@ -227,7 +231,7 @@ pub fn convert_inventory_from_database_items(
     loadout_container_id: i64,
     loadout_items: &[Item],
     msm: &MaterialStatManifest,
-) -> Result<Inventory, Error> {
+) -> Result<Inventory, PersistenceError> {
     // Loadout items must be loaded before inventory items since loadout items
     // provide inventory slots. Since items stored inside loadout items actually
     // have their parent_container_item_id as the loadout pseudo-container we rely
@@ -248,7 +252,7 @@ pub fn convert_inventory_from_database_items(
 
         // Item ID
         comp.store(Some(NonZeroU64::try_from(db_item.item_id as u64).map_err(
-            |_| Error::ConversionError("Item with zero item_id".to_owned()),
+            |_| PersistenceError::ConversionError("Item with zero item_id".to_owned()),
         )?));
 
         // Stack Size
@@ -257,13 +261,15 @@ pub fn convert_inventory_from_database_items(
             // (to be dropped next to the player) as this could be the result of
             // a change in the max amount for that item.
             item.set_amount(u32::try_from(db_item.stack_size).map_err(|_| {
-                Error::ConversionError(format!(
+                PersistenceError::ConversionError(format!(
                     "Invalid item stack size for stackable={}: {}",
                     item.is_stackable(),
                     &db_item.stack_size
                 ))
             })?)
-            .map_err(|_| Error::ConversionError("Error setting amount for item".to_owned()))?;
+            .map_err(|_| {
+                PersistenceError::ConversionError("Error setting amount for item".to_owned())
+            })?;
         }
 
         // Insert item into inventory
@@ -271,7 +277,7 @@ pub fn convert_inventory_from_database_items(
         // Slot position
         let slot = |s: &str| {
             serde_json::from_str::<InvSlotId>(s).map_err(|_| {
-                Error::ConversionError(format!(
+                PersistenceError::ConversionError(format!(
                     "Failed to parse item position: {:?}",
                     &db_item.position
                 ))
@@ -288,7 +294,7 @@ pub fn convert_inventory_from_database_items(
                 // (to be dropped next to the player) as this could be the
                 // result of a change in the slot capacity for an equipped bag
                 // (or a change in the inventory size).
-                Error::ConversionError(format!(
+                PersistenceError::ConversionError(format!(
                     "Error inserting item into inventory, position: {:?}",
                     slot
                 ))
@@ -298,7 +304,7 @@ pub fn convert_inventory_from_database_items(
                 // If inventory.insert returns an item, it means it was swapped for an item that
                 // already occupied the slot. Multiple items being stored in the database for
                 // the same slot is an error.
-                return Err(Error::ConversionError(
+                return Err(PersistenceError::ConversionError(
                     "Inserted an item into the same slot twice".to_string(),
                 ));
             }
@@ -306,14 +312,14 @@ pub fn convert_inventory_from_database_items(
             if let Some(Some(parent)) = inventory.slot_mut(slot(&inventory_items[j].position)?) {
                 parent.add_component(item, msm);
             } else {
-                return Err(Error::ConversionError(format!(
+                return Err(PersistenceError::ConversionError(format!(
                     "Parent slot {} for component {} was empty even though it occurred earlier in \
                      the loop?",
                     db_item.parent_container_item_id, db_item.item_id
                 )));
             }
         } else {
-            return Err(Error::ConversionError(format!(
+            return Err(PersistenceError::ConversionError(format!(
                 "Couldn't find parent item {} before item {} in inventory",
                 db_item.parent_container_item_id, db_item.item_id
             )));
@@ -327,7 +333,7 @@ pub fn convert_loadout_from_database_items(
     loadout_container_id: i64,
     database_items: &[Item],
     msm: &MaterialStatManifest,
-) -> Result<Loadout, Error> {
+) -> Result<Loadout, PersistenceError> {
     let loadout_builder = LoadoutBuilder::new();
     let mut loadout = loadout_builder.build();
     let mut item_indices = HashMap::new();
@@ -340,16 +346,18 @@ pub fn convert_loadout_from_database_items(
         // NOTE: item id is currently *unique*, so we can store the ID safely.
         let comp = item.get_item_id_for_database();
         comp.store(Some(NonZeroU64::try_from(db_item.item_id as u64).map_err(
-            |_| Error::ConversionError("Item with zero item_id".to_owned()),
+            |_| PersistenceError::ConversionError("Item with zero item_id".to_owned()),
         )?));
 
         let convert_error = |err| match err {
-            LoadoutError::InvalidPersistenceKey => {
-                Error::ConversionError(format!("Invalid persistence key: {}", &db_item.position))
-            },
-            LoadoutError::NoParentAtSlot => {
-                Error::ConversionError(format!("No parent item at slot: {}", &db_item.position))
-            },
+            LoadoutError::InvalidPersistenceKey => PersistenceError::ConversionError(format!(
+                "Invalid persistence key: {}",
+                &db_item.position
+            )),
+            LoadoutError::NoParentAtSlot => PersistenceError::ConversionError(format!(
+                "No parent item at slot: {}",
+                &db_item.position
+            )),
         };
 
         if db_item.parent_container_item_id == loadout_container_id {
@@ -363,7 +371,7 @@ pub fn convert_loadout_from_database_items(
                 })
                 .map_err(convert_error)?;
         } else {
-            return Err(Error::ConversionError(format!(
+            return Err(PersistenceError::ConversionError(format!(
                 "Couldn't find parent item {} before item {} in loadout",
                 db_item.parent_container_item_id, db_item.item_id
             )));
@@ -373,7 +381,7 @@ pub fn convert_loadout_from_database_items(
     Ok(loadout)
 }
 
-pub fn convert_body_from_database(body: &Body) -> Result<CompBody, Error> {
+pub fn convert_body_from_database(body: &Body) -> Result<CompBody, PersistenceError> {
     Ok(match body.variant.as_str() {
         "humanoid" => {
             let json_model = serde_json::de::from_str::<HumanoidBody>(&body.body_data)?;
@@ -381,13 +389,16 @@ pub fn convert_body_from_database(body: &Body) -> Result<CompBody, Error> {
                 species: common::comp::humanoid::ALL_SPECIES
                     .get(json_model.species as usize)
                     .ok_or_else(|| {
-                        Error::ConversionError(format!("Missing species: {}", json_model.species))
+                        PersistenceError::ConversionError(format!(
+                            "Missing species: {}",
+                            json_model.species
+                        ))
                     })?
                     .to_owned(),
                 body_type: common::comp::humanoid::ALL_BODY_TYPES
                     .get(json_model.body_type as usize)
                     .ok_or_else(|| {
-                        Error::ConversionError(format!(
+                        PersistenceError::ConversionError(format!(
                             "Missing body_type: {}",
                             json_model.body_type
                         ))
@@ -403,7 +414,7 @@ pub fn convert_body_from_database(body: &Body) -> Result<CompBody, Error> {
             })
         },
         _ => {
-            return Err(Error::ConversionError(
+            return Err(PersistenceError::ConversionError(
                 "Only humanoid bodies are supported for characters".to_string(),
             ));
         },
@@ -439,9 +450,9 @@ pub fn convert_stats_from_database(
     new_stats
 }
 
-fn get_item_from_asset(item_definition_id: &str) -> Result<common::comp::Item, Error> {
+fn get_item_from_asset(item_definition_id: &str) -> Result<common::comp::Item, PersistenceError> {
     common::comp::Item::new_from_asset(item_definition_id).map_err(|err| {
-        Error::AssetError(format!(
+        PersistenceError::AssetError(format!(
             "Error loading item asset: {} - {}",
             item_definition_id,
             err.to_string()
@@ -467,7 +478,7 @@ fn convert_skill_groups_from_database(skill_groups: &[SkillGroup]) -> Vec<skills
 fn convert_skills_from_database(skills: &[Skill]) -> HashMap<skills::Skill, Option<u16>> {
     let mut new_skills = HashMap::new();
     for skill in skills.iter() {
-        let new_skill = json_models::db_string_to_skill(&skill.skill_type);
+        let new_skill = json_models::db_string_to_skill(&skill.skill);
         new_skills.insert(new_skill, skill.level.map(|l| l as u16));
     }
     new_skills
@@ -497,7 +508,7 @@ pub fn convert_skills_to_database(
         .iter()
         .map(|(s, l)| Skill {
             entity_id,
-            skill_type: json_models::skill_to_db_string(*s),
+            skill: json_models::skill_to_db_string(*s),
             level: l.map(|l| l as i32),
         })
         .collect()

@@ -2,7 +2,7 @@ use crate::{persistence::character_updater, presence::Presence, sys::SysSchedule
 use common::comp::{Inventory, Stats, Waypoint};
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::PresenceKind;
-use specs::{Join, ReadExpect, ReadStorage, Write};
+use specs::{Join, ReadStorage, Write, WriteExpect};
 
 #[derive(Default)]
 pub struct Sys;
@@ -14,7 +14,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Stats>,
         ReadStorage<'a, Inventory>,
         ReadStorage<'a, Waypoint>,
-        ReadExpect<'a, character_updater::CharacterUpdater>,
+        WriteExpect<'a, character_updater::CharacterUpdater>,
         Write<'a, SysScheduler<Self>>,
     );
 
@@ -29,7 +29,7 @@ impl<'a> System<'a> for Sys {
             player_stats,
             player_inventories,
             player_waypoint,
-            updater,
+            mut updater,
             mut scheduler,
         ): Self::SystemData,
     ) {

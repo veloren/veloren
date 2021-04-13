@@ -1,25 +1,3 @@
-extern crate serde_json;
-
-use super::schema::{body, character, entity, item, skill, skill_group};
-
-#[derive(Debug, Insertable, PartialEq)]
-#[table_name = "entity"]
-pub struct Entity {
-    pub entity_id: i64,
-}
-
-#[derive(Insertable)]
-#[table_name = "character"]
-pub struct NewCharacter<'a> {
-    pub character_id: i64,
-    pub player_uuid: &'a str,
-    pub alias: &'a str,
-    pub waypoint: Option<String>,
-}
-
-#[derive(Identifiable, Queryable, Debug)]
-#[table_name = "character"]
-#[primary_key(character_id)]
 pub struct Character {
     pub character_id: i64,
     pub player_uuid: String,
@@ -27,9 +5,7 @@ pub struct Character {
     pub waypoint: Option<String>,
 }
 
-#[derive(Debug, Insertable, Queryable, AsChangeset)]
-#[table_name = "item"]
-#[primary_key(item_id)]
+#[derive(Debug)]
 pub struct Item {
     pub item_id: i64,
     pub parent_container_item_id: i64,
@@ -38,27 +14,18 @@ pub struct Item {
     pub position: String,
 }
 
-#[derive(Associations, Identifiable, Insertable, Queryable, Debug)]
-#[primary_key(body_id)]
-#[table_name = "body"]
 pub struct Body {
     pub body_id: i64,
     pub variant: String,
     pub body_data: String,
 }
 
-#[derive(Associations, Identifiable, Insertable, Queryable, Debug)]
-#[primary_key(entity_id, skill_type)]
-#[table_name = "skill"]
 pub struct Skill {
     pub entity_id: i64,
-    pub skill_type: String,
+    pub skill: String,
     pub level: Option<i32>,
 }
 
-#[derive(Associations, Identifiable, Insertable, Queryable, Debug)]
-#[primary_key(entity_id, skill_group_kind)]
-#[table_name = "skill_group"]
 pub struct SkillGroup {
     pub entity_id: i64,
     pub skill_group_kind: String,

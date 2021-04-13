@@ -4,6 +4,9 @@ const VELOREN_USERDATA_ENV: &str = "VELOREN_USERDATA";
 
 // TODO: consider expanding this to a general install strategy variable that is
 // also used for finding assets
+// TODO: Ensure there are no NUL (\0) characters in userdata_dir (possible on
+// MacOS but not Windows or Linux) as SQLite requires the database path does not
+// include this character.
 /// # `VELOREN_USERDATA_STRATEGY` environment variable
 /// Read during compilation
 /// Useful to set when compiling for distribution

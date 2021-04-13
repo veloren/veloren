@@ -1,6 +1,9 @@
 use common::clock::Clock;
 use crossbeam::channel::{bounded, unbounded, Receiver, Sender, TryRecvError};
-use server::{Error as ServerError, Event, Input, Server};
+use server::{
+    persistence::{DatabaseSettings, SqlLogMode},
+    Error as ServerError, Event, Input, Server,
+};
 use std::{
     sync::{
         atomic::{AtomicBool, AtomicUsize, Ordering},
@@ -95,6 +98,17 @@ impl Singleplayer {
 
         let settings2 = settings.clone();
 
+        // Relative to data_dir
+        const PERSISTENCE_DB_DIR: &str = "saves";
+
+        let database_settings = DatabaseSettings {
+            db_dir: server_data_dir.join(PERSISTENCE_DB_DIR),
+            sql_log_mode: SqlLogMode::Disabled, /* Voxygen doesn't take in command-line arguments
+                                                 * so SQL logging can't be enabled for
+                                                 * singleplayer without changing this line
+                                                 * manually */
+        };
+
         let paused = Arc::new(AtomicBool::new(false));
         let paused1 = Arc::clone(&paused);
 
@@ -109,6 +123,7 @@ impl Singleplayer {
                     match Server::new(
                         settings2,
                         editable_settings,
+                        database_settings,
                         &server_data_dir,
                         Arc::clone(&runtime),
                     ) {

@@ -1,5 +1,8 @@
 use super::Event;
-use crate::{client::Client, persistence, presence::Presence, state_ext::StateExt, Server};
+use crate::{
+    client::Client, persistence::character_updater::CharacterUpdater, presence::Presence,
+    state_ext::StateExt, Server,
+};
 use common::{
     comp,
     comp::group,
@@ -93,7 +96,11 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity) {
     }
 }
 
-pub fn handle_client_disconnect(server: &mut Server, entity: EcsEntity) -> Event {
+pub fn handle_client_disconnect(
+    server: &mut Server,
+    mut entity: EcsEntity,
+    skip_persistence: bool,
+) -> Event {
     span!(_guard, "handle_client_disconnect");
     if let Some(client) = server
         .state()
@@ -150,30 +157,45 @@ pub fn handle_client_disconnect(server: &mut Server, entity: EcsEntity) -> Event
     }
 
     // Sync the player's character data to the database
-    let entity = persist_entity(state, entity);
+    if !skip_persistence {
+        entity = persist_entity(state, entity);
+    }
 
     // Delete client entity
-    if let Err(e) = state.delete_entity_recorded(entity) {
+    if let Err(e) = server.state.delete_entity_recorded(entity) {
         error!(?e, ?entity, "Failed to delete disconnected client");
     }
 
     Event::ClientDisconnected { entity }
 }
 
+// When a player logs out, their data is queued for persistence in the next tick
+// of the persistence batch update. The player will be
+// temporarily unable to log in during this period to avoid
+// the race condition of their login fetching their old data
+// and overwriting the data saved here.
 fn persist_entity(state: &mut State, entity: EcsEntity) -> EcsEntity {
-    if let (Some(presences), Some(stats), Some(inventory), updater) = (
+    if let (Some(presence), Some(stats), Some(inventory), mut character_updater) = (
         state.read_storage::<Presence>().get(entity),
         state.read_storage::<comp::Stats>().get(entity),
         state.read_storage::<comp::Inventory>().get(entity),
-        state
-            .ecs()
-            .read_resource::<persistence::character_updater::CharacterUpdater>(),
+        state.ecs().fetch_mut::<CharacterUpdater>(),
     ) {
-        if let PresenceKind::Character(character_id) = presences.kind {
-            let waypoint_read = state.read_storage::<comp::Waypoint>();
-            let waypoint = waypoint_read.get(entity);
-            updater.update(character_id, stats, inventory, waypoint);
-        }
+        match presence.kind {
+            PresenceKind::Character(char_id) => {
+                let waypoint = state
+                    .ecs()
+                    .read_storage::<common::comp::Waypoint>()
+                    .get(entity)
+                    .cloned();
+
+                character_updater.add_pending_logout_update(
+                    char_id,
+                    (stats.clone(), inventory.clone(), waypoint),
+                );
+            },
+            PresenceKind::Spectator => { /* Do nothing, spectators do not need persisting */ },
+        };
     }
 
     entity

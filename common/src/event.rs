@@ -135,6 +135,7 @@ pub enum ServerEvent {
     },
     CreateWaypoint(Vec3<f32>),
     ClientDisconnect(EcsEntity),
+    ClientDisconnectWithoutPersistence(EcsEntity),
     ChunkRequest(EcsEntity, Vec2<i32>),
     ChatCmd(EcsEntity, String),
     /// Send a chat message to the player from an npc or other player
