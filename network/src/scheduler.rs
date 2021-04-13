@@ -294,7 +294,7 @@ impl Scheduler {
                         trace!(?pid, "Got request to close participant");
                         let pi = participants.lock().await.remove(&pid);
                         trace!(?pid, "dropped participants lock");
-                        if let Some(mut pi) = pi {
+                        let r = if let Some(mut pi) = pi {
                             let (finished_sender, finished_receiver) = oneshot::channel();
                             pi.s2b_shutdown_bparticipant_s
                                 .take()
@@ -305,12 +305,17 @@ impl Scheduler {
                             trace!(?pid, "dropped bparticipant, waiting for finish");
                             let e = finished_receiver.await.unwrap();
                             trace!(?pid, "waiting completed");
-                            return_once_successful_shutdown.send(e).unwrap();
+                            // can fail as api.rs has a timeout
+                            return_once_successful_shutdown.send(e)
                         } else {
                             debug!(?pid, "Looks like participant is already dropped");
-                            return_once_successful_shutdown.send(Ok(())).unwrap();
+                            return_once_successful_shutdown.send(Ok(()))
+                        };
+                        if r.is_err() {
+                            trace!(?pid, "Closed participant with timeout");
+                        } else {
+                            trace!(?pid, "Closed participant");
                         }
-                        trace!(?pid, "Closed participant");
                     }
                 },
             )
@@ -332,7 +337,9 @@ impl Scheduler {
 
     async fn scheduler_shutdown_mgr(&self, a2s_scheduler_shutdown_r: oneshot::Receiver<()>) {
         trace!("Start scheduler_shutdown_mgr");
-        a2s_scheduler_shutdown_r.await.unwrap();
+        if a2s_scheduler_shutdown_r.await.is_err() {
+            warn!("Schedule shutdown got triggered because a2s_scheduler_shutdown_r failed");
+        };
         info!("Shutdown of scheduler requested");
         self.closed.store(true, Ordering::SeqCst);
         debug!("Shutting down all BParticipants gracefully");
