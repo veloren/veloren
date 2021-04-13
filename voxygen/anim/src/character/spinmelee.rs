@@ -144,30 +144,28 @@ impl Animation for SpinMeleeAnimation {
             (_, _) => {},
         };
         match hands {
-            (Some(Hands::One), Some(Hands::One)) | (Some(Hands::One), None) => {
-                match ability_info.and_then(|a| a.tool) {
-                    Some(ToolKind::Sword) => {
-                        next.control_l.position = Vec3::new(-7.0, 8.0, 2.0);
-                        next.control_l.orientation = Quaternion::rotation_x(-0.3 + move1 * -0.5)
-                            * Quaternion::rotation_z(move1 * 1.57);
-                        next.hand_l.position = Vec3::new(0.0, -0.5, 0.0);
-                        next.hand_l.orientation = Quaternion::rotation_x(1.57)
-                    },
-                    Some(ToolKind::Axe) => {
-                        next.control_l.position = Vec3::new(-7.0, 8.0, 2.0);
-                        next.control_l.orientation = Quaternion::rotation_x(-0.3 + move1 * -1.3)
-                            * Quaternion::rotation_z(move1 * -1.57);
-                        next.hand_l.position = Vec3::new(0.0, -0.5, 0.0);
-                        next.hand_l.orientation = Quaternion::rotation_x(1.57)
-                    },
+            (Some(Hands::One), _) => match ability_info.and_then(|a| a.tool) {
+                Some(ToolKind::Sword) => {
+                    next.control_l.position = Vec3::new(-7.0, 8.0, 2.0);
+                    next.control_l.orientation = Quaternion::rotation_x(-0.3 + move1 * -0.5)
+                        * Quaternion::rotation_z(move1 * 1.57);
+                    next.hand_l.position = Vec3::new(0.0, -0.5, 0.0);
+                    next.hand_l.orientation = Quaternion::rotation_x(1.57)
+                },
+                Some(ToolKind::Axe) => {
+                    next.control_l.position = Vec3::new(-7.0, 8.0, 2.0);
+                    next.control_l.orientation = Quaternion::rotation_x(-0.3 + move1 * -1.3)
+                        * Quaternion::rotation_z(move1 * -1.57);
+                    next.hand_l.position = Vec3::new(0.0, -0.5, 0.0);
+                    next.hand_l.orientation = Quaternion::rotation_x(1.57)
+                },
 
-                    _ => {},
-                }
+                _ => {},
             },
             (_, _) => {},
         };
         match hands {
-            (Some(Hands::One), Some(Hands::One)) | (None, Some(Hands::One)) => {
+            (None | Some(Hands::One), Some(Hands::One)) => {
                 match ability_info.and_then(|a| a.tool) {
                     Some(ToolKind::Sword) => {
                         next.control_r.position = Vec3::new(7.0, 8.0, 2.0 + move1 * 10.0);

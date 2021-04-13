@@ -115,26 +115,23 @@ impl Animation for DashAnimation {
         };
 
         match hands {
-            (Some(Hands::One), Some(Hands::One)) | (Some(Hands::One), None) => {
-                match ability_info.and_then(|a| a.tool) {
-                    Some(ToolKind::Sword) | Some(ToolKind::SwordSimple) => {
-                        next.control_l.position =
-                            Vec3::new(-7.0, 8.0 + move3 * 5.0, 2.0 + move1 * 4.0);
-                        next.control_l.orientation =
-                            Quaternion::rotation_x(-0.3 + move2 * 1.0 + move3 * 1.0)
-                                * Quaternion::rotation_y(move1 * -1.2 + move3 * -1.5)
-                                * Quaternion::rotation_z(move2 * 1.0 + move3 * 1.5);
-                        next.hand_l.position = Vec3::new(0.0, -0.5, 0.0);
-                        next.hand_l.orientation = Quaternion::rotation_x(1.57)
-                    },
+            (Some(Hands::One), _) => match ability_info.and_then(|a| a.tool) {
+                Some(ToolKind::Sword) | Some(ToolKind::SwordSimple) => {
+                    next.control_l.position = Vec3::new(-7.0, 8.0 + move3 * 5.0, 2.0 + move1 * 4.0);
+                    next.control_l.orientation =
+                        Quaternion::rotation_x(-0.3 + move2 * 1.0 + move3 * 1.0)
+                            * Quaternion::rotation_y(move1 * -1.2 + move3 * -1.5)
+                            * Quaternion::rotation_z(move2 * 1.0 + move3 * 1.5);
+                    next.hand_l.position = Vec3::new(0.0, -0.5, 0.0);
+                    next.hand_l.orientation = Quaternion::rotation_x(1.57)
+                },
 
-                    _ => {},
-                }
+                _ => {},
             },
             (_, _) => {},
         };
         match hands {
-            (Some(Hands::One), Some(Hands::One)) | (None, Some(Hands::One)) => {
+            (None | Some(Hands::One), Some(Hands::One)) => {
                 match ability_info.and_then(|a| a.tool) {
                     Some(ToolKind::Sword) | Some(ToolKind::SwordSimple) => {
                         next.control_r.position = Vec3::new(

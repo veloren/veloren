@@ -109,30 +109,26 @@ impl Animation for ChargeswingAnimation {
         };
 
         match hands {
-            (Some(Hands::One), Some(Hands::One)) | (Some(Hands::One), None) => {
-                match ability_info.and_then(|a| a.tool) {
-                    Some(ToolKind::Hammer) | Some(ToolKind::HammerSimple) => {
-                        next.control_l.position = Vec3::new(
-                            -7.0 + move1 * 4.0,
-                            8.0 + move1 * 2.0 + move2 * 4.0,
-                            2.0 + move1 * -1.0 + slowrise * 20.0,
-                        );
-                        next.control_l.orientation = Quaternion::rotation_x(-0.3 + move2 * -1.0)
-                            * Quaternion::rotation_y(
-                                tension * 0.07 + move1 * -1.2 + slowrise * 0.5,
-                            )
-                            * Quaternion::rotation_z(move2 * 1.0);
-                        next.hand_l.position = Vec3::new(0.0, -0.5, 0.0);
-                        next.hand_l.orientation = Quaternion::rotation_x(1.57)
-                    },
+            (Some(Hands::One), _) => match ability_info.and_then(|a| a.tool) {
+                Some(ToolKind::Hammer) | Some(ToolKind::HammerSimple) => {
+                    next.control_l.position = Vec3::new(
+                        -7.0 + move1 * 4.0,
+                        8.0 + move1 * 2.0 + move2 * 4.0,
+                        2.0 + move1 * -1.0 + slowrise * 20.0,
+                    );
+                    next.control_l.orientation = Quaternion::rotation_x(-0.3 + move2 * -1.0)
+                        * Quaternion::rotation_y(tension * 0.07 + move1 * -1.2 + slowrise * 0.5)
+                        * Quaternion::rotation_z(move2 * 1.0);
+                    next.hand_l.position = Vec3::new(0.0, -0.5, 0.0);
+                    next.hand_l.orientation = Quaternion::rotation_x(1.57)
+                },
 
-                    _ => {},
-                }
+                _ => {},
             },
             (_, _) => {},
         };
         match hands {
-            (Some(Hands::One), Some(Hands::One)) | (None, Some(Hands::One)) => {
+            (None | Some(Hands::One), Some(Hands::One)) => {
                 match ability_info.and_then(|a| a.tool) {
                     Some(ToolKind::Hammer) | Some(ToolKind::HammerSimple) => {
                         next.control_r.position = Vec3::new(
