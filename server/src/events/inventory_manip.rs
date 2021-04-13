@@ -613,7 +613,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
         },
     }
     // Drop items, Debug items should simply disappear when dropped
-    for (pos, ori, item) in dropped_items
+    for (pos, ori, mut item) in dropped_items
         .into_iter()
         .filter(|(_, _, i)| !matches!(i.quality(), item::Quality::Debug))
     {
@@ -622,6 +622,16 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             "common.items.utility.coins" => comp::object::Body::Coins,
             _ => comp::object::Body::Pouch,
         };
+
+        // If item is a container check inside of it for Debug items and remove them
+        item.slots_mut().iter_mut().for_each(|x| {
+            if let Some(contained_item) = &x {
+                if matches!(contained_item.quality(), item::Quality::Debug) {
+                    std::mem::take(x);
+                }
+            }
+        });
+
         state
             .create_object(Default::default(), body)
             .with(comp::Pos(pos.0 + *ori.look_dir() + Vec3::unit_z()))
