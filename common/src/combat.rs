@@ -12,8 +12,8 @@ use crate::{
         },
         poise::PoiseChange,
         skills::SkillGroupKind,
-        Body, CharacterState, Combo, Energy, EnergyChange, EnergySource, Health, HealthChange, HealthSource,
-        Inventory, Ori, SkillSet, Stats,
+        Body, CharacterState, Combo, Energy, EnergyChange, EnergySource, Health, HealthChange,
+        HealthSource, Inventory, Ori, SkillSet, Stats,
     },
     event::ServerEvent,
     outcome::Outcome,
@@ -125,7 +125,11 @@ impl Attack {
                 {
                     if ori.look_vec().angle_between(-*dir) < data.static_data.max_angle.to_radians()
                     {
-                        data.static_data.block_strength
+                        if data.parry {
+                            1.0
+                        } else {
+                            data.static_data.block_strength
+                        }
                     } else {
                         0.0
                     }

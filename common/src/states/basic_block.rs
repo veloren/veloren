@@ -49,14 +49,18 @@ impl CharacterBehavior for Data {
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0))
                             .unwrap_or_default(),
-                        parry: !input_is_pressed(data, InputKind::Block),
+                        parry: self.parry || !input_is_pressed(data, InputKind::Block),
                         ..*self
                     });
                 } else {
                     // Transitions to swing section of stage
                     update.character = CharacterState::BasicBlock(Data {
                         timer: Duration::default(),
-                        stage_section: StageSection::Swing,
+                        stage_section: if self.parry {
+                            StageSection::Recover
+                        } else {
+                            StageSection::Swing
+                        },
                         ..*self
                     });
                 }
