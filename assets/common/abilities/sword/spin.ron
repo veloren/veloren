@@ -7,7 +7,7 @@ SpinMelee(
     knockback: ( strength: 10.0, direction: Away),
     range: 3.5,
     damage_effect: None,
-    energy_cost: 0,
+    energy_cost: 150,
     is_infinite: false,
     movement_behavior: ForwardGround,
     is_interruptible: true,

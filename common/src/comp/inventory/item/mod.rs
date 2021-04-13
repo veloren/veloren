@@ -265,11 +265,9 @@ impl TryFrom<(&ItemKind, &[Item], &AbilityMap, &MaterialStatManifest)> for ItemC
             Ok(ItemConfig {
                 abilities,
                 block_ability: None,
-                dodge_ability: Some(CharacterAbility::default_roll()),
             })
         } else {
             Err(ItemConfigError::BadItemKind)
-            };
         }
     }
 }
