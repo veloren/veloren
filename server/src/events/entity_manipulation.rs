@@ -15,7 +15,7 @@ use common::{
         chat::{KillSource, KillType},
         inventory::item::MaterialStatManifest,
         object, Alignment, Body, CharacterState, Energy, EnergyChange, Group, Health, HealthChange,
-        HealthSource, Inventory, Player, Poise, PoiseChange, PoiseSource, Pos, Stats,
+        HealthSource, Inventory, Player, Poise, PoiseChange, PoiseSource, Pos, SkillSet, Stats,
     },
     event::{EventBus, ServerEvent},
     lottery::{LootSpec, Lottery},
@@ -178,7 +178,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
 
     // Give EXP to the killer if entity had stats
     (|| {
-        let mut stats = state.ecs().write_storage::<Stats>();
+        let mut skill_set = state.ecs().write_storage::<SkillSet>();
         let healths = state.ecs().read_storage::<Health>();
         let inventories = state.ecs().read_storage::<Inventory>();
         let players = state.ecs().read_storage::<Player>();
@@ -193,18 +193,23 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
         } else {
             return;
         };
-        let (entity_stats, entity_health, entity_inventory, entity_body) = if let (
-            Some(entity_stats),
+        let (entity_skill_set, entity_health, entity_inventory, entity_body) = if let (
+            Some(entity_skill_set),
             Some(entity_health),
             Some(entity_inventory),
             Some(entity_body),
         ) = (
-            stats.get(entity),
+            skill_set.get(entity),
             healths.get(entity),
             inventories.get(entity),
             bodies.get(entity),
         ) {
-            (entity_stats, entity_health, entity_inventory, entity_body)
+            (
+                entity_skill_set,
+                entity_health,
+                entity_inventory,
+                entity_body,
+            )
         } else {
             return;
         };
@@ -228,7 +233,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
         let mut exp_reward = combat::combat_rating(
             entity_inventory,
             entity_health,
-            entity_stats,
+            entity_skill_set,
             *entity_body,
             &msm,
         ) * 2.5;
@@ -268,24 +273,24 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
             // Divides exp reward by square root of number of people in group
             exp_reward /= (non_pet_group_members_in_range as f32).sqrt();
             members_in_range.into_iter().for_each(|(e, uid)| {
-                if let (Some(inventory), Some(mut stats)) = (inventories.get(e), stats.get_mut(e)) {
-                    handle_exp_gain(exp_reward, inventory, &mut stats, uid, &mut outcomes);
+                if let (Some(inventory), Some(mut skill_set)) =
+                    (inventories.get(e), skill_set.get_mut(e))
+                {
+                    handle_exp_gain(exp_reward, inventory, &mut skill_set, uid, &mut outcomes);
                 }
             });
         }
 
-        if let (Some(mut attacker_stats), Some(attacker_uid), Some(attacker_inventory)) = (
-            stats.get_mut(attacker),
+        if let (Some(mut attacker_skill_set), Some(attacker_uid), Some(attacker_inventory)) = (
+            skill_set.get_mut(attacker),
             uids.get(attacker),
             inventories.get(attacker),
         ) {
-            // TODO: Discuss whether we should give EXP by Player
-            // Killing or not.
-            // attacker_stats.exp.change_by(exp_reward.ceil() as i64);
+            // TODO: Discuss whether we should give EXP by Player Killing or not.
             handle_exp_gain(
                 exp_reward,
                 attacker_inventory,
-                &mut attacker_stats,
+                &mut attacker_skill_set,
                 attacker_uid,
                 &mut outcomes,
             );
@@ -856,7 +861,7 @@ pub fn handle_energy_change(server: &Server, entity: EcsEntity, change: EnergyCh
 fn handle_exp_gain(
     exp_reward: f32,
     inventory: &Inventory,
-    stats: &mut Stats,
+    skill_set: &mut SkillSet,
     uid: &Uid,
     outcomes: &mut Vec<Outcome>,
 ) {
@@ -864,26 +869,18 @@ fn handle_exp_gain(
     let mut xp_pools = HashSet::<SkillGroupKind>::new();
     xp_pools.insert(SkillGroupKind::General);
     if let Some(w) = main_tool_kind {
-        if stats
-            .skill_set
-            .contains_skill_group(SkillGroupKind::Weapon(w))
-        {
+        if skill_set.contains_skill_group(SkillGroupKind::Weapon(w)) {
             xp_pools.insert(SkillGroupKind::Weapon(w));
         }
     }
     if let Some(w) = second_tool_kind {
-        if stats
-            .skill_set
-            .contains_skill_group(SkillGroupKind::Weapon(w))
-        {
+        if skill_set.contains_skill_group(SkillGroupKind::Weapon(w)) {
             xp_pools.insert(SkillGroupKind::Weapon(w));
         }
     }
     let num_pools = xp_pools.len() as f32;
     for pool in xp_pools {
-        stats
-            .skill_set
-            .change_experience(pool, (exp_reward / num_pools).ceil() as i32);
+        skill_set.change_experience(pool, (exp_reward / num_pools).ceil() as i32);
     }
     outcomes.push(Outcome::ExpChange {
         uid: *uid,

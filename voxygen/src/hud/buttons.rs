@@ -9,7 +9,7 @@ use crate::{
     GlobalState,
 };
 use client::Client;
-use common::comp::Stats;
+use common::comp::{SkillSet, Stats};
 use conrod_core::{
     widget::{self, Button, Image, Text},
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
@@ -59,6 +59,7 @@ pub struct Buttons<'a> {
     tooltip_manager: &'a mut TooltipManager,
     localized_strings: &'a Localization,
     stats: &'a Stats,
+    skill_set: &'a SkillSet,
     pulse: f32,
 }
 
@@ -74,6 +75,7 @@ impl<'a> Buttons<'a> {
         tooltip_manager: &'a mut TooltipManager,
         localized_strings: &'a Localization,
         stats: &'a Stats,
+        skill_set: &'a SkillSet,
         pulse: f32,
     ) -> Self {
         Self {
@@ -87,6 +89,7 @@ impl<'a> Buttons<'a> {
             tooltip_manager,
             localized_strings,
             stats,
+            skill_set,
             pulse,
         }
     }
@@ -335,7 +338,7 @@ impl<'a> Widget for Buttons<'a> {
                 .set(state.ids.map_text, ui);
         }
         // Diary
-        let unspent_sp = self.stats.skill_set.has_available_sp();
+        let unspent_sp = self.skill_set.has_available_sp();
         if Button::image(if !unspent_sp {
             self.imgs.spellbook_button
         } else {

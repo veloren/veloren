@@ -5,6 +5,7 @@ target
 
 **/*.vi
 **/*.swp
+**/*tags
 
 # IntelliJ
 

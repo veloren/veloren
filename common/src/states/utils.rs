@@ -302,11 +302,7 @@ pub fn handle_orientation(data: &JoinData, update: &mut StateUpdate, rate: f32) 
 fn swim_move(data: &JoinData, update: &mut StateUpdate, efficiency: f32, depth: f32) {
     let mut water_accel = BASE_HUMANOID_WATER_ACCEL;
     let mut water_speed = BASE_HUMANOID_WATER_SPEED;
-    if let Ok(Some(level)) = data
-        .stats
-        .skill_set
-        .skill_level(Skill::Swim(SwimSkill::Speed))
-    {
+    if let Ok(Some(level)) = data.skill_set.skill_level(Skill::Swim(SwimSkill::Speed)) {
         water_speed *= 1.4_f32.powi(level.into());
         water_accel *= 1.4_f32.powi(level.into());
     }
@@ -501,8 +497,7 @@ fn handle_ability(data: &JoinData, update: &mut StateUpdate, input: InputKind) {
     };
 
     let unlocked = |(s, a): (Option<Skill>, CharacterAbility)| {
-        s.map_or(true, |s| data.stats.skill_set.has_skill(s))
-            .then_some(a)
+        s.map_or(true, |s| data.skill_set.has_skill(s)).then_some(a)
     };
 
     if let Some(equip_slot) = equip_slot {
@@ -523,7 +518,7 @@ fn handle_ability(data: &JoinData, update: &mut StateUpdate, input: InputKind) {
             })
             .map(|a| {
                 let tool = unwrap_tool_data(data, equip_slot).map(|t| t.kind);
-                a.adjusted_by_skills(&data.stats.skill_set, tool)
+                a.adjusted_by_skills(&data.skill_set, tool)
             })
             .filter(|ability| ability.requirements_paid(data, update))
         {
@@ -570,8 +565,7 @@ pub fn attempt_input(data: &JoinData, update: &mut StateUpdate) {
 /// attempts to perform their dodge ability
 pub fn handle_dodge_input(data: &JoinData, update: &mut StateUpdate) {
     if input_is_pressed(data, InputKind::Roll) && data.body.is_humanoid() {
-        let ability =
-            CharacterAbility::default_roll().adjusted_by_skills(&data.stats.skill_set, None);
+        let ability = CharacterAbility::default_roll().adjusted_by_skills(&data.skill_set, None);
         if ability.requirements_paid(data, update) {
             update.character = CharacterState::from((
                 &ability,

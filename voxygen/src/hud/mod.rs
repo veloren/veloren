@@ -959,6 +959,7 @@ impl Hud {
             let ecs = client.state().ecs();
             let pos = ecs.read_storage::<comp::Pos>();
             let stats = ecs.read_storage::<comp::Stats>();
+            let skill_sets = ecs.read_storage::<comp::SkillSet>();
             let healths = ecs.read_storage::<comp::Health>();
             let buffs = ecs.read_storage::<comp::Buffs>();
             let energy = ecs.read_storage::<comp::Energy>();
@@ -1456,11 +1457,12 @@ impl Hud {
             let speech_bubbles = &self.speech_bubbles;
 
             // Render overhead name tags and health bars
-            for (pos, info, bubble, _, health, _, height_offset, hpfl, in_group) in (
+            for (pos, info, bubble, _, _, health, _, height_offset, hpfl, in_group) in (
                 &entities,
                 &pos,
                 interpolated.maybe(),
                 &stats,
+                &skill_sets,
                 healths.maybe(),
                 &buffs,
                 energy.maybe(),
@@ -1472,7 +1474,7 @@ impl Hud {
             )
                 .join()
                 .filter(|t| {
-                    let health = t.4;
+                    let health = t.5;
                     let entity = t.0;
                     entity != me && !health.map_or(false, |h| h.is_dead)
                 })
@@ -1482,6 +1484,7 @@ impl Hud {
                         pos,
                         interpolated,
                         stats,
+                        skill_set,
                         health,
                         buffs,
                         energy,
@@ -1523,7 +1526,7 @@ impl Hud {
                             buffs,
                             energy,
                             combat_rating: health.map_or(0.0, |health| {
-                                combat::combat_rating(inventory, health, stats, *body, &msm)
+                                combat::combat_rating(inventory, health, skill_set, *body, &msm)
                             }),
                         });
                         let bubble = if dist_sqr < SPEECH_BUBBLE_RANGE.powi(2) {
@@ -1538,6 +1541,7 @@ impl Hud {
                                 info,
                                 bubble,
                                 stats,
+                                skill_set,
                                 health,
                                 buffs,
                                 body.height() * scale.map_or(1.0, |s| s.0) + 0.5,
@@ -2167,10 +2171,12 @@ impl Hud {
 
         // Bag button and nearby icons
         let ecs = client.state().ecs();
+        let entity = client.entity();
         let stats = ecs.read_storage::<comp::Stats>();
+        let skill_sets = ecs.read_storage::<comp::SkillSet>();
         let buffs = ecs.read_storage::<comp::Buffs>();
         let msm = ecs.read_resource::<MaterialStatManifest>();
-        if let Some(player_stats) = stats.get(client.entity()) {
+        if let (Some(player_stats), Some(skill_set)) = (stats.get(entity), skill_sets.get(entity)) {
             match Buttons::new(
                 client,
                 self.show.bag,
@@ -2181,6 +2187,7 @@ impl Hud {
                 tooltip_manager,
                 i18n,
                 &player_stats,
+                &skill_set,
                 self.pulse,
             )
             .set(self.ids.buttons, ui_widgets)
@@ -2342,8 +2349,9 @@ impl Hud {
         }
         // Bag contents
         if self.show.bag {
-            if let (Some(player_stats), Some(health), Some(energy), Some(body)) = (
+            if let (Some(player_stats), Some(skill_set), Some(health), Some(energy), Some(body)) = (
                 stats.get(client.entity()),
+                skill_sets.get(client.entity()),
                 healths.get(entity),
                 energies.get(entity),
                 bodies.get(entity),
@@ -2360,6 +2368,7 @@ impl Hud {
                     self.pulse,
                     i18n,
                     &player_stats,
+                    &skill_set,
                     &health,
                     &energy,
                     &self.show,
@@ -2758,12 +2767,12 @@ impl Hud {
         // Diary
         if self.show.diary {
             let entity = client.entity();
-            let stats = ecs.read_storage::<comp::Stats>();
-            if let Some(stats) = stats.get(entity) {
+            let skill_sets = ecs.read_storage::<comp::SkillSet>();
+            if let Some(skill_set) = skill_sets.get(entity) {
                 for event in Diary::new(
                     &self.show,
                     client,
-                    &stats,
+                    &skill_set,
                     &self.imgs,
                     &self.item_imgs,
                     &self.fonts,

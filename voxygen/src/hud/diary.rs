@@ -18,7 +18,7 @@ use client::{self, Client};
 use common::comp::{
     item::tool::ToolKind,
     skills::{self, Skill},
-    Stats,
+    SkillSet,
 };
 
 widget_ids! {
@@ -175,8 +175,7 @@ widget_ids! {
 pub struct Diary<'a> {
     show: &'a Show,
     _client: &'a Client,
-    stats: &'a Stats,
-
+    skill_set: &'a SkillSet,
     imgs: &'a Imgs,
     item_imgs: &'a ItemImgs,
     fonts: &'a Fonts,
@@ -198,7 +197,7 @@ impl<'a> Diary<'a> {
     pub fn new(
         show: &'a Show,
         _client: &'a Client,
-        stats: &'a Stats,
+        skill_set: &'a SkillSet,
         imgs: &'a Imgs,
         item_imgs: &'a ItemImgs,
         fonts: &'a Fonts,
@@ -210,7 +209,7 @@ impl<'a> Diary<'a> {
         Self {
             show,
             _client,
-            stats,
+            skill_set,
             imgs,
             item_imgs,
             fonts,
@@ -227,15 +226,6 @@ impl<'a> Diary<'a> {
         }
     }
 }
-
-/*pub struct State {
-    ids: Ids,
-}*/
-
-/*pub enum DiaryTab {
-    SkillTrees,
-    Achievements,
-}*/
 
 pub type SelectedSkillTree = skills::SkillGroupKind;
 
@@ -289,8 +279,7 @@ impl<'a> Widget for Diary<'a> {
         .font_id(self.fonts.cyri.conrod_id)
         .desc_text_color(TEXT_COLOR);
         let sel_tab = &self.show.skilltreetab;
-        let frame_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.8; //Animation timer
-        // Frame
+        let frame_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.8; //Animation timer Frame
         Image::new(self.imgs.diary_bg)
             .w_h(1202.0, 886.0)
             .mid_top_with_margin_on(ui.window, 5.0)
@@ -353,7 +342,7 @@ impl<'a> Widget for Diary<'a> {
         });
         for i in TREES.iter().copied().enumerate() {
             let locked = !skill_tree_from_str(i.1)
-                .map_or(false, |st| self.stats.skill_set.contains_skill_group(st));
+                .map_or(false, |st| self.skill_set.contains_skill_group(st));
 
             // Background weapon image
             let img = Image::new(match i.1 {
@@ -392,8 +381,8 @@ impl<'a> Widget for Diary<'a> {
                 .map(|st| {
                     (
                         st,
-                        self.stats.skill_set.available_sp(st),
-                        self.stats.skill_set.earned_sp(st),
+                        self.skill_set.available_sp(st),
+                        self.skill_set.earned_sp(st),
                     )
                 })
                 .map_or(false, |(st, a_pts, e_pts)| {
@@ -439,13 +428,13 @@ impl<'a> Widget for Diary<'a> {
             }
         }
         // Exp Bars and Rank Display
-        let current_exp = self.stats.skill_set.experience(*sel_tab) as f64;
-        let max_exp = self.stats.skill_set.skill_point_cost(*sel_tab) as f64;
+        let current_exp = self.skill_set.experience(*sel_tab) as f64;
+        let max_exp = self.skill_set.skill_point_cost(*sel_tab) as f64;
         let exp_percentage = current_exp / max_exp;
-        let rank = self.stats.skill_set.earned_sp(*sel_tab);
+        let rank = self.skill_set.earned_sp(*sel_tab);
         let rank_txt = format!("{}", rank);
         let exp_txt = format!("{}/{}", current_exp, max_exp);
-        let available_pts = self.stats.skill_set.available_sp(*sel_tab);
+        let available_pts = self.skill_set.available_sp(*sel_tab);
         let available_pts_txt = format!("{}", available_pts);
         Image::new(self.imgs.diary_exp_bg)
             .w_h(480.0, 76.0)
@@ -744,10 +733,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.health_plus_skill,
                     state.skills_top_l[0],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -755,7 +744,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.inc_health"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -770,10 +759,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.stamina_plus_skill,
                     state.skills_top_l[1],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -781,7 +770,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.inc_stam"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -797,10 +786,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.unlock_sword_skill,
                     state.skills_top_r[0],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -808,7 +797,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.unlck_sword"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -823,10 +812,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.unlock_axe_skill,
                     state.skills_top_r[1],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -834,7 +823,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.unlck_axe"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -849,10 +838,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.unlock_hammer_skill,
                     state.skills_top_r[2],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -860,7 +849,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.unlck_hammer"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -875,10 +864,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.unlock_bow_skill,
                     state.skills_top_r[3],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -886,7 +875,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.unlck_bow"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -901,10 +890,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.unlock_staff_skill0,
                     state.skills_top_r[4],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -912,7 +901,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.unlck_staff"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -927,10 +916,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.unlock_sceptre_skill,
                     state.skills_top_r[5],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -938,7 +927,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.unlck_sceptre"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -954,10 +943,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.skill_dodge_skill,
                     state.skills_bot_l[0],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -965,7 +954,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.dodge"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -980,10 +969,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.utility_cost_skill,
                     state.skills_bot_l[1],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -991,7 +980,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.roll_stamina"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -1006,10 +995,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.utility_speed_skill,
                     state.skills_bot_l[2],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -1017,7 +1006,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.roll_speed"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -1032,10 +1021,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.utility_duration_skill,
                     state.skills_bot_l[3],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -1043,7 +1032,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.roll_dur"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -1070,10 +1059,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.utility_cost_skill,
                     state.skills_bot_r[1],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -1081,7 +1070,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.climbing_cost"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -1096,10 +1085,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.utility_speed_skill,
                     state.skills_bot_r[2],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -1107,7 +1096,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.climbing_speed"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -1134,10 +1123,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.utility_speed_skill,
                     state.skills_bot_r[4],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -1145,7 +1134,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.swim_speed"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -1189,10 +1178,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_combo_skill,
                     state.skills_top_l[1],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -1202,7 +1191,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.sw_trip_str_combo"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -1217,10 +1206,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_damage_skill,
                     state.skills_top_l[2],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -1230,7 +1219,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.sw_trip_str_dmg"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -1245,10 +1234,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_speed_skill,
                     state.skills_top_l[3],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -1256,7 +1245,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.sw_trip_str_sp"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -1271,10 +1260,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_energy_regen_skill,
                     state.skills_top_l[4],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -1284,7 +1273,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.sw_trip_str_reg"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -1311,10 +1300,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_damage_skill,
                     state.skills_top_r[1],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -1322,7 +1311,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.sw_dash_dmg"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -1337,10 +1326,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_energy_drain_skill,
                     state.skills_top_r[2],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -1348,7 +1337,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.sw_dash_drain"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -1363,10 +1352,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_cost_skill,
                     state.skills_top_r[3],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -1374,7 +1363,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.sw_dash_cost"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -1389,10 +1378,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_speed_skill,
                     state.skills_top_r[4],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -1400,7 +1389,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.sw_dash_speed"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -1415,10 +1404,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_infinite_skill,
                     state.skills_top_r[5],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -1426,7 +1415,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.sw_dash_inf"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -1441,10 +1430,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_amount_skill,
                     state.skills_top_r[6],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -1452,7 +1441,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.sw_dash_scale"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -1468,10 +1457,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.sword_whirlwind,
                     state.skills_bot_l[0],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -1479,7 +1468,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.sw_spin"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -1494,10 +1483,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_damage_skill,
                     state.skills_bot_l[1],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -1505,7 +1494,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.sw_spin_dmg"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -1520,10 +1509,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_damage_skill,
                     state.skills_bot_l[2],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -1531,7 +1520,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.sw_spin_spd"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -1546,10 +1535,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_cost_skill,
                     state.skills_bot_l[3],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -1557,7 +1546,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.sw_spin_cost"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -1572,10 +1561,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_amount_skill,
                     state.skills_bot_l[4],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -1583,7 +1572,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.sw_spin_spins"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -1599,10 +1588,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_damage_skill,
                     state.skills_bot_r[0],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -1610,7 +1599,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.sw_interrupt"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -1656,10 +1645,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_combo_skill,
                     state.skills_top_l[1],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -1671,7 +1660,7 @@ impl<'a> Widget for Diary<'a> {
                             .localized_strings
                             .get("hud.skill.axe_double_strike_combo"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -1686,10 +1675,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_damage_skill,
                     state.skills_top_l[2],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -1701,7 +1690,7 @@ impl<'a> Widget for Diary<'a> {
                             .localized_strings
                             .get("hud.skill.axe_double_strike_damage"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -1716,10 +1705,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_speed_skill,
                     state.skills_top_l[3],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -1731,7 +1720,7 @@ impl<'a> Widget for Diary<'a> {
                             .localized_strings
                             .get("hud.skill.axe_double_strike_speed"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -1746,10 +1735,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_energy_regen_skill,
                     state.skills_top_l[4],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -1761,7 +1750,7 @@ impl<'a> Widget for Diary<'a> {
                             .localized_strings
                             .get("hud.skill.axe_double_strike_regen"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -1788,10 +1777,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_infinite_skill,
                     state.skills_top_r[1],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -1803,7 +1792,7 @@ impl<'a> Widget for Diary<'a> {
                             .localized_strings
                             .get("hud.skill.axe_infinite_axe_spin"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -1818,10 +1807,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_damage_skill,
                     state.skills_top_r[2],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -1831,7 +1820,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.axe_spin_damage"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -1846,10 +1835,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_helicopter_skill,
                     state.skills_top_r[3],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -1859,7 +1848,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.axe_spin_helicopter"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -1874,10 +1863,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_speed_skill,
                     state.skills_top_r[4],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -1885,7 +1874,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.axe_spin_speed"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -1900,10 +1889,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_cost_skill,
                     state.skills_top_r[5],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -1911,7 +1900,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.axe_spin_cost"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -1927,10 +1916,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.skill_axe_leap_slash,
                     state.skills_bot_l[0],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -1940,7 +1929,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.axe_unlock_leap"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -1955,10 +1944,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_damage_skill,
                     state.skills_bot_l[1],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -1968,7 +1957,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.axe_leap_damage"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -1983,10 +1972,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_knockback_skill,
                     state.skills_bot_l[2],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -1996,7 +1985,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.axe_leap_knockback"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -2011,10 +2000,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_cost_skill,
                     state.skills_bot_l[3],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -2022,7 +2011,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.axe_leap_cost"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -2037,10 +2026,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_distance_skill,
                     state.skills_bot_l[4],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -2050,7 +2039,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.axe_leap_distance"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -2096,10 +2085,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_knockback_skill,
                     state.skills_top_l[1],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -2111,7 +2100,7 @@ impl<'a> Widget for Diary<'a> {
                             .localized_strings
                             .get("hud.skill.hmr_single_strike_knockback"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -2126,10 +2115,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_damage_skill,
                     state.skills_top_l[2],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -2141,7 +2130,7 @@ impl<'a> Widget for Diary<'a> {
                             .localized_strings
                             .get("hud.skill.hmr_single_strike_damage"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -2156,10 +2145,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_speed_skill,
                     state.skills_top_l[3],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -2171,7 +2160,7 @@ impl<'a> Widget for Diary<'a> {
                             .localized_strings
                             .get("hud.skill.hmr_single_strike_speed"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -2186,10 +2175,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_energy_regen_skill,
                     state.skills_top_l[4],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -2201,7 +2190,7 @@ impl<'a> Widget for Diary<'a> {
                             .localized_strings
                             .get("hud.skill.hmr_single_strike_regen"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -2230,10 +2219,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_knockback_skill,
                     state.skills_top_r[1],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -2245,7 +2234,7 @@ impl<'a> Widget for Diary<'a> {
                             .localized_strings
                             .get("hud.skill.hmr_charged_melee_knockback"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -2260,10 +2249,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_damage_skill,
                     state.skills_top_r[2],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -2275,7 +2264,7 @@ impl<'a> Widget for Diary<'a> {
                             .localized_strings
                             .get("hud.skill.hmr_charged_melee_damage"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -2290,10 +2279,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_energy_drain_skill,
                     state.skills_top_r[3],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -2305,7 +2294,7 @@ impl<'a> Widget for Diary<'a> {
                             .localized_strings
                             .get("hud.skill.hmr_charged_melee_nrg_drain"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -2320,10 +2309,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_amount_skill,
                     state.skills_top_r[4],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -2333,7 +2322,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.hmr_charged_rate"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -2349,10 +2338,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.hammerleap,
                     state.skills_bot_l[0],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -2362,7 +2351,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.hmr_unlock_leap"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -2377,10 +2366,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_damage_skill,
                     state.skills_bot_l[1],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -2390,7 +2379,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.hmr_leap_damage"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -2405,10 +2394,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_knockback_skill,
                     state.skills_bot_l[2],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -2418,7 +2407,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.hmr_leap_knockback"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -2433,10 +2422,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_cost_skill,
                     state.skills_bot_l[3],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -2444,7 +2433,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.hmr_leap_cost"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -2459,10 +2448,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_distance_skill,
                     state.skills_bot_l[4],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -2472,7 +2461,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.hmr_leap_distance"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -2487,10 +2476,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_radius_skill,
                     state.skills_bot_l[5],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -2500,7 +2489,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.hmr_leap_radius"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -2543,10 +2532,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_damage_skill,
                     state.skills_top_l[1],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -2554,7 +2543,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.bow_damage"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -2569,10 +2558,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_energy_regen_skill,
                     state.skills_top_l[2],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -2582,7 +2571,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.bow_energy_regen"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -2609,10 +2598,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_damage_skill,
                     state.skills_top_r[1],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -2622,7 +2611,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.bow_charged_damage"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -2637,10 +2626,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_energy_drain_skill,
                     state.skills_top_r[2],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -2650,7 +2639,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.bow_charged_drain"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -2665,10 +2654,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_projectile_speed_skill,
                     state.skills_top_r[3],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -2680,7 +2669,7 @@ impl<'a> Widget for Diary<'a> {
                             .localized_strings
                             .get("hud.skill.bow_charged_projectile_speed"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -2695,10 +2684,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_speed_skill,
                     state.skills_top_r[4],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -2708,7 +2697,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.bow_charged_speed"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -2723,10 +2712,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_speed_skill,
                     state.skills_top_r[5],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -2738,7 +2727,7 @@ impl<'a> Widget for Diary<'a> {
                             .localized_strings
                             .get("hud.skill.bow_charged_move_speed"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -2753,10 +2742,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_knockback_skill,
                     state.skills_top_r[6],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -2768,7 +2757,7 @@ impl<'a> Widget for Diary<'a> {
                             .localized_strings
                             .get("hud.skill.bow_charged_knockback"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -2784,10 +2773,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.skill_bow_jump_burst,
                     state.skills_bot_l[0],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -2797,7 +2786,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.bow_repeater_unlock"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -2812,10 +2801,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_damage_skill,
                     state.skills_bot_l[1],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -2825,7 +2814,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.bow_repeater_damage"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -2840,10 +2829,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_helicopter_skill,
                     state.skills_bot_l[2],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -2853,7 +2842,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.bow_repeater_glide"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -2868,10 +2857,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_cost_skill,
                     state.skills_bot_l[3],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -2881,7 +2870,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.bow_repeater_cost"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -2896,10 +2885,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_amount_skill,
                     state.skills_bot_l[4],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -2909,7 +2898,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.bow_arrow_count"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -2925,10 +2914,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.physical_projectile_speed_skill,
                     state.skills_bot_r[0],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -2938,7 +2927,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.bow_projectile_speed"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -2982,10 +2971,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.magic_explosion_skill,
                     state.skills_top_l[1],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -2993,7 +2982,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.st_explosion"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -3008,10 +2997,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.magic_damage_skill,
                     state.skills_top_l[2],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -3019,7 +3008,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.st_damage"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -3034,10 +3023,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.magic_energy_regen_skill,
                     state.skills_top_l[3],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -3047,7 +3036,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.st_stamina_regen"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -3062,10 +3051,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.magic_radius_skill,
                     state.skills_top_l[4],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -3075,7 +3064,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.st_explosion_radius"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -3104,10 +3093,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.magic_damage_skill,
                     state.skills_top_r[1],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -3119,7 +3108,7 @@ impl<'a> Widget for Diary<'a> {
                             .localized_strings
                             .get("hud.skill.st_flamethrower_damage"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -3134,10 +3123,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.magic_energy_drain_skill,
                     state.skills_top_r[2],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -3147,7 +3136,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.st_energy_drain"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -3162,10 +3151,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.magic_radius_skill,
                     state.skills_top_r[3],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -3177,7 +3166,7 @@ impl<'a> Widget for Diary<'a> {
                             .localized_strings
                             .get("hud.skill.st_flamethrower_range"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -3192,10 +3181,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.magic_projectile_speed_skill,
                     state.skills_top_r[4],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -3205,7 +3194,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.st_flame_velocity"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -3221,10 +3210,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.fire_aoe,
                     state.skills_bot_l[0],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -3234,7 +3223,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.st_shockwave_unlock"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -3249,10 +3238,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.magic_damage_skill,
                     state.skills_bot_l[1],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -3262,7 +3251,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.st_shockwave_damage"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -3277,10 +3266,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.magic_knockback_skill,
                     state.skills_bot_l[2],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -3292,7 +3281,7 @@ impl<'a> Widget for Diary<'a> {
                             .localized_strings
                             .get("hud.skill.st_shockwave_knockback"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -3307,10 +3296,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.magic_cost_skill,
                     state.skills_bot_l[3],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -3320,7 +3309,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.st_shockwave_cost"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -3335,10 +3324,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.magic_radius_skill,
                     state.skills_bot_l[4],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -3348,7 +3337,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.st_shockwave_range"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -3392,10 +3381,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.magic_damage_skill,
                     state.skills_top_l[1],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -3405,7 +3394,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.sc_lifesteal_damage"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -3420,10 +3409,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.magic_distance_skill,
                     state.skills_top_l[2],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -3433,7 +3422,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.sc_lifesteal_range"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -3448,10 +3437,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.magic_lifesteal_skill,
                     state.skills_top_l[3],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -3463,7 +3452,7 @@ impl<'a> Widget for Diary<'a> {
                             .localized_strings
                             .get("hud.skill.sc_lifesteal_lifesteal"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -3478,10 +3467,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.magic_energy_regen_skill,
                     state.skills_top_l[4],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -3491,7 +3480,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.sc_lifesteal_regen"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -3518,10 +3507,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.heal_heal_skill,
                     state.skills_top_r[1],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -3529,7 +3518,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.sc_heal_heal"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -3544,10 +3533,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.heal_cost_skill,
                     state.skills_top_r[2],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -3555,7 +3544,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.sc_heal_cost"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -3570,10 +3559,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.heal_distance_skill,
                     state.skills_top_r[3],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -3581,7 +3570,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.sc_heal_range"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -3597,10 +3586,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.skill_sceptre_aura,
                     state.skills_bot_l[0],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -3610,7 +3599,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.sc_wardaura_unlock"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -3625,10 +3614,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.buff_damage_skill,
                     state.skills_bot_l[1],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -3638,7 +3627,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.sc_wardaura_strength"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -3653,10 +3642,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.buff_duration_skill,
                     state.skills_bot_l[2],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -3666,7 +3655,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.sc_wardaura_duration"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -3681,10 +3670,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.buff_radius_skill,
                     state.skills_bot_l[3],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -3694,7 +3683,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.sc_wardaura_range"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,
@@ -3709,10 +3698,10 @@ impl<'a> Widget for Diary<'a> {
                 if create_skill_button(
                     self.imgs.buff_cost_skill,
                     state.skills_bot_l[4],
-                    &self.stats.skill_set,
+                    &self.skill_set,
                     skill,
                     self.fonts,
-                    &get_skill_label(skill, &self.stats.skill_set),
+                    &get_skill_label(skill, &self.skill_set),
                 )
                 .with_tooltip(
                     self.tooltip_manager,
@@ -3722,7 +3711,7 @@ impl<'a> Widget for Diary<'a> {
                     &add_sp_cost_tooltip(
                         &self.localized_strings.get("hud.skill.sc_wardaura_cost"),
                         skill,
-                        &self.stats.skill_set,
+                        &self.skill_set,
                         &self.localized_strings,
                     ),
                     &diary_tooltip,

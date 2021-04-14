@@ -1,6 +1,6 @@
 use crate::{client::Client, presence::Presence, Settings};
 use common::{
-    comp::{CanBuild, ControlEvent, Controller, ForceUpdate, Health, Ori, Pos, Stats, Vel},
+    comp::{CanBuild, ControlEvent, Controller, ForceUpdate, Health, Ori, Pos, SkillSet, Vel},
     event::{EventBus, ServerEvent},
     terrain::TerrainGrid,
     vol::ReadVol,
@@ -21,7 +21,7 @@ impl Sys {
         terrain: &ReadExpect<'_, TerrainGrid>,
         can_build: &ReadStorage<'_, CanBuild>,
         force_updates: &ReadStorage<'_, ForceUpdate>,
-        stats: &mut WriteStorage<'_, Stats>,
+        skill_sets: &mut WriteStorage<'_, SkillSet>,
         healths: &ReadStorage<'_, Health>,
         block_changes: &mut Write<'_, BlockChange>,
         positions: &mut WriteStorage<'_, Pos>,
@@ -139,19 +139,19 @@ impl Sys {
                 }
             },
             ClientGeneral::UnlockSkill(skill) => {
-                stats
+                skill_sets
                     .get_mut(entity)
-                    .map(|mut s| s.skill_set.unlock_skill(skill));
+                    .map(|mut skill_set| skill_set.unlock_skill(skill));
             },
             ClientGeneral::RefundSkill(skill) => {
-                stats
+                skill_sets
                     .get_mut(entity)
-                    .map(|mut s| s.skill_set.refund_skill(skill));
+                    .map(|mut skill_set| skill_set.refund_skill(skill));
             },
             ClientGeneral::UnlockSkillGroup(skill_group_kind) => {
-                stats
+                skill_sets
                     .get_mut(entity)
-                    .map(|mut s| s.skill_set.unlock_skill_group(skill_group_kind));
+                    .map(|mut skill_set| skill_set.unlock_skill_group(skill_group_kind));
             },
             ClientGeneral::RequestSiteInfo(id) => {
                 server_emitter.emit(ServerEvent::RequestSiteInfo { entity, id });
@@ -173,7 +173,7 @@ impl<'a> System<'a> for Sys {
         ReadExpect<'a, TerrainGrid>,
         ReadStorage<'a, CanBuild>,
         ReadStorage<'a, ForceUpdate>,
-        WriteStorage<'a, Stats>,
+        WriteStorage<'a, SkillSet>,
         ReadStorage<'a, Health>,
         Write<'a, BlockChange>,
         WriteStorage<'a, Pos>,
@@ -198,7 +198,7 @@ impl<'a> System<'a> for Sys {
             terrain,
             can_build,
             force_updates,
-            mut stats,
+            mut skill_sets,
             healths,
             mut block_changes,
             mut positions,
@@ -225,7 +225,7 @@ impl<'a> System<'a> for Sys {
                     &terrain,
                     &can_build,
                     &force_updates,
-                    &mut stats,
+                    &mut skill_sets,
                     &healths,
                     &mut block_changes,
                     &mut positions,

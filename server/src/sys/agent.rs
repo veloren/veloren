@@ -16,7 +16,7 @@ use common::{
         skills::{AxeSkill, BowSkill, HammerSkill, Skill, StaffSkill, SwordSkill},
         Agent, Alignment, BehaviorCapability, BehaviorState, Body, CharacterState, ControlAction,
         ControlEvent, Controller, Energy, Health, HealthChange, InputKind, Inventory,
-        InventoryAction, LightEmitter, MountState, Ori, PhysicsState, Pos, Scale, Stats,
+        InventoryAction, LightEmitter, MountState, Ori, PhysicsState, Pos, Scale, SkillSet, Stats,
         UnresolvedChatMsg, Vel,
     },
     effect::{BuffEffect, Effect},
@@ -55,7 +55,7 @@ struct AgentData<'a> {
     energy: &'a Energy,
     body: Option<&'a Body>,
     inventory: &'a Inventory,
-    stats: &'a Stats,
+    skill_set: &'a SkillSet,
     physics_state: &'a PhysicsState,
     alignment: Option<&'a Alignment>,
     traversal_config: TraversalConfig,
@@ -84,6 +84,7 @@ pub struct ReadData<'a> {
     healths: ReadStorage<'a, Health>,
     inventories: ReadStorage<'a, Inventory>,
     stats: ReadStorage<'a, Stats>,
+    skill_set: ReadStorage<'a, SkillSet>,
     physics_states: ReadStorage<'a, PhysicsState>,
     char_states: ReadStorage<'a, CharacterState>,
     uids: ReadStorage<'a, Uid>,
@@ -147,7 +148,7 @@ impl<'a> System<'a> for Sys {
             ),
             read_data.bodies.maybe(),
             &read_data.inventories,
-            &read_data.stats,
+            &read_data.skill_set,
             &read_data.physics_states,
             &read_data.uids,
             &mut agents,
@@ -176,7 +177,7 @@ impl<'a> System<'a> for Sys {
                     (pos, vel, ori),
                     body,
                     inventory,
-                    stats,
+                    skill_set,
                     physics_state,
                     uid,
                     agent,
@@ -269,7 +270,7 @@ impl<'a> System<'a> for Sys {
                         energy,
                         body,
                         inventory,
-                        stats,
+                        skill_set,
                         physics_state,
                         alignment: alignment.as_ref(),
                         traversal_config,
@@ -1621,10 +1622,7 @@ impl<'a> AgentData<'a> {
                             .actions
                             .push(ControlAction::basic_input(InputKind::Secondary));
                         agent.action_timer += dt.0;
-                    } else if self
-                        .stats
-                        .skill_set
-                        .has_skill(Skill::Axe(AxeSkill::UnlockLeap))
+                    } else if self.skill_set.has_skill(Skill::Axe(AxeSkill::UnlockLeap))
                         && self.energy.current() > 800
                         && thread_rng().gen_bool(0.5)
                     {
@@ -1680,7 +1678,6 @@ impl<'a> AgentData<'a> {
                             .push(ControlAction::basic_input(InputKind::Secondary));
                         agent.action_timer += dt.0;
                     } else if self
-                        .stats
                         .skill_set
                         .has_skill(Skill::Hammer(HammerSkill::UnlockLeap))
                         && self.energy.current() > 700
@@ -1711,7 +1708,6 @@ impl<'a> AgentData<'a> {
                             controller.inputs.move_dir =
                                 bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
                             if self
-                                .stats
                                 .skill_set
                                 .has_skill(Skill::Hammer(HammerSkill::UnlockLeap))
                                 && agent.action_timer > 5.0
@@ -1746,7 +1742,6 @@ impl<'a> AgentData<'a> {
                 if dist_sqrd < min_attack_dist.powi(2) {
                     controller.inputs.move_dir = Vec2::zero();
                     if self
-                        .stats
                         .skill_set
                         .has_skill(Skill::Sword(SwordSkill::UnlockSpin))
                         && agent.action_timer < 2.0
@@ -1841,7 +1836,6 @@ impl<'a> AgentData<'a> {
                                     .push(ControlAction::basic_input(InputKind::Secondary));
                                 agent.action_timer += dt.0;
                             } else if self
-                                .stats
                                 .skill_set
                                 .has_skill(Skill::Bow(BowSkill::UnlockRepeater))
                                 && self.energy.current() > 400
@@ -1924,7 +1918,6 @@ impl<'a> AgentData<'a> {
                         agent.action_timer = 0.0;
                     }
                     if self
-                        .stats
                         .skill_set
                         .has_skill(Skill::Staff(StaffSkill::UnlockShockwave))
                         && self.energy.current() > 800

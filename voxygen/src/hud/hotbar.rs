@@ -76,8 +76,11 @@ impl State {
         use specs::WorldExt;
         let inventories = client.state().ecs().read_storage::<Inventory>();
         let inventory = inventories.get(client.entity());
-        let stats = client.state().ecs().read_storage::<common::comp::Stats>();
-        let stat = stats.get(client.entity());
+        let skill_sets = client
+            .state()
+            .ecs()
+            .read_storage::<common::comp::SkillSet>();
+        let skill_set = skill_sets.get(client.entity());
 
         let hands =
             |equip_slot| match inventory.and_then(|i| i.equipped(equip_slot).map(|i| i.kind())) {
@@ -91,8 +94,8 @@ impl State {
             _ => None,
         };
 
-        let should_be_present = if let (Some(inventory), Some(stat), Some(equip_slot)) =
-            (inventory, stat, equip_slot)
+        let should_be_present = if let (Some(inventory), Some(skill_set), Some(equip_slot)) =
+            (inventory, skill_set, equip_slot)
         {
             inventory.equipped(equip_slot).map_or(false, |i| {
                 i.item_config_expect()
@@ -100,9 +103,7 @@ impl State {
                     .abilities
                     .get(0)
                     .as_ref()
-                    .map_or(false, |(s, _)| {
-                        s.map_or(true, |s| stat.skill_set.has_skill(s))
-                    })
+                    .map_or(false, |(s, _)| s.map_or(true, |s| skill_set.has_skill(s)))
             })
         } else {
             false
@@ -128,9 +129,12 @@ impl State {
         use specs::WorldExt;
         let inventories = client.state().ecs().read_storage::<Inventory>();
         let inventory = inventories.get(client.entity());
-        let stats = client.state().ecs().read_storage::<common::comp::Stats>();
-        let stat = stats.get(client.entity());
-        let should_be_present = if let (Some(inventory), Some(stat)) = (inventory, stat) {
+        let skill_sets = client
+            .state()
+            .ecs()
+            .read_storage::<common::comp::SkillSet>();
+        let skill_set = skill_sets.get(client.entity());
+        let should_be_present = if let (Some(inventory), Some(skill_set)) = (inventory, skill_set) {
             let hands = |equip_slot| match inventory.equipped(equip_slot).map(|i| i.kind()) {
                 Some(ItemKind::Tool(tool)) => Some(tool.hands),
                 _ => None,
@@ -154,9 +158,7 @@ impl State {
                         .abilities
                         .get(skill_index)
                         .as_ref()
-                        .map_or(false, |(s, _)| {
-                            s.map_or(true, |s| stat.skill_set.has_skill(s))
-                        })
+                        .map_or(false, |(s, _)| s.map_or(true, |s| skill_set.has_skill(s)))
                 })
             } else {
                 false

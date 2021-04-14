@@ -175,9 +175,9 @@ pub fn handle_client_disconnect(
 // the race condition of their login fetching their old data
 // and overwriting the data saved here.
 fn persist_entity(state: &mut State, entity: EcsEntity) -> EcsEntity {
-    if let (Some(presence), Some(stats), Some(inventory), mut character_updater) = (
+    if let (Some(presence), Some(skill_set), Some(inventory), mut character_updater) = (
         state.read_storage::<Presence>().get(entity),
-        state.read_storage::<comp::Stats>().get(entity),
+        state.read_storage::<comp::SkillSet>().get(entity),
         state.read_storage::<comp::Inventory>().get(entity),
         state.ecs().fetch_mut::<CharacterUpdater>(),
     ) {
@@ -191,7 +191,7 @@ fn persist_entity(state: &mut State, entity: EcsEntity) -> EcsEntity {
 
                 character_updater.add_pending_logout_update(
                     char_id,
-                    (stats.clone(), inventory.clone(), waypoint),
+                    (skill_set.clone(), inventory.clone(), waypoint),
                 );
             },
             PresenceKind::Spectator => { /* Do nothing, spectators do not need persisting */ },

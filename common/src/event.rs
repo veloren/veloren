@@ -104,6 +104,7 @@ pub enum ServerEvent {
         components: (
             comp::Body,
             comp::Stats,
+            comp::SkillSet,
             comp::Inventory,
             Option<comp::Waypoint>,
         ),
@@ -115,6 +116,7 @@ pub enum ServerEvent {
     CreateNpc {
         pos: comp::Pos,
         stats: comp::Stats,
+        skill_set: comp::SkillSet,
         health: comp::Health,
         poise: comp::Poise,
         loadout: comp::inventory::loadout::Loadout,
