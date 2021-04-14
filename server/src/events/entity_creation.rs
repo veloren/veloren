@@ -8,7 +8,8 @@ use common::{
         buff::{BuffCategory, BuffData, BuffKind, BuffSource},
         inventory::loadout::Loadout,
         shockwave, Agent, Alignment, Body, Gravity, Health, HomeChunk, Inventory, Item, ItemDrop,
-        LightEmitter, Object, Ori, Poise, Pos, Projectile, Scale, Stats, Vel, WaypointArea,
+        LightEmitter, Object, Ori, Poise, Pos, Projectile, Scale, SkillSet, Stats, Vel,
+        WaypointArea,
     },
     outcome::Outcome,
     rtsim::RtSimEntity,
@@ -34,6 +35,7 @@ pub fn handle_loaded_character_data(
     loaded_components: (
         comp::Body,
         comp::Stats,
+        comp::SkillSet,
         comp::Inventory,
         Option<comp::Waypoint>,
     ),
@@ -49,6 +51,7 @@ pub fn handle_create_npc(
     server: &mut Server,
     pos: Pos,
     stats: Stats,
+    skill_set: SkillSet,
     health: Health,
     poise: Poise,
     loadout: Loadout,
@@ -64,7 +67,7 @@ pub fn handle_create_npc(
 
     let entity = server
         .state
-        .create_npc(pos, stats, health, poise, inventory, body)
+        .create_npc(pos, stats, skill_set, health, poise, inventory, body)
         .with(scale)
         .with(alignment);
 

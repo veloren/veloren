@@ -428,26 +428,22 @@ pub fn convert_character_from_database(character: &Character) -> common::charact
     }
 }
 
-pub fn convert_stats_from_database(
-    alias: String,
-    skills: &[Skill],
-    skill_groups: &[SkillGroup],
-) -> common::comp::Stats {
+pub fn convert_stats_from_database(alias: String) -> common::comp::Stats {
     let mut new_stats = common::comp::Stats::empty();
     new_stats.name = alias;
-    /*new_stats.update_max_hp(new_stats.body_type);
-    new_stats.health.set_to(
-        new_stats.health.maximum(),
-        common::comp::HealthSource::Revive,
-    );*/
-    new_stats.skill_set = skills::SkillSet {
+    new_stats
+}
+
+pub fn convert_skill_set_from_database(
+    skills: &[Skill],
+    skill_groups: &[SkillGroup],
+) -> common::comp::SkillSet {
+    skills::SkillSet {
         skill_groups: convert_skill_groups_from_database(skill_groups),
         skills: convert_skills_from_database(skills),
         modify_health: true,
         modify_energy: true,
-    };
-
-    new_stats
+    }
 }
 
 fn get_item_from_asset(item_definition_id: &str) -> Result<common::comp::Item, PersistenceError> {

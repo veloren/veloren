@@ -1,5 +1,5 @@
 use crate::{persistence::character_updater, presence::Presence, sys::SysScheduler};
-use common::comp::{Inventory, Stats, Waypoint};
+use common::comp::{Inventory, SkillSet, Waypoint};
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::PresenceKind;
 use specs::{Join, ReadStorage, Write, WriteExpect};
@@ -11,7 +11,7 @@ impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
         ReadStorage<'a, Presence>,
-        ReadStorage<'a, Stats>,
+        ReadStorage<'a, SkillSet>,
         ReadStorage<'a, Inventory>,
         ReadStorage<'a, Waypoint>,
         WriteExpect<'a, character_updater::CharacterUpdater>,
@@ -26,7 +26,7 @@ impl<'a> System<'a> for Sys {
         _job: &mut Job<Self>,
         (
             presences,
-            player_stats,
+            player_skill_set,
             player_inventories,
             player_waypoint,
             mut updater,
@@ -37,14 +37,16 @@ impl<'a> System<'a> for Sys {
             updater.batch_update(
                 (
                     &presences,
-                    &player_stats,
+                    &player_skill_set,
                     &player_inventories,
                     player_waypoint.maybe(),
                 )
                     .join()
                     .filter_map(
-                        |(presence, stats, inventory, waypoint)| match presence.kind {
-                            PresenceKind::Character(id) => Some((id, stats, inventory, waypoint)),
+                        |(presence, skill_set, inventory, waypoint)| match presence.kind {
+                            PresenceKind::Character(id) => {
+                                Some((id, skill_set, inventory, waypoint))
+                            },
                             PresenceKind::Spectator => None,
                         },
                     ),

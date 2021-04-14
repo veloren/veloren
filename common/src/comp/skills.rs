@@ -5,6 +5,8 @@ use crate::{
 use hashbrown::{HashMap, HashSet};
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
+use specs::{Component, DerefFlaggedStorage};
+use specs_idvs::IdvStorage;
 use std::hash::Hash;
 use tracing::{trace, warn};
 
@@ -332,6 +334,10 @@ pub struct SkillSet {
     pub skills: HashMap<Skill, Option<u16>>,
     pub modify_health: bool,
     pub modify_energy: bool,
+}
+
+impl Component for SkillSet {
+    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
 }
 
 impl Default for SkillSet {

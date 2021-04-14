@@ -13,7 +13,7 @@ use crate::{
         poise::PoiseChange,
         skills::SkillGroupKind,
         Body, Combo, Energy, EnergyChange, EnergySource, Health, HealthChange, HealthSource,
-        Inventory, Stats,
+        Inventory, SkillSet, Stats,
     },
     event::ServerEvent,
     outcome::Outcome,
@@ -742,15 +742,15 @@ pub fn weapon_rating<T: ItemDesc>(item: &T, msm: &MaterialStatManifest) -> f32 {
     }
 }
 
-fn weapon_skills(inventory: &Inventory, stats: &Stats) -> f32 {
+fn weapon_skills(inventory: &Inventory, skill_set: &SkillSet) -> f32 {
     let (mainhand, offhand) = get_weapons(inventory);
     let mainhand_skills = if let Some(tool) = mainhand {
-        stats.skill_set.earned_sp(SkillGroupKind::Weapon(tool)) as f32
+        skill_set.earned_sp(SkillGroupKind::Weapon(tool)) as f32
     } else {
         0.0
     };
     let offhand_skills = if let Some(tool) = offhand {
-        stats.skill_set.earned_sp(SkillGroupKind::Weapon(tool)) as f32
+        skill_set.earned_sp(SkillGroupKind::Weapon(tool)) as f32
     } else {
         0.0
     };
@@ -779,7 +779,7 @@ fn get_weapon_rating(inventory: &Inventory, msm: &MaterialStatManifest) -> f32 {
 pub fn combat_rating(
     inventory: &Inventory,
     health: &Health,
-    stats: &Stats,
+    skill_set: &SkillSet,
     body: Body,
     msm: &MaterialStatManifest,
 ) -> f32 {
@@ -793,8 +793,8 @@ pub fn combat_rating(
 
     // Assumes a standard person has earned 20 skill points in the general skill
     // tree and 10 skill points for the weapon skill tree
-    let skills_rating = (stats.skill_set.earned_sp(SkillGroupKind::General) as f32 / 20.0
-        + weapon_skills(inventory, stats) / 10.0)
+    let skills_rating = (skill_set.earned_sp(SkillGroupKind::General) as f32 / 20.0
+        + weapon_skills(inventory, skill_set) / 10.0)
         / 2.0;
 
     let weapon_rating = get_weapon_rating(inventory, msm);

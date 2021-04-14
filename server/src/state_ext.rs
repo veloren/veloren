@@ -31,10 +31,12 @@ pub trait StateExt {
     /// Updates a component associated with the entity based on the `Effect`
     fn apply_effect(&self, entity: EcsEntity, effect: Effect, source: Option<Uid>);
     /// Build a non-player character
+    #[allow(clippy::too_many_arguments)]
     fn create_npc(
         &mut self,
         pos: comp::Pos,
         stats: comp::Stats,
+        skill_set: comp::SkillSet,
         health: comp::Health,
         poise: comp::Poise,
         inventory: comp::Inventory,
@@ -161,6 +163,7 @@ impl StateExt for State {
         &mut self,
         pos: comp::Pos,
         stats: comp::Stats,
+        skill_set: comp::SkillSet,
         health: comp::Health,
         poise: comp::Poise,
         inventory: comp::Inventory,
@@ -192,13 +195,13 @@ impl StateExt for State {
             .with(body)
             .with(comp::Energy::new(
                 body,
-                stats
-                    .skill_set
+                skill_set
                     .skill_level(Skill::General(GeneralSkill::EnergyIncrease))
                     .unwrap_or(None)
                     .unwrap_or(0),
             ))
             .with(stats)
+            .with(skill_set)
             .with(health)
             .with(poise)
             .with(comp::Alignment::Npc)
@@ -252,6 +255,7 @@ impl StateExt for State {
             // recognize a possesed airship; that system should be refactored to use `.maybe()`
             .with(comp::Energy::new(ship.into(), 0))
             .with(comp::Stats::new("Airship".to_string()))
+            .with(comp::SkillSet::default())
             .with(comp::Combo::default());
 
         if mountable {
@@ -399,7 +403,7 @@ impl StateExt for State {
     }
 
     fn update_character_data(&mut self, entity: EcsEntity, components: PersistedComponents) {
-        let (body, stats, inventory, waypoint) = components;
+        let (body, stats, skill_set, inventory, waypoint) = components;
 
         if let Some(player_uid) = self.read_component_copied::<Uid>(entity) {
             // Notify clients of a player list update
@@ -420,13 +424,11 @@ impl StateExt for State {
             });
             self.write_component_ignore_entity_dead(entity, body);
             let (health_level, energy_level) = (
-                stats
-                    .skill_set
+                skill_set
                     .skill_level(Skill::General(GeneralSkill::HealthIncrease))
                     .unwrap_or(None)
                     .unwrap_or(0),
-                stats
-                    .skill_set
+                skill_set
                     .skill_level(Skill::General(GeneralSkill::EnergyIncrease))
                     .unwrap_or(None)
                     .unwrap_or(0),
@@ -435,6 +437,7 @@ impl StateExt for State {
             self.write_component_ignore_entity_dead(entity, comp::Energy::new(body, energy_level));
             self.write_component_ignore_entity_dead(entity, comp::Poise::new(body));
             self.write_component_ignore_entity_dead(entity, stats);
+            self.write_component_ignore_entity_dead(entity, skill_set);
             self.write_component_ignore_entity_dead(entity, inventory);
             self.write_component_ignore_entity_dead(
                 entity,

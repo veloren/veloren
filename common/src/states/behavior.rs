@@ -2,7 +2,7 @@ use crate::{
     comp::{
         self, item::MaterialStatManifest, Beam, Body, CharacterState, Combo, ControlAction,
         Controller, ControllerInputs, Energy, Health, InputAttr, InputKind, Inventory,
-        InventoryAction, Melee, Ori, PhysicsState, Pos, StateUpdate, Stats, Vel,
+        InventoryAction, Melee, Ori, PhysicsState, Pos, SkillSet, StateUpdate, Stats, Vel,
     },
     resources::DeltaTime,
     uid::Uid,
@@ -91,6 +91,7 @@ pub struct JoinData<'a> {
     pub melee_attack: Option<&'a Melee>,
     pub updater: &'a LazyUpdate,
     pub stats: &'a Stats,
+    pub skill_set: &'a SkillSet,
     pub msm: &'a MaterialStatManifest,
     pub combo: &'a Combo,
     pub alignment: Option<&'a comp::Alignment>,
@@ -121,6 +122,7 @@ pub struct JoinStruct<'a> {
     pub melee_attack: Option<&'a Melee>,
     pub beam: Option<&'a Beam>,
     pub stat: &'a Stats,
+    pub skill_set: &'a SkillSet,
     pub combo: &'a Combo,
     pub alignment: Option<&'a comp::Alignment>,
 }
@@ -148,6 +150,7 @@ impl<'a> JoinData<'a> {
             physics: j.physics,
             melee_attack: j.melee_attack,
             stats: j.stat,
+            skill_set: j.skill_set,
             updater,
             dt,
             msm,

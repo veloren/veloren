@@ -23,6 +23,7 @@ use tracing::info;
 pub type PersistedComponents = (
     comp::Body,
     comp::Stats,
+    comp::SkillSet,
     comp::Inventory,
     Option<comp::Waypoint>,
 );

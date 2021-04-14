@@ -1,5 +1,7 @@
 use crate::persistence::character_loader::CharacterLoader;
-use common::comp::{inventory::loadout_builder::LoadoutBuilder, Body, Inventory, Item, Stats};
+use common::comp::{
+    inventory::loadout_builder::LoadoutBuilder, Body, Inventory, Item, SkillSet, Stats,
+};
 use specs::{Entity, ReadExpect};
 
 const VALID_STARTER_ITEMS: [&str; 6] = [
@@ -32,6 +34,7 @@ pub fn create_character(
     }
 
     let stats = Stats::new(character_alias.to_string());
+    let skill_set = SkillSet::default();
 
     let loadout = LoadoutBuilder::new()
         .defaults()
@@ -56,6 +59,6 @@ pub fn create_character(
         entity,
         player_uuid,
         character_alias,
-        (body, stats, inventory, waypoint),
+        (body, stats, skill_set, inventory, waypoint),
     );
 }

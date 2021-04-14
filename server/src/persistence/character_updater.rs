@@ -14,7 +14,7 @@ use std::{
 };
 use tracing::{debug, error, info, trace, warn};
 
-pub type CharacterUpdateData = (comp::Stats, comp::Inventory, Option<comp::Waypoint>);
+pub type CharacterUpdateData = (comp::SkillSet, comp::Inventory, Option<comp::Waypoint>);
 
 pub enum CharacterUpdaterEvent {
     BatchUpdate(Vec<(CharacterId, CharacterUpdateData)>),
@@ -131,17 +131,17 @@ impl CharacterUpdater {
         updates: impl Iterator<
             Item = (
                 CharacterId,
-                &'a comp::Stats,
+                &'a comp::SkillSet,
                 &'a comp::Inventory,
                 Option<&'a comp::Waypoint>,
             ),
         >,
     ) {
         let updates = updates
-            .map(|(character_id, stats, inventory, waypoint)| {
+            .map(|(character_id, skill_set, inventory, waypoint)| {
                 (
                     character_id,
-                    (stats.clone(), inventory.clone(), waypoint.cloned()),
+                    (skill_set.clone(), inventory.clone(), waypoint.cloned()),
                 )
             })
             .chain(self.pending_logout_updates.drain())
@@ -161,11 +161,16 @@ impl CharacterUpdater {
     pub fn update(
         &mut self,
         character_id: CharacterId,
-        stats: &comp::Stats,
+        skill_set: &comp::SkillSet,
         inventory: &comp::Inventory,
         waypoint: Option<&comp::Waypoint>,
     ) {
-        self.batch_update(std::iter::once((character_id, stats, inventory, waypoint)));
+        self.batch_update(std::iter::once((
+            character_id,
+            skill_set,
+            inventory,
+            waypoint,
+        )));
     }
 
     /// Indicates to the batch update thread that a requested disconnection of

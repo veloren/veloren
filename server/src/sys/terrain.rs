@@ -154,7 +154,7 @@ impl<'a> System<'a> for Sys {
                 let economy = entity.trading_information.as_ref();
                 let skillset_config = entity.skillset_config;
 
-                stats.skill_set =
+                let skill_set =
                     SkillSetBuilder::build_skillset(&main_tool, skillset_config).build();
                 let loadout =
                     LoadoutBuilder::build_loadout(body, main_tool, loadout_config, economy).build();
@@ -189,6 +189,7 @@ impl<'a> System<'a> for Sys {
                 server_emitter.emit(ServerEvent::CreateNpc {
                     pos: Pos(entity.pos),
                     stats,
+                    skill_set,
                     health,
                     poise,
                     loadout,

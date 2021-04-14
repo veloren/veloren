@@ -20,7 +20,7 @@ use common::{
     combat::{combat_rating, Damage},
     comp::{
         item::{ItemDef, MaterialStatManifest, Quality},
-        Body, Energy, Health, Inventory, Poise, Stats,
+        Body, Energy, Health, Inventory, Poise, SkillSet, Stats,
     },
 };
 use conrod_core::{
@@ -473,6 +473,7 @@ pub struct Bag<'a> {
     pulse: f32,
     localized_strings: &'a Localization,
     stats: &'a Stats,
+    skill_set: &'a SkillSet,
     health: &'a Health,
     energy: &'a Energy,
     show: &'a Show,
@@ -494,6 +495,7 @@ impl<'a> Bag<'a> {
         pulse: f32,
         localized_strings: &'a Localization,
         stats: &'a Stats,
+        skill_set: &'a SkillSet,
         health: &'a Health,
         energy: &'a Energy,
         show: &'a Show,
@@ -513,6 +515,7 @@ impl<'a> Bag<'a> {
             pulse,
             localized_strings,
             stats,
+            skill_set,
             energy,
             health,
             show,
@@ -738,8 +741,14 @@ impl<'a> Widget for Bag<'a> {
                     .resize(STATS.len(), &mut ui.widget_id_generator())
             });
             // Stats
-            let combat_rating =
-                combat_rating(inventory, self.health, self.stats, *self.body, &self.msm).min(999.9);
+            let combat_rating = combat_rating(
+                inventory,
+                self.health,
+                self.skill_set,
+                *self.body,
+                &self.msm,
+            )
+            .min(999.9);
             let indicator_col = cr_color(combat_rating);
             for i in STATS.iter().copied().enumerate() {
                 let btn = Button::image(match i.1 {

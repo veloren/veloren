@@ -348,6 +348,7 @@ impl<'a> Widget for Group<'a> {
             };
             let client_state = self.client.state();
             let stats = client_state.ecs().read_storage::<common::comp::Stats>();
+            let skill_sets = client_state.ecs().read_storage::<common::comp::SkillSet>();
             let healths = client_state.ecs().read_storage::<common::comp::Health>();
             let energy = client_state.ecs().read_storage::<common::comp::Energy>();
             let buffs = client_state.ecs().read_storage::<common::comp::Buffs>();
@@ -361,6 +362,7 @@ impl<'a> Widget for Group<'a> {
                 self.show.group = true;
                 let entity = uid_allocator.retrieve_entity_internal(uid.into());
                 let stats = entity.and_then(|entity| stats.get(entity));
+                let skill_set = entity.and_then(|entity| skill_sets.get(entity));
                 let health = entity.and_then(|entity| healths.get(entity));
                 let energy = entity.and_then(|entity| energy.get(entity));
                 let buffs = entity.and_then(|entity| buffs.get(entity));
@@ -368,11 +370,11 @@ impl<'a> Widget for Group<'a> {
                 let is_leader = uid == leader;
                 let body = entity.and_then(|entity| bodies.get(entity));
 
-                if let (Some(stats), Some(inventory), Some(health), Some(body)) =
-                    (stats, inventory, health, body)
+                if let (Some(stats), Some(skill_set), Some(inventory), Some(health), Some(body)) =
+                    (stats, skill_set, inventory, health, body)
                 {
                     let combat_rating =
-                        combat::combat_rating(inventory, health, stats, *body, &self.msm);
+                        combat::combat_rating(inventory, health, skill_set, *body, &self.msm);
                     let char_name = stats.name.to_string();
                     let health_perc =
                         health.current() as f64 / health.base_max().max(health.maximum()) as f64;

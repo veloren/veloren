@@ -1,4 +1,3 @@
-use crate::comp::skills::SkillSet;
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
@@ -24,9 +23,6 @@ impl Error for StatChangeError {}
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Stats {
     pub name: String,
-    // TODO: Make skillset a separate component, probably too heavy for something that will
-    // potentially be updated every tick (especially as more buffs are added)
-    pub skill_set: SkillSet,
     pub damage_reduction: f32,
     pub max_health_modifier: f32,
 }
@@ -35,7 +31,6 @@ impl Stats {
     pub fn new(name: String) -> Self {
         Self {
             name,
-            skill_set: SkillSet::default(),
             damage_reduction: 0.0,
             max_health_modifier: 1.0,
         }
@@ -46,7 +41,6 @@ impl Stats {
     pub fn empty() -> Self {
         Self {
             name: "".to_owned(),
-            skill_set: SkillSet::default(),
             damage_reduction: 0.0,
             max_health_modifier: 1.0,
         }

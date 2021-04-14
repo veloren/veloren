@@ -11,7 +11,7 @@ use common::{
             slot::{EquipSlot, Slot},
         },
         Beam, Body, CharacterState, Combo, Controller, Energy, Health, Inventory, Melee, Mounting,
-        Ori, PhysicsState, Poise, PoiseState, Pos, StateUpdate, Stats, Vel,
+        Ori, PhysicsState, Poise, PoiseState, Pos, SkillSet, StateUpdate, Stats, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     resources::DeltaTime,
@@ -73,6 +73,7 @@ pub struct ReadData<'a> {
     uids: ReadStorage<'a, Uid>,
     mountings: ReadStorage<'a, Mounting>,
     stats: ReadStorage<'a, Stats>,
+    skill_sets: ReadStorage<'a, SkillSet>,
     msm: Read<'a, MaterialStatManifest>,
     combos: ReadStorage<'a, Combo>,
     alignments: ReadStorage<'a, comp::Alignment>,
@@ -134,6 +135,7 @@ impl<'a> System<'a> for Sys {
             body,
             physics,
             stat,
+            skill_set,
             combo,
         ) in (
             &read_data.entities,
@@ -149,6 +151,7 @@ impl<'a> System<'a> for Sys {
             &read_data.bodies,
             &read_data.physics_states,
             &read_data.stats,
+            &read_data.skill_sets,
             &read_data.combos,
         )
             .join()
@@ -259,6 +262,7 @@ impl<'a> System<'a> for Sys {
                 melee_attack: read_data.melee_attacks.get(entity),
                 beam: read_data.beams.get(entity),
                 stat: &stat,
+                skill_set: &skill_set,
                 combo: &combo,
                 alignment: read_data.alignments.get(entity),
             };

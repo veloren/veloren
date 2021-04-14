@@ -86,8 +86,8 @@ impl CharacterBehavior for Data {
                             None,
                         )
                         .build();
-                        let mut stats = comp::Stats::new("Summon".to_string());
-                        stats.skill_set = SkillSetBuilder::build_skillset(
+                        let stats = comp::Stats::new("Summon".to_string());
+                        let skill_set = SkillSetBuilder::build_skillset(
                             &None,
                             self.static_data.summon_info.skillset_config,
                         )
@@ -97,6 +97,7 @@ impl CharacterBehavior for Data {
                         update.server_events.push_front(ServerEvent::CreateNpc {
                             pos: *data.pos,
                             stats,
+                            skill_set,
                             health: comp::Health::new(
                                 body,
                                 self.static_data.summon_info.health_scaling,
