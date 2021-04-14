@@ -1,7 +1,7 @@
 use crate::{
     hud::{img_ids::Imgs, TEXT_COLOR},
     i18n::list_localizations,
-    session::settings_change::Language as LanguageChange,
+    session::settings_change::{Language as LanguageChange, Language::*},
     ui::fonts::Fonts,
     GlobalState,
 };
@@ -113,9 +113,7 @@ impl<'a> Widget for Language<'a> {
                 .set(state.ids.language_list[i], ui)
                 .was_clicked()
             {
-                events.push(LanguageChange::ChangeLanguage(Box::new(
-                    language.to_owned(),
-                )));
+                events.push(ChangeLanguage(Box::new(language.to_owned())));
             }
         }
 

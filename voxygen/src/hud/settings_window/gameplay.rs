@@ -3,7 +3,7 @@ use super::{RESET_BUTTONS_HEIGHT, RESET_BUTTONS_WIDTH};
 use crate::{
     hud::{img_ids::Imgs, PressBehavior, MENU_BG, TEXT_COLOR},
     i18n::Localization,
-    session::settings_change::Gameplay as GameplayChange,
+    session::settings_change::{Gameplay as GameplayChange, Gameplay::*},
     ui::{fonts::Fonts, ImageSlider, ToggleButton},
     GlobalState,
 };
@@ -141,7 +141,7 @@ impl<'a> Widget for Gameplay<'a> {
         .pad_track((5.0, 5.0))
         .set(state.ids.mouse_pan_slider, ui)
         {
-            events.push(GameplayChange::AdjustMousePan(new_val));
+            events.push(AdjustMousePan(new_val));
         }
 
         Text::new(&format!("{}", display_pan))
@@ -173,7 +173,7 @@ impl<'a> Widget for Gameplay<'a> {
         .pad_track((5.0, 5.0))
         .set(state.ids.mouse_zoom_slider, ui)
         {
-            events.push(GameplayChange::AdjustMouseZoom(new_val));
+            events.push(AdjustMouseZoom(new_val));
         }
 
         Text::new(&format!("{}", display_zoom))
@@ -209,7 +209,7 @@ impl<'a> Widget for Gameplay<'a> {
         .pad_track((5.0, 5.0))
         .set(state.ids.camera_clamp_slider, ui)
         {
-            events.push(GameplayChange::AdjustCameraClamp(new_val));
+            events.push(AdjustCameraClamp(new_val));
         }
 
         Text::new(&format!("{}", display_clamp))
@@ -232,7 +232,7 @@ impl<'a> Widget for Gameplay<'a> {
         .set(state.ids.mouse_zoom_invert_button, ui);
 
         if self.global_state.settings.gameplay.zoom_inversion != zoom_inverted {
-            events.push(GameplayChange::ToggleZoomInvert(
+            events.push(ToggleZoomInvert(
                 !self.global_state.settings.gameplay.zoom_inversion,
             ));
         }
@@ -262,7 +262,7 @@ impl<'a> Widget for Gameplay<'a> {
         .set(state.ids.mouse_y_invert_button, ui);
 
         if self.global_state.settings.gameplay.mouse_y_inversion != mouse_y_inverted {
-            events.push(GameplayChange::ToggleMouseYInvert(
+            events.push(ToggleMouseYInvert(
                 !self.global_state.settings.gameplay.mouse_y_inversion,
             ));
         }
@@ -292,7 +292,7 @@ impl<'a> Widget for Gameplay<'a> {
         .set(state.ids.controller_y_invert_button, ui);
 
         if self.global_state.settings.controller.pan_invert_y != controller_y_inverted {
-            events.push(GameplayChange::ToggleControllerYInvert(
+            events.push(ToggleControllerYInvert(
                 !self.global_state.settings.controller.pan_invert_y,
             ));
         }
@@ -322,7 +322,7 @@ impl<'a> Widget for Gameplay<'a> {
         .set(state.ids.smooth_pan_toggle_button, ui);
 
         if self.global_state.settings.gameplay.smooth_pan_enable != smooth_pan_enabled {
-            events.push(GameplayChange::ToggleSmoothPan(
+            events.push(ToggleSmoothPan(
                 !self.global_state.settings.gameplay.smooth_pan_enable,
             ));
         }
@@ -372,10 +372,8 @@ impl<'a> Widget for Gameplay<'a> {
             .set(state.ids.free_look_behavior_list, ui)
         {
             match clicked {
-                0 => events.push(GameplayChange::ChangeFreeLookBehavior(
-                    PressBehavior::Toggle,
-                )),
-                1 => events.push(GameplayChange::ChangeFreeLookBehavior(PressBehavior::Hold)),
+                0 => events.push(ChangeFreeLookBehavior(PressBehavior::Toggle)),
+                1 => events.push(ChangeFreeLookBehavior(PressBehavior::Hold)),
                 _ => unreachable!(),
             }
         }
@@ -404,10 +402,8 @@ impl<'a> Widget for Gameplay<'a> {
             .set(state.ids.auto_walk_behavior_list, ui)
         {
             match clicked {
-                0 => events.push(GameplayChange::ChangeAutoWalkBehavior(
-                    PressBehavior::Toggle,
-                )),
-                1 => events.push(GameplayChange::ChangeAutoWalkBehavior(PressBehavior::Hold)),
+                0 => events.push(ChangeAutoWalkBehavior(PressBehavior::Toggle)),
+                1 => events.push(ChangeAutoWalkBehavior(PressBehavior::Hold)),
                 _ => unreachable!(),
             }
         }
@@ -436,12 +432,8 @@ impl<'a> Widget for Gameplay<'a> {
             .set(state.ids.camera_clamp_behavior_list, ui)
         {
             match clicked {
-                0 => events.push(GameplayChange::ChangeCameraClampBehavior(
-                    PressBehavior::Toggle,
-                )),
-                1 => events.push(GameplayChange::ChangeCameraClampBehavior(
-                    PressBehavior::Hold,
-                )),
+                0 => events.push(ChangeCameraClampBehavior(PressBehavior::Toggle)),
+                1 => events.push(ChangeCameraClampBehavior(PressBehavior::Hold)),
                 _ => unreachable!(),
             }
         }
@@ -461,7 +453,7 @@ impl<'a> Widget for Gameplay<'a> {
         if self.global_state.settings.gameplay.stop_auto_walk_on_input
             != stop_auto_walk_on_input_toggle
         {
-            events.push(GameplayChange::ChangeStopAutoWalkOnInput(
+            events.push(ChangeStopAutoWalkOnInput(
                 !self.global_state.settings.gameplay.stop_auto_walk_on_input,
             ));
         }
@@ -491,7 +483,7 @@ impl<'a> Widget for Gameplay<'a> {
         .set(state.ids.auto_camera_button, ui);
 
         if self.global_state.settings.gameplay.auto_camera != auto_camera_toggle {
-            events.push(GameplayChange::ChangeAutoCamera(
+            events.push(ChangeAutoCamera(
                 !self.global_state.settings.gameplay.auto_camera,
             ));
         }
@@ -518,7 +510,7 @@ impl<'a> Widget for Gameplay<'a> {
             .set(state.ids.reset_gameplay_button, ui)
             .was_clicked()
         {
-            events.push(GameplayChange::ResetGameplaySettings);
+            events.push(ResetGameplaySettings);
         }
 
         events

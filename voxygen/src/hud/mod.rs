@@ -2630,7 +2630,7 @@ impl Hud {
                         self.force_ungrab = false;
                     },
                     map::Event::SettingsChange(settings_change) => {
-                        events.push(Event::SettingsChange(settings_change));
+                        events.push(Event::SettingsChange(settings_change.into()));
                     },
                     map::Event::RequestSiteInfo(id) => {
                         events.push(Event::RequestSiteInfo(id));

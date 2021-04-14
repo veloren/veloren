@@ -5,7 +5,7 @@ use crate::{
         img_ids::Imgs, BarNumbers, BuffPosition, CrosshairType, ShortcutNumbers, Show, TEXT_COLOR,
     },
     i18n::Localization,
-    session::settings_change::Interface as InterfaceChange,
+    session::settings_change::{Interface as InterfaceChange, Interface::*},
     ui::{fonts::Fonts, ImageSlider, ScaleMode, ToggleButton},
     GlobalState,
 };
@@ -186,7 +186,7 @@ impl<'a> Widget for Interface<'a> {
         .set(state.ids.button_help, ui);
 
         if self.show.help != show_help {
-            events.push(InterfaceChange::ToggleHelp(show_help));
+            events.push(ToggleHelp(show_help));
         }
 
         Text::new(&self.localized_strings.get("hud.settings.help_window"))
@@ -210,7 +210,7 @@ impl<'a> Widget for Interface<'a> {
         .set(state.ids.load_tips_button, ui);
 
         if self.global_state.settings.interface.loading_tips != show_tips {
-            events.push(InterfaceChange::ToggleTips(
+            events.push(ToggleTips(
                 !self.global_state.settings.interface.loading_tips,
             ));
         }
@@ -235,7 +235,7 @@ impl<'a> Widget for Interface<'a> {
         .set(state.ids.debug_button, ui);
 
         if self.show.debug != show_debug {
-            events.push(InterfaceChange::ToggleDebug(show_debug));
+            events.push(ToggleDebug(show_debug));
         }
 
         Text::new(&self.localized_strings.get("hud.settings.debug_info"))
@@ -278,7 +278,7 @@ impl<'a> Widget for Interface<'a> {
             .was_clicked()
             && !relative_selected
         {
-            events.push(InterfaceChange::UiScale(ScaleChange::ToRelative));
+            events.push(UiScale(ScaleChange::ToRelative));
         }
 
         Text::new(self.localized_strings.get("hud.settings.relative_scaling"))
@@ -313,7 +313,7 @@ impl<'a> Widget for Interface<'a> {
             .was_clicked()
             && !absolute_selected
         {
-            events.push(InterfaceChange::UiScale(ScaleChange::ToAbsolute));
+            events.push(UiScale(ScaleChange::ToAbsolute));
         }
 
         Text::new(self.localized_strings.get("hud.settings.custom_scaling"))
@@ -340,9 +340,7 @@ impl<'a> Widget for Interface<'a> {
             .pad_track((5.0, 5.0))
             .set(state.ids.ui_scale_slider, ui)
             {
-                events.push(InterfaceChange::UiScale(ScaleChange::Adjust(
-                    2.0f64.powf(new_val),
-                )));
+                events.push(UiScale(ScaleChange::Adjust(2.0f64.powf(new_val))));
             }
             // Custom Scaling Text
             Text::new(&format!("{:.2}", scale))
@@ -387,7 +385,7 @@ impl<'a> Widget for Interface<'a> {
         .set(state.ids.ch_1_bg, ui)
         .was_clicked()
         {
-            events.push(InterfaceChange::CrosshairType(CrosshairType::Round));
+            events.push(CrosshairType(CrosshairType::Round));
         }
 
         // Crosshair
@@ -430,7 +428,7 @@ impl<'a> Widget for Interface<'a> {
         .set(state.ids.ch_2_bg, ui)
         .was_clicked()
         {
-            events.push(InterfaceChange::CrosshairType(CrosshairType::RoundEdges));
+            events.push(CrosshairType(CrosshairType::RoundEdges));
         }
 
         // Crosshair
@@ -473,7 +471,7 @@ impl<'a> Widget for Interface<'a> {
         .set(state.ids.ch_3_bg, ui)
         .was_clicked()
         {
-            events.push(InterfaceChange::CrosshairType(CrosshairType::Edges));
+            events.push(CrosshairType(CrosshairType::Edges));
         }
 
         // Crosshair
@@ -522,7 +520,7 @@ impl<'a> Widget for Interface<'a> {
         .pad_track((5.0, 5.0))
         .set(state.ids.ch_transp_slider, ui)
         {
-            events.push(InterfaceChange::CrosshairTransp(new_val));
+            events.push(CrosshairTransp(new_val));
         }
 
         Text::new(&format!("{:.2}", crosshair_transp,))
@@ -565,12 +563,8 @@ impl<'a> Widget for Interface<'a> {
         .was_clicked()
         {
             match self.global_state.settings.interface.shortcut_numbers {
-                ShortcutNumbers::On => {
-                    events.push(InterfaceChange::ToggleShortcutNumbers(ShortcutNumbers::Off))
-                },
-                ShortcutNumbers::Off => {
-                    events.push(InterfaceChange::ToggleShortcutNumbers(ShortcutNumbers::On))
-                },
+                ShortcutNumbers::On => events.push(ToggleShortcutNumbers(ShortcutNumbers::Off)),
+                ShortcutNumbers::Off => events.push(ToggleShortcutNumbers(ShortcutNumbers::On)),
             }
         }
         Text::new(&self.localized_strings.get("hud.settings.toggle_shortcuts"))
@@ -599,7 +593,7 @@ impl<'a> Widget for Interface<'a> {
         .set(state.ids.buff_pos_bar_button, ui)
         .was_clicked()
         {
-            events.push(InterfaceChange::BuffPosition(BuffPosition::Bar))
+            events.push(BuffPosition(BuffPosition::Bar))
         }
         Text::new(&self.localized_strings.get("hud.settings.buffs_skillbar"))
             .right_from(state.ids.buff_pos_bar_button, 10.0)
@@ -626,7 +620,7 @@ impl<'a> Widget for Interface<'a> {
         .set(state.ids.buff_pos_map_button, ui)
         .was_clicked()
         {
-            events.push(InterfaceChange::BuffPosition(BuffPosition::Map))
+            events.push(BuffPosition(BuffPosition::Map))
         }
         Text::new(&self.localized_strings.get("hud.settings.buffs_mmap"))
             .right_from(state.ids.buff_pos_map_button, 10.0)
@@ -672,9 +666,7 @@ impl<'a> Widget for Interface<'a> {
         .set(state.ids.sct_show_radio, ui);
 
         if self.global_state.settings.interface.sct != show_sct {
-            events.push(InterfaceChange::Sct(
-                !self.global_state.settings.interface.sct,
-            ))
+            events.push(Sct(!self.global_state.settings.interface.sct))
         }
         Text::new(
             &self
@@ -724,7 +716,7 @@ impl<'a> Widget for Interface<'a> {
             .set(state.ids.sct_show_batch_radio, ui);
 
             if self.global_state.settings.interface.sct_damage_batch != show_sct_damage_batch {
-                events.push(InterfaceChange::SctDamageBatch(
+                events.push(SctDamageBatch(
                     !self.global_state.settings.interface.sct_damage_batch,
                 ))
             }
@@ -767,7 +759,7 @@ impl<'a> Widget for Interface<'a> {
             .set(state.ids.sct_batch_inc_radio, ui);
 
             if self.global_state.settings.interface.sct_player_batch != show_sct_player_batch {
-                events.push(InterfaceChange::SctPlayerBatch(
+                events.push(SctPlayerBatch(
                     !self.global_state.settings.interface.sct_player_batch,
                 ))
             }
@@ -811,9 +803,7 @@ impl<'a> Widget for Interface<'a> {
         .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
         .set(state.ids.speech_bubble_dark_mode_button, ui);
         if self.global_state.settings.interface.speech_bubble_dark_mode != speech_bubble_dark_mode {
-            events.push(InterfaceChange::SpeechBubbleDarkMode(
-                speech_bubble_dark_mode,
-            ));
+            events.push(SpeechBubbleDarkMode(speech_bubble_dark_mode));
         }
         Text::new(
             &self
@@ -837,7 +827,7 @@ impl<'a> Widget for Interface<'a> {
         .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
         .set(state.ids.speech_bubble_icon_button, ui);
         if self.global_state.settings.interface.speech_bubble_icon != speech_bubble_icon {
-            events.push(InterfaceChange::SpeechBubbleIcon(speech_bubble_icon));
+            events.push(SpeechBubbleIcon(speech_bubble_icon));
         }
         Text::new(
             &self
@@ -880,7 +870,7 @@ impl<'a> Widget for Interface<'a> {
         .set(state.ids.show_bar_numbers_none_button, ui)
         .was_clicked()
         {
-            events.push(InterfaceChange::ToggleBarNumbers(BarNumbers::Off))
+            events.push(ToggleBarNumbers(BarNumbers::Off))
         }
         Text::new(&self.localized_strings.get("hud.settings.none"))
             .right_from(state.ids.show_bar_numbers_none_button, 10.0)
@@ -911,7 +901,7 @@ impl<'a> Widget for Interface<'a> {
         .set(state.ids.show_bar_numbers_values_button, ui)
         .was_clicked()
         {
-            events.push(InterfaceChange::ToggleBarNumbers(BarNumbers::Values))
+            events.push(ToggleBarNumbers(BarNumbers::Values))
         }
         Text::new(&self.localized_strings.get("hud.settings.values"))
             .right_from(state.ids.show_bar_numbers_values_button, 10.0)
@@ -942,7 +932,7 @@ impl<'a> Widget for Interface<'a> {
         .set(state.ids.show_bar_numbers_percentage_button, ui)
         .was_clicked()
         {
-            events.push(InterfaceChange::ToggleBarNumbers(BarNumbers::Percent))
+            events.push(ToggleBarNumbers(BarNumbers::Percent))
         }
         Text::new(&self.localized_strings.get("hud.settings.percentages"))
             .right_from(state.ids.show_bar_numbers_percentage_button, 10.0)
@@ -984,7 +974,7 @@ impl<'a> Widget for Interface<'a> {
         .pad_track((5.0, 5.0))
         .set(state.ids.chat_transp_slider, ui)
         {
-            events.push(InterfaceChange::ChatTransp(new_val));
+            events.push(ChatTransp(new_val));
         }
 
         // "Show character names in chat" toggle button
@@ -999,7 +989,7 @@ impl<'a> Widget for Interface<'a> {
         .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
         .set(state.ids.chat_char_name_button, ui);
         if self.global_state.settings.interface.chat_character_name != chat_char_name {
-            events.push(InterfaceChange::ChatCharName(
+            events.push(ChatCharName(
                 !self.global_state.settings.interface.chat_character_name,
             ));
         }
@@ -1030,7 +1020,7 @@ impl<'a> Widget for Interface<'a> {
             .set(state.ids.reset_interface_button, ui)
             .was_clicked()
         {
-            events.push(InterfaceChange::ResetInterfaceSettings);
+            events.push(ResetInterfaceSettings);
         }
 
         events

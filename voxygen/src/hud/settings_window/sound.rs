@@ -3,7 +3,7 @@ use super::{RESET_BUTTONS_HEIGHT, RESET_BUTTONS_WIDTH};
 use crate::{
     hud::{img_ids::Imgs, TEXT_COLOR},
     i18n::Localization,
-    session::settings_change::Audio as AudioChange,
+    session::settings_change::{Audio as AudioChange, Audio::*},
     ui::{fonts::Fonts, ImageSlider},
     GlobalState,
 };
@@ -115,7 +115,7 @@ impl<'a> Widget for Sound<'a> {
         .pad_track((5.0, 5.0))
         .set(state.ids.audio_volume_slider, ui)
         {
-            events.push(AudioChange::AdjustMusicVolume(new_val));
+            events.push(AdjustMusicVolume(new_val));
         }
 
         // SFX Volume -------------------------------------------------------
@@ -144,7 +144,7 @@ impl<'a> Widget for Sound<'a> {
         .pad_track((5.0, 5.0))
         .set(state.ids.sfx_volume_slider, ui)
         {
-            events.push(AudioChange::AdjustSfxVolume(new_val));
+            events.push(AdjustSfxVolume(new_val));
         }
 
         // Audio Device Selector
@@ -171,7 +171,7 @@ impl<'a> Widget for Sound<'a> {
         //    .set(state.ids.audio_device_list, ui)
         //{
         //    let new_val = device_list[clicked].clone();
-        //    events.push(AudioChange::ChangeAudioDevice(new_val));
+        //    events.push(ChangeAudioDevice(new_val));
         //}
 
         // Reset the sound settings to the default settings
@@ -188,7 +188,7 @@ impl<'a> Widget for Sound<'a> {
             .set(state.ids.reset_sound_button, ui)
             .was_clicked()
         {
-            events.push(AudioChange::ResetAudioSettings);
+            events.push(ResetAudioSettings);
         }
 
         events
