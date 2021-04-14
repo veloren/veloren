@@ -216,16 +216,14 @@ impl StatKind {
 impl From<(&MaterialStatManifest, &[Item], &Tool)> for Stats {
     fn from((msm, components, tool): (&MaterialStatManifest, &[Item], &Tool)) -> Self {
         let raw_stats = tool.stats.resolve_stats(msm, components).clamp_speed();
-        let (power, speed) = match tool.hands {
-            Hands::One => (0.67, 1.33),
-            // TODO: Restore this when one-handed weapons are made accessible
-            // Hands::Two => (1.5, 0.75),
-            Hands::Two => (1.0, 1.0),
+        let (power, speed, poise) = match tool.hands {
+            Hands::One => (0.67, 1.33, 0.67),
+            Hands::Two => (1.5, 0.75, 1.5),
         };
         Self {
             equip_time_secs: raw_stats.equip_time_secs,
             power: raw_stats.power * power,
-            poise_strength: raw_stats.poise_strength,
+            poise_strength: raw_stats.poise_strength * poise,
             speed: raw_stats.speed * speed,
             crit_chance: raw_stats.crit_chance,
             crit_mult: raw_stats.crit_mult,
