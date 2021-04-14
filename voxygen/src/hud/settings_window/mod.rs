@@ -6,15 +6,10 @@ mod sound;
 mod video;
 
 use crate::{
-    hud::{
-        img_ids::Imgs, BarNumbers, BuffPosition, CrosshairType, PressBehavior, ShortcutNumbers,
-        Show, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
-    },
-    i18n::{LanguageMetadata, Localization},
-    render::RenderMode,
-    settings::Fps,
+    hud::{img_ids::Imgs, Show, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN},
+    i18n::Localization,
+    session::settings_change::SettingsChange,
     ui::fonts::Fonts,
-    window::{FullScreenSettings, GameInput},
     GlobalState,
 };
 use conrod_core::{
@@ -120,59 +115,9 @@ pub struct State {
 }
 
 pub enum Event {
-    ToggleHelp,
-    ToggleDebug,
-    ToggleTips(bool),
-    ToggleBarNumbers(BarNumbers),
-    ToggleShortcutNumbers(ShortcutNumbers),
-    BuffPosition(BuffPosition),
     ChangeTab(SettingsTab),
     Close,
-    AdjustMousePan(u32),
-    AdjustMouseZoom(u32),
-    AdjustCameraClamp(u32),
-    ToggleZoomInvert(bool),
-    ToggleMouseYInvert(bool),
-    ToggleControllerYInvert(bool),
-    ToggleSmoothPan(bool),
-    AdjustViewDistance(u32),
-    AdjustSpriteRenderDistance(u32),
-    AdjustFigureLoDRenderDistance(u32),
-    AdjustFOV(u16),
-    AdjustLodDetail(u32),
-    AdjustGamma(f32),
-    AdjustExposure(f32),
-    AdjustAmbiance(f32),
-    AdjustWindowSize([u16; 2]),
-    ChangeFullscreenMode(FullScreenSettings),
-    ToggleParticlesEnabled(bool),
-    ChangeRenderMode(Box<RenderMode>),
-    AdjustMusicVolume(f32),
-    AdjustSfxVolume(f32),
-    //ChangeAudioDevice(String),
-    MaximumFPS(Fps),
-    CrosshairTransp(f32),
-    CrosshairType(CrosshairType),
-    UiScale(ScaleChange),
-    ChatTransp(f32),
-    ChatCharName(bool),
-    Sct(bool),
-    SctPlayerBatch(bool),
-    SctDamageBatch(bool),
-    SpeechBubbleDarkMode(bool),
-    SpeechBubbleIcon(bool),
-    ChangeLanguage(Box<LanguageMetadata>),
-    ChangeBinding(GameInput),
-    ResetInterfaceSettings,
-    ResetGameplaySettings,
-    ResetKeyBindings,
-    ResetGraphicsSettings,
-    ResetAudioSettings,
-    ChangeFreeLookBehavior(PressBehavior),
-    ChangeAutoWalkBehavior(PressBehavior),
-    ChangeCameraClampBehavior(PressBehavior),
-    ChangeStopAutoWalkOnInput(bool),
-    ChangeAutoCamera(bool),
+    SettingsChange(SettingsChange),
 }
 
 #[derive(Clone)]
@@ -294,41 +239,63 @@ impl<'a> Widget for SettingsWindow<'a> {
         let imgs = self.imgs;
         let fonts = self.fonts;
         let localized_strings = self.localized_strings;
-        for event in match self.show.settings_tab {
+        match self.show.settings_tab {
             SettingsTab::Interface => {
-                interface::Interface::new(global_state, show, imgs, fonts, localized_strings)
-                    .top_left_with_margins_on(state.ids.settings_content_align, 0.0, 0.0)
-                    .wh_of(state.ids.settings_content_align)
-                    .set(state.ids.interface, ui)
+                for change in
+                    interface::Interface::new(global_state, show, imgs, fonts, localized_strings)
+                        .top_left_with_margins_on(state.ids.settings_content_align, 0.0, 0.0)
+                        .wh_of(state.ids.settings_content_align)
+                        .set(state.ids.interface, ui)
+                {
+                    events.push(Event::SettingsChange(change.into()));
+                }
             },
             SettingsTab::Gameplay => {
-                gameplay::Gameplay::new(global_state, imgs, fonts, localized_strings)
+                for change in gameplay::Gameplay::new(global_state, imgs, fonts, localized_strings)
                     .top_left_with_margins_on(state.ids.settings_content_align, 0.0, 0.0)
                     .wh_of(state.ids.settings_content_align)
                     .set(state.ids.gameplay, ui)
+                {
+                    events.push(Event::SettingsChange(change.into()));
+                }
             },
             SettingsTab::Controls => {
-                controls::Controls::new(global_state, imgs, fonts, localized_strings)
+                for change in controls::Controls::new(global_state, imgs, fonts, localized_strings)
                     .top_left_with_margins_on(state.ids.settings_content_align, 0.0, 0.0)
                     .wh_of(state.ids.settings_content_align)
                     .set(state.ids.controls, ui)
+                {
+                    events.push(Event::SettingsChange(change.into()));
+                }
             },
             SettingsTab::Video => {
-                video::Video::new(global_state, imgs, fonts, localized_strings, self.fps)
+                for change in
+                    video::Video::new(global_state, imgs, fonts, localized_strings, self.fps)
+                        .top_left_with_margins_on(state.ids.settings_content_align, 0.0, 0.0)
+                        .wh_of(state.ids.settings_content_align)
+                        .set(state.ids.video, ui)
+                {
+                    events.push(Event::SettingsChange(change.into()));
+                }
+            },
+            SettingsTab::Sound => {
+                for change in sound::Sound::new(global_state, imgs, fonts, localized_strings)
                     .top_left_with_margins_on(state.ids.settings_content_align, 0.0, 0.0)
                     .wh_of(state.ids.settings_content_align)
-                    .set(state.ids.video, ui)
+                    .set(state.ids.sound, ui)
+                {
+                    events.push(Event::SettingsChange(change.into()));
+                }
             },
-            SettingsTab::Sound => sound::Sound::new(global_state, imgs, fonts, localized_strings)
-                .top_left_with_margins_on(state.ids.settings_content_align, 0.0, 0.0)
-                .wh_of(state.ids.settings_content_align)
-                .set(state.ids.sound, ui),
-            SettingsTab::Lang => language::Language::new(global_state, imgs, fonts)
-                .top_left_with_margins_on(state.ids.settings_content_align, 0.0, 0.0)
-                .wh_of(state.ids.settings_content_align)
-                .set(state.ids.language, ui),
-        } {
-            events.push(event);
+            SettingsTab::Lang => {
+                for change in language::Language::new(global_state, imgs, fonts)
+                    .top_left_with_margins_on(state.ids.settings_content_align, 0.0, 0.0)
+                    .wh_of(state.ids.settings_content_align)
+                    .set(state.ids.language, ui)
+                {
+                    events.push(Event::SettingsChange(change.into()));
+                }
+            },
         }
 
         events

@@ -1,4 +1,4 @@
-use super::{Event, RESET_BUTTONS_HEIGHT, RESET_BUTTONS_WIDTH};
+use super::{RESET_BUTTONS_HEIGHT, RESET_BUTTONS_WIDTH};
 
 use crate::{
     hud::{
@@ -10,6 +10,7 @@ use crate::{
         AaMode, CloudMode, FluidMode, LightingMode, RenderMode, ShadowMapMode, ShadowMode,
         UpscaleMode,
     },
+    session::settings_change::Graphics as GraphicsChange,
     settings::Fps,
     ui::{fonts::Fonts, ImageSlider, ToggleButton},
     window::{FullScreenSettings, FullscreenMode},
@@ -145,7 +146,7 @@ const FPS_CHOICES: [Fps; 12] = [
 ];
 
 impl<'a> Widget for Video<'a> {
-    type Event = Vec<Event>;
+    type Event = Vec<GraphicsChange>;
     type State = State;
     type Style = ();
 
@@ -226,7 +227,7 @@ impl<'a> Widget for Video<'a> {
         .pad_track((5.0, 5.0))
         .set(state.ids.vd_slider, ui)
         {
-            events.push(Event::AdjustViewDistance(new_val));
+            events.push(GraphicsChange::AdjustViewDistance(new_val));
         }
 
         Text::new(&format!(
@@ -264,7 +265,7 @@ impl<'a> Widget for Video<'a> {
         .pad_track((5.0, 5.0))
         .set(state.ids.max_fps_slider, ui)
         {
-            events.push(Event::MaximumFPS(FPS_CHOICES[which]));
+            events.push(GraphicsChange::ChangeMaxFPS(FPS_CHOICES[which]));
         }
 
         Text::new(&self.global_state.settings.graphics.max_fps.to_string())
@@ -296,7 +297,7 @@ impl<'a> Widget for Video<'a> {
         .pad_track((5.0, 5.0))
         .set(state.ids.fov_slider, ui)
         {
-            events.push(Event::AdjustFOV(new_val));
+            events.push(GraphicsChange::ChangeFOV(new_val));
         }
 
         Text::new(&format!("{}", self.global_state.settings.graphics.fov))
@@ -329,7 +330,7 @@ impl<'a> Widget for Video<'a> {
         .pad_track((5.0, 5.0))
         .set(state.ids.lod_detail_slider, ui)
         {
-            events.push(Event::AdjustLodDetail(
+            events.push(GraphicsChange::AdjustLodDetail(
                 (5.0f32.powf(new_val as f32 / 10.0) * 100.0) as u32,
             ));
         }
@@ -366,7 +367,9 @@ impl<'a> Widget for Video<'a> {
         .pad_track((5.0, 5.0))
         .set(state.ids.gamma_slider, ui)
         {
-            events.push(Event::AdjustGamma(2.0f32.powf(new_val as f32 / 8.0)));
+            events.push(GraphicsChange::ChangeGamma(
+                2.0f32.powf(new_val as f32 / 8.0),
+            ));
         }
 
         Text::new(&format!("{:.2}", self.global_state.settings.graphics.gamma))
@@ -391,7 +394,7 @@ impl<'a> Widget for Video<'a> {
         .pad_track((5.0, 5.0))
         .set(state.ids.exposure_slider, ui)
         {
-            events.push(Event::AdjustExposure(new_val as f32 / 16.0));
+            events.push(GraphicsChange::ChangeExposure(new_val as f32 / 16.0));
         }
 
         Text::new(&self.localized_strings.get("hud.settings.exposure"))
@@ -429,7 +432,7 @@ impl<'a> Widget for Video<'a> {
         .pad_track((5.0, 5.0))
         .set(state.ids.ambiance_slider, ui)
         {
-            events.push(Event::AdjustAmbiance(new_val as f32));
+            events.push(GraphicsChange::ChangeAmbiance(new_val as f32));
         }
         Text::new(&self.localized_strings.get("hud.settings.ambiance"))
             .up_from(state.ids.ambiance_slider, 8.0)
@@ -465,7 +468,7 @@ impl<'a> Widget for Video<'a> {
         .pad_track((5.0, 5.0))
         .set(state.ids.sprite_dist_slider, ui)
         {
-            events.push(Event::AdjustSpriteRenderDistance(new_val));
+            events.push(GraphicsChange::AdjustSpriteRenderDistance(new_val));
         }
         Text::new(
             &self
@@ -505,7 +508,7 @@ impl<'a> Widget for Video<'a> {
         .pad_track((5.0, 5.0))
         .set(state.ids.figure_dist_slider, ui)
         {
-            events.push(Event::AdjustFigureLoDRenderDistance(new_val));
+            events.push(GraphicsChange::AdjustFigureLoDRenderDistance(new_val));
         }
         Text::new(
             &self
@@ -569,7 +572,7 @@ impl<'a> Widget for Video<'a> {
             .down_from(state.ids.aa_mode_text, 8.0)
             .set(state.ids.aa_mode_list, ui)
         {
-            events.push(Event::ChangeRenderMode(Box::new(RenderMode {
+            events.push(GraphicsChange::ChangeRenderMode(Box::new(RenderMode {
                 aa: mode_list[clicked],
                 ..render_mode.clone()
             })));
@@ -609,7 +612,7 @@ impl<'a> Widget for Video<'a> {
         .down_from(state.ids.upscale_factor_text, 8.0)
         .set(state.ids.upscale_factor_list, ui)
         {
-            events.push(Event::ChangeRenderMode(Box::new(RenderMode {
+            events.push(GraphicsChange::ChangeRenderMode(Box::new(RenderMode {
                 upscale_mode: UpscaleMode {
                     factor: upscale_factors[clicked],
                 },
@@ -667,7 +670,7 @@ impl<'a> Widget for Video<'a> {
             .down_from(state.ids.cloud_mode_text, 8.0)
             .set(state.ids.cloud_mode_list, ui)
         {
-            events.push(Event::ChangeRenderMode(Box::new(RenderMode {
+            events.push(GraphicsChange::ChangeRenderMode(Box::new(RenderMode {
                 cloud: mode_list[clicked],
                 ..render_mode.clone()
             })));
@@ -706,7 +709,7 @@ impl<'a> Widget for Video<'a> {
             .down_from(state.ids.fluid_mode_text, 8.0)
             .set(state.ids.fluid_mode_list, ui)
         {
-            events.push(Event::ChangeRenderMode(Box::new(RenderMode {
+            events.push(GraphicsChange::ChangeRenderMode(Box::new(RenderMode {
                 fluid: mode_list[clicked],
                 ..render_mode.clone()
             })));
@@ -752,7 +755,7 @@ impl<'a> Widget for Video<'a> {
             .down_from(state.ids.lighting_mode_text, 8.0)
             .set(state.ids.lighting_mode_list, ui)
         {
-            events.push(Event::ChangeRenderMode(Box::new(RenderMode {
+            events.push(GraphicsChange::ChangeRenderMode(Box::new(RenderMode {
                 lighting: mode_list[clicked],
                 ..render_mode.clone()
             })));
@@ -799,7 +802,7 @@ impl<'a> Widget for Video<'a> {
             .down_from(state.ids.shadow_mode_text, 8.0)
             .set(state.ids.shadow_mode_list, ui)
         {
-            events.push(Event::ChangeRenderMode(Box::new(RenderMode {
+            events.push(GraphicsChange::ChangeRenderMode(Box::new(RenderMode {
                 shadow: mode_list[clicked],
                 ..render_mode.clone()
             })));
@@ -832,7 +835,7 @@ impl<'a> Widget for Video<'a> {
             .pad_track((5.0, 5.0))
             .set(state.ids.shadow_mode_map_resolution_slider, ui)
             {
-                events.push(Event::ChangeRenderMode(Box::new(RenderMode {
+                events.push(GraphicsChange::ChangeRenderMode(Box::new(RenderMode {
                     shadow: ShadowMode::Map(ShadowMapMode {
                         resolution: 2.0f32.powf(f32::from(new_val) / 4.0),
                     }),
@@ -870,7 +873,7 @@ impl<'a> Widget for Video<'a> {
         .set(state.ids.particles_button, ui);
 
         if self.global_state.settings.graphics.particles_enabled != particles_enabled {
-            events.push(Event::ToggleParticlesEnabled(particles_enabled));
+            events.push(GraphicsChange::ToggleParticlesEnabled(particles_enabled));
         }
 
         // Resolution
@@ -907,7 +910,7 @@ impl<'a> Widget for Video<'a> {
         .down_from(state.ids.resolution_label, 10.0)
         .set(state.ids.resolution, ui)
         {
-            events.push(Event::ChangeFullscreenMode(FullScreenSettings {
+            events.push(GraphicsChange::ChangeFullscreenMode(FullScreenSettings {
                 resolution: resolutions[clicked],
                 ..self.global_state.settings.graphics.fullscreen
             }));
@@ -971,7 +974,7 @@ impl<'a> Widget for Video<'a> {
         .right_from(state.ids.resolution, 8.0)
         .set(state.ids.bit_depth, ui)
         {
-            events.push(Event::ChangeFullscreenMode(FullScreenSettings {
+            events.push(GraphicsChange::ChangeFullscreenMode(FullScreenSettings {
                 bit_depth: if clicked == 0 {
                     None
                 } else {
@@ -1025,7 +1028,7 @@ impl<'a> Widget for Video<'a> {
         .right_from(state.ids.bit_depth, 8.0)
         .set(state.ids.refresh_rate, ui)
         {
-            events.push(Event::ChangeFullscreenMode(FullScreenSettings {
+            events.push(GraphicsChange::ChangeFullscreenMode(FullScreenSettings {
                 refresh_rate: if clicked == 0 {
                     None
                 } else {
@@ -1055,7 +1058,7 @@ impl<'a> Widget for Video<'a> {
         .set(state.ids.fullscreen_button, ui);
 
         if self.global_state.settings.graphics.fullscreen.enabled != enabled {
-            events.push(Event::ChangeFullscreenMode(FullScreenSettings {
+            events.push(GraphicsChange::ChangeFullscreenMode(FullScreenSettings {
                 enabled,
                 ..self.global_state.settings.graphics.fullscreen
             }));
@@ -1092,7 +1095,7 @@ impl<'a> Widget for Video<'a> {
             .down_from(state.ids.fullscreen_mode_text, 8.0)
             .set(state.ids.fullscreen_mode_list, ui)
         {
-            events.push(Event::ChangeFullscreenMode(FullScreenSettings {
+            events.push(GraphicsChange::ChangeFullscreenMode(FullScreenSettings {
                 mode: mode_list[clicked],
                 ..self.global_state.settings.graphics.fullscreen
             }));
@@ -1112,7 +1115,7 @@ impl<'a> Widget for Video<'a> {
             .set(state.ids.save_window_size_button, ui)
             .was_clicked()
         {
-            events.push(Event::AdjustWindowSize(
+            events.push(GraphicsChange::AdjustWindowSize(
                 self.global_state
                     .window
                     .logical_size()
@@ -1136,7 +1139,7 @@ impl<'a> Widget for Video<'a> {
             .set(state.ids.reset_graphics_button, ui)
             .was_clicked()
         {
-            events.push(Event::ResetGraphicsSettings);
+            events.push(GraphicsChange::ResetGraphicsSettings);
         }
 
         events

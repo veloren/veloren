@@ -5,6 +5,7 @@ use super::{
 };
 use crate::{
     i18n::Localization,
+    session::settings_change::{Interface as InterfaceChange, SettingsChange},
     ui::{fonts::Fonts, img_ids, ImageFrame, Tooltip, TooltipManager, Tooltipable},
     GlobalState,
 };
@@ -117,17 +118,14 @@ pub struct State {
 }
 
 pub enum Event {
-    MapZoom(f64),
-    MapDrag(Vec2<f64>),
-    ShowDifficulties(bool),
-    ShowTowns(bool),
-    ShowCastles(bool),
-    ShowDungeons(bool),
-    ShowCaves(bool),
-    ShowTrees(bool),
-    ShowTopoMap(bool),
+    SettingsChange(SettingsChange),
     Close,
     RequestSiteInfo(SiteId),
+}
+impl From<InterfaceChange> for Event {
+    fn from(interface_change: InterfaceChange) -> Self {
+        Event::SettingsChange(interface_change.into())
+    }
 }
 
 fn get_site_economy(site_rich: &SiteInfoRich) -> String {
@@ -315,7 +313,7 @@ impl<'a> Widget for Map<'a> {
             .sum();
         // Drag represents offset of view from the player_pos in chunk coords
         let drag_new = drag + dragged / map_size / zoom * max_zoom;
-        events.push(Event::MapDrag(drag_new));
+        events.push(InterfaceChange::MapDrag(drag_new).into());
 
         let rect_src = position::Rect::from_xy_dim(
             [
@@ -366,7 +364,7 @@ impl<'a> Widget for Map<'a> {
         let new_zoom_lvl = (self.global_state.settings.interface.map_zoom
             * (scrolled * 0.05 * -1.0).exp2())
         .clamped(1.25, max_zoom / 64.0);
-        events.push(Event::MapZoom(new_zoom_lvl as f64));
+        events.push(InterfaceChange::MapZoom(new_zoom_lvl as f64).into());
         // Icon settings
         // Alignment
         Rectangle::fill_with([150.0, 200.0], color::TRANSPARENT)
@@ -398,7 +396,7 @@ impl<'a> Widget for Map<'a> {
         .set(state.ids.show_difficulty_box, ui)
         .was_clicked()
         {
-            events.push(Event::ShowDifficulties(!show_difficulty));
+            events.push(InterfaceChange::MapShowDifficulty(!show_difficulty).into());
         }
         Text::new(i18n.get("hud.map.difficulty"))
             .right_from(state.ids.show_difficulty_box, 10.0)
@@ -432,7 +430,7 @@ impl<'a> Widget for Map<'a> {
         .set(state.ids.show_towns_box, ui)
         .was_clicked()
         {
-            events.push(Event::ShowTowns(!show_towns));
+            events.push(InterfaceChange::MapShowTowns(!show_towns).into());
         }
         Text::new(i18n.get("hud.map.towns"))
             .right_from(state.ids.show_towns_box, 10.0)
@@ -466,7 +464,7 @@ impl<'a> Widget for Map<'a> {
         .set(state.ids.show_castles_box, ui)
         .was_clicked()
         {
-            events.push(Event::ShowCastles(!show_castles));
+            events.push(InterfaceChange::MapShowCastles(!show_castles).into());
         }
         Text::new(i18n.get("hud.map.castles"))
             .right_from(state.ids.show_castles_box, 10.0)
@@ -500,7 +498,7 @@ impl<'a> Widget for Map<'a> {
         .set(state.ids.show_dungeons_box, ui)
         .was_clicked()
         {
-            events.push(Event::ShowDungeons(!show_dungeons));
+            events.push(InterfaceChange::MapShowDungeons(!show_dungeons).into());
         }
         Text::new(i18n.get("hud.map.dungeons"))
             .right_from(state.ids.show_dungeons_box, 10.0)
@@ -534,7 +532,7 @@ impl<'a> Widget for Map<'a> {
         .set(state.ids.show_caves_box, ui)
         .was_clicked()
         {
-            events.push(Event::ShowCaves(!show_caves));
+            events.push(InterfaceChange::MapShowCaves(!show_caves).into());
         }
         Text::new(i18n.get("hud.map.caves"))
             .right_from(state.ids.show_caves_box, 10.0)
@@ -568,7 +566,7 @@ impl<'a> Widget for Map<'a> {
         .set(state.ids.show_trees_box, ui)
         .was_clicked()
         {
-            events.push(Event::ShowTrees(!show_trees));
+            events.push(InterfaceChange::MapShowTrees(!show_trees).into());
         }
         Text::new(i18n.get("hud.map.trees"))
             .right_from(state.ids.show_trees_box, 10.0)
@@ -898,7 +896,7 @@ impl<'a> Widget for Map<'a> {
             .set(state.ids.recenter_button, ui)
             .was_clicked()
         {
-            events.push(Event::MapDrag(Vec2::zero()));
+            events.push(InterfaceChange::MapDrag(Vec2::zero()).into());
         };
 
         Image::new(self.imgs.m_move_ico)
@@ -942,7 +940,7 @@ impl<'a> Widget for Map<'a> {
             .set(state.ids.map_mode_btn, ui)
             .was_clicked()
         {
-            events.push(Event::ShowTopoMap(!show_topo_map));
+            events.push(InterfaceChange::MapShowTopoMap(!show_topo_map).into());
         };
         Button::image(self.imgs.map_mode_overlay)
             .w_h(92.0, icon_size.y)

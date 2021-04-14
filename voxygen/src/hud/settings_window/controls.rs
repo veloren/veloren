@@ -1,8 +1,9 @@
-use super::{Event, RESET_BUTTONS_HEIGHT, RESET_BUTTONS_WIDTH};
+use super::{RESET_BUTTONS_HEIGHT, RESET_BUTTONS_WIDTH};
 
 use crate::{
     hud::{img_ids::Imgs, ERROR_COLOR, TEXT_BIND_CONFLICT_COLOR, TEXT_COLOR},
     i18n::Localization,
+    session::settings_change::Control as ControlChange,
     ui::fonts::Fonts,
     window::GameInput,
     GlobalState,
@@ -57,7 +58,7 @@ pub struct State {
 }
 
 impl<'a> Widget for Controls<'a> {
-    type Event = Vec<Event>;
+    type Event = Vec<ControlChange>;
     type State = State;
     type Style = ();
 
@@ -167,7 +168,7 @@ impl<'a> Widget for Controls<'a> {
                 .set(button_id, ui)
                 .was_clicked()
             {
-                events.push(Event::ChangeBinding(game_input));
+                events.push(ControlChange::ChangeBinding(game_input));
             }
             // Set the previous id to the current one for the next cycle
             previous_element_id = Some(text_id);
@@ -188,7 +189,7 @@ impl<'a> Widget for Controls<'a> {
                 .set(state.ids.reset_controls_button, ui)
                 .was_clicked()
             {
-                events.push(Event::ResetKeyBindings);
+                events.push(ControlChange::ResetKeyBindings);
             }
             previous_element_id = Some(state.ids.reset_controls_button)
         }
