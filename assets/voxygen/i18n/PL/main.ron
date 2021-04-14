@@ -16,9 +16,9 @@ Zanim zanurzysz się w tym świecie, prosimy pamiętać o kilku rzeczach:
 
 - Jest to bardzo wczesna alfa. Spodziewaj się błędów, bardzo niedokończonej rozgrywki, niedokończonych mechanik i brakujących funkcjonalności.
 
-- Jeśli chcesz podzielić się kontruktywną krytyką lub zgłosić błąd/błędy - możesz skontakować się z nami na Reddicie, Gitlabie lub Discordzie.
+- Jeśli chcesz podzielić się konstruktywną krytyką lub zgłosić błąd/błędy - możesz skontakować się z nami na Reddicie, Gitlabie lub Discordzie.
 
-- Veloren jest objęty licencją 'GPL 3 open-source licence'. Co oznacza, jest darmowy do grania, modyfikacji i redystrybucji gry jakkolwiek
+- Veloren jest objęty licencją 'GPL 3 open-source licence'. Co oznacza, że jest darmowy do grania, modyfikacji i redystrybucji gry jakkolwiek
  chcesz (ograniczeniem jest by praca pochodna też była na licencji GPL 3).
 
 - Veloren jest projektem non-profit i każdy wkład jest pracą wolontariuszy.
@@ -32,7 +32,7 @@ Dziękujemy za przeczytanie tej notki i życzymy miłej gry!
         "main.login_process": r#"Informacje o procesie logowania:
 
 By grać na serwerach z wymaganą
-rejestracją potrzebujesz stworzyć konto.
+rejestracją musisz stworzyć konto.
 
 Konto możesz stworzyć wchodząc na
 
