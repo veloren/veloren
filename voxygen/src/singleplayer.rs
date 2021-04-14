@@ -62,8 +62,9 @@ impl Singleplayer {
             };
 
             info!(
-                "Saves folder doesn't exist, but there is one in the old saves location, copying \
-                 it to the new location"
+                "Saves folder doesn't exist, but there is one in the old saves location ({}), \
+                 copying it to the new location",
+                old_path.display()
             );
             if let Some(parent) = new_path.parent() {
                 if let Err(e) = std::fs::create_dir_all(parent) {

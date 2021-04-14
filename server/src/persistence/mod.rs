@@ -12,6 +12,7 @@ use common::comp;
 use refinery::Report;
 use rusqlite::{Connection, OpenFlags};
 use std::{
+    fs,
     path::PathBuf,
     sync::{Arc, RwLock},
     time::Duration,
@@ -130,6 +131,10 @@ fn rusqlite_profile_callback(log_message: &str, dur: Duration) {
 }
 
 pub(crate) fn establish_connection(settings: &DatabaseSettings) -> VelorenConnection {
+    fs::create_dir_all(&settings.db_dir).expect(&*format!(
+        "Failed to create saves directory: {:?}",
+        &settings.db_dir
+    ));
     let connection = Connection::open_with_flags(
         &settings.db_dir.join("db.sqlite"),
         OpenFlags::SQLITE_OPEN_PRIVATE_CACHE | OpenFlags::default(),
