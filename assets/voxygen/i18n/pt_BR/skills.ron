@@ -186,7 +186,7 @@
         "hud.skill.sw_dash_cost_title": "Custo da Investida",
         "hud.skill.sw_dash_cost": "Reduz custo inicial da investida em 25%{SP}",
         "hud.skill.sw_dash_speed_title": "Velocidade de Investida",
-        "hud.skill.sw_dash_speed": "Aumenta a velocidade durante a investida em 30%{SP}",
+        "hud.skill.sw_dash_speed": "Aumenta a velocidade durante a investida em 15%{SP}",
         "hud.skill.sw_dash_inf_title": "Investida do Infinito",
         "hud.skill.sw_dash_inf": "Você consegue investir contanto que possua energia para tal{SP}",
         "hud.skill.sw_dash_scale_title": "Investida Acumulada",

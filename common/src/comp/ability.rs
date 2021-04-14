@@ -667,7 +667,7 @@ impl CharacterAbility {
                             *scaled_damage *= 1.2_f32.powi(level.into());
                         }
                         if skillset.has_skill(Sword(DSpeed)) {
-                            *forward_speed *= 1.3;
+                            *forward_speed *= 1.15;
                         }
                         *infinite_charge = skillset.has_skill(Sword(DInfinite));
                     },

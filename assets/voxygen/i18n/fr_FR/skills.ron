@@ -190,7 +190,7 @@
         "hud.skill.sw_dash_cost_title": "Coût d'Endurance de la Ruée",
         "hud.skill.sw_dash_cost": "Diminue de 25% le coût en endurance initial de la ruée{SP}",
         "hud.skill.sw_dash_speed_title": "Vitesse de la Ruée",
-        "hud.skill.sw_dash_speed": "Augmente de 30% la vitesse de course durant la ruée{SP}",
+        "hud.skill.sw_dash_speed": "Augmente de 15% la vitesse de course durant la ruée{SP}",
         "hud.skill.sw_dash_inf_title": "Ruée Infinie",
         "hud.skill.sw_dash_inf": "Vous permet de vous élancer en ruée tant que vous avez de l'endurance{SP}",
         "hud.skill.sw_dash_scale_title": "Progression des Dégâts de la Ruée",

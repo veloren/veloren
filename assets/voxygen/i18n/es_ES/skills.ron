@@ -190,7 +190,7 @@
         "hud.skill.sw_dash_cost_title": "Coste de Atravesar",
         "hud.skill.sw_dash_cost": "Disminuye el coste inicial de Atravesar en un 25%{SP}",
         "hud.skill.sw_dash_speed_title": "Velocidad de Atravesar",
-        "hud.skill.sw_dash_speed": "Aumenta la velocidad al atravesar en un 30%{SP}",
+        "hud.skill.sw_dash_speed": "Aumenta la velocidad al atravesar en un 15%{SP}",
         "hud.skill.sw_dash_inf_title": "Atravesar Infinito",
         "hud.skill.sw_dash_inf": "Te permite hacer atravesar durante todo el tiempo que tengas energía{SP}",
         "hud.skill.sw_dash_scale_title": "Intensidad de daño de Atravesar",

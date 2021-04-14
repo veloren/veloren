@@ -1,4 +1,8 @@
 [
+    //2h
     (1.0, Item("common.items.weapons.axe.cobalt_axe-0")),
     (1.0, Item("common.items.weapons.axe.cobalt_axe-1")),
+    //1h
+    (1.0, Item("common.items.weapons.axe_1h.cobalt-0")),
+    (1.0, Item("common.items.weapons.axe_1h.cobalt-1")),
 ]

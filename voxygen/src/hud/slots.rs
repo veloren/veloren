@@ -144,13 +144,25 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
                 .map(|item| HotbarImage::Item(item.into()))
                 .map(|i| (i, None)),
             hotbar::SlotContents::Ability3 => {
-                let tool = match inventory
-                    .equipped(EquipSlot::Mainhand)
-                    .map(|i| (i, i.kind()))
-                {
-                    Some((item, ItemKind::Tool(tool))) => Some((item, tool)),
+                let hands = |equip_slot| match inventory.equipped(equip_slot).map(|i| i.kind()) {
+                    Some(ItemKind::Tool(tool)) => Some(tool.hands),
                     _ => None,
                 };
+
+                let active_tool_hands = hands(EquipSlot::Mainhand);
+                let second_tool_hands = hands(EquipSlot::Offhand);
+
+                let equip_slot = match (active_tool_hands, second_tool_hands) {
+                    (Some(_), _) => Some(EquipSlot::Mainhand),
+                    (None, Some(_)) => Some(EquipSlot::Offhand),
+                    (_, _) => None,
+                };
+
+                let tool =
+                    equip_slot.and_then(|es| match inventory.equipped(es).map(|i| (i, i.kind())) {
+                        Some((item, ItemKind::Tool(tool))) => Some((item, tool)),
+                        _ => None,
+                    });
 
                 tool.and_then(|(item, tool)| {
                     hotbar_image(tool.kind).map(|i| {
@@ -184,8 +196,9 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
 
                 let (equip_slot, skill_index) = match (active_tool_hands, second_tool_hands) {
                     (Some(Hands::Two), _) => (Some(EquipSlot::Mainhand), 1),
-                    (_, Some(Hands::One)) => (Some(EquipSlot::Offhand), 0),
+                    (Some(_), Some(Hands::One)) => (Some(EquipSlot::Offhand), 0),
                     (Some(Hands::One), _) => (Some(EquipSlot::Mainhand), 1),
+                    (None, Some(_)) => (Some(EquipSlot::Offhand), 1),
                     (_, _) => (None, 0),
                 };
 

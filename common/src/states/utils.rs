@@ -484,8 +484,11 @@ fn handle_ability(data: &JoinData, update: &mut StateUpdate, input: InputKind) {
 
     // Mouse1 and Skill1 always use the MainHand slot
     let always_main_hand = matches!(input, InputKind::Primary | InputKind::Ability(0));
+    let no_main_hand = hands(EquipSlot::Mainhand).is_none();
     // skill_index used to select ability for the AbilityKey::Skill2 input
-    let (equip_slot, skill_index) = if always_main_hand {
+    let (equip_slot, skill_index) = if no_main_hand {
+        (Some(EquipSlot::Offhand), 1)
+    } else if always_main_hand {
         (Some(EquipSlot::Mainhand), 0)
     } else {
         let hands = (hands(EquipSlot::Mainhand), hands(EquipSlot::Offhand));
@@ -567,17 +570,9 @@ pub fn attempt_input(data: &JoinData, update: &mut StateUpdate) {
 /// attempts to perform their dodge ability
 pub fn handle_dodge_input(data: &JoinData, update: &mut StateUpdate) {
     if input_is_pressed(data, InputKind::Roll) && data.body.is_humanoid() {
-        if let Some(ability) = data
-            .inventory
-            .equipped(EquipSlot::Mainhand)
-            .and_then(|i| {
-                i.item_config_expect()
-                    .dodge_ability
-                    .as_ref()
-                    .map(|a| a.clone().adjusted_by_skills(&data.stats.skill_set, None))
-            })
-            .filter(|ability| ability.requirements_paid(data, update))
-        {
+        let ability =
+            CharacterAbility::default_roll().adjusted_by_skills(&data.stats.skill_set, None);
+        if ability.requirements_paid(data, update) {
             update.character = CharacterState::from((
                 &ability,
                 AbilityInfo::from_input(data, false, InputKind::Roll),

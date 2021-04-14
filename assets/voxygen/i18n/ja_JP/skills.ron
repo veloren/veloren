@@ -190,7 +190,7 @@
         "hud.skill.sw_dash_cost_title": "ダッシュ コスト",
         "hud.skill.sw_dash_cost": "ダッシュ攻撃の初期スタミナ消費を25%減少 {SP}",
         "hud.skill.sw_dash_speed_title": "ダッシュ 速度",
-        "hud.skill.sw_dash_speed": "ダッシュ攻撃の速度を30%増加 {SP}",
+        "hud.skill.sw_dash_speed": "ダッシュ攻撃の速度を15%増加 {SP}",
         "hud.skill.sw_dash_inf_title": "無限ダッシュ攻撃",
         "hud.skill.sw_dash_inf": "エネルギーの続く限りダッシュ攻撃する {SP}",
         "hud.skill.sw_dash_scale_title": "ダッシュ ダメージ増量",

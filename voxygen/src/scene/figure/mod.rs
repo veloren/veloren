@@ -897,11 +897,9 @@ impl FigureMgr {
                             anim::character::AlphaAnimation::update_skeleton(
                                 &target_base,
                                 (
-                                    active_tool_kind,
-                                    second_tool_kind,
-                                    rel_vel.magnitude(),
-                                    time,
+                                    hands,
                                     Some(s.stage_section),
+                                    Some(s.static_data.ability_info),
                                 ),
                                 stage_progress,
                                 &mut state_animation_rate,
@@ -991,11 +989,11 @@ impl FigureMgr {
                             anim::character::ChargeswingAnimation::update_skeleton(
                                 &target_base,
                                 (
-                                    active_tool_kind,
-                                    second_tool_kind,
+                                    hands,
                                     rel_vel,
                                     time,
                                     Some(s.stage_section),
+                                    Some(s.static_data.ability_info),
                                 ),
                                 stage_progress,
                                 &mut state_animation_rate,
@@ -1054,13 +1052,7 @@ impl FigureMgr {
                         CharacterState::Boost(_) => {
                             anim::character::AlphaAnimation::update_skeleton(
                                 &target_base,
-                                (
-                                    active_tool_kind,
-                                    second_tool_kind,
-                                    rel_vel.magnitude(),
-                                    time,
-                                    None,
-                                ),
+                                (hands, None, None),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -1086,10 +1078,10 @@ impl FigureMgr {
                             anim::character::DashAnimation::update_skeleton(
                                 &target_base,
                                 (
-                                    active_tool_kind,
-                                    second_tool_kind,
+                                    hands,
                                     time,
                                     Some(s.stage_section),
+                                    Some(s.static_data.ability_info),
                                 ),
                                 stage_progress,
                                 &mut state_animation_rate,
@@ -1153,39 +1145,31 @@ impl FigureMgr {
                             )
                         },
                         CharacterState::LeapMelee(s) => {
-                            let stage_progress = match active_tool_kind {
-                                Some(ToolKind::Axe | ToolKind::Hammer) => {
-                                    let stage_time = s.timer.as_secs_f32();
-                                    match s.stage_section {
-                                        StageSection::Buildup => {
-                                            stage_time
-                                                / s.static_data.buildup_duration.as_secs_f32()
-                                        },
-                                        StageSection::Movement => {
-                                            stage_time
-                                                / s.static_data.movement_duration.as_secs_f32()
-                                        },
-                                        StageSection::Swing => {
-                                            stage_time / s.static_data.swing_duration.as_secs_f32()
-                                        },
-                                        StageSection::Recover => {
-                                            stage_time
-                                                / s.static_data.recover_duration.as_secs_f32()
-                                        },
-                                        _ => 0.0,
-                                    }
+                            let stage_time = s.timer.as_secs_f32();
+                            let stage_progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
-                                _ => state.state_time,
+                                StageSection::Movement => {
+                                    stage_time / s.static_data.movement_duration.as_secs_f32()
+                                },
+                                StageSection::Swing => {
+                                    stage_time / s.static_data.swing_duration.as_secs_f32()
+                                },
+                                StageSection::Recover => {
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
+                                },
+                                _ => 0.0,
                             };
 
                             anim::character::LeapAnimation::update_skeleton(
                                 &target_base,
                                 (
-                                    active_tool_kind,
-                                    second_tool_kind,
+                                    hands,
                                     rel_vel,
                                     time,
                                     Some(s.stage_section),
+                                    Some(s.static_data.ability_info),
                                 ),
                                 stage_progress,
                                 &mut state_animation_rate,
@@ -1193,35 +1177,28 @@ impl FigureMgr {
                             )
                         },
                         CharacterState::SpinMelee(s) => {
-                            let stage_progress = match active_tool_kind {
-                                Some(ToolKind::Axe | ToolKind::Sword) => {
-                                    let stage_time = s.timer.as_secs_f32();
-                                    match s.stage_section {
-                                        StageSection::Buildup => {
-                                            stage_time
-                                                / s.static_data.buildup_duration.as_secs_f32()
-                                        },
-                                        StageSection::Swing => {
-                                            stage_time / s.static_data.swing_duration.as_secs_f32()
-                                        },
-                                        StageSection::Recover => {
-                                            stage_time
-                                                / s.static_data.recover_duration.as_secs_f32()
-                                        },
-                                        _ => 0.0,
-                                    }
+                            let stage_time = s.timer.as_secs_f32();
+                            let stage_progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
-                                _ => state.state_time,
+                                StageSection::Swing => {
+                                    stage_time / s.static_data.swing_duration.as_secs_f32()
+                                },
+                                StageSection::Recover => {
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
+                                },
+                                _ => 0.0,
                             };
 
                             anim::character::SpinMeleeAnimation::update_skeleton(
                                 &target_base,
                                 (
-                                    active_tool_kind,
-                                    second_tool_kind,
+                                    hands,
                                     rel_vel,
                                     time,
                                     Some(s.stage_section),
+                                    Some(s.static_data.ability_info),
                                 ),
                                 stage_progress,
                                 &mut state_animation_rate,
@@ -1249,6 +1226,7 @@ impl FigureMgr {
                                         (
                                             active_tool_kind,
                                             second_tool_kind,
+                                            hands,
                                             rel_vel.magnitude(),
                                             time,
                                             Some(s.stage_section),
@@ -1266,6 +1244,7 @@ impl FigureMgr {
                                         (
                                             active_tool_kind,
                                             second_tool_kind,
+                                            hands,
                                             rel_vel.magnitude(),
                                             time,
                                             Some(s.stage_section),
@@ -1359,11 +1338,9 @@ impl FigureMgr {
                                 1 => anim::character::AlphaAnimation::update_skeleton(
                                     &target_base,
                                     (
-                                        active_tool_kind,
-                                        second_tool_kind,
-                                        rel_vel.magnitude(),
-                                        time,
+                                        hands,
                                         Some(s.stage_section),
+                                        Some(s.static_data.ability_info),
                                     ),
                                     stage_progress,
                                     &mut state_animation_rate,
@@ -1372,11 +1349,11 @@ impl FigureMgr {
                                 2 => anim::character::SpinAnimation::update_skeleton(
                                     &target_base,
                                     (
-                                        active_tool_kind,
-                                        second_tool_kind,
+                                        hands,
                                         rel_vel,
                                         time,
                                         Some(s.stage_section),
+                                        Some(s.static_data.ability_info),
                                     ),
                                     stage_progress,
                                     &mut state_animation_rate,
@@ -1385,11 +1362,11 @@ impl FigureMgr {
                                 _ => anim::character::BetaAnimation::update_skeleton(
                                     &target_base,
                                     (
-                                        active_tool_kind,
-                                        second_tool_kind,
+                                        hands,
                                         rel_vel.magnitude(),
                                         time,
                                         Some(s.stage_section),
+                                        Some(s.static_data.ability_info),
                                     ),
                                     stage_progress,
                                     &mut state_animation_rate,
@@ -1453,6 +1430,7 @@ impl FigureMgr {
                                     (
                                         active_tool_kind,
                                         second_tool_kind,
+                                        hands,
                                         // TODO: Update to use the quaternion.
                                         ori * anim::vek::Vec3::<f32>::unit_y(),
                                         state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
@@ -3601,6 +3579,38 @@ impl FigureMgr {
                                 &mut state_animation_rate,
                                 skeleton_attr,
                             )
+                        },
+                        CharacterState::Stunned(s) => {
+                            let stage_time = s.timer.as_secs_f32();
+                            let stage_progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
+                                },
+                                StageSection::Recover => {
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
+                                },
+                                _ => 0.0,
+                            };
+                            match s.static_data.poise_state {
+                                PoiseState::Normal
+                                | PoiseState::Interrupted
+                                | PoiseState::Stunned
+                                | PoiseState::Dazed
+                                | PoiseState::KnockedDown => {
+                                    anim::biped_large::StunnedAnimation::update_skeleton(
+                                        &target_base,
+                                        (
+                                            active_tool_kind,
+                                            rel_vel,
+                                            state.acc_vel,
+                                            Some(s.stage_section),
+                                        ),
+                                        stage_progress,
+                                        &mut state_animation_rate,
+                                        skeleton_attr,
+                                    )
+                                },
+                            }
                         },
                         CharacterState::Blink(s) => {
                             let stage_time = s.timer.as_secs_f32();

@@ -1,4 +1,5 @@
 [
+    //2h
     (1.0, Item("common.items.weapons.hammer.iron_hammer-0")),
     (1.0, Item("common.items.weapons.hammer.iron_hammer-1")),
     (1.0, Item("common.items.weapons.hammer.iron_hammer-2")),
@@ -8,4 +9,8 @@
     (1.0, Item("common.items.weapons.hammer.iron_hammer-6")),
     (1.0, Item("common.items.weapons.hammer.iron_hammer-7")),
     (1.0, Item("common.items.weapons.hammer.iron_hammer-8")),
+    //1h
+    (1.0, Item("common.items.weapons.hammer_1h.iron-0")),
+    (1.0, Item("common.items.weapons.hammer_1h.iron-1")),
+    (1.0, Item("common.items.weapons.hammer_1h.iron-2")),
 ]

@@ -32,6 +32,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added --sql-log-mode profile/trace parameter to veloren-server-cli
 - Added /disconnect_all_players admin command
 - Added disconnectall CLI command
+- One handed weapons can now be used and found in the world
+
 
 ### Changed
 
