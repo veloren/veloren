@@ -610,11 +610,20 @@ impl Server {
         // 7 Persistence updates
         let before_persistence_updates = Instant::now();
 
-        // Get character-related database responses and notify the requesting client
-        self.state
+        let character_loader = self
+            .state
             .ecs()
-            .read_resource::<persistence::character_loader::CharacterLoader>()
+            .read_resource::<persistence::character_loader::CharacterLoader>();
+
+        let character_updater = self
+            .state
+            .ecs()
+            .read_resource::<persistence::character_updater::CharacterUpdater>();
+
+        // Get character-related database responses and notify the requesting client
+        character_loader
             .messages()
+            .chain(character_updater.messages())
             .for_each(|query_result| match query_result.result {
                 CharacterLoaderResponseKind::CharacterList(result) => match result {
                     Ok(character_list_data) => self.notify_client(
@@ -670,6 +679,9 @@ impl Server {
                         .emit_now(message);
                 },
             });
+
+        drop(character_loader);
+        drop(character_updater);
 
         {
             // Check for new chunks; cancel and regenerate all chunks if the asset has been

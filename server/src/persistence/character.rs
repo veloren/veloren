@@ -9,7 +9,7 @@ extern crate rusqlite;
 use super::{error::PersistenceError, models::*};
 use crate::{
     comp,
-    comp::{item::MaterialStatManifest, Inventory},
+    comp::Inventory,
     persistence::{
         character::conversions::{
             convert_body_from_database, convert_body_to_database_json,
@@ -101,7 +101,6 @@ pub fn load_character_data(
     requesting_player_uuid: String,
     char_id: CharacterId,
     connection: &mut Transaction,
-    msm: &MaterialStatManifest,
 ) -> CharacterDataResult {
     let character_containers = get_pseudo_containers(connection, char_id)?;
     let inventory_items = load_items_bfs(connection, character_containers.inventory_container_id)?;
@@ -205,7 +204,6 @@ pub fn load_character_data(
             &inventory_items,
             character_containers.loadout_container_id,
             &loadout_items,
-            msm,
         )?,
         char_waypoint,
     ))
@@ -221,7 +219,6 @@ pub fn load_character_data(
 pub fn load_character_list(
     player_uuid_: &str,
     connection: &mut Transaction,
-    msm: &MaterialStatManifest,
 ) -> CharacterListResult {
     let characters;
     {
@@ -282,7 +279,7 @@ pub fn load_character_list(
             let loadout_items = load_items_bfs(connection, loadout_container_id)?;
 
             let loadout =
-                convert_loadout_from_database_items(loadout_container_id, &loadout_items, msm)?;
+                convert_loadout_from_database_items(loadout_container_id, &loadout_items)?;
 
             Ok(CharacterItem {
                 character: char,
@@ -298,7 +295,6 @@ pub fn create_character(
     character_alias: &str,
     persisted_components: PersistedComponents,
     connection: &mut Transaction,
-    msm: &MaterialStatManifest,
 ) -> CharacterCreationResult {
     check_character_limit(uuid, connection)?;
 
@@ -445,7 +441,7 @@ pub fn create_character(
     }
     drop(stmt);
 
-    load_character_list(uuid, connection, msm).map(|list| (character_id, list))
+    load_character_list(uuid, connection).map(|list| (character_id, list))
 }
 
 /// Delete a character. Returns the updated character list.
@@ -453,7 +449,6 @@ pub fn delete_character(
     requesting_player_uuid: &str,
     char_id: CharacterId,
     connection: &mut Transaction,
-    msm: &MaterialStatManifest,
 ) -> CharacterListResult {
     #[rustfmt::skip]
     let mut stmt = connection.prepare_cached("
@@ -549,7 +544,7 @@ pub fn delete_character(
         )));
     }
 
-    load_character_list(requesting_player_uuid, connection, msm)
+    load_character_list(requesting_player_uuid, connection)
 }
 
 /// Before creating a character, we ensure that the limit on the number of

@@ -3,12 +3,8 @@ use crate::persistence::{
     error::PersistenceError,
     establish_connection, DatabaseSettings, PersistedComponents,
 };
-use common::{
-    character::{CharacterId, CharacterItem},
-    comp::inventory::item::MaterialStatManifest,
-};
+use common::character::{CharacterId, CharacterItem};
 use crossbeam_channel::{self, TryIter};
-use lazy_static::lazy_static;
 use rusqlite::Transaction;
 use std::sync::{Arc, RwLock};
 use tracing::{error, trace};
@@ -81,13 +77,6 @@ impl CharacterLoaderResponse {
 pub struct CharacterLoader {
     update_rx: crossbeam_channel::Receiver<CharacterLoaderResponse>,
     update_tx: crossbeam_channel::Sender<CharacterLoaderRequest>,
-}
-
-// Decoupled from the ECS resource because the plumbing is getting complicated;
-// shouldn't matter unless someone's hot-reloading material stats on the live
-// server
-lazy_static! {
-    pub static ref MATERIAL_STATS_MANIFEST: MaterialStatManifest = MaterialStatManifest::default();
 }
 
 impl CharacterLoader {
@@ -163,7 +152,6 @@ impl CharacterLoader {
                     &character_alias,
                     persisted_components,
                     &mut transaction,
-                    &MATERIAL_STATS_MANIFEST,
                 )),
                 CharacterLoaderRequestKind::DeleteCharacter {
                     player_uuid,
@@ -172,25 +160,18 @@ impl CharacterLoader {
                     &player_uuid,
                     character_id,
                     &mut transaction,
-                    &MATERIAL_STATS_MANIFEST,
                 )),
                 CharacterLoaderRequestKind::LoadCharacterList { player_uuid } => {
                     CharacterLoaderResponseKind::CharacterList(load_character_list(
                         &player_uuid,
                         &mut transaction,
-                        &MATERIAL_STATS_MANIFEST,
                     ))
                 },
                 CharacterLoaderRequestKind::LoadCharacterData {
                     player_uuid,
                     character_id,
                 } => {
-                    let result = load_character_data(
-                        player_uuid,
-                        character_id,
-                        &mut transaction,
-                        &MATERIAL_STATS_MANIFEST,
-                    );
+                    let result = load_character_data(player_uuid, character_id, &mut transaction);
                     if result.is_err() {
                         error!(
                             ?result,

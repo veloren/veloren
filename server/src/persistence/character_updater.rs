@@ -2,9 +2,13 @@ use crate::comp;
 use common::character::CharacterId;
 
 use crate::persistence::{
-    error::PersistenceError, establish_connection, DatabaseSettings, VelorenConnection,
+    character_loader::{CharacterLoaderResponse, CharacterLoaderResponseKind},
+    error::PersistenceError,
+    establish_connection, DatabaseSettings, VelorenConnection,
 };
+use crossbeam_channel::TryIter;
 use rusqlite::DropBehavior;
+use specs::Entity;
 use std::{
     collections::HashMap,
     sync::{
@@ -18,6 +22,11 @@ pub type CharacterUpdateData = (comp::SkillSet, comp::Inventory, Option<comp::Wa
 
 pub enum CharacterUpdaterEvent {
     BatchUpdate(Vec<(CharacterId, CharacterUpdateData)>),
+    DeleteCharacter {
+        entity: Entity,
+        requesting_player_uuid: String,
+        character_id: CharacterId,
+    },
     DisconnectedSuccess,
 }
 
@@ -28,6 +37,7 @@ pub enum CharacterUpdaterEvent {
 /// such as inventory, loadout, etc...
 pub struct CharacterUpdater {
     update_tx: Option<crossbeam_channel::Sender<CharacterUpdaterEvent>>,
+    response_rx: crossbeam_channel::Receiver<CharacterLoaderResponse>,
     handle: Option<std::thread::JoinHandle<()>>,
     pending_logout_updates: HashMap<CharacterId, CharacterUpdateData>,
     /// Will disconnect all characters (without persistence) on the next tick if
@@ -38,6 +48,8 @@ pub struct CharacterUpdater {
 impl CharacterUpdater {
     pub fn new(settings: Arc<RwLock<DatabaseSettings>>) -> rusqlite::Result<Self> {
         let (update_tx, update_rx) = crossbeam_channel::unbounded::<CharacterUpdaterEvent>();
+        let (response_tx, response_rx) = crossbeam_channel::unbounded::<CharacterLoaderResponse>();
+
         let disconnect_all_clients_requested = Arc::new(AtomicBool::new(false));
         let disconnect_all_clients_requested_clone = Arc::clone(&disconnect_all_clients_requested);
 
@@ -68,6 +80,33 @@ impl CharacterUpdater {
                                     .store(true, Ordering::Relaxed);
                             };
                         },
+                        CharacterUpdaterEvent::DeleteCharacter {
+                            entity,
+                            requesting_player_uuid,
+                            character_id,
+                        } => {
+                            match execute_character_delete(
+                                entity,
+                                &requesting_player_uuid,
+                                character_id,
+                                &mut conn,
+                            ) {
+                                Ok(response) => {
+                                    if let Err(e) = response_tx.send(response) {
+                                        error!(?e, "Could not send character deletion response");
+                                    } else {
+                                        debug!(
+                                            "Processed character delete for character ID {}",
+                                            character_id
+                                        );
+                                    }
+                                },
+                                Err(e) => error!(
+                                    "Error deleting character ID {}, error: {:?}",
+                                    character_id, e
+                                ),
+                            }
+                        },
                         CharacterUpdaterEvent::DisconnectedSuccess => {
                             info!(
                                 "CharacterUpdater received DisconnectedSuccess event, resuming \
@@ -84,6 +123,7 @@ impl CharacterUpdater {
 
         Ok(Self {
             update_tx: Some(update_tx),
+            response_rx,
             handle: Some(handle),
             pending_logout_updates: HashMap::new(),
             disconnect_all_clients_requested,
@@ -123,6 +163,32 @@ impl CharacterUpdater {
     pub fn disconnect_all_clients_requested(&self) -> bool {
         self.disconnect_all_clients_requested
             .load(Ordering::Relaxed)
+    }
+
+    pub fn delete_character(
+        &mut self,
+        entity: Entity,
+        requesting_player_uuid: String,
+        character_id: CharacterId,
+    ) {
+        if let Err(e) =
+            self.update_tx
+                .as_ref()
+                .unwrap()
+                .send(CharacterUpdaterEvent::DeleteCharacter {
+                    entity,
+                    requesting_player_uuid,
+                    character_id,
+                })
+        {
+            error!(?e, "Could not send character deletion request");
+        } else {
+            // Once a delete request has been sent to the channel we must remove any pending
+            // updates for the character in the event that it has recently logged out.
+            // Since the user has actively chosen to delete the character there is no value
+            // in the pending update data anyway.
+            self.pending_logout_updates.remove(&character_id);
+        }
     }
 
     /// Updates a collection of characters based on their id and components
@@ -185,6 +251,9 @@ impl CharacterUpdater {
                  future persistence batches from running",
             );
     }
+
+    /// Returns a non-blocking iterator over CharacterLoaderResponse messages
+    pub fn messages(&self) -> TryIter<CharacterLoaderResponse> { self.response_rx.try_iter() }
 }
 
 fn execute_batch_update(
@@ -203,6 +272,30 @@ fn execute_batch_update(
 
     trace!("Commit for character batch update completed");
     Ok(())
+}
+
+fn execute_character_delete(
+    entity: Entity,
+    requesting_player_uuid: &str,
+    character_id: CharacterId,
+    connection: &mut VelorenConnection,
+) -> Result<CharacterLoaderResponse, PersistenceError> {
+    let mut transaction = connection.connection.transaction()?;
+
+    let response = CharacterLoaderResponse {
+        entity,
+        result: CharacterLoaderResponseKind::CharacterList(super::character::delete_character(
+            requesting_player_uuid,
+            character_id,
+            &mut transaction,
+        )),
+    };
+
+    if !response.is_err() {
+        transaction.commit()?;
+    };
+
+    Ok(response)
 }
 
 impl Drop for CharacterUpdater {
