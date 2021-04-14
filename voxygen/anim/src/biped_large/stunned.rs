@@ -6,19 +6,12 @@ use common::{
     comp::item::{ToolKind, UniqueKind},
     states::utils::StageSection,
 };
-use std::{f32::consts::PI, ops::Mul};
+use std::f32::consts::PI;
 
 pub struct StunnedAnimation;
 
 impl Animation for StunnedAnimation {
-    type Dependency = (
-        Option<ToolKind>,
-        Option<ToolKind>,
-        Vec3<f32>,
-        f32,
-        f32,
-        Option<StageSection>,
-    );
+    type Dependency = (Option<ToolKind>, Vec3<f32>, f32, Option<StageSection>);
     type Skeleton = BipedLargeSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -27,7 +20,7 @@ impl Animation for StunnedAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_large_stunned")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, _second_tool_kind, velocity, global_time, acc_vel, stage_section): Self::Dependency,
+        (active_tool_kind, velocity, acc_vel, stage_section): Self::Dependency,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -56,44 +49,6 @@ impl Animation for StunnedAnimation {
         let slower = (anim_time * 1.0 + PI).sin();
         let slow = (anim_time * 3.5 + PI).sin();
 
-        let tailmove = Vec2::new(
-            (global_time / 2.0 + anim_time / 2.0)
-                .floor()
-                .mul(7331.0)
-                .sin()
-                * 0.25,
-            (global_time / 2.0 + anim_time / 2.0)
-                .floor()
-                .mul(1337.0)
-                .sin()
-                * 0.125,
-        );
-
-        let look = Vec2::new(
-            (global_time / 2.0 + anim_time / 8.0)
-                .floor()
-                .mul(7331.0)
-                .sin()
-                * 0.5,
-            (global_time / 2.0 + anim_time / 8.0)
-                .floor()
-                .mul(1337.0)
-                .sin()
-                * 0.25,
-        );
-
-        let breathe = if s_a.beast {
-            // Controls for the beast breathing
-            let intensity = 0.04;
-            let lenght = 1.5;
-            let chop = 0.2;
-            let chop_freq = 60.0;
-            intensity * (lenght * anim_time).sin()
-                + 0.05 * chop * (anim_time * chop_freq).sin() * (anim_time * lenght).cos()
-        } else {
-            0.0
-        };
-
         let footvertl = (anim_time * 16.0 * lab).sin();
         let footvertr = (anim_time * 16.0 * lab + PI).sin();
         let handhoril = (anim_time * 16.0 * lab + PI * 1.4).sin();
@@ -119,6 +74,11 @@ impl Animation for StunnedAnimation {
             next.hand_l.orientation = Quaternion::rotation_x(0.0);
             next.hand_r.orientation = Quaternion::rotation_x(0.0);
 
+            next.head.orientation =
+                Quaternion::rotation_x(movement1 * -0.2) * Quaternion::rotation_z(movement1 * -0.7);
+            next.upper_torso.orientation = Quaternion::rotation_x(movement1 * 0.5);
+            next.lower_torso.orientation = Quaternion::rotation_x(movement1 * -0.5);
+
             if speed > 0.5 {
                 next.shoulder_l.position = Vec3::new(
                     -s_a.shoulder.0,
@@ -137,37 +97,24 @@ impl Animation for StunnedAnimation {
                     Quaternion::rotation_x(0.6 * speednorm + (footrotl * -0.2) * speednorm);
             } else {
                 next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1) * 1.02;
-                next.head.orientation = Quaternion::rotation_z(look.x * 0.6 + movement1 * 1.0)
-                    * Quaternion::rotation_x(look.y * 0.6);
 
-                next.upper_torso.position =
-                    Vec3::new(0.0, s_a.upper_torso.0, s_a.upper_torso.1 + torso * -0.5);
-                next.upper_torso.orientation =
-                    Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
-
-                next.lower_torso.position =
-                    Vec3::new(0.0, s_a.lower_torso.0, s_a.lower_torso.1 + torso * 0.5);
-                next.lower_torso.orientation =
-                    Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
+                next.lower_torso.orientation = Quaternion::rotation_x(0.0);
                 next.lower_torso.scale = Vec3::one() * 1.02;
 
                 next.jaw.position =
                     Vec3::new(0.0, s_a.jaw.0 - slower * 0.12, s_a.jaw.1 + slow * 0.2);
-                next.jaw.orientation = Quaternion::rotation_x(-0.1 + breathe * 2.0);
+                next.jaw.orientation = Quaternion::rotation_x(-0.1);
 
                 next.tail.position = Vec3::new(0.0, s_a.tail.0, s_a.tail.1);
-                next.tail.orientation = Quaternion::rotation_z(0.0 + slow * 0.2 + tailmove.x)
-                    * Quaternion::rotation_x(0.0);
+                next.tail.orientation = Quaternion::rotation_z(slow * 0.2);
 
                 next.shoulder_l.position =
                     Vec3::new(-s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
-                next.shoulder_l.orientation =
-                    Quaternion::rotation_y(0.0) * Quaternion::rotation_x(0.3);
+                next.shoulder_l.orientation = Quaternion::rotation_x(0.3);
 
                 next.shoulder_r.position =
                     Vec3::new(s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
-                next.shoulder_r.orientation =
-                    Quaternion::rotation_y(0.0) * Quaternion::rotation_x(0.3);
+                next.shoulder_r.orientation = Quaternion::rotation_x(0.3);
             }
             match active_tool_kind {
                 Some(ToolKind::SwordSimple) => {
@@ -182,9 +129,8 @@ impl Animation for StunnedAnimation {
 
                     next.control_l.orientation =
                         Quaternion::rotation_x(PI / 2.0) * Quaternion::rotation_y(-0.2);
-                    next.control_r.orientation = Quaternion::rotation_x(PI / 2.2)
-                        * Quaternion::rotation_y(0.2)
-                        * Quaternion::rotation_z(0.0);
+                    next.control_r.orientation =
+                        Quaternion::rotation_x(PI / 2.2) * Quaternion::rotation_y(0.2);
 
                     next.control.orientation =
                         Quaternion::rotation_x(-0.2 + short * 0.2) * Quaternion::rotation_y(-0.1);
@@ -201,9 +147,8 @@ impl Animation for StunnedAnimation {
 
                     next.control_l.orientation =
                         Quaternion::rotation_x(PI / 2.0) * Quaternion::rotation_y(-0.2);
-                    next.control_r.orientation = Quaternion::rotation_x(PI / 2.2)
-                        * Quaternion::rotation_y(0.2)
-                        * Quaternion::rotation_z(0.0);
+                    next.control_r.orientation =
+                        Quaternion::rotation_x(PI / 2.2) * Quaternion::rotation_y(0.2);
 
                     next.control.orientation = Quaternion::rotation_x(-0.2 + short * 0.2)
                         * Quaternion::rotation_y(1.0)
@@ -221,9 +166,7 @@ impl Animation for StunnedAnimation {
 
                     next.control_l.orientation =
                         Quaternion::rotation_x(PI / 2.0) * Quaternion::rotation_y(-0.0);
-                    next.control_r.orientation = Quaternion::rotation_x(PI / 2.0 + 0.2)
-                        * Quaternion::rotation_y(0.0)
-                        * Quaternion::rotation_z(0.0);
+                    next.control_r.orientation = Quaternion::rotation_x(PI / 2.0 + 0.2);
 
                     next.control.orientation =
                         Quaternion::rotation_x(-1.0 + short * 0.2) * Quaternion::rotation_y(-1.8);
@@ -282,8 +225,8 @@ impl Animation for StunnedAnimation {
                     if speed < 0.5 {
                         next.head.position =
                             Vec3::new(0.0, s_a.head.0, s_a.head.1 + torso * 0.2) * 1.02;
-                        next.head.orientation = Quaternion::rotation_z(look.x * 0.6)
-                            * Quaternion::rotation_x(look.y * 0.6);
+                        next.head.orientation =
+                            Quaternion::rotation_z(0.0) * Quaternion::rotation_x(0.0);
 
                         next.upper_torso.position =
                             Vec3::new(0.0, s_a.upper_torso.0, s_a.upper_torso.1 + torso * 0.5);
@@ -294,7 +237,7 @@ impl Animation for StunnedAnimation {
                         next.jaw.orientation = Quaternion::rotation_x(-0.1);
 
                         next.tail.position = Vec3::new(0.0, s_a.tail.0, s_a.tail.1);
-                        next.tail.orientation = Quaternion::rotation_z(slow * 0.2 + tailmove.x);
+                        next.tail.orientation = Quaternion::rotation_z(slow * 0.2);
 
                         next.second.orientation = Quaternion::rotation_x(PI);
 

@@ -136,14 +136,14 @@ impl Animation for SpinAnimation {
                         Quaternion::rotation_x(s_a.shr.3) * Quaternion::rotation_y(s_a.shr.4);
 
                     next.control.position = Vec3::new(
-                        s_a.sc.0 + move1 * 2.0 + move2 * -7.0,
-                        s_a.sc.1 + 8.0 + move1 * 0.6 + move2 * -15.0,
-                        s_a.sc.2 + 1.0 + move1 * 0.6 + move2 * 1.5,
+                        s_a.sc.0 + movement1base * 2.0 + movement2base * -7.0,
+                        s_a.sc.1 + 8.0 + movement1base * 0.6 + movement2base * -15.0,
+                        s_a.sc.2 + 1.0 + movement1base * 0.6 + movement2base * 1.5,
                     );
                     next.control.orientation =
-                        Quaternion::rotation_x(-0.5 + s_a.sc.3 + move1 * -1.2)
-                            * Quaternion::rotation_y(s_a.sc.4 - 0.6 + move1 * 0.0 + move2 * -0.2)
-                            * Quaternion::rotation_z(s_a.sc.5 + 0.1 + move1 * 1.57);
+                        Quaternion::rotation_x(-0.5 + s_a.sc.3 + movement1base * -1.2)
+                            * Quaternion::rotation_y(s_a.sc.4 - 0.6 + movement2base * -0.2)
+                            * Quaternion::rotation_z(s_a.sc.5 - 1.57 + movement1base * PI);
                 },
                 Some(ToolKind::Axe) => {
                     next.hand_l.position = Vec3::new(s_a.ahl.0, s_a.ahl.1, s_a.ahl.2);
@@ -176,22 +176,22 @@ impl Animation for SpinAnimation {
         match hands {
             (Some(Hands::One), _) => match ability_info.and_then(|a| a.tool) {
                 Some(ToolKind::Sword) | Some(ToolKind::SwordSimple) => {
-                    next.control_l.position = Vec3::new(-7.0 + move2 * -5.0, 8.0, 2.0);
+                    next.control_l.position = Vec3::new(-7.0 + movement2base * -5.0, 8.0, 2.0);
                     next.control_l.orientation = Quaternion::rotation_x(1.7)
-                        * Quaternion::rotation_y(-2.7 + move1 * -1.0 + move2 * 2.0)
-                        * Quaternion::rotation_z(1.5 + move1 * PI);
+                        * Quaternion::rotation_y(-2.7 + movement1base * -1.0 + movement2base * 2.0)
+                        * Quaternion::rotation_z(1.5 + movement1base * PI);
                     next.hand_l.position = Vec3::new(0.0, -0.5, 0.0);
                     next.hand_l.orientation = Quaternion::rotation_x(1.57)
                 },
                 Some(ToolKind::Axe) => {
                     next.control_l.position = Vec3::new(
-                        -2.0 + move1 * -5.0,
-                        18.0 + move1 * -10.0,
-                        6.0 + move1 * -10.0,
+                        -2.0 + movement1base * -5.0,
+                        18.0 + movement1base * -10.0,
+                        6.0 + movement1base * -10.0,
                     );
-                    next.control_l.orientation = Quaternion::rotation_x(1.7 + move2 * 1.5)
+                    next.control_l.orientation = Quaternion::rotation_x(1.7 + movement2base * 1.5)
                         * Quaternion::rotation_y(-3.7)
-                        * Quaternion::rotation_z(1.5 + move2 * 1.57);
+                        * Quaternion::rotation_z(1.5 + movement2base * 1.57);
                     next.hand_l.position = Vec3::new(0.0, -0.5, 0.0);
                     next.hand_l.orientation = Quaternion::rotation_x(1.57)
                 },

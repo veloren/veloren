@@ -12,8 +12,6 @@ pub struct AlphaAnimation;
 
 type AlphaAnimationDependency = (
     (Option<Hands>, Option<Hands>),
-    f32,
-    f32,
     Option<StageSection>,
     Option<AbilityInfo>,
 );
@@ -28,7 +26,7 @@ impl Animation for AlphaAnimation {
     #[allow(clippy::approx_constant)] // TODO: Pending review in #587
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (hands, _velocity, _global_time, stage_section, ability_info): Self::Dependency,
+        (hands, stage_section, ability_info): Self::Dependency,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -39,9 +37,7 @@ impl Animation for AlphaAnimation {
         let (move1, move2, move3, move2h) = match stage_section {
             Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0, 0.0),
             Some(StageSection::Swing) => (1.0, anim_time.powi(2), 0.0, anim_time.powf(0.25)),
-            Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4), 1.0), /* hmm maybe don' */
-            // t complete the
-            // recovery?
+            Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4), 1.0),
             _ => (0.0, 0.0, 0.0, 0.0),
         };
 
@@ -58,11 +54,11 @@ impl Animation for AlphaAnimation {
                 next.main.orientation = Quaternion::rotation_x(0.0);
 
                 next.chest.orientation =
-                    Quaternion::rotation_z(move1 * 1.1 + move2 * -2.0 + move3 * 0.5);
+                    Quaternion::rotation_z(move1 * 1.1 + move2 * -2.0 + move3 * 0.2);
 
                 next.head.position = Vec3::new(0.0 + move2 * 2.0, s_a.head.0, s_a.head.1);
                 next.head.orientation =
-                    Quaternion::rotation_z(move1 * -0.9 + move2 * 1.8 + move3 * -0.5);
+                    Quaternion::rotation_z(move1 * -0.9 + move2 * 1.8 + move3 * -0.2);
             },
 
             Some(ToolKind::Axe) => {
@@ -72,8 +68,7 @@ impl Animation for AlphaAnimation {
                     Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
                     _ => (0.0, 0.0, 0.0),
                 };
-                next.head.position =
-                    Vec3::new(0. + move2 * 2.0, s_a.head.0 + move2 * 2.0, s_a.head.1);
+                next.head.position = Vec3::new(move2 * 2.0, s_a.head.0 + move2 * 2.0, s_a.head.1);
                 next.chest.orientation =
                     Quaternion::rotation_x(0.0 + move1 * 0.6 + move2 * -0.6 + move3 * 0.4)
                         * Quaternion::rotation_y(0.0 + move1 * 0.0 + move2 * 0.0 + move3 * 0.0)
@@ -127,7 +122,7 @@ impl Animation for AlphaAnimation {
                     );
                     next.control.orientation = Quaternion::rotation_x(s_a.sc.3 + move1 * -1.3)
                         * Quaternion::rotation_y(s_a.sc.4 + move1 * -0.7 + move2 * 1.2)
-                        * Quaternion::rotation_z(s_a.sc.5 + move1 * -1.57);
+                        * Quaternion::rotation_z(s_a.sc.5 + move1 * -1.57 + move3 * -1.57);
                 },
                 Some(ToolKind::Axe) => {
                     next.hand_l.position = Vec3::new(s_a.ahl.0, s_a.ahl.1, s_a.ahl.2);

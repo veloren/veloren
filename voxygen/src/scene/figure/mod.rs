@@ -898,8 +898,6 @@ impl FigureMgr {
                                 &target_base,
                                 (
                                     hands,
-                                    rel_vel.magnitude(),
-                                    time,
                                     Some(s.stage_section),
                                     Some(s.static_data.ability_info),
                                 ),
@@ -1054,7 +1052,7 @@ impl FigureMgr {
                         CharacterState::Boost(_) => {
                             anim::character::AlphaAnimation::update_skeleton(
                                 &target_base,
-                                (hands, rel_vel.magnitude(), time, None, None),
+                                (hands, None, None),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -1341,8 +1339,6 @@ impl FigureMgr {
                                     &target_base,
                                     (
                                         hands,
-                                        rel_vel.magnitude(),
-                                        time,
                                         Some(s.stage_section),
                                         Some(s.static_data.ability_info),
                                     ),
@@ -3605,9 +3601,7 @@ impl FigureMgr {
                                         &target_base,
                                         (
                                             active_tool_kind,
-                                            second_tool_kind,
                                             rel_vel,
-                                            state.state_time,
                                             state.acc_vel,
                                             Some(s.stage_section),
                                         ),

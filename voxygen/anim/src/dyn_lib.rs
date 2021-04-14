@@ -146,25 +146,23 @@ pub fn init() {
     // Start reloader that watcher signals
     // "Debounces" events since I can't find the option to do this in the latest
     // `notify`
-    std::thread::Builder::new()
-        .name("voxygen_anim_watcher".to_owned())
-        .spawn(move || {
-            let mut modified_paths = std::collections::HashSet::new();
-            while let Ok(path) = reload_recv.recv() {
+    std::thread::Builder::new("voxygen_anim_watcher".to_owned()).spawn(move || {
+        let mut modified_paths = std::collections::HashSet::new();
+        while let Ok(path) = reload_recv.recv() {
+            modified_paths.insert(path);
+            // Wait for any additional modify events before reloading
+            while let Ok(path) = reload_recv.recv_timeout(Duration::from_millis(300)) {
                 modified_paths.insert(path);
-                // Wait for any additional modify events before reloading
-                while let Ok(path) = reload_recv.recv_timeout(Duration::from_millis(300)) {
-                    modified_paths.insert(path);
-                }
-
-                info!(
-                    ?modified_paths,
-                    "Hot reloading animations because files in `anim` modified."
-                );
-
-                hotreload();
             }
-        });
+
+            info!(
+                ?modified_paths,
+                "Hot reloading animations because files in `anim` modified."
+            );
+
+            hotreload();
+        }
+    });
 
     // Let the watcher live forever
     std::mem::forget(watcher);
