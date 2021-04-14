@@ -2514,6 +2514,9 @@ impl Hud {
                                 InterfaceChange::ToggleHelp(toggle_help) => {
                                     self.show.help = *toggle_help;
                                 },
+                                InterfaceChange::ToggleDebug(toggle_debug) => {
+                                    self.show.debug = *toggle_debug;
+                                },
                                 InterfaceChange::ResetInterfaceSettings => {
                                     self.show.help = false;
                                     self.show.debug = false;
