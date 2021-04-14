@@ -102,7 +102,9 @@ impl Animation for SpinMeleeAnimation {
             _ => {},
         }
         match hands {
-            (Some(Hands::Two), _) => match ability_info.and_then(|a| a.tool) {
+            (Some(Hands::Two), _) | (None, Some(Hands::Two)) => match ability_info
+                .and_then(|a| a.tool)
+            {
                 Some(ToolKind::Sword) => {
                     next.main.position = Vec3::new(0.0, 0.0, 0.0);
                     next.main.orientation = Quaternion::rotation_x(0.0);
@@ -202,6 +204,11 @@ impl Animation for SpinMeleeAnimation {
             },
             (_, _) => {},
         };
+
+        if let (None, Some(Hands::Two)) = hands {
+            next.second = next.main;
+        }
+
         next
     }
 }

@@ -91,25 +91,27 @@ impl Animation for DashAnimation {
             * Quaternion::rotation_y(slow(anim_time) * 0.4);
 
         match hands {
-            (Some(Hands::Two), _) => match ability_info.and_then(|a| a.tool) {
-                Some(ToolKind::Sword) | Some(ToolKind::SwordSimple) => {
-                    next.hand_l.position = Vec3::new(s_a.shl.0, s_a.shl.1, s_a.shl.2);
-                    next.hand_l.orientation =
-                        Quaternion::rotation_x(s_a.shl.3) * Quaternion::rotation_y(s_a.shl.4);
-                    next.hand_r.position = Vec3::new(s_a.shr.0, s_a.shr.1, s_a.shr.2);
-                    next.hand_r.orientation =
-                        Quaternion::rotation_x(s_a.shr.3) * Quaternion::rotation_y(s_a.shr.4);
+            (Some(Hands::Two), _) | (None, Some(Hands::Two)) => {
+                match ability_info.and_then(|a| a.tool) {
+                    Some(ToolKind::Sword) | Some(ToolKind::SwordSimple) => {
+                        next.hand_l.position = Vec3::new(s_a.shl.0, s_a.shl.1, s_a.shl.2);
+                        next.hand_l.orientation =
+                            Quaternion::rotation_x(s_a.shl.3) * Quaternion::rotation_y(s_a.shl.4);
+                        next.hand_r.position = Vec3::new(s_a.shr.0, s_a.shr.1, s_a.shr.2);
+                        next.hand_r.orientation =
+                            Quaternion::rotation_x(s_a.shr.3) * Quaternion::rotation_y(s_a.shr.4);
 
-                    next.control.position = Vec3::new(
-                        s_a.sc.0 + (move1 * -5.0 + move3 * -2.0),
-                        s_a.sc.1 + (move2.min(1.0) * -2.0),
-                        s_a.sc.2 + (move2.min(1.0) * 2.0),
-                    );
-                    next.control.orientation =
-                        Quaternion::rotation_x(s_a.sc.3 + (move1 * -1.0 + move3 * -0.5))
-                            * Quaternion::rotation_y(s_a.sc.4 + (move1 * 1.5 + move3 * -2.5));
-                },
-                _ => {},
+                        next.control.position = Vec3::new(
+                            s_a.sc.0 + (move1 * -5.0 + move3 * -2.0),
+                            s_a.sc.1 + (move2.min(1.0) * -2.0),
+                            s_a.sc.2 + (move2.min(1.0) * 2.0),
+                        );
+                        next.control.orientation =
+                            Quaternion::rotation_x(s_a.sc.3 + (move1 * -1.0 + move3 * -0.5))
+                                * Quaternion::rotation_y(s_a.sc.4 + (move1 * 1.5 + move3 * -2.5));
+                    },
+                    _ => {},
+                }
             },
             (_, _) => {},
         };
@@ -168,6 +170,10 @@ impl Animation for DashAnimation {
             },
             (_, _) => {},
         };
+
+        if let (None, Some(Hands::Two)) = hands {
+            next.second = next.main;
+        }
 
         next
     }

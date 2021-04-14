@@ -73,7 +73,7 @@ impl Animation for StunnedAnimation {
             next.main.orientation = Quaternion::rotation_x(0.0);
 
             match hands {
-                (Some(Hands::Two), _) => match active_tool_kind {
+                (Some(Hands::Two), _) | (None, Some(Hands::Two)) => match active_tool_kind {
                     Some(ToolKind::Sword) | Some(ToolKind::SwordSimple) => {
                         next.hand_l.position = Vec3::new(s_a.shl.0, s_a.shl.1, s_a.shl.2);
                         next.hand_l.orientation =
@@ -212,6 +212,10 @@ impl Animation for StunnedAnimation {
         };
         next.torso.position = Vec3::new(0.0, 0.0, 0.0) * s_a.scaler;
         next.torso.orientation = Quaternion::rotation_z(0.0);
+
+        if let (None, Some(Hands::Two)) = hands {
+            next.second = next.main;
+        }
 
         next
     }

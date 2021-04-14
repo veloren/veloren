@@ -88,7 +88,7 @@ impl Animation for IdleAnimation {
         next.glider.scale = Vec3::one() * 0.0;
         next.hold.position = Vec3::new(0.4, -0.3, -5.8);
         match hands {
-            (Some(Hands::Two), _) => match active_tool_kind {
+            (Some(Hands::Two), _) | (None, Some(Hands::Two)) => match active_tool_kind {
                 Some(ToolKind::Bow) => {
                     next.main.position = Vec3::new(0.0, -5.0, 6.0);
                     next.main.orientation =
@@ -141,6 +141,10 @@ impl Animation for IdleAnimation {
             (Some(Hands::One), Some(Hands::One)) => Vec3::one(),
             (_, _) => Vec3::zero(),
         };
+
+        if let (None, Some(Hands::Two)) = hands {
+            next.second = next.main;
+        }
 
         next
     }

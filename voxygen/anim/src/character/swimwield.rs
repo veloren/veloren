@@ -2,13 +2,20 @@ use super::{
     super::{vek::*, Animation},
     CharacterSkeleton, SkeletonAttr,
 };
-use common::comp::item::ToolKind;
+use common::comp::item::{Hands, ToolKind};
 use std::{f32::consts::PI, ops::Mul};
 
 pub struct SwimWieldAnimation;
 
 impl Animation for SwimWieldAnimation {
-    type Dependency = (Option<ToolKind>, Option<ToolKind>, f32, f32);
+    #[allow(clippy::type_complexity)]
+    type Dependency = (
+        Option<ToolKind>,
+        Option<ToolKind>,
+        (Option<Hands>, Option<Hands>),
+        f32,
+        f32,
+    );
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -18,7 +25,7 @@ impl Animation for SwimWieldAnimation {
     #[allow(clippy::approx_constant)] // TODO: Pending review in #587
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, _second_tool_kind, velocity, global_time): Self::Dependency,
+        (active_tool_kind, second_tool_kind, hands, velocity, global_time): Self::Dependency,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -107,7 +114,14 @@ impl Animation for SwimWieldAnimation {
             next.shorts.position = Vec3::new(0.0, s_a.shorts.0, s_a.shorts.1);
             next.shorts.orientation = Quaternion::rotation_z(0.3);
         }
-        match active_tool_kind {
+
+        let main_tool = if let (None, Some(Hands::Two)) = hands {
+            second_tool_kind
+        } else {
+            active_tool_kind
+        };
+
+        match main_tool {
             Some(ToolKind::Sword) => {
                 next.hand_l.position = Vec3::new(-0.75, -1.0, -2.5);
                 next.hand_l.orientation =
@@ -315,6 +329,10 @@ impl Animation for SwimWieldAnimation {
                     Quaternion::rotation_x(u_slow * 0.2) * Quaternion::rotation_z(u_slowalt * 0.1);
             },
             _ => {},
+        }
+
+        if let (None, Some(Hands::Two)) = hands {
+            next.second = next.main;
         }
 
         next

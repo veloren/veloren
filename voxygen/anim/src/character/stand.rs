@@ -94,8 +94,8 @@ impl Animation for StandAnimation {
         next.glider.position = Vec3::new(0.0, 0.0, 10.0);
         next.glider.scale = Vec3::one() * 0.0;
         next.hold.position = Vec3::new(0.4, -0.3, -5.8);
-        match hands {
-            (Some(Hands::Two), _) => match active_tool_kind {
+        match (hands, active_tool_kind, second_tool_kind) {
+            ((Some(Hands::Two), _), tool, _) | ((None, Some(Hands::Two)), _, tool) => match tool {
                 Some(ToolKind::Bow) => {
                     next.main.position = Vec3::new(0.0, -5.0, 6.0);
                     next.main.orientation =
@@ -112,7 +112,7 @@ impl Animation for StandAnimation {
                         Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
                 },
             },
-            (_, _) => {},
+            ((_, _), _, _) => {},
         };
 
         match hands {
@@ -148,6 +148,11 @@ impl Animation for StandAnimation {
             (Some(Hands::One) | None, Some(Hands::One)) => Vec3::one(),
             (_, _) => Vec3::zero(),
         };
+
+        if let (None, Some(Hands::Two)) = hands {
+            next.second = next.main;
+        }
+
         next
     }
 }

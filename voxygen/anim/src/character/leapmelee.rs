@@ -115,44 +115,46 @@ impl Animation for LeapAnimation {
         }
 
         match hands {
-            (Some(Hands::Two), _) => match ability_info.and_then(|a| a.tool) {
-                Some(ToolKind::Hammer) => {
-                    next.hand_l.position = Vec3::new(s_a.hhl.0, s_a.hhl.1, s_a.hhl.2);
-                    next.hand_l.orientation = Quaternion::rotation_x(s_a.hhl.3);
-                    next.hand_r.position = Vec3::new(s_a.hhr.0, s_a.hhr.1, s_a.hhr.2);
-                    next.hand_r.orientation = Quaternion::rotation_x(s_a.hhr.3);
-                    next.main.position = Vec3::new(0.0, 0.0, 0.0);
-                    next.main.orientation =
-                        Quaternion::rotation_y(0.0) * Quaternion::rotation_z(0.0);
-                    next.control.position = Vec3::new(
-                        s_a.hc.0 + move2 * -10.0 + move3 * 10.0,
-                        s_a.hc.1 + move2 * 5.0 + move3 * 7.0,
-                        s_a.hc.2 + move2 * 5.0 + move3 * -10.0,
-                    );
-                    next.control.orientation =
-                        Quaternion::rotation_x(s_a.hc.3 + move2 * 1.57 + move3 * -2.3)
-                            * Quaternion::rotation_y(s_a.hc.4 + move2 * 1.3)
-                            * Quaternion::rotation_z(s_a.hc.5 + move2 * -1.0 + move3 * 0.5);
-                },
-                Some(ToolKind::Axe) => {
-                    next.hand_l.position = Vec3::new(s_a.ahl.0, s_a.ahl.1, s_a.ahl.2);
-                    next.hand_l.orientation = Quaternion::rotation_x(s_a.ahl.3);
-                    next.hand_r.position = Vec3::new(s_a.ahr.0, s_a.ahr.1, s_a.ahr.2);
-                    next.hand_r.orientation = Quaternion::rotation_x(s_a.ahr.3);
-                    next.main.position = Vec3::new(0.0, 0.0, 0.0);
-                    next.main.orientation =
-                        Quaternion::rotation_y(0.0) * Quaternion::rotation_z(0.0);
+            (Some(Hands::Two), _) | (None, Some(Hands::Two)) => {
+                match ability_info.and_then(|a| a.tool) {
+                    Some(ToolKind::Hammer) => {
+                        next.hand_l.position = Vec3::new(s_a.hhl.0, s_a.hhl.1, s_a.hhl.2);
+                        next.hand_l.orientation = Quaternion::rotation_x(s_a.hhl.3);
+                        next.hand_r.position = Vec3::new(s_a.hhr.0, s_a.hhr.1, s_a.hhr.2);
+                        next.hand_r.orientation = Quaternion::rotation_x(s_a.hhr.3);
+                        next.main.position = Vec3::new(0.0, 0.0, 0.0);
+                        next.main.orientation =
+                            Quaternion::rotation_y(0.0) * Quaternion::rotation_z(0.0);
+                        next.control.position = Vec3::new(
+                            s_a.hc.0 + move2 * -10.0 + move3 * 10.0,
+                            s_a.hc.1 + move2 * 5.0 + move3 * 7.0,
+                            s_a.hc.2 + move2 * 5.0 + move3 * -10.0,
+                        );
+                        next.control.orientation =
+                            Quaternion::rotation_x(s_a.hc.3 + move2 * 1.57 + move3 * -2.3)
+                                * Quaternion::rotation_y(s_a.hc.4 + move2 * 1.3)
+                                * Quaternion::rotation_z(s_a.hc.5 + move2 * -1.0 + move3 * 0.5);
+                    },
+                    Some(ToolKind::Axe) => {
+                        next.hand_l.position = Vec3::new(s_a.ahl.0, s_a.ahl.1, s_a.ahl.2);
+                        next.hand_l.orientation = Quaternion::rotation_x(s_a.ahl.3);
+                        next.hand_r.position = Vec3::new(s_a.ahr.0, s_a.ahr.1, s_a.ahr.2);
+                        next.hand_r.orientation = Quaternion::rotation_x(s_a.ahr.3);
+                        next.main.position = Vec3::new(0.0, 0.0, 0.0);
+                        next.main.orientation =
+                            Quaternion::rotation_y(0.0) * Quaternion::rotation_z(0.0);
 
-                    next.control.position = Vec3::new(
-                        s_a.ac.0 + move2 * 8.0 + move3 * 15.0,
-                        s_a.ac.1 + move3 * -10.0,
-                        s_a.ac.2 + move3 * 4.0,
-                    );
-                    next.control.orientation = Quaternion::rotation_x(s_a.ac.3)
-                        * Quaternion::rotation_y(s_a.ac.4 + move2 * -0.8 + move3 * -4.0)
-                        * Quaternion::rotation_z(s_a.ac.5 + move2 * -0.6 + move3 * -1.6);
-                },
-                _ => {},
+                        next.control.position = Vec3::new(
+                            s_a.ac.0 + move2 * 8.0 + move3 * 15.0,
+                            s_a.ac.1 + move3 * -10.0,
+                            s_a.ac.2 + move3 * 4.0,
+                        );
+                        next.control.orientation = Quaternion::rotation_x(s_a.ac.3)
+                            * Quaternion::rotation_y(s_a.ac.4 + move2 * -0.8 + move3 * -4.0)
+                            * Quaternion::rotation_z(s_a.ac.5 + move2 * -0.6 + move3 * -1.6);
+                    },
+                    _ => {},
+                }
             },
             (_, _) => {},
         };
@@ -232,6 +234,11 @@ impl Animation for LeapAnimation {
             },
             (_, _) => {},
         };
+
+        if let (None, Some(Hands::Two)) = hands {
+            next.second = next.main;
+        }
+
         next
     }
 }
