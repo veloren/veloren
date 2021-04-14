@@ -46,6 +46,7 @@ pub enum Gameplay {
     ChangeFreeLookBehavior(PressBehavior),
     ChangeAutoWalkBehavior(PressBehavior),
     ChangeCameraClampBehavior(PressBehavior),
+    ChangePlayerPhysicsBehavior { server_authoritative: bool },
     ChangeStopAutoWalkOnInput(bool),
     ChangeAutoCamera(bool),
 
@@ -223,6 +224,15 @@ impl SettingsChange {
                     },
                     Gameplay::ChangeCameraClampBehavior(behavior) => {
                         settings.gameplay.camera_clamp_behavior = behavior;
+                    },
+                    Gameplay::ChangePlayerPhysicsBehavior {
+                        server_authoritative,
+                    } => {
+                        settings.gameplay.player_physics_behavior = server_authoritative;
+                        session_state
+                            .client
+                            .borrow_mut()
+                            .request_player_physics(server_authoritative);
                     },
                     Gameplay::ChangeStopAutoWalkOnInput(state) => {
                         settings.gameplay.stop_auto_walk_on_input = state;

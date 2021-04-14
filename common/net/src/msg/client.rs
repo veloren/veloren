@@ -81,6 +81,9 @@ pub enum ClientGeneral {
     //Always possible
     ChatMsg(String),
     Terminate,
+    RequestPlayerPhysics {
+        server_authoritative: bool,
+    },
 }
 
 impl ClientMsg {
@@ -117,7 +120,8 @@ impl ClientMsg {
                         | ClientGeneral::UnlockSkill(_)
                         | ClientGeneral::RefundSkill(_)
                         | ClientGeneral::RequestSiteInfo(_)
-                        | ClientGeneral::UnlockSkillGroup(_) => {
+                        | ClientGeneral::UnlockSkillGroup(_)
+                        | ClientGeneral::RequestPlayerPhysics { .. } => {
                             c_type == ClientType::Game && presence.is_some()
                         },
                         //Always possible

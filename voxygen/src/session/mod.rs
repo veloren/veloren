@@ -88,6 +88,9 @@ impl SessionState {
         scene
             .camera_mut()
             .set_fov_deg(global_state.settings.graphics.fov);
+        client
+            .borrow_mut()
+            .request_player_physics(global_state.settings.gameplay.player_physics_behavior);
         let hud = Hud::new(global_state, &client.borrow());
         let walk_forward_dir = scene.camera().forward_xy();
         let walk_right_dir = scene.camera().right_xy();

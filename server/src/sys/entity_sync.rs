@@ -5,10 +5,10 @@ use crate::{
     Tick,
 };
 use common::{
-    comp::{Collider, ForceUpdate, Inventory, InventoryUpdate, Last, Ori, Pos, Vel},
+    comp::{Collider, ForceUpdate, Inventory, InventoryUpdate, Last, Ori, Player, Pos, Vel},
     outcome::Outcome,
     region::{Event as RegionEvent, RegionMap},
-    resources::TimeOfDay,
+    resources::{PlayerPhysicsSettings, TimeOfDay},
     terrain::TerrainChunkSize,
     uid::Uid,
     vol::RectVolSize,
@@ -45,6 +45,8 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, InventoryUpdate>,
         Write<'a, DeletedEntities>,
         Write<'a, Vec<Outcome>>,
+        Read<'a, PlayerPhysicsSettings>,
+        ReadStorage<'a, Player>,
         TrackedComps<'a>,
         ReadTrackers<'a>,
     );
@@ -76,6 +78,8 @@ impl<'a> System<'a> for Sys {
             mut inventory_updates,
             mut deleted_entities,
             mut outcomes,
+            player_physics_settings,
+            players,
             tracked_comps,
             trackers,
         ): Self::SystemData,
@@ -201,22 +205,28 @@ impl<'a> System<'a> for Sys {
             for (client, _, client_entity, client_pos) in &mut subscribers {
                 let mut comp_sync_package = CompSyncPackage::new();
 
-                for (_, entity, &uid, (&pos, last_pos), vel, ori, force_update, collider) in (
-                    region.entities(),
-                    &entities,
-                    &uids,
-                    (&positions, last_pos.mask().maybe()),
-                    (&velocities, last_vel.mask().maybe()).maybe(),
-                    (&orientations, last_vel.mask().maybe()).maybe(),
-                    force_updates.mask().maybe(),
-                    colliders.maybe(),
-                )
-                    .join()
+                for (_, entity, &uid, (&pos, last_pos), vel, ori, force_update, collider, player) in
+                    (
+                        region.entities(),
+                        &entities,
+                        &uids,
+                        (&positions, last_pos.mask().maybe()),
+                        (&velocities, last_vel.mask().maybe()).maybe(),
+                        (&orientations, last_vel.mask().maybe()).maybe(),
+                        force_updates.mask().maybe(),
+                        colliders.maybe(),
+                        players.maybe(),
+                    )
+                        .join()
                 {
+                    let player_physics_setting = player
+                        .and_then(|p| player_physics_settings.settings.get(&p.uuid()).cloned())
+                        .unwrap_or_default();
                     // Decide how regularly to send physics updates.
                     let send_now = if client_entity == &entity {
                         // Don't send client physics updates about itself unless force update is set
-                        force_update.is_some() || true
+                        // or the client is subject to server-authoritative physics
+                        force_update.is_some() || player_physics_setting.server_authoritative()
                     } else if matches!(collider, Some(Collider::Voxel { .. })) {
                         // Things with a voxel collider (airships, etc.) need to have very stable
                         // physics so we always send updated for these where

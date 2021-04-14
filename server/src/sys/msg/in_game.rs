@@ -1,7 +1,10 @@
 use crate::{client::Client, presence::Presence, Settings};
 use common::{
-    comp::{CanBuild, ControlEvent, Controller, ForceUpdate, Health, Ori, Pos, SkillSet, Vel},
+    comp::{
+        CanBuild, ControlEvent, Controller, ForceUpdate, Health, Ori, Player, Pos, SkillSet, Vel,
+    },
     event::{EventBus, ServerEvent},
+    resources::PlayerPhysicsSettings,
     terrain::TerrainGrid,
     vol::ReadVol,
 };
@@ -30,6 +33,8 @@ impl Sys {
         controllers: &mut WriteStorage<'_, Controller>,
         settings: &Read<'_, Settings>,
         build_areas: &Read<'_, BuildAreas>,
+        player_physics_settings: &mut Write<'_, PlayerPhysicsSettings>,
+        maybe_player: &Option<&Player>,
         msg: ClientGeneral,
     ) -> Result<(), crate::error::Error> {
         let presence = match maybe_presence {
@@ -40,6 +45,12 @@ impl Sys {
                 return Ok(());
             },
         };
+        let player_physics_setting = maybe_player.map(|p| {
+            player_physics_settings
+                .settings
+                .entry(p.uuid())
+                .or_default()
+        });
         match msg {
             // Go back to registered state (char selection screen)
             ClientGeneral::ExitInGame => {
@@ -93,14 +104,15 @@ impl Sys {
                 }
             },
             ClientGeneral::PlayerPhysics { pos, vel, ori } => {
-                /*if matches!(presence.kind, PresenceKind::Character(_))
+                if matches!(presence.kind, PresenceKind::Character(_))
                     && force_updates.get(entity).is_none()
                     && healths.get(entity).map_or(true, |h| !h.is_dead)
+                    && player_physics_setting.map_or(true, |s| s.client_authoritative())
                 {
                     let _ = positions.insert(entity, pos);
                     let _ = velocities.insert(entity, vel);
                     let _ = orientations.insert(entity, ori);
-                }*/
+                }
             },
             ClientGeneral::BreakBlock(pos) => {
                 if let Some(comp_can_build) = can_build.get(entity) {
@@ -156,6 +168,13 @@ impl Sys {
             ClientGeneral::RequestSiteInfo(id) => {
                 server_emitter.emit(ServerEvent::RequestSiteInfo { entity, id });
             },
+            ClientGeneral::RequestPlayerPhysics {
+                server_authoritative,
+            } => {
+                if let Some(setting) = player_physics_setting {
+                    setting.client_optin = server_authoritative;
+                }
+            },
             _ => tracing::error!("not a client_in_game msg"),
         }
         Ok(())
@@ -184,6 +203,8 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Controller>,
         Read<'a, Settings>,
         Read<'a, BuildAreas>,
+        Write<'a, PlayerPhysicsSettings>,
+        ReadStorage<'a, Player>,
     );
 
     const NAME: &'static str = "msg::in_game";
@@ -209,12 +230,19 @@ impl<'a> System<'a> for Sys {
             mut controllers,
             settings,
             build_areas,
+            mut player_physics_settings,
+            players,
         ): Self::SystemData,
     ) {
         let mut server_emitter = server_event_bus.emitter();
 
-        for (entity, client, mut maybe_presence) in
-            (&entities, &mut clients, (&mut presences).maybe()).join()
+        for (entity, client, mut maybe_presence, player) in (
+            &entities,
+            &mut clients,
+            (&mut presences).maybe(),
+            players.maybe(),
+        )
+            .join()
         {
             let _ = super::try_recv_all(client, 2, |client, msg| {
                 Self::handle_client_in_game_msg(
@@ -234,6 +262,8 @@ impl<'a> System<'a> for Sys {
                     &mut controllers,
                     &settings,
                     &build_areas,
+                    &mut player_physics_settings,
+                    &player,
                     msg,
                 )
             });

@@ -32,3 +32,36 @@ pub enum GameMode {
 /// server
 #[derive(Copy, Clone, Default, Debug)]
 pub struct PlayerEntity(pub Option<Entity>);
+
+#[derive(Clone, Debug)]
+pub struct PlayerPhysicsSetting {
+    /// true if the client wants server-authoratative physics (e.g. to use
+    /// airships properly)
+    pub client_optin: bool,
+    /// true if the server is forcing server-authoratative physics (e.g. as
+    /// punishment for wallhacking)
+    pub server_optout: bool,
+}
+
+impl Default for PlayerPhysicsSetting {
+    fn default() -> PlayerPhysicsSetting {
+        PlayerPhysicsSetting {
+            client_optin: false,
+            server_optout: false,
+        }
+    }
+}
+
+impl PlayerPhysicsSetting {
+    pub fn server_authoritative(&self) -> bool { self.client_optin || self.server_optout }
+
+    pub fn client_authoritative(&self) -> bool { !self.server_authoritative() }
+}
+
+/// List of which players are using client-authoratative vs server-authoratative
+/// physics, as a stop-gap until we can use server-authoratative physics for
+/// everyone
+#[derive(Clone, Default, Debug)]
+pub struct PlayerPhysicsSettings {
+    pub settings: hashbrown::HashMap<uuid::Uuid, PlayerPhysicsSetting>,
+}
