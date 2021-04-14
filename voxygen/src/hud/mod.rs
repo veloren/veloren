@@ -2192,15 +2192,8 @@ impl Hud {
         )
         .set(self.ids.minimap, ui_widgets)
         {
-            Some(minimap::Event::Show(show)) => {
-                events.push(Event::SettingsChange(
-                    InterfaceChange::MinimapShow(show).into(),
-                ));
-            },
-            Some(minimap::Event::FaceNorth(should_face_north)) => {
-                events.push(Event::SettingsChange(
-                    InterfaceChange::MinimapFaceNorth(should_face_north).into(),
-                ));
+            Some(minimap::Event::SettingsChange(interface_change)) => {
+                events.push(Event::SettingsChange(interface_change.into()));
             },
             None => {},
         }

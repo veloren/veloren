@@ -4,6 +4,7 @@ use super::{
     TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
 };
 use crate::{
+    session::settings_change::{Interface as InterfaceChange, Interface::*},
     ui::{fonts::Fonts, img_ids},
     GlobalState,
 };
@@ -85,8 +86,7 @@ pub struct State {
 }
 
 pub enum Event {
-    Show(bool),
-    FaceNorth(bool),
+    SettingsChange(InterfaceChange),
 }
 
 impl<'a> Widget for MiniMap<'a> {
@@ -227,7 +227,7 @@ impl<'a> Widget for MiniMap<'a> {
             .set(state.ids.mmap_north_button, ui)
             .was_clicked()
             {
-                return Some(Event::FaceNorth(!is_facing_north));
+                return Some(Event::SettingsChange(MinimapFaceNorth(!is_facing_north)));
             }
 
             // Reload zoom in case it changed.
@@ -502,7 +502,7 @@ impl<'a> Widget for MiniMap<'a> {
         .set(state.ids.mmap_button, ui)
         .was_clicked()
         {
-            return Some(Event::Show(!show_minimap));
+            return Some(Event::SettingsChange(MinimapShow(!show_minimap)));
         }
 
         // TODO: Subregion name display
