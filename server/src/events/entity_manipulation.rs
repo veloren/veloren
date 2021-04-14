@@ -130,8 +130,8 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
     // Chat message
     // If it was a player that died
     if let Some(_player) = state.ecs().read_storage::<Player>().get(entity) {
-        if let Some(uid) = state.ecs().read_storage::<Uid>().get(entity) {
-            let kill_source = match cause {
+        if let Some(_uid) = state.ecs().read_storage::<Uid>().get(entity) {
+            let _kill_source = match cause {
                 HealthSource::Damage {
                     kind: DamageSource::Melee,
                     by: Some(by),
@@ -169,10 +169,13 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, cause: HealthSourc
                 | HealthSource::Heal { by: _ }
                 | HealthSource::Unknown => KillSource::Other,
             };
-            state.notify_players(ServerGeneral::server_msg(
+            // TODO Reactivate and only show death messages for group members
+            // and players within close range (e.g. same range as /say) to avoid
+            // chat spamming
+            /*state.notify_players(ServerGeneral::server_msg(
                 comp::ChatType::Kill(kill_source, *uid),
                 "".to_string(),
-            ));
+            ));*/
         }
     }
 
