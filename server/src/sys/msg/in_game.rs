@@ -12,7 +12,7 @@ use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::{ClientGeneral, PresenceKind, ServerGeneral};
 use common_sys::state::{BlockChange, BuildAreas};
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, Write, WriteStorage};
-use tracing::{debug, trace};
+use tracing::{debug, trace, warn};
 
 impl Sys {
     #[allow(clippy::too_many_arguments)]
@@ -107,11 +107,51 @@ impl Sys {
                 if matches!(presence.kind, PresenceKind::Character(_))
                     && force_updates.get(entity).is_none()
                     && healths.get(entity).map_or(true, |h| !h.is_dead)
-                    && player_physics_setting.map_or(true, |s| s.client_authoritative())
+                    && player_physics_setting
+                        .as_ref()
+                        .map_or(true, |s| s.client_authoritative())
                 {
-                    let _ = positions.insert(entity, pos);
-                    let _ = velocities.insert(entity, vel);
-                    let _ = orientations.insert(entity, ori);
+                    let mut reject_update = false;
+                    if let Some(mut setting) = player_physics_setting {
+                        // If we detect any thresholds being exceeded, force server-authoritative
+                        // physics for that player. This doesn't detect subtle hacks, but it
+                        // prevents blatent ones and forces people to not debug physics hacks on the
+                        // live server (and also mitigates some floating-point overflow crashes)
+                        if let Some(prev_pos) = positions.get(entity) {
+                            let value_squared = prev_pos.0.distance_squared(pos.0);
+                            if value_squared > (500.0f32).powf(2.0) {
+                                setting.server_optout = true;
+                                reject_update = true;
+                                warn!(
+                                    "PlayerPhysics position exceeded {:?} {:?} {:?}",
+                                    prev_pos,
+                                    pos,
+                                    value_squared.sqrt()
+                                );
+                            }
+                        }
+
+                        if vel.0.magnitude_squared() > (500.0f32).powf(2.0) {
+                            setting.server_optout = true;
+                            reject_update = true;
+                            warn!(
+                                "PlayerPhysics velocity exceeded {:?} {:?}",
+                                pos,
+                                vel.0.magnitude()
+                            );
+                        }
+                    }
+
+                    if reject_update {
+                        warn!(
+                            "Rejected PlayerPhysics update {:?} {:?} {:?} {:?}",
+                            pos, vel, ori, maybe_player
+                        );
+                    } else {
+                        let _ = positions.insert(entity, pos);
+                        let _ = velocities.insert(entity, vel);
+                        let _ = orientations.insert(entity, ori);
+                    }
                 }
             },
             ClientGeneral::BreakBlock(pos) => {
