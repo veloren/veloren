@@ -1195,14 +1195,6 @@ impl PlayState for SessionState {
                     HudEvent::AssignLeader(uid) => {
                         self.client.borrow_mut().assign_group_leader(uid);
                     },
-                    HudEvent::MinimapShow(state) => {
-                        global_state.settings.interface.minimap_show = state;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::MinimapFaceNorth(state) => {
-                        global_state.settings.interface.minimap_face_north = state;
-                        global_state.settings.save_to_file_warn();
-                    },
                     HudEvent::SettingsChange(settings_change) => {
                         settings_change.process(global_state, self);
                     },

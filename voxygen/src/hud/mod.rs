@@ -388,8 +388,6 @@ pub enum Event {
     AssignLeader(Uid),
     RemoveBuff(BuffKind),
     UnlockSkill(Skill),
-    MinimapShow(bool),
-    MinimapFaceNorth(bool),
     RequestSiteInfo(SiteId),
 
     SettingsChange(SettingsChange),
@@ -2195,10 +2193,14 @@ impl Hud {
         .set(self.ids.minimap, ui_widgets)
         {
             Some(minimap::Event::Show(show)) => {
-                events.push(Event::MinimapShow(show));
+                events.push(Event::SettingsChange(
+                    InterfaceChange::MinimapShow(show).into(),
+                ));
             },
             Some(minimap::Event::FaceNorth(should_face_north)) => {
-                events.push(Event::MinimapFaceNorth(should_face_north))
+                events.push(Event::SettingsChange(
+                    InterfaceChange::MinimapFaceNorth(should_face_north).into(),
+                ));
             },
             None => {},
         }

@@ -95,6 +95,9 @@ pub enum Interface {
     BuffPosition(BuffPosition),
 
     UiScale(ScaleChange),
+    //Minimap
+    MinimapShow(bool),
+    MinimapFaceNorth(bool),
     //Map settings
     MapZoom(f64),
     MapDrag(Vec2<f64>),
@@ -393,6 +396,12 @@ impl SettingsChange {
                     },
                     Interface::UiScale(scale_change) => {
                         settings.interface.ui_scale = session_state.hud.scale_change(scale_change);
+                    },
+                    Interface::MinimapShow(state) => {
+                        settings.interface.minimap_show = state;
+                    },
+                    Interface::MinimapFaceNorth(state) => {
+                        settings.interface.minimap_face_north = state;
                     },
                     Interface::MapZoom(map_zoom) => {
                         settings.interface.map_zoom = map_zoom;
