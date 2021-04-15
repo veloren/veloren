@@ -248,6 +248,7 @@ fn main() -> io::Result<()> {
                         server.remove_admin(&username);
                     },
                     Message::LoadArea(view_distance) => {
+                        #[cfg(feature = "worldgen")]
                         server.create_centered_persister(view_distance);
                     },
                     Message::SetSqlLogMode(sql_log_mode) => {

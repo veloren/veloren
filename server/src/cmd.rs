@@ -516,6 +516,7 @@ fn handle_site(
     args: String,
     action: &ChatCommand,
 ) -> CmdResult<()> {
+    #[cfg(feature = "worldgen")]
     if let Ok(dest_name) = scan_fmt!(&args, &action.arg_fmt(), String) {
         let site = server
             .world
@@ -538,6 +539,9 @@ fn handle_site(
     } else {
         Err(action.help_string())
     }
+
+    #[cfg(not(feature = "worldgen"))]
+    Ok(())
 }
 
 fn handle_home(
