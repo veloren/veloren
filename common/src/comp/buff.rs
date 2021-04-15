@@ -247,7 +247,6 @@ impl Buff {
                 }],
                 data.duration,
             ),
-            
         };
         Buff {
             kind,
