@@ -52,7 +52,9 @@ impl Animation for BetaAnimation {
             next.head.orientation = Quaternion::rotation_z(-0.4 + move1 * -1.0 + move2 * 1.5);
         }
         match hands {
-            (Some(Hands::Two), _) => match ability_info.and_then(|a| a.tool) {
+            (Some(Hands::Two), _) | (None, Some(Hands::Two)) => match ability_info
+                .and_then(|a| a.tool)
+            {
                 Some(ToolKind::Sword) | Some(ToolKind::SwordSimple) => {
                     next.hand_l.position = Vec3::new(s_a.shl.0, s_a.shl.1, s_a.shl.2);
                     next.hand_l.orientation =
@@ -124,6 +126,10 @@ impl Animation for BetaAnimation {
             },
             (_, _) => {},
         };
+
+        if let (None, Some(Hands::Two)) = hands {
+            next.second = next.main;
+        }
 
         next
     }

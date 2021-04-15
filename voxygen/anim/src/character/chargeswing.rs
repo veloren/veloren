@@ -81,7 +81,9 @@ impl Animation for ChargeswingAnimation {
         }
 
         match hands {
-            (Some(Hands::Two), _) => match ability_info.and_then(|a| a.tool) {
+            (Some(Hands::Two), _) | (None, Some(Hands::Two)) => match ability_info
+                .and_then(|a| a.tool)
+            {
                 Some(ToolKind::Hammer) | Some(ToolKind::HammerSimple) => {
                     next.hand_l.position =
                         Vec3::new(s_a.hhl.0, s_a.hhl.1, s_a.hhl.2 + (move2 * -8.0));
@@ -127,6 +129,7 @@ impl Animation for ChargeswingAnimation {
             },
             (_, _) => {},
         };
+
         match hands {
             (None | Some(Hands::One), Some(Hands::One)) => {
                 match ability_info.and_then(|a| a.tool) {
@@ -164,6 +167,10 @@ impl Animation for ChargeswingAnimation {
             },
             (_, _) => {},
         };
+
+        if let (None, Some(Hands::Two)) = hands {
+            next.second = next.main;
+        }
 
         next
     }

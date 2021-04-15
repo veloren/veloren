@@ -33,7 +33,7 @@ impl Animation for WieldAnimation {
         skeleton: &Self::Skeleton,
         (
             active_tool_kind,
-            _second_tool_kind,
+            second_tool_kind,
             hands,
             orientation,
             last_ori,
@@ -151,8 +151,8 @@ impl Animation for WieldAnimation {
             next.back.orientation = Quaternion::rotation_x(-0.2);
             next.shorts.position = Vec3::new(0.0, s_a.shorts.0, s_a.shorts.1);
         }
-        match hands {
-            (Some(Hands::Two), _) => match active_tool_kind {
+        match (hands, active_tool_kind, second_tool_kind) {
+            ((Some(Hands::Two), _), tool, _) | ((None, Some(Hands::Two)), _, tool) => match tool {
                 Some(ToolKind::Sword) | Some(ToolKind::SwordSimple) => {
                     next.hand_l.position = Vec3::new(s_a.shl.0, s_a.shl.1, s_a.shl.2);
                     next.hand_l.orientation =
@@ -298,7 +298,7 @@ impl Animation for WieldAnimation {
                 },
                 _ => {},
             },
-            (_, _) => {},
+            ((_, _), _, _) => {},
         };
         match hands {
             (Some(Hands::One), _) => {
@@ -332,6 +332,11 @@ impl Animation for WieldAnimation {
             },
             (_, _) => {},
         };
+
+        if let (None, Some(Hands::Two)) = hands {
+            next.second = next.main;
+        }
+
         next
     }
 }

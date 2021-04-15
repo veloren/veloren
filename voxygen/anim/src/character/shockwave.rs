@@ -2,7 +2,10 @@ use super::{
     super::{vek::*, Animation},
     CharacterSkeleton, SkeletonAttr,
 };
-use common::{comp::item::ToolKind, states::utils::StageSection};
+use common::{
+    comp::item::Hands,
+    states::utils::{AbilityInfo, StageSection},
+};
 
 pub struct Input {
     pub attack: bool,
@@ -10,9 +13,10 @@ pub struct Input {
 pub struct ShockwaveAnimation;
 
 impl Animation for ShockwaveAnimation {
+    #[allow(clippy::type_complexity)]
     type Dependency = (
-        Option<ToolKind>,
-        Option<ToolKind>,
+        Option<AbilityInfo>,
+        (Option<Hands>, Option<Hands>),
         f32,
         f32,
         Option<StageSection>,
@@ -26,7 +30,7 @@ impl Animation for ShockwaveAnimation {
     #[allow(clippy::single_match)] // TODO: Pending review in #587
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (_active_tool_kind, _second_tool_kind, _global_time, velocity, stage_section): Self::Dependency,
+        (_ability_info, hands, _global_time, velocity, stage_section): Self::Dependency,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -104,6 +108,11 @@ impl Animation for ShockwaveAnimation {
             next.foot_r.orientation = Quaternion::rotation_y(move1 * -0.3 + move2 * 0.3)
                 * Quaternion::rotation_z(move1 * 0.4 + move2 * -0.4);
         }
+
+        if let (None, Some(Hands::Two)) = hands {
+            next.second = next.main;
+        }
+
         next
     }
 }

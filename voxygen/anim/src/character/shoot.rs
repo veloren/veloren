@@ -2,14 +2,18 @@ use super::{
     super::{vek::*, Animation},
     CharacterSkeleton, SkeletonAttr,
 };
-use common::{comp::item::ToolKind, states::utils::StageSection, util::Dir};
+use common::{
+    comp::item::{Hands, ToolKind},
+    states::utils::{AbilityInfo, StageSection},
+    util::Dir,
+};
 use std::f32::consts::PI;
 
 pub struct ShootAnimation;
 
 type ShootAnimationDependency = (
-    Option<ToolKind>,
-    Option<ToolKind>,
+    Option<AbilityInfo>,
+    (Option<Hands>, Option<Hands>),
     f32,
     Vec3<f32>,
     Vec3<f32>,
@@ -29,8 +33,8 @@ impl Animation for ShootAnimation {
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (
-            active_tool_kind,
-            _second_tool_kind,
+            ability_info,
+            hands,
             velocity,
             orientation,
             last_ori,
@@ -61,7 +65,8 @@ impl Animation for ShootAnimation {
         } else {
             0.0
         } * 1.3;
-        match active_tool_kind {
+
+        match ability_info.and_then(|a| a.tool) {
             Some(ToolKind::Staff) | Some(ToolKind::Sceptre) => {
                 let (move1, move2, move3) = match stage_section {
                     Some(StageSection::Buildup) => (anim_time, 0.0, 0.0),
@@ -173,6 +178,10 @@ impl Animation for ShootAnimation {
         next.back.orientation = Quaternion::rotation_x(-0.3);
 
         next.lantern.orientation = Quaternion::rotation_x(0.0) * Quaternion::rotation_y(0.0);
+
+        if let (None, Some(Hands::Two)) = hands {
+            next.second = next.main;
+        }
 
         next
     }

@@ -2,15 +2,19 @@ use super::{
     super::{vek::*, Animation},
     CharacterSkeleton, SkeletonAttr,
 };
-use common::{comp::item::ToolKind, states::utils::StageSection};
+use common::{
+    comp::item::{Hands, ToolKind},
+    states::utils::{AbilityInfo, StageSection},
+};
 use std::f32::consts::PI;
 
 pub struct BeamAnimation;
 
 impl Animation for BeamAnimation {
+    #[allow(clippy::type_complexity)]
     type Dependency = (
-        Option<ToolKind>,
-        Option<ToolKind>,
+        Option<AbilityInfo>,
+        (Option<Hands>, Option<Hands>),
         f32,
         f32,
         Option<StageSection>,
@@ -24,7 +28,7 @@ impl Animation for BeamAnimation {
     #[allow(clippy::single_match)] // TODO: Pending review in #587
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, _second_tool_kind, _global_time, velocity, stage_section): Self::Dependency,
+        (ability_info, hands, _global_time, velocity, stage_section): Self::Dependency,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -53,7 +57,7 @@ impl Animation for BeamAnimation {
             * Quaternion::rotation_y(0.15)
             * Quaternion::rotation_z(0.0);
 
-        match active_tool_kind {
+        match ability_info.and_then(|a| a.tool) {
             Some(ToolKind::Staff) | Some(ToolKind::Sceptre) => {
                 next.control.position = Vec3::new(
                     s_a.stc.0 + (move1 * 16.0) * (1.0 - move3),
@@ -107,6 +111,10 @@ impl Animation for BeamAnimation {
                 };
             },
             _ => {},
+        }
+
+        if let (None, Some(Hands::Two)) = hands {
+            next.second = next.main;
         }
 
         next

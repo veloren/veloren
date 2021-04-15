@@ -2,7 +2,7 @@ ItemDef(
     name: "Orichalcum Mace",
     description: "Forged with orichalcum.",
     kind: Tool((
-        kind: Axe,
+        kind: Hammer,
         hands: One,
         stats: Direct((
             equip_time_secs: 0.4,

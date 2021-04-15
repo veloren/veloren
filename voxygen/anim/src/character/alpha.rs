@@ -106,7 +106,9 @@ impl Animation for AlphaAnimation {
         }
 
         match hands {
-            (Some(Hands::Two), _) => match ability_info.and_then(|a| a.tool) {
+            (Some(Hands::Two), _) | (None, Some(Hands::Two)) => match ability_info
+                .and_then(|a| a.tool)
+            {
                 Some(ToolKind::Sword) | Some(ToolKind::SwordSimple) => {
                     next.hand_l.position = Vec3::new(s_a.shl.0, s_a.shl.1, s_a.shl.2);
                     next.hand_l.orientation =
@@ -283,6 +285,11 @@ impl Animation for AlphaAnimation {
             },
             (_, _) => {},
         };
+
+        if let (None, Some(Hands::Two)) = hands {
+            next.second = next.main;
+        }
+
         next
     }
 }

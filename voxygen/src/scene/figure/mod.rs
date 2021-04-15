@@ -923,8 +923,8 @@ impl FigureMgr {
                             anim::character::ShootAnimation::update_skeleton(
                                 &target_base,
                                 (
-                                    active_tool_kind,
-                                    second_tool_kind,
+                                    Some(s.static_data.ability_info),
+                                    hands,
                                     rel_vel.magnitude(),
                                     // TODO: Update to use the quaternion.
                                     ori * anim::vek::Vec3::<f32>::unit_y(),
@@ -955,8 +955,8 @@ impl FigureMgr {
                             anim::character::ShootAnimation::update_skeleton(
                                 &target_base,
                                 (
-                                    active_tool_kind,
-                                    second_tool_kind,
+                                    Some(s.static_data.ability_info),
+                                    hands,
                                     rel_vel.magnitude(),
                                     // TODO: Update to use the quaternion.
                                     ori * anim::vek::Vec3::<f32>::unit_y(),
@@ -1022,8 +1022,8 @@ impl FigureMgr {
                             anim::character::RepeaterAnimation::update_skeleton(
                                 &target_base,
                                 (
-                                    active_tool_kind,
-                                    second_tool_kind,
+                                    Some(s.static_data.ability_info),
+                                    hands,
                                     rel_vel,
                                     time,
                                     Some(s.stage_section),
@@ -1105,8 +1105,8 @@ impl FigureMgr {
                             anim::character::ShockwaveAnimation::update_skeleton(
                                 &target_base,
                                 (
-                                    active_tool_kind,
-                                    second_tool_kind,
+                                    Some(s.static_data.ability_info),
+                                    hands,
                                     time,
                                     rel_vel.magnitude(),
                                     Some(s.stage_section),
@@ -1133,8 +1133,8 @@ impl FigureMgr {
                             anim::character::ShockwaveAnimation::update_skeleton(
                                 &target_base,
                                 (
-                                    active_tool_kind,
-                                    second_tool_kind,
+                                    Some(s.static_data.ability_info),
+                                    hands,
                                     time,
                                     rel_vel.magnitude(),
                                     Some(s.stage_section),
@@ -1273,8 +1273,8 @@ impl FigureMgr {
                             anim::character::BeamAnimation::update_skeleton(
                                 &target_base,
                                 (
-                                    active_tool_kind,
-                                    second_tool_kind,
+                                    Some(s.static_data.ability_info),
+                                    hands,
                                     time,
                                     rel_vel.magnitude(),
                                     Some(s.stage_section),
@@ -1299,8 +1299,8 @@ impl FigureMgr {
                             anim::character::BeamAnimation::update_skeleton(
                                 &target_base,
                                 (
-                                    active_tool_kind,
-                                    second_tool_kind,
+                                    Some(s.static_data.ability_info),
+                                    hands,
                                     time,
                                     rel_vel.magnitude(),
                                     Some(s.stage_section),
@@ -1417,6 +1417,7 @@ impl FigureMgr {
                                     (
                                         active_tool_kind,
                                         second_tool_kind,
+                                        hands,
                                         rel_vel.magnitude(),
                                         time,
                                     ),

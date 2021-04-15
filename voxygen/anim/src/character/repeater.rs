@@ -2,13 +2,17 @@ use super::{
     super::{vek::*, Animation},
     CharacterSkeleton, SkeletonAttr,
 };
-use common::{comp::item::ToolKind, states::utils::StageSection};
+use common::{
+    comp::item::{Hands, ToolKind},
+    states::utils::{AbilityInfo, StageSection},
+};
 pub struct RepeaterAnimation;
 
 impl Animation for RepeaterAnimation {
+    #[allow(clippy::type_complexity)]
     type Dependency = (
-        Option<ToolKind>,
-        Option<ToolKind>,
+        Option<AbilityInfo>,
+        (Option<Hands>, Option<Hands>),
         Vec3<f32>,
         f32,
         Option<StageSection>,
@@ -22,7 +26,7 @@ impl Animation for RepeaterAnimation {
     #[allow(clippy::approx_constant)] // TODO: Pending review in #587
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, _second_tool_kind, _velocity, _global_time, stage_section): Self::Dependency,
+        (ability_info, hands, _velocity, _global_time, stage_section): Self::Dependency,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -42,7 +46,7 @@ impl Animation for RepeaterAnimation {
 
         fn fire(x: f32) -> f32 { (x * 18.0).sin() }
 
-        if let Some(ToolKind::Bow) = active_tool_kind {
+        if let Some(ToolKind::Bow) = ability_info.and_then(|a| a.tool) {
             next.hand_l.position = Vec3::new(s_a.bhl.0, s_a.bhl.1, s_a.bhl.2);
             next.hand_l.orientation = Quaternion::rotation_x(s_a.bhl.3);
             next.hand_r.position = Vec3::new(s_a.bhr.0, s_a.bhr.1, s_a.bhr.2);
@@ -94,6 +98,10 @@ impl Animation for RepeaterAnimation {
             next.hand_l.orientation = Quaternion::rotation_x(1.20)
                 * Quaternion::rotation_y(-0.6)
                 * Quaternion::rotation_z(-0.3);
+        }
+
+        if let (None, Some(Hands::Two)) = hands {
+            next.second = next.main;
         }
 
         next

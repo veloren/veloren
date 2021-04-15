@@ -689,14 +689,10 @@ impl AbilityInfo {
         } else {
             unwrap_tool_data(data, EquipSlot::Mainhand)
         };
-        let (tool, hand) = if from_offhand {
-            (tool_data.map(|t| t.kind), Some(HandInfo::OffHand))
-        } else {
-            (
-                tool_data.map(|t| t.kind),
-                tool_data.map(|t| HandInfo::from_main_tool(t)),
-            )
-        };
+        let (tool, hand) = (
+            tool_data.map(|t| t.kind),
+            tool_data.map(|t| HandInfo::from_main_tool(t, from_offhand)),
+        );
 
         Self {
             tool,
@@ -715,10 +711,16 @@ pub enum HandInfo {
 }
 
 impl HandInfo {
-    pub fn from_main_tool(tool: &Tool) -> Self {
+    pub fn from_main_tool(tool: &Tool, from_offhand: bool) -> Self {
         match tool.hands {
             Hands::Two => Self::TwoHanded,
-            Hands::One => Self::MainHand,
+            Hands::One => {
+                if from_offhand {
+                    Self::OffHand
+                } else {
+                    Self::MainHand
+                }
+            },
         }
     }
 }

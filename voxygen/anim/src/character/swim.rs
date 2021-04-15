@@ -171,7 +171,13 @@ impl Animation for SwimAnimation {
         next.glider.position = Vec3::new(0.0, 0.0, 10.0);
         next.glider.scale = Vec3::one() * 0.0;
 
-        match active_tool_kind {
+        let main_tool = if let (None, Some(Hands::Two)) = hands {
+            second_tool_kind
+        } else {
+            active_tool_kind
+        };
+
+        match main_tool {
             Some(ToolKind::Dagger) => {
                 next.main.position = Vec3::new(-4.0, -5.0, 7.0);
                 next.main.orientation =
@@ -257,6 +263,10 @@ impl Animation for SwimAnimation {
             (Some(Hands::One), Some(Hands::One)) => Vec3::one(),
             (_, _) => Vec3::zero(),
         };
+
+        if let (None, Some(Hands::Two)) = hands {
+            next.second = next.main;
+        }
 
         next
     }
