@@ -13,7 +13,7 @@ use common::{
 };
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::{ClientGeneral, ServerGeneral};
-use specs::{Entities, Join, Read, ReadExpect, ReadStorage};
+use specs::{Entities, Join, Read, ReadExpect, ReadStorage, WriteExpect};
 use std::sync::atomic::Ordering;
 use tracing::{debug, warn};
 
@@ -24,7 +24,7 @@ impl Sys {
         entity: specs::Entity,
         client: &Client,
         character_loader: &ReadExpect<'_, CharacterLoader>,
-        character_updater: &ReadExpect<'_, CharacterUpdater>,
+        character_updater: &mut WriteExpect<'_, CharacterUpdater>,
         uids: &ReadStorage<'_, Uid>,
         players: &ReadStorage<'_, Player>,
         presences: &ReadStorage<'_, Presence>,
@@ -132,7 +132,7 @@ impl Sys {
             },
             ClientGeneral::DeleteCharacter(character_id) => {
                 if let Some(player) = players.get(entity) {
-                    character_loader.delete_character(
+                    character_updater.delete_character(
                         entity,
                         player.uuid().to_string(),
                         character_id,
@@ -154,7 +154,7 @@ impl<'a> System<'a> for Sys {
         Entities<'a>,
         Read<'a, EventBus<ServerEvent>>,
         ReadExpect<'a, CharacterLoader>,
-        ReadExpect<'a, CharacterUpdater>,
+        WriteExpect<'a, CharacterUpdater>,
         ReadStorage<'a, Uid>,
         ReadStorage<'a, Client>,
         ReadStorage<'a, Player>,
@@ -173,7 +173,7 @@ impl<'a> System<'a> for Sys {
             entities,
             server_event_bus,
             character_loader,
-            character_updater,
+            mut character_updater,
             uids,
             clients,
             players,
@@ -191,7 +191,7 @@ impl<'a> System<'a> for Sys {
                     entity,
                     client,
                     &character_loader,
-                    &character_updater,
+                    &mut character_updater,
                     &uids,
                     &players,
                     &presences,

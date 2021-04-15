@@ -22,6 +22,7 @@ use common::{
 };
 use core::{convert::TryFrom, num::NonZeroU64};
 use hashbrown::HashMap;
+use lazy_static::lazy_static;
 use std::{collections::VecDeque, sync::Arc};
 use tracing::trace;
 
@@ -29,6 +30,13 @@ use tracing::trace;
 pub struct ItemModelPair {
     pub comp: Arc<common::comp::item::ItemId>,
     pub model: Item,
+}
+
+// Decoupled from the ECS resource because the plumbing is getting complicated;
+// shouldn't matter unless someone's hot-reloading material stats on the live
+// server
+lazy_static! {
+    pub static ref MATERIAL_STATS_MANIFEST: MaterialStatManifest = MaterialStatManifest::default();
 }
 
 /// Returns a vector that contains all item rows to upsert; parent is
@@ -230,7 +238,6 @@ pub fn convert_inventory_from_database_items(
     inventory_items: &[Item],
     loadout_container_id: i64,
     loadout_items: &[Item],
-    msm: &MaterialStatManifest,
 ) -> Result<Inventory, PersistenceError> {
     // Loadout items must be loaded before inventory items since loadout items
     // provide inventory slots. Since items stored inside loadout items actually
@@ -238,7 +245,7 @@ pub fn convert_inventory_from_database_items(
     // on populating the loadout items first, and then inserting the items into the
     // inventory at the correct position.
     //
-    let loadout = convert_loadout_from_database_items(loadout_container_id, loadout_items, msm)?;
+    let loadout = convert_loadout_from_database_items(loadout_container_id, loadout_items)?;
     let mut inventory = Inventory::new_with_loadout(loadout);
     let mut item_indices = HashMap::new();
 
@@ -310,7 +317,7 @@ pub fn convert_inventory_from_database_items(
             }
         } else if let Some(&j) = item_indices.get(&db_item.parent_container_item_id) {
             if let Some(Some(parent)) = inventory.slot_mut(slot(&inventory_items[j].position)?) {
-                parent.add_component(item, msm);
+                parent.add_component(item, &MATERIAL_STATS_MANIFEST);
             } else {
                 return Err(PersistenceError::ConversionError(format!(
                     "Parent slot {} for component {} was empty even though it occurred earlier in \
@@ -332,7 +339,6 @@ pub fn convert_inventory_from_database_items(
 pub fn convert_loadout_from_database_items(
     loadout_container_id: i64,
     database_items: &[Item],
-    msm: &MaterialStatManifest,
 ) -> Result<Loadout, PersistenceError> {
     let loadout_builder = LoadoutBuilder::new();
     let mut loadout = loadout_builder.build();
@@ -367,7 +373,7 @@ pub fn convert_loadout_from_database_items(
         } else if let Some(&j) = item_indices.get(&db_item.parent_container_item_id) {
             loadout
                 .update_item_at_slot_using_persistence_key(&database_items[j].position, |parent| {
-                    parent.add_component(item, msm);
+                    parent.add_component(item, &MATERIAL_STATS_MANIFEST);
                 })
                 .map_err(convert_error)?;
         } else {
