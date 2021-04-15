@@ -115,6 +115,7 @@ pub fn consumable_desc(effects: &[Effect], i18n: &Localization) -> String {
                     .replace("{strength}", &strength.to_string()),
                 BuffKind::Invulnerability => i18n.get("buff.stat.invulnerability").to_string(),
                 BuffKind::Bleeding
+                | BuffKind::Burning
                 | BuffKind::CampfireHeal
                 | BuffKind::Cursed
                 | BuffKind::ProtectingWard => continue,
@@ -133,6 +134,7 @@ pub fn consumable_desc(effects: &[Effect], i18n: &Localization) -> String {
                         .get("buff.text.for_seconds")
                         .replace("{dur_secs}", &dur_secs.to_string()),
                     BuffKind::Bleeding
+                    | BuffKind::Burning
                     | BuffKind::Potion
                     | BuffKind::CampfireHeal
                     | BuffKind::Cursed

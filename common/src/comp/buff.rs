@@ -14,6 +14,8 @@ use std::{cmp::Ordering, time::Duration};
 /// This is used to determine what effects a buff will have
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize, PartialOrd, Ord)]
 pub enum BuffKind {
+    /// Does damage to a creature over time
+    Burning,
     /// Restores health/time for some period
     Regeneration,
     /// Restores health/time for some period for consumables
@@ -51,6 +53,7 @@ impl BuffKind {
             BuffKind::IncreaseMaxHealth => true,
             BuffKind::Invulnerability => true,
             BuffKind::ProtectingWard => true,
+            BuffKind::Burning => false,
         }
     }
 
@@ -234,6 +237,14 @@ impl Buff {
                     // damage reduction.
                     data.strength / (0.5 + data.strength),
                 )],
+                data.duration,
+            ),
+            BuffKind::Burning => (
+                vec![BuffEffect::HealthChangeOverTime {
+                    rate: -data.strength,
+                    accumulated: 0.0,
+                    kind: ModifierKind::Additive,
+                }],
                 data.duration,
             ),
         };
