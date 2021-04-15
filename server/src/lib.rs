@@ -30,6 +30,7 @@ pub mod settings;
 pub mod state_ext;
 pub mod sys;
 #[cfg(not(feature = "worldgen"))] mod test_world;
+pub mod wiring;
 
 // Reexports
 pub use crate::{
@@ -242,6 +243,8 @@ impl Server {
         state.ecs_mut().register::<RegionSubscription>();
         state.ecs_mut().register::<Client>();
         state.ecs_mut().register::<Presence>();
+        state.ecs_mut().register::<wiring::WiringElement>();
+        state.ecs_mut().register::<wiring::Circuit>();
         state.ecs_mut().register::<comp::HomeChunk>();
         state.ecs_mut().register::<login_provider::PendingLogin>();
 
