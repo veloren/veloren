@@ -48,7 +48,6 @@ opt-level = 2
 [profile.dev.package."veloren-server-cli"]
 opt-level = 2
 [profile.dev.package."veloren-voxygen"]
-incremental = true
 opt-level = 2
 [profile.dev.package."veloren-world"]
 opt-level = 2

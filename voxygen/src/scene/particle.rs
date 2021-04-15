@@ -807,7 +807,7 @@ impl ParticleMgr {
             for (buff_kind, _) in buffs.kinds.iter() {
                 #[allow(clippy::single_match)]
                 match buff_kind {
-                    buff::BuffKind::Cursed => {
+                    buff::BuffKind::Cursed | buff::BuffKind::Burning => {
                         self.particles.resize_with(
                             self.particles.len()
                                 + usize::from(self.scheduler.heartbeats(Duration::from_millis(15))),
@@ -826,7 +826,11 @@ impl ParticleMgr {
                                 Particle::new_directed(
                                     Duration::from_secs(1),
                                     time,
-                                    ParticleMode::CultistFlame,
+                                    if matches!(buff_kind, buff::BuffKind::Cursed) {
+                                        ParticleMode::CultistFlame
+                                    } else {
+                                        ParticleMode::FlameThrower
+                                    },
                                     start_pos,
                                     end_pos,
                                 )

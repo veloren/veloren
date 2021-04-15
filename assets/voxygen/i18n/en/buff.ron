@@ -24,6 +24,8 @@
         "buff.desc.bleed": "Inflicts regular damage.",
         "buff.title.cursed": "Cursed",
         "buff.desc.cursed": "You are cursed.",
+        "buff.title.burn": "On Fire",
+        "buff.desc.burn": "Burn, baby, burn",
         // Buffs stats
         "buff.stat.health": "Restores {str_total} Health",
         "buff.stat.increase_max_stamina": "Raises Maximum Stamina by {strength}",
