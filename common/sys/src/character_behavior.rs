@@ -173,9 +173,9 @@ impl<'a> System<'a> for Sys {
                         *char_state.get_mut_unchecked() =
                             CharacterState::Stunned(common::states::stunned::Data {
                                 static_data: common::states::stunned::StaticData {
-                                    buildup_duration: Duration::from_millis(150),
-                                    recover_duration: Duration::from_millis(150),
-                                    movement_speed: 0.4,
+                                    buildup_duration: Duration::from_millis(125),
+                                    recover_duration: Duration::from_millis(125),
+                                    movement_speed: 0.80,
                                     poise_state,
                                 },
                                 timer: Duration::default(),
@@ -188,9 +188,9 @@ impl<'a> System<'a> for Sys {
                         *char_state.get_mut_unchecked() =
                             CharacterState::Stunned(common::states::stunned::Data {
                                 static_data: common::states::stunned::StaticData {
-                                    buildup_duration: Duration::from_millis(500),
+                                    buildup_duration: Duration::from_millis(300),
                                     recover_duration: Duration::from_millis(300),
-                                    movement_speed: 0.1,
+                                    movement_speed: 0.65,
                                     poise_state,
                                 },
                                 timer: Duration::default(),
@@ -207,9 +207,9 @@ impl<'a> System<'a> for Sys {
                         *char_state.get_mut_unchecked() =
                             CharacterState::Stunned(common::states::stunned::Data {
                                 static_data: common::states::stunned::StaticData {
-                                    buildup_duration: Duration::from_millis(800),
+                                    buildup_duration: Duration::from_millis(600),
                                     recover_duration: Duration::from_millis(250),
-                                    movement_speed: 0.0,
+                                    movement_speed: 0.45,
                                     poise_state,
                                 },
                                 timer: Duration::default(),
@@ -226,9 +226,9 @@ impl<'a> System<'a> for Sys {
                         *char_state.get_mut_unchecked() =
                             CharacterState::Stunned(common::states::stunned::Data {
                                 static_data: common::states::stunned::StaticData {
-                                    buildup_duration: Duration::from_millis(1000),
-                                    recover_duration: Duration::from_millis(750),
-                                    movement_speed: 0.0,
+                                    buildup_duration: Duration::from_millis(750),
+                                    recover_duration: Duration::from_millis(500),
+                                    movement_speed: 0.4,
                                     poise_state,
                                 },
                                 timer: Duration::default(),

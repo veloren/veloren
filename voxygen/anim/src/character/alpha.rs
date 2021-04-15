@@ -175,10 +175,10 @@ impl Animation for AlphaAnimation {
                     next.control.position = Vec3::new(
                         s_a.hc.0 + moveret1 * -13.0 + moveret2 * 3.0,
                         s_a.hc.1 + (moveret2 * 5.0),
-                        s_a.hc.2 + moveret1 * 5.0 + moveret2 * -8.0,
+                        s_a.hc.2 + moveret1 * 8.0 + moveret2 * -6.0,
                     );
                     next.control.orientation =
-                        Quaternion::rotation_x(s_a.hc.3 + (moveret1 * 1.5 + moveret2 * -2.9))
+                        Quaternion::rotation_x(s_a.hc.3 + (moveret1 * 1.5 + moveret2 * -2.55))
                             * Quaternion::rotation_y(s_a.hc.4 + moveret1 * 1.57 + moveret2 * 0.5)
                             * Quaternion::rotation_z(s_a.hc.5 + (moveret2 * -0.5));
                 },

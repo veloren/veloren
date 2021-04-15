@@ -58,10 +58,11 @@ impl Animation for StaggeredAnimation {
         let mirror = (check - 0.5).signum();
         let movement1 = movement1base * pullback * mirror;
         let movement1abs = movement1base * pullback;
-
+        next.second.position = Vec3::new(0.0, 0.0, 0.0);
+        next.second.orientation = Quaternion::rotation_z(0.0);
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
         next.head.orientation =
-            Quaternion::rotation_x(movement1abs * -0.2) * Quaternion::rotation_z(movement1 * 0.3);
+            Quaternion::rotation_x(movement1abs * -0.2) * Quaternion::rotation_z(movement1 * -0.3);
         next.shorts.orientation =
             Quaternion::rotation_x(movement1abs * 0.2) * Quaternion::rotation_z(movement1 * -0.3);
         next.belt.orientation =
@@ -69,10 +70,12 @@ impl Animation for StaggeredAnimation {
         next.shorts.position = Vec3::new(0.0, s_a.shorts.0 + movement1abs * 1.0, s_a.shorts.1);
         next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1 + movement1abs * -4.0);
         next.chest.orientation =
-            Quaternion::rotation_x(movement1abs * -0.1) * Quaternion::rotation_z(movement1 * 1.0);
+            Quaternion::rotation_x(movement1abs * -0.1) * Quaternion::rotation_z(movement1 * 1.3);
         if wield_status {
             next.main.position = Vec3::new(0.0, 0.0, 0.0);
             next.main.orientation = Quaternion::rotation_x(0.0);
+            next.second.position = Vec3::new(0.0, 0.0, 0.0);
+            next.second.orientation = Quaternion::rotation_z(0.0);
             match (hands, active_tool_kind, second_tool_kind) {
                 ((Some(Hands::Two), _), tool, _) | ((None, Some(Hands::Two)), _, tool) => {
                     match tool {

@@ -68,10 +68,10 @@ impl Animation for StunnedAnimation {
             let movement1abs = movement1base * pullback;
             next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
             next.head.orientation =
-                Quaternion::rotation_x(movement1 * 0.2) * Quaternion::rotation_z(movement1 * 0.5);
+                Quaternion::rotation_x(movement1 * 0.2) * Quaternion::rotation_z(movement1 * -0.3);
             next.chest.position =
-                Vec3::new(0.0, s_a.chest.0, s_a.chest.1 + movement1abs - 2.0) * s_a.scaler / 11.0;
-            next.chest.orientation = Quaternion::rotation_z(movement1 * 0.5);
+                Vec3::new(0.0, s_a.chest.0, s_a.chest.1 + movement1abs - 3.0) * s_a.scaler / 11.0;
+            next.chest.orientation = Quaternion::rotation_z(movement1 * 1.2);
 
             next.pants.position = Vec3::new(0.0, s_a.pants.0, s_a.pants.1);
 

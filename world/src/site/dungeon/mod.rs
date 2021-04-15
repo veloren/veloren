@@ -754,10 +754,11 @@ impl Floor {
                                     )
                                     .with_loot_drop(chosen.read().choose().to_item())
                                     .with_main_tool(comp::Item::new_from_asset_expect(
-                                        match dynamic_rng.gen_range(0..5) {
-                                            0 => "common.items.weapons.axe.malachite_axe-0",
+                                        match dynamic_rng.gen_range(0..6) {
+                                            0 => "common.items.weapons.axe_1h.orichalcum-0",
                                             1..=2 => "common.items.weapons.sword.cultist",
                                             3 => "common.items.weapons.hammer.cultist_purp_2h-0",
+                                            4 => "common.items.weapons.hammer_1h.orichalcum-0",
                                             _ => "common.items.weapons.bow.bone-1",
                                         },
                                     )),
