@@ -95,6 +95,7 @@ pub struct ReadData<'a> {
     mount_states: ReadStorage<'a, MountState>,
     time_of_day: Read<'a, TimeOfDay>,
     light_emitter: ReadStorage<'a, LightEmitter>,
+    #[cfg(feature = "worldgen")]
     world: ReadExpect<'a, Arc<world::World>>,
     rtsim_entities: ReadStorage<'a, RtSimEntity>,
     buffs: ReadStorage<'a, Buffs>,
@@ -761,12 +762,15 @@ impl<'a> AgentData<'a> {
                         let mut ground_too_close = self
                             .body
                             .map(|body| {
+                                #[cfg(feature = "worldgen")]
                                 let height_approx = self.pos.0.y
                                     - read_data
                                         .world
                                         .sim()
                                         .get_alt_approx(self.pos.0.xy().map(|x: f32| x as i32))
                                         .unwrap_or(0.0);
+                                #[cfg(not(feature = "worldgen"))]
+                                let height_approx = self.pos.0.y;
 
                                 height_approx < body.flying_height()
                             })

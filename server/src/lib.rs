@@ -337,15 +337,21 @@ impl Server {
         // Insert a default AABB for the world
         // TODO: prevent this from being deleted
         {
-            let mut build_areas = state.ecs().write_resource::<BuildAreas>();
-            let world_size = world.sim().get_size().map(|e| e as i32)
-                * TerrainChunk::RECT_SIZE.map(|e| e as i32);
+            #[cfg(feature = "worldgen")]
+            let size = world.sim().get_size();
+            #[cfg(not(feature = "worldgen"))]
+            let size = Vec2::new(40, 40);
+
+            let world_size = size.map(|e| e as i32) * TerrainChunk::RECT_SIZE.map(|e| e as i32);
             let world_aabb = Aabb {
                 min: Vec3::new(0, 0, -32768),
                 max: Vec3::new(world_size.x, world_size.y, 32767),
             }
             .made_valid();
-            build_areas
+
+            state
+                .ecs()
+                .write_resource::<BuildAreas>()
                 .insert("world".to_string(), world_aabb)
                 .expect("The initial insert should always work.");
         }
@@ -1092,6 +1098,7 @@ impl Server {
     /// view_distance: distance in chunks that are persisted, this acts like the
     /// player view distance so it is actually a bit farther due to a buffer
     /// zone
+    #[cfg(feature = "worldgen")]
     pub fn create_centered_persister(&mut self, view_distance: u32) {
         let world_dims_chunks = self.world.sim().get_size();
         let world_dims_blocks = TerrainChunkSize::blocks(world_dims_chunks);

@@ -223,6 +223,7 @@ pub fn handle_invite_accept(server: &mut Server, entity: specs::Entity) {
                             .inbox
                             .push_front(AgentEvent::TradeAccepted(invitee_uid));
                     }
+                    #[cfg(feature = "worldgen")]
                     let pricing = agents
                         .get(inviter)
                         .and_then(|a| {
@@ -237,6 +238,9 @@ pub fn handle_invite_accept(server: &mut Server, entity: specs::Entity) {
                                     .and_then(|id| index.get_site_prices(id))
                             })
                         });
+                    #[cfg(not(feature = "worldgen"))]
+                    let pricing = None;
+
                     clients.get(inviter).map(|c| {
                         c.send(ServerGeneral::UpdatePendingTrade(
                             id,

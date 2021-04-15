@@ -118,12 +118,15 @@ pub fn handle_process_trade_action(
                                 .map(|i| ReducedInventory::from(i));
                             // Get price info from the first Agent in the trade (currently, an
                             // Agent will never initiate a trade with another agent though)
-                            prices = prices.or_else(|| {
-                                agents
-                                    .get(e)
-                                    .and_then(|a| a.behavior.trade_site)
-                                    .and_then(|id| server.index.get_site_prices(id))
-                            });
+                            #[cfg(feature = "worldgen")]
+                            {
+                                prices = prices.or_else(|| {
+                                    agents
+                                        .get(e)
+                                        .and_then(|a| a.behavior.trade_site)
+                                        .and_then(|id| server.index.get_site_prices(id))
+                                });
+                            }
                         }
                     }
                     drop(agents);
@@ -137,6 +140,7 @@ pub fn handle_process_trade_action(
                                     prices.clone(),
                                 ),
                             );
+                            #[cfg(feature = "worldgen")]
                             notify_agent_prices(
                                 server.state.ecs().write_storage::<Agent>(),
                                 &server.index,

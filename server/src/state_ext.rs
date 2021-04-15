@@ -352,7 +352,10 @@ impl StateExt for State {
                     * TerrainChunkSize::RECT_SIZE.x as f64
             })
             .for_each(|chunk_key| {
-                chunk_generator.generate_chunk(None, chunk_key, &slow_jobs, Arc::clone(world), index.clone());
+                #[cfg(feature = "worldgen")]
+                {
+                    chunk_generator.generate_chunk(None, chunk_key, &slow_jobs, Arc::clone(world), index.clone());
+                }
             });
         }
 

@@ -12,6 +12,8 @@ pub fn handle_site_info(server: &Server, entity: EcsEntity, id: u64) {
         labor_values: HashMap::new(),
         values: HashMap::new(),
         labors: Vec::new(),
+        last_exports: HashMap::new(),
+        resources: HashMap::new(),
     };
     let msg = ServerGeneral::SiteEconomy(info);
     server
