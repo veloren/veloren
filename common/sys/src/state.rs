@@ -10,7 +10,7 @@ use common::{
     event::{EventBus, LocalEvent, ServerEvent},
     outcome::Outcome,
     region::RegionMap,
-    resources::{DeltaTime, GameMode, PlayerEntity, Time, TimeOfDay},
+    resources::{DeltaTime, GameMode, PlayerEntity, PlayerPhysicsSettings, Time, TimeOfDay},
     slowjob::SlowJobPool,
     terrain::{Block, TerrainChunk, TerrainGrid},
     time::DayPeriod,
@@ -278,6 +278,7 @@ impl State {
         ecs.insert(SysMetrics::default());
         ecs.insert(PhysicsMetrics::default());
         ecs.insert(Trades::default());
+        ecs.insert(PlayerPhysicsSettings::default());
 
         // Load plugins from asset directory
         #[cfg(feature = "plugins")]

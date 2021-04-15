@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added /disconnect_all_players admin command
 - Added disconnectall CLI command
 - One handed weapons can now be used and found in the world
+- Players can now opt-in to server-authoritiative physics in gameplay settings.
 
 
 ### Changed
@@ -56,6 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Item tooltips during trades will now inform the user of what ctrl-click and shift-click do
 - International keyboards can now display more key names on Linux and Windows instead of `Unknown`.
 - There is now a brief period after a character leaves the world where they cannot rejoin until their data is saved
+- Certain uses of client-authoritative physics now subject the player to server-authoritative physics.
 
 ### Removed
 

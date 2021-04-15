@@ -786,7 +786,8 @@ impl Client {
                     | ClientGeneral::UnlockSkill(_)
                     | ClientGeneral::RefundSkill(_)
                     | ClientGeneral::RequestSiteInfo(_)
-                    | ClientGeneral::UnlockSkillGroup(_) => &mut self.in_game_stream,
+                    | ClientGeneral::UnlockSkillGroup(_)
+                    | ClientGeneral::RequestPlayerPhysics { .. } => &mut self.in_game_stream,
                     //Only in game, terrain
                     ClientGeneral::TerrainChunkRequest { .. } => &mut self.terrain_stream,
                     //Always possible
@@ -798,6 +799,12 @@ impl Client {
             },
             ClientMsg::Ping(msg) => self.ping_stream.send(msg),
         }
+    }
+
+    pub fn request_player_physics(&mut self, server_authoritative: bool) {
+        self.send_msg(ClientGeneral::RequestPlayerPhysics {
+            server_authoritative,
+        })
     }
 
     fn send_msg<S>(&mut self, msg: S)

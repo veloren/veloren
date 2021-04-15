@@ -1,7 +1,10 @@
 use crate::{client::Client, presence::Presence, Settings};
 use common::{
-    comp::{CanBuild, ControlEvent, Controller, ForceUpdate, Health, Ori, Pos, SkillSet, Vel},
+    comp::{
+        CanBuild, ControlEvent, Controller, ForceUpdate, Health, Ori, Player, Pos, SkillSet, Vel,
+    },
     event::{EventBus, ServerEvent},
+    resources::PlayerPhysicsSettings,
     terrain::TerrainGrid,
     vol::ReadVol,
 };
@@ -9,7 +12,7 @@ use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::{ClientGeneral, PresenceKind, ServerGeneral};
 use common_sys::state::{BlockChange, BuildAreas};
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, Write, WriteStorage};
-use tracing::{debug, trace};
+use tracing::{debug, trace, warn};
 
 impl Sys {
     #[allow(clippy::too_many_arguments)]
@@ -30,6 +33,8 @@ impl Sys {
         controllers: &mut WriteStorage<'_, Controller>,
         settings: &Read<'_, Settings>,
         build_areas: &Read<'_, BuildAreas>,
+        player_physics_settings: &mut Write<'_, PlayerPhysicsSettings>,
+        maybe_player: &Option<&Player>,
         msg: ClientGeneral,
     ) -> Result<(), crate::error::Error> {
         let presence = match maybe_presence {
@@ -93,13 +98,60 @@ impl Sys {
                 }
             },
             ClientGeneral::PlayerPhysics { pos, vel, ori } => {
+                let player_physics_setting = maybe_player.map(|p| {
+                    player_physics_settings
+                        .settings
+                        .entry(p.uuid())
+                        .or_default()
+                });
                 if matches!(presence.kind, PresenceKind::Character(_))
                     && force_updates.get(entity).is_none()
                     && healths.get(entity).map_or(true, |h| !h.is_dead)
+                    && player_physics_setting
+                        .as_ref()
+                        .map_or(true, |s| s.client_authoritative())
                 {
-                    let _ = positions.insert(entity, pos);
-                    let _ = velocities.insert(entity, vel);
-                    let _ = orientations.insert(entity, ori);
+                    let mut reject_update = false;
+                    if let Some(mut setting) = player_physics_setting {
+                        // If we detect any thresholds being exceeded, force server-authoritative
+                        // physics for that player. This doesn't detect subtle hacks, but it
+                        // prevents blatent ones and forces people to not debug physics hacks on the
+                        // live server (and also mitigates some floating-point overflow crashes)
+                        if let Some(prev_pos) = positions.get(entity) {
+                            let value_squared = prev_pos.0.distance_squared(pos.0);
+                            if value_squared > (5000.0f32).powf(2.0) {
+                                setting.server_force = true;
+                                reject_update = true;
+                                warn!(
+                                    "PlayerPhysics position exceeded {:?} {:?} {:?}",
+                                    prev_pos,
+                                    pos,
+                                    value_squared.sqrt()
+                                );
+                            }
+                        }
+
+                        if vel.0.magnitude_squared() > (500.0f32).powf(2.0) {
+                            setting.server_force = true;
+                            reject_update = true;
+                            warn!(
+                                "PlayerPhysics velocity exceeded {:?} {:?}",
+                                pos,
+                                vel.0.magnitude()
+                            );
+                        }
+                    }
+
+                    if reject_update {
+                        warn!(
+                            "Rejected PlayerPhysics update {:?} {:?} {:?} {:?}",
+                            pos, vel, ori, maybe_player
+                        );
+                    } else {
+                        let _ = positions.insert(entity, pos);
+                        let _ = velocities.insert(entity, vel);
+                        let _ = orientations.insert(entity, ori);
+                    }
                 }
             },
             ClientGeneral::BreakBlock(pos) => {
@@ -156,6 +208,19 @@ impl Sys {
             ClientGeneral::RequestSiteInfo(id) => {
                 server_emitter.emit(ServerEvent::RequestSiteInfo { entity, id });
             },
+            ClientGeneral::RequestPlayerPhysics {
+                server_authoritative,
+            } => {
+                let player_physics_setting = maybe_player.map(|p| {
+                    player_physics_settings
+                        .settings
+                        .entry(p.uuid())
+                        .or_default()
+                });
+                if let Some(setting) = player_physics_setting {
+                    setting.client_optin = server_authoritative;
+                }
+            },
             _ => tracing::error!("not a client_in_game msg"),
         }
         Ok(())
@@ -184,6 +249,8 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Controller>,
         Read<'a, Settings>,
         Read<'a, BuildAreas>,
+        Write<'a, PlayerPhysicsSettings>,
+        ReadStorage<'a, Player>,
     );
 
     const NAME: &'static str = "msg::in_game";
@@ -209,12 +276,19 @@ impl<'a> System<'a> for Sys {
             mut controllers,
             settings,
             build_areas,
+            mut player_physics_settings,
+            players,
         ): Self::SystemData,
     ) {
         let mut server_emitter = server_event_bus.emitter();
 
-        for (entity, client, mut maybe_presence) in
-            (&entities, &mut clients, (&mut presences).maybe()).join()
+        for (entity, client, mut maybe_presence, player) in (
+            &entities,
+            &mut clients,
+            (&mut presences).maybe(),
+            players.maybe(),
+        )
+            .join()
         {
             let _ = super::try_recv_all(client, 2, |client, msg| {
                 Self::handle_client_in_game_msg(
@@ -234,6 +308,8 @@ impl<'a> System<'a> for Sys {
                     &mut controllers,
                     &settings,
                     &build_areas,
+                    &mut player_physics_settings,
+                    &player,
                     msg,
                 )
             });
