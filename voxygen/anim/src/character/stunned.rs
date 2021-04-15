@@ -60,18 +60,19 @@ impl Animation for StunnedAnimation {
         let movement1abs = movement1base * pullback;
 
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
-        next.head.orientation = Quaternion::rotation_z(movement1 * 0.3);
+        next.head.orientation = Quaternion::rotation_z(movement1 * -0.3);
         next.shorts.orientation =
             Quaternion::rotation_x(movement1abs * -0.2) * Quaternion::rotation_z(movement1 * -0.3);
         next.belt.orientation =
             Quaternion::rotation_x(movement1abs * -0.1) * Quaternion::rotation_z(movement1 * -0.2);
 
         next.chest.orientation =
-            Quaternion::rotation_x(movement1abs * 0.3) * Quaternion::rotation_z(movement1 * 0.5);
+            Quaternion::rotation_x(movement1abs * 0.3) * Quaternion::rotation_z(movement1 * 1.0);
         if wield_status {
             next.main.position = Vec3::new(0.0, 0.0, 0.0);
             next.main.orientation = Quaternion::rotation_x(0.0);
-
+            next.second.position = Vec3::new(0.0, 0.0, 0.0);
+            next.second.orientation = Quaternion::rotation_z(0.0);
             match hands {
                 (Some(Hands::Two), _) | (None, Some(Hands::Two)) => match active_tool_kind {
                     Some(ToolKind::Sword) | Some(ToolKind::SwordSimple) => {
