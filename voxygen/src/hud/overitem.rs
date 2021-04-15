@@ -71,7 +71,11 @@ impl<'a> Ingameable for Overitem<'a> {
         // TODO maybe this could be done automatically?
         // - 2 Text for name
         // - 0 or 2 Rectangle and Text for button
-        2 + match self.controls.get_binding(GameInput::Interact) {
+        2 + match self
+            .controls
+            .get_binding(GameInput::Interact)
+            .filter(|_| self.active)
+        {
             Some(_) => 2,
             None => 0,
         }
