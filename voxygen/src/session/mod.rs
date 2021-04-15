@@ -1,3 +1,5 @@
+pub mod settings_change;
+
 use std::{cell::RefCell, collections::HashSet, rc::Rc, time::Duration};
 
 use ordered_float::OrderedFloat;
@@ -7,7 +9,6 @@ use vek::*;
 
 use client::{self, Client};
 use common::{
-    assets::AssetExt,
     comp,
     comp::{
         inventory::slot::{EquipSlot, Slot},
@@ -33,20 +34,16 @@ use common_net::{
 
 use crate::{
     audio::sfx::SfxEvent,
-    controller::ControllerSettings,
     hud::{DebugInfo, Event as HudEvent, Hud, HudInfo, PromptDialogSettings},
-    i18n::{i18n_asset_key, Localization},
     key_state::KeyState,
     menu::char_selection::CharSelectionState,
     render::Renderer,
     scene::{camera, CameraMode, Scene, SceneData},
-    settings::{
-        AudioSettings, ControlSettings, GamepadSettings, GameplaySettings, GraphicsSettings,
-        InterfaceSettings, Settings,
-    },
+    settings::Settings,
     window::{AnalogGameInput, Event, GameInput},
     Direction, Error, GlobalState, PlayState, PlayStateResult,
 };
+use settings_change::Language::ChangeLanguage;
 
 /// The action to perform after a tick
 enum TickAction {
@@ -903,9 +900,9 @@ impl PlayState for SessionState {
 
             // Look for changes in the localization files
             if global_state.i18n.reloaded() {
-                hud_events.push(HudEvent::ChangeLanguage(Box::new(
-                    global_state.i18n.read().metadata.clone(),
-                )));
+                hud_events.push(HudEvent::SettingsChange(
+                    ChangeLanguage(Box::new(global_state.i18n.read().metadata.clone())).into(),
+                ));
             }
 
             // Maintain the UI.
@@ -925,153 +922,7 @@ impl PlayState for SessionState {
                     HudEvent::Quit => {
                         return PlayStateResult::Shutdown;
                     },
-                    HudEvent::AdjustMousePan(sensitivity) => {
-                        global_state.window.pan_sensitivity = sensitivity;
-                        global_state.settings.gameplay.pan_sensitivity = sensitivity;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::AdjustMouseZoom(sensitivity) => {
-                        global_state.window.zoom_sensitivity = sensitivity;
-                        global_state.settings.gameplay.zoom_sensitivity = sensitivity;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::AdjustCameraClamp(angle) => {
-                        global_state.settings.gameplay.camera_clamp_angle = angle;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::ToggleZoomInvert(zoom_inverted) => {
-                        global_state.window.zoom_inversion = zoom_inverted;
-                        global_state.settings.gameplay.zoom_inversion = zoom_inverted;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::Sct(sct) => {
-                        global_state.settings.interface.sct = sct;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::SctPlayerBatch(sct_player_batch) => {
-                        global_state.settings.interface.sct_player_batch = sct_player_batch;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::ToggleTips(loading_tips) => {
-                        global_state.settings.interface.loading_tips = loading_tips;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::SctDamageBatch(sct_damage_batch) => {
-                        global_state.settings.interface.sct_damage_batch = sct_damage_batch;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::SpeechBubbleDarkMode(sbdm) => {
-                        global_state.settings.interface.speech_bubble_dark_mode = sbdm;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::SpeechBubbleIcon(sbi) => {
-                        global_state.settings.interface.speech_bubble_icon = sbi;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::ToggleDebug(toggle_debug) => {
-                        global_state.settings.interface.toggle_debug = toggle_debug;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::ToggleMouseYInvert(mouse_y_inverted) => {
-                        global_state.window.mouse_y_inversion = mouse_y_inverted;
-                        global_state.settings.gameplay.mouse_y_inversion = mouse_y_inverted;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::ToggleControllerYInvert(controller_y_inverted) => {
-                        global_state.window.controller_settings.pan_invert_y =
-                            controller_y_inverted;
-                        global_state.settings.controller.pan_invert_y = controller_y_inverted;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::ToggleSmoothPan(smooth_pan_enabled) => {
-                        global_state.settings.gameplay.smooth_pan_enable = smooth_pan_enabled;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::AdjustViewDistance(view_distance) => {
-                        self.client.borrow_mut().set_view_distance(view_distance);
 
-                        global_state.settings.graphics.view_distance = view_distance;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::AdjustLodDetail(lod_detail) => {
-                        self.scene.lod.set_detail(lod_detail);
-
-                        global_state.settings.graphics.lod_detail = lod_detail;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::AdjustSpriteRenderDistance(sprite_render_distance) => {
-                        global_state.settings.graphics.sprite_render_distance =
-                            sprite_render_distance;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::AdjustFigureLoDRenderDistance(figure_lod_render_distance) => {
-                        global_state.settings.graphics.figure_lod_render_distance =
-                            figure_lod_render_distance;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::CrosshairTransp(crosshair_transp) => {
-                        global_state.settings.interface.crosshair_transp = crosshair_transp;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::ChatTransp(chat_transp) => {
-                        global_state.settings.interface.chat_transp = chat_transp;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::ChatCharName(chat_char_name) => {
-                        global_state.settings.interface.chat_character_name = chat_char_name;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::CrosshairType(crosshair_type) => {
-                        global_state.settings.interface.crosshair_type = crosshair_type;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::Intro(intro_show) => {
-                        global_state.settings.interface.intro_show = intro_show;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::ToggleXpBar(xp_bar) => {
-                        global_state.settings.interface.xp_bar = xp_bar;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::ToggleBarNumbers(bar_numbers) => {
-                        global_state.settings.interface.bar_numbers = bar_numbers;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::ToggleShortcutNumbers(shortcut_numbers) => {
-                        global_state.settings.interface.shortcut_numbers = shortcut_numbers;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::BuffPosition(buff_position) => {
-                        global_state.settings.interface.buff_position = buff_position;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::UiScale(scale_change) => {
-                        global_state.settings.interface.ui_scale =
-                            self.hud.scale_change(scale_change);
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::AdjustMusicVolume(music_volume) => {
-                        global_state.audio.set_music_volume(music_volume);
-
-                        global_state.settings.audio.music_volume = music_volume;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::AdjustSfxVolume(sfx_volume) => {
-                        global_state.audio.set_sfx_volume(sfx_volume);
-
-                        global_state.settings.audio.sfx_volume = sfx_volume;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    //HudEvent::ChangeAudioDevice(name) => {
-                    //    global_state.audio.set_device(name.clone());
-
-                    //    global_state.settings.audio.output = AudioOutput::Device(name);
-                    //    global_state.settings.save_to_file_warn();
-                    //},
-                    HudEvent::ChangeMaxFPS(fps) => {
-                        global_state.settings.graphics.max_fps = fps;
-                        global_state.settings.save_to_file_warn();
-                    },
                     HudEvent::RemoveBuff(buff_id) => {
                         let mut client = self.client.borrow_mut();
                         client.remove_buff(buff_id);
@@ -1317,124 +1168,12 @@ impl PlayState for SessionState {
                             target_entity.map(|t| t.0),
                         );
                     },
-                    HudEvent::ChangeFOV(new_fov) => {
-                        global_state.settings.graphics.fov = new_fov;
-                        global_state.settings.save_to_file_warn();
-                        self.scene.camera_mut().set_fov_deg(new_fov);
-                        self.scene
-                            .camera_mut()
-                            .compute_dependents(&*self.client.borrow().state().terrain());
-                    },
-                    HudEvent::MapZoom(map_zoom) => {
-                        global_state.settings.interface.map_zoom = map_zoom;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::MapDrag(map_drag) => {
-                        global_state.settings.interface.map_drag = map_drag;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::MapShowTopoMap(map_show_topo_map) => {
-                        global_state.settings.interface.map_show_topo_map = map_show_topo_map;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::MapShowDifficulty(map_show_difficulty) => {
-                        global_state.settings.interface.map_show_difficulty = map_show_difficulty;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::MapShowTowns(map_show_towns) => {
-                        global_state.settings.interface.map_show_towns = map_show_towns;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::MapShowDungeons(map_show_dungeons) => {
-                        global_state.settings.interface.map_show_dungeons = map_show_dungeons;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::MapShowCastles(map_show_castles) => {
-                        global_state.settings.interface.map_show_castles = map_show_castles;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::MapShowCaves(map_show_caves) => {
-                        global_state.settings.interface.map_show_caves = map_show_caves;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::MapShowTrees(map_show_trees) => {
-                        global_state.settings.interface.map_show_trees = map_show_trees;
-                        global_state.settings.save_to_file_warn();
-                    },
+
                     HudEvent::RequestSiteInfo(id) => {
                         let mut client = self.client.borrow_mut();
                         client.request_site_economy(id);
                     },
-                    HudEvent::ChangeGamma(new_gamma) => {
-                        global_state.settings.graphics.gamma = new_gamma;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::ChangeExposure(new_exposure) => {
-                        global_state.settings.graphics.exposure = new_exposure;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::ChangeAmbiance(new_ambiance) => {
-                        global_state.settings.graphics.ambiance = new_ambiance;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::ChangeRenderMode(new_render_mode) => {
-                        // Do this first so if it crashes the setting isn't saved :)
-                        global_state
-                            .window
-                            .renderer_mut()
-                            .set_render_mode((&*new_render_mode).clone())
-                            .unwrap();
-                        global_state.settings.graphics.render_mode = *new_render_mode;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::ChangeLanguage(new_language) => {
-                        global_state.settings.language.selected_language =
-                            new_language.language_identifier;
-                        global_state.i18n = Localization::load_expect(&i18n_asset_key(
-                            &global_state.settings.language.selected_language,
-                        ));
-                        global_state.i18n.read().log_missing_entries();
-                        self.hud.update_fonts(&global_state.i18n.read());
-                    },
-                    HudEvent::ChangeFullscreenMode(new_fullscreen_settings) => {
-                        global_state
-                            .window
-                            .set_fullscreen_mode(new_fullscreen_settings);
-                        global_state.settings.graphics.fullscreen = new_fullscreen_settings;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::ToggleParticlesEnabled(particles_enabled) => {
-                        global_state.settings.graphics.particles_enabled = particles_enabled;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::AdjustWindowSize(new_size) => {
-                        global_state.window.set_size(new_size.into());
-                        global_state.settings.graphics.window_size = new_size;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::ChangeBinding(game_input) => {
-                        global_state.window.set_keybinding_mode(game_input);
-                    },
-                    HudEvent::ChangeFreeLookBehavior(behavior) => {
-                        global_state.settings.gameplay.free_look_behavior = behavior;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::ChangeAutoWalkBehavior(behavior) => {
-                        global_state.settings.gameplay.auto_walk_behavior = behavior;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::ChangeCameraClampBehavior(behavior) => {
-                        global_state.settings.gameplay.camera_clamp_behavior = behavior;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::ChangeStopAutoWalkOnInput(state) => {
-                        global_state.settings.gameplay.stop_auto_walk_on_input = state;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::ChangeAutoCamera(state) => {
-                        global_state.settings.gameplay.auto_camera = state;
-                        global_state.settings.save_to_file_warn();
-                    },
+
                     HudEvent::CraftRecipe(r) => {
                         self.client.borrow_mut().craft_recipe(&r);
                     },
@@ -1456,83 +1195,8 @@ impl PlayState for SessionState {
                     HudEvent::AssignLeader(uid) => {
                         self.client.borrow_mut().assign_group_leader(uid);
                     },
-                    HudEvent::MinimapShow(state) => {
-                        global_state.settings.interface.minimap_show = state;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::MinimapFaceNorth(state) => {
-                        global_state.settings.interface.minimap_face_north = state;
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::ResetInterfaceSettings => {
-                        // Reset Interface Settings
-                        let tmp = global_state.settings.interface.intro_show;
-                        global_state.settings.interface = InterfaceSettings::default();
-                        global_state.settings.interface.intro_show = tmp;
-                        // Update Current Scaling Mode
-                        self.hud
-                            .set_scaling_mode(global_state.settings.interface.ui_scale);
-                        // Save to File
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::ResetGameplaySettings => {
-                        // Reset Gameplay Settings
-                        global_state.settings.gameplay = GameplaySettings::default();
-                        // Reset Gamepad and Controller Settings
-                        global_state.settings.controller = GamepadSettings::default();
-                        global_state.window.controller_settings =
-                            ControllerSettings::from(&global_state.settings.controller);
-                        // Pan Sensitivity
-                        global_state.window.pan_sensitivity =
-                            global_state.settings.gameplay.pan_sensitivity;
-                        // Zoom Sensitivity
-                        global_state.window.zoom_sensitivity =
-                            global_state.settings.gameplay.zoom_sensitivity;
-                        // Invert Scroll Zoom
-                        global_state.window.zoom_inversion =
-                            global_state.settings.gameplay.zoom_inversion;
-                        // Invert Mouse Y Axis
-                        global_state.window.mouse_y_inversion =
-                            global_state.settings.gameplay.mouse_y_inversion;
-                        // Save to File
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::ResetKeyBindings => {
-                        global_state.settings.controls = ControlSettings::default();
-                        global_state.settings.save_to_file_warn();
-                    },
-                    HudEvent::ResetGraphicsSettings => {
-                        global_state.settings.graphics = GraphicsSettings::default();
-                        global_state.settings.save_to_file_warn();
-                        let graphics = &global_state.settings.graphics;
-                        // View distance
-                        self.client
-                            .borrow_mut()
-                            .set_view_distance(graphics.view_distance);
-                        // FOV
-                        self.scene.camera_mut().set_fov_deg(graphics.fov);
-                        self.scene
-                            .camera_mut()
-                            .compute_dependents(&*self.client.borrow().state().terrain());
-                        // LoD
-                        self.scene.lod.set_detail(graphics.lod_detail);
-                        // Render mode
-                        global_state
-                            .window
-                            .renderer_mut()
-                            .set_render_mode(graphics.render_mode.clone())
-                            .unwrap();
-                        // Fullscreen mode
-                        global_state.window.set_fullscreen_mode(graphics.fullscreen);
-                        // Window size
-                        global_state.window.set_size(graphics.window_size.into());
-                    },
-                    HudEvent::ResetAudioSettings => {
-                        global_state.settings.audio = AudioSettings::default();
-                        global_state.settings.save_to_file_warn();
-                        let audio = &global_state.settings.audio;
-                        global_state.audio.set_music_volume(audio.music_volume);
-                        global_state.audio.set_sfx_volume(audio.sfx_volume);
+                    HudEvent::SettingsChange(settings_change) => {
+                        settings_change.process(global_state, self);
                     },
                 }
             }

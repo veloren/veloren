@@ -1,8 +1,7 @@
-use super::Event;
-
 use crate::{
     hud::{img_ids::Imgs, TEXT_COLOR},
     i18n::list_localizations,
+    session::settings_change::{Language as LanguageChange, Language::*},
     ui::fonts::Fonts,
     GlobalState,
 };
@@ -45,7 +44,7 @@ pub struct State {
 }
 
 impl<'a> Widget for Language<'a> {
-    type Event = Vec<Event>;
+    type Event = Vec<LanguageChange>;
     type State = State;
     type Style = ();
 
@@ -114,7 +113,7 @@ impl<'a> Widget for Language<'a> {
                 .set(state.ids.language_list[i], ui)
                 .was_clicked()
             {
-                events.push(Event::ChangeLanguage(Box::new(language.to_owned())));
+                events.push(ChangeLanguage(Box::new(language.to_owned())));
             }
         }
 

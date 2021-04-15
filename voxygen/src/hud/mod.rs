@@ -50,15 +50,17 @@ use trade::Trade;
 use crate::{
     ecs::{comp as vcomp, comp::HpFloaterList},
     hud::{img_ids::ImgsRot, prompt_dialog::DialogOutcomeEvent},
-    i18n::{LanguageMetadata, Localization},
-    render::{Consts, Globals, RenderMode, Renderer},
+    i18n::Localization,
+    render::{Consts, Globals, Renderer},
     scene::camera::{self, Camera},
-    session::Interactable,
-    settings::Fps,
+    session::{
+        settings_change::{Interface as InterfaceChange, SettingsChange},
+        Interactable,
+    },
     ui::{
         fonts::Fonts, img_ids::Rotations, slot, slot::SlotKey, Graphic, Ingameable, ScaleMode, Ui,
     },
-    window::{Event as WinEvent, FullScreenSettings, GameInput},
+    window::{Event as WinEvent, GameInput},
     GlobalState,
 };
 use client::Client;
@@ -351,55 +353,8 @@ pub struct HudInfo {
 
 #[derive(Clone)]
 pub enum Event {
-    ToggleTips(bool),
     SendMessage(String),
-    AdjustMousePan(u32),
-    AdjustMouseZoom(u32),
-    AdjustCameraClamp(u32),
-    ToggleZoomInvert(bool),
-    ToggleMouseYInvert(bool),
-    ToggleControllerYInvert(bool),
-    ToggleSmoothPan(bool),
-    AdjustViewDistance(u32),
-    AdjustLodDetail(u32),
-    AdjustSpriteRenderDistance(u32),
-    AdjustFigureLoDRenderDistance(u32),
-    AdjustMusicVolume(f32),
-    AdjustSfxVolume(f32),
-    //ChangeAudioDevice(String),
-    ChangeMaxFPS(Fps),
-    ChangeFOV(u16),
-    ChangeGamma(f32),
-    ChangeExposure(f32),
-    ChangeAmbiance(f32),
-    MapZoom(f64),
-    MapDrag(Vec2<f64>),
-    MapShowTopoMap(bool),
-    MapShowDifficulty(bool),
-    MapShowTowns(bool),
-    MapShowDungeons(bool),
-    MapShowCastles(bool),
-    MapShowCaves(bool),
-    MapShowTrees(bool),
-    AdjustWindowSize([u16; 2]),
-    ChangeFullscreenMode(FullScreenSettings),
-    ToggleParticlesEnabled(bool),
-    CrosshairTransp(f32),
-    ChatTransp(f32),
-    ChatCharName(bool),
-    CrosshairType(CrosshairType),
-    BuffPosition(BuffPosition),
-    ToggleXpBar(XpBar),
-    Intro(Intro),
-    ToggleBarNumbers(BarNumbers),
-    ToggleShortcutNumbers(ShortcutNumbers),
-    Sct(bool),
-    SctPlayerBatch(bool),
-    SctDamageBatch(bool),
-    SpeechBubbleDarkMode(bool),
-    SpeechBubbleIcon(bool),
-    ToggleDebug(bool),
-    UiScale(ScaleChange),
+
     CharacterSelection,
     UseSlot {
         slot: comp::slot::Slot,
@@ -423,19 +378,7 @@ pub enum Event {
     Ability4(bool),
     Logout,
     Quit,
-    ChangeLanguage(Box<LanguageMetadata>),
-    ChangeBinding(GameInput),
-    ResetInterfaceSettings,
-    ResetGameplaySettings,
-    ResetKeyBindings,
-    ResetGraphicsSettings,
-    ResetAudioSettings,
-    ChangeFreeLookBehavior(PressBehavior),
-    ChangeRenderMode(Box<RenderMode>),
-    ChangeAutoWalkBehavior(PressBehavior),
-    ChangeCameraClampBehavior(PressBehavior),
-    ChangeStopAutoWalkOnInput(bool),
-    ChangeAutoCamera(bool),
+
     CraftRecipe(String),
     InviteMember(Uid),
     AcceptInvite,
@@ -445,9 +388,9 @@ pub enum Event {
     AssignLeader(Uid),
     RemoveBuff(BuffKind),
     UnlockSkill(Skill),
-    MinimapShow(bool),
-    MinimapFaceNorth(bool),
     RequestSiteInfo(SiteId),
+
+    SettingsChange(SettingsChange),
 }
 
 // TODO: Are these the possible layouts we want?
@@ -1878,7 +1821,9 @@ impl Hud {
                             .was_clicked()
                         {
                             self.show.intro = false;
-                            events.push(Event::Intro(Intro::Never));
+                            events.push(Event::SettingsChange(
+                                InterfaceChange::Intro(Intro::Never).into(),
+                            ));
                             self.show.want_grab = true;
                         }
                         if !self.show.crafting && !self.show.bag {
@@ -2247,11 +2192,8 @@ impl Hud {
         )
         .set(self.ids.minimap, ui_widgets)
         {
-            Some(minimap::Event::Show(show)) => {
-                events.push(Event::MinimapShow(show));
-            },
-            Some(minimap::Event::FaceNorth(should_face_north)) => {
-                events.push(Event::MinimapFaceNorth(should_face_north))
+            Some(minimap::Event::SettingsChange(interface_change)) => {
+                events.push(Event::SettingsChange(interface_change.into()));
             },
             None => {},
         }
@@ -2556,29 +2498,6 @@ impl Hud {
             .set(self.ids.settings_window, ui_widgets)
             {
                 match event {
-                    settings_window::Event::SpeechBubbleDarkMode(sbdm) => {
-                        events.push(Event::SpeechBubbleDarkMode(sbdm));
-                    },
-                    settings_window::Event::SpeechBubbleIcon(sbi) => {
-                        events.push(Event::SpeechBubbleIcon(sbi));
-                    },
-                    settings_window::Event::Sct(sct) => {
-                        events.push(Event::Sct(sct));
-                    },
-                    settings_window::Event::SctPlayerBatch(sct_player_batch) => {
-                        events.push(Event::SctPlayerBatch(sct_player_batch));
-                    },
-                    settings_window::Event::SctDamageBatch(sct_damage_batch) => {
-                        events.push(Event::SctDamageBatch(sct_damage_batch));
-                    },
-                    settings_window::Event::ToggleHelp => self.show.help = !self.show.help,
-                    settings_window::Event::ToggleDebug => {
-                        self.show.debug = !self.show.debug;
-                        events.push(Event::ToggleDebug(self.show.debug));
-                    },
-                    settings_window::Event::ToggleTips(loading_tips) => {
-                        events.push(Event::ToggleTips(loading_tips));
-                    },
                     settings_window::Event::ChangeTab(tab) => self.show.open_setting_tab(tab),
                     settings_window::Event::Close => {
                         // Unpause the game if we are on singleplayer so that we can logout
@@ -2589,136 +2508,24 @@ impl Hud {
 
                         self.show.settings(false)
                     },
-                    settings_window::Event::AdjustMousePan(sensitivity) => {
-                        events.push(Event::AdjustMousePan(sensitivity));
-                    },
-                    settings_window::Event::AdjustMouseZoom(sensitivity) => {
-                        events.push(Event::AdjustMouseZoom(sensitivity));
-                    },
-                    settings_window::Event::AdjustCameraClamp(sensitivity) => {
-                        events.push(Event::AdjustCameraClamp(sensitivity));
-                    },
-                    settings_window::Event::ChatTransp(chat_transp) => {
-                        events.push(Event::ChatTransp(chat_transp));
-                    },
-                    settings_window::Event::ChatCharName(chat_char_name) => {
-                        events.push(Event::ChatCharName(chat_char_name));
-                    },
-                    settings_window::Event::ToggleZoomInvert(zoom_inverted) => {
-                        events.push(Event::ToggleZoomInvert(zoom_inverted));
-                    },
-                    settings_window::Event::BuffPosition(buff_position) => {
-                        events.push(Event::BuffPosition(buff_position));
-                    },
-                    settings_window::Event::ToggleMouseYInvert(mouse_y_inverted) => {
-                        events.push(Event::ToggleMouseYInvert(mouse_y_inverted));
-                    },
-                    settings_window::Event::ToggleControllerYInvert(controller_y_inverted) => {
-                        events.push(Event::ToggleControllerYInvert(controller_y_inverted));
-                    },
-                    settings_window::Event::ToggleSmoothPan(smooth_pan_enabled) => {
-                        events.push(Event::ToggleSmoothPan(smooth_pan_enabled));
-                    },
-                    settings_window::Event::AdjustViewDistance(view_distance) => {
-                        events.push(Event::AdjustViewDistance(view_distance));
-                    },
-                    settings_window::Event::AdjustLodDetail(lod_detail) => {
-                        events.push(Event::AdjustLodDetail(lod_detail));
-                    },
-                    settings_window::Event::AdjustSpriteRenderDistance(view_distance) => {
-                        events.push(Event::AdjustSpriteRenderDistance(view_distance));
-                    },
-                    settings_window::Event::AdjustFigureLoDRenderDistance(view_distance) => {
-                        events.push(Event::AdjustFigureLoDRenderDistance(view_distance));
-                    },
-                    settings_window::Event::CrosshairTransp(crosshair_transp) => {
-                        events.push(Event::CrosshairTransp(crosshair_transp));
-                    },
-                    settings_window::Event::AdjustMusicVolume(music_volume) => {
-                        events.push(Event::AdjustMusicVolume(music_volume));
-                    },
-                    settings_window::Event::AdjustSfxVolume(sfx_volume) => {
-                        events.push(Event::AdjustSfxVolume(sfx_volume));
-                    },
-                    settings_window::Event::MaximumFPS(max_fps) => {
-                        events.push(Event::ChangeMaxFPS(max_fps));
-                    },
-                    //settings_window::Event::ChangeAudioDevice(name) => {
-                    //    events.push(Event::ChangeAudioDevice(name));
-                    //},
-                    settings_window::Event::CrosshairType(crosshair_type) => {
-                        events.push(Event::CrosshairType(crosshair_type));
-                    },
-                    settings_window::Event::ToggleBarNumbers(bar_numbers) => {
-                        events.push(Event::ToggleBarNumbers(bar_numbers));
-                    },
-                    settings_window::Event::ToggleShortcutNumbers(shortcut_numbers) => {
-                        events.push(Event::ToggleShortcutNumbers(shortcut_numbers));
-                    },
-                    settings_window::Event::UiScale(scale_change) => {
-                        events.push(Event::UiScale(scale_change));
-                    },
-                    settings_window::Event::AdjustFOV(new_fov) => {
-                        events.push(Event::ChangeFOV(new_fov));
-                    },
-                    settings_window::Event::AdjustGamma(new_gamma) => {
-                        events.push(Event::ChangeGamma(new_gamma));
-                    },
-                    settings_window::Event::AdjustExposure(new_exposure) => {
-                        events.push(Event::ChangeExposure(new_exposure));
-                    },
-                    settings_window::Event::AdjustAmbiance(new_ambiance) => {
-                        events.push(Event::ChangeAmbiance(new_ambiance));
-                    },
-                    settings_window::Event::ChangeRenderMode(new_render_mode) => {
-                        events.push(Event::ChangeRenderMode(new_render_mode));
-                    },
-                    settings_window::Event::ChangeLanguage(language) => {
-                        events.push(Event::ChangeLanguage(language));
-                    },
-                    settings_window::Event::ChangeFullscreenMode(new_fullscreen_settings) => {
-                        events.push(Event::ChangeFullscreenMode(new_fullscreen_settings));
-                    },
-                    settings_window::Event::ToggleParticlesEnabled(particles_enabled) => {
-                        events.push(Event::ToggleParticlesEnabled(particles_enabled));
-                    },
-                    settings_window::Event::AdjustWindowSize(new_size) => {
-                        events.push(Event::AdjustWindowSize(new_size));
-                    },
-                    settings_window::Event::ChangeBinding(game_input) => {
-                        events.push(Event::ChangeBinding(game_input));
-                    },
-                    settings_window::Event::ChangeFreeLookBehavior(behavior) => {
-                        events.push(Event::ChangeFreeLookBehavior(behavior));
-                    },
-                    settings_window::Event::ChangeAutoWalkBehavior(behavior) => {
-                        events.push(Event::ChangeAutoWalkBehavior(behavior));
-                    },
-                    settings_window::Event::ChangeCameraClampBehavior(behavior) => {
-                        events.push(Event::ChangeCameraClampBehavior(behavior));
-                    },
-                    settings_window::Event::ChangeStopAutoWalkOnInput(state) => {
-                        events.push(Event::ChangeStopAutoWalkOnInput(state));
-                    },
-                    settings_window::Event::ChangeAutoCamera(state) => {
-                        events.push(Event::ChangeAutoCamera(state));
-                    },
-                    settings_window::Event::ResetInterfaceSettings => {
-                        self.show.help = false;
-                        self.show.debug = false;
-                        events.push(Event::ResetInterfaceSettings);
-                    },
-                    settings_window::Event::ResetGameplaySettings => {
-                        events.push(Event::ResetGameplaySettings);
-                    },
-                    settings_window::Event::ResetKeyBindings => {
-                        events.push(Event::ResetKeyBindings);
-                    },
-                    settings_window::Event::ResetGraphicsSettings => {
-                        events.push(Event::ResetGraphicsSettings);
-                    },
-                    settings_window::Event::ResetAudioSettings => {
-                        events.push(Event::ResetAudioSettings);
+                    settings_window::Event::SettingsChange(settings_change) => {
+                        match &settings_change {
+                            SettingsChange::Interface(interface_change) => match interface_change {
+                                InterfaceChange::ToggleHelp(toggle_help) => {
+                                    self.show.help = *toggle_help;
+                                },
+                                InterfaceChange::ToggleDebug(toggle_debug) => {
+                                    self.show.debug = *toggle_debug;
+                                },
+                                InterfaceChange::ResetInterfaceSettings => {
+                                    self.show.help = false;
+                                    self.show.debug = false;
+                                },
+                                _ => {},
+                            },
+                            _ => {},
+                        }
+                        events.push(Event::SettingsChange(settings_change));
                     },
                 }
             }
@@ -2818,32 +2625,8 @@ impl Hud {
                         self.show.want_grab = true;
                         self.force_ungrab = false;
                     },
-                    map::Event::ShowTopoMap(map_show_topo_map) => {
-                        events.push(Event::MapShowTopoMap(map_show_topo_map));
-                    },
-                    map::Event::ShowDifficulties(map_show_difficulties) => {
-                        events.push(Event::MapShowDifficulty(map_show_difficulties));
-                    },
-                    map::Event::ShowTowns(map_show_towns) => {
-                        events.push(Event::MapShowTowns(map_show_towns));
-                    },
-                    map::Event::ShowCastles(map_show_castles) => {
-                        events.push(Event::MapShowCastles(map_show_castles));
-                    },
-                    map::Event::ShowDungeons(map_show_dungeons) => {
-                        events.push(Event::MapShowDungeons(map_show_dungeons));
-                    },
-                    map::Event::MapZoom(map_zoom) => {
-                        events.push(Event::MapZoom(map_zoom));
-                    },
-                    map::Event::MapDrag(map_drag) => {
-                        events.push(Event::MapDrag(map_drag));
-                    },
-                    map::Event::ShowCaves(map_show_caves) => {
-                        events.push(Event::MapShowCaves(map_show_caves));
-                    },
-                    map::Event::ShowTrees(map_show_trees) => {
-                        events.push(Event::MapShowTrees(map_show_trees));
+                    map::Event::SettingsChange(settings_change) => {
+                        events.push(Event::SettingsChange(settings_change.into()));
                     },
                     map::Event::RequestSiteInfo(id) => {
                         events.push(Event::RequestSiteInfo(id));
@@ -2854,7 +2637,9 @@ impl Hud {
             // Reset the map position when it's not showing
             let drag = &global_state.settings.interface.map_drag;
             if drag.x != 0.0 || drag.y != 0.0 {
-                events.push(Event::MapDrag(Vec2::zero()))
+                events.push(Event::SettingsChange(
+                    InterfaceChange::MapDrag(Vec2::zero()).into(),
+                ))
             }
         }
 
