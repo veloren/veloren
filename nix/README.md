@@ -183,12 +183,6 @@ It is inadvised to update revisions without the use of `nix flake update` as it'
 
 Modify the relevant `rev` field in `flake.lock` to what you need - you can use `nix-prefetch-git` to find an up-to-date revision. Leave the `narHash` entry as is and attempt a rebuild to find out what its value should be.
 
-### Rust toolchain
-
-If the `rust-toolchain` file is updated, you will need to update the `sha256` hash in the `nix/rustPkgs.nix` file.
-
-Trying to build the derivation should give you the correct hash to put in.
-
 ## Formatting
 
 Use [nixpkgs-fmt](https://github.com/nix-community/nixpkgs-fmt) to format files.
