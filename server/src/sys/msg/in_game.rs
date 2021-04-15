@@ -45,12 +45,6 @@ impl Sys {
                 return Ok(());
             },
         };
-        let player_physics_setting = maybe_player.map(|p| {
-            player_physics_settings
-                .settings
-                .entry(p.uuid())
-                .or_default()
-        });
         match msg {
             // Go back to registered state (char selection screen)
             ClientGeneral::ExitInGame => {
@@ -104,6 +98,12 @@ impl Sys {
                 }
             },
             ClientGeneral::PlayerPhysics { pos, vel, ori } => {
+                let player_physics_setting = maybe_player.map(|p| {
+                    player_physics_settings
+                        .settings
+                        .entry(p.uuid())
+                        .or_default()
+                });
                 if matches!(presence.kind, PresenceKind::Character(_))
                     && force_updates.get(entity).is_none()
                     && healths.get(entity).map_or(true, |h| !h.is_dead)
@@ -119,8 +119,8 @@ impl Sys {
                         // live server (and also mitigates some floating-point overflow crashes)
                         if let Some(prev_pos) = positions.get(entity) {
                             let value_squared = prev_pos.0.distance_squared(pos.0);
-                            if value_squared > (500.0f32).powf(2.0) {
-                                setting.server_optout = true;
+                            if value_squared > (5000.0f32).powf(2.0) {
+                                setting.server_force = true;
                                 reject_update = true;
                                 warn!(
                                     "PlayerPhysics position exceeded {:?} {:?} {:?}",
@@ -132,7 +132,7 @@ impl Sys {
                         }
 
                         if vel.0.magnitude_squared() > (500.0f32).powf(2.0) {
-                            setting.server_optout = true;
+                            setting.server_force = true;
                             reject_update = true;
                             warn!(
                                 "PlayerPhysics velocity exceeded {:?} {:?}",
@@ -211,6 +211,12 @@ impl Sys {
             ClientGeneral::RequestPlayerPhysics {
                 server_authoritative,
             } => {
+                let player_physics_setting = maybe_player.map(|p| {
+                    player_physics_settings
+                        .settings
+                        .entry(p.uuid())
+                        .or_default()
+                });
                 if let Some(setting) = player_physics_setting {
                     setting.client_optin = server_authoritative;
                 }

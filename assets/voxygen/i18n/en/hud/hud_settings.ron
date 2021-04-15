@@ -48,7 +48,7 @@
         "hud.settings.free_look_behavior": "Free look behavior",
         "hud.settings.auto_walk_behavior": "Auto walk behavior",
         "hud.settings.camera_clamp_behavior": "Camera clamp behavior",
-        "hud.settings.player_physics_behavior": "Player physics behavior",
+        "hud.settings.player_physics_behavior": "Player physics (experimental)",
         "hud.settings.stop_auto_walk_on_input": "Stop auto walk on movement",
         "hud.settings.auto_camera": "Auto camera",
         "hud.settings.reset_gameplay": "Reset to Defaults",

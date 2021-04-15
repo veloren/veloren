@@ -33,27 +33,27 @@ pub enum GameMode {
 #[derive(Copy, Clone, Default, Debug)]
 pub struct PlayerEntity(pub Option<Entity>);
 
-#[derive(Clone, Debug)]
+#[derive(Copy, Clone, Debug)]
 pub struct PlayerPhysicsSetting {
     /// true if the client wants server-authoratative physics (e.g. to use
     /// airships properly)
     pub client_optin: bool,
     /// true if the server is forcing server-authoratative physics (e.g. as
     /// punishment for wallhacking)
-    pub server_optout: bool,
+    pub server_force: bool,
 }
 
 impl Default for PlayerPhysicsSetting {
     fn default() -> PlayerPhysicsSetting {
         PlayerPhysicsSetting {
             client_optin: false,
-            server_optout: false,
+            server_force: false,
         }
     }
 }
 
 impl PlayerPhysicsSetting {
-    pub fn server_authoritative(&self) -> bool { self.client_optin || self.server_optout }
+    pub fn server_authoritative(&self) -> bool { self.client_optin || self.server_force }
 
     pub fn client_authoritative(&self) -> bool { !self.server_authoritative() }
 }

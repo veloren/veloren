@@ -205,25 +205,24 @@ impl<'a> System<'a> for Sys {
             for (client, _, client_entity, client_pos) in &mut subscribers {
                 let mut comp_sync_package = CompSyncPackage::new();
 
-                for (_, entity, &uid, (&pos, last_pos), vel, ori, force_update, collider, player) in
-                    (
-                        region.entities(),
-                        &entities,
-                        &uids,
-                        (&positions, last_pos.mask().maybe()),
-                        (&velocities, last_vel.mask().maybe()).maybe(),
-                        (&orientations, last_vel.mask().maybe()).maybe(),
-                        force_updates.mask().maybe(),
-                        colliders.maybe(),
-                        players.maybe(),
-                    )
-                        .join()
+                for (_, entity, &uid, (&pos, last_pos), vel, ori, force_update, collider) in (
+                    region.entities(),
+                    &entities,
+                    &uids,
+                    (&positions, last_pos.mask().maybe()),
+                    (&velocities, last_vel.mask().maybe()).maybe(),
+                    (&orientations, last_vel.mask().maybe()).maybe(),
+                    force_updates.mask().maybe(),
+                    colliders.maybe(),
+                )
+                    .join()
                 {
-                    let player_physics_setting = player
-                        .and_then(|p| player_physics_settings.settings.get(&p.uuid()).cloned())
-                        .unwrap_or_default();
                     // Decide how regularly to send physics updates.
                     let send_now = if client_entity == &entity {
+                        let player_physics_setting = players
+                            .get(entity)
+                            .and_then(|p| player_physics_settings.settings.get(&p.uuid()).copied())
+                            .unwrap_or_default();
                         // Don't send client physics updates about itself unless force update is set
                         // or the client is subject to server-authoritative physics
                         force_update.is_some() || player_physics_setting.server_authoritative()
