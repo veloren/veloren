@@ -16,7 +16,7 @@ use std::{
 use tokio::runtime::Runtime;
 use tracing::*;
 use tracing_subscriber::EnvFilter;
-use veloren_network::{Message, Network, Pid, Promises, ProtocolAddr};
+use veloren_network::{ConnectAddr, ListenAddr, Message, Network, Pid, Promises};
 
 #[derive(Serialize, Deserialize, Debug)]
 enum Msg {
@@ -96,23 +96,29 @@ fn main() {
 
     let port: u16 = matches.value_of("port").unwrap().parse().unwrap();
     let ip: &str = matches.value_of("ip").unwrap();
-    let address = match matches.value_of("protocol") {
-        Some("tcp") => ProtocolAddr::Tcp(format!("{}:{}", ip, port).parse().unwrap()),
-        Some("udp") => ProtocolAddr::Udp(format!("{}:{}", ip, port).parse().unwrap()),
-        _ => panic!("Invalid mode, run --help!"),
+    let addresses = match matches.value_of("protocol") {
+        Some("tcp") => (
+            ListenAddr::Tcp(format!("{}:{}", ip, port).parse().unwrap()),
+            ConnectAddr::Tcp(format!("{}:{}", ip, port).parse().unwrap()),
+        ),
+        Some("udp") => (
+            ListenAddr::Udp(format!("{}:{}", ip, port).parse().unwrap()),
+            ConnectAddr::Udp(format!("{}:{}", ip, port).parse().unwrap()),
+        ),
+        _ => panic!("invalid mode, run --help!"),
     };
 
     let mut background = None;
     let runtime = Arc::new(Runtime::new().unwrap());
     match matches.value_of("mode") {
-        Some("server") => server(address, Arc::clone(&runtime)),
-        Some("client") => client(address, Arc::clone(&runtime)),
+        Some("server") => server(addresses.0, Arc::clone(&runtime)),
+        Some("client") => client(addresses.1, Arc::clone(&runtime)),
         Some("both") => {
-            let address1 = address.clone();
+            let s = addresses.0;
             let runtime2 = Arc::clone(&runtime);
-            background = Some(thread::spawn(|| server(address1, runtime2)));
+            background = Some(thread::spawn(|| server(s, runtime2)));
             thread::sleep(Duration::from_millis(200)); //start client after server
-            client(address, Arc::clone(&runtime));
+            client(addresses.1, Arc::clone(&runtime));
         },
         _ => panic!("Invalid mode, run --help!"),
     };
@@ -121,7 +127,7 @@ fn main() {
     }
 }
 
-fn server(address: ProtocolAddr, runtime: Arc<Runtime>) {
+fn server(address: ListenAddr, runtime: Arc<Runtime>) {
     let registry = Arc::new(Registry::new());
     let server = Network::new_with_registry(Pid::new(), &runtime, &registry);
     runtime.spawn(Server::run(
@@ -153,7 +159,7 @@ fn server(address: ProtocolAddr, runtime: Arc<Runtime>) {
     }
 }
 
-fn client(address: ProtocolAddr, runtime: Arc<Runtime>) {
+fn client(address: ConnectAddr, runtime: Arc<Runtime>) {
     let registry = Arc::new(Registry::new());
     let client = Network::new_with_registry(Pid::new(), &runtime, &registry);
     runtime.spawn(Server::run(

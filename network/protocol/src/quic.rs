@@ -285,9 +285,11 @@ where
             }
         }
         for (id, (_, buffer)) in self.reliable_buffers.data.iter_mut().enumerate() {
-            self.drain
-                .send(QuicDataFormat::with_reliable(buffer, id as u64))
-                .await?;
+            if !buffer.is_empty() {
+                self.drain
+                    .send(QuicDataFormat::with_reliable(buffer, id as u64))
+                    .await?;
+            }
         }
         self.metrics
             .sdata_frames_b(data_frames, data_bandwidth as u64);
@@ -340,43 +342,41 @@ where
 {
     async fn recv(&mut self) -> Result<ProtocolEvent, ProtocolError> {
         'outer: loop {
-            loop {
-                match ITFrame::read_frame(&mut self.main_buffer) {
-                    Ok(Some(frame)) => {
-                        #[cfg(feature = "trace_pedantic")]
-                        trace!(?frame, "recv");
-                        match frame {
-                            ITFrame::Shutdown => break 'outer Ok(ProtocolEvent::Shutdown),
-                            ITFrame::OpenStream {
+            match ITFrame::read_frame(&mut self.main_buffer) {
+                Ok(Some(frame)) => {
+                    #[cfg(feature = "trace_pedantic")]
+                    trace!(?frame, "recv");
+                    match frame {
+                        ITFrame::Shutdown => break 'outer Ok(ProtocolEvent::Shutdown),
+                        ITFrame::OpenStream {
+                            sid,
+                            prio,
+                            promises,
+                            guaranteed_bandwidth,
+                        } => {
+                            if promises.contains(Promises::ORDERED)
+                                || promises.contains(Promises::CONSISTENCY)
+                                || promises.contains(Promises::GUARANTEED_DELIVERY)
+                            {
+                                self.reliable_buffers.insert(sid, BytesMut::new());
+                            }
+                            break 'outer Ok(ProtocolEvent::OpenStream {
                                 sid,
-                                prio,
+                                prio: prio.min(crate::types::HIGHEST_PRIO),
                                 promises,
                                 guaranteed_bandwidth,
-                            } => {
-                                if promises.contains(Promises::ORDERED)
-                                    || promises.contains(Promises::CONSISTENCY)
-                                    || promises.contains(Promises::GUARANTEED_DELIVERY)
-                                {
-                                    self.reliable_buffers.insert(sid, BytesMut::new());
-                                }
-                                break 'outer Ok(ProtocolEvent::OpenStream {
-                                    sid,
-                                    prio: prio.min(crate::types::HIGHEST_PRIO),
-                                    promises,
-                                    guaranteed_bandwidth,
-                                });
-                            },
-                            ITFrame::CloseStream { sid } => {
-                                //FIXME: defer close!
-                                //let _ = self.reliable_buffers.delete(sid); // if it was reliable
-                                break 'outer Ok(ProtocolEvent::CloseStream { sid });
-                            },
-                            _ => break 'outer Err(ProtocolError::Violated),
-                        };
-                    },
-                    Ok(None) => break, //inner => read more data
-                    Err(()) => return Err(ProtocolError::Violated),
-                }
+                            });
+                        },
+                        ITFrame::CloseStream { sid } => {
+                            //FIXME: defer close!
+                            //let _ = self.reliable_buffers.delete(sid); // if it was reliable
+                            break 'outer Ok(ProtocolEvent::CloseStream { sid });
+                        },
+                        _ => break 'outer Err(ProtocolError::Violated),
+                    };
+                },
+                Ok(None) => {},
+                Err(()) => return Err(ProtocolError::Violated),
             }
 
             // try to order pending
@@ -401,6 +401,7 @@ where
                     Ok(None) => false,
                 }
             });
+
             if pending_violated {
                 break 'outer Err(ProtocolError::Violated);
             }
@@ -435,10 +436,10 @@ where
                                         None => {
                                             if reliable {
                                                 info!(
-                                            ?mid,
-                                            "protocol violation by remote side: send Data before \
-                                             Header"
-                                        );
+                                                    ?mid,
+                                                    "protocol violation by remote side: send Data \
+                                                     before Header"
+                                                );
                                                 break 'outer Err(ProtocolError::Violated);
                                             } else {
                                                 //TODO: cleanup old messages from time to time

@@ -1,7 +1,7 @@
 use crate::{
-    api::{NetworkConnectError, Participant, ProtocolAddr},
+    api::{ConnectAddr, ListenAddr, NetworkConnectError, Participant},
     channel::Protocols,
-    metrics::NetworkMetrics,
+    metrics::{NetworkMetrics, ProtocolInfo},
     participant::{B2sPrioStatistic, BParticipant, S2bCreateChannel, S2bShutdownBparticipant},
 };
 use futures_util::{FutureExt, StreamExt};
@@ -46,9 +46,9 @@ struct ParticipantInfo {
     s2b_shutdown_bparticipant_s: Option<oneshot::Sender<S2bShutdownBparticipant>>,
 }
 
-type A2sListen = (ProtocolAddr, oneshot::Sender<io::Result<()>>);
+type A2sListen = (ListenAddr, oneshot::Sender<io::Result<()>>);
 pub(crate) type A2sConnect = (
-    ProtocolAddr,
+    ConnectAddr,
     oneshot::Sender<Result<Participant, NetworkConnectError>>,
 );
 type A2sDisconnect = (Pid, S2bShutdownBparticipant);
@@ -82,7 +82,7 @@ pub struct Scheduler {
     participant_channels: Arc<Mutex<Option<ParticipantChannels>>>,
     participants: Arc<Mutex<HashMap<Pid, ParticipantInfo>>>,
     channel_ids: Arc<AtomicU64>,
-    channel_listener: Mutex<HashMap<ProtocolAddr, oneshot::Sender<()>>>,
+    channel_listener: Mutex<HashMap<ProtocolInfo, oneshot::Sender<()>>>,
     metrics: Arc<NetworkMetrics>,
     protocol_metrics: Arc<ProtocolMetrics>,
 }
@@ -182,7 +182,7 @@ impl Scheduler {
                     self.channel_listener
                         .lock()
                         .await
-                        .insert(address.clone(), end_sender);
+                        .insert(address.clone().into(), end_sender);
                     self.channel_creator(address, end_receiver, s2a_listen_result_s)
                         .await;
                 }
@@ -198,7 +198,7 @@ impl Scheduler {
             let metrics = Arc::clone(&self.protocol_metrics);
             self.metrics.connect_request(&addr);
             let (protocol, handshake) = match addr {
-                ProtocolAddr::Tcp(addr) => {
+                ConnectAddr::Tcp(addr) => {
                     let stream = match net::TcpStream::connect(addr).await {
                         Ok(stream) => stream,
                         Err(e) => {
@@ -209,7 +209,21 @@ impl Scheduler {
                     info!("Connecting Tcp to: {}", stream.peer_addr().unwrap());
                     (Protocols::new_tcp(stream, cid, metrics), false)
                 },
-                ProtocolAddr::Mpsc(addr) => {
+                #[cfg(feature = "quic")]
+                ConnectAddr::Quic(addr, ref config, name) => {
+                    let config = config.clone();
+                    let endpoint = quinn::Endpoint::builder();
+                    let (endpoint, _) = endpoint.bind(&"[::]:0".parse().unwrap()).expect("FIXME");
+
+                    let connecting = endpoint.connect_with(config, &addr, &name).expect("FIXME");
+                    let connection = connecting.await.expect("FIXME");
+                    (
+                        Protocols::new_quic(connection, false, cid, metrics).await.unwrap(),
+                        false,
+                    )
+                    //pid_sender.send(Ok(())).unwrap();
+                },
+                ConnectAddr::Mpsc(addr) => {
                     let mpsc_s = match MPSC_POOL.lock().await.get(&addr) {
                         Some(s) => s.clone(),
                         None => {
@@ -236,7 +250,7 @@ impl Scheduler {
                     )
                 },
                 /* */
-                //ProtocolAddr::Udp(addr) => {
+                //ProtocolConnectAddr::Udp(addr) => {
                 //#[cfg(feature = "metrics")]
                 //self.metrics
                 //.connect_requests_total
@@ -386,7 +400,7 @@ impl Scheduler {
 
     async fn channel_creator(
         &self,
-        addr: ProtocolAddr,
+        addr: ListenAddr,
         s2s_stop_listening_r: oneshot::Receiver<()>,
         s2a_listen_result_s: oneshot::Sender<io::Result<()>>,
     ) {
@@ -394,7 +408,7 @@ impl Scheduler {
         #[cfg(feature = "metrics")]
         let mcache = self.metrics.connect_requests_cache(&addr);
         match addr {
-            ProtocolAddr::Tcp(addr) => {
+            ListenAddr::Tcp(addr) => {
                 let listener = match net::TcpListener::bind(addr).await {
                     Ok(listener) => {
                         s2a_listen_result_s.send(Ok(())).unwrap();
@@ -432,10 +446,10 @@ impl Scheduler {
                 }
             },
             #[cfg(feature = "quic")]
-            ProtocolAddr::Quic(addr, server_config) => {
+            ListenAddr::Quic(addr, ref server_config) => {
                 let mut endpoint = quinn::Endpoint::builder();
-                endpoint.listen(server_config);
-                let (endpoint, mut listener) = match endpoint.bind(&addr) {
+                endpoint.listen(server_config.clone());
+                let (_endpoint, mut listener) = match endpoint.bind(&addr) {
                     Ok((endpoint, listener)) => {
                         s2a_listen_result_s.send(Ok(())).unwrap();
                         (endpoint, listener)
@@ -468,11 +482,18 @@ impl Scheduler {
                     mcache.inc();
                     let cid = self.channel_ids.fetch_add(1, Ordering::Relaxed);
                     info!(?remote_addr, ?cid, "Accepting Quic from");
-                    self.init_protocol(Protocols::new_quic(connection, cid, Arc::clone(&self.protocol_metrics)), cid, None, true)
+                    let quic = match Protocols::new_quic(connection, true, cid, Arc::clone(&self.protocol_metrics)).await {
+                        Ok(quic) => quic,
+                        Err(e) => {
+                            trace!(?e, "failed to start quic");
+                            continue;
+                        }
+                    };
+                    self.init_protocol(quic, cid, None, true)
                         .await;
                 }
             },
-            ProtocolAddr::Mpsc(addr) => {
+            ListenAddr::Mpsc(addr) => {
                 let (mpsc_s, mut mpsc_r) = mpsc::unbounded_channel();
                 MPSC_POOL.lock().await.insert(addr, mpsc_s);
                 s2a_listen_result_s.send(Ok(())).unwrap();
@@ -494,7 +515,7 @@ impl Scheduler {
                 }
                 warn!("MpscStream Failed, stopping");
             },/*
-            ProtocolAddr::Udp(addr) => {
+            ProtocolListenAddr::Udp(addr) => {
                 let socket = match net::UdpSocket::bind(addr).await {
                     Ok(socket) => {
                         s2a_listen_result_s.send(Ok(())).unwrap();

@@ -8,7 +8,7 @@ use std::{sync::Arc, thread, time::Duration};
 use tokio::{io, io::AsyncBufReadExt, runtime::Runtime, sync::RwLock};
 use tracing::*;
 use tracing_subscriber::EnvFilter;
-use veloren_network::{Network, Participant, Pid, Promises, ProtocolAddr};
+use veloren_network::{ConnectAddr, ListenAddr, Network, Participant, Pid, Promises};
 
 ///This example contains a simple chatserver, that allows to send messages
 /// between participants, it's neither pretty nor perfect, but it should show
@@ -75,21 +75,27 @@ fn main() {
 
     let port: u16 = matches.value_of("port").unwrap().parse().unwrap();
     let ip: &str = matches.value_of("ip").unwrap();
-    let address = match matches.value_of("protocol") {
-        Some("tcp") => ProtocolAddr::Tcp(format!("{}:{}", ip, port).parse().unwrap()),
-        Some("udp") => ProtocolAddr::Udp(format!("{}:{}", ip, port).parse().unwrap()),
+    let addresses = match matches.value_of("protocol") {
+        Some("tcp") => (
+            ListenAddr::Tcp(format!("{}:{}", ip, port).parse().unwrap()),
+            ConnectAddr::Tcp(format!("{}:{}", ip, port).parse().unwrap()),
+        ),
+        Some("udp") => (
+            ListenAddr::Udp(format!("{}:{}", ip, port).parse().unwrap()),
+            ConnectAddr::Udp(format!("{}:{}", ip, port).parse().unwrap()),
+        ),
         _ => panic!("invalid mode, run --help!"),
     };
 
     let mut background = None;
     match matches.value_of("mode") {
-        Some("server") => server(address),
-        Some("client") => client(address),
+        Some("server") => server(addresses.0),
+        Some("client") => client(addresses.1),
         Some("both") => {
-            let address1 = address.clone();
-            background = Some(thread::spawn(|| server(address1)));
+            let s = addresses.0;
+            background = Some(thread::spawn(|| server(s)));
             thread::sleep(Duration::from_millis(200)); //start client after server
-            client(address)
+            client(addresses.1)
         },
         _ => panic!("invalid mode, run --help!"),
     };
@@ -98,7 +104,7 @@ fn main() {
     }
 }
 
-fn server(address: ProtocolAddr) {
+fn server(address: ListenAddr) {
     let r = Arc::new(Runtime::new().unwrap());
     let server = Network::new(Pid::new(), &r);
     let server = Arc::new(server);
@@ -144,7 +150,7 @@ async fn client_connection(
     println!("[{}] disconnected", username);
 }
 
-fn client(address: ProtocolAddr) {
+fn client(address: ConnectAddr) {
     let r = Arc::new(Runtime::new().unwrap());
     let client = Network::new(Pid::new(), &r);
 

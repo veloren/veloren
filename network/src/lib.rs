@@ -13,14 +13,14 @@
 //! Say you have an application that wants to communicate with other application
 //! over a Network or on the same computer. Now each application instances the
 //! struct [`Network`] once with a new [`Pid`]. The Pid is necessary to identify
-//! other [`Networks`] over the network protocols (e.g. TCP, UDP)
+//! other [`Networks`] over the network protocols (e.g. TCP, UDP, QUIC, MPSC)
 //!
-//! To connect to another application, you must know it's [`ProtocolAddr`]. One
+//! To connect to another application, you must know it's [`ConnectAddr`]. One
 //! side will call [`connect`], the other [`connected`]. If successful both
 //! applications will now get a [`Participant`].
 //!
 //! This [`Participant`] represents the connection between those 2 applications.
-//! over the respective [`ProtocolAddr`] and with it the chosen network
+//! over the respective [`ConnectAddr`] and with it the chosen network
 //! protocol. However messages can't be send directly via [`Participants`],
 //! instead you must open a [`Stream`] on it. Like above, one side has to call
 //! [`open`], the other [`opened`]. [`Streams`] can have a different priority
@@ -41,14 +41,14 @@
 //! ```rust
 //! use std::sync::Arc;
 //! use tokio::{join, runtime::Runtime, time::sleep};
-//! use veloren_network::{Network, Pid, Promises, ProtocolAddr};
+//! use veloren_network::{ConnectAddr, ListenAddr, Network, Pid, Promises};
 //!
 //! // Client
 //! async fn client(runtime: &Runtime) -> std::result::Result<(), Box<dyn std::error::Error>> {
 //!     sleep(std::time::Duration::from_secs(1)).await; // `connect` MUST be after `listen`
 //!     let client_network = Network::new(Pid::new(), runtime);
 //!     let server = client_network
-//!         .connect(ProtocolAddr::Tcp("127.0.0.1:12345".parse().unwrap()))
+//!         .connect(ConnectAddr::Tcp("127.0.0.1:12345".parse().unwrap()))
 //!         .await?;
 //!     let mut stream = server
 //!         .open(4, Promises::ORDERED | Promises::CONSISTENCY, 0)
@@ -61,7 +61,7 @@
 //! async fn server(runtime: &Runtime) -> std::result::Result<(), Box<dyn std::error::Error>> {
 //!     let server_network = Network::new(Pid::new(), runtime);
 //!     server_network
-//!         .listen(ProtocolAddr::Tcp("127.0.0.1:12345".parse().unwrap()))
+//!         .listen(ListenAddr::Tcp("127.0.0.1:12345".parse().unwrap()))
 //!         .await?;
 //!     let client = server_network.connected().await?;
 //!     let mut stream = client.opened().await?;
@@ -95,7 +95,8 @@
 //! [`send`]: crate::api::Stream::send
 //! [`recv`]: crate::api::Stream::recv
 //! [`Pid`]: network_protocol::Pid
-//! [`ProtocolAddr`]: crate::api::ProtocolAddr
+//! [`ListenAddr`]: crate::api::ListenAddr
+//! [`ConnectAddr`]: crate::api::ConnectAddr
 //! [`Promises`]: network_protocol::Promises
 
 mod api;
@@ -107,8 +108,8 @@ mod scheduler;
 mod util;
 
 pub use api::{
-    Network, NetworkConnectError, NetworkError, Participant, ParticipantError, ProtocolAddr,
-    Stream, StreamError, StreamParams,
+    ConnectAddr, ListenAddr, Network, NetworkConnectError, NetworkError, Participant,
+    ParticipantError, Stream, StreamError, StreamParams,
 };
 pub use message::Message;
 pub use network_protocol::{InitProtocolError, Pid, Promises};

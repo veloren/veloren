@@ -1,8 +1,29 @@
-use crate::api::ProtocolAddr;
+use crate::api::{ConnectAddr, ListenAddr};
 use network_protocol::{Cid, Pid};
 #[cfg(feature = "metrics")]
 use prometheus::{IntCounter, IntCounterVec, IntGauge, IntGaugeVec, Opts, Registry};
-use std::error::Error;
+use std::{error::Error, net::SocketAddr};
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+pub(crate) enum ProtocolInfo {
+    Tcp(SocketAddr),
+    Udp(SocketAddr),
+    #[cfg(feature = "quic")]
+    Quic(SocketAddr),
+    Mpsc(u64),
+}
+
+impl From<ListenAddr> for ProtocolInfo {
+    fn from(other: ListenAddr) -> ProtocolInfo {
+        match other {
+            ListenAddr::Tcp(s) => ProtocolInfo::Tcp(s),
+            ListenAddr::Udp(s) => ProtocolInfo::Udp(s),
+            #[cfg(feature = "quic")]
+            ListenAddr::Quic(s, _) => ProtocolInfo::Quic(s),
+            ListenAddr::Mpsc(s) => ProtocolInfo::Mpsc(s),
+        }
+    }
+}
 
 /// 1:1 relation between NetworkMetrics and Network
 #[cfg(feature = "metrics")]
@@ -154,9 +175,9 @@ impl NetworkMetrics {
         Ok(())
     }
 
-    pub(crate) fn connect_requests_cache(&self, protocol: &ProtocolAddr) -> prometheus::IntCounter {
+    pub(crate) fn connect_requests_cache(&self, protocol: &ListenAddr) -> prometheus::IntCounter {
         self.incoming_connections_total
-            .with_label_values(&[protocol_name(protocol)])
+            .with_label_values(&[protocollisten_name(protocol)])
     }
 
     pub(crate) fn channels_connected(&self, remote_p: &str, no: usize, cid: Cid) {
@@ -192,15 +213,15 @@ impl NetworkMetrics {
             .inc();
     }
 
-    pub(crate) fn listen_request(&self, protocol: &ProtocolAddr) {
+    pub(crate) fn listen_request(&self, protocol: &ListenAddr) {
         self.listen_requests_total
-            .with_label_values(&[protocol_name(protocol)])
+            .with_label_values(&[protocollisten_name(protocol)])
             .inc();
     }
 
-    pub(crate) fn connect_request(&self, protocol: &ProtocolAddr) {
+    pub(crate) fn connect_request(&self, protocol: &ConnectAddr) {
         self.connect_requests_total
-            .with_label_values(&[protocol_name(protocol)])
+            .with_label_values(&[protocolconnect_name(protocol)])
             .inc();
     }
 
@@ -225,11 +246,22 @@ impl NetworkMetrics {
 }
 
 #[cfg(feature = "metrics")]
-fn protocol_name(protocol: &ProtocolAddr) -> &str {
+fn protocolconnect_name(protocol: &ConnectAddr) -> &str {
     match protocol {
-        ProtocolAddr::Tcp(_) => "tcp",
-        ProtocolAddr::Udp(_) => "udp",
-        ProtocolAddr::Mpsc(_) => "mpsc",
+        ConnectAddr::Tcp(_) => "tcp",
+        ConnectAddr::Udp(_) => "udp",
+        ConnectAddr::Mpsc(_) => "mpsc",
+        ConnectAddr::Quic(_, _, _) => "quic",
+    }
+}
+
+#[cfg(feature = "metrics")]
+fn protocollisten_name(protocol: &ListenAddr) -> &str {
+    match protocol {
+        ListenAddr::Tcp(_) => "tcp",
+        ListenAddr::Udp(_) => "udp",
+        ListenAddr::Mpsc(_) => "mpsc",
+        ListenAddr::Quic(_, _) => "quic",
     }
 }
 
@@ -247,9 +279,9 @@ impl NetworkMetrics {
 
     pub(crate) fn streams_closed(&self, _remote_p: &str) {}
 
-    pub(crate) fn listen_request(&self, _protocol: &ProtocolAddr) {}
+    pub(crate) fn listen_request(&self, _protocol: &ListenAddr) {}
 
-    pub(crate) fn connect_request(&self, _protocol: &ProtocolAddr) {}
+    pub(crate) fn connect_request(&self, _protocol: &ConnectAddr) {}
 
     pub(crate) fn cleanup_participant(&self, _remote_p: &str) {}
 }

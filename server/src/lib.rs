@@ -83,7 +83,7 @@ use common_state::plugin::PluginMgr;
 use common_state::{BuildAreas, State};
 use common_systems::add_local_systems;
 use metrics::{EcsSystemMetrics, PhysicsMetrics, TickMetrics};
-use network::{Network, Pid, ProtocolAddr};
+use network::{ListenAddr, Network, Pid};
 use persistence::{
     character_loader::{CharacterLoader, CharacterLoaderResponseKind},
     character_updater::CharacterUpdater,
@@ -386,8 +386,8 @@ impl Server {
             )
             .await
         });
-        runtime.block_on(network.listen(ProtocolAddr::Tcp(settings.gameserver_address)))?;
-        runtime.block_on(network.listen(ProtocolAddr::Mpsc(14004)))?;
+        runtime.block_on(network.listen(ListenAddr::Tcp(settings.gameserver_address)))?;
+        runtime.block_on(network.listen(ListenAddr::Mpsc(14004)))?;
         let connection_handler = ConnectionHandler::new(network, &runtime);
 
         // Initiate real-time world simulation

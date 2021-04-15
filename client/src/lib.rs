@@ -61,7 +61,7 @@ use comp::BuffKind;
 use futures_util::FutureExt;
 use hashbrown::{HashMap, HashSet};
 use image::DynamicImage;
-use network::{Network, Participant, Pid, ProtocolAddr, Stream};
+use network::{ConnectAddr, Network, Participant, Pid, Stream};
 use num::traits::FloatConst;
 use rayon::prelude::*;
 use specs::Component;
@@ -217,7 +217,7 @@ impl Client {
                 // Try to connect to all IP's and return the first that works
                 let mut participant = None;
                 for addr in addrs {
-                    match network.connect(ProtocolAddr::Tcp(addr)).await {
+                    match network.connect(ConnectAddr::Tcp(addr)).await {
                         Ok(p) => {
                             participant = Some(Ok(p));
                             break;
@@ -228,7 +228,7 @@ impl Client {
                 participant
                     .unwrap_or_else(|| Err(Error::Other("No Ip Addr provided".to_string())))?
             },
-            ConnectionArgs::Mpsc(id) => network.connect(ProtocolAddr::Mpsc(id)).await?,
+            ConnectionArgs::Mpsc(id) => network.connect(ConnectAddr::Mpsc(id)).await?,
         };
 
         let stream = participant.opened().await?;

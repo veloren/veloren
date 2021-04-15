@@ -347,8 +347,8 @@ fn open_participant_before_remote_part_is_closed() {
     let n_a = Network::new(Pid::fake(0), &r);
     let n_b = Network::new(Pid::fake(1), &r);
     let addr = tcp();
-    r.block_on(n_a.listen(addr.clone())).unwrap();
-    let p_b = r.block_on(n_b.connect(addr)).unwrap();
+    r.block_on(n_a.listen(addr.0)).unwrap();
+    let p_b = r.block_on(n_b.connect(addr.1)).unwrap();
     let mut s1_b = r.block_on(p_b.open(4, Promises::empty(), 0)).unwrap();
     s1_b.send("HelloWorld").unwrap();
     let p_a = r.block_on(n_a.connected()).unwrap();
@@ -367,8 +367,8 @@ fn open_participant_after_remote_part_is_closed() {
     let n_a = Network::new(Pid::fake(0), &r);
     let n_b = Network::new(Pid::fake(1), &r);
     let addr = tcp();
-    r.block_on(n_a.listen(addr.clone())).unwrap();
-    let p_b = r.block_on(n_b.connect(addr)).unwrap();
+    r.block_on(n_a.listen(addr.0)).unwrap();
+    let p_b = r.block_on(n_b.connect(addr.1)).unwrap();
     let mut s1_b = r.block_on(p_b.open(4, Promises::empty(), 0)).unwrap();
     s1_b.send("HelloWorld").unwrap();
     drop(s1_b);
@@ -387,8 +387,8 @@ fn close_network_scheduler_completely() {
     let n_a = Network::new(Pid::fake(0), &r);
     let n_b = Network::new(Pid::fake(1), &r);
     let addr = tcp();
-    r.block_on(n_a.listen(addr.clone())).unwrap();
-    let p_b = r.block_on(n_b.connect(addr)).unwrap();
+    r.block_on(n_a.listen(addr.0)).unwrap();
+    let p_b = r.block_on(n_b.connect(addr.1)).unwrap();
     let mut s1_b = r.block_on(p_b.open(4, Promises::empty(), 0)).unwrap();
     s1_b.send("HelloWorld").unwrap();
 

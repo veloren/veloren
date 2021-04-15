@@ -52,6 +52,8 @@ shellexpand = "2.0.0"
 serde = { version = "1.0", features = ["derive"] }
 prometheus-hyper = "0.1.2"
 criterion = { version = "0.3.4", features = ["default", "async_tokio"] }
+#quic
+rcgen = { version = "0.8.10"}
 
 [[bench]]
 name = "speed"

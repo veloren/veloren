@@ -1,19 +1,20 @@
 use async_trait::async_trait;
 use bytes::BytesMut;
 use network_protocol::{
-    QuicDataFormat, QuicDataFormatStream, QuicSendProtocol, QuicRecvProtocol,
     Bandwidth, Cid, InitProtocolError, MpscMsg, MpscRecvProtocol, MpscSendProtocol, Pid,
-    ProtocolError, ProtocolEvent, ProtocolMetricCache, ProtocolMetrics, Sid, TcpRecvProtocol,
+    ProtocolError, ProtocolEvent, ProtocolMetricCache, ProtocolMetrics, QuicDataFormat,
+    QuicDataFormatStream, QuicRecvProtocol, QuicSendProtocol, Sid, TcpRecvProtocol,
     TcpSendProtocol, UnreliableDrain, UnreliableSink,
 };
-#[cfg(feature = "quic")] use quinn::*;
 use std::{sync::Arc, time::Duration};
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
     net::tcp::{OwnedReadHalf, OwnedWriteHalf},
     sync::mpsc,
 };
+use tokio_stream::StreamExt;
 
+#[allow(clippy::large_enum_variant)]
 #[derive(Debug)]
 pub(crate) enum Protocols {
     Tcp((TcpSendProtocol<TcpDrain>, TcpRecvProtocol<TcpSink>)),
@@ -35,7 +36,7 @@ pub(crate) enum RecvProtocols {
     Tcp(TcpRecvProtocol<TcpSink>),
     Mpsc(MpscRecvProtocol<MpscSink>),
     #[cfg(feature = "quic")]
-    Quic(QuicSendProtocol<QuicDrain>),
+    Quic(QuicRecvProtocol<QuicSink>),
 }
 
 impl Protocols {
@@ -73,26 +74,39 @@ impl Protocols {
 
     #[cfg(feature = "quic")]
     pub(crate) async fn new_quic(
-        connection: quinn::NewConnection,
+        mut connection: quinn::NewConnection,
+        listen: bool,
         cid: Cid,
         metrics: Arc<ProtocolMetrics>,
     ) -> Result<Self, quinn::ConnectionError> {
         let metrics = ProtocolMetricCache::new(&cid.to_string(), metrics);
 
-        let (sendstream, recvstream) = connection.connection.open_bi().await?;
-
-
-        let sp = QuicSendProtocol::new(QuicDrain {
-            con: connection.connection.clone(),
-            main: sendstream,
-            reliables: vec!(),
-        }, metrics.clone());
-        let rp = QuicRecvProtocol::new(QuicSink {
-            con: connection.connection,
-            main: recvstream,
-            reliables: vec!(),
-            buffer: BytesMut::new(),
-        }, metrics);
+        let (sendstream, recvstream) =  if listen {
+            connection.connection.open_bi().await?
+        } else {
+            connection.bi_streams.next().await.expect("none").expect("dasdasd")
+        };
+        let (streams_s,streams_r) = mpsc::unbounded_channel();
+        let streams_s_clone = streams_s.clone();
+        let sp = QuicSendProtocol::new(
+            QuicDrain {
+                con: connection.connection.clone(),
+                main: sendstream,
+                reliables: std::collections::HashMap::new(),
+                streams_s: streams_s_clone,
+            },
+            metrics.clone(),
+        );
+        spawn_new(recvstream, None, &streams_s);
+        let rp = QuicRecvProtocol::new(
+            QuicSink {
+                con: connection.connection,
+                bi: connection.bi_streams,
+                streams_r,
+                streams_s,
+            },
+            metrics,
+        );
         Ok(Protocols::Quic((sp, rp)))
     }
 
@@ -243,50 +257,128 @@ impl UnreliableSink for MpscSink {
 
 ///////////////////////////////////////
 //// QUIC
+#[cfg(feature = "quic")]
+type QuicStream = (BytesMut, Result<Option<usize>, quinn::ReadError>, quinn::RecvStream, Option<u64>);
+
+#[cfg(feature = "quic")]
 #[derive(Debug)]
 pub struct QuicDrain {
     con: quinn::Connection,
     main: quinn::SendStream,
-    reliables: Vec<quinn::SendStream>,
+    reliables: std::collections::HashMap<u64, quinn::SendStream>,
+    streams_s: mpsc::UnboundedSender<QuicStream>,
 }
 
+#[cfg(feature = "quic")]
 #[derive(Debug)]
 pub struct QuicSink {
     con: quinn::Connection,
-    main: quinn::RecvStream,
-    reliables: Vec<quinn::RecvStream>,
-    buffer: BytesMut,
+    bi: quinn::IncomingBiStreams,
+    streams_r: mpsc::UnboundedReceiver<QuicStream>,
+    streams_s: mpsc::UnboundedSender<QuicStream>,
 }
 
+#[cfg(feature = "quic")]
+fn spawn_new(mut recvstream: quinn::RecvStream, id: Option<u64>, streams_s: &mpsc::UnboundedSender<QuicStream>) {
+    let streams_s_clone = streams_s.clone();
+    tokio::spawn(async move {
+        let mut buffer = BytesMut::new();
+        buffer.resize(1500, 0u8);
+        let r = recvstream.read(&mut buffer).await;
+        let _ = streams_s_clone.send((buffer, r, recvstream, id));
+    });
+}
+
+#[cfg(feature = "quic")]
 #[async_trait]
 impl UnreliableDrain for QuicDrain {
     type DataFormat = QuicDataFormat;
 
     async fn send(&mut self, data: Self::DataFormat) -> Result<(), ProtocolError> {
         match match data.stream {
-            QuicDataFormatStream::Main => self.main.write_all(&data.data),
+            QuicDataFormatStream::Main => {
+                self.main.write_all(&data.data).await
+            },
             QuicDataFormatStream::Unreliable => unimplemented!(),
-            QuicDataFormatStream::Reliable(id) => self.reliables.get_mut(id as usize).ok_or(ProtocolError::Closed)?.write_all(&data.data),
-        }.await {
+            QuicDataFormatStream::Reliable(id) => {
+                use std::collections::hash_map::Entry;
+                match self.reliables.entry(id) {
+                    Entry::Occupied(mut occupied) => {
+                        occupied.get_mut().write_all(&data.data).await
+                    },
+                    Entry::Vacant(vacant) => {
+                        match self.con.open_bi().await {
+                            Ok((sendstream, recvstream)) => {
+                                let id = Some(0); //TODO FIXME
+                                spawn_new(recvstream, id, &self.streams_s);
+                                vacant.insert(sendstream).write_all(&data.data).await
+                            },
+                            Err(_) => return Err(ProtocolError::Closed),
+                        }
+                    },
+                }
+            },
+        }
+        {
             Ok(()) => Ok(()),
             Err(_) => Err(ProtocolError::Closed),
         }
     }
 }
 
+#[cfg(feature = "quic")]
 #[async_trait]
 impl UnreliableSink for QuicSink {
     type DataFormat = QuicDataFormat;
 
     async fn recv(&mut self) -> Result<Self::DataFormat, ProtocolError> {
-        self.buffer.resize(1500, 0u8);
-        //TODO improve
-        match self.main.read(&mut self.buffer).await {
+        let (mut buffer, result, mut recvstream, id) = loop {
+            use futures_util::FutureExt;
+            // first handle all bi streams!
+            let (a, b) = tokio::select! {
+                biased;
+                Some(n) = self.bi.next().fuse() => (Some(n), None),
+                Some(n) = self.streams_r.recv().fuse() => (None, Some(n)),
+            };
+
+            if let Some(remote_stream) = a {
+                match remote_stream {
+                    Ok((sendstream, recvstream)) => {
+                        //FIXME TODO
+                        let id = Some(0); // get real ID
+                        drop(sendstream); // not drop it!
+                        spawn_new(recvstream, id, &self.streams_s);
+                    },
+                    Err(_) => return Err(ProtocolError::Closed),
+                }
+            }
+
+            if let Some(data) = b {
+                break data;
+            }
+        };
+
+        let r = match result {
             Ok(Some(0)) => Err(ProtocolError::Closed),
-            Ok(Some(n)) => Ok(QuicDataFormat{stream: QuicDataFormatStream::Main, data: self.buffer.split_to(n)}),
+            Ok(Some(n)) => Ok(QuicDataFormat {
+                stream: match id {
+                    Some(id) => QuicDataFormatStream::Reliable(id),
+                    None => QuicDataFormatStream::Main,
+                },
+                data: buffer.split_to(n),
+            }),
             Ok(None) => Err(ProtocolError::Closed),
             Err(_) => Err(ProtocolError::Closed),
-        }
+        }?;
+
+
+        let streams_s_clone = self.streams_s.clone();
+        tokio::spawn(async move {
+            buffer.resize(1500, 0u8);
+            let r = recvstream.read(&mut buffer).await;
+            let _ = streams_s_clone.send((buffer, r, recvstream, id));
+        });
+        Ok(r)
     }
 }
 
