@@ -14,7 +14,7 @@ use std::{cmp::Ordering, time::Duration};
 /// This is used to determine what effects a buff will have
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize, PartialOrd, Ord)]
 pub enum BuffKind {
-    /// Lower a creature's max health over time
+    /// Does damage to a creature over time
     Burning,
     /// Restores health/time for some period
     Regeneration,
@@ -247,6 +247,7 @@ impl Buff {
                 }],
                 data.duration,
             ),
+            
         };
         Buff {
             kind,

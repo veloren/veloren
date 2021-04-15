@@ -3447,7 +3447,7 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         //  Debuffs
         BuffKind::Bleeding { .. } => imgs.debuff_bleed_0,
         BuffKind::Cursed { .. } => imgs.debuff_skull_0,
-        BuffKind::Burning { .. } => imgs.debuff_burning_0,
+        BuffKind::Burning { .. } => imgs.debuff_burning_0, 
     }
 }
 
