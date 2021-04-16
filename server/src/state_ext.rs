@@ -11,6 +11,7 @@ use common::{
         Group, Inventory,
     },
     effect::Effect,
+    resources::TimeOfDay,
     slowjob::SlowJobPool,
     uid::{Uid, UidAllocator},
 };
@@ -382,7 +383,7 @@ impl StateExt for State {
             .for_each(|chunk_key| {
                 #[cfg(feature = "worldgen")]
                 {
-                    chunk_generator.generate_chunk(None, chunk_key, &slow_jobs, Arc::clone(world), index.clone());
+                    chunk_generator.generate_chunk(None, chunk_key, &slow_jobs, Arc::clone(world), index.clone(), *ecs.read_resource::<TimeOfDay>());
                 }
             });
         }

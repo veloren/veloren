@@ -5,7 +5,9 @@ use common::{
         quadruped_medium, quadruped_small, theropod, Alignment,
     },
     generation::{ChunkSupplement, EntityInfo},
+    resources::TimeOfDay,
     terrain::Block,
+    time::DayPeriod::{self, Evening, Morning, Night, Noon},
     vol::{BaseVol, ReadVol, RectSizedVol, WriteVol},
 };
 use rand::prelude::*;
@@ -28,11 +30,13 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
     _index: IndexRef,
     chunk: &SimChunk,
     supplement: &mut ChunkSupplement,
+    time: Option<TimeOfDay>,
 ) {
     struct Entry<R> {
         make_entity: fn(Vec3<f32>, &mut R) -> EntityInfo, // Entity
         group_size: Range<usize>,                         // Group size range
         is_underwater: bool,                              // Underwater?
+        day_period: Vec<DayPeriod>,                       // Period of the day
         get_density: fn(&SimChunk, &ColumnSample) -> f32, // Density
     }
 
@@ -60,6 +64,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             },
             group_size: 1..4,
             is_underwater: false,
+            day_period: vec![Night, Morning, Noon, Evening],
             get_density: |c, col| {
                 close(c.temp, CONFIG.snow_temp, 0.3)
                     * BASE_DENSITY
@@ -91,6 +96,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             },
             group_size: 1..2,
             is_underwater: false,
+            day_period: vec![Night, Morning, Noon, Evening],
             get_density: |c, col| {
                 close(c.temp, CONFIG.snow_temp, 0.3) * col.tree_density * BASE_DENSITY * 1.4
             },
@@ -106,6 +112,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             },
             group_size: 1..2,
             is_underwater: false,
+            day_period: vec![Night, Morning, Noon, Evening],
             get_density: |c, _col| close(c.temp, CONFIG.snow_temp, 0.15) * BASE_DENSITY * 0.5,
         },
         // Tundra rarer solitary ennemies
@@ -119,6 +126,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             },
             group_size: 1..2,
             is_underwater: false,
+            day_period: vec![Night, Morning, Noon, Evening],
             get_density: |c, _col| close(c.temp, CONFIG.snow_temp, 0.15) * BASE_DENSITY * 0.1,
         },
         // Tundra rock solitary ennemies
@@ -133,6 +141,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             },
             group_size: 1..2,
             is_underwater: false,
+            day_period: vec![Night, Morning, Noon, Evening],
             get_density: |c, col| {
                 close(c.temp, CONFIG.snow_temp, 0.15) * BASE_DENSITY * col.rock * 1.0
             },
@@ -154,6 +163,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             },
             group_size: 1..2,
             is_underwater: false,
+            day_period: vec![Night, Morning, Noon, Evening],
             get_density: |c, col| {
                 close(c.temp, CONFIG.snow_temp + 0.2, 0.2) * col.tree_density * BASE_DENSITY * 0.4
             },
@@ -170,6 +180,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             },
             group_size: 3..8,
             is_underwater: false,
+            day_period: vec![Night, Morning, Noon, Evening],
             get_density: |c, col| {
                 close(c.temp, CONFIG.snow_temp + 0.2, 0.6) * col.tree_density * BASE_DENSITY * 0.9
             },
@@ -199,6 +210,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             },
             group_size: 1..4,
             is_underwater: false,
+            day_period: vec![Night, Morning, Noon, Evening],
             get_density: |c, _col| close(c.temp, CONFIG.snow_temp + 0.2, 0.2) * BASE_DENSITY * 1.0,
         },
         // Taiga solitary wild
@@ -237,6 +249,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             },
             group_size: 1..2,
             is_underwater: false,
+            day_period: vec![Night, Morning, Noon, Evening],
             get_density: |c, _col| close(c.temp, CONFIG.snow_temp + 0.2, 0.6) * BASE_DENSITY * 5.0,
         },
         // Temperate solitary ennemies
@@ -271,6 +284,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             },
             group_size: 1..2,
             is_underwater: false,
+            day_period: vec![Night, Morning, Noon, Evening],
             get_density: |c, col| {
                 close(c.temp, CONFIG.temperate_temp + 0.1, 0.5)
                     * col.tree_density
@@ -341,6 +355,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             },
             group_size: 1..8,
             is_underwater: false,
+            day_period: vec![Night, Morning, Noon, Evening],
             get_density: |c, _col| {
                 close(c.temp, CONFIG.temperate_temp + 0.1, 0.6)
                     * close(c.humidity, CONFIG.forest_hum, 0.6)
@@ -408,6 +423,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             },
             group_size: 1..2,
             is_underwater: false,
+            day_period: vec![Night, Morning, Noon, Evening],
             get_density: |c, _col| {
                 close(c.temp, CONFIG.temperate_temp + 0.1, 0.6)
                     * BASE_DENSITY
@@ -433,6 +449,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             },
             group_size: 1..2,
             is_underwater: false,
+            day_period: vec![Night, Morning, Noon, Evening],
             get_density: |c, _col| close(c.temp, CONFIG.temperate_temp, 0.8) * BASE_DENSITY * 0.08,
         },
         // Temperate river wildlife
@@ -463,6 +480,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             },
             group_size: 1..2,
             is_underwater: false,
+            day_period: vec![Night, Morning, Noon, Evening],
             get_density: |_c, col| {
                 close(col.temp, CONFIG.temperate_temp, 0.6)
                     * if col.water_dist.map(|d| d < 10.0).unwrap_or(false) {
@@ -487,6 +505,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             },
             group_size: 1..2,
             is_underwater: false,
+            day_period: vec![Night, Morning, Noon, Evening],
             get_density: |_c, col| {
                 close(col.temp, CONFIG.temperate_temp, 0.6)
                     * if col.water_dist.map(|d| d < 10.0).unwrap_or(false) {
@@ -508,6 +527,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             },
             group_size: 1..2,
             is_underwater: false,
+            day_period: vec![Night, Morning, Noon, Evening],
             get_density: |_c, col| {
                 close(col.temp, CONFIG.temperate_temp, 0.6)
                     * if col.water_dist.map(|d| d < 10.0).unwrap_or(false) {
@@ -532,6 +552,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             },
             group_size: 1..2,
             is_underwater: false,
+            day_period: vec![Night, Morning, Noon, Evening],
             get_density: |c, col| {
                 close(c.temp, CONFIG.tropical_temp + 0.1, 0.5) * col.rock * BASE_DENSITY * 5.0
             },
@@ -557,6 +578,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             },
             group_size: 1..2,
             is_underwater: false,
+            day_period: vec![Night, Morning, Noon, Evening],
             get_density: |c, _col| {
                 close(c.temp, CONFIG.tropical_temp + 0.2, 0.2)
                     * close(c.humidity, CONFIG.jungle_hum, 0.2)
@@ -585,6 +607,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             },
             group_size: 1..2,
             is_underwater: false,
+            day_period: vec![Night, Morning, Noon, Evening],
             get_density: |c, _col| {
                 close(c.temp, CONFIG.tropical_temp + 0.2, 0.2)
                     * close(c.humidity, CONFIG.jungle_hum, 0.2)
@@ -619,6 +642,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             },
             group_size: 1..2,
             is_underwater: false,
+            day_period: vec![Night, Morning, Noon, Evening],
             get_density: |c, _col| {
                 close(c.temp, CONFIG.tropical_temp + 0.2, 0.3)
                     * close(c.humidity, CONFIG.jungle_hum, 0.2)
@@ -638,6 +662,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             },
             group_size: 1..3,
             is_underwater: false,
+            day_period: vec![Night, Morning, Noon, Evening],
             get_density: |_c, col| {
                 close(col.temp, CONFIG.tropical_temp + 0.2, 0.5)
                     * if col.water_dist.map(|d| d < 10.0).unwrap_or(false) {
@@ -671,6 +696,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             },
             group_size: 1..3,
             is_underwater: false,
+            day_period: vec![Night, Morning, Noon, Evening],
             get_density: |_c, col| {
                 close(col.temp, CONFIG.tropical_temp, 0.5)
                     * if col.water_dist.map(|d| d < 10.0).unwrap_or(false) {
@@ -700,6 +726,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             },
             group_size: 1..3,
             is_underwater: false,
+            day_period: vec![Night, Morning, Noon, Evening],
             get_density: |c, _col| {
                 close(c.temp, CONFIG.tropical_temp + 0.1, 0.4)
                     * close(c.humidity, CONFIG.desert_hum, 0.4)
@@ -727,6 +754,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             },
             group_size: 3..7,
             is_underwater: false,
+            day_period: vec![Night, Morning, Noon, Evening],
             get_density: |c, _col| {
                 close(c.temp, CONFIG.tropical_temp + 0.1, 0.4)
                     * close(c.humidity, CONFIG.desert_hum, 0.4)
@@ -757,6 +785,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             },
             group_size: 1..2,
             is_underwater: false,
+            day_period: vec![Night, Morning, Noon, Evening],
             get_density: |c, _col| {
                 close(c.temp, CONFIG.desert_temp + 0.2, 0.3)
                     * close(c.humidity, CONFIG.desert_hum, 0.5)
@@ -781,6 +810,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             },
             group_size: 1..2,
             is_underwater: false,
+            day_period: vec![Night, Morning, Noon, Evening],
             get_density: |c, _col| {
                 close(c.temp, CONFIG.desert_temp + 0.2, 0.3)
                     * close(c.humidity, CONFIG.desert_hum, 0.5)
@@ -800,6 +830,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             },
             group_size: 1..3,
             is_underwater: false,
+            day_period: vec![Night, Morning, Noon, Evening],
             get_density: |_c, col| {
                 close(col.temp, CONFIG.desert_temp + 0.2, 0.3)
                     * if col.water_dist.map(|d| d < 10.0).unwrap_or(false) {
@@ -824,6 +855,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             },
             group_size: 1..3,
             is_underwater: false,
+            day_period: vec![Night, Morning, Noon, Evening],
             get_density: |c, _col| {
                 close(c.temp, CONFIG.desert_temp + 0.2, 0.3)
                     * close(c.humidity, CONFIG.desert_hum, 0.5)
@@ -875,6 +907,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             },
             group_size: 1..2,
             is_underwater: false,
+            day_period: vec![Night, Morning, Noon, Evening],
             get_density: |c, _col| {
                 close(c.temp, CONFIG.desert_temp + 0.2, 0.3) * BASE_DENSITY * 5.0
             },
@@ -896,6 +929,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             },
             group_size: 3..5,
             is_underwater: true,
+            day_period: vec![Night, Morning, Noon, Evening],
             get_density: |c, col| {
                 close(c.temp, CONFIG.temperate_temp, 1.0) * col.tree_density * BASE_DENSITY * 5.0
             },
@@ -911,6 +945,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             },
             group_size: 1..3,
             is_underwater: true,
+            day_period: vec![Night, Morning, Noon, Evening],
             get_density: |c, col| {
                 close(c.temp, CONFIG.snow_temp, 0.15) * col.tree_density * BASE_DENSITY * 5.0
             },
@@ -931,6 +966,12 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             };
 
             let underwater = col_sample.water_level > col_sample.alt;
+            let current_day_period;
+            if let Some(time) = time {
+                current_day_period = DayPeriod::from(time.0)
+            } else {
+                current_day_period = Noon
+            }
 
             let entity_group = scatter.iter().enumerate().find_map(
                 |(
@@ -939,6 +980,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                         make_entity,
                         group_size,
                         is_underwater,
+                        day_period,
                         get_density,
                     },
                 )| {
@@ -946,6 +988,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                     if density > 0.0
                         && dynamic_rng.gen::<f32>() < density * col_sample.spawn_rate
                         && underwater == *is_underwater
+                        && day_period.contains(&current_day_period)
                         && col_sample.gradient < Some(1.3)
                     {
                         Some((make_entity, group_size.clone()))
