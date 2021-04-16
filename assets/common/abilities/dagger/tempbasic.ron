@@ -8,4 +8,5 @@ BasicMelee(
     knockback: 0.0,
     range: 3.5,
     max_angle: 20.0,
+    damage_effect: None,
 )

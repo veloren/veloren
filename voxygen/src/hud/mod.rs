@@ -3626,6 +3626,8 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::Bleeding { .. } => imgs.debuff_bleed_0,
         BuffKind::Cursed { .. } => imgs.debuff_skull_0,
         BuffKind::Burning { .. } => imgs.debuff_burning_0,
+        // TODO: Get buff icon
+        BuffKind::Crippled { .. } => imgs.debuff_bleed_0,
     }
 }
 
@@ -3644,6 +3646,7 @@ pub fn get_buff_title(buff: BuffKind, localized_strings: &Localization) -> &str 
         BuffKind::Bleeding { .. } => localized_strings.get("buff.title.bleed"),
         BuffKind::Cursed { .. } => localized_strings.get("buff.title.cursed"),
         BuffKind::Burning { .. } => localized_strings.get("buff.title.burn"),
+        BuffKind::Crippled { .. } => localized_strings.get("buff.title.crippled"),
     }
 }
 
@@ -3674,6 +3677,7 @@ pub fn get_buff_desc(buff: BuffKind, data: BuffData, localized_strings: &Localiz
         BuffKind::Bleeding { .. } => Cow::Borrowed(localized_strings.get("buff.desc.bleed")),
         BuffKind::Cursed { .. } => Cow::Borrowed(localized_strings.get("buff.desc.cursed")),
         BuffKind::Burning { .. } => Cow::Borrowed(localized_strings.get("buff.desc.burn")),
+        BuffKind::Crippled { .. } => Cow::Borrowed(localized_strings.get("buff.desc.crippled")),
     }
 }
 

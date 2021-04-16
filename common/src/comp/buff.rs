@@ -36,6 +36,8 @@ pub enum BuffKind {
     Invulnerability,
     /// Reduces incoming damage
     ProtectingWard,
+    /// Reduces movement speed and causes bleeding damage
+    Crippled,
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -54,6 +56,7 @@ impl BuffKind {
             BuffKind::Invulnerability => true,
             BuffKind::ProtectingWard => true,
             BuffKind::Burning => false,
+            BuffKind::Crippled => false,
         }
     }
 
@@ -118,6 +121,8 @@ pub enum BuffEffect {
         kind: ModifierKind,
         target_fraction: f32,
     },
+    /// Modifies move speed of target
+    MovementSpeed(f32),
 }
 
 /// Actual de/buff.
@@ -174,6 +179,8 @@ impl Buff {
         cat_ids: Vec<BuffCategory>,
         source: BuffSource,
     ) -> Self {
+        // Normalized nonlinear scaling
+        let nn_scaling = |a| a / (a + 0.5);
         let (effects, time) = match kind {
             BuffKind::Bleeding => (
                 vec![BuffEffect::HealthChangeOverTime {
@@ -235,7 +242,7 @@ impl Buff {
                     // Causes non-linearity in effect strength, but necessary to allow for tool
                     // power and other things to affect the strength. 0.5 also still provides 50%
                     // damage reduction.
-                    data.strength / (0.5 + data.strength),
+                    nn_scaling(data.strength),
                 )],
                 data.duration,
             ),
@@ -245,6 +252,17 @@ impl Buff {
                     accumulated: 0.0,
                     kind: ModifierKind::Additive,
                 }],
+                data.duration,
+            ),
+            BuffKind::Crippled => (
+                vec![
+                    BuffEffect::MovementSpeed(1.0 - nn_scaling(data.strength)),
+                    BuffEffect::HealthChangeOverTime {
+                        rate: -data.strength * 100.0,
+                        accumulated: 0.0,
+                        kind: ModifierKind::Additive,
+                    },
+                ],
                 data.duration,
             ),
         };

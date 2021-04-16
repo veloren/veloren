@@ -66,6 +66,7 @@ pub enum CharacterAbility {
         knockback: f32,
         range: f32,
         max_angle: f32,
+        damage_effect: Option<CombatEffect>,
     },
     BasicRanged {
         energy_cost: f32,
@@ -282,6 +283,7 @@ impl Default for CharacterAbility {
             knockback: 0.0,
             range: 3.5,
             max_angle: 15.0,
+            damage_effect: None,
         }
     }
 }
@@ -1164,6 +1166,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 knockback,
                 range,
                 max_angle,
+                damage_effect,
                 energy_cost: _,
             } => CharacterState::BasicMelee(basic_melee::Data {
                 static_data: basic_melee::StaticData {
@@ -1175,6 +1178,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                     knockback: *knockback,
                     range: *range,
                     max_angle: *max_angle,
+                    damage_effect: *damage_effect,
                     ability_info,
                 },
                 timer: Duration::default(),

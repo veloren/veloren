@@ -208,10 +208,10 @@
         ],
     ),
     Custom("Minotaur"): (
-        primary: "common.abilities.custom.minotaur.charge",
+        primary: "common.abilities.custom.minotaur.cleave",
         secondary: "common.abilities.custom.minotaur.cripplingstrike",
         abilities: [
-            (None, "common.abilities.custom.minotaur.cleave"),
+            (None, "common.abilities.custom.minotaur.charge"),
             (None, "common.abilities.custom.minotaur.frenzy"),
         ],
     ),

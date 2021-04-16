@@ -25,6 +25,7 @@ pub struct Stats {
     pub name: String,
     pub damage_reduction: f32,
     pub max_health_modifier: f32,
+    pub move_speed_modifier: f32,
 }
 
 impl Stats {
@@ -33,6 +34,7 @@ impl Stats {
             name,
             damage_reduction: 0.0,
             max_health_modifier: 1.0,
+            move_speed_modifier: 1.0,
         }
     }
 
@@ -43,6 +45,7 @@ impl Stats {
             name: "".to_owned(),
             damage_reduction: 0.0,
             max_health_modifier: 1.0,
+            move_speed_modifier: 1.0,
         }
     }
 
@@ -50,6 +53,7 @@ impl Stats {
     pub fn reset_temp_modifiers(&mut self) {
         self.damage_reduction = 0.0;
         self.max_health_modifier = 1.0;
+        self.move_speed_modifier = 1.0;
     }
 }
 
