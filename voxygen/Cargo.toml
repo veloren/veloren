@@ -83,7 +83,7 @@ native-dialog = { version = "0.5.2", optional = true }
 num = "0.4"
 ordered-float = { version = "2.0.1", default-features = false }
 rand = "0.8"
-rodio = {version = "0.13", default-features = false, features = ["wav", "vorbis"]}
+rodio = {version = "0.13", default-features = false, features = ["vorbis"]}
 ron = {version = "0.6", default-features = false}
 serde = {version = "1.0", features = [ "rc", "derive" ]}
 treeculler = "0.2"
