@@ -207,6 +207,14 @@
             (None, "common.abilities.custom.mindflayer.summonminions"),
         ],
     ),
+    Custom("Minotaur"): (
+        primary: "common.abilities.custom.minotaur.charge",
+        secondary: "common.abilities.custom.minotaur.cripplingstrike",
+        abilities: [
+            (None, "common.abilities.custom.minotaur.cleave"),
+            (None, "common.abilities.custom.minotaur.frenzy"),
+        ],
+    ),
     Custom("Bird Large Breathe"): (
         primary: "common.abilities.custom.birdlargebreathe.firebomb",
         secondary: "common.abilities.custom.birdlargebreathe.triplestrike",
