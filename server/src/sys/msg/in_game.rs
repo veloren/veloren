@@ -119,8 +119,11 @@ impl Sys {
                         // live server (and also mitigates some floating-point overflow crashes)
                         if let Some(prev_pos) = positions.get(entity) {
                             let value_squared = prev_pos.0.distance_squared(pos.0);
-                            if value_squared > (5000.0f32).powf(2.0) {
-                                setting.server_force = true;
+                            if value_squared > (500.0f32).powf(2.0) {
+                                // for position, this gets triggered too often by legitimate
+                                // teleports (since the client has the old location for a few
+                                // frames) so only reject the individual updates, don't force
+                                // server-authoritative physics for them
                                 reject_update = true;
                                 warn!(
                                     "PlayerPhysics position exceeded {:?} {:?} {:?}",
