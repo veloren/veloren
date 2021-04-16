@@ -27,7 +27,7 @@ common-frontend = {package = "veloren-common-frontend", path = "../common/fronte
 common-net = {package = "veloren-common-net", path = "../common/net"}
 common-sys = {package = "veloren-common-sys", path = "../common/sys"}
 
-anim = {package = "veloren-voxygen-anim", path = "anim", default-features = false}
+anim = {package = "veloren-voxygen-anim", path = "anim"}
 
 # Graphics
 gfx = "0.18.2"

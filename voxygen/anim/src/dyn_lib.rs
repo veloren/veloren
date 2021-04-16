@@ -4,7 +4,6 @@ use notify::{immediate_watcher, EventKind, RecursiveMode, Watcher};
 use std::{
     process::{Command, Stdio},
     sync::{mpsc, Mutex},
-    thread,
     time::Duration,
 };
 
@@ -13,14 +12,14 @@ use std::{env, path::PathBuf};
 use tracing::{debug, error, info};
 
 #[cfg(target_os = "windows")]
-const COMPILED_FILE: &str = "voxygen_anim.dll";
+const COMPILED_FILE: &str = "veloren_voxygen_anim_dyn.dll";
 #[cfg(target_os = "windows")]
-const ACTIVE_FILE: &str = "voxygen_anim_active.dll";
+const ACTIVE_FILE: &str = "veloren_voxygen_anim_dyn_active.dll";
 
 #[cfg(not(target_os = "windows"))]
-const COMPILED_FILE: &str = "libvoxygen_anim.so";
+const COMPILED_FILE: &str = "libveloren_voxygen_anim_dyn.so";
 #[cfg(not(target_os = "windows"))]
-const ACTIVE_FILE: &str = "libvoxygen_anim_active.so";
+const ACTIVE_FILE: &str = "libveloren_voxygen_anim_dyn_active.so";
 
 // This option is required as `hotreload()` moves the `LoadedLib`.
 lazy_static! {
@@ -29,7 +28,7 @@ lazy_static! {
 
 /// LoadedLib holds a loaded dynamic library and the location of library file
 /// with the appropriate OS specific name and extension i.e.
-/// `libvoxygen_anim_active.dylib`, `voxygen_anim_active.dll`.
+/// `libvoxygen_anim_dyn_active.dylib`, `voxygen_anim_dyn_active.dll`.
 ///
 /// # NOTE
 /// DOES NOT WORK ON MACOS, due to some limitations with hot-reloading the
@@ -74,10 +73,8 @@ impl LoadedLib {
         let lib = match unsafe { Library::new(lib_path.clone()) } {
             Ok(lib) => lib,
             Err(e) => panic!(
-                "Tried to load dynamic library from {:?}, but it could not be found. The first \
-                 reason might be that you need to uncomment a line in `voxygen/anim/Cargo.toml` \
-                 to build the library required for hot reloading. The second is we may require a \
-                 special case for your OS so we can find it. {:?}",
+                "Tried to load dynamic library from {:?}, but it could not be found. A potential \
+                 reason is we may require a special case for your OS so we can find it. {:?}",
                 lib_path, e
             ),
         };
@@ -141,28 +138,37 @@ pub fn init() {
 
     // Start watcher
     let mut watcher = immediate_watcher(move |res| event_fn(res, &reload_send)).unwrap();
-    watcher.watch("anim", RecursiveMode::Recursive).unwrap();
+
+    // Search for the anim directory.
+    let anim_dir = Search::Kids(1)
+        .for_folder("anim")
+        .expect("Could not find the anim crate directory relative to the current directory");
+
+    watcher.watch(anim_dir, RecursiveMode::Recursive).unwrap();
 
     // Start reloader that watcher signals
     // "Debounces" events since I can't find the option to do this in the latest
     // `notify`
-    std::thread::Builder::new("voxygen_anim_watcher".to_owned()).spawn(move || {
-        let mut modified_paths = std::collections::HashSet::new();
-        while let Ok(path) = reload_recv.recv() {
-            modified_paths.insert(path);
-            // Wait for any additional modify events before reloading
-            while let Ok(path) = reload_recv.recv_timeout(Duration::from_millis(300)) {
+    std::thread::Builder::new()
+        .name("voxygen_anim_watcher".into())
+        .spawn(move || {
+            let mut modified_paths = std::collections::HashSet::new();
+            while let Ok(path) = reload_recv.recv() {
                 modified_paths.insert(path);
+                // Wait for any additional modify events before reloading
+                while let Ok(path) = reload_recv.recv_timeout(Duration::from_millis(300)) {
+                    modified_paths.insert(path);
+                }
+
+                info!(
+                    ?modified_paths,
+                    "Hot reloading animations because files in `anim` modified."
+                );
+
+                hotreload();
             }
-
-            info!(
-                ?modified_paths,
-                "Hot reloading animations because files in `anim` modified."
-            );
-
-            hotreload();
-        }
-    });
+        })
+        .unwrap();
 
     // Let the watcher live forever
     std::mem::forget(watcher);
@@ -220,7 +226,9 @@ fn compile() -> bool {
         .stdout(Stdio::inherit())
         .arg("build")
         .arg("--package")
-        .arg("veloren-voxygen-anim")
+        .arg("veloren-voxygen-anim-dyn")
+        .arg("--features")
+        .arg("veloren-voxygen-anim-dyn/be-dyn-lib")
         .output()
         .unwrap();
 
@@ -241,5 +249,10 @@ fn copy(lib_path: &PathBuf) {
 
     // Copy the library file from where it is output, to where we are going to
     // load it from i.e. lib_path.
-    std::fs::copy(lib_compiled_path, lib_output_path).expect("Failed to rename dynamic library.");
+    std::fs::copy(&lib_compiled_path, &lib_output_path).unwrap_or_else(|err| {
+        panic!(
+            "Failed to rename dynamic library from {:?} to {:?}. {:?}",
+            lib_compiled_path, lib_output_path, err
+        )
+    });
 }
