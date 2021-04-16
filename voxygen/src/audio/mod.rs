@@ -11,7 +11,7 @@ use channel::{AmbientChannel, AmbientChannelTag, MusicChannel, MusicChannelTag, 
 use fader::Fader;
 use music::MusicTransitionManifest;
 use sfx::{SfxEvent, SfxTriggerItem};
-use soundcache::{OggSound, WavSound};
+use soundcache::OggSound;
 use std::time::Duration;
 use tracing::{debug, error};
 
@@ -249,7 +249,7 @@ impl AudioFrontend {
     /// Play (once) an sfx file by file path at the give position and volume
     pub fn play_sfx(&mut self, sound: &str, pos: Vec3<f32>, vol: Option<f32>) {
         if self.audio_stream.is_some() {
-            let sound = WavSound::load_expect(sound)
+            let sound = OggSound::load_expect(sound)
                 .cloned()
                 .decoder()
                 .amplify(vol.unwrap_or(1.0));
@@ -268,7 +268,7 @@ impl AudioFrontend {
     /// being underwater
     pub fn play_underwater_sfx(&mut self, sound: &str, pos: Vec3<f32>, vol: Option<f32>) {
         if self.audio_stream.is_some() {
-            let sound = WavSound::load_expect(sound)
+            let sound = OggSound::load_expect(sound)
                 .cloned()
                 .decoder()
                 .amplify(vol.unwrap_or(1.0));
