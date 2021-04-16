@@ -101,7 +101,7 @@ vek = { git = "https://gitlab.com/veloren/vek.git", branch = "fix_intrinsics2" }
 systems = ["x86_64-linux"]
 buildInputs = ["libudev", "alsaLib", "openssl", "xorg.libxcb", "libxkbcommon"]
 nativeBuildInputs = ["pkg-config", "python3", "binutils"]
-runtimeLibs = ["libGL", "xorg.libX11", "xorg.libXcursor", "xorg.libXrandr", "xorg.libXi", "wayland", "wayland-protocols"]
+runtimeLibs = ["libGL", "xorg.libX11", "xorg.libXcursor", "xorg.libXrandr", "xorg.libXi"]
 
 [workspace.metadata.nix.cachix]
 name = "veloren-nix"
