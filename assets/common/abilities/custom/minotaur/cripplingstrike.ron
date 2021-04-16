@@ -5,7 +5,7 @@ BasicMelee(
     recover_duration: 0.6,
     base_damage: 250.0,
     base_poise_damage: 60.0,
-    knockback: 25.0,
+    knockback: 15.0,
     range: 5.0,
     max_angle: 90.0,
     damage_effect: Some(Buff((
