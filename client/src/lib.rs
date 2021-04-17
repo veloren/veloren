@@ -36,7 +36,7 @@ use common::{
     resources::{DeltaTime, PlayerEntity, TimeOfDay},
     terrain::{
         block::Block, map::MapConfig, neighbors, BiomeKind, SitesKind, TerrainChunk,
-        TerrainChunkSize,
+        TerrainChunkSize, SpriteKind,
     },
     trade::{PendingTrade, SitePrices, TradeAction, TradeId, TradeResult},
     uid::{Uid, UidAllocator},
@@ -152,7 +152,7 @@ pub struct Client {
     sites: HashMap<SiteId, SiteInfoRich>,
     pub chat_mode: ChatMode,
     recipe_book: RecipeBook,
-    available_recipes: HashSet<String>,
+    available_recipes: HashMap<String, Option<SpriteKind>>,
 
     max_group_size: u32,
     // Client has received an invite (inviter uid, time out instant)
@@ -655,7 +655,7 @@ impl Client {
                 })
                 .collect(),
             recipe_book,
-            available_recipes: HashSet::default(),
+            available_recipes: HashMap::default(),
             chat_mode: ChatMode::default(),
 
             max_group_size,
@@ -970,20 +970,27 @@ impl Client {
 
     pub fn recipe_book(&self) -> &RecipeBook { &self.recipe_book }
 
-    pub fn available_recipes(&self) -> &HashSet<String> { &self.available_recipes }
+    pub fn available_recipes(&self) -> &HashMap<String, Option<SpriteKind>> { &self.available_recipes }
 
-    pub fn can_craft_recipe(&self, recipe: &str) -> bool {
+    pub fn can_craft_recipe(&self, recipe: &str) -> Option<Option<SpriteKind>> {
         self.recipe_book
             .get(recipe)
             .zip(self.inventories().get(self.entity()))
-            .map(|(recipe, inv)| inv.contains_ingredients(&*recipe).is_ok())
-            .unwrap_or(false)
+            .map(|(recipe, inv)| if inv.contains_ingredients(&*recipe).is_ok() {
+                Some(recipe.craft_sprite)
+            } else {
+                None
+            })
+            .unwrap_or(None)
     }
 
-    pub fn craft_recipe(&mut self, recipe: &str) -> bool {
-        if self.can_craft_recipe(recipe) {
+    pub fn craft_recipe(&mut self, recipe: &str, craft_sprite: Option<(Vec3<i32>, SpriteKind)>) -> bool {
+        if self.can_craft_recipe(recipe).map_or(false, |cs| cs.map_or(true, |cs| Some(cs) == craft_sprite.map(|(_, s)| s))) {
             self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InventoryEvent(
-                InventoryEvent::CraftRecipe(recipe.to_string()),
+                InventoryEvent::CraftRecipe {
+                    recipe: recipe.to_string(),
+                    craft_sprite: craft_sprite.map(|(pos, _)| pos),
+                }
             )));
             true
         } else {
@@ -996,7 +1003,10 @@ impl Client {
             .recipe_book
             .iter()
             .map(|(name, _)| name.clone())
-            .filter(|name| self.can_craft_recipe(name))
+            .filter_map(|name| {
+                let required_sprite = self.can_craft_recipe(&name)?;
+                Some((name, required_sprite))
+            })
             .collect();
     }
 

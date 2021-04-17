@@ -38,7 +38,7 @@ use crate::{
     key_state::KeyState,
     menu::char_selection::CharSelectionState,
     render::Renderer,
-    scene::{camera, CameraMode, Scene, SceneData},
+    scene::{camera, CameraMode, Scene, SceneData, terrain::Interaction},
     settings::Settings,
     window::{AnalogGameInput, Event, GameInput},
     Direction, Error, GlobalState, PlayState, PlayStateResult,
@@ -359,7 +359,7 @@ impl PlayState for SessionState {
                     .map(|sp| sp.map(|e| e.floor() as i32))
                     .filter(|_| can_build || is_mining)
                     .or_else(|| match self.interactable {
-                        Some(Interactable::Block(_, block_pos)) => Some(block_pos),
+                        Some(Interactable::Block(_, block_pos, _)) => Some(block_pos),
                         _ => None,
                     }),
             );
@@ -591,10 +591,16 @@ impl PlayState for SessionState {
                                     if let Some(interactable) = self.interactable {
                                         let mut client = self.client.borrow_mut();
                                         match interactable {
-                                            Interactable::Block(block, pos) => {
-                                                if block.is_collectible() {
-                                                    client.collect_block(pos);
-                                                }
+                                            Interactable::Block(block, pos, interaction) => match interaction {
+                                                Interaction::Collect => {
+                                                    if block.is_collectible() {
+                                                        client.collect_block(pos);
+                                                    }
+                                                },
+                                                Interaction::Craft(tab) => self.hud.show.open_crafting_tab(
+                                                    tab,
+                                                    block.get_sprite().map(|s| (pos, s)),
+                                                ),
                                             },
                                             Interactable::Entity(entity) => {
                                                 if client
@@ -618,7 +624,7 @@ impl PlayState for SessionState {
                                     if let Some(interactable) = self.interactable {
                                         let mut client = self.client.borrow_mut();
                                         match interactable {
-                                            Interactable::Block(_, _) => {},
+                                            Interactable::Block(_, _, _) => {},
                                             Interactable::Entity(entity) => {
                                                 if let Some(uid) =
                                                     client.state().ecs().uid_from_entity(entity)
@@ -1181,8 +1187,8 @@ impl PlayState for SessionState {
                         client.request_site_economy(id);
                     },
 
-                    HudEvent::CraftRecipe(r) => {
-                        self.client.borrow_mut().craft_recipe(&r);
+                    HudEvent::CraftRecipe { recipe, craft_sprite } => {
+                        self.client.borrow_mut().craft_recipe(&recipe, craft_sprite);
                     },
                     HudEvent::InviteMember(uid) => {
                         self.client.borrow_mut().send_invite(uid, InviteKind::Group);
@@ -1440,7 +1446,7 @@ fn under_cursor(
 
 #[derive(Clone, Copy)]
 pub enum Interactable {
-    Block(Block, Vec3<i32>),
+    Block(Block, Vec3<i32>, Interaction),
     Entity(specs::Entity),
 }
 
@@ -1448,7 +1454,7 @@ impl Interactable {
     pub fn entity(self) -> Option<specs::Entity> {
         match self {
             Self::Entity(e) => Some(e),
-            Self::Block(_, _) => None,
+            Self::Block(_, _, _) => None,
         }
     }
 }
@@ -1476,7 +1482,7 @@ fn select_interactable(
         .or_else(|| selected_pos.and_then(|sp|
                 client.state().terrain().get(sp).ok().copied()
                     .filter(|b| hit(*b))
-                    .map(|b| Interactable::Block(b, sp))
+                    .map(|b| Interactable::Block(b, sp, Interaction::Collect))
         ))
         .or_else(|| {
             let ecs = client.state().ecs();
@@ -1540,22 +1546,23 @@ fn select_interactable(
                         .blocks_of_interest
                         .interactables
                         .iter()
-                        .map(move |block_offset| chunk_pos + block_offset)
+                        .map(move |(block_offset, interaction)| (chunk_pos + block_offset, interaction))
                 })
-                .map(|block_pos| (
+                .map(|(block_pos, interaction)| (
                         block_pos,
                         block_pos.map(|e| e as f32 + 0.5)
-                            .distance_squared(player_pos)
+                            .distance_squared(player_pos),
+                        interaction,
                 ))
-                .min_by_key(|(_, dist_sqr)| OrderedFloat(*dist_sqr))
-                .map(|(block_pos, _)| block_pos);
+                .min_by_key(|(_, dist_sqr, _)| OrderedFloat(*dist_sqr))
+                .map(|(block_pos, _, interaction)| (block_pos, interaction));
 
             // Pick closer one if they exist
             closest_interactable_block_pos
-                .filter(|block_pos|  player_cylinder.min_distance(Cube { min: block_pos.as_(), side_length: 1.0}) < search_dist)
-                .and_then(|block_pos|
+                .filter(|(block_pos, _)|  player_cylinder.min_distance(Cube { min: block_pos.as_(), side_length: 1.0}) < search_dist)
+                .and_then(|(block_pos, interaction)|
                     client.state().terrain().get(block_pos).ok().copied()
-                        .map(|b| Interactable::Block(b, block_pos))
+                        .map(|b| Interactable::Block(b, block_pos, *interaction))
                 )
                 .or_else(|| closest_interactable_entity.map(|(e, _)| Interactable::Entity(e)))
         })

@@ -5,6 +5,13 @@ use common::{
 use common_base::span;
 use rand::prelude::*;
 use vek::*;
+use crate::hud::CraftingTab;
+
+#[derive(Copy, Clone)]
+pub enum Interaction {
+    Collect,
+    Craft(CraftingTab),
+}
 
 #[derive(Default)]
 pub struct BlocksOfInterest {
@@ -26,7 +33,7 @@ pub struct BlocksOfInterest {
     pub frogs: Vec<Vec3<i32>>,
     // Note: these are only needed for chunks within the iteraction range so this is a potential
     // area for optimization
-    pub interactables: Vec<Vec3<i32>>,
+    pub interactables: Vec<(Vec3<i32>, Interaction)>,
     pub lights: Vec<(Vec3<i32>, u8)>,
 }
 
@@ -108,11 +115,12 @@ impl BlocksOfInterest {
                         Some(SpriteKind::WhiteFlower) => flowers.push(pos),
                         Some(SpriteKind::YellowFlower) => flowers.push(pos),
                         Some(SpriteKind::Sunflower) => flowers.push(pos),
+                        Some(SpriteKind::Pot) => interactables.push((pos, Interaction::Craft(CraftingTab::Food))),
                         _ => {},
                     },
                 }
                 if block.is_collectible() {
-                    interactables.push(pos);
+                    interactables.push((pos, Interaction::Collect));
                 }
                 if let Some(glow) = block.get_glow() {
                     lights.push((pos, glow));

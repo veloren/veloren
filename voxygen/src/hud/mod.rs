@@ -25,13 +25,14 @@ pub mod util;
 pub use hotbar::{SlotContents as HotbarSlotContents, State as HotbarState};
 pub use item_imgs::animate_by_pulse;
 pub use settings_window::ScaleChange;
+pub use crafting::CraftingTab;
 
 use bag::Bag;
 use buffs::BuffsBar;
 use buttons::Buttons;
 use chat::Chat;
 use chrono::NaiveTime;
-use crafting::{Crafting, CraftingTab};
+use crafting::Crafting;
 use diary::{Diary, SelectedSkillTree};
 use esc_menu::EscMenu;
 use group::Group;
@@ -74,7 +75,7 @@ use common::{
         BuffKind, Item,
     },
     outcome::Outcome,
-    terrain::TerrainChunk,
+    terrain::{TerrainChunk, SpriteKind},
     trade::{ReducedInventory, TradeAction},
     uid::Uid,
     util::srgba_to_linear,
@@ -380,7 +381,7 @@ pub enum Event {
     Logout,
     Quit,
 
-    CraftRecipe(String),
+    CraftRecipe { recipe: String, craft_sprite: Option<(Vec3<i32>, SpriteKind)> },
     InviteMember(Uid),
     AcceptInvite,
     DeclineInvite,
@@ -492,6 +493,7 @@ pub struct Show {
     skilltreetab: SelectedSkillTree,
     crafting_tab: CraftingTab,
     crafting_search_key: Option<String>,
+    craft_sprite: Option<(Vec3<i32>, SpriteKind)>,
     social_search_key: Option<String>,
     want_grab: bool,
     stats: bool,
@@ -556,6 +558,12 @@ impl Show {
             self.map = false;
             self.want_grab = !open;
         }
+    }
+
+    pub fn open_crafting_tab(&mut self, tab: CraftingTab, craft_sprite: Option<(Vec3<i32>, SpriteKind)>) {
+        self.selected_crafting_tab(tab);
+        self.crafting(true);
+        self.craft_sprite = craft_sprite;
     }
 
     fn diary(&mut self, open: bool) {
@@ -734,7 +742,7 @@ pub struct Hud {
     new_messages: VecDeque<comp::ChatMsg>,
     new_notifications: VecDeque<Notification>,
     speech_bubbles: HashMap<Uid, comp::SpeechBubble>,
-    show: Show,
+    pub show: Show,
     //never_show: bool,
     //intro: bool,
     //intro_2: bool,
@@ -840,6 +848,7 @@ impl Hud {
                 skilltreetab: SelectedSkillTree::General,
                 crafting_tab: CraftingTab::All,
                 crafting_search_key: None,
+                craft_sprite: None,
                 social_search_key: None,
                 want_grab: true,
                 ingame: true,
@@ -1363,7 +1372,7 @@ impl Hud {
             }
 
             // Render overtime for an interactable block
-            if let Some(Interactable::Block(block, pos)) = interactable {
+            if let Some(Interactable::Block(block, pos, _)) = interactable {
                 let overitem_id = overitem_walker.next(
                     &mut self.ids.overitems,
                     &mut ui_widgets.widget_id_generator(),
@@ -1394,6 +1403,19 @@ impl Hud {
                         true,
                         &self.fonts,
                     )
+                    .set(overitem_id, ui_widgets);
+                } else if let Some(sprite) = block.get_sprite() {
+                    overitem::Overitem::new(
+                        format!("{:?}", sprite).into(), // TODO: A better way to generate text for this
+                        overitem::TEXT_COLOR,
+                        pos.distance_squared(player_pos),
+                        &self.fonts,
+                        &global_state.settings.controls,
+                        true,
+                        &global_state.window.key_layout,
+                    )
+                    .x_y(0.0, 100.0)
+                    .position_ingame(over_pos)
                     .set(overitem_id, ui_widgets);
                 }
             }
@@ -2420,8 +2442,8 @@ impl Hud {
                 .set(self.ids.crafting_window, ui_widgets)
                 {
                     match event {
-                        crafting::Event::CraftRecipe(r) => {
-                            events.push(Event::CraftRecipe(r));
+                        crafting::Event::CraftRecipe(recipe) => {
+                            events.push(Event::CraftRecipe { recipe, craft_sprite: self.show.craft_sprite });
                         },
                         crafting::Event::Close => {
                             self.show.stats = false;
@@ -2434,7 +2456,7 @@ impl Hud {
                             };
                         },
                         crafting::Event::ChangeCraftingTab(sel_cat) => {
-                            self.show.selected_crafting_tab(sel_cat);
+                            self.show.open_crafting_tab(sel_cat, None);
                         },
                         crafting::Event::Focus(widget_id) => {
                             self.to_focus = Some(Some(widget_id));

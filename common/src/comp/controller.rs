@@ -21,9 +21,12 @@ pub enum InventoryEvent {
     Swap(InvSlotId, InvSlotId),
     SplitSwap(InvSlotId, InvSlotId),
     Drop(InvSlotId),
-    SplitDrop(InvSlotId),
-    CraftRecipe(String),
+    SplitDrop(InvSlotId),    
     Sort,
+    CraftRecipe {
+        recipe: String,
+        craft_sprite: Option<Vec3<i32>>,
+    },
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
@@ -42,9 +45,12 @@ pub enum InventoryManip {
     Swap(Slot, Slot),
     SplitSwap(Slot, Slot),
     Drop(Slot),
-    SplitDrop(Slot),
-    CraftRecipe(String),
+    SplitDrop(Slot),    
     Sort,
+    CraftRecipe {
+        recipe: String,
+        craft_sprite: Option<Vec3<i32>>,
+    },
 }
 
 impl From<InventoryAction> for InventoryManip {
@@ -70,9 +76,9 @@ impl From<InventoryEvent> for InventoryManip {
                 Self::SplitSwap(Slot::Inventory(inv1), Slot::Inventory(inv2))
             },
             InventoryEvent::Drop(inv) => Self::Drop(Slot::Inventory(inv)),
-            InventoryEvent::SplitDrop(inv) => Self::SplitDrop(Slot::Inventory(inv)),
-            InventoryEvent::CraftRecipe(recipe) => Self::CraftRecipe(recipe),
+            InventoryEvent::SplitDrop(inv) => Self::SplitDrop(Slot::Inventory(inv)),            
             InventoryEvent::Sort => Self::Sort,
+            InventoryEvent::CraftRecipe { recipe, craft_sprite } => Self::CraftRecipe { recipe, craft_sprite },
         }
     }
 }

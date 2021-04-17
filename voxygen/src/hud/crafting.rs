@@ -127,7 +127,7 @@ impl<'a> Crafting<'a> {
     }
 }
 
-#[derive(Debug, EnumIter, PartialEq)]
+#[derive(Copy, Clone, Debug, EnumIter, PartialEq)]
 pub enum CraftingTab {
     All,
     Armor,
@@ -434,7 +434,10 @@ impl<'a> Widget for Crafting<'a> {
                                 .unwrap_or(false)
                         })
                 });
-                let state = if self.client.available_recipes().contains(name.as_str()) {
+                let state = if self.client.available_recipes()
+                    .get(name.as_str())
+                    .map_or(false, |cs| cs.map_or(true, |cs| Some(cs) == self.show.craft_sprite.map(|(_, s)| s)))
+                {
                     RecipeIngredientQuantity::All
                 } else if at_least_some_ingredients {
                     RecipeIngredientQuantity::Some
@@ -528,7 +531,8 @@ impl<'a> Widget for Crafting<'a> {
             let can_perform = self
                 .client
                 .available_recipes()
-                .contains(recipe_name.as_str());
+                .get(recipe_name.as_str())
+                .map_or(false, |cs| cs.map_or(true, |cs| Some(cs) == self.show.craft_sprite.map(|(_, s)| s)));
 
             // Craft button
             if Button::image(self.imgs.button)
