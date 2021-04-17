@@ -2550,14 +2550,15 @@ dependencies = [
 [[package]]
 name = "keyboard-keynames"
 version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f6dbe132877d7a0327c4282840703c2cb456312fae930898b5dc126844889626"
+source = "git+https://gitlab.com/Frinksy/keyboard-keynames.git?rev=a97ae509cdb9dc70cf1bf0af762d2d1d3a0d6e0c#a97ae509cdb9dc70cf1bf0af762d2d1d3a0d6e0c"
 dependencies = [
+ "libc",
+ "memmap",
  "wayland-client 0.28.5",
  "winapi 0.3.9",
  "winit",
- "xcb 0.8.2",
- "xkbcommon",
+ "xcb",
+ "xkbcommon-sys 0.7.5",
 ]
 
 [[package]]
@@ -2872,7 +2873,7 @@ dependencies = [
  "winapi 0.3.9",
  "x11-dl",
  "xkb",
- "xkbcommon-sys",
+ "xkbcommon-sys 0.7.4",
 ]
 
 [[package]]
@@ -6483,7 +6484,7 @@ version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e5e937afd03b64b7be4f959cc044e09260a47241b71e56933f37db097bf7859d"
 dependencies = [
- "xcb 0.9.0",
+ "xcb",
 ]
 
 [[package]]
@@ -6517,16 +6518,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "244c3741f4240ef46274860397c7c74e50eb23624996930e484c16679633a54c"
 dependencies = [
  "libc",
-]
-
-[[package]]
-name = "xcb"
-version = "0.8.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5e917a3f24142e9ff8be2414e36c649d47d6cc2ba81f16201cdef96e533e02de"
-dependencies = [
- "libc",
- "log",
 ]
 
 [[package]]
@@ -6568,18 +6559,7 @@ checksum = "aec02bc5de902aa579f3d2f2c522edaf40fa42963cbaffe645b058ddcc68fdb2"
 dependencies = [
  "bitflags",
  "libc",
- "xkbcommon-sys",
-]
-
-[[package]]
-name = "xkbcommon"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fda0ea5f7ddabd51deeeda7799bee06274112f577da7dd3d954b8eda731b2fce"
-dependencies = [
- "libc",
- "memmap",
- "xcb 0.8.2",
+ "xkbcommon-sys 0.7.4",
 ]
 
 [[package]]
@@ -6587,6 +6567,15 @@ name = "xkbcommon-sys"
 version = "0.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fa434980dca02ebf28795d71e570dbb78316d095a228707efd6117bf8246d78b"
+dependencies = [
+ "libc",
+ "pkg-config",
+]
+
+[[package]]
+name = "xkbcommon-sys"
+version = "0.7.5"
+source = "git+https://github.com/Frinksy/rust-xkbcommon-sys.git?rev=d5d69e05a81f7ee8d2f65a824ae692610ed7cb14#d5d69e05a81f7ee8d2f65a824ae692610ed7cb14"
 dependencies = [
  "libc",
  "pkg-config",

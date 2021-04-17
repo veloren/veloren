@@ -1,5 +1,20 @@
 {
   "nodes": {
+    "devshell": {
+      "locked": {
+        "lastModified": 1618213758,
+        "narHash": "sha256-qkuen2xlT7gVfX+99OeM4lsKXGjT5EDjytWAeAWX0Fw=",
+        "owner": "numtide",
+        "repo": "devshell",
+        "rev": "eac56f015b0975be3b725721503626e926b285e8",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "devshell",
+        "type": "github"
+      }
+    },
     "flake-utils": {
       "locked": {
         "lastModified": 1614513358,
@@ -37,11 +52,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1616263753,
-        "narHash": "sha256-wf1naH44D0Z7+JNpD6T/6/d0XaXDi9r4Oi100pBtzhs=",
+        "lastModified": 1618579991,
+        "narHash": "sha256-aIWvSjn/rjfOBUdL5uM4iDVVLM7ioRz9zs3e94lT9Ac=",
         "owner": "yusdacra",
         "repo": "naersk",
-        "rev": "8cd4d175606de222114c551c85847acb013cc9cb",
+        "rev": "dc8868af09c8a0f0d47df0927161cb14675c5534",
         "type": "github"
       },
       "original": {
@@ -51,13 +66,39 @@
         "type": "github"
       }
     },
+    "nixCargoIntegration": {
+      "inputs": {
+        "devshell": "devshell",
+        "flakeUtils": "flakeUtils",
+        "naersk": [
+          "naersk"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "rustOverlay": "rustOverlay"
+      },
+      "locked": {
+        "lastModified": 1618597947,
+        "narHash": "sha256-wiwHpQPzgkuOEZXFpet7bmv6Z8dusxyp6DQbpYCXJDk=",
+        "owner": "yusdacra",
+        "repo": "nix-cargo-integration",
+        "rev": "fc26a4e1d807e8b9722d67097be4dfb8be5ea862",
+        "type": "github"
+      },
+      "original": {
+        "owner": "yusdacra",
+        "repo": "nix-cargo-integration",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1618306168,
-        "narHash": "sha256-/IOtgzdEaiEqRVn6OhpekuYhRHfCm299Bqts5QqQVko=",
+        "lastModified": 1618530127,
+        "narHash": "sha256-jQPk7XpabppYa+GIO5LVTtUFhHq/VqHhPggwIKhTCnQ=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "4c87cb87a2db6b9eb43541c1cf83f2a2f725fa25",
+        "rev": "294d1925af6462e55c76b49624b983036f0093b9",
         "type": "github"
       },
       "original": {
@@ -69,10 +110,9 @@
     },
     "root": {
       "inputs": {
-        "flakeUtils": "flakeUtils",
         "naersk": "naersk",
-        "nixpkgs": "nixpkgs",
-        "rustOverlay": "rustOverlay"
+        "nixCargoIntegration": "nixCargoIntegration",
+        "nixpkgs": "nixpkgs"
       }
     },
     "rustOverlay": {

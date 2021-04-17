@@ -16,6 +16,8 @@
           - This repository was not cloned from the primary GitLab mirror.
           - The GitHub mirror does not support LFS.
         See the book at https://book.veloren.net/ for details.
+        Run `nix-shell -p git git-lfs --run "git lfs install --local && git lfs fetch && git lfs checkout"`
+        or `nix shell nixpkgs#git-lfs nixpkgs#git -c sh -c "git lfs install --local && git lfs fetch && git lfs checkout"`.
       '';
 
   # Format number of seconds in the Unix epoch as %Y-%m-%d-%H:%M.

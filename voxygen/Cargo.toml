@@ -8,6 +8,17 @@ version = "0.9.0"
 # Uncomment below and comment out default-run if you want to avoid this
 # autobins = false
 
+[package.metadata.nix]
+build = true
+app = true
+desktopFile = "./assets/voxygen/net.veloren.veloren.desktop"
+longDescription = """
+Veloren is a multiplayer voxel RPG written in Rust.
+It is inspired by games such as Cube World, Legend of Zelda: Breath of the Wild, Dwarf Fortress and Minecraft.
+
+This package includes the official client, Voxygen.
+"""
+
 [features]
 gl = ["gfx_device_gl", "gfx_gl"]
 hot-anim = ["anim/use-dyn-lib"]
@@ -45,7 +56,7 @@ iced = {package = "iced_native", git = "https://github.com/hecrj/iced", rev = "8
 iced_winit = {git = "https://github.com/hecrj/iced", rev = "8d882d787e6b7fd7c2435f42f82933e2ed904edf"}
 window_clipboard = "0.2"
 glyph_brush = "0.7.0"
-keyboard-keynames = "0.1.0"
+keyboard-keynames = { git = "https://gitlab.com/Frinksy/keyboard-keynames.git", rev = "a97ae509cdb9dc70cf1bf0af762d2d1d3a0d6e0c" }
 
 # ECS
 specs = {git = "https://github.com/amethyst/specs.git", rev = "5a9b71035007be0e3574f35184acac1cd4530496"}
