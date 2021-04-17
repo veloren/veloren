@@ -82,6 +82,7 @@ pub enum ChatCommand {
     RevokeBuildAll,
     Safezone,
     Say,
+    ServerPhysics,
     SetMotd,
     Site,
     SkillPoint,
@@ -144,6 +145,7 @@ pub static CHAT_COMMANDS: &[ChatCommand] = &[
     ChatCommand::RevokeBuildAll,
     ChatCommand::Safezone,
     ChatCommand::Say,
+    ChatCommand::ServerPhysics,
     ChatCommand::SetMotd,
     ChatCommand::Site,
     ChatCommand::SkillPoint,
@@ -466,6 +468,14 @@ impl ChatCommand {
                 "Send messages to everyone within shouting distance",
                 NoAdmin,
             ),
+            ChatCommand::ServerPhysics => cmd(
+                vec![
+                    Any("username", Required),
+                    Boolean("enabled", "true".to_string(), Optional),
+                ],
+                "Set/unset server-authoritative physics for an account",
+                Admin,
+            ),
             ChatCommand::SetMotd => {
                 cmd(vec![Message(Optional)], "Set the server description", Admin)
             },
@@ -580,6 +590,7 @@ impl ChatCommand {
             ChatCommand::RevokeBuildAll => "revoke_build_all",
             ChatCommand::Safezone => "safezone",
             ChatCommand::Say => "say",
+            ChatCommand::ServerPhysics => "server_physics",
             ChatCommand::SetMotd => "set_motd",
             ChatCommand::Site => "site",
             ChatCommand::SkillPoint => "skill_point",
