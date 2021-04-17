@@ -172,6 +172,10 @@ pub enum ServerEvent {
         target: Uid,
         max_range: Option<f32>,
     },
+    CreateSafezone {
+        range: Option<f32>,
+        pos: Pos,
+    },
 }
 
 pub struct EventBus<E> {

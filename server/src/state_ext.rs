@@ -24,6 +24,7 @@ use specs::{
     saveload::MarkerAllocator, Builder, Entity as EcsEntity, EntityBuilder as EcsEntityBuilder,
     Join, WorldExt,
 };
+use std::time::Duration;
 use tracing::warn;
 use vek::*;
 
@@ -72,6 +73,8 @@ pub trait StateExt {
         pos: comp::Pos,
         ori: comp::Ori,
     ) -> EcsEntityBuilder;
+    /// Creates a safezone
+    fn create_safezone(&mut self, range: Option<f32>, pos: comp::Pos) -> EcsEntityBuilder;
     // NOTE: currently only used for testing
     /// Queues chunk generation in the view distance of the persister, this
     /// entity must be built before those chunks are received (the builder
@@ -316,6 +319,29 @@ impl StateExt for State {
                 properties,
                 creation: None,
             })
+    }
+
+    fn create_safezone(&mut self, range: Option<f32>, pos: comp::Pos) -> EcsEntityBuilder {
+        use comp::{
+            aura::{Aura, AuraKind, AuraTarget, Auras},
+            buff::{BuffCategory, BuffData, BuffKind, BuffSource},
+            object, Body,
+        };
+        self.ecs_mut()
+            .create_entity_synced()
+            .with(pos)
+            .with(Body::Object(object::Body::BoltNature))
+            .with(Auras::new(vec![Aura::new(
+                AuraKind::Buff {
+                    kind: BuffKind::Invulnerability,
+                    data: BuffData::new(1.0, Some(Duration::from_secs(1))),
+                    category: BuffCategory::Natural,
+                    source: BuffSource::World,
+                },
+                range.unwrap_or(100.0),
+                None,
+                AuraTarget::All,
+            )]))
     }
 
     // NOTE: currently only used for testing

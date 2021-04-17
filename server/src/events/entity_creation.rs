@@ -255,3 +255,7 @@ pub fn handle_create_waypoint(server: &mut Server, pos: Vec3<f32>) {
         )]))
         .build();
 }
+
+pub fn handle_create_safezone(server: &mut Server, range: Option<f32>, pos: Pos) {
+    server.state.create_safezone(range, pos).build();
+}
