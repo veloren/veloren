@@ -90,7 +90,7 @@
         "hud.skill.st_flamethrower_damage_title" : "Dano do Lança Chamas",
         "hud.skill.st_flamethrower_damage" : "Aumenta o dano em 30%{SP}",
         "hud.skill.st_explosion_radius_title" : "Raio da Explosão",
-        "hud.skill.st_explosion_radius" : "Quanto maior melhor, e o raio da explosão é aumentado em 10%{SP}",
+        "hud.skill.st_explosion_radius" : "Quanto maior melhor, e o raio da explosão é aumentado em 15%{SP}",
         "hud.skill.st_stamina_regen_title" : "Regeneração de stamina",
         "hud.skill.st_stamina_regen" : "Aumenta o ganho de stamina em 20%{SP}",
         "hud.skill.st_fireball_title" : "Bola de fogo",

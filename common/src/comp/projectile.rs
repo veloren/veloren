@@ -54,10 +54,6 @@ pub enum ProjectileConstructor {
         damage: f32,
         radius: f32,
     },
-    Firebolt {
-        damage: f32,
-        energy_regen: f32,
-    },
     Possess,
 }
 
@@ -169,33 +165,6 @@ impl ProjectileConstructor {
                     ignore_group: true,
                 }
             },
-            Firebolt {
-                damage,
-                energy_regen,
-            } => {
-                let energy = AttackEffect::new(None, CombatEffect::EnergyReward(energy_regen))
-                    .with_requirement(CombatRequirement::AnyDamage);
-                let damage = AttackDamage::new(
-                    Damage {
-                        source: DamageSource::Energy,
-                        value: damage,
-                    },
-                    Some(GroupTarget::OutOfGroup),
-                );
-                let attack = Attack::default()
-                    .with_damage(damage)
-                    .with_crit(crit_chance, crit_mult)
-                    .with_effect(energy)
-                    .with_combo_increment();
-
-                Projectile {
-                    hit_solid: vec![Effect::Vanish],
-                    hit_entity: vec![Effect::Attack(attack), Effect::Vanish],
-                    time_left: Duration::from_secs(10),
-                    owner,
-                    ignore_group: true,
-                }
-            },
             Possess => Projectile {
                 hit_solid: vec![Effect::Stick],
                 hit_entity: vec![Effect::Stick, Effect::Possess],
@@ -235,32 +204,8 @@ impl ProjectileConstructor {
                 *damage *= power;
                 *radius *= range;
             },
-            Firebolt {
-                ref mut damage,
-                ref mut energy_regen,
-                ..
-            } => {
-                *damage *= power;
-                *energy_regen *= regen;
-            },
             Possess => {},
         }
         self
-    }
-
-    pub fn fireball_to_firebolt(self) -> Self {
-        if let ProjectileConstructor::Fireball {
-            damage,
-            energy_regen,
-            radius: _,
-        } = self
-        {
-            ProjectileConstructor::Firebolt {
-                damage,
-                energy_regen: energy_regen * 2.0,
-            }
-        } else {
-            self
-        }
     }
 }

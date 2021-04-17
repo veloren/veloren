@@ -94,7 +94,7 @@
         "hud.skill.st_flamethrower_damage_title" : "Dégâts des Flammes",
         "hud.skill.st_flamethrower_damage" : "Augmente de 30% les dégâts{SP}",
         "hud.skill.st_explosion_radius_title" : "Portée de l'Explosion",
-        "hud.skill.st_explosion_radius" : "Augmente la portée d'explosion de 10%{SP}",
+        "hud.skill.st_explosion_radius" : "Augmente la portée d'explosion de 15%{SP}",
         "hud.skill.st_stamina_regen_title" : "Régénération d'Endurance des Boules de feu",
         "hud.skill.st_stamina_regen" : "Augmente de 20% la régénération d'endurance{SP}",
         "hud.skill.st_fireball_title" : "Boule de Feu",

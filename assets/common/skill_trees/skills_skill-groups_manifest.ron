@@ -8,7 +8,6 @@
         UnlockGroup(Weapon(Bow)),
         UnlockGroup(Weapon(Staff)),
         UnlockGroup(Weapon(Sceptre)),
-        Roll(ImmuneMelee),
         Roll(Cost),
         Roll(Strength),
         Roll(Duration),
@@ -83,7 +82,6 @@
         Bow(RCost),
     ],
     Weapon(Staff): [
-        Staff(BExplosion),
         Staff(BDamage),
         Staff(BRegen),
         Staff(BRadius),

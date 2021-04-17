@@ -204,7 +204,6 @@ pub enum BowSkill {
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub enum StaffSkill {
     // Basic ranged upgrades
-    BExplosion,
     BDamage,
     BRegen,
     BRadius,
@@ -248,7 +247,6 @@ pub enum GeneralSkill {
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub enum RollSkill {
-    ImmuneMelee,
     Cost,
     Strength,
     Duration,

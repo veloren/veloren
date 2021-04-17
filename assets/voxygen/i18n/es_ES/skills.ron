@@ -94,7 +94,7 @@
         "hud.skill.st_flamethrower_damage_title" : "Daño del lanzallamas",
         "hud.skill.st_flamethrower_damage" : "Aumenta el daño en un 30%{SP}",
         "hud.skill.st_explosion_radius_title" : "Radio de explosión",
-        "hud.skill.st_explosion_radius" : "Más grande es mejor, aumenta el radio de explosión en un 10%{SP}",
+        "hud.skill.st_explosion_radius" : "Más grande es mejor, aumenta el radio de explosión en un 15%{SP}",
         "hud.skill.st_stamina_regen_title" : "Regeneración de resistencia",
         "hud.skill.st_stamina_regen" : "Aumenta la regeneración de resistencia en un 20%{SP}",
         "hud.skill.st_fireball_title" : "Bola de fuego",

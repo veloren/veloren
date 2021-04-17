@@ -94,7 +94,7 @@
         "hud.skill.st_flamethrower_damage_title" : "伤害提升",
         "hud.skill.st_flamethrower_damage" : "吐息造成的伤害提高30%{SP}",
         "hud.skill.st_explosion_radius_title" : "爆破专家",
-        "hud.skill.st_explosion_radius" : "火球爆炸的半径扩大10%{SP}",
+        "hud.skill.st_explosion_radius" : "火球爆炸的半径扩大15%{SP}",
         "hud.skill.st_stamina_regen_title" : "法力回复",
         "hud.skill.st_stamina_regen" : "每次击中敌人回复的法力增加20%{SP}",
         "hud.skill.st_fireball_title" : "火球术",

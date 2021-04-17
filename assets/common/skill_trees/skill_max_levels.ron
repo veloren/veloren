@@ -49,7 +49,7 @@
     Bow(RCost): Some(2),
     Staff(BDamage): Some(3),
     Staff(BRegen): Some(2),
-    Staff(BRadius): Some(2),
+    Staff(BRadius): Some(3),
     Staff(FRange): Some(2),
     Staff(FDamage): Some(3),
     Staff(FDrain): Some(2),

@@ -541,7 +541,7 @@ impl<'a> Widget for Diary<'a> {
             SelectedSkillTree::Weapon(ToolKind::Axe) => 5,
             SelectedSkillTree::Weapon(ToolKind::Hammer) => 5,
             SelectedSkillTree::Weapon(ToolKind::Bow) => 3,
-            SelectedSkillTree::Weapon(ToolKind::Staff) => 5,
+            SelectedSkillTree::Weapon(ToolKind::Staff) => 4,
             SelectedSkillTree::Weapon(ToolKind::Sceptre) => 5,
             _ => 0,
         };
@@ -939,32 +939,17 @@ impl<'a> Widget for Diary<'a> {
                     events.push(Event::UnlockSkill(skill));
                 };
                 // Bottom left skills
-                let skill = Skill::Roll(ImmuneMelee);
-                if create_skill_button(
-                    self.imgs.skill_dodge_skill,
-                    state.skills_bot_l[0],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self.localized_strings.get("hud.skill.dodge_title"),
-                    &add_sp_cost_tooltip(
+                Button::image(self.imgs.skill_dodge_skill)
+                    .w_h(74.0, 74.0)
+                    .mid_top_with_margin_on(state.skills_bot_l[0], 3.0)
+                    .with_tooltip(
+                        self.tooltip_manager,
+                        &self.localized_strings.get("hud.skill.dodge_title"),
                         &self.localized_strings.get("hud.skill.dodge"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
-                    &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_general_roll_0, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
+                        &diary_tooltip,
+                        TEXT_COLOR,
+                    )
+                    .set(state.skill_general_roll_0, ui);
                 let skill = Skill::Roll(RollSkill::Cost);
                 if create_skill_button(
                     self.imgs.utility_cost_skill,
@@ -2967,36 +2952,10 @@ impl<'a> Widget for Diary<'a> {
                         TEXT_COLOR,
                     )
                     .set(state.skill_staff_basic_0, ui);
-                let skill = Skill::Staff(BExplosion);
-                if create_skill_button(
-                    self.imgs.magic_explosion_skill,
-                    state.skills_top_l[1],
-                    &self.skill_set,
-                    skill,
-                    self.fonts,
-                    &get_skill_label(skill, &self.skill_set),
-                )
-                .with_tooltip(
-                    self.tooltip_manager,
-                    &self.localized_strings.get("hud.skill.st_explosion_title"),
-                    &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.st_explosion"),
-                        skill,
-                        &self.skill_set,
-                        &self.localized_strings,
-                    ),
-                    &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.skill_staff_basic_1, ui)
-                .was_clicked()
-                {
-                    events.push(Event::UnlockSkill(skill));
-                };
                 let skill = Skill::Staff(BDamage);
                 if create_skill_button(
                     self.imgs.magic_damage_skill,
-                    state.skills_top_l[2],
+                    state.skills_top_l[1],
                     &self.skill_set,
                     skill,
                     self.fonts,
@@ -3014,7 +2973,7 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_staff_basic_2, ui)
+                .set(state.skill_staff_basic_1, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
@@ -3022,7 +2981,7 @@ impl<'a> Widget for Diary<'a> {
                 let skill = Skill::Staff(BRegen);
                 if create_skill_button(
                     self.imgs.magic_energy_regen_skill,
-                    state.skills_top_l[3],
+                    state.skills_top_l[2],
                     &self.skill_set,
                     skill,
                     self.fonts,
@@ -3042,7 +3001,7 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_staff_basic_3, ui)
+                .set(state.skill_staff_basic_2, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
@@ -3050,7 +3009,7 @@ impl<'a> Widget for Diary<'a> {
                 let skill = Skill::Staff(BRadius);
                 if create_skill_button(
                     self.imgs.magic_radius_skill,
-                    state.skills_top_l[4],
+                    state.skills_top_l[3],
                     &self.skill_set,
                     skill,
                     self.fonts,
@@ -3070,7 +3029,7 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.skill_staff_basic_4, ui)
+                .set(state.skill_staff_basic_3, ui)
                 .was_clicked()
                 {
                     events.push(Event::UnlockSkill(skill));
