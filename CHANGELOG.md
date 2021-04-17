@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - One handed weapons can now be used and found in the world
 - Players can now opt-in to server-authoritiative physics in gameplay settings.
 - Added `/server_physics` admin command.
+- Sort inventory button
 
 
 ### Changed

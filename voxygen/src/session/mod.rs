@@ -1126,6 +1126,9 @@ impl PlayState for SessionState {
                             client.disable_lantern();
                         }
                     },
+                    HudEvent::SortInventory => {
+                        self.client.borrow_mut().sort_inventory();
+                    },
                     HudEvent::ChangeHotbarState(state) => {
                         let client = self.client.borrow();
 

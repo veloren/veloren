@@ -23,6 +23,7 @@ pub enum InventoryEvent {
     Drop(InvSlotId),
     SplitDrop(InvSlotId),
     CraftRecipe(String),
+    Sort,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
@@ -30,6 +31,7 @@ pub enum InventoryAction {
     Swap(EquipSlot, Slot),
     Drop(EquipSlot),
     Use(Slot),
+    Sort,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -42,6 +44,7 @@ pub enum InventoryManip {
     Drop(Slot),
     SplitDrop(Slot),
     CraftRecipe(String),
+    Sort,
 }
 
 impl From<InventoryAction> for InventoryManip {
@@ -50,6 +53,7 @@ impl From<InventoryAction> for InventoryManip {
             InventoryAction::Use(slot) => Self::Use(slot),
             InventoryAction::Swap(equip, slot) => Self::Swap(Slot::Equip(equip), slot),
             InventoryAction::Drop(equip) => Self::Drop(Slot::Equip(equip)),
+            InventoryAction::Sort => Self::Sort,
         }
     }
 }
@@ -68,6 +72,7 @@ impl From<InventoryEvent> for InventoryManip {
             InventoryEvent::Drop(inv) => Self::Drop(Slot::Inventory(inv)),
             InventoryEvent::SplitDrop(inv) => Self::SplitDrop(Slot::Inventory(inv)),
             InventoryEvent::CraftRecipe(recipe) => Self::CraftRecipe(recipe),
+            InventoryEvent::Sort => Self::Sort,
         }
     }
 }

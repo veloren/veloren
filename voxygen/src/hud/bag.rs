@@ -19,6 +19,7 @@ use common::{
     assets::AssetExt,
     combat::{combat_rating, Damage},
     comp::{
+        inventory::InventorySortOrder,
         item::{ItemDef, MaterialStatManifest, Quality},
         Body, Energy, Health, Inventory, Poise, SkillSet, Stats,
     },
@@ -26,7 +27,7 @@ use common::{
 use conrod_core::{
     color,
     widget::{self, Button, Image, Rectangle, Scrollbar, State as ConrodState, Text},
-    widget_ids, Color, Colorable, Positionable, Sizeable, UiCell, Widget, WidgetCommon,
+    widget_ids, Color, Colorable, Positionable, Scalar, Sizeable, UiCell, Widget, WidgetCommon,
 };
 
 use crate::hud::slots::SlotKind;
@@ -423,6 +424,7 @@ widget_ids! {
         space_txt,
         inventory_title,
         inventory_title_bg,
+        inventory_sort,
         scrollbar_bg,
         scrollbar_slots,
         tab_1,
@@ -540,6 +542,7 @@ pub struct BagState {
 pub enum Event {
     BagExpand,
     Close,
+    SortInventory,
 }
 
 impl<'a> Widget for Bag<'a> {
@@ -563,6 +566,7 @@ impl<'a> Widget for Bag<'a> {
     #[allow(clippy::useless_format)] // TODO: Pending review in #587
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { state, ui, .. } = args;
+        let i18n = &self.localized_strings;
 
         let mut event = None;
         let bag_tooltip = Tooltip::new({
@@ -681,27 +685,42 @@ impl<'a> Widget for Bag<'a> {
         } else {
             self.imgs.expand_btn_press
         });
+
         // Only show expand button when it's needed...
-        let space_max = inventory.slots().count();
-        if space_max > 45 && !self.show.bag_inv {
+        if inventory.slots().count() > 45 || self.show.bag_inv {
+            let expand_btn_top = if self.show.bag_inv { 53.0 } else { 460.0 };
             if expand_btn
-                .top_left_with_margins_on(state.bg_ids.bg_frame, 460.0, 211.5)
+                .top_left_with_margins_on(state.bg_ids.bg_frame, expand_btn_top, 211.5)
                 .with_tooltip(self.tooltip_manager, &txt, "", &bag_tooltip, TEXT_COLOR)
                 .set(state.ids.bag_expand_btn, ui)
                 .was_clicked()
             {
                 event = Some(Event::BagExpand);
             }
-        } else if self.show.bag_inv {
-            //... but always show it when the bag is expanded
-            if expand_btn
-                .top_left_with_margins_on(state.bg_ids.bg_frame, 53.0, 211.5)
-                .with_tooltip(self.tooltip_manager, &txt, "", &bag_tooltip, TEXT_COLOR)
-                .set(state.ids.bag_expand_btn, ui)
-                .was_clicked()
-            {
-                event = Some(Event::BagExpand);
-            }
+        }
+
+        // Sort inventory button
+        let inv_sort_btn_top: Scalar = if !self.show.bag_inv { 460.0 } else { 53.0 };
+        if Button::image(self.imgs.inv_sort_btn)
+            .w_h(30.0, 17.0)
+            .hover_image(self.imgs.inv_sort_btn_hover)
+            .press_image(self.imgs.inv_sort_btn_press)
+            .top_left_with_margins_on(state.bg_ids.bg_frame, inv_sort_btn_top, 47.0)
+            .with_tooltip(
+                self.tooltip_manager,
+                match inventory.next_sort_order() {
+                    InventorySortOrder::Name => i18n.get("hud.bag.sort_by_name"),
+                    InventorySortOrder::Quality => i18n.get("hud.bag.sort_by_quality"),
+                    InventorySortOrder::Tag => i18n.get("hud.bag.sort_by_category"),
+                },
+                "",
+                &tooltip,
+                color::WHITE,
+            )
+            .set(state.ids.inventory_sort, ui)
+            .was_clicked()
+        {
+            event = Some(Event::SortInventory);
         }
 
         // Armor Slots
@@ -726,7 +745,6 @@ impl<'a> Widget for Bag<'a> {
             slot_manager: Some(self.slot_manager),
             pulse: self.pulse,
         };
-        let i18n = &self.localized_strings;
         let filled_slot = self.imgs.armor_slot;
         if !self.show.bag_inv {
             // Stat icons and text
@@ -1179,6 +1197,7 @@ impl<'a> Widget for Bag<'a> {
                 .set(state.ids.offhand_slot, ui)
             }
         }
+
         // Bag 1
         let bag1_item = inventory
             .equipped(EquipSlot::Armor(ArmorSlot::Bag1))

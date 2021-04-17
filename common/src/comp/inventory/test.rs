@@ -15,6 +15,7 @@ lazy_static! {
 fn push_full() {
     let msm = &MaterialStatManifest::default();
     let mut inv = Inventory {
+        next_sort_order: InventorySortOrder::Name,
         slots: TEST_ITEMS.iter().map(|a| Some(a.duplicate(msm))).collect(),
         loadout: LoadoutBuilder::new().build(),
     };
@@ -29,6 +30,7 @@ fn push_full() {
 fn push_all_full() {
     let msm = &MaterialStatManifest::default();
     let mut inv = Inventory {
+        next_sort_order: InventorySortOrder::Name,
         slots: TEST_ITEMS.iter().map(|a| Some(a.duplicate(msm))).collect(),
         loadout: LoadoutBuilder::new().build(),
     };
@@ -50,6 +52,7 @@ fn push_all_full() {
 fn push_unique_all_full() {
     let msm = &MaterialStatManifest::default();
     let mut inv = Inventory {
+        next_sort_order: InventorySortOrder::Name,
         slots: TEST_ITEMS.iter().map(|a| Some(a.duplicate(msm))).collect(),
         loadout: LoadoutBuilder::new().build(),
     };
@@ -63,6 +66,7 @@ fn push_unique_all_full() {
 fn push_all_empty() {
     let msm = &MaterialStatManifest::default();
     let mut inv = Inventory {
+        next_sort_order: InventorySortOrder::Name,
         slots: vec![None, None],
         loadout: LoadoutBuilder::new().build(),
     };
@@ -76,6 +80,7 @@ fn push_all_empty() {
 fn push_all_unique_empty() {
     let msm = &MaterialStatManifest::default();
     let mut inv = Inventory {
+        next_sort_order: InventorySortOrder::Name,
         slots: vec![None, None],
         loadout: LoadoutBuilder::new().build(),
     };

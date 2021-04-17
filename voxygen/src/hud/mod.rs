@@ -372,6 +372,7 @@ pub enum Event {
     },
     DropSlot(comp::slot::Slot),
     SplitDropSlot(comp::slot::Slot),
+    SortInventory,
     ChangeHotbarState(Box<HotbarState>),
     TradeAction(TradeAction),
     Ability3(bool),
@@ -2330,6 +2331,7 @@ impl Hud {
                             self.force_ungrab = true
                         };
                     },
+                    Some(bag::Event::SortInventory) => self.events.push(Event::SortInventory),
                     None => {},
                 }
             }
