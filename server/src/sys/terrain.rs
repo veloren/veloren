@@ -1,5 +1,6 @@
 use crate::{
-    chunk_generator::ChunkGenerator, client::Client, presence::Presence, rtsim::RtSim, Tick,
+    chunk_generator::ChunkGenerator, client::Client, presence::Presence, rtsim::RtSim,
+    settings::Settings, SpawnPoint, Tick,
 };
 use common::{
     comp::{
@@ -33,6 +34,8 @@ impl<'a> System<'a> for Sys {
     type SystemData = (
         Read<'a, EventBus<ServerEvent>>,
         Read<'a, Tick>,
+        Read<'a, SpawnPoint>,
+        Read<'a, Settings>,
         WriteExpect<'a, ChunkGenerator>,
         WriteExpect<'a, TerrainGrid>,
         Write<'a, TerrainChanges>,
@@ -51,6 +54,8 @@ impl<'a> System<'a> for Sys {
         (
             server_event_bus,
             tick,
+            spawn_point,
+            server_settings,
             mut chunk_generator,
             mut terrain,
             mut terrain_changes,
@@ -218,6 +223,14 @@ impl<'a> System<'a> for Sys {
                     rtsim_entity: None,
                 })
             }
+
+            // Insert a safezone if chunk contains the spawn position
+            if server_settings.safe_spawn && is_spawn_chunk(key, *spawn_point, &terrain) {
+                server_emitter.emit(ServerEvent::CreateSafezone {
+                    range: Some(100.0),
+                    pos: Pos(spawn_point.0),
+                });
+            }
         }
 
         // Remove chunks that are too far from players.
@@ -270,4 +283,9 @@ pub fn chunk_in_vd(
         .magnitude_squared();
 
     adjusted_dist_sqr <= vd.pow(2)
+}
+
+fn is_spawn_chunk(chunk_pos: Vec2<i32>, spawn_pos: SpawnPoint, terrain: &TerrainGrid) -> bool {
+    let spawn_chunk_pos = terrain.pos_key(spawn_pos.0.map(|e| e as i32));
+    chunk_pos == spawn_chunk_pos
 }

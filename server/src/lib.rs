@@ -114,7 +114,11 @@ use world::{
 };
 
 #[derive(Copy, Clone)]
-struct SpawnPoint(Vec3<f32>);
+pub struct SpawnPoint(Vec3<f32>);
+
+impl Default for SpawnPoint {
+    fn default() -> Self { Self(Vec3::new(0.0, 0.0, 256.0)) }
+}
 
 // Tick count used for throttling network updates
 // Note this doesn't account for dt (so update rate changes with tick rate)
@@ -299,7 +303,7 @@ impl Server {
         };
 
         #[cfg(feature = "worldgen")]
-        let spawn_point = {
+        let spawn_point = SpawnPoint({
             let index = index.as_index_ref();
             // NOTE: all of these `.map(|e| e as [type])` calls should compile into no-ops,
             // but are needed to be explicit about casting (and to make the compiler stop
@@ -327,12 +331,12 @@ impl Server {
             };
 
             world.find_lowest_accessible_pos(index, spawn_chunk)
-        };
+        });
         #[cfg(not(feature = "worldgen"))]
-        let spawn_point = Vec3::new(0.0, 0.0, 256.0);
+        let spawn_point = SpawnPoint::default();
 
         // Set the spawn point we calculated above
-        state.ecs_mut().insert(SpawnPoint(spawn_point));
+        state.ecs_mut().insert(spawn_point);
 
         // Insert a default AABB for the world
         // TODO: prevent this from being deleted

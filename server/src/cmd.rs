@@ -1069,22 +1069,7 @@ fn handle_safezone(
 ) -> CmdResult<()> {
     let range = scan_fmt_some!(&args, &action.arg_fmt(), f32);
     let pos = position(server, target, "target")?;
-    server
-        .state
-        .create_object(pos, comp::object::Body::BoltNature)
-        .with(comp::Mass(10_f32.powi(10)))
-        .with(comp::Auras::new(vec![Aura::new(
-            AuraKind::Buff {
-                kind: BuffKind::Invulnerability,
-                data: BuffData::new(1.0, Some(Duration::from_secs(1))),
-                category: BuffCategory::Natural,
-                source: BuffSource::World,
-            },
-            range.unwrap_or(100.0),
-            None,
-            AuraTarget::All,
-        )]))
-        .build();
+    server.state.create_safezone(range, pos).build();
 
     server.notify_client(
         client,

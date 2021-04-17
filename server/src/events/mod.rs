@@ -19,7 +19,7 @@ use interaction::{
 use inventory_manip::handle_inventory;
 use invite::{handle_invite, handle_invite_response};
 use player::{handle_client_disconnect, handle_exit_ingame};
-use specs::{Entity as EcsEntity, WorldExt};
+use specs::{Builder, Entity as EcsEntity, WorldExt};
 use trade::{cancel_trade_for, handle_process_trade_action};
 
 mod entity_creation;
@@ -212,6 +212,9 @@ impl Server {
                     target,
                     max_range,
                 } => handle_teleport_to(&self, entity, target, max_range),
+                ServerEvent::CreateSafezone { range, pos } => {
+                    self.state.create_safezone(range, pos).build();
+                },
             }
         }
 
