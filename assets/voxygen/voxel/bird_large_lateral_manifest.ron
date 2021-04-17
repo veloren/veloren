@@ -2,7 +2,7 @@
     (Phoenix, Male): (
         wing_in_l: (
             offset: (-6.0, -5.0, -2.0),
-            lateral: ("npc.phoenix.male.wing_in_l"),
+            lateral: ("npc.phoenix.male.wing_in_r"),
         ),
         wing_in_r: (
             offset: (0.0, -5.0, -2.0),
@@ -10,7 +10,7 @@
         ),
         wing_mid_l: (
             offset: (-2.5, -7.0, -2.0),
-            lateral: ("npc.phoenix.male.wing_mid_l"),
+            lateral: ("npc.phoenix.male.wing_mid_r"),
         ),
         wing_mid_r: (
             offset: (-2.5, -7.0, -2.0),
@@ -18,7 +18,7 @@
         ),
         wing_out_l: (
             offset: (-9.0, -8.0, -2.0),
-            lateral: ("npc.phoenix.male.wing_out_l"),
+            lateral: ("npc.phoenix.male.wing_out_r"),
         ),
         wing_out_r: (
             offset: (0.0, -8.0, -2.0),
@@ -26,7 +26,7 @@
         ),
         leg_l: (
             offset: (-1.5, -1.5, -1.5),
-            lateral: ("npc.phoenix.male.leg_l"),
+            lateral: ("npc.phoenix.male.leg_r"),
         ),
         leg_r: (
             offset: (-1.5, -1.5, -1.5),
@@ -34,7 +34,7 @@
         ),
         foot_l: (
             offset: (-1.5, -2.0, -4.0),
-            lateral: ("npc.phoenix.male.foot_l"),
+            lateral: ("npc.phoenix.male.foot_r"),
         ),
         foot_r: (
             offset: (-1.5, -2.0, -4.0),
@@ -44,7 +44,7 @@
     (Phoenix, Female): (
         wing_in_l: (
             offset: (-6.0, -5.0, -2.0),
-            lateral: ("npc.phoenix.male.wing_in_l"),
+            lateral: ("npc.phoenix.male.wing_in_r"),
         ),
         wing_in_r: (
             offset: (0.0, -5.0, -2.0),
@@ -52,7 +52,7 @@
         ),
         wing_mid_l: (
             offset: (-2.5, -7.0, -2.0),
-            lateral: ("npc.phoenix.male.wing_mid_l"),
+            lateral: ("npc.phoenix.male.wing_mid_r"),
         ),
         wing_mid_r: (
             offset: (-2.5, -7.0, -2.0),
@@ -60,7 +60,7 @@
         ),
         wing_out_l: (
             offset: (-9.0, -8.0, -2.0),
-            lateral: ("npc.phoenix.male.wing_out_l"),
+            lateral: ("npc.phoenix.male.wing_out_r"),
         ),
         wing_out_r: (
             offset: (0.0, -8.0, -2.0),
@@ -68,7 +68,7 @@
         ),
         leg_l: (
             offset: (-1.5, -1.5, -1.5),
-            lateral: ("npc.phoenix.male.leg_l"),
+            lateral: ("npc.phoenix.male.leg_r"),
         ),
         leg_r: (
             offset: (-1.5, -1.5, -1.5),
@@ -76,7 +76,7 @@
         ),
         foot_l: (
             offset: (-1.5, -2.0, -4.0),
-            lateral: ("npc.phoenix.male.foot_l"),
+            lateral: ("npc.phoenix.male.foot_r"),
         ),
         foot_r: (
             offset: (-1.5, -2.0, -4.0),
@@ -86,7 +86,7 @@
     (Cockatrice, Male): (
         wing_in_l: (
             offset: (-7.0, -8.0, -2.0),
-            lateral: ("npc.cockatrice.male.wing_in_l"),
+            lateral: ("npc.cockatrice.male.wing_in_r"),
         ),
         wing_in_r: (
             offset: (0.0, -8.0, -2.0),
@@ -94,7 +94,7 @@
         ),
         wing_mid_l: (
             offset: (-5.0, -9.0, -2.0),
-            lateral: ("npc.cockatrice.male.wing_mid_l"),
+            lateral: ("npc.cockatrice.male.wing_mid_r"),
         ),
         wing_mid_r: (
             offset: (0.0, -9.0, -2.0),
@@ -102,7 +102,7 @@
         ),
         wing_out_l: (
             offset: (-10.0, -11.0, -2.0),
-            lateral: ("npc.cockatrice.male.wing_out_l"),
+            lateral: ("npc.cockatrice.male.wing_out_r"),
         ),
         wing_out_r: (
             offset: (0.0, -11.0, -2.0),
@@ -110,7 +110,7 @@
         ),
         leg_l: (
             offset: (-3.0, -4.5, -4.0),
-            lateral: ("npc.cockatrice.male.leg_l"),
+            lateral: ("npc.cockatrice.male.leg_r"),
         ),
         leg_r: (
             offset: (-3.0, -4.5, -4.0),
@@ -118,7 +118,7 @@
         ),
         foot_l: (
             offset: (-3.5, -5.5, -10.0),
-            lateral: ("npc.cockatrice.male.foot_l"),
+            lateral: ("npc.cockatrice.male.foot_r"),
         ),
         foot_r: (
             offset: (-3.5, -5.5, -10.0),
@@ -128,7 +128,7 @@
     (Cockatrice, Female): (
         wing_in_l: (
             offset: (-7.0, -8.0, -2.0),
-            lateral: ("npc.cockatrice.male.wing_in_l"),
+            lateral: ("npc.cockatrice.male.wing_in_r"),
         ),
         wing_in_r: (
             offset: (0.0, -8.0, -2.0),
@@ -136,7 +136,7 @@
         ),
         wing_mid_l: (
             offset: (-5.0, -9.0, -2.0),
-            lateral: ("npc.cockatrice.male.wing_mid_l"),
+            lateral: ("npc.cockatrice.male.wing_mid_r"),
         ),
         wing_mid_r: (
             offset: (0.0, -9.0, -2.0),
@@ -144,7 +144,7 @@
         ),
         wing_out_l: (
             offset: (-10.0, -11.0, -2.0),
-            lateral: ("npc.cockatrice.male.wing_out_l"),
+            lateral: ("npc.cockatrice.male.wing_out_r"),
         ),
         wing_out_r: (
             offset: (0.0, -11.0, -2.0),
@@ -152,7 +152,7 @@
         ),
         leg_l: (
             offset: (-3.0, -4.5, -4.0),
-            lateral: ("npc.cockatrice.male.leg_l"),
+            lateral: ("npc.cockatrice.male.leg_r"),
         ),
         leg_r: (
             offset: (-3.0, -4.5, -4.0),
@@ -160,7 +160,7 @@
         ),
         foot_l: (
             offset: (-3.5, -5.5, -10.0),
-            lateral: ("npc.cockatrice.male.foot_l"),
+            lateral: ("npc.cockatrice.male.foot_r"),
         ),
         foot_r: (
             offset: (-3.5, -5.5, -10.0),

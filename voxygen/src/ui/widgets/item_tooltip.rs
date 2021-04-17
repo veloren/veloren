@@ -1058,7 +1058,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                 .w(text_w)
                 .get_h(ui)
                 .unwrap_or(0.0)
-                + V_PAD
+                + V_PAD * 2.0
         } else {
             0.0
         };

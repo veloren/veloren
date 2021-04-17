@@ -7,7 +7,7 @@ use std::f32::consts::PI;
 pub struct RunAnimation;
 
 impl Animation for RunAnimation {
-    type Dependency = (Vec3<f32>, Vec3<f32>, Vec3<f32>, f32, Vec3<f32>, f32);
+    type Dependency = (Vec3<f32>, Vec3<f32>, Vec3<f32>, f32);
     type Skeleton = BirdLargeSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -16,8 +16,8 @@ impl Animation for RunAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "bird_large_run")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (velocity, orientation, last_ori, _global_time, _avg_vel, acc_vel): Self::Dependency,
-        _anim_time: f32,
+        (velocity, orientation, last_ori, acc_vel): Self::Dependency,
+        anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
@@ -28,25 +28,29 @@ impl Animation for RunAnimation {
         //let speednorm = speed / 13.0;
         let speednorm = (speed / 13.0).powf(0.25);
 
-        let speedmult = 2.0;
+        let speedmult = 0.8;
         let lab: f32 = 0.6; //6
+
+        // acc_vel and anim_time mix to make sure phase lenght isn't starting at
+        // +infinite
+        let mixed_vel = acc_vel + anim_time * 5.0; //sets run frequency using speed, with anim_time setting a floor
 
         let short = ((1.0
             / (0.72
-                + 0.28 * ((acc_vel * 1.0 * lab * speedmult + PI * -0.15 - 0.5).sin()).powi(2)))
+                + 0.28 * ((mixed_vel * 1.0 * lab * speedmult + PI * -0.15 - 0.5).sin()).powi(2)))
         .sqrt())
-            * ((acc_vel * 1.0 * lab * speedmult + PI * -0.15 - 0.5).sin())
+            * ((mixed_vel * 1.0 * lab * speedmult + PI * -0.15 - 0.5).sin())
             * speednorm;
 
         //
-        let shortalt = (acc_vel * 1.0 * lab * speedmult + PI * 3.0 / 8.0 - 0.5).sin() * speednorm;
+        let shortalt = (mixed_vel * 1.0 * lab * speedmult + PI * 3.0 / 8.0 - 0.5).sin() * speednorm;
 
         //FL
-        let foot1a = (acc_vel * 1.0 * lab * speedmult + 0.0 + PI).sin() * speednorm; //1.5
-        let foot1b = (acc_vel * 1.0 * lab * speedmult + 1.57 + PI).sin() * speednorm; //1.9
+        let foot1a = (mixed_vel * 1.0 * lab * speedmult + 0.0 + PI).sin() * speednorm; //1.5
+        let foot1b = (mixed_vel * 1.0 * lab * speedmult + 1.57 + PI).sin() * speednorm; //1.9
         //FR
-        let foot2a = (acc_vel * 1.0 * lab * speedmult).sin() * speednorm; //1.2
-        let foot2b = (acc_vel * 1.0 * lab * speedmult + 1.57).sin() * speednorm; //1.6
+        let foot2a = (mixed_vel * 1.0 * lab * speedmult).sin() * speednorm; //1.2
+        let foot2b = (mixed_vel * 1.0 * lab * speedmult + 1.57).sin() * speednorm; //1.6
         let ori: Vec2<f32> = Vec2::from(orientation);
         let last_ori = Vec2::from(last_ori);
         let tilt = if ::vek::Vec2::new(ori, last_ori)
@@ -63,7 +67,6 @@ impl Animation for RunAnimation {
 
         next.head.scale = Vec3::one() * 0.98;
         next.neck.scale = Vec3::one() * 1.02;
-        next.beak.scale = Vec3::one() * 0.98;
         next.leg_l.scale = Vec3::one() / 8.0 * 0.98;
         next.leg_r.scale = Vec3::one() / 8.0 * 0.98;
         next.foot_l.scale = Vec3::one() * 1.02;
@@ -94,18 +97,16 @@ impl Animation for RunAnimation {
             * Quaternion::rotation_z(shortalt * 0.10);
 
         next.tail_front.position = Vec3::new(0.0, s_a.tail_front.0, s_a.tail_front.1);
-        next.tail_front.orientation = Quaternion::rotation_x(short * -0.02);
+        next.tail_front.orientation = Quaternion::rotation_x(0.6 + short * -0.02);
 
         next.tail_rear.position = Vec3::new(0.0, s_a.tail_rear.0, s_a.tail_rear.1);
-        next.tail_rear.orientation = Quaternion::rotation_x(short * -0.1);
+        next.tail_rear.orientation = Quaternion::rotation_x(-0.2 + short * -0.1);
 
         next.wing_in_l.position = Vec3::new(-s_a.wing_in.0, s_a.wing_in.1, s_a.wing_in.2);
         next.wing_in_r.position = Vec3::new(s_a.wing_in.0, s_a.wing_in.1, s_a.wing_in.2);
 
-        next.wing_in_l.orientation =
-            Quaternion::rotation_y(-s_a.wings_angle) * Quaternion::rotation_z(0.2);
-        next.wing_in_r.orientation =
-            Quaternion::rotation_y(s_a.wings_angle) * Quaternion::rotation_z(-0.2);
+        next.wing_in_l.orientation = Quaternion::rotation_y(-0.8) * Quaternion::rotation_z(0.2);
+        next.wing_in_r.orientation = Quaternion::rotation_y(0.8) * Quaternion::rotation_z(-0.2);
 
         next.wing_mid_l.position = Vec3::new(-s_a.wing_mid.0, s_a.wing_mid.1, s_a.wing_mid.2);
         next.wing_mid_r.position = Vec3::new(s_a.wing_mid.0, s_a.wing_mid.1, s_a.wing_mid.2);

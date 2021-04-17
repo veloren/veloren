@@ -54,11 +54,11 @@ impl Animation for FeedAnimation {
         next.chest.orientation = Quaternion::rotation_x(-0.5);
 
         next.neck.position = Vec3::new(0.0, s_a.neck.0, s_a.neck.1);
-        next.neck.orientation = Quaternion::rotation_x(-0.8);
+        next.neck.orientation = Quaternion::rotation_x(-0.2);
 
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
         next.head.orientation = Quaternion::rotation_z(duck_head_look.x)
-            * Quaternion::rotation_x(0.2 - duck_head_look.y.abs() + wave_slow_cos * 0.01);
+            * Quaternion::rotation_x(-0.2 - duck_head_look.y.abs() + wave_slow_cos * 0.01);
 
         next.beak.position = Vec3::new(0.0, s_a.beak.0, s_a.beak.1);
         next.beak.orientation = Quaternion::rotation_x(beak * -0.1 - 0.1);
@@ -89,9 +89,9 @@ impl Animation for FeedAnimation {
         next.wing_out_r.orientation = Quaternion::rotation_y(0.2) * Quaternion::rotation_z(-0.2);
 
         next.leg_l.position = Vec3::new(-s_a.leg.0, s_a.leg.1, s_a.leg.2) / 8.0;
-        next.leg_l.orientation = Quaternion::rotation_x(0.5);
+        next.leg_l.orientation = Quaternion::rotation_x(0.0);
         next.leg_r.position = Vec3::new(s_a.leg.0, s_a.leg.1, s_a.leg.2) / 8.0;
-        next.leg_r.orientation = Quaternion::rotation_x(0.5);
+        next.leg_r.orientation = Quaternion::rotation_x(0.0);
 
         next.foot_l.position = Vec3::new(-s_a.foot.0, s_a.foot.1, s_a.foot.2);
         next.foot_l.orientation = Quaternion::rotation_x(0.0);

@@ -3,12 +3,11 @@ use super::{
     BirdLargeSkeleton, SkeletonAttr,
 };
 use common::states::utils::StageSection;
-use std::ops::Mul;
 
 pub struct StunnedAnimation;
 
 impl Animation for StunnedAnimation {
-    type Dependency = (f32, f32, Option<StageSection>, f32);
+    type Dependency = (f32, Option<StageSection>, f32);
     type Skeleton = BirdLargeSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -17,25 +16,13 @@ impl Animation for StunnedAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "bird_large_stunned")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (_velocity, global_time, stage_section, timer): Self::Dependency,
+        (global_time, stage_section, timer): Self::Dependency,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        let duck_head_look = Vec2::new(
-            (global_time / 2.0 + anim_time / 8.0)
-                .floor()
-                .mul(7331.0)
-                .sin()
-                * 0.5,
-            (global_time / 2.0 + anim_time / 8.0)
-                .floor()
-                .mul(1337.0)
-                .sin()
-                * 0.25,
-        );
         let wave_slow_cos = (anim_time * 4.5).cos();
 
         let (movement1base, movement2, twitch) = match stage_section {
@@ -64,19 +51,16 @@ impl Animation for StunnedAnimation {
         next.chest.orientation = Quaternion::rotation_x(movement1base * 0.5);
 
         next.neck.position = Vec3::new(0.0, s_a.neck.0, s_a.neck.1);
-        next.neck.orientation = Quaternion::rotation_x(0.0);
 
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
-        next.head.orientation = Quaternion::rotation_z(twitch2 * 0.8)
-            * Quaternion::rotation_x(-duck_head_look.y.abs() + wave_slow_cos * 0.01);
+        next.head.orientation =
+            Quaternion::rotation_z(twitch2 * 0.8) * Quaternion::rotation_x(wave_slow_cos * 0.01);
 
         next.beak.position = Vec3::new(0.0, s_a.beak.0, s_a.beak.1);
         next.beak.orientation = Quaternion::rotation_x(-movement1abs * 0.8);
 
         next.tail_front.position = Vec3::new(0.0, s_a.tail_front.0, s_a.tail_front.1);
-        next.tail_front.orientation = Quaternion::rotation_x(0.0);
         next.tail_rear.position = Vec3::new(0.0, s_a.tail_rear.0, s_a.tail_rear.1);
-        next.tail_rear.orientation = Quaternion::rotation_x(0.0);
 
         next.wing_in_l.position = Vec3::new(-s_a.wing_in.0, s_a.wing_in.1, s_a.wing_in.2);
         next.wing_in_r.position = Vec3::new(s_a.wing_in.0, s_a.wing_in.1, s_a.wing_in.2);
@@ -99,12 +83,9 @@ impl Animation for StunnedAnimation {
         next.leg_l.position = Vec3::new(-s_a.leg.0, s_a.leg.1, s_a.leg.2) / 8.0;
         next.leg_l.orientation = Quaternion::rotation_x(movement1abs * 0.8);
         next.leg_r.position = Vec3::new(s_a.leg.0, s_a.leg.1, s_a.leg.2) / 8.0;
-        next.leg_r.orientation = Quaternion::rotation_x(0.0);
 
         next.foot_l.position = Vec3::new(-s_a.foot.0, s_a.foot.1, s_a.foot.2);
-        next.foot_l.orientation = Quaternion::rotation_x(0.0);
         next.foot_r.position = Vec3::new(s_a.foot.0, s_a.foot.1, s_a.foot.2);
-        next.foot_r.orientation = Quaternion::rotation_x(0.0);
 
         next
     }

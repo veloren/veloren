@@ -77,7 +77,7 @@ impl Body {
             Body::BirdMedium(_) => 80.0,
             Body::FishMedium(_) => 80.0,
             Body::Dragon(_) => 250.0,
-            Body::BirdLarge(_) => 75.0,
+            Body::BirdLarge(_) => 110.0,
             Body::FishSmall(_) => 60.0,
             Body::BipedSmall(biped_small) => match biped_small.species {
                 biped_small::Species::Haniwa => 65.0,

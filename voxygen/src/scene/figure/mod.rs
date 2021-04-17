@@ -3283,9 +3283,6 @@ impl FigureMgr {
                             FigureState::new(renderer, BirdLargeSkeleton::default())
                         });
 
-                    // Average velocity relative to the current ground
-                    let rel_avg_vel = state.avg_vel - physics.ground_vel;
-
                     let (character, last_character) = match (character, last_character) {
                         (Some(c), Some(l)) => (c, l),
                         _ => continue,
@@ -3316,8 +3313,6 @@ impl FigureMgr {
                                 // TODO: Update to use the quaternion.
                                 ori * anim::vek::Vec3::<f32>::unit_y(),
                                 state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                time,
-                                rel_avg_vel,
                                 state.acc_vel,
                             ),
                             state.state_time,
@@ -3332,9 +3327,6 @@ impl FigureMgr {
                                 // TODO: Update to use the quaternion.
                                 ori * anim::vek::Vec3::<f32>::unit_y(),
                                 state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                time,
-                                rel_avg_vel,
-                                state.acc_vel,
                             ),
                             state.state_time,
                             &mut state_animation_rate,
@@ -3440,12 +3432,7 @@ impl FigureMgr {
                                 | PoiseState::KnockedDown => {
                                     anim::bird_large::StunnedAnimation::update_skeleton(
                                         &target_base,
-                                        (
-                                            rel_vel.magnitude(),
-                                            time,
-                                            Some(s.stage_section),
-                                            state.state_time,
-                                        ),
+                                        (time, Some(s.stage_section), state.state_time),
                                         stage_progress,
                                         &mut state_animation_rate,
                                         skeleton_attr,

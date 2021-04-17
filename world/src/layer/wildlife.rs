@@ -367,7 +367,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
-                    .with_body(match rng.gen_range(0..11) {
+                    .with_body(match rng.gen_range(0..10) {
                         0 => quadruped_small::Body {
                             species: quadruped_small::Species::Fox,
                             body_type: quadruped_small::BodyType::Male,
@@ -408,14 +408,9 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                             &quadruped_medium::Species::Hirdrasil,
                         )
                         .into(),
-                        9 => quadruped_small::Body::random_with(
-                            rng,
-                            &quadruped_small::Species::Truffler,
-                        )
-                        .into(),
                         _ => quadruped_small::Body::random_with(
                             rng,
-                            &quadruped_small::Species::Batfox,
+                            &quadruped_small::Species::Truffler,
                         )
                         .into(),
                     })
@@ -429,6 +424,26 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                     * BASE_DENSITY
                     * close(c.humidity, CONFIG.forest_hum, 0.6)
                     * 8.0
+            },
+        },
+        // Temperate solitary wild night
+        Entry {
+            make_entity: |pos, rng| {
+                EntityInfo::at(pos)
+                    .with_body(
+                        quadruped_small::Body::random_with(rng, &quadruped_small::Species::Batfox)
+                            .into(),
+                    )
+                    .with_alignment(Alignment::Enemy)
+            },
+            group_size: 1..2,
+            is_underwater: false,
+            day_period: vec![Night],
+            get_density: |c, _col| {
+                close(c.temp, CONFIG.temperate_temp + 0.1, 0.6)
+                    * BASE_DENSITY
+                    * close(c.humidity, CONFIG.forest_hum, 0.6)
+                    * 0.8
             },
         },
         // Rare temperate solitary enemies
@@ -583,10 +598,29 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                 close(c.temp, CONFIG.tropical_temp + 0.2, 0.2)
                     * close(c.humidity, CONFIG.jungle_hum, 0.2)
                     * BASE_DENSITY
-                    * 3.0
+                    * 2.8
             },
         },
-        // Jungle rare solitary wild
+        // Jungle solitary ennemies day
+        Entry {
+            make_entity: |pos, rng| {
+                EntityInfo::at(pos)
+                    .with_body(
+                        theropod::Body::random_with(rng, &theropod::Species::Sunlizard).into(),
+                    )
+                    .with_alignment(Alignment::Enemy)
+            },
+            group_size: 1..2,
+            is_underwater: false,
+            day_period: vec![Morning, Noon, Evening],
+            get_density: |c, _col| {
+                close(c.temp, CONFIG.tropical_temp + 0.2, 0.2)
+                    * close(c.humidity, CONFIG.jungle_hum, 0.2)
+                    * BASE_DENSITY
+                    * 0.5
+            },
+        },
+        // Jungle rare solitary wild day
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
@@ -607,7 +641,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             },
             group_size: 1..2,
             is_underwater: false,
-            day_period: vec![Night, Morning, Noon, Evening],
+            day_period: vec![Morning, Noon, Evening],
             get_density: |c, _col| {
                 close(c.temp, CONFIG.tropical_temp + 0.2, 0.2)
                     * close(c.humidity, CONFIG.jungle_hum, 0.2)
@@ -619,16 +653,12 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
-                    .with_body(match rng.gen_range(0..5) {
+                    .with_body(match rng.gen_range(0..4) {
                         0 => bird_medium::Body::random_with(rng, &bird_medium::Species::Parrot)
                             .into(),
-                        1 => {
-                            quadruped_low::Body::random_with(rng, &quadruped_low::Species::Monitor)
-                                .into()
-                        },
-                        2 => bird_large::Body::random_with(rng, &bird_large::Species::Cockatrice)
+                        1 => bird_large::Body::random_with(rng, &bird_large::Species::Cockatrice)
                             .into(),
-                        3 => quadruped_small::Body::random_with(
+                        2 => quadruped_small::Body::random_with(
                             rng,
                             &quadruped_small::Species::Quokka,
                         )
@@ -648,6 +678,26 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                     * close(c.humidity, CONFIG.jungle_hum, 0.2)
                     * BASE_DENSITY
                     * 8.0
+            },
+        },
+        // Jungle solitary wild day
+        Entry {
+            make_entity: |pos, rng| {
+                EntityInfo::at(pos)
+                    .with_body(
+                        quadruped_low::Body::random_with(rng, &quadruped_low::Species::Monitor)
+                            .into(),
+                    )
+                    .with_alignment(Alignment::Enemy)
+            },
+            group_size: 1..2,
+            is_underwater: false,
+            day_period: vec![Morning, Noon, Evening],
+            get_density: |c, _col| {
+                close(c.temp, CONFIG.tropical_temp + 0.2, 0.3)
+                    * close(c.humidity, CONFIG.jungle_hum, 0.2)
+                    * BASE_DENSITY
+                    * 2.0
             },
         },
         // Tropical rare river enemy
@@ -867,7 +917,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
         Entry {
             make_entity: |pos, rng| {
                 EntityInfo::at(pos)
-                    .with_body(match rng.gen_range(0..7) {
+                    .with_body(match rng.gen_range(0..4) {
                         0 => quadruped_small::Body::random_with(
                             rng,
                             &quadruped_small::Species::Holladon,
@@ -882,19 +932,34 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                             &quadruped_medium::Species::Camel,
                         )
                         .into(),
-                        3 => quadruped_low::Body {
-                            species: quadruped_low::Species::Salamander,
-                            body_type: quadruped_low::BodyType::Male,
-                        }
-                        .into(),
-                        4 => quadruped_small::Body::random_with(
+                        3 => quadruped_small::Body::random_with(
                             rng,
                             &quadruped_small::Species::Porcupine,
                         )
                         .into(),
-                        5 => quadruped_small::Body {
+                        _ => quadruped_small::Body {
                             species: quadruped_small::Species::Hare,
                             body_type: quadruped_small::BodyType::Male,
+                        }
+                        .into(),
+                    })
+                    .with_alignment(Alignment::Wild)
+            },
+            group_size: 1..2,
+            is_underwater: false,
+            day_period: vec![Night, Morning, Noon, Evening],
+            get_density: |c, _col| {
+                close(c.temp, CONFIG.desert_temp + 0.2, 0.3) * BASE_DENSITY * 3.8
+            },
+        },
+        // Desert solitary wild day
+        Entry {
+            make_entity: |pos, rng| {
+                EntityInfo::at(pos)
+                    .with_body(match rng.gen_range(0..3) {
+                        1 => quadruped_low::Body {
+                            species: quadruped_low::Species::Salamander,
+                            body_type: quadruped_low::BodyType::Male,
                         }
                         .into(),
                         _ => quadruped_small::Body::random_with(
@@ -907,9 +972,9 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             },
             group_size: 1..2,
             is_underwater: false,
-            day_period: vec![Night, Morning, Noon, Evening],
+            day_period: vec![Morning, Noon, Evening],
             get_density: |c, _col| {
-                close(c.temp, CONFIG.desert_temp + 0.2, 0.3) * BASE_DENSITY * 5.0
+                close(c.temp, CONFIG.desert_temp + 0.2, 0.3) * BASE_DENSITY * 1.0
             },
         },
         // Underwater temperate
