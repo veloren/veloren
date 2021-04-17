@@ -5776,6 +5776,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "veloren-voxygen-anim-dyn"
+version = "0.9.0"
+dependencies = [
+ "veloren-voxygen-anim",
+]
+
+[[package]]
 name = "veloren-world"
 version = "0.9.0"
 dependencies = [

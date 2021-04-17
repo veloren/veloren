@@ -4,18 +4,12 @@ edition = "2018"
 name = "veloren-voxygen-anim"
 version = "0.9.0"
 
-[lib]
-name = "voxygen_anim"
-# Uncomment to use animation hot reloading
-# Note: this breaks `cargo test`
-crate-type = ["lib", "cdylib"]
-
 [features]
-be-dyn-lib = []
 use-dyn-lib = ["libloading", "notify", "lazy_static", "tracing", "find_folder"]
+be-dyn-lib = []
 simd = ["vek/platform_intrinsics"]
 
-default = ["be-dyn-lib", "simd"]
+default = ["simd"]
 
 [dependencies]
 common = {package = "veloren-common", path = "../../common"}

@@ -16,6 +16,7 @@ members = [
     "server-cli",
     "voxygen",
     "voxygen/anim",
+    "voxygen/anim/dyn",
     "world",
     "network",
     "network/protocol"
