@@ -22,10 +22,10 @@ mod social;
 mod trade;
 pub mod util;
 
+pub use crafting::CraftingTab;
 pub use hotbar::{SlotContents as HotbarSlotContents, State as HotbarState};
 pub use item_imgs::animate_by_pulse;
 pub use settings_window::ScaleChange;
-pub use crafting::CraftingTab;
 
 use bag::Bag;
 use buffs::BuffsBar;
@@ -75,7 +75,7 @@ use common::{
         BuffKind, Item,
     },
     outcome::Outcome,
-    terrain::{TerrainChunk, SpriteKind},
+    terrain::{SpriteKind, TerrainChunk},
     trade::{ReducedInventory, TradeAction},
     uid::Uid,
     util::srgba_to_linear,
@@ -381,7 +381,10 @@ pub enum Event {
     Logout,
     Quit,
 
-    CraftRecipe { recipe: String, craft_sprite: Option<(Vec3<i32>, SpriteKind)> },
+    CraftRecipe {
+        recipe: String,
+        craft_sprite: Option<(Vec3<i32>, SpriteKind)>,
+    },
     InviteMember(Uid),
     AcceptInvite,
     DeclineInvite,
@@ -560,7 +563,11 @@ impl Show {
         }
     }
 
-    pub fn open_crafting_tab(&mut self, tab: CraftingTab, craft_sprite: Option<(Vec3<i32>, SpriteKind)>) {
+    pub fn open_crafting_tab(
+        &mut self,
+        tab: CraftingTab,
+        craft_sprite: Option<(Vec3<i32>, SpriteKind)>,
+    ) {
         self.selected_crafting_tab(tab);
         self.crafting(true);
         self.craft_sprite = craft_sprite;
@@ -1406,7 +1413,8 @@ impl Hud {
                     .set(overitem_id, ui_widgets);
                 } else if let Some(sprite) = block.get_sprite() {
                     overitem::Overitem::new(
-                        format!("{:?}", sprite).into(), // TODO: A better way to generate text for this
+                        format!("{:?}", sprite).into(), /* TODO: A better way to generate text
+                                                         * for this */
                         overitem::TEXT_COLOR,
                         pos.distance_squared(player_pos),
                         &self.fonts,
@@ -2443,7 +2451,10 @@ impl Hud {
                 {
                     match event {
                         crafting::Event::CraftRecipe(recipe) => {
-                            events.push(Event::CraftRecipe { recipe, craft_sprite: self.show.craft_sprite });
+                            events.push(Event::CraftRecipe {
+                                recipe,
+                                craft_sprite: self.show.craft_sprite,
+                            });
                         },
                         crafting::Event::Close => {
                             self.show.stats = false;

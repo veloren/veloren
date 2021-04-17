@@ -76,9 +76,15 @@ impl From<InventoryEvent> for InventoryManip {
                 Self::SplitSwap(Slot::Inventory(inv1), Slot::Inventory(inv2))
             },
             InventoryEvent::Drop(inv) => Self::Drop(Slot::Inventory(inv)),
-            InventoryEvent::SplitDrop(inv) => Self::SplitDrop(Slot::Inventory(inv)),            
+            InventoryEvent::SplitDrop(inv) => Self::SplitDrop(Slot::Inventory(inv)),
             InventoryEvent::Sort => Self::Sort,
-            InventoryEvent::CraftRecipe { recipe, craft_sprite } => Self::CraftRecipe { recipe, craft_sprite },
+            InventoryEvent::CraftRecipe {
+                recipe,
+                craft_sprite,
+            } => Self::CraftRecipe {
+                recipe,
+                craft_sprite,
+            },
         }
     }
 }

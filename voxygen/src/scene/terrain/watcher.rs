@@ -1,3 +1,4 @@
+use crate::hud::CraftingTab;
 use common::{
     terrain::{BlockKind, SpriteKind, TerrainChunk},
     vol::{IntoVolIterator, RectRasterableVol},
@@ -5,7 +6,6 @@ use common::{
 use common_base::span;
 use rand::prelude::*;
 use vek::*;
-use crate::hud::CraftingTab;
 
 #[derive(Copy, Clone)]
 pub enum Interaction {
@@ -115,7 +115,18 @@ impl BlocksOfInterest {
                         Some(SpriteKind::WhiteFlower) => flowers.push(pos),
                         Some(SpriteKind::YellowFlower) => flowers.push(pos),
                         Some(SpriteKind::Sunflower) => flowers.push(pos),
-                        Some(SpriteKind::Pot) => interactables.push((pos, Interaction::Craft(CraftingTab::Food))),
+                        Some(SpriteKind::CraftingBench) => {
+                            interactables.push((pos, Interaction::Craft(CraftingTab::All)))
+                        },
+                        Some(SpriteKind::Forge) => {
+                            interactables.push((pos, Interaction::Craft(CraftingTab::Dismantle)))
+                        },
+                        Some(SpriteKind::Cauldron) => {
+                            interactables.push((pos, Interaction::Craft(CraftingTab::Potion)))
+                        },
+                        Some(SpriteKind::Anvil) => {
+                            interactables.push((pos, Interaction::Craft(CraftingTab::Weapon)))
+                        },
                         _ => {},
                     },
                 }

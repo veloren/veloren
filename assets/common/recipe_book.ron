@@ -5,6 +5,7 @@
             (Item("common.items.crafting_ing.twigs"), 6),
             (Item("common.items.crafting_ing.stones"), 6),
         ],
+        craft_sprite: Some(CraftingBench),
     ),
     "mortar_pestle": (
         output: ("common.items.crafting_tools.mortar_pestle", 1),
@@ -28,6 +29,7 @@
             (Item("common.items.ore.velorite"), 1),
             (Item("common.items.crafting_tools.craftsman_hammer"), 0),
         ],
+        craft_sprite: Some(Anvil),
     ),
     "potion_s": (
         output: ("common.items.consumable.potion_minor", 1),
@@ -36,6 +38,7 @@
             (Item("common.items.food.apple"), 4),
             (Item("common.items.crafting_ing.honey"), 1),
         ],
+        craft_sprite: Some(Cauldron),
     ),
     "potion_m": (
         output: ("common.items.consumable.potion_med", 1),
@@ -43,6 +46,7 @@
             (Item("common.items.consumable.potion_minor"), 2),
             (Item("common.items.ore.veloritefrag"), 4),
         ],
+        craft_sprite: Some(Cauldron),
     ),
     "collar_basic": (
         output: ("common.items.utility.collar", 1),
@@ -128,14 +132,14 @@
             (Item("common.items.food.apple"), 4),
             (Item("common.items.crafting_tools.mortar_pestle"), 0),
         ],
+        craft_sprite: Some(Cauldron),
     ),
     "salad_plain": (
         output: ("common.items.food.plainsalad", 1),
         inputs: [
             (Item("common.items.food.lettuce"), 1),
             (Item("common.items.crafting_ing.bowl"), 1),
-        ],
-		craft_sprite: Some(Pot),
+        ],		
     ),
     "salad_tomato": (
         output: ("common.items.food.tomatosalad", 1),
@@ -167,6 +171,7 @@
             (Item("common.items.flowers.sunflower"), 4),
             (Item("common.items.crafting_ing.honey"), 1),
         ],
+        craft_sprite: Some(Cauldron),
     ),
     "Plain Cloth Glider": (
         output: ("common.items.glider.glider_basic_white", 1),
@@ -177,6 +182,7 @@
             (Item("common.items.crafting_tools.craftsman_hammer"), 0),
             (Item("common.items.crafting_tools.sewing_set"), 0),
         ],
+        craft_sprite: Some(CraftingBench),
     ),
     "Red Cloth Glider": (
         output: ("common.items.glider.glider_basic_red", 1),
@@ -187,6 +193,7 @@
             (Item("common.items.crafting_tools.craftsman_hammer"), 0),
             (Item("common.items.crafting_tools.sewing_set"), 0),
         ],
+        craft_sprite: Some(CraftingBench),
     ),
     "Leaves Glider": (
         output: ("common.items.glider.glider_leaves", 1),
@@ -198,6 +205,7 @@
             (Item("common.items.crafting_tools.craftsman_hammer"), 0),
             (Item("common.items.crafting_tools.sewing_set"), 0),
         ],
+        craft_sprite: Some(CraftingBench),
     ),
     "Sand Raptor Wings": (
         output: ("common.items.glider.glider_sandraptor", 1),
@@ -210,6 +218,7 @@
             (Item("common.items.crafting_tools.craftsman_hammer"), 0),
             (Item("common.items.crafting_tools.sewing_set"), 0),
         ],
+        craft_sprite: Some(CraftingBench),
     ),
     "Snow Raptor Wings": (
         output: ("common.items.glider.glider_snowraptor", 1),
@@ -223,6 +232,7 @@
             (Item("common.items.crafting_tools.craftsman_hammer"), 0),
             (Item("common.items.crafting_tools.sewing_set"), 0),
         ],
+        craft_sprite: Some(CraftingBench),
     ),
     "Wood Raptor Wings": (
         output: ("common.items.glider.glider_woodraptor", 1),
@@ -235,6 +245,7 @@
             (Item("common.items.crafting_tools.craftsman_hammer"), 0),
             (Item("common.items.crafting_tools.sewing_set"), 0),
         ],
+        craft_sprite: Some(CraftingBench),
     ),
     "Soothing Loop": (
         output: ("common.items.weapons.sceptre.loops0", 1),
@@ -252,6 +263,7 @@
             (Item("common.items.crafting_ing.twigs"), 6),
             (Item("common.items.crafting_ing.stones"), 0),
         ],
+        craft_sprite: Some(CraftingBench),
     ),
     "Forest Spirit": (
         output: ("common.items.weapons.sword.wood-2", 1),
@@ -261,6 +273,7 @@
             (Item("common.items.ore.veloritefrag"), 1),
             (Item("common.items.crafting_ing.stones"), 0),
         ],
+        craft_sprite: Some(Anvil),
     ),
     "adventure back": (
         output: ("common.items.armor.agile.back", 1),
@@ -384,6 +397,7 @@
             (Item("common.items.crafting_ing.twigs"), 4),
             (Item("common.items.crafting_tools.craftsman_hammer"), 0),
         ],
+        craft_sprite: Some(Anvil),
     ),
     "cloth_scraps": (
         output: ("common.items.crafting_ing.cloth_scraps", 1),

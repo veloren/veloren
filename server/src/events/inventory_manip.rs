@@ -576,7 +576,10 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                 .expect("We know entity exists since we got its inventory.");
             drop(inventories);
         },
-        comp::InventoryManip::CraftRecipe { recipe, craft_sprite } => {
+        comp::InventoryManip::CraftRecipe {
+            recipe,
+            craft_sprite,
+        } => {
             let recipe_book = default_recipe_book().read();
             let craft_result = recipe_book
                 .get(&recipe)

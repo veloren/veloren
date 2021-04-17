@@ -2852,4 +2852,48 @@ Lantern: Some((
     ],
     wind_sway: 0.0,
 )),
+// Anvil
+Anvil: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.anvil.anvil-0",
+            offset: (-5.5, -7.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+// Cauldron
+Cauldron: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.cauldron.cauldron-0",
+            offset: (-10.0, -10.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+// Forge
+Forge: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.forge.forge-0",
+            offset: (-20.0, -20.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+// Crafting Bench
+CraftingBench: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.crafting_bench.crafting_bench-0",
+            offset: (-9.5, -7.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
 )

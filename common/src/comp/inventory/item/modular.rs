@@ -1,5 +1,5 @@
 use super::{tool, ItemKind, ItemTag, Quality, RawItemDef, TagExampleInfo, ToolKind};
-use crate::recipe::{RawRecipeBook, RawRecipeInput, RawRecipe};
+use crate::recipe::{RawRecipe, RawRecipeBook, RawRecipeInput};
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
@@ -234,10 +234,7 @@ fn make_weapon_def(toolkind: ToolKind) -> (String, RawItemDef) {
     (identifier, item)
 }
 
-fn make_recipe_def(
-    identifier: String,
-    toolkind: ToolKind,
-) -> RawRecipe {
+fn make_recipe_def(identifier: String, toolkind: ToolKind) -> RawRecipe {
     let output = (identifier, 1);
     let mut inputs = Vec::new();
     for &modkind in &MODKINDS {

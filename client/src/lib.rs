@@ -35,8 +35,8 @@ use common::{
     recipe::RecipeBook,
     resources::{DeltaTime, PlayerEntity, TimeOfDay},
     terrain::{
-        block::Block, map::MapConfig, neighbors, BiomeKind, SitesKind, TerrainChunk,
-        TerrainChunkSize, SpriteKind,
+        block::Block, map::MapConfig, neighbors, BiomeKind, SitesKind, SpriteKind, TerrainChunk,
+        TerrainChunkSize,
     },
     trade::{PendingTrade, SitePrices, TradeAction, TradeId, TradeResult},
     uid::{Uid, UidAllocator},
@@ -970,27 +970,37 @@ impl Client {
 
     pub fn recipe_book(&self) -> &RecipeBook { &self.recipe_book }
 
-    pub fn available_recipes(&self) -> &HashMap<String, Option<SpriteKind>> { &self.available_recipes }
+    pub fn available_recipes(&self) -> &HashMap<String, Option<SpriteKind>> {
+        &self.available_recipes
+    }
 
     pub fn can_craft_recipe(&self, recipe: &str) -> Option<Option<SpriteKind>> {
         self.recipe_book
             .get(recipe)
             .zip(self.inventories().get(self.entity()))
-            .map(|(recipe, inv)| if inv.contains_ingredients(&*recipe).is_ok() {
-                Some(recipe.craft_sprite)
-            } else {
-                None
+            .map(|(recipe, inv)| {
+                if inv.contains_ingredients(&*recipe).is_ok() {
+                    Some(recipe.craft_sprite)
+                } else {
+                    None
+                }
             })
             .unwrap_or(None)
     }
 
-    pub fn craft_recipe(&mut self, recipe: &str, craft_sprite: Option<(Vec3<i32>, SpriteKind)>) -> bool {
-        if self.can_craft_recipe(recipe).map_or(false, |cs| cs.map_or(true, |cs| Some(cs) == craft_sprite.map(|(_, s)| s))) {
+    pub fn craft_recipe(
+        &mut self,
+        recipe: &str,
+        craft_sprite: Option<(Vec3<i32>, SpriteKind)>,
+    ) -> bool {
+        if self.can_craft_recipe(recipe).map_or(false, |cs| {
+            cs.map_or(true, |cs| Some(cs) == craft_sprite.map(|(_, s)| s))
+        }) {
             self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InventoryEvent(
                 InventoryEvent::CraftRecipe {
                     recipe: recipe.to_string(),
                     craft_sprite: craft_sprite.map(|(pos, _)| pos),
-                }
+                },
             )));
             true
         } else {

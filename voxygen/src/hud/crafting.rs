@@ -434,16 +434,23 @@ impl<'a> Widget for Crafting<'a> {
                                 .unwrap_or(false)
                         })
                 });
-                let state = if self.client.available_recipes()
-                    .get(name.as_str())
-                    .map_or(false, |cs| cs.map_or(true, |cs| Some(cs) == self.show.craft_sprite.map(|(_, s)| s)))
-                {
-                    RecipeIngredientQuantity::All
-                } else if at_least_some_ingredients {
-                    RecipeIngredientQuantity::Some
-                } else {
-                    RecipeIngredientQuantity::None
-                };
+                let state =
+                    if self
+                        .client
+                        .available_recipes()
+                        .get(name.as_str())
+                        .map_or(false, |cs| {
+                            cs.map_or(true, |cs| {
+                                Some(cs) == self.show.craft_sprite.map(|(_, s)| s)
+                            })
+                        })
+                    {
+                        RecipeIngredientQuantity::All
+                    } else if at_least_some_ingredients {
+                        RecipeIngredientQuantity::Some
+                    } else {
+                        RecipeIngredientQuantity::None
+                    };
                 (name, recipe, state)
             })
             .collect();
@@ -532,7 +539,11 @@ impl<'a> Widget for Crafting<'a> {
                 .client
                 .available_recipes()
                 .get(recipe_name.as_str())
-                .map_or(false, |cs| cs.map_or(true, |cs| Some(cs) == self.show.craft_sprite.map(|(_, s)| s)));
+                .map_or(false, |cs| {
+                    cs.map_or(true, |cs| {
+                        Some(cs) == self.show.craft_sprite.map(|(_, s)| s)
+                    })
+                });
 
             // Craft button
             if Button::image(self.imgs.button)

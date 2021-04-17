@@ -38,7 +38,7 @@ use crate::{
     key_state::KeyState,
     menu::char_selection::CharSelectionState,
     render::Renderer,
-    scene::{camera, CameraMode, Scene, SceneData, terrain::Interaction},
+    scene::{camera, terrain::Interaction, CameraMode, Scene, SceneData},
     settings::Settings,
     window::{AnalogGameInput, Event, GameInput},
     Direction, Error, GlobalState, PlayState, PlayStateResult,
@@ -591,16 +591,20 @@ impl PlayState for SessionState {
                                     if let Some(interactable) = self.interactable {
                                         let mut client = self.client.borrow_mut();
                                         match interactable {
-                                            Interactable::Block(block, pos, interaction) => match interaction {
-                                                Interaction::Collect => {
-                                                    if block.is_collectible() {
-                                                        client.collect_block(pos);
-                                                    }
-                                                },
-                                                Interaction::Craft(tab) => self.hud.show.open_crafting_tab(
-                                                    tab,
-                                                    block.get_sprite().map(|s| (pos, s)),
-                                                ),
+                                            Interactable::Block(block, pos, interaction) => {
+                                                match interaction {
+                                                    Interaction::Collect => {
+                                                        if block.is_collectible() {
+                                                            client.collect_block(pos);
+                                                        }
+                                                    },
+                                                    Interaction::Craft(tab) => {
+                                                        self.hud.show.open_crafting_tab(
+                                                            tab,
+                                                            block.get_sprite().map(|s| (pos, s)),
+                                                        )
+                                                    },
+                                                }
                                             },
                                             Interactable::Entity(entity) => {
                                                 if client
@@ -1187,7 +1191,10 @@ impl PlayState for SessionState {
                         client.request_site_economy(id);
                     },
 
-                    HudEvent::CraftRecipe { recipe, craft_sprite } => {
+                    HudEvent::CraftRecipe {
+                        recipe,
+                        craft_sprite,
+                    } => {
                         self.client.borrow_mut().craft_recipe(&recipe, craft_sprite);
                     },
                     HudEvent::InviteMember(uid) => {

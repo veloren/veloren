@@ -300,9 +300,7 @@ impl Archetype for House {
             Ori::North => 4,
         };
         let end_window = BlockMask::new(
-            Block::air(attr.window)
-                .with_ori(end_ori)
-                .unwrap(),
+            Block::air(attr.window).with_ori(end_ori).unwrap(),
             structural_layer,
         );
         let fire = BlockMask::new(Block::air(SpriteKind::Ember), foundation_layer);
@@ -532,19 +530,19 @@ impl Archetype for House {
                             center_offset.x,
                             center_offset.y,
                             z + 100,
-                        )) % 5
+                        )) % 8
                         {
                             0..=1 => SpriteKind::Crate,
                             2 => SpriteKind::Bench,
-                            3 => SpriteKind::ChairSingle,
-                            4 => SpriteKind::FireBowlGround,
+                            3 => SpriteKind::Anvil,
+                            4 => SpriteKind::Cauldron,                            
+                            5 => SpriteKind::CraftingBench,                           
+                            6 => SpriteKind::FireBowlGround,
+                            //8 => SpriteKind::Forge,
                             _ => unreachable!(),
                         };
 
-                        return BlockMask::new(
-                            Block::air(furniture).with_ori(end_ori).unwrap(),
-                            1,
-                        );
+                        return BlockMask::new(Block::air(furniture).with_ori(end_ori).unwrap(), 1);
                     } else if (!attr.storey_fill.has_lower() && profile.y < ceil_height)
                         || (!attr.storey_fill.has_upper() && profile.y >= ceil_height)
                     {
@@ -623,7 +621,7 @@ impl Archetype for House {
                             0 => SpriteKind::HangingSign,
                             1 | 2 | 3 => SpriteKind::HangingBasket,
                             4 => SpriteKind::WallSconce,
-                            5 => SpriteKind::WallLampSmall,
+                            5 => SpriteKind::WallLampSmall,                            
                             _ => SpriteKind::DungeonWallDecor,
                         };
 

@@ -99,9 +99,7 @@ pub(crate) struct RawRecipe {
 #[derive(Clone, Deserialize)]
 #[serde(transparent)]
 #[allow(clippy::type_complexity)]
-pub(crate) struct RawRecipeBook(
-    pub(crate) HashMap<String, RawRecipe>,
-);
+pub(crate) struct RawRecipeBook(pub(crate) HashMap<String, RawRecipe>);
 
 impl assets::Asset for RawRecipeBook {
     type Loader = assets::RonLoader;
@@ -144,14 +142,27 @@ impl assets::Compound for RecipeBook {
         let recipes = raw
             .0
             .iter()
-            .map(|(name, RawRecipe { output, inputs, craft_sprite })| {
-                let inputs = inputs
-                    .iter()
-                    .map(load_recipe_input)
-                    .collect::<Result<Vec<_>, _>>()?;
-                let output = load_item_def(output)?;
-                Ok((name.clone(), Recipe { output, inputs, craft_sprite: *craft_sprite }))
-            })
+            .map(
+                |(
+                    name,
+                    RawRecipe {
+                        output,
+                        inputs,
+                        craft_sprite,
+                    },
+                )| {
+                    let inputs = inputs
+                        .iter()
+                        .map(load_recipe_input)
+                        .collect::<Result<Vec<_>, _>>()?;
+                    let output = load_item_def(output)?;
+                    Ok((name.clone(), Recipe {
+                        output,
+                        inputs,
+                        craft_sprite: *craft_sprite,
+                    }))
+                },
+            )
             .collect::<Result<_, assets::Error>>()?;
 
         Ok(RecipeBook { recipes })
