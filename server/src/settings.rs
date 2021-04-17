@@ -43,6 +43,7 @@ pub struct Settings {
     pub max_player_group_size: u32,
     pub client_timeout: Duration,
     pub spawn_town: Option<String>,
+    pub safe_spawn: bool,
 }
 
 impl Default for Settings {
@@ -61,6 +62,7 @@ impl Default for Settings {
             max_player_group_size: 6,
             client_timeout: Duration::from_secs(40),
             spawn_town: None,
+            safe_spawn: true,
         }
     }
 }

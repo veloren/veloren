@@ -325,12 +325,10 @@ impl StateExt for State {
         use comp::{
             aura::{Aura, AuraKind, AuraTarget, Auras},
             buff::{BuffCategory, BuffData, BuffKind, BuffSource},
-            object, Body,
         };
         self.ecs_mut()
             .create_entity_synced()
             .with(pos)
-            .with(Body::Object(object::Body::BoltNature))
             .with(Auras::new(vec![Aura::new(
                 AuraKind::Buff {
                     kind: BuffKind::Invulnerability,

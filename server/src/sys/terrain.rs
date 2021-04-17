@@ -1,6 +1,6 @@
 use crate::{
-    chunk_generator::ChunkGenerator, client::Client, presence::Presence, rtsim::RtSim, SpawnPoint,
-    Tick,
+    chunk_generator::ChunkGenerator, client::Client, presence::Presence, rtsim::RtSim,
+    settings::Settings, SpawnPoint, Tick,
 };
 use common::{
     comp::{
@@ -35,6 +35,7 @@ impl<'a> System<'a> for Sys {
         Read<'a, EventBus<ServerEvent>>,
         Read<'a, Tick>,
         Read<'a, SpawnPoint>,
+        Read<'a, Settings>,
         WriteExpect<'a, ChunkGenerator>,
         WriteExpect<'a, TerrainGrid>,
         Write<'a, TerrainChanges>,
@@ -54,6 +55,7 @@ impl<'a> System<'a> for Sys {
             server_event_bus,
             tick,
             spawn_point,
+            server_settings,
             mut chunk_generator,
             mut terrain,
             mut terrain_changes,
@@ -223,7 +225,7 @@ impl<'a> System<'a> for Sys {
             }
 
             // Insert a safezone if chunk contains the spawn position
-            if is_spawn_chunk(key, *spawn_point, &terrain) {
+            if server_settings.safe_spawn && is_spawn_chunk(key, *spawn_point, &terrain) {
                 server_emitter.emit(ServerEvent::CreateSafezone {
                     range: Some(100.0),
                     pos: Pos(spawn_point.0),
