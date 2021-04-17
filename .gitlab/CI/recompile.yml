@@ -23,3 +23,17 @@
         - "Cargo.lock"
         - ".gitlab-ci.yml"
         - "**/*.yml"
+
+# Template to only run these after a branch has merged to master
+.post-merge:
+  stage: build
+  tags:
+    - veloren-docker
+  rules:
+    - if: $CI_COMMIT_REF_NAME =~ /^master$/
+      changes:
+        - "**/*.{glsl,rs,ron,toml,vox,png}"
+        - "rust-toolchain"
+        - "Cargo.lock"
+        - ".gitlab-ci.yml"
+        - "**/*.yml"
