@@ -71,7 +71,7 @@ impl Lantern {
 pub struct Glider {
     pub kind: String,
 }
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Copy)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, Copy, PartialOrd, Ord)]
 pub enum Quality {
     Low,       // Grey
     Common,    // UI Main Color

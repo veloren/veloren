@@ -1,15 +1,14 @@
 use core::ops::Not;
-use std::{collections::HashMap, convert::TryFrom, mem, ops::Range};
-
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
+use std::{collections::HashMap, convert::TryFrom, mem, ops::Range};
 use tracing::{debug, trace, warn};
 
 use crate::{
     comp::{
         inventory::{
-            item::{ItemDef, ItemKind, MaterialStatManifest},
+            item::{ItemDef, ItemKind, MaterialStatManifest, TagExampleInfo},
             loadout::Loadout,
             slot::{EquipSlot, Slot, SlotError},
         },
@@ -34,6 +33,7 @@ const DEFAULT_INVENTORY_SLOTS: usize = 18;
 /// NOTE: Do not add a PartialEq instance for Inventory; that's broken!
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Inventory {
+    next_sort_order: InventorySortOrder,
     loadout: Loadout,
     /// The "built-in" slots belonging to the inventory itself, all other slots
     /// are provided by equipped items
@@ -46,6 +46,23 @@ pub enum Error {
     /// The inventory is full and items could not be added. The extra items have
     /// been returned.
     Full(Vec<Item>),
+}
+
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+pub enum InventorySortOrder {
+    Name,
+    Quality,
+    Tag,
+}
+
+impl InventorySortOrder {
+    fn next(&self) -> InventorySortOrder {
+        match self {
+            InventorySortOrder::Name => InventorySortOrder::Quality,
+            InventorySortOrder::Quality => InventorySortOrder::Tag,
+            InventorySortOrder::Tag => InventorySortOrder::Name,
+        }
+    }
 }
 
 /// Represents the Inventory of an entity. The inventory has 18 "built-in"
@@ -66,6 +83,7 @@ impl Inventory {
 
     pub fn new_with_loadout(loadout: Loadout) -> Inventory {
         Inventory {
+            next_sort_order: InventorySortOrder::Name,
             loadout,
             slots: vec![None; DEFAULT_INVENTORY_SLOTS],
         }
@@ -98,6 +116,33 @@ impl Inventory {
                     .map(|(loadout_slot_id, inv_slot)| (loadout_slot_id.into(), inv_slot)),
             )
     }
+
+    /// Sorts the inventory using the next sort order
+    pub fn sort(&mut self) {
+        let sort_order = self.next_sort_order;
+        let mut items: Vec<Item> = self.slots_mut().filter_map(|x| mem::take(x)).collect();
+
+        items.sort_by(|a, b| match sort_order {
+            InventorySortOrder::Name => Ord::cmp(a.name(), b.name()),
+            // Quality is sorted in reverse since we want high quality items first
+            InventorySortOrder::Quality => Ord::cmp(&b.quality(), &a.quality()),
+            InventorySortOrder::Tag => Ord::cmp(
+                a.tags.first().map_or("", |tag| tag.name()),
+                b.tags.first().map_or("", |tag| tag.name()),
+            ),
+        });
+
+        self.push_all(items.into_iter()).expect(
+            "It is impossible for there to be insufficient inventory space when sorting the \
+             inventory",
+        );
+
+        self.next_sort_order = self.next_sort_order.next();
+    }
+
+    /// Returns the sort order that will be used when Inventory::sort() is next
+    /// called
+    pub fn next_sort_order(&self) -> InventorySortOrder { self.next_sort_order }
 
     /// Adds a new item to the first fitting group of the inventory or starts a
     /// new group. Returns the item in an error if no space was found, otherwise

@@ -892,6 +892,10 @@ impl Client {
         }
     }
 
+    pub fn sort_inventory(&mut self) {
+        self.control_action(ControlAction::InventoryAction(InventoryAction::Sort));
+    }
+
     pub fn perform_trade_action(&mut self, action: TradeAction) {
         if let Some((id, _, _)) = self.pending_trade {
             if let TradeAction::Decline = action {

@@ -296,20 +296,16 @@ impl State {
                         game_mode,
                     })
                 {
-                    tracing::error!(?e, "Failed to run plugin init");
-                    tracing::info!(
-                        "Error occurred when loading plugins. Running without plugins instead."
-                    );
+                    tracing::debug!(?e, "Failed to run plugin init");
+                    tracing::info!("Plugins disabled, enable debug logging for more information.");
                     PluginMgr::default()
                 } else {
                     plugin_mgr
                 }
             },
             Err(e) => {
-                tracing::error!(?e, "Failed to read plugins from assets");
-                tracing::info!(
-                    "Error occurred when loading plugins. Running without plugins instead."
-                );
+                tracing::debug!(?e, "Failed to read plugins from assets");
+                tracing::info!("Plugins disabled, enable debug logging for more information.");
                 PluginMgr::default()
             },
         });

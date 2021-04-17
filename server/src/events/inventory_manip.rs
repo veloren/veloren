@@ -611,7 +611,12 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                 }
             }
         },
+        comp::InventoryManip::Sort => {
+            inventory.sort();
+            drop(inventories);
+        },
     }
+
     // Drop items, Debug items should simply disappear when dropped
     for (pos, ori, mut item) in dropped_items
         .into_iter()
