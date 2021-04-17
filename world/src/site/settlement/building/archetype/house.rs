@@ -530,13 +530,13 @@ impl Archetype for House {
                             center_offset.x,
                             center_offset.y,
                             z + 100,
-                        )) % 8
+                        )) % 7
                         {
                             0..=1 => SpriteKind::Crate,
                             2 => SpriteKind::Bench,
                             3 => SpriteKind::Anvil,
-                            4 => SpriteKind::Cauldron,                            
-                            5 => SpriteKind::CraftingBench,                           
+                            4 => SpriteKind::Cauldron,
+                            5 => SpriteKind::CraftingBench,
                             6 => SpriteKind::FireBowlGround,
                             //8 => SpriteKind::Forge,
                             _ => unreachable!(),
@@ -621,7 +621,7 @@ impl Archetype for House {
                             0 => SpriteKind::HangingSign,
                             1 | 2 | 3 => SpriteKind::HangingBasket,
                             4 => SpriteKind::WallSconce,
-                            5 => SpriteKind::WallLampSmall,                            
+                            5 => SpriteKind::WallLampSmall,
                             _ => SpriteKind::DungeonWallDecor,
                         };
 

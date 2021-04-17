@@ -699,6 +699,7 @@ impl<'a> Widget for Crafting<'a> {
                         .resize(recipe.inputs().len(), &mut ui.widget_id_generator())
                 });
             };
+
             // Widget generation for every ingredient
             for (i, (recipe_input, amount)) in recipe.inputs.iter().enumerate() {
                 let item_def = match recipe_input {

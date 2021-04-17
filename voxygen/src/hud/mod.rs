@@ -74,6 +74,7 @@ use common::{
         skills::{Skill, SkillGroupKind},
         BuffKind, Item,
     },
+    consts::MAX_PICKUP_RANGE,
     outcome::Outcome,
     terrain::{SpriteKind, TerrainChunk},
     trade::{ReducedInventory, TradeAction},
@@ -3360,6 +3361,16 @@ impl Hud {
                 .ui
                 .handle_event(conrod_core::event::Input::Text("\t".to_string()));
         }
+
+        // Stop selecting a sprite to perform crafting with when out of range
+        self.show.craft_sprite = self.show.craft_sprite.filter(|(pos, _)| {
+            self.show.crafting
+                && if let Some(player_pos) = client.position() {
+                    pos.map(|e| e as f32 + 0.5).distance(player_pos) < MAX_PICKUP_RANGE
+                } else {
+                    false
+                }
+        });
 
         // Optimization: skip maintaining UI when it's off.
         if !self.show.ui {

@@ -584,10 +584,33 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             let craft_result = recipe_book
                 .get(&recipe)
                 .filter(|r| {
-                    let sprite = craft_sprite
-                        .and_then(|pos| state.terrain().get(pos).ok().copied())
-                        .and_then(|block| block.get_sprite());
-                    r.craft_sprite.map_or(true, |cs| Some(cs) == sprite)
+                    if let Some(needed_sprite) = r.craft_sprite {
+                        let sprite = craft_sprite
+                            .filter(|pos| {
+                                let entity_cylinder = get_cylinder(state, entity);
+                                if !within_pickup_range(entity_cylinder, || {
+                                    Some(find_dist::Cube {
+                                        min: pos.as_(),
+                                        side_length: 1.0,
+                                    })
+                                }) {
+                                    debug!(
+                                        ?entity_cylinder,
+                                        "Failed to pick up block as not within range, block pos: \
+                                         {}",
+                                        pos
+                                    );
+                                    false
+                                } else {
+                                    true
+                                }
+                            })
+                            .and_then(|pos| state.terrain().get(pos).ok().copied())
+                            .and_then(|block| block.get_sprite());
+                        Some(needed_sprite) == sprite
+                    } else {
+                        false
+                    }
                 })
                 .and_then(|r| {
                     r.perform(
