@@ -920,6 +920,7 @@ impl PlayState for SessionState {
                     },
                     HudEvent::Logout => {
                         self.client.borrow_mut().logout();
+                        global_state.audio.stop_ambient_sounds();
                         return PlayStateResult::Pop;
                     },
                     HudEvent::Quit => {
