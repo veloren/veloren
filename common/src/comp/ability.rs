@@ -113,7 +113,7 @@ pub enum CharacterAbility {
         charge_duration: f32,
         swing_duration: f32,
         recover_duration: f32,
-        infinite_charge: bool,
+        charge_through: bool,
         is_interruptible: bool,
     },
     BasicBlock,
@@ -650,7 +650,7 @@ impl CharacterAbility {
                         ref mut base_damage,
                         ref mut scaled_damage,
                         ref mut forward_speed,
-                        ref mut infinite_charge,
+                        ref mut charge_through,
                         ..
                     } => {
                         *is_interruptible = skillset.has_skill(Sword(InterruptingAttacks));
@@ -669,7 +669,7 @@ impl CharacterAbility {
                         if skillset.has_skill(Sword(DSpeed)) {
                             *forward_speed *= 1.15;
                         }
-                        *infinite_charge = skillset.has_skill(Sword(DInfinite));
+                        *charge_through = skillset.has_skill(Sword(DInfinite));
                     },
                     SpinMelee {
                         ref mut is_interruptible,
@@ -1212,7 +1212,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 charge_duration,
                 swing_duration,
                 recover_duration,
-                infinite_charge,
+                charge_through,
                 is_interruptible,
             } => CharacterState::DashMelee(dash_melee::Data {
                 static_data: dash_melee::StaticData {
@@ -1226,7 +1226,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                     angle: *angle,
                     energy_drain: *energy_drain,
                     forward_speed: *forward_speed,
-                    infinite_charge: *infinite_charge,
+                    charge_through: *charge_through,
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
                     charge_duration: Duration::from_secs_f32(*charge_duration),
                     swing_duration: Duration::from_secs_f32(*swing_duration),
@@ -1236,7 +1236,7 @@ impl From<(&CharacterAbility, AbilityInfo)> for CharacterState {
                 },
                 auto_charge: false,
                 timer: Duration::default(),
-                refresh_distance: 0.0,
+                charge_end_timer: Duration::from_secs_f32(*charge_duration),
                 stage_section: StageSection::Buildup,
                 exhausted: false,
             }),

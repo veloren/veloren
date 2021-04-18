@@ -128,7 +128,7 @@ pub enum SwordSkill {
     DDamage,
     DScaling,
     DSpeed,
-    DInfinite,
+    DInfinite, // Represents charge through, not migrated because laziness
     // Spin upgrades
     UnlockSpin,
     SDamage,

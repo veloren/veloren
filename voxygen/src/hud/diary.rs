@@ -1387,7 +1387,7 @@ impl<'a> Widget for Diary<'a> {
                 };
                 let skill = Skill::Sword(DInfinite);
                 if create_skill_button(
-                    self.imgs.physical_infinite_skill,
+                    self.imgs.physical_distance_skill,
                     state.skills_top_r[5],
                     &self.skill_set,
                     skill,
@@ -1396,9 +1396,13 @@ impl<'a> Widget for Diary<'a> {
                 )
                 .with_tooltip(
                     self.tooltip_manager,
-                    &self.localized_strings.get("hud.skill.sw_dash_inf_title"),
+                    &self
+                        .localized_strings
+                        .get("hud.skill.sw_dash_charge_through_title"),
                     &add_sp_cost_tooltip(
-                        &self.localized_strings.get("hud.skill.sw_dash_inf"),
+                        &self
+                            .localized_strings
+                            .get("hud.skill.sw_dash_charge_through"),
                         skill,
                         &self.skill_set,
                         &self.localized_strings,
