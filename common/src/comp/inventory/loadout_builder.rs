@@ -615,7 +615,7 @@ impl LoadoutBuilder {
                             let mut item = Item::new_from_asset_expect(&item_id);
                             // NOTE: Conversion to and from f32 works fine because we make sure the
                             // number we're converting is ≤ 100.
-                            let max = amount.min(100.min(item.max_amount()) as f32) as u32;
+                            let max = amount.min(16.min(item.max_amount()) as f32) as u32;
                             let n = rng.gen_range(1..max.max(2));
                             *amount -= if item.set_amount(n).is_ok() {
                                 n as f32

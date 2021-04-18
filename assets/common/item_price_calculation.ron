@@ -3,14 +3,14 @@ loot_tables: [
     // balance the loot tables against each other (higher= more common= smaller price)
     // Weapons
     (16.0, "common.loot_tables.weapons.starter"),
-    (8.0, "common.loot_tables.weapons.tier-0"),
-    (4.0, "common.loot_tables.weapons.tier-1"),
-    (2.0, "common.loot_tables.weapons.tier-2"),
-    (1.0, "common.loot_tables.weapons.tier-3"),
-    (0.25, "common.loot_tables.weapons.tier-4"),
+    (12.0, "common.loot_tables.weapons.tier-0"),
+    (6.0, "common.loot_tables.weapons.tier-1"),
+    (4.0, "common.loot_tables.weapons.tier-2"),
+    (2.0, "common.loot_tables.weapons.tier-3"),
+    //(0.25, "common.loot_tables.weapons.tier-4"),
     //(0.125, "common.loot_tables.weapons.tier-5"),
     //(0.05, "common.loot_tables.weapons.cultist"),
-    (0.125, "common.loot_tables.weapons.cave"),
+    //(0.125, "common.loot_tables.weapons.cave"),
     //(0.0625, "common.loot_tables.weapons.legendary"),
     // Armor
     (20.0, "common.loot_tables.armor.cloth"),
