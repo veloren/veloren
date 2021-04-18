@@ -94,7 +94,7 @@
         "hud.skill.st_flamethrower_damage_title" : "フレームスロワー ダメージ",
         "hud.skill.st_flamethrower_damage" : "ダメージを30%増加 {SP}",
         "hud.skill.st_explosion_radius_title" : "エクスプロージョン 範囲",
-        "hud.skill.st_explosion_radius" : "大きいのはいいですよね。爆発半径を10%増加 {SP}",
+        "hud.skill.st_explosion_radius" : "大きいのはいいですよね。爆発半径を15%増加 {SP}",
         "hud.skill.st_stamina_regen_title" : "スタミナ 再生",
         "hud.skill.st_stamina_regen" : "スタミナ獲得量を20%増加 {SP}",
         "hud.skill.st_fireball_title" : "ファイアーボール",

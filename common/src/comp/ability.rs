@@ -340,7 +340,7 @@ impl CharacterAbility {
             movement_duration: 0.33,
             recover_duration: 0.125,
             roll_strength: 2.0,
-            immune_melee: false,
+            immune_melee: true,
         }
     }
 
@@ -966,9 +966,6 @@ impl CharacterAbility {
                     BasicRanged {
                         ref mut projectile, ..
                     } => {
-                        if !skillset.has_skill(Staff(BExplosion)) {
-                            *projectile = projectile.fireball_to_firebolt();
-                        }
                         let damage_level = skillset
                             .skill_level(Staff(BDamage))
                             .unwrap_or(None)
@@ -983,7 +980,7 @@ impl CharacterAbility {
                             .unwrap_or(0);
                         let power = 1.2_f32.powi(damage_level.into());
                         let regen = 1.2_f32.powi(regen_level.into());
-                        let range = 1.1_f32.powi(range_level.into());
+                        let range = 1.15_f32.powi(range_level.into());
                         *projectile = projectile.modified_projectile(power, regen, range);
                     },
                     BasicBeam {
@@ -1107,7 +1104,6 @@ impl CharacterAbility {
             },
             None => {
                 if let CharacterAbility::Roll {
-                    ref mut immune_melee,
                     ref mut energy_cost,
                     ref mut roll_strength,
                     ref mut movement_duration,
@@ -1115,7 +1111,6 @@ impl CharacterAbility {
                 } = self
                 {
                     use skills::RollSkill::*;
-                    *immune_melee = skillset.has_skill(Skill::Roll(ImmuneMelee));
                     if let Ok(Some(level)) = skillset.skill_level(Skill::Roll(Cost)) {
                         *energy_cost *= 0.9_f32.powi(level.into());
                     }

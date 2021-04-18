@@ -246,7 +246,6 @@ impl SkillSetBuilder {
                         // Staff
                         Self::default()
                             .with_skill_group(SkillGroupKind::Weapon(ToolKind::Staff))
-                            .with_skill(Skill::Staff(StaffSkill::BExplosion), None)
                             .with_skill(Skill::Staff(StaffSkill::BRegen), Some(1))
                             .with_skill(Skill::Staff(StaffSkill::BRadius), Some(1))
                             .with_skill(Skill::Staff(StaffSkill::FDamage), Some(1))
@@ -318,7 +317,6 @@ impl SkillSetBuilder {
                         // Staff
                         Self::default()
                             .with_skill_group(SkillGroupKind::Weapon(ToolKind::Staff))
-                            .with_skill(Skill::Staff(StaffSkill::BExplosion), None)
                             .with_skill(Skill::Staff(StaffSkill::FDamage), Some(1))
                             .with_skill(Skill::Staff(StaffSkill::FRange), Some(1))
                             .with_skill(Skill::Staff(StaffSkill::FDrain), Some(1))
@@ -393,7 +391,6 @@ impl SkillSetBuilder {
                         // Staff
                         Self::default()
                             .with_skill_group(SkillGroupKind::Weapon(ToolKind::Staff))
-                            .with_skill(Skill::Staff(StaffSkill::BExplosion), None)
                             .with_skill(Skill::Staff(StaffSkill::BDamage), Some(1))
                             .with_skill(Skill::Staff(StaffSkill::BRadius), Some(1))
                             .with_skill(Skill::Staff(StaffSkill::FDamage), Some(1))
@@ -471,7 +468,6 @@ impl SkillSetBuilder {
                         // Staff
                         Self::default()
                             .with_skill_group(SkillGroupKind::Weapon(ToolKind::Staff))
-                            .with_skill(Skill::Staff(StaffSkill::BExplosion), None)
                             .with_skill(Skill::Staff(StaffSkill::BDamage), Some(1))
                             .with_skill(Skill::Staff(StaffSkill::BRadius), Some(1))
                             .with_skill(Skill::Staff(StaffSkill::FDamage), Some(1))
@@ -557,7 +553,6 @@ impl SkillSetBuilder {
                         // Staff
                         Self::default()
                             .with_skill_group(SkillGroupKind::Weapon(ToolKind::Staff))
-                            .with_skill(Skill::Staff(StaffSkill::BExplosion), None)
                             .with_skill(Skill::Staff(StaffSkill::BDamage), Some(1))
                             .with_skill(Skill::Staff(StaffSkill::BRegen), Some(1))
                             .with_skill(Skill::Staff(StaffSkill::BRadius), Some(1))
@@ -653,7 +648,6 @@ impl SkillSetBuilder {
                         // Staff
                         Self::default()
                             .with_skill_group(SkillGroupKind::Weapon(ToolKind::Staff))
-                            .with_skill(Skill::Staff(StaffSkill::BExplosion), None)
                             .with_skill(Skill::Staff(StaffSkill::BDamage), Some(1))
                             .with_skill(Skill::Staff(StaffSkill::BRegen), Some(1))
                             .with_skill(Skill::Staff(StaffSkill::BRadius), Some(1))
@@ -672,7 +666,6 @@ impl SkillSetBuilder {
             },
             Some(Mindflayer) => Self::default()
                 .with_skill_group(SkillGroupKind::Weapon(ToolKind::Staff))
-                .with_skill(Skill::Staff(StaffSkill::BExplosion), None)
                 .with_skill(Skill::Staff(StaffSkill::BDamage), Some(3))
                 .with_skill(Skill::Staff(StaffSkill::BRegen), Some(2))
                 .with_skill(Skill::Staff(StaffSkill::BRadius), Some(2))

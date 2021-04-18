@@ -92,7 +92,7 @@
         "hud.skill.st_flamethrower_damage_title" : "Miotacz ognia - obrażenia",
         "hud.skill.st_flamethrower_damage" : "Zwiększa obrażenia o 30%{SP}",
         "hud.skill.st_explosion_radius_title" : "Eksplozja - rozmiar",
-        "hud.skill.st_explosion_radius" : "Rozmiar ma znaczenie, szczególnie gdy walczysz z wieloma przeciwnikami,\nzwiększa wielkość eksplozji o 10%{SP}",
+        "hud.skill.st_explosion_radius" : "Rozmiar ma znaczenie, szczególnie gdy walczysz z wieloma przeciwnikami,\nzwiększa wielkość eksplozji o 15%{SP}",
         "hud.skill.st_stamina_regen_title" : "Regeneracja Wytrzymałości",
         "hud.skill.st_stamina_regen" : "Zwiększa regenerację Wytrzymałości o 20%{SP}",
         "hud.skill.st_fireball_title" : "Kula ognia",
