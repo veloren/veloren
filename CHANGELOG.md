@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Players can now opt-in to server-authoritiative physics in gameplay settings.
 - Added `/server_physics` admin command.
 - Sort inventory button
+- Option to change the master volume when window is unfocused 
 
 
 ### Changed
@@ -77,6 +78,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Combat rating no longer takes buffs into account
 - Minimap icons are now displayed in both map modes
 - Server now denies any running trades when a user exits to the character selection screen.
+- Sfx volume changes now also change the ambient sounds volume
 
 ## [0.9.0] - 2021-03-20
 

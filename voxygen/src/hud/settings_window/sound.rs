@@ -24,6 +24,10 @@ widget_ids! {
         audio_volume_text,
         sfx_volume_slider,
         sfx_volume_text,
+        master_volume_slider,
+        master_volume_text,
+        inactive_master_volume_slider,
+        inactive_master_volume_text,
         audio_device_list,
         audio_device_text,
     }
@@ -93,9 +97,63 @@ impl<'a> Widget for Sound<'a> {
             .rgba(0.33, 0.33, 0.33, 1.0)
             .set(state.ids.window_scrollbar, ui);
 
+        // Master Volume ----------------------------------------------------
+        Text::new(&self.localized_strings.get("hud.settings.master_volume"))
+            .top_left_with_margins_on(state.ids.window, 10.0, 10.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(TEXT_COLOR)
+            .set(state.ids.master_volume_text, ui);
+
+        if let Some(new_val) = ImageSlider::continuous(
+            self.global_state.settings.audio.master_volume,
+            0.0,
+            1.0,
+            self.imgs.slider_indicator,
+            self.imgs.slider,
+        )
+        .w_h(104.0, 22.0)
+        .down_from(state.ids.master_volume_text, 10.0)
+        .track_breadth(12.0)
+        .slider_length(10.0)
+        .pad_track((5.0, 5.0))
+        .set(state.ids.master_volume_slider, ui)
+        {
+            events.push(AdjustMasterVolume(new_val));
+        }
+
+        // Master Volume (inactive window) ----------------------------------
+        Text::new(
+            &self
+                .localized_strings
+                .get("hud.settings.inactive_master_volume"),
+        )
+        .down_from(state.ids.master_volume_slider, 10.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .color(TEXT_COLOR)
+        .set(state.ids.inactive_master_volume_text, ui);
+
+        if let Some(new_val) = ImageSlider::continuous(
+            self.global_state.settings.audio.inactive_master_volume,
+            0.0,
+            1.0,
+            self.imgs.slider_indicator,
+            self.imgs.slider,
+        )
+        .w_h(104.0, 22.0)
+        .down_from(state.ids.inactive_master_volume_text, 10.0)
+        .track_breadth(12.0)
+        .slider_length(10.0)
+        .pad_track((5.0, 5.0))
+        .set(state.ids.inactive_master_volume_slider, ui)
+        {
+            events.push(AdjustInactiveMasterVolume(new_val));
+        }
+
         // Music Volume -----------------------------------------------------
         Text::new(&self.localized_strings.get("hud.settings.music_volume"))
-            .top_left_with_margins_on(state.ids.window, 10.0, 10.0)
+            .down_from(state.ids.inactive_master_volume_slider, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
             .color(TEXT_COLOR)
