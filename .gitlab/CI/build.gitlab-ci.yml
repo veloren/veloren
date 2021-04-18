@@ -29,7 +29,7 @@ benchmarks:
     - echo 'SET veloren.timestamp = "'"$(git show --no-patch --no-notes --pretty='%cd' HEAD)"'";' > upload.sql
     - echo "SET veloren.branch = \$${TAGUUID}\$${CI_COMMIT_REF_NAME}\$${TAGUUID}\$;" >> upload.sql
     - echo "SET veloren.sha = \$${TAGUUID}\$${CI_COMMIT_SHA}\$${TAGUUID}\$;" >> upload.sql
-    - find . -wholename "*new/*.csv" -exec echo '\copy benchmarks ("group", "function", "value", throughput_num, throughput_type, sample_measured_value, unit, iteration_count) from '"'{}' csv header" >> upload.sql \;
+    - find target/criterion -wholename "*new/*.csv" -exec echo '\copy benchmarks ("group", "function", "value", throughput_num, throughput_type, sample_measured_value, unit, iteration_count) from '"'{}' csv header" >> upload.sql \;
     - cat upload.sql
     - PGPASSWORD="${CIDBPASSWORD}" PGSSLROOTCERT="./.gitlab/ci-db.crt" psql "sslmode=verify-ca host=auth.veloren.net dbname=benchmarks" -U bsdrftsejrhdrjhgd -f upload.sql;
   retry:
