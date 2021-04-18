@@ -193,6 +193,8 @@ impl AmbientChannel {
         self.sink.append(source);
     }
 
+    pub fn stop(&mut self) { self.sink.stop(); }
+
     pub fn set_volume(&mut self, volume: f32) { self.sink.set_volume(volume); }
 
     pub fn get_volume(&mut self) -> f32 { self.sink.volume() }

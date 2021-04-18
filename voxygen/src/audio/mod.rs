@@ -422,6 +422,12 @@ impl AudioFrontend {
         }
     }
 
+    pub fn stop_ambient_sounds(&mut self) {
+        for channel in self.ambient_channels.iter_mut() {
+            channel.stop()
+        }
+    }
+
     // The following is for the disabled device switcher
     //// TODO: figure out how badly this will break things when it is called
     //pub fn set_device(&mut self, name: String) {
