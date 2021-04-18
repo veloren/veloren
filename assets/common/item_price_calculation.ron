@@ -8,10 +8,10 @@ loot_tables: [
     (2.0, "common.loot_tables.weapons.tier-2"),
     (1.0, "common.loot_tables.weapons.tier-3"),
     (0.5, "common.loot_tables.weapons.tier-4"),
-    (0.25, "common.loot_tables.weapons.tier-5"),
-    (0.125, "common.loot_tables.weapons.cultist"),
+    (0.125, "common.loot_tables.weapons.tier-5"),
+    //(0.125, "common.loot_tables.weapons.cultist"),
     (0.125, "common.loot_tables.weapons.cave"),
-    (0.0625, "common.loot_tables.weapons.legendary"),
+    //(0.0625, "common.loot_tables.weapons.legendary"),
     // Armor
     (20.0, "common.loot_tables.armor.cloth"),
     (6.0, "common.loot_tables.armor.agile"),
@@ -22,7 +22,7 @@ loot_tables: [
     (2.0, "common.loot_tables.armor.twigsleaves"),
     (0.5, "common.loot_tables.armor.plate"),
     (0.25, "common.loot_tables.armor.steel"),
-    (0.075, "common.loot_tables.armor.cultist"),
+    //(0.075, "common.loot_tables.armor.cultist"),
     // Materials
     (7.5, "common.loot_tables.materials.common"),
     (8.0, "common.loot_tables.materials.underground"),
@@ -36,7 +36,7 @@ loot_tables: [
 // this is the amount of that good the most common item represents
 // so basically this table balances the goods against each other (higher=less valuable)
 good_scaling: [
-    (Potions, 0.3), // common.items.consumable.potion_minor
+    (Potions, 0.2), // common.items.consumable.potion_minor
     (Food, 3.0), // common.items.food.mushroom
     (Coin, 1.0), // common.items.utility.coins
     (Armor, 0.2), // common.items.armor.misc.pants.worker_blue

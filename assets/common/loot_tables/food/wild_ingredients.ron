@@ -3,4 +3,5 @@
     (0.3, Item("common.items.food.cheese")),
     (1.0, Item("common.items.food.coconut")),
     (1.5, Item("common.items.food.mushroom")),
+    (0.5, Item("common.items.crafting_ing.honey")),
 ]
