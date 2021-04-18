@@ -48,6 +48,7 @@
         "hud.settings.free_look_behavior": "Comportamento da Câmera livre",
         "hud.settings.auto_walk_behavior": "Comportamento do caminhar automático",
         "hud.settings.camera_clamp_behavior": "Comportamento de bloqueio da câmera",
+        "hud.settings.player_physics_behavior": "Física do Jogador (experimental)",
         "hud.settings.stop_auto_walk_on_input": "Parar caminhar automático em caso de movimento",
         "hud.settings.auto_camera": "Câmera automática",
         "hud.settings.reset_gameplay": "Voltar para o padrão",

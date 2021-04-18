@@ -96,6 +96,7 @@ O cliente está atualizado?"#,
         "common.stats.crit_chance": "Chance de Crit",
         "common.stats.crit_mult": "Multiplicador de Crit",
         "common.stats.armor": "Armadura",
+        "common.stats.poise_res":"Resist Paralisia",
         "common.stats.slots": "Espaços",
     },
 
