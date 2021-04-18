@@ -535,9 +535,10 @@ impl Archetype for House {
                             0..=1 => SpriteKind::Crate,
                             2 => SpriteKind::Bench,
                             3 => SpriteKind::Anvil,
-                            4 => SpriteKind::Cauldron,
+                            4 => SpriteKind::CookingPot,
                             5 => SpriteKind::CraftingBench,
                             6 => SpriteKind::FireBowlGround,
+                            //7 => SpriteKind::Cauldron,
                             //8 => SpriteKind::Forge,
                             _ => unreachable!(),
                         };
@@ -561,7 +562,7 @@ impl Archetype for House {
                             center_offset.x,
                             center_offset.y,
                             z + 100,
-                        )) % 12
+                        )) % 13
                         {
                             0 => SpriteKind::Planter,
                             1 => SpriteKind::ChairSingle,
@@ -585,6 +586,7 @@ impl Archetype for House {
                                     SpriteKind::VialEmpty
                                 }
                             },
+                            11 => SpriteKind::Cauldron,
                             _ => {
                                 if dynamic_rng.gen_range(0..2) == 0 {
                                     SpriteKind::Bowl

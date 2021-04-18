@@ -2896,4 +2896,15 @@ CraftingBench: Some((
     ],
     wind_sway: 0.0,
 )),
+// Cooking Pot
+CookingPot: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.cooking_pot.pot-0",
+            offset: (-9.0, -10.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
 )

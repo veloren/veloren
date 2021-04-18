@@ -2,6 +2,23 @@
 //  Vox(specier),
 //  VoxTrans(specifier, offset, (x_rot, y_rot, z_rot), zoom)
 ({
+    // Crafting Stations
+    Tool("Anvil"): VoxTrans(
+        "voxel.sprite.anvil.anvil-0",
+        (0.5, 0.5, 0.0), (0.0, 60.0, 90.0), 1.0,
+    ),
+    Tool("Cauldron"): VoxTrans(
+        "voxel.sprite.cauldron.cauldron-0",
+        (0.0, 0.0, 0.0), (-50.0, 40.0, 30.0), 1.0,
+    ),
+    Tool("CookingPot"): VoxTrans(
+        "voxel.sprite.cooking_pot.pot-0",
+        (0.0, 0.0, 0.0), (0.0, 90.0, 90.0), 1.2,
+    ),
+    Tool("CraftingBench"): VoxTrans(
+        "voxel.sprite.crafting_bench.crafting_bench-0",
+       (0.0, 0.0, 0.0), (-50.0, 40.0, 20.0), 1.0,
+    ),    
     // Weapons
     // Diary Example Images
     Tool("example_utility"): VoxTrans(
@@ -1920,10 +1937,14 @@
         "voxel.object.training_dummy",
         (0.0, -1.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
     ),
-    // Ingredients
-    Ingredient("CraftsmanHammer"): VoxTrans( //TODO This should be a 1h hammer!
+    // Ingredients    
+    Tool("common.items.tool.craftsman_hammer"): VoxTrans( 
         "voxel.weapon.hammer.craftsman",
-        (1.0, 1.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 0.9,
+    ),
+    Ingredient("CraftsmanHammer"): VoxTrans(
+        "voxel.weapon.hammer.craftsman",
+        (1.0, 1.0, 0.0), (-135.0, 90.0, 0.0), 0.8,
     ),
     Ingredient("SewingSet"): Png(
         "element.items.sewing_set",

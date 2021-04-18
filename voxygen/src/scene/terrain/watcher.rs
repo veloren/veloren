@@ -127,6 +127,9 @@ impl BlocksOfInterest {
                         Some(SpriteKind::Anvil) => {
                             interactables.push((pos, Interaction::Craft(CraftingTab::Weapon)))
                         },
+                        Some(SpriteKind::CookingPot) => {
+                            interactables.push((pos, Interaction::Craft(CraftingTab::Food)))
+                        },
                         _ => {},
                     },
                 }

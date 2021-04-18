@@ -3487,11 +3487,11 @@ fn try_hotbar_slot_from_input(input: GameInput) -> Option<hotbar::Slot> {
 }
 
 pub fn cr_color(combat_rating: f32) -> Color {
-    let common = 4.3;
-    let moderate = 6.0;
-    let high = 8.0;
-    let epic = 10.0;
-    let legendary = 79.0;
+    let common = 2.0;
+    let moderate = 3.5;
+    let high = 6.5;
+    let epic = 8.5;
+    let legendary = 10.4;
     let artifact = 122.0;
     let debug = 200.0;
 

@@ -147,6 +147,7 @@ make_case_elim!(
         Forge = 0x78,
         Cauldron = 0x79,
         Anvil = 0x7A,
+        CookingPot = 0x7B,
     }
 );
 
@@ -192,6 +193,7 @@ impl SpriteKind {
             SpriteKind::Forge => 2.7,
             SpriteKind::Cauldron => 1.27,
             SpriteKind::Anvil => 1.1,
+            SpriteKind::CookingPot => 1.82,
             // TODO: Find suitable heights.
             SpriteKind::BarrelCactus
             | SpriteKind::RoundCactus
@@ -321,6 +323,7 @@ impl SpriteKind {
                 | SpriteKind::Forge
                 | SpriteKind::Cauldron
                 | SpriteKind::Anvil
+                | SpriteKind::CookingPot
         )
     }
 }

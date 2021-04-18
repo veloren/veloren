@@ -1,19 +1,20 @@
 {
     "crafting_hammer": (
-        output: ("common.items.crafting_tools.craftsman_hammer", 1),
+        output: ("common.items.tool.craftsman_hammer", 1),
         inputs: [
             (Item("common.items.crafting_ing.twigs"), 6),
             (Item("common.items.crafting_ing.stones"), 6),
         ],
-        craft_sprite: Some(CraftingBench),
+        craft_sprite: Some(Anvil),
     ),
     "mortar_pestle": (
         output: ("common.items.crafting_tools.mortar_pestle", 1),
         inputs: [
             (Item("common.items.crafting_ing.stones"), 6),
             (Item("common.items.food.coconut"), 1),
-            (Item("common.items.crafting_tools.craftsman_hammer"), 0),
+            (Item("common.items.tool.craftsman_hammer"), 0),
         ],
+        craft_sprite: Some(CraftingBench),
     ),
     "sewing_set": (
         output: ("common.items.crafting_tools.sewing_set", 1),
@@ -22,12 +23,13 @@
             (Item("common.items.crafting_ing.twigs"), 4),
             (Item("common.items.crafting_ing.stones"), 2),
         ],
+        craft_sprite: Some(CraftingBench),
     ),
     "velorite_frag": (
         output: ("common.items.ore.veloritefrag", 2),
         inputs: [
             (Item("common.items.ore.velorite"), 1),
-            (Item("common.items.crafting_tools.craftsman_hammer"), 0),
+            (Item("common.items.tool.craftsman_hammer"), 0),
         ],
         craft_sprite: Some(Anvil),
     ),
@@ -63,6 +65,7 @@
             (Item("common.items.ore.veloritefrag"), 2),
             (Item("common.items.crafting_tools.mortar_pestle"), 0),
         ],
+        craft_sprite: Some(CraftingBench),
     ),
     "firework_blue": (
         output: ("common.items.utility.firework_blue", 1),
@@ -73,6 +76,7 @@
             (Item("common.items.ore.veloritefrag"), 1),
             (Item("common.items.crafting_tools.mortar_pestle"), 0),
         ],
+        craft_sprite: Some(CraftingBench),
     ),
     "firework_green": (
         output: ("common.items.utility.firework_green", 1),
@@ -83,6 +87,7 @@
             (Item("common.items.ore.veloritefrag"), 1),
             (Item("common.items.crafting_tools.mortar_pestle"), 0),
         ],
+        craft_sprite: Some(CraftingBench),
     ),
     "firework_purple": (
         output: ("common.items.utility.firework_purple", 1),
@@ -93,6 +98,7 @@
             (Item("common.items.ore.veloritefrag"), 1),
             (Item("common.items.crafting_tools.mortar_pestle"), 0),
         ],
+        craft_sprite: Some(CraftingBench),
     ),
     "firework_red": (
         output: ("common.items.utility.firework_red", 1),
@@ -103,6 +109,7 @@
             (Item("common.items.ore.veloritefrag"), 1),
             (Item("common.items.crafting_tools.mortar_pestle"), 0),
         ],
+        craft_sprite: Some(CraftingBench),
     ),
     "firework_white": (
         output: ("common.items.utility.firework_white", 1),
@@ -113,6 +120,7 @@
             (Item("common.items.ore.veloritefrag"), 1),
             (Item("common.items.crafting_tools.mortar_pestle"), 0),
         ],
+        craft_sprite: Some(CraftingBench),
     ),
     "firework_yellow": (
         output: ("common.items.utility.firework_yellow", 1),
@@ -123,6 +131,7 @@
             (Item("common.items.ore.veloritefrag"), 1),
             (Item("common.items.crafting_tools.mortar_pestle"), 0),
         ],
+        craft_sprite: Some(CraftingBench),
     ),
     "apple_shroom_curry": (
         output: ("common.items.food.apple_mushroom_curry", 1),
@@ -132,7 +141,7 @@
             (Item("common.items.food.apple"), 4),
             (Item("common.items.crafting_tools.mortar_pestle"), 0),
         ],
-        craft_sprite: Some(Cauldron),
+        craft_sprite: Some(CookingPot),
     ),
     "salad_plain": (
         output: ("common.items.food.plainsalad", 1),
@@ -179,7 +188,7 @@
             (Item("common.items.crafting_ing.twigs"), 5),
             (Item("common.items.crafting_ing.leather_scraps"), 5),
             (Item("common.items.crafting_ing.cloth_scraps"), 10),
-            (Item("common.items.crafting_tools.craftsman_hammer"), 0),
+            (Item("common.items.tool.craftsman_hammer"), 0),
             (Item("common.items.crafting_tools.sewing_set"), 0),
         ],
         craft_sprite: Some(CraftingBench),
@@ -190,7 +199,7 @@
             (Item("common.items.crafting_ing.twigs"), 5),
             (Item("common.items.crafting_ing.cloth_scraps_red"), 10),
             (Item("common.items.crafting_ing.leather_scraps"), 5),
-            (Item("common.items.crafting_tools.craftsman_hammer"), 0),
+            (Item("common.items.tool.craftsman_hammer"), 0),
             (Item("common.items.crafting_tools.sewing_set"), 0),
         ],
         craft_sprite: Some(CraftingBench),
@@ -202,7 +211,7 @@
             (Item("common.items.crafting_ing.leather_scraps"), 5),
             (Item("common.items.crafting_ing.cloth_scraps"), 5),
             (Item("common.items.crafting_ing.emerald"), 1),
-            (Item("common.items.crafting_tools.craftsman_hammer"), 0),
+            (Item("common.items.tool.craftsman_hammer"), 0),
             (Item("common.items.crafting_tools.sewing_set"), 0),
         ],
         craft_sprite: Some(CraftingBench),
@@ -215,7 +224,7 @@
             (Item("common.items.crafting_ing.leather_scraps"), 5),
             (Item("common.items.crafting_ing.cloth_scraps"), 5),
             (Item("common.items.crafting_ing.ruby"), 1),
-            (Item("common.items.crafting_tools.craftsman_hammer"), 0),
+            (Item("common.items.tool.craftsman_hammer"), 0),
             (Item("common.items.crafting_tools.sewing_set"), 0),
         ],
         craft_sprite: Some(CraftingBench),
@@ -229,7 +238,7 @@
             (Item("common.items.crafting_ing.cloth_scraps"), 5),
             (Item("common.items.crafting_ing.icy_fang"), 1),
             (Item("common.items.crafting_ing.ruby"), 1),
-            (Item("common.items.crafting_tools.craftsman_hammer"), 0),
+            (Item("common.items.tool.craftsman_hammer"), 0),
             (Item("common.items.crafting_tools.sewing_set"), 0),
         ],
         craft_sprite: Some(CraftingBench),
@@ -242,7 +251,7 @@
             (Item("common.items.crafting_ing.leather_scraps"), 5),
             (Item("common.items.crafting_ing.cloth_scraps"), 5),
             (Item("common.items.crafting_ing.ruby"), 1),
-            (Item("common.items.crafting_tools.craftsman_hammer"), 0),
+            (Item("common.items.tool.craftsman_hammer"), 0),
             (Item("common.items.crafting_tools.sewing_set"), 0),
         ],
         craft_sprite: Some(CraftingBench),
@@ -253,7 +262,7 @@
             (Item("common.items.crafting_ing.twigs"), 20),
             (Item("common.items.ore.veloritefrag"), 8),
             (Item("common.items.crafting_ing.ruby"), 4),
-            (Item("common.items.crafting_tools.craftsman_hammer"), 0),
+            (Item("common.items.tool.craftsman_hammer"), 0),
         ],
     ),
     "Hunting Bow": (
@@ -278,30 +287,37 @@
     "adventure back": (
         output: ("common.items.armor.agile.back", 1),
         inputs: [(Item("common.items.crafting_ing.leather_scraps"), 4)],
+        craft_sprite: Some(CraftingBench),
     ),
     "adventure belt": (
         output: ("common.items.armor.agile.belt", 1),
         inputs: [(Item("common.items.crafting_ing.leather_scraps"), 2)],
+        craft_sprite: Some(CraftingBench),
     ),
     "adventure chest": (
         output: ("common.items.armor.agile.chest", 1),
         inputs: [(Item("common.items.crafting_ing.leather_scraps"), 12)],
+        craft_sprite: Some(CraftingBench),
     ),
     "adventure feet": (
         output: ("common.items.armor.agile.foot", 1),
         inputs: [(Item("common.items.crafting_ing.leather_scraps"), 3)],
+        craft_sprite: Some(CraftingBench),
     ),
     "adventure hands": (
         output: ("common.items.armor.agile.hand", 1),
         inputs: [(Item("common.items.crafting_ing.leather_scraps"), 4)],
+        craft_sprite: Some(CraftingBench),
     ),
     "adventure pants": (
         output: ("common.items.armor.agile.pants", 1),
         inputs: [(Item("common.items.crafting_ing.leather_scraps"), 8)],
+        craft_sprite: Some(CraftingBench),
     ),
     "adventure shoulder": (
         output: ("common.items.armor.agile.shoulder", 1),
         inputs: [(Item("common.items.crafting_ing.leather_scraps"), 12)],
+        craft_sprite: Some(CraftingBench),
     ),
     "Seashell Necklace": (
         output: ("common.items.armor.misc.neck.shell", 1),
@@ -311,6 +327,7 @@
             (Item("common.items.crafting_ing.seashells"), 3),
             (Item("common.items.crafting_tools.sewing_set"), 0),
         ],
+        craft_sprite: Some(CraftingBench),
     ),
     "red cloth": (
         output: ("common.items.crafting_ing.cloth_scraps_red", 1),
@@ -360,6 +377,7 @@
             (Item("common.items.armor.misc.bag.tiny_leather_pouch"), 2),
             (Item("common.items.crafting_tools.sewing_set"), 0),
         ],
+        craft_sprite: Some(CraftingBench),
     ),
     "sturdy red backpack": (
         output: ("common.items.armor.misc.bag.sturdy_red_backpack", 1),
@@ -395,7 +413,7 @@
             (Item("common.items.crafting_ing.cloth_scraps"), 1), // TODO: Replace with plant fiber when obtainable
             (Item("common.items.crafting_ing.stones"), 5), // TODO: Replace with iron ingots when obtainable
             (Item("common.items.crafting_ing.twigs"), 4),
-            (Item("common.items.crafting_tools.craftsman_hammer"), 0),
+            (Item("common.items.tool.craftsman_hammer"), 0),
         ],
         craft_sprite: Some(Anvil),
     ),
@@ -417,7 +435,7 @@
     //    output: ("common.items.crafting_ing.modular.damage.sword.metal_blade", 1),
     //    inputs: [
     //        (Tag(MetalIngot), 5),
-    //        (Item("common.items.crafting_tools.craftsman_hammer"), 0),
+    //        (Item("common.items.tool.craftsman_hammer"), 0),
     //    ],
     //),
 }
