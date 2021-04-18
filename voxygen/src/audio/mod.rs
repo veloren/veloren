@@ -308,14 +308,16 @@ impl AudioFrontend {
     ) -> Option<&mut AmbientChannel> {
         if let Some(audio_stream) = &self.audio_stream {
             if self.ambient_channels.is_empty() {
-                let mut ambient_channel = AmbientChannel::new(audio_stream, channel_tag);
-                ambient_channel.set_volume(self.get_sfx_volume() * volume_multiplier);
+                let mut ambient_channel =
+                    AmbientChannel::new(audio_stream, channel_tag, volume_multiplier);
+                ambient_channel.set_volume(self.get_sfx_volume());
                 self.ambient_channels.push(ambient_channel);
             } else {
                 let sfx_volume = self.get_sfx_volume();
                 for channel in self.ambient_channels.iter_mut() {
                     if channel.get_tag() == channel_tag {
-                        channel.set_volume(sfx_volume * volume_multiplier);
+                        channel.set_multiplier(volume_multiplier);
+                        channel.set_volume(sfx_volume);
                         return Some(channel);
                     }
                 }
@@ -329,7 +331,8 @@ impl AudioFrontend {
         if self.audio_stream.is_some() {
             let sfx_volume = self.get_sfx_volume();
             if let Some(channel) = self.ambient_channels.iter_mut().last() {
-                channel.set_volume(sfx_volume * volume_multiplier);
+                channel.set_multiplier(volume_multiplier);
+                channel.set_volume(sfx_volume);
             }
         }
     }
@@ -416,10 +419,7 @@ impl AudioFrontend {
     pub fn set_sfx_volume(&mut self, sfx_volume: f32) {
         self.sfx_volume = sfx_volume;
 
-        let sfx_volume = self.get_sfx_volume();
-        for channel in self.sfx_channels.iter_mut() {
-            channel.set_volume(sfx_volume);
-        }
+        self.update_sfx_volumes();
     }
 
     pub fn set_music_volume(&mut self, music_volume: f32) {
@@ -439,8 +439,16 @@ impl AudioFrontend {
             channel.set_volume(music_volume);
         }
 
+        self.update_sfx_volumes();
+    }
+
+    fn update_sfx_volumes(&mut self) {
         let sfx_volume = self.get_sfx_volume();
         for channel in self.sfx_channels.iter_mut() {
+            channel.set_volume(sfx_volume);
+        }
+
+        for channel in self.ambient_channels.iter_mut() {
             channel.set_volume(sfx_volume);
         }
     }
