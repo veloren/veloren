@@ -18,7 +18,7 @@
 
 in vec3 f_pos;
 flat in vec3 f_norm;
-flat in float f_light;
+flat in float f_select;
 // flat in vec3 f_pos_norm;
 in vec2 f_uv_pos;
 in vec2 f_inst_light;
@@ -181,7 +181,10 @@ void main() {
     emitted_light *= ao;
     reflected_light *= ao;
 
-    surf_color = illuminate(max_light, view_dir, surf_color * emitted_light, surf_color * reflected_light) * f_light;
+    f_col += f_select * 0.05;
+    reflected_light += f_select * 0.03 * max_light / PERSISTENT_AMBIANCE;
+
+    surf_color = illuminate(max_light, view_dir, surf_color * emitted_light, surf_color * reflected_light);
     // vec3 surf_color = illuminate(f_col, light, diffuse_light, ambient_light);
 
     // tgt_color = vec4(color, 1.0);

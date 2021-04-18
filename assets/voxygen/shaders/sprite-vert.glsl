@@ -72,7 +72,7 @@ uniform u_terrain_locals {
 
 out vec3 f_pos;
 flat out vec3 f_norm;
-flat out float f_light;
+flat out float f_select;
 // flat out vec3 f_pos_norm;
 // out vec3 f_col;
 // out float f_ao;
@@ -228,7 +228,7 @@ void main() {
     // f_light = 1.0;
     // if (select_pos.w > 0) */{
         vec3 sprite_pos = /*round*/floor(((inst_mat * vec4(-offs.xyz, 1)).xyz) * SCALE/* - vec3(0.5, 0.5, 0.0)*/) + inst_offs;
-        f_light = (select_pos.w > 0 && select_pos.xyz == sprite_pos/* - vec3(0.5, 0.5, 0.0) * SCALE*/) ? 10.0 : 1.0;
+        f_select = (select_pos.w > 0 && select_pos.xyz == sprite_pos/* - vec3(0.5, 0.5, 0.0) * SCALE*/) ? 1.0 : 0.0;
     // }
 
     gl_Position =

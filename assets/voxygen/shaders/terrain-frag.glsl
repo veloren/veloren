@@ -268,8 +268,9 @@ void main() {
     vec3 glow = glow_light(f_pos) * (pow(f_glow, 6) * 5 + pow(f_glow, 1.5) * 2);
     reflected_light += glow;
 
-    float f_select = (select_pos.w > 0 && select_pos.xyz == floor(f_pos - f_norm * 0.5)) ? 0.2 / PERSISTENT_AMBIANCE : 0.0;
-    reflected_light += f_select;
+    float f_select = (select_pos.w > 0 && select_pos.xyz == floor(f_pos - f_norm * 0.5)) ? 1.0 : 0.0;
+    f_col += f_select * 0.05;
+    reflected_light += f_select * 0.03 * max_light / PERSISTENT_AMBIANCE;
 
     max_light += lights_at(f_pos, f_norm, view_dir, mu, cam_attenuation, fluid_alt, k_a, k_d, k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
 
