@@ -10,7 +10,7 @@ use lazy_static::lazy_static;
 use serde::Deserialize;
 use tracing::{info, warn};
 
-type Entry = (String, f32);
+type Entry = (String, f32, bool);
 
 type Entries = Vec<Entry>;
 const PRICING_DEBUG: bool = false;
@@ -72,7 +72,7 @@ impl From<Vec<(f32, LootSpec)>> for ProbabilityFile {
 
 #[derive(Debug, Deserialize)]
 struct TradingPriceFile {
-    pub loot_tables: Vec<(f32, String)>,
+    pub loot_tables: Vec<(f32, bool, String)>,
     pub good_scaling: Vec<(Good, f32)>, // the amount of Good equivalent to the most common item
 }
 
@@ -168,7 +168,7 @@ impl TradePricing {
     }
 
     fn read() -> Self {
-        fn add(entryvec: &mut Entries, itemname: &str, probability: f32) {
+        fn add(entryvec: &mut Entries, itemname: &str, probability: f32, can_sell: bool) {
             let val = entryvec.iter_mut().find(|j| *j.0 == *itemname);
             if let Some(r) = val {
                 if PRICING_DEBUG {
@@ -179,13 +179,13 @@ impl TradePricing {
                 if PRICING_DEBUG {
                     info!("New {} {}", itemname, probability);
                 }
-                entryvec.push((itemname.to_string(), probability));
+                entryvec.push((itemname.to_string(), probability, can_sell));
             }
         }
         fn sort_and_normalize(entryvec: &mut [Entry], scale: f32) {
             if !entryvec.is_empty() {
                 entryvec.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
-                if let Some((_, max_scale)) = entryvec.last() {
+                if let Some((_, max_scale, _)) = entryvec.last() {
                     // most common item has frequency max_scale.  avoid NaN
                     let rescale = scale / max_scale;
                     for i in entryvec.iter_mut() {
@@ -210,9 +210,9 @@ impl TradePricing {
             if PRICING_DEBUG {
                 info!(?i);
             }
-            let loot = ProbabilityFile::load_expect(&i.1);
+            let loot = ProbabilityFile::load_expect(&i.2);
             for j in loot.read().content.iter() {
-                add(&mut result.get_list_by_path_mut(&j.1), &j.1, i.0 * j.0);
+                add(&mut result.get_list_by_path_mut(&j.1), &j.1, i.0 * j.0, i.1);
             }
         }
 
@@ -241,8 +241,8 @@ impl TradePricing {
         fn price_lookup(s: &TradePricing, name: &str) -> f32 {
             let vec = s.get_list_by_path(name);
             vec.iter()
-                .find(|(n, _)| n == name)
-                .map(|(_, freq)| 1.0 / freq)
+                .find(|(n, _, _)| n == name)
+                .map(|(_, freq, _)| 1.0 / freq)
                 // even if we multiply by INVEST_FACTOR we need to remain above UNAVAILABLE_PRICE (add 1.0 to compensate rounding errors)
                 .unwrap_or(TradePricing::UNAVAILABLE_PRICE/TradePricing::INVEST_FACTOR+1.0)
         }
@@ -276,6 +276,7 @@ impl TradePricing {
                         &mut result.get_list_by_path_mut(&e.output),
                         &e.output,
                         (e.amount as f32) / actual_cost * TradePricing::CRAFTING_FACTOR,
+                        true,
                     );
                     false
                 } else {
@@ -305,7 +306,7 @@ impl TradePricing {
         result
     }
 
-    fn random_item_impl(&self, good: Good, amount: f32) -> Option<String> {
+    fn random_item_impl(&self, good: Good, amount: f32, selling: bool) -> Option<String> {
         if good == Good::Coin {
             Some(TradePricing::COIN_ITEM.into())
         } else {
@@ -321,14 +322,19 @@ impl TradePricing {
                 .find(|i| i.1.1 * amount >= 1.0)
                 .map(|i| i.0)
                 .unwrap_or(upper - 1);
-            let index = (rand::random::<f32>() * ((upper - lower) as f32)).floor() as usize + lower;
-            //.gen_range(lower..upper);
-            table.get(index).map(|i| i.0.clone())
+            loop {
+                let index =
+                    (rand::random::<f32>() * ((upper - lower) as f32)).floor() as usize + lower;
+                //.gen_range(lower..upper);
+                if table.get(index).map_or(false, |i| !selling || i.2) {
+                    break table.get(index).map(|i| i.0.clone());
+                }
+            }
         }
     }
 
-    pub fn random_item(good: Good, amount: f32) -> Option<String> {
-        TRADE_PRICING.random_item_impl(good, amount)
+    pub fn random_item(good: Good, amount: f32, selling: bool) -> Option<String> {
+        TRADE_PRICING.random_item_impl(good, amount, selling)
     }
 
     pub fn get_material(item: &str) -> (Good, f32) {
@@ -350,7 +356,7 @@ impl TradePricing {
         use crate::comp::item::{armor, tool, Item, ItemKind};
 
         // we pass the item and the inverse of the price to the closure
-        fn printvec<F>(x: &str, e: &[(String, f32)], f: F)
+        fn printvec<F>(x: &str, e: &[(String, f32, bool)], f: F)
         where
             F: Fn(&Item, f32) -> String,
         {
@@ -437,7 +443,7 @@ mod tests {
 
         TradePricing::instance().print_sorted();
         for _ in 0..5 {
-            if let Some(item_id) = TradePricing::random_item(Good::Armor, 5.0) {
+            if let Some(item_id) = TradePricing::random_item(Good::Armor, 5.0, false) {
                 info!("Armor 5 {}", item_id);
             }
         }

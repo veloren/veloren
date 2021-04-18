@@ -590,7 +590,8 @@ impl LoadoutBuilder {
                                 .expect("coins should be stackable");
                             *s = Some(coin_item);
                             coins = 0;
-                        } else if let Some(item_id) = TradePricing::random_item(Good::Armor, armor)
+                        } else if let Some(item_id) =
+                            TradePricing::random_item(Good::Armor, armor, true)
                         {
                             *s = Some(Item::new_from_asset_expect(&item_id));
                         }
@@ -605,7 +606,8 @@ impl LoadoutBuilder {
                         .unwrap_or_default()
                         / 10.0;
                     for i in bag1.slots_mut() {
-                        if let Some(item_id) = TradePricing::random_item(Good::Tools, weapon) {
+                        if let Some(item_id) = TradePricing::random_item(Good::Tools, weapon, true)
+                        {
                             *i = Some(Item::new_from_asset_expect(&item_id));
                         }
                     }
@@ -615,7 +617,7 @@ impl LoadoutBuilder {
                             let mut item = Item::new_from_asset_expect(&item_id);
                             // NOTE: Conversion to and from f32 works fine because we make sure the
                             // number we're converting is ≤ 100.
-                            let max = amount.min(100.min(item.max_amount()) as f32) as u32;
+                            let max = amount.min(16.min(item.max_amount()) as f32) as u32;
                             let n = rng.gen_range(1..max.max(2));
                             *amount -= if item.set_amount(n).is_ok() {
                                 n as f32
@@ -638,7 +640,7 @@ impl LoadoutBuilder {
                         / 10.0;
                     for i in bag2.slots_mut() {
                         if let Some(item_id) =
-                            TradePricing::random_item(Good::Ingredients, ingredients)
+                            TradePricing::random_item(Good::Ingredients, ingredients, true)
                         {
                             *i = item_with_amount(&item_id, &mut ingredients);
                         }
@@ -658,7 +660,7 @@ impl LoadoutBuilder {
                         .max(10000.0)
                         / 10.0;
                     for i in bag3.slots_mut() {
-                        if let Some(item_id) = TradePricing::random_item(Good::Food, food) {
+                        if let Some(item_id) = TradePricing::random_item(Good::Food, food, true) {
                             *i = item_with_amount(&item_id, &mut food);
                         }
                     }
@@ -672,7 +674,9 @@ impl LoadoutBuilder {
                         .unwrap_or_default()
                         / 10.0;
                     for i in bag4.slots_mut() {
-                        if let Some(item_id) = TradePricing::random_item(Good::Potions, potions) {
+                        if let Some(item_id) =
+                            TradePricing::random_item(Good::Potions, potions, true)
+                        {
                             *i = item_with_amount(&item_id, &mut potions);
                         }
                     }

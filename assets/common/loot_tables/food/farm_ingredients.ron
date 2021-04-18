@@ -1,7 +1,6 @@
 [
     (1.0, Item("common.items.food.apple")),
     (1.0, Item("common.items.food.carrot")),
-    (1.0, Item("common.items.food.cheese")),
     (1.0, Item("common.items.food.lettuce")),
     (1.0, Item("common.items.food.tomato")),
 ]

@@ -1,6 +1,11 @@
 // we use a vector to easily generate a key into all the economic data containers
 ([
     (
+        name: "Banker",
+        orders: [ (Ingredients, 12.0), (Stone, 4.0), (Tools, 1.0), (RoadSecurity, 4.0) ],
+        products: [ (Coin, 16.0) ],
+    ),
+    (
         name: "Cook",
         orders: [ (Flour, 12.0), (Meat, 4.0), (Wood, 1.5), (Stone, 1.0) ],
         products: [ (Food, 16.0) ],

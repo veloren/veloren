@@ -29,7 +29,7 @@ pub struct Labor(u8, PhantomData<Profession>);
 #[derive(Debug)]
 pub struct AreaResources {
     pub resource_sum: MapVec<Good, f32>,
-    pub resource_chunks: MapVec<Good, u32>,
+    pub resource_chunks: MapVec<Good, f32>,
     pub chunks: u32,
 }
 
@@ -49,7 +49,7 @@ pub struct NaturalResources {
     pub per_area: Vec<AreaResources>,
 
     // computation simplifying cached values
-    pub chunks_per_resource: MapVec<Good, u32>,
+    pub chunks_per_resource: MapVec<Good, f32>,
     pub average_yield_per_chunk: MapVec<Good, f32>,
 }
 
@@ -221,9 +221,9 @@ impl Economy {
                 .iter()
                 .map(|a| a.resource_chunks[g])
                 .sum();
-            if chunks != 0 {
+            if chunks > 0.001 {
                 self.natural_resources.chunks_per_resource[g] = chunks;
-                self.natural_resources.average_yield_per_chunk[g] = amount / (chunks as f32);
+                self.natural_resources.average_yield_per_chunk[g] = amount / chunks;
             }
         }
     }
@@ -273,14 +273,14 @@ impl Economy {
 
     pub fn replenish(&mut self, _time: f32) {
         for (good, &ch) in self.natural_resources.chunks_per_resource.iter() {
-            let per_year = self.natural_resources.average_yield_per_chunk[good] * (ch as f32);
+            let per_year = self.natural_resources.average_yield_per_chunk[good] * ch;
             self.stocks[good] = self.stocks[good].max(per_year);
         }
         // info!("resources {:?}", self.stocks);
     }
 
     pub fn add_chunk(&mut self, ch: &SimChunk, distance_squared: i64) {
-        let biome = ch.get_biome();
+        // let biome = ch.get_biome();
         // we don't scale by pi, although that would be correct
         let distance_bin = (distance_squared >> 16).min(64) as usize;
         if self.natural_resources.per_area.len() <= distance_bin {
@@ -289,9 +289,30 @@ impl Economy {
                 .resize_with(distance_bin + 1, Default::default);
         }
         self.natural_resources.per_area[distance_bin].chunks += 1;
-        self.natural_resources.per_area[distance_bin].resource_sum[Terrain(biome)] += 1.0;
-        self.natural_resources.per_area[distance_bin].resource_chunks[Terrain(biome)] += 1;
-        // TODO: Scale resources by rockiness or tree_density?
+        // self.natural_resources.per_area[distance_bin].resource_sum[Terrain(biome)] +=
+        // 1.0; self.natural_resources.per_area[distance_bin].
+        // resource_chunks[Terrain(biome)] += 1.0; TODO: Scale resources by
+        // rockiness or tree_density?
+
+        let mut add_biome = |biome, amount| {
+            self.natural_resources.per_area[distance_bin].resource_sum[Terrain(biome)] += amount;
+            self.natural_resources.per_area[distance_bin].resource_chunks[Terrain(biome)] += amount;
+        };
+        if ch.river.is_ocean() {
+            add_biome(BiomeKind::Ocean, 1.0);
+        } else if ch.river.is_lake() {
+            add_biome(BiomeKind::Lake, 1.0);
+        } else {
+            add_biome(BiomeKind::Forest, 0.5 + ch.tree_density);
+            add_biome(BiomeKind::Grassland, 0.5 + ch.humidity);
+            add_biome(BiomeKind::Jungle, 0.5 + ch.humidity * ch.temp.max(0.0));
+            add_biome(BiomeKind::Mountain, 0.5 + (ch.alt / 4000.0).max(0.0));
+            add_biome(
+                BiomeKind::Desert,
+                0.5 + (1.0 - ch.humidity) * ch.temp.max(0.0),
+            );
+            add_biome(BiomeKind::Snowland, 0.5 + (-ch.temp).max(0.0));
+        }
     }
 
     pub fn add_neighbor(&mut self, id: Id<Site>, distance: usize) {
@@ -305,12 +326,26 @@ impl Economy {
     }
 
     pub fn get_site_prices(&self) -> SitePrices {
-        SitePrices {
-            values: self
-                .values
+        let normalize = |xs: MapVec<Good, Option<f32>>| {
+            let sum = xs
                 .iter()
-                .map(|(g, v)| (g, v.unwrap_or(Economy::MINIMUM_PRICE)))
-                .collect(),
+                .map(|(_, x)| (*x).unwrap_or(0.0))
+                .sum::<f32>()
+                .max(0.001);
+            xs.map(|_, x| Some(x? / sum))
+        };
+
+        SitePrices {
+            values: {
+                let labor_values = normalize(self.labor_values.clone());
+                // Use labor values as prices. Not correct (doesn't care about exchange value)
+                let prices = normalize(self.values.clone())
+                    .map(|good, value| Some((labor_values[good]? + value?) * 0.5));
+                prices
+                    .iter()
+                    .map(|(g, v)| (g, v.unwrap_or(Economy::MINIMUM_PRICE)))
+                    .collect()
+            },
         }
     }
 }
