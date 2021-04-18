@@ -305,14 +305,11 @@ impl Economy {
         } else {
             add_biome(BiomeKind::Forest, 0.5 + ch.tree_density);
             add_biome(BiomeKind::Grassland, 0.5 + ch.humidity);
-            add_biome(BiomeKind::Jungle, 0.5 + ch.humidity * (ch.temp * 0.5 + 0.5));
-            add_biome(
-                BiomeKind::Mountain,
-                0.5 + ch.rockiness + (ch.alt / 4000.0).max(0.0),
-            );
+            add_biome(BiomeKind::Jungle, 0.5 + ch.humidity * ch.temp.max(0.0));
+            add_biome(BiomeKind::Mountain, 0.5 + (ch.alt / 4000.0).max(0.0));
             add_biome(
                 BiomeKind::Desert,
-                0.5 + (1.0 - ch.humidity) * (ch.temp * 0.5 + 0.5),
+                0.5 + (1.0 - ch.humidity) * ch.temp.max(0.0),
             );
             add_biome(BiomeKind::Snowland, 0.5 + (-ch.temp).max(0.0));
         }
@@ -330,11 +327,19 @@ impl Economy {
 
     pub fn get_site_prices(&self) -> SitePrices {
         SitePrices {
-            values: self
-                .values
-                .iter()
-                .map(|(g, v)| (g, v.unwrap_or(Economy::MINIMUM_PRICE)))
-                .collect(),
+            values: {
+                // Normalized values. Note: not correct, but better than nothing
+                let sum = self
+                    .values
+                    .iter()
+                    .map(|(_, price)| (*price).unwrap_or(0.0))
+                    .sum::<f32>()
+                    .max(0.001);
+                self.values
+                    .iter()
+                    .map(|(g, v)| (g, v.map(|v| v / sum).unwrap_or(Economy::MINIMUM_PRICE)))
+                    .collect()
+            },
         }
     }
 }
