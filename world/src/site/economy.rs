@@ -328,14 +328,15 @@ impl Economy {
     pub fn get_site_prices(&self) -> SitePrices {
         SitePrices {
             values: {
+                // Use labor values as prices. Not correct (doesn't care about exchange value)
+                let prices = self.labor_values.clone();
                 // Normalized values. Note: not correct, but better than nothing
-                let sum = self
-                    .values
+                let sum = prices
                     .iter()
                     .map(|(_, price)| (*price).unwrap_or(0.0))
                     .sum::<f32>()
                     .max(0.001);
-                self.values
+                prices
                     .iter()
                     .map(|(g, v)| (g, v.map(|v| v / sum).unwrap_or(Economy::MINIMUM_PRICE)))
                     .collect()
