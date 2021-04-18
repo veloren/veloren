@@ -1,9 +1,9 @@
 [
-    (0.2, Item("common.items.food.apple_mushroom_curry")),
+    (0.4, Item("common.items.food.apple_mushroom_curry")),
     (1.0, Item("common.items.food.apple_stick")),
-    (2.0, Item("common.items.food.cheese")),
-    (1.0, Item("common.items.food.mushroom_stick")),
-    (1.0, Item("common.items.food.plainsalad")),
-    (1.0, Item("common.items.food.sunflower_icetea")),
+    (1.0, Item("common.items.food.cheese")),
+    (1.1, Item("common.items.food.mushroom_stick")),
+    (1.2, Item("common.items.food.plainsalad")),
+    (0.5, Item("common.items.food.sunflower_icetea")),
     (1.0, Item("common.items.food.tomatosalad")),
 ]

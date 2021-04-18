@@ -1095,8 +1095,7 @@ mod tests {
                     .iter()
                     .map(|(good, a)| ResourcesSetup {
                         good,
-                        amount: (*a as f32)
-                            * i.economy.natural_resources.average_yield_per_chunk[good],
+                        amount: *a * i.economy.natural_resources.average_yield_per_chunk[good],
                     })
                     .collect();
                 let neighbors = i
@@ -1159,8 +1158,7 @@ mod tests {
                     //let c = sim::SimChunk::new();
                     //settlement.economy.add_chunk(ch, distance_squared)
                     // bypass the API for now
-                    settlement.economy.natural_resources.chunks_per_resource[g.good] =
-                        g.amount as u32;
+                    settlement.economy.natural_resources.chunks_per_resource[g.good] = g.amount;
                     settlement.economy.natural_resources.average_yield_per_chunk[g.good] = 1.0;
                 }
                 index.sites.insert(settlement);
