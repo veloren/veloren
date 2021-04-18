@@ -9,7 +9,6 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
-use vek::Vec3;
 
 /// Separated out to condense update portions of character state
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -34,8 +33,8 @@ pub struct StaticData {
     pub energy_drain: f32,
     /// How quickly dasher moves forward
     pub forward_speed: f32,
-    /// Whether state keeps charging after reaching max charge duration
-    pub infinite_charge: bool,
+    /// Whether the state can charge through enemies and do a second hit
+    pub charge_through: bool,
     /// How long until state should deal damage
     pub buildup_duration: Duration,
     /// How long the state charges for until it reaches max damage
@@ -60,12 +59,12 @@ pub struct Data {
     pub auto_charge: bool,
     /// Timer for each stage
     pub timer: Duration,
-    /// Distance used to limit how often another attack will be applied
-    pub refresh_distance: f32,
     /// What section the character stage is in
     pub stage_section: StageSection,
     /// Whether the state should attempt attacking again
     pub exhausted: bool,
+    /// Time that charge should end (used for charge through)
+    pub charge_end_timer: Duration,
 }
 
 impl CharacterBehavior for Data {
@@ -97,8 +96,7 @@ impl CharacterBehavior for Data {
                 }
             },
             StageSection::Charge => {
-                if (self.static_data.infinite_charge
-                    || self.timer < self.static_data.charge_duration)
+                if self.timer < self.charge_end_timer
                     && (input_is_pressed(data, self.static_data.ability_info.input)
                         || (self.auto_charge && self.timer < self.static_data.charge_duration))
                     && update.energy.current() > 0
@@ -120,62 +118,60 @@ impl CharacterBehavior for Data {
                     // This logic basically just decides if a charge should end, and prevents the
                     // character state spamming attacks while checking if it has hit something
                     if !self.exhausted {
-                        // Hit attempt (also checks if player is moving)
-                        if update.vel.0.distance_squared(Vec3::zero()) > 1.0 {
-                            let poise = AttackEffect::new(
-                                Some(GroupTarget::OutOfGroup),
-                                CombatEffect::Poise(
-                                    self.static_data.base_poise_damage as f32
-                                        + charge_frac * self.static_data.scaled_poise_damage as f32,
-                                ),
-                            )
-                            .with_requirement(CombatRequirement::AnyDamage);
-                            let knockback = AttackEffect::new(
-                                Some(GroupTarget::OutOfGroup),
-                                CombatEffect::Knockback(Knockback {
-                                    strength: self.static_data.base_knockback
-                                        + charge_frac * self.static_data.scaled_knockback,
-                                    direction: KnockbackDir::Away,
-                                }),
-                            )
-                            .with_requirement(CombatRequirement::AnyDamage);
-                            let buff = CombatEffect::Buff(CombatBuff::default_physical());
-                            let damage = AttackDamage::new(
-                                Damage {
-                                    source: DamageSource::Melee,
-                                    value: self.static_data.base_damage as f32
-                                        + charge_frac * self.static_data.scaled_damage as f32,
-                                },
-                                Some(GroupTarget::OutOfGroup),
-                            )
-                            .with_effect(buff);
-                            let (crit_chance, crit_mult) =
-                                get_crit_data(data, self.static_data.ability_info);
-                            let attack = Attack::default()
-                                .with_damage(damage)
-                                .with_crit(crit_chance, crit_mult)
-                                .with_effect(poise)
-                                .with_effect(knockback)
-                                .with_combo_increment();
+                        // Hit attempt
+                        let poise = AttackEffect::new(
+                            Some(GroupTarget::OutOfGroup),
+                            CombatEffect::Poise(
+                                self.static_data.base_poise_damage as f32
+                                    + charge_frac * self.static_data.scaled_poise_damage as f32,
+                            ),
+                        )
+                        .with_requirement(CombatRequirement::AnyDamage);
+                        let knockback = AttackEffect::new(
+                            Some(GroupTarget::OutOfGroup),
+                            CombatEffect::Knockback(Knockback {
+                                strength: self.static_data.base_knockback
+                                    + charge_frac * self.static_data.scaled_knockback,
+                                direction: KnockbackDir::Away,
+                            }),
+                        )
+                        .with_requirement(CombatRequirement::AnyDamage);
+                        let buff = CombatEffect::Buff(CombatBuff::default_physical());
+                        let damage = AttackDamage::new(
+                            Damage {
+                                source: DamageSource::Melee,
+                                value: self.static_data.base_damage as f32
+                                    + charge_frac * self.static_data.scaled_damage as f32,
+                            },
+                            Some(GroupTarget::OutOfGroup),
+                        )
+                        .with_effect(buff);
+                        let (crit_chance, crit_mult) =
+                            get_crit_data(data, self.static_data.ability_info);
+                        let attack = Attack::default()
+                            .with_damage(damage)
+                            .with_crit(crit_chance, crit_mult)
+                            .with_effect(poise)
+                            .with_effect(knockback)
+                            .with_combo_increment();
 
-                            data.updater.insert(data.entity, Melee {
-                                attack,
-                                range: self.static_data.range,
-                                max_angle: self.static_data.angle.to_radians(),
-                                applied: false,
-                                hit_count: 0,
-                                break_block: data
-                                    .inputs
-                                    .select_pos
-                                    .map(|p| {
-                                        (
-                                            p.map(|e| e.floor() as i32),
-                                            self.static_data.ability_info.tool,
-                                        )
-                                    })
-                                    .filter(|(_, tool)| tool == &Some(ToolKind::Pick)),
-                            });
-                        }
+                        data.updater.insert(data.entity, Melee {
+                            attack,
+                            range: self.static_data.range,
+                            max_angle: self.static_data.angle.to_radians(),
+                            applied: false,
+                            hit_count: 0,
+                            break_block: data
+                                .inputs
+                                .select_pos
+                                .map(|p| {
+                                    (
+                                        p.map(|e| e.floor() as i32),
+                                        self.static_data.ability_info.tool,
+                                    )
+                                })
+                                .filter(|(_, tool)| tool == &Some(ToolKind::Pick)),
+                        });
                         update.character = CharacterState::DashMelee(Data {
                             timer: self
                                 .timer
@@ -185,56 +181,68 @@ impl CharacterBehavior for Data {
                             ..*self
                         })
                     } else if let Some(melee) = data.melee_attack {
-                        // Creates timer ahead of time so xmac can look at line count
-                        let timer = self
-                            .timer
-                            .checked_add(Duration::from_secs_f32(data.dt.0))
-                            .unwrap_or_default();
-                        // If melee attack has not applied yet, tick both duration and dsitance
                         if !melee.applied {
+                            // If melee attack has not applied, just tick duration
                             update.character = CharacterState::DashMelee(Data {
-                                timer,
-                                refresh_distance: self.refresh_distance
-                                    + data.dt.0 * data.vel.0.magnitude(),
+                                timer: self
+                                    .timer
+                                    .checked_add(Duration::from_secs_f32(data.dt.0))
+                                    .unwrap_or_default(),
                                 ..*self
-                            })
-                        // If melee attack has applied, but hit nothing, remove
-                        // exhausted so it can attack again
+                            });
                         } else if melee.hit_count == 0 {
+                            // If melee attack has applied, but not hit anything, remove exhausted
+                            // so it can attack again
                             update.character = CharacterState::DashMelee(Data {
-                                timer,
-                                refresh_distance: 0.0,
+                                timer: self
+                                    .timer
+                                    .checked_add(Duration::from_secs_f32(data.dt.0))
+                                    .unwrap_or_default(),
                                 exhausted: false,
                                 ..*self
-                            })
-                        // Else, melee attack applied and hit something, enter
-                        // cooldown
-                        } else if self.refresh_distance < self.static_data.range {
+                            });
+                        } else if self.static_data.charge_through {
+                            // If can charge through, set charge_end_timer to stop after a little
+                            // more time
+                            let charge_end_timer =
+                                if self.charge_end_timer != self.static_data.charge_duration {
+                                    self.charge_end_timer
+                                } else {
+                                    self.timer
+                                        .checked_add(Duration::from_secs_f32(
+                                            0.2 * self.static_data.range
+                                                / self.static_data.forward_speed,
+                                        ))
+                                        .unwrap_or(self.static_data.charge_duration)
+                                        .min(self.static_data.charge_duration)
+                                };
                             update.character = CharacterState::DashMelee(Data {
-                                timer,
-                                refresh_distance: self.refresh_distance
-                                    + data.dt.0 * data.vel.0.magnitude(),
+                                timer: self
+                                    .timer
+                                    .checked_add(Duration::from_secs_f32(data.dt.0))
+                                    .unwrap_or_default(),
+                                charge_end_timer,
                                 ..*self
-                            })
-                        // Else cooldown has finished, remove exhausted
+                            });
                         } else {
+                            // Stop charging now and go to swing stage section
                             update.character = CharacterState::DashMelee(Data {
-                                timer,
-                                refresh_distance: 0.0,
+                                timer: Duration::default(),
+                                stage_section: StageSection::Swing,
                                 exhausted: false,
                                 ..*self
-                            })
+                            });
                         }
                     } else {
+                        // If melee attack has not applied, just tick duration
                         update.character = CharacterState::DashMelee(Data {
                             timer: self
                                 .timer
                                 .checked_add(Duration::from_secs_f32(data.dt.0))
                                 .unwrap_or_default(),
-                            refresh_distance: 0.0,
                             exhausted: false,
                             ..*self
-                        })
+                        });
                     }
 
                     // Consumes energy if there's enough left and charge has not stopped
@@ -247,12 +255,82 @@ impl CharacterBehavior for Data {
                     update.character = CharacterState::DashMelee(Data {
                         timer: Duration::default(),
                         stage_section: StageSection::Swing,
+                        exhausted: false,
                         ..*self
                     });
                 }
             },
             StageSection::Swing => {
-                if self.timer < self.static_data.swing_duration {
+                if self.static_data.charge_through && !self.exhausted {
+                    // If can charge through and not exhausted, do one more melee attack
+
+                    // Assumes charge got to charge_end_timer for damage calculations
+                    let charge_frac = (self.charge_end_timer.as_secs_f32()
+                        / self.static_data.charge_duration.as_secs_f32())
+                    .min(1.0);
+
+                    let poise = AttackEffect::new(
+                        Some(GroupTarget::OutOfGroup),
+                        CombatEffect::Poise(
+                            self.static_data.base_poise_damage as f32
+                                + charge_frac * self.static_data.scaled_poise_damage as f32,
+                        ),
+                    )
+                    .with_requirement(CombatRequirement::AnyDamage);
+                    let knockback = AttackEffect::new(
+                        Some(GroupTarget::OutOfGroup),
+                        CombatEffect::Knockback(Knockback {
+                            strength: self.static_data.base_knockback
+                                + charge_frac * self.static_data.scaled_knockback,
+                            direction: KnockbackDir::Away,
+                        }),
+                    )
+                    .with_requirement(CombatRequirement::AnyDamage);
+                    let buff = CombatEffect::Buff(CombatBuff::default_physical());
+                    let damage = AttackDamage::new(
+                        Damage {
+                            source: DamageSource::Melee,
+                            value: self.static_data.base_damage as f32
+                                + charge_frac * self.static_data.scaled_damage as f32,
+                        },
+                        Some(GroupTarget::OutOfGroup),
+                    )
+                    .with_effect(buff);
+                    let (crit_chance, crit_mult) =
+                        get_crit_data(data, self.static_data.ability_info);
+                    let attack = Attack::default()
+                        .with_damage(damage)
+                        .with_crit(crit_chance, crit_mult)
+                        .with_effect(poise)
+                        .with_effect(knockback)
+                        .with_combo_increment();
+
+                    data.updater.insert(data.entity, Melee {
+                        attack,
+                        range: self.static_data.range,
+                        max_angle: self.static_data.angle.to_radians(),
+                        applied: false,
+                        hit_count: 0,
+                        break_block: data
+                            .inputs
+                            .select_pos
+                            .map(|p| {
+                                (
+                                    p.map(|e| e.floor() as i32),
+                                    self.static_data.ability_info.tool,
+                                )
+                            })
+                            .filter(|(_, tool)| tool == &Some(ToolKind::Pick)),
+                    });
+                    update.character = CharacterState::DashMelee(Data {
+                        timer: self
+                            .timer
+                            .checked_add(Duration::from_secs_f32(data.dt.0))
+                            .unwrap_or_default(),
+                        exhausted: true,
+                        ..*self
+                    })
+                } else if self.timer < self.static_data.swing_duration {
                     // Swings
                     update.character = CharacterState::DashMelee(Data {
                         timer: self

@@ -61,6 +61,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - There is now a brief period after a character leaves the world where they cannot rejoin until their data is saved
 - Certain uses of client-authoritative physics now subject the player to server-authoritative physics.
 - Dodge roll iframes and staff explosion are now unlocked by default, with points refunded for existing characters.
+- Dash melee now stops after hitting something. Infinite dash also now replaced with dash through.
 
 ### Removed
 
