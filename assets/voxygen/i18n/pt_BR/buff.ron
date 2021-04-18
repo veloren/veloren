@@ -24,6 +24,8 @@
         "buff.desc.bleed": "Inflige Dano contínuo.",
         "buff.title.cursed": "Maldição",
         "buff.desc.cursed": "Você está amaldiçoado.",
+        "buff.title.burn": "Em Chamas",
+        "buff.desc.burn": "Você está queimando vivo",
         // Buffs stats
         "buff.stat.health": "Restaura {str_total} de Vida",
         "buff.stat.increase_max_stamina": "Aumenta a Stamina Máxima em {strength}",

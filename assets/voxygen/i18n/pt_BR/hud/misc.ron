@@ -19,57 +19,32 @@
         // Mensagens de Renascimento
         "hud.press_key_to_respawn": r#"Pressione {key} para renascer na última fogueira visitada."#,
 
-        // Boas Vindas
-        "hud.welcome": r#"Bem-vindo ao Veloren, versão alfa!
+        // Tutorial Button
+        "hud.tutorial_btn": r#"Tutorial"#,
+        "hud.tutorial_click_here": r#"Pressione [ {key} ] para liberar o cursor e clique neste botão!"#,
+        "hud.tutorial_elements": r#"Criação"#,
 
+"hud.temp_quest_headline": r#"Olá viajante!"#,
+"hud.temp_quest_text": r#"Para o início de sua jornada, você pode começar buscando suprimentos nesta cidade. 
 
-Algumas dicas antes de começar:
+Você é bem-vindo para pegar o que for necessário para sua jornada!
 
+Olhe no canto inferior direito de sua tela para encontrar diversas coisas como sua mochila, o menu de criação e o mapa.
 
-Pressione F1 para visualizar a lista de comandos disponíveis.
+A criação te permite constuir armadoras, armas, fazer alimentos e muto mais!
 
-Digite /help no chat para visualizar os comandos de chat
+Os animais selvagens ao redor da cidade são uma boa fonte de Retalhos de Couro(Leather Scraps) para que você crie uma certa proteção contra as intempéries do mundo.
 
-
-Baús e outros objetos são gerados aleatoriamente no Mundo!
-
-Pressione o botão direito do mouse pare coletá-los.
-
-Para usar itens coletados de baús abra o inventário pressionando a tecla 'B'.
-
-Faça duplo clique nos items em sua mochila para usá-los ou equipá-los.
-
-Jogue itens fora cliquando uma vez neles e depois outra fora do inventário
-
-
-As noites podem ser bastante escuras em Veloren.
-
-Equipe sua lamparina(lâmpada a óleo/lanterna) e acenda-a pressionando G.
-
-
-Quer liberar o cursor do mouse para fechar esta janela? Pressione TAB!
-
-
-Aproveite a sua estadia no Mundo de Veloren."#,
-
-"hud.temp_quest_headline": r#"Por favor, nos ajude Viajante!"#,
-"hud.temp_quest_text": r#"As Cavernas estão repletas de cultistas maus 
-que emergiram para nossos pacíficos vilarejos!
-
-
-Consiga companheiros, junte comida
-e derrote seus líderes vis e acólitos.
-
-
-Talvez você até consiga obter um dos seus
-itens magicamente infundidos?"#,
+Assim que você se sentir pronto, tente adquirir equipamentos melhores dos desafios marcados para você no mapa!
+"#,
 
         "hud.spell": "Magias",
         // Diary
         "hud.diary": "Diário",
 
-        "hud.free_look_indicator": "Câmera livre ativa.  Pressione {key} para desabilitar.",
-        "hud.auto_walk_indicator": "Caminhar automático ativado",
+        "hud.free_look_indicator": "Câmera livre ativada.  Pressione {key} para desabilitar.",
+        "hud.camera_clamp_indicator": "Trava vertical de câmera ativada. Pressione {key} para desabilitar.",
+        "hud.auto_walk_indicator": "Caminhar/Planar automático ativado",
     },
 
 
