@@ -326,19 +326,24 @@ impl Economy {
     }
 
     pub fn get_site_prices(&self) -> SitePrices {
+        let normalize = |xs: MapVec<Good, Option<f32>>| {
+            let sum = xs
+                .iter()
+                .map(|(_, x)| (*x).unwrap_or(0.0))
+                .sum::<f32>()
+                .max(0.001);
+            xs.map(|_, x| Some(x? / sum))
+        };
+
         SitePrices {
             values: {
+                let labor_values = normalize(self.labor_values.clone());
                 // Use labor values as prices. Not correct (doesn't care about exchange value)
-                let prices = self.labor_values.clone();
-                // Normalized values. Note: not correct, but better than nothing
-                let sum = prices
-                    .iter()
-                    .map(|(_, price)| (*price).unwrap_or(0.0))
-                    .sum::<f32>()
-                    .max(0.001);
+                let prices = normalize(self.values.clone())
+                    .map(|good, value| Some((labor_values[good]? + value?) * 0.5));
                 prices
                     .iter()
-                    .map(|(g, v)| (g, v.map(|v| v / sum).unwrap_or(Economy::MINIMUM_PRICE)))
+                    .map(|(g, v)| (g, v.unwrap_or(Economy::MINIMUM_PRICE)))
                     .collect()
             },
         }

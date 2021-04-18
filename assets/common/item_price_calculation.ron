@@ -7,9 +7,9 @@ loot_tables: [
     (4.0, "common.loot_tables.weapons.tier-1"),
     (2.0, "common.loot_tables.weapons.tier-2"),
     (1.0, "common.loot_tables.weapons.tier-3"),
-    (0.5, "common.loot_tables.weapons.tier-4"),
-    (0.125, "common.loot_tables.weapons.tier-5"),
-    //(0.125, "common.loot_tables.weapons.cultist"),
+    (0.25, "common.loot_tables.weapons.tier-4"),
+    //(0.125, "common.loot_tables.weapons.tier-5"),
+    //(0.05, "common.loot_tables.weapons.cultist"),
     (0.125, "common.loot_tables.weapons.cave"),
     //(0.0625, "common.loot_tables.weapons.legendary"),
     // Armor
@@ -17,9 +17,9 @@ loot_tables: [
     (6.0, "common.loot_tables.armor.agile"),
     (3.0, "common.loot_tables.armor.swift"),
     (6.0, "common.loot_tables.armor.druid"),
-    (2.0, "common.loot_tables.armor.twigs"),
-    (2.0, "common.loot_tables.armor.twigsflowers"),
-    (2.0, "common.loot_tables.armor.twigsleaves"),
+    (1.0, "common.loot_tables.armor.twigs"),
+    (1.0, "common.loot_tables.armor.twigsflowers"),
+    (1.0, "common.loot_tables.armor.twigsleaves"),
     (0.5, "common.loot_tables.armor.plate"),
     (0.25, "common.loot_tables.armor.steel"),
     //(0.075, "common.loot_tables.armor.cultist"),
@@ -28,18 +28,19 @@ loot_tables: [
     (8.0, "common.loot_tables.materials.underground"),
     // Food
     (0.3, "common.loot_tables.food.farm_ingredients"),
-    (0.5, "common.loot_tables.food.wild_ingredients"),
+    (0.4, "common.loot_tables.food.wild_ingredients"),
     (0.2, "common.loot_tables.food.prepared"),
     // TODO: Change consumables when they are split up later
     (1.0, "common.loot_tables.consumables"),
+    (0.5, "common.loot_tables.trading"),
 ],
 // this is the amount of that good the most common item represents
 // so basically this table balances the goods against each other (higher=less valuable)
 good_scaling: [
-    (Potions, 0.2), // common.items.consumable.potion_minor
-    (Food, 3.0), // common.items.food.mushroom
+    (Potions, 0.005), // common.items.consumable.potion_minor
+    (Food, 0.1), // common.items.food.mushroom
     (Coin, 1.0), // common.items.utility.coins
-    (Armor, 0.2), // common.items.armor.misc.pants.worker_blue
-    (Tools, 0.2), // common.items.weapons.staff.starter_staff
+    (Armor, 0.05), // common.items.armor.misc.pants.worker_blue
+    (Tools, 0.1), // common.items.weapons.staff.starter_staff
     (Ingredients, 0.25), // common.items.crafting_ing.leather_scraps
 ])
