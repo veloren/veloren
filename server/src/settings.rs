@@ -44,6 +44,7 @@ pub struct Settings {
     pub client_timeout: Duration,
     pub spawn_town: Option<String>,
     pub safe_spawn: bool,
+    pub max_player_for_kill_broadcast: Option<usize>,
 }
 
 impl Default for Settings {
@@ -63,6 +64,7 @@ impl Default for Settings {
             client_timeout: Duration::from_secs(40),
             spawn_town: None,
             safe_spawn: true,
+            max_player_for_kill_broadcast: None,
         }
     }
 }

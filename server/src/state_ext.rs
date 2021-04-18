@@ -1,5 +1,5 @@
 use crate::{
-    client::Client, persistence::PersistedComponents, presence::Presence,
+    client::Client, persistence::PersistedComponents, presence::Presence, settings::Settings,
     sys::sentinel::DeletedEntities, SpawnPoint,
 };
 use common::{
@@ -8,7 +8,7 @@ use common::{
     comp::{
         self,
         skills::{GeneralSkill, Skill},
-        Inventory,
+        Group, Inventory,
     },
     effect::Effect,
     slowjob::SlowJobPool,
@@ -503,7 +503,6 @@ impl StateExt for State {
             | comp::ChatType::CommandInfo
             | comp::ChatType::CommandError
             | comp::ChatType::Loot
-            | comp::ChatType::Kill(_, _)
             | comp::ChatType::Meta
             | comp::ChatType::World(_) => self.notify_players(ServerGeneral::ChatMsg(resolved_msg)),
             comp::ChatType::Online(u) => {
@@ -524,7 +523,48 @@ impl StateExt for State {
                     }
                 }
             },
+            comp::ChatType::Kill(kill_source, uid) => {
+                let comp::chat::GenericChatMsg { message, .. } = msg;
+                let clients = ecs.read_storage::<Client>();
+                let clients_count = clients.count();
+                // Avoid chat spam, send kill message only to group or nearby players if a
+                // certain amount of clients are online
+                if clients_count
+                    > ecs
+                        .fetch::<Settings>()
+                        .max_player_for_kill_broadcast
+                        .unwrap_or_default()
+                {
+                    // Send kill message to the dead player's group
+                    let killed_entity =
+                        (*ecs.read_resource::<UidAllocator>()).retrieve_entity_internal(uid.0);
+                    let groups = ecs.read_storage::<Group>();
+                    let killed_group = killed_entity.and_then(|e| groups.get(e));
+                    if let Some(g) = &killed_group {
+                        send_to_group(g, ecs, &resolved_msg);
+                    }
 
+                    // Send kill message to nearby players that aren't part of the deceased's group
+                    let positions = ecs.read_storage::<comp::Pos>();
+                    if let Some(died_player_pos) = killed_entity.and_then(|e| positions.get(e)) {
+                        for (ent, client, pos) in (&*ecs.entities(), &clients, &positions).join() {
+                            let client_group = groups.get(ent);
+                            let is_different_group =
+                                !(killed_group == client_group && client_group.is_some());
+                            if is_within(comp::ChatMsg::SAY_DISTANCE, pos, died_player_pos)
+                                && is_different_group
+                            {
+                                client.send_fallible(ServerGeneral::ChatMsg(resolved_msg.clone()));
+                            }
+                        }
+                    }
+                } else {
+                    self.notify_players(ServerGeneral::server_msg(
+                        comp::ChatType::Kill(kill_source.clone(), *uid),
+                        message,
+                    ))
+                }
+            },
             comp::ChatType::Say(uid) => {
                 let entity_opt =
                     (*ecs.read_resource::<UidAllocator>()).retrieve_entity_internal(uid.0);
