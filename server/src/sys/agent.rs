@@ -14,10 +14,10 @@ use common::{
             Item, ItemDesc, ItemKind,
         },
         skills::{AxeSkill, BowSkill, HammerSkill, Skill, StaffSkill, SwordSkill},
-        Agent, Alignment, BehaviorCapability, BehaviorState, Body, CharacterState, ControlAction,
-        ControlEvent, Controller, Energy, Health, HealthChange, InputKind, Inventory,
-        InventoryAction, LightEmitter, MountState, Ori, PhysicsState, Pos, Scale, SkillSet, Stats,
-        UnresolvedChatMsg, Vel,
+        Agent, Alignment, BehaviorCapability, BehaviorState, Body, CharacterAbility,
+        CharacterState, ControlAction, ControlEvent, Controller, Energy, Health, HealthChange,
+        InputKind, Inventory, InventoryAction, LightEmitter, MountState, Ori, PhysicsState, Pos,
+        Scale, SkillSet, Stats, UnresolvedChatMsg, Vel,
     },
     effect::{BuffEffect, Effect},
     event::{Emitter, EventBus, ServerEvent},
@@ -1805,12 +1805,39 @@ impl<'a> AgentData<'a> {
                 }
             },
             Tactic::Bow => {
-                if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
-                    && dist_sqrd < (2.0 * min_attack_dist).powi(2)
-                {
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Roll));
+                if dist_sqrd < (2.0 * min_attack_dist).powi(2) {
+                    if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
+                        && self.energy.current()
+                            > CharacterAbility::default_roll().get_energy_cost()
+                    {
+                        controller
+                            .actions
+                            .push(ControlAction::basic_input(InputKind::Roll));
+                    } else {
+                        if let Some((bearing, speed)) = agent.chaser.chase(
+                            &*terrain,
+                            self.pos.0,
+                            self.vel.0,
+                            // Away from the target (ironically)
+                            self.pos.0
+                                + (self.pos.0 - tgt_pos.0)
+                                    .try_normalized()
+                                    .unwrap_or_else(Vec3::unit_y)
+                                    * 50.0,
+                            TraversalConfig {
+                                min_tgt_dist: 1.25,
+                                ..self.traversal_config
+                            },
+                        ) {
+                            controller.inputs.move_dir =
+                                bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+                            self.jump_if(controller, bearing.z > 1.5);
+                            controller.inputs.move_z = bearing.z;
+                        }
+                        controller
+                            .actions
+                            .push(ControlAction::basic_input(InputKind::Primary));
+                    }
                 } else if dist_sqrd < MAX_CHASE_DIST.powi(2) {
                     if let Some((bearing, speed)) = agent.chaser.chase(
                         &*terrain,
