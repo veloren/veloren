@@ -62,6 +62,8 @@
         "gameinput.sneak": "Sneak",
         "gameinput.swimdown": "Swim downwards",
         "gameinput.swimup": "Swim upwards",
+        "gameinput.mapzoomin": "Increase map zoom",
+        "gameinput.mapzoomout": "Decrease map zoom",
     },
 
 
