@@ -37,6 +37,7 @@ pub struct InterfaceSettings {
     pub map_show_trees: bool,
     pub minimap_show: bool,
     pub minimap_face_north: bool,
+    pub minimap_zoom: f64,
 }
 
 impl Default for InterfaceSettings {
@@ -70,6 +71,7 @@ impl Default for InterfaceSettings {
             map_show_trees: true,
             minimap_show: true,
             minimap_face_north: false,
+            minimap_zoom: 10.0,
         }
     }
 }

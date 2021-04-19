@@ -81,8 +81,6 @@ impl<'a> MiniMap<'a> {
 
 pub struct State {
     ids: Ids,
-
-    zoom: f64,
 }
 
 pub enum Event {
@@ -90,22 +88,13 @@ pub enum Event {
 }
 
 impl<'a> Widget for MiniMap<'a> {
-    type Event = Option<Event>;
+    type Event = Vec<Event>;
     type State = State;
     type Style = ();
 
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
         State {
             ids: Ids::new(id_gen),
-
-            zoom: {
-                let min_world_dim = self.world_map.1.reduce_partial_min() as f64;
-                min_world_dim.min(
-                    min_world_dim
-                        * (TerrainChunkSize::RECT_SIZE.reduce_partial_max() as f64 / 32.0)
-                        * (16.0 / 1024.0),
-                )
-            },
         }
     }
 
@@ -113,8 +102,10 @@ impl<'a> Widget for MiniMap<'a> {
     fn style(&self) -> Self::Style { () }
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
+        let mut events = Vec::new();
+
         let widget::UpdateArgs { state, ui, .. } = args;
-        let zoom = state.zoom;
+        let mut zoom = self.global_state.settings.interface.minimap_zoom;
         const SCALE: f64 = 1.5; // TODO Make this a setting
         let show_minimap = self.global_state.settings.interface.minimap_show;
         let is_facing_north = self.global_state.settings.interface.minimap_face_north;
@@ -185,8 +176,7 @@ impl<'a> Widget for MiniMap<'a> {
                 && can_zoom_out
             {
                 // Set the image dimensions here, rather than recomputing each time.
-                let zoom = min_zoom.max(zoom / ZOOM_FACTOR);
-                state.update(|s| s.zoom = zoom);
+                zoom = min_zoom.max(zoom / ZOOM_FACTOR);
                 // set_image_dims(zoom);
             }
             if Button::image(self.imgs.mmap_plus)
@@ -200,8 +190,7 @@ impl<'a> Widget for MiniMap<'a> {
                 .was_clicked()
                 && can_zoom_in
             {
-                let zoom = max_zoom.min(zoom * ZOOM_FACTOR);
-                state.update(|s| s.zoom = zoom);
+                zoom = min_zoom.max(zoom * ZOOM_FACTOR);
                 // set_image_dims(zoom);
             }
 
@@ -227,11 +216,10 @@ impl<'a> Widget for MiniMap<'a> {
             .set(state.ids.mmap_north_button, ui)
             .was_clicked()
             {
-                return Some(Event::SettingsChange(MinimapFaceNorth(!is_facing_north)));
+                events.push(Event::SettingsChange(MinimapFaceNorth(!is_facing_north)));
             }
 
-            // Reload zoom in case it changed.
-            let zoom = state.zoom;
+            events.push(Event::SettingsChange(MinimapZoom(zoom)));
 
             // Coordinates
             let player_pos = self
@@ -502,7 +490,7 @@ impl<'a> Widget for MiniMap<'a> {
         .set(state.ids.mmap_button, ui)
         .was_clicked()
         {
-            return Some(Event::SettingsChange(MinimapShow(!show_minimap)));
+            events.push(Event::SettingsChange(MinimapShow(!show_minimap)));
         }
 
         // TODO: Subregion name display
@@ -534,6 +522,6 @@ impl<'a> Widget for MiniMap<'a> {
                 .set(state.ids.mmap_location, ui),
         }
 
-        None
+        events
     }
 }
