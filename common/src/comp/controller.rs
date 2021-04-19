@@ -158,7 +158,10 @@ pub enum InputKind {
 
 impl InputKind {
     pub fn is_ability(self) -> bool {
-        matches!(self, Self::Primary | Self::Secondary | Self::Ability(_))
+        matches!(
+            self,
+            Self::Primary | Self::Secondary | Self::Ability(_) | Self::Block
+        )
     }
 }
 

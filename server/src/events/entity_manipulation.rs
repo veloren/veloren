@@ -739,7 +739,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                             inventory: inventory_b_maybe,
                             stats: stats_b_maybe,
                             health: Some(health_b),
-                            pos,
+                            pos: pos_b.0,
                             ori: ori_b_maybe,
                             char_state: char_state_b_maybe,
                         };

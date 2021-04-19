@@ -407,9 +407,6 @@ impl SfxMgr {
                 let file_ref = "voxygen.audio.sfx.footsteps.stone_step_1";
                 audio.play_sfx(file_ref, pos.map(|e| e as f32 + 0.5), Some(3.0));
             },
-            Outcome::ExpChange { .. }
-            | Outcome::ComboChange { .. }
-            | Outcome::SummonedCreature { .. } => {},
             Outcome::Damage { pos, .. } => {
                 let file_ref = vec![
                     "voxygen.audio.sfx.character.hit_1",
@@ -419,6 +416,13 @@ impl SfxMgr {
                 ][rand::thread_rng().gen_range(1..4)];
                 audio.play_sfx(file_ref, *pos, None);
             },
+            Outcome::Block { pos, parry: _parry } => {
+                // TODO: Get audio for blocking and parrying
+                audio.play_sfx("voxygen.audio.sfx.character.arrow_hit", *pos, Some(2.0));
+            },
+            Outcome::ExpChange { .. }
+            | Outcome::ComboChange { .. }
+            | Outcome::SummonedCreature { .. } => {},
         }
     }
 

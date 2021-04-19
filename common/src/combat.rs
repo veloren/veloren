@@ -17,6 +17,7 @@ use crate::{
     },
     event::ServerEvent,
     outcome::Outcome,
+    states::utils::StageSection,
     uid::Uid,
     util::Dir,
 };
@@ -116,7 +117,12 @@ impl Attack {
 
     pub fn effects(&self) -> impl Iterator<Item = &AttackEffect> { self.effects.iter() }
 
-    pub fn compute_damage_reduction(target: &TargetInfo, source: AttackSource, dir: Dir) -> f32 {
+    pub fn compute_damage_reduction(
+        target: &TargetInfo,
+        source: AttackSource,
+        dir: Dir,
+        mut emit_outcome: impl FnMut(Outcome),
+    ) -> f32 {
         let damage_reduction = Damage::compute_damage_reduction(target.inventory, target.stats);
         let block_reduction = match source {
             AttackSource::Melee => {
@@ -125,7 +131,11 @@ impl Attack {
                 {
                     if ori.look_vec().angle_between(-*dir) < data.static_data.max_angle.to_radians()
                     {
-                        if data.parry {
+                        emit_outcome(Outcome::Block {
+                            parry: data.parry,
+                            pos: target.pos,
+                        });
+                        if data.parry && matches!(data.stage_section, StageSection::Buildup) {
                             1.0
                         } else {
                             data.static_data.block_strength
@@ -164,7 +174,8 @@ impl Attack {
             .filter(|d| d.target.map_or(true, |t| t == target_group))
             .filter(|d| !(matches!(d.target, Some(GroupTarget::OutOfGroup)) && target_dodging))
         {
-            let damage_reduction = Attack::compute_damage_reduction(&target, attack_source, dir);
+            let damage_reduction =
+                Attack::compute_damage_reduction(&target, attack_source, dir, |o| emit_outcome(o));
             let change = damage.damage.calculate_health_change(
                 damage_reduction,
                 attacker.map(|a| a.uid),

@@ -146,7 +146,7 @@ impl<'a> System<'a> for Sys {
                         inventory: read_data.inventories.get(target),
                         stats: read_data.stats.get(target),
                         health: read_data.healths.get(target),
-                        pos: pos.0,
+                        pos: pos_b.0,
                         ori: read_data.orientations.get(target),
                         char_state: read_data.char_states.get(target),
                     };

@@ -111,56 +111,58 @@ impl<'a> System<'a> for Sys {
                                 .uid_allocator
                                 .retrieve_entity_internal(other.into())
                             {
-                                let owner_entity = projectile.owner.and_then(|u| {
-                                    read_data.uid_allocator.retrieve_entity_internal(u.into())
-                                });
-
-                                let attacker_info =
-                                    owner_entity.zip(projectile.owner).map(|(entity, uid)| {
-                                        AttackerInfo {
-                                            entity,
-                                            uid,
-                                            energy: read_data.energies.get(entity),
-                                            combo: read_data.combos.get(entity),
-                                        }
+                                if let Some(pos) = read_data.positions.get(target) {
+                                    let owner_entity = projectile.owner.and_then(|u| {
+                                        read_data.uid_allocator.retrieve_entity_internal(u.into())
                                     });
 
-                                let target_info = TargetInfo {
-                                    entity: target,
-                                    inventory: read_data.inventories.get(target),
-                                    stats: read_data.stats.get(target),
-                                    health: read_data.healths.get(target),
-                                    pos: pos.0,
-                                    // TODO: Let someone smarter figure this out
-                                    // ori: orientations.get(target),
-                                    ori: None,
-                                    char_state: read_data.character_states.get(target),
-                                };
+                                    let attacker_info =
+                                        owner_entity.zip(projectile.owner).map(|(entity, uid)| {
+                                            AttackerInfo {
+                                                entity,
+                                                uid,
+                                                energy: read_data.energies.get(entity),
+                                                combo: read_data.combos.get(entity),
+                                            }
+                                        });
 
-                                if let Some(&body) = read_data.bodies.get(entity) {
-                                    outcomes.push(Outcome::ProjectileHit {
+                                    let target_info = TargetInfo {
+                                        entity: target,
+                                        inventory: read_data.inventories.get(target),
+                                        stats: read_data.stats.get(target),
+                                        health: read_data.healths.get(target),
                                         pos: pos.0,
-                                        body,
-                                        vel: read_data
-                                            .velocities
-                                            .get(entity)
-                                            .map_or(Vec3::zero(), |v| v.0),
-                                        source: projectile.owner,
-                                        target: read_data.uids.get(target).copied(),
-                                    });
-                                }
+                                        // TODO: Let someone smarter figure this out
+                                        // ori: orientations.get(target),
+                                        ori: None,
+                                        char_state: read_data.character_states.get(target),
+                                    };
 
-                                attack.apply_attack(
-                                    target_group,
-                                    attacker_info,
-                                    target_info,
-                                    ori.look_dir(),
-                                    false,
-                                    1.0,
-                                    AttackSource::Projectile,
-                                    |e| server_emitter.emit(e),
-                                    |o| outcomes.push(o),
-                                );
+                                    if let Some(&body) = read_data.bodies.get(entity) {
+                                        outcomes.push(Outcome::ProjectileHit {
+                                            pos: pos.0,
+                                            body,
+                                            vel: read_data
+                                                .velocities
+                                                .get(entity)
+                                                .map_or(Vec3::zero(), |v| v.0),
+                                            source: projectile.owner,
+                                            target: read_data.uids.get(target).copied(),
+                                        });
+                                    }
+
+                                    attack.apply_attack(
+                                        target_group,
+                                        attacker_info,
+                                        target_info,
+                                        ori.look_dir(),
+                                        false,
+                                        1.0,
+                                        AttackSource::Projectile,
+                                        |e| server_emitter.emit(e),
+                                        |o| outcomes.push(o),
+                                    );
+                                }
                             }
                         },
                         projectile::Effect::Explode(e) => {

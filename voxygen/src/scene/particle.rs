@@ -203,6 +203,18 @@ impl ParticleMgr {
                     });
                 }
             },
+            Outcome::Block { pos, parry } => {
+                if *parry {
+                    self.particles.resize_with(self.particles.len() + 20, || {
+                        Particle::new(
+                            Duration::from_millis(200),
+                            time,
+                            ParticleMode::GunPowderSpark,
+                            *pos + Vec3::unit_z(),
+                        )
+                    });
+                }
+            },
             Outcome::ProjectileShot { .. }
             | Outcome::Beam { .. }
             | Outcome::ExpChange { .. }
