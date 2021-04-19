@@ -30,7 +30,7 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission) {
     #endif
     mist_min_alt = view_distance.z * 1.5 * (1.0 + mist_min_alt * 0.5);
     const float MIST_FADE_HEIGHT = 500;
-    float mist = 0.00025 * pow(clamp(1.0 - (pos.z - mist_min_alt) / MIST_FADE_HEIGHT, 0.0, 1), 4.0) / (1.0 + pow(1.0 + dist / 20000.0, 2.0));
+    float mist = 0.0005 * pow(clamp(1.0 - (pos.z - mist_min_alt) / MIST_FADE_HEIGHT, 0.0, 1), 4.0);
 
     float alt = alt_at(pos.xy - focus_off.xy);
 
@@ -53,8 +53,13 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission) {
         const float turb_speed = -1.0; // Turbulence goes the opposite way
         vec3 turb_offset = vec3(1, 1, 0) * time_of_day.x * turb_speed;
         mist *= 0.5
-            + 4 * (noise_2d(wind_pos.xy / 20000) - 0.5)
-            + 1 * (noise_3d(wind_pos / 1000) - 0.5);
+        #if (CLOUD_MODE >= CLOUD_MODE_LOW)
+            + 1.0 * (noise_2d(wind_pos.xy / 5000) - 0.5)
+        #endif
+        #if (CLOUD_MODE >= CLOUD_MODE_MEDIUM)
+            + 0.25 * (noise_3d(wind_pos / 1000) - 0.5)
+        #endif
+        ;
 
         float CLOUD_DEPTH = (view_distance.w - view_distance.z) * 0.8;
         const float CLOUD_DENSITY = 5.0;
@@ -76,7 +81,7 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission) {
             + 0.5 * (noise_3d(wind_pos / 150.0 / cloud_scale) - 0.5)
         #endif
         ) * 0.01;
-        cloud = pow(cloud, 3) * sign(cloud);
+        cloud = pow(max(cloud, 0), 3) * sign(cloud);
         cloud *= CLOUD_DENSITY * (cloud_tendency * 100) * falloff(abs(pos.z - cloud_alt) / CLOUD_DEPTH);
 
         // What proportion of sunlight is *not* being blocked by nearby cloud? (approximation)

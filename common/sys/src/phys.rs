@@ -1359,7 +1359,6 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
         z_range.clone(),
     ) && vel.0.z < 0.25
         && vel.0.z > -1.5
-        && was_on_ground
         && block_snap
     {
         let snap_height = terrain
