@@ -133,10 +133,13 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
         // Collectable Objects
         // Only spawn twigs in temperate forests
         (Twigs, false, |c, _| {
-            ((c.tree_density - 0.5).max(0.0) * 1.0e-3, None)
+            (
+                (c.tree_density * 1.25 - 0.25).powf(0.5).max(0.0) * 0.75e-3,
+                None,
+            )
         }),
         (Stones, false, |c, _| {
-            ((c.rockiness - 0.5).max(0.0) * 1.0e-3, None)
+            ((c.rockiness - 0.5).max(0.025) * 1.0e-3, None)
         }),
         // Don't spawn Mushrooms in snowy regions
         (Mushroom, false, |c, _| {
