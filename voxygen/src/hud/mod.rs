@@ -2182,7 +2182,7 @@ impl Hud {
         .set(self.ids.popup, ui_widgets);
 
         // MiniMap
-        match MiniMap::new(
+        for event in MiniMap::new(
             client,
             &self.imgs,
             &self.rot_imgs,
@@ -2193,10 +2193,11 @@ impl Hud {
         )
         .set(self.ids.minimap, ui_widgets)
         {
-            Some(minimap::Event::SettingsChange(interface_change)) => {
-                events.push(Event::SettingsChange(interface_change.into()));
-            },
-            None => {},
+            match event {
+                minimap::Event::SettingsChange(interface_change) => {
+                    events.push(Event::SettingsChange(interface_change.into()));
+                },
+            }
         }
 
         if let Some(prompt_dialog_settings) = &self.show.prompt_dialog {
@@ -3094,6 +3095,28 @@ impl Hud {
             }
         }
 
+        fn handle_map_zoom(
+            factor: f64,
+            world_size: Vec2<u32>,
+            show: &Show,
+            global_state: &mut GlobalState,
+        ) -> bool {
+            let max_zoom = world_size.reduce_partial_max() as f64;
+
+            if show.map {
+                let new_zoom_lvl = (global_state.settings.interface.map_zoom * factor)
+                    .clamped(1.25, max_zoom / 64.0);
+
+                global_state.settings.interface.map_zoom = new_zoom_lvl;
+            } else if global_state.settings.interface.minimap_show {
+                let new_zoom_lvl = global_state.settings.interface.minimap_zoom * factor;
+
+                global_state.settings.interface.minimap_zoom = new_zoom_lvl;
+            }
+
+            show.map && global_state.settings.interface.minimap_show
+        }
+
         let cursor_grabbed = global_state.window.is_cursor_grabbed();
         let handled = match event {
             WinEvent::Ui(event) => {
@@ -3219,6 +3242,12 @@ impl Hud {
                     GameInput::ToggleIngameUi if state => {
                         self.show.ingame = !self.show.ingame;
                         true
+                    },
+                    GameInput::MapZoomIn if state => {
+                        handle_map_zoom(2.0, self.world_map.1, &self.show, global_state)
+                    },
+                    GameInput::MapZoomOut if state => {
+                        handle_map_zoom(0.5, self.world_map.1, &self.show, global_state)
                     },
                     // Skillbar
                     input => {

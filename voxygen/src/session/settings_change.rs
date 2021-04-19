@@ -99,6 +99,7 @@ pub enum Interface {
     //Minimap
     MinimapShow(bool),
     MinimapFaceNorth(bool),
+    MinimapZoom(f64),
     //Map settings
     MapZoom(f64),
     MapDrag(Vec2<f64>),
@@ -412,6 +413,9 @@ impl SettingsChange {
                     },
                     Interface::MinimapFaceNorth(state) => {
                         settings.interface.minimap_face_north = state;
+                    },
+                    Interface::MinimapZoom(minimap_zoom) => {
+                        settings.interface.minimap_zoom = minimap_zoom;
                     },
                     Interface::MapZoom(map_zoom) => {
                         settings.interface.map_zoom = map_zoom;
