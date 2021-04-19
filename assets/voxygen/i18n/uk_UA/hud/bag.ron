@@ -26,6 +26,11 @@
         "hud.bag.offhand": "Другорядна рука",
         "hud.bag.bag": "Сумка",
 
+        // Inventory actions
+        "hud.bag.sort_by_name": "Сортувати за Назвою",
+        "hud.bag.sort_by_quality": "Сортувати за Якістю",
+        "hud.bag.sort_by_category": "Сортувати за Категорією",
+
         // Stats
         "hud.bag.health": "Здоров'я",
         "hud.bag.stamina": "Енергія",
@@ -33,7 +38,7 @@
         "hud.bag.combat_rating_desc": "Розрахований з огляду на ваше\nспорядження і здоров'я",
         "hud.bag.protection": "Захист",
         "hud.bag.protection_desc": "Поглинання ушкоджень через броню",
-        "hud.bag.stun_res": "Врівноваженість",
+        "hud.bag.stun_res": "Баланс",
         "hud.bag.stun_res_desc": "Супротив до приголомшення\nВідновлюється подібно до Енергії",
     },
 
