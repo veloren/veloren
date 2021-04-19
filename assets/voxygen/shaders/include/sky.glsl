@@ -85,7 +85,7 @@ float cloud_scale = view_distance.z / 150.0;
 
 float cloud_tendency_at(vec2 pos) {
     float nz = texture(t_noise, (pos + wind_offset) / 60000.0 / cloud_scale).x - 0.3;
-    nz = pow(clamp(nz, 0, 1), 4);
+    nz = pow(clamp(nz, 0, 1), 3);
     return nz;
 }
 
