@@ -54,12 +54,9 @@ impl Body {
     pub fn mass(&self) -> Mass { Mass((self.hull_vol() + self.balloon_vol()) * self.density().0) }
 }
 
-/// Terrain is 11.0 scale relative to small-scale voxels, and all figures get
-/// multiplied by 0.8 in rendering. For now, have a constant in `comp::Scale`
-/// that compensates for both of these, but there might be a more elegant way
-/// (e.g. using `Scale(0.8)` for everything else and not having a magic number
-/// in figure rendering, and multiplying terrain models by 11.0 in animation).
-pub const AIRSHIP_SCALE: f32 = 11.0 / 0.8;
+/// Terrain is 11.0 scale relative to small-scale voxels,
+/// airship scale is multiplied by 11 to reach terrain scale.
+pub const AIRSHIP_SCALE: f32 = 11.0;
 
 /// Duplicate of some of the things defined in `voxygen::scene::figure::load` to
 /// avoid having to refactor all of that to `common` for using voxels as

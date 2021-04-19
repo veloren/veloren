@@ -5101,8 +5101,7 @@ impl<S: Skeleton> FigureState<S> {
         self.state_time += dt * state_animation_rate;
 
         let mat = {
-            anim::vek::Mat4::from(ori)
-                * anim::vek::Mat4::scaling_3d(anim::vek::Vec3::from(0.8 * scale))
+            anim::vek::Mat4::from(ori) * anim::vek::Mat4::scaling_3d(anim::vek::Vec3::from(scale))
         };
 
         let atlas_offs = model.allocation.rectangle.min;

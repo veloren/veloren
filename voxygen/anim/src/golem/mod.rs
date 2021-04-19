@@ -140,7 +140,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             shoulder: match (body.species, body.body_type) {
                 (StoneGolem, _) => (8.0, -1.5, 4.0),
                 (Treant, _) => (8.0, 4.5, -3.0),
-                (ClayGolem, _) => (8.0, 4.5, 3.0),
+                (ClayGolem, _) => (8.0, 2.0, 3.0),
             },
             hand: match (body.species, body.body_type) {
                 (StoneGolem, _) => (12.5, -1.0, -7.0),
@@ -158,9 +158,9 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (ClayGolem, _) => (3.5, -1.0, -8.5),
             },
             scaler: match (body.species, body.body_type) {
-                (StoneGolem, _) => 1.8,
-                (Treant, _) => 1.8,
-                (ClayGolem, _) => 1.8,
+                (StoneGolem, _) => 1.5,
+                (Treant, _) => 1.5,
+                (ClayGolem, _) => 1.5,
             },
             tempo: match (body.species, body.body_type) {
                 (StoneGolem, _) => 1.0,
