@@ -1419,8 +1419,14 @@ impl Client {
         }
 
         // 4) Tick the client's LocalState
-        self.state
-            .tick(dt, add_local_systems, add_foreign_systems, true);
+        self.state.tick(
+            dt,
+            |dispatch_builder| {
+                add_local_systems(dispatch_builder);
+                add_foreign_systems(dispatch_builder);
+            },
+            true,
+        );
         // TODO: avoid emitting these in the first place
         self.state
             .ecs()

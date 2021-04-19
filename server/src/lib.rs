@@ -517,8 +517,8 @@ impl Server {
         // in sys/terrain.rs
         self.state.tick(
             dt,
-            add_local_systems,
             |dispatcher_builder| {
+                add_local_systems(dispatcher_builder);
                 sys::msg::add_server_systems(dispatcher_builder);
                 sys::add_server_systems(dispatcher_builder);
                 #[cfg(feature = "worldgen")]

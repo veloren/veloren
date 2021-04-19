@@ -508,8 +508,7 @@ impl State {
     pub fn tick(
         &mut self,
         dt: Duration,
-        add_local_systems: impl Fn(&mut DispatcherBuilder),
-        add_foreign_systems: impl Fn(&mut DispatcherBuilder),
+        add_systems: impl Fn(&mut DispatcherBuilder),
         update_terrain_and_regions: bool,
     ) {
         span!(_guard, "tick", "State::tick");
@@ -532,8 +531,7 @@ impl State {
         let mut dispatch_builder =
             DispatcherBuilder::new().with_pool(Arc::clone(&self.thread_pool));
         // TODO: Consider alternative ways to do this
-        add_local_systems(&mut dispatch_builder);
-        add_foreign_systems(&mut dispatch_builder);
+        add_systems(&mut dispatch_builder);
         // This dispatches all the systems in parallel.
         let mut dispatcher = dispatch_builder.build();
         drop(guard);
