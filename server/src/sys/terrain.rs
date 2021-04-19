@@ -276,13 +276,15 @@ pub fn chunk_in_vd(
     terrain: &TerrainGrid,
     vd: u32,
 ) -> bool {
+    const MINIMUM_UNLOAD_DIST: u32 = 4;
+
     let player_chunk_pos = terrain.pos_key(player_pos.map(|e| e as i32));
 
     let adjusted_dist_sqr = (player_chunk_pos - chunk_pos)
         .map(|e: i32| (e.abs() as u32).saturating_sub(2))
         .magnitude_squared();
 
-    adjusted_dist_sqr <= vd.pow(2)
+    adjusted_dist_sqr <= vd.max(MINIMUM_UNLOAD_DIST).pow(2)
 }
 
 fn is_spawn_chunk(chunk_pos: Vec2<i32>, spawn_pos: SpawnPoint, terrain: &TerrainGrid) -> bool {
