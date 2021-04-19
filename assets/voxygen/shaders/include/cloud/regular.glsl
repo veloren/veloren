@@ -53,8 +53,13 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission) {
         const float turb_speed = -1.0; // Turbulence goes the opposite way
         vec3 turb_offset = vec3(1, 1, 0) * time_of_day.x * turb_speed;
         mist *= 0.5
+        #if (CLOUD_MODE >= CLOUD_MODE_LOW)
             + 4 * (noise_2d(wind_pos.xy / 20000) - 0.5)
-            + 1 * (noise_3d(wind_pos / 1000) - 0.5);
+        #endif
+        #if (CLOUD_MODE >= CLOUD_MODE_MEDIUM)
+            + 1 * (noise_3d(wind_pos / 1000) - 0.5)
+        #endif
+        ;
 
         float CLOUD_DEPTH = (view_distance.w - view_distance.z) * 0.8;
         const float CLOUD_DENSITY = 5.0;
@@ -76,7 +81,7 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission) {
             + 0.5 * (noise_3d(wind_pos / 150.0 / cloud_scale) - 0.5)
         #endif
         ) * 0.01;
-        cloud = pow(cloud, 3) * sign(cloud);
+        cloud = pow(max(cloud, 0), 3) * sign(cloud);
         cloud *= CLOUD_DENSITY * (cloud_tendency * 100) * falloff(abs(pos.z - cloud_alt) / CLOUD_DEPTH);
 
         // What proportion of sunlight is *not* being blocked by nearby cloud? (approximation)
