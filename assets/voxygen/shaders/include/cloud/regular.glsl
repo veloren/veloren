@@ -131,7 +131,7 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission) {
         #if (CLOUD_MODE >= CLOUD_MODE_MEDIUM)
             emission_alt += (noise_3d(vec3(wind_pos.xy * 0.0005 + cloud_tendency * 0.2, emission_alt * 0.0001 + time_of_day.x * 0.001)) - 0.5) * 1000;
         #endif
-        float tail = (texture(t_noise, wind_pos.xy * 0.000025).x - 0.5) * 5 + (pos.z - emission_alt) * 0.0001;
+        float tail = (texture(t_noise, wind_pos.xy * 0.00005).x - 0.5) * 4 + (pos.z - emission_alt) * 0.0001;
         vec3 emission_col = vec3(0.8 + tail * 1.5, 0.5 - tail * 0.2, 0.3 + tail * 0.2);
         float emission_nz = max(pow(texture(t_noise, wind_pos.xy * 0.000015).x, 8), 0.01) * 0.25 / (10.0 + abs(pos.z - emission_alt) / 80);
         emission = emission_col * emission_nz * emission_strength * max(sun_dir.z, 0) * 500000 / (1000.0 + abs(pos.z - emission_alt) * 0.1);
@@ -188,7 +188,7 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of
         /*     (texture(t_noise, vec2(atan2(dir.x, dir.y) * 2 / PI, dir.z) * 1.0 - time_of_day * 0.00005).x - 0.5) * 0.2 / (1.0 + pow(dir.z, 2) * 10), */
         /*     (texture(t_noise, vec2(atan2(dir.x, dir.y) * 2 / PI, dir.z) * 1.0 - time_of_day * 0.00005).x - 0.5) * 0.2 / (1.0 + pow(dir.z, 2) * 10) */
         /* ) * 1500; */
-        splay += (texture(t_noise, vec2(atan2(dir.x, dir.y) * 2 / PI, dir.z) * 5.0 - time_of_day * 0.00005).x - 0.5) * 0.075 / (1.0 + pow(dir.z, 2) * 10);
+        splay += (texture(t_noise, vec2(atan2(dir.x, dir.y) * 2 / PI, dir.z) * 5.0 - time_of_day * 0.00005).x - 0.5) * 0.025 / (1.0 + pow(dir.z, 2) * 10);
     #endif
 
     /* const float RAYLEIGH = 0.25; */
@@ -199,6 +199,7 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of
     float moon_scatter = dot(-dir, moon_dir.xyz) * 0.5 + 0.7;
     float net_light = get_sun_brightness() + get_moon_brightness();
     vec3 sky_color = RAYLEIGH * net_light;
+    vec3 sky_light = get_sky_light(dir, time_of_day, false);
 
     float cdist = max_dist;
     float ldist = cdist;
@@ -222,8 +223,9 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of
             // Attenuate light passing through the clouds
             surf_color * (1.0 - cloud_scatter_factor - global_scatter_factor) +
             // Add the directed light light scattered into the camera by the clouds and the atmosphere (global illumination)
-            get_sun_color() * sun_scatter * get_sun_brightness() * (sun_access * cloud_scatter_factor + sky_color * global_scatter_factor) +
-            get_moon_color() * moon_scatter * get_moon_brightness() * (moon_access * cloud_scatter_factor + sky_color * global_scatter_factor) +
+            get_sun_color() * sun_scatter * get_sun_brightness() * (sun_access * cloud_scatter_factor /*+ sky_color * global_scatter_factor*/) +
+            get_moon_color() * moon_scatter * get_moon_brightness() * (moon_access * cloud_scatter_factor /*+ sky_color * global_scatter_factor*/) +
+            sky_light * global_scatter_factor +
             emission * density_integrals.y;
     }
 

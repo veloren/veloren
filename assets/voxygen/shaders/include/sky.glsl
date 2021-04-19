@@ -19,13 +19,13 @@ const vec3 SKY_DAY_TOP = vec3(0.1, 0.5, 0.9);
 const vec3 SKY_DAY_MID = vec3(0.02, 0.28, 0.8);
 const vec3 SKY_DAY_BOT = vec3(0.1, 0.2, 0.3);
 const vec3 DAY_LIGHT   = vec3(3.8, 3.0, 1.8);
-const vec3 SUN_HALO_DAY = vec3(0.8, 0.8, 0.001);
+const vec3 SUN_HALO_DAY = vec3(0.25, 0.25, 0.001);
 
 const vec3 SKY_DUSK_TOP = vec3(0.06, 0.1, 0.20);
-const vec3 SKY_DUSK_MID = vec3(0.35, 0.1, 0.15);
+const vec3 SKY_DUSK_MID = vec3(0.75, 0.1, 0.15);
 const vec3 SKY_DUSK_BOT = vec3(0.0, 0.1, 0.23);
 const vec3 DUSK_LIGHT   = vec3(8.0, 1.5, 0.15);
-const vec3 SUN_HALO_DUSK = vec3(2.2, 0.5, 0.1);
+const vec3 SUN_HALO_DUSK = vec3(5.2, 1.0, 0.1);
 
 const vec3 SKY_NIGHT_TOP = vec3(0.001, 0.001, 0.0025);
 const vec3 SKY_NIGHT_MID = vec3(0.001, 0.005, 0.02);
@@ -413,6 +413,56 @@ float is_star_at(vec3 dir) {
     return 1.0 / (1.0 + pow(dist * 750, 8));
 }
 
+vec3 get_sky_light(vec3 dir, float time_of_day, bool with_stars) {
+    // Add white dots for stars. Note these flicker and jump due to FXAA
+    float star = 0.0;
+    if (with_stars) {
+        vec3 star_dir = normalize(sun_dir.xyz * dir.z + cross(sun_dir.xyz, vec3(0, 1, 0)) * dir.x + vec3(0, 1, 0) * dir.y);
+        star = is_star_at(star_dir);
+    }
+
+    vec3 sky_top = mix(
+        mix(
+            SKY_DUSK_TOP,
+            SKY_NIGHT_TOP,
+            max(pow(sun_dir.z, 0.2), 0)
+        ) + star,
+        SKY_DAY_TOP,
+        max(-sun_dir.z, 0)
+    );
+
+    vec3 sky_mid = mix(
+        mix( SKY_DUSK_MID,
+            SKY_NIGHT_MID,
+            max(pow(sun_dir.z, 0.2), 0)
+        ),
+        SKY_DAY_MID,
+        max(-sun_dir.z, 0)
+    );
+
+    vec3 sky_bot = mix(
+        mix(
+            SKY_DUSK_BOT,
+            SKY_NIGHT_BOT,
+            max(pow(sun_dir.z, 0.2), 0)
+        ),
+        SKY_DAY_BOT,
+        max(-sun_dir.z, 0)
+    );
+
+    vec3 sky_color = mix(
+        mix(
+            sky_mid,
+            sky_bot,
+            pow(max(-dir.z, 0), 0.4)
+        ),
+        sky_top,
+        max(dir.z, 0)
+    );
+
+    return sky_color;
+}
+
 vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float quality, bool with_features, float refractionIndex) {
     // Sky color
     /* vec3 sun_dir = get_sun_dir(time_of_day);
@@ -423,20 +473,13 @@ vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float q
     // sun_dir = sun_dir.z <= 0 ? refract(sun_dir/*-view_dir*/, vec3(0.0, 0.0, 1.0), refractionIndex) : sun_dir;
     // moon_dir = moon_dir.z <= 0 ? refract(moon_dir/*-view_dir*/, vec3(0.0, 0.0, 1.0), refractionIndex) : moon_dir;
 
-    // Add white dots for stars. Note these flicker and jump due to FXAA
-    float star = 0.0;
-    if (with_features) {
-        vec3 star_dir = normalize(sun_dir * dir.z + cross(sun_dir, vec3(0, 1, 0)) * dir.x + vec3(0, 1, 0) * dir.y);
-        star = is_star_at(star_dir);
-    }
-
     // Sun
     const vec3 SUN_SURF_COLOR = vec3(1.5, 0.9, 0.35) * 8.0;
 
     vec3 sun_halo_color = mix(
         SUN_HALO_DUSK,
         SUN_HALO_DAY,
-        max(-sun_dir.z, 0.0)
+        pow(max(-sun_dir.z, 0.0), 0.5)
     );
 
     vec3 sun_halo = sun_halo_color * 4 * pow(max(dot(dir, -sun_dir), 0), 20.0);
@@ -463,45 +506,10 @@ vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float q
     // Replaced all clamp(sun_dir, 0, 1) with max(sun_dir, 0) because sun_dir is calculated from sin and cos, which are never > 1
 
     #if (CLOUD_MODE == CLOUD_MODE_NONE)
-        vec3 sky_top = mix(
-            mix(
-                SKY_DUSK_TOP + star / (1.0 + moon_surf * 100.0),
-                SKY_NIGHT_TOP + star / (1.0 + moon_surf * 100.0),
-                max(pow(sun_dir.z, 0.2), 0)
-            ),
-            SKY_DAY_TOP,
-            max(-sun_dir.z, 0)
-        );
-
-        vec3 sky_mid = mix(
-            mix( SKY_DUSK_MID,
-                SKY_NIGHT_MID,
-                max(pow(sun_dir.z, 0.2), 0)
-            ),
-            SKY_DAY_MID,
-            max(-sun_dir.z, 0)
-        );
-
-        vec3 sky_bot = mix(
-            mix(
-                SKY_DUSK_BOT,
-                SKY_NIGHT_BOT,
-                max(pow(sun_dir.z, 0.2), 0)
-            ),
-            SKY_DAY_BOT,
-            max(-sun_dir.z, 0)
-        );
-
-        vec3 sky_color = mix(
-            mix(
-                sky_mid,
-                sky_bot,
-                pow(max(-dir.z, 0), 0.4)
-            ),
-            sky_top,
-            max(dir.z, 0)
-        );
+        vec3 sky_color = get_sky_light(dir, time_of_day, true);
     #else
+        vec3 star_dir = normalize(sun_dir.xyz * dir.z + cross(sun_dir.xyz, vec3(0, 1, 0)) * dir.x + vec3(0, 1, 0) * dir.y);
+        float star = is_star_at(star_dir);
         vec3 sky_color = vec3(0) + star;
     #endif
 

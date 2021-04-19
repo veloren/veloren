@@ -65,8 +65,8 @@ float wave_height(vec3 pos) {
 
     pos *= 0.5;
     vec3 big_warp = (
-        texture(t_waves, fract(pos.xy * 0.03 + timer * 0.01)).xyz * 0.5 +
-        texture(t_waves, fract(pos.yx * 0.03 - timer * 0.01)).xyz * 0.5 +
+        texture(t_noise, fract(pos.xy * 0.03 + timer * 0.01)).xyz * 0.5 +
+        texture(t_noise, fract(pos.yx * 0.03 - timer * 0.01)).xyz * 0.5 +
         vec3(0)
     );
 
@@ -79,8 +79,8 @@ float wave_height(vec3 pos) {
     float height = (
         (texture(t_noise, (pos.xy + pos.z) * 0.03 + big_warp.xy + timer * 0.05).y - 0.5) * 1.0 +
         (texture(t_noise, (pos.yx + pos.z) * 0.03 + big_warp.yx - timer * 0.05).y - 0.5) * 1.0 +
-        (texture(t_waves, (pos.xy + pos.z) * 0.1 + warp.xy + timer * 0.1).x - 0.5) * 0.5 +
-        (texture(t_waves, (pos.yx + pos.z) * 0.1 + warp.yx - timer * 0.1).x - 0.5) * 0.5 +
+        (texture(t_noise, (pos.xy + pos.z) * 0.1 + warp.xy + timer * 0.1).x - 0.5) * 0.5 +
+        (texture(t_noise, (pos.yx + pos.z) * 0.1 + warp.yx - timer * 0.1).x - 0.5) * 0.5 +
         (texture(t_noise, (pos.yx + pos.z) * 0.3 + warp.xy * 0.5 + timer * 0.1).x - 0.5) * 0.2 +
         (texture(t_noise, (pos.xy + pos.z) * 0.3 + warp.yx * 0.5 - timer * 0.1).x - 0.5) * 0.2 +
         (texture(t_noise, (pos.yx + pos.z) * 1.0 + warp.yx * 0.0 - timer * 0.1).x - 0.5) * 0.05 +
