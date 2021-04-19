@@ -574,7 +574,9 @@ impl LoadoutBuilder {
                         .flatten()
                         .copied()
                         .unwrap_or_default()
-                        .round() as u32;
+                        .round()
+                        .min(rand::thread_rng().gen_range(1000.0..3000.0))
+                        as u32;
                     let armor = economy
                         .map(|e| e.unconsumed_stock.get(&Good::Armor))
                         .flatten()
