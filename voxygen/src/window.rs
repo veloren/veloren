@@ -76,6 +76,8 @@ pub enum GameInput {
     Select,
     AcceptGroupInvite,
     DeclineGroupInvite,
+    MapZoomIn,
+    MapZoomOut,
 }
 
 impl GameInput {
@@ -138,6 +140,8 @@ impl GameInput {
             GameInput::Select => "gameinput.select",
             GameInput::AcceptGroupInvite => "gameinput.acceptgroupinvite",
             GameInput::DeclineGroupInvite => "gameinput.declinegroupinvite",
+            GameInput::MapZoomIn => "gameinput.mapzoomin",
+            GameInput::MapZoomOut => "gameinput.mapzoomout",
         }
     }
 
@@ -200,6 +204,8 @@ impl GameInput {
             GameInput::Select,
             GameInput::AcceptGroupInvite,
             GameInput::DeclineGroupInvite,
+            GameInput::MapZoomIn,
+            GameInput::MapZoomOut,
         ]
         .iter()
         .copied()

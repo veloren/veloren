@@ -3094,6 +3094,21 @@ impl Hud {
             }
         }
 
+        fn handle_map_zoom(
+            change: f64,
+            world_size: Vec2<u32>,
+            global_state: &mut GlobalState,
+        ) -> bool {
+            let max_zoom = world_size.reduce_partial_max() as f64;
+
+            let new_zoom_lvl =
+                (global_state.settings.interface.map_zoom + change).clamped(1.25, max_zoom / 64.0);
+
+            global_state.settings.interface.map_zoom = new_zoom_lvl;
+
+            true
+        }
+
         let cursor_grabbed = global_state.window.is_cursor_grabbed();
         let handled = match event {
             WinEvent::Ui(event) => {
@@ -3219,6 +3234,12 @@ impl Hud {
                     GameInput::ToggleIngameUi if state => {
                         self.show.ingame = !self.show.ingame;
                         true
+                    },
+                    GameInput::MapZoomIn if state && self.show.map => {
+                        handle_map_zoom(1.0, self.world_map.1, global_state)
+                    },
+                    GameInput::MapZoomOut if state && self.show.map => {
+                        handle_map_zoom(-1.0, self.world_map.1, global_state)
                     },
                     // Skillbar
                     input => {

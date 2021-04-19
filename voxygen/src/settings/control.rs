@@ -166,6 +166,8 @@ impl ControlSettings {
             GameInput::Select => KeyMouse::Key(VirtualKeyCode::Y),
             GameInput::AcceptGroupInvite => KeyMouse::Key(VirtualKeyCode::U),
             GameInput::DeclineGroupInvite => KeyMouse::Key(VirtualKeyCode::I),
+            GameInput::MapZoomIn => KeyMouse::Key(VirtualKeyCode::Plus),
+            GameInput::MapZoomOut => KeyMouse::Key(VirtualKeyCode::Minus),
         }
     }
 }
