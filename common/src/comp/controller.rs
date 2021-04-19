@@ -21,7 +21,7 @@ pub enum InventoryEvent {
     Swap(InvSlotId, InvSlotId),
     SplitSwap(InvSlotId, InvSlotId),
     Drop(InvSlotId),
-    SplitDrop(InvSlotId),    
+    SplitDrop(InvSlotId),
     Sort,
     CraftRecipe {
         recipe: String,
@@ -45,7 +45,7 @@ pub enum InventoryManip {
     Swap(Slot, Slot),
     SplitSwap(Slot, Slot),
     Drop(Slot),
-    SplitDrop(Slot),    
+    SplitDrop(Slot),
     Sort,
     CraftRecipe {
         recipe: String,

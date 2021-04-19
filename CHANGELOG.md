@@ -36,7 +36,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Players can now opt-in to server-authoritiative physics in gameplay settings.
 - Added `/server_physics` admin command.
 - Sort inventory button
-- Option to change the master volume when window is unfocused 
+- Option to change the master volume when window is unfocused
+- Crafting stations in towns
 
 
 ### Changed

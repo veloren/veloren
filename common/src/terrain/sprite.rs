@@ -193,7 +193,7 @@ impl SpriteKind {
             SpriteKind::Forge => 2.7,
             SpriteKind::Cauldron => 1.27,
             SpriteKind::Anvil => 1.1,
-            SpriteKind::CookingPot => 1.82,
+            SpriteKind::CookingPot => 1.36,
             // TODO: Find suitable heights.
             SpriteKind::BarrelCactus
             | SpriteKind::RoundCactus
