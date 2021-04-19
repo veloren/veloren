@@ -165,18 +165,24 @@ pub enum AmbientChannelTag {
 /// which are always heard at the camera's position.
 pub struct AmbientChannel {
     tag: AmbientChannelTag,
+    multiplier: f32,
     sink: Sink,
 }
 
 impl AmbientChannel {
-    pub fn new(stream: &OutputStreamHandle, tag: AmbientChannelTag) -> Self {
+    pub fn new(stream: &OutputStreamHandle, tag: AmbientChannelTag, multiplier: f32) -> Self {
         let new_sink = Sink::try_new(stream);
         match new_sink {
-            Ok(sink) => Self { tag, sink },
+            Ok(sink) => Self {
+                tag,
+                multiplier,
+                sink,
+            },
             Err(_) => {
                 warn!("Failed to create rodio sink. May not play wind sounds.");
                 Self {
                     tag,
+                    multiplier,
                     sink: Sink::new_idle().0,
                 }
             },
@@ -195,7 +201,9 @@ impl AmbientChannel {
 
     pub fn stop(&mut self) { self.sink.stop(); }
 
-    pub fn set_volume(&mut self, volume: f32) { self.sink.set_volume(volume); }
+    pub fn set_volume(&mut self, volume: f32) { self.sink.set_volume(volume * self.multiplier); }
+
+    pub fn set_multiplier(&mut self, multiplier: f32) { self.multiplier = multiplier; }
 
     pub fn get_volume(&mut self) -> f32 { self.sink.volume() }
 

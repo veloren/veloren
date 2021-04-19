@@ -94,6 +94,8 @@
         "hud.settings.reset_graphics": "Reset to Defaults",
 
 
+        "hud.settings.master_volume": "Master Volume",
+        "hud.settings.inactive_master_volume": "Master Volume (inactive window)",
         "hud.settings.music_volume": "Music Volume",
         "hud.settings.sound_effect_volume": "Sound Effects Volume",
         "hud.settings.audio_device": "Audio Device",

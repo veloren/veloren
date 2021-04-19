@@ -19,6 +19,8 @@ use vek::*;
 
 #[derive(Clone)]
 pub enum Audio {
+    AdjustMasterVolume(f32),
+    AdjustInactiveMasterVolume(f32),
     AdjustMusicVolume(f32),
     AdjustSfxVolume(f32),
     //ChangeAudioDevice(String),
@@ -154,6 +156,14 @@ impl SettingsChange {
         match self {
             SettingsChange::Audio(audio_change) => {
                 match audio_change {
+                    Audio::AdjustMasterVolume(master_volume) => {
+                        global_state.audio.set_master_volume(master_volume);
+
+                        settings.audio.master_volume = master_volume;
+                    },
+                    Audio::AdjustInactiveMasterVolume(inactive_master_volume) => {
+                        settings.audio.inactive_master_volume = inactive_master_volume;
+                    },
                     Audio::AdjustMusicVolume(music_volume) => {
                         global_state.audio.set_music_volume(music_volume);
 

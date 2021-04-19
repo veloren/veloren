@@ -156,6 +156,7 @@ fn main() {
         //    AudioOutput::Device(ref dev) => Some(dev.clone()),
     };
 
+    audio.set_master_volume(settings.audio.master_volume);
     audio.set_music_volume(settings.audio.music_volume);
     audio.set_sfx_volume(settings.audio.sfx_volume);
 

@@ -61,6 +61,15 @@ pub fn run(mut global_state: GlobalState, event_loop: EventLoop) {
             },
             winit::event::Event::WindowEvent { event, .. } => {
                 span!(_guard, "Handle WindowEvent");
+
+                if let winit::event::WindowEvent::Focused(focused) = event {
+                    global_state.audio.set_master_volume(if focused {
+                        global_state.settings.audio.master_volume
+                    } else {
+                        global_state.settings.audio.inactive_master_volume
+                    });
+                }
+
                 global_state
                     .window
                     .handle_window_event(event, &mut global_state.settings)
