@@ -23,7 +23,7 @@ use tracing::trace;
 #[derive(PartialEq)]
 pub enum QuicDataFormatStream {
     Main,
-    Reliable(u64),
+    Reliable(Sid),
     Unreliable,
 }
 
@@ -40,9 +40,9 @@ impl QuicDataFormat {
         }
     }
 
-    fn with_reliable(buffer: &mut BytesMut, id: u64) -> Self {
+    fn with_reliable(buffer: &mut BytesMut, sid: Sid) -> Self {
         Self {
-            stream: QuicDataFormatStream::Reliable(id),
+            stream: QuicDataFormatStream::Reliable(sid),
             data: buffer.split(),
         }
     }
@@ -88,11 +88,17 @@ where
     main_buffer: BytesMut,
     unreliable_buffer: BytesMut,
     reliable_buffers: SortedVec<Sid, BytesMut>,
-    pending_reliable_buffers: Vec<(u64, BytesMut)>,
+    pending_reliable_buffers: Vec<(Sid, BytesMut)>,
     itmsg_allocator: BytesMut,
     incoming: HashMap<Mid, ITMessage>,
     sink: S,
     metrics: ProtocolMetricCache,
+}
+
+fn is_reliable(p: &Promises) -> bool {
+    p.contains(Promises::ORDERED)
+        || p.contains(Promises::CONSISTENCY)
+        || p.contains(Promises::GUARANTEED_DELIVERY)
 }
 
 impl<D> QuicSendProtocol<D>
@@ -148,8 +154,8 @@ where
             QuicDataFormatStream::Main => &mut self.main_buffer,
             QuicDataFormatStream::Unreliable => &mut self.unreliable_buffer,
             QuicDataFormatStream::Reliable(id) => {
-                match self.reliable_buffers.data.get_mut(id as usize) {
-                    Some((_, buffer)) => buffer,
+                match self.reliable_buffers.get_mut(&id) {
+                    Some(buffer) => buffer,
                     None => {
                         self.pending_reliable_buffers.push((id, BytesMut::new()));
                         //Violated but will never happen
@@ -186,10 +192,7 @@ where
             } => {
                 self.store
                     .open_stream(sid, prio, promises, guaranteed_bandwidth);
-                if promises.contains(Promises::ORDERED)
-                    || promises.contains(Promises::CONSISTENCY)
-                    || promises.contains(Promises::GUARANTEED_DELIVERY)
-                {
+                if is_reliable(&promises) {
                     self.reliable_buffers.insert(sid, BytesMut::new());
                 }
             },
@@ -216,11 +219,10 @@ where
             } => {
                 self.store
                     .open_stream(sid, prio, promises, guaranteed_bandwidth);
-                if promises.contains(Promises::ORDERED)
-                    || promises.contains(Promises::CONSISTENCY)
-                    || promises.contains(Promises::GUARANTEED_DELIVERY)
-                {
+                if is_reliable(&promises) {
                     self.reliable_buffers.insert(sid, BytesMut::new());
+                    //Send a empty message to notify local drain of stream
+                    self.drain.send(QuicDataFormat::with_reliable(&mut BytesMut::new(), sid)).await?;
                 }
                 event.to_frame().write_bytes(&mut self.main_buffer);
                 self.drain
@@ -284,10 +286,10 @@ where
                 },
             }
         }
-        for (id, (_, buffer)) in self.reliable_buffers.data.iter_mut().enumerate() {
+        for (sid, buffer) in self.reliable_buffers.data.iter_mut() {
             if !buffer.is_empty() {
                 self.drain
-                    .send(QuicDataFormat::with_reliable(buffer, id as u64))
+                    .send(QuicDataFormat::with_reliable(buffer, *sid))
                     .await?;
             }
         }
@@ -354,10 +356,7 @@ where
                             promises,
                             guaranteed_bandwidth,
                         } => {
-                            if promises.contains(Promises::ORDERED)
-                                || promises.contains(Promises::CONSISTENCY)
-                                || promises.contains(Promises::GUARANTEED_DELIVERY)
-                            {
+                            if is_reliable(&promises) {
                                 self.reliable_buffers.insert(sid, BytesMut::new());
                             }
                             break 'outer Ok(ProtocolEvent::OpenStream {
@@ -808,7 +807,7 @@ mod tests {
             length: (DATA1.len() + DATA2.len()) as u64,
         }
         .write_bytes(&mut bytes);
-        s.send(QuicDataFormat::with_reliable(&mut bytes, 0))
+        s.send(QuicDataFormat::with_reliable(&mut bytes, sid))
             .await
             .unwrap();
 
@@ -822,7 +821,7 @@ mod tests {
             data: Bytes::from(&DATA2[..]),
         }
         .write_bytes(&mut bytes);
-        s.send(QuicDataFormat::with_reliable(&mut bytes, 0))
+        s.send(QuicDataFormat::with_reliable(&mut bytes, sid))
             .await
             .unwrap();
 

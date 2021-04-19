@@ -118,6 +118,8 @@ impl Pid {
 impl Sid {
     pub const fn new(internal: u64) -> Self { Self { internal } }
 
+    pub fn get_u64(&self) -> u64 { self.internal }
+
     #[inline]
     pub(crate) fn from_bytes(bytes: &mut BytesMut) -> Self {
         Self {
