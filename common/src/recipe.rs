@@ -4,6 +4,7 @@ use crate::{
         item::{modular, ItemDef, ItemTag, MaterialStatManifest},
         Inventory, Item,
     },
+    terrain::SpriteKind,
 };
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
@@ -19,6 +20,7 @@ pub enum RecipeInput {
 pub struct Recipe {
     pub output: (Arc<ItemDef>, u32),
     pub inputs: Vec<(RecipeInput, u32)>,
+    pub craft_sprite: Option<SpriteKind>,
 }
 
 #[allow(clippy::type_complexity)]
@@ -87,11 +89,16 @@ pub enum RawRecipeInput {
 }
 
 #[derive(Clone, Deserialize)]
+pub(crate) struct RawRecipe {
+    pub(crate) output: (String, u32),
+    pub(crate) inputs: Vec<(RawRecipeInput, u32)>,
+    #[serde(default)]
+    pub(crate) craft_sprite: Option<SpriteKind>,
+}
+
+#[derive(Clone, Deserialize)]
 #[serde(transparent)]
-#[allow(clippy::type_complexity)]
-pub(crate) struct RawRecipeBook(
-    pub(crate) HashMap<String, ((String, u32), Vec<(RawRecipeInput, u32)>)>,
-);
+pub(crate) struct RawRecipeBook(pub(crate) HashMap<String, RawRecipe>);
 
 impl assets::Asset for RawRecipeBook {
     type Loader = assets::RonLoader;
@@ -134,14 +141,27 @@ impl assets::Compound for RecipeBook {
         let recipes = raw
             .0
             .iter()
-            .map(|(name, (output, inputs))| {
-                let inputs = inputs
-                    .iter()
-                    .map(load_recipe_input)
-                    .collect::<Result<_, _>>()?;
-                let output = load_item_def(output)?;
-                Ok((name.clone(), Recipe { output, inputs }))
-            })
+            .map(
+                |(
+                    name,
+                    RawRecipe {
+                        output,
+                        inputs,
+                        craft_sprite,
+                    },
+                )| {
+                    let inputs = inputs
+                        .iter()
+                        .map(load_recipe_input)
+                        .collect::<Result<Vec<_>, _>>()?;
+                    let output = load_item_def(output)?;
+                    Ok((name.clone(), Recipe {
+                        output,
+                        inputs,
+                        craft_sprite: *craft_sprite,
+                    }))
+                },
+            )
             .collect::<Result<_, assets::Error>>()?;
 
         Ok(RecipeBook { recipes })

@@ -268,9 +268,6 @@ void main() {
     vec3 glow = glow_light(f_pos) * (pow(f_glow, 6) * 5 + pow(f_glow, 1.5) * 2);
     reflected_light += glow;
 
-    float f_select = (select_pos.w > 0 && select_pos.xyz == floor(f_pos - f_norm * 0.5)) ? 0.2 / PERSISTENT_AMBIANCE : 0.0;
-    reflected_light += f_select;
-
     max_light += lights_at(f_pos, f_norm, view_dir, mu, cam_attenuation, fluid_alt, k_a, k_d, k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
 
     // float f_ao = 1.0;
@@ -370,6 +367,9 @@ void main() {
     // vec3 col = /*srgb_to_linear*/(f_col + noise); // Small-scale noise
     // vec3 col = /*srgb_to_linear*/(f_col + hash(vec4(floor(f_pos * 3.0 - f_norm * 0.5), 0)) * 0.01); // Small-scale noise
     vec3 surf_color = illuminate(max_light, view_dir, col * emitted_light, col * reflected_light);
+
+    float f_select = (select_pos.w > 0 && select_pos.xyz == floor(f_pos - f_norm * 0.5)) ? 1.0 : 0.0;
+    surf_color += f_select * (surf_color + 0.1) * vec3(0.5, 0.5, 0.5);
 
     tgt_color = vec4(surf_color, 1.0);
 }

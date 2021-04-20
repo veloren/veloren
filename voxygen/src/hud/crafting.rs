@@ -1,6 +1,6 @@
 use super::{
     img_ids::{Imgs, ImgsRot},
-    item_imgs::{animate_by_pulse, ItemImgs},
+    item_imgs::{animate_by_pulse, ItemImgs, ItemKey::Tool},
     Show, TEXT_COLOR, TEXT_DULL_RED_COLOR, TEXT_GRAY_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
 };
 use crate::{
@@ -20,6 +20,7 @@ use common::{
         Inventory,
     },
     recipe::RecipeInput,
+    terrain::SpriteKind,
 };
 use conrod_core::{
     color, image,
@@ -59,6 +60,9 @@ widget_ids! {
         ingredient_img[],
         req_text[],
         ingredients_txt,
+        req_station_title,
+        req_station_img,
+        req_station_txt,
         output_img_frame,
         output_img,
         output_amount,
@@ -127,7 +131,7 @@ impl<'a> Crafting<'a> {
     }
 }
 
-#[derive(Debug, EnumIter, PartialEq)]
+#[derive(Copy, Clone, Debug, EnumIter, PartialEq)]
 pub enum CraftingTab {
     All,
     Armor,
@@ -434,7 +438,16 @@ impl<'a> Widget for Crafting<'a> {
                                 .unwrap_or(false)
                         })
                 });
-                let state = if self.client.available_recipes().contains(name.as_str()) {
+                let show_craft_sprite =
+                    self.client
+                        .available_recipes()
+                        .get(name.as_str())
+                        .map_or(false, |cs| {
+                            cs.map_or(true, |cs| {
+                                Some(cs) == self.show.craft_sprite.map(|(_, s)| s)
+                            })
+                        });
+                let state = if show_craft_sprite {
                     RecipeIngredientQuantity::All
                 } else if at_least_some_ingredients {
                     RecipeIngredientQuantity::Some
@@ -528,7 +541,12 @@ impl<'a> Widget for Crafting<'a> {
             let can_perform = self
                 .client
                 .available_recipes()
-                .contains(recipe_name.as_str());
+                .get(recipe_name.as_str())
+                .map_or(false, |cs| {
+                    cs.map_or(true, |cs| {
+                        Some(cs) == self.show.craft_sprite.map(|(_, s)| s)
+                    })
+                });
 
             // Craft button
             if Button::image(self.imgs.button)
@@ -642,14 +660,68 @@ impl<'a> Widget for Crafting<'a> {
                     .set(state.ids.tags_ing[i], ui);
                 }
             }
-
-            // Ingredients Text
-            Text::new(&self.localized_strings.get("hud.crafting.ingredients"))
+            // Crafting Station Info
+            if recipe.craft_sprite.is_some() {
+                Text::new(
+                    &self
+                        .localized_strings
+                        .get("hud.crafting.req_crafting_station"),
+                )
                 .top_left_with_margins_on(state.ids.align_ing, 10.0, 5.0)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(18))
                 .color(TEXT_COLOR)
-                .set(state.ids.ingredients_txt, ui);
+                .set(state.ids.req_station_title, ui);
+                let station_img = match recipe.craft_sprite {
+                    Some(SpriteKind::Anvil) => "Anvil",
+                    Some(SpriteKind::Cauldron) => "Cauldron",
+                    Some(SpriteKind::CookingPot) => "CookingPot",
+                    Some(SpriteKind::CraftingBench) => "CraftingBench",
+                    None => "CraftsmanHammer",
+                    _ => "CraftsmanHammer",
+                };
+                Image::new(animate_by_pulse(
+                    &self
+                        .item_imgs
+                        .img_ids_or_not_found_img(Tool(station_img.to_string())),
+                    self.pulse,
+                ))
+                .w_h(25.0, 25.0)
+                .down_from(state.ids.req_station_title, 10.0)
+                .parent(state.ids.align_ing)
+                .set(state.ids.req_station_img, ui);
+
+                let station_name = match recipe.craft_sprite {
+                    Some(SpriteKind::Anvil) => "hud.crafting.anvil",
+                    Some(SpriteKind::Cauldron) => "hud.crafting.cauldron",
+                    Some(SpriteKind::CookingPot) => "hud.crafting.cooking_pot",
+                    Some(SpriteKind::CraftingBench) => "hud.crafting.crafting_bench",
+                    _ => "",
+                };
+                Text::new(&self.localized_strings.get(station_name))
+                    .right_from(state.ids.req_station_img, 10.0)
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .font_size(self.fonts.cyri.scale(14))
+                    .color(
+                        if self.show.craft_sprite.map(|(_, s)| s) == recipe.craft_sprite {
+                            TEXT_COLOR
+                        } else {
+                            TEXT_DULL_RED_COLOR
+                        },
+                    )
+                    .set(state.ids.req_station_txt, ui);
+            }
+            // Ingredients Text
+            let mut ing_txt = Text::new(&self.localized_strings.get("hud.crafting.ingredients"))
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(18))
+                .color(TEXT_COLOR);
+            if recipe.craft_sprite.is_some() {
+                ing_txt = ing_txt.down_from(state.ids.req_station_img, 10.0);
+            } else {
+                ing_txt = ing_txt.top_left_with_margins_on(state.ids.align_ing, 10.0, 5.0);
+            };
+            ing_txt.set(state.ids.ingredients_txt, ui);
 
             // Ingredient images with tooltip
             if state.ids.ingredient_frame.len() < recipe.inputs().len() {
@@ -684,6 +756,7 @@ impl<'a> Widget for Crafting<'a> {
                         .resize(recipe.inputs().len(), &mut ui.widget_id_generator())
                 });
             };
+
             // Widget generation for every ingredient
             for (i, (recipe_input, amount)) in recipe.inputs.iter().enumerate() {
                 let item_def = match recipe_input {

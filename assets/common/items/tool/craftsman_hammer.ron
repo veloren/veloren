@@ -1,0 +1,18 @@
+ItemDef(
+    name: "Craftsman Hammer",
+    description: "Used to craft various items.",
+    kind: Tool((
+        kind: Hammer,
+        hands: One,
+        stats: Direct((
+            equip_time_secs: 0.25,
+            power: 0.2,
+            poise_strength: 0.25,
+            speed: 1.5,
+            crit_chance: 0.0,
+            crit_mult: 0.0,
+        )),
+    )),
+    quality: Common,
+    tags: [CraftingTool],
+)

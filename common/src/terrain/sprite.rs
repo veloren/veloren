@@ -143,6 +143,11 @@ make_case_elim!(
         RedAlgae = 0x74,
         UnderwaterVent = 0x75,
         Lantern = 0x76,
+        CraftingBench = 0x77,
+        Forge = 0x78,
+        Cauldron = 0x79,
+        Anvil = 0x7A,
+        CookingPot = 0x7B,
     }
 );
 
@@ -184,6 +189,11 @@ impl SpriteKind {
             SpriteKind::Mud => 0.36,
             SpriteKind::ChestBuried => 0.91,
             SpriteKind::StonyCoral => 1.4,
+            SpriteKind::CraftingBench => 1.18,
+            SpriteKind::Forge => 2.7,
+            SpriteKind::Cauldron => 1.27,
+            SpriteKind::Anvil => 1.1,
+            SpriteKind::CookingPot => 1.36,
             // TODO: Find suitable heights.
             SpriteKind::BarrelCactus
             | SpriteKind::RoundCactus
@@ -309,6 +319,11 @@ impl SpriteKind {
                 | SpriteKind::VialEmpty
                 | SpriteKind::FireBowlGround
                 | SpriteKind::Lantern
+                | SpriteKind::CraftingBench
+                | SpriteKind::Forge
+                | SpriteKind::Cauldron
+                | SpriteKind::Anvil
+                | SpriteKind::CookingPot
         )
     }
 }

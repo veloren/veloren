@@ -22,6 +22,7 @@ mod social;
 mod trade;
 pub mod util;
 
+pub use crafting::CraftingTab;
 pub use hotbar::{SlotContents as HotbarSlotContents, State as HotbarState};
 pub use item_imgs::animate_by_pulse;
 pub use settings_window::ScaleChange;
@@ -31,7 +32,7 @@ use buffs::BuffsBar;
 use buttons::Buttons;
 use chat::Chat;
 use chrono::NaiveTime;
-use crafting::{Crafting, CraftingTab};
+use crafting::Crafting;
 use diary::{Diary, SelectedSkillTree};
 use esc_menu::EscMenu;
 use group::Group;
@@ -73,8 +74,9 @@ use common::{
         skills::{Skill, SkillGroupKind},
         BuffKind, Item,
     },
+    consts::MAX_PICKUP_RANGE,
     outcome::Outcome,
-    terrain::TerrainChunk,
+    terrain::{SpriteKind, TerrainChunk},
     trade::{ReducedInventory, TradeAction},
     uid::Uid,
     util::srgba_to_linear,
@@ -380,7 +382,10 @@ pub enum Event {
     Logout,
     Quit,
 
-    CraftRecipe(String),
+    CraftRecipe {
+        recipe: String,
+        craft_sprite: Option<(Vec3<i32>, SpriteKind)>,
+    },
     InviteMember(Uid),
     AcceptInvite,
     DeclineInvite,
@@ -492,6 +497,7 @@ pub struct Show {
     skilltreetab: SelectedSkillTree,
     crafting_tab: CraftingTab,
     crafting_search_key: Option<String>,
+    craft_sprite: Option<(Vec3<i32>, SpriteKind)>,
     social_search_key: Option<String>,
     want_grab: bool,
     stats: bool,
@@ -556,6 +562,16 @@ impl Show {
             self.map = false;
             self.want_grab = !open;
         }
+    }
+
+    pub fn open_crafting_tab(
+        &mut self,
+        tab: CraftingTab,
+        craft_sprite: Option<(Vec3<i32>, SpriteKind)>,
+    ) {
+        self.selected_crafting_tab(tab);
+        self.crafting(true);
+        self.craft_sprite = craft_sprite;
     }
 
     fn diary(&mut self, open: bool) {
@@ -734,7 +750,7 @@ pub struct Hud {
     new_messages: VecDeque<comp::ChatMsg>,
     new_notifications: VecDeque<Notification>,
     speech_bubbles: HashMap<Uid, comp::SpeechBubble>,
-    show: Show,
+    pub show: Show,
     //never_show: bool,
     //intro: bool,
     //intro_2: bool,
@@ -840,6 +856,7 @@ impl Hud {
                 skilltreetab: SelectedSkillTree::General,
                 crafting_tab: CraftingTab::All,
                 crafting_search_key: None,
+                craft_sprite: None,
                 social_search_key: None,
                 want_grab: true,
                 ingame: true,
@@ -1363,7 +1380,7 @@ impl Hud {
             }
 
             // Render overtime for an interactable block
-            if let Some(Interactable::Block(block, pos)) = interactable {
+            if let Some(Interactable::Block(block, pos, _)) = interactable {
                 let overitem_id = overitem_walker.next(
                     &mut self.ids.overitems,
                     &mut ui_widgets.widget_id_generator(),
@@ -1394,6 +1411,20 @@ impl Hud {
                         true,
                         &self.fonts,
                     )
+                    .set(overitem_id, ui_widgets);
+                } else if let Some(sprite) = block.get_sprite() {
+                    overitem::Overitem::new(
+                        format!("{:?}", sprite).into(), /* TODO: A better way to generate text
+                                                         * for this */
+                        overitem::TEXT_COLOR,
+                        pos.distance_squared(player_pos),
+                        &self.fonts,
+                        &global_state.settings.controls,
+                        true,
+                        &global_state.window.key_layout,
+                    )
+                    .x_y(0.0, 100.0)
+                    .position_ingame(over_pos)
                     .set(overitem_id, ui_widgets);
                 }
             }
@@ -2420,8 +2451,11 @@ impl Hud {
                 .set(self.ids.crafting_window, ui_widgets)
                 {
                     match event {
-                        crafting::Event::CraftRecipe(r) => {
-                            events.push(Event::CraftRecipe(r));
+                        crafting::Event::CraftRecipe(recipe) => {
+                            events.push(Event::CraftRecipe {
+                                recipe,
+                                craft_sprite: self.show.craft_sprite,
+                            });
                         },
                         crafting::Event::Close => {
                             self.show.stats = false;
@@ -2434,7 +2468,7 @@ impl Hud {
                             };
                         },
                         crafting::Event::ChangeCraftingTab(sel_cat) => {
-                            self.show.selected_crafting_tab(sel_cat);
+                            self.show.open_crafting_tab(sel_cat, None);
                         },
                         crafting::Event::Focus(widget_id) => {
                             self.to_focus = Some(Some(widget_id));
@@ -3328,6 +3362,16 @@ impl Hud {
                 .handle_event(conrod_core::event::Input::Text("\t".to_string()));
         }
 
+        // Stop selecting a sprite to perform crafting with when out of range
+        self.show.craft_sprite = self.show.craft_sprite.filter(|(pos, _)| {
+            self.show.crafting
+                && if let Some(player_pos) = client.position() {
+                    pos.map(|e| e as f32 + 0.5).distance(player_pos) < MAX_PICKUP_RANGE
+                } else {
+                    false
+                }
+        });
+
         // Optimization: skip maintaining UI when it's off.
         if !self.show.ui {
             return std::mem::take(&mut self.events);
@@ -3443,11 +3487,11 @@ fn try_hotbar_slot_from_input(input: GameInput) -> Option<hotbar::Slot> {
 }
 
 pub fn cr_color(combat_rating: f32) -> Color {
-    let common = 4.3;
-    let moderate = 6.0;
-    let high = 8.0;
-    let epic = 10.0;
-    let legendary = 79.0;
+    let common = 2.0;
+    let moderate = 3.5;
+    let high = 6.5;
+    let epic = 8.5;
+    let legendary = 10.4;
     let artifact = 122.0;
     let debug = 200.0;
 

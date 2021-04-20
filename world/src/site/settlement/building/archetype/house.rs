@@ -151,9 +151,9 @@ impl Attr {
     pub fn generate<R: Rng>(rng: &mut R, _locus: i32) -> Self {
         Self {
             central_supports: rng.gen(),
-            storey_fill: match rng.gen_range(0..2) {
-                //0 => StoreyFill::None,
-                0 => StoreyFill::Upper,
+            storey_fill: match rng.gen_range(0..3) {
+                0 => StoreyFill::None,
+                1 => StoreyFill::Upper,
                 _ => StoreyFill::All,
             },
             roof_style: match rng.gen_range(0..3) {
@@ -295,13 +295,12 @@ impl Archetype for House {
         const EMPTY: BlockMask = BlockMask::nothing();
         // TODO: Take environment into account.
         let internal = BlockMask::new(Block::air(SpriteKind::Empty), internal_layer);
+        let end_ori = match ori {
+            Ori::East => 2,
+            Ori::North => 4,
+        };
         let end_window = BlockMask::new(
-            Block::air(attr.window)
-                .with_ori(match ori {
-                    Ori::East => 2,
-                    Ori::North => 0,
-                })
-                .unwrap(),
+            Block::air(attr.window).with_ori(end_ori).unwrap(),
             structural_layer,
         );
         let fire = BlockMask::new(Block::air(SpriteKind::Ember), foundation_layer);
@@ -519,6 +518,32 @@ impl Archetype for House {
                             // Ceiling
                             return floor;
                         }
+                    } else if !attr.storey_fill.has_lower()
+                        && center_offset.sum() % 2 == 0
+                        && profile.y == 1
+                        && center_offset.map(|e| e % 3 == 0).reduce_and()
+                        && self
+                            .noise
+                            .chance(Vec3::new(center_offset.x, center_offset.y, z), 0.2)
+                    {
+                        let furniture = match self.noise.get(Vec3::new(
+                            center_offset.x,
+                            center_offset.y,
+                            z + 100,
+                        )) % 8
+                        {
+                            0..=1 => SpriteKind::Crate,
+                            2 => SpriteKind::Bench,
+                            3 => SpriteKind::Anvil,
+                            4 => SpriteKind::CookingPot,
+                            5 => SpriteKind::CraftingBench,
+                            6 => SpriteKind::FireBowlGround,
+                            7 => SpriteKind::Cauldron,
+                            //8 => SpriteKind::Forge,
+                            _ => unreachable!(),
+                        };
+
+                        return BlockMask::new(Block::air(furniture).with_ori(end_ori).unwrap(), 1);
                     } else if (!attr.storey_fill.has_lower() && profile.y < ceil_height)
                         || (!attr.storey_fill.has_upper() && profile.y >= ceil_height)
                     {
@@ -592,10 +617,12 @@ impl Archetype for House {
                         match self
                             .noise
                             .get(Vec3::new(center_offset.x, center_offset.y, z + 100))
-                            % 4
+                            % 6
                         {
                             0 => SpriteKind::HangingSign,
                             1 | 2 | 3 => SpriteKind::HangingBasket,
+                            4 => SpriteKind::WallSconce,
+                            5 => SpriteKind::WallLampSmall,
                             _ => SpriteKind::DungeonWallDecor,
                         };
 

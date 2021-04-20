@@ -462,7 +462,11 @@
         vox_spec: ("weapon.axe_1h.wood-1", (-1.5, -5.0, -3.0)),
         color: None
     ),
-    // Hammers
+    // Hammers    
+    "common.items.tool.craftsman_hammer": (
+        vox_spec: ("weapon.hammer.craftsman", (-2.5, -5.5, -4.5)),
+        color: None
+    ),
     "common.items.weapons.hammer.hammer_1": (
         vox_spec: ("weapon.hammer.2hhammer_rusty", (-2.5, -5.5, -4.5)),
         color: None

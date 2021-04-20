@@ -576,15 +576,49 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                 .expect("We know entity exists since we got its inventory.");
             drop(inventories);
         },
-        comp::InventoryManip::CraftRecipe(recipe) => {
+        comp::InventoryManip::CraftRecipe {
+            recipe,
+            craft_sprite,
+        } => {
             let recipe_book = default_recipe_book().read();
-            let craft_result = recipe_book.get(&recipe).and_then(|r| {
-                r.perform(
-                    &mut inventory,
-                    &state.ecs().read_resource::<item::MaterialStatManifest>(),
-                )
-                .ok()
-            });
+            let craft_result = recipe_book
+                .get(&recipe)
+                .filter(|r| {
+                    if let Some(needed_sprite) = r.craft_sprite {
+                        let sprite = craft_sprite
+                            .filter(|pos| {
+                                let entity_cylinder = get_cylinder(state, entity);
+                                if !within_pickup_range(entity_cylinder, || {
+                                    Some(find_dist::Cube {
+                                        min: pos.as_(),
+                                        side_length: 1.0,
+                                    })
+                                }) {
+                                    debug!(
+                                        ?entity_cylinder,
+                                        "Failed to craft recipe as not within range of required \
+                                         sprite, sprite pos: {}",
+                                        pos
+                                    );
+                                    false
+                                } else {
+                                    true
+                                }
+                            })
+                            .and_then(|pos| state.terrain().get(pos).ok().copied())
+                            .and_then(|block| block.get_sprite());
+                        Some(needed_sprite) == sprite
+                    } else {
+                        true
+                    }
+                })
+                .and_then(|r| {
+                    r.perform(
+                        &mut inventory,
+                        &state.ecs().read_resource::<item::MaterialStatManifest>(),
+                    )
+                    .ok()
+                });
             drop(inventories);
 
             // FIXME: We should really require the drop and write to be atomic!

@@ -8,7 +8,12 @@
         "hud.crafting.ingredients": "Ingredients:",
         "hud.crafting.craft": "Craft",
         "hud.crafting.tool_cata": "Requires:",
-
+        // Crafting Stations
+        "hud.crafting.req_crafting_station": "Requires:",
+        "hud.crafting.anvil": "Anvil",
+        "hud.crafting.cauldron": "Cauldron",
+        "hud.crafting.cooking_pot": "Cooking Pot",
+        "hud.crafting.crafting_bench": "Crafting Bench",
         // Tabs
         "hud.crafting.tabs.all": "All",
         "hud.crafting.tabs.armor": "Armor",

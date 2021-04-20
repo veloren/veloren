@@ -18,7 +18,7 @@
 
 in vec3 f_pos;
 flat in vec3 f_norm;
-flat in float f_light;
+flat in float f_select;
 // flat in vec3 f_pos_norm;
 in vec2 f_uv_pos;
 in vec2 f_inst_light;
@@ -181,8 +181,10 @@ void main() {
     emitted_light *= ao;
     reflected_light *= ao;
 
-    surf_color = illuminate(max_light, view_dir, surf_color * emitted_light, surf_color * reflected_light) * f_light;
+    surf_color = illuminate(max_light, view_dir, surf_color * emitted_light, surf_color * reflected_light);
     // vec3 surf_color = illuminate(f_col, light, diffuse_light, ambient_light);
+
+    surf_color += f_select * (surf_color + 0.1) * vec3(0.15, 0.15, 0.15);
 
     // tgt_color = vec4(color, 1.0);
     tgt_color = vec4(surf_color, 1.0 - clamp((distance(focus_pos.xy, f_pos.xy) - (sprite_render_distance - FADE_DIST)) / FADE_DIST, 0, 1));

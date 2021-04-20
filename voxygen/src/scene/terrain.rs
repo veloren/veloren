@@ -1,5 +1,5 @@
 mod watcher;
-pub use self::watcher::BlocksOfInterest;
+pub use self::watcher::{BlocksOfInterest, Interaction};
 
 use crate::{
     mesh::{greedy::GreedyMesh, terrain::SUNLIGHT, Meshable},
