@@ -7,6 +7,7 @@ edition = "2018"
 [features]
 tracy = ["common/tracy", "common-net/tracy"]
 simd = ["vek/platform_intrinsics"]
+bin_compression = ["lz-fear", "deflate", "flate2", "common-frontend"]
 
 default = ["simd"]
 
@@ -37,6 +38,12 @@ ron = { version = "0.6", default-features = false }
 assets_manager = {version = "0.4.3", features = ["ron"]}
 #inline_tweak = "1.0.2"
 
+# compression benchmarks
+lz-fear = { version = "0.1.1", optional = true }
+deflate = { version = "0.9.1", optional = true }
+flate2 = { version = "1.0.20", optional = true }
+common-frontend = { package = "veloren-common-frontend", path = "../common/frontend", optional = true }
+
 
 [dev-dependencies]
 criterion = "0.3"
@@ -48,3 +55,7 @@ structopt = "0.3"
 [[bench]]
 harness = false
 name = "tree"
+
+[[bin]]
+name = "chunk_compression_benchmarks"
+required-features = ["bin_compression"]

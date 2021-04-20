@@ -43,6 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Entities now have density
 - Buoyancy is calculated from the difference in density between an entity and surrounding fluid
 - Drag is now calculated based on physical properties
+- Terrain chunks are now deflate-compressed when sent over the network.
 
 ### Changed
 

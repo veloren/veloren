@@ -6,7 +6,7 @@ use common::{
     outcome::Outcome,
     recipe::RecipeBook,
     resources::TimeOfDay,
-    terrain::{Block, TerrainChunk},
+    terrain::{Block, SerializedTerrainChunk},
     trade::{PendingTrade, SitePrices, TradeId, TradeResult},
     uid::Uid,
 };
@@ -106,7 +106,7 @@ pub enum ServerGeneral {
     // Ingame related AND terrain stream
     TerrainChunkUpdate {
         key: Vec2<i32>,
-        chunk: Result<Arc<TerrainChunk>, ()>,
+        chunk: Result<SerializedTerrainChunk, ()>,
     },
     TerrainBlockUpdates(HashMap<Vec3<i32>, Block>),
     // Always possible

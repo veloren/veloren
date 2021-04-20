@@ -1,5 +1,8 @@
 use crate::{client::Client, presence::Presence};
-use common::{comp::Pos, terrain::TerrainGrid};
+use common::{
+    comp::Pos,
+    terrain::{SerializedTerrainChunk, TerrainGrid},
+};
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::ServerGeneral;
 use common_state::TerrainChanges;
@@ -38,8 +41,8 @@ impl<'a> System<'a> for Sys {
                     if lazy_msg.is_none() {
                         lazy_msg = Some(client.prepare(ServerGeneral::TerrainChunkUpdate {
                             key: *chunk_key,
-                            chunk: Ok(match terrain.get_key_arc(*chunk_key) {
-                                Some(chunk) => Arc::clone(chunk),
+                            chunk: Ok(match terrain.get_key(*chunk_key) {
+                                Some(chunk) => SerializedTerrainChunk::from_chunk(&chunk),
                                 None => break 'chunk,
                             }),
                         }));

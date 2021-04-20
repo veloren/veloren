@@ -2,7 +2,7 @@ use crate::{client::Client, metrics::NetworkRequestMetrics, presence::Presence};
 use common::{
     comp::Pos,
     event::{EventBus, ServerEvent},
-    terrain::{TerrainChunkSize, TerrainGrid},
+    terrain::{SerializedTerrainChunk, TerrainChunkSize, TerrainGrid},
     vol::RectVolSize,
 };
 use common_ecs::{Job, Origin, ParMode, Phase, System};
@@ -80,7 +80,7 @@ impl<'a> System<'a> for Sys {
                                         network_metrics.chunks_served_from_memory.inc();
                                         client.send(ServerGeneral::TerrainChunkUpdate {
                                             key,
-                                            chunk: Ok(Arc::clone(chunk)),
+                                            chunk: Ok(SerializedTerrainChunk::from_chunk(&chunk)),
                                         })?
                                     },
                                     None => {
